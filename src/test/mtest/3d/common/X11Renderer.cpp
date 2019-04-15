@@ -56,6 +56,10 @@ namespace mtest
         destroy();
     }
 
+    void X11Renderer::view_changed()
+    {
+    }
+
     status_t X11Renderer::init()
     {
         Window                  root;
@@ -333,10 +337,12 @@ namespace mtest
         {
             fAngleDX    = ((ev.y - nMouseY) * M_PI / 20.0f);
             fAngleDZ    = ((ev.x - nMouseX) * M_PI / 20.0f);
+            view_changed();
         }
         else if (nBMask & 8)
         {
             fDeltaScale = (nMouseY - ev.y) / 200.0f;
+            view_changed();
         }
     }
 

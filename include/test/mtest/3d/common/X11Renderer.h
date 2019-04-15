@@ -70,6 +70,7 @@ namespace mtest
             static bool is_supported(const char *set, const char *ext);
             static void perspectiveGL(double fovY, double aspect, double zNear, double zFar);
             matrix3d_t  *world();
+            virtual void view_changed();
 
         public:
             virtual status_t init();

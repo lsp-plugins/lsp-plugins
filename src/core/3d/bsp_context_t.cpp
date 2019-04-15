@@ -465,6 +465,20 @@ namespace lsp
         dst->dw = - src->dw;
     }
 
+#if defined(LSP_RT_TRACE)
+    void bsp_context_t::trace_recursive(bsp_node_t *node, const color3d_t *color)
+    {
+        if (node == NULL)
+            return;
+        if (node->out != NULL)
+            trace_recursive(node->out, color);
+        for (bsp_triangle_t *st=node->on; st != NULL; st = st->next)
+            trace.add_triangle(st, color);
+        if (node->in != NULL)
+            trace_recursive(node->in, color);
+    }
+#endif /* LSP_RT_TRACE */
+
     status_t bsp_context_t::build_mesh(cstorage<v_vertex3d_t> *dst, const matrix3d_t *world, const vector3d_t *pov)
     {
         if (root == NULL)
@@ -481,11 +495,24 @@ namespace lsp
         v_vertex3d_t *v[3];
         vector3d_t  pl;
 
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Prepare build_mesh");
+            trace.clear_all();
+        );
+
         do
         {
             // Get next task
             if (!queue.pop(&curr))
                 return STATUS_NO_MEM;
+
+//            RT_TRACE_BREAK(debug,
+//                lsp_trace("Current element: in (CYAN), out (MAGENTA), on (YELLOW)");
+//                trace_recursive(curr->in, &C_CYAN);
+//                trace_recursive(curr->out, &C_MAGENTA);
+//                for (bsp_triangle_t *st=curr->on; st != NULL; st = st->next)
+//                    trace.add_triangle(st, &C_YELLOW);
+//            );
 
             if (curr->emit)
             {
@@ -534,29 +561,35 @@ namespace lsp
             }
             else
             {
-                vector3d_t *pl      = &curr->pl;
-                float d = pov->dx*pl->dx + pov->dy*pl->dy + pov->dz*pl->dz;
-                bsp_node_t *first   = (d < 0.0f) ? curr->in : curr->out;
-                bsp_node_t *last    = (d < 0.0f) ? curr->out : curr->in;
+                dsp::apply_matrix3d_mv2(&pl, &curr->pl, world);
+                float d             = pov->dx*pl.dx + pov->dy*pl.dy + pov->dz*pl.dz;
+                bsp_node_t *first   = (d < 0.0f) ? curr->out : curr->in;
+                bsp_node_t *last    = (d < 0.0f) ? curr->in : curr->out;
 
-                if (first != NULL)
+//                RT_TRACE_BREAK(debug,
+//                    lsp_trace("Draw order: first (GREEN), last (BLUE), on (YELLOW)");
+//                    trace_recursive(first, &C_GREEN);
+//                    trace_recursive(last, &C_BLUE);
+//                    for (bsp_triangle_t *st=curr->on; st != NULL; st = st->next)
+//                        trace.add_triangle(st, &C_YELLOW);
+//                );
+
+                if (last != NULL)
                 {
-                    first->emit = false;
-                    if (!(queue.push(first)))
+                    last->emit  = false;
+                    if (!(queue.push(last)))
                         return STATUS_NO_MEM;
                 }
-
                 if (curr->on != NULL)
                 {
                     curr->emit  = true;
                     if (!(queue.push(curr)))
                         return STATUS_NO_MEM;
                 }
-
-                if (last != NULL)
+                if (first != NULL)
                 {
-                    last->emit  = false;
-                    if (!(queue.push(last)))
+                    first->emit = false;
+                    if (!(queue.push(first)))
                         return STATUS_NO_MEM;
                 }
             }

@@ -61,7 +61,7 @@ MTEST_BEGIN("3d", bsp_context)
         public:
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
             {
-                pScene = scene;
+                pScene          = scene;
                 bDrawDebug      = true;
                 nTrace          = BREAKPOINT_STEP;
 
@@ -73,6 +73,11 @@ MTEST_BEGIN("3d", bsp_context)
             }
 
         public:
+            virtual void view_changed()
+            {
+                update_view();
+            }
+
             virtual void on_key_press(const XKeyEvent &ev, KeySym key)
             {
                 switch (key)
@@ -171,9 +176,11 @@ MTEST_BEGIN("3d", bsp_context)
                 {
                     vector3d_t pov;
                     dsp::init_vector_dxyz(&pov, 0.0f, 0.0f, 1.0f);
+                    pView->clear_all();
                     res = ctx.build_mesh(pView->vertexes2(), world(), &pov);
                 }
-                else if (res == STATUS_BREAKPOINT)
+
+                if (res == STATUS_BREAKPOINT)
                 {
                     IF_RT_TRACE_Y(
                         global.trace.swap(&ctx.trace);
@@ -184,14 +191,14 @@ MTEST_BEGIN("3d", bsp_context)
                 else
                     return res;
 
-                point3d_t p0, p1;
-                dsp::init_point_xyz(&p0, 0, 0, 0);
-                dsp::init_point_xyz(&p1, 1, 0, 0);
-                pView->add_segment(&p0, &p1, &C_RED);
-                dsp::init_point_xyz(&p1, 0, 1, 0);
-                pView->add_segment(&p0, &p1, &C_GREEN);
-                dsp::init_point_xyz(&p1, 0, 0, 1);
-                pView->add_segment(&p0, &p1, &C_BLUE);
+//                point3d_t p0, p1;
+//                dsp::init_point_xyz(&p0, 0, 0, 0);
+//                dsp::init_point_xyz(&p1, 1, 0, 0);
+//                pView->add_segment(&p0, &p1, &C_RED);
+//                dsp::init_point_xyz(&p1, 0, 1, 0);
+//                pView->add_segment(&p0, &p1, &C_GREEN);
+//                dsp::init_point_xyz(&p1, 0, 0, 1);
+//                pView->add_segment(&p0, &p1, &C_BLUE);
 
                 if (!bDrawDebug)
                     pView->clear_all();

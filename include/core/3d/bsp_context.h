@@ -49,6 +49,9 @@ namespace lsp
 
         protected:
             status_t split(cvector<bsp_node_t> &queue, bsp_node_t *task);
+            IF_RT_TRACE_Y(
+                void trace_recursive(bsp_node_t *node, const color3d_t *color);
+            )
 
         public:
             void clear();
