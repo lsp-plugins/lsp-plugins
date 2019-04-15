@@ -373,6 +373,30 @@ namespace mtest
         glFrustum( -fW, fW, -fH, fH, zNear, zFar );
     }
 
+    matrix3d_t *X11Renderer::world()
+    {
+        matrix3d_t tmp;
+        dsp::init_matrix3d_identity(&sMatrix);
+
+        dsp::init_matrix3d_translate(&tmp, 0.0f, 0.0f, -6.0f);
+        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+
+        float scale = fScale + fDeltaScale;
+        dsp::init_matrix3d_scale(&tmp, scale, scale, scale);
+        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+
+        dsp::init_matrix3d_rotate_x(&tmp, (fAngleX + fAngleDX)*M_PI/180.0f);
+        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+
+        dsp::init_matrix3d_rotate_y(&tmp, (fAngleY + fAngleDY)*M_PI/180.0f);
+        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+
+        dsp::init_matrix3d_rotate_z(&tmp, (fAngleZ + fAngleDZ)*M_PI/180.0f);
+        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+
+        return &sMatrix;
+    }
+
     void X11Renderer::render(size_t width, size_t height)
     {
         static const float light_pos[] = { 0.0, 0.0, 3.0f };
@@ -391,18 +415,14 @@ namespace mtest
         glLoadIdentity();
         perspectiveGL(90.0f, float(width)/float(height), 0.1f, 100.0f);
 
+        // Clear buffer
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClearDepth(1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Initialize lighting
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-
-        glTranslatef(0.0f, 0.0f, -6.0f);
-
-        float scale = fScale + fDeltaScale;
-        glScalef(scale, scale, scale); // Scale
-
         if (bLight)
         {
             glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
@@ -411,9 +431,17 @@ namespace mtest
             glEnable(GL_RESCALE_NORMAL);
         }
 
-        glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
-        glRotatef(fAngleY + fAngleDY, 0.0f, 1.0f, 0.0f);
-        glRotatef(fAngleZ + fAngleDZ, 0.0f, 0.0f, 1.0f);
+        // Initialize scene's world matrix
+        matrix3d_t * wm = world();
+        glLoadMatrixf(wm->m);
+//        glTranslatef(0.0f, 0.0f, -6.0f);
+//
+//        float scale = fScale + fDeltaScale;
+//        glScalef(scale, scale, scale); // Scale
+//
+//        glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
+//        glRotatef(fAngleY + fAngleDY, 0.0f, 1.0f, 0.0f);
+//        glRotatef(fAngleZ + fAngleDZ, 0.0f, 0.0f, 1.0f);
 
         glPolygonOffset(-1, -1);
         glEnable(GL_POLYGON_OFFSET_POINT);
@@ -424,16 +452,6 @@ namespace mtest
             size_t n = pView->num_vertexes();
             v_vertex3d_t *vv = pView->get_vertexes();
 
-//            glBegin(GL_TRIANGLES);
-//
-//            for (size_t i=0; i<n; ++i)
-//            {
-//                glColor3fv(&vv[i].c.r);
-//                glVertex3fv(&vv[i].p.x);
-//                glNormal3fv(&vv[i].n.dx);
-//            }
-//
-//            glEnd();
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_NORMAL_ARRAY);
             glEnableClientState(GL_COLOR_ARRAY);
@@ -559,13 +577,75 @@ namespace mtest
             glDisableClientState(GL_VERTEX_ARRAY);
         }
 
-        if (bLight)
-            glEnable(GL_LIGHTING);
-
         glDisable(GL_POLYGON_OFFSET_POINT);
 
+        // Draw second-order triangles
         if (bLight)
+        {
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_RESCALE_NORMAL);
+        }
+
+        if (bDrawTriangles)
+        {
+//            glPushMatrix();
+//            glLoadIdentity();
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            size_t n = pView->num_vertexes2();
+            v_vertex3d_t *vv = pView->get_vertexes2();
+
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_NORMAL_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+
+            glVertexPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->p);
+            glNormalPointer(GL_FLOAT, sizeof(v_vertex3d_t), &vv->n);
+            glColorPointer(4, GL_FLOAT, sizeof(v_vertex3d_t), &vv->c);
+
+            if (bWireframe)
+            {
+                for (size_t i=0; i<n; i += 3)
+                    glDrawArrays(GL_LINE_LOOP, i, 3);
+            }
+            else
+                glDrawArrays(GL_TRIANGLES, 0, n);
+
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_NORMAL_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
+
+            if (bDrawNormals)
+            {
+                if (bLight)
+                    glDisable(GL_LIGHTING);
+
+                glColor3f(1.0f, 1.0f, 0.0f);
+                glBegin(GL_LINES);
+
+                for (size_t i=0; i < n; ++i)
+                {
+                    v_vertex3d_t *v = &vv[i];
+                    glVertex3fv(&v[0].p.x);
+                    glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
+                }
+                glEnd();
+
+                if (bLight)
+                    glEnable(GL_LIGHTING);
+            }
+
+            glDisable(GL_BLEND);
+//            glPopMatrix();
+        }
+
+        if (bLight)
+        {
+            glDisable(GL_RESCALE_NORMAL);
             glDisable(GL_LIGHTING);
+        }
 
         // Draw axis coordinates
         glDisable(GL_DEPTH_TEST);

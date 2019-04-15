@@ -21,16 +21,18 @@ namespace lsp
         V3D_VERTEXES    = 1 << 0,
         V3D_RAYS        = 1 << 1,
         V3D_POINTS      = 1 << 2,
-        V3D_SEGMENTS    = 1 << 3
+        V3D_SEGMENTS    = 1 << 3,
+        V3D_VERTEXES2   = 1 << 4,
     } v3dflags_t;
 
     class View3D
     {
         private:
-            cstorage<v_vertex3d_t>      vVertexes;
+            cstorage<v_vertex3d_t>      vVertexes;  // First-order draw
             cstorage<v_ray3d_t>         vRays;
             cstorage<v_point3d_t>       vPoints;
             cstorage<v_segment3d_t>     vSegments;
+            cstorage<v_vertex3d_t>      vVertexes2; // Second-order draw
 
         public:
             explicit View3D();
@@ -58,7 +60,7 @@ namespace lsp
             /**
              * Cleanup view
              */
-            inline void clear_all() { clear(V3D_VERTEXES | V3D_RAYS | V3D_POINTS | V3D_SEGMENTS); };
+            inline void clear_all() { clear(V3D_VERTEXES | V3D_RAYS | V3D_POINTS | V3D_SEGMENTS | V3D_VERTEXES2); };
 
             /** Return number of rays in scene
              *
@@ -83,6 +85,12 @@ namespace lsp
              * @return number of vertexes
              */
             inline size_t num_vertexes() const { return vVertexes.size(); }
+
+            /**
+             * Return number of second-pass vertexes
+             * @return number of second-pass vertexes
+             */
+            inline size_t num_vertexes2() const { return vVertexes2.size(); }
 
             /** Add ray to scene
              *
@@ -151,6 +159,9 @@ namespace lsp
              * @return true on success
              */
             bool add_triangle(const obj_triangle_t *vi, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
+
+            bool add_triangle(const bsp_triangle_t *t);
+            bool add_triangle(const bsp_triangle_t *t, const color3d_t *c);
 
             /**
              * Add context view
@@ -251,6 +262,13 @@ namespace lsp
              */
             v_vertex3d_t *get_vertex(size_t index);
 
+            /**
+             * Get vertex by it's index
+             * @param index vertex index
+             * @return vertex or NULL
+             */
+            v_vertex3d_t *get_vertex2(size_t index);
+
             /** Get array of rays
              *
              * @return array of rays
@@ -274,6 +292,7 @@ namespace lsp
              * @return array of vertexes
              */
             inline v_vertex3d_t *get_vertexes() { return vVertexes.get_array(); }
+            inline v_vertex3d_t *get_vertexes2() { return vVertexes2.get_array(); }
 
             /**
              * Dump plan to view
@@ -282,6 +301,18 @@ namespace lsp
              * @return
              */
             void dump(rt_plan_t *plan, const color3d_t *c);
+
+            /**
+             * Get pointer to storage of vertexes
+             * @return pointer to storage of vertexes
+             */
+            inline cstorage<v_vertex3d_t> *vertexes() { return &vVertexes; }
+
+            /**
+             * Get pointer to storage of second-order vertexes
+             * @return pointer to storage of second-order vertexes
+             */
+            inline cstorage<v_vertex3d_t> *vertexes2() { return &vVertexes2; }
     };
 
 } /* namespace mtest */

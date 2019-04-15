@@ -5,7 +5,9 @@
  *      Author: sadko
  */
 
+#include <core/3d/common.h>
 #include <core/3d/bsp_context.h>
+#include <data/cstorage.h>
 
 #define RT_FOREACH(type, var, collection) \
     for (size_t __ci=0,__ne=collection.size(), __nc=collection.chunks(); (__ci<__nc) && (__ne>0); ++__ci) \
@@ -28,11 +30,13 @@ namespace lsp
         triangle(1024)
     {
         root    = NULL;
+        IF_RT_TRACE_Y(debug           = NULL;)
     }
 
     bsp_context_t::~bsp_context_t()
     {
         flush();
+        IF_RT_TRACE_Y(debug           = NULL;)
     }
 
     void bsp_context_t::clear()
@@ -40,6 +44,7 @@ namespace lsp
         root    = NULL;
         node.clear();
         triangle.clear();
+        IF_RT_TRACE_Y(debug           = NULL;)
     }
 
     void bsp_context_t::flush()
@@ -47,6 +52,7 @@ namespace lsp
         root    = NULL;
         node.flush();
         triangle.flush();
+        IF_RT_TRACE_Y(debug           = NULL;)
     }
 
     status_t bsp_context_t::add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, const color3d_t *col)
@@ -75,6 +81,12 @@ namespace lsp
 
     status_t bsp_context_t::build_tree()
     {
+        RT_TRACE_BREAK(debug,
+                lsp_trace("Initial data (%d triangles)", int(triangle.size()));
+                for (size_t i=0; i<triangle.size(); ++i)
+                    trace.add_triangle(triangle.get(i));
+            );
+
         // Build list of triangles for processing
         bsp_triangle_t *list = NULL;
         RT_FOREACH(bsp_triangle_t, t, triangle)
@@ -92,6 +104,7 @@ namespace lsp
         root->in    = NULL;
         root->out   = NULL;
         root->on    = list;
+        root->emit  = false;
         if (!queue.add(root))
             return STATUS_NO_MEM;
 
@@ -112,6 +125,12 @@ namespace lsp
                 break;
         }
 
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Final BSP data (%d triangles)", int(triangle.size()));
+            for (size_t i=0; i<triangle.size(); ++i)
+                trace.add_triangle(triangle.get(i));
+        );
+
         queue.flush();
         return res;
     }
@@ -127,14 +146,31 @@ namespace lsp
 
         size_t tag;
         dsp::calc_plane_pv(&task->pl, ct->v);
-        bsp_triangle_t *t0, *t1;
+        bsp_triangle_t *t0, *t1;//, *spt;
+
+//        RT_TRACE_BREAK(debug,
+//            lsp_trace("Prepare split space into 'in', 'out' and 'on' sub-spaces");
+//            for (bsp_triangle_t *st = task->on; st != NULL; st = st->next)
+//            {
+//                trace.add_triangle(st, (st == ct) ? &C_YELLOW : &C_GREEN);
+//                if (st == ct)
+//                    trace.add_plane_pv1c(st->v, &C_ORANGE);
+//            }
+//        );
 
         // Process each triangle
+//        spt = ct;
         while (ct != NULL)
         {
-            bsp_triangle_t *nt  = ct;
+            bsp_triangle_t *nt  = ct->next;
 
             tag = dsp::colocation_x3_v1pv(&task->pl, ct->v);
+
+//            RT_TRACE_BREAK(debug,
+//                lsp_trace("Split triangle (tag=%02x)", int(tag));
+//                trace.add_triangle(ct, &C_RED);
+//                trace.add_plane_pv1c(spt->v, &C_ORANGE);
+//            );
 
             switch (tag)
             {
@@ -176,7 +212,7 @@ namespace lsp
 
                     t0->v[0]        = ct->v[2];
                     ct->next        = in;
-                    in              = t0;
+                    in              = ct;
                     t0->next        = out;
                     out             = t0;
                     break;
@@ -187,7 +223,7 @@ namespace lsp
 
                     t0->v[2]        = ct->v[1];
                     ct->next        = in;
-                    in              = t0;
+                    in              = ct;
                     t0->next        = out;
                     out             = t0;
                     break;
@@ -198,7 +234,7 @@ namespace lsp
 
                     t0->v[1]        = ct->v[0];
                     ct->next        = in;
-                    in              = t0;
+                    in              = ct;
                     t0->next        = out;
                     out             = t0;
                     break;
@@ -211,7 +247,7 @@ namespace lsp
 
                     t0->v[2]        = ct->v[0];
                     ct->next        = in;
-                    in              = t0;
+                    in              = ct;
                     t0->next        = out;
                     out             = t0;
                     break;
@@ -222,7 +258,7 @@ namespace lsp
 
                     t0->v[0]        = ct->v[1];
                     ct->next        = in;
-                    in              = t0;
+                    in              = ct;
                     t0->next        = out;
                     out             = t0;
                     break;
@@ -233,7 +269,7 @@ namespace lsp
 
                     t0->v[1]        = ct->v[2];
                     ct->next        = in;
-                    in              = t0;
+                    in              = ct;
                     t0->next        = out;
                     out             = t0;
                     break;
@@ -253,10 +289,10 @@ namespace lsp
                     t1->v[0]        = ct->v[2];
 
                     ct->next        = in;
-                    in              = t0;
-                    t0->next        = t1;
-                    t1->next        = out;
-                    out             = t0;
+                    in              = ct;
+                    t0->next        = out;
+                    t1->next        = t0;
+                    out             = t1;
                     break;
                 case 0x08:  // 0 2 0
                     if (!(t0 = triangle.alloc(ct)))
@@ -272,10 +308,10 @@ namespace lsp
                     t1->v[1]        = ct->v[0];
 
                     ct->next        = in;
-                    in              = t0;
-                    t0->next        = t1;
-                    t1->next        = out;
-                    out             = t0;
+                    in              = ct;
+                    t0->next        = out;
+                    t1->next        = t0;
+                    out             = t1;
                     break;
                 case 0x20:  // 2 0 0
                     if (!(t0 = triangle.alloc(ct)))
@@ -291,10 +327,10 @@ namespace lsp
                     t1->v[2]        = ct->v[1];
 
                     ct->next        = in;
-                    in              = t0;
-                    t0->next        = t1;
-                    t1->next        = out;
-                    out             = t0;
+                    in              = ct;
+                    t0->next        = out;
+                    t1->next        = t0;
+                    out             = t1;
                     break;
 
                 // 2 intersections, 1 triangle above, 2 triangles below
@@ -312,10 +348,10 @@ namespace lsp
                     t1->v[0]        = ct->v[2];
 
                     ct->next        = out;
-                    out             = t0;
-                    t0->next        = t1;
-                    t1->next        = in;
-                    in              = t0;
+                    out             = ct;
+                    t0->next        = in;
+                    t1->next        = t0;
+                    in              = t1;
                     break;
 
                 case 0x22:  // 2 0 2
@@ -332,10 +368,10 @@ namespace lsp
                     t1->v[1]        = ct->v[0];
 
                     ct->next        = out;
-                    out             = t0;
-                    t0->next        = t1;
-                    t1->next        = in;
-                    in              = t0;
+                    out             = ct;
+                    t0->next        = in;
+                    t1->next        = t0;
+                    in              = t1;
                     break;
 
                 case 0x0a:  // 0 2 2
@@ -352,16 +388,25 @@ namespace lsp
                     t1->v[2]        = ct->v[1];
 
                     ct->next        = out;
-                    out             = t0;
-                    t0->next        = t1;
-                    t1->next        = in;
-                    in              = t0;
+                    out             = ct;
+                    t0->next        = in;
+                    t1->next        = t0;
+                    in              = t1;
                     break;
 
                 default:
                     return STATUS_UNKNOWN_ERR;
             }
 
+//            RT_TRACE_BREAK(debug,
+//                lsp_trace("Split space into 'in' (GREEN), 'out' (BLUE) and 'on' (YELLOW) sub-spaces");
+//                for (bsp_triangle_t *st = on; st != NULL; st = st->next)
+//                    trace.add_triangle(st, &C_YELLOW);
+//                for (bsp_triangle_t *st = in; st != NULL; st = st->next)
+//                    trace.add_triangle(st, &C_GREEN);
+//                for (bsp_triangle_t *st = out; st != NULL; st = st->next)
+//                    trace.add_triangle(st, &C_BLUE);
+//            );
 
             // Move to next triangle
             ct    = nt;
@@ -377,7 +422,13 @@ namespace lsp
             tout->in            = NULL;
             tout->out           = NULL;
             tout->on            = out;
+            tout->emit          = false;
+
+            if (!queue.add(tout))
+                return STATUS_NO_MEM;
+            task->out           = tout;
         }
+
         if (in != NULL)
         {
             bsp_node_t *tin     = node.alloc();
@@ -386,53 +437,130 @@ namespace lsp
             tin->in            = NULL;
             tin->out           = NULL;
             tin->on            = in;
+            tin->emit          = false;
+
+            if (!queue.add(tin))
+                return STATUS_NO_MEM;
+            task->in           = tin;
         }
+
+//        RT_TRACE_BREAK(debug,
+//            lsp_trace("Split space into 'in' (GREEN), 'out' (BLUE) and 'on' (YELLOW) sub-spaces");
+//            for (bsp_triangle_t *st = on; st != NULL; st = st->next)
+//                trace.add_triangle(st, &C_YELLOW);
+//            for (bsp_triangle_t *st = in; st != NULL; st = st->next)
+//                trace.add_triangle(st, &C_GREEN);
+//            for (bsp_triangle_t *st = out; st != NULL; st = st->next)
+//                trace.add_triangle(st, &C_BLUE);
+//        );
 
         return STATUS_OK;
     }
 
-    status_t bsp_context_t::build_mesh(cstorage<v_vertex3d_t> *dst, const vector3d_t *pov)
+    inline void flip_normal(vector3d_t *dst, const vector3d_t *src)
     {
-        enum bsp_cmd_t
-        {
-            CHECK,
-            OUT,
-            IN,
-            ON
-        };
+        dst->dx = - src->dx;
+        dst->dy = - src->dy;
+        dst->dz = - src->dz;
+        dst->dw = - src->dw;
+    }
 
-        typedef struct bsp_build_t
-        {
-            bsp_node_t *node;
-            bsp_cmd_t   cmd;
-        } bsp_build_t;
-
+    status_t bsp_context_t::build_mesh(cstorage<v_vertex3d_t> *dst, const matrix3d_t *world, const vector3d_t *pov)
+    {
         if (root == NULL)
             return STATUS_OK;
 
         // Create queue
-        cstorage<bsp_build_t> queue;
+        cvector<bsp_node_t> queue;
+        bsp_node_t *curr    = root;
+        curr->emit          = false;
 
-        bsp_build_t curr;
-        curr.node       = root;
-        curr.cmd        = CHECK;
-
-        if (!queue.add(&curr))
+        if (!queue.push(curr))
             return STATUS_NO_MEM;
 
-        while (queue.size() > 0)
+        v_vertex3d_t *v[3];
+        vector3d_t  pl;
+
+        do
         {
             // Get next task
             if (!queue.pop(&curr))
                 return STATUS_NO_MEM;
 
-            switch (curr.cmd)
+            if (curr->emit)
             {
-                case CHECK:
-                case OUT:
-                case IN:
+                for (bsp_triangle_t *ct=curr->on; ct != NULL; ct = ct->next)
+                {
+                    dsp::apply_matrix3d_mv2(&pl, &ct->n[0], world);
+                    float d         = pov->dx*pl.dx + pov->dy*pl.dy + pov->dz*pl.dz;
+
+                    v[0]    = dst->add();
+                    v[1]    = dst->add();
+                    v[2]    = dst->add();
+                    if ((v[0] == NULL) || (v[1] == NULL) || (v[2] == NULL))
+                        return STATUS_NO_MEM;
+
+                    if (d < 0.0f)
+                    {
+                        // Reverse order of vertex and flip normals
+                        v[0]->p     = ct->v[0];
+                        v[0]->c     = ct->c;
+                        flip_normal(&v[0]->n, &ct->n[0]);
+
+                        v[1]->p     = ct->v[2];
+                        v[1]->c     = ct->c;
+                        flip_normal(&v[1]->n, &ct->n[2]);
+
+                        v[2]->p     = ct->v[1];
+                        v[2]->c     = ct->c;
+                        flip_normal(&v[2]->n, &ct->n[1]);
+                    }
+                    else
+                    {
+                        // Emit as usual
+                        v[0]->p     = ct->v[0];
+                        v[0]->c     = ct->c;
+                        v[0]->n     = ct->n[0];
+
+                        v[1]->p     = ct->v[1];
+                        v[1]->c     = ct->c;
+                        v[1]->n     = ct->n[1];
+
+                        v[2]->p     = ct->v[2];
+                        v[2]->c     = ct->c;
+                        v[2]->n     = ct->n[2];
+                    }
+                }
             }
-        }
+            else
+            {
+                vector3d_t *pl      = &curr->pl;
+                float d = pov->dx*pl->dx + pov->dy*pl->dy + pov->dz*pl->dz;
+                bsp_node_t *first   = (d < 0.0f) ? curr->in : curr->out;
+                bsp_node_t *last    = (d < 0.0f) ? curr->out : curr->in;
+
+                if (first != NULL)
+                {
+                    first->emit = false;
+                    if (!(queue.push(first)))
+                        return STATUS_NO_MEM;
+                }
+
+                if (curr->on != NULL)
+                {
+                    curr->emit  = true;
+                    if (!(queue.push(curr)))
+                        return STATUS_NO_MEM;
+                }
+
+                if (last != NULL)
+                {
+                    last->emit  = false;
+                    if (!(queue.push(last)))
+                        return STATUS_NO_MEM;
+                }
+            }
+        } while (queue.size() > 0);
 
         return STATUS_OK;
     }

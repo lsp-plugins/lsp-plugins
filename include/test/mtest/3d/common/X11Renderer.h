@@ -34,6 +34,7 @@ namespace mtest
             bool                    stopped;
             size_t                  nBMask;
             ssize_t                 nMouseX, nMouseY;
+            matrix3d_t              sMatrix;
 
         protected:
             bool                    bWireframe;
@@ -68,6 +69,7 @@ namespace mtest
         protected:
             static bool is_supported(const char *set, const char *ext);
             static void perspectiveGL(double fovY, double aspect, double zNear, double zFar);
+            matrix3d_t  *world();
 
         public:
             virtual status_t init();

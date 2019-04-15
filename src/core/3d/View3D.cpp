@@ -27,6 +27,8 @@ namespace lsp
             vSegments.flush();
         if (flags & V3D_POINTS)
             vPoints.flush();
+        if (flags & V3D_VERTEXES2)
+            vVertexes2.flush();
     }
 
     void View3D::swap(View3D *dst)
@@ -35,11 +37,13 @@ namespace lsp
         vRays.swap(&dst->vRays);
         vSegments.swap(&dst->vSegments);
         vPoints.swap(&dst->vPoints);
+        vVertexes2.swap(&dst->vVertexes2);
     }
 
     void View3D::add_all(const View3D *src)
     {
         vVertexes.add_all(&src->vVertexes);
+        vVertexes2.add_all(&src->vVertexes2);
         vRays.add_all(&src->vRays);
         vSegments.add_all(&src->vSegments);
         vPoints.add_all(&src->vPoints);
@@ -121,6 +125,48 @@ namespace lsp
         v[0] = vi[0];
         v[1] = vi[1];
         v[2] = vi[2];
+
+        return true;
+    }
+
+    bool View3D::add_triangle(const bsp_triangle_t *t)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p  = t->v[0];
+        v[0].n  = t->n[0];
+        v[0].c  = t->c;
+
+        v[1].p  = t->v[1];
+        v[1].n  = t->n[1];
+        v[1].c  = t->c;
+
+        v[2].p  = t->v[2];
+        v[2].n  = t->n[2];
+        v[2].c  = t->c;
+
+        return true;
+    }
+
+    bool View3D::add_triangle(const bsp_triangle_t *t, const color3d_t *c)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p  = t->v[0];
+        v[0].n  = t->n[0];
+        v[0].c  = *c;
+
+        v[1].p  = t->v[1];
+        v[1].n  = t->n[1];
+        v[1].c  = *c;
+
+        v[2].p  = t->v[2];
+        v[2].n  = t->n[2];
+        v[2].c  = *c;
 
         return true;
     }
@@ -692,6 +738,11 @@ namespace lsp
     v_vertex3d_t *View3D::get_vertex(size_t index)
     {
         return vVertexes.get(index);
+    }
+
+    v_vertex3d_t *View3D::get_vertex2(size_t index)
+    {
+        return vVertexes2.get(index);
     }
 
     void View3D::dump(rt_plan_t *plan, const color3d_t *c)

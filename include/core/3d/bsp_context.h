@@ -12,7 +12,9 @@
 #include <core/sugar.h>
 #include <core/3d/common.h>
 #include <core/3d/Allocator3D.h>
+#include <core/3d/View3D.h>
 #include <core/3d/Object3D.h>
+#include <core/3d/rt_context.h>
 #include <data/cstorage.h>
 
 namespace lsp
@@ -23,6 +25,7 @@ namespace lsp
         bsp_node_t     *in;
         bsp_node_t     *out;
         bsp_triangle_t *on;
+        bool            emit;
     } bsp_node_t;
 
     typedef struct bsp_context_t
@@ -35,6 +38,11 @@ namespace lsp
             Allocator3D<bsp_triangle_t> triangle;
             bsp_node_t                 *root;
 
+            IF_RT_TRACE_Y(
+                rt_debug_t                 *debug;      // Debug context
+                View3D                      trace;      // The state of the context
+            )
+
         public:
             explicit bsp_context_t();
             ~bsp_context_t();
@@ -45,6 +53,10 @@ namespace lsp
         public:
             void clear();
             void flush();
+
+            IF_RT_TRACE_Y(
+                inline void            set_debug_context(rt_debug_t *debug) { this->debug     = debug; }
+            )
 
             inline void swap(bsp_context_t *dst)
             {
@@ -84,10 +96,11 @@ namespace lsp
             /**
              * Build the final mesh according to the viewer's plane
              * @param dst collection to store the mesh
-             * @param pl the viewer's plane
+             * @param world world matrix
+             * @param pov the viewer's point-of-view vector
              * @return status of operation
              */
-            status_t build_mesh(cstorage<v_vertex3d_t> *dst, const vector3d_t *pov);
+            status_t build_mesh(cstorage<v_vertex3d_t> *dst, const matrix3d_t *world, const vector3d_t *pov);
 
     } bsp_context_t;
 }
