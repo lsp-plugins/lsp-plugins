@@ -297,6 +297,15 @@ namespace dsp
     extern void (* init_matrix3d_lookat_p1v2)(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up);
 
     /**
+     * Initialize matrix similar to gluPerspective()
+     * @param m target matrix to store values
+     * @param pov point-of view coordinates
+     * @param pod point-of-destination coordinates
+     * @param up the up vector
+     */
+    extern void (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up);
+
+    /**
      * Compute tranfromation matrix from point and vector data which provides:
      *   - position of the object (point)
      *   - direction of the object (vector)
