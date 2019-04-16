@@ -53,9 +53,9 @@ namespace mtest
 //        fDeltaScale         = 0.0f;
         pView               = view;
 
-        dsp::init_point_xyz(&sPov, 0.0f, 0.0f, 6.0f);
-        dsp::init_vector_dxyz(&sDir, 0.0f, 0.0f, -1.0f);
-        dsp::init_vector_dxyz(&sTop, 0.0f, 1.0f, 0.0f);
+        dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
+        dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
+        dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, 1.0f);
         dsp::init_vector_dxyz(&sSide, 1.0f, 0.0f, 0.0f);
 
 //        dsp::init_matrix3d_identity(&sWorld);
@@ -289,8 +289,8 @@ namespace mtest
             case XK_Escape:
                 stop();
                 break;
-            case XK_Left:       move_camera(&sSide,-1.0f); break;
-            case XK_Right:      move_camera(&sSide, 1.0f); break;
+            case XK_Left:       move_camera(&sSide, 1.0f); break;
+            case XK_Right:      move_camera(&sSide,-1.0f); break;
             case XK_Up:         move_camera(&sDir, -1.0f);  break;
             case XK_Down:       move_camera(&sDir, 1.0f); break;
             case XK_Page_Up:    move_camera(&sTop, 1.0f);  break;
