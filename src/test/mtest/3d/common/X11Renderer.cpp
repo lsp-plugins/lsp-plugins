@@ -24,6 +24,9 @@ namespace mtest
         nBMask              = 0;
         nMouseX             = 0;
         nMouseY             = 0;
+        nWidth              = 0;
+        nHeight             = 0;
+        bViewChanged        = true;
 
         bWireframe          = false;
         bRotate             = false;
@@ -39,16 +42,26 @@ namespace mtest
         bDrawCapture        = true;
         bDrawSource         = true;
 
-        fAngleX             = 0.0f;
-        fAngleY             = 0.0f;
-        fAngleZ             = 0.0f;
-        fScale              = 1.0f;
-
-        fAngleDX            = 0.0f;
-        fAngleDY            = 0.0f;
-        fAngleDZ            = 0.0f;
-        fDeltaScale         = 0.0f;
+//        fAngleX             = 0.0f;
+//        fAngleY             = 0.0f;
+//        fAngleZ             = 0.0f;
+//        fScale              = 1.0f;
+//
+//        fAngleDX            = 0.0f;
+//        fAngleDY            = 0.0f;
+//        fAngleDZ            = 0.0f;
+//        fDeltaScale         = 0.0f;
         pView               = view;
+
+        dsp::init_point_xyz(&sPov, 0.0f, 0.0f, 6.0f);
+        dsp::init_vector_dxyz(&sDir, 0.0f, 0.0f, -1.0f);
+        dsp::init_vector_dxyz(&sTop, 0.0f, 1.0f, 0.0f);
+        dsp::init_vector_dxyz(&sSide, 1.0f, 0.0f, 0.0f);
+
+//        dsp::init_matrix3d_identity(&sWorld);
+        dsp::init_matrix3d_identity(&sProjection);
+        dsp::init_matrix3d_identity(&sDelta);
+        dsp::init_matrix3d_identity(&sView);
     }
     
     X11Renderer::~X11Renderer()
@@ -124,6 +137,17 @@ namespace mtest
         return STATUS_OK;
     }
 
+    void X11Renderer::move_camera(const vector3d_t *dir, float amount)
+    {
+        vector3d_t xdir;
+        dsp::apply_matrix3d_mv2(&xdir, dir, &sDelta);
+
+        sPov.x     += xdir.dx * amount * 0.1f;
+        sPov.y     += xdir.dy * amount * 0.1f;
+        sPov.z     += xdir.dz * amount * 0.1f;
+        bViewChanged = true;
+    }
+
     status_t X11Renderer::run()
     {
         if (dpy == NULL)
@@ -141,6 +165,11 @@ namespace mtest
         Atom wm_proto           = XInternAtom(dpy, "WM_PROTOCOLS", False);
         Atom wm_delete          = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 
+        XGetWindowAttributes(dpy, win, &gwa);
+        nWidth          = gwa.width;
+        nHeight         = gwa.height;
+        bViewChanged    = true;
+
         while (!stopped)
         {
             // Get current time
@@ -148,7 +177,7 @@ namespace mtest
             ssize_t dmsec   = (ts.tv_nsec - sLastRender.tv_nsec) / 1000000;
             ssize_t dsec    = (ts.tv_sec - sLastRender.tv_sec);
             dmsec          += dsec * 1000;
-            bool force      = dmsec >= 20; // each 20 msec render request
+            bool force      = (dmsec >= 20); // each 20 msec render request
 
             // Try to poll input data for a 100 msec period
             x11_poll.fd         = x11_fd;
@@ -172,8 +201,11 @@ namespace mtest
                 if (force)
                 {
                     XGetWindowAttributes(dpy, win, &gwa);
+                    if ((gwa.width != nWidth) || (gwa.height != nHeight))
+                        bViewChanged = true;
+
                     glViewport(0, 0, gwa.width, gwa.height);
-                    render(gwa.width, gwa.height);
+                    render();
                     glXSwapBuffers(dpy, win);
                     sLastRender = ts;
                 }
@@ -257,6 +289,13 @@ namespace mtest
             case XK_Escape:
                 stop();
                 break;
+            case XK_Left:       move_camera(&sSide,-1.0f); break;
+            case XK_Right:      move_camera(&sSide, 1.0f); break;
+            case XK_Up:         move_camera(&sDir, -1.0f);  break;
+            case XK_Down:       move_camera(&sDir, 1.0f); break;
+            case XK_Page_Up:    move_camera(&sTop, 1.0f);  break;
+            case XK_Page_Down:  move_camera(&sTop, -1.0f); break;
+
             case ' ':
                 bRotate = !bRotate;
                 break;
@@ -310,6 +349,7 @@ namespace mtest
         {
             nMouseX     = ev.x;
             nMouseY     = ev.y;
+            dsp::init_matrix3d_identity(&sDelta);
         }
         nBMask |= (1 << ev.button);
     }
@@ -319,15 +359,19 @@ namespace mtest
         nBMask &= ~(1 << ev.button);
         if (nBMask == 0)
         {
-            fAngleX    += fAngleDX;
-            fAngleY    += fAngleDY;
-            fAngleZ    += fAngleDZ;
-            fScale     += fDeltaScale;
+            matrix3d_t m;
+            float atop      = ((ev.x - nMouseX) * M_PI / 1000.0f);
+            float aside     = ((ev.y - nMouseY) * M_PI / 1000.0f);
 
-            fAngleDX    = 0.0f;
-            fAngleDY    = 0.0f;
-            fAngleDZ    = 0.0f;
-            fDeltaScale = 0.0f;
+            dsp::init_matrix3d_rotate_xyz(&sDelta, sSide.dx, sSide.dy, sSide.dz, aside);
+            dsp::init_matrix3d_rotate_xyz(&m, sTop.dx, sTop.dy, sTop.dz, atop);
+            dsp::apply_matrix3d_mm1(&sDelta, &m);
+
+            // Commit changes
+            dsp::apply_matrix3d_mv1(&sDir, &sDelta);
+            dsp::apply_matrix3d_mv1(&sTop, &sDelta);
+            dsp::apply_matrix3d_mv1(&sSide, &sDelta);
+            dsp::init_matrix3d_identity(&sDelta);
         }
     }
 
@@ -335,14 +379,20 @@ namespace mtest
     {
         if (nBMask & 2)
         {
-            fAngleDX    = ((ev.y - nMouseY) * M_PI / 20.0f);
-            fAngleDZ    = ((ev.x - nMouseX) * M_PI / 20.0f);
-            view_changed();
+            matrix3d_t m;
+            float atop      = ((ev.x - nMouseX) * M_PI / 1000.0f);
+            float aside     = ((ev.y - nMouseY) * M_PI / 1000.0f);
+
+            dsp::init_matrix3d_rotate_xyz(&sDelta, sSide.dx, sSide.dy, sSide.dz, aside);
+            dsp::init_matrix3d_rotate_xyz(&m, sTop.dx, sTop.dy, sTop.dz, atop);
+            dsp::apply_matrix3d_mm1(&sDelta, &m);
+
+            bViewChanged    = true;
         }
         else if (nBMask & 8)
         {
-            fDeltaScale = (nMouseY - ev.y) / 200.0f;
-            view_changed();
+//            fDeltaScale = (nMouseY - ev.y) / 200.0f;
+            bViewChanged    = true;
         }
     }
 
@@ -369,43 +419,56 @@ namespace mtest
         return false;
     }
 
-    void X11Renderer::perspectiveGL(double fovY, double aspect, double zNear, double zFar)
+    void X11Renderer::render()
     {
-        GLdouble fW, fH;
+        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-        fH = tan( fovY * M_PI / 360.0f) * zNear;
-        fW = fH * aspect;
+        // Changed view? Recompute matrices
+        if (bViewChanged)
+        {
+            // Compute projection matrix
+            float fovY = 90.0f;
+            float aspect = float(nWidth)/float(nHeight);
+            float zNear = 0.1f;
+            float zFar = 100.0f;
 
-        glFrustum( -fW, fW, -fH, fH, zNear, zFar );
-    }
+            float fH = tan( fovY * M_PI / 360.0f) * zNear;
+            float fW = fH * aspect;
+            dsp::init_matrix3d_frustum(&sProjection, -fW, fW, -fH, fH, zNear, zFar);
 
-    matrix3d_t *X11Renderer::world()
-    {
-        matrix3d_t tmp;
-        dsp::init_matrix3d_identity(&sMatrix);
+            // Compute view matrix
+            vector3d_t dir, top;
+            dsp::apply_matrix3d_mv2(&dir, &sDir, &sDelta);
+            dsp::apply_matrix3d_mv2(&top, &sTop, &sDelta);
+            dsp::init_matrix3d_lookat_p1v2(&sView, &sPov, &dir, &top);
 
-        dsp::init_matrix3d_translate(&tmp, 0.0f, 0.0f, -6.0f);
-        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+//            dsp::init_matrix3d_identity(&sView);
+//            // Compute world matrix
+//            matrix3d_t tmp;
+//            dsp::init_matrix3d_identity(&sWorld);
+//
+//            dsp::init_matrix3d_translate(&tmp, 0.0f, 0.0f, -6.0f);
+//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
+//
+//            float scale = fScale + fDeltaScale;
+//            dsp::init_matrix3d_scale(&tmp, scale, scale, scale);
+//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
+//
+//            dsp::init_matrix3d_rotate_x(&tmp, (fAngleX + fAngleDX)*M_PI/180.0f);
+//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
+//
+//            dsp::init_matrix3d_rotate_y(&tmp, (fAngleY + fAngleDY)*M_PI/180.0f);
+//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
+//
+//            dsp::init_matrix3d_rotate_z(&tmp, (fAngleZ + fAngleDZ)*M_PI/180.0f);
+//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
 
-        float scale = fScale + fDeltaScale;
-        dsp::init_matrix3d_scale(&tmp, scale, scale, scale);
-        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
+            // Make a callback that view matrix has changed
+            view_changed();
 
-        dsp::init_matrix3d_rotate_x(&tmp, (fAngleX + fAngleDX)*M_PI/180.0f);
-        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
-
-        dsp::init_matrix3d_rotate_y(&tmp, (fAngleY + fAngleDY)*M_PI/180.0f);
-        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
-
-        dsp::init_matrix3d_rotate_z(&tmp, (fAngleZ + fAngleDZ)*M_PI/180.0f);
-        dsp::apply_matrix3d_mm2(&sMatrix, &sMatrix, &tmp);
-
-        return &sMatrix;
-    }
-
-    void X11Renderer::render(size_t width, size_t height)
-    {
-        static const float light_pos[] = { 0.0, 0.0, 3.0f };
+            // Reset 'changed view' flag
+            bViewChanged = false;
+        }
 
         glEnable(GL_DEPTH_TEST);
         if (bCullFace)
@@ -418,8 +481,7 @@ namespace mtest
         glShadeModel(GL_SMOOTH);
 
         glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        perspectiveGL(90.0f, float(width)/float(height), 0.1f, 100.0f);
+        glLoadMatrixf(sProjection.m);
 
         // Clear buffer
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -436,10 +498,9 @@ namespace mtest
             glEnable(GL_LIGHTING);
             glEnable(GL_RESCALE_NORMAL);
         }
+        glLoadMatrixf(sView.m);
 
         // Initialize scene's world matrix
-        matrix3d_t * wm = world();
-        glLoadMatrixf(wm->m);
 //        glTranslatef(0.0f, 0.0f, -6.0f);
 //
 //        float scale = fScale + fDeltaScale;
@@ -653,11 +714,12 @@ namespace mtest
             glDisable(GL_LIGHTING);
         }
 
-        // Draw axis coordinates
         glDisable(GL_DEPTH_TEST);
 
+        /*
+        // Draw axis coordinates
         glLoadIdentity();
-        glTranslatef(-0.8f * float(width)/float(height), -0.8f /* float(height)/float(width) */, -0.9f);
+        glTranslatef(-0.8f * float(nWidth)/float(nHeight), -0.8f , -0.9f);
         glScalef(0.2, 0.2, 0.2); // Scale
 
         glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
@@ -711,6 +773,6 @@ namespace mtest
         {
             fAngleX -= 0.3f;
             fAngleZ -= 0.4f;
-        }
+        }*/
     }
 } /* namespace mtest */

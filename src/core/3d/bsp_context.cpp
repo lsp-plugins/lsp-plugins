@@ -1,5 +1,5 @@
 /*
- * bsp_context_t.cpp
+ * bsp_context.cpp
  *
  *  Created on: 12 апр. 2019 г.
  *      Author: sadko
@@ -479,7 +479,7 @@ namespace lsp
     }
 #endif /* LSP_RT_TRACE */
 
-    status_t bsp_context_t::build_mesh(cstorage<v_vertex3d_t> *dst, const matrix3d_t *world, const vector3d_t *pov)
+    status_t bsp_context_t::build_mesh(cstorage<v_vertex3d_t> *dst, const point3d_t *pov)
     {
         if (root == NULL)
             return STATUS_OK;
@@ -500,6 +500,11 @@ namespace lsp
             trace.clear_all();
         );
 
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Full content");
+            trace_recursive(root, &C_GREEN);
+        );
+
         do
         {
             // Get next task
@@ -518,8 +523,8 @@ namespace lsp
             {
                 for (bsp_triangle_t *ct=curr->on; ct != NULL; ct = ct->next)
                 {
-                    dsp::apply_matrix3d_mv2(&pl, &ct->n[0], world);
-                    float d         = pov->dx*pl.dx + pov->dy*pl.dy + pov->dz*pl.dz;
+                    dsp::calc_plane_pv(&pl, ct->v);
+                    float d         = pov->x*pl.dx + pov->y*pl.dy + pov->z*pl.dz + pl.dw;
 
                     v[0]    = dst->add();
                     v[1]    = dst->add();
@@ -561,18 +566,18 @@ namespace lsp
             }
             else
             {
-                dsp::apply_matrix3d_mv2(&pl, &curr->pl, world);
-                float d             = pov->dx*pl.dx + pov->dy*pl.dy + pov->dz*pl.dz;
+                pl                  = curr->pl;
+                float d             = pov->x*pl.dx + pov->y*pl.dy + pov->z*pl.dz + pl.dw;
                 bsp_node_t *first   = (d < 0.0f) ? curr->out : curr->in;
                 bsp_node_t *last    = (d < 0.0f) ? curr->in : curr->out;
 
-//                RT_TRACE_BREAK(debug,
-//                    lsp_trace("Draw order: first (GREEN), last (BLUE), on (YELLOW)");
-//                    trace_recursive(first, &C_GREEN);
-//                    trace_recursive(last, &C_BLUE);
-//                    for (bsp_triangle_t *st=curr->on; st != NULL; st = st->next)
-//                        trace.add_triangle(st, &C_YELLOW);
-//                );
+                RT_TRACE_BREAK(debug,
+                    lsp_trace("Draw order: first (GREEN), last (BLUE), on (YELLOW)");
+                    trace_recursive(first, &C_GREEN);
+                    trace_recursive(last, &C_BLUE);
+                    for (bsp_triangle_t *st=curr->on; st != NULL; st = st->next)
+                        trace.add_triangle(st, &C_YELLOW);
+                );
 
                 if (last != NULL)
                 {

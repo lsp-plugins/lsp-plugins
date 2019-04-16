@@ -276,6 +276,27 @@ namespace dsp
     extern void (* init_matrix3d_rotate_xyz)(matrix3d_t *m, float x, float y, float z, float angle);
 
     /**
+     * Initialize projection matrix according to the glFrustum() specification
+     * @param m target matrix to store values
+     * @param left coordinates for the left vertical clipping plane
+     * @param right coordinates for the right vertical clipping plane
+     * @param bottom coordinates for the bottom clipping plane
+     * @param top coordinates for the top clipping plane
+     * @param near distance to the near clipping plane
+     * @param far distance to the far clipping plane
+     */
+    extern void (* init_matrix3d_frustum)(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far);
+
+    /**
+     * Initialize matrix similar to gluPerspective()
+     * @param m target matrix to store values
+     * @param pov point-of view coordinates
+     * @param fwd direction of view (vector)
+     * @param up the up vector
+     */
+    extern void (* init_matrix3d_lookat_p1v2)(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up);
+
+    /**
      * Compute tranfromation matrix from point and vector data which provides:
      *   - position of the object (point)
      *   - direction of the object (vector)

@@ -99,11 +99,10 @@ namespace lsp
             /**
              * Build the final mesh according to the viewer's plane
              * @param dst collection to store the mesh
-             * @param world world matrix
-             * @param pov the viewer's point-of-view vector
+             * @param pov the viewer's point-of-view location
              * @return status of operation
              */
-            status_t build_mesh(cstorage<v_vertex3d_t> *dst, const matrix3d_t *world, const vector3d_t *pov);
+            status_t build_mesh(cstorage<v_vertex3d_t> *dst, const point3d_t *pov);
 
     } bsp_context_t;
 }

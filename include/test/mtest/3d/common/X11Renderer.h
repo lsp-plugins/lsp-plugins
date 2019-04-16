@@ -34,7 +34,20 @@ namespace mtest
             bool                    stopped;
             size_t                  nBMask;
             ssize_t                 nMouseX, nMouseY;
-            matrix3d_t              sMatrix;
+            ssize_t                 nWidth;
+            ssize_t                 nHeight;
+            bool                    bViewChanged;
+
+        protected:
+            // 3D rendering model
+            point3d_t               sPov;           // Point-of-view for the camera
+            vector3d_t              sDir;           // Direction-of-view for the camera
+            vector3d_t              sTop;           // Top-of-view for the camera
+            vector3d_t              sSide;          // Side-of-view for the camera
+//            matrix3d_t              sWorld;         // World matrix
+            matrix3d_t              sDelta;         // Delta matrix
+            matrix3d_t              sView;          // View (camera) matrix
+            matrix3d_t              sProjection;    // Projection matrix
 
         protected:
             bool                    bWireframe;
@@ -50,15 +63,15 @@ namespace mtest
             bool                    bDrawCapture;
             bool                    bDrawSource;
 
-            float                   fAngleX;
-            float                   fAngleY;
-            float                   fAngleZ;
-            float                   fScale;
-
-            float                   fAngleDX;
-            float                   fAngleDY;
-            float                   fAngleDZ;
-            float                   fDeltaScale;
+//            float                   fAngleX;
+//            float                   fAngleY;
+//            float                   fAngleZ;
+//            float                   fScale;
+//
+//            float                   fAngleDX;
+//            float                   fAngleDY;
+//            float                   fAngleDZ;
+//            float                   fDeltaScale;
             View3D                 *pView;
 //            Scene3D                *pScene;
 
@@ -68,14 +81,17 @@ namespace mtest
 
         protected:
             static bool is_supported(const char *set, const char *ext);
-            static void perspectiveGL(double fovY, double aspect, double zNear, double zFar);
-            matrix3d_t  *world();
+//            inline const matrix3d_t  *world() const { return &sWorld; };
+            inline const matrix3d_t  *view() const          { return &sView; };
+            inline const matrix3d_t  *projection() const    { return &sProjection; };
             virtual void view_changed();
+            inline void update_view() { bViewChanged = true; }
+            void move_camera(const vector3d_t *dir, float amount);
 
         public:
             virtual status_t init();
             virtual status_t run();
-            virtual void render(size_t width, size_t height);
+            virtual void render();
             void stop();
             virtual void destroy();
 

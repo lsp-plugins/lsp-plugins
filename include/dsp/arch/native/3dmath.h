@@ -842,6 +842,82 @@ namespace native
         M[15]       = 0.0f;
     }
 
+    void init_matrix3d_frustum(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far)
+    {
+        float *M    = m->m;
+        M[0]        = 2.0f * near / (right - left);
+        M[1]        = 0.0f;
+        M[2]        = 0.0f;
+        M[3]        = 0.0f;
+
+        M[4]        = 0.0f;
+        M[5]        = 2.0f * near / (top - bottom);
+        M[6]        = 0.0f;
+        M[7]        = 0.0f;
+
+        M[8]        = (right + left) / (right - left);
+        M[9]        = (top + bottom) / (top - bottom);
+        M[10]       = - (far + near) / (far - near);
+        M[11]       = -1.0f;
+
+        M[12]       = 0.0f;
+        M[13]       = 0.0f;
+        M[14]       = -2.0f * far * near / (far - near);
+        M[15]       = 0.0f;
+    }
+
+    void init_matrix3d_lookat_p1v2(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up)
+    {
+        vector3d_t f, s, u;
+        float fw, fs;
+
+        // Normalize forward vector
+        fw      = sqrtf(fwd->dx*fwd->dx + fwd->dy*fwd->dy + fwd->dz*fwd->dz);
+        f.dx    = fwd->dx / fw;
+        f.dy    = fwd->dy / fw;
+        f.dz    = fwd->dz / fw;
+        f.dw    = 0.0f;
+
+        // Compute and normalize side vector
+        s.dx    = f.dy*up->dz - f.dz*up->dy;
+        s.dy    = f.dz*up->dx - f.dx*up->dz;
+        s.dz    = f.dx*up->dy - f.dy*up->dx;
+        s.dw    = 0.0f;
+
+        fs      = sqrtf(s.dx*s.dx + s.dy*s.dy + s.dz*s.dz);
+        s.dx   /= fs;
+        s.dy   /= fs;
+        s.dz   /= fs;
+
+        // Compute orthogonal up vector
+        u.dx    = f.dy*s.dz - f.dz*s.dy;
+        u.dy    = f.dz*s.dx - f.dx*s.dz;
+        u.dz    = f.dx*s.dy - f.dy*s.dx;
+        u.dw    = 0.0f;
+
+        // Fill matrix
+        float *M    = m->m;
+        M[0]    =  s.dx;
+        M[1]    =  u.dx;
+        M[2]    =  f.dx;
+        M[3]    =  0.0f;
+
+        M[4]    =  s.dy;
+        M[5]    =  u.dy;
+        M[6]    =  f.dy;
+        M[7]    =  0.0f;
+
+        M[8]    =  s.dz;
+        M[9]    =  u.dz;
+        M[10]   =  f.dz;
+        M[11]   =  0.0f;
+
+        M[12]   = -(s.dx*pov->x + s.dy*pov->y + s.dz*pov->z);
+        M[13]   = -(u.dx*pov->x + u.dy*pov->y + u.dz*pov->z);
+        M[14]   = -(f.dx*pov->x + f.dy*pov->y + f.dz*pov->z);
+        M[15]   =  1.0f;
+    }
+
     void calc_matrix3d_transform_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
     {
         matrix3d_t xm;

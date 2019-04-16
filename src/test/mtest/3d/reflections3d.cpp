@@ -123,8 +123,6 @@ MTEST_BEGIN("3d", reflections)
                 dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
                 dsp::init_point_xyz(&sCapture.z, 1.0f, 0.0f, 0.0f);
                 dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
-
-                update_view();
             }
 
             virtual ~Renderer()
@@ -291,14 +289,14 @@ MTEST_BEGIN("3d", reflections)
                 return trace->process(1, 100.0f);
             }
 
-            status_t    update_view()
+            virtual void view_changed()
             {
                 v_segment3d_t s;
                 v_vertex3d_t v[3];
                 status_t res = STATUS_OK;
 
                 if (!pScene->validate())
-                    return STATUS_BAD_STATE;
+                    return;
 
                 // List of ignored and matched triangles
                 rt_debug_t global;
@@ -327,7 +325,7 @@ MTEST_BEGIN("3d", reflections)
                     pView->clear_all();
 
                 if (!pScene->validate())
-                    return STATUS_BAD_STATE;
+                    return;
 
                 // Render bounding boxes of the scene
                 if (bBoundBoxes)
@@ -389,8 +387,6 @@ MTEST_BEGIN("3d", reflections)
 
                 global.ignored.flush();
                 global.matched.flush();
-
-                return res;
             }
     };
 

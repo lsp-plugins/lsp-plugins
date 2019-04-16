@@ -54,8 +54,6 @@ MTEST_BEGIN("3d", bsp_context)
         private:
             Scene3D        *pScene;
             ssize_t         nTrace;
-            bool            bDrawMatched;
-            bool            bDrawIgnored;
             bool            bDrawDebug;
 
         public:
@@ -64,8 +62,6 @@ MTEST_BEGIN("3d", bsp_context)
                 pScene          = scene;
                 bDrawDebug      = true;
                 nTrace          = BREAKPOINT_STEP;
-
-                update_view();
             }
 
             virtual ~Renderer()
@@ -75,19 +71,87 @@ MTEST_BEGIN("3d", bsp_context)
         public:
             virtual void view_changed()
             {
-                update_view();
+                status_t res    = STATUS_OK;
+
+                if (!pScene->validate())
+                    return;
+
+                // List of ignored and matched triangles
+                rt_debug_t global;
+                global.breakpoint   = nTrace;
+                global.step         = 0;
+
+                // Add objects to BSP context
+                bsp_context_t ctx;
+                IF_RT_TRACE_Y(
+                    ctx.set_debug_context(&global);
+                );
+
+                for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
+                {
+                    Object3D *o = pScene->object(i);
+                    if (!o->is_visible())
+                        continue;
+
+                    color3d_t c = *(colors[i % 6]);
+                    c.a         = 0.5f; // Update alpha value
+
+                    res = ctx.add_object(o, i, &c);
+                    if (res != STATUS_OK)
+                        return;
+                }
+
+                // Build tree
+                res = ctx.build_tree();
+                if (res == STATUS_OK)
+                {
+                    ray3d_t pov;
+                    dsp::init_point_xyz(&pov.z, 0.0f, 0.0f, 6.0f);
+                    dsp::init_vector_dxyz(&pov.v, 0.0f, 0.0f, 1.0f);
+                    pView->clear_all();
+                    res = ctx.build_mesh(pView->vertexes2(), &sPov);
+                }
+
+                if (res == STATUS_BREAKPOINT)
+                {
+                    IF_RT_TRACE_Y(
+                        global.trace.swap(&ctx.trace);
+                    );
+                    pView->swap(&global.trace);
+                    res = STATUS_OK;
+                }
+                else
+                    return;
+
+//                point3d_t p0, p1;
+//                dsp::init_point_xyz(&p0, 0, 0, 0);
+//                dsp::init_point_xyz(&p1, 1, 0, 0);
+//                pView->add_segment(&p0, &p1, &C_RED);
+//                dsp::init_point_xyz(&p1, 0, 1, 0);
+//                pView->add_segment(&p0, &p1, &C_GREEN);
+//                dsp::init_point_xyz(&p1, 0, 0, 1);
+//                pView->add_segment(&p0, &p1, &C_BLUE);
+
+                if (!bDrawDebug)
+                    pView->clear_all();
+
+                if (!pScene->validate())
+                    return;
+
+                global.ignored.flush();
+                global.matched.flush();
             }
 
             virtual void on_key_press(const XKeyEvent &ev, KeySym key)
             {
                 switch (key)
                 {
-                    case XK_Up:
+                    case XK_Insert:
                         nTrace++;
                         lsp_trace("Set trace breakpoint to %d", int(nTrace));
                         update_view();
                         break;
-                    case XK_Down:
+                    case XK_Delete:
                         if (nTrace >= 0)
                         {
                             nTrace--;
@@ -98,20 +162,6 @@ MTEST_BEGIN("3d", bsp_context)
 
                     case 'b':
                     {
-                        update_view();
-                        break;
-                    }
-
-                    case 'm':
-                    {
-                        bDrawMatched = ! bDrawMatched;
-                        update_view();
-                        break;
-                    }
-
-                    case 'i':
-                    {
-                        bDrawIgnored = ! bDrawIgnored;
                         update_view();
                         break;
                     }
@@ -138,78 +188,6 @@ MTEST_BEGIN("3d", bsp_context)
                         X11Renderer::on_key_press(ev, key);
                         break;
                 }
-            }
-
-        protected:
-            status_t    update_view()
-            {
-                status_t res    = STATUS_OK;
-
-                if (!pScene->validate())
-                    return STATUS_BAD_STATE;
-
-                // List of ignored and matched triangles
-                rt_debug_t global;
-                global.breakpoint   = nTrace;
-                global.step         = 0;
-
-                // Add objects to BSP context
-                bsp_context_t ctx;
-                IF_RT_TRACE_Y(
-                    ctx.set_debug_context(&global);
-                );
-
-                for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
-                {
-                    color3d_t c = *(colors[i % 6]);
-                    c.a         = 0.5f; // Update alpha value
-                    Object3D *o = pScene->object(i);
-
-                    res = ctx.add_object(o, i, &c);
-                    if (res != STATUS_OK)
-                        return res;
-                }
-
-                // Build tree
-                res = ctx.build_tree();
-                if (res == STATUS_OK)
-                {
-                    vector3d_t pov;
-                    dsp::init_vector_dxyz(&pov, 0.0f, 0.0f, 1.0f);
-                    pView->clear_all();
-                    res = ctx.build_mesh(pView->vertexes2(), world(), &pov);
-                }
-
-                if (res == STATUS_BREAKPOINT)
-                {
-                    IF_RT_TRACE_Y(
-                        global.trace.swap(&ctx.trace);
-                    );
-                    pView->swap(&global.trace);
-                    res = STATUS_OK;
-                }
-                else
-                    return res;
-
-//                point3d_t p0, p1;
-//                dsp::init_point_xyz(&p0, 0, 0, 0);
-//                dsp::init_point_xyz(&p1, 1, 0, 0);
-//                pView->add_segment(&p0, &p1, &C_RED);
-//                dsp::init_point_xyz(&p1, 0, 1, 0);
-//                pView->add_segment(&p0, &p1, &C_GREEN);
-//                dsp::init_point_xyz(&p1, 0, 0, 1);
-//                pView->add_segment(&p0, &p1, &C_BLUE);
-
-                if (!bDrawDebug)
-                    pView->clear_all();
-
-                if (!pScene->validate())
-                    return STATUS_BAD_STATE;
-
-                global.ignored.flush();
-                global.matched.flush();
-
-                return res;
             }
     };
 

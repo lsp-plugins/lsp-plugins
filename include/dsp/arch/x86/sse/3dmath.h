@@ -1066,6 +1066,7 @@ namespace sse
                     init_matrix3d_rotate_z(m, -angle);
                 else // (z == 0.0)
                     init_matrix3d_identity(m);
+                return;
             }
             else if (z == 0.0f)
             {
@@ -1073,8 +1074,8 @@ namespace sse
                     init_matrix3d_rotate_y(m, angle);
                 else if (y < 0.0f)
                     init_matrix3d_rotate_y(m, -angle);
+                return;
             }
-            return;
         }
         else if ((y == 0.0) && (z == 0.0))
         {
