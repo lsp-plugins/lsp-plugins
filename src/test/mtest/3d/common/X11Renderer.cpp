@@ -61,6 +61,7 @@ namespace mtest
 //        dsp::init_matrix3d_identity(&sWorld);
         // Article about yaw-pitch-roll
         // http://in2gpu.com/2016/02/26/opengl-fps-camera/
+        // https://sites.google.com/site/csc8820/educational/move-a-camera
         dsp::init_matrix3d_identity(&sProjection);
         dsp::init_matrix3d_identity(&sDelta);
         dsp::init_matrix3d_identity(&sView);
