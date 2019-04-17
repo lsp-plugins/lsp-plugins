@@ -52,21 +52,19 @@ namespace mtest
 //        fDeltaScale         = 0.0f;
         pView               = view;
 
-//        sAngles.fYaw        = 0.0f;
-//        sAngles.fPitch      = 0.0f;
-//        sAngles.fRoll       = 0.0f;
-//        dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
+        sAngles.fYaw        = 0.0f;
+        sAngles.fPitch      = 0.0f;
+        sAngles.fRoll       = 0.0f;
+        dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
 
-        sAngles.fYaw        = -4.508185f;
-        sAngles.fPitch      = 0.741765f;
-        sAngles.fRoll       = 0.000000f;
-        dsp::init_point_xyz(&sPov, 3.377625f, 1.006218f, -3.435355f);
-//        [TRC][../src/test/mtest/3d/common/X11Renderer.cpp: 458] render: pov    = {3.377625, 1.006218, -3.435355}
-//        [TRC][../src/test/mtest/3d/common/X11Renderer.cpp: 459] render: angles = {-4.508185, 0.741765, 0.000000}
+//        sAngles.fYaw        = -4.508185f;
+//        sAngles.fPitch      = 0.741765f;
+//        sAngles.fRoll       = 0.000000f;
+//        dsp::init_point_xyz(&sPov, 3.377625f, 1.006218f, -3.435355f);
 
         dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
-        dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, 1.0f);
-        dsp::init_vector_dxyz(&sSide, 1.0f, 0.0f, 0.0f);
+        dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
+        dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
 
 //        dsp::init_matrix3d_identity(&sWorld);
         // Article about yaw-pitch-roll
@@ -160,6 +158,32 @@ namespace mtest
         sPov.z     += dir->dz * amount * 0.1f;
         bViewChanged = true;
     }
+
+    void X11Renderer::rotate_camera(ssize_t x, ssize_t y, bool commit)
+    {
+        matrix3d_t dm;  // Delta-matrix
+        float yaw       = sAngles.fYaw - ((x - nMouseX) * M_PI / 1000.0f);
+        float pitch     = sAngles.fPitch - ((y - nMouseY) * M_PI / 1000.0f);
+
+        if (pitch >= (89.0f * M_PI / 360.0f))
+            pitch       = (89.0f * M_PI / 360.0f);
+        else if (pitch <= (-89.0f * M_PI / 360.0f))
+            pitch       = (-89.0f * M_PI / 360.0f);
+
+        dsp::init_matrix3d_rotate_z(&sDelta, yaw);
+        dsp::init_matrix3d_rotate_x(&dm, pitch);
+        dsp::apply_matrix3d_mm1(&sDelta, &dm);
+
+        // Need to commit changes?
+        if (commit)
+        {
+            sAngles.fYaw    = yaw;
+            sAngles.fPitch  = pitch;
+        }
+
+        bViewChanged    = true;
+    }
+
 
     status_t X11Renderer::run()
     {
@@ -368,31 +392,6 @@ namespace mtest
             nMouseY     = ev.y;
         }
         nBMask |= (1 << ev.button);
-    }
-
-    void X11Renderer::rotate_camera(ssize_t x, ssize_t y, bool commit)
-    {
-        matrix3d_t dm;  // Delta-matrix
-        float yaw       = sAngles.fYaw + ((x - nMouseX) * M_PI / 1000.0f);
-        float pitch     = sAngles.fPitch + ((y - nMouseY) * M_PI / 1000.0f);
-
-        if (pitch >= (89.0f * M_PI / 360.0f))
-            pitch       = (89.0f * M_PI / 360.0f);
-        else if (pitch <= (-89.0f * M_PI / 360.0f))
-            pitch       = (-89.0f * M_PI / 360.0f);
-
-        dsp::init_matrix3d_rotate_z(&sDelta, yaw);
-        dsp::init_matrix3d_rotate_x(&dm, pitch);
-        dsp::apply_matrix3d_mm1(&sDelta, &dm);
-
-        // Need to commit changes?
-        if (commit)
-        {
-            sAngles.fYaw    = yaw;
-            sAngles.fPitch  = pitch;
-        }
-
-        bViewChanged    = true;
     }
 
     void X11Renderer::on_mouse_up(const XButtonEvent &ev)
