@@ -26,7 +26,6 @@ namespace mtest
         nMouseY             = 0;
         nWidth              = 0;
         nHeight             = 0;
-        bViewChanged        = true;
 
         bWireframe          = false;
         bRotate             = false;
@@ -53,7 +52,18 @@ namespace mtest
 //        fDeltaScale         = 0.0f;
         pView               = view;
 
-        dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
+//        sAngles.fYaw        = 0.0f;
+//        sAngles.fPitch      = 0.0f;
+//        sAngles.fRoll       = 0.0f;
+//        dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
+
+        sAngles.fYaw        = -4.508185f;
+        sAngles.fPitch      = 0.741765f;
+        sAngles.fRoll       = 0.000000f;
+        dsp::init_point_xyz(&sPov, 3.377625f, 1.006218f, -3.435355f);
+//        [TRC][../src/test/mtest/3d/common/X11Renderer.cpp: 458] render: pov    = {3.377625, 1.006218, -3.435355}
+//        [TRC][../src/test/mtest/3d/common/X11Renderer.cpp: 459] render: angles = {-4.508185, 0.741765, 0.000000}
+
         dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
         dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, 1.0f);
         dsp::init_vector_dxyz(&sSide, 1.0f, 0.0f, 0.0f);
@@ -65,6 +75,9 @@ namespace mtest
         dsp::init_matrix3d_identity(&sProjection);
         dsp::init_matrix3d_identity(&sDelta);
         dsp::init_matrix3d_identity(&sView);
+
+        bViewChanged        = true;
+        rotate_camera(0, 0, true);
     }
     
     X11Renderer::~X11Renderer()
@@ -142,12 +155,9 @@ namespace mtest
 
     void X11Renderer::move_camera(const vector3d_t *dir, float amount)
     {
-        vector3d_t xdir;
-        dsp::apply_matrix3d_mv2(&xdir, dir, &sDelta);
-
-        sPov.x     += xdir.dx * amount * 0.1f;
-        sPov.y     += xdir.dy * amount * 0.1f;
-        sPov.z     += xdir.dz * amount * 0.1f;
+        sPov.x     += dir->dx * amount * 0.1f;
+        sPov.y     += dir->dy * amount * 0.1f;
+        sPov.z     += dir->dz * amount * 0.1f;
         bViewChanged = true;
     }
 
@@ -287,17 +297,21 @@ namespace mtest
 
     void X11Renderer::on_key_press(const XKeyEvent &ev, KeySym key)
     {
+        vector3d_t dir, side;
+        dsp::apply_matrix3d_mv2(&dir, &sDir, &sDelta);
+        dsp::apply_matrix3d_mv2(&side, &sSide, &sDelta);
+
         switch (key)
         {
             case XK_Escape:
                 stop();
                 break;
-            case XK_Left:       move_camera(&sSide, 1.0f); break;
-            case XK_Right:      move_camera(&sSide,-1.0f); break;
-            case XK_Up:         move_camera(&sDir, -1.0f);  break;
-            case XK_Down:       move_camera(&sDir, 1.0f); break;
-            case XK_Page_Up:    move_camera(&sTop, 1.0f);  break;
-            case XK_Page_Down:  move_camera(&sTop, -1.0f); break;
+            case XK_Left:       move_camera(&side, 1.0f); break;
+            case XK_Right:      move_camera(&side,-1.0f); break;
+            case XK_Up:         move_camera(&dir, -1.0f);  break;
+            case XK_Down:       move_camera(&dir, 1.0f); break;
+            case XK_Page_Up:    move_camera(&sTop, -1.0f);  break;
+            case XK_Page_Down:  move_camera(&sTop, 1.0f); break;
 
             case ' ':
                 bRotate = !bRotate;
@@ -352,9 +366,33 @@ namespace mtest
         {
             nMouseX     = ev.x;
             nMouseY     = ev.y;
-            dsp::init_matrix3d_identity(&sDelta);
         }
         nBMask |= (1 << ev.button);
+    }
+
+    void X11Renderer::rotate_camera(ssize_t x, ssize_t y, bool commit)
+    {
+        matrix3d_t dm;  // Delta-matrix
+        float yaw       = sAngles.fYaw + ((x - nMouseX) * M_PI / 1000.0f);
+        float pitch     = sAngles.fPitch + ((y - nMouseY) * M_PI / 1000.0f);
+
+        if (pitch >= (89.0f * M_PI / 360.0f))
+            pitch       = (89.0f * M_PI / 360.0f);
+        else if (pitch <= (-89.0f * M_PI / 360.0f))
+            pitch       = (-89.0f * M_PI / 360.0f);
+
+        dsp::init_matrix3d_rotate_z(&sDelta, yaw);
+        dsp::init_matrix3d_rotate_x(&dm, pitch);
+        dsp::apply_matrix3d_mm1(&sDelta, &dm);
+
+        // Need to commit changes?
+        if (commit)
+        {
+            sAngles.fYaw    = yaw;
+            sAngles.fPitch  = pitch;
+        }
+
+        bViewChanged    = true;
     }
 
     void X11Renderer::on_mouse_up(const XButtonEvent &ev)
@@ -362,19 +400,8 @@ namespace mtest
         nBMask &= ~(1 << ev.button);
         if (nBMask == 0)
         {
-            matrix3d_t m;
-            float atop      = ((ev.x - nMouseX) * M_PI / 1000.0f);
-            float aside     = ((ev.y - nMouseY) * M_PI / 1000.0f);
-
-            dsp::init_matrix3d_rotate_xyz(&sDelta, sSide.dx, sSide.dy, sSide.dz, aside);
-            dsp::init_matrix3d_rotate_xyz(&m, sTop.dx, sTop.dy, sTop.dz, atop);
-            dsp::apply_matrix3d_mm1(&sDelta, &m);
-
-            // Commit changes
-            dsp::apply_matrix3d_mv1(&sDir, &sDelta);
-            dsp::apply_matrix3d_mv1(&sTop, &sDelta);
-            dsp::apply_matrix3d_mv1(&sSide, &sDelta);
-            dsp::init_matrix3d_identity(&sDelta);
+            // Rotate camera
+            rotate_camera(ev.x, ev.y, true);
         }
     }
 
@@ -382,15 +409,7 @@ namespace mtest
     {
         if (nBMask & 2)
         {
-            matrix3d_t m;
-            float atop      = ((ev.x - nMouseX) * M_PI / 1000.0f);
-            float aside     = ((ev.y - nMouseY) * M_PI / 1000.0f);
-
-            dsp::init_matrix3d_rotate_xyz(&sDelta, sSide.dx, sSide.dy, sSide.dz, aside);
-            dsp::init_matrix3d_rotate_xyz(&m, sTop.dx, sTop.dy, sTop.dz, atop);
-            dsp::apply_matrix3d_mm1(&sDelta, &m);
-
-            bViewChanged    = true;
+            rotate_camera(ev.x, ev.y, false);
         }
         else if (nBMask & 8)
         {
@@ -439,34 +458,14 @@ namespace mtest
             float fW = fH * aspect;
             dsp::init_matrix3d_frustum(&sProjection, -fW, fW, -fH, fH, zNear, zFar);
 
-            // Compute view matrix
-            vector3d_t dir, top;
+            // Compute view matrix depending on camera's position
+            vector3d_t dir;
             dsp::apply_matrix3d_mv2(&dir, &sDir, &sDelta);
-            dsp::apply_matrix3d_mv2(&top, &sTop, &sDelta);
-            dsp::init_matrix3d_lookat_p1v2(&sView, &sPov, &dir, &top);
-
-//            dsp::init_matrix3d_identity(&sView);
-//            // Compute world matrix
-//            matrix3d_t tmp;
-//            dsp::init_matrix3d_identity(&sWorld);
-//
-//            dsp::init_matrix3d_translate(&tmp, 0.0f, 0.0f, -6.0f);
-//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
-//
-//            float scale = fScale + fDeltaScale;
-//            dsp::init_matrix3d_scale(&tmp, scale, scale, scale);
-//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
-//
-//            dsp::init_matrix3d_rotate_x(&tmp, (fAngleX + fAngleDX)*M_PI/180.0f);
-//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
-//
-//            dsp::init_matrix3d_rotate_y(&tmp, (fAngleY + fAngleDY)*M_PI/180.0f);
-//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
-//
-//            dsp::init_matrix3d_rotate_z(&tmp, (fAngleZ + fAngleDZ)*M_PI/180.0f);
-//            dsp::apply_matrix3d_mm2(&sWorld, &sWorld, &tmp);
+            dsp::init_matrix3d_lookat_p1v2(&sView, &sPov, &dir, &sTop);
 
             // Make a callback that view matrix has changed
+            lsp_trace("pov    = {%f, %f, %f}", sPov.x, sPov.y, sPov.z);
+            lsp_trace("angles = {%f, %f, %f}", sAngles.fYaw, sAngles.fPitch, sAngles.fRoll);
             view_changed();
 
             // Reset 'changed view' flag

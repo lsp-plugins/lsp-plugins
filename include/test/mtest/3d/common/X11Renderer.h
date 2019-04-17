@@ -27,6 +27,14 @@ namespace mtest
 
     class X11Renderer
     {
+        protected:
+            typedef struct pov_angles_t
+            {
+                float                   fYaw;
+                float                   fPitch;
+                float                   fRoll;
+            } pov_angles_t;
+
         private:
             Display                 *dpy;
             Window                  win;
@@ -40,6 +48,7 @@ namespace mtest
 
         protected:
             // 3D rendering model
+            pov_angles_t            sAngles;
             point3d_t               sPov;           // Point-of-view for the camera
             vector3d_t              sDir;           // Direction-of-view for the camera
             vector3d_t              sTop;           // Top-of-view for the camera
@@ -87,6 +96,7 @@ namespace mtest
             virtual void view_changed();
             inline void update_view() { bViewChanged = true; }
             void move_camera(const vector3d_t *dir, float amount);
+            void rotate_camera(ssize_t x, ssize_t y, bool commit);
 
         public:
             virtual status_t init();

@@ -526,11 +526,18 @@ namespace lsp
                     dsp::calc_plane_pv(&pl, ct->v);
                     float d         = pov->x*pl.dx + pov->y*pl.dy + pov->z*pl.dz + pl.dw;
 
+                    // Allocate vertexes
+                    size_t idx = dst->size();
                     v[0]    = dst->add();
                     v[1]    = dst->add();
                     v[2]    = dst->add();
                     if ((v[0] == NULL) || (v[1] == NULL) || (v[2] == NULL))
                         return STATUS_NO_MEM;
+
+                    // Patch vertex pointers because dst may reallocate the memory
+                    v[0]    = dst->at(idx);
+                    v[1]    = dst->at(idx+1);
+                    v[2]    = dst->at(idx+2);
 
                     if (d < 0.0f)
                     {
@@ -571,13 +578,13 @@ namespace lsp
                 bsp_node_t *first   = (d < 0.0f) ? curr->out : curr->in;
                 bsp_node_t *last    = (d < 0.0f) ? curr->in : curr->out;
 
-                RT_TRACE_BREAK(debug,
-                    lsp_trace("Draw order: first (GREEN), last (BLUE), on (YELLOW)");
-                    trace_recursive(first, &C_GREEN);
-                    trace_recursive(last, &C_BLUE);
-                    for (bsp_triangle_t *st=curr->on; st != NULL; st = st->next)
-                        trace.add_triangle(st, &C_YELLOW);
-                );
+//                RT_TRACE_BREAK(debug,
+//                    lsp_trace("Draw order: first (GREEN), last (BLUE), on (YELLOW)");
+//                    trace_recursive(first, &C_GREEN);
+//                    trace_recursive(last, &C_BLUE);
+//                    for (bsp_triangle_t *st=curr->on; st != NULL; st = st->next)
+//                        trace.add_triangle(st, &C_YELLOW);
+//                );
 
                 if (last != NULL)
                 {
