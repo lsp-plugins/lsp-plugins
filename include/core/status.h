@@ -8,6 +8,8 @@
 #ifndef CORE_STATUS_H_
 #define CORE_STATUS_H_
 
+typedef int     status_t;
+
 namespace lsp
 {
     enum status_codes
@@ -62,8 +64,6 @@ namespace lsp
         STATUS_MAX = STATUS_TOTAL - 1,
         STATUS_SUCCESS = STATUS_OK
     };
-
-    typedef int     status_t;
 
     extern const char *status_descriptions[];
 
