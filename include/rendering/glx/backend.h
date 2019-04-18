@@ -183,7 +183,42 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         if (pDisplay == NULL)
             return STATUS_BAD_STATE;
 
+        // Enable context
+        ::glViewport(0, 0, viewWidth, viewHeight);
         ::glXMakeCurrent(pDisplay, hWnd, hContext);
+
+        // Enable depth test and culling
+        ::glEnable(GL_DEPTH_TEST);
+        ::glEnable(GL_CULL_FACE);
+        ::glCullFace(GL_BACK);
+        ::glEnable(GL_COLOR_MATERIAL);
+
+        // Tune lighting
+        ::glShadeModel(GL_FLAT);
+        ::glEnable(GL_RESCALE_NORMAL);
+
+        // enable blending
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // Load matrices
+        ::glMatrixMode(GL_PROJECTION);
+        ::glLoadMatrixf(matProjection.m);
+
+        ::glMatrixMode(GL_MODELVIEW);
+        matrix3d_t view;
+        matrix_mul(&view, &matWorld, &matView);
+        ::glLoadMatrixf(view.m);
+
+        // Special tuning for non-poligonal primitives
+        ::glPolygonOffset(-1, -1);
+        ::glEnable(GL_POLYGON_OFFSET_POINT);
+
+        // Clear buffer
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearDepth(1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         return STATUS_OK;
     }
 
@@ -192,7 +227,6 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         if (pDisplay == NULL)
             return STATUS_BAD_STATE;
 
-        ::glViewport(0, 0, viewWidth, viewHeight);
         ::glXSwapBuffers(pDisplay, hWnd);
         ::glXMakeCurrent(pDisplay, hWnd, NULL);
 

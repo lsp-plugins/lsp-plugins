@@ -21,6 +21,8 @@ typedef struct r3d_base_backend_t: public r3d_backend_t
     matrix3d_t  matView;
     matrix3d_t  matWorld;
 
+    color3d_t   colBackground;
+
     ssize_t     viewLeft;
     ssize_t     viewTop;
     ssize_t     viewWidth;
@@ -81,6 +83,39 @@ typedef struct r3d_base_backend_t: public r3d_backend_t
             case R3D_MATRIX_WORLD:      *xm = matWorld;         break;
             default: return STATUS_INVALID_VALUE;
         }
+        return STATUS_OK;
+    }
+
+    static void matrix_mul(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m)
+    {
+        const float *A      = s->m;
+        const float *B      = m->m;
+        float *R            = r->m;
+
+        R[0]    = A[0] * B[0]   + A[4] * B[1]   + A[8] * B[2]   + A[12] * B[3];
+        R[1]    = A[1] * B[0]   + A[5] * B[1]   + A[9] * B[2]   + A[13] * B[3];
+        R[2]    = A[2] * B[0]   + A[6] * B[1]   + A[10] * B[2]  + A[14] * B[3];
+        R[3]    = A[3] * B[0]   + A[7] * B[1]   + A[11] * B[2]  + A[15] * B[3];
+
+        R[4]    = A[0] * B[4]   + A[4] * B[5]   + A[8] * B[6]   + A[12] * B[7];
+        R[5]    = A[1] * B[4]   + A[5] * B[5]   + A[9] * B[6]   + A[13] * B[7];
+        R[6]    = A[2] * B[4]   + A[6] * B[5]   + A[10] * B[6]  + A[14] * B[7];
+        R[7]    = A[3] * B[4]   + A[7] * B[5]   + A[11] * B[6]  + A[15] * B[7];
+
+        R[8]    = A[0] * B[8]   + A[4] * B[9]   + A[8] * B[10]  + A[12] * B[11];
+        R[9]    = A[1] * B[8]   + A[5] * B[9]   + A[9] * B[10]  + A[13] * B[11];
+        R[10]   = A[2] * B[8]   + A[6] * B[9]   + A[10] * B[10] + A[14] * B[11];
+        R[11]   = A[3] * B[8]   + A[7] * B[9]   + A[11] * B[10] + A[15] * B[11];
+
+        R[12]   = A[0] * B[12]  + A[4] * B[13]  + A[8] * B[14]  + A[12] * B[15];
+        R[13]   = A[1] * B[12]  + A[5] * B[13]  + A[9] * B[14]  + A[13] * B[15];
+        R[14]   = A[2] * B[12]  + A[6] * B[13]  + A[10] * B[14] + A[14] * B[15];
+        R[15]   = A[3] * B[12]  + A[7] * B[13]  + A[11] * B[14] + A[15] * B[15];
+    }
+
+    status_t set_bg_color(const color3d_t *color)
+    {
+        colBackground   = color;
         return STATUS_OK;
     }
 } r3d_base_backend_t;

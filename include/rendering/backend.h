@@ -8,6 +8,7 @@
 #ifndef RENDERING_BACKEND_H_
 #define RENDERING_BACKEND_H_
 
+#include <dsp/dsp.h>
 #include <core/types.h>
 #include <core/status.h>
 #include <rendering/types.h>
@@ -83,6 +84,13 @@ struct r3d_backend_t
      * @return status of operation
      */
     status_t    (* get_matrix)(r3d_matrix_type_t type, float *m);
+
+    /**
+     * Set the default background color
+     * @param color default background color
+     * @return
+     */
+    status_t    (* set_bg_color)(const color3d_t *color);
 };
 
 /**
