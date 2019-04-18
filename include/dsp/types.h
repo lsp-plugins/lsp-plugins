@@ -249,6 +249,10 @@
     #define ARCH_ARM_ASM(...)
 #endif /* ARCH_ARM_ASM */
 
+#ifndef ARCH_AARCH64_ASM
+    #define ARCH_AARCH64_ASM(...)
+#endif /* ARCH_AARCH64_ASM */
+
 #define __ASM_ARG_TMP(var)                      __IF_32P("=&g"(var)) __IF_32NP("=&r"(var)) __IF_64("=&r"(var))
 #define __ASM_ARG_RW(var)                       __IF_32P("+g"(var))  __IF_32NP("+r"(var))  __IF_64("+r"(var))
 #define __ASM_ARG_RO(var)                       __IF_32P("g"(var))   __IF_32NP("r"(var))   __IF_64("r"(var))

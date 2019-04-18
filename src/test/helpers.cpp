@@ -76,6 +76,12 @@ namespace test
         }
         puts("");
     }
+
+    float randf(float min, float max)
+    {
+        float v = float(rand()) / (float(RAND_MAX) + 1.0f);
+        return min + (max - min) * v;
+    }
 }
 
 

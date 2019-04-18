@@ -82,7 +82,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
-.PHONY: all experimental trace debug tracefile debugfile profile gdb test compile 
+.PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
 .PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc
 .PHONY: release release_ladspa release_lv2 release_vst release_jack release_doc release_src
@@ -110,6 +110,18 @@ test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: compile
 
+testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3
+testdebug: export CXXFLAGS       += -O0 -DLSP_TESTING -DLSP_TRACE -g3
+testdebug: export EXE_TEST_FLAGS += -g3
+testdebug: export MAKE_OPTS      += LSP_TESTING=1
+testdebug: compile
+
+testprofile: export CFLAGS         += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC
+testprofile: export CXXFLAGS       += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC
+testprofile: export EXE_TEST_FLAGS += -g -pg -O2 -g3 -no-pie -fno-pie -fPIC
+testprofile: export MAKE_OPTS      += LSP_TESTING=1
+testprofile: compile
+
 tracefile: export CFLAGS    += -DLSP_TRACEFILE
 tracefile: export CXXFLAGS  += -DLSP_TRACEFILE
 tracefile: trace
@@ -126,9 +138,9 @@ gdb: export CFLAGS          += -O0 -g3 -DLSP_TRACE
 gdb: export CXXFLAGS        += -O0 -g3 -DLSP_TRACE
 gdb: compile
 
-profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie
-profile: export CXXFLAGS    += -g -pg -DLSP_PROFILING -no-pie
-profile: export EXE_FLAGS   += -g -pg -no-pie
+profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie -fno-pie -fPIC
+profile: export CXXFLAGS    += -g -pg -DLSP_PROFILING -no-pie -fno-pie -fPIC
+profile: export EXE_FLAGS   += -g -pg -no-pie -fno-pie -fPIC
 profile: compile
 
 # Compilation and cleaning targets

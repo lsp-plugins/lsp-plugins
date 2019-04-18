@@ -13,6 +13,7 @@
 #include <dsp/dsp.h>
 
 #include <ui/ui_locale.h>
+#include <core/stdlib/string.h>
 
 #include <plugins/plugins.h>
 #include <metadata/plugins.h>
@@ -30,6 +31,50 @@ namespace lsp
 //        LSPMessageBox  *pDialog;
         timespec        nLastReconnect;
     } jack_wrapper_t;
+
+    typedef struct jack_config_t
+    {
+        const char *cfg_file;
+    } jack_config_t;
+
+    status_t jack_parse_config(jack_config_t *cfg, int argc, const char **argv)
+    {
+        // Initialize config with default values
+        cfg->cfg_file       = NULL;
+
+        // Parse arguments
+        int i = 1;
+        while (i < argc)
+        {
+            const char *arg = argv[i++];
+            if ((!::strcmp(arg, "--help")) || (!::strcmp(arg, "-h")))
+            {
+                printf("Usage: %s [parameters]\n\n", argv[0]);
+                printf("Available parameters:\n");
+                printf("  -c, --config <file>   Load settings file on startup\n");
+                printf("  -h, --help            Output help\n");
+                printf("\n");
+
+                return STATUS_CANCELLED;
+            }
+            else if ((!::strcmp(arg, "--config")) || (!::strcmp(arg, "-c")))
+            {
+                if (i >= argc)
+                {
+                    fprintf(stderr, "Not specified file name for '%s' parameter\n", arg);
+                    return STATUS_BAD_ARGUMENTS;
+                }
+                cfg->cfg_file = argv[i++];
+            }
+            else
+            {
+                fprintf(stderr, "Unknown parameter: %s\n", arg);
+                return STATUS_BAD_ARGUMENTS;
+            }
+        }
+
+        return STATUS_OK;
+    }
 
     static status_t jack_ui_sync(timestamp_t time, void *arg)
     {
@@ -101,84 +146,69 @@ namespace lsp
         return STATUS_OK;
     }
 
-    int jack_plugin_main(plugin_t *plugin, int argc, const char **argv)
+    int jack_plugin_main(plugin_t *plugin, plugin_ui *pui, int argc, const char **argv)
     {
-        int status                      = STATUS_OK;
+        int status               = STATUS_OK;
         jack_wrapper_t  wrapper;
 
-        // Get metadata
-        const plugin_metadata_t *meta   = (plugin != NULL) ? plugin->get_metadata() : NULL;
+        // Parse command-line arguments
+        jack_config_t cfg;
+        status_t res = jack_parse_config(&cfg, argc, argv);
+        if (res != STATUS_OK)
+            return (res == STATUS_CANCELLED) ? 0 : res;
 
-        if (meta != NULL)
+        // Create wrapper
+        lsp_trace("Creating wrapper");
+        JACKWrapper w(plugin, pui);
+
+        // Initialize
+        lsp_trace("Initializing wrapper");
+        status                  = w.init(argc, argv);
+
+        // Load configuration (if specified in parameters)
+        if ((status == STATUS_OK) && (cfg.cfg_file != NULL))
         {
-            // Initialize DSP
-            lsp_trace("Initializing DSP");
-            dsp::init();
+            status = ui.import_settings(cfg.cfg_file);
+            if (status != STATUS_OK)
+                fprintf(stderr, "Error loading configuration file: %s\n", get_status(status));
+        }
 
-            // Create plugin UI
-            lsp_trace("Creating UI");
-            plugin_ui ui(meta, NULL);
+        // Enter the main lifecycle
+        if (status == STATUS_OK)
+        {
+            dsp::context_t ctx;
+            dsp::start(&ctx);
 
-            // Create wrapper
-            lsp_trace("Creating wrapper");
-            JACKWrapper w(plugin, &ui);
+            // Perform initial connection
+            lsp_trace("Connecting to JACK server");
+            w.connect();
+            clock_gettime(CLOCK_REALTIME, &wrapper.nLastReconnect);
 
-            // Initialize
-            lsp_trace("Initializing wrapper");
-            status                  = w.init(argc, argv);
-            if (status == STATUS_OK)
-            {
-                dsp::context_t ctx;
-                dsp::start(&ctx);
+            // Create timer for transferring DSP -> UI data
+            lsp_trace("Creating timer");
+            wrapper.nSync       = 0;
+            wrapper.pWrapper    = &w;
+            wrapper.pWindow     = pui->root_window();
 
-                // Perform initial connection
-                lsp_trace("Connecting to JACK server");
-                w.connect();
-                clock_gettime(CLOCK_REALTIME, &wrapper.nLastReconnect);
+            LSPTimer tmr;
+            tmr.bind(pui->display());
+            tmr.set_handler(jack_ui_sync, &wrapper);
+            tmr.launch(0, 40); // 25 Hz rate
 
-                // Create timer for transferring DSP -> UI data
-                lsp_trace("Creating timer");
-                wrapper.nSync       = 0;
-                wrapper.pWrapper    = &w;
-                wrapper.pWindow     = ui.root_window();
-//                wrapper.pDialog     = NULL;
+            // Do UI interaction
+            lsp_trace("Calling main function");
+            pui->main();
+            tmr.cancel();
 
-                LSPTimer tmr;
-                tmr.bind(ui.display());
-                tmr.set_handler(jack_ui_sync, &wrapper);
-                tmr.launch(0, 40); // 25 Hz rate
-
-                // Do UI interaction
-                lsp_trace("Calling main function");
-                ui.main();
-                tmr.cancel();
-
-                // Destroy dialog if present
-//                if (wrapper.pDialog != NULL)
-//                {
-//                    wrapper.pDialog->destroy();
-//                    delete wrapper.pDialog;
-//                    wrapper.pDialog = NULL;
-//                }
-
-                dsp::finish(&ctx);
-            }
-            else
-                lsp_error("Error initializing Jack wrapper");
-
-            // Destroy objects
-            w.disconnect();
-            ui.destroy();
-            w.destroy();
+            dsp::finish(&ctx);
         }
         else
-        {
-            lsp_error("Plugin has no metadata");
-            status  = STATUS_NO_MEM;
-        }
+            lsp_error("Error initializing Jack wrapper");
 
-        // Destroy plugin
-        plugin->destroy();
+        // Destroy objects
+        w.disconnect();
+        w.destroy();
+
         return status;
     }
 
@@ -188,33 +218,66 @@ namespace lsp
 extern "C"
 {
 #endif /* __cplusplus */
-    extern int JACK_MAIN_FUNCTION(const char *plugin_id, int argc, const char **argv)
+    LSP_LIBRARY_EXPORT
+    int JACK_MAIN_FUNCTION(const char *plugin_id, int argc, const char **argv)
     {
-        lsp_debug_init("jack");
-
         using namespace lsp;
-
+        
+        lsp_debug_init("jack");
         init_locale();
+        
+        // Initialize DSP
+        lsp_trace("Initializing DSP");
+        dsp::init();
+
+        plugin_t  *p    = NULL;
+        plugin_ui *pui  = NULL;
+        status_t res    = STATUS_OK;
 
         // Call corresponding plugin for execute
-        #define MOD_PLUGIN(plugin)    \
+        #define MOD_PLUGIN(plugin, ui)    \
             lsp_trace("test plugin uid=%s", plugin::metadata.lv2_uid); \
-            if (!strcmp(plugin::metadata.lv2_uid, plugin_id)) \
+            if ((!p) && (!pui) && (!strcmp(plugin::metadata.lv2_uid, plugin_id))) \
             { \
-                if (plugin::metadata.ui_resource == NULL) \
-                    return -STATUS_INVALID_UID; \
-                plugin p; \
-                return - jack_plugin_main(&p, argc, argv); \
+                p = new plugin_t(plugin::metadata); \
+                if (plugin::metadata.ui_resource != NULL) \
+                    pui = new ui(&plugin::metadata, NULL); \
             }
 
         #include <metadata/modules.h>
 
+        // Try to launch instantiated objects
+        if (p == NULL)
+        {
+            lsp_error("Unknown plugin id=%s", plugin_id);
+            res = STATUS_INVALID_UID;
+        }
+        else if (pui == NULL)
+        {
+            lsp_error("No UI found for plugin id=%s", plugin_id);
+            res = STATUS_BAD_STATE;
+        }
+        else
+            res = jack_plugin_main(p, pui, argc, argv);
+
+        // Destroy objects
+        if (pui != NULL)
+        {
+            pui->destroy();
+            delete pui;
+        }
+        if (p!= NULL)
+        {
+            p->destroy();
+            delete p;
+        }
+
         // Output error
-        lsp_error("Unknown plugin id=%s", plugin_id);
-        return -STATUS_INVALID_UID;
+        return -res;
     }
 
-    extern const char *JACK_GET_VERSION()
+    LSP_LIBRARY_EXPORT
+    const char *JACK_GET_VERSION()
     {
         return LSP_MAIN_VERSION;
     }

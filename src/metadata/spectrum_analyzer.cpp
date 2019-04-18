@@ -13,7 +13,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Spectrum analyser: x1, x8, x12, x16, x24, x32
-    static const int spectrum_analyzer_classes[] = { C_ANALYSER, C_UTILITY, C_SPECTRAL, -1 };
+    static const int spectrum_analyzer_classes[] = { C_ANALYSER, -1 };
 
     static const char *fft_tolerance[] =
     {
@@ -251,6 +251,7 @@ namespace lsp
         LSP_SPECTRUM_ANALYZER_BASE + 0,
         LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
+        E_INLINE_DISPLAY,
         spectrum_analyzer_x1_ports,
         "analyzer/spectrum/x1.xml",
         NULL
@@ -267,6 +268,7 @@ namespace lsp
         LSP_SPECTRUM_ANALYZER_BASE + 1,
         LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
+        E_INLINE_DISPLAY,
         spectrum_analyzer_x2_ports,
         "analyzer/spectrum/x2.xml",
         NULL
@@ -283,6 +285,7 @@ namespace lsp
         LSP_SPECTRUM_ANALYZER_BASE + 2,
         LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
+        E_INLINE_DISPLAY,
         spectrum_analyzer_x4_ports,
         "analyzer/spectrum/x4.xml",
         NULL
@@ -299,6 +302,7 @@ namespace lsp
         LSP_SPECTRUM_ANALYZER_BASE + 3,
         LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
+        E_INLINE_DISPLAY,
         spectrum_analyzer_x8_ports,
         "analyzer/spectrum/x8.xml",
         NULL
@@ -315,6 +319,7 @@ namespace lsp
         LSP_SPECTRUM_ANALYZER_BASE + 4,
         LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
+        E_INLINE_DISPLAY,
         spectrum_analyzer_x12_ports,
         "analyzer/spectrum/x12.xml",
         NULL
@@ -331,6 +336,7 @@ namespace lsp
         LSP_SPECTRUM_ANALYZER_BASE + 5,
         LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
+        E_INLINE_DISPLAY,
         spectrum_analyzer_x16_ports,
         "analyzer/spectrum/x16.xml",
         NULL

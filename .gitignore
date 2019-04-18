@@ -22,3 +22,4 @@
 /gmon.out
 **/*.gmon
 *.svg
+*.core

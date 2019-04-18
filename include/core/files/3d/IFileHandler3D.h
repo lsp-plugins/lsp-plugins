@@ -38,6 +38,13 @@ namespace lsp
              */
             virtual status_t end_object(size_t id);
 
+            /**
+             * This callback is called when there is no more data at the input
+             * and allows to post-process/finalize loaded data structures
+             * @return status of operation
+             */
+            virtual status_t end_of_data();
+
             /** Add vertex
              *
              * @param idx index

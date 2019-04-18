@@ -201,8 +201,12 @@ namespace lsp
     template <class T, size_t A=DEFAULT_ALIGN>
         class cstorage: public basic_storage
         {
+            private:
+                cstorage(const cstorage<T, A> &src);                            // Disable copying
+                cstorage<T, A> & operator = (const cstorage<T, A> & src);       // Disable copying
+
             public:
-                cstorage() : basic_storage(sizeof(T), A) {};
+                explicit cstorage() : basic_storage(sizeof(T), A) {};
                 ~cstorage() {};
 
             public:
@@ -217,9 +221,17 @@ namespace lsp
                     return dst;
                 }
 
-                inline T *append(const T *v, size_t n)
+                inline T *push(const T *v)
                 {
                     T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    if (dst != NULL)
+                        *dst = *v;
+                    return dst;
+                }
+
+                inline T *append(const T *v, size_t n)
+                {
+                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_items(n));
                     if (dst != NULL)
                         ::memcpy(dst, v, n*sizeof(T));
                     return dst;
@@ -333,6 +345,14 @@ namespace lsp
                 }
 
                 inline void swap(cstorage<T, A> *src) { do_swap_data(src); }
+
+                inline bool add_all(const cstorage<T, A> *src) {
+                    if (src->nItems <= 0)
+                        return true;
+                    T *ptr = append_n(src->nItems);
+                    ::memcpy(ptr, src->vItems, src->nItems * nSizeOf);
+                    return true;
+                }
         };
 }
 

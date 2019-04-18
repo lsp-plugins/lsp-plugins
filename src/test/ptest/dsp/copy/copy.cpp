@@ -50,6 +50,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void move(float *dst, const float *src, size_t count);
+        void copy(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* copy_t)(float *dst, const float *src, size_t count);
 
 // Standard implementation provided by C library
@@ -97,18 +105,23 @@ PTEST_BEGIN("dsp.copy", copy, 5, 1000)
         {
             size_t count = 1 << i;
 
-            call("std_copy", out, in, count, ::copy);
-            call("std_move", out, in, count, ::move);
-            call("native_copy", out, in, count, native::copy);
-            call("native_move", out, in, count, native::move);
-            IF_ARCH_X86(call("movs_copy", out, in, count, x86::copy));
-            IF_ARCH_X86(call("sse_copy", out, in, count, sse::copy));
-            IF_ARCH_X86(call("sse_copy_movntps", out, in, count, sse::copy_movntps));
-            IF_ARCH_X86(call("sse3_copy", out, in, count, sse3::copy));
-            IF_ARCH_X86(call("avx_copy", out, in, count, avx::copy));
-            IF_ARCH_X86(call("sse_move", out, in, count, sse::move));
-            IF_ARCH_ARM(call("neon_d32_copy", out, in, count, neon_d32::copy));
-            IF_ARCH_ARM(call("neon_d32_move", out, in, count, neon_d32::move));
+            call("std::copy", out, in, count, ::copy);
+            call("std::move", out, in, count, ::move);
+            call("native::copy", out, in, count, native::copy);
+            call("native::move", out, in, count, native::move);
+
+            IF_ARCH_X86(call("x86::movs_copy", out, in, count, x86::copy));
+            IF_ARCH_X86(call("sse::copy", out, in, count, sse::copy));
+            IF_ARCH_X86(call("sse::copy_movntps", out, in, count, sse::copy_movntps));
+            IF_ARCH_X86(call("sse3::copy", out, in, count, sse3::copy));
+            IF_ARCH_X86(call("avx::copy", out, in, count, avx::copy));
+            IF_ARCH_X86(call("sse::move", out, in, count, sse::move));
+
+            IF_ARCH_ARM(call("neon_d32::copy", out, in, count, neon_d32::copy));
+            IF_ARCH_ARM(call("neon_d32::move", out, in, count, neon_d32::move));
+
+            IF_ARCH_AARCH64(call("asimd::copy", out, in, count, asimd::copy));
+            IF_ARCH_AARCH64(call("asimd::move", out, in, count, asimd::move));
 
             PTEST_SEPARATOR;
         }

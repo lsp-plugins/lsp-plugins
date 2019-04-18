@@ -95,6 +95,13 @@ namespace lsp
     template <class T>
         class cstack: public basic_stack
         {
+            private:
+                cstack(const cstack<T> &src);                           // Disable copying
+                cstack<T> & operator = (const cstack<T> & src);         // Disable copying
+
+            public:
+                explicit cstack() {}
+
             public:
                 inline bool push(T *item)   { return basic_stack::push(item); }
                 inline T *pop()             { return reinterpret_cast<T *>(basic_stack::pop());  }
