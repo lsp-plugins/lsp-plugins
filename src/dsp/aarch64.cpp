@@ -19,6 +19,11 @@
 
 #include <dsp/arch/aarch64/features.h>
 
+namespace asimd
+{
+    extern void dsp_init(const aarch64::cpu_features_t *f);
+}
+
 namespace aarch64
 {
     typedef struct cpu_part_t
@@ -288,6 +293,9 @@ IF_ARCH_AARCH64(
 
         // Export functions
         EXPORT1(info);
+
+        // Initialize Advanced SIMD support
+        asimd::dsp_init(&f);
     }
 }
 
