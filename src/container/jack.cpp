@@ -168,7 +168,7 @@ namespace lsp
         // Load configuration (if specified in parameters)
         if ((status == STATUS_OK) && (cfg.cfg_file != NULL))
         {
-            status = ui.import_settings(cfg.cfg_file);
+            status = pui->import_settings(cfg.cfg_file);
             if (status != STATUS_OK)
                 fprintf(stderr, "Error loading configuration file: %s\n", get_status(status));
         }
