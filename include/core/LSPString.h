@@ -227,6 +227,7 @@ namespace lsp
             bool set(lsp_wchar_t ch);
             inline bool set(char ch)        { return set(lsp_wchar_t(uint8_t(ch))); };
             bool set(ssize_t pos, lsp_wchar_t ch);
+            inline bool set_at(ssize_t pos, lsp_wchar_t ch) { return set(pos, ch); }
             bool set(const lsp_wchar_t *arr, size_t n);
             bool set(const LSPString *src);
             bool set(const LSPString *src, ssize_t first);

@@ -44,15 +44,18 @@ namespace lsp
         STATUS_NO_DEVICE,
         STATUS_OPENED,
         STATUS_BAD_TYPE,
+        STATUS_CORRUPTED,
         STATUS_INSUFFICIENT,
         STATUS_KILLED,
         STATUS_TIMED_OUT,
         STATUS_FAILED,
+        STATUS_SKIP,
         STATUS_CANCELLED,
         STATUS_NOT_EMPTY,
         STATUS_IS_DIRECTORY,
         STATUS_NOT_DIRECTORY,
         STATUS_REMOVED,
+        STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
         STATUS_READONLY,
 
         STATUS_TOTAL,

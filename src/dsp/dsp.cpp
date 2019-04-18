@@ -290,6 +290,7 @@ namespace dsp
     void    (* init_vector_p2)(vector3d_t *v, const point3d_t *p1, const point3d_t *p2) = NULL;
     void    (* init_vector_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
     void    (* normalize_vector)(vector3d_t *v) = NULL;
+    void    (* normalize_vector2)(vector3d_t *v, const vector3d_t *src) = NULL;
     void    (* scale_vector1)(vector3d_t *v, float r) = NULL;
     void    (* scale_vector2)(vector3d_t *v, const vector3d_t *s, float r) = NULL;
 
@@ -306,11 +307,18 @@ namespace dsp
     void    (* init_matrix3d_one)(matrix3d_t *m) = NULL;
     void    (* init_matrix3d_identity)(matrix3d_t *m) = NULL;
     void    (* init_matrix3d_translate)(matrix3d_t *m, float dx, float dy, float dz) = NULL;
+    void    (* init_matrix3d_translate_p1)(matrix3d_t *m, const point3d_t *p) = NULL;
+    void    (* init_matrix3d_translate_v1)(matrix3d_t *m, const vector3d_t *v) = NULL;
     void    (* init_matrix3d_scale)(matrix3d_t *m, float sx, float sy, float sz) = NULL;
     void    (* init_matrix3d_rotate_x)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_y)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_z)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_xyz)(matrix3d_t *m, float x, float y, float z, float angle) = NULL;
+    void    (* init_matrix3d_frustum)(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far) = NULL;
+    void    (* init_matrix3d_lookat_p1v2)(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up) = NULL;
+    void    (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up) = NULL;
+    void    (* calc_matrix3d_transform_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v) = NULL;
+    void    (* calc_matrix3d_transform_r1)(matrix3d_t *m, const ray3d_t *r) = NULL;
     void    (* apply_matrix3d_mv2)(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m) = NULL;
     void    (* apply_matrix3d_mv1)(vector3d_t *r, const matrix3d_t *m) = NULL;
     void    (* apply_matrix3d_mp2)(point3d_t *r, const point3d_t *p, const matrix3d_t *m) = NULL;
@@ -343,11 +351,6 @@ namespace dsp
     void    (* calc_triangle3d_pv)(triangle3d_t *t, const point3d_t *p) = NULL;
     void    (* calc_triangle3d)(triangle3d_t *dst, const triangle3d_t *src) = NULL;
 
-    void    (* init_intersection3d)(intersection3d_t *is) = NULL;
-    void    (* init_raytrace3d)(raytrace3d_t *rt, const raytrace3d_t *r) = NULL;
-    void    (* init_raytrace3d_r)(raytrace3d_t *rt, const ray3d_t *r) = NULL;
-    void    (* init_raytrace3d_ix)(raytrace3d_t *rt, const ray3d_t *r, const intersection3d_t *ix) = NULL;
-
     float   (* check_triplet3d_p3n)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n) = NULL;
     float   (* check_triplet3d_pvn)(const point3d_t *pv, const vector3d_t *n) = NULL;
     float   (* check_triplet3d_v2n)(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n) = NULL;
@@ -356,22 +359,12 @@ namespace dsp
     float   (* check_triplet3d_t)(const triangle3d_t *t) = NULL;
     float   (* check_triplet3d_tn)(const triangle3d_t *t, const vector3d_t *n) = NULL;
 
-    float   (* check_point3d_location_tp)(const triangle3d_t *t, const point3d_t *p) = NULL;
-    float   (* check_point3d_location_pvp)(const point3d_t *t, const point3d_t *p) = NULL;
-    float   (* check_point3d_location_p3p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p) = NULL;
-
-    float   (* check_point3d_on_edge_p2p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p) = NULL;
-    float   (* check_point3d_on_edge_pvp)(const point3d_t *pv, const point3d_t *p) = NULL;
-
     float   (* check_point3d_on_triangle_p3p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p) = NULL;
     float   (* check_point3d_on_triangle_pvp)(const point3d_t *pv, const point3d_t *p) = NULL;
     float   (* check_point3d_on_triangle_tp)(const triangle3d_t *t, const point3d_t *p) = NULL;
 
     size_t  (* longest_edge3d_p3)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3) = NULL;
     size_t  (* longest_edge3d_pv)(const point3d_t *p) = NULL;
-    float   (* find_intersection3d_rt)(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t) = NULL;
-
-    void    (* reflect_ray)(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix) = NULL;
 
     float   (* calc_angle3d_v2)(const vector3d_t *v1, const vector3d_t *v2) = NULL;
     float   (* calc_angle3d_vv)(const vector3d_t *v) = NULL;
@@ -384,16 +377,48 @@ namespace dsp
     void    (* move_point3d_p2)(point3d_t *p, const point3d_t *p1, const point3d_t *p2, float k) = NULL;
     void    (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k) = NULL;
 
-    void    (* init_octant3d_v)(octant3d_t *o, const point3d_t *t, size_t n) = NULL;
-    bool    (* check_octant3d_rv)(const octant3d_t *o, const ray3d_t *r) = NULL;
+    void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
+
+    float   (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
+    float   (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1) = NULL;
+    float   (* orient_plane_v1p1)(vector3d_t *v, const point3d_t *sp, const vector3d_t *pl) = NULL;
+
+    float   (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
+    float   (* calc_rev_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_rev_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
+    float   (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1) = NULL;
+
+    float   (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_area_pv)(const point3d_t *pv) = NULL;
+    float   (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_min_distance_pv)(const point3d_t *sp, const point3d_t *pv) = NULL;
+    float   (* calc_avg_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_distance_p2)(const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_sqr_distance_p2)(const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_distance_pv)(const point3d_t *pv) = NULL;
+    float   (* calc_distance_v1)(const vector3d_t *v) = NULL;
+    float   (* calc_sqr_distance_pv)(const point3d_t *pv) = NULL;
+    void    (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl) = NULL;
+    void    (* calc_split_point_pvv1)(point3d_t *ip, const point3d_t *lv, const vector3d_t *pl) = NULL;
+
+    float   (* projection_length_p2)(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp) = NULL;
+    float   (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv) = NULL;
+
+    void    (* split_triangle_raw)(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv) = NULL;
+    void    (* cull_triangle_raw)(raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv) = NULL;
+    size_t  (* colocation_x2_v1p2)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1);
+    size_t  (* colocation_x2_v1pv)(const vector3d_t *v, const point3d_t *pv);
+    size_t  (* colocation_x3_v1p3)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    size_t  (* colocation_x3_v1pv)(const vector3d_t *v, const point3d_t *pv) = NULL;
+    size_t  (* colocation_x3_v3p1)(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p) = NULL;
+    size_t  (* colocation_x3_vvp1)(const vector3d_t *vv, const point3d_t *p) = NULL;
+    void    (* unit_vector_p1p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    void    (* unit_vector_p1pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
 
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
-
-    void    (* calc_tetra3d_pv)(tetra3d_t *t, const point3d_t *p) = NULL;
-    void    (* calc_tetra3d_pv3)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *v3) = NULL;
-    void    (* calc_tetra3d_pvv)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v) = NULL;
-    float   (* find_tetra3d_intersections)(ray3d_t *r, const tetra3d_t *t, const triangle3d_t *tr) = NULL;
 
     void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
 }

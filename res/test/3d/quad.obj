@@ -1,0 +1,20 @@
+# Quad test
+# (C) Linux Studio Plugins Project
+o Quad 1
+v -2 -2 -1
+v 2 -2 -1
+v 2 2 -1
+v -2 2 -1
+vn 0 0 1
+f 1//1 2//1 3//1 4//1
+
+o Quad 2
+v -2 -2 -2
+v 2 -2 -2
+v 2 2 -2
+v -2 2 -2
+vn 0 0 1
+f 5//2 6//2 7//2 8//2
+
+
+

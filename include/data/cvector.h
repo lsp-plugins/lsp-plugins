@@ -64,13 +64,14 @@ namespace lsp
                 {
                     if (idx > nItems)
                         return false;
-                    pvItems[nItems++]   = const_cast<void *>(ptr);
+                    pvItems[nItems] = const_cast<void *>(ptr);
                 }
                 else
                 {
                     memmove(&pvItems[idx+1], &pvItems[idx], (nItems - idx) * sizeof(void *));
                     pvItems[idx]    = const_cast<void *>(ptr);
                 }
+                ++nItems;
                 return true;
             }
 
@@ -156,6 +157,27 @@ namespace lsp
                 return -1;
             }
 
+            inline bool pop_last(void **ptr)
+            {
+                if (nItems <= 0)
+                    return false;
+
+                void *p = pvItems[--nItems];
+                if (ptr != NULL)
+                    *ptr = p;
+                pvItems[nItems] = NULL; // Replace with NULL
+                return true;
+            }
+
+            inline bool pop()
+            {
+                if (nItems <= 0)
+                    return false;
+
+                pvItems[--nItems] = NULL;
+                return true;
+            }
+
         public:
             explicit inline basic_vector()
             {
@@ -209,8 +231,37 @@ namespace lsp
     template <class T>
         class cvector: public basic_vector
         {
+            private:
+                cvector(const cvector<T> &src);                         // Disable copying
+                cvector<T> & operator = (const cvector<T> & src);       // Disable copying
+
+            public:
+                explicit inline cvector() {}
+
             public:
                 inline bool add(T *item) { return basic_vector::add_item(item); }
+
+                inline bool push(T *item) { return basic_vector::add_item(item); }
+
+                inline bool pop() { return basic_vector::pop(); }
+
+                inline bool pop(T **item)
+                {
+                    void *ptr;
+                    if (!basic_vector::pop_last(&ptr))
+                        return false;
+                    *item = reinterpret_cast<T *>(ptr);
+                    return true;
+                }
+
+                inline bool pop_last(T **item)
+                {
+                    void *ptr;
+                    if (!basic_vector::pop_last(&ptr))
+                        return false;
+                    *item = reinterpret_cast<T *>(ptr);
+                    return true;
+                }
 
                 inline bool add_unique(T *item) { return basic_vector::add_unique(item); }
 

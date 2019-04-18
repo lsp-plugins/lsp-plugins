@@ -41,7 +41,7 @@ UTEST_BEGIN("dsp.3d", triangle)
             (!UTEST_SUPPORTED(check_point3d_on_triangle_tp)))
             return;
 
-        printf("Testing %s...");
+        printf("Testing %s...\n", label);
 
         triangle3d_t t;
         point3d_t cp[12];
@@ -52,12 +52,12 @@ UTEST_BEGIN("dsp.3d", triangle)
         dsp::init_triangle3d_xyz(&t, 2.0f, -1.0f, 0.0f, 0.0f, 2.0f, 0.0f, -2.0f, 4.0f, 0.0f);
         dsp::init_point_xyz(&cp[0], -0.5f, 0.5f, 0.0f);
         ck = native::check_point3d_on_triangle_tp(&t, &cp[0]);
-        printf("ck=%f", ck);
+        printf("ck=%f\n", ck);
 
         dsp::init_triangle3d_xyz(&t, -8.0f, -2.0f, 0.0f, -2.0f, -4.0f, 0.0f, 0.0f, -2.0f, 0.0f);
         dsp::init_point_xyz(&cp[0], 6.0f, 4.0f, 0.0f);
         ck = native::check_point3d_on_triangle_tp(&t, &cp[0]);
-        printf("ck=%f", ck);
+        printf("ck=%f\n", ck);
 
         // Main check
         dsp::init_triangle3d_xyz(&t, -2.0f, -1.0f, 0.0f, 2.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -113,14 +113,14 @@ UTEST_BEGIN("dsp.3d", triangle)
 
     UTEST_MAIN
     {
-        call("native_ck_triangle",
+        call("native::ck_triangle",
                 native::check_point3d_on_triangle_p3p,
                 native::check_point3d_on_triangle_pvp,
                 native::check_point3d_on_triangle_tp
                 );
 
         IF_ARCH_X86(
-            call("sse_ck_triangle",
+            call("sse::ck_triangle",
                     sse::check_point3d_on_triangle_p3p,
                     sse::check_point3d_on_triangle_pvp,
                     sse::check_point3d_on_triangle_tp

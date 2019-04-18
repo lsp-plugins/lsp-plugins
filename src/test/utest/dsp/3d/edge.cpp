@@ -32,6 +32,8 @@ UTEST_BEGIN("dsp.3d", edge)
             longest_edge3d_pv_t longest_edge3d_pv
             )
     {
+        printf("Testing %s...\n", label);
+
         point3d_t lp[3];
         dsp::init_point_xyz(&lp[0], 1.0f, 1.0f, 1.0f);
         dsp::init_point_xyz(&lp[1], 2.0f, 2.0f, 2.0f);
@@ -46,12 +48,12 @@ UTEST_BEGIN("dsp.3d", edge)
 
     UTEST_MAIN
     {
-        call("native_longest_edge",
+        call("native::longest_edge",
                 native::longest_edge3d_p3,
                 native::longest_edge3d_pv
             );
         IF_ARCH_X86(
-            call("sse_longest_edge",
+            call("sse::longest_edge",
                     sse::longest_edge3d_p3,
                     sse::longest_edge3d_pv
                 )
