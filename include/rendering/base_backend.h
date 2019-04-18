@@ -21,6 +21,11 @@ typedef struct r3d_base_backend_t: public r3d_backend_t
     matrix3d_t  matView;
     matrix3d_t  matWorld;
 
+    ssize_t     viewLeft;
+    ssize_t     viewTop;
+    ssize_t     viewWidth;
+    ssize_t     viewHeight;
+
     void        build_vtable();
 
     static void init_matrix_identity(matrix3d_t *m)

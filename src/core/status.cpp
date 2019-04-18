@@ -42,6 +42,7 @@ namespace lsp
         "Invalid value",
         "Bad locale",
         "No device",
+        "Unsupported device",
         "Opened",
         "Bad type",
         "Corrupted data",

@@ -95,6 +95,8 @@ namespace mtest
         Colormap                cmap;
         XSetWindowAttributes    swa;
 
+        XInitThreads();
+
         dpy = XOpenDisplay(NULL);
         if (dpy == NULL)
         {

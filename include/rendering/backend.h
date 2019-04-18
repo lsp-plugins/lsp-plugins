@@ -37,14 +37,30 @@ struct r3d_backend_t
     status_t    (* init)(void *window);
 
     /**
-     * Start rendering on the window
-     * @param x the leftmost coordinate of the backend's viewport
-     * @param y the topmost coordinate of the backend's viewport
-     * @param width the width of the backend's viewport
-     * @param height the heigh of the backend's viewport
+     * Show the backend's view/window
      * @return status of operation
      */
-    status_t    (* start)(size_t x, size_t y, size_t width, size_t height);
+    status_t    (* show)();
+
+    /**
+     * Hide the backend's view/window
+     * @return the backend's view/window
+     */
+    status_t    (* hide)();
+
+    /**
+     * @param left the leftmost coordinate of the backend's viewport relative to the parent window
+     * @param top the topmost coordinate of the backend's viewport relative to the parent window
+     * @param width the width of the backend's viewport
+     * @param height the heigh of the backend's viewport
+     */
+    status_t    (* locate)(ssize_t left, ssize_t top, ssize_t width, ssize_t height);
+
+    /**
+     * Start rendering on the window
+     * @return status of operation
+     */
+    status_t    (* start)();
 
     /**
      * Complete rendering on the window
