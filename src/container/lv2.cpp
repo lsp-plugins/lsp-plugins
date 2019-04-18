@@ -79,7 +79,7 @@ namespace lsp
         plugin_t *p = NULL;
         const char *uri = NULL;
 
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if ((!p) && (plugin::metadata.lv2_uid != NULL) && (!strcmp(descriptor->URI, LSP_PLUGIN_URI(lv2, plugin)))) \
             { \
                 p   = new plugin(); \
@@ -243,14 +243,14 @@ namespace lsp
 
         // Calculate number of plugins
         lv2_descriptors_count       = 0;
-        #define MOD_PLUGIN(plugin)  if (plugin::metadata.lv2_uid != NULL) lv2_descriptors_count++;
+        #define MOD_PLUGIN(plugin, ui)  if (plugin::metadata.lv2_uid != NULL) lv2_descriptors_count++;
         #include <metadata/modules.h>
 
         // Now allocate descriptors
         lv2_descriptors             = new LV2_Descriptor[lv2_descriptors_count];
         LV2_Descriptor *d           = lv2_descriptors;
 
-        #define MOD_PLUGIN(plugin)  \
+        #define MOD_PLUGIN(plugin, ui)  \
             if (plugin::metadata.lv2_uid != NULL) \
             { \
                 d->URI                  = LSP_PLUGIN_URI(lv2, plugin); \
@@ -291,37 +291,36 @@ namespace lsp
         const LV2_Feature* const*       features)
     {
         // Find plugin metadata
-        const plugin_metadata_t *m = NULL;
-        const char *uri = NULL;
-
         lsp_debug_init("lv2");
         lsp_trace("descriptor->uri = %s", descriptor->URI);
-
-        #define MOD_PLUGIN(plugin) \
-            lsp_trace("Check URI: %s", LSP_PLUGIN_UI_URI(lv2, plugin)); \
-            if ((!m) && (!strcmp(descriptor->URI, LSP_PLUGIN_UI_URI(lv2, plugin)))) \
-            { \
-                m   = &plugin::metadata; \
-                uri = LSP_PLUGIN_URI(lv2, plugin); \
-            }
-        #include <metadata/modules.h>
-
-        if ((m == NULL) || (uri == NULL) || (m->ui_resource == NULL))
-        {
-            lsp_trace("Plugin metadata not found");
-            return NULL;
-        }
-        lsp_trace("Plugin uri=%s", uri);
 
         // Initialize dsp (if possible)
         dsp::init();
 
-        // Scan for extensions
-        LV2Extensions *ext              = new LV2Extensions(features, uri, controller, write_function);
+        // Instantiate UI of plugin
+        plugin_ui *p        = NULL;
+        LV2Extensions *ext  = NULL;
 
-        // Create widget factory and UI
         lsp_trace("Creating plugin UI, parent window=%p", ext->parent_window());
-        plugin_ui *p                    = new plugin_ui(m, ext->parent_window());
+        #define MOD_PLUGIN(plugin, ui) \
+            lsp_trace("Check URI: %s", LSP_PLUGIN_UI_URI(lv2, plugin)); \
+            if ((!p) && (!strcmp(descriptor->URI, LSP_PLUGIN_UI_URI(lv2, plugin)))) \
+            { \
+                if (plugin::metadata.ui_resource != NULL) \
+                { \
+                    ext = new LV2Extensions(features, LSP_PLUGIN_URI(lv2, plugin), controller, write_function); \
+                    p   = new plugin_ui(&plugin::metadata, ext->parent_window()); \
+                } \
+            }
+        #include <metadata/modules.h>
+
+        if (p == NULL)
+        {
+            lsp_trace("Plugin UI metadata not found");
+            return NULL;
+        }
+
+        // Create wrapper
         LV2UIWrapper *w                 = new LV2UIWrapper(p, ext);
         w->init();
 
@@ -385,7 +384,7 @@ namespace lsp
         // Calculate number of plugins
         lv2ui_descriptors_count     = 0;
 
-        #define MOD_PLUGIN(plugin)   if ((plugin::metadata.lv2_uid != NULL) && (plugin::metadata.ui_resource != NULL)) lv2ui_descriptors_count++;
+        #define MOD_PLUGIN(plugin, ui)  if ((plugin::metadata.lv2_uid != NULL) && (plugin::metadata.ui_resource != NULL)) lv2ui_descriptors_count++;
         #include <metadata/modules.h>
 
         lsp_trace("descriptors count=%d", (int)lv2ui_descriptors_count);
@@ -394,7 +393,7 @@ namespace lsp
         lv2ui_descriptors           = new LV2UI_Descriptor[lv2ui_descriptors_count];
         LV2UI_Descriptor *d         = lv2ui_descriptors;
 
-        #define MOD_PLUGIN(plugin)  \
+        #define MOD_PLUGIN(plugin, ui)  \
             if ((plugin::metadata.lv2_uid != NULL) && (plugin::metadata.ui_resource != NULL)) \
             { \
                 d->URI                  = LSP_PLUGIN_UI_URI(lv2, plugin); \

@@ -23,9 +23,9 @@ MTEST_BEGIN("", standalone)
         cvector<const char> plugin_ids;
 
         // Generate the list of plugins
-        #define MOD_PLUGIN(x) \
-            if (x::metadata.ui_resource != NULL) \
-                plugin_ids.add(x::metadata.lv2_uid);
+        #define MOD_PLUGIN(plugin, ui) \
+            if (plugin::metadata.ui_resource != NULL) \
+                plugin_ids.add(plugin::metadata.lv2_uid);
         #include <metadata/modules.h>
 
         // Sort the list of plugins
@@ -51,7 +51,7 @@ MTEST_BEGIN("", standalone)
             plugin_not_found(NULL);
 
         const plugin_metadata_t *m = NULL;
-        #define MOD_PLUGIN(x) if (!strcmp(argv[0], #x)) m = &x::metadata;
+        #define MOD_PLUGIN(plugin, ui) if (!strcmp(argv[0], #plugin)) m = &plugin::metadata;
         #include <metadata/modules.h>
         if (m == NULL)
             plugin_not_found(argv[0]);

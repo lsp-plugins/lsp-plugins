@@ -102,11 +102,11 @@ namespace lsp
         // Generate list of plugins as CPP-files
         int code = 0;
 
-        #define MOD_PLUGIN(x)  \
+        #define MOD_PLUGIN(plugin, ui)  \
             if (code == 0) \
             { \
-                if (x::metadata.ui_resource != NULL) \
-                  code = gen_cpp_file(path, &x::metadata, #x, LSP_ARTIFACT_ID "-" #x ".cpp"); \
+                if (plugin::metadata.ui_resource != NULL) \
+                  code = gen_cpp_file(path, &plugin::metadata, #plugin, LSP_ARTIFACT_ID "-" #plugin ".cpp"); \
             }
 
         #include <metadata/modules.h>
