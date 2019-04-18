@@ -5,52 +5,26 @@
  *      Author: sadko
  */
 
-#include <dsp/dsp.h>
-
-#include <rendering/base_backend.h>
+// Architecture detection
+#include <core/types.h>
 
 #ifdef PLATFORM_UNIX_COMPATIBLE
 
-#define R3D_GLX_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &r3d_base_backend_t::func);
+// Standard libraries
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
 
-typedef struct glx_backend_t: public r3d_base_backend_t
-{
-    void build_vtable();
+// Common libraries
+#include <dsp/dsp.h>
+#include <rendering/base_backend.h>
 
-    void destroy()
-    {
-        r3d_base_backend_t::destroy();
-    }
+// Implementation-specific libraries
+#include <rendering/glx/backend.h>
 
-    status_t init(void *window)
-    {
-        return r3d_base_backend_t::init();
-    }
 
-    status_t start(size_t x, size_t y, size_t width, size_t height)
-    {
-        return STATUS_OK;
-    }
-
-    status_t finish()
-    {
-        return STATUS_OK;
-    }
-
-} glx_backend_t;
-
-void glx_backend_t::build_vtable()
-{
-    r3d_base_backend_t::build_vtable();
-
-    R3D_GLX_BACKEND_EXP(init);
-    R3D_GLX_BACKEND_EXP(destroy);
-    R3D_GLX_BACKEND_EXP(start);
-    R3D_GLX_BACKEND_EXP(finish);
-}
-
-#undef R3D_GLX_BACKEND_EXP
-
+// Function for instantiating backend
 #ifdef __cplusplus
 extern "C"
 {
