@@ -16,9 +16,6 @@ namespace asimd
 {
     void copy(float *dst, const float *src, size_t count)
     {
-        float *dst2;
-        const float *src2;
-
         ARCH_AARCH64_ASM
         (
             __ASM_EMIT("cmp         %[dst], %[src]")
@@ -32,18 +29,16 @@ namespace asimd
             __ASM_EMIT("1:")
             __ASM_EMIT("ld1         {v0.4s-v3.4s}, [%[src]], #0x40")
             __ASM_EMIT("ld1         {v4.4s-v7.4s}, [%[src]], #0x40")
-            __ASM_EMIT("ld1         {v16.4s-v19.4s}, [%[src]], #0x40")
-            __ASM_EMIT("ld1         {v20.4s-v23.4s}, [%[src]], #0x40")
-            __ASM_EMIT("ld1         {v24.4s-v27.4s}, [%[src]], #0x40")
-            __ASM_EMIT("ld1         {v28.4s-v31.4s}, [%[src]], #0x40")
-
-            __ASM_EMIT("subs        %[count], %[count], #0x60")
-
             __ASM_EMIT("st1         {v0.4s-v3.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("ld1         {v16.4s-v19.4s}, [%[src]], #0x40")
             __ASM_EMIT("st1         {v4.4s-v7.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("ld1         {v20.4s-v23.4s}, [%[src]], #0x40")
             __ASM_EMIT("st1         {v16.4s-v19.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("ld1         {v24.4s-v27.4s}, [%[src]], #0x40")
             __ASM_EMIT("st1         {v20.4s-v23.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("ld1         {v28.4s-v31.4s}, [%[src]], #0x40")
             __ASM_EMIT("st1         {v24.4s-v27.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("subs        %[count], %[count], #0x60")
             __ASM_EMIT("st1         {v28.4s-v31.4s}, [%[dst]], #0x40")
 
             __ASM_EMIT("b.hs         1b")
@@ -111,13 +106,13 @@ namespace asimd
             __ASM_EMIT("14:")
             __ASM_EMIT("adds        %[count], %[count], #0x01") // + 0x02 - 0x01
             __ASM_EMIT("b.lt        16f")
-            __ASM_EMIT("ldr         s0, [%[src1]]")
-            __ASM_EMIT("str         s0, [%[dst1]]")
+            __ASM_EMIT("ldr         s0, [%[src]]")
+            __ASM_EMIT("str         s0, [%[dst]]")
 
             /* End of copy */
             __ASM_EMIT("16:")
 
-            : [src] "+r" (src), [dst] "+r"(dst)
+            : [src] "+r" (src), [dst] "+r"(dst),
               [count] "+r" (count)
             :
             : "cc", "memory",
