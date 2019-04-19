@@ -38,7 +38,7 @@ IF_ARCH_AARCH64(
     namespace asimd
     {
         void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-//        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
 //        void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
     }
 )
@@ -157,7 +157,7 @@ UTEST_BEGIN("dsp.complex", div)
         IF_ARCH_ARM(call("neon_d32::complex_div3", 16, neon_d32::complex_div3));
 
         IF_ARCH_AARCH64(call("asimd::complex_div2", 16, native::complex_div2, asimd::complex_div2));
-//        IF_ARCH_AARCH64(call("asimd::complex_rdiv2", 16, native::complex_rdiv2, asimd::complex_rdiv2));
+        IF_ARCH_AARCH64(call("asimd::complex_rdiv2", 16, native::complex_rdiv2, asimd::complex_rdiv2));
 //        IF_ARCH_AARCH64(call("asimd::complex_div3", 16, asimd::complex_div3));
     }
 
