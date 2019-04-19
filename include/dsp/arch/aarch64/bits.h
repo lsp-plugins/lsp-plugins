@@ -275,8 +275,7 @@ inline int __lsp_forced_inline     int_log2(uint8_t v)
         __ASM_EMIT("mov             %w[v], #31")
         __ASM_EMIT("sub             %w[res], %w[v], %w[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -293,8 +292,7 @@ inline int __lsp_forced_inline     int_log2(int8_t v)
         __ASM_EMIT("mov             %w[v], #31")
         __ASM_EMIT("sub             %w[res], %w[v], %w[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -311,8 +309,7 @@ inline int __lsp_forced_inline     int_log2(uint16_t v)
         __ASM_EMIT("mov             %w[v], #31")
         __ASM_EMIT("sub             %w[res], %w[v], %w[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -329,8 +326,7 @@ inline int __lsp_forced_inline     int_log2(int16_t v)
         __ASM_EMIT("mov             %w[v], #31")
         __ASM_EMIT("sub             %w[res], %w[v], %w[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -347,8 +343,7 @@ inline int __lsp_forced_inline     int_log2(uint32_t v)
         __ASM_EMIT("mov             %w[v], #31")
         __ASM_EMIT("sub             %w[res], %w[v], %w[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -365,8 +360,7 @@ inline int __lsp_forced_inline     int_log2(int32_t v)
         __ASM_EMIT("mov             %w[v], #31")
         __ASM_EMIT("sub             %w[res], %w[v], %w[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -383,8 +377,7 @@ inline int __lsp_forced_inline     int_log2(uint64_t v)
         __ASM_EMIT("mov             %x[v], #63")
         __ASM_EMIT("sub             %x[res], %x[v], %x[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
@@ -401,8 +394,7 @@ inline int __lsp_forced_inline     int_log2(int64_t v)
         __ASM_EMIT("mov             %x[v], #63")
         __ASM_EMIT("sub             %x[res], %x[v], %x[res]")
         __ASM_EMIT("1:")
-        : [res] "=&r" (res)
-        : [v] "r" (v)
+        : [res] "=r" (res), [v] "+r" (v)
         : : "cc"
     );
     return res;
