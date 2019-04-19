@@ -379,7 +379,7 @@ inline int __lsp_forced_inline     int_log2(uint64_t v)
 inline int __lsp_forced_inline     int_log2(int64_t v)
 {
     int32_t res;
-    ARCH_ARM_ASM (
+    ARCH_AARCH64_ASM (
         __ASM_EMIT("subs            %x[res], %x[v], #0")    // res = v
         __ASM_EMIT("b.eq            1f")                    // res == 0?
         __ASM_EMIT("clz             %x[res], %x[v]")
