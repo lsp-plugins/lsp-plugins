@@ -679,24 +679,24 @@ namespace asimd
             __ASM_EMIT("frsqrte     v3.4s, v19.4s")
             __ASM_EMIT("fmul        v4.4s, v0.4s, v16.4s")                  // v4   = R * x0
             __ASM_EMIT("fmul        v5.4s, v1.4s, v17.4s")
-            __ASM_EMIT("fmul        v4.4s, v2.4s, v18.4s")
-            __ASM_EMIT("fmul        v5.4s, v3.4s, v19.4s")
+            __ASM_EMIT("fmul        v6.4s, v2.4s, v18.4s")
+            __ASM_EMIT("fmul        v7.4s, v3.4s, v19.4s")
             __ASM_EMIT("frsqrts     v24.4s, v4.4s, v0.4s")                  // v24  = (3 - R * x0 * x0) / 2
             __ASM_EMIT("frsqrts     v25.4s, v5.4s, v1.4s")
-            __ASM_EMIT("frsqrts     v26.4s, v4.4s, v2.4s")
-            __ASM_EMIT("frsqrts     v27.4s, v5.4s, v3.4s")
+            __ASM_EMIT("frsqrts     v26.4s, v6.4s, v2.4s")
+            __ASM_EMIT("frsqrts     v27.4s, v7.4s, v3.4s")
             __ASM_EMIT("fmul        v0.4s, v0.4s, v24.4s")                  // v0   = x1 = x0 * (3 - R * x0 * x0) / 2
             __ASM_EMIT("fmul        v1.4s, v1.4s, v25.4s")
             __ASM_EMIT("fmul        v2.4s, v2.4s, v26.4s")
             __ASM_EMIT("fmul        v3.4s, v3.4s, v27.4s")
             __ASM_EMIT("fmul        v4.4s, v0.4s, v16.4s")                  // v4   = R * x1
             __ASM_EMIT("fmul        v5.4s, v1.4s, v17.4s")
-            __ASM_EMIT("fmul        v4.4s, v2.4s, v18.4s")
-            __ASM_EMIT("fmul        v5.4s, v3.4s, v19.4s")
+            __ASM_EMIT("fmul        v6.4s, v2.4s, v18.4s")
+            __ASM_EMIT("fmul        v7.4s, v3.4s, v19.4s")
             __ASM_EMIT("frsqrts     v24.4s, v4.4s, v0.4s")                  // v24  = (3 - R * x1 * x1) / 2
             __ASM_EMIT("frsqrts     v25.4s, v5.4s, v1.4s")
-            __ASM_EMIT("frsqrts     v26.4s, v4.4s, v2.4s")
-            __ASM_EMIT("frsqrts     v27.4s, v5.4s, v3.4s")
+            __ASM_EMIT("frsqrts     v26.4s, v6.4s, v2.4s")
+            __ASM_EMIT("frsqrts     v27.4s, v7.4s, v3.4s")
             __ASM_EMIT("fmul        v0.4s, v0.4s, v24.4s")                  // v0   = 1/sqrt(R) = x2 = x1 * (3 - R * x1 * x1) / 2
             __ASM_EMIT("fmul        v1.4s, v1.4s, v25.4s")
             __ASM_EMIT("fmul        v2.4s, v2.4s, v26.4s")
