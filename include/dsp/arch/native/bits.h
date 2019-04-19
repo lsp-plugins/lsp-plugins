@@ -107,7 +107,7 @@ inline int __lsp_forced_inline     int_log2(uint8_t v)
     int res = 0;
     if (v & 0xf0) { res += 4; v >>= 4; }
     if (v & 0x0c) { res += 2; v >>= 2; }
-    if (v & 0x02) { res += 1; v >>= 1; }
+    if (v & 0x02) ++res;
     return res;
 }
 
@@ -117,7 +117,7 @@ inline int __lsp_forced_inline     int_log2(uint16_t v)
     if (v & 0xff00) { res += 8; v >>= 8; }
     if (v & 0xf0) { res += 4; v >>= 4; }
     if (v & 0x0c) { res += 2; v >>= 2; }
-    if (v & 0x02) { res += 1; v >>= 1; }
+    if (v & 0x02) ++res;
     return res;
 }
 
@@ -128,7 +128,7 @@ inline int __lsp_forced_inline     int_log2(uint32_t v)
     if (v & 0xff00) { res += 8; v >>= 8; }
     if (v & 0xf0) { res += 4; v >>= 4; }
     if (v & 0x0c) { res += 2; v >>= 2; }
-    if (v & 0x02) { res += 1; v >>= 1; }
+    if (v & 0x02) ++res;
     return res;
 }
 
@@ -140,7 +140,7 @@ inline int __lsp_forced_inline     int_log2(uint64_t v)
     if (v & 0xff00) { res += 8; v >>= 8; }
     if (v & 0xf0) { res += 4; v >>= 4; }
     if (v & 0x0c) { res += 2; v >>= 2; }
-    if (v & 0x02) { res += 1; v >>= 1; }
+    if (v & 0x02) ++res;
     return res;
 }
 
