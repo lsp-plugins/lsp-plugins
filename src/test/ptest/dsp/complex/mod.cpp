@@ -31,6 +31,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+    }
+)
+
 typedef void (* complex_mod_t)(float *dst_mod, const float *src_re, const float *src_im, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -69,9 +76,10 @@ PTEST_BEGIN("dsp.complex", mod, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:complex_mod", out, in, count, native::complex_mod);
-            IF_ARCH_X86(CALL("sse:complex_mod", out, in, count, sse::complex_mod));
-            IF_ARCH_ARM(CALL("neon_d32:complex_mod", out, in, count, neon_d32::complex_mod));
+            CALL("native::complex_mod", out, in, count, native::complex_mod);
+            IF_ARCH_X86(CALL("sse::complex_mod", out, in, count, sse::complex_mod));
+            IF_ARCH_ARM(CALL("neon_d32::complex_mod", out, in, count, neon_d32::complex_mod));
+            IF_ARCH_AARCH64(CALL("asimd::complex_mod", out, in, count, asimd::complex_mod));
 
             PTEST_SEPARATOR;
         }
