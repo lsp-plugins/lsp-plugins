@@ -66,6 +66,7 @@ namespace asimd
         EXPORT1(move);
 
         EXPORT1(complex_mul2);
+        EXPORT1(complex_mul3);
     }
 }
 
