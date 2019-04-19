@@ -50,12 +50,12 @@ namespace asimd
 
             __ASM_EMIT("ld1         {v0.4s-v3.4s}, [%[src]], #0x40")
             __ASM_EMIT("ld1         {v4.4s-v7.4s}, [%[src]], #0x40")
-            __ASM_EMIT("ld1         {v16.4s-v19.4s}, [%[src]], #0x40")
-            __ASM_EMIT("ld1         {v20.4s-v23.4s}, [%[src]], #0x40")
-            __ASM_EMIT("sub         %[count], %[count], #0x40")
             __ASM_EMIT("st1         {v0.4s-v3.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("ld1         {v16.4s-v19.4s}, [%[src]], #0x40")
             __ASM_EMIT("st1         {v4.4s-v7.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("ld1         {v20.4s-v23.4s}, [%[src]], #0x40")
             __ASM_EMIT("st1         {v16.4s-v19.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("sub         %[count], %[count], #0x40")
             __ASM_EMIT("st1         {v20.4s-v23.4s}, [%[dst]], #0x40")
 
             /* 32x block */
@@ -65,8 +65,8 @@ namespace asimd
 
             __ASM_EMIT("ld1         {v0.4s-v3.4s}, [%[src]], #0x40")
             __ASM_EMIT("ld1         {v4.4s-v7.4s}, [%[src]], #0x40")
-            __ASM_EMIT("sub         %[count], %[count], #0x20")
             __ASM_EMIT("st1         {v0.4s-v3.4s}, [%[dst]], #0x40")
+            __ASM_EMIT("sub         %[count], %[count], #0x20")
             __ASM_EMIT("st1         {v4.4s-v7.4s}, [%[dst]], #0x40")
 
             /* 16x block */
