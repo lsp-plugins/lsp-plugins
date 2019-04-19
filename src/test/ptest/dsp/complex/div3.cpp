@@ -32,7 +32,7 @@ IF_ARCH_ARM(
 )
 
 IF_ARCH_AARCH64(
-    namespace neon_d32
+    namespace asimd
     {
         void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
     }
