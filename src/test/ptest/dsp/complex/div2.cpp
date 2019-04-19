@@ -35,7 +35,7 @@ IF_ARCH_ARM(
 )
 
 IF_ARCH_AARCH64(
-    namespace neon_d32
+    namespace asimd
     {
         void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
 //        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
