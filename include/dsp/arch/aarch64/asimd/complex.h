@@ -97,11 +97,9 @@ namespace asimd
             __ASM_EMIT("fmul        v8.4s, v8.4s, v4.4s")               // v8 = si*dr
             __ASM_EMIT("fmls        v16.4s, v4.4s, v12.4s")             // v16 = sr*dr - si*di
             __ASM_EMIT("fmla        v8.4s, v0.4s, v12.4s")              // v8 = si*dr + sr*di
-            __ASM_EMIT("str         s16, [%[dst_re]]")
-            __ASM_EMIT("str         s8, [%[dst_im]]")
+            __ASM_EMIT("str         s16, [%[dst_re]], #0x04")
+            __ASM_EMIT("str         s8, [%[dst_im]], #0x04")
             __ASM_EMIT("subs        %[count], %[count], #1")
-            __ASM_EMIT("add         %[dst_re], %[dst_re], #0x04")
-            __ASM_EMIT("add         %[dst_im], %[dst_im], #0x04")
             __ASM_EMIT("b.ge        7b")
 
             __ASM_EMIT("8:")
@@ -200,11 +198,9 @@ namespace asimd
             __ASM_EMIT("fmul        v8.4s, v8.4s, v4.4s")               // v8 = si*dr
             __ASM_EMIT("fmls        v16.4s, v4.4s, v12.4s")             // v16 = sr*dr - si*di
             __ASM_EMIT("fmla        v8.4s, v0.4s, v12.4s")              // v8 = si*dr + sr*di
-            __ASM_EMIT("str         s16, [%[dst_re]]")
-            __ASM_EMIT("str         s8, [%[dst_im]]")
+            __ASM_EMIT("str         s16, [%[dst_re]], #0x04")
+            __ASM_EMIT("str         s8, [%[dst_im]], #0x04")
             __ASM_EMIT("subs        %[count], %[count], #1")
-            __ASM_EMIT("add         %[dst_re], %[dst_re], #0x04")
-            __ASM_EMIT("add         %[dst_im], %[dst_im], #0x04")
             __ASM_EMIT("b.ge        7b")
 
             __ASM_EMIT("8:")
