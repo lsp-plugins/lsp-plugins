@@ -47,6 +47,7 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+#include <dsp/arch/aarch64/asimd/complex.h>
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
@@ -63,6 +64,8 @@ namespace asimd
         lsp_trace("Optimizing DSP for ASIMD instruction set");
         EXPORT1(copy);
         EXPORT1(move);
+
+        EXPORT1(complex_mul2);
     }
 }
 
