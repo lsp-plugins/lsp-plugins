@@ -444,7 +444,7 @@ namespace mtest
 
     void X11Renderer::render()
     {
-        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+//        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         // Changed view? Recompute matrices
         if (bViewChanged)
@@ -493,25 +493,14 @@ namespace mtest
 
         // Initialize lighting
         glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        glLoadMatrixf(sView.m);
         if (bLight)
         {
-            glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+            glLightfv(GL_LIGHT0, GL_POSITION, &sPov.x);
             glEnable(GL_LIGHT0);
             glEnable(GL_LIGHTING);
             glEnable(GL_RESCALE_NORMAL);
         }
-        glLoadMatrixf(sView.m);
-
-        // Initialize scene's world matrix
-//        glTranslatef(0.0f, 0.0f, -6.0f);
-//
-//        float scale = fScale + fDeltaScale;
-//        glScalef(scale, scale, scale); // Scale
-//
-//        glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
-//        glRotatef(fAngleY + fAngleDY, 0.0f, 1.0f, 0.0f);
-//        glRotatef(fAngleZ + fAngleDZ, 0.0f, 0.0f, 1.0f);
 
         glPolygonOffset(-1, -1);
         glEnable(GL_POLYGON_OFFSET_POINT);

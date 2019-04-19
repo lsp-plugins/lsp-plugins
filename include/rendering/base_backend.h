@@ -115,7 +115,7 @@ typedef struct r3d_base_backend_t: public r3d_backend_t
 
     status_t set_bg_color(const color3d_t *color)
     {
-        colBackground   = color;
+        colBackground   = *color;
         return STATUS_OK;
     }
 } r3d_base_backend_t;

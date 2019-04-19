@@ -23,7 +23,30 @@ enum r3d_matrix_type_t
     R3D_MATRIX_WORLD        /* World matrix for additional transformations if view matrix is not enough */
 };
 
+enum r3d_light_type_t {
+    R3D_LIGHT_NONE,
+    R3D_LIGHT_POINT,
+    R3D_LIGHT_DIRECTIONAL,
+    R3D_LIGHT_SPOT
+};
+
+// Basic type: backend
 struct r3d_backend_t;
+
+// Light parameters
+typedef struct r3d_light_t
+{
+    r3d_light_type_t    type;           /* Light type */
+    vector3d_t          position;       /* Light position */
+    vector3d_t          direction;      /* Light direction */
+    color3d_t           ambient;        /* Ambient color */
+    color3d_t           diffuse;        /* Diffuse color */
+    color3d_t           specular;       /* Specular color */
+    float               constant;       /* Constant parameter */
+    float               linear;         /* Linear parameter */
+    float               quadratic;      /* Quadratic parameter */
+} r3d_light_t;
+
 
 /**
  * Backend instantiation function
