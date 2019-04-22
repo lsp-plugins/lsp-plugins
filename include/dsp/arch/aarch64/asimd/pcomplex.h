@@ -1022,7 +1022,7 @@ namespace asimd
             __ASM_EMIT("eor         v21.16b, v21.16b, v21.16b")
             __ASM_EMIT("eor         v23.16b, v23.16b, v23.16b")
 
-            __ASM_EMIT("sub         %[count], %[count], #8")
+            __ASM_EMIT("sub         %[count], %[count], #16")
             __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
             __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
             __ASM_EMIT("st2         {v20.4s, v21.4s}, [%[dst]], #0x20")
