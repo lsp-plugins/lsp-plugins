@@ -38,7 +38,7 @@ IF_ARCH_AARCH64(
     namespace asimd
     {
         void pcomplex_div2(float *dst, const float *src, size_t count);
-//        void pcomplex_rdiv2(float *dst, const float *src, size_t count);
+        void pcomplex_rdiv2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -87,7 +87,7 @@ PTEST_BEGIN("dsp.pcomplex", div2, 5, 1000)
             IF_ARCH_ARM(CALL("neon_d32::pcomplex_div2", out, in, count, neon_d32::pcomplex_div2));
             IF_ARCH_ARM(CALL("neon_d32::pcomplex_rdiv2", out, in, count, neon_d32::pcomplex_rdiv2));
             IF_ARCH_AARCH64(CALL("asimd::pcomplex_div2", out, in, count, asimd::pcomplex_div2));
-//            IF_ARCH_AARCH64(CALL("asimd::pcomplex_rdiv2", out, in, count, asimd::pcomplex_rdiv2));
+            IF_ARCH_AARCH64(CALL("asimd::pcomplex_rdiv2", out, in, count, asimd::pcomplex_rdiv2));
 
             PTEST_SEPARATOR;
         }
