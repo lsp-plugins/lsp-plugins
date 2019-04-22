@@ -235,7 +235,7 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         // Disable lighing?
         if ((count == 0) || (lights == NULL))
         {
-            glDisable(GL_LIGHTING);
+            ::glDisable(GL_LIGHTING);
             return STATUS_OK;
         }
 
@@ -251,31 +251,31 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             // Enable the light and set basic attributes
             vector3d_t position = lights[i].position;
 
-            glEnable(light_id);
-            glLightfv(light_id, GL_AMBIENT, &lights[i].ambient.r);
-            glLightfv(light_id, GL_DIFFUSE, &lights[i].diffuse.r);
-            glLightfv(light_id, GL_SPECULAR, &lights[i].specular.r);
+            ::glEnable(light_id);
+            ::glLightfv(light_id, GL_AMBIENT, &lights[i].ambient.r);
+            ::glLightfv(light_id, GL_DIFFUSE, &lights[i].diffuse.r);
+            ::glLightfv(light_id, GL_SPECULAR, &lights[i].specular.r);
 
             switch (lights[i].type)
             {
                 case R3D_LIGHT_POINT:
                     position.dw     = 1.0f;
-                    glLightfv(light_id, GL_POSITION, &position.dx);
-                    glLighti(light_id, GL_SPOT_CUTOFF, 180);
+                    ::glLightfv(light_id, GL_POSITION, &position.dx);
+                    ::glLighti(light_id, GL_SPOT_CUTOFF, 180);
                     break;
                 case R3D_LIGHT_DIRECTIONAL:
                     position.dw     = 0.0f;
-                    glLightfv(light_id, GL_POSITION, &position.dx);
-                    glLighti(light_id, GL_SPOT_CUTOFF, 180);
+                    ::glLightfv(light_id, GL_POSITION, &position.dx);
+                    ::glLighti(light_id, GL_SPOT_CUTOFF, 180);
                     break;
                 case R3D_LIGHT_SPOT:
                     position.dw     = 1.0f;
-                    glLightfv(light_id, GL_POSITION, &position.dx);
-                    glLightfv(light_id, GL_SPOT_DIRECTION, &lights[i].direction.dx);
-                    glLightf(light_id, GL_SPOT_CUTOFF, lights[i].cutoff);
-                    glLightf(light_id, GL_CONSTANT_ATTENUATION, lights[i].constant);
-                    glLightf(light_id, GL_LINEAR_ATTENUATION, lights[i].linear);
-                    glLightf(light_id, GL_QUADRATIC_ATTENUATION, lights[i].quadratic);
+                    ::glLightfv(light_id, GL_POSITION, &position.dx);
+                    ::glLightfv(light_id, GL_SPOT_DIRECTION, &lights[i].direction.dx);
+                    ::glLightf(light_id, GL_SPOT_CUTOFF, lights[i].cutoff);
+                    ::glLightf(light_id, GL_CONSTANT_ATTENUATION, lights[i].constant);
+                    ::glLightf(light_id, GL_LINEAR_ATTENUATION, lights[i].linear);
+                    ::glLightf(light_id, GL_QUADRATIC_ATTENUATION, lights[i].quadratic);
                     break;
                 default:
                     return STATUS_INVALID_VALUE;
@@ -288,10 +288,10 @@ typedef struct glx_backend_t: public r3d_base_backend_t
 
         // Disable all other non-related lights
         while (light_id <= GL_LIGHT7)
-            glDisable(light_id++);
+            ::glDisable(light_id++);
 
         // Always enable lighting, even if there is nothing to shine
-        glEnable(GL_LIGHTING);
+        ::glEnable(GL_LIGHTING);
     }
 
     status_t draw_primitives(const r3d_buffer_t *buffer)
@@ -314,15 +314,16 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             case R3D_PRIMITIVE_WIREFRAME_TRIANGLES:
                 mode    = GL_LINE_LOOP;
                 count   = (count << 1) + count; // count *= 3
+                ::glLineWidth(buffer->size);
                 break;
             case R3D_PRIMITIVE_LINES:
                 mode    = GL_LINES;
                 count <<= 1;                    // count *= 2
-                glLineWidth(buffer->size);
+                ::glLineWidth(buffer->size);
                 break;
             case R3D_PRIMITIVE_POINTS:
                 mode    = GL_POINTS;
-                glPointSize(buffer->size);
+                ::glPointSize(buffer->size);
                 break;
             default:
                 return STATUS_BAD_ARGUMENTS;
@@ -331,46 +332,46 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         // Enable vertex pointer (if present)
         if (buffer->vertex.data != NULL)
         {
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glVertexPointer(3, GL_FLOAT,
+            ::glEnableClientState(GL_VERTEX_ARRAY);
+            ::glVertexPointer(3, GL_FLOAT,
                 (buffer->vertex.stride == 0) ? sizeof(point3d_t) : buffer->vertex.stride,
                 buffer->vertex.data
             );
         }
         else
-            glDisableClientState(GL_VERTEX_ARRAY);
+            ::glDisableClientState(GL_VERTEX_ARRAY);
 
         // Enable normal pointer
         if (buffer->normal.data != NULL)
         {
-            glEnableClientState(GL_NORMAL_ARRAY);
-            glNormalPointer(GL_FLOAT,
+            ::glEnableClientState(GL_NORMAL_ARRAY);
+            ::glNormalPointer(GL_FLOAT,
                 (buffer->normal.stride == 0) ? sizeof(vector3d_t) : buffer->normal.stride,
                 buffer->normal.data
             );
         }
         else
-            glDisableClientState(GL_NORMAL_ARRAY);
+            ::glDisableClientState(GL_NORMAL_ARRAY);
 
         // Enable color pointer
         if (buffer->color.data != NULL)
         {
-            glEnableClientState(GL_COLOR_ARRAY);
-            glColorPointer(4, GL_FLOAT,
+            ::glEnableClientState(GL_COLOR_ARRAY);
+            ::glColorPointer(4, GL_FLOAT,
                 (buffer->color.stride == 0) ? sizeof(color3d_t) : buffer->color.stride,
                 buffer->color.data
             );
         }
         else
-            glDisableClientState(GL_COLOR_ARRAY);
+            ::glDisableClientState(GL_COLOR_ARRAY);
 
         // Draw the elements (or arrays, depending on configuration)
         if (buffer->type != R3D_PRIMITIVE_WIREFRAME_TRIANGLES)
         {
             if (buffer->index.data != NULL)
-                glDrawElements(mode, count, GL_UNSIGNED_INT, buffer->index.data);
+                ::glDrawElements(mode, count, GL_UNSIGNED_INT, buffer->index.data);
             else
-                glDrawArrays(mode, 0, count);
+                ::glDrawArrays(mode, 0, count);
         }
         else
         {
@@ -378,22 +379,22 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             {
                 const uint32_t *ptr = buffer->index.data;
                 for (size_t i=0; i<count; i += 3, ptr += 3)
-                    glDrawElements(mode, 3, GL_UNSIGNED_INT, ptr);
+                    ::glDrawElements(mode, 3, GL_UNSIGNED_INT, ptr);
             }
             else
             {
                 for (size_t i=0; i<count; i += 3)
-                    glDrawArrays(mode, i, 3);
+                    ::glDrawArrays(mode, i, 3);
             }
         }
 
         // Disable previous settings
         if (buffer->color.data != NULL)
-            glDisableClientState(GL_COLOR_ARRAY);
+            ::glDisableClientState(GL_COLOR_ARRAY);
         if (buffer->normal.data != NULL)
-            glDisableClientState(GL_NORMAL_ARRAY);
+            ::glDisableClientState(GL_NORMAL_ARRAY);
         if (buffer->vertex.data != NULL)
-            glDisableClientState(GL_VERTEX_ARRAY);
+            ::glDisableClientState(GL_VERTEX_ARRAY);
 
         return STATUS_OK;
     }
