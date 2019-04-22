@@ -1032,7 +1032,7 @@ namespace asimd
             __ASM_EMIT("4:")
             __ASM_EMIT("adds        %[count], %[count], #8")
             __ASM_EMIT("b.lt        6f")
-            __ASM_EMIT("ld1         {v16.4s, v17.4s}, [%[src]], #0x40")
+            __ASM_EMIT("ld1         {v16.4s, v17.4s}, [%[src]], #0x20")
 
             __ASM_EMIT("mov         v18.16b, v17.16b")
             __ASM_EMIT("eor         v17.16b, v17.16b, v17.16b")
@@ -1146,7 +1146,7 @@ namespace asimd
             __ASM_EMIT("adds        %[count], %[count], #3")
             __ASM_EMIT("b.lt        10f")
             __ASM_EMIT("9:")
-            __ASM_EMIT("ld2         {v16.4s}[0], [%[src]], #0x08")
+            __ASM_EMIT("ld2         {v16.s, v17.s}[0], [%[src]], #0x08")
             __ASM_EMIT("subs        %[count], %[count], #1")
             __ASM_EMIT("str         s0, [%[dst]], #0x04")
             __ASM_EMIT("b.ge        9b")
