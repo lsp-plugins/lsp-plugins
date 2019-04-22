@@ -829,8 +829,8 @@ namespace asimd
             __ASM_EMIT("fdiv        v23.4s, v23.4s, v3.4s")
 
             __ASM_EMIT("subs        %[count], %[count], #16")
-            __ASM_EMIT("st1         {v0.4s-v3.4s}, [%[dst_re]], #0x40")
-            __ASM_EMIT("st1         {v4.4s-v7.4s}, [%[dst_im]], #0x40")
+            __ASM_EMIT("st1         {v16.4s-v19.4s}, [%[dst_re]], #0x40")
+            __ASM_EMIT("st1         {v20.4s-v23.4s}, [%[dst_im]], #0x40")
             __ASM_EMIT("b.hs        1b")
 
             // x8 blocks
@@ -850,8 +850,8 @@ namespace asimd
             __ASM_EMIT("fdiv        v20.4s, v20.4s, v0.4s")                 // v20  = -di/(dr*dr + di*di)
             __ASM_EMIT("fdiv        v21.4s, v21.4s, v1.4s")
             __ASM_EMIT("sub         %[count], %[count], #8")
-            __ASM_EMIT("st1         {v0.4s, v1.4s}, [%[dst_re]], #0x20")
-            __ASM_EMIT("st1         {v4.4s, v5.4s}, [%[dst_im]], #0x20")
+            __ASM_EMIT("st1         {v16.4s, v17.4s}, [%[dst_re]], #0x20")
+            __ASM_EMIT("st1         {v20.4s, v21.4s}, [%[dst_im]], #0x20")
 
             // x4 blocks
             __ASM_EMIT("4:")
@@ -865,8 +865,8 @@ namespace asimd
             __ASM_EMIT("fdiv        v16.4s, v16.4s, v0.4s")                 // v16  = dr/(dr*dr + di*di)
             __ASM_EMIT("fdiv        v20.4s, v20.4s, v0.4s")                 // v20  = -di/(dr*dr + di*di)
             __ASM_EMIT("sub         %[count], %[count], #4")
-            __ASM_EMIT("st1         {v0.4s}, [%[dst_re]], #0x10")
-            __ASM_EMIT("st1         {v4.4s}, [%[dst_im]], #0x10")
+            __ASM_EMIT("st1         {v16.4s}, [%[dst_re]], #0x10")
+            __ASM_EMIT("st1         {v20.4s}, [%[dst_im]], #0x10")
 
             // x1 blocks
             __ASM_EMIT("6:")
@@ -880,8 +880,8 @@ namespace asimd
             __ASM_EMIT("fneg        v20.4s, v20.4s")                        // v20  = -di
             __ASM_EMIT("fdiv        v16.4s, v16.4s, v0.4s")                 // v16  = dr/(dr*dr + di*di)
             __ASM_EMIT("fdiv        v20.4s, v20.4s, v0.4s")                 // v20  = -di/(dr*dr + di*di)
-            __ASM_EMIT("str         s0, [%[dst_re]], #0x04")
-            __ASM_EMIT("str         s4, [%[dst_im]], #0x04")
+            __ASM_EMIT("str         s16, [%[dst_re]], #0x04")
+            __ASM_EMIT("str         s20, [%[dst_im]], #0x04")
             __ASM_EMIT("subs        %[count], %[count], #1")
             __ASM_EMIT("b.ge        7b")
 
@@ -931,8 +931,8 @@ namespace asimd
             __ASM_EMIT("fdiv        v23.4s, v23.4s, v3.4s")
 
             __ASM_EMIT("subs        %[count], %[count], #16")
-            __ASM_EMIT("st1         {v0.4s-v3.4s}, [%[dst_re]], #0x40")
-            __ASM_EMIT("st1         {v4.4s-v7.4s}, [%[dst_im]], #0x40")
+            __ASM_EMIT("st1         {v16.4s-v19.4s}, [%[dst_re]], #0x40")
+            __ASM_EMIT("st1         {v20.4s-v23.4s}, [%[dst_im]], #0x40")
             __ASM_EMIT("b.hs        1b")
 
             // x8 blocks
@@ -952,8 +952,8 @@ namespace asimd
             __ASM_EMIT("fdiv        v20.4s, v20.4s, v0.4s")                 // v20  = -di/(dr*dr + di*di)
             __ASM_EMIT("fdiv        v21.4s, v21.4s, v1.4s")
             __ASM_EMIT("sub         %[count], %[count], #8")
-            __ASM_EMIT("st1         {v0.4s, v1.4s}, [%[dst_re]], #0x20")
-            __ASM_EMIT("st1         {v4.4s, v5.4s}, [%[dst_im]], #0x20")
+            __ASM_EMIT("st1         {v16.4s, v17.4s}, [%[dst_re]], #0x20")
+            __ASM_EMIT("st1         {v20.4s, v21.4s}, [%[dst_im]], #0x20")
 
             // x4 blocks
             __ASM_EMIT("4:")
@@ -967,8 +967,8 @@ namespace asimd
             __ASM_EMIT("fdiv        v16.4s, v16.4s, v0.4s")                 // v16  = dr/(dr*dr + di*di)
             __ASM_EMIT("fdiv        v20.4s, v20.4s, v0.4s")                 // v20  = -di/(dr*dr + di*di)
             __ASM_EMIT("sub         %[count], %[count], #4")
-            __ASM_EMIT("st1         {v0.4s}, [%[dst_re]], #0x10")
-            __ASM_EMIT("st1         {v4.4s}, [%[dst_im]], #0x10")
+            __ASM_EMIT("st1         {v16.4s}, [%[dst_re]], #0x10")
+            __ASM_EMIT("st1         {v20.4s}, [%[dst_im]], #0x10")
 
             // x1 blocks
             __ASM_EMIT("6:")
@@ -982,8 +982,8 @@ namespace asimd
             __ASM_EMIT("fneg        v20.4s, v20.4s")                        // v20  = -di
             __ASM_EMIT("fdiv        v16.4s, v16.4s, v0.4s")                 // v16  = dr/(dr*dr + di*di)
             __ASM_EMIT("fdiv        v20.4s, v20.4s, v0.4s")                 // v20  = -di/(dr*dr + di*di)
-            __ASM_EMIT("str         s0, [%[dst_re]], #0x04")
-            __ASM_EMIT("str         s4, [%[dst_im]], #0x04")
+            __ASM_EMIT("str         s16, [%[dst_re]], #0x04")
+            __ASM_EMIT("str         s20, [%[dst_im]], #0x04")
             __ASM_EMIT("subs        %[count], %[count], #1")
             __ASM_EMIT("b.ge        7b")
 
