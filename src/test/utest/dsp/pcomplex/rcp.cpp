@@ -121,8 +121,8 @@ UTEST_BEGIN("dsp.pcomplex", rcp)
         IF_ARCH_ARM(call("neon_d32::pcomplex_rcp1", 16, neon_d32::pcomplex_rcp1));
         IF_ARCH_ARM(call("neon_d32::pcomplex_rcp2", 16, neon_d32::pcomplex_rcp2));
 
-        IF_ARCH_ARM(call("asimd::pcomplex_rcp1", 16, asimd::pcomplex_rcp1));
-        IF_ARCH_ARM(call("asimd::pcomplex_rcp2", 16, asimd::pcomplex_rcp2));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_rcp1", 16, asimd::pcomplex_rcp1));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_rcp2", 16, asimd::pcomplex_rcp2));
     }
 
 UTEST_END;
