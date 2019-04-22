@@ -755,6 +755,218 @@ namespace asimd
               "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
         );
     }
+
+    void pcomplex_rcp1(float *dst, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("b.lo        2f")
+
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]], #0x20")     // v16  = sr1, v17 = si1
+            __ASM_EMIT("ld2         {v18.4s, v19.4s}, [%[dst]], #0x20")     // v18  = sr2, v19 = si2
+            __ASM_EMIT("ld2         {v20.4s, v21.4s}, [%[dst]], #0x20")     // v20  = sr3, v21 = si3
+            __ASM_EMIT("ld2         {v22.4s, v23.4s}, [%[dst]], #0x20")     // v22  = sr4, v23 = si4
+
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmul        v25.4s, v18.4s, v18.4s")
+            __ASM_EMIT("fmul        v26.4s, v20.4s, v20.4s")
+            __ASM_EMIT("fmul        v27.4s, v22.4s, v22.4s")
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fmla        v25.4s, v19.4s, v19.4s")
+            __ASM_EMIT("fmla        v26.4s, v21.4s, v21.4s")
+            __ASM_EMIT("fmla        v27.4s, v23.4s, v23.4s")
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fneg        v19.4s, v19.4s")
+            __ASM_EMIT("fneg        v21.4s, v21.4s")
+            __ASM_EMIT("fneg        v23.4s, v23.4s")
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v18.4s, v18.4s, v25.4s")
+            __ASM_EMIT("fdiv        v20.4s, v20.4s, v26.4s")
+            __ASM_EMIT("fdiv        v22.4s, v22.4s, v27.4s")
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v19.4s, v19.4s, v25.4s")
+            __ASM_EMIT("fdiv        v21.4s, v21.4s, v26.4s")
+            __ASM_EMIT("fdiv        v23.4s, v23.4s, v27.4s")
+
+            __ASM_EMIT("sub         %[dst], %[dst], 0x80")
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v20.4s, v21.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v22.4s, v23.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("b.hs        1b")
+
+            // x8 blocks
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds        %[count], %[count], #8")
+            __ASM_EMIT("b.lt        4f")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]], #0x20")     // v16  = sr1, v17 = si1
+            __ASM_EMIT("ld2         {v18.4s, v19.4s}, [%[dst]], #0x20")     // v18  = sr2, v19 = si2
+
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmul        v25.4s, v18.4s, v18.4s")
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fmla        v25.4s, v19.4s, v19.4s")
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fneg        v19.4s, v19.4s")
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v18.4s, v18.4s, v25.4s")
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v19.4s, v19.4s, v25.4s")
+
+            __ASM_EMIT("sub         %[dst], %[dst], 0x40")
+            __ASM_EMIT("sub         %[count], %[count], #8")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+
+            // x4 blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds        %[count], %[count], #4")
+            __ASM_EMIT("b.lt        6f")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]]")            // v16  = sr1, v17 = si1
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("sub         %[count], %[count], #4")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+
+            // x1 blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds        %[count], %[count], #3")
+            __ASM_EMIT("b.lt        8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("ld2r        {v16.4s, v17.4s}, [%[dst]]")            // v16  = sr1, v17  = si1
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("str         s16, [%[dst]], #0x04")
+            __ASM_EMIT("subs        %[count], %[count], #1")
+            __ASM_EMIT("str         s17, [%[dst]], #0x04")
+            __ASM_EMIT("b.ge        7b")
+
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              // "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", // Avoid usage if possible
+              "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
+              "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
+        );
+    }
+
+    void pcomplex_rcp2(float *dst, const float *src, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("b.lo        2f")
+
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[src]], #0x20")     // v16  = sr1, v17 = si1
+            __ASM_EMIT("ld2         {v18.4s, v19.4s}, [%[src]], #0x20")     // v18  = sr2, v19 = si2
+            __ASM_EMIT("ld2         {v20.4s, v21.4s}, [%[src]], #0x20")     // v20  = sr3, v21 = si3
+            __ASM_EMIT("ld2         {v22.4s, v23.4s}, [%[src]], #0x20")     // v22  = sr4, v23 = si4
+
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmul        v25.4s, v18.4s, v18.4s")
+            __ASM_EMIT("fmul        v26.4s, v20.4s, v20.4s")
+            __ASM_EMIT("fmul        v27.4s, v22.4s, v22.4s")
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fmla        v25.4s, v19.4s, v19.4s")
+            __ASM_EMIT("fmla        v26.4s, v21.4s, v21.4s")
+            __ASM_EMIT("fmla        v27.4s, v23.4s, v23.4s")
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fneg        v19.4s, v19.4s")
+            __ASM_EMIT("fneg        v21.4s, v21.4s")
+            __ASM_EMIT("fneg        v23.4s, v23.4s")
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v18.4s, v18.4s, v25.4s")
+            __ASM_EMIT("fdiv        v20.4s, v20.4s, v26.4s")
+            __ASM_EMIT("fdiv        v22.4s, v22.4s, v27.4s")
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v19.4s, v19.4s, v25.4s")
+            __ASM_EMIT("fdiv        v21.4s, v21.4s, v26.4s")
+            __ASM_EMIT("fdiv        v23.4s, v23.4s, v27.4s")
+
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v20.4s, v21.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v22.4s, v23.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("b.hs        1b")
+
+            // x8 blocks
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds        %[count], %[count], #8")
+            __ASM_EMIT("b.lt        4f")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[src]], #0x20")     // v16  = sr1, v17 = si1
+            __ASM_EMIT("ld2         {v18.4s, v19.4s}, [%[src]], #0x20")     // v18  = sr2, v19 = si2
+
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmul        v25.4s, v18.4s, v18.4s")
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fmla        v25.4s, v19.4s, v19.4s")
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fneg        v19.4s, v19.4s")
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v18.4s, v18.4s, v25.4s")
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v19.4s, v19.4s, v25.4s")
+
+            __ASM_EMIT("sub         %[count], %[count], #8")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+
+            // x4 blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds        %[count], %[count], #4")
+            __ASM_EMIT("b.lt        6f")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[src]], #0x20")     // v16  = sr1, v17 = si1
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("sub         %[count], %[count], #4")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+
+            // x1 blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds        %[count], %[count], #3")
+            __ASM_EMIT("b.lt        8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("ld2r        {v16.4s, v17.4s}, [%[src]], #0x08")     // v16  = sr1, v17  = si1
+            __ASM_EMIT("fmul        v24.4s, v16.4s, v16.4s")                // v24   = sr*sr
+            __ASM_EMIT("fmla        v24.4s, v17.4s, v17.4s")                // v24  = sr*dr + si*di
+            __ASM_EMIT("fneg        v17.4s, v17.4s")                        // v17  = -si
+            __ASM_EMIT("fdiv        v16.4s, v16.4s, v24.4s")                // v16  = sr/(sr*dr + si*di)
+            __ASM_EMIT("fdiv        v17.4s, v17.4s, v24.4s")                // v17  = -si/(sr*dr + si*di)
+            __ASM_EMIT("str         s16, [%[dst]], #0x04")
+            __ASM_EMIT("subs        %[count], %[count], #1")
+            __ASM_EMIT("str         s17, [%[dst]], #0x04")
+            __ASM_EMIT("b.ge        7b")
+
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              // "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", // Avoid usage if possible
+              "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
+              "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_AARCH64_ASIMD_PCOMPLEX_H_ */
