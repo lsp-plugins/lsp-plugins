@@ -77,6 +77,7 @@ namespace asimd
 
         EXPORT1(pcomplex_mul2);
         EXPORT1(pcomplex_mul3);
+        EXPORT1(pcomplex_div2);
     }
 }
 

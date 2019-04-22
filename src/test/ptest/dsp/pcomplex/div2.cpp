@@ -34,6 +34,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pcomplex_div2(float *dst, const float *src, size_t count);
+//        void pcomplex_rdiv2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* pcomplex_div2_t) (float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -72,12 +80,14 @@ PTEST_BEGIN("dsp.pcomplex", div2, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:pcomplex_div2", out, in, count, native::pcomplex_div2);
-            CALL("native:pcomplex_rdiv2", out, in, count, native::pcomplex_rdiv2);
-            IF_ARCH_X86(CALL("sse:pcomplex_div2", out, in, count, sse::pcomplex_div2));
-            IF_ARCH_X86(CALL("sse:pcomplex_rdiv2", out, in, count, sse::pcomplex_rdiv2));
-            IF_ARCH_ARM(CALL("neon_d32:pcomplex_div2", out, in, count, neon_d32::pcomplex_div2));
-            IF_ARCH_ARM(CALL("neon_d32:pcomplex_rdiv2", out, in, count, neon_d32::pcomplex_rdiv2));
+            CALL("native::pcomplex_div2", out, in, count, native::pcomplex_div2);
+            CALL("native::pcomplex_rdiv2", out, in, count, native::pcomplex_rdiv2);
+            IF_ARCH_X86(CALL("sse::pcomplex_div2", out, in, count, sse::pcomplex_div2));
+            IF_ARCH_X86(CALL("sse::pcomplex_rdiv2", out, in, count, sse::pcomplex_rdiv2));
+            IF_ARCH_ARM(CALL("neon_d32::pcomplex_div2", out, in, count, neon_d32::pcomplex_div2));
+            IF_ARCH_ARM(CALL("neon_d32::pcomplex_rdiv2", out, in, count, neon_d32::pcomplex_rdiv2));
+            IF_ARCH_AARCH64(CALL("asimd::pcomplex_div2", out, in, count, asimd::pcomplex_div2));
+//            IF_ARCH_AARCH64(CALL("asimd::pcomplex_rdiv2", out, in, count, asimd::pcomplex_rdiv2));
 
             PTEST_SEPARATOR;
         }

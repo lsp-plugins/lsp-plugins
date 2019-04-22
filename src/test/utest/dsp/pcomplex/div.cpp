@@ -28,9 +28,18 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-    void pcomplex_div2(float *dst, const float *src, size_t count);
+        void pcomplex_div2(float *dst, const float *src, size_t count);
         void pcomplex_rdiv2(float *dst, const float *src, size_t count);
         void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pcomplex_div2(float *dst, const float *src, size_t count);
+//        void pcomplex_rdiv2(float *dst, const float *src, size_t count);
+//        void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
     }
 )
 
@@ -118,12 +127,17 @@ UTEST_BEGIN("dsp.pcomplex", div)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:pcomplex_div2", 16, native::pcomplex_div2, sse::pcomplex_div2));
-        IF_ARCH_X86(call("sse:pcomplex_rdiv2", 16, native::pcomplex_rdiv2, sse::pcomplex_rdiv2));
-        IF_ARCH_X86(call("sse:pcomplex_div3", 16, sse::pcomplex_div3));
-        IF_ARCH_ARM(call("neon_d32:pcomplex_div2", 16, native::pcomplex_div2, neon_d32::pcomplex_div2));
-        IF_ARCH_ARM(call("neon_d32:pcomplex_rdiv2", 16, native::pcomplex_rdiv2, neon_d32::pcomplex_rdiv2));
-        IF_ARCH_ARM(call("neon_d32:pcomplex_div3", 16, neon_d32::pcomplex_div3));
+        IF_ARCH_X86(call("sse::pcomplex_div2", 16, native::pcomplex_div2, sse::pcomplex_div2));
+        IF_ARCH_X86(call("sse::pcomplex_rdiv2", 16, native::pcomplex_rdiv2, sse::pcomplex_rdiv2));
+        IF_ARCH_X86(call("sse::pcomplex_div3", 16, sse::pcomplex_div3));
+
+        IF_ARCH_ARM(call("neon_d32::pcomplex_div2", 16, native::pcomplex_div2, neon_d32::pcomplex_div2));
+        IF_ARCH_ARM(call("neon_d32::pcomplex_rdiv2", 16, native::pcomplex_rdiv2, neon_d32::pcomplex_rdiv2));
+        IF_ARCH_ARM(call("neon_d32::pcomplex_div3", 16, neon_d32::pcomplex_div3));
+
+        IF_ARCH_AARCH64(call("asimd::pcomplex_div2", 16, native::pcomplex_div2, asimd::pcomplex_div2));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_rdiv2", 16, native::pcomplex_rdiv2, asimd::pcomplex_rdiv2));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_div3", 16, asimd::pcomplex_div3));
     }
 
 UTEST_END;
