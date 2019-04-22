@@ -53,7 +53,7 @@ IF_ARCH_AARCH64(
     namespace asimd
     {
         void pcomplex_mul2(float *dst, const float *src, size_t count);
-//        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -149,7 +149,7 @@ UTEST_BEGIN("dsp.pcomplex", mul)
         IF_ARCH_ARM(call("neon_d32::pcomplex_mul2", 16, neon_d32::pcomplex_mul2));
         IF_ARCH_ARM(call("neon_d32::pcomplex_mul3", 16, neon_d32::pcomplex_mul3));
         IF_ARCH_AARCH64(call("asimd::pcomplex_mul2", 16, asimd::pcomplex_mul2));
-//        IF_ARCH_AARCH64(call("asimd::pcomplex_mul3", 16, asimd::pcomplex_mul3));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_mul3", 16, asimd::pcomplex_mul3));
     }
 
 UTEST_END;
