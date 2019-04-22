@@ -31,6 +31,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pcomplex_mul2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* pcomplex_mul2_t) (float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -69,9 +76,10 @@ PTEST_BEGIN("dsp.pcomplex", mul2, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:pcomplex_mul2", out, in, count, native::pcomplex_mul2);
-            IF_ARCH_X86(CALL("sse:pcomplex_mul2", out, in, count, sse::pcomplex_mul2));
-            IF_ARCH_ARM(CALL("neon_d32:pcomplex_mul2", out, in, count, neon_d32::pcomplex_mul2));
+            CALL("native::pcomplex_mul2", out, in, count, native::pcomplex_mul2);
+            IF_ARCH_X86(CALL("sse::pcomplex_mul2", out, in, count, sse::pcomplex_mul2));
+            IF_ARCH_ARM(CALL("neon_d32::pcomplex_mul2", out, in, count, neon_d32::pcomplex_mul2));
+            IF_ARCH_AARCH64(CALL("asimd::pcomplex_mul2", out, in, count, asimd::pcomplex_mul2));
 
             PTEST_SEPARATOR;
         }
