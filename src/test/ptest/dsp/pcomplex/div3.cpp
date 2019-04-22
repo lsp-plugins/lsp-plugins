@@ -31,7 +31,7 @@ IF_ARCH_ARM(
     }
 )
 
-IF_ARCH_ARM(
+IF_ARCH_AARCH64(
     namespace asimd
     {
         void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
