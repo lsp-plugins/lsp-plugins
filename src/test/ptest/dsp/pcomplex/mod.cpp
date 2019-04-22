@@ -43,7 +43,7 @@ IF_ARCH_ARM(
 )
 
 IF_ARCH_AARCH64(
-    namespace neon_d32
+    namespace asimd
     {
         void pcomplex_mod(float *dst_mod, const float *src, size_t count);
     }
