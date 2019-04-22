@@ -38,6 +38,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
+    }
+)
+
 typedef void (* pcomplex_mod_t)(float *dst_mod, const float *src, size_t count);
 
 UTEST_BEGIN("dsp.pcomplex", mod)
@@ -80,11 +87,12 @@ UTEST_BEGIN("dsp.pcomplex", mod)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:pcomplex_mod", 16, sse::pcomplex_mod));
-        IF_ARCH_X86(call("sse3:pcomplex_mod", 16, sse3::pcomplex_mod));
-        IF_ARCH_X86(call("sse3:x64_pcomplex_mod", 16, sse3::x64_pcomplex_mod));
-        IF_ARCH_X86(call("avx:x64_pcomplex_mod", 32, avx::x64_pcomplex_mod));
-        IF_ARCH_ARM(call("neon_d32:pcomplex_mod", 16, neon_d32::pcomplex_mod));
+        IF_ARCH_X86(call("sse::pcomplex_mod", 16, sse::pcomplex_mod));
+        IF_ARCH_X86(call("sse3::pcomplex_mod", 16, sse3::pcomplex_mod));
+        IF_ARCH_X86(call("sse3::x64_pcomplex_mod", 16, sse3::x64_pcomplex_mod));
+        IF_ARCH_X86(call("avx::x64_pcomplex_mod", 32, avx::x64_pcomplex_mod));
+        IF_ARCH_ARM(call("neon_d32::pcomplex_mod", 16, neon_d32::pcomplex_mod));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_mod", 16, asimd::pcomplex_mod));
     }
 
 UTEST_END
