@@ -1148,7 +1148,7 @@ namespace asimd
             __ASM_EMIT("9:")
             __ASM_EMIT("ld2         {v16.s, v17.s}[0], [%[src]], #0x08")
             __ASM_EMIT("subs        %[count], %[count], #1")
-            __ASM_EMIT("str         s0, [%[dst]], #0x04")
+            __ASM_EMIT("str         s16, [%[dst]], #0x04")
             __ASM_EMIT("b.ge        9b")
 
             __ASM_EMIT("10:")
