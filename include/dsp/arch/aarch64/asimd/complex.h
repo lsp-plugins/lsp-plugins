@@ -219,7 +219,7 @@ namespace asimd
         );
     }
 
-    void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
+    void pcomplex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
     {
         ARCH_AARCH64_ASM
         (
