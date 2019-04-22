@@ -1216,18 +1216,18 @@ namespace asimd
             __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]]")
 
             // x1 blocks
-            __ASM_EMIT("8:")
+            __ASM_EMIT("6:")
             __ASM_EMIT("adds        %[count], %[count], #3")
-            __ASM_EMIT("b.lt        10f")
-            __ASM_EMIT("9:")
+            __ASM_EMIT("b.lt        8f")
+            __ASM_EMIT("7:")
             __ASM_EMIT("ld2r        {v16.4s, v17.4s}, [%[dst]]")
             __ASM_EMIT("ld1r        {v24.4s}, [%[src]], #0x04")
             __ASM_EMIT("fadd        v16.4s, v16.4s, v24.4s")
             __ASM_EMIT("subs        %[count], %[count], #1")
-            __ASM_EMIT("st2         {v16.4s, v17.4s}[0], [%[dst]], #0x08")
-            __ASM_EMIT("b.ge        9b")
+            __ASM_EMIT("st2         {v16.s, v17.s}[0], [%[dst]], #0x08")
+            __ASM_EMIT("b.ge        7b")
 
-            __ASM_EMIT("10:")
+            __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
