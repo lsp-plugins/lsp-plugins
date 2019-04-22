@@ -86,6 +86,21 @@ struct r3d_backend_t
     status_t    (* get_matrix)(r3d_matrix_type_t type, float *m);
 
     /**
+     * Set current lighting schema according to passed array of lights
+     * @param lights array of lights
+     * @param count number of lights per scene
+     * @return status of operation
+     */
+    status_t    (* set_lights)(const r3d_light_t *lights, size_t count);
+
+    /**
+     * Draw data
+     * @param buffer buffer data to draw
+     * @return status of operation
+     */
+    status_t    (* draw_primitives)(const r3d_buffer_t *buffer);
+
+    /**
      * Set the default background color
      * @param color default background color
      * @return

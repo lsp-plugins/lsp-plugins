@@ -30,6 +30,13 @@ enum r3d_light_type_t {
     R3D_LIGHT_SPOT
 };
 
+enum r3d_primitive_type_t {
+    R3D_PRIMITIVE_TRIANGLES,
+    R3D_PRIMITIVE_WIREFRAME_TRIANGLES,
+    R3D_PRIMITIVE_LINES,
+    R3D_PRIMITIVE_POINTS,
+};
+
 // Basic type: backend
 struct r3d_backend_t;
 
@@ -42,11 +49,42 @@ typedef struct r3d_light_t
     color3d_t           ambient;        /* Ambient color */
     color3d_t           diffuse;        /* Diffuse color */
     color3d_t           specular;       /* Specular color */
-    float               constant;       /* Constant parameter */
-    float               linear;         /* Linear parameter */
-    float               quadratic;      /* Quadratic parameter */
+    float               constant;       /* Constant attenuation parameter */
+    float               linear;         /* Linear attenuation parameter */
+    float               quadratic;      /* Quadratic attenuation parameter */
+    float               cutoff;         /* Spot cutoff angle */
 } r3d_light_t;
 
+typedef struct r3d_buffer_t
+{
+    /* Properties */
+    r3d_primitive_type_t    type;       // Type of primitive
+    float                   size;       // Point size or line width
+    size_t                  count;      // Number of elements in buffer
+
+    /* Vertices */
+    struct {
+        point3d_t          *data;
+        size_t              stride;
+    } vertex;
+
+    /* Normals  */
+    struct {
+        vector3d_t         *data;
+        size_t              stride;
+    } normal;
+
+    /* Colors */
+    struct {
+        color3d_t          *data;
+        size_t              stride;
+    } color;
+
+    /* Vertex indices (always packed) */
+    struct {
+        uint32_t           *data;
+    } index;
+} r3d_buffer_t;
 
 /**
  * Backend instantiation function
