@@ -1212,8 +1212,8 @@ namespace asimd
             __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]]")
             __ASM_EMIT("ld1         {v24.4s}, [%[src]], #0x10")
             __ASM_EMIT("fadd        v16.4s, v16.4s, v24.4s")
-            __ASM_EMIT("sub         %[count], %[count], #2")
-            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]]")
+            __ASM_EMIT("sub         %[count], %[count], #4")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
 
             // x1 blocks
             __ASM_EMIT("6:")
