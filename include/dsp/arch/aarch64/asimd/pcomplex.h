@@ -1162,6 +1162,82 @@ namespace asimd
               "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
         );
     }
+
+    void pcomplex_add_r(float *dst, const float *src, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("b.lo        2f")
+
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("ld2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("ld2         {v20.4s, v21.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("ld2         {v22.4s, v23.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("ld1         {v24.4s-v27.4s}, [%[src]], #0x40")
+
+            __ASM_EMIT("fadd        v16.4s, v16.4s, v24.4s")
+            __ASM_EMIT("fadd        v18.4s, v18.4s, v25.4s")
+            __ASM_EMIT("fadd        v20.4s, v20.4s, v26.4s")
+            __ASM_EMIT("fadd        v22.4s, v22.4s, v27.4s")
+
+            __ASM_EMIT("sub         %[dst], %[dst], #0x80")
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v20.4s, v21.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v22.4s, v23.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("b.hs        1b")
+
+            // x8 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds        %[count], %[count], #8")
+            __ASM_EMIT("b.lt        4f")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("ld2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("ld1         {v24.4s, v25.4s}, [%[src]], #0x20")
+            __ASM_EMIT("fadd        v16.4s, v16.4s, v24.4s")
+            __ASM_EMIT("fadd        v18.4s, v18.4s, v25.4s")
+            __ASM_EMIT("sub         %[dst], %[dst], #0x40")
+            __ASM_EMIT("sub         %[count], %[count], #8")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]], #0x20")
+            __ASM_EMIT("st2         {v18.4s, v19.4s}, [%[dst]], #0x20")
+
+            // x4 blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds        %[count], %[count], #4")
+            __ASM_EMIT("b.lt        6f")
+            __ASM_EMIT("ld2         {v16.4s, v17.4s}, [%[dst]]")
+            __ASM_EMIT("ld1         {v24.4s}, [%[src]], #0x10")
+            __ASM_EMIT("fadd        v16.4s, v16.4s, v24.4s")
+            __ASM_EMIT("sub         %[count], %[count], #2")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}, [%[dst]]")
+
+            // x1 blocks
+            __ASM_EMIT("8:")
+            __ASM_EMIT("adds        %[count], %[count], #3")
+            __ASM_EMIT("b.lt        10f")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("ld2r        {v16.4s, v17.4s}, [%[dst]]")
+            __ASM_EMIT("ld1r        {v24.4s}, [%[src]], #0x04")
+            __ASM_EMIT("fadd        v16.4s, v16.4s, v24.4s")
+            __ASM_EMIT("subs        %[count], %[count], #1")
+            __ASM_EMIT("st2         {v16.4s, v17.4s}[0], [%[dst]], #0x08")
+            __ASM_EMIT("b.ge        9b")
+
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              // "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", // Avoid usage if possible
+              "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
+              "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_AARCH64_ASIMD_PCOMPLEX_H_ */
