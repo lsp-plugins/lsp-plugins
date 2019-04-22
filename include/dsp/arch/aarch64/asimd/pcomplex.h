@@ -726,7 +726,6 @@ namespace asimd
             __ASM_EMIT("fmul        v2.4s, v20.4s, v2.4s")
             __ASM_EMIT("fmul        v3.4s, v22.4s, v3.4s")
 
-            __ASM_EMIT("sub         %[dst], %[dst], #0x80")                 // dst -= 0x80
             __ASM_EMIT("subs        %[count], %[count], #16")
             __ASM_EMIT("st1         {v0.4s-v3.4s}, [%[dst]], #0x40")
             __ASM_EMIT("b.hs        1b")
@@ -759,7 +758,6 @@ namespace asimd
             __ASM_EMIT("fmul        v0.4s, v16.4s, v0.4s")                  // v0   = R/sqrt(R) = sqrt(R)
             __ASM_EMIT("fmul        v1.4s, v18.4s, v1.4s")
 
-            __ASM_EMIT("sub         %[dst], %[dst], #0x40")                 // dst -= 0x40
             __ASM_EMIT("sub         %[count], %[count], #8")
             __ASM_EMIT("st1         {v0.4s, v1.4s}, [%[dst]], #0x20")
 
