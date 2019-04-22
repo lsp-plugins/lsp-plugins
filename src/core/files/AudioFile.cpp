@@ -39,6 +39,7 @@
     #include <mfreadwrite.h>
 
     #include <mmsystem.h>
+    #include <msacm.h>
 
 // Define some missing values from GNU <mfidl.h>
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
@@ -1901,22 +1902,25 @@ namespace lsp
         // Estimate maximum number of samples to read
         size_t srate        = LE_TO_CPU(pwfxInfo->nSamplesPerSec);
         size_t samples      = (max_duration >= 0.0f) ? seconds_to_samples(srate, max_duration) : size_t(-1);
-        lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
-            int(sf_info.frames), int(sf_info.channels), int(sf_info.samplerate), max_duration, int(max_samples));
+        lsp_trace("file parameters: channels=%d, sample_rate=%d max_duration=%.3f",
+            int(LE_TO_CPU(pwfxInfo->nChannels)),
+            int(LE_TO_CPU(pwfxInfo->nSamplesPerSec)),
+            max_duration
+        );
 
         // Perform a seek to data
-        if ((error = ::mmioSeek(hmmioIn, pckInRIFF->dwDataOffset + sizeof(FOURCC), SEEK_SET)) == -1)
+        if ((error = ::mmioSeek(hmmioIn, LE_TO_CPU(ckInRiff.dwDataOffset) + sizeof(FOURCC), SEEK_SET)) == -1)
         {
             ::mmioClose(hmmioIn, 0);
             return STATUS_BAD_FORMAT;
         }
         ckIn.ckid   = mmioFOURCC('d', 'a', 't', 'a');
-        if ((error = ::mmioDescend(hmmioIn, &ckIn, &ckInRIFF, MMIO_FINDCHUNK)) != 0)
+        if ((error = ::mmioDescend(hmmioIn, &ckIn, &ckInRiff, MMIO_FINDCHUNK)) != 0)
         {
             ::mmioClose(hmmioIn, 0);
             return STATUS_BAD_FORMAT;
         }
-        if ((error = ::mmioGetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
+        if ((error = ::mmioGetInfo(hmmioIn, &mmioInfoIn, 0)) != 0)
         {
             ::mmioClose(hmmioIn, 0);
             return STATUS_IO_ERROR;
@@ -1927,15 +1931,14 @@ namespace lsp
         size_t channels         = LE_TO_CPU(pwfxInfo->nChannels);
         if (bytes > LE_TO_CPU(ckIn.cksize))
             bytes       = LE_TO_CPU(ckIn.cksize);
-        ckIn.cksize             = CPU_TO_LE(cbDataIn - LE_TO_CPU(bytes));
 
         // We are ready to read but first initialize ACM stream
         dstInfo.wFormatTag      = WAVE_FORMAT_IEEE_FLOAT;
         dstInfo.nChannels       = channels;
         dstInfo.nSamplesPerSec  = LE_TO_CPU(pwfxInfo->nSamplesPerSec);
         dstInfo.nAvgBytesPerSec = dstInfo.nSamplesPerSec * dstInfo.nChannels * sizeof(float);
-        dstInfo.nBlockAlign     = dstInfo.nCannels * sizeof(float);
-        dstInfo.nBitsPerSample  = sizeof(float) * 8;
+        dstInfo.nBlockAlign     = dstInfo.nChannels * sizeof(float);
+        dstInfo.wBitsPerSample  = sizeof(float) * 8;
         dstInfo.cbSize          = 0;
 
         dstInfo.wFormatTag      = CPU_TO_LE(dstInfo.wFormatTag);
@@ -1947,7 +1950,7 @@ namespace lsp
         dstInfo.cbSize          = CPU_TO_LE(dstInfo.cbSize);
 
         // Open and configure ACM stream
-        if ((error = ::acmStreamOpen(&acmStream, NULL, pwfxInfo, &dstInfo, NULL, NULL, NULL, ACM_STREAMOPENF_NONREALTIME)) != 0)
+        if ((error = ::acmStreamOpen(&acmStream, NULL, pwfxInfo, &dstInfo, NULL, 0, 0, ACM_STREAMOPENF_NONREALTIME)) != 0)
         {
             ::mmioClose(hmmioIn, 0);
             switch (error)
@@ -1959,7 +1962,7 @@ namespace lsp
         }
 
         ACMSTREAMHEADER streamHead;
-        ::memset(&streamHead, sizeof(ACMSTREAMHEADER));
+        ::bzero(&streamHead, sizeof(ACMSTREAMHEADER));
 
         streamHead.cbStruct         = sizeof(ACMSTREAMHEADER);
         streamHead.cbSrcLength      = ACM_INPUT_BUFSIZE;
@@ -1981,7 +1984,7 @@ namespace lsp
         }
 
         streamHead.pbDst            = reinterpret_cast<PBYTE>(::malloc(streamHead.cbDstLength));
-        if (streamHead.pbDstrc == NULL)
+        if (streamHead.pbDst == NULL)
         {
             ::free(streamHead.pbSrc);
             ::acmStreamClose(acmStream, 0);
@@ -1999,7 +2002,7 @@ namespace lsp
         }
 
         // Create file content for storage
-        file_content_t *data = create_file_content(data, channels, 1024);
+        file_content_t *data = create_file_content(channels, 1024);
         if (!data)
         {
             ::free(streamHead.pbSrc);
@@ -2023,16 +2026,16 @@ namespace lsp
             // Try to maximize input buffer size
             if ((streamHead.cbSrcLength < ACM_INPUT_BUFSIZE) && (!eof))
             {
-                size_t avail    = reinterpret_cast<uint8_t *>(mmioinfoIn.pchEndRead)
-                                - reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext);
+                size_t avail    = reinterpret_cast<uint8_t *>(mmioInfoIn.pchEndRead)
+                                - reinterpret_cast<uint8_t *>(mmioInfoIn.pchNext);
                 if (avail > 0)
                 {
                     // Fill buffer
-                    size_t to_copy      = ACM_INPUT_BUFSIZE - acmStream.cbSrcLength;
+                    size_t to_copy      = ACM_INPUT_BUFSIZE - streamHead.cbSrcLength;
                     if (to_copy > avail)
                         to_copy     = avail;
-                    ::memcpy(&acmStream.pbSrc[acmStream.cbSrcLength], mmioInfoIn.pchNext, to_copy);
-                    mmioInfoIn.pchNext  = reinterpret_cast<HPSTR>(reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext) + to_copy);
+                    ::memcpy(&streamHead.pbSrc[streamHead.cbSrcLength], mmioInfoIn.pchNext, to_copy);
+                    mmioInfoIn.pchNext  = reinterpret_cast<HPSTR>(reinterpret_cast<uint8_t *>(mmioInfoIn.pchNext) + to_copy);
                     continue;
                 }
                 else if (bread >= bytes)
@@ -2043,7 +2046,7 @@ namespace lsp
 
                 // Try to read from MMIO
                 error = ::mmioAdvance(hmmioIn, &mmioInfoIn, MMIO_READ);
-                if ((error != 0) || (mmioinfoIn.pchNext == mmioinfoIn.pchEndRead))
+                if ((error != 0) || (mmioInfoIn.pchNext == mmioInfoIn.pchEndRead))
                 {
                     destroy_file_content(data);
                     ::free(streamHead.pbSrc);
@@ -2055,8 +2058,8 @@ namespace lsp
                 }
 
                 // Update number of bytes read from RIFF file
-                bread      += reinterpret_cast<uint8_t *>(mmioinfoIn.pchEndRead)
-                            - reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext);
+                bread      += reinterpret_cast<uint8_t *>(mmioInfoIn.pchEndRead)
+                            - reinterpret_cast<uint8_t *>(mmioInfoIn.pchNext);
             }
             else if (streamHead.cbSrcLength > 0)
             {
@@ -2074,15 +2077,15 @@ namespace lsp
                 }
 
                 // Advance the input buffer pointer
-                size_t delta = streamHead.cbSrcLength - streamHead.cbSrcUsed;
+                size_t delta = streamHead.cbSrcLength - streamHead.cbSrcLengthUsed;
                 if (delta > 0)
-                    ::memmove(streamHead.cbSrc, &streamHead.cbSrc[streamHead.cbSrcUsed], delta);
-                streamHead.cbSrcLength   = delta;
-                streamHead.cbSrcUsed     = 0;
+                    ::memmove(streamHead.pbSrc, &streamHead.pbSrc[streamHead.cbSrcLengthUsed], delta);
+                streamHead.cbSrcLength      = delta;
+                streamHead.cbSrcLengthUsed  = 0;
 
                 // Invalid data at output?
-                size_t frames   = streamHead.cbDstUsed / (sizeof(float) * channels);
-                if ((frames * sizeof(float) * channels) != streamHead.cbDstUsed)
+                size_t frames   = streamHead.cbDstLengthUsed / (sizeof(float) * channels);
+                if ((frames * sizeof(float) * channels) != streamHead.cbDstLengthUsed)
                 {
                     destroy_file_content(data);
                     ::free(streamHead.pbSrc);
@@ -2094,7 +2097,7 @@ namespace lsp
                 }
 
                 // Commit decoded data to the output file
-                float *fsamples = reinterpret_cast<float *>(streamHead.cbDst);
+                float *fsamples = reinterpret_cast<float *>(streamHead.pbDst);
                 __IF_BE( dsp::swap_bytes(fsamples, frames * channels) );
                 if ((max_duration >= 0.0f) && (frames > samples))
                     frames      = samples;
@@ -2125,11 +2128,11 @@ namespace lsp
                 fread       = nfread; // Update number of read frames
 
                 // Advance the output buffer pointer
-                size_t delta = streamHead.cbDstUsed - frames * (sizeof(float) * channels);
+                delta   = streamHead.cbDstLengthUsed - frames * (sizeof(float) * channels);
                 if (delta > 0)
-                    ::memmove(streamHead.cbDst, &streamHead.cbSrc[streamHead.cbSrcUsed], delta);
-                streamHead.cbSrcLength   = delta;
-                streamHead.cbSrcUsed     = 0;
+                    ::memmove(streamHead.pbDst, &streamHead.pbDst[streamHead.cbDstLengthUsed], delta);
+                streamHead.cbSrcLength      = delta;
+                streamHead.cbDstLengthUsed  = 0;
             }
             else // No more data to convert?
             {
@@ -2156,7 +2159,7 @@ namespace lsp
         }
 
         // Complete reading
-        if ((error = ::mmioSetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
+        if ((error = ::mmioSetInfo(hmmioIn, &mmioInfoIn, 0)) != 0)
         {
             destroy_file_content(data);
             ::mmioClose(hmmioIn, 0);
@@ -2171,7 +2174,7 @@ namespace lsp
         // Success read, destroy previously used content and store new
         if (pData != NULL)
             destroy_file_content(pData);
-        pData               = fc;
+        pData               = data;
 
         return STATUS_OK;
     }
