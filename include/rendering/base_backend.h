@@ -39,48 +39,46 @@ typedef struct r3d_base_backend_t: public r3d_backend_t
         m->m[15]    = 1.0f;
     }
 
-    status_t init()
+    static status_t init(r3d_base_backend_t *_this)
     {
-        init_matrix_identity(&matProjection);
-        init_matrix_identity(&matView);
-        init_matrix_identity(&matWorld);
+        init_matrix_identity(&_this->matProjection);
+        init_matrix_identity(&_this->matView);
+        init_matrix_identity(&_this->matWorld);
 
         return STATUS_OK;
     }
 
-    void destroy()
+    static void destroy(r3d_base_backend_t *_this)
     {
         // Free pointer to self
-        ::free(this);
+        ::free(_this);
     }
 
-    status_t set_matrix(r3d_matrix_type_t type, const float *m)
+    static status_t set_matrix(r3d_base_backend_t *_this, r3d_matrix_type_t type, const matrix3d_t *m)
     {
         if (m == NULL)
             return STATUS_BAD_ARGUMENTS;
-        const matrix3d_t *xm = reinterpret_cast<const matrix3d_t *>(m);
 
         switch (type)
         {
-            case R3D_MATRIX_PROJECTION: matProjection   = *xm;  break;
-            case R3D_MATRIX_VIEW:       matView         = *xm;  break;
-            case R3D_MATRIX_WORLD:      matWorld        = *xm;  break;
+            case R3D_MATRIX_PROJECTION: _this->matProjection    = *m;   break;
+            case R3D_MATRIX_VIEW:       _this->matView          = *m;   break;
+            case R3D_MATRIX_WORLD:      _this->matWorld         = *m;   break;
             default: return STATUS_INVALID_VALUE;
         }
         return STATUS_OK;
     }
 
-    status_t get_matrix(r3d_matrix_type_t type, float *m)
+    static status_t get_matrix(r3d_base_backend_t *_this, r3d_matrix_type_t type, matrix3d_t *m)
     {
         if (m == NULL)
             return STATUS_BAD_ARGUMENTS;
-        matrix3d_t *xm = reinterpret_cast<matrix3d_t *>(m);
 
         switch (type)
         {
-            case R3D_MATRIX_PROJECTION: *xm = matProjection;    break;
-            case R3D_MATRIX_VIEW:       *xm = matView;          break;
-            case R3D_MATRIX_WORLD:      *xm = matWorld;         break;
+            case R3D_MATRIX_PROJECTION: *m  = _this->matProjection;     break;
+            case R3D_MATRIX_VIEW:       *m  = _this->matView;           break;
+            case R3D_MATRIX_WORLD:      *m  = _this->matWorld;          break;
             default: return STATUS_INVALID_VALUE;
         }
         return STATUS_OK;
@@ -113,9 +111,9 @@ typedef struct r3d_base_backend_t: public r3d_backend_t
         R[15]   = A[3] * B[12]  + A[7] * B[13]  + A[11] * B[14] + A[15] * B[15];
     }
 
-    status_t set_bg_color(const color3d_t *color)
+    static status_t set_bg_color(r3d_base_backend_t *_this, const color3d_t *color)
     {
-        colBackground   = *color;
+        _this->colBackground   = *color;
         return STATUS_OK;
     }
 } r3d_base_backend_t;

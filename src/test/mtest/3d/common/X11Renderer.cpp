@@ -11,7 +11,14 @@
 #include <errno.h>
 #include <time.h>
 
+#include <X11/Xutil.h>
+
 #include <test/mtest/3d/common/X11Renderer.h>
+
+namespace lsp
+{
+    r3d_backend_t *create_glx_backend();
+}
 
 namespace mtest
 {
@@ -19,7 +26,6 @@ namespace mtest
     {
         dpy                 = NULL;
         win                 = None;
-        glc                 = NULL;
         stopped             = true;
         nBMask              = 0;
         nMouseX             = 0;
@@ -41,15 +47,8 @@ namespace mtest
         bDrawCapture        = true;
         bDrawSource         = true;
 
-//        fAngleX             = 0.0f;
-//        fAngleY             = 0.0f;
-//        fAngleZ             = 0.0f;
-//        fScale              = 1.0f;
-//
-//        fAngleDX            = 0.0f;
-//        fAngleDY            = 0.0f;
-//        fAngleDZ            = 0.0f;
-//        fDeltaScale         = 0.0f;
+        pBackend            = NULL;
+
         pView               = view;
 
         sAngles.fYaw        = 0.0f;
@@ -57,16 +56,10 @@ namespace mtest
         sAngles.fRoll       = 0.0f;
         dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
 
-//        sAngles.fYaw        = -4.508185f;
-//        sAngles.fPitch      = 0.741765f;
-//        sAngles.fRoll       = 0.000000f;
-//        dsp::init_point_xyz(&sPov, 3.377625f, 1.006218f, -3.435355f);
-
         dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
         dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
         dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
 
-//        dsp::init_matrix3d_identity(&sWorld);
         // Article about yaw-pitch-roll
         // http://in2gpu.com/2016/02/26/opengl-fps-camera/
         // https://sites.google.com/site/csc8820/educational/move-a-camera
@@ -89,68 +82,52 @@ namespace mtest
 
     status_t X11Renderer::init()
     {
-        Window                  root;
-        GLint                   att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-        XVisualInfo             *vi;
-        Colormap                cmap;
-        XSetWindowAttributes    swa;
+        // Create GLX backend
+        pBackend        = create_glx_backend();
+        if (pBackend == NULL)
+            return STATUS_UNKNOWN_ERR;
 
-        XInitThreads();
-
-        dpy = XOpenDisplay(NULL);
+        // Connect to X11
+        dpy = ::XOpenDisplay(NULL);
         if (dpy == NULL)
         {
             lsp_error("cannot connect to X server");
             return STATUS_NO_DEVICE;
         }
 
-        root = DefaultRootWindow(dpy);
-        vi = glXChooseVisual(dpy, 0, att);
-        if (vi == NULL)
+        Window root = DefaultRootWindow(dpy);
+
+        nWidth          = 800;
+        nHeight         = 600;
+
+        XSetWindowAttributes    swa;
+        swa.event_mask = ExposureMask | StructureNotifyMask |
+                KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+        win     = ::XCreateWindow(dpy, root, 0, 0, nWidth, nHeight, 0, CopyFromParent, InputOutput, CopyFromParent, CWEventMask, &swa);
+
+        ::XSelectInput(dpy, win, swa.event_mask);
+
+        Atom wm_delete = ::XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+        ::XSetWMProtocols(dpy, win, &wm_delete, 1);
+
+        ::XMapWindow(dpy, win);
+        ::XStoreName(dpy, win, "3D Viewer");
+
+        void *hwnd = NULL;
+        status_t res = pBackend->init(pBackend, reinterpret_cast<void *>(win), &hwnd);
+        if (res == STATUS_OK)
+            res = pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
+        if (res == STATUS_OK)
+            res = pBackend->show(pBackend);
+
+        if (hwnd != NULL)
         {
-            lsp_error("no appropriate visual found");
-            return STATUS_UNSUPPORTED_FORMAT;
-        }
-        lsp_info("tvisual %p selected", (void *)vi->visualid); /* %p creates hexadecimal output like in glxinfo */
-
-        cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
-
-        swa.colormap = cmap;
-        swa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-
-        win = XCreateWindow(dpy, root, 0, 0, 800, 600, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
-        if (win == None)
-        {
-            lsp_error("error creating window");
-            return STATUS_NO_DEVICE;
-        }
-
-        XSelectInput(dpy, win, swa.event_mask);
-        Atom wm_delete = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-        XSetWMProtocols(dpy, win, &wm_delete, 1);
-
-        XMapWindow(dpy, win);
-        XStoreName(dpy, win, "3D Viewer");
-        glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-        if (glc == NULL)
-        {
-            lsp_error("error creating GLX context");
-            return STATUS_NO_DEVICE;
-        }
-        glXMakeCurrent(dpy, win, glc);
-
-        // Get extensions
-        const char* extensions = (const char *)glGetString(GL_EXTENSIONS);
-        if (extensions != NULL)
-        {
-            lsp_trace("OpenGL extension list: %s", extensions);
-            lsp_trace("GL_ARB_arrays_of_arrays supported: %s", is_supported(extensions, "gl_arb_arrays_of_arrays") ? "true" : "false");
-            lsp_trace("GL_SUN_slice_accum supported: %s", is_supported(extensions, "gl_sun_slice_accum") ? "true" : "false");
-            lsp_trace("INVALID_EXTENSION supported: %s", is_supported(extensions, "invalid_extension") ? "true" : "false");
-            // TODO: detect several set of extensions
+            ::XSelectInput(dpy, reinterpret_cast<Window>(hwnd),
+                KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
+            );
         }
 
-        return STATUS_OK;
+        return res;
     }
 
     void X11Renderer::move_camera(const vector3d_t *dir, float amount)
@@ -186,33 +163,26 @@ namespace mtest
         bViewChanged    = true;
     }
 
-
     status_t X11Renderer::run()
     {
         if (dpy == NULL)
             return STATUS_BAD_STATE;
 
-        XWindowAttributes       gwa;
-
         stopped                 = false;
+
         int x11_fd              = ConnectionNumber(dpy);
         struct pollfd x11_poll;
         struct timespec ts;
         struct timespec sLastRender;
 
-        clock_gettime(CLOCK_REALTIME, &sLastRender);
-        Atom wm_proto           = XInternAtom(dpy, "WM_PROTOCOLS", False);
-        Atom wm_delete          = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-
-        XGetWindowAttributes(dpy, win, &gwa);
-        nWidth          = gwa.width;
-        nHeight         = gwa.height;
-        bViewChanged    = true;
+        ::clock_gettime(CLOCK_REALTIME, &sLastRender);
+        Atom wm_proto           = ::XInternAtom(dpy, "WM_PROTOCOLS", False);
+        Atom wm_delete          = ::XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 
         while (!stopped)
         {
             // Get current time
-            clock_gettime(CLOCK_REALTIME, &ts);
+            ::clock_gettime(CLOCK_REALTIME, &ts);
             ssize_t dmsec   = (ts.tv_nsec - sLastRender.tv_nsec) / 1000000;
             ssize_t dsec    = (ts.tv_sec - sLastRender.tv_sec);
             dmsec          += dsec * 1000;
@@ -239,22 +209,16 @@ namespace mtest
             {
                 if (force)
                 {
-                    XGetWindowAttributes(dpy, win, &gwa);
-                    if ((gwa.width != nWidth) || (gwa.height != nHeight))
-                        bViewChanged = true;
-
-                    glViewport(0, 0, gwa.width, gwa.height);
                     render();
-                    glXSwapBuffers(dpy, win);
                     sLastRender = ts;
                 }
 
                 XEvent xev;
-                int pending = XPending(dpy);
+                int pending = ::XPending(dpy);
 
                 for (int i=0; i<pending; i++)
                 {
-                    XNextEvent(dpy, &xev);
+                    ::XNextEvent(dpy, &xev);
 
                     switch (xev.type)
                     {
@@ -276,6 +240,24 @@ namespace mtest
                         case MotionNotify:
                             on_mouse_move(xev.xmotion);
                             break;
+                        case ConfigureNotify:
+                            bViewChanged    = true;
+                            nWidth          = xev.xconfigure.width;
+                            nHeight         = xev.xconfigure.height;
+                            pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
+                            render();
+                            sLastRender = ts;
+                            break;
+                        case ResizeRequest:
+                            bViewChanged    = true;
+                            nWidth          = xev.xresizerequest.width;
+                            nHeight         = xev.xresizerequest.height;
+                            pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
+                            render();
+                            sLastRender = ts;
+                            break;
+                        case Expose:
+                            break;
                         case ClientMessage:
                             if (xev.xclient.message_type == wm_proto)
                             {
@@ -293,25 +275,21 @@ namespace mtest
 
     void X11Renderer::destroy()
     {
-        if (glc != NULL)
+        if (pBackend != NULL)
         {
-            if (dpy != NULL)
-            {
-                glXMakeCurrent(dpy, None, NULL);
-                glXDestroyContext(dpy, glc);
-            }
-            glc = NULL;
+            pBackend->destroy(pBackend);
+            pBackend    = NULL;
         }
 
         if (win != None)
         {
-            XDestroyWindow(dpy, win);
+            ::XDestroyWindow(dpy, win);
             win = None;
         }
 
         if (dpy != NULL)
         {
-            XCloseDisplay(dpy);
+            ::XCloseDisplay(dpy);
             dpy = NULL;
         }
     }
@@ -444,8 +422,6 @@ namespace mtest
 
     void X11Renderer::render()
     {
-//        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
         // Changed view? Recompute matrices
         if (bViewChanged)
         {
@@ -472,6 +448,104 @@ namespace mtest
             // Reset 'changed view' flag
             bViewChanged = false;
         }
+
+        // Light parameters
+        r3d_light_t light;
+
+        light.type          = R3D_LIGHT_POINT; //R3D_LIGHT_DIRECTIONAL;
+        light.position      = sPov;
+        light.direction.dx  = -sDir.dx;
+        light.direction.dy  = -sDir.dy;
+        light.direction.dz  = -sDir.dz;
+        light.direction.dw  = 0.0f;
+
+        light.ambient.r     = 0.0f;
+        light.ambient.g     = 0.0f;
+        light.ambient.b     = 0.0f;
+        light.ambient.a     = 1.0f;
+
+        light.diffuse.r     = 1.0f;
+        light.diffuse.g     = 1.0f;
+        light.diffuse.b     = 1.0f;
+        light.diffuse.a     = 1.0f;
+
+        light.specular.r    = 1.0f;
+        light.specular.g    = 1.0f;
+        light.specular.b    = 1.0f;
+        light.specular.a    = 1.0f;
+
+        light.constant      = 1.0f;
+        light.linear        = 0.0f;
+        light.quadratic     = 0.0f;
+        light.cutoff        = 180.0f;
+
+        r3d_buffer_t buffer;
+
+        pBackend->set_matrix(pBackend, R3D_MATRIX_PROJECTION, &sProjection);
+        pBackend->set_matrix(pBackend, R3D_MATRIX_VIEW, &sView);
+
+        // Start rendering
+        pBackend->start(pBackend);
+
+            // Enable/disable lighting
+            if (bLight)
+                pBackend->set_lights(pBackend, &light, 1);
+            else
+                pBackend->set_lights(pBackend, NULL, 0);
+
+            // Draw non-transparent data
+            if (bDrawTriangles)
+            {
+                v_vertex3d_t *vv = pView->get_vertexes();
+
+                // Fill buffer
+                buffer.type         = (bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
+                buffer.size         = 1.0f;
+                buffer.count        = pView->num_vertexes() / 3;
+                buffer.flags        = 0;
+
+                buffer.vertex.data  = &vv->p;
+                buffer.vertex.stride= sizeof(v_vertex3d_t);
+                buffer.normal.data  = &vv->n;
+                buffer.normal.stride= sizeof(v_vertex3d_t);
+                buffer.color.data   = &vv->c;
+                buffer.color.stride = sizeof(v_vertex3d_t);
+                buffer.index.data   = NULL;
+
+                // Draw primitives
+                pBackend->draw_primitives(pBackend, &buffer);
+            }
+
+
+            // Draw transparent data
+            if (bDrawTriangles)
+            {
+                v_vertex3d_t *vv = pView->get_vertexes2();
+
+                // Fill buffer
+                buffer.type         = (bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
+                buffer.size         = 1.0f;
+                buffer.count        = pView->num_vertexes2() / 3;
+                buffer.flags        = R3D_BUFFER_BLENDING;
+
+                buffer.vertex.data  = &vv->p;
+                buffer.vertex.stride= sizeof(v_vertex3d_t);
+                buffer.normal.data  = &vv->n;
+                buffer.normal.stride= sizeof(v_vertex3d_t);
+                buffer.color.data   = &vv->c;
+                buffer.color.stride = sizeof(v_vertex3d_t);
+                buffer.index.data   = NULL;
+
+                // Draw primitives
+                pBackend->draw_primitives(pBackend, &buffer);
+            }
+
+        pBackend->finish(pBackend);
+
+#if 0
+//        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+
 
         glEnable(GL_DEPTH_TEST);
         if (bCullFace)
@@ -708,6 +782,8 @@ namespace mtest
 
         glDisable(GL_DEPTH_TEST);
 
+
+
         /*
         // Draw axis coordinates
         glLoadIdentity();
@@ -766,5 +842,6 @@ namespace mtest
             fAngleX -= 0.3f;
             fAngleZ -= 0.4f;
         }*/
+#endif
     }
 } /* namespace mtest */

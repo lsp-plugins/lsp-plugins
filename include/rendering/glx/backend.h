@@ -8,7 +8,7 @@
 #ifndef RENDERING_GLX_BACKEND_H_
 #define RENDERING_GLX_BACKEND_H_
 
-#define R3D_GLX_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &r3d_base_backend_t::func);
+#define R3D_GLX_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &glx_backend_t::func);
 
 static GLint rgba24[]       = { GLX_RGBA, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 static GLint rgba16[]       = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None };
@@ -32,162 +32,170 @@ typedef struct glx_backend_t: public r3d_base_backend_t
 
     void build_vtable();
 
-    void destroy()
+    static void destroy(glx_backend_t *_this)
     {
         // Destroy GLX Context
-        if (hContext != NULL)
+        if (_this->hContext != NULL)
         {
-            glXDestroyContext(pDisplay, hContext);
-            hContext    = NULL;
+            ::glXDestroyContext(_this->pDisplay, _this->hContext);
+            _this->hContext    = NULL;
         }
 
         // Destroy the window
-        if (hWnd != None)
+        if (_this->hWnd != None)
         {
-            ::XDestroyWindow(pDisplay, hWnd);
-            hWnd        = None;
+            ::XDestroyWindow(_this->pDisplay, _this->hWnd);
+            _this->hWnd        = None;
         }
 
         // Destroy X11 display
-        if (pDisplay != NULL)
+        if (_this->pDisplay != NULL)
         {
-            ::XCloseDisplay(pDisplay);
-            pDisplay    = NULL;
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
         }
 
         // Call parent structure for destroy
-        r3d_base_backend_t::destroy();
+        r3d_base_backend_t::destroy(_this);
     }
 
-    status_t init(Window window)
+    static status_t init(glx_backend_t *_this, Window window, void **out_window)
     {
         // Check that already initialized
-        if (pDisplay != NULL)
+        if (_this->pDisplay != NULL)
             return STATUS_BAD_STATE;
 
         // Initialize parent structure
-        status_t res = r3d_base_backend_t::init();
+        status_t res = r3d_base_backend_t::init(_this);
         if (res != STATUS_OK)
             return res;
 
-        // Init threading
+        // Initialize threading
         ::XInitThreads();
 
         // Open display
-        pDisplay = ::XOpenDisplay(NULL);
-        if (pDisplay == NULL)
+        _this->pDisplay = ::XOpenDisplay(NULL);
+        if (_this->pDisplay == NULL)
             return STATUS_NO_DEVICE;
 
         // Save window
-        hParent         = window;
+        _this->hParent         = window;
 
         // Check that window exists
         XWindowAttributes atts;
-        if (!::XGetWindowAttributes(pDisplay, hParent, &atts))
+        if (!::XGetWindowAttributes(_this->pDisplay, _this->hParent, &atts))
         {
-            ::XCloseDisplay(pDisplay);
-            pDisplay    = NULL;
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
             return STATUS_BAD_ARGUMENTS;
         }
 
-        int screen      = DefaultScreen(pDisplay);
-        Window root     = RootWindow(pDisplay, screen);
+        int screen      = DefaultScreen(_this->pDisplay);
+        Window root     = RootWindow(_this->pDisplay, screen);
 
         // Choose GLX visual
         XVisualInfo *vi = NULL;
         for (GLint **visual = glx_visuals; *visual != NULL; ++visual)
         {
-            if ((vi = ::glXChooseVisual(pDisplay, screen, *visual)) != NULL)
+            if ((vi = ::glXChooseVisual(_this->pDisplay, screen, *visual)) != NULL)
                 break;
         }
 
         if (vi == NULL)
         {
-            ::XCloseDisplay(pDisplay);
-            pDisplay    = NULL;
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
             return STATUS_UNSUPPORTED_DEVICE;
         }
 
         // Create context
-        hContext = glXCreateContext(pDisplay, vi, NULL, GL_TRUE);
-        if (hContext == NULL)
+        _this->hContext = ::glXCreateContext(_this->pDisplay, vi, NULL, GL_TRUE);
+        if (_this->hContext == NULL)
         {
-            ::XCloseDisplay(pDisplay);
-            pDisplay    = NULL;
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
             return STATUS_NO_DEVICE;
         }
 
         // Create child window
-        Colormap cmap   = XCreateColormap(pDisplay, root, vi->visual, AllocNone);
+        Colormap cmap   = ::XCreateColormap(_this->pDisplay, root, vi->visual, AllocNone);
         XSetWindowAttributes    swa;
 
         swa.colormap = cmap;
-        swa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+//        swa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
 
         // Create the child window
-        hWnd = ::XCreateWindow(pDisplay, root, 0, 0, 0, 0, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
-        if (hWnd == None)
+        _this->hWnd = ::XCreateWindow(_this->pDisplay, root, 0, 0, 1, 1, 0, vi->depth, InputOutput, vi->visual, CWColormap, &swa);
+        if (_this->hWnd == None)
         {
-            ::XCloseDisplay(pDisplay);
-            pDisplay    = NULL;
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
             return STATUS_NO_DEVICE;
         }
 
+        // Flush changes
+        ::XFlush(_this->pDisplay);
+
         // Place window to the parent
-        ::XReparentWindow(pDisplay, hWnd, hParent, 0, 0);
-        bDrawing    = false;
+        if (_this->hParent != None)
+            ::XReparentWindow(_this->pDisplay, _this->hWnd, _this->hParent, 0, 0);
+        _this->bDrawing    = false;
+
+        // Return result
+        if (out_window != NULL)
+            *out_window     = reinterpret_cast<void *>(_this->hWnd);
 
         return STATUS_OK;
     }
 
-    status_t show()
+    static status_t show(glx_backend_t *_this)
     {
-        if (pDisplay == NULL)
+        if (_this->pDisplay == NULL)
             return STATUS_BAD_STATE;
-        if (bVisible)
+        if (_this->bVisible)
             return STATUS_OK;
 
-        ::XMapWindow(pDisplay, hWnd);
-        bVisible = true;
+        ::XMapWindow(_this->pDisplay, _this->hWnd);
+        _this->bVisible = true;
         return STATUS_OK;
     }
 
-    status_t hide()
+    static status_t hide(glx_backend_t *_this)
     {
-        if (pDisplay == NULL)
+        if (_this->pDisplay == NULL)
             return STATUS_BAD_STATE;
-        if (!bVisible)
+        if (!_this->bVisible)
             return STATUS_OK;
 
-        ::XUnmapWindow(pDisplay, hWnd);
-        bVisible = false;
+        ::XUnmapWindow(_this->pDisplay, _this->hWnd);
+        _this->bVisible = false;
         return STATUS_OK;
     }
 
-    status_t locate(ssize_t left, ssize_t top, ssize_t width, ssize_t height)
+    static status_t locate(glx_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height)
     {
-        if (pDisplay == NULL)
+        if (_this->pDisplay == NULL)
             return STATUS_BAD_STATE;
 
-        if (!::XMoveResizeWindow(pDisplay, hWnd, left, top, width, height))
+        if (!::XMoveResizeWindow(_this->pDisplay, _this->hWnd, left, top, width, height))
             return STATUS_UNKNOWN_ERR;
 
-        viewLeft    = left;
-        viewTop     = top;
-        viewWidth   = width;
-        viewHeight  = height;
+        _this->viewLeft    = left;
+        _this->viewTop     = top;
+        _this->viewWidth   = width;
+        _this->viewHeight  = height;
 
         return STATUS_OK;
     }
 
-    status_t start()
+    static status_t start(glx_backend_t *_this)
     {
-        if ((pDisplay == NULL) || (bDrawing))
+        if ((_this->pDisplay == NULL) || (_this->bDrawing))
             return STATUS_BAD_STATE;
 
         // Enable context
-        ::glViewport(0, 0, viewWidth, viewHeight);
-        ::glXMakeCurrent(pDisplay, hWnd, hContext);
+        ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
+        ::glViewport(0, 0, _this->viewWidth, _this->viewHeight);
 
         // Enable depth test and culling
         ::glEnable(GL_DEPTH_TEST);
@@ -196,20 +204,16 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         ::glEnable(GL_COLOR_MATERIAL);
 
         // Tune lighting
-        ::glShadeModel(GL_FLAT);
+        ::glShadeModel(GL_SMOOTH);
         ::glEnable(GL_RESCALE_NORMAL);
-
-        // enable blending
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Load matrices
         ::glMatrixMode(GL_PROJECTION);
-        ::glLoadMatrixf(matProjection.m);
+        ::glLoadMatrixf(_this->matProjection.m);
 
         ::glMatrixMode(GL_MODELVIEW);
         matrix3d_t view;
-        matrix_mul(&view, &matWorld, &matView);
+        matrix_mul(&view, &_this->matWorld, &_this->matView);
         ::glLoadMatrixf(view.m);
 
         // Special tuning for non-poligonal primitives
@@ -217,19 +221,19 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         ::glEnable(GL_POLYGON_OFFSET_POINT);
 
         // Clear buffer
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(_this->colBackground.r, _this->colBackground.g, _this->colBackground.b, _this->colBackground.a);
         glClearDepth(1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Mark as started
-        bDrawing        = true;
+        _this->bDrawing        = true;
 
         return STATUS_OK;
     }
 
-    status_t set_lights(const r3d_light_t *lights, size_t count)
+    static status_t set_lights(glx_backend_t *_this, const r3d_light_t *lights, size_t count)
     {
-        if ((pDisplay == NULL) || (!bDrawing))
+        if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
         // Disable lighing?
@@ -249,7 +253,7 @@ typedef struct glx_backend_t: public r3d_base_backend_t
                 continue;
 
             // Enable the light and set basic attributes
-            vector3d_t position = lights[i].position;
+            vector3d_t position;
 
             ::glEnable(light_id);
             ::glLightfv(light_id, GL_AMBIENT, &lights[i].ambient.r);
@@ -259,16 +263,25 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             switch (lights[i].type)
             {
                 case R3D_LIGHT_POINT:
+                    position.dx     = lights[i].position.x;
+                    position.dy     = lights[i].position.y;
+                    position.dz     = lights[i].position.z;
                     position.dw     = 1.0f;
                     ::glLightfv(light_id, GL_POSITION, &position.dx);
                     ::glLighti(light_id, GL_SPOT_CUTOFF, 180);
                     break;
                 case R3D_LIGHT_DIRECTIONAL:
+                    position.dx     = lights[i].direction.dx;
+                    position.dy     = lights[i].direction.dy;
+                    position.dz     = lights[i].direction.dz;
                     position.dw     = 0.0f;
                     ::glLightfv(light_id, GL_POSITION, &position.dx);
                     ::glLighti(light_id, GL_SPOT_CUTOFF, 180);
                     break;
                 case R3D_LIGHT_SPOT:
+                    position.dx     = lights[i].position.x;
+                    position.dy     = lights[i].position.y;
+                    position.dz     = lights[i].position.z;
                     position.dw     = 1.0f;
                     ::glLightfv(light_id, GL_POSITION, &position.dx);
                     ::glLightfv(light_id, GL_SPOT_DIRECTION, &lights[i].direction.dx);
@@ -292,14 +305,20 @@ typedef struct glx_backend_t: public r3d_base_backend_t
 
         // Always enable lighting, even if there is nothing to shine
         ::glEnable(GL_LIGHTING);
+
+        return STATUS_OK;
     }
 
-    status_t draw_primitives(const r3d_buffer_t *buffer)
+    static status_t draw_primitives(glx_backend_t *_this, const r3d_buffer_t *buffer)
     {
         if (buffer == NULL)
             return STATUS_BAD_ARGUMENTS;
-        if ((pDisplay == NULL) || (!bDrawing))
+        if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
+
+        // Is there any data to draw?
+        if (buffer->count <= 0)
+            return STATUS_OK;
 
         // Select the drawing mode
         GLenum mode;
@@ -327,6 +346,13 @@ typedef struct glx_backend_t: public r3d_base_backend_t
                 break;
             default:
                 return STATUS_BAD_ARGUMENTS;
+        }
+
+        // enable blending
+        if (buffer->flags & R3D_BUFFER_BLENDING)
+        {
+            ::glEnable(GL_BLEND);
+            ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
         // Enable vertex pointer (if present)
@@ -396,17 +422,19 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         if (buffer->vertex.data != NULL)
             ::glDisableClientState(GL_VERTEX_ARRAY);
 
+        if (buffer->flags & R3D_BUFFER_BLENDING)
+            ::glDisable(GL_BLEND);
+
         return STATUS_OK;
     }
 
-    status_t finish()
+    static status_t finish(glx_backend_t *_this)
     {
-        if ((pDisplay == NULL) || (!bDrawing))
+        if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        ::glXSwapBuffers(pDisplay, hWnd);
-        ::glXMakeCurrent(pDisplay, hWnd, NULL);
-        bDrawing    = false;
+        ::glXSwapBuffers(_this->pDisplay, _this->hWnd);
+        _this->bDrawing    = false;
 
         return STATUS_OK;
     }

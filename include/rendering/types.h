@@ -37,6 +37,10 @@ enum r3d_primitive_type_t {
     R3D_PRIMITIVE_POINTS,
 };
 
+enum r3d_buffer_flags_t {
+    R3D_BUFFER_BLENDING     = 1 << 0
+};
+
 // Basic type: backend
 struct r3d_backend_t;
 
@@ -44,7 +48,7 @@ struct r3d_backend_t;
 typedef struct r3d_light_t
 {
     r3d_light_type_t    type;           /* Light type */
-    vector3d_t          position;       /* Light position */
+    point3d_t           position;       /* Light position */
     vector3d_t          direction;      /* Light direction */
     color3d_t           ambient;        /* Ambient color */
     color3d_t           diffuse;        /* Diffuse color */
@@ -59,6 +63,7 @@ typedef struct r3d_buffer_t
 {
     /* Properties */
     r3d_primitive_type_t    type;       // Type of primitive
+    size_t                  flags;      // Additional flags, see r3d_buffer_flags_t
     float                   size;       // Point size or line width
     size_t                  count;      // Number of elements in buffer
 
