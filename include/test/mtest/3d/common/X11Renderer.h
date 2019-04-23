@@ -86,6 +86,7 @@ namespace mtest
             inline void update_view() { bViewChanged = true; }
             void move_camera(const vector3d_t *dir, float amount);
             void rotate_camera(ssize_t x, ssize_t y, bool commit);
+            void draw_normals(v_vertex3d_t *vv, size_t nvertex);
 
         public:
             virtual status_t init();

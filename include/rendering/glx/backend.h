@@ -231,17 +231,30 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         return STATUS_OK;
     }
 
+    static status_t set_matrix(glx_backend_t *_this, r3d_matrix_type_t type, const matrix3d_t *m)
+    {
+        status_t res = r3d_base_backend_t::set_matrix(_this, type, m);
+
+        // Need to immediately update matrices?
+        if ((res == STATUS_OK) && (_this->bDrawing))
+        {
+            // Load matrices
+            ::glMatrixMode(GL_PROJECTION);
+            ::glLoadMatrixf(_this->matProjection.m);
+
+            ::glMatrixMode(GL_MODELVIEW);
+            matrix3d_t view;
+            matrix_mul(&view, &_this->matWorld, &_this->matView);
+            ::glLoadMatrixf(view.m);
+        }
+
+        return res;
+    }
+
     static status_t set_lights(glx_backend_t *_this, const r3d_light_t *lights, size_t count)
     {
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
-
-        // Disable lighing?
-        if ((count == 0) || (lights == NULL))
-        {
-            ::glDisable(GL_LIGHTING);
-            return STATUS_OK;
-        }
 
         // Enable all possible lights
         size_t light_id = GL_LIGHT0;
@@ -303,9 +316,6 @@ typedef struct glx_backend_t: public r3d_base_backend_t
         while (light_id <= GL_LIGHT7)
             ::glDisable(light_id++);
 
-        // Always enable lighting, even if there is nothing to shine
-        ::glEnable(GL_LIGHTING);
-
         return STATUS_OK;
     }
 
@@ -333,16 +343,16 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             case R3D_PRIMITIVE_WIREFRAME_TRIANGLES:
                 mode    = GL_LINE_LOOP;
                 count   = (count << 1) + count; // count *= 3
-                ::glLineWidth(buffer->size);
+                ::glLineWidth(buffer->width);
                 break;
             case R3D_PRIMITIVE_LINES:
                 mode    = GL_LINES;
                 count <<= 1;                    // count *= 2
-                ::glLineWidth(buffer->size);
+                ::glLineWidth(buffer->width);
                 break;
             case R3D_PRIMITIVE_POINTS:
                 mode    = GL_POINTS;
-                ::glPointSize(buffer->size);
+                ::glPointSize(buffer->width);
                 break;
             default:
                 return STATUS_BAD_ARGUMENTS;
@@ -354,6 +364,8 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             ::glEnable(GL_BLEND);
             ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
+        if (buffer->flags & R3D_BUFFER_LIGHTING)
+            ::glEnable(GL_LIGHTING);
 
         // Enable vertex pointer (if present)
         if (buffer->vertex.data != NULL)
@@ -389,7 +401,10 @@ typedef struct glx_backend_t: public r3d_base_backend_t
             );
         }
         else
+        {
+            ::glColor4fv(&buffer->color.dfl.r);         // Set-up default color
             ::glDisableClientState(GL_COLOR_ARRAY);
+        }
 
         // Draw the elements (or arrays, depending on configuration)
         if (buffer->type != R3D_PRIMITIVE_WIREFRAME_TRIANGLES)
@@ -424,6 +439,8 @@ typedef struct glx_backend_t: public r3d_base_backend_t
 
         if (buffer->flags & R3D_BUFFER_BLENDING)
             ::glDisable(GL_BLEND);
+        if (buffer->flags & R3D_BUFFER_LIGHTING)
+            ::glDisable(GL_LIGHTING);
 
         return STATUS_OK;
     }
@@ -452,6 +469,7 @@ void glx_backend_t::build_vtable()
     R3D_GLX_BACKEND_EXP(locate);
 
     R3D_GLX_BACKEND_EXP(start);
+    R3D_GLX_BACKEND_EXP(set_matrix);
     R3D_GLX_BACKEND_EXP(set_lights);
     R3D_GLX_BACKEND_EXP(draw_primitives);
     R3D_GLX_BACKEND_EXP(finish);

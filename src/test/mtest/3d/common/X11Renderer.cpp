@@ -420,6 +420,45 @@ namespace mtest
         return false;
     }
 
+    void X11Renderer::draw_normals(v_vertex3d_t *vv, size_t nvertex)
+    {
+        r3d_buffer_t buffer;
+        buffer.vertex.data  = reinterpret_cast<point3d_t *>(::malloc(sizeof(point3d_t) * 2 * nvertex));
+        if (buffer.vertex.data == NULL)
+            return;
+
+        buffer.type         = R3D_PRIMITIVE_LINES;
+        buffer.width        = 1.0f;
+        buffer.flags        = 0;
+        buffer.count        = nvertex;
+
+        // Fill primitive array
+        point3d_t *dp       = buffer.vertex.data;
+        v_vertex3d_t *sv    = vv;
+        for (size_t i=0; i<nvertex; ++i, dp += 2, ++sv)
+        {
+            dp[0]   = sv->p;
+            dp[1].x = sv->p.x + sv->n.dx;
+            dp[1].y = sv->p.y + sv->n.dy;
+            dp[1].z = sv->p.z + sv->n.dz;
+            dp[1].w = 1.0f;
+        }
+
+        buffer.vertex.stride    = sizeof(point3d_t);
+        buffer.normal.data      = NULL;
+        buffer.color.data       = NULL;
+        buffer.index.data       = NULL;
+        buffer.color.dfl.r      = 1.0f;
+        buffer.color.dfl.g      = 1.0f;
+        buffer.color.dfl.b      = 0.0f;
+        buffer.color.dfl.a      = 0.0f;
+
+        // Draw call
+        pBackend->draw_primitives(pBackend, &buffer);
+
+        ::free(buffer.vertex.data);
+    }
+
     void X11Renderer::render()
     {
         // Changed view? Recompute matrices
@@ -481,28 +520,28 @@ namespace mtest
 
         r3d_buffer_t buffer;
 
-        pBackend->set_matrix(pBackend, R3D_MATRIX_PROJECTION, &sProjection);
-        pBackend->set_matrix(pBackend, R3D_MATRIX_VIEW, &sView);
-
         // Start rendering
         pBackend->start(pBackend);
 
+            pBackend->set_matrix(pBackend, R3D_MATRIX_PROJECTION, &sProjection);
+            pBackend->set_matrix(pBackend, R3D_MATRIX_VIEW, &sView);
+
             // Enable/disable lighting
-            if (bLight)
-                pBackend->set_lights(pBackend, &light, 1);
-            else
-                pBackend->set_lights(pBackend, NULL, 0);
+            pBackend->set_lights(pBackend, &light, 1);
 
             // Draw non-transparent data
             if (bDrawTriangles)
             {
-                v_vertex3d_t *vv = pView->get_vertexes();
+                v_vertex3d_t *vv    = pView->get_vertexes();
+                size_t nvertex      = pView->num_vertexes();
 
                 // Fill buffer
                 buffer.type         = (bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
-                buffer.size         = 1.0f;
-                buffer.count        = pView->num_vertexes() / 3;
+                buffer.width        = 1.0f;
+                buffer.count        = nvertex / 3;
                 buffer.flags        = 0;
+                if (bLight)
+                    buffer.flags       |= R3D_BUFFER_LIGHTING;
 
                 buffer.vertex.data  = &vv->p;
                 buffer.vertex.stride= sizeof(v_vertex3d_t);
@@ -512,21 +551,155 @@ namespace mtest
                 buffer.color.stride = sizeof(v_vertex3d_t);
                 buffer.index.data   = NULL;
 
-                // Draw primitives
+                // Draw call
+                pBackend->draw_primitives(pBackend, &buffer);
+
+                // Draw normals?
+                if (bDrawNormals)
+                    draw_normals(vv, nvertex);
+            }
+
+            // Draw rays
+            if (bDrawRays)
+            {
+                v_ray3d_t *rays = pView->get_rays();
+                size_t nrays    = pView->num_rays();
+
+                // Draw ray points
+                buffer.type             = R3D_PRIMITIVE_POINTS;
+                buffer.width            = 5.0f;
+                buffer.count            = nrays;
+                buffer.flags            = 0;
+
+                buffer.vertex.data      = &rays->p;
+                buffer.vertex.stride    = sizeof(v_ray3d_t);
+                buffer.normal.data      = NULL;
+                buffer.color.data       = &rays->c;
+                buffer.color.stride     = sizeof(v_ray3d_t);
+                buffer.index.data       = NULL;
+
+                pBackend->draw_primitives(pBackend, &buffer);
+
+                // Now draw segments
+                v_point3d_t *tmp        = reinterpret_cast<v_point3d_t *>(::malloc(sizeof(v_point3d_t) * 2 * nrays));
+                if (tmp != NULL)
+                {
+                    v_ray3d_t *sr   = rays;
+                    v_point3d_t *dp = tmp;
+                    for (size_t i=0; i<nrays; ++i, dp += 2, ++sr)
+                    {
+                        dp[0].p     = sr->p;
+                        dp[0].c     = sr->c;
+                        dp[1].p.x   = sr->p.x + sr->v.dx * 4.0f;
+                        dp[1].p.y   = sr->p.y + sr->v.dy * 4.0f;
+                        dp[1].p.z   = sr->p.z + sr->v.dz * 4.0f;
+                        dp[1].p.w   = 1.0f;
+                        dp[1].c     = sr->c;
+                        dp[1].c.a   = 0.0f;
+                    }
+
+                    buffer.type             = R3D_PRIMITIVE_LINES;
+                    buffer.width            = 1.0f;
+                    buffer.flags            = R3D_BUFFER_BLENDING;
+                    buffer.count            = nrays;
+
+                    buffer.vertex.data      = &tmp->p;
+                    buffer.vertex.stride    = sizeof(v_point3d_t);
+                    buffer.normal.data      = NULL;
+                    buffer.color.data       = &tmp->c;
+                    buffer.color.stride     = sizeof(v_point3d_t);
+                    buffer.index.data       = NULL;
+
+                    // Draw call
+                    pBackend->draw_primitives(pBackend, &buffer);
+
+                    ::free(tmp);
+                }
+            }
+
+            // Draw points
+            if (bDrawPoints)
+            {
+                v_point3d_t *points     = pView->get_points();
+                size_t npoints          = pView->num_points();
+
+                buffer.type             = R3D_PRIMITIVE_POINTS;
+                buffer.width            = 5.0f;
+                buffer.count            = npoints;
+                buffer.flags            = 0;
+
+                buffer.vertex.data      = &points->p;
+                buffer.vertex.stride    = sizeof(v_point3d_t);
+                buffer.normal.data      = NULL;
+                buffer.color.data       = &points->c;
+                buffer.color.stride     = sizeof(v_point3d_t);
+                buffer.index.data       = NULL;
+
+                // Draw call
                 pBackend->draw_primitives(pBackend, &buffer);
             }
 
+            // Draw segments
+            if (bDrawSegments)
+            {
+                v_segment3d_t *segments = pView->get_segments();
+                size_t nsegments        = pView->num_segments();
+
+                v_point3d_t *tmp        = reinterpret_cast<v_point3d_t *>(::malloc(sizeof(v_point3d_t) * 2 * nsegments));
+                if (tmp != NULL)
+                {
+                    v_point3d_t *dp     = tmp;
+                    v_segment3d_t *ss   = segments;
+
+                    for (size_t i=0; i<nsegments; ++i, dp += 2, ++ss)
+                    {
+                        dp[0].p     = ss->p[0];
+                        dp[0].c     = ss->c[0];
+                        dp[1].p     = ss->p[1];
+                        dp[1].c     = ss->c[1];
+                    }
+
+                    // Draw lines
+                    buffer.type             = R3D_PRIMITIVE_LINES;
+                    buffer.width            = 3.0f;
+                    buffer.flags            = 0;
+                    buffer.count            = nsegments;
+
+                    buffer.vertex.data      = &tmp->p;
+                    buffer.vertex.stride    = sizeof(v_point3d_t);
+                    buffer.normal.data      = NULL;
+                    buffer.color.data       = &tmp->c;
+                    buffer.color.stride     = sizeof(v_point3d_t);
+                    buffer.index.data       = NULL;
+
+                    // Draw call
+                    pBackend->draw_primitives(pBackend, &buffer);
+
+                    // Draw points
+                    buffer.type             = R3D_PRIMITIVE_POINTS;
+                    buffer.width            = 5.0f;
+                    buffer.count            = nsegments * 2;
+
+                    // Draw call
+                    pBackend->draw_primitives(pBackend, &buffer);
+
+                    ::free(tmp);
+                }
+            }
 
             // Draw transparent data
             if (bDrawTriangles)
             {
-                v_vertex3d_t *vv = pView->get_vertexes2();
+                v_vertex3d_t *vv    = pView->get_vertexes2();
+                size_t nvertex      = pView->num_vertexes2();
 
                 // Fill buffer
                 buffer.type         = (bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
-                buffer.size         = 1.0f;
-                buffer.count        = pView->num_vertexes2() / 3;
+                buffer.width        = 1.0f;
+                buffer.count        = nvertex / 3;
                 buffer.flags        = R3D_BUFFER_BLENDING;
+                if (bLight)
+                    buffer.flags       |= R3D_BUFFER_LIGHTING;
 
                 buffer.vertex.data  = &vv->p;
                 buffer.vertex.stride= sizeof(v_vertex3d_t);
@@ -536,312 +709,14 @@ namespace mtest
                 buffer.color.stride = sizeof(v_vertex3d_t);
                 buffer.index.data   = NULL;
 
-                // Draw primitives
+                // Draw call
                 pBackend->draw_primitives(pBackend, &buffer);
+
+                // Draw normals?
+                if (bDrawNormals)
+                    draw_normals(vv, nvertex);
             }
 
         pBackend->finish(pBackend);
-
-#if 0
-//        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-
-
-        glEnable(GL_DEPTH_TEST);
-        if (bCullFace)
-        {
-            glEnable(GL_CULL_FACE);
-            glCullFace((bInvert) ? GL_FRONT : GL_BACK);
-        }
-        glEnable(GL_COLOR_MATERIAL);
-
-        glShadeModel(GL_SMOOTH);
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf(sProjection.m);
-
-        // Clear buffer
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClearDepth(1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Initialize lighting
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(sView.m);
-        if (bLight)
-        {
-            glLightfv(GL_LIGHT0, GL_POSITION, &sPov.x);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_RESCALE_NORMAL);
-        }
-
-        glPolygonOffset(-1, -1);
-        glEnable(GL_POLYGON_OFFSET_POINT);
-        glPointSize(5.0f);
-
-        if (bDrawTriangles)
-        {
-            size_t n = pView->num_vertexes();
-            v_vertex3d_t *vv = pView->get_vertexes();
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_NORMAL_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-
-            glVertexPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->p);
-            glNormalPointer(GL_FLOAT, sizeof(v_vertex3d_t), &vv->n);
-            glColorPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->c);
-
-            if (bWireframe)
-            {
-                for (size_t i=0; i<n; i += 3)
-                    glDrawArrays(GL_LINE_LOOP, i, 3);
-            }
-            else
-                glDrawArrays(GL_TRIANGLES, 0, n);
-
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_NORMAL_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            if (bDrawNormals)
-            {
-                if (bLight)
-                    glDisable(GL_LIGHTING);
-
-                glColor3f(1.0f, 1.0f, 0.0f);
-                glBegin(GL_LINES);
-
-                for (size_t i=0; i < n; ++i)
-                {
-                    v_vertex3d_t *v = &vv[i];
-                    glVertex3fv(&v[0].p.x);
-                    glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
-                }
-                glEnd();
-
-                if (bLight)
-                    glEnable(GL_LIGHTING);
-            }
-        }
-
-        if (bLight)
-        {
-            glDisable(GL_RESCALE_NORMAL);
-            glDisable(GL_LIGHTING);
-        }
-
-        // Draw segments
-        if (bDrawSegments)
-        {
-            v_segment3d_t *s = pView->get_segments();
-            size_t n = pView->num_segments();
-
-            glLineWidth(3.0f);
-
-            for (size_t i=0; i<n; ++i, ++s)
-            {
-                glBegin(GL_POINTS);
-                    glColor3fv(&s->c[0].r);
-                    glVertex3fv(&s->p[0].x);
-                    glColor3fv(&s->c[1].r);
-                    glVertex3fv(&s->p[1].x);
-                glEnd();
-
-                glBegin(GL_LINES);
-                    glColor3fv(&s->c[0].r);
-                    glVertex3fv(&s->p[0].x);
-                    glColor3fv(&s->c[1].r);
-                    glVertex3fv(&s->p[1].x);
-                glEnd();
-            }
-
-            glLineWidth(1.0f);
-        }
-
-        // Draw rays
-        if (bDrawRays)
-        {
-            glEnable (GL_BLEND);
-            glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            v_ray3d_t *r    = pView->get_rays();
-            size_t n        = pView->num_rays();
-
-            glPointSize(5.0f);
-
-            for (size_t i=0; i<n; ++i, ++r)
-            {
-                if (r->v.dw < 0.0f)
-                    continue;
-
-                glColor4f(r->c.r, r->c.g, r->c.b, 1.0f);
-                glBegin(GL_POINTS);
-                    glVertex3fv(&r->p.x);
-                glEnd();
-
-                glBegin(GL_LINES);
-                    glVertex3fv(&r->p.x);
-                    glColor4f(r->c.r, r->c.g, r->c.b, 0.0f);
-                    glVertex3f(r->p.x + r->v.dx*4.0f, r->p.y + r->v.dy*4.0f, r->p.z + r->v.dz*4.0f);
-                glEnd();
-            }
-
-            glDisable(GL_BLEND);
-        }
-
-        // Draw points
-        if (bDrawPoints)
-        {
-            v_point3d_t *p = pView->get_points();
-            size_t n = pView->num_points();
-
-            glColor3f(0.0f, 1.0f, 1.0f);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-
-            glVertexPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->p.x);
-            glColorPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->c.r);
-
-            glDrawArrays(GL_POINTS, 0, n);
-
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-        }
-
-        glDisable(GL_POLYGON_OFFSET_POINT);
-
-        // Draw second-order triangles
-        if (bLight)
-        {
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_RESCALE_NORMAL);
-        }
-
-        if (bDrawTriangles)
-        {
-//            glPushMatrix();
-//            glLoadIdentity();
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            size_t n = pView->num_vertexes2();
-            v_vertex3d_t *vv = pView->get_vertexes2();
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_NORMAL_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-
-            glVertexPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->p);
-            glNormalPointer(GL_FLOAT, sizeof(v_vertex3d_t), &vv->n);
-            glColorPointer(4, GL_FLOAT, sizeof(v_vertex3d_t), &vv->c);
-
-            if (bWireframe)
-            {
-                for (size_t i=0; i<n; i += 3)
-                    glDrawArrays(GL_LINE_LOOP, i, 3);
-            }
-            else
-                glDrawArrays(GL_TRIANGLES, 0, n);
-
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_NORMAL_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            if (bDrawNormals)
-            {
-                if (bLight)
-                    glDisable(GL_LIGHTING);
-
-                glColor3f(1.0f, 1.0f, 0.0f);
-                glBegin(GL_LINES);
-
-                for (size_t i=0; i < n; ++i)
-                {
-                    v_vertex3d_t *v = &vv[i];
-                    glVertex3fv(&v[0].p.x);
-                    glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
-                }
-                glEnd();
-
-                if (bLight)
-                    glEnable(GL_LIGHTING);
-            }
-
-            glDisable(GL_BLEND);
-//            glPopMatrix();
-        }
-
-        if (bLight)
-        {
-            glDisable(GL_RESCALE_NORMAL);
-            glDisable(GL_LIGHTING);
-        }
-
-        glDisable(GL_DEPTH_TEST);
-
-
-
-        /*
-        // Draw axis coordinates
-        glLoadIdentity();
-        glTranslatef(-0.8f * float(nWidth)/float(nHeight), -0.8f , -0.9f);
-        glScalef(0.2, 0.2, 0.2); // Scale
-
-        glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
-        glRotatef(fAngleY + fAngleDY, 0.0f, 1.0f, 0.0f);
-        glRotatef(fAngleZ + fAngleDZ, 0.0f, 0.0f, 1.0f);
-
-        glBegin(GL_LINES);
-            glColor3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, 0.05f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, -0.05f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, 0.0f, 0.05f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, 0.0f, -0.05f);
-
-            glColor3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 0.8f, 0.05f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 0.8f, -0.05f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.05f, 0.8f, 0.0f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(-0.05f, 0.8f, 0.0f);
-
-            glColor3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.05f, 0.0f, 0.8f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(-0.05f, 0.0f, 0.8f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.0f, 0.05f, 0.8f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.0f, -0.05f, 0.8f);
-        glEnd();
-
-        if (bCullFace)
-            glDisable(GL_CULL_FACE);
-
-        // Rotate scene if it is possible
-        if (bRotate)
-        {
-            fAngleX -= 0.3f;
-            fAngleZ -= 0.4f;
-        }*/
-#endif
     }
 } /* namespace mtest */

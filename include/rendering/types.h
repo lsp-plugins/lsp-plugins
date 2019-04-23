@@ -38,7 +38,8 @@ enum r3d_primitive_type_t {
 };
 
 enum r3d_buffer_flags_t {
-    R3D_BUFFER_BLENDING     = 1 << 0
+    R3D_BUFFER_BLENDING     = 1 << 0,
+    R3D_BUFFER_LIGHTING     = 1 << 1
 };
 
 // Basic type: backend
@@ -64,7 +65,7 @@ typedef struct r3d_buffer_t
     /* Properties */
     r3d_primitive_type_t    type;       // Type of primitive
     size_t                  flags;      // Additional flags, see r3d_buffer_flags_t
-    float                   size;       // Point size or line width
+    float                   width;      // Point size or line width
     size_t                  count;      // Number of elements in buffer
 
     /* Vertices */
@@ -83,6 +84,7 @@ typedef struct r3d_buffer_t
     struct {
         color3d_t          *data;
         size_t              stride;
+        color3d_t           dfl;        // Default color used if color array is not specified
     } color;
 
     /* Vertex indices (always packed) */
