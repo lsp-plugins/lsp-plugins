@@ -15,6 +15,12 @@
 
 using namespace lsp;
 
+typedef struct backend_metadata_t
+{
+    const char *id;         // Enumeration unique identifier
+    const char *display;    // Display name
+} backend_metadata_t;
+
 typedef struct r3d_backend_t r3d_backend_t;
 
 #define R3D_EXPORT
@@ -108,14 +114,5 @@ struct r3d_backend_t
      */
     status_t    (* set_bg_color)(r3d_backend_t *_this, const color3d_t *color);
 };
-
-/**
- * Load backend
- * @param path path (UTF-8), optional, can be NULL (for auto-detection)
- * @param libname library name (UTF-8)
- * @param version required backend version (ASCII string)
- * @return status of operation
- */
-status_t load_backend(const char *path, const char *libname, const char *version);
 
 #endif /* RENDERING_BACKEND_H_ */

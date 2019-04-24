@@ -11,13 +11,13 @@
 #include <errno.h>
 #include <time.h>
 
-#include <X11/Xutil.h>
-
+#include <rendering/factory.h>
+#include <rendering/glx/factory.h>
 #include <test/mtest/3d/common/X11Renderer.h>
 
 namespace lsp
 {
-    r3d_backend_t *create_glx_backend();
+    extern glx_factory_t   glx_factory;
 }
 
 namespace mtest
@@ -83,7 +83,7 @@ namespace mtest
     status_t X11Renderer::init()
     {
         // Create GLX backend
-        pBackend        = create_glx_backend();
+        pBackend        = glx_factory.create(&glx_factory, 0);
         if (pBackend == NULL)
             return STATUS_UNKNOWN_ERR;
 
