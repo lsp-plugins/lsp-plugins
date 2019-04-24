@@ -14,6 +14,7 @@
 #define LSP_ACRONYM                                     "LSP"
 #define LSP_PREFIX                                      "lsp"
 #define LSP_ARTIFACT_ID                                 LSP_PREFIX "-plugins"
+#define LSP_R3D_BACKEND_PREFIX                          LSP_ARTIFACT_ID "-r3d"
 #define LSP_BINARY                                      LSP_ARTIFACT_ID
 #define LSP_FULL_NAME                                   "Linux Studio Plugins Project"
 #define LSP_COPYRIGHT                                   LSP_ACRONYM " (Linux Studio Plugins)"

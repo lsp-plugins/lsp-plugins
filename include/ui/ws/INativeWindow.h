@@ -21,8 +21,11 @@ namespace lsp
                 IEventHandler  *pHandler;
                 IDisplay       *pDisplay;
 
+            private:
+                INativeWindow & operator = (const INativeWindow);
+
             public:
-                INativeWindow(IDisplay *dpy, IEventHandler *handler = NULL);
+                explicit INativeWindow(IDisplay *dpy, IEventHandler *handler = NULL);
                 virtual ~INativeWindow();
 
                 /** Window initialization routine

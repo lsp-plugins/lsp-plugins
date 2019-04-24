@@ -16,14 +16,14 @@
 
 namespace lsp
 {
-    const backend_metadata_t glx_factory_t::sMetadata[] =
+    const r3d_backend_metadata_t glx_factory_t::sMetadata[] =
     {
         { "glx_1x", "openGL 1.x (GLX)" }
     };
 
-    const backend_metadata_t *glx_factory_t::metadata(glx_factory_t *_this, size_t id)
+    const r3d_backend_metadata_t *glx_factory_t::metadata(glx_factory_t *_this, size_t id)
     {
-        size_t count = sizeof(sMetadata) / sizeof(backend_metadata_t);
+        size_t count = sizeof(sMetadata) / sizeof(r3d_backend_metadata_t);
         return (id < count) ? &sMetadata[id] : NULL;
     }
 
@@ -57,7 +57,7 @@ namespace lsp
     #endif /* __cplusplus */
 
         LSP_LIBRARY_EXPORT
-        glx_factory_t *lsp_r3d_get_factory(const char *version)
+        r3d_factory_t *lsp_r3d_factory(const char *version)
         {
             // Check the LSP version
             if (::strcmp(version, LSP_MAIN_VERSION))

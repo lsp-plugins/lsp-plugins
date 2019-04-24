@@ -33,9 +33,11 @@
 #endif /* __cplusplus */
 
 #ifdef PLATFORM_WINDOWS
-    #define LSP_LIBRARY_EXPORT LSP_LIBRARY_EXTERN __declspec(dllexport)
+    #define LSP_LIBRARY_IMPORT  __declspec(dllexport)
+    #define LSP_LIBRARY_EXPORT  LSP_LIBRARY_EXTERN __declspec(dllexport)
 #else
-    #define LSP_LIBRARY_EXPORT LSP_LIBRARY_EXTERN __attribute__ ((visibility ("default")))
+    #define LSP_LIBRARY_IMPORT
+    #define LSP_LIBRARY_EXPORT  LSP_LIBRARY_EXTERN __attribute__ ((visibility ("default")))
 #endif
 
 typedef uint64_t        wsize_t;

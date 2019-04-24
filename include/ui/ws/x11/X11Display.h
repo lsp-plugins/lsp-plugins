@@ -94,7 +94,7 @@ namespace lsp
                     virtual ISurface *createSurface(size_t width, size_t height);
 
                     virtual int main();
-                    virtual int main_iteration();
+                    virtual status_t main_iteration();
                     virtual void quit_main();
 
                     virtual size_t screens();

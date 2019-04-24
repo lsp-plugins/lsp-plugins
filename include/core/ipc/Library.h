@@ -44,6 +44,19 @@ namespace lsp
                 explicit Library();
                 ~Library();
 
+            public:
+                /**
+                 * Check that library is opened
+                 * @return true if library is opened
+                 */
+                inline bool id_opened() const { return hDlSym != NULL; }
+
+                /**
+                 * Return last error
+                 * @return last error
+                 */
+                inline status_t last_error() const { return nLastError; }
+
                 /**
                  * Load library at specified path
                  * @param path UTF-8 path
@@ -84,18 +97,40 @@ namespace lsp
                 status_t close();
 
                 /**
-                 * Get path to the current module
-                 * @param path variable to store path to the current module
+                 * Swap contents with another library handle
+                 * @param dst target library handle to perform swap
+                 */
+                void swap(Library *dst);
+
+                /**
+                 * Get path to the module by the specified address
+                 * @param path variable to store path to the module
+                 * @param ptr specified address
                  * @return status of operation
                  */
-                static status_t get_library_file(LSPString *path);
+                static status_t get_module_file(LSPString *path, const void *ptr);
+
+                /**
+                 * Get path to the module by the specified address
+                 * @param path variable to store path to the module
+                 * @param ptr specified address
+                 * @return status of operation
+                 */
+                static status_t get_module_file(io::Path *path, const void *ptr);
 
                 /**
                  * Get path to the current module
                  * @param path variable to store path to the current module
                  * @return status of operation
                  */
-                static status_t get_library_file(io::Path *path);
+                static inline status_t get_self_file(LSPString *path) { return get_module_file(path, &hTag); };
+
+                /**
+                 * Get path to the current module
+                 * @param path variable to store path to the current module
+                 * @return status of operation
+                 */
+                static inline status_t get_self_file(io::Path *path) { return get_module_file(path, &hTag); };
         };
     
     } /* namespace io */

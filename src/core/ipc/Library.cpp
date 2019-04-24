@@ -11,7 +11,7 @@ namespace lsp
 {
     namespace ipc
     {
-        static int Library::hTag    = 0x12345678;
+        int Library::hTag    = 0x12345678;
         
         Library::Library()
         {
@@ -123,7 +123,13 @@ namespace lsp
             return nLastError = STATUS_OK;
         }
 
-        status_t Library::get_library_file(LSPString *path)
+        void Library::swap(Library *dst)
+        {
+            ::swap(dst->hDlSym, hDlSym);
+            ::swap(dst->nLastError, nLastError);
+        }
+
+        status_t Library::get_module_file(LSPString *path, const void *ptr)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -138,7 +144,7 @@ namespace lsp
             if (!::GetModuleHandleExW(
                     GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                    reinterpret_cast<LPCWSTR>(&hTag),
+                    reinterpret_cast<LPCWSTR>(ptr),
                     &hm)
                )
             {
@@ -159,9 +165,9 @@ namespace lsp
             }
 #else
             Dl_info dli;
-            int res     = ::dladdr(reinterpret_cast<void *>(&hTag), &dli);
+            int res     = ::dladdr(const_cast<void *>(ptr), &dli);
             if ((res == 0) || (dli.dli_fname == NULL))
-                return NULL;
+                return STATUS_NOT_FOUND;
 
             if (!path->set_native(dli.dli_fname))
                 return STATUS_NO_MEM;
@@ -170,13 +176,13 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Library::get_library_file(io::Path *path)
+        status_t Library::get_module_file(io::Path *path, const void *ptr)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
             LSPString tmp;
-            status_t res = get_library_file(&tmp);
+            status_t res = get_module_file(&tmp, ptr);
             if (res != STATUS_OK)
                 return res;
 

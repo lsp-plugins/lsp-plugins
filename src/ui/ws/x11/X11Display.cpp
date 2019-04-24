@@ -295,13 +295,15 @@ namespace lsp
                     else if ((wtime <= 0) || ((poll_res > 0) && (x11_poll.events > 0)))
                     {
                         // Do iteration
-                        status_t result = do_main_iteration(xts);
+                        status_t result = IDisplay::main_iteration();
+                        if (result == STATUS_OK)
+                            result = do_main_iteration(xts);
                         if (result != STATUS_OK)
                             return result;
                     }
                 }
 
-                return 0;
+                return STATUS_OK;
             }
 
             status_t X11Display::do_main_iteration(timestamp_t ts)
@@ -387,8 +389,13 @@ namespace lsp
                 XFlush(pDisplay);
             }
 
-            int X11Display::main_iteration()
+            status_t X11Display::main_iteration()
             {
+                // Call parent class for iteration
+                status_t result = IDisplay::main_iteration();
+                if (result != STATUS_OK)
+                    return result;
+
                 // Get current time to determine if need perform a rendering
                 struct timespec ts;
                 clock_gettime(CLOCK_REALTIME, &ts);

@@ -15,7 +15,7 @@
 
 using namespace lsp;
 
-typedef struct backend_metadata_t
+typedef struct r3d_backend_metadata_t
 {
     const char *id;         // Enumeration unique identifier
     const char *display;    // Display name
