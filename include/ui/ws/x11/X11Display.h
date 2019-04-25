@@ -91,6 +91,7 @@ namespace lsp
                     virtual INativeWindow *createWindow();
                     virtual INativeWindow *createWindow(size_t screen);
                     virtual INativeWindow *createWindow(void *handle);
+                    virtual INativeWindow *wrapWindow(void *handle);
                     virtual ISurface *createSurface(size_t width, size_t height);
 
                     virtual int main();

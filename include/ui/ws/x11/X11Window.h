@@ -40,6 +40,7 @@ namespace lsp
                     size_t              nScreen;
                     size_t              nFlags;
                     mouse_pointer_t     enPointer;
+                    bool                bWrapper;
 //                    IClipboard         *pClipboard[_CBUF_TOTAL];
 
                     realize_t           sSize;
@@ -57,7 +58,7 @@ namespace lsp
                     status_t    do_update_constraints();
 
                 public:
-                    X11Window(X11Display *core, size_t screen, ::Window wnd, IEventHandler *handler = NULL);
+                    explicit X11Window(X11Display *core, size_t screen, ::Window wnd, IEventHandler *handler, bool wrapper);
                     virtual ~X11Window();
 
                     /** Window initialization routine

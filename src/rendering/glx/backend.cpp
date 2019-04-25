@@ -43,6 +43,7 @@ namespace lsp
         // Destroy X11 display
         if (_this->pDisplay != NULL)
         {
+            ::XFlush(_this->pDisplay);
             ::XCloseDisplay(_this->pDisplay);
             _this->pDisplay    = NULL;
         }
@@ -129,6 +130,8 @@ namespace lsp
         // Place window to the parent
         if (_this->hParent != None)
             ::XReparentWindow(_this->pDisplay, _this->hWnd, _this->hParent, 0, 0);
+        ::XFlush(_this->pDisplay);
+
         _this->bDrawing    = false;
 
         // Return result
@@ -146,6 +149,8 @@ namespace lsp
             return STATUS_OK;
 
         ::XMapWindow(_this->pDisplay, _this->hWnd);
+        ::XFlush(_this->pDisplay);
+
         _this->bVisible = true;
         return STATUS_OK;
     }
@@ -158,6 +163,8 @@ namespace lsp
             return STATUS_OK;
 
         ::XUnmapWindow(_this->pDisplay, _this->hWnd);
+        ::XFlush(_this->pDisplay);
+
         _this->bVisible = false;
         return STATUS_OK;
     }
@@ -169,6 +176,7 @@ namespace lsp
 
         if (!::XMoveResizeWindow(_this->pDisplay, _this->hWnd, left, top, width, height))
             return STATUS_UNKNOWN_ERR;
+        ::XFlush(_this->pDisplay);
 
         _this->viewLeft    = left;
         _this->viewTop     = top;

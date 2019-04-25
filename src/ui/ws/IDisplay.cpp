@@ -270,6 +270,18 @@ namespace lsp
             s3DLibrary.close();
         }
 
+        void IDisplay::detach_r3d_backends()
+        {
+            // Destroy all backends
+            for (size_t j=0,m=s3DBackends.size(); j<m;++j)
+            {
+                // Get backend
+                IR3DBackend *backend = s3DBackends.get(j);
+                if (backend != NULL)
+                    backend->destroy();
+            }
+        }
+
         int IDisplay::main()
         {
             return STATUS_SUCCESS;
@@ -291,11 +303,24 @@ namespace lsp
 
         IR3DBackend *IDisplay::create3DBackend(INativeWindow *parent)
         {
-            if ((s3DFactory == NULL) || (parent == NULL))
+            if (parent == NULL)
                 return NULL;
+
+            // Obtain current backend
             r3d_library_t *lib = s3DLibs.get(nCurrent3D);
             if (lib == NULL)
                 return NULL;
+
+            // Check that factory is present
+            if (s3DFactory == NULL)
+            {
+                if (s3DBackends.size() > 0)
+                    return NULL;
+
+                // Try to load factory
+                if (switch_r3d_backend(lib) != STATUS_OK)
+                    return NULL;
+            }
 
             // Call factory to create backend
             r3d_backend_t *backend = s3DFactory->create(s3DFactory, lib->local_id);
@@ -448,6 +473,11 @@ namespace lsp
         }
 
         INativeWindow *IDisplay::createWindow(void *handle)
+        {
+            return NULL;
+        }
+
+        INativeWindow *IDisplay::wrapWindow(void *handle)
         {
             return NULL;
         }

@@ -171,18 +171,23 @@ namespace lsp
 
             INativeWindow *X11Display::createWindow()
             {
-                return new X11Window(this, DefaultScreen(pDisplay), 0);
+                return new X11Window(this, DefaultScreen(pDisplay), 0, NULL, false);
             }
 
             INativeWindow *X11Display::createWindow(size_t screen)
             {
-                return new X11Window(this, screen, 0);
+                return new X11Window(this, screen, 0, NULL, false);
             }
 
             INativeWindow *X11Display::createWindow(void *handle)
             {
                 lsp_trace("handle = %p", handle);
-                return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)));
+                return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)), NULL, false);
+            }
+
+            INativeWindow *X11Display::wrapWindow(void *handle)
+            {
+                return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)), NULL, true);
             }
 
             ISurface *X11Display::createSurface(size_t width, size_t height)
@@ -192,6 +197,7 @@ namespace lsp
 
             void X11Display::do_destroy()
             {
+                // Perform resource release
                 for (size_t i=0; i< vWindows.size(); )
                 {
                     X11Window *wnd  = vWindows.at(i);
@@ -249,6 +255,7 @@ namespace lsp
             void X11Display::destroy()
             {
                 do_destroy();
+                IDisplay::destroy();
             }
 
             int X11Display::main()

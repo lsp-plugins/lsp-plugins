@@ -65,6 +65,7 @@ namespace lsp
                 void                deregister_backend(IR3DBackend *lib);
                 status_t            switch_r3d_backend(r3d_library_t *backend);
                 status_t            commit_r3d_factory(const LSPString *path, r3d_factory_t *factory);
+                void                detach_r3d_backends();
 
             public:
                 IDisplay();
@@ -176,11 +177,18 @@ namespace lsp
                  */
                 virtual INativeWindow *createWindow(size_t screen);
 
-                /** Create native window from specified window handle
+                /** Create native window as child of specified window handle
                  *
-                 * @return native window from specified window handle
+                 * @return native window as child of specified window handle
                  */
                 virtual INativeWindow *createWindow(void *handle);
+
+                /**
+                 * Wrap window handle
+                 * @param handle handle to wrap
+                 * @return native window as wrapper of the handle
+                 */
+                virtual INativeWindow *wrapWindow(void *handle);
 
                 /**
                  * Create 3D backend for graphics

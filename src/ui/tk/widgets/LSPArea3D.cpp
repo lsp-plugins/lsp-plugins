@@ -67,6 +67,11 @@ namespace lsp
                 pBackend->destroy();
                 delete pBackend;
             }
+            if (pBackendWnd != NULL)
+            {
+                pBackendWnd->destroy();
+                delete pBackendWnd;
+            }
             pBackend = NULL;
         }
 
@@ -100,10 +105,17 @@ namespace lsp
             if (r3d->handle() != NULL)
             {
                 // Create native window
-                nwnd = dpy->createWindow(r3d->handle());
+                nwnd = dpy->wrapWindow(r3d->handle());
                 if (wnd == NULL)
                 {
                     r3d->destroy();
+                    return NULL;
+                }
+
+                // Initialize native window
+                if (nwnd->init() != STATUS_OK)
+                {
+                    nwnd->destroy();
                     return NULL;
                 }
 
@@ -125,6 +137,7 @@ namespace lsp
                     wHeight = 1;
 
                 r3d->locate(wLeft, wTop, wWidth, wHeight);
+                r3d->show();
             }
 
             // Store backend pointer and return
@@ -140,7 +153,7 @@ namespace lsp
                 return false;
 
             // Hide backend if it is present
-            if (LSPArea3D::pBackend != NULL)
+            if (pBackend != NULL)
                 pBackend->hide();
 
             return true;
@@ -195,16 +208,19 @@ namespace lsp
 
         void LSPArea3D::render(ISurface *s, bool force)
         {
+            // Call the parent widget for draw
+            LSPWidget::render(s, force);
+
             // Obtain a 3D backend and draw it if it is valid
             IR3DBackend *r3d    = backend();
             if ((r3d != NULL) && (r3d->valid()))
             {
                 // Update backend color
                 color3d_t c;
-                c.r     = sColor.red();
-                c.g     = sColor.green();
-                c.b     = sColor.blue();
-                c.a     = 1.0f;
+                c.r     = 0.0f; //sColor.red();
+                c.g     = 0.0f; //sColor.green();
+                c.b     = 0.0f; //sColor.blue();
+                c.a     = 0.0f;
                 pBackend->set_bg_color(&c);
 
                 // Update matrices
@@ -217,9 +233,6 @@ namespace lsp
                     sSlots.execute(LSPSLOT_DRAW3D, this, r3d);
                 r3d->end_draw();
             }
-
-            // Call the parent widget for draw
-            LSPWidget::render(s, force);
         }
 
         void LSPArea3D::draw(ISurface *s)
