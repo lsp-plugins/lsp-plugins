@@ -65,6 +65,14 @@ struct r3d_backend_t
     status_t    (* locate)(r3d_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height);
 
     /**
+     * @param left the leftmost coordinate of the backend's viewport relative to the parent window
+     * @param top the topmost coordinate of the backend's viewport relative to the parent window
+     * @param width the width of the backend's viewport
+     * @param height the heigh of the backend's viewport
+     */
+    status_t    (* get_location)(r3d_backend_t *_this, ssize_t *left, ssize_t *top, ssize_t *width, ssize_t *height);
+
+    /**
      * Start rendering on the window
      * @return status of operation
      */
@@ -110,9 +118,16 @@ struct r3d_backend_t
     /**
      * Set the default background color
      * @param color default background color
-     * @return
+     * @return status of operation
      */
     status_t    (* set_bg_color)(r3d_backend_t *_this, const color3d_t *color);
+
+    /**
+     * Get the default background color
+     * @param color pointer to store default background color
+     * @return status of operation
+     */
+    status_t    (* get_bg_color)(r3d_backend_t *_this, color3d_t *color);
 };
 
 #endif /* RENDERING_BACKEND_H_ */

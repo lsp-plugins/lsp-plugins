@@ -52,7 +52,7 @@ namespace lsp
                 taskid_t                nTaskID;
                 cstorage<dtask_t>       sTasks;
                 cvector<r3d_library_t>  s3DLibs;            // List of libraries that provide 3D backends
-                cvector<r3d_backend_t>  s3DBackends;        // List of all 3D backend instances
+                cvector<IR3DBackend>    s3DBackends;        // List of all 3D backend instances
                 ipc::Library            s3DLibrary;         // Current backend library used
                 r3d_factory_t          *s3DFactory;         // Pointer to the factory object
                 ssize_t                 nCurrent3D;         // Current 3D backend
@@ -62,7 +62,8 @@ namespace lsp
                 friend class IR3DBackend;
 
                 bool                taskid_exists(taskid_t id);
-                void                destroy_backend(r3d_backend_t *backend);
+                void                deregister_backend(IR3DBackend *lib);
+                status_t            switch_r3d_backend(r3d_library_t *backend);
                 status_t            commit_r3d_factory(const LSPString *path, r3d_factory_t *factory);
 
             public:
@@ -86,9 +87,41 @@ namespace lsp
                 /**
                  * Enumerate backends
                  * @param id backend number starting with 0
-                 * @return NULL if backend with such identifier does not exist
+                 * @return backend descriptor or NULL if backend with such identifier does not exist
                  */
-                R3DBackendInfo *enumBackend(size_t id) const;
+                const R3DBackendInfo *enumBackend(size_t id) const;
+
+                /**
+                 * Get currently used backend for 3D rendering
+                 * @return selected backend descriptor
+                 */
+                const R3DBackendInfo *getCurrentBackend() const;
+
+                /**
+                 * Get currently used backend identifier for 3D rendering
+                 * @return selected backend identifier
+                 */
+                ssize_t getCurrentBackendId() const;
+
+                /**
+                 * Select backend for rendering by specifying it's descriptor
+                 * This function does not chnage the backend immediately,
+                 * instead of this the backend switch operation is performed in the
+                 * main loop
+                 * @param backend backend for rendering
+                 * @return status of operation
+                 */
+                status_t selectBackend(const R3DBackendInfo *backend);
+
+                /**
+                 * Select backend for rendering by specifying it's descriptor identifier
+                 * This function does not chnage the backend immediately,
+                 * instead of this the backend switch operation is performed in the
+                 * main loop
+                 * @param id backend's descriptor identifier
+                 * @return status of operation
+                 */
+                status_t selectBackendId(size_t id);
 
                 /**
                  * Lookup the specified directory for existing 3D backends
@@ -153,7 +186,7 @@ namespace lsp
                  * Create 3D backend for graphics
                  * @return pointer to created backend
                  */
-                virtual IR3DBackend *create3DBackend();
+                virtual IR3DBackend *create3DBackend(INativeWindow *parent);
 
                 /** Create surface for drawing
                  *

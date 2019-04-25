@@ -23,6 +23,7 @@ namespace lsp
                 friend class        IDisplay;
 
                 r3d_backend_t      *pBackend;   // Currently used backend
+                void               *hParent;    // Parent window
                 void               *hWindow;    // Currently used window
                 IDisplay           *pDisplay;
 
@@ -30,13 +31,14 @@ namespace lsp
                 IR3DBackend & operator = (const IR3DBackend &);
 
             protected:
-                explicit IR3DBackend(IDisplay *dpy, r3d_backend_t *backend, void *window);
+                explicit IR3DBackend(IDisplay *dpy, r3d_backend_t *backend, void *parent, void *window);
+                void    replace_backend(r3d_backend_t *factory, void *window);
 
             public:
                 ~IR3DBackend();
 
             public:
-                status_t close();
+                status_t destroy();
 
                 status_t show();
                 status_t hide();

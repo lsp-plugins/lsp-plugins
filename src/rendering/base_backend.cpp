@@ -24,7 +24,7 @@ namespace lsp
         _this->colBackground.r  = 0.0f;
         _this->colBackground.g  = 0.0f;
         _this->colBackground.b  = 0.0f;
-        _this->colBackground.a  = 0.0f;
+        _this->colBackground.a  = 1.0f;
 
         init_matrix_identity(&_this->matProjection);
         init_matrix_identity(&_this->matView);
@@ -36,7 +36,7 @@ namespace lsp
     void r3d_base_backend_t::destroy(r3d_base_backend_t *_this)
     {
         // Free pointer to self
-        ::free(_this);
+        delete _this;
     }
 
     status_t r3d_base_backend_t::set_matrix(r3d_base_backend_t *_this, r3d_matrix_type_t type, const matrix3d_t *m)
@@ -69,6 +69,20 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t r3d_base_backend_t::get_location(r3d_base_backend_t *_this, ssize_t *left, ssize_t *top, ssize_t *width, ssize_t *height)
+    {
+        if (left != NULL)
+            *left   = _this->viewLeft;
+        if (top != NULL)
+            *top    = _this->viewTop;
+        if (width != NULL)
+            *width  = _this->viewWidth;
+        if (height != NULL)
+            *height = _this->viewHeight;
+
+        return STATUS_OK;
+    }
+
     void r3d_base_backend_t::matrix_mul(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m)
     {
         const float *A      = s->m;
@@ -98,7 +112,19 @@ namespace lsp
 
     status_t r3d_base_backend_t::set_bg_color(r3d_base_backend_t *_this, const color3d_t *color)
     {
+        if (color == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         _this->colBackground   = *color;
+        return STATUS_OK;
+    }
+
+    status_t r3d_base_backend_t::get_bg_color(r3d_base_backend_t *_this, color3d_t *color)
+    {
+        if (color == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        *color  = _this->colBackground;
         return STATUS_OK;
     }
 
@@ -115,6 +141,9 @@ namespace lsp
         R3D_BASE_BACKEND_EXP(destroy);
         R3D_BASE_BACKEND_EXP(set_matrix);
         R3D_BASE_BACKEND_EXP(get_matrix);
+        R3D_BASE_BACKEND_EXP(get_location);
+        R3D_BASE_BACKEND_EXP(get_bg_color);
+        R3D_BASE_BACKEND_EXP(set_bg_color);
         #undef R3D_BASE_BACKEND_EXP
     }
 }

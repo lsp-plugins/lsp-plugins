@@ -37,10 +37,46 @@ namespace lsp
         {
         }
 
-        R3DBackendInfo *IDisplay::enumBackend(size_t id) const
+        const R3DBackendInfo *IDisplay::enumBackend(size_t id) const
         {
             return s3DLibs.get(id);
         };
+
+        const R3DBackendInfo *IDisplay::getCurrentBackend() const
+        {
+            return s3DLibs.get(nCurrent3D);
+        }
+
+        ssize_t IDisplay::getCurrentBackendId() const
+        {
+            return nCurrent3D;
+        }
+
+        status_t IDisplay::selectBackend(const R3DBackendInfo *backend)
+        {
+            if (backend == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            const r3d_library_t *lib = static_cast<const r3d_library_t *>(backend);
+            ssize_t index   = s3DLibs.index_of(lib);
+            if (index < 0)
+                return STATUS_NOT_FOUND;
+
+            nPending3D      = index;
+
+            return STATUS_OK;
+        }
+
+        status_t IDisplay::selectBackendId(size_t id)
+        {
+            const r3d_library_t *lib = s3DLibs.get(id);
+            if (lib == NULL)
+                return STATUS_NOT_FOUND;
+
+            nPending3D      = id;
+
+            return STATUS_OK;
+        }
 
         void IDisplay::lookup3DBackends(const io::Path *path)
         {
@@ -219,12 +255,13 @@ namespace lsp
             for (size_t j=0,m=s3DBackends.size(); j<m;++j)
             {
                 // Get backend
-                r3d_backend_t *backend = s3DBackends.get(j);
+                IR3DBackend *backend = s3DBackends.get(j);
                 if (backend == NULL)
                     continue;
 
                 // Destroy backend
-                backend->destroy(backend);
+                backend->destroy();
+                delete backend;
             }
 
             // Flush list of backends and close library
@@ -238,14 +275,11 @@ namespace lsp
             return STATUS_SUCCESS;
         }
 
-        void IDisplay::destroy_backend(r3d_backend_t *backend)
+        void IDisplay::deregister_backend(IR3DBackend *backend)
         {
             // Try to remove backend
             if (!s3DBackends.remove(backend, true))
                 return;
-
-            // Destroy backend
-            backend->destroy(backend);
 
             // Need to unload library?
             if (s3DBackends.size() <= 0)
@@ -255,16 +289,131 @@ namespace lsp
             }
         }
 
-        IR3DBackend *IDisplay::create3DBackend()
+        IR3DBackend *IDisplay::create3DBackend(INativeWindow *parent)
         {
-            // TODO
-            return NULL;
+            if ((s3DFactory == NULL) || (parent == NULL))
+                return NULL;
+            r3d_library_t *lib = s3DLibs.get(nCurrent3D);
+            if (lib == NULL)
+                return NULL;
+
+            // Call factory to create backend
+            r3d_backend_t *backend = s3DFactory->create(s3DFactory, lib->local_id);
+            if (backend == NULL)
+                return NULL;
+
+            // Initialize backend
+            void *handle = NULL;
+            status_t res = backend->init(backend, parent->handle(), &handle);
+            if (res != STATUS_OK)
+            {
+                backend->destroy(backend);
+                return NULL;
+            }
+
+            // Create R3D backend wrapper
+            IR3DBackend *r3d = new IR3DBackend(this, backend, parent->handle(), handle);
+            if (r3d == NULL)
+            {
+                backend->destroy(backend);
+                return NULL;
+            }
+
+            // Register backend wrapper
+            if (!s3DBackends.add(r3d))
+            {
+                r3d->destroy();
+                delete r3d;
+                return NULL;
+            }
+
+            // Return successful operation
+            return r3d;
+        }
+
+        status_t IDisplay::switch_r3d_backend(r3d_library_t *lib)
+        {
+            status_t res;
+            r3d_factory_t *factory;
+            ipc::Library dlib;
+
+            if (!lib->builtin)
+            {
+                // Load the library
+                res = dlib.open(&lib->library);
+                if (res != STATUS_OK)
+                    return res;
+
+                // Obtain factory function
+                lsp_r3d_factory_function_t func = reinterpret_cast<lsp_r3d_factory_function_t>(dlib.import(R3D_FACTORY_FUNCTION_NAME));
+                if (func == NULL)
+                {
+                    dlib.close();
+                    return res;
+                }
+
+                // Create the factory
+                factory     = func(LSP_MAIN_VERSION);
+                if (factory == NULL)
+                {
+                    dlib.close();
+                    return STATUS_UNKNOWN_ERR;
+                }
+            }
+            else
+                factory     = lib->builtin;
+
+            // Now, iterate all registered backend wrappers and change the backend
+            for (size_t i=0, n=s3DBackends.size(); i<n; ++i)
+            {
+                // Obtain current backend
+                IR3DBackend *r3d = s3DBackends.get(i);
+                if (r3d == NULL)
+                    continue;
+
+                // Call factory to create backend
+                void *handle = NULL;
+                r3d_backend_t *backend = factory->create(factory, lib->local_id);
+                if (backend != NULL)
+                {
+                    // Initialize backend
+                    status_t res = backend->init(backend, r3d->hParent, &handle);
+                    if (res != STATUS_OK)
+                    {
+                        backend->destroy(backend);
+                        backend = NULL;
+                        handle  = NULL;
+                    }
+                }
+
+                // Call backend wrapper to replace the backend
+                r3d->replace_backend(backend, handle);
+            }
+
+            // Deregister currently used library
+            dlib.swap(&s3DLibrary);
+            dlib.close();
+
+            // Register new pointer to the backend factory
+            s3DFactory  = factory;
+
+            return STATUS_OK;
         }
 
         status_t IDisplay::main_iteration()
         {
-            // TODO: Sync backends
-
+            // Sync backends
+            if (nCurrent3D != nPending3D)
+            {
+                r3d_library_t *lib = s3DLibs.get(nPending3D);
+                if (lib != NULL)
+                {
+                    if (switch_r3d_backend(lib) == STATUS_OK)
+                        nCurrent3D = nPending3D;
+                }
+                else
+                    nPending3D = nCurrent3D;
+            }
 
             return STATUS_SUCCESS;
         }

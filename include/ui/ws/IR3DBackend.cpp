@@ -11,9 +11,10 @@ namespace lsp
 {
     namespace ws
     {
-        IR3DBackend::IR3DBackend(IDisplay *dpy, r3d_backend_t *backend, void *window)
+        IR3DBackend::IR3DBackend(IDisplay *dpy, r3d_backend_t *backend, void *parent, void *window)
         {
             pBackend    = backend;
+            hParent     = parent;
             hWindow     = window;
             pDisplay    = dpy;
         }
@@ -21,18 +22,55 @@ namespace lsp
         IR3DBackend::~IR3DBackend()
         {
             pBackend    = NULL;
+            hParent     = NULL;
             hWindow     = NULL;
         }
 
-        status_t IR3DBackend::close()
+        status_t IR3DBackend::destroy()
         {
             if (pBackend != NULL)
-                pDisplay->destroy_backend(pBackend);
+            {
+                pBackend->destroy(pBackend);
+                pDisplay->deregister_backend(this);
+            }
+
             pBackend    = NULL;
-            pDisplay    = NULL;
             hWindow     = NULL;
+            hParent     = NULL;
+            pDisplay    = NULL;
 
             return STATUS_OK;
+        }
+
+        void IR3DBackend::replace_backend(r3d_backend_t *backend, void *window)
+        {
+            if (pBackend != NULL)
+            {
+                // Replace matrices
+                matrix3d_t tmp;
+                if (pBackend->get_matrix(pBackend, R3D_MATRIX_PROJECTION, &tmp) == STATUS_OK)
+                    backend->set_matrix(backend, R3D_MATRIX_PROJECTION, &tmp);
+                if (pBackend->get_matrix(pBackend, R3D_MATRIX_VIEW, &tmp) == STATUS_OK)
+                    backend->set_matrix(backend, R3D_MATRIX_VIEW, &tmp);
+                if (pBackend->get_matrix(pBackend, R3D_MATRIX_WORLD, &tmp) == STATUS_OK)
+                    backend->set_matrix(backend, R3D_MATRIX_WORLD, &tmp);
+
+                // Copy location
+                ssize_t l, t, w, h;
+                if (pBackend->get_location(pBackend, &l, &t, &w, &h) == STATUS_OK)
+                    backend->locate(backend, l, t, w, h);
+
+                // Copy default color
+                color3d_t c;
+                if (pBackend->get_bg_color(pBackend, &c) == STATUS_OK)
+                    backend->set_bg_color(backend, &c);
+
+                // Destroy previous backend
+                pBackend->destroy(pBackend);
+            }
+
+            pBackend    = backend;
+            hWindow     = window;
         }
     
         status_t IR3DBackend::show()

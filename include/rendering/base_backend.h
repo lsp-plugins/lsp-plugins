@@ -38,6 +38,8 @@ namespace lsp
         static status_t set_matrix(r3d_base_backend_t *_this, r3d_matrix_type_t type, const matrix3d_t *m);
         static status_t get_matrix(r3d_base_backend_t *_this, r3d_matrix_type_t type, matrix3d_t *m);
         static status_t set_bg_color(r3d_base_backend_t *_this, const color3d_t *color);
+        static status_t get_bg_color(r3d_base_backend_t *_this, color3d_t *color);
+        static status_t get_location(r3d_base_backend_t *_this, ssize_t *left, ssize_t *top, ssize_t *width, ssize_t *height);
 
     } r3d_base_backend_t;
 }
