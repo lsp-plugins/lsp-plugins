@@ -19,6 +19,7 @@ namespace lsp
             sBgColor(this)
         {
             pBackend        = NULL;
+            pBackendWnd     = NULL;
 
             dsp::init_matrix3d_identity(&sWorld);
             dsp::init_matrix3d_identity(&sProjection);
@@ -83,6 +84,23 @@ namespace lsp
             if (r3d == NULL)
                 return NULL;
 
+            INativeWindow *nwnd     = NULL;
+
+            // There is also native window handle present?
+            if (r3d->handle() != NULL)
+            {
+                // Create native window
+                nwnd = dpy->createWindow(r3d->handle());
+                if (wnd == NULL)
+                {
+                    r3d->destroy();
+                    return NULL;
+                }
+
+                // Set-up event handler
+                nwnd->set_handler(this);
+            }
+
             // Resize backend
             if (visible())
             {
@@ -100,7 +118,10 @@ namespace lsp
             }
 
             // Store backend pointer and return
-            return pBackend = r3d;
+            pBackend        = r3d;
+            pBackendWnd     = nwnd;
+
+            return pBackend;
         }
 
         bool LSPArea3D::hide()

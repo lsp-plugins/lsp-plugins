@@ -40,6 +40,11 @@ namespace lsp
             public:
                 status_t destroy();
 
+                /**
+                 * Return native window handle if it is present
+                 */
+                inline void *handle()       { return hWindow; };
+
                 inline bool valid() const { return pBackend != NULL; }
 
                 status_t show();

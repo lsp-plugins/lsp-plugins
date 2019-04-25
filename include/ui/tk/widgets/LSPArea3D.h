@@ -25,6 +25,7 @@ namespace lsp
                 matrix3d_t      sView;
                 matrix3d_t      sProjection;
                 IR3DBackend    *pBackend;
+                INativeWindow  *pBackendWnd;
 
             protected:
                 void            do_destroy();
