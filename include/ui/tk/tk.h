@@ -146,7 +146,8 @@ namespace lsp
             LSPSLOT_CLOSE,           //!< LSPSLOT_CLOSE Triggered when the window is requested to close
             LSPSLOT_HSCROLL,         //!< LSPSLOT_HSCROLL Triggered when the horizontal scrolling is applied
             LSPSLOT_VSCROLL,         //!< LSPSLOT_VSCROLL Triggered when the vertical scrolling is applied
-            LSPSLOT_ACTIVATE         //!< LSPSLOT_ACTIVATE Triggered some user-interaction
+            LSPSLOT_ACTIVATE,        //!< LSPSLOT_ACTIVATE Triggered some user-interaction
+            LSPSLOT_DRAW3D,          //!< LSPSLOT_DRAW3D Triggered when a 3D-rendering is required
         };
 
         typedef struct w_class_t
@@ -256,6 +257,9 @@ namespace lsp
 #include <ui/tk/widgets/graph/LSPDot.h>
 #include <ui/tk/widgets/graph/LSPText.h>
 #include <ui/tk/widgets/graph/LSPFrameBuffer.h>
+
+// 3D rendering
+#include <ui/tk/widgets/LSPArea3D.h>
 
 
 #endif /* UI_TK_TK_H_ */

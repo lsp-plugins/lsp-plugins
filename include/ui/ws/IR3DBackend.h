@@ -40,6 +40,8 @@ namespace lsp
             public:
                 status_t destroy();
 
+                inline bool valid() const { return pBackend != NULL; }
+
                 status_t show();
                 status_t hide();
                 status_t locate(ssize_t left, ssize_t top, ssize_t width, ssize_t height);
