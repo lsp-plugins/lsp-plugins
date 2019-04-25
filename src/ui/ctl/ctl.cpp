@@ -54,6 +54,7 @@ namespace lsp
             "vgrid",
             "vsbar",
             "vsep",
+            "viewer3d",
             "window",
             NULL
         };

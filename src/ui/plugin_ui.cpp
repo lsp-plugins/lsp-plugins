@@ -444,6 +444,15 @@ namespace lsp
                 return new CtlSaveFile(this, save);
             }
 
+            // 3D viewer object
+            case WC_VIEWER3D:
+            {
+                LSPArea3D *a = new LSPArea3D(&sDisplay);
+                a->init();
+                vWidgets.add(a);
+                return new CtlViewer3D(this, a);
+            }
+
             // Graph object
             case WC_GRAPH:
             {

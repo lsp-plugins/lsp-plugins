@@ -76,6 +76,7 @@ namespace lsp
             WC_VGRID,
             WC_VSBAR,
             WC_VSEP,
+            WC_VIEWER3D,
             WC_WINDOW
         };
 
@@ -264,6 +265,8 @@ namespace lsp
 
 #include <ui/ctl/CtlFraction.h>
 #include <ui/ctl/CtlTempoTap.h>
+
+#include <ui/ctl/CtlViewer3D.h>
 
 // Specials
 #include <ui/ctl/CtlPortAlias.h>
