@@ -166,7 +166,7 @@ namespace lsp
 
                 r3dlib->builtin     = (path != NULL) ? NULL : factory;
                 r3dlib->local_id    = id;
-                if (path == NULL)
+                if (path != NULL)
                 {
                     if (!r3dlib->library.set(path))
                     {

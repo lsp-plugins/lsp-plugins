@@ -36,6 +36,10 @@ namespace lsp
 
     glx_factory_t::glx_factory_t()
     {
+        #define R3D_GLX_FACTORY_EXP(func)   export_func(r3d_factory_t::func, &glx_factory_t::func);
+        R3D_GLX_FACTORY_EXP(create);
+        R3D_GLX_FACTORY_EXP(metadata);
+        #undef R3D_GLX_FACTORY_EXP
     }
 
     glx_factory_t::~glx_factory_t()

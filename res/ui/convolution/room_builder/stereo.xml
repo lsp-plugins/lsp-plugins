@@ -1,0 +1,8 @@
+<plugin resizable="false">
+	<vbox spacing="4">
+		<!-- IR editor -->
+		<group text="Impulse Response">
+			
+		</group>
+	</vbox>
+</plugin>

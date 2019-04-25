@@ -37,6 +37,16 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
+            if (pDisplay != NULL)
+            {
+                LSPTheme *theme = pDisplay->theme();
+                if (theme != NULL)
+                {
+                    theme->get_color(C_GLASS, &sColor);
+                    theme->get_color(C_BACKGROUND, &sBgColor);
+                }
+            }
+
             ui_handler_id_t id = 0;
 
             id = sSlots.add(LSPSLOT_DRAW3D, slot_draw3d, self());
