@@ -26,6 +26,7 @@ namespace mtest
     {
         dpy                 = NULL;
         win                 = None;
+        glwnd               = None;
         stopped             = true;
         nBMask              = 0;
         nMouseX             = 0;
@@ -121,7 +122,7 @@ namespace mtest
         // Reparent window and show
         if (hwnd != NULL)
         {
-            Window glwnd = reinterpret_cast<Window>(hwnd);
+            glwnd = reinterpret_cast<Window>(hwnd);
 
             ::XReparentWindow(dpy, glwnd, win, 0, 0);
             ::XMapWindow(dpy, glwnd);
@@ -248,6 +249,8 @@ namespace mtest
                             bViewChanged    = true;
                             nWidth          = xev.xconfigure.width;
                             nHeight         = xev.xconfigure.height;
+                            XMoveResizeWindow(dpy, glwnd, 0, 0, nWidth, nHeight);
+                            XFlush(dpy);
                             pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
                             render();
                             sLastRender = ts;
@@ -256,6 +259,8 @@ namespace mtest
                             bViewChanged    = true;
                             nWidth          = xev.xresizerequest.width;
                             nHeight         = xev.xresizerequest.height;
+                            XMoveResizeWindow(dpy, glwnd, 0, 0, nWidth, nHeight);
+                            XFlush(dpy);
                             pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
                             render();
                             sLastRender = ts;
@@ -427,8 +432,8 @@ namespace mtest
     void X11Renderer::draw_normals(v_vertex3d_t *vv, size_t nvertex)
     {
         r3d_buffer_t buffer;
-        buffer.vertex.data  = reinterpret_cast<point3d_t *>(::malloc(sizeof(point3d_t) * 2 * nvertex));
-        if (buffer.vertex.data == NULL)
+        point3d_t *np       = reinterpret_cast<point3d_t *>(::malloc(sizeof(point3d_t) * 2 * nvertex));
+        if (np == NULL)
             return;
 
         buffer.type         = R3D_PRIMITIVE_LINES;
@@ -437,7 +442,7 @@ namespace mtest
         buffer.count        = nvertex;
 
         // Fill primitive array
-        point3d_t *dp       = buffer.vertex.data;
+        point3d_t *dp       = np;
         v_vertex3d_t *sv    = vv;
         for (size_t i=0; i<nvertex; ++i, dp += 2, ++sv)
         {
@@ -448,6 +453,7 @@ namespace mtest
             dp[1].w = 1.0f;
         }
 
+        buffer.vertex.data      = np;
         buffer.vertex.stride    = sizeof(point3d_t);
         buffer.normal.data      = NULL;
         buffer.color.data       = NULL;
@@ -460,7 +466,7 @@ namespace mtest
         // Draw call
         pBackend->draw_primitives(pBackend, &buffer);
 
-        ::free(buffer.vertex.data);
+        ::free(np);
     }
 
     void X11Renderer::render()

@@ -37,6 +37,7 @@ namespace mtest
         private:
             Display                 *dpy;
             Window                  win;
+            Window                  glwnd;
             volatile bool           stopped;
             size_t                  nBMask;
             ssize_t                 nMouseX, nMouseY;

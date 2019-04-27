@@ -53,8 +53,6 @@ namespace lsp
                 inline LSPColor        *bg_color()      { return &sBgColor; }
 
             public:
-                virtual void render(ISurface *s, bool force);
-
                 virtual bool hide();
 
                 virtual bool show();

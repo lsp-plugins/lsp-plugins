@@ -128,6 +128,16 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t r3d_base_backend_t::locate(r3d_base_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height)
+    {
+        _this->viewLeft    = left;
+        _this->viewTop     = top;
+        _this->viewWidth   = width;
+        _this->viewHeight  = height;
+
+        return STATUS_OK;
+    }
+
     r3d_base_backend_t::r3d_base_backend_t()
     {
         viewLeft    = 0;
@@ -139,6 +149,7 @@ namespace lsp
         #define R3D_BASE_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &r3d_base_backend_t::func);
         R3D_BASE_BACKEND_EXP(init);
         R3D_BASE_BACKEND_EXP(destroy);
+        R3D_BASE_BACKEND_EXP(locate);
         R3D_BASE_BACKEND_EXP(set_matrix);
         R3D_BASE_BACKEND_EXP(get_matrix);
         R3D_BASE_BACKEND_EXP(get_location);

@@ -131,6 +131,8 @@ namespace lsp
 //        if (_this->hParent != None)
 //            ::XReparentWindow(_this->pDisplay, _this->hWnd, _this->hParent, 0, 0);
 //        ::XFlush(_this->pDisplay);
+//        ::XMapWindow(_this->pDisplay, _this->hWnd);
+        ::XSync(_this->pDisplay, False);
 
         _this->bDrawing    = false;
 
@@ -454,27 +456,34 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t read_pixels(glx_backend_t *_this, void *buf, size_t stride, r3d_pixel_format_t format)
+    status_t glx_backend_t::read_pixels(glx_backend_t *_this, void *buf, size_t stride, r3d_pixel_format_t format)
     {
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        size_t rowsize = _this->viewWidth * sizeof(uint32_t);
+//        size_t rowsize = _this->viewWidth * sizeof(uint32_t);
         size_t fmt = (format == R3D_PIXEL_RGBA) ? GL_RGBA : GL_BGRA;
-        if (rowsize == stride) // Read once
+//        if (rowsize == stride) // Read once
+//        {
+//            ::glReadPixels(0, 0, _this->viewWidth, _this->viewHeight, fmt, GL_UNSIGNED_INT_8_8_8_8, buf);
+//        }
+//        else // Read row-by row
+//        {
+//            uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
+//            for (ssize_t i=0; i<_this->viewHeight; ++i)
+//            {
+//                ::glReadPixels(0, i, _this->viewWidth, i, fmt, GL_UNSIGNED_INT_8_8_8_8, ptr);
+//                ptr     += stride;
+//            }
+//        }
+        uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
+        for (ssize_t i=0; i<_this->viewHeight; ++i)
         {
-            ::glReadPixels(0, 0, _this->viewWidth, _this->viewHeight, fmt, GL_UNSIGNED_INT_8_8_8_8, buf);
+            ssize_t row  = _this->viewHeight - i - 1;
+            ::glReadPixels(0, row, _this->viewWidth, 1, fmt, GL_UNSIGNED_INT_8_8_8_8, ptr);
+            ptr     += stride;
+        }
 
-        }
-        else // Read row-by row
-        {
-            uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
-            for (ssize_t i=0; i<_this->viewHeight; ++i)
-            {
-                ::glReadPixels(0, 0, _this->viewWidth, 1, fmt, GL_UNSIGNED_INT_8_8_8_8, ptr);
-                ptr     += stride;
-            }
-        }
         return STATUS_OK;
     }
 
@@ -510,6 +519,7 @@ namespace lsp
 
         R3D_GLX_BACKEND_EXP(start);
         R3D_GLX_BACKEND_EXP(sync);
+        R3D_GLX_BACKEND_EXP(read_pixels);
         R3D_GLX_BACKEND_EXP(finish);
 
         R3D_GLX_BACKEND_EXP(set_matrix);

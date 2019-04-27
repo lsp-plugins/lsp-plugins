@@ -249,11 +249,13 @@ namespace dsp
     void    (* axis_apply_log1)(float *x, const float *v, float zero, float norm_x, size_t count) = NULL;
     void    (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
     void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
+    void    (* abgr32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
     void    (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count) = NULL;
     void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;
     void    (* rgba_to_hsla)(float *dst, const float *src, size_t count) = NULL;
     void    (* hsla_to_rgba)(float *dst, const float *src, size_t count) = NULL;
     void    (* rgba_to_bgra32)(void *dst, const float *src, size_t count) = NULL;
+    void    (* rgba32_to_bgra32_ra)(void *dst, const void *src, size_t count) = NULL;
     void    (* eff_hsla_hue)(float *dst, const float *v, const hsla_hue_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_sat)(float *dst, const float *v, const hsla_sat_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_light)(float *dst, const float *v, const hsla_light_eff_t *eff, size_t count) = NULL;

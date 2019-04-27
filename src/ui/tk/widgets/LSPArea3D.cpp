@@ -6,6 +6,7 @@
  */
 
 #include <ui/tk/tk.h>
+#include <dsp/endian.h>
 
 namespace lsp
 {
@@ -206,21 +207,18 @@ namespace lsp
                 r->nMinHeight   = 1;
         }
 
-        void LSPArea3D::render(ISurface *s, bool force)
+        void LSPArea3D::draw(ISurface *s)
         {
-            // Call the parent widget for draw
-            LSPWidget::render(s, force);
-
             // Obtain a 3D backend and draw it if it is valid
             IR3DBackend *r3d    = backend();
             if ((r3d != NULL) && (r3d->valid()))
             {
                 // Update backend color
                 color3d_t c;
-                c.r     = 0.0f; //sColor.red();
-                c.g     = 0.0f; //sColor.green();
-                c.b     = 0.0f; //sColor.blue();
-                c.a     = 0.0f;
+                c.r     = sColor.red();
+                c.g     = sColor.green();
+                c.b     = sColor.blue();
+                c.a     = 1.0f;
                 pBackend->set_bg_color(&c);
 
                 // Update matrices
@@ -229,15 +227,25 @@ namespace lsp
                 pBackend->set_matrix(R3D_MATRIX_WORLD, &sWorld);
 
                 // Perform a draw call
+                void *buf = s->start_direct();
+
+                r3d->locate(0, 0, s->width(), s->height());
                 r3d->begin_draw();
                     sSlots.execute(LSPSLOT_DRAW3D, this, r3d);
-                r3d->end_draw();
-            }
-        }
+                    r3d->sync();
 
-        void LSPArea3D::draw(ISurface *s)
-        {
-            s->clear(sBgColor);
+                    r3d->read_pixels(buf, s->stride(), R3D_PIXEL_RGBA);
+
+                    uint8_t *dst = reinterpret_cast<uint8_t *>(buf);
+                    for (ssize_t i=0, h=s->height(); i<h; ++i)
+                    {
+                        dsp::abgr32_to_bgra32(dst, dst, s->width());
+                        dst    += s->stride();
+                    }
+                r3d->end_draw();
+
+                s->end_direct();
+            }
         }
 
         status_t LSPArea3D::slot_draw3d(LSPWidget *sender, void *ptr, void *data)

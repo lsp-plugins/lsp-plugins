@@ -83,6 +83,11 @@ namespace lsp
 //            return (pBackend != NULL) ? pBackend->hide(pBackend) : STATUS_BAD_STATE;
 //        }
 
+        status_t IR3DBackend::sync()
+        {
+            return (pBackend != NULL) ? pBackend->sync(pBackend) : STATUS_BAD_STATE;
+        }
+
         status_t IR3DBackend::locate(ssize_t left, ssize_t top, ssize_t width, ssize_t height)
         {
             return (pBackend != NULL) ? pBackend->locate(pBackend, left, top, width, height) : STATUS_BAD_STATE;
@@ -96,6 +101,11 @@ namespace lsp
         status_t IR3DBackend::end_draw()
         {
             return (pBackend != NULL) ? pBackend->finish(pBackend) : STATUS_BAD_STATE;
+        }
+
+        status_t IR3DBackend::read_pixels(void *buf, size_t stride, r3d_pixel_format_t format)
+        {
+            return (pBackend != NULL) ? pBackend->read_pixels(pBackend, buf, stride, format) : STATUS_BAD_STATE;
         }
 
         status_t IR3DBackend::set_matrix(r3d_matrix_type_t type, const matrix3d_t *m)

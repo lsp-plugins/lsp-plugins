@@ -465,6 +465,7 @@ namespace x86
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
         EXPORT1(rgba32_to_bgra32);
+        EXPORT1(abgr32_to_bgra32);
 
         if (f.features & CPU_OPTION_CMOV)
         {

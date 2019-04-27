@@ -6,6 +6,7 @@
  */
 
 #include <ui/ctl/ctl.h>
+#include <core/3d/common.h>
 
 namespace lsp
 {
@@ -32,7 +33,27 @@ namespace lsp
 
         status_t CtlViewer3D::on_draw3d(IR3DBackend *r3d)
         {
-            // TODO
+            static const v_point3d_t points[] =
+            {
+                { { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+                { { 1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                { { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+            };
+
+            r3d_buffer_t buf;
+            buf.type    = R3D_PRIMITIVE_TRIANGLES;
+            buf.count   = 1;
+            buf.width   = 1.0f;
+
+            buf.vertex.data     = &points[0].p;
+            buf.vertex.stride   = sizeof(v_point3d_t);
+            buf.normal.data     = NULL;
+            buf.color.data      = &points[0].c;
+            buf.color.stride    = sizeof(v_point3d_t);
+            buf.index.data      = NULL;
+
+            r3d->draw_primitives(&buf);
+
             return STATUS_OK;
         }
     

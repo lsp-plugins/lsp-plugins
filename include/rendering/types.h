@@ -76,26 +76,26 @@ typedef struct r3d_buffer_t
 
     /* Vertices */
     struct {
-        point3d_t          *data;
+        const point3d_t    *data;
         size_t              stride;
     } vertex;
 
     /* Normals  */
     struct {
-        vector3d_t         *data;
+        const vector3d_t   *data;
         size_t              stride;
     } normal;
 
     /* Colors */
     struct {
-        color3d_t          *data;
+        const color3d_t    *data;
         size_t              stride;
         color3d_t           dfl;        // Default color used if color array is not specified
     } color;
 
     /* Vertex indices (always packed) */
     struct {
-        uint32_t           *data;
+        const uint32_t     *data;
     } index;
 } r3d_buffer_t;
 

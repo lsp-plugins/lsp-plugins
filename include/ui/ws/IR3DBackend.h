@@ -52,6 +52,8 @@ namespace lsp
                 status_t locate(ssize_t left, ssize_t top, ssize_t width, ssize_t height);
 
                 status_t begin_draw();
+                status_t sync();
+                status_t read_pixels(void *buf, size_t stride, r3d_pixel_format_t format);
                 status_t end_draw();
 
                 status_t set_matrix(r3d_matrix_type_t type, const matrix3d_t *m);
