@@ -137,7 +137,7 @@ namespace lsp
                     wHeight = 1;
 
                 r3d->locate(wLeft, wTop, wWidth, wHeight);
-                r3d->show();
+//                r3d->show();
             }
 
             // Store backend pointer and return
@@ -153,8 +153,8 @@ namespace lsp
                 return false;
 
             // Hide backend if it is present
-            if (pBackend != NULL)
-                pBackend->hide();
+//            if (pBackend != NULL)
+//                pBackend->hide();
 
             return true;
         }
@@ -179,7 +179,7 @@ namespace lsp
                     wHeight = 1;
 
                 r3d->locate(wLeft, wTop, wWidth, wHeight);
-                r3d->show();
+//                r3d->show();
             }
 
             return true;

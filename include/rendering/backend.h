@@ -44,17 +44,17 @@ struct r3d_backend_t
      */
     status_t    (* init)(r3d_backend_t *_this, void *window, void **out_window);
 
-    /**
-     * Show the backend's view/window
-     * @return status of operation
-     */
-    status_t    (* show)(r3d_backend_t *_this);
-
-    /**
-     * Hide the backend's view/window
-     * @return the backend's view/window
-     */
-    status_t    (* hide)(r3d_backend_t *_this);
+//    /**
+//     * Show the backend's view/window
+//     * @return status of operation
+//     */
+//    status_t    (* show)(r3d_backend_t *_this);
+//
+//    /**
+//     * Hide the backend's view/window
+//     * @return the backend's view/window
+//     */
+//    status_t    (* hide)(r3d_backend_t *_this);
 
     /**
      * @param left the leftmost coordinate of the backend's viewport relative to the parent window
@@ -77,6 +77,12 @@ struct r3d_backend_t
      * @return status of operation
      */
     status_t    (* start)(r3d_backend_t *_this);
+
+    /**
+     * Complete all pending operations
+     * @return status of operation
+     */
+    status_t    (* sync)(r3d_backend_t *_this);
 
     /**
      * Complete rendering on the window
@@ -128,6 +134,15 @@ struct r3d_backend_t
      * @return status of operation
      */
     status_t    (* get_bg_color)(r3d_backend_t *_this, color3d_t *color);
+
+    /**
+     * Read pixel data, should be in drawing state
+     * @param buf target buffer
+     * @param stride stride between two rows
+     * @param format pixel format
+     * @return status of operation
+     */
+    status_t    (* read_pixels)(r3d_backend_t *_this, void *buf, size_t stride, r3d_pixel_format_t format);
 };
 
 #endif /* RENDERING_BACKEND_H_ */

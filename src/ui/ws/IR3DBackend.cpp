@@ -72,16 +72,16 @@ namespace lsp
             pBackend    = backend;
             hWindow     = window;
         }
-    
-        status_t IR3DBackend::show()
-        {
-            return (pBackend != NULL) ? pBackend->show(pBackend) : STATUS_BAD_STATE;
-        }
-
-        status_t IR3DBackend::hide()
-        {
-            return (pBackend != NULL) ? pBackend->hide(pBackend) : STATUS_BAD_STATE;
-        }
+//
+//        status_t IR3DBackend::show()
+//        {
+//            return (pBackend != NULL) ? pBackend->show(pBackend) : STATUS_BAD_STATE;
+//        }
+//
+//        status_t IR3DBackend::hide()
+//        {
+//            return (pBackend != NULL) ? pBackend->hide(pBackend) : STATUS_BAD_STATE;
+//        }
 
         status_t IR3DBackend::locate(ssize_t left, ssize_t top, ssize_t width, ssize_t height)
         {

@@ -128,9 +128,9 @@ namespace lsp
         ::XFlush(_this->pDisplay);
 
         // Place window to the parent
-        if (_this->hParent != None)
-            ::XReparentWindow(_this->pDisplay, _this->hWnd, _this->hParent, 0, 0);
-        ::XFlush(_this->pDisplay);
+//        if (_this->hParent != None)
+//            ::XReparentWindow(_this->pDisplay, _this->hWnd, _this->hParent, 0, 0);
+//        ::XFlush(_this->pDisplay);
 
         _this->bDrawing    = false;
 
@@ -141,33 +141,33 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t glx_backend_t::show(glx_backend_t *_this)
-    {
-        if (_this->pDisplay == NULL)
-            return STATUS_BAD_STATE;
-        if (_this->bVisible)
-            return STATUS_OK;
-
-        ::XMapWindow(_this->pDisplay, _this->hWnd);
-        ::XFlush(_this->pDisplay);
-
-        _this->bVisible = true;
-        return STATUS_OK;
-    }
-
-    status_t glx_backend_t::hide(glx_backend_t *_this)
-    {
-        if (_this->pDisplay == NULL)
-            return STATUS_BAD_STATE;
-        if (!_this->bVisible)
-            return STATUS_OK;
-
-        ::XUnmapWindow(_this->pDisplay, _this->hWnd);
-        ::XFlush(_this->pDisplay);
-
-        _this->bVisible = false;
-        return STATUS_OK;
-    }
+//    status_t glx_backend_t::show(glx_backend_t *_this)
+//    {
+//        if (_this->pDisplay == NULL)
+//            return STATUS_BAD_STATE;
+//        if (_this->bVisible)
+//            return STATUS_OK;
+//
+//        ::XMapWindow(_this->pDisplay, _this->hWnd);
+//        ::XFlush(_this->pDisplay);
+//
+//        _this->bVisible = true;
+//        return STATUS_OK;
+//    }
+//
+//    status_t glx_backend_t::hide(glx_backend_t *_this)
+//    {
+//        if (_this->pDisplay == NULL)
+//            return STATUS_BAD_STATE;
+//        if (!_this->bVisible)
+//            return STATUS_OK;
+//
+//        ::XUnmapWindow(_this->pDisplay, _this->hWnd);
+//        ::XFlush(_this->pDisplay);
+//
+//        _this->bVisible = false;
+//        return STATUS_OK;
+//    }
 
     status_t glx_backend_t::locate(glx_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height)
     {
@@ -443,11 +443,48 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t glx_backend_t::sync(glx_backend_t *_this)
+    {
+        if ((_this->pDisplay == NULL) || (!_this->bDrawing))
+            return STATUS_BAD_STATE;
+
+        ::glFinish();
+        ::glFlush();
+
+        return STATUS_OK;
+    }
+
+    status_t read_pixels(glx_backend_t *_this, void *buf, size_t stride, r3d_pixel_format_t format)
+    {
+        if ((_this->pDisplay == NULL) || (!_this->bDrawing))
+            return STATUS_BAD_STATE;
+
+        size_t rowsize = _this->viewWidth * sizeof(uint32_t);
+        size_t fmt = (format == R3D_PIXEL_RGBA) ? GL_RGBA : GL_BGRA;
+        if (rowsize == stride) // Read once
+        {
+            ::glReadPixels(0, 0, _this->viewWidth, _this->viewHeight, fmt, GL_UNSIGNED_INT_8_8_8_8, buf);
+
+        }
+        else // Read row-by row
+        {
+            uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
+            for (ssize_t i=0; i<_this->viewHeight; ++i)
+            {
+                ::glReadPixels(0, 0, _this->viewWidth, 1, fmt, GL_UNSIGNED_INT_8_8_8_8, ptr);
+                ptr     += stride;
+            }
+        }
+        return STATUS_OK;
+    }
+
     status_t glx_backend_t::finish(glx_backend_t *_this)
     {
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
+        ::glFinish();
+        ::glFlush();
         ::glXSwapBuffers(_this->pDisplay, _this->hWnd);
         _this->bDrawing    = false;
 
@@ -467,15 +504,17 @@ namespace lsp
         #define R3D_GLX_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &glx_backend_t::func);
         R3D_GLX_BACKEND_EXP(init);
         R3D_GLX_BACKEND_EXP(destroy);
-        R3D_GLX_BACKEND_EXP(show);
-        R3D_GLX_BACKEND_EXP(hide);
+//        R3D_GLX_BACKEND_EXP(show);
+//        R3D_GLX_BACKEND_EXP(hide);
         R3D_GLX_BACKEND_EXP(locate);
 
         R3D_GLX_BACKEND_EXP(start);
+        R3D_GLX_BACKEND_EXP(sync);
+        R3D_GLX_BACKEND_EXP(finish);
+
         R3D_GLX_BACKEND_EXP(set_matrix);
         R3D_GLX_BACKEND_EXP(set_lights);
         R3D_GLX_BACKEND_EXP(draw_primitives);
-        R3D_GLX_BACKEND_EXP(finish);
 
         #undef R3D_GLX_BACKEND_EXP
     }

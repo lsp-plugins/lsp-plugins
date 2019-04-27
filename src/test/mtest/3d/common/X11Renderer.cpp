@@ -117,14 +117,18 @@ namespace mtest
         status_t res = pBackend->init(pBackend, reinterpret_cast<void *>(win), &hwnd);
         if (res == STATUS_OK)
             res = pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
-        if (res == STATUS_OK)
-            res = pBackend->show(pBackend);
 
+        // Reparent window and show
         if (hwnd != NULL)
         {
-            ::XSelectInput(dpy, reinterpret_cast<Window>(hwnd),
+            Window glwnd = reinterpret_cast<Window>(hwnd);
+
+            ::XReparentWindow(dpy, glwnd, win, 0, 0);
+            ::XMapWindow(dpy, glwnd);
+            ::XSelectInput(dpy, glwnd,
                 KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
             );
+            ::XSync(dpy, False);
         }
 
         return res;

@@ -16,6 +16,12 @@ enum r3d_window_handle_t
     R3D_WND_HANDLE_WINNT
 };
 
+enum r3d_pixel_format_t
+{
+    R3D_PIXEL_RGBA,
+    R3D_PIXEL_BGRA
+};
+
 enum r3d_matrix_type_t
 {
     R3D_MATRIX_PROJECTION,  /* Projection matrix */
