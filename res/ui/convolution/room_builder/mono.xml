@@ -2,7 +2,7 @@
 	<vbox spacing="4">
 		<!-- IR editor -->
 		<group text="Impulse Response">
-			<viewer3d>
+			<viewer3d width="320" height="200">
 			</viewer3d>
 		</group>
 	</vbox>

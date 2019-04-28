@@ -25,7 +25,7 @@ namespace lsp
             if (pWidget == NULL)
                 return;
 
-            LSPGraph *gr    = static_cast<LSPGraph *>(pWidget);
+            LSPGraph *gr    = widget_cast<LSPGraph>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, gr, gr->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
@@ -35,7 +35,7 @@ namespace lsp
 
         void CtlGraph::set(widget_attribute_t att, const char *value)
         {
-            LSPGraph *gr    = (pWidget != NULL) ? static_cast<LSPGraph *>(pWidget) : NULL;
+            LSPGraph *gr    = (pWidget != NULL) ? widget_cast<LSPGraph>(pWidget) : NULL;
 
             switch (att)
             {
@@ -73,7 +73,7 @@ namespace lsp
             if (pWidget == NULL)
                 return STATUS_BAD_STATE;
 
-            LSPGraph *gr    = static_cast<LSPGraph *>(pWidget);
+            LSPGraph *gr    = widget_cast<LSPGraph>(pWidget);
             return gr->add(child);
         }
     } /* namespace ctl */

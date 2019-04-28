@@ -16,6 +16,7 @@ namespace lsp
             pRegistry       = NULL;
             pWidget         = NULL;
             pDstColor       = NULL;
+            pLspColor       = NULL;
 
             for (size_t i=0; i<C_TOTAL; ++i)
             {
@@ -35,11 +36,12 @@ namespace lsp
             }
         }
 
-        void CtlColor::init(CtlRegistry *reg, LSPWidget *widget, Color *col, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
+        void CtlColor::do_init(CtlRegistry *reg, LSPWidget *widget, Color *col, LSPColor *lcol, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
         {
             pRegistry           = reg;
             pWidget             = widget;
             pDstColor           = col;
+            pLspColor           = lcol;
 
             vAttributes[C_BASIC]    = basic;
             vAttributes[C_R]        = r;
@@ -175,11 +177,12 @@ namespace lsp
             return set;
         }
 
-        bool CtlColor::bind(CtlRegistry *reg, LSPWidget *widget, Color *col)
+        bool CtlColor::do_bind(CtlRegistry *reg, LSPWidget *widget, Color *col, LSPColor *lcol)
         {
             pRegistry           = reg;
             pWidget             = widget;
             pDstColor           = col;
+            pLspColor           = lcol;
 
             LSPDisplay *dpy =  pWidget->display();
             if (dpy == NULL)
@@ -235,6 +238,8 @@ namespace lsp
         {
             if (pDstColor != NULL)
                 pDstColor->copy(sColor);
+            if (pLspColor != NULL)
+                pLspColor->copy(sColor);
             if (pWidget != NULL)
                 pWidget->query_draw();
         }

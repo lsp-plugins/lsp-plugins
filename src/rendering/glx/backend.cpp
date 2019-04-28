@@ -176,6 +176,13 @@ namespace lsp
         if (_this->pDisplay == NULL)
             return STATUS_BAD_STATE;
 
+        // Requested size does match current size?
+        if ((_this->viewLeft == left) &&
+            (_this->viewTop == top) &&
+            (_this->viewWidth == width) &&
+            (_this->viewHeight == height))
+            return STATUS_OK;
+
         if (!::XMoveResizeWindow(_this->pDisplay, _this->hWnd, left, top, width, height))
             return STATUS_UNKNOWN_ERR;
         ::XFlush(_this->pDisplay);

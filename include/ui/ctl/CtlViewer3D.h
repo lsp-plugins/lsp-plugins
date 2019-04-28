@@ -18,6 +18,11 @@ namespace lsp
         class CtlViewer3D: public CtlWidget
         {
             protected:
+                CtlColor        sColor;
+                CtlColor        sBgColor;
+                CtlPadding      sPadding;
+
+            protected:
                 static status_t slot_on_draw3d(LSPWidget *sender, void *ptr, void *data);
 
             public:
@@ -25,7 +30,11 @@ namespace lsp
                 virtual ~CtlViewer3D();
 
             public:
-                status_t    on_draw3d(IR3DBackend *r3d);
+                virtual void init();
+
+                virtual status_t    on_draw3d(IR3DBackend *r3d);
+
+                virtual void set(widget_attribute_t att, const char *value);
         };
     
     } /* namespace ctl */

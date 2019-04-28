@@ -20,12 +20,17 @@ namespace lsp
             protected:
                 LSPWidgetColor  sColor;
                 LSPWidgetColor  sBgColor;
+                LSPPadding      sIPadding;
 
                 matrix3d_t      sWorld;
                 matrix3d_t      sView;
                 matrix3d_t      sProjection;
                 IR3DBackend    *pBackend;
-                INativeWindow  *pBackendWnd;
+                ISurface       *pGlass;
+                size_t          nBorder;
+                size_t          nRadius;
+                size_t          nMinWidth;
+                size_t          nMinHeight;
 
             protected:
                 void            do_destroy();
@@ -49,8 +54,19 @@ namespace lsp
                 inline void     get_view_matrix(matrix3d_t *m) const        { *m        = sView; }
                 inline void     get_projection_matrix(matrix3d_t *m) const  { *m        = sProjection; }
 
-                inline LSPColor        *color()         { return &sColor; }
-                inline LSPColor        *bg_color()      { return &sBgColor; }
+                inline LSPPadding     *internal_padding()   { return &sIPadding;        };
+                inline LSPColor       *color()              { return &sColor;           };
+                inline LSPColor       *bg_color()           { return &sBgColor;         };
+                inline size_t          border() const       { return nBorder;           };
+                inline size_t          radius() const       { return nRadius;           };
+                inline size_t          min_width() const    { return nMinWidth;         };
+                inline size_t          min_height() const   { return nMinHeight;        };
+
+            public:
+                void            set_min_width(size_t value);
+                void            set_min_height(size_t value);
+                void            set_border(size_t value);
+                void            set_radius(size_t value);
 
             public:
                 virtual bool hide();

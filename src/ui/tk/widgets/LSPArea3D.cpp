@@ -7,6 +7,7 @@
 
 #include <ui/tk/tk.h>
 #include <dsp/endian.h>
+#include <ui/tk/helpers/draw.h>
 
 namespace lsp
 {
@@ -17,10 +18,21 @@ namespace lsp
         LSPArea3D::LSPArea3D(LSPDisplay *dpy):
             LSPWidget(dpy),
             sColor(this),
-            sBgColor(this)
+            sBgColor(this),
+            sIPadding(this)
         {
+            pClass          = &metadata;
+
             pBackend        = NULL;
-            pBackendWnd     = NULL;
+            pGlass          = NULL;
+            nBorder         = 12;
+            nRadius         = 4;
+
+            nMinWidth       = 1;
+            nMinHeight      = 1;
+
+            sIPadding.set(1, 1, 1, 1);
+//            pBackendWnd     = NULL;
 
             dsp::init_matrix3d_identity(&sWorld);
             dsp::init_matrix3d_identity(&sProjection);
@@ -68,11 +80,17 @@ namespace lsp
                 pBackend->destroy();
                 delete pBackend;
             }
-            if (pBackendWnd != NULL)
+            if (pGlass != NULL)
             {
-                pBackendWnd->destroy();
-                delete pBackendWnd;
+                pGlass->destroy();
+                delete pGlass;
+                pGlass = NULL;
             }
+//            if (pBackendWnd != NULL)
+//            {
+//                pBackendWnd->destroy();
+//                delete pBackendWnd;
+//            }
             pBackend = NULL;
         }
 
@@ -100,29 +118,29 @@ namespace lsp
             if (r3d == NULL)
                 return NULL;
 
-            INativeWindow *nwnd     = NULL;
-
-            // There is also native window handle present?
-            if (r3d->handle() != NULL)
-            {
-                // Create native window
-                nwnd = dpy->wrapWindow(r3d->handle());
-                if (wnd == NULL)
-                {
-                    r3d->destroy();
-                    return NULL;
-                }
-
-                // Initialize native window
-                if (nwnd->init() != STATUS_OK)
-                {
-                    nwnd->destroy();
-                    return NULL;
-                }
-
-                // Set-up event handler
-                nwnd->set_handler(this);
-            }
+//            INativeWindow *nwnd     = NULL;
+//
+//            // There is also native window handle present?
+//            if (r3d->handle() != NULL)
+//            {
+//                // Create native window
+//                nwnd = dpy->wrapWindow(r3d->handle());
+//                if (wnd == NULL)
+//                {
+//                    r3d->destroy();
+//                    return NULL;
+//                }
+//
+//                // Initialize native window
+//                if (nwnd->init() != STATUS_OK)
+//                {
+//                    nwnd->destroy();
+//                    return NULL;
+//                }
+//
+//                // Set-up event handler
+//                nwnd->set_handler(this);
+//            }
 
             // Resize backend
             if (visible())
@@ -143,7 +161,7 @@ namespace lsp
 
             // Store backend pointer and return
             pBackend        = r3d;
-            pBackendWnd     = nwnd;
+//            pBackendWnd     = nwnd;
 
             return pBackend;
         }
@@ -201,14 +219,66 @@ namespace lsp
         {
             LSPWidget::size_request(r);
 
-            if (r->nMinWidth < 1)
-                r->nMinWidth    = 1;
-            if (r->nMinHeight < 1)
-                r->nMinHeight   = 1;
+            ssize_t minw    = nMinWidth + sIPadding.horizontal() + (nBorder << 1);
+            ssize_t minh    = nMinHeight + sIPadding.vertical() + (nBorder << 1);
+
+            if (r->nMinWidth < minw)
+                r->nMinWidth    = minw;
+            if (r->nMinHeight < minh)
+                r->nMinHeight    = minh;
+
+            if ((r->nMaxWidth >= 0) && (r->nMaxWidth < minw))
+                r->nMaxWidth    = minw;
+            if ((r->nMaxHeight >= 0) && (r->nMaxHeight < minh))
+                r->nMaxHeight   = minh;
+        }
+
+        void LSPArea3D::set_min_width(size_t value)
+        {
+            if (nMinWidth == value)
+                return;
+            nMinWidth = value;
+            query_resize();
+        }
+
+        void LSPArea3D::set_min_height(size_t value)
+        {
+            if (nMinHeight == value)
+                return;
+            nMinHeight = value;
+            query_resize();
+        }
+
+        void LSPArea3D::set_border(size_t value)
+        {
+            if (nBorder == value)
+                return;
+            nBorder = value;
+            query_resize();
+        }
+
+        void LSPArea3D::set_radius(size_t value)
+        {
+            if (nRadius == value)
+                return;
+            nRadius = value;
+            query_resize();
         }
 
         void LSPArea3D::draw(ISurface *s)
         {
+            // Draw background part
+            ssize_t pr = (nBorder + 1) >> 1;
+            s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
+                    pr, pr, sSize.nWidth - 2*pr, sSize.nHeight - 2*pr,
+                    sBgColor);
+            s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, sColor);
+
+            // Estimate the size of the graph
+            size_t bs   = nBorder * M_SQRT2 * 0.5;
+            ssize_t gw  = sSize.nWidth  - (bs << 1);
+            ssize_t gh  = sSize.nHeight - (bs << 1);
+
             // Obtain a 3D backend and draw it if it is valid
             IR3DBackend *r3d    = backend();
             if ((r3d != NULL) && (r3d->valid()))
@@ -227,25 +297,31 @@ namespace lsp
                 pBackend->set_matrix(R3D_MATRIX_WORLD, &sWorld);
 
                 // Perform a draw call
-                void *buf = s->start_direct();
+                void *buf       = s->start_direct();
+                // Estimate the right memory offset
+                size_t stride   = s->stride();
+                uint8_t *dst    = reinterpret_cast<uint8_t *>(buf) + stride * bs + sizeof(uint32_t) * bs;
 
-                r3d->locate(0, 0, s->width(), s->height());
+                r3d->locate(0, 0, gw, gh);
                 r3d->begin_draw();
                     sSlots.execute(LSPSLOT_DRAW3D, this, r3d);
                     r3d->sync();
+                    r3d->read_pixels(dst, stride, R3D_PIXEL_RGBA);
 
-                    r3d->read_pixels(buf, s->stride(), R3D_PIXEL_RGBA);
-
-                    uint8_t *dst = reinterpret_cast<uint8_t *>(buf);
-                    for (ssize_t i=0, h=s->height(); i<h; ++i)
+                    for (ssize_t i=0; i<gh; ++i)
                     {
-                        dsp::abgr32_to_bgra32(dst, dst, s->width());
-                        dst    += s->stride();
+                        dsp::abgr32_to_bgra32(dst, dst, gw);
+                        dst    += stride;
                     }
                 r3d->end_draw();
 
                 s->end_direct();
             }
+
+            // Draw glass
+            ISurface *cv = create_border_glass(s, &pGlass, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, sColor);
+            if (cv != NULL)
+                s->draw(cv, 0, 0);
         }
 
         status_t LSPArea3D::slot_draw3d(LSPWidget *sender, void *ptr, void *data)

@@ -31,6 +31,55 @@ namespace lsp
             return (_this != NULL) ? _this->on_draw3d(reinterpret_cast<IR3DBackend *>(data)) : STATUS_OK;
         }
 
+        void CtlViewer3D::init()
+        {
+            CtlWidget::init();
+            if (pWidget == NULL)
+                return;
+
+            LSPArea3D *r3d    = widget_cast<LSPArea3D>(pWidget);
+
+            // Initialize color controllers
+            sColor.init_hsl2(pRegistry, r3d, r3d->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic2(pRegistry, r3d, r3d->bg_color(), A_BG_COLOR);
+            sPadding.init(r3d->padding());
+        }
+
+        void CtlViewer3D::set(widget_attribute_t att, const char *value)
+        {
+            LSPArea3D *r3d  = (pWidget != NULL) ? widget_cast<LSPArea3D>(pWidget) : NULL;
+
+            switch (att)
+            {
+                case A_WIDTH:
+                    if (r3d != NULL)
+                        PARSE_INT(value, r3d->set_min_width(__));
+                    break;
+                case A_HEIGHT:
+                    if (r3d != NULL)
+                        PARSE_INT(value, r3d->set_min_height(__));
+                    break;
+                case A_BORDER:
+                    if (r3d != NULL)
+                        PARSE_INT(value, r3d->set_border(__));
+                    break;
+                case A_SPACING:
+                    if (r3d != NULL)
+                        PARSE_INT(value, r3d->set_radius(__));
+                    break;
+                default:
+                {
+                    bool set = sColor.set(att, value);
+                    set |= sBgColor.set(att, value);
+                    set |= sPadding.set(att, value);
+
+                    if (!set)
+                        CtlWidget::set(att, value);
+                    break;
+                }
+            }
+        }
+
         status_t CtlViewer3D::on_draw3d(IR3DBackend *r3d)
         {
             static const v_point3d_t points[] =
