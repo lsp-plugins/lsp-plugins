@@ -11,17 +11,126 @@
 #include <errno.h>
 #include <time.h>
 
+#include <metadata/metadata.h>
+#include <core/io/Path.h>
+#include <core/io/Dir.h>
 #include <rendering/factory.h>
-#include <rendering/glx/factory.h>
 #include <test/mtest/3d/common/X11Renderer.h>
 
-namespace lsp
-{
-    extern glx_factory_t   glx_factory;
-}
+#ifdef LSP_IDE_DEBUG
+    #ifdef PLATFORM_UNIX_COMPATIBLE
+        #define USE_GLX_FACTORY
+
+        #include <rendering/glx/factory.h>
+
+        namespace lsp
+        {
+            extern glx_factory_t   glx_factory;
+        }
+    #endif
+#endif /* LSP_IDE_DEBUG */
 
 namespace mtest
 {
+    r3d_factory_t *probe_3d_backend(ipc::Library *dlib, const io::Path *path)
+    {
+        ipc::Library lib;
+
+        lsp_trace("Probing file %s as 3D rendering backend...", path->as_native());
+
+        // Open library
+        status_t res = lib.open(path);
+        if (res != STATUS_OK)
+        {
+            lsp_trace("Could not open library %s", path->as_native());
+            return NULL;
+        }
+
+        // Lookup function
+        lsp_r3d_factory_function_t func = reinterpret_cast<lsp_r3d_factory_function_t>(lib.import(R3D_FACTORY_FUNCTION_NAME));
+        if (func == NULL)
+        {
+            lsp_trace("Could not lookup function %s", R3D_FACTORY_FUNCTION_NAME);
+            lib.close();
+            return NULL;
+        }
+
+        // Try to instantiate factory
+        r3d_factory_t *factory  = func(LSP_MAIN_VERSION);
+        if (factory == NULL)
+        {
+            lsp_trace("Could not obtain factory pointer");
+            lib.close();
+            return NULL;
+        }
+
+        lib.swap(dlib);
+        return factory;
+    }
+
+    r3d_factory_t *lookup_factory(ipc::Library *dlib, const io::Path *path)
+    {
+        io::Dir dir;
+
+        status_t res = dir.open(path);
+        if (res != STATUS_OK)
+            return NULL;
+
+        io::Path child;
+        LSPString item, prefix, postfix;
+        if (!prefix.set_ascii(LSP_R3D_BACKEND_PREFIX))
+            return NULL;
+
+        io::fattr_t fattr;
+        r3d_factory_t *factory;
+        while ((res = dir.read(&item, false)) == STATUS_OK)
+        {
+            if (!item.starts_with(&prefix))
+                continue;
+
+            if ((res = child.set(path, &item)) != STATUS_OK)
+                continue;
+            if ((res = child.stat(&fattr)) != STATUS_OK)
+                continue;
+
+            switch (fattr.type)
+            {
+                case io::fattr_t::FT_DIRECTORY:
+                case io::fattr_t::FT_BLOCK:
+                case io::fattr_t::FT_CHARACTER:
+                    continue;
+                default:
+                    if ((factory = probe_3d_backend(dlib, &child)) != NULL)
+                        return factory;
+                    break;
+            }
+        }
+
+        return NULL;
+    }
+
+    r3d_factory_t *get_r3d_factory(ipc::Library *dlib)
+    {
+#ifdef USE_GLX_FACTORY
+        return &glx_factory;
+#else
+        status_t res;
+        io::Path path;
+        r3d_factory_t *factory = NULL;
+
+        res = ipc::Library::get_self_file(&path);
+        if (res == STATUS_OK)
+            res     = path.parent();
+        if (res == STATUS_OK)
+        {
+            if ((factory = lookup_factory(dlib, &path)) != NULL)
+                return factory;
+        }
+
+        return factory;
+#endif
+    }
+
     X11Renderer::X11Renderer(View3D *view)
     {
         dpy                 = NULL;
@@ -83,8 +192,16 @@ namespace mtest
 
     status_t X11Renderer::init()
     {
-        // Create GLX backend
-        pBackend        = glx_factory.create(&glx_factory, 0);
+        // Fetch factory
+        r3d_factory_t *factory = get_r3d_factory(&sLibrary);
+        if (factory == NULL)
+        {
+            lsp_error("Could not find proper 3D rendering backend");
+            return STATUS_NOT_FOUND;
+        }
+
+        // Create backend
+        pBackend        = factory->create(factory, 0);
         if (pBackend == NULL)
             return STATUS_UNKNOWN_ERR;
 

@@ -19,6 +19,7 @@
 #include <sys/poll.h>
 
 #include <rendering/backend.h>
+#include <core/ipc/Library.h>
 
 namespace mtest
 {
@@ -45,6 +46,7 @@ namespace mtest
             ssize_t                 nHeight;
             bool                    bViewChanged;
             r3d_backend_t          *pBackend;
+            ipc::Library            sLibrary;
 
         protected:
             // 3D rendering model

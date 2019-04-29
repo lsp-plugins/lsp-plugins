@@ -87,7 +87,7 @@ namespace lsp
                 return;
 
             io::Path child;
-            LSPString item, prefix;
+            LSPString item, prefix, postfix;
             if (!prefix.set_ascii(LSP_R3D_BACKEND_PREFIX))
                 return;
 

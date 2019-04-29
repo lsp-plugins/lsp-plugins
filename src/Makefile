@@ -73,7 +73,7 @@ $(UTL_FILES): utils
 
 $(UTL_JACKMAKE): utils
 
-$(OBJ_TEST_CORE): test
+$(OBJ_TEST_CORE): test rendering
 
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"

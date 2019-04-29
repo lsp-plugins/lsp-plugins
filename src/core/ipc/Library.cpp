@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/debug.h>
 #include <core/ipc/Library.h>
 
 namespace lsp
@@ -46,15 +47,20 @@ namespace lsp
                 if (str == NULL)
                     return STATUS_NO_MEM;
                 HMODULE handle  = ::LoadLibraryW(str);
+
+                if (handle == NULL)
+                    return nLastError = STATUS_NOT_FOUND;
             #else
                 const char *str  = path->get_utf8();
                 if (str == NULL)
                     return STATUS_NO_MEM;
-                void *handle    = ::dlopen(str, 0);
+                void *handle    = ::dlopen(str, RTLD_NOW);
+                if (handle == NULL)
+                {
+                    lsp_warn("Error loading module %s: %s", path->get_native(), ::dlerror());
+                    return nLastError = STATUS_NOT_FOUND;
+                }
             #endif
-
-            if (handle == NULL)
-                return nLastError = STATUS_NOT_FOUND;
 
             hDlSym  = handle;
             return nLastError = STATUS_OK;
