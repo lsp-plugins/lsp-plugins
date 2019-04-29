@@ -1,4 +1,4 @@
-SUBDIRS                 = core metadata utils 
+SUBDIRS                 = core metadata utils rendering 
 MODULES                 = $(SUBDIRS)
 CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES) 
 

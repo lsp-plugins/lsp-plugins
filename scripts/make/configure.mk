@@ -121,7 +121,7 @@ else
 	export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
 	export JACK_HEADERS     = $(shell pkg-config --cflags jack)
 	export JACK_LIBS        = $(shell pkg-config --libs jack)
-	export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu 2>/dev/null || echo "")
-	export OPENGL_LIBS      = $(shell pkg-config --libs gl glu 2>/dev/null || echo "")
+	export OPENGL_HEADERS   = $(shell pkg-config --cflags gl 2>/dev/null || echo "")
+	export OPENGL_LIBS      = $(shell pkg-config --libs gl 2>/dev/null || echo "")
 endif
 

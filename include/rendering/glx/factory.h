@@ -10,10 +10,6 @@
 
 #include <rendering/factory.h>
 
-#define R3D_FACTORY_FUNCTION_NAME       "lsp_r3d_factory"
-
-typedef LSP_LIBRARY_IMPORT r3d_factory_t *(* lsp_r3d_factory_function_t)(const char *version);
-
 namespace lsp
 {
     // GLX backend factory

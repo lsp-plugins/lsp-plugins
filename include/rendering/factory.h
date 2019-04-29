@@ -28,4 +28,8 @@ typedef struct r3d_factory_t
 
 } r3d_factory_t;
 
+#define R3D_FACTORY_FUNCTION_NAME       "lsp_r3d_factory"
+
+typedef LSP_LIBRARY_IMPORT r3d_factory_t *(* lsp_r3d_factory_function_t)(const char *version);
+
 #endif /* RENDERING_FACTORY_H_ */

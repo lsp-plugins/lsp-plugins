@@ -14,4 +14,4 @@ $(FILES):
 
 $(OBJ_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(OBJ_CORE))"
-	@$(LD) -o $(OBJ_CORE) -r $(MERGE_FLAGS) $(FILES)  
+	@$(LD) -o $(OBJ_CORE) -r $(MERGE_FLAGS) $(FILES)

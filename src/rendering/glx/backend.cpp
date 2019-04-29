@@ -5,6 +5,10 @@
  *      Author: sadko
  */
 
+#include <core/types.h>
+
+#ifdef PLATFORM_UNIX_COMPATIBLE
+
 // Common libraries
 #include <dsp/dsp.h>
 #include <core/stdlib/string.h>
@@ -536,3 +540,5 @@ namespace lsp
         #undef R3D_GLX_BACKEND_EXP
     }
 }
+
+#endif
