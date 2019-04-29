@@ -50,7 +50,7 @@ namespace lsp
     glx_factory_t   glx_factory;
 }
 
-#ifndef LSP_IDE_DEBUG
+#if !defined(LSP_IDE_DEBUG) && !defined(LSP_PROFILING)
     #include <metadata/metadata.h>
     #include <core/stdlib/string.h>
 
@@ -74,7 +74,7 @@ namespace lsp
     #ifdef __cplusplus
     }
     #endif /* __cplusplus */
-#endif /* LSP_IDE_DEBUG */
+#endif /* LSP_IDE_DEBUG || LSP_PROFILING */
 
 #endif /* PLATFORM_UNIX_COMPATIBLE */
 

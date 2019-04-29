@@ -287,6 +287,10 @@ namespace lsp
             return STATUS_SUCCESS;
         }
 
+        void IDisplay::sync()
+        {
+        }
+
         void IDisplay::deregister_backend(IR3DBackend *backend)
         {
             // Try to remove backend

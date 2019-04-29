@@ -21,6 +21,10 @@ namespace lsp
 
     status_t r3d_base_backend_t::init(r3d_base_backend_t *_this)
     {
+        _this->viewLeft         = 0;
+        _this->viewTop          = 0;
+        _this->viewWidth        = 1;
+        _this->viewHeight       = 1;
         _this->colBackground.r  = 0.0f;
         _this->colBackground.g  = 0.0f;
         _this->colBackground.b  = 0.0f;

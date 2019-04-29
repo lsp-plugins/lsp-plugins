@@ -122,7 +122,7 @@ namespace lsp
                     status_t            lock_events(X11Window *wnd, X11Window *lock);
                     status_t            unlock_events(X11Window *wnd);
 
-                    void                sync();
+                    virtual void        sync();
                     void                flush();
 
                 public:

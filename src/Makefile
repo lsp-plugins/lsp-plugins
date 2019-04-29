@@ -38,7 +38,7 @@ endif
 
 ifeq ($(NEED_PLUGINS), 1)
   SUBDIRS                += dsp plugins container
-  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS)
+  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS) rendering
 endif
 ifeq ($(NEED_UI),1)
   SUBDIRS                += ui

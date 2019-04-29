@@ -69,10 +69,6 @@ namespace lsp
                 void            set_radius(size_t value);
 
             public:
-                virtual bool hide();
-
-                virtual bool show();
-
                 virtual void draw(ISurface *s);
 
                 virtual void realize(const realize_t *r);

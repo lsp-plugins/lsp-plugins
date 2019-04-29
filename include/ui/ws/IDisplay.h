@@ -82,6 +82,8 @@ namespace lsp
                 virtual size_t screens();
                 virtual size_t default_screen();
 
+                virtual void sync();
+
                 virtual status_t screen_size(size_t screen, ssize_t *w, ssize_t *h);
 
             public:

@@ -24,5 +24,5 @@ $(GLX_IMPL):
 	@echo "  $(CXX) $(FILE)"
 	@mkdir -p $(dir $(@))
 	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(XLIB_HEADERS) $(OPENGL_HEADERS)
-	
+
 

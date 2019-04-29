@@ -31,6 +31,17 @@ namespace lsp
             return (_this != NULL) ? _this->on_draw3d(reinterpret_cast<IR3DBackend *>(data)) : STATUS_OK;
         }
 
+        status_t CtlViewer3D::redraw_area(timestamp_t ts, void *arg)
+        {
+            if (arg == NULL)
+                return STATUS_OK;
+            CtlViewer3D *_this = static_cast<CtlViewer3D *>(arg);
+
+            if ((_this->pWidget != NULL) && (_this->pWidget->visible()))
+                _this->pWidget->query_draw();
+            return STATUS_OK;
+        }
+
         void CtlViewer3D::init()
         {
             CtlWidget::init();
@@ -43,6 +54,10 @@ namespace lsp
             sColor.init_hsl2(pRegistry, r3d, r3d->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             sBgColor.init_basic2(pRegistry, r3d, r3d->bg_color(), A_BG_COLOR);
             sPadding.init(r3d->padding());
+
+            sTimer.bind(r3d->display());
+            sTimer.set_handler(redraw_area, this);
+            sTimer.launch(-1, 250); // Schedule at 4 hz rate
         }
 
         void CtlViewer3D::set(widget_attribute_t att, const char *value)

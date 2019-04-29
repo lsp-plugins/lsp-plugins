@@ -21,9 +21,11 @@ namespace lsp
                 CtlColor        sColor;
                 CtlColor        sBgColor;
                 CtlPadding      sPadding;
+                LSPTimer        sTimer;
 
             protected:
                 static status_t slot_on_draw3d(LSPWidget *sender, void *ptr, void *data);
+                static status_t redraw_area(timestamp_t ts, void *arg);
 
             public:
                 explicit CtlViewer3D(CtlRegistry *src, LSPArea3D *widget);

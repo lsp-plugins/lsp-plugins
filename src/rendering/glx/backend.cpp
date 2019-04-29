@@ -10,6 +10,7 @@
 #ifdef PLATFORM_UNIX_COMPATIBLE
 
 // Common libraries
+#include <core/debug.h>
 #include <dsp/dsp.h>
 #include <core/stdlib/string.h>
 #include <rendering/glx/backend.h>
@@ -25,6 +26,9 @@ static GLint *glx_visuals[] =
     rgba24, rgba16, rgba15, rgba,
     NULL
 };
+
+//#define TRACK_GL_ERRORS { GLenum glErr; while ((glErr = glGetError()) != GL_NO_ERROR) lsp_error("GL ERROR code=%d", int(glErr)); }
+#define TRACK_GL_ERRORS
 
 namespace lsp
 {
@@ -66,7 +70,6 @@ namespace lsp
         status_t res = r3d_base_backend_t::init(_this);
         if (res != STATUS_OK)
             return res;
-
 
         // Open display
         _this->pDisplay = ::XOpenDisplay(NULL);
@@ -130,12 +133,6 @@ namespace lsp
 
         // Flush changes
         ::XFlush(_this->pDisplay);
-
-        // Place window to the parent
-//        if (_this->hParent != None)
-//            ::XReparentWindow(_this->pDisplay, _this->hWnd, _this->hParent, 0, 0);
-//        ::XFlush(_this->pDisplay);
-//        ::XMapWindow(_this->pDisplay, _this->hWnd);
         ::XSync(_this->pDisplay, False);
 
         _this->bDrawing    = false;
@@ -146,34 +143,6 @@ namespace lsp
 
         return STATUS_OK;
     }
-
-//    status_t glx_backend_t::show(glx_backend_t *_this)
-//    {
-//        if (_this->pDisplay == NULL)
-//            return STATUS_BAD_STATE;
-//        if (_this->bVisible)
-//            return STATUS_OK;
-//
-//        ::XMapWindow(_this->pDisplay, _this->hWnd);
-//        ::XFlush(_this->pDisplay);
-//
-//        _this->bVisible = true;
-//        return STATUS_OK;
-//    }
-//
-//    status_t glx_backend_t::hide(glx_backend_t *_this)
-//    {
-//        if (_this->pDisplay == NULL)
-//            return STATUS_BAD_STATE;
-//        if (!_this->bVisible)
-//            return STATUS_OK;
-//
-//        ::XUnmapWindow(_this->pDisplay, _this->hWnd);
-//        ::XFlush(_this->pDisplay);
-//
-//        _this->bVisible = false;
-//        return STATUS_OK;
-//    }
 
     status_t glx_backend_t::locate(glx_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height)
     {
@@ -190,7 +159,9 @@ namespace lsp
         if (!::XMoveResizeWindow(_this->pDisplay, _this->hWnd, left, top, width, height))
             return STATUS_UNKNOWN_ERR;
         ::XFlush(_this->pDisplay);
+        ::XSync(_this->pDisplay, False);
 
+        // Update parameters
         _this->viewLeft    = left;
         _this->viewTop     = top;
         _this->viewWidth   = width;
@@ -206,35 +177,49 @@ namespace lsp
 
         // Enable context
         ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
+        TRACK_GL_ERRORS
         ::glViewport(0, 0, _this->viewWidth, _this->viewHeight);
+        TRACK_GL_ERRORS
 
         // Enable depth test and culling
         ::glEnable(GL_DEPTH_TEST);
+        TRACK_GL_ERRORS
         ::glEnable(GL_CULL_FACE);
+        TRACK_GL_ERRORS
         ::glCullFace(GL_BACK);
+        TRACK_GL_ERRORS
         ::glEnable(GL_COLOR_MATERIAL);
+        TRACK_GL_ERRORS
 
         // Tune lighting
         ::glShadeModel(GL_SMOOTH);
+        TRACK_GL_ERRORS
         ::glEnable(GL_RESCALE_NORMAL);
+        TRACK_GL_ERRORS
 
         // Load matrices
         ::glMatrixMode(GL_PROJECTION);
         ::glLoadMatrixf(_this->matProjection.m);
+        TRACK_GL_ERRORS
 
         ::glMatrixMode(GL_MODELVIEW);
-        matrix3d_t view;
-        matrix_mul(&view, &_this->matWorld, &_this->matView);
-        ::glLoadMatrixf(view.m);
+        ::glLoadMatrixf(_this->matWorld.m);
+        ::glMultMatrixf(_this->matView.m);
+        TRACK_GL_ERRORS
 
         // Special tuning for non-poligonal primitives
         ::glPolygonOffset(-1, -1);
+        TRACK_GL_ERRORS
         ::glEnable(GL_POLYGON_OFFSET_POINT);
+        TRACK_GL_ERRORS
 
         // Clear buffer
-        glClearColor(_this->colBackground.r, _this->colBackground.g, _this->colBackground.b, _this->colBackground.a);
-        glClearDepth(1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ::glClearColor(_this->colBackground.r, _this->colBackground.g, _this->colBackground.b, _this->colBackground.a);
+        TRACK_GL_ERRORS
+        ::glClearDepth(1.0);
+        TRACK_GL_ERRORS
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        TRACK_GL_ERRORS
 
         // Mark as started
         _this->bDrawing        = true;
@@ -254,9 +239,8 @@ namespace lsp
             ::glLoadMatrixf(_this->matProjection.m);
 
             ::glMatrixMode(GL_MODELVIEW);
-            matrix3d_t view;
-            matrix_mul(&view, &_this->matWorld, &_this->matView);
-            ::glLoadMatrixf(view.m);
+            ::glLoadMatrixf(_this->matWorld.m);
+            ::glMultMatrixf(_this->matView.m);
         }
 
         return res;
@@ -462,7 +446,9 @@ namespace lsp
             return STATUS_BAD_STATE;
 
         ::glFinish();
+        TRACK_GL_ERRORS
         ::glFlush();
+        TRACK_GL_ERRORS
 
         return STATUS_OK;
     }
@@ -472,21 +458,9 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-//        size_t rowsize = _this->viewWidth * sizeof(uint32_t);
+        ::glReadBuffer(GL_BACK);
+
         size_t fmt = (format == R3D_PIXEL_RGBA) ? GL_RGBA : GL_BGRA;
-//        if (rowsize == stride) // Read once
-//        {
-//            ::glReadPixels(0, 0, _this->viewWidth, _this->viewHeight, fmt, GL_UNSIGNED_INT_8_8_8_8, buf);
-//        }
-//        else // Read row-by row
-//        {
-//            uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
-//            for (ssize_t i=0; i<_this->viewHeight; ++i)
-//            {
-//                ::glReadPixels(0, i, _this->viewWidth, i, fmt, GL_UNSIGNED_INT_8_8_8_8, ptr);
-//                ptr     += stride;
-//            }
-//        }
         uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
         for (ssize_t i=0; i<_this->viewHeight; ++i)
         {
@@ -504,8 +478,12 @@ namespace lsp
             return STATUS_BAD_STATE;
 
         ::glFinish();
+        TRACK_GL_ERRORS
         ::glFlush();
+        TRACK_GL_ERRORS
         ::glXSwapBuffers(_this->pDisplay, _this->hWnd);
+        ::glFinish();
+        ::glFlush();
         _this->bDrawing    = false;
 
         return STATUS_OK;

@@ -86,11 +86,7 @@ namespace lsp
                 delete pGlass;
                 pGlass = NULL;
             }
-//            if (pBackendWnd != NULL)
-//            {
-//                pBackendWnd->destroy();
-//                delete pBackendWnd;
-//            }
+
             pBackend = NULL;
         }
 
@@ -98,6 +94,8 @@ namespace lsp
         {
             if (pBackend != NULL)
                 return pBackend;
+
+            lsp_trace("Creating 3D backend");
 
             // Obtain the necessary information
             IDisplay *dpy = pDisplay->display();
@@ -118,90 +116,11 @@ namespace lsp
             if (r3d == NULL)
                 return NULL;
 
-//            INativeWindow *nwnd     = NULL;
-//
-//            // There is also native window handle present?
-//            if (r3d->handle() != NULL)
-//            {
-//                // Create native window
-//                nwnd = dpy->wrapWindow(r3d->handle());
-//                if (wnd == NULL)
-//                {
-//                    r3d->destroy();
-//                    return NULL;
-//                }
-//
-//                // Initialize native window
-//                if (nwnd->init() != STATUS_OK)
-//                {
-//                    nwnd->destroy();
-//                    return NULL;
-//                }
-//
-//                // Set-up event handler
-//                nwnd->set_handler(this);
-//            }
-
-            // Resize backend
-            if (visible())
-            {
-                ssize_t wLeft = left();
-                ssize_t wTop = top();
-                ssize_t wWidth = width();
-                ssize_t wHeight = height();
-
-                if (wWidth <= 0)
-                    wWidth  = 1;
-                if (wHeight <= 0)
-                    wHeight = 1;
-
-                r3d->locate(wLeft, wTop, wWidth, wHeight);
-//                r3d->show();
-            }
-
             // Store backend pointer and return
+            pDisplay->sync();
             pBackend        = r3d;
-//            pBackendWnd     = nwnd;
 
             return pBackend;
-        }
-
-        bool LSPArea3D::hide()
-        {
-            if (!LSPWidget::hide())
-                return false;
-
-            // Hide backend if it is present
-//            if (pBackend != NULL)
-//                pBackend->hide();
-
-            return true;
-        }
-
-        bool LSPArea3D::show()
-        {
-            if (!LSPWidget::show())
-                return false;
-
-            // Obtain backend and show it
-            IR3DBackend *r3d    = backend();
-            if (r3d != NULL)
-            {
-                ssize_t wLeft = left();
-                ssize_t wTop = top();
-                ssize_t wWidth = width();
-                ssize_t wHeight = height();
-
-                if (wWidth <= 0)
-                    wWidth  = 1;
-                if (wHeight <= 0)
-                    wHeight = 1;
-
-                r3d->locate(wLeft, wTop, wWidth, wHeight);
-//                r3d->show();
-            }
-
-            return true;
         }
 
         void LSPArea3D::realize(const realize_t *r)
@@ -267,6 +186,8 @@ namespace lsp
 
         void LSPArea3D::draw(ISurface *s)
         {
+            lsp_trace("left=%d, top=%d, width=%d, height=%d",
+                    int(sSize.nLeft), int(sSize.nTop), int(sSize.nWidth), int(sSize.nHeight));
             // Draw background part
             ssize_t pr = (nBorder + 1) >> 1;
             s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
@@ -283,6 +204,8 @@ namespace lsp
             IR3DBackend *r3d    = backend();
             if ((r3d != NULL) && (r3d->valid()))
             {
+                lsp_trace("r3d context seems to be valid");
+
                 // Update backend color
                 color3d_t c;
                 c.r     = sColor.red();
@@ -303,6 +226,8 @@ namespace lsp
                 uint8_t *dst    = reinterpret_cast<uint8_t *>(buf) + stride * bs + sizeof(uint32_t) * bs;
 
                 r3d->locate(0, 0, gw, gh);
+                pDisplay->sync();
+
                 r3d->begin_draw();
                     sSlots.execute(LSPSLOT_DRAW3D, this, r3d);
                     r3d->sync();
@@ -316,6 +241,11 @@ namespace lsp
                 r3d->end_draw();
 
                 s->end_direct();
+            }
+            else
+            {
+                lsp_trace("r3d context is not valid");
+                s->fill_rect(bs, bs, gw, gh, sColor);
             }
 
             // Draw glass
