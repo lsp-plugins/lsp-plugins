@@ -20,17 +20,19 @@ namespace lsp
 {
     typedef struct glx_backend_t: public r3d_base_backend_t
     {
-        Display    *pDisplay;
-        Window      hParent;
-        Window      hWnd;
-        GLXContext  hContext;
-        bool        bVisible;
-        bool        bDrawing;
+        Display        *pDisplay;
+        Window          hWnd;
+        GLXPbuffer      hPBuffer;
+        GLXContext      hContext;
+        GLXFBConfig    *pFBConfig;
+        bool            bVisible;
+        bool            bDrawing;
+        bool            bPBuffer;
 
         static void     destroy(glx_backend_t *_this);
-        static status_t init(glx_backend_t *_this, Window window, void **out_window);
-//        static status_t show(glx_backend_t *_this);
-//        static status_t hide(glx_backend_t *_this);
+        static status_t init_window(glx_backend_t *_this, void **out_window);
+        static status_t init_offscreen(glx_backend_t *_this);
+
         static status_t locate(glx_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height);
         static status_t start(glx_backend_t *_this);
         static status_t set_matrix(glx_backend_t *_this, r3d_matrix_type_t type, const matrix3d_t *m);

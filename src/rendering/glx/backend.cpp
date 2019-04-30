@@ -21,9 +21,20 @@ static GLint rgba16[]       = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GL
 static GLint rgba15[]       = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 5, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None };
 static GLint rgba[]         = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 
+static int pb_rgba24[]      = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, None };
+static int pb_rgba16[]      = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, None };
+static int pb_rgba15[]      = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 5, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, None };
+static int pb_rgba[]        = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_DEPTH_SIZE, 24, None };
+
 static GLint *glx_visuals[] =
 {
     rgba24, rgba16, rgba15, rgba,
+    NULL
+};
+
+static const int *glx_pb_config[] =
+{
+    pb_rgba24, pb_rgba16, pb_rgba15, pb_rgba,
     NULL
 };
 
@@ -34,6 +45,13 @@ namespace lsp
 {
     void glx_backend_t::destroy(glx_backend_t *_this)
     {
+        // Destroy pBuffer
+        if (_this->hPBuffer != None)
+        {
+            ::glXDestroyPbuffer(_this->pDisplay, _this->hPBuffer);
+            _this->hPBuffer     = None;
+        }
+
         // Destroy GLX Context
         if (_this->hContext != NULL)
         {
@@ -51,7 +69,7 @@ namespace lsp
         // Destroy X11 display
         if (_this->pDisplay != NULL)
         {
-            ::XFlush(_this->pDisplay);
+            ::XSync(_this->pDisplay, False);
             ::XCloseDisplay(_this->pDisplay);
             _this->pDisplay    = NULL;
         }
@@ -60,7 +78,7 @@ namespace lsp
         r3d_base_backend_t::destroy(_this);
     }
 
-    status_t glx_backend_t::init(glx_backend_t *_this, Window window, void **out_window)
+    status_t glx_backend_t::init_window(glx_backend_t *_this, void **out_window)
     {
         // Check that already initialized
         if (_this->pDisplay != NULL)
@@ -75,18 +93,6 @@ namespace lsp
         _this->pDisplay = ::XOpenDisplay(NULL);
         if (_this->pDisplay == NULL)
             return STATUS_NO_DEVICE;
-
-        // Save window
-        _this->hParent         = window;
-
-        // Check that window exists
-        XWindowAttributes atts;
-        if (!::XGetWindowAttributes(_this->pDisplay, _this->hParent, &atts))
-        {
-            ::XCloseDisplay(_this->pDisplay);
-            _this->pDisplay    = NULL;
-            return STATUS_BAD_ARGUMENTS;
-        }
 
         int screen      = DefaultScreen(_this->pDisplay);
         Window root     = RootWindow(_this->pDisplay, screen);
@@ -135,7 +141,8 @@ namespace lsp
         ::XFlush(_this->pDisplay);
         ::XSync(_this->pDisplay, False);
 
-        _this->bDrawing    = false;
+        _this->bDrawing     = false;
+        _this->bPBuffer     = false;
 
         // Return result
         if (out_window != NULL)
@@ -144,22 +151,109 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t glx_backend_t::init_offscreen(glx_backend_t *_this)
+    {
+        // Check that already initialized
+        if (_this->pDisplay != NULL)
+            return STATUS_BAD_STATE;
+
+        // Initialize parent structure
+        status_t res = r3d_base_backend_t::init(_this);
+        if (res != STATUS_OK)
+            return res;
+
+        // Open display
+        _this->pDisplay = ::XOpenDisplay(NULL);
+        if (_this->pDisplay == NULL)
+            return STATUS_NO_DEVICE;
+
+        // Choose FB config
+        GLXFBConfig *fbc    = NULL;
+        int screen          = DefaultScreen(_this->pDisplay);
+        int nfbelements;
+        for (const int **atts = glx_pb_config; *atts != NULL; ++atts)
+        {
+            if ((fbc = ::glXChooseFBConfig(_this->pDisplay, screen, *atts, &nfbelements)) != NULL)
+                break;
+        }
+
+        // Success story?
+        if ((fbc == NULL) || (nfbelements <= 0))
+        {
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
+            return STATUS_UNSUPPORTED_DEVICE;
+        }
+
+        // Create context
+        _this->hContext = ::glXCreateNewContext(_this->pDisplay, fbc[0], GLX_RGBA_TYPE, NULL, GL_TRUE);
+        if (_this->hContext == NULL)
+        {
+            ::XFree(fbc);
+            ::XCloseDisplay(_this->pDisplay);
+            _this->pDisplay    = NULL;
+            return STATUS_NO_DEVICE;
+        }
+
+        // Flush changes
+        ::XFlush(_this->pDisplay);
+        ::XSync(_this->pDisplay, False);
+
+        _this->bDrawing     = false;
+        _this->bPBuffer     = true;
+        _this->pFBConfig    = fbc;
+
+        return STATUS_OK;
+    }
+
     status_t glx_backend_t::locate(glx_backend_t *_this, ssize_t left, ssize_t top, ssize_t width, ssize_t height)
     {
-        if (_this->pDisplay == NULL)
+        if ((_this->pDisplay == NULL) || (_this->bDrawing))
             return STATUS_BAD_STATE;
 
         // Requested size does match current size?
-        if ((_this->viewLeft == left) &&
-            (_this->viewTop == top) &&
-            (_this->viewWidth == width) &&
-            (_this->viewHeight == height))
-            return STATUS_OK;
+        if (_this->bPBuffer)
+        {
+            if ((_this->viewWidth == width) &&
+                (_this->viewHeight == height) &&
+                (_this->hPBuffer != None))
+            {
+                // These attributes don't matter
+                _this->viewLeft    = left;
+                _this->viewTop     = top;
+                return STATUS_OK;
+            }
 
-        if (!::XMoveResizeWindow(_this->pDisplay, _this->hWnd, left, top, width, height))
-            return STATUS_UNKNOWN_ERR;
-        ::XFlush(_this->pDisplay);
-        ::XSync(_this->pDisplay, False);
+            // Destroy previously used pBuffer
+            if (_this->hPBuffer != None)
+            {
+                ::glXDestroyPbuffer(_this->pDisplay, _this->hPBuffer);
+                _this->hPBuffer     = None;
+            }
+
+            // Create new pBuffer
+            int pbuffer_attributes[]={
+                  GLX_PBUFFER_WIDTH, int(width),
+                  GLX_PBUFFER_HEIGHT, int(height),
+                  GLX_NONE
+                };
+            _this->hPBuffer    = ::glXCreatePbuffer(_this->pDisplay, _this->pFBConfig[0], pbuffer_attributes);
+            if (_this->hPBuffer == None)
+                return STATUS_NO_MEM;
+        }
+        else
+        {
+            if ((_this->viewLeft == left) &&
+                (_this->viewTop == top) &&
+                (_this->viewWidth == width) &&
+                (_this->viewHeight == height))
+                return STATUS_OK;
+
+            if (!::XMoveResizeWindow(_this->pDisplay, _this->hWnd, left, top, width, height))
+                return STATUS_UNKNOWN_ERR;
+            ::XFlush(_this->pDisplay);
+            ::XSync(_this->pDisplay, False);
+        }
 
         // Update parameters
         _this->viewLeft    = left;
@@ -175,11 +269,20 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        // Enable context
-        ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
-        TRACK_GL_ERRORS
-        ::glViewport(0, 0, _this->viewWidth, _this->viewHeight);
-        TRACK_GL_ERRORS
+        // Setup current GLX context
+        if (_this->bPBuffer)
+        {
+            ::glXMakeContextCurrent(_this->pDisplay, _this->hPBuffer, _this->hPBuffer, _this->hContext);
+            ::glDrawBuffer(GL_FRONT);
+        }
+        else
+        {
+            ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
+            TRACK_GL_ERRORS
+            ::glViewport(0, 0, _this->viewWidth, _this->viewHeight);
+            TRACK_GL_ERRORS
+            ::glDrawBuffer(GL_BACK);
+        }
 
         // Enable depth test and culling
         ::glEnable(GL_DEPTH_TEST);
@@ -458,7 +561,7 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        ::glReadBuffer(GL_BACK);
+        ::glReadBuffer(_this->bPBuffer ? GL_BACK : GL_FRONT);
 
         size_t fmt = (format == R3D_PIXEL_RGBA) ? GL_RGBA : GL_BGRA;
         uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
@@ -481,9 +584,10 @@ namespace lsp
         TRACK_GL_ERRORS
         ::glFlush();
         TRACK_GL_ERRORS
-        ::glXSwapBuffers(_this->pDisplay, _this->hWnd);
-        ::glFinish();
-        ::glFlush();
+
+        if (!_this->bPBuffer)
+            ::glXSwapBuffers(_this->pDisplay, _this->hWnd);
+
         _this->bDrawing    = false;
 
         return STATUS_OK;
@@ -492,18 +596,19 @@ namespace lsp
     glx_backend_t::glx_backend_t()
     {
         pDisplay    = NULL;
-        hParent     = None;
         hWnd        = None;
+        hPBuffer    = None;
+        pFBConfig   = NULL;
         hContext    = NULL;
         bVisible    = false;
         bDrawing    = false;
+        bPBuffer    = false;
 
         // Export virtual table
         #define R3D_GLX_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &glx_backend_t::func);
-        R3D_GLX_BACKEND_EXP(init);
+        R3D_GLX_BACKEND_EXP(init_window);
+        R3D_GLX_BACKEND_EXP(init_offscreen);
         R3D_GLX_BACKEND_EXP(destroy);
-//        R3D_GLX_BACKEND_EXP(show);
-//        R3D_GLX_BACKEND_EXP(hide);
         R3D_GLX_BACKEND_EXP(locate);
 
         R3D_GLX_BACKEND_EXP(start);

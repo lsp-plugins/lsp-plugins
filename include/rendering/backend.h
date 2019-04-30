@@ -37,24 +37,19 @@ struct r3d_backend_t
     void        (* destroy)(r3d_backend_t *_this);
 
     /**
-     * Initialize backend
+     * Initialize backend as a native window, all window manipulations
+     * should be done by the host
      * @param window native window handle to work with
      * @param out_window pointer to store the created window handle
      * @return status of operation
      */
-    status_t    (* init)(r3d_backend_t *_this, void *window, void **out_window);
+    status_t    (* init_window)(r3d_backend_t *_this, void **out_window);
 
-//    /**
-//     * Show the backend's view/window
-//     * @return status of operation
-//     */
-//    status_t    (* show)(r3d_backend_t *_this);
-//
-//    /**
-//     * Hide the backend's view/window
-//     * @return the backend's view/window
-//     */
-//    status_t    (* hide)(r3d_backend_t *_this);
+    /**
+     * Initialize backend as an off-screen buffer
+     * @return status of operation
+     */
+    status_t    (* init_offscreen)(r3d_backend_t *_this);
 
     /**
      * @param left the leftmost coordinate of the backend's viewport relative to the parent window

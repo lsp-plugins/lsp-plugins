@@ -333,11 +333,15 @@ namespace lsp
 
             // Initialize backend
             void *handle = NULL;
-            status_t res = backend->init(backend, parent->handle(), &handle);
+            status_t res = backend->init_offscreen(backend);
             if (res != STATUS_OK)
             {
-                backend->destroy(backend);
-                return NULL;
+                res = backend->init_window(backend, &handle);
+                if (res != STATUS_OK)
+                {
+                    backend->destroy(backend);
+                    return NULL;
+                }
             }
 
             // Create R3D backend wrapper
@@ -406,12 +410,16 @@ namespace lsp
                 if (backend != NULL)
                 {
                     // Initialize backend
-                    status_t res = backend->init(backend, r3d->hParent, &handle);
+                    status_t res = backend->init_offscreen(backend);
                     if (res != STATUS_OK)
                     {
-                        backend->destroy(backend);
-                        backend = NULL;
-                        handle  = NULL;
+                        res = backend->init_window(backend, &handle);
+                        if (res != STATUS_OK)
+                        {
+                            backend->destroy(backend);
+                            backend = NULL;
+                            handle  = NULL;
+                        }
                     }
                 }
 

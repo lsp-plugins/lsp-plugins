@@ -151,7 +151,6 @@ namespace lsp
 
         // Initialize vtable
         #define R3D_BASE_BACKEND_EXP(func)   export_func(r3d_backend_t::func, &r3d_base_backend_t::func);
-        R3D_BASE_BACKEND_EXP(init);
         R3D_BASE_BACKEND_EXP(destroy);
         R3D_BASE_BACKEND_EXP(locate);
         R3D_BASE_BACKEND_EXP(set_matrix);

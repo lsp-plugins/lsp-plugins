@@ -232,7 +232,7 @@ namespace mtest
         ::XStoreName(dpy, win, "3D Viewer");
 
         void *hwnd = NULL;
-        status_t res = pBackend->init(pBackend, reinterpret_cast<void *>(win), &hwnd);
+        status_t res = pBackend->init_window(pBackend, &hwnd);
         if (res == STATUS_OK)
             res = pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
 
