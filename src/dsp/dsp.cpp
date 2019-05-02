@@ -250,6 +250,7 @@ namespace dsp
     void    (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
     void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
     void    (* abgr32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
+    void    (* abgr32_to_bgrff32)(void *dst, const void *src, size_t count) = NULL;
     void    (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count) = NULL;
     void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;
     void    (* rgba_to_hsla)(float *dst, const float *src, size_t count) = NULL;

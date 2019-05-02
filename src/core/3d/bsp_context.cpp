@@ -502,7 +502,7 @@ namespace lsp
 
         RT_TRACE_BREAK(debug,
             lsp_trace("Full content");
-            trace_recursive(root, &C_GREEN);
+            trace_recursive(root, &C3D_GREEN);
         );
 
         do

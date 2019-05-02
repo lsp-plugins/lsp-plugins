@@ -295,7 +295,7 @@ namespace lsp
                 for (size_t i=0, n=tasks->size(); i<n; ++i)
                 {
                     rt_context_t *ctx = tasks->at(i);
-                    trace->pDebug->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+                    trace->pDebug->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
                 }
             );
         }
@@ -317,16 +317,16 @@ namespace lsp
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Testing bound box");
 
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             v_vertex3d_t v[3];
             for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
             {
                 v[0].p      = box.p[bbox_map[j++]];
-                v[0].c      = C_YELLOW;
+                v[0].c      = C3D_YELLOW;
                 v[1].p      = box.p[bbox_map[j++]];
-                v[1].c      = C_YELLOW;
+                v[1].c      = C3D_YELLOW;
                 v[2].p      = box.p[bbox_map[j++]];
-                v[2].c      = C_YELLOW;
+                v[2].c      = C3D_YELLOW;
 
                 dsp::calc_normal3d_p3(&v[0].n, &v[0].p, &v[1].p, &v[2].p);
                 v[1].n      = v[0].n;
@@ -413,7 +413,7 @@ namespace lsp
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Prepared scene (%d triangles)", int(root.triangle.size()));
             for (size_t i=0,n=root.triangle.size(); i<n; ++i)
-                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
 
         // Normalize capture volume
@@ -446,7 +446,7 @@ namespace lsp
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Added capture objects (%d triangles)", int(root.triangle.size()));
             for (size_t i=0,n=root.triangle.size(); i<n; ++i)
-                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
 
         return res;
@@ -459,7 +459,7 @@ namespace lsp
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Scanning objects...");
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
         )
 
         // Initialize context's view
@@ -525,12 +525,12 @@ namespace lsp
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Fetched %d objects", int(n_objs));
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
 
             for (size_t i=0, n=ctx->plan.items.size(); i<n; ++i)
-                ctx->trace.add_segment(ctx->plan.items.get(i), &C_YELLOW);
+                ctx->trace.add_segment(ctx->plan.items.get(i), &C3D_YELLOW);
         )
 
         // Update state
@@ -642,9 +642,9 @@ namespace lsp
     {
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Performing depth test...");
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C_RED);
+                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C3D_RED);
         )
 
         // Perform cullback
@@ -654,9 +654,9 @@ namespace lsp
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("After depth test %d triangles", int(ctx->triangle.size()));
-        ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+        ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C_GREEN);
+                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C3D_GREEN);
         );
 
         if (ctx->triangle.size() <= 0)
@@ -781,12 +781,12 @@ namespace lsp
                 lsp_trace("Distance between source point and triangle: %f", distance);
                 lsp_trace("oid = %d, caprues.size=%d", int(ct->oid), int(trace->vCaptures.size()));
 
-                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
-                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C_GREEN);
-                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-                ctx->trace.add_segment(&p[0], &ct->v[0], &C_RED);
-                ctx->trace.add_segment(&p[1], &ct->v[1], &C_GREEN);
-                ctx->trace.add_segment(&p[2], &ct->v[2], &C_BLUE);
+                ctx->trace.add_triangle_1c(ct, &C3D_YELLOW);
+                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C3D_GREEN);
+                ctx->trace.add_view_1c(&sv, &C3D_MAGENTA);
+                ctx->trace.add_segment(&p[0], &ct->v[0], &C3D_RED);
+                ctx->trace.add_segment(&p[1], &ct->v[1], &C3D_GREEN);
+                ctx->trace.add_segment(&p[2], &ct->v[2], &C3D_BLUE);
             )
 
             cv          = v;
@@ -824,9 +824,9 @@ namespace lsp
                     lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
                             m->absorption[0], m->transparency[0], m->permeability, m->dispersion[0], m->dissipation[0]);
 
-                    ctx->trace.add_view_1c(&sv, &C_RED);
-                    ctx->trace.add_view_1c(&rv, &C_GREEN);
-                    ctx->trace.add_view_1c(&tv, &C_CYAN);
+                    ctx->trace.add_view_1c(&sv, &C3D_RED);
+                    ctx->trace.add_view_1c(&rv, &C3D_GREEN);
+                    ctx->trace.add_view_1c(&tv, &C3D_CYAN);
                 )
             }
             else
@@ -860,9 +860,9 @@ namespace lsp
                     lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
                             m->absorption[1], m->transparency[1], m->permeability, m->dispersion[1], m->dissipation[1]);
 
-                    ctx->trace.add_view_1c(&sv, &C_RED);
-                    ctx->trace.add_view_1c(&rv, &C_GREEN);
-                    ctx->trace.add_view_1c(&tv, &C_CYAN);
+                    ctx->trace.add_view_1c(&sv, &C3D_RED);
+                    ctx->trace.add_view_1c(&rv, &C3D_GREEN);
+                    ctx->trace.add_view_1c(&tv, &C3D_CYAN);
                 )
             }
 
@@ -1044,9 +1044,9 @@ namespace lsp
 
             RT_TRACE_BREAK(trace->pDebug,
                 lsp_trace("Integrating triangle...");
-                view->add_view_1c(v, &C_MAGENTA);
-                view->add_triangle_pv1c(src.v, &C_ORANGE);
-                view->add_plane_pvn1c(p, &spl, &C_YELLOW);
+                view->add_view_1c(v, &C3D_MAGENTA);
+                view->add_triangle_pv1c(src.v, &C3D_ORANGE);
+                view->add_plane_pvn1c(p, &spl, &C3D_YELLOW);
             )
 
             // Perform split
@@ -1068,12 +1068,12 @@ namespace lsp
                             int(n_in), int(n_out),
                             int(csn-1), amplitude
                         );
-                    view->add_view_1c(v, &C_MAGENTA);
-                    view->add_plane_pvn1c(p, &spl, &C_YELLOW);
+                    view->add_view_1c(v, &C3D_MAGENTA);
+                    view->add_plane_pvn1c(p, &spl, &C3D_YELLOW);
                     for (size_t i=0; i<n_in; ++i)
-                        view->add_triangle_pv1c(in[i].v, &C_GREEN);
+                        view->add_triangle_pv1c(in[i].v, &C3D_GREEN);
                     for (size_t i=0; i<n_out; ++i)
-                        view->add_triangle_pv1c(out[i].v, &C_RED);
+                        view->add_triangle_pv1c(out[i].v, &C3D_RED);
                 )
 
                 // Deploy energy value to the sample
@@ -1158,7 +1158,7 @@ namespace lsp
                 if (!obj->is_visible())
                     continue;
                 for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
-                    trace->pDebug->trace.add_triangle(obj->triangle(j), &C_RED, &C_GREEN, &C_BLUE);
+                    trace->pDebug->trace.add_triangle(obj->triangle(j), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
             }
         );
 

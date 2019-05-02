@@ -909,12 +909,12 @@ namespace lsp
             lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
 
             for (size_t j=0, n=triangle.size(); j<n; ++j)
-               trace.add_triangle_1c(triangle.get(j), &C_DARKGREEN);
+               trace.add_triangle_1c(triangle.get(j), &C3D_DARKGREEN);
 
-            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C_YELLOW);
-            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C_RED);
-            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C_GREEN);
-            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C_BLUE);
+            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C3D_YELLOW);
+            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C3D_RED);
+            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C3D_GREEN);
+            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C3D_BLUE);
         )
 
         for (size_t pi=0; pi<4; ++pi)
@@ -930,10 +930,10 @@ namespace lsp
 
         RT_TRACE_BREAK(debug,
             lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
-            trace.add_view_1c(&view, &C_MAGENTA);
+            trace.add_view_1c(&view, &C3D_MAGENTA);
             for (size_t j=0,n=triangle.size(); j<n; ++j)
-                trace.add_triangle_1c(triangle.get(j), &C_YELLOW);
-            trace.dump(&plan, &C_RED);
+                trace.add_triangle_1c(triangle.get(j), &C3D_YELLOW);
+            trace.dump(&plan, &C3D_RED);
         );
 
         return STATUS_OK;
@@ -1364,16 +1364,16 @@ namespace lsp
                     RT_TRACE_BREAK(debug,
                         lsp_trace("Split context into triangles in(GREEN)/out(RED) = %d/%d",
                                 int(triangle.size()), int(out->triangle.size()));
-                        trace.add_view_1c(&view, &C_MAGENTA);
-                        trace.add_plane_3p1c(&view.s, &xe.p[0], &xe.p[1], &C_MAGENTA);
+                        trace.add_view_1c(&view, &C3D_MAGENTA);
+                        trace.add_plane_3p1c(&view.s, &xe.p[0], &xe.p[1], &C3D_MAGENTA);
 
                         for (size_t i=0, n=triangle.size(); i<n; ++i)
-                            trace.add_triangle_1c(triangle.get(i), &C_GREEN);
+                            trace.add_triangle_1c(triangle.get(i), &C3D_GREEN);
                         for (size_t i=0, n=out->triangle.size(); i<n; ++i)
-                            trace.add_triangle_1c(out->triangle.get(i), &C_RED);
+                            trace.add_triangle_1c(out->triangle.get(i), &C3D_RED);
 
-                        trace.dump(&plan, &C_RED);
-                        trace.dump(&out->plan, &C_GREEN);
+                        trace.dump(&plan, &C3D_RED);
+                        trace.dump(&out->plan, &C3D_GREEN);
                     )
                 }
 //            }

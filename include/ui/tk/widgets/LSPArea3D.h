@@ -31,6 +31,7 @@ namespace lsp
                 size_t          nRadius;
                 size_t          nMinWidth;
                 size_t          nMinHeight;
+                realize_t       sContext;
 
             protected:
                 void            do_destroy();
@@ -46,9 +47,9 @@ namespace lsp
                 virtual void            destroy();
 
             public:
-                inline void     set_world_matrix(const matrix3d_t *m)       { sWorld        = *m; }
-                inline void     set_view_matrix(const matrix3d_t *m)        { sView         = *m; }
-                inline void     set_projection_matrix(const matrix3d_t *m)  { sProjection   = *m; }
+                inline void     set_world_matrix(const matrix3d_t *m)       { sWorld        = *m; query_draw(); }
+                inline void     set_view_matrix(const matrix3d_t *m)        { sView         = *m; query_draw(); }
+                inline void     set_projection_matrix(const matrix3d_t *m)  { sProjection   = *m; query_draw(); }
 
                 inline void     get_world_matrix(matrix3d_t *m) const       { *m        = sWorld; }
                 inline void     get_view_matrix(matrix3d_t *m) const        { *m        = sView; }
@@ -61,6 +62,9 @@ namespace lsp
                 inline size_t          radius() const       { return nRadius;           };
                 inline size_t          min_width() const    { return nMinWidth;         };
                 inline size_t          min_height() const   { return nMinHeight;        };
+
+                inline ssize_t      context_width() const   { return sContext.nWidth;   };
+                inline ssize_t      context_height() const  { return sContext.nHeight;  };
 
             public:
                 void            set_min_width(size_t value);

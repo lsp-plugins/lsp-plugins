@@ -19,7 +19,9 @@ enum r3d_window_handle_t
 enum r3d_pixel_format_t
 {
     R3D_PIXEL_RGBA,
-    R3D_PIXEL_BGRA
+    R3D_PIXEL_BGRA,
+    R3D_PIXEL_RGB,
+    R3D_PIXEL_BGR
 };
 
 enum r3d_matrix_type_t

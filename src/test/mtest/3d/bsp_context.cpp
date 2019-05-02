@@ -38,12 +38,12 @@ namespace lsp
 {
     static const color3d_t *colors[] =
     {
-        &C_RED,
-        &C_GREEN,
-        &C_BLUE,
-        &C_CYAN,
-        &C_MAGENTA,
-        &C_YELLOW
+        &C3D_RED,
+        &C3D_GREEN,
+        &C3D_BLUE,
+        &C3D_CYAN,
+        &C3D_MAGENTA,
+        &C3D_YELLOW
     };
 }
 
@@ -105,9 +105,6 @@ MTEST_BEGIN("3d", bsp_context)
                 res = ctx.build_tree();
                 if (res == STATUS_OK)
                 {
-                    ray3d_t pov;
-                    dsp::init_point_xyz(&pov.z, 0.0f, 0.0f, 6.0f);
-                    dsp::init_vector_dxyz(&pov.v, 0.0f, 0.0f, 1.0f);
                     pView->clear_all();
                     res = ctx.build_mesh(pView->vertexes2(), &sPov);
                 }

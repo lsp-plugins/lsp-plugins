@@ -72,13 +72,21 @@ namespace dsp
      */
     extern void (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
 
-    /** Convert ARGB32 -> BGRA32 color
+    /** Convert ABGR32 -> BGRA32 color
      *
      * @param dst target buffer
      * @param src source buffer
      * @param count number of samples to process
      */
     extern void (* abgr32_to_bgra32)(void *dst, const void *src, size_t count);
+
+    /** Convert ABGR32 -> BGR32 color with Alpha=0xff
+     *
+     * @param dst target buffer
+     * @param src source buffer
+     * @param count number of samples to process
+     */
+    extern void (* abgr32_to_bgrff32)(void *dst, const void *src, size_t count);
 
     /**
      * Fill array with RGBA colors

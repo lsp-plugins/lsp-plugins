@@ -561,9 +561,19 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
+        size_t fmt;
+        switch (format)
+        {
+            case R3D_PIXEL_RGBA: fmt    = GL_RGBA; break;
+            case R3D_PIXEL_BGRA: fmt    = GL_BGRA; break;
+            case R3D_PIXEL_RGB:  fmt    = GL_RGB;  break;
+            case R3D_PIXEL_BGR:  fmt    = GL_BGR;  break;
+            default:
+                return STATUS_BAD_ARGUMENTS;
+        }
+
         ::glReadBuffer(_this->bPBuffer ? GL_BACK : GL_FRONT);
 
-        size_t fmt = (format == R3D_PIXEL_RGBA) ? GL_RGBA : GL_BGRA;
         uint8_t *ptr = reinterpret_cast<uint8_t *>(buf);
         for (ssize_t i=0; i<_this->viewHeight; ++i)
         {

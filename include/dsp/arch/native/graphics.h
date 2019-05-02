@@ -67,6 +67,18 @@ namespace native
         }
     }
 
+    void abgr32_to_bgrff32(void *dst, const void *src, size_t count)
+    {
+        const uint32_t *s   = reinterpret_cast<const uint32_t *>(src);
+        uint32_t *d         = reinterpret_cast<uint32_t *>(dst);
+
+        for (size_t i=0; i<count; ++i)
+        {
+            uint32_t c      = s[i];
+            d[i]            = 0xff000000 | (c >> 8);
+        }
+    }
+
     void rgba32_to_bgra32_ra(void *dst, const void *src, size_t count)
     {
         const uint8_t *s   = reinterpret_cast<const uint8_t *>(src);

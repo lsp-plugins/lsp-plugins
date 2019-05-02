@@ -271,15 +271,15 @@ namespace lsp
 #pragma pack(pop)
 
 #ifdef LSP_DEBUG
-    extern const color3d_t C_RED;
-    extern const color3d_t C_GREEN;
-    extern const color3d_t C_DARKGREEN;
-    extern const color3d_t C_BLUE;
-    extern const color3d_t C_CYAN;
-    extern const color3d_t C_MAGENTA;
-    extern const color3d_t C_YELLOW;
-    extern const color3d_t C_ORANGE;
-    extern const color3d_t C_GRAY;
+    extern const color3d_t C3D_RED;
+    extern const color3d_t C3D_GREEN;
+    extern const color3d_t C3D_DARKGREEN;
+    extern const color3d_t C3D_BLUE;
+    extern const color3d_t C3D_CYAN;
+    extern const color3d_t C3D_MAGENTA;
+    extern const color3d_t C3D_YELLOW;
+    extern const color3d_t C3D_ORANGE;
+    extern const color3d_t C3D_GRAY;
 #endif /* LSP_DEBUG */
 
 }

@@ -93,6 +93,11 @@ namespace lsp
             return (pBackend != NULL) ? pBackend->locate(pBackend, left, top, width, height) : STATUS_BAD_STATE;
         }
 
+        status_t IR3DBackend::get_location(ssize_t *left, ssize_t *top, ssize_t *width, ssize_t *height)
+        {
+            return (pBackend != NULL) ? pBackend->get_location(pBackend, left, top, width, height) : STATUS_BAD_STATE;
+        }
+
         status_t IR3DBackend::begin_draw()
         {
             return (pBackend != NULL) ? pBackend->start(pBackend) : STATUS_BAD_STATE;
