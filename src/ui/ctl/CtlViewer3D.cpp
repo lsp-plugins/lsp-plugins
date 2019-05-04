@@ -29,10 +29,17 @@ namespace lsp
         {
             widget->slots()->bind(LSPSLOT_DRAW3D, slot_on_draw3d, this);
             widget->slots()->bind(LSPSLOT_RESIZE, slot_resize, this);
+            widget->slots()->bind(LSPSLOT_MOUSE_DOWN, slot_mouse_down, this);
+            widget->slots()->bind(LSPSLOT_MOUSE_UP, slot_mouse_up, this);
+            widget->slots()->bind(LSPSLOT_MOUSE_MOVE, slot_mouse_move, this);
 
             pPathID         = NULL;
             pPath           = NULL;
             bViewChanged    = true;
+
+            nBMask          = 0;
+            nMouseX         = 0;
+            nMouseY         = 0;
 
             dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
             dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
@@ -67,6 +74,73 @@ namespace lsp
 
             _this->update_frustum();
             return STATUS_OK;
+        }
+
+        status_t CtlViewer3D::slot_mouse_down(LSPWidget *sender, void *ptr, void *data)
+        {
+            if ((ptr == NULL) || (data == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            CtlViewer3D *_this  = static_cast<CtlViewer3D *>(ptr);
+            ws_event_t *ev  = static_cast<ws_event_t *>(data);
+
+            if (_this->nBMask == 0)
+            {
+                _this->nMouseX      = ev->nLeft;
+                _this->nMouseY      = ev->nTop;
+                _this->sOldAngles   = _this->sAngles;
+            }
+
+            _this->nBMask |= (1 << ev->nCode);
+
+            return STATUS_OK;
+        }
+
+        status_t CtlViewer3D::slot_mouse_up(LSPWidget *sender, void *ptr, void *data)
+        {
+            if ((ptr == NULL) || (data == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            CtlViewer3D *_this  = static_cast<CtlViewer3D *>(ptr);
+            ws_event_t *ev  = static_cast<ws_event_t *>(data);
+
+            _this->nBMask &= ~(1 << ev->nCode);
+            if (_this->nBMask == 0)
+                _this->rotate_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY);
+
+            return STATUS_OK;
+        }
+
+        status_t CtlViewer3D::slot_mouse_move(LSPWidget *sender, void *ptr, void *data)
+        {
+            if ((ptr == NULL) || (data == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            CtlViewer3D *_this  = static_cast<CtlViewer3D *>(ptr);
+            ws_event_t *ev  = static_cast<ws_event_t *>(data);
+
+            if (_this->nBMask == (1 << MCB_LEFT))
+                _this->rotate_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY);
+
+            return STATUS_OK;
+        }
+
+        void CtlViewer3D::rotate_camera(ssize_t dx, ssize_t dy)
+        {
+            float yaw       = sOldAngles.fYaw - (dx * M_PI * 1e-3f);
+            float pitch     = sOldAngles.fPitch - (dy * M_PI * 1e-3f);
+
+            if (pitch >= (89.0f * M_PI / 360.0f))
+                pitch       = (89.0f * M_PI / 360.0f);
+            else if (pitch <= (-89.0f * M_PI / 360.0f))
+                pitch       = (-89.0f * M_PI / 360.0f);
+
+            sAngles.fYaw    = yaw;
+            sAngles.fPitch  = pitch;
+
+            bViewChanged    = true;
+            update_camera_state();
+            pWidget->query_draw();
         }
 
         void CtlViewer3D::update_frustum()
@@ -265,6 +339,39 @@ namespace lsp
             // Need to update vertex list for the scene?
             commit_view(r3d);
 
+            // Set Light parameters
+            r3d_light_t light;
+
+            light.type          = R3D_LIGHT_POINT; //R3D_LIGHT_DIRECTIONAL;
+            light.position      = sPov;
+            light.direction.dx  = -sDir.dx;
+            light.direction.dy  = -sDir.dy;
+            light.direction.dz  = -sDir.dz;
+            light.direction.dw  = 0.0f;
+
+            light.ambient.r     = 0.0f;
+            light.ambient.g     = 0.0f;
+            light.ambient.b     = 0.0f;
+            light.ambient.a     = 1.0f;
+
+            light.diffuse.r     = 1.0f;
+            light.diffuse.g     = 1.0f;
+            light.diffuse.b     = 1.0f;
+            light.diffuse.a     = 1.0f;
+
+            light.specular.r    = 1.0f;
+            light.specular.g    = 1.0f;
+            light.specular.b    = 1.0f;
+            light.specular.a    = 1.0f;
+
+            light.constant      = 1.0f;
+            light.linear        = 0.0f;
+            light.quadratic     = 0.0f;
+            light.cutoff        = 180.0f;
+
+            // Enable/disable lighting
+            r3d->set_lights(&light, 1);
+
             r3d_buffer_t buf;
 
             // Draw simple triangle
@@ -296,7 +403,7 @@ namespace lsp
             buf.type            = R3D_PRIMITIVE_TRIANGLES; //(bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
             buf.width           = 1.0f;
             buf.count           = nvertex / 3;
-            buf.flags           = R3D_BUFFER_BLENDING;
+            buf.flags           = R3D_BUFFER_BLENDING | R3D_BUFFER_LIGHTING;
 //            if (bLight)
 //                buffer.flags       |= R3D_BUFFER_LIGHTING;
 

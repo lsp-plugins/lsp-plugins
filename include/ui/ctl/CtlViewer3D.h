@@ -51,15 +51,26 @@ namespace lsp
                 vector3d_t      sDir;           // Direction-of-view for the camera
                 vector3d_t      sSide;          // Side-of-view for the camera
 
+                // Mouse events
+                size_t          nBMask;         // Button mask
+                ssize_t         nMouseX;        // Mouse X position
+                ssize_t         nMouseY;        // Mouse Y position
+
             protected:
                 static status_t slot_on_draw3d(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_resize(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_down(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_move(LSPWidget *sender, void *ptr, void *data);
 
+            protected:
                 static status_t redraw_area(timestamp_t ts, void *arg);
 
                 void    commit_view(IR3DBackend *r3d);
                 void    update_camera_state();
                 void    update_frustum();
+                void    rotate_camera(ssize_t dx, ssize_t dy);
+
 
             public:
                 explicit CtlViewer3D(CtlRegistry *src, LSPArea3D *widget);
