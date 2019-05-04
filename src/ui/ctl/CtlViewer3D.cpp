@@ -89,6 +89,7 @@ namespace lsp
                 _this->nMouseX      = ev->nLeft;
                 _this->nMouseY      = ev->nTop;
                 _this->sOldAngles   = _this->sAngles;
+                _this->sOldPov      = _this->sPov;
             }
 
             _this->nBMask |= (1 << ev->nCode);
@@ -106,7 +107,14 @@ namespace lsp
 
             _this->nBMask &= ~(1 << ev->nCode);
             if (_this->nBMask == 0)
-                _this->rotate_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY);
+            {
+                if (ev->nCode == MCB_MIDDLE)
+                    _this->rotate_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY);
+                else if (ev->nCode == MCB_RIGHT)
+                    _this->move_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY, 0);
+                else if (ev->nCode == MCB_LEFT)
+                    _this->move_camera(ev->nLeft - _this->nMouseX, 0, _this->nMouseY - ev->nTop);
+            }
 
             return STATUS_OK;
         }
@@ -119,16 +127,20 @@ namespace lsp
             CtlViewer3D *_this  = static_cast<CtlViewer3D *>(ptr);
             ws_event_t *ev  = static_cast<ws_event_t *>(data);
 
-            if (_this->nBMask == (1 << MCB_LEFT))
+            if (_this->nBMask == (1 << MCB_MIDDLE))
                 _this->rotate_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY);
+            else if (_this->nBMask == (1 << MCB_RIGHT))
+                _this->move_camera(ev->nLeft - _this->nMouseX, ev->nTop - _this->nMouseY, 0);
+            else if (_this->nBMask == (1 << MCB_LEFT))
+                _this->move_camera(ev->nLeft - _this->nMouseX, 0, _this->nMouseY - ev->nTop);
 
             return STATUS_OK;
         }
 
         void CtlViewer3D::rotate_camera(ssize_t dx, ssize_t dy)
         {
-            float yaw       = sOldAngles.fYaw - (dx * M_PI * 1e-3f);
-            float pitch     = sOldAngles.fPitch - (dy * M_PI * 1e-3f);
+            float yaw       = sOldAngles.fYaw - (dx * M_PI * 2e-3f);
+            float pitch     = sOldAngles.fPitch - (dy * M_PI * 2e-3f);
 
             if (pitch >= (89.0f * M_PI / 360.0f))
                 pitch       = (89.0f * M_PI / 360.0f);
@@ -137,6 +149,21 @@ namespace lsp
 
             sAngles.fYaw    = yaw;
             sAngles.fPitch  = pitch;
+
+            bViewChanged    = true;
+            update_camera_state();
+            pWidget->query_draw();
+        }
+
+        void CtlViewer3D::move_camera(ssize_t dx, ssize_t dy, ssize_t dz)
+        {
+            float mdx       = dx * 1e-2f;
+            float mdy       = dy * 1e-2f;
+            float mdz       = dz * 1e-2f;
+
+            sPov.x          = sOldPov.x + sSide.dx * mdx + sDir.dx * mdy + sTop.dx * mdz;
+            sPov.y          = sOldPov.y + sSide.dy * mdx + sDir.dy * mdy + sTop.dy * mdz;
+            sPov.z          = sOldPov.z + sSide.dz * mdx + sDir.dz * mdy + sTop.dz * mdz;
 
             bViewChanged    = true;
             update_camera_state();
@@ -375,25 +402,25 @@ namespace lsp
             r3d_buffer_t buf;
 
             // Draw simple triangle
-            static const v_point3d_t points[] =
-            {
-                { { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                { { 1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                { { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-            };
-
-            buf.type    = R3D_PRIMITIVE_TRIANGLES;
-            buf.count   = 1;
-            buf.width   = 1.0f;
-
-            buf.vertex.data     = &points[0].p;
-            buf.vertex.stride   = sizeof(v_point3d_t);
-            buf.normal.data     = NULL;
-            buf.color.data      = &points[0].c;
-            buf.color.stride    = sizeof(v_point3d_t);
-            buf.index.data      = NULL;
-
-            r3d->draw_primitives(&buf);
+//            static const v_point3d_t points[] =
+//            {
+//                { { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+//                { { 1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+//                { { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+//            };
+//
+//            buf.type    = R3D_PRIMITIVE_TRIANGLES;
+//            buf.count   = 1;
+//            buf.width   = 1.0f;
+//
+//            buf.vertex.data     = &points[0].p;
+//            buf.vertex.stride   = sizeof(v_point3d_t);
+//            buf.normal.data     = NULL;
+//            buf.color.data      = &points[0].c;
+//            buf.color.stride    = sizeof(v_point3d_t);
+//            buf.index.data      = NULL;
+//
+//            r3d->draw_primitives(&buf);
 
             // Draw scene primitives
             v_vertex3d_t *vv    = vVertexes.get_array();

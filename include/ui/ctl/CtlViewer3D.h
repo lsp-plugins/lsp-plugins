@@ -45,6 +45,7 @@ namespace lsp
 
                 // Camera position
                 point3d_t       sPov;           // Point-of-view for the camera
+                point3d_t       sOldPov;        // Old point of view
                 pov_angles_t    sAngles;        // Yaw, pitch, roll
                 pov_angles_t    sOldAngles;     // Old angles
                 vector3d_t      sTop;           // Top-of-view for the camera
@@ -70,6 +71,7 @@ namespace lsp
                 void    update_camera_state();
                 void    update_frustum();
                 void    rotate_camera(ssize_t dx, ssize_t dy);
+                void    move_camera(ssize_t dx, ssize_t dy, ssize_t dz);
 
 
             public:
