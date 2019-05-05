@@ -18,6 +18,7 @@
 #define UI_DLG_SAMPLE_PATH_ID               "dlg_sample_path"
 #define UI_DLG_IR_PATH_ID                   "dlg_ir_path"
 #define UI_DLG_CONFIG_PATH_ID               "dlg_config_path"
+#define UI_R3D_BACKEND_PORT_ID              "r3d_backend"
 
 #define MSTUD_PORT                          UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
 #define VERSION_PORT                        UI_CONFIG_PORT_PREFIX UI_LAST_VERSION_PORT_ID
@@ -25,6 +26,7 @@
 #define SAMPLE_PATH_PORT                    UI_CONFIG_PORT_PREFIX UI_DLG_SAMPLE_PATH_ID
 #define IR_PATH_PORT                        UI_CONFIG_PORT_PREFIX UI_DLG_IR_PATH_ID
 #define CONFIG_PATH_PORT                    UI_CONFIG_PORT_PREFIX UI_DLG_CONFIG_PATH_ID
+#define R3D_BACKEND_PORT                    UI_CONFIG_PORT_PREFIX UI_R3D_BACKEND_PORT_ID
 
 // Special widget identifiers
 #define WUID_MAIN_MENU                      "main_menu"

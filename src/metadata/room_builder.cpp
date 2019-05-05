@@ -42,7 +42,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         room_builder_classes,
-        E_NONE,
+        E_3D_BACKEND,
         room_builder_mono_ports,
         "convolution/room_builder/mono.xml",
         mono_to_stereo_plugin_port_groups
@@ -59,7 +59,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         room_builder_classes,
-        E_NONE,
+        E_3D_BACKEND,
         room_builder_stereo_ports,
         "convolution/room_builder/stereo.xml",
         stereo_plugin_port_groups

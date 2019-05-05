@@ -74,7 +74,6 @@ namespace lsp
                 return STATUS_NOT_FOUND;
 
             nPending3D      = id;
-
             return STATUS_OK;
         }
 

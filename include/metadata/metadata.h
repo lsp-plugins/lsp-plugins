@@ -197,7 +197,8 @@ namespace lsp
     enum plugin_extension_t
     {
         E_NONE                  = 0,
-        E_INLINE_DISPLAY        = 1 << 0
+        E_INLINE_DISPLAY        = 1 << 0,
+        E_3D_BACKEND            = 1 << 1
     };
 
     enum port_group_type_t
