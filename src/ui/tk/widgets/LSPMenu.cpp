@@ -288,6 +288,7 @@ namespace lsp
             s->clear(sColor);
 
             font_parameters_t fp;
+            text_parameters_t tp;
             sFont.get_parameters(s, &fp);
 
             ssize_t separator = fp.Height * 0.5f + nSpacing;
@@ -325,14 +326,24 @@ namespace lsp
                     if (y > (-fp.Height))
                     {
                         const char *text = item->text();
+                        Color c;
+
                         if (nSelected == ssize_t(i))
                         {
                             s->fill_rect(nBorder, y, sSize.nWidth - nBorder*2, fp.Height, sSelColor);
-                            if (text != NULL)
-                                sFont.draw(s, x, y + fp.Ascent + hspace, sColor, text);
+                            c.copy(sColor);
                         }
-                        else if (text != NULL)
-                            sFont.draw(s, x, y + fp.Ascent + hspace, text);
+                        else
+                            c.copy(sFont.color());
+
+                        if (text != NULL)
+                            sFont.draw(s, x, y + fp.Ascent + hspace, c, text);
+
+                        if (item->has_submenu())
+                        {
+                            sFont.get_text_parameters(s, &tp, "►");
+                            sFont.draw(s, sSize.nWidth - nBorder - nSpacing - tp.XAdvance - 2, y + fp.Ascent + hspace, c, "►");
+                        }
                     }
 
                     y += fp.Height;
@@ -567,6 +578,7 @@ namespace lsp
             sFont.get_parameters(s, &fp);
             size_t n = vItems.size();
             ssize_t separator = fp.Height * 0.5f;
+            ssize_t subitem = 0;
 
             for (size_t i=0; i<n; ++i)
             {
@@ -592,12 +604,18 @@ namespace lsp
                         width          += tp.XAdvance;
                     }
 
+                    if ((subitem <= 0) && (mi->has_submenu()))
+                    {
+                        sFont.get_text_parameters(s, &tp, "►");
+                        subitem        += tp.XAdvance + 2;
+                    }
+
                     if (r->nMinWidth < width)
                         r->nMinWidth        = width;
                 }
             }
 
-            r->nMinWidth    += nBorder * 2 + sPadding.horizontal();
+            r->nMinWidth    += nBorder * 2 + subitem + sPadding.horizontal();
             r->nMinHeight   += nBorder * 2 + sPadding.vertical();
 
             // Destroy surface

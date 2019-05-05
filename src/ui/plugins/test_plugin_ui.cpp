@@ -33,13 +33,18 @@ namespace lsp
             // Get display
             LSPDisplay *dpy     = menu->display();
 
-            // Create menu item
+            // Create separator
             LSPMenuItem *item   = new LSPMenuItem(dpy);
             item->init();
             vWidgets.add(item);
-            item->set_text("Test Submenu");
+            item->set_separator(true);
+            menu->add(item);
 
-            // Add child to the menu
+            // Create submenu item
+            item                = new LSPMenuItem(dpy);
+            item->init();
+            vWidgets.add(item);
+            item->set_text("Test Submenu");
             menu->add(item);
 
             // Create submenu
