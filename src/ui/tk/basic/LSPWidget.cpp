@@ -16,6 +16,7 @@ namespace lsp
         LSPWidget::LSPWidget(LSPDisplay *dpy):
             sPadding(this)
         {
+            pUID            = NULL;
             pDisplay        = dpy;
             pSurface        = NULL;
             pParent         = NULL;
@@ -478,11 +479,25 @@ namespace lsp
             s->draw(src, sSize.nLeft, sSize.nTop);
         }
 
+        status_t LSPWidget::set_unique_id(const char *uid)
+        {
+            char *rep = NULL;
+            if (uid != NULL)
+            {
+                if ((rep = strdup(uid)) == NULL)
+                    return STATUS_NO_MEM;
+            }
+
+            if (pUID != NULL)
+                free(pUID);
+            pUID = rep;
+            return STATUS_OK;
+        }
+
         ISurface *LSPWidget::get_surface(ISurface *s)
         {
             return get_surface(s, sSize.nWidth, sSize.nHeight);
         }
-
 
         ISurface *LSPWidget::get_surface(ISurface *s, ssize_t width, ssize_t height)
         {

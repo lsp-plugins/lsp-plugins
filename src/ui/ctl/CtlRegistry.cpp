@@ -23,8 +23,7 @@ namespace lsp
 
         void CtlRegistry::destroy()
         {
-            size_t n = vControls.size();
-            for (size_t i=0; i<n; ++i)
+            for (size_t i=0, n=vControls.size(); i<n; ++i)
             {
                 CtlWidget *w = vControls.at(i);
                 if (w != NULL)
@@ -49,6 +48,22 @@ namespace lsp
         status_t CtlRegistry::remove_widget(CtlWidget *widget)
         {
             return (vControls.remove(widget, true)) ? STATUS_OK : STATUS_NOT_FOUND;
+        }
+
+        LSPWidget *CtlRegistry::resolve(const char *uid)
+        {
+            LSPWidget *res = NULL;
+
+            for (size_t i=0, n=vControls.size(); i<n; ++i)
+            {
+                CtlWidget *w = vControls.at(i);
+                if (w == NULL)
+                    continue;
+                if ((res = w->resolve(uid)) != NULL)
+                    break;
+            }
+
+            return res;
         }
     
     } /* namespace tk */

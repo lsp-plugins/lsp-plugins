@@ -98,6 +98,7 @@ namespace lsp
             {
                 // Initialize menu
                 pMenu = new LSPMenu(dpy);
+                pMenu->set_unique_id(WUID_MAIN_MENU);
                 vWidgets.add(pMenu);
                 pMenu->init();
 
@@ -271,6 +272,21 @@ namespace lsp
                 vMStud[1]->set_visible(!top);
                 vMStud[2]->set_visible(!top);
             }
+        }
+
+        LSPWidget *CtlPluginWindow::resolve(const char *uid)
+        {
+            for (size_t i=0,n=vWidgets.size(); i<n; ++i)
+            {
+                LSPWidget *widget = vWidgets.get(i);
+                if (widget == NULL)
+                    continue;
+                const char *wuid = widget->unique_id();
+                if ((wuid != NULL) && (!strcmp(wuid, uid)))
+                    return widget;
+            }
+
+            return CtlWidget::resolve(uid);
         }
 
         status_t CtlPluginWindow::add(LSPWidget *child)

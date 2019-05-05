@@ -45,6 +45,13 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t remove_widget(CtlWidget *widget);
+
+                /**
+                 * Resolve widget by it's unique identifier
+                 * @param uid unique widget identifier
+                 * @return pointer to widget or NULL
+                 */
+                virtual LSPWidget *resolve(const char *uid);
         };
     
     } /* namespace tk */

@@ -189,7 +189,8 @@ namespace lsp
             A_OPACITY,
             A_TRANSPARENCY,
             A_MODE,
-            A_LENGTH
+            A_LENGTH,
+            A_WUID
         };
 
         // Helper functions

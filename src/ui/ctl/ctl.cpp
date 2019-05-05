@@ -167,6 +167,7 @@ namespace lsp
             "transparency",
             "mode",
             "length",
+            "ui:id",
             NULL
         };
 

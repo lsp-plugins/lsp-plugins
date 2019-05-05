@@ -88,6 +88,13 @@ namespace lsp
                  * @param port port triggered change
                  */
                 virtual void notify(CtlPort *port);
+
+                /**
+                 * Resolve widget by it's unique identifier
+                 * @param uid unique widget identifier
+                 * @return pointer to resolved widget or NULL
+                 */
+                virtual LSPWidget *resolve(const char *uid);
         };
 
     }

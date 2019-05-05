@@ -44,6 +44,7 @@ namespace lsp
 
             public:
                 status_t            set_text(const char *text);
+                status_t            set_text(const LSPString *text);
                 status_t            set_submenu(LSPMenu *submenu);
                 status_t            set_separator(bool value);
 

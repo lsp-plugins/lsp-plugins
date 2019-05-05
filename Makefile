@@ -47,6 +47,7 @@ export OBJ_UI_CORE      = $(OBJDIR)/ui_core.o
 export OBJ_RES_CORE     = $(OBJDIR)/res_core.o
 export OBJ_TEST_CORE    = $(OBJDIR)/test_core.o
 export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
+export OBJ_PLUGIN_UIS	= $(OBJDIR)/plugin_uis.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o
 export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
 

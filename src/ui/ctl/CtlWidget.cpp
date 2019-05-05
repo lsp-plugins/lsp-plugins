@@ -49,6 +49,9 @@ namespace lsp
 
         void CtlWidget::set(widget_attribute_t att, const char *value)
         {
+            if (pWidget == NULL)
+                return;
+
             switch (att)
             {
                 case A_VISIBILITY_ID:
@@ -102,7 +105,9 @@ namespace lsp
                 case A_VFILL:
                     PARSE_BOOL(value, pWidget->set_vfill(__));
                     break;
-
+                case A_WUID:
+                    pWidget->set_unique_id(value);
+                    break;
                 default:
                     break;
             }
@@ -182,6 +187,14 @@ namespace lsp
                 lsp_free(pVisibilityID);
                 pVisibilityID = NULL;
             }
+        }
+
+        LSPWidget *CtlWidget::resolve(const char *uid)
+        {
+            const char *wuid = pWidget->unique_id();
+            if ((wuid != NULL) && (!strcmp(wuid, uid)))
+                return pWidget;
+            return NULL;
         }
     }
 } /* namespace lsp */

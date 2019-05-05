@@ -95,6 +95,7 @@ namespace lsp
         pMetadata       = mdata;
         pWrapper        = NULL;
         pRoot           = NULL;
+        pRootCtl        = NULL;
         pRootWidget     = root_widget;
     }
 
@@ -120,7 +121,8 @@ namespace lsp
         }
 
         vWidgets.flush();
-        pRoot     = NULL;
+        pRoot       = NULL;
+        pRootCtl    = NULL;
 
         // Destroy switched ports
         for (size_t i=0, n=vSwitched.size(); i<n; ++i)
@@ -194,11 +196,15 @@ namespace lsp
             // Main plugin window
             case WC_PLUGIN:
             {
-                LSPWindow *wnd  = new LSPWindow(&sDisplay, pRootWidget);
-                wnd->init();
-                vWidgets.add(wnd);
-                pRoot = wnd;
-                return new CtlPluginWindow(this, wnd);
+                if (pRoot == NULL)
+                {
+                    pRoot = new LSPWindow(&sDisplay, pRootWidget);
+                    pRoot->init();
+                    vWidgets.add(pRoot);
+                }
+                if (pRootCtl == NULL)
+                    pRootCtl = new CtlPluginWindow(this, pRoot);
+                return pRootCtl;
             }
 
             // Different kind of boxes and grids

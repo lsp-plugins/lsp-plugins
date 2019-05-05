@@ -58,5 +58,6 @@ namespace lsp
 // Plugin UI
 #include <ui/plugin_ui.h>
 #include <ui/ui_builder.h>
+#include <ui/plugins/test_plugin_ui.h>
 
 #endif /* _UI_UI_H_ */

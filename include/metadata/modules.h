@@ -151,7 +151,7 @@ MOD_PLUGIN(room_builder_stereo, plugin_ui)
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Test plugin
-    MOD_PLUGIN(test_plugin, plugin_ui)
+    MOD_PLUGIN(test_plugin, test_plugin_ui)
 #endif
 
 // Undefine capabilities

@@ -26,6 +26,9 @@
 #define IR_PATH_PORT                        UI_CONFIG_PORT_PREFIX UI_DLG_IR_PATH_ID
 #define CONFIG_PATH_PORT                    UI_CONFIG_PORT_PREFIX UI_DLG_CONFIG_PATH_ID
 
+// Special widget identifiers
+#define WUID_MAIN_MENU                      "main_menu"
+
 // Special ports for handling current time
 #define TIME_PORT_PREFIX                    "time:"
 #define TIME_SAMPLE_RATE_PORT               "sr"

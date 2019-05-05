@@ -56,6 +56,7 @@ namespace lsp
             const plugin_metadata_t    *pMetadata;
             IUIWrapper                 *pWrapper;
             LSPWindow                  *pRoot;
+            CtlPluginWindow            *pRootCtl;
             void                       *pRootWidget;
 
             LSPDisplay                  sDisplay;
@@ -101,7 +102,7 @@ namespace lsp
              * @param argv list of arguments
              * @return status of operation
              */
-            status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+            virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
 
             /** Method executed when the time position of plugin was updated
              *
@@ -197,7 +198,7 @@ namespace lsp
              *
              * @return main function
              */
-            inline status_t main() { return sDisplay.main(); };
+            inline status_t main()          { return sDisplay.main(); };
 
             /** Main iteration
              *
@@ -205,6 +206,9 @@ namespace lsp
              */
             inline status_t main_iteration() { return sDisplay.main_iteration(); }
 
+            /**
+             * Synchronize state of meta ports
+             */
             void sync_meta_ports();
 
             /** Return root window
@@ -213,6 +217,10 @@ namespace lsp
              */
             inline LSPWindow *root_window() { return pRoot; }
 
+            /**
+             * Set title of the main window
+             * @param title title of the main window
+             */
             void set_title(const char *title);
     };
 

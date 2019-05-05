@@ -84,6 +84,8 @@ namespace lsp
                 virtual void end();
 
                 virtual void notify(CtlPort *port);
+
+                virtual LSPWidget *resolve(const char *uid);
         };
     
     } /* namespace ctl */
