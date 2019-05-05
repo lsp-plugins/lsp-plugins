@@ -20,6 +20,12 @@ namespace lsp
     {
     }
 
+    status_t test_plugin_ui::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
+    {
+        lsp_trace("Menu item %p has been selected by widget %p", ptr, sender);
+        return STATUS_OK;
+    }
+
     status_t test_plugin_ui::init(IUIWrapper *wrapper, int argc, const char **argv)
     {
         status_t res = plugin_ui::init(wrapper, argc, argv);
@@ -61,6 +67,7 @@ namespace lsp
 
                 item                = new LSPMenuItem(dpy);
                 item->init();
+                item->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, (void *)(i+1));
                 vWidgets.add(item);
                 item->set_text(&str);
                 menu->add(item);

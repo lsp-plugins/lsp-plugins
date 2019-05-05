@@ -18,6 +18,9 @@ namespace lsp
             explicit test_plugin_ui(const plugin_metadata_t *mdata, void *root_widget);
             virtual ~test_plugin_ui();
 
+        protected:
+            static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+
         public:
             virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
     };
