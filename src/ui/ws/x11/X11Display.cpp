@@ -1060,16 +1060,13 @@ namespace lsp
                         X11Window *wnd = sTargets.at(i);
 
                         // Translate coordinates if originating and target window differs
-                        if (wnd != target)
-                        {
-                            int x, y;
-                            XTranslateCoordinates(pDisplay,
-                                ev->xany.window, wnd->x11handle(),
-                                ue.nLeft, ue.nTop,
-                                &x, &y, &child);
-                            se.nLeft    = x;
-                            se.nTop     = y;
-                        }
+                        int x, y;
+                        XTranslateCoordinates(pDisplay,
+                            ev->xany.window, wnd->x11handle(),
+                            ue.nLeft, ue.nTop,
+                            &x, &y, &child);
+                        se.nLeft    = x;
+                        se.nTop     = y;
 
 //                        lsp_trace("Sending event to target=%p", wnd);
                         wnd->handle_event(&se);

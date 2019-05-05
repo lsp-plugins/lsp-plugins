@@ -206,6 +206,12 @@ namespace lsp
 
                     virtual status_t show(INativeWindow *over);
 
+                    /**
+                     * Grab events from the screen
+                     * @return status of operation
+                     */
+                    virtual status_t grab_events();
+
                     /** Set left coordinate of the window
                      *
                      * @param left left coordinate of the window

@@ -241,6 +241,8 @@ namespace lsp
 
                 status_t point_child(LSPWidget *focus);
 
+                status_t grab_events();
+
                 void set_policy(window_poilicy_t policy);
 
                 void                    set_vpos(float value);

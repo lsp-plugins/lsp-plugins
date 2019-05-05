@@ -369,6 +369,12 @@ namespace lsp
                  * @return clipboard object or NULL.
                  */
                 virtual IClipboard *get_clipboard(size_t id);
+
+                /**
+                 * Grab mouse and keyboard events
+                 * @return status of operation
+                 */
+                virtual status_t grab_events();
         };
     } /* namespace ws */
 } /* namespace lsp */

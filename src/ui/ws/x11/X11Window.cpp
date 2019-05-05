@@ -738,6 +738,16 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            status_t X11Window::grab_events()
+            {
+                if (!(nFlags & F_GRABBING))
+                {
+                    pX11Display->grab_events(this);
+                    nFlags |= F_GRABBING;
+                }
+                return STATUS_OK;
+            }
+
             status_t X11Window::show(INativeWindow *over)
             {
                 if (hWindow == 0)
@@ -770,8 +780,8 @@ namespace lsp
                 {
                     case BS_POPUP:
                     case BS_COMBO:
-                        pX11Display->grab_events(this);
-                        nFlags |= F_GRABBING;
+//                        pX11Display->grab_events(this);
+//                        nFlags |= F_GRABBING;
                         break;
                     case BS_DIALOG:
                         if (wnd != NULL)
