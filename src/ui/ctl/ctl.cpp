@@ -36,6 +36,7 @@ namespace lsp
             "label",
             "led",
             "listbox",
+            "load",
             "marker",
             "mesh",
             "meter",

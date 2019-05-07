@@ -450,6 +450,13 @@ namespace lsp
                 vWidgets.add(save);
                 return new CtlSaveFile(this, save);
             }
+            case WC_LOAD:
+            {
+                LSPLoadFile *load = new LSPLoadFile(&sDisplay);
+                load->init();
+                vWidgets.add(load);
+                return new CtlLoadFile(this, load);
+            }
 
             // 3D viewer object
             case WC_VIEWER3D:

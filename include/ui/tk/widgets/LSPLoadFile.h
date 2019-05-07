@@ -1,35 +1,35 @@
 /*
- * LSPSaveFile.h
+ * LSPLoadFile.h
  *
- *  Created on: 20 нояб. 2017 г.
+ *  Created on: 07 мая 2019 г.
  *      Author: sadko
  */
 
-#ifndef UI_TK_WIDGETS_LSPSAVEFILE_H_
-#define UI_TK_WIDGETS_LSPSAVEFILE_H_
+#ifndef UI_TK_WIDGETS_LSPLOADFILE_H_
+#define UI_TK_WIDGETS_LSPLOADFILE_H_
 
 namespace lsp
 {
     namespace tk
     {
-        enum save_file_state_t
+        enum load_file_state_t
         {
-            SFS_SELECT,
-            SFS_SAVING,
-            SFS_SAVED,
-            SFS_ERROR
+            LFS_SELECT,
+            LFS_LOADING,
+            LFS_LOADED,
+            LFS_ERROR
         };
 
-        class LSPSaveFile: public LSPWidget
+        class LSPLoadFile: public LSPWidget
         {
             public:
                 static const w_class_t    metadata;
 
-                enum _save_file_state_t
+                enum _load_file_state_t
                 {
-                    SFS_TOTAL   = SFS_ERROR + 1,
+                    LFS_TOTAL       = LFS_ERROR + 1,
 
-                    S_PRESSED   = 1 << 0
+                    S_PRESSED       = 1 << 0
                 };
 
             protected:
@@ -40,8 +40,8 @@ namespace lsp
                 } state_t;
 
             protected:
-                save_file_state_t   nState;
-                state_t             vStates[SFS_TOTAL];
+                load_file_state_t   nState;
+                state_t             vStates[LFS_TOTAL];
                 float               fProgress;
                 size_t              nButtons;
                 size_t              nBtnState;
@@ -61,14 +61,14 @@ namespace lsp
                 static status_t     slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                explicit LSPSaveFile(LSPDisplay *dpy);
-                virtual ~LSPSaveFile();
+                explicit LSPLoadFile(LSPDisplay *dpy);
+                virtual ~LSPLoadFile();
 
                 virtual status_t init();
                 virtual void destroy();
 
             public:
-                inline save_file_state_t    state() const { return nState; }
+                inline load_file_state_t    state() const { return nState; }
                 LSPColor                   *state_color(size_t i);
                 const char                 *state_text(size_t i) const;
                 status_t                    get_state_text(size_t i, LSPString *dst);
@@ -83,7 +83,7 @@ namespace lsp
                 inline ssize_t              size() const { return nSize; }
 
             public:
-                status_t    set_state(save_file_state_t state);
+                status_t    set_state(load_file_state_t state);
                 status_t    set_state_text(size_t i, const char *s);
                 status_t    set_state_text(size_t i, const LSPString *s);
                 status_t    set_progress(float value);
@@ -105,4 +105,4 @@ namespace lsp
     } /* namespace tk */
 } /* namespace lsp */
 
-#endif /* UI_TK_WIDGETS_LSPSAVEFILE_H_ */
+#endif /* UI_TK_WIDGETS_LSPLOADFILE_H_ */

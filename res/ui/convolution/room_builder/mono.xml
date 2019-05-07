@@ -1,9 +1,13 @@
 <plugin resizable="false">
 	<vbox spacing="4">
 		<!-- IR editor -->
-		<group text="Impulse Response">
+		<group text="Room Navigation">
 			<viewer3d width="320" height="200">
 			</viewer3d>
 		</group>
+		<hbox fill="false">
+			<save size="64" />
+			<load size="64" />
+		</hbox>
 	</vbox>
 </plugin>

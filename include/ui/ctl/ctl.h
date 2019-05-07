@@ -58,6 +58,7 @@ namespace lsp
             WC_LABEL,
             WC_LED,
             WC_LISTBOX,
+            WC_LOAD,
             WC_MARKER,
             WC_MESH,
             WC_METER,
@@ -252,6 +253,7 @@ namespace lsp
 #include <ui/ctl/CtlEdit.h>
 #include <ui/ctl/CtlAudioFile.h>
 #include <ui/ctl/CtlSaveFile.h>
+#include <ui/ctl/CtlLoadFile.h>
 #include <ui/ctl/CtlComboGroup.h>
 
 #include <ui/ctl/CtlGraph.h>

@@ -1,7 +1,7 @@
 /*
- * CtlSaveFile.cpp
+ * CtlLoadFile.cpp
  *
- *  Created on: 20 нояб. 2017 г.
+ *  Created on: 7 мая 2019 г.
  *      Author: sadko
  */
 
@@ -11,12 +11,9 @@ namespace lsp
 {
     namespace ctl
     {
-        CtlSaveFile::CtlSaveFile(CtlRegistry *reg, LSPSaveFile *save):
-            CtlWidget(reg, save)
+        CtlLoadFile::CtlLoadFile(CtlRegistry *reg, LSPLoadFile *load):
+            CtlWidget(reg, load)
         {
-//            save->set_state(SFS_SAVING);
-//            save->set_progress(40);
-
             pFile       = NULL;
             pPath       = NULL;
             pStatus     = NULL;
@@ -26,7 +23,7 @@ namespace lsp
             pPathID     = NULL;
         }
 
-        CtlSaveFile::~CtlSaveFile()
+        CtlLoadFile::~CtlLoadFile()
         {
             if (pPathID != NULL)
             {
@@ -35,20 +32,20 @@ namespace lsp
             }
         }
 
-        void CtlSaveFile::update_state()
+        void CtlLoadFile::update_state()
         {
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
-            if (save == NULL)
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(pWidget);
+            if (load == NULL)
                 return;
             if (pStatus == NULL)
                 return;
 
             size_t status = pStatus->get_value();
             if (status == STATUS_UNSPECIFIED)
-                save->set_state(SFS_SELECT);
+                load->set_state(LFS_SELECT);
             else if (status == STATUS_OK)
             {
-                save->set_state(SFS_SAVED);
+                load->set_state(LFS_LOADED);
                 if (pCommand != NULL)
                 {
                     pCommand->set_value(0.0f);
@@ -57,13 +54,13 @@ namespace lsp
             }
             else if (status == STATUS_LOADING)
             {
-                save->set_state(SFS_SAVING);
+                load->set_state(LFS_LOADING);
                 if (pProgress != NULL)
-                    save->set_progress(pProgress->get_value());
+                    load->set_progress(pProgress->get_value());
             }
             else
             {
-                save->set_state(SFS_ERROR);
+                load->set_state(LFS_ERROR);
                 if (pCommand != NULL)
                 {
                     pCommand->set_value(0.0f);
@@ -72,19 +69,19 @@ namespace lsp
             }
         }
 
-        status_t CtlSaveFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlLoadFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
         {
-            CtlSaveFile *_this   = static_cast<CtlSaveFile *>(ptr);
+            CtlLoadFile *_this   = static_cast<CtlLoadFile *>(ptr);
             return (_this != NULL) ? _this->commit_state() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t CtlSaveFile::commit_state()
+        status_t CtlLoadFile::commit_state()
         {
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
-            if (save == NULL)
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(pWidget);
+            if (load == NULL)
                 return STATUS_OK;
 
-            const char *path = save->file_name();
+            const char *path = load->file_name();
             if (pFile != NULL)
             {
                 pFile->write(path, strlen(path));
@@ -99,9 +96,9 @@ namespace lsp
             return STATUS_OK;
         }
 
-        void CtlSaveFile::set(widget_attribute_t att, const char *value)
+        void CtlLoadFile::set(widget_attribute_t att, const char *value)
         {
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(pWidget);
 
             switch (att)
             {
@@ -123,15 +120,15 @@ namespace lsp
                     BIND_PORT(pRegistry, pProgress, value);
                     break;
                 case A_FORMAT:
-                    if (save != NULL)
-                        parse_file_formats(value, save->filter());
+                    if (load != NULL)
+                        parse_file_formats(value, load->filter());
                     break;
                 case A_FORMAT_ID:
                     BIND_EXPR(sFormat, value);
                     break;
                 case A_SIZE:
-                    if (save != NULL)
-                        PARSE_INT(value, save->set_size(__) );
+                    if (load != NULL)
+                        PARSE_INT(value, load->set_size(__) );
                     break;
                 default:
                 {
@@ -141,14 +138,14 @@ namespace lsp
             }
         }
 
-        void CtlSaveFile::end()
+        void CtlLoadFile::end()
         {
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
-            if (save != NULL)
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(pWidget);
+            if (load != NULL)
             {
-                save->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
-                save->slots()->bind(LSPSLOT_SUBMIT, slot_on_file_submit, this);
-                save->slots()->bind(LSPSLOT_CLOSE, slot_on_close, this);
+                load->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
+                load->slots()->bind(LSPSLOT_SUBMIT, slot_on_file_submit, this);
+                load->slots()->bind(LSPSLOT_CLOSE, slot_on_close, this);
             }
 
             const char *path = (pPathID != NULL) ? pPathID : DEFAULT_PATH_PORT;
@@ -159,36 +156,36 @@ namespace lsp
             CtlWidget::end();
         }
 
-        status_t CtlSaveFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlLoadFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
         {
-            CtlSaveFile *ctl    = static_cast<CtlSaveFile *>(ptr);
+            CtlLoadFile *ctl    = static_cast<CtlLoadFile *>(ptr);
             if ((ctl == NULL) || (ctl->pPath == NULL))
                 return STATUS_BAD_ARGUMENTS;
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(ctl->pWidget);
-            if (save == NULL)
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(ctl->pWidget);
+            if (load == NULL)
                 return STATUS_BAD_STATE;
 
-            save->set_path(ctl->pPath->get_buffer<char>());
+            load->set_path(ctl->pPath->get_buffer<char>());
             return STATUS_OK;
         }
 
-        status_t CtlSaveFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlLoadFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
         {
-            CtlSaveFile *ctl = static_cast<CtlSaveFile *>(ptr);
+            CtlLoadFile *ctl = static_cast<CtlLoadFile *>(ptr);
             if (ctl == NULL)
                 return STATUS_BAD_ARGUMENTS;
             ctl->update_path();
             return STATUS_OK;
         }
 
-        void CtlSaveFile::update_path()
+        void CtlLoadFile::update_path()
         {
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
-            if ((save == NULL) || (pPath == NULL))
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(pWidget);
+            if ((load == NULL) || (pPath == NULL))
                 return;
 
             LSPString path;
-            if (save->get_path(&path) != STATUS_OK)
+            if (load->get_path(&path) != STATUS_OK)
                 return;
 
             if (path.length() <= 0)
@@ -198,7 +195,7 @@ namespace lsp
             pPath->notify_all();
         }
 
-        void CtlSaveFile::notify(CtlPort *port)
+        void CtlLoadFile::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
 
@@ -206,12 +203,12 @@ namespace lsp
                 (port == pProgress))
                 update_state();
 
-            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
-            if (save == NULL)
+            LSPLoadFile *load   = widget_cast<LSPLoadFile>(pWidget);
+            if (load == NULL)
                 return;
 
             if (sFormat.valid())
-                save->filter()->set_default(sFormat.evaluate());
+                load->filter()->set_default(sFormat.evaluate());
         }
     } /* namespace ctl */
 } /* namespace lsp */

@@ -1,7 +1,7 @@
 /*
- * LSPSaveFile.cpp
+ * LSPLoadFile.cpp
  *
- *  Created on: 20 нояб. 2017 г.
+ *  Created on: 07 мая 2019 г.
  *      Author: sadko
  */
 
@@ -11,7 +11,7 @@ namespace lsp
 {
     namespace tk
     {
-        const w_class_t LSPSaveFile::metadata = { "LSPSaveFile", &LSPWidget::metadata };
+        const w_class_t LSPLoadFile::metadata = { "LSPLoadFile", &LSPWidget::metadata };
 
         typedef struct state_descr_t
         {
@@ -19,26 +19,26 @@ namespace lsp
             size_t color_id;
         } state_descr_t;
 
-        LSPSaveFile::LSPSaveFile(LSPDisplay *dpy):
+        LSPLoadFile::LSPLoadFile(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(dpy, this),
             sBgColor(this),
             sDialog(dpy)
         {
-            nState      = SFS_SELECT;
+            nState      = LFS_SELECT;
             fProgress   = 0;
             nButtons    = 0;
             nBtnState   = 0;
             pDisk       = NULL;
             nSize       = -1;
 
-            for (size_t i=0; i<SFS_TOTAL; ++i)
+            for (size_t i=0; i<LFS_SELECT; ++i)
                 vStates[i].pColor   = NULL;
 
             pClass      = &metadata;
         }
 
-        LSPSaveFile::~LSPSaveFile()
+        LSPLoadFile::~LSPLoadFile()
         {
             if (pDisk != NULL)
             {
@@ -48,22 +48,22 @@ namespace lsp
             }
         }
 
-        status_t LSPSaveFile::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
+        status_t LSPLoadFile::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            LSPLoadFile *_this = widget_ptrcast<LSPLoadFile>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPSaveFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
+        status_t LSPLoadFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            LSPLoadFile *_this = widget_ptrcast<LSPLoadFile>(ptr);
             return (_this != NULL) ? _this->on_activate() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPSaveFile::slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data)
+        status_t LSPLoadFile::slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data)
         {
             // Cast widget
-            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            LSPLoadFile *_this = widget_ptrcast<LSPLoadFile>(ptr);
             if (_this == NULL)
                 return STATUS_BAD_STATE;
 
@@ -72,33 +72,33 @@ namespace lsp
             return _this->sSlots.execute(LSPSLOT_CLOSE, _this, data);
         }
 
-        status_t LSPSaveFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
+        status_t LSPLoadFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            LSPLoadFile *_this = widget_ptrcast<LSPLoadFile>(ptr);
             return (_this != NULL) ? _this->on_close() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPSaveFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
+        status_t LSPLoadFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            LSPLoadFile *_this = widget_ptrcast<LSPLoadFile>(ptr);
             return (_this != NULL) ? _this->sSlots.execute(LSPSLOT_SUBMIT, sender) : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPSaveFile::init()
+        status_t LSPLoadFile::init()
         {
-            static const state_descr_t initial[SFS_TOTAL] =
+            static const state_descr_t initial[LFS_TOTAL] =
             {
-                { " Save ", C_BUTTON_FACE },
-                { " Saving ", C_YELLOW },
-                { " Saved ", C_GREEN },
-                { " Error ", C_RED }
+                { " Load ",     C_BUTTON_FACE },
+                { " Loading ",  C_YELLOW },
+                { " Loaded ",   C_GREEN },
+                { " Error ",    C_RED }
             };
 
             LSP_STATUS_ASSERT(LSPWidget::init());
 
             init_color(C_BACKGROUND, &sBgColor);
 
-            for (size_t i=0; i<SFS_TOTAL; ++i)
+            for (size_t i=0; i<LFS_TOTAL; ++i)
             {
                 const state_descr_t *sd = &initial[i];
 
@@ -114,10 +114,9 @@ namespace lsp
 
             // Create dialog
             LSP_STATUS_ASSERT(sDialog.init());
-            sDialog.set_mode(FDM_SAVE_FILE);
-            sDialog.set_title("Save to file");
-            sDialog.set_action_title("Save");
-            sDialog.set_confirmation("The selected file already exists. Overwrite?");
+            sDialog.set_mode(FDM_OPEN_FILE);
+            sDialog.set_title("Load from file");
+            sDialog.set_action_title("Open");
             sDialog.filter()->add("*", "All files (*.*)", "");
             sDialog.bind_action(slot_on_file_submit, self());
 
@@ -134,11 +133,11 @@ namespace lsp
             return STATUS_OK;
         }
 
-        void LSPSaveFile::destroy()
+        void LSPLoadFile::destroy()
         {
             sDialog.destroy();
 
-            for (size_t i=0; i<SFS_TOTAL; ++i)
+            for (size_t i=0; i<LFS_TOTAL; ++i)
                 if (vStates[i].pColor != NULL)
                 {
                     delete vStates[i].pColor;
@@ -148,38 +147,38 @@ namespace lsp
             LSPWidget::destroy();
         }
 
-        LSPColor *LSPSaveFile::state_color(size_t i)
+        LSPColor *LSPLoadFile::state_color(size_t i)
         {
-            if ((i < 0) || (i >= SFS_TOTAL))
+            if ((i < 0) || (i >= LFS_TOTAL))
                 return NULL;
             return vStates[i].pColor;
         }
 
-        const char *LSPSaveFile::state_text(size_t i) const
+        const char *LSPLoadFile::state_text(size_t i) const
         {
-            if ((i < 0) || (i >= SFS_TOTAL))
+            if ((i < 0) || (i >= LFS_TOTAL))
                 return NULL;
             return vStates[i].sText.get_native();
         }
 
-        status_t LSPSaveFile::get_state_text(size_t i, LSPString *dst)
+        status_t LSPLoadFile::get_state_text(size_t i, LSPString *dst)
         {
-            if ((i < 0) || (i >= SFS_TOTAL) || (dst == NULL))
+            if ((i < 0) || (i >= LFS_TOTAL) || (dst == NULL))
                 return STATUS_BAD_ARGUMENTS;
             return (dst->set(&vStates[i].sText)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        const char *LSPSaveFile::file_name() const
+        const char *LSPLoadFile::file_name() const
         {
             return sDialog.selected_file();
         }
 
-        status_t LSPSaveFile::get_file_name(LSPString *dst)
+        status_t LSPLoadFile::get_file_name(LSPString *dst)
         {
             return sDialog.get_selected_file(dst);
         }
 
-        status_t LSPSaveFile::set_state(save_file_state_t state)
+        status_t LSPLoadFile::set_state(load_file_state_t state)
         {
             if (nState == state)
                 return STATUS_OK;
@@ -188,9 +187,9 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::set_state_text(size_t i, const char *s)
+        status_t LSPLoadFile::set_state_text(size_t i, const char *s)
         {
-            if ((i < 0) || (i >= SFS_TOTAL))
+            if ((i < 0) || (i >= LFS_TOTAL))
                 return STATUS_BAD_ARGUMENTS;
             if (!vStates[i].sText.set_native(s))
                 return STATUS_NO_MEM;
@@ -198,9 +197,9 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::set_state_text(size_t i, const LSPString *s)
+        status_t LSPLoadFile::set_state_text(size_t i, const LSPString *s)
         {
-            if ((i < 0) || (i >= SFS_TOTAL))
+            if ((i < 0) || (i >= LFS_TOTAL))
                 return STATUS_BAD_ARGUMENTS;
             if (!vStates[i].sText.set(s))
                 return STATUS_NO_MEM;
@@ -208,7 +207,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::set_progress(float value)
+        status_t LSPLoadFile::set_progress(float value)
         {
             if (value < 0.0f)
                 value = 0.0f;
@@ -218,27 +217,27 @@ namespace lsp
             if (value == fProgress)
                 return value;
             fProgress   = value;
-            if (nState == SFS_SAVING)
+            if (nState == LFS_LOADING)
                 query_draw();
 
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::set_path(const LSPString *path)
+        status_t LSPLoadFile::set_path(const LSPString *path)
         {
             if (!sPath.set(path))
                 return STATUS_NO_MEM;
             return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
         }
 
-        status_t LSPSaveFile::set_path(const char *path)
+        status_t LSPLoadFile::set_path(const char *path)
         {
             if (!sPath.set_native(path))
                 return STATUS_NO_MEM;
             return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
         }
 
-        void LSPSaveFile::set_size(ssize_t size)
+        void LSPLoadFile::set_size(ssize_t size)
         {
             if (nSize == size)
                 return;
@@ -246,7 +245,7 @@ namespace lsp
             query_resize();
         }
 
-        ISurface *LSPSaveFile::render_disk(ISurface *s, ssize_t w, const Color &c)
+        ISurface *LSPLoadFile::render_disk(ISurface *s, ssize_t w, const Color &c)
         {
 #define N 9
             static const float xx[] = { 0.5, 7, 8, 8, 7.5, 0.5, 0, 0, 0.5 };
@@ -365,7 +364,7 @@ namespace lsp
 #undef N
         }
 
-        void LSPSaveFile::draw(ISurface *s)
+        void LSPLoadFile::draw(ISurface *s)
         {
             // Determine current color
             Color c;
@@ -378,12 +377,12 @@ namespace lsp
             if (d != NULL)
                 s->draw(d, 0, 0);
 
-            if (nState == SFS_SAVING)
+            if (nState == LFS_LOADING)
             {
                 size_t pw = (fProgress * sSize.nWidth * 0.01f);
                 if (pw > 0)
                 {
-                    c.copy(vStates[SFS_SAVED].pColor->color());
+                    c.copy(vStates[LFS_LOADED].pColor->color());
                     ISurface *d = render_disk(s, sSize.nWidth, c);
                     if (d != NULL)
                         s->draw_clipped(d, 0, 0, 0, 0, pw, sSize.nWidth);
@@ -391,7 +390,7 @@ namespace lsp
             }
         }
 
-        void LSPSaveFile::size_request(size_request_t *r)
+        void LSPLoadFile::size_request(size_request_t *r)
         {
             ISurface *s = pDisplay->create_surface(1, 1);
             if (s == NULL)
@@ -402,7 +401,7 @@ namespace lsp
             text_parameters_t tp, tp2;
             sFont.get_parameters(s, &fp);
 
-            for (size_t i=0; i<SFS_TOTAL; ++i)
+            for (size_t i=0; i<LFS_TOTAL; ++i)
             {
                 if (i == 0)
                     sFont.get_text_parameters(s, &tp, &vStates[i].sText);
@@ -431,7 +430,7 @@ namespace lsp
             r->nMaxHeight       = r->nMinHeight;
         }
 
-        status_t LSPSaveFile::on_mouse_down(const ws_event_t *e)
+        status_t LSPLoadFile::on_mouse_down(const ws_event_t *e)
         {
             take_focus();
 
@@ -439,7 +438,7 @@ namespace lsp
             nButtons           |= (1 << e->nCode);
             size_t state        = nBtnState;
 
-            if (nState != SFS_SAVING)
+            if (nState != LFS_LOADING)
             {
                 // Update state according to mouse position and mouse button state
                 if ((nButtons == (1 << MCB_LEFT)) && (mover))
@@ -457,7 +456,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::on_mouse_up(const ws_event_t *e)
+        status_t LSPLoadFile::on_mouse_up(const ws_event_t *e)
         {
             bool mover          = inside(e->nLeft, e->nTop);
 
@@ -469,7 +468,7 @@ namespace lsp
                 nBtnState  |= S_PRESSED;
             else
                 nBtnState  &= ~S_PRESSED;
-            if ((bstate == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT) && (mover) && (nState != SFS_SAVING))
+            if ((bstate == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT) && (mover) && (nState != LFS_LOADING))
             {
                 status_t result = sSlots.execute(LSPSLOT_ACTIVATE, NULL);
                 if (result == STATUS_OK)
@@ -486,13 +485,13 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::on_mouse_move(const ws_event_t *e)
+        status_t LSPLoadFile::on_mouse_move(const ws_event_t *e)
         {
             bool mover          = inside(e->nLeft, e->nTop);
 
             // Update state according to mouse position and mouse button state
             size_t state        = nBtnState;
-            if (nState != SFS_SAVING)
+            if (nState != LFS_LOADING)
             {
                 if ((nButtons == (1 << MCB_LEFT)) && (mover))
                     nBtnState  |= S_PRESSED;
@@ -509,17 +508,17 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::on_submit()
+        status_t LSPLoadFile::on_submit()
         {
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::on_activate()
+        status_t LSPLoadFile::on_activate()
         {
             return STATUS_OK;
         }
 
-        status_t LSPSaveFile::on_close()
+        status_t LSPLoadFile::on_close()
         {
             return STATUS_OK;
         }
