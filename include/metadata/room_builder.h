@@ -29,6 +29,8 @@ namespace lsp
 
         static const size_t CONVOLVERS              = 4;        // Number of IR convolvers
 
+        static const size_t CAPTURES                = 8;        // Number of captures
+
         static const size_t FFT_RANK_MIN            = 9;        // Minimum FFT rank
 
         static const float LCF_MIN                  = 10.0f;
