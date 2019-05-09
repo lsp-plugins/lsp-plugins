@@ -35,11 +35,11 @@ namespace lsp
                 CtlPadding      sPadding;
 //                LSPTimer        sTimer;
 
-                CtlPort        *pPath;
+                CtlPort        *pFile;
+                CtlPort        *pStatus;
 
                 bool            bViewChanged;
 
-                char           *pPathID;
                 Scene3D         sScene;
                 cstorage<v_vertex3d_t>      vVertexes;  // Vertexes of the scene
 
@@ -86,8 +86,6 @@ namespace lsp
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void notify(CtlPort *port);
-
-                virtual void end();
         };
     
     } /* namespace ctl */

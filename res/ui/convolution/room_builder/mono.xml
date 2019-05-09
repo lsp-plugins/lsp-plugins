@@ -1,13 +1,13 @@
 <plugin resizable="false">
 	<vbox spacing="4">
 		<!-- IR editor -->
-		<group text="Room Navigation">
-			<viewer3d width="320" height="200">
-			</viewer3d>
-		</group>
-		<hbox fill="false">
-			<save size="64" />
-			<load size="64" />
-		</hbox>
+		<cgroup id="view">
+			<vbox>
+				<viewer3d id="ifn" status_id="ifs" width="320" height="200" />
+				<hbox>
+					<load size="48" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
+				</hbox>
+			</vbox>
+		</cgroup>
 	</vbox>
 </plugin>

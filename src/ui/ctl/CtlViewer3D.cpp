@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <ui/ctl/ctl.h>
+#include <ui/ui.h>
 #include <core/3d/common.h>
 #include <core/3d/bsp_context.h>
 #include <core/files/Model3DFile.h>
@@ -33,8 +33,8 @@ namespace lsp
             widget->slots()->bind(LSPSLOT_MOUSE_UP, slot_mouse_up, this);
             widget->slots()->bind(LSPSLOT_MOUSE_MOVE, slot_mouse_move, this);
 
-            pPathID         = NULL;
-            pPath           = NULL;
+            pFile           = NULL;
+            pStatus         = NULL;
             bViewChanged    = true;
 
             nBMask          = 0;
@@ -51,11 +51,6 @@ namespace lsp
         
         CtlViewer3D::~CtlViewer3D()
         {
-            if (pPathID != NULL)
-            {
-                free(pPathID);
-                pPathID = NULL;
-            }
         }
 
         status_t CtlViewer3D::slot_on_draw3d(LSPWidget *sender, void *ptr, void *data)
@@ -255,6 +250,9 @@ namespace lsp
 
             switch (att)
             {
+                case A_ID:
+                    BIND_PORT(pRegistry, pFile, value);
+                    break;
                 case A_WIDTH:
                     if (r3d != NULL)
                         PARSE_INT(value, r3d->set_min_width(__));
@@ -271,10 +269,8 @@ namespace lsp
                     if (r3d != NULL)
                         PARSE_INT(value, r3d->set_radius(__));
                     break;
-                case A_PATH_ID:
-                    if (pPathID != NULL)
-                        free(pPathID);
-                    pPathID = (value != NULL) ? strdup(value) : NULL;
+                case A_STATUS_ID:
+                    BIND_PORT(pRegistry, pStatus, value);
                     break;
                 default:
                 {
@@ -294,38 +290,28 @@ namespace lsp
             CtlWidget::notify(port);
 
             // Changed file name?
-            if (port == pPath)
+            if ((port == pFile) || (port == pStatus))
             {
+                // Clear scene state
                 sScene.clear();
-                const char *spath   = pPath->get_buffer<char>();
-                if (spath == NULL)
-                    return;
 
-                status_t res = Model3DFile::load(&sScene, spath, false);
-                if (res != STATUS_OK)
-                    return;
+                // Load scene only if status is not defined or valid
+                if ((pStatus == NULL) || (status_t(pStatus->get_value()) == STATUS_OK))
+                {
+                    const char *spath   = pFile->get_buffer<char>();
+                    if (spath != NULL)
+                    {
+                        // Try to load
+                        status_t res = Model3DFile::load(&sScene, spath, false);
+                        if (res != STATUS_OK)
+                            sScene.clear();
+                    }
+                }
 
                 // Mark that view has changed and query for redraw
                 bViewChanged    = true;
                 pWidget->query_draw();
             }
-        }
-
-        void CtlViewer3D::end()
-        {
-            if (pPathID != NULL)
-            {
-                BIND_PORT(pRegistry, pPath, pPathID);
-                notify(pPath);
-            }
-            else
-            {
-                Model3DFile::load(&sScene, "res/test/3d/devel-room.obj", true);
-                bViewChanged    = true;
-                pWidget->query_draw();
-            }
-
-            CtlWidget::end();
         }
 
         void CtlViewer3D::commit_view(IR3DBackend *r3d)

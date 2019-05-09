@@ -86,7 +86,7 @@ namespace lsp
         protected:
             class SceneLoader: public ipc::ITask
             {
-                private:
+                public:
                     room_builder_base       *pCore;
                     Scene3D                  sScene;
 
@@ -103,7 +103,6 @@ namespace lsp
 
                 public:
                     virtual status_t run();
-                    void apply_changes();
             };
 
         protected:
@@ -117,13 +116,26 @@ namespace lsp
             capture_t               vCaptures[room_builder_base_metadata::CAPTURES];
 
             Scene3D                 sScene;
+            status_t                nSceneStatus;
+            float                   fSceneProgress;
             SceneLoader             s3DLoader;
 
             IPort                  *pBypass;
+            IPort                  *pRank;
+            IPort                  *pDry;
+            IPort                  *pWet;
+            IPort                  *pOutGain;
+            IPort                  *pPredelay;
             IPort                  *p3DFile;
+            IPort                  *p3DProgress;
             IPort                  *p3DStatus;
 
             void                   *pData;      // Allocated data
+            ipc::IExecutor         *pExecutor;
+
+        protected:
+            static size_t       get_fft_rank(size_t rank);
+            void                sync_offline_tasks();
 
         public:
             room_builder_base(const plugin_metadata_t &metadata, size_t inputs);
