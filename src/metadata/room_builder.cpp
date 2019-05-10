@@ -56,7 +56,12 @@ namespace lsp
         OUT_GAIN, \
         PATH("ifn", "Input 3D model file name"),    \
         STATUS("ifs", "Input 3D model load status"), \
-        METER_PERCENT("ifp", "File loading progress")
+        METER_PERCENT("ifp", "File loading progress"), \
+        CONTROL("cposx", "Camera X position", U_M, room_builder_base_metadata::POSITION), \
+        CONTROL("cposy", "Camera Y position", U_M, room_builder_base_metadata::POSITION), \
+        CONTROL("cposz", "Camera Z position", U_M, room_builder_base_metadata::POSITION), \
+        { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.002f, NULL, NULL }, \
+        { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.002f, NULL, NULL }
 
     static const port_t room_builder_mono_ports[] =
     {

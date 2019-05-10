@@ -4,9 +4,33 @@
 		<cgroup id="view">
 			<vbox>
 				<viewer3d id="ifn" status_id="ifs" width="320" height="200" />
-				<hbox>
-					<load size="48" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
-				</hbox>
+				<grid rows="4" cols="7">
+					<label text="3D model" />
+					<cell rows="4"><vsep /></cell>
+					<cell cols="5"><label text="Camera" /></cell>
+					
+					<cell rows="3">
+						<load size="48" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
+					</cell>
+					
+					<label text="X Axis" />
+					<label text="Y Axis" />
+					<label text="Z Axis" />
+					<label text="Yaw" />
+					<label text="Pitch" />
+					
+					<knob id="cposx" size="24" />
+					<knob id="cposy" size="24" />
+					<knob id="cposz" size="24" />
+					<knob id="cyaw" size="24" />
+					<knob id="cpitch" size="24" />
+					
+					<value id="cposx" />
+					<value id="cposy" />
+					<value id="cposz" />
+					<value id="cyaw" />
+					<value id="cpitch" />
+				</grid>
 			</vbox>
 		</cgroup>
 	</vbox>

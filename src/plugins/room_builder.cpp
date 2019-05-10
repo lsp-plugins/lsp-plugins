@@ -189,6 +189,17 @@ namespace lsp
         p3DStatus   = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         p3DProgress = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);            // Skip camera x
+        port_id++;
+        TRACE_PORT(vPorts[port_id]);            // Skip camera y
+        port_id++;
+        TRACE_PORT(vPorts[port_id]);            // Skip camera z
+        port_id++;
+        TRACE_PORT(vPorts[port_id]);            // Skip camera yaw
+        port_id++;
+        TRACE_PORT(vPorts[port_id]);            // Skip camera pitch
+        port_id++;
     }
 
     void room_builder_base::destroy()

@@ -33,6 +33,11 @@ namespace lsp
 
         static const size_t FFT_RANK_MIN            = 9;        // Minimum FFT rank
 
+        static const float POSITION_MIN             = -100.0f;
+        static const float POSITION_MAX             = +100.0f;
+        static const float POSITION_DFL             = 0.0f;
+        static const float POSITION_STEP            = 0.01f;
+
         static const float LCF_MIN                  = 10.0f;
         static const float LCF_MAX                  = 1000.0f;
         static const float LCF_DFL                  = 50.0f;

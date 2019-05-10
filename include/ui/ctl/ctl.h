@@ -191,7 +191,8 @@ namespace lsp
             A_TRANSPARENCY,
             A_MODE,
             A_LENGTH,
-            A_WUID
+            A_WUID,
+            A_CYCLE
         };
 
         // Helper functions

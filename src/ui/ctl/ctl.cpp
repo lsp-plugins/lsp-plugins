@@ -169,6 +169,7 @@ namespace lsp
             "mode",
             "length",
             "ui:id",
+            "cycle",
             NULL
         };
 

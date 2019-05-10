@@ -16,6 +16,7 @@ namespace lsp
             pPort       = NULL;
             bLog        = false;
             bLogSet     = false;
+            bCyclingSet = false;
         }
 
         CtlKnob::~CtlKnob()
@@ -176,6 +177,11 @@ namespace lsp
                     if (knob != NULL)
                         PARSE_FLOAT(value, knob->set_balance(__));
                     break;
+                case A_CYCLE:
+                    bCyclingSet = true;
+                    if (knob != NULL)
+                        PARSE_BOOL(value, knob->set_cycling(__); );
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -247,6 +253,8 @@ namespace lsp
                 knob->set_tiny_step(step);
                 knob->set_value(p->start);
                 knob->set_default_value(p->start);
+                if (!bCyclingSet)
+                    knob->set_cycling(p->flags & F_CYCLIC);
             }
             else if (bLog)  // Float and other values, logarithmic
             {
@@ -272,6 +280,8 @@ namespace lsp
                 knob->set_step(knob->tiny_step() * 10.0f);
                 knob->set_value(p->start);
                 knob->set_default_value(p->start);
+                if (!bCyclingSet)
+                    knob->set_cycling(p->flags & F_CYCLIC);
             }
         }
 

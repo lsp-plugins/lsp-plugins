@@ -144,7 +144,8 @@ namespace lsp
         F_TRG           = (1 << 6),     // Trigger
         F_GROWING       = (1 << 7),     // Proportionally growing default value (for port sets)
         F_LOWERING      = (1 << 8),     // Proportionally lowering default value (for port sets)
-        F_PEAK          = (1 << 9)      // Peak flag
+        F_PEAK          = (1 << 9),     // Peak flag
+        F_CYCLIC        = (1 << 10),    // Cyclic flag
     };
 
     #define IS_OUT_PORT(p)      ((p)->flags & F_OUT)
