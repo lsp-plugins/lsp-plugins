@@ -38,6 +38,12 @@ namespace lsp
                 CtlPort        *pFile;
                 CtlPort        *pStatus;
 
+                CtlPort        *pPosX;
+                CtlPort        *pPosY;
+                CtlPort        *pPosZ;
+                CtlPort        *pYaw;
+                CtlPort        *pPitch;
+
                 bool            bViewChanged;
 
                 Scene3D         sScene;
@@ -73,6 +79,12 @@ namespace lsp
                 void    rotate_camera(ssize_t dx, ssize_t dy);
                 void    move_camera(ssize_t dx, ssize_t dy, ssize_t dz);
 
+                static float get_delta(CtlPort *p, float dfl);
+                static float get_adelta(CtlPort *p, float dfl);
+                void    submit_pov_change(float *vold, float vnew, CtlPort *port);
+                void    submit_angle_change(float *vold, float vnew, CtlPort *port);
+                void    sync_pov_change(float *dst, CtlPort *port, CtlPort *psrc);
+                void    sync_angle_change(float *dst, CtlPort *port, CtlPort *psrc);
 
             public:
                 explicit CtlViewer3D(CtlRegistry *src, LSPArea3D *widget);

@@ -170,6 +170,11 @@ namespace lsp
             "length",
             "ui:id",
             "cycle",
+            "xpos_id",
+            "ypos_id",
+            "zpos_id",
+            "yaw_id",
+            "pitch_id",
             NULL
         };
 

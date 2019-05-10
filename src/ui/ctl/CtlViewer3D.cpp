@@ -35,6 +35,12 @@ namespace lsp
 
             pFile           = NULL;
             pStatus         = NULL;
+            pPosX           = NULL;
+            pPosY           = NULL;
+            pPosZ           = NULL;
+            pYaw            = NULL;
+            pPitch          = NULL;
+
             bViewChanged    = true;
 
             nBMask          = 0;
@@ -132,37 +138,97 @@ namespace lsp
             return STATUS_OK;
         }
 
+        float CtlViewer3D::get_adelta(CtlPort *p, float dfl)
+        {
+            const port_t *meta = (p != NULL) ? p->metadata() : NULL;
+            if ((meta != NULL) && (meta->flags & F_STEP))
+                return is_degree_unit(meta->unit) ? meta->step * 5.0f * M_PI / 180.0f : meta->step;
+            return dfl;
+        }
+
         void CtlViewer3D::rotate_camera(ssize_t dx, ssize_t dy)
         {
-            float yaw       = sOldAngles.fYaw - (dx * M_PI * 2e-3f);
-            float pitch     = sOldAngles.fPitch - (dy * M_PI * 2e-3f);
+            float dyaw      = get_adelta(pYaw, M_PI * 2e-3f);
+            float dpitch    = get_adelta(pPitch, M_PI * 2e-3f);
 
-            if (pitch >= (89.0f * M_PI / 360.0f))
-                pitch       = (89.0f * M_PI / 360.0f);
-            else if (pitch <= (-89.0f * M_PI / 360.0f))
-                pitch       = (-89.0f * M_PI / 360.0f);
+            float yaw       = sOldAngles.fYaw - (dx * dyaw);
+            float pitch     = sOldAngles.fPitch - (dy * dpitch);
 
-            sAngles.fYaw    = yaw;
-            sAngles.fPitch  = pitch;
+            if (pPitch == NULL)
+            {
+                if (pitch >= (89.0f * M_PI / 360.0f))
+                    pitch       = (89.0f * M_PI / 360.0f);
+                else if (pitch <= (-89.0f * M_PI / 360.0f))
+                    pitch       = (-89.0f * M_PI / 360.0f);
+            }
 
-            bViewChanged    = true;
-            update_camera_state();
-            pWidget->query_draw();
+            submit_angle_change(&sAngles.fYaw, yaw, pYaw);
+            submit_angle_change(&sAngles.fPitch, pitch, pPitch);
+        }
+
+        void CtlViewer3D::submit_angle_change(float *vold, float vnew, CtlPort *port)
+        {
+            if (*vold == vnew)
+                return;
+
+            const port_t *meta = (port != NULL) ? port->metadata() : NULL;
+            if (meta != NULL)
+            {
+                if (is_degree_unit(meta->unit))
+                    vnew    = vnew * 180.0f / M_PI;
+                port->set_value(vnew);
+                port->notify_all();
+            }
+            else
+            {
+                *vold           = vnew;
+                bViewChanged    = true;
+                update_camera_state();
+                pWidget->query_draw();
+            }
+        }
+
+        float CtlViewer3D::get_delta(CtlPort *p, float dfl)
+        {
+            const port_t *meta = (p != NULL) ? p->metadata() : NULL;
+            if ((meta != NULL) && (meta->flags & F_STEP))
+                return meta->step;
+            return dfl;
+        }
+
+        void CtlViewer3D::submit_pov_change(float *vold, float vnew, CtlPort *port)
+        {
+            if (*vold == vnew)
+                return;
+
+            if (port != NULL)
+            {
+                port->set_value(vnew);
+                port->notify_all();
+            }
+            else
+            {
+                *vold           = vnew;
+                bViewChanged    = true;
+                update_camera_state();
+                pWidget->query_draw();
+            }
         }
 
         void CtlViewer3D::move_camera(ssize_t dx, ssize_t dy, ssize_t dz)
         {
-            float mdx       = dx * 1e-2f;
-            float mdy       = dy * 1e-2f;
-            float mdz       = dz * 1e-2f;
+            point3d_t pov;
+            float mdx       = dx * get_delta(pPosX, 0.01f);
+            float mdy       = dy * get_delta(pPosY, 0.01f);
+            float mdz       = dz * get_delta(pPosZ, 0.01f);
 
-            sPov.x          = sOldPov.x + sSide.dx * mdx + sDir.dx * mdy + sTop.dx * mdz;
-            sPov.y          = sOldPov.y + sSide.dy * mdx + sDir.dy * mdy + sTop.dy * mdz;
-            sPov.z          = sOldPov.z + sSide.dz * mdx + sDir.dz * mdy + sTop.dz * mdz;
+            pov.x           = sOldPov.x + sSide.dx * mdx + sDir.dx * mdy + sTop.dx * mdz;
+            pov.y           = sOldPov.y + sSide.dy * mdx + sDir.dy * mdy + sTop.dy * mdz;
+            pov.z           = sOldPov.z + sSide.dz * mdx + sDir.dz * mdy + sTop.dz * mdz;
 
-            bViewChanged    = true;
-            update_camera_state();
-            pWidget->query_draw();
+            submit_pov_change(&sPov.x, pov.x, pPosX);
+            submit_pov_change(&sPov.y, pov.y, pPosY);
+            submit_pov_change(&sPov.z, pov.z, pPosZ);
         }
 
         void CtlViewer3D::update_frustum()
@@ -272,6 +338,21 @@ namespace lsp
                 case A_STATUS_ID:
                     BIND_PORT(pRegistry, pStatus, value);
                     break;
+                case A_XPOS_ID:
+                    BIND_PORT(pRegistry, pPosX, value);
+                    break;
+                case A_YPOS_ID:
+                    BIND_PORT(pRegistry, pPosY, value);
+                    break;
+                case A_ZPOS_ID:
+                    BIND_PORT(pRegistry, pPosZ, value);
+                    break;
+                case A_YAW_ID:
+                    BIND_PORT(pRegistry, pYaw, value);
+                    break;
+                case A_PITCH_ID:
+                    BIND_PORT(pRegistry, pPitch, value);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -283,6 +364,34 @@ namespace lsp
                     break;
                 }
             }
+        }
+
+        void CtlViewer3D::sync_pov_change(float *dst, CtlPort *port, CtlPort *psrc)
+        {
+            if ((psrc != port) || (port == NULL))
+                return;
+            *dst    = psrc->get_value();
+            update_camera_state();
+            bViewChanged    = true;
+            pWidget->query_draw();
+        }
+
+        void CtlViewer3D::sync_angle_change(float *dst, CtlPort *port, CtlPort *psrc)
+        {
+            if ((psrc != port) || (port == NULL))
+                return;
+            const port_t *meta = port->metadata();
+            if (meta == NULL)
+                return;
+
+            float value = psrc->get_value();
+            if (is_degree_unit(meta->unit))
+                value       = value * M_PI / 180.0f;
+            *dst    = value;
+
+            update_camera_state();
+            bViewChanged    = true;
+            pWidget->query_draw();
         }
 
         void CtlViewer3D::notify(CtlPort *port)
@@ -312,6 +421,12 @@ namespace lsp
                 bViewChanged    = true;
                 pWidget->query_draw();
             }
+
+            sync_pov_change(&sPov.x, pPosX, port);
+            sync_pov_change(&sPov.y, pPosY, port);
+            sync_pov_change(&sPov.z, pPosZ, port);
+            sync_angle_change(&sAngles.fYaw, pYaw, port);
+            sync_angle_change(&sAngles.fPitch, pPitch, port);
         }
 
         void CtlViewer3D::commit_view(IR3DBackend *r3d)

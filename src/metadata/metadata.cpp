@@ -121,6 +121,22 @@ namespace lsp
         return false;
     }
 
+    bool is_degree_unit(size_t unit)
+    {
+        switch (unit)
+        {
+            case U_DEG:
+            case U_DEG_CEL:
+            case U_DEG_FAR:
+            case U_DEG_K:
+            case U_DEG_R:
+                return true;
+            default:
+                break;
+        }
+        return false;
+    }
+
     bool is_log_rule(const port_t *port)
     {
         if (port->flags & F_LOG)
@@ -141,6 +157,22 @@ namespace lsp
 
     float limit_value(const port_t *port, float value)
     {
+        if ((port->flags & (F_CYCLIC | F_UPPER | F_LOWER)) == (F_CYCLIC | F_UPPER | F_LOWER))
+        {
+            if (port->max > port->min)
+            {
+                value = port->min + fmodf(value - port->min, port->max - port->min);
+                if (value < port->min)
+                    value  += port->max - port->min;
+            }
+            else if (port->min > port->max)
+            {
+                value = port->max + fmodf(value - port->max, port->min - port->max);
+                if (value < port->max)
+                    value  += port->min - port->max;
+            }
+        }
+
         if (port->flags & F_UPPER)
         {
             if (value > port->max)

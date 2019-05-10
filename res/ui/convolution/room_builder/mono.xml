@@ -3,7 +3,12 @@
 		<!-- IR editor -->
 		<cgroup id="view">
 			<vbox>
-				<viewer3d id="ifn" status_id="ifs" width="320" height="200" />
+				<viewer3d
+					id="ifn" status_id="ifs" width="320" height="200"
+					xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
+					yaw_id="cyaw" pitch_id="cpitch"
+				/>
+				<!--  yaw_id="cyaw" pitch_id="cpitch" -->
 				<grid rows="4" cols="7">
 					<label text="3D model" />
 					<cell rows="4"><vsep /></cell>
@@ -25,11 +30,11 @@
 					<knob id="cyaw" size="24" />
 					<knob id="cpitch" size="24" />
 					
-					<value id="cposx" />
-					<value id="cposy" />
-					<value id="cposz" />
-					<value id="cyaw" />
-					<value id="cpitch" />
+					<value id="cposx" same_line="true" />
+					<value id="cposy" same_line="true" />
+					<value id="cposz" same_line="true" />
+					<value id="cyaw" same_line="true" />
+					<value id="cpitch" same_line="true" />
 				</grid>
 			</vbox>
 		</cgroup>

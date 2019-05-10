@@ -192,7 +192,12 @@ namespace lsp
             A_MODE,
             A_LENGTH,
             A_WUID,
-            A_CYCLE
+            A_CYCLE,
+            A_XPOS_ID,
+            A_YPOS_ID,
+            A_ZPOS_ID,
+            A_YAW_ID,
+            A_PITCH_ID
         };
 
         // Helper functions
