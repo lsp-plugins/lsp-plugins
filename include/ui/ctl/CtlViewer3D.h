@@ -55,6 +55,7 @@ namespace lsp
                 pov_angles_t    sAngles;        // Yaw, pitch, roll
                 pov_angles_t    sOldAngles;     // Old angles
                 vector3d_t      sTop;           // Top-of-view for the camera
+                vector3d_t      sXTop;          // Updated top-of-view for the camera
                 vector3d_t      sDir;           // Direction-of-view for the camera
                 vector3d_t      sSide;          // Side-of-view for the camera
 

@@ -222,9 +222,9 @@ namespace lsp
             float mdy       = dy * get_delta(pPosY, 0.01f);
             float mdz       = dz * get_delta(pPosZ, 0.01f);
 
-            pov.x           = sOldPov.x + sSide.dx * mdx + sDir.dx * mdy + sTop.dx * mdz;
-            pov.y           = sOldPov.y + sSide.dy * mdx + sDir.dy * mdy + sTop.dy * mdz;
-            pov.z           = sOldPov.z + sSide.dz * mdx + sDir.dz * mdy + sTop.dz * mdz;
+            pov.x           = sOldPov.x + sSide.dx * mdx + sDir.dx * mdy + sXTop.dx * mdz;
+            pov.y           = sOldPov.y + sSide.dy * mdx + sDir.dy * mdy + sXTop.dy * mdz;
+            pov.z           = sOldPov.z + sSide.dz * mdx + sDir.dz * mdy + sXTop.dz * mdz;
 
             submit_pov_change(&sPov.x, pov.x, pPosX);
             submit_pov_change(&sPov.y, pov.y, pPosY);
@@ -298,8 +298,10 @@ namespace lsp
             // Compute camera direction vector
             dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
             dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
+            dsp::init_vector_dxyz(&sXTop, 0.0f, 0.0f, -1.0f);
             dsp::apply_matrix3d_mv1(&sDir, &delta);
             dsp::apply_matrix3d_mv1(&sSide, &delta);
+            dsp::apply_matrix3d_mv1(&sXTop, &delta);
 
             // Initialize camera look
             matrix3d_t view;
