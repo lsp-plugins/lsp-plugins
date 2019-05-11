@@ -1,5 +1,5 @@
 <plugin resizable="false">
-	<vbox spacing="4">
+	<hbox spacing="4">
 		<!-- IR editor -->
 		<cgroup id="view">
 			<vbox>
@@ -38,5 +38,93 @@
 				</grid>
 			</vbox>
 		</cgroup>
-	</vbox>
+		<group text="Captures">
+			<vbox>
+				<!-- Capture selector -->
+				<align hpos="-1">
+					<hbox spacing="8">
+						<label text="Capture:" />
+						<combo id="csel" width="20" />
+						<button id="sce[csel]" size="16" led="true" color="red" hue_id="sch[csel]" />
+						<label text="Enabled" />
+					</hbox>
+				</align>
+				<hsep pad_bottom="8" />
+				<!-- Captures -->
+				<ui:for id="i" first="0" last="7" >
+					<vbox visibility=":csel ieq ${i}" spacing="2">
+						<grid rows="4" cols="2" transpose="true" vspacing="2" hspacing="2" >
+							<align pad_left="8" hpos="-1"><label text="Mode" /></align>
+							<align pad_left="8" hpos="-1"><label text="Reflections" /></align>
+							<align pad_left="8" hpos="-1"><label text="Mic. direction" /></align>
+							<align pad_left="8" hpos="-1" visibility="(:sccf_${i} ieq 4)" ><label text="Side direction" /></align>
+							
+							<combo id="sccf_${i}" />
+							<hbox spacing="2">
+								<combo id="scf_${i}" />
+								<label text=" - " />
+								<combo id="scl_${i}" />
+							</hbox>
+							<combo id="scmd_${i}" />
+							<combo id="scsd_${i}" visibility="(:sccf_${i} ieq 4)" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="X Axis" />
+							<label text="Y Axis" />
+							<label text="Z Axis" />
+							
+							<knob id="scpx_${i}" size="16" scale_hue_id="sch_${i}" />
+							<knob id="scpy_${i}" size="16" scale_hue_id="sch_${i}" />
+							<knob id="scpz_${i}" size="16" scale_hue_id="sch_${i}" />
+							
+							<value id="scpx_${i}" same_line="true" />
+							<value id="scpy_${i}" same_line="true" />
+							<value id="scpz_${i}" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="Yaw" />
+							<label text="Pitch" />
+							<label text="Roll" />
+							
+							<knob id="scay_${i}" size="16" scale_hue_id="sch_${i}" />
+							<knob id="scap_${i}" size="16" scale_hue_id="sch_${i}" />
+							<knob id="scar_${i}" size="16" scale_hue_id="sch_${i}" />
+							
+							<value id="scay_${i}" same_line="true" />
+							<value id="scap_${i}" same_line="true" />
+							<value id="scar_${i}" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<hbox>
+							<vbox>
+								<label text="Hue" />
+								<knob id="sch_${i}" size="16" scale_hue_id="sch_${i}" />
+								<value id="sch_${i}" same_line="true" />
+							</vbox>
+							<vbox>
+								<label text="Capsule" />
+								<knob id="sccs_${i}" size="16" scale_hue_id="sch_${i}" />
+								<value id="sccs_${i}" same_line="true" />
+							</vbox>
+							<vbox visibility="(:sccf_${i} ieq 1) or (:sccf_${i} ieq 3)" >
+								<label text="Angle" />
+								<knob id="sca_${i}" size="16" scale_hue_id="sch_${i}" />
+								<value id="sca_${i}" same_line="true"/>
+							</vbox>
+							<vbox visibility="(:sccf_${i} ieq 2)" >
+								<label text="Distance" />
+								<knob id="scab_${i}" size="16" scale_hue_id="sch_${i}" />
+								<value id="scab_${i}" same_line="true" />
+							</vbox>
+						</hbox>
+					</vbox>
+				</ui:for>
+			</vbox>
+		</group>
+	</hbox>
 </plugin>

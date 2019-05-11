@@ -226,6 +226,7 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         p3DProgress = vPorts[port_id++];
 
+        // Skip camera settings
         TRACE_PORT(vPorts[port_id]);            // Skip camera x
         port_id++;
         TRACE_PORT(vPorts[port_id]);            // Skip camera y
@@ -238,6 +239,9 @@ namespace lsp
         port_id++;
 
         // Bind captures
+        TRACE_PORT(vPorts[port_id]);            // Skip capture selector
+        port_id++;
+
         for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
         {
             capture_t *cap  = &vCaptures[i];
@@ -272,6 +276,8 @@ namespace lsp
             cap->pDirection     = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pSide          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            port_id++;          // Skip hue value
         }
     }
 

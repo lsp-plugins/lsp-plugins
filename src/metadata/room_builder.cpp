@@ -38,6 +38,19 @@ namespace lsp
         NULL
     };
 
+    static const char *rb_csel[] =
+    {
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        NULL
+    };
+
     static const char *rb_capture_config[] =
     {
         "Mono",
@@ -113,7 +126,7 @@ namespace lsp
         { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.1f, NULL, NULL }
 
-    #define RB_CAPTURE(id, label, ena) \
+    #define RB_CAPTURE(id, label, x, total, ena) \
         SWITCH("sce" id, "Capture " label " enable", ena), \
         COMBO("scf" id, "Capture " label " first reflection order", 2, rb_reflection), \
         COMBO("scl" id, "Capture " label " last reflection order", 0, rb_reflection), \
@@ -128,7 +141,8 @@ namespace lsp
         CONTROL("sca" id, "Capture " label " angle", U_DEG, room_builder_base_metadata::ANGLE),      \
         CONTROL("scab" id, "Capture " label " AB distance", U_M, room_builder_base_metadata::DISTANCE),      \
         COMBO("scmd" id, "Capture " label " microphone direction", 0, rb_capture_direction),      \
-        COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction)
+        COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction), \
+        { "sch" id, "Hue " label, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 
 
     static const port_t room_builder_mono_ports[] =
@@ -139,14 +153,15 @@ namespace lsp
         AUDIO_OUTPUT_RIGHT,
         RB_COMMON(RB_PAN_MONO),
 
-        RB_CAPTURE("0", "0", 1),
-        RB_CAPTURE("1", "1", 0),
-        RB_CAPTURE("2", "2", 0),
-        RB_CAPTURE("3", "3", 0),
-        RB_CAPTURE("4", "4", 0),
-        RB_CAPTURE("5", "5", 0),
-        RB_CAPTURE("6", "6", 0),
-        RB_CAPTURE("7", "7", 0),
+        COMBO("csel", "Capture selector", 0, rb_csel),
+        RB_CAPTURE("_0", "0", 0, 8, 1),
+        RB_CAPTURE("_1", "1", 1, 8, 0),
+        RB_CAPTURE("_2", "2", 2, 8, 0),
+        RB_CAPTURE("_3", "3", 3, 8, 0),
+        RB_CAPTURE("_4", "4", 4, 8, 0),
+        RB_CAPTURE("_5", "5", 5, 8, 0),
+        RB_CAPTURE("_6", "6", 6, 8, 0),
+        RB_CAPTURE("_7", "7", 7, 8, 0),
 
         PORTS_END
     };
@@ -157,14 +172,15 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         RB_COMMON(RB_PAN_STEREO),
 
-        RB_CAPTURE("0", "0", 1),
-        RB_CAPTURE("1", "1", 0),
-        RB_CAPTURE("2", "2", 0),
-        RB_CAPTURE("3", "3", 0),
-        RB_CAPTURE("4", "4", 0),
-        RB_CAPTURE("5", "5", 0),
-        RB_CAPTURE("6", "6", 0),
-        RB_CAPTURE("7", "7", 0),
+        COMBO("csel", "Capture selector", 0, rb_csel),
+        RB_CAPTURE("_0", "0", 0, 8, 1),
+        RB_CAPTURE("_1", "1", 1, 8, 0),
+        RB_CAPTURE("_2", "2", 2, 8, 0),
+        RB_CAPTURE("_3", "3", 3, 8, 0),
+        RB_CAPTURE("_4", "4", 4, 8, 0),
+        RB_CAPTURE("_5", "5", 5, 8, 0),
+        RB_CAPTURE("_6", "6", 6, 8, 0),
+        RB_CAPTURE("_7", "7", 7, 8, 0),
 
         PORTS_END
     };
