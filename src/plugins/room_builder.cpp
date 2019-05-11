@@ -145,6 +145,42 @@ namespace lsp
                 c->pFreqGain[j]     = NULL;
         }
 
+        // Initialize captures
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *cap  = &vCaptures[i];
+
+            cap->bEnabled       = (i == 0);
+            cap->nRMin          = 1;
+            cap->nRMax          = -1;
+            dsp::init_point_xyz(&cap->sPos, 0.0f, 1.0f, 0.0f);
+            cap->fYaw           = 0.0f;
+            cap->fPitch         = 0.0f;
+            cap->fRoll          = 0.0f;
+            cap->fCapsule       = room_builder_base_metadata::CAPSULE_DFL;
+            cap->sConfig        = RT_CC_XY;
+            cap->fAngle         = room_builder_base_metadata::ANGLE_DFL;
+            cap->fDistance      = room_builder_base_metadata::DISTANCE_DFL;
+            cap->enDirection    = RT_AC_OMNI;
+            cap->enSide         = RT_AC_BIDIR;
+
+            cap->pEnabled       = NULL;
+            cap->pRMin          = NULL;
+            cap->pRMax          = NULL;
+            cap->pPosX          = NULL;
+            cap->pPosY          = NULL;
+            cap->pPosZ          = NULL;
+            cap->pYaw           = NULL;
+            cap->pPitch         = NULL;
+            cap->pRoll          = NULL;
+            cap->pCapsule       = NULL;
+            cap->pConfig        = NULL;
+            cap->pAngle         = NULL;
+            cap->pDistance      = NULL;
+            cap->pDirection     = NULL;
+            cap->pSide          = NULL;
+        }
+
         // Bind ports
         size_t port_id = 0;
 
@@ -200,6 +236,43 @@ namespace lsp
         port_id++;
         TRACE_PORT(vPorts[port_id]);            // Skip camera pitch
         port_id++;
+
+        // Bind captures
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *cap  = &vCaptures[i];
+
+            TRACE_PORT(vPorts[port_id]);
+            cap->pEnabled       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pRMin          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pRMax          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pPosX          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pPosY          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pPosZ          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pYaw           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pPitch         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pRoll          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pCapsule       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pConfig        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pAngle         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pDistance      = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pDirection     = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pSide          = vPorts[port_id++];
+        }
     }
 
     void room_builder_base::destroy()
@@ -247,6 +320,66 @@ namespace lsp
             vChannels[1].fDryPan[0] = (100.0f + pan_l) * 0.005f * dry_gain;
             vChannels[1].fDryPan[1] = (100.0f + pan_r) * 0.005f * dry_gain;
         }
+
+        // Update capture settings
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *cap  = &vCaptures[i];
+
+            cap->bEnabled       = cap->pEnabled->getValue() >= 0.5f;
+            cap->nRMin          = ssize_t(cap->pRMin->getValue()) - 1;
+            cap->nRMax          = ssize_t(cap->pRMax->getValue()) - 1;
+            cap->sPos.x         = cap->pPosX->getValue();
+            cap->sPos.y         = cap->pPosY->getValue();
+            cap->sPos.z         = cap->pPosZ->getValue();
+            cap->sPos.w         = 1.0f;
+            cap->fYaw           = cap->pYaw->getValue();
+            cap->fPitch         = cap->pPitch->getValue();
+            cap->fRoll          = cap->pRoll->getValue();
+            cap->fCapsule       = cap->pCapsule->getValue() * 0.5f;
+            cap->sConfig        = decode_config(cap->pConfig->getValue());
+            cap->fAngle         = cap->pAngle->getValue();
+            cap->fDistance      = cap->pDistance->getValue();
+            cap->enDirection    = decode_direction(cap->pDirection->getValue());
+            cap->enSide         = decode_side_direction(cap->pSide->getValue());
+        }
+    }
+
+    rt_capture_config_t room_builder_base::decode_config(float value)
+    {
+        switch (ssize_t(value))
+        {
+            case 1: return RT_CC_XY;
+            case 2: return RT_CC_AB;
+            case 3: return RT_CC_ORTF;
+            case 4: return RT_CC_MS;
+            default: break;
+        }
+        return RT_CC_MONO;
+    }
+
+    rt_audio_capture_t room_builder_base::decode_direction(float value)
+    {
+        switch (ssize_t(value))
+        {
+            case 1: return RT_AC_SCARDIO; break;
+            case 2: return RT_AC_HCARDIO; break;
+            case 3: return RT_AC_BIDIR; break;
+            case 4: return RT_AC_EIGHT; break;
+            case 5: return RT_AC_OMNI; break;
+            default: break;
+        }
+        return RT_AC_CARDIO;
+    }
+
+    rt_audio_capture_t room_builder_base::decode_side_direction(float value)
+    {
+        switch (ssize_t(value))
+        {
+            case 1: return RT_AC_EIGHT;
+            default: break;
+        }
+        return RT_AC_BIDIR;
     }
 
     void room_builder_base::update_sample_rate(long sr)

@@ -39,6 +39,15 @@ namespace lsp
         RT_AC_OMNI
     };
 
+    enum rt_capture_config_t
+    {
+        RT_CC_MONO,
+        RT_CC_XY,
+        RT_CC_AB,
+        RT_CC_ORTF,
+        RT_CC_MS
+    };
+
     /** Ray tracing storage implemented as a stack
      *
      */

@@ -38,6 +38,56 @@ namespace lsp
         NULL
     };
 
+    static const char *rb_capture_config[] =
+    {
+        "Mono",
+        "XY",
+        "AB",
+        "ORTF",
+        "MS",
+        NULL
+    };
+
+    static const char *rb_capture_direction[] =
+    {
+        "Cardioid",
+        "Supercardioid",
+        "Hypercardioid",
+        "Bidirectional",
+        "8-directional",
+        "Omnidirectional",
+        NULL
+    };
+
+    static const char *rb_capture_side_direction[] =
+    {
+        "Bidirectional",
+        "8-directional",
+        NULL
+    };
+
+    static const char *rb_reflection[] =
+    {
+        "Any",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        NULL
+    };
+
     #define RB_PAN_MONO \
         PAN_CTL("p", "Panorama", 0.0f)
 
@@ -63,6 +113,24 @@ namespace lsp
         { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.1f, NULL, NULL }
 
+    #define RB_CAPTURE(id, label, ena) \
+        SWITCH("sce" id, "Capture " label " enable", ena), \
+        COMBO("scf" id, "Capture " label " first reflection order", 2, rb_reflection), \
+        COMBO("scl" id, "Capture " label " last reflection order", 0, rb_reflection), \
+        CONTROL("scpx" id, "Capture " label " X position", U_M, room_builder_base_metadata::POSITION), \
+        CONTROL("scpy" id, "Capture " label " Y position", U_M, room_builder_base_metadata::POSITION), \
+        CONTROL("scpz" id, "Capture " label " Z position", U_M, room_builder_base_metadata::POSITION), \
+        { "scay" id , "Capture " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
+        { "scap" id , "Capture " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.1f, NULL, NULL }, \
+        { "scar" id , "Capture " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
+        CONTROL("sccs" id, "Capture " label " capsule size", U_MM, room_builder_base_metadata::CAPSULE), \
+        COMBO("sccf" id, "Capture " label " configuration", 1, rb_capture_config),      \
+        CONTROL("sca" id, "Capture " label " angle", U_DEG, room_builder_base_metadata::ANGLE),      \
+        CONTROL("scab" id, "Capture " label " AB distance", U_M, room_builder_base_metadata::DISTANCE),      \
+        COMBO("scmd" id, "Capture " label " microphone direction", 0, rb_capture_direction),      \
+        COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction)
+
+
     static const port_t room_builder_mono_ports[] =
     {
         // Input audio ports
@@ -71,6 +139,14 @@ namespace lsp
         AUDIO_OUTPUT_RIGHT,
         RB_COMMON(RB_PAN_MONO),
 
+        RB_CAPTURE("0", "0", 1),
+        RB_CAPTURE("1", "1", 0),
+        RB_CAPTURE("2", "2", 0),
+        RB_CAPTURE("3", "3", 0),
+        RB_CAPTURE("4", "4", 0),
+        RB_CAPTURE("5", "5", 0),
+        RB_CAPTURE("6", "6", 0),
+        RB_CAPTURE("7", "7", 0),
 
         PORTS_END
     };
@@ -80,6 +156,15 @@ namespace lsp
         // Input audio ports
         PORTS_STEREO_PLUGIN,
         RB_COMMON(RB_PAN_STEREO),
+
+        RB_CAPTURE("0", "0", 1),
+        RB_CAPTURE("1", "1", 0),
+        RB_CAPTURE("2", "2", 0),
+        RB_CAPTURE("3", "3", 0),
+        RB_CAPTURE("4", "4", 0),
+        RB_CAPTURE("5", "5", 0),
+        RB_CAPTURE("6", "6", 0),
+        RB_CAPTURE("7", "7", 0),
 
         PORTS_END
     };

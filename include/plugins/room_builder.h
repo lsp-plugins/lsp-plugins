@@ -13,6 +13,7 @@
 #include <core/util/Delay.h>
 #include <core/util/Convolver.h>
 #include <core/3d/Scene3D.h>
+#include <core/3d/RayTrace3D.h>
 #include <core/sampling/SamplePlayer.h>
 #include <core/filters/Equalizer.h>
 
@@ -20,6 +21,24 @@
 
 namespace lsp
 {
+
+    // Capture configuration
+    typedef struct room_capture_config_t
+    {
+        bool                    bEnabled;   // Enabled flag
+        ssize_t                 nRMin;      // Minimum reflection order
+        ssize_t                 nRMax;      // Maximum reflection order
+        point3d_t               sPos;       // Position in 3D space
+        float                   fYaw;       // Yaw angle
+        float                   fPitch;     // Pitch angle
+        float                   fRoll;      // Roll angle
+        float                   fCapsule;   // Capsule size
+        rt_capture_config_t     sConfig;    // Capture configuration
+        float                   fAngle;     // Capture angle between microphones
+        float                   fDistance;  // Capture distance between AB microphones
+        rt_audio_capture_t      enDirection;// Capture microphone direction
+        rt_audio_capture_t      enSide;     // Side microphone direction
+    } room_capture_config_t;
 
     class room_builder_base: public plugin_t
     {
@@ -78,9 +97,26 @@ namespace lsp
                 IPort                  *pPan;       // Panning
             } input_t;
 
-            typedef struct capture_t
+            typedef struct capture_t: public room_capture_config_t
             {
+                Sample                  sCurrent;       // Current sample
+                Sample                  sPending;       // Pending sample
 
+                IPort                  *pEnabled;
+                IPort                  *pRMin;
+                IPort                  *pRMax;
+                IPort                  *pPosX;
+                IPort                  *pPosY;
+                IPort                  *pPosZ;
+                IPort                  *pYaw;
+                IPort                  *pPitch;
+                IPort                  *pRoll;
+                IPort                  *pCapsule;
+                IPort                  *pConfig;
+                IPort                  *pAngle;
+                IPort                  *pDistance;
+                IPort                  *pDirection;
+                IPort                  *pSide;
             } capture_t;
 
         protected:
@@ -149,6 +185,11 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+
+        public:
+            static rt_capture_config_t  decode_config(float value);
+            static rt_audio_capture_t   decode_direction(float value);
+            static rt_audio_capture_t   decode_side_direction(float value);
     };
 
     class room_builder_mono: public room_builder_base, public room_builder_mono_metadata
