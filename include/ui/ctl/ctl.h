@@ -197,7 +197,12 @@ namespace lsp
             A_YPOS_ID,
             A_ZPOS_ID,
             A_YAW_ID,
-            A_PITCH_ID
+            A_PITCH_ID,
+            A_ROLL_ID,
+            A_SIZE_ID,
+            A_MODE_ID,
+            A_ANGLE_ID,
+            A_DISTANCE_ID
         };
 
         // Helper functions
@@ -276,6 +281,7 @@ namespace lsp
 #include <ui/ctl/CtlTempoTap.h>
 
 #include <ui/ctl/CtlViewer3D.h>
+#include <ui/ctl/CtlCapture3D.h>
 
 // Specials
 #include <ui/ctl/CtlPortAlias.h>

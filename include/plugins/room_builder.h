@@ -21,33 +21,6 @@
 
 namespace lsp
 {
-
-    // Capture configuration
-    typedef struct room_capture_config_t
-    {
-        bool                    bEnabled;   // Enabled flag
-        ssize_t                 nRMin;      // Minimum reflection order
-        ssize_t                 nRMax;      // Maximum reflection order
-        point3d_t               sPos;       // Position in 3D space
-        float                   fYaw;       // Yaw angle (degrees)
-        float                   fPitch;     // Pitch angle (degrees)
-        float                   fRoll;      // Roll angle (degrees)
-        float                   fCapsule;   // Capsule size
-        rt_capture_config_t     sConfig;    // Capture configuration
-        float                   fAngle;     // Capture angle between microphones
-        float                   fDistance;  // Capture distance between AB microphones
-        rt_audio_capture_t      enDirection;// Capture microphone direction
-        rt_audio_capture_t      enSide;     // Side microphone direction
-    } room_capture_config_t;
-
-    typedef struct room_capture_settings_t
-    {
-        ray3d_t                 pos[2];     // Position and direction of capture
-        rt_audio_capture_t      type[2];    // Type of capture
-        float                   r[2];       // Capture radius
-        size_t                  n;          // Number of elements
-    } room_capture_settings_t;
-
     class room_builder_base: public plugin_t
     {
         protected:
@@ -107,6 +80,10 @@ namespace lsp
 
             typedef struct capture_t: public room_capture_config_t
             {
+                bool                    bEnabled;   // Enabled flag
+                ssize_t                 nRMin;      // Minimum reflection order
+                ssize_t                 nRMax;      // Maximum reflection order
+
                 Sample                  sCurrent;       // Current sample
                 Sample                  sPending;       // Pending sample
 

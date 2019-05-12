@@ -18,26 +18,46 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
+                typedef struct v_capture_t
+                {
+                    ray3d_t         sPosition;
+                    bool            bEnabled;
+                } v_capture_t;
+
+            protected:
                 LSPWidgetColor  sColor;
                 LSPWidgetColor  sAxisColor;
-                point3d_t       sPosition;
-                vector3d_t      sDirection;
+
                 float           fRadius;
+                cstorage<v_capture_t> vItems;
+
+                point3d_t       sPoints[12];
 
             public:
                 explicit LSPCapture3D(LSPDisplay *dpy);
                 virtual ~LSPCapture3D();
 
-            public:
-                inline LSPColor            *color()                 { return &sColor;           };
-                inline LSPColor            *axis_color()            { return &sAxisColor;       };
-                inline const point3d_t     *position() const        { return &sPosition;        };
-                inline const vector3d_t    *direction() const       { return &sDirection;       };
-                inline float                radius() const          { return fRadius;           };
+                virtual status_t        init();
+                virtual void            destroy();
 
             public:
-                void set_position(const point3d_t *pos);
-                void set_direction(const vector3d_t *dir);
+                inline LSPColor            *color()                     { return &sColor;           };
+                inline LSPColor            *axis_color()                { return &sAxisColor;       };
+
+                const point3d_t            *position(size_t id);
+                const vector3d_t           *direction(size_t id);
+                const ray3d_t              *location(size_t id);
+                bool                        enabled(size_t id);
+                float                       radius() const              { return fRadius;           };
+                inline size_t               items() const               { return vItems.size();     };
+
+            public:
+                void clear();
+                status_t set_items(size_t items);
+                status_t set_position(size_t id, const point3d_t *pos);
+                status_t set_direction(size_t id, const vector3d_t *dir);
+                status_t set_location(size_t id, const ray3d_t *loc);
+                status_t set_enabled(size_t id, bool enabled);
                 void set_radius(float radius);
 
             public:

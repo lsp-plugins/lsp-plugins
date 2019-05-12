@@ -91,9 +91,9 @@ namespace lsp
                 explicit CtlViewer3D(CtlRegistry *src, LSPArea3D *widget);
                 virtual ~CtlViewer3D();
 
-            public:
                 virtual void init();
 
+            public:
                 virtual status_t    on_draw3d(IR3DBackend *r3d);
 
                 virtual void set(widget_attribute_t att, const char *value);

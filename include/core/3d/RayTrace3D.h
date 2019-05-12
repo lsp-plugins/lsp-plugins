@@ -13,6 +13,7 @@
 #include <data/cstorage.h>
 #include <core/sampling/Sample.h>
 #include <core/3d/common.h>
+#include <core/3d/raytrace.h>
 #include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
 #include <core/3d/RTObjectFactory.h>
@@ -21,33 +22,6 @@
 
 namespace lsp
 {
-    enum rt_audio_source_t
-    {
-        RT_AS_SPOT,
-        RT_AS_SPEAKER,
-        RT_AS_OMNI,
-        RT_AS_TRIANGLE
-    };
-
-    enum rt_audio_capture_t
-    {
-        RT_AC_CARDIO,
-        RT_AC_SCARDIO,
-        RT_AC_HCARDIO,
-        RT_AC_BIDIR,
-        RT_AC_EIGHT,
-        RT_AC_OMNI
-    };
-
-    enum rt_capture_config_t
-    {
-        RT_CC_MONO,
-        RT_CC_XY,
-        RT_CC_AB,
-        RT_CC_ORTF,
-        RT_CC_MS
-    };
-
     /** Ray tracing storage implemented as a stack
      *
      */

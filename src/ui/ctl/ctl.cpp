@@ -175,6 +175,11 @@ namespace lsp
             "zpos_id",
             "yaw_id",
             "pitch_id",
+            "roll_id",
+            "size_id",
+            "mode_id",
+            "angle_id",
+            "distance_id",
             NULL
         };
 
