@@ -13,10 +13,10 @@ namespace lsp
 {
     namespace tk
     {
-        const w_class_t LSPArea3D::metadata = { "LSPArea3D", &LSPWidget::metadata };
+        const w_class_t LSPArea3D::metadata = { "LSPArea3D", &LSPWidgetContainer::metadata };
         
         LSPArea3D::LSPArea3D(LSPDisplay *dpy):
-            LSPWidget(dpy),
+            LSPWidgetContainer(dpy),
             sColor(this),
             sBgColor(this),
             sIPadding(this)
@@ -32,7 +32,6 @@ namespace lsp
             nMinHeight      = 1;
 
             sIPadding.set(1, 1, 1, 1);
-//            pBackendWnd     = NULL;
 
             dsp::init_matrix3d_identity(&sWorld);
             dsp::init_matrix3d_identity(&sProjection);
@@ -188,6 +187,32 @@ namespace lsp
                 return;
             nRadius = value;
             query_resize();
+        }
+
+        LSPObject3D *LSPArea3D::object3d(size_t id)
+        {
+            return vObjects.get(id);
+        }
+
+        status_t LSPArea3D::add(LSPWidget *child)
+        {
+            LSPObject3D *w = widget_cast<LSPObject3D>(child);
+            if (w == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return (vObjects.add(w)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t LSPArea3D::remove(LSPWidget *child)
+        {
+            LSPObject3D *w = widget_cast<LSPObject3D>(child);
+            if (w == NULL)
+                return STATUS_NOT_FOUND;
+            return (vObjects.remove(w)) ? STATUS_OK : STATUS_NOT_FOUND;
+        }
+
+        void LSPArea3D::query_draw(size_t flags)
+        {
+            LSPWidgetContainer::query_draw(flags | REDRAW_SURFACE);
         }
 
         void LSPArea3D::draw(ISurface *s)

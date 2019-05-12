@@ -261,6 +261,8 @@ namespace lsp
 
 // 3D rendering
 #include <ui/tk/widgets/LSPArea3D.h>
+#include <ui/tk/widgets/3d/LSPObject3D.h>
+#include <ui/tk/widgets/3d/LSPCapture3D.h>
 
 
 #endif /* UI_TK_TK_H_ */

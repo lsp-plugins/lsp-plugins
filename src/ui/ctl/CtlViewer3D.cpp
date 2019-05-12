@@ -466,6 +466,8 @@ namespace lsp
 
         status_t CtlViewer3D::on_draw3d(IR3DBackend *r3d)
         {
+            LSPArea3D *area  = (pWidget != NULL) ? widget_cast<LSPArea3D>(pWidget) : NULL;
+
             // Need to update vertex list for the scene?
             commit_view(r3d);
 
@@ -502,6 +504,14 @@ namespace lsp
             // Enable/disable lighting
             r3d->set_lights(&light, 1);
 
+            // Render supplementary objects
+            for (size_t i=0, n=area->num_objects3d(); i<n; ++i)
+            {
+                LSPObject3D *obj = area->object3d(i);
+                if (obj != NULL)
+                    obj->render(r3d);
+            }
+
             r3d_buffer_t buf;
 
             // Draw simple triangle
@@ -534,8 +544,6 @@ namespace lsp
             buf.width           = 1.0f;
             buf.count           = nvertex / 3;
             buf.flags           = R3D_BUFFER_BLENDING | R3D_BUFFER_LIGHTING;
-//            if (bLight)
-//                buffer.flags       |= R3D_BUFFER_LIGHTING;
 
             buf.vertex.data     = &vv->p;
             buf.vertex.stride   = sizeof(v_vertex3d_t);

@@ -447,6 +447,87 @@ namespace lsp
         }
     }
 
+    status_t room_builder_base::configure_capture(room_capture_settings_t *out, const room_capture_config_t *in)
+    {
+        matrix3d_t m, delta;
+        float a[2];
+
+        // Compute parameters of capture in point(0, 0, 0)
+        for (size_t i=0; i<2; ++i)
+        {
+            dsp::init_point_xyz(&out->pos[i].z, 0.0f, 0.0f, 0.0f);
+            dsp::init_vector_dxyz(&out->pos[i].v, 1.0f, 0.0f, 0.0f);
+        }
+
+        out->r[0]       = in->fCapsule;
+        out->r[1]       = in->fCapsule;
+        out->type[0]    = in->enDirection;
+        out->type[1]    = in->enDirection;
+
+        switch (in->sConfig)
+        {
+            case RT_CC_MONO:
+                out->n              = 1;
+                break;
+            case RT_CC_XY:
+                out->n              = 2;
+                out->pos[0].z.y    += in->fCapsule * 2.0f;
+                out->pos[1].z.y    -= in->fCapsule * 2.0f;
+                a[0]                = -45.0f - (in->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
+                a[1]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
+                break;
+            case RT_CC_AB:
+                out->n              = 2;
+                out->pos[0].z.y    += in->fDistance * 0.5f;
+                out->pos[1].z.y    -= in->fDistance * 0.5f;
+                a[0]                = 0.0f;
+                a[1]                = 0.0f;
+                break;
+            case RT_CC_ORTF:
+                out->n              = 2;
+                out->pos[0].z.y    += 0.075f;  // Half of human's head width
+                out->pos[1].z.y    -= 0.075f;  // Half of human's head width
+                a[0]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;
+                a[1]                = -45.0f - (in->fAngle - 90.0f) * 0.5f;
+                break;
+            case RT_CC_MS:
+                out->n              = 2;
+                out->type[1]        = in->enSide;
+                a[0]                = 0.0f;
+                a[1]                = M_PI * 0.5f;
+                break;
+
+            default:
+                return STATUS_BAD_ARGUMENTS;
+        }
+
+        // Compute rotation matrix
+        dsp::init_matrix3d_rotate_x(&delta, in->fRoll * M_PI / 180.0f);
+        dsp::init_matrix3d_rotate_z(&m, in->fYaw * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+        dsp::init_matrix3d_rotate_y(&m, in->fPitch * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        // Update the final position of sub-elements
+        for (size_t i=0; i<2; ++i)
+        {
+            // Rotate direction of capture element
+            dsp::init_matrix3d_rotate_z(&m, a[i] * M_PI / 180.0f);
+            dsp::apply_matrix3d_mv1(&out->pos[i].v, &m);
+
+            // Now, rotate the whole element
+            dsp::apply_matrix3d_mp1(&out->pos[i].z, &delta);
+            dsp::apply_matrix3d_mv1(&out->pos[i].v, &delta);
+
+            // Apply roll
+            out->pos[i].z.x        += in->sPos.x;
+            out->pos[i].z.y        += in->sPos.y;
+            out->pos[i].z.z        += in->sPos.z;
+        }
+
+        return STATUS_OK;
+    }
+
     //-------------------------------------------------------------------------
     room_builder_mono::room_builder_mono(): room_builder_base(metadata, 1)
     {

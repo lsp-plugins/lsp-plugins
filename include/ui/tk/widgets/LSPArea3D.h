@@ -12,7 +12,9 @@ namespace lsp
 {
     namespace tk
     {
-        class LSPArea3D: public LSPWidget
+        class LSPObject3D;
+
+        class LSPArea3D: public LSPWidgetContainer
         {
             public:
                 static const w_class_t    metadata;
@@ -32,6 +34,8 @@ namespace lsp
                 size_t          nMinWidth;
                 size_t          nMinHeight;
                 realize_t       sContext;
+
+                cvector<LSPObject3D>    vObjects;
 
             protected:
                 void            do_destroy();
@@ -66,6 +70,9 @@ namespace lsp
                 inline ssize_t      context_width() const   { return sContext.nWidth;   };
                 inline ssize_t      context_height() const  { return sContext.nHeight;  };
 
+                inline size_t       num_objects3d() const   { return vObjects.size();   };
+                LSPObject3D        *object3d(size_t id);
+
             public:
                 void            set_min_width(size_t value);
                 void            set_min_height(size_t value);
@@ -73,6 +80,8 @@ namespace lsp
                 void            set_radius(size_t value);
 
             public:
+                virtual void query_draw(size_t flags = REDRAW_SURFACE);
+
                 virtual void draw(ISurface *s);
 
                 virtual void realize(const realize_t *r);
@@ -80,6 +89,10 @@ namespace lsp
                 virtual void size_request(size_request_t *r);
 
                 virtual status_t on_draw3d(IR3DBackend *r3d);
+
+                virtual status_t    add(LSPWidget *child);
+
+                virtual status_t    remove(LSPWidget *child);
         };
     
     } /* namespace tk */
