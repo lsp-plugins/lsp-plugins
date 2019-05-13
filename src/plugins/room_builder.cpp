@@ -78,6 +78,7 @@ namespace lsp
         p3DFile         = NULL;
         p3DStatus       = NULL;
         p3DProgress     = NULL;
+        p3DOrientation  = NULL;
 
         pData           = NULL;
         pExecutor       = NULL;
@@ -199,13 +200,13 @@ namespace lsp
         // Bind controlling ports
         lsp_trace("Binding common ports");
         TRACE_PORT(vPorts[port_id]);
-        pBypass             = vPorts[port_id++];
+        pBypass         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);            // Skip view selector
         port_id++;
         TRACE_PORT(vPorts[port_id]);            // FFT rank
-        pRank       = vPorts[port_id++];
+        pRank           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);            // Pre-delay
-        pPredelay   = vPorts[port_id++];
+        pPredelay       = vPorts[port_id++];
 
         for (size_t i=0; i<nInputs; ++i)        // Panning ports
         {
@@ -214,17 +215,19 @@ namespace lsp
         }
 
         TRACE_PORT(vPorts[port_id]);
-        pDry        = vPorts[port_id++];
+        pDry            = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pWet        = vPorts[port_id++];
+        pWet            = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pOutGain    = vPorts[port_id++];
+        pOutGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        p3DFile     = vPorts[port_id++];
+        p3DFile         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        p3DStatus   = vPorts[port_id++];
+        p3DStatus       = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        p3DProgress = vPorts[port_id++];
+        p3DProgress     = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        p3DOrientation  = vPorts[port_id++];
 
         // Skip camera settings
         TRACE_PORT(vPorts[port_id]);            // Skip camera x

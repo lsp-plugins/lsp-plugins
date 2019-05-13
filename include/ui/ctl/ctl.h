@@ -204,7 +204,8 @@ namespace lsp
             A_MODE_ID,
             A_ANGLE_ID,
             A_DISTANCE_ID,
-            A_HUE_SHIFT
+            A_HUE_SHIFT,
+            A_ORIENTATION_ID
         };
 
         // Helper functions

@@ -306,6 +306,13 @@ namespace dsp
     extern void (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up);
 
     /**
+     * Initialize matrix that changes ortogonal orientation
+     * @param m matrix to initialize
+     * @param orientation axis orientation
+     */
+    extern void (* init_matrix3d_orientation)(matrix3d_t *m, axis_orientation_t orientation);
+
+    /**
      * Compute tranfromation matrix from point and vector data which provides:
      *   - position of the object (point)
      *   - direction of the object (vector)

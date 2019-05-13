@@ -182,6 +182,7 @@ namespace lsp
             "angle_id",
             "distance_id",
             "hue_shift",
+            "orientation_id",
             NULL
         };
 

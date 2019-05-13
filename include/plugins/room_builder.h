@@ -150,6 +150,7 @@ namespace lsp
             IPort                  *p3DFile;
             IPort                  *p3DProgress;
             IPort                  *p3DStatus;
+            IPort                  *p3DOrientation;
 
             void                   *pData;      // Allocated data
             ipc::IExecutor         *pExecutor;

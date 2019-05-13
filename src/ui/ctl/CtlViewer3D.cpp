@@ -64,6 +64,7 @@ namespace lsp
             dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
             dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
             dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
+            dsp::init_matrix3d_identity(&sOrientation);
 
             update_camera_state();
         }
@@ -364,6 +365,9 @@ namespace lsp
                 case A_PITCH_ID:
                     BIND_PORT(pRegistry, pPitch, value);
                     break;
+                case A_ORIENTATION_ID:
+                    BIND_PORT(pRegistry, pOrientation, value);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -439,6 +443,13 @@ namespace lsp
                 pWidget->query_draw();
             }
 
+            if (port == pOrientation)
+            {
+                dsp::init_matrix3d_orientation(&sOrientation, axis_orientation_t(pOrientation->get_value()));
+                bViewChanged    = true;
+                pWidget->query_draw();
+            }
+
             sync_pov_change(&sPov.x, pPosX, port);
             sync_pov_change(&sPov.y, pPosY, port);
             sync_pov_change(&sPov.z, pPosZ, port);
@@ -457,6 +468,8 @@ namespace lsp
 
             vVertexes.clear();
 
+            matrix3d_t m;
+
             // Add all visible objects to BSP context
             for (size_t i=0, n=sScene.num_objects(); i<n; ++i)
             {
@@ -468,7 +481,8 @@ namespace lsp
                 color3d_t c = *(colors[i % 6]);
                 c.a         = 0.5f; // Update alpha value
 
-                res = ctx.add_object(o, i, &c);
+                dsp::apply_matrix3d_mm2(&m, &sOrientation, o->matrix());
+                res = ctx.add_object(o, i, &m, &c);
                 if (res != STATUS_OK)
                     return;
             }

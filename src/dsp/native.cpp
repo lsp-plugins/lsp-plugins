@@ -307,6 +307,7 @@ namespace native
         EXPORT1(init_matrix3d_frustum);
         EXPORT1(init_matrix3d_lookat_p1v2);
         EXPORT1(init_matrix3d_lookat_p2v1);
+        EXPORT1(init_matrix3d_orientation);
         EXPORT1(calc_matrix3d_transform_r1);
         EXPORT1(calc_matrix3d_transform_p1v1);
         EXPORT1(apply_matrix3d_mv2);

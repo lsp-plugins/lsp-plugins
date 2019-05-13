@@ -43,8 +43,10 @@ namespace lsp
                 CtlPort        *pPosZ;
                 CtlPort        *pYaw;
                 CtlPort        *pPitch;
+                CtlPort        *pOrientation;
 
                 bool            bViewChanged;
+                matrix3d_t      sOrientation;
 
                 Scene3D         sScene;
                 cstorage<v_vertex3d_t>      vVertexes;  // Vertexes of the scene

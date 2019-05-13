@@ -101,6 +101,38 @@ namespace lsp
         NULL
     };
 
+    static const char *rb_orientation[] =
+    {
+        "+X forward, +Y up",
+        "+X forward, +Z up",
+        "+X forward, -Y up",
+        "+X forward, -Z up",
+        "-X forward, +Y up",
+        "-X forward, +Z up",
+        "-X forward, -Y up",
+        "-X forward, -Z up",
+
+        "+Y forward, +X up",
+        "+Y forward, +Z up",
+        "+Y forward, -X up",
+        "+Y forward, -Z up",
+        "-Y forward, +X up",
+        "-Y forward, +Z up",
+        "-Y forward, -X up",
+        "-Y forward, -Z up",
+
+        "+Z forward, +X up",
+        "+Z forward, +Y up",
+        "+Z forward, -X up",
+        "+Z forward, -Y up",
+        "-Z forward, +X up",
+        "-Z forward, +Y up",
+        "-Z forward, -X up",
+        "-Z forward, -Y up",
+
+        NULL
+    };
+
     #define RB_PAN_MONO \
         PAN_CTL("p", "Panorama", 0.0f)
 
@@ -120,6 +152,7 @@ namespace lsp
         PATH("ifn", "Input 3D model file name"),    \
         STATUS("ifs", "Input 3D model load status"), \
         METER_PERCENT("ifp", "File loading progress"), \
+        COMBO("ifo", "Input 3D model orientation", 1, rb_orientation), \
         CONTROL_DFL("cposx", "Camera X position", U_M, room_builder_base_metadata::POSITION, 1.0f), \
         CONTROL_DFL("cposy", "Camera Y position", U_M, room_builder_base_metadata::POSITION, -1.0f), \
         CONTROL_DFL("cposz", "Camera Z position", U_M, room_builder_base_metadata::POSITION, 0.5f), \

@@ -974,6 +974,176 @@ namespace native
         M[15]   =  1.0f;
     }
 
+    void init_matrix3d_orientation(matrix3d_t *m, axis_orientation_t orientation)
+    {
+        float *M    = m->m;
+        M[0]        = 0.0f;
+        M[1]        = 0.0f;
+        M[2]        = 0.0f;
+        M[3]        = 0.0f;
+
+        M[4]        = 0.0f;
+        M[5]        = 0.0f;
+        M[6]        = 0.0f;
+        M[7]        = 0.0f;
+
+        M[8]        = 0.0f;
+        M[9]        = 0.0f;
+        M[10]       = 0.0f;
+        M[11]       = 0.0f;
+
+        M[12]       = 0.0f;
+        M[13]       = 0.0f;
+        M[14]       = 0.0f;
+        M[15]       = 1.0f;
+
+        size_t o    = orientation;
+
+        // Update the forward coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+                M[0]    = 1.0f;
+                break;
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+                M[0]    = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+                M[1]    = 1.0f;
+                break;
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[1]    = -1.0f;
+                break;
+
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+                M[2]    = 1.0f;
+                break;
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[2]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the side coordinate
+        switch (o)
+        {
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+                M[4]    = 1.0f;
+                break;
+
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[4]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[5]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[5]    = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+                M[6]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+                M[6]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the up coordinate
+        switch (o)
+        {
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[8]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[8]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[9]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[9]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+                M[10]   = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[10]   = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+    }
+
     void calc_matrix3d_transform_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
     {
         matrix3d_t xm;

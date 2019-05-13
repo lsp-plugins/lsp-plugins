@@ -320,6 +320,7 @@ namespace dsp
     void    (* init_matrix3d_frustum)(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far) = NULL;
     void    (* init_matrix3d_lookat_p1v2)(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up) = NULL;
     void    (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up) = NULL;
+    void    (* init_matrix3d_orientation)(matrix3d_t *m, axis_orientation_t orientation) = NULL;
     void    (* calc_matrix3d_transform_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v) = NULL;
     void    (* calc_matrix3d_transform_r1)(matrix3d_t *m, const ray3d_t *r) = NULL;
     void    (* apply_matrix3d_mv2)(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m) = NULL;
