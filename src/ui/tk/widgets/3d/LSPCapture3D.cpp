@@ -13,25 +13,25 @@ namespace lsp
     {
         #define V3(x, y, z) { x, y, z, 1.0f }
 
-//        static const point3d_t tk_capture_vertices[] =
-//        {
-//            V3(0, 0, 0),
-//            V3(0.015, 0, 0),
-//            V3(0.011, 0.003, 0),
-//            V3(0.011, -0.003, 0),
-//            V3(0.011, 0, 0.003),
-//            V3(0.011, 0, -0.003)
-//        };
-
         static const point3d_t tk_capture_vertices[] =
         {
             V3(0, 0, 0),
-            V3(1.5, 0, 0),
-            V3(1.1, 0.3, 0),
-            V3(1.1, -0.3, 0),
-            V3(1.1, 0, 0.3),
-            V3(1.1, 0, -0.3)
+            V3(0.30, 0, 0),
+            V3(0.22, 0.06, 0),
+            V3(0.22, -0.06, 0),
+            V3(0.22, 0, 0.06),
+            V3(0.22, 0, -0.06)
         };
+
+//        static const point3d_t tk_capture_vertices[] =
+//        {
+//            V3(0, 0, 0),
+//            V3(1.5, 0, 0),
+//            V3(1.1, 0.3, 0),
+//            V3(1.1, -0.3, 0),
+//            V3(1.1, 0, 0.3),
+//            V3(1.1, 0, -0.3)
+//        };
 
         static const point3d_t tk_capture_capsule[] =
         {
@@ -86,22 +86,36 @@ namespace lsp
             LSPWidget::destroy();
         }
 
-        const point3d_t *LSPCapture3D::position(size_t id)
+        status_t LSPCapture3D::get_position(point3d_t *dst, size_t id)
         {
             v_capture_t *cap = vItems.get(id);
-            return (cap != NULL) ? &cap->sPosition.z : NULL;
+            if (cap == NULL)
+                return STATUS_NOT_FOUND;
+            dsp::init_point_xyz(dst, 0.0f, 0.0f, 0.0f);
+            dsp::apply_matrix3d_mp1(dst, &cap->sMatrix);
+            return STATUS_OK;
         }
 
-        const vector3d_t *LSPCapture3D::direction(size_t id)
+        status_t LSPCapture3D::get_direction(vector3d_t *dst, size_t id)
         {
             v_capture_t *cap = vItems.get(id);
-            return (cap != NULL) ? &cap->sPosition.v : NULL;
+            if (cap == NULL)
+                return STATUS_NOT_FOUND;
+            dsp::init_vector_dxyz(dst, 1.0f, 0.0f, 0.0f);
+            dsp::apply_matrix3d_mv1(dst, &cap->sMatrix);
+            return STATUS_OK;
         }
 
-        const ray3d_t *LSPCapture3D::location(size_t id)
+        status_t LSPCapture3D::get_location(ray3d_t *dst, size_t id)
         {
             v_capture_t *cap = vItems.get(id);
-            return (cap != NULL) ? &cap->sPosition : NULL;
+            if (cap == NULL)
+                return STATUS_NOT_FOUND;
+            dsp::init_point_xyz(&dst->z, 0.0f, 0.0f, 0.0f);
+            dsp::init_vector_dxyz(&dst->v, 1.0f, 0.0f, 0.0f);
+            dsp::apply_matrix3d_mp1(&dst->z, &cap->sMatrix);
+            dsp::apply_matrix3d_mv1(&dst->v, &cap->sMatrix);
+            return STATUS_OK;
         }
 
         bool LSPCapture3D::enabled(size_t id)
@@ -130,8 +144,7 @@ namespace lsp
                 if (cap == NULL)
                     return STATUS_NO_MEM;
 
-                dsp::init_point_xyz(&cap->sPosition.z, 0.0f, 0.0f, 0.0f);
-                dsp::init_vector_dxyz(&cap->sPosition.v, 1.0f, 0.0f, 0.0f);
+                dsp::init_matrix3d_identity(&cap->sMatrix);
                 cap->bEnabled   = false;
             }
 
@@ -142,32 +155,12 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPCapture3D::set_position(size_t id, const point3d_t *pos)
+        status_t LSPCapture3D::set_transform(size_t id, const matrix3d_t *matrix)
         {
             v_capture_t *cap = vItems.get(id);
             if (cap == NULL)
                 return STATUS_NOT_FOUND;
-            cap->sPosition.z = *pos;
-            query_draw();
-            return STATUS_OK;
-        }
-
-        status_t LSPCapture3D::set_direction(size_t id, const vector3d_t *dir)
-        {
-            v_capture_t *cap = vItems.get(id);
-            if (cap == NULL)
-                return STATUS_NOT_FOUND;
-            cap->sPosition.v = *dir;
-            query_draw();
-            return STATUS_OK;
-        }
-
-        status_t LSPCapture3D::set_location(size_t id, const ray3d_t *loc)
-        {
-            v_capture_t *cap = vItems.get(id);
-            if (cap == NULL)
-                return STATUS_NOT_FOUND;
-            cap->sPosition  = *loc;
+            cap->sMatrix    = *matrix;
             query_draw();
             return STATUS_OK;
         }
@@ -197,9 +190,8 @@ namespace lsp
             if (!is_visible())
                 return;
 
-            matrix3d_t m;
+//            matrix3d_t m;
             r3d_buffer_t buf;
-            float k = fRadius * 0.1f; //0.001f;
 
             // Draw all elements of the capture
             for (size_t id=0, nid=vItems.size(); id < nid; ++id)
@@ -209,12 +201,8 @@ namespace lsp
                     continue;
 
                 // Update mesh data for lines
-                dsp::calc_matrix3d_transform_r1(&m, &cap->sPosition);
                 for (size_t i=0; i<6; ++i)
-                {
-//                    sLines[i] = tk_capture_vertices[i];
-                    dsp::apply_matrix3d_mp2(&sLines[i], &tk_capture_vertices[i], &m);
-                }
+                    dsp::apply_matrix3d_mp2(&sLines[i], &tk_capture_vertices[i], &cap->sMatrix);
 
                 // Call draw of lines
                 buf.type            = R3D_PRIMITIVE_LINES;
@@ -240,11 +228,11 @@ namespace lsp
                 for (size_t i=0; i<24; ++i)
                 {
                     sBody[i].z      = tk_capture_capsule[i];
-                    sBody[i].z.x   *= k;
-                    sBody[i].z.y   *= k;
-                    sBody[i].z.z   *= k;
+                    sBody[i].z.x   *= fRadius;
+                    sBody[i].z.y   *= fRadius;
+                    sBody[i].z.z   *= fRadius;
 
-                    dsp::apply_matrix3d_mp2(&sBody[i].z, &tk_capture_capsule[i], &m);
+                    dsp::apply_matrix3d_mp1(&sBody[i].z, &cap->sMatrix);
                 }
 
                 for (size_t i=0; i<24; i += 3)
@@ -270,7 +258,7 @@ namespace lsp
                 buf.normal.stride   = sizeof(ray3d_t);
                 buf.index.data      = NULL;
 
-//                r3d->draw_primitives(&buf);
+                r3d->draw_primitives(&buf);
             }
         }
     

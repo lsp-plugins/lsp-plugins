@@ -36,17 +36,17 @@ namespace lsp
         static const float POSITION_MIN             = -100.0f;
         static const float POSITION_MAX             = +100.0f;
         static const float POSITION_DFL             = 0.0f;
-        static const float POSITION_STEP            = 0.01f;
+        static const float POSITION_STEP            = 0.002f;
 
         static const float CAPSULE_MIN              = 10.0f;
         static const float CAPSULE_MAX              = 50.0f;
         static const float CAPSULE_DFL              = 22.0f;
-        static const float CAPSULE_STEP             = 0.1f;
+        static const float CAPSULE_STEP             = 0.025f;
 
-        static const float ANGLE_MIN                = 0.0f;
-        static const float ANGLE_MAX                = 180.0f;
+        static const float ANGLE_MIN                = 45.0f;
+        static const float ANGLE_MAX                = 135.0f;
         static const float ANGLE_DFL                = 90.0f;
-        static const float ANGLE_STEP               = 0.1f;
+        static const float ANGLE_STEP               = 0.025f;
 
         static const float DISTANCE_MIN             = 0.0f;
         static const float DISTANCE_MAX             = +10.0f;

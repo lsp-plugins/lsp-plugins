@@ -54,7 +54,7 @@ namespace lsp
 
     typedef struct room_capture_settings_t
     {
-        ray3d_t                 pos[2];     // Position and direction of capture
+        matrix3d_t              pos[2];     // Position and direction of capture
         rt_audio_capture_t      type[2];    // Type of capture
         float                   r[2];       // Capture radius
         size_t                  n;          // Number of elements

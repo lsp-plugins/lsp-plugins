@@ -11,7 +11,8 @@
 					<ui:for id="i" first="0" last="7" >
 						<capture3d
 							visibility=":sce_${i}" 
-							mode_id="sccf_${i}" hue_id="sch_${i}"
+							mode_id="sccf_${i}"
+							hue_id="sch_${i}" hue_shift="0.1"
 							xpos_id="scpx_${i}" ypos_id="scpy_${i}" zpos_id="scpz_${i}"
 							yaw_id="scay_${i}" pitch_id="scap_${i}" roll_id="scar_${i}"
 							size_id="sccs_${i}" angle_id="sca_${i}" distance_id="scab_${i}"
@@ -34,9 +35,9 @@
 					<label text="Yaw" />
 					<label text="Pitch" />
 					
-					<knob id="cposx" size="24" />
-					<knob id="cposy" size="24" />
-					<knob id="cposz" size="24" />
+					<knob id="cposx" size="24" scale_color="red" />
+					<knob id="cposy" size="24" scale_color="green" />
+					<knob id="cposz" size="24" scale_color="blue" />
 					<knob id="cyaw" size="24" />
 					<knob id="cpitch" size="24" />
 					
@@ -123,7 +124,7 @@
 							</vbox>
 							<vbox visibility="(:sccf_${i} ieq 1) or (:sccf_${i} ieq 3)" >
 								<label text="Angle" />
-								<knob id="sca_${i}" size="16" scale_hue_id="sch_${i}" />
+								<knob id="sca_${i}" size="16" scale_hue_id="sch_${i}" balance="90" />
 								<value id="sca_${i}" same_line="true"/>
 							</vbox>
 							<vbox visibility="(:sccf_${i} ieq 2)" >

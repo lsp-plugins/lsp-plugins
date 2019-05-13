@@ -242,6 +242,15 @@ namespace lsp
             ssize_t add_capture(const ray3d_t *position, rt_audio_capture_t type);
 
             /**
+             * Add audio capture
+             * @param type audio capture type
+             * @param position matrix that defines the proper transformations of the
+             *      { 0, 0, 0 } point and { 1, 0, 0 } vector
+             * @return non-negative capture identifier or negative error status code
+             */
+            ssize_t add_capture(const matrix3d_t *position, rt_audio_capture_t type);
+
+            /**
              * Bind audio sample to capture
              * @param id capture identifier
              * @param sample audio sample to bind

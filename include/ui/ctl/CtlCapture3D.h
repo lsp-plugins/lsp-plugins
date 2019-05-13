@@ -21,6 +21,7 @@ namespace lsp
                 {
                     protected:
                         CtlCapture3D   *pCapture;
+                        friend class CtlCapture3D;
 
                     protected:
                         virtual void    color_changed();
@@ -60,6 +61,8 @@ namespace lsp
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void notify(CtlPort *port);
+
+                virtual void end();
         };
     
     } /* namespace ctl */

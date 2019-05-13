@@ -231,9 +231,9 @@ namespace lsp
         void CtlViewer3D::move_camera(ssize_t dx, ssize_t dy, ssize_t dz)
         {
             point3d_t pov;
-            float mdx       = dx * get_delta(pPosX, 0.01f);
-            float mdy       = dy * get_delta(pPosY, 0.01f);
-            float mdz       = dz * get_delta(pPosZ, 0.01f);
+            float mdx       = dx * get_delta(pPosX, 0.01f) * 5.0f;
+            float mdy       = dy * get_delta(pPosY, 0.01f) * 5.0f;
+            float mdz       = dz * get_delta(pPosZ, 0.01f) * 5.0f;
 
             pov.x           = sOldPov.x + sSide.dx * mdx + sDir.dx * mdy + sXTop.dx * mdz;
             pov.y           = sOldPov.y + sSide.dy * mdx + sDir.dy * mdy + sXTop.dy * mdz;

@@ -46,7 +46,7 @@ namespace lsp
 
             protected:
                 size_t          check_mouse_over(ssize_t x, ssize_t y);
-                float           get_normalized_value();
+                float           get_normalized_value(float value);
                 void            set_normalized_value(float value);
                 void            update_value(float delta);
                 void            on_click(ssize_t x, ssize_t y);

@@ -1590,6 +1590,43 @@ namespace lsp
         return idx;
     }
 
+    ssize_t RayTrace3D::add_capture(const matrix3d_t *position, rt_audio_capture_t type)
+    {
+        capture_t *cap      = new capture_t();
+        if (cap == NULL)
+            return -STATUS_NO_MEM;
+
+        size_t idx          = vCaptures.size();
+        if (!vCaptures.add(cap))
+        {
+            delete cap;
+            return -STATUS_NO_MEM;
+        }
+
+        cap->type           = type;
+        cap->matrix     = *position;
+        dsp::init_point_xyz(&cap->position.z, 0.0f, 0.0f, 0.0f);
+        dsp::init_vector_dxyz(&cap->position.v, 1.0f, 0.0f, 0.0f);
+        dsp::apply_matrix3d_mp1(&cap->position.z, position);
+        dsp::apply_matrix3d_mv1(&cap->position.v, position);
+
+        // "Black hole"
+        rt_material_t *m    = &cap->material;
+        m->absorption[0]    = 1.0f;
+        m->dispersion[0]    = 1.0f;
+        m->dissipation[0]   = 1.0f;
+        m->transparency[0]  = 0.0f;
+
+        m->absorption[0]    = 1.0f;
+        m->dispersion[0]    = 1.0f;
+        m->dissipation[0]   = 1.0f;
+        m->transparency[0]  = 0.0f;
+
+        m->permeability     = 1.0f;
+
+        return idx;
+    }
+
     status_t RayTrace3D::bind_capture(size_t id, Sample *sample, size_t channel, ssize_t r_min, ssize_t r_max)
     {
         capture_t *cap = vCaptures.get(id);

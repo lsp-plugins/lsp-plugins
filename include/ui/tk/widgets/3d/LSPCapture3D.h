@@ -20,7 +20,7 @@ namespace lsp
             protected:
                 typedef struct v_capture_t
                 {
-                    ray3d_t         sPosition;
+                    matrix3d_t      sMatrix;
                     bool            bEnabled;
                 } v_capture_t;
 
@@ -45,9 +45,9 @@ namespace lsp
                 inline LSPColor            *color()                     { return &sColor;           };
                 inline LSPColor            *axis_color()                { return &sAxisColor;       };
 
-                const point3d_t            *position(size_t id);
-                const vector3d_t           *direction(size_t id);
-                const ray3d_t              *location(size_t id);
+                status_t                    get_position(point3d_t *dst, size_t id);
+                status_t                    get_direction(vector3d_t *dst, size_t id);
+                status_t                    get_location(ray3d_t *dst, size_t id);
                 bool                        enabled(size_t id);
                 float                       radius() const              { return fRadius;           };
                 inline size_t               items() const               { return vItems.size();     };
@@ -55,9 +55,7 @@ namespace lsp
             public:
                 void clear();
                 status_t set_items(size_t items);
-                status_t set_position(size_t id, const point3d_t *pos);
-                status_t set_direction(size_t id, const vector3d_t *dir);
-                status_t set_location(size_t id, const ray3d_t *loc);
+                status_t set_transform(size_t id, const matrix3d_t *matrix);
                 status_t set_enabled(size_t id, bool enabled);
                 void set_radius(float radius);
 

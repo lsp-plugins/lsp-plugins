@@ -177,10 +177,25 @@ namespace lsp
             query_draw();
         }
 
-        float LSPKnob::get_normalized_value()
+        float LSPKnob::get_normalized_value(float value)
         {
+            if (fMin < fMax)
+            {
+                if (value < fMin)
+                    value = fMin;
+                else if (value > fMax)
+                    value = fMax;
+            }
+            else
+            {
+                if (value < fMax)
+                    value = fMax;
+                else if (value > fMin)
+                    value = fMin;
+            }
+
             // Float and other values
-            return (fValue - fMin) / (fMax - fMin);
+            return (value - fMin) / (fMax - fMin);
         }
 
         void LSPKnob::set_normalized_value(float value)
@@ -374,7 +389,8 @@ namespace lsp
 
         void LSPKnob::draw(ISurface *s)
         {
-            float value     = get_normalized_value();
+            float value     = get_normalized_value(fValue);
+            float balance   = get_normalized_value(fBalance);
 
             // Draw background
             s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
@@ -405,10 +421,10 @@ namespace lsp
                 base          = 2.0f * M_PI / 3.0f;
                 delta         = 5.0f * M_PI / 3.0f;
                 v_angle1      = base + value * delta;
-                v_angle2      = base + fBalance * delta;
+                v_angle2      = base + balance * delta;
 
                 s->fill_sector(c_x, c_y, scale_out_r, base, base + delta, dark);
-                if (value < fBalance)
+                if (value < balance)
                     s->fill_sector(c_x, c_y, scale_out_r, v_angle1, v_angle2, col);
                 else
                     s->fill_sector(c_x, c_y, scale_out_r, v_angle2, v_angle1, col);
@@ -423,10 +439,10 @@ namespace lsp
                 base          = 1.5f * M_PI;
                 delta         = 2.0f * M_PI;
                 v_angle1      = base + value * delta;
-                v_angle2      = base + fBalance * delta;
+                v_angle2      = base + balance * delta * 0.5f;
 
                 s->fill_circle(c_x, c_y, scale_out_r, dark);
-                if (value < fBalance)
+                if (value < balance)
                     s->fill_sector(c_x, c_y, scale_out_r, v_angle1, v_angle2, col);
                 else
                     s->fill_sector(c_x, c_y, scale_out_r, v_angle2, v_angle1, col);

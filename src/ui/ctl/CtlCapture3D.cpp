@@ -117,6 +117,11 @@ namespace lsp
             }
         }
 
+        void CtlCapture3D::end()
+        {
+            sXColor.color_changed();
+        }
+
         void CtlCapture3D::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
@@ -195,11 +200,10 @@ namespace lsp
             if (res != STATUS_OK)
                 return;
 
-            cap->set_radius(sCapture.fCapsule);
+            cap->set_radius(cset.r[0]);
             for (size_t i=0; i<2; ++i)
             {
-                cap->set_position(i, &cset.pos[i].z);
-                cap->set_direction(i, &cset.pos[i].v);
+                cap->set_transform(i, &cset.pos[i]);
                 cap->set_enabled(i, cset.n > i);
             }
         }
