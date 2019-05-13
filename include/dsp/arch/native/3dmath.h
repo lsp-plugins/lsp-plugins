@@ -1006,38 +1006,89 @@ namespace native
             case AO3D_POS_X_FWD_POS_Z_UP:
             case AO3D_POS_X_FWD_NEG_Y_UP:
             case AO3D_POS_X_FWD_NEG_Z_UP:
-                M[0]    = 1.0f;
+                M[1]    = 1.0f;
                 break;
+
             case AO3D_NEG_X_FWD_POS_Y_UP:
             case AO3D_NEG_X_FWD_POS_Z_UP:
             case AO3D_NEG_X_FWD_NEG_Y_UP:
             case AO3D_NEG_X_FWD_NEG_Z_UP:
-                M[0]    = -1.0f;
+                M[1]    = -1.0f;
                 break;
 
             case AO3D_POS_Y_FWD_POS_X_UP:
             case AO3D_POS_Y_FWD_POS_Z_UP:
             case AO3D_POS_Y_FWD_NEG_X_UP:
             case AO3D_POS_Y_FWD_NEG_Z_UP:
-                M[1]    = 1.0f;
+                M[5]    = 1.0f;
                 break;
             case AO3D_NEG_Y_FWD_POS_X_UP:
             case AO3D_NEG_Y_FWD_POS_Z_UP:
             case AO3D_NEG_Y_FWD_NEG_X_UP:
             case AO3D_NEG_Y_FWD_NEG_Z_UP:
-                M[1]    = -1.0f;
+                M[5]    = -1.0f;
                 break;
 
             case AO3D_POS_Z_FWD_POS_X_UP:
             case AO3D_POS_Z_FWD_POS_Y_UP:
             case AO3D_POS_Z_FWD_NEG_X_UP:
             case AO3D_POS_Z_FWD_NEG_Y_UP:
-                M[2]    = 1.0f;
+                M[9]    = 1.0f;
                 break;
+
             case AO3D_NEG_Z_FWD_POS_X_UP:
             case AO3D_NEG_Z_FWD_POS_Y_UP:
             case AO3D_NEG_Z_FWD_NEG_X_UP:
             case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[9]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the up coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[6]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+                M[10]   = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[6]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[10]   = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[2]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
                 M[2]    = -1.0f;
                 break;
 
@@ -1048,95 +1099,46 @@ namespace native
         // Update the side coordinate
         switch (o)
         {
-            case AO3D_POS_Z_FWD_POS_Y_UP:
-            case AO3D_NEG_Z_FWD_NEG_Y_UP:
-            case AO3D_POS_Y_FWD_NEG_Z_UP:
-            case AO3D_NEG_Y_FWD_POS_Z_UP:
-                M[4]    = 1.0f;
-                break;
-
-            case AO3D_POS_Z_FWD_NEG_Y_UP:
-            case AO3D_NEG_Z_FWD_POS_Y_UP:
-            case AO3D_POS_Y_FWD_POS_Z_UP:
-            case AO3D_NEG_Y_FWD_NEG_Z_UP:
-                M[4]    = -1.0f;
-                break;
-
-            case AO3D_POS_X_FWD_POS_Z_UP:
-            case AO3D_NEG_X_FWD_NEG_Z_UP:
-            case AO3D_POS_Z_FWD_NEG_X_UP:
-            case AO3D_NEG_Z_FWD_POS_X_UP:
-                M[5]    = 1.0f;
-                break;
-
-            case AO3D_POS_X_FWD_NEG_Z_UP:
-            case AO3D_NEG_X_FWD_POS_Z_UP:
-            case AO3D_POS_Z_FWD_POS_X_UP:
-            case AO3D_NEG_Z_FWD_NEG_X_UP:
-                M[5]    = -1.0f;
-                break;
-
-            case AO3D_POS_Y_FWD_POS_X_UP:
-            case AO3D_NEG_Y_FWD_NEG_X_UP:
-            case AO3D_POS_X_FWD_NEG_Y_UP:
-            case AO3D_NEG_X_FWD_POS_Y_UP:
-                M[6]    = 1.0f;
-                break;
-
-            case AO3D_POS_Y_FWD_NEG_X_UP:
-            case AO3D_NEG_Y_FWD_POS_X_UP:
             case AO3D_POS_X_FWD_POS_Y_UP:
             case AO3D_NEG_X_FWD_NEG_Y_UP:
-                M[6]    = -1.0f;
-                break;
-
-            default:
-                break;
-        }
-
-        // Update the up coordinate
-        switch (o)
-        {
-            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_POS_Y_FWD_NEG_X_UP:
             case AO3D_NEG_Y_FWD_POS_X_UP:
-            case AO3D_POS_Z_FWD_POS_X_UP:
-            case AO3D_NEG_Z_FWD_POS_X_UP:
                 M[8]    = 1.0f;
                 break;
 
-            case AO3D_POS_Y_FWD_NEG_X_UP:
-            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
             case AO3D_POS_Z_FWD_NEG_X_UP:
-            case AO3D_NEG_Z_FWD_NEG_X_UP:
-                M[8]    = -1.0f;
-                break;
-
-            case AO3D_POS_X_FWD_POS_Y_UP:
-            case AO3D_NEG_X_FWD_POS_Y_UP:
-            case AO3D_POS_Z_FWD_POS_Y_UP:
-            case AO3D_NEG_Z_FWD_POS_Y_UP:
-                M[9]    = 1.0f;
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[4]    = -1.0f;
                 break;
 
             case AO3D_POS_X_FWD_NEG_Y_UP:
-            case AO3D_NEG_X_FWD_NEG_Y_UP:
-            case AO3D_POS_Z_FWD_NEG_Y_UP:
-            case AO3D_NEG_Z_FWD_NEG_Y_UP:
-                M[9]    = -1.0f;
-                break;
-
-            case AO3D_POS_X_FWD_POS_Z_UP:
-            case AO3D_NEG_X_FWD_POS_Z_UP:
-            case AO3D_POS_Y_FWD_POS_Z_UP:
-            case AO3D_NEG_Y_FWD_POS_Z_UP:
-                M[10]   = 1.0f;
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+                M[8]    = -1.0f;
                 break;
 
             case AO3D_POS_X_FWD_NEG_Z_UP:
-            case AO3D_NEG_X_FWD_NEG_Z_UP:
-            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[4]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_Z_UP:
             case AO3D_NEG_Y_FWD_NEG_Z_UP:
-                M[10]   = -1.0f;
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[0]    =  1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[0]    = -1.0f;
                 break;
 
             default:

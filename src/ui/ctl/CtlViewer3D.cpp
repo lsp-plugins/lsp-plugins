@@ -120,6 +120,9 @@ namespace lsp
             CtlViewer3D *_this  = static_cast<CtlViewer3D *>(ptr);
             ws_event_t *ev  = static_cast<ws_event_t *>(data);
 
+            if (_this->nBMask == 0)
+                return STATUS_OK;
+
             _this->nBMask &= ~(1 << ev->nCode);
             if (_this->nBMask == 0)
             {
