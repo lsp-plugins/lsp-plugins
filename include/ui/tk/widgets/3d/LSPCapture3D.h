@@ -31,7 +31,8 @@ namespace lsp
                 float           fRadius;
                 cstorage<v_capture_t> vItems;
 
-                point3d_t       sPoints[12];
+                point3d_t       sLines[12];
+                ray3d_t         sBody[24];
 
             public:
                 explicit LSPCapture3D(LSPDisplay *dpy);

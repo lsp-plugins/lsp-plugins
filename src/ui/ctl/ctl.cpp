@@ -13,6 +13,7 @@ namespace lsp
             "body",
             "box",
             "button",
+            "capture3d",
             "cell",
             "center",
             "cgroup",
@@ -180,6 +181,7 @@ namespace lsp
             "mode_id",
             "angle_id",
             "distance_id",
+            "hue_shift",
             NULL
         };
 

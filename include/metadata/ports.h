@@ -44,6 +44,9 @@
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define CONTROL_DFL(id, label, units, limits, dfl) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
+        limits ## _MIN, limits ## _MAX, dfl, limits ## _STEP, NULL, NULL }
 #define INT_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_INT, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }

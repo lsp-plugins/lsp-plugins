@@ -14,6 +14,19 @@ namespace lsp
 {
     namespace ctl
     {
+        static const v_point3d_t axis_lines[] =
+        {
+            // X axis (red)
+            { { 0.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            { { 0.25f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            // Y axis (green)
+            { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { 0.0f, 0.25f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            // Z axis (blue)
+            { { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+            { { 0.0f, 0.0f, 0.25f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+        };
+
         static const color3d_t *colors[] =
         {
             &C3D_RED,
@@ -310,7 +323,7 @@ namespace lsp
 
         void CtlViewer3D::set(widget_attribute_t att, const char *value)
         {
-            LSPArea3D *r3d  = (pWidget != NULL) ? widget_cast<LSPArea3D>(pWidget) : NULL;
+            LSPArea3D *r3d  = widget_cast<LSPArea3D>(pWidget);
 
             switch (att)
             {
@@ -372,6 +385,12 @@ namespace lsp
             update_camera_state();
             bViewChanged    = true;
             pWidget->query_draw();
+        }
+
+        status_t CtlViewer3D::add(LSPWidget *child)
+        {
+            LSPArea3D *r3d  = widget_cast<LSPArea3D>(pWidget);
+            return (r3d != NULL) ? r3d->add(child) : STATUS_NOT_IMPLEMENTED;
         }
 
         void CtlViewer3D::sync_angle_change(float *dst, CtlPort *port, CtlPort *psrc)
@@ -462,7 +481,7 @@ namespace lsp
 
         status_t CtlViewer3D::on_draw3d(IR3DBackend *r3d)
         {
-            LSPArea3D *area  = (pWidget != NULL) ? widget_cast<LSPArea3D>(pWidget) : NULL;
+            LSPArea3D *area     = widget_cast<LSPArea3D>(pWidget);
 
             // Need to update vertex list for the scene?
             commit_view(r3d);
@@ -500,17 +519,25 @@ namespace lsp
             // Enable/disable lighting
             r3d->set_lights(&light, 1);
 
-            // Render supplementary objects
-            for (size_t i=0, n=area->num_objects3d(); i<n; ++i)
-            {
-                LSPObject3D *obj = area->object3d(i);
-                if (obj != NULL)
-                    obj->render(r3d);
-            }
-
             r3d_buffer_t buf;
 
-            // Draw simple triangle
+            // Draw axes
+            buf.type            = R3D_PRIMITIVE_LINES;
+            buf.width           = 2.0f;
+            buf.count           = sizeof(axis_lines) / (sizeof(v_point3d_t) * 2);
+            buf.flags           = 0;
+
+            buf.vertex.data     = &axis_lines[0].p;
+            buf.vertex.stride   = sizeof(v_point3d_t);
+            buf.normal.data     = NULL;
+            buf.normal.stride   = sizeof(v_point3d_t);
+            buf.color.data      = &axis_lines[0].c;
+            buf.color.stride    = sizeof(v_point3d_t);
+            buf.index.data      = NULL;
+
+            // Draw call
+            r3d->draw_primitives(&buf);
+
 //            static const v_point3d_t points[] =
 //            {
 //                { { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
@@ -530,6 +557,14 @@ namespace lsp
 //            buf.index.data      = NULL;
 //
 //            r3d->draw_primitives(&buf);
+
+            // Render supplementary objects
+            for (size_t i=0, n=area->num_objects3d(); i<n; ++i)
+            {
+                LSPObject3D *obj = area->object3d(i);
+                if (obj != NULL)
+                    obj->render(r3d);
+            }
 
             // Draw scene primitives
             v_vertex3d_t *vv    = vVertexes.get_array();

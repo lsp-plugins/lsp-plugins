@@ -467,6 +467,13 @@ namespace lsp
                 vWidgets.add(a);
                 return new CtlViewer3D(this, a);
             }
+            case WC_CAPTURE3D:
+            {
+                LSPCapture3D *c = new LSPCapture3D(&sDisplay);
+                c->init();
+                vWidgets.add(c);
+                return new CtlCapture3D(this, c);
+            }
 
             // Graph object
             case WC_GRAPH:

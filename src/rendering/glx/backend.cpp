@@ -285,6 +285,7 @@ namespace lsp
         }
 
         // Enable depth test and culling
+        ::glDepthFunc(GL_LEQUAL);
         ::glEnable(GL_DEPTH_TEST);
         TRACK_GL_ERRORS
         ::glEnable(GL_CULL_FACE);
@@ -311,9 +312,11 @@ namespace lsp
         TRACK_GL_ERRORS
 
         // Special tuning for non-poligonal primitives
-        ::glPolygonOffset(-1, -1);
+        ::glPolygonOffset(1.0f, 2.0f);
         TRACK_GL_ERRORS
         ::glEnable(GL_POLYGON_OFFSET_POINT);
+        ::glEnable(GL_POLYGON_OFFSET_FILL);
+        ::glEnable(GL_POLYGON_OFFSET_LINE);
         TRACK_GL_ERRORS
 
         // Clear buffer

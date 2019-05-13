@@ -90,9 +90,9 @@ namespace lsp
 
                 virtual status_t on_draw3d(IR3DBackend *r3d);
 
-                virtual status_t    add(LSPWidget *child);
+                virtual status_t add(LSPWidget *child);
 
-                virtual status_t    remove(LSPWidget *child);
+                virtual status_t remove(LSPWidget *child);
         };
     
     } /* namespace tk */

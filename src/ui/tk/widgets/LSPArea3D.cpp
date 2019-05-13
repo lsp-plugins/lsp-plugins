@@ -74,6 +74,14 @@ namespace lsp
 
         void LSPArea3D::do_destroy()
         {
+            for (size_t i=0, n_items=vObjects.size(); i<n_items; ++i)
+            {
+                // Get widget
+                LSPObject3D *w = vObjects.at(i);
+                if (w != NULL)
+                    unlink_widget(w);
+            }
+
             if (pBackend != NULL)
             {
                 pBackend->destroy();
@@ -199,7 +207,10 @@ namespace lsp
             LSPObject3D *w = widget_cast<LSPObject3D>(child);
             if (w == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (vObjects.add(w)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!vObjects.add(w))
+                return STATUS_NO_MEM;
+            w->set_parent(this);
+            return STATUS_OK;
         }
 
         status_t LSPArea3D::remove(LSPWidget *child)

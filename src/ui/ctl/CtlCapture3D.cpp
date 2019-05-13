@@ -31,7 +31,7 @@ namespace lsp
             CtlWidget(src, widget),
             sXColor(this)
         {
-            fHueShift       = 1.0f/3.0f;
+            fHueShift       = 0.25f;
             sXColor.set_rgb(1.0f, 0.0f, 0.0f);
 
             dsp::init_point_xyz(&sCapture.sPos, 0.0f, 0.0f, 0.0f);
@@ -63,6 +63,11 @@ namespace lsp
 
         void CtlCapture3D::init()
         {
+            CtlWidget::init();
+
+            LSPCapture3D *cap = widget_cast<LSPCapture3D>(pWidget);
+            if (cap != NULL)
+                sXColor.copy(cap->color());
             sColor.init_hsl2(pRegistry, pWidget, &sXColor, A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
         }
 
@@ -99,6 +104,9 @@ namespace lsp
                     break;
                 case A_DISTANCE_ID:
                     BIND_PORT(pRegistry, pDistance, value);
+                    break;
+                case A_HUE_SHIFT:
+                    PARSE_FLOAT(value, fHueShift = __);
                     break;
 
                 default:

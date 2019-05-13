@@ -56,6 +56,8 @@ namespace lsp
 
             if (pDstColor != NULL)
                 sColor.copy(pDstColor);
+            else if (pLspColor != NULL)
+                sColor.copy(pLspColor->color());
         }
 
         void CtlColor::notify(CtlPort *port)

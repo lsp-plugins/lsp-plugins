@@ -35,6 +35,7 @@ namespace lsp
             WC_BODY,
             WC_BOX,
             WC_BUTTON,
+            WC_CAPTURE3D,
             WC_CELL,
             WC_CENTER,
             WC_CGROUP,
@@ -202,7 +203,8 @@ namespace lsp
             A_SIZE_ID,
             A_MODE_ID,
             A_ANGLE_ID,
-            A_DISTANCE_ID
+            A_DISTANCE_ID,
+            A_HUE_SHIFT
         };
 
         // Helper functions

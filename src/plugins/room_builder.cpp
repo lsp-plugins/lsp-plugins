@@ -459,8 +459,8 @@ namespace lsp
             dsp::init_vector_dxyz(&out->pos[i].v, 1.0f, 0.0f, 0.0f);
         }
 
-        out->r[0]       = in->fCapsule;
-        out->r[1]       = in->fCapsule;
+        out->r[0]       = in->fCapsule * 0.001f;
+        out->r[1]       = in->fCapsule * 0.001f;
         out->type[0]    = in->enDirection;
         out->type[1]    = in->enDirection;
 
@@ -468,13 +468,15 @@ namespace lsp
         {
             case RT_CC_MONO:
                 out->n              = 1;
+                a[0]                = 0.0f;
+                a[1]                = 0.0f;
                 break;
             case RT_CC_XY:
                 out->n              = 2;
-                out->pos[0].z.y    += in->fCapsule * 2.0f;
-                out->pos[1].z.y    -= in->fCapsule * 2.0f;
-                a[0]                = -45.0f - (in->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
-                a[1]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
+                out->pos[0].z.y    += out->r[0];
+                out->pos[1].z.y    -= out->r[1];
+                a[0]                = 45.0f - (in->fAngle - 90.0f) * 0.5f;
+                a[1]                = -45.0f + (in->fAngle - 90.0f) * 0.5f;
                 break;
             case RT_CC_AB:
                 out->n              = 2;
@@ -487,11 +489,13 @@ namespace lsp
                 out->n              = 2;
                 out->pos[0].z.y    += 0.075f;  // Half of human's head width
                 out->pos[1].z.y    -= 0.075f;  // Half of human's head width
-                a[0]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;
-                a[1]                = -45.0f - (in->fAngle - 90.0f) * 0.5f;
+                a[0]                = -45.0f + (in->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
+                a[1]                = 45.0f - (in->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
                 break;
             case RT_CC_MS:
                 out->n              = 2;
+                out->pos[0].z.z    += out->r[0];
+                out->pos[1].z.z    -= out->r[1];
                 out->type[1]        = in->enSide;
                 a[0]                = 0.0f;
                 a[1]                = M_PI * 0.5f;
@@ -509,7 +513,7 @@ namespace lsp
         dsp::apply_matrix3d_mm1(&delta, &m);
 
         // Update the final position of sub-elements
-        for (size_t i=0; i<2; ++i)
+        for (size_t i=0; i<out->n; ++i)
         {
             // Rotate direction of capture element
             dsp::init_matrix3d_rotate_z(&m, a[i] * M_PI / 180.0f);

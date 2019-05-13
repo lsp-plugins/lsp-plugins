@@ -7,7 +7,17 @@
 					id="ifn" status_id="ifs" width="320" height="200"
 					xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
 					yaw_id="cyaw" pitch_id="cpitch"
-				/>
+				>
+					<ui:for id="i" first="0" last="7" >
+						<capture3d
+							visibility=":sce_${i}" 
+							mode_id="sccf_${i}" hue_id="sch_${i}"
+							xpos_id="scpx_${i}" ypos_id="scpy_${i}" zpos_id="scpz_${i}"
+							yaw_id="scay_${i}" pitch_id="scap_${i}" roll_id="scar_${i}"
+							size_id="sccs_${i}" angle_id="sca_${i}" distance_id="scab_${i}"
+						/>
+					</ui:for>
+				</viewer3d>
 				<!--  yaw_id="cyaw" pitch_id="cpitch" -->
 				<grid rows="4" cols="7">
 					<label text="3D model" />

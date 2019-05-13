@@ -13,21 +13,37 @@ namespace lsp
     {
         #define V3(x, y, z) { x, y, z, 1.0f }
 
+//        static const point3d_t tk_capture_vertices[] =
+//        {
+//            V3(0, 0, 0),
+//            V3(0.015, 0, 0),
+//            V3(0.011, 0.003, 0),
+//            V3(0.011, -0.003, 0),
+//            V3(0.011, 0, 0.003),
+//            V3(0.011, 0, -0.003)
+//        };
+
         static const point3d_t tk_capture_vertices[] =
         {
             V3(0, 0, 0),
-            V3(0.015, 0, 0),
-            V3(0.011, 0.003, 0),
-            V3(0.011, -0.003, 0),
-            V3(0.011, 0, 0.003),
-            V3(0.011, 0, -0.003),
+            V3(1.5, 0, 0),
+            V3(1.1, 0.3, 0),
+            V3(1.1, -0.3, 0),
+            V3(1.1, 0, 0.3),
+            V3(1.1, 0, -0.3)
+        };
 
-            V3(0, 0, 1),
-            V3(0, 0, -1),
-            V3(1, 0, 0),
-            V3(0, 1, 0),
-            V3(-1, 0, 0),
-            V3(0, -1, 0)
+        static const point3d_t tk_capture_capsule[] =
+        {
+            V3(0, 0, 1), V3(1, 0, 0), V3(0, 1, 0),
+            V3(0, 0, 1), V3(0, 1, 0), V3(-1, 0, 0),
+            V3(0, 0, 1), V3(-1, 0, 0), V3(0, -1, 0),
+            V3(0, 0, 1), V3(0, -1, 0), V3(1, 0, 0),
+
+            V3(0, 0, -1), V3(0, 1, 0), V3(1, 0, 0),
+            V3(0, 0, -1), V3(-1, 0, 0), V3(0, 1, 0),
+            V3(0, 0, -1), V3(0, -1, 0), V3(-1, 0, 0),
+            V3(0, 0, -1), V3(1, 0, 0), V3(0, -1, 0),
         };
 
         static const uint32_t tk_arrow_indexes[] =
@@ -37,18 +53,6 @@ namespace lsp
             1, 3,
             1, 4,
             1, 5
-        };
-
-        static const uint32_t tk_box_indexes[] =
-        {
-            6, 8, 9,
-            6, 9, 10,
-            6, 10, 11,
-            6, 11, 8,
-            7, 9, 8,
-            7, 10, 9,
-            7, 11, 10,
-            7, 8, 11
         };
 
         const w_class_t LSPCapture3D::metadata = { "LSPCapture3D", &LSPObject3D::metadata };
@@ -103,16 +107,23 @@ namespace lsp
         bool LSPCapture3D::enabled(size_t id)
         {
             v_capture_t *cap = vItems.get(id);
-            return (cap != NULL) ? &cap->bEnabled: false;
+            return (cap != NULL) ? cap->bEnabled : false;
         }
 
         void LSPCapture3D::clear()
         {
-            vItems.clear();
+            if (vItems.size() > 0)
+            {
+                vItems.clear();
+                query_draw();
+            }
         }
 
         status_t LSPCapture3D::set_items(size_t items)
         {
+            if (vItems.size() == items)
+                return STATUS_OK;
+
             while (vItems.size() < items)
             {
                 v_capture_t *cap = vItems.add();
@@ -127,6 +138,7 @@ namespace lsp
             while (vItems.size() > items)
                 vItems.remove_last();
 
+            query_draw();
             return STATUS_OK;
         }
 
@@ -182,9 +194,12 @@ namespace lsp
 
         void LSPCapture3D::render(IR3DBackend *r3d)
         {
+            if (!is_visible())
+                return;
+
             matrix3d_t m;
             r3d_buffer_t buf;
-            float k = fRadius * 0.001f;
+            float k = fRadius * 0.1f; //0.001f;
 
             // Draw all elements of the capture
             for (size_t id=0, nid=vItems.size(); id < nid; ++id)
@@ -193,18 +208,12 @@ namespace lsp
                 if ((cap == NULL) || (!cap->bEnabled))
                     continue;
 
-                // Update mesh data
+                // Update mesh data for lines
                 dsp::calc_matrix3d_transform_r1(&m, &cap->sPosition);
                 for (size_t i=0; i<6; ++i)
-                    dsp::apply_matrix3d_mp2(&sPoints[i], &tk_capture_vertices[i], &m);
-
-                for (size_t i=6; i<12; ++i)
                 {
-                    sPoints[i].x    = tk_capture_vertices[i].x * k;
-                    sPoints[i].y    = tk_capture_vertices[i].y * k;
-                    sPoints[i].z    = tk_capture_vertices[i].z * k;
-                    sPoints[i].w    = 1.0f;
-                    dsp::apply_matrix3d_mp2(&sPoints[i], &tk_capture_vertices[i], &m);
+//                    sLines[i] = tk_capture_vertices[i];
+                    dsp::apply_matrix3d_mp2(&sLines[i], &tk_capture_vertices[i], &m);
                 }
 
                 // Call draw of lines
@@ -213,7 +222,7 @@ namespace lsp
                 buf.count           = sizeof(tk_arrow_indexes) / (sizeof(uint32_t) * 2);
                 buf.flags           = 0;
 
-                buf.vertex.data     = sPoints;
+                buf.vertex.data     = sLines;
                 buf.vertex.stride   = sizeof(point3d_t);
                 buf.normal.data     = NULL;
                 buf.normal.stride   = sizeof(point3d_t);
@@ -227,17 +236,41 @@ namespace lsp
 
                 r3d->draw_primitives(&buf);
 
+                // Update mesh data for body
+                for (size_t i=0; i<24; ++i)
+                {
+                    sBody[i].z      = tk_capture_capsule[i];
+                    sBody[i].z.x   *= k;
+                    sBody[i].z.y   *= k;
+                    sBody[i].z.z   *= k;
+
+                    dsp::apply_matrix3d_mp2(&sBody[i].z, &tk_capture_capsule[i], &m);
+                }
+
+                for (size_t i=0; i<24; i += 3)
+                {
+                    dsp::calc_normal3d_p3(&sBody[i].v, &sBody[i].z, &sBody[i+1].z, &sBody[i+2].z);
+                    sBody[i+1].v    = sBody[i].v;
+                    sBody[i+2].v    = sBody[i].v;
+                }
+
                 // Call draw of capsule
                 buf.type            = R3D_PRIMITIVE_TRIANGLES;
+                buf.flags           = R3D_BUFFER_LIGHTING;
                 buf.width           = 1.0f;
-                buf.count           = sizeof(tk_box_indexes) / (sizeof(uint32_t) * 2);
+                buf.count           = 8;
                 buf.color.dfl.r     = sColor.red();
                 buf.color.dfl.g     = sColor.green();
                 buf.color.dfl.b     = sColor.blue();
                 buf.color.dfl.a     = 1.0f;
-                buf.index.data      = tk_box_indexes;
 
-                r3d->draw_primitives(&buf);
+                buf.vertex.data     = &sBody[0].z;
+                buf.vertex.stride   = sizeof(ray3d_t);
+                buf.normal.data     = &sBody[0].v;
+                buf.normal.stride   = sizeof(ray3d_t);
+                buf.index.data      = NULL;
+
+//                r3d->draw_primitives(&buf);
             }
         }
     

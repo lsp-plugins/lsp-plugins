@@ -99,6 +99,8 @@ namespace lsp
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void notify(CtlPort *port);
+
+                virtual status_t add(LSPWidget *child);
         };
     
     } /* namespace ctl */

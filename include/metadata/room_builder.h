@@ -43,7 +43,7 @@ namespace lsp
         static const float CAPSULE_DFL              = 22.0f;
         static const float CAPSULE_STEP             = 0.1f;
 
-        static const float ANGLE_MIN                = 90.0f;
+        static const float ANGLE_MIN                = 0.0f;
         static const float ANGLE_MAX                = 180.0f;
         static const float ANGLE_DFL                = 90.0f;
         static const float ANGLE_STEP               = 0.1f;
