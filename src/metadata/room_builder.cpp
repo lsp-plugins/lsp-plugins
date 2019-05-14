@@ -175,7 +175,7 @@ namespace lsp
         CONTROL("scab" id, "Capture " label " AB distance", U_M, room_builder_base_metadata::DISTANCE),      \
         COMBO("scmd" id, "Capture " label " microphone direction", 0, rb_capture_direction),      \
         COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction), \
-        { "sch" id, "Hue " label, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
+        { "sch" id, "Hue " label, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 
 
     static const port_t room_builder_mono_ports[] =

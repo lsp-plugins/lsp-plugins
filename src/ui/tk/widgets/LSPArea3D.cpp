@@ -33,6 +33,7 @@ namespace lsp
 
             sIPadding.set(1, 1, 1, 1);
 
+            dsp::init_point_xyz(&sPov, 0.0f, 0.0f, 0.0f);
             dsp::init_matrix3d_identity(&sWorld);
             dsp::init_matrix3d_identity(&sProjection);
             dsp::init_matrix3d_identity(&sView);
@@ -219,6 +220,17 @@ namespace lsp
             if (w == NULL)
                 return STATUS_NOT_FOUND;
             return (vObjects.remove(w)) ? STATUS_OK : STATUS_NOT_FOUND;
+        }
+
+        void LSPArea3D::set_view_point(const point3d_t *pov)
+        {
+            for (size_t i=0, n_items=vObjects.size(); i<n_items; ++i)
+            {
+                // Get widget
+                LSPObject3D *w = vObjects.at(i);
+                if (w != NULL)
+                    w->set_view_point(pov);
+            }
         }
 
         void LSPArea3D::query_draw(size_t flags)

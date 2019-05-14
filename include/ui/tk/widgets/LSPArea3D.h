@@ -24,6 +24,7 @@ namespace lsp
                 LSPWidgetColor  sBgColor;
                 LSPPadding      sIPadding;
 
+                point3d_t       sPov;
                 matrix3d_t      sWorld;
                 matrix3d_t      sView;
                 matrix3d_t      sProjection;
@@ -73,6 +74,8 @@ namespace lsp
                 inline size_t       num_objects3d() const   { return vObjects.size();   };
                 LSPObject3D        *object3d(size_t id);
 
+                inline void         get_view_point(point3d_t *dst) { *dst = sPov;           };
+
             public:
                 void            set_min_width(size_t value);
                 void            set_min_height(size_t value);
@@ -93,6 +96,8 @@ namespace lsp
                 virtual status_t add(LSPWidget *child);
 
                 virtual status_t remove(LSPWidget *child);
+
+                virtual void set_view_point(const point3d_t *pov);
         };
     
     } /* namespace tk */

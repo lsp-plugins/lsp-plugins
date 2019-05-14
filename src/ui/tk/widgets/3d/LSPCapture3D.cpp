@@ -23,16 +23,6 @@ namespace lsp
             V3(0.22, 0, -0.06)
         };
 
-//        static const point3d_t tk_capture_vertices[] =
-//        {
-//            V3(0, 0, 0),
-//            V3(1.5, 0, 0),
-//            V3(1.1, 0.3, 0),
-//            V3(1.1, -0.3, 0),
-//            V3(1.1, 0, 0.3),
-//            V3(1.1, 0, -0.3)
-//        };
-
         static const point3d_t tk_capture_capsule[] =
         {
             V3(0, 0, 1), V3(1, 0, 0), V3(0, 1, 0),
@@ -72,7 +62,7 @@ namespace lsp
 
         status_t LSPCapture3D::init()
         {
-            status_t res = LSPWidget::init();
+            status_t res = LSPObject3D::init();
             if (res != STATUS_OK)
                 return res;
 
@@ -83,7 +73,7 @@ namespace lsp
 
         void LSPCapture3D::destroy()
         {
-            LSPWidget::destroy();
+            LSPObject3D::destroy();
         }
 
         status_t LSPCapture3D::get_position(point3d_t *dst, size_t id)
@@ -190,7 +180,6 @@ namespace lsp
             if (!is_visible())
                 return;
 
-//            matrix3d_t m;
             r3d_buffer_t buf;
 
             // Draw all elements of the capture

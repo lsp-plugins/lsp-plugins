@@ -25,6 +25,8 @@ namespace lsp
                 LSPArea3D *area3d();
 
             public:
+                virtual void set_view_point(const point3d_t *pov);
+
                 virtual void render(IR3DBackend *r3d);
         };
     

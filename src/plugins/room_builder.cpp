@@ -481,8 +481,8 @@ namespace lsp
                 out->n              = 2;
                 dp[0].dy           += out->r[0];
                 dp[1].dy           -= out->r[1];
-                a[0]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;
-                a[1]                = -45.0f - (in->fAngle - 90.0f) * 0.5f;
+                a[0]                = -45.0f - (in->fAngle - 90.0f) * 0.5f;
+                a[1]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;
                 break;
             case RT_CC_AB:
                 out->n              = 2;
@@ -495,8 +495,8 @@ namespace lsp
                 out->n              = 2;
                 dp[0].dy           += 0.075f;  // Half of human's head width
                 dp[1].dy           -= 0.075f;  // Half of human's head width
-                a[0]                = -45.0f - (in->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
-                a[1]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
+                a[0]                =  45.0f + (in->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
+                a[1]                = -45.0f - (in->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
                 break;
             case RT_CC_MS:
                 out->n              = 2;

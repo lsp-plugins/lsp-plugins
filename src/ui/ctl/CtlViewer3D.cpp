@@ -322,6 +322,7 @@ namespace lsp
 
             // Set-up the view matrix
             bViewChanged    = true;
+            r3d->set_view_point(&sPov);
             r3d->set_view_matrix(&view);
         }
 

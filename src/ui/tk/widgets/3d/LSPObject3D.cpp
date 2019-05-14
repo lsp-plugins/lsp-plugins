@@ -27,6 +27,10 @@ namespace lsp
         {
         }
 
+        void LSPObject3D::set_view_point(const point3d_t *pov)
+        {
+        }
+
         LSPArea3D *LSPObject3D::area3d()
         {
             LSPComplexWidget *parent = pParent;

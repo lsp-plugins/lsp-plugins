@@ -31,7 +31,7 @@ namespace lsp
                 float           fRadius;
                 cstorage<v_capture_t> vItems;
 
-                point3d_t       sLines[12];
+                point3d_t       sLines[6];
                 ray3d_t         sBody[24];
 
             public:
