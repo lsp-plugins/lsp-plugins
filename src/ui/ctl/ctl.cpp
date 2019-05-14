@@ -183,6 +183,8 @@ namespace lsp
             "distance_id",
             "hue_shift",
             "orientation_id",
+            "radius_id",
+            "height_id",
             NULL
         };
 

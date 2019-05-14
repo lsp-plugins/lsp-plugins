@@ -162,10 +162,14 @@ namespace lsp
         float           __pad[3];           // Padding
     } rt_material_t;
 
-    typedef struct rt_view_t
+    typedef struct rt_group_t
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
+    } rt_group_t;
+
+    typedef struct rt_view_t: public rt_group_t
+    {
         vector3d_t          pl[4];      // Culling planes
         float               time[3];    // The corresponding start time for each source point
         float               amplitude;  // The amplitude of the signal

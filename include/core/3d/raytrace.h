@@ -8,14 +8,26 @@
 #ifndef CORE_3D_RAYTRACE_H_
 #define CORE_3D_RAYTRACE_H_
 
+#include <data/cstorage.h>
+#include <core/3d/common.h>
+#include <core/status.h>
+
 namespace lsp
 {
     enum rt_audio_source_t
     {
-        RT_AS_SPOT,
-        RT_AS_SPEAKER,
-        RT_AS_OMNI,
-        RT_AS_TRIANGLE
+        RT_AS_OMNI,     // Omni source (icosphere)
+        RT_AS_OMNI2,    // Omni source (octasphere)
+        RT_AS_ICO,      // Icosahedron source
+        RT_AS_TETRA,    // Tetra source
+        RT_AS_OCTA,     // Octa source
+        RT_AS_BOX,      // Simple box source
+        RT_AS_CYLINDER, // Cylinder
+        RT_AS_CONE,     // Cone
+        RT_AS_SPOT,     // Conical spot
+        RT_AS_SSPOT,    // Spherical spot
+        RT_AS_CSPOT,    // Cylindric spot
+        RT_AS_TRIANGLE  // For debug purposes
     };
 
     enum rt_audio_capture_t
@@ -35,6 +47,16 @@ namespace lsp
         RT_CC_AB,
         RT_CC_ORTF,
         RT_CC_MS
+    };
+
+    // Source configuration
+    typedef struct room_source_settings_t
+    {
+        matrix3d_t              pos;        // Position and direction of source
+        rt_audio_source_t       type;       // Type of the the source
+        float                   size;       // Size/radius
+        float                   height;     // Height for the CYLINDER
+        float                   angle;      // Angle of the SPOT and CYLINDRIC sources (degrees)
     };
 
     // Capture configuration
@@ -59,6 +81,16 @@ namespace lsp
         float                   r[2];       // Capture radius
         size_t                  n;          // Number of elements
     } room_capture_settings_t;
+
+
+    /**
+     * Generate raytracing groups according to settings of the audio source
+     * @param out raytracing groups
+     * @param cfg configuration
+     * @return status of operation
+     */
+    status_t gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg);
+
 }
 
 

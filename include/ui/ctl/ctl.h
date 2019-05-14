@@ -205,7 +205,9 @@ namespace lsp
             A_ANGLE_ID,
             A_DISTANCE_ID,
             A_HUE_SHIFT,
-            A_ORIENTATION_ID
+            A_ORIENTATION_ID,
+            A_RADIUS_ID,
+            A_HEIGHT_ID
         };
 
         // Helper functions
@@ -285,6 +287,7 @@ namespace lsp
 
 #include <ui/ctl/CtlViewer3D.h>
 #include <ui/ctl/CtlCapture3D.h>
+#include <ui/ctl/CtlSource3D.h>
 
 // Specials
 #include <ui/ctl/CtlPortAlias.h>

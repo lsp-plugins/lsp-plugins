@@ -222,8 +222,6 @@ namespace lsp
             Object3D *obj = NULL;
             switch (src->type)
             {
-                case RT_AS_SPOT:        // TODO
-                case RT_AS_SPEAKER:     // TODO
                 case RT_AS_TRIANGLE:
                     obj     = factory.buildTriangle();
                     break;
