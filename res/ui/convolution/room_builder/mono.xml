@@ -57,7 +57,96 @@
 				</grid>
 			</vbox>
 		</cgroup>
-		<group text="Captures">
+		<cgroup id="editor">
+			<!-- Source editor -->
+			<vbox>
+				<!-- Source selector -->
+				<align hpos="-1">
+					<hbox spacing="8">
+						<label text="Source:" />
+						<combo id="ssel" width="20" />
+						<button id="sce[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
+						<label text="Enabled" />
+					</hbox>
+				</align>
+				<hsep pad_bottom="8" />
+				<!-- Sources -->
+				<vbox spacing="2">
+					<grid rows="2" cols="2" transpose="true" vspacing="2" hspacing="2" >
+						<align pad_left="8" hpos="-1"><label text="Shape" /></align>
+						<align pad_left="8" hpos="-1"><label text="Phase" /></align>
+					
+						<combo id="sscf[ssel]" />
+						<aligh hpos="-1">
+							<hbox spacing="2">
+								<button id="scph[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
+								<label text="invert" />
+							</hbox>
+						</aligh>
+					</grid>
+					
+					<hsep />
+					<grid rows="3" cols="3">
+						<label text="X Axis" />
+						<label text="Y Axis" />
+						<label text="Z Axis" />
+						
+						<knob id="sspx[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+						<knob id="sspy[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+						<knob id="sspz[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+						
+						<value id="sspx[ssel]" same_line="true" />
+						<value id="sspy[ssel]" same_line="true" />
+						<value id="sspz[ssel]" same_line="true" />
+					</grid>
+					
+					<hsep />
+					<grid rows="3" cols="3">
+						<label text="Yaw" />
+						<label text="Pitch" />
+						<label text="Roll" />
+						
+						<knob id="ssay[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+						<knob id="ssap[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+						<knob id="ssar[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+						
+						<value id="ssay[ssel]" same_line="true" />
+						<value id="ssap[ssel]" same_line="true" />
+						<value id="ssar[ssel]" same_line="true" />
+					</grid>
+					
+					<hsep />
+					<hbox>
+						<vbox>
+							<label text="Hue" />
+							<knob id="ssh[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							<value id="ssh[ssel]" same_line="true" />
+						</vbox>
+						<vbox>
+							<label text="Size" />
+							<knob id="sss[ssel]" size="16" scale_hue_id="sch[ssel]" />
+							<value id="sss[ssel]" same_line="true"/>
+						</vbox>
+						<vbox>
+							<label text="Height" />
+							<knob id="shh[ssel]" size="16" scale_hue_id="sch[ssel]" />
+							<value id="shh[ssel]" same_line="true"/>
+						</vbox>
+						<vbox>
+							<label text="Angle" />
+							<knob id="ssa[ssel]" size="16" scale_hue_id="sch[ssel]" balance="90" />
+							<value id="ssa[ssel]" same_line="true"/>
+						</vbox>
+						<vbox>
+							<label text="Curvature" />
+							<knob id="sscv[ssel]" size="16" scale_hue_id="sch[ssel]" />
+							<value id="sscv[ssel]" same_line="true"/>
+						</vbox>
+					</hbox>
+				</vbox>
+			</vbox>
+		
+			<!-- Capture editor -->
 			<vbox>
 				<!-- Capture selector -->
 				<align hpos="-1">
@@ -69,81 +158,81 @@
 					</hbox>
 				</align>
 				<hsep pad_bottom="8" />
+				
 				<!-- Captures -->
-				<ui:for id="i" first="0" last="7" >
-					<vbox visibility=":csel ieq ${i}" spacing="2">
-						<grid rows="4" cols="2" transpose="true" vspacing="2" hspacing="2" >
-							<align pad_left="8" hpos="-1"><label text="Mode" /></align>
-							<align pad_left="8" hpos="-1"><label text="Reflections" /></align>
-							<align pad_left="8" hpos="-1"><label text="Mic. direction" /></align>
-							<align pad_left="8" hpos="-1" visibility="(:sccf_${i} ieq 4)" ><label text="Side direction" /></align>
-							
-							<combo id="sccf_${i}" />
-							<hbox spacing="2">
-								<combo id="scf_${i}" />
-								<label text=" - " />
-								<combo id="scl_${i}" />
-							</hbox>
-							<combo id="scmd_${i}" />
-							<combo id="scsd_${i}" visibility="(:sccf_${i} ieq 4)" />
-						</grid>
+				<vbox spacing="2">
+					<grid rows="4" cols="2" transpose="true" vspacing="2" hspacing="2" >
+						<align pad_left="8" hpos="-1"><label text="Mode" /></align>
+						<align pad_left="8" hpos="-1"><label text="Reflections" /></align>
+						<align pad_left="8" hpos="-1"><label text="Mic. direction" /></align>
+						<align pad_left="8" hpos="-1" visibility="(:sccf[csel] ieq 4)" ><label text="Side direction" /></align>
 						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="X Axis" />
-							<label text="Y Axis" />
-							<label text="Z Axis" />
-							
-							<knob id="scpx_${i}" size="16" scale_hue_id="sch_${i}" />
-							<knob id="scpy_${i}" size="16" scale_hue_id="sch_${i}" />
-							<knob id="scpz_${i}" size="16" scale_hue_id="sch_${i}" />
-							
-							<value id="scpx_${i}" same_line="true" />
-							<value id="scpy_${i}" same_line="true" />
-							<value id="scpz_${i}" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="Yaw" />
-							<label text="Pitch" />
-							<label text="Roll" />
-							
-							<knob id="scay_${i}" size="16" scale_hue_id="sch_${i}" />
-							<knob id="scap_${i}" size="16" scale_hue_id="sch_${i}" />
-							<knob id="scar_${i}" size="16" scale_hue_id="sch_${i}" />
-							
-							<value id="scay_${i}" same_line="true" />
-							<value id="scap_${i}" same_line="true" />
-							<value id="scar_${i}" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<hbox>
-							<vbox>
-								<label text="Hue" />
-								<knob id="sch_${i}" size="16" scale_hue_id="sch_${i}" />
-								<value id="sch_${i}" same_line="true" />
-							</vbox>
-							<vbox>
-								<label text="Capsule" />
-								<knob id="sccs_${i}" size="16" scale_hue_id="sch_${i}" />
-								<value id="sccs_${i}" same_line="true" />
-							</vbox>
-							<vbox visibility="(:sccf_${i} ieq 1) or (:sccf_${i} ieq 3)" >
-								<label text="Angle" />
-								<knob id="sca_${i}" size="16" scale_hue_id="sch_${i}" balance="90" />
-								<value id="sca_${i}" same_line="true"/>
-							</vbox>
-							<vbox visibility="(:sccf_${i} ieq 2)" >
-								<label text="Distance" />
-								<knob id="scab_${i}" size="16" scale_hue_id="sch_${i}" />
-								<value id="scab_${i}" same_line="true" />
-							</vbox>
+						<combo id="sccf[csel]" />
+						<hbox spacing="2">
+							<combo id="scf[csel]" />
+							<label text=" - " />
+							<combo id="scl[csel]" />
 						</hbox>
-					</vbox>
-				</ui:for>
+						<combo id="scmd[csel]" />
+						<combo id="scsd[csel]" visibility="(:sccf[csel] ieq 4)" />
+					</grid>
+					
+					<hsep />
+					<grid rows="3" cols="3">
+						<label text="X Axis" />
+						<label text="Y Axis" />
+						<label text="Z Axis" />
+						
+						<knob id="scpx[csel]" size="16" scale_hue_id="sch[csel]" />
+						<knob id="scpy[csel]" size="16" scale_hue_id="sch[csel]" />
+						<knob id="scpz[csel]" size="16" scale_hue_id="sch[csel]" />
+						
+						<value id="scpx[csel]" same_line="true" />
+						<value id="scpy[csel]" same_line="true" />
+						<value id="scpz[csel]" same_line="true" />
+					</grid>
+					
+					<hsep />
+					<grid rows="3" cols="3">
+						<label text="Yaw" />
+						<label text="Pitch" />
+						<label text="Roll" />
+						
+						<knob id="scay[csel]" size="16" scale_hue_id="sch[csel]" />
+						<knob id="scap[csel]" size="16" scale_hue_id="sch[csel]" />
+						<knob id="scar[csel]" size="16" scale_hue_id="sch[csel]" />
+						
+						<value id="scay[csel]" same_line="true" />
+						<value id="scap[csel]" same_line="true" />
+						<value id="scar[csel]" same_line="true" />
+					</grid>
+					
+					<hsep />
+					<hbox>
+						<vbox>
+							<label text="Hue" />
+							<knob id="sch[csel]" size="16" scale_hue_id="sch[csel]" />
+							<value id="sch[csel]" same_line="true" />
+						</vbox>
+						<vbox>
+							<label text="Capsule" />
+							<knob id="sccs[csel]" size="16" scale_hue_id="sch[csel]" />
+							<value id="sccs[csel]" same_line="true" />
+						</vbox>
+						<vbox visibility="(:sccf[csel] ieq 1) or (:sccf[csel] ieq 3)" >
+							<label text="Angle" />
+							<knob id="sca[csel]" size="16" scale_hue_id="sch[csel]" balance="90" />
+							<value id="sca[csel]" same_line="true"/>
+						</vbox>
+						<vbox visibility="(:sccf[csel] ieq 2)" >
+							<label text="Distance" />
+							<knob id="scab[csel]" size="16" scale_hue_id="sch[csel]" />
+							<value id="scab[csel]" same_line="true" />
+						</vbox>
+					</hbox>
+				</vbox>
 			</vbox>
-		</group>
+			<!-- end of capture editor -->
+		</cgroup>
 	</hbox>
 </plugin>

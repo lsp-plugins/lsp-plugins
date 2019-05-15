@@ -38,6 +38,13 @@ namespace lsp
         NULL
     };
 
+    static const char *rb_editor[] =
+    {
+        "Source editor",
+        "Capture editor",
+        NULL
+    };
+
     static const char *rb_ssel[] =
     {
         "0",
@@ -179,7 +186,8 @@ namespace lsp
 
     #define RB_COMMON(pan) \
         BYPASS, \
-        COMBO("view", "Current view", 0, rb_view),      \
+        COMBO("view", "Current view", 0, rb_view),              \
+        COMBO("editor", "Current editor", 0, rb_editor),        \
         COMBO("fft", "FFT size", room_builder_base_metadata::FFT_RANK_DEFAULT, rb_fft_rank), \
         CONTROL("pd", "Pre-delay", U_MSEC, room_builder_base_metadata::PREDELAY), \
         pan, \
@@ -206,8 +214,8 @@ namespace lsp
         { "ssay" id , "Source " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         { "ssap" id , "Source " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "ssar" id , "Source " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
-        CONTROL("sscs" id, "Source " label " size", U_MM, room_builder_base_metadata::SOURCE), \
-        CONTROL("ssh" id, "Source " label " height", U_MM, room_builder_base_metadata::SOURCE), \
+        CONTROL("sss" id, "Source " label " size", U_MM, room_builder_base_metadata::SOURCE), \
+        CONTROL("shh" id, "Source " label " height", U_MM, room_builder_base_metadata::SOURCE), \
         CONTROL("ssa" id, "Source " label " angle", U_DEG, room_builder_base_metadata::ANGLE), \
         PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.01f), \
         { "ssh" id, "Source " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }

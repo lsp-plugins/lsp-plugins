@@ -237,6 +237,8 @@ namespace lsp
         pBypass         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);            // Skip view selector
         port_id++;
+        TRACE_PORT(vPorts[port_id]);            // Skip editor selector
+        port_id++;
         TRACE_PORT(vPorts[port_id]);            // FFT rank
         pRank           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);            // Pre-delay
