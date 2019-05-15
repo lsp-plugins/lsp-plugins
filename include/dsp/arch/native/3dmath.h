@@ -125,6 +125,20 @@ namespace native
             *v      = *src;
     }
 
+    void flip_vector_v1(vector3d_t *v)
+    {
+        v->dx       = -v->dx;
+        v->dy       = -v->dy;
+        v->dz       = -v->dz;
+    }
+
+    void flip_vector_v2(vector3d_t *v, const vector3d_t *sv)
+    {
+        v->dx       = -sv->dx;
+        v->dy       = -sv->dy;
+        v->dz       = -sv->dz;
+    }
+
     void scale_vector1(vector3d_t *v, float r)
     {
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);

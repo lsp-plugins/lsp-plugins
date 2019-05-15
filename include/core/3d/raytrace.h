@@ -57,7 +57,7 @@ namespace lsp
         float                   size;       // Size/radius
         float                   height;     // Height for the CYLINDER
         float                   angle;      // Angle of the SPOT and CYLINDRIC sources (degrees)
-    };
+    } room_source_settings_t;
 
     // Capture configuration
     typedef struct room_capture_config_t

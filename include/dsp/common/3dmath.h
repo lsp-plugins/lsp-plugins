@@ -127,6 +127,19 @@ namespace dsp
      */
     extern void (* normalize_vector2)(vector3d_t *v, const vector3d_t *src);
 
+    /**
+     * Flip vector coordinates
+     * @param v vector to flip
+     */
+    extern void (* flip_vector_v1)(vector3d_t *v);
+
+    /**
+     * Flip vector coordinates
+     * @param v vector to store result
+     * @param sv source vector
+     */
+    extern void (* flip_vector_v2)(vector3d_t *v, const vector3d_t *sv);
+
     /** Scale vector coordinates to match specified radius-vector length
      *
      * @param v vector to scale

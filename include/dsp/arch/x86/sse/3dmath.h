@@ -447,6 +447,52 @@ namespace sse
         );
     }
 
+    void normalize_vector2(vector3d_t *v, const vector3d_t *sv)
+    {
+        float x0, x1, x2;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sv]), %[x0]")    // xmm0 = dx dy dz dw
+            NORMALIZE("[x0]", "[x1]", "[x2]")
+            __ASM_EMIT("movups      %[x0], (%[v])")
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
+            : [v] "r" (v), [sv] "r" (sv)
+            : "cc", "memory"
+        );
+    }
+
+    void flip_vector_v1(vector3d_t *v)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[v]), %%xmm0")    // xmm0 = dx dy dz dw
+            __ASM_EMIT("xorps       %[mask], %%xmm0")
+            __ASM_EMIT("movups      %%xmm0, (%[v])")
+            :
+            : [v] "r" (v),
+              [mask] "m" (X_SMASK0111)
+            : "memory",
+              "xmm0"
+        );
+    }
+
+    void flip_vector_v2(vector3d_t *v, const vector3d_t *sv)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sv]), %%xmm0")   // xmm0 = dx dy dz dw
+            __ASM_EMIT("xorps       %[mask], %%xmm0")
+            __ASM_EMIT("movups      %%xmm0, (%[v])")
+            :
+            : [v] "r" (v), [sv] "r" (sv),
+              [mask] "m" (X_SMASK0111)
+            : "memory",
+              "xmm0"
+        );
+    }
+
     void scale_vector1(vector3d_t *v, float r)
     {
         float x0, x1, x2;

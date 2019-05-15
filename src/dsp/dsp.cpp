@@ -294,6 +294,8 @@ namespace dsp
     void    (* init_vector_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
     void    (* normalize_vector)(vector3d_t *v) = NULL;
     void    (* normalize_vector2)(vector3d_t *v, const vector3d_t *src) = NULL;
+    void    (* flip_vector_v1)(vector3d_t *v) = NULL;
+    void    (* flip_vector_v2)(vector3d_t *v, const vector3d_t *sv) = NULL;
     void    (* scale_vector1)(vector3d_t *v, float r) = NULL;
     void    (* scale_vector2)(vector3d_t *v, const vector3d_t *s, float r) = NULL;
 

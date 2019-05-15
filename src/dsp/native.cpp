@@ -278,6 +278,8 @@ namespace native
         EXPORT1(init_vector_pv);
         EXPORT1(normalize_vector);
         EXPORT1(normalize_vector2);
+        EXPORT1(flip_vector_v1);
+        EXPORT1(flip_vector_v2);
         EXPORT1(scale_vector1);
         EXPORT1(scale_vector2);
 

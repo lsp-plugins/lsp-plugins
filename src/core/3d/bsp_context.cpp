@@ -457,13 +457,13 @@ namespace lsp
         return STATUS_OK;
     }
 
-    inline void flip_normal(vector3d_t *dst, const vector3d_t *src)
-    {
-        dst->dx = - src->dx;
-        dst->dy = - src->dy;
-        dst->dz = - src->dz;
-        dst->dw = - src->dw;
-    }
+//    inline void flip_normal(vector3d_t *dst, const vector3d_t *src)
+//    {
+//        dst->dx = - src->dx;
+//        dst->dy = - src->dy;
+//        dst->dz = - src->dz;
+//        dst->dw = - src->dw;
+//    }
 
 #if defined(LSP_RT_TRACE)
     void bsp_context_t::trace_recursive(bsp_node_t *node, const color3d_t *color)
@@ -544,15 +544,15 @@ namespace lsp
                         // Reverse order of vertex and flip normals
                         v[0]->p     = ct->v[0];
                         v[0]->c     = ct->c;
-                        flip_normal(&v[0]->n, &ct->n[0]);
+                        dsp::flip_vector_v2(&v[0]->n, &ct->n[0]);
 
                         v[1]->p     = ct->v[2];
                         v[1]->c     = ct->c;
-                        flip_normal(&v[1]->n, &ct->n[2]);
+                        dsp::flip_vector_v2(&v[1]->n, &ct->n[2]);
 
                         v[2]->p     = ct->v[1];
                         v[2]->c     = ct->c;
-                        flip_normal(&v[2]->n, &ct->n[1]);
+                        dsp::flip_vector_v2(&v[2]->n, &ct->n[1]);
                     }
                     else
                     {

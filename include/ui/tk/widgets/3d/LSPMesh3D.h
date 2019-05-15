@@ -17,20 +17,37 @@ namespace lsp
             public:
                 static const w_class_t    metadata;
 
+                enum layer_type_t
+                {
+                    LT_TRIANGLES,
+                    LT_LINES
+                };
+
+                typedef struct mesh_layer_t
+                {
+                    layer_type_t    type;
+                    point3d_t      *mesh;           // Original data
+                    vector3d_t     *normals;        // Normal data
+                    point3d_t      *vbuffer;        // Vertex Buffer for rendering
+                    vector3d_t     *nbuffer;        // Normal Buffer for rendering
+                    size_t          primitives;     // Number of primitives
+                    bool            rebuild;        // Rebuild flag
+                    void           *pdata;          // Allocation pointer
+                } mesh_layer_t;
+
             protected:
                 LSPWidgetColor  sColor;
+                LSPWidgetColor  sLineColor;
                 matrix3d_t      sMatrix;
 
                 point3d_t       sPov;
-                point3d_t      *pMesh;
-                ray3d_t        *pView;
-                size_t          nItems;
 
-                bool            bRebuild;
+                cstorage<mesh_layer_t> vLayers;
 
             protected:
                 void        do_destroy();
-                status_t    rebuild_mesh();
+                status_t    rebuild_triangles(mesh_layer_t *layer);
+                void        mark_for_rebuild();
 
             public:
                 explicit LSPMesh3D(LSPDisplay *dpy);
@@ -41,13 +58,18 @@ namespace lsp
 
             public:
                 inline LSPColor            *color()                     { return &sColor;           };
+                inline LSPColor            *line_color()                { return &sLineColor;       };
 
                 void                        get_position(point3d_t *dst);
                 inline void                 get_view_point(point3d_t *dst) { *dst = sPov;           };
 
             public:
                 void clear();
-                status_t set_mesh(const point3d_t *mesh, size_t items);
+
+                status_t add_triangles(const point3d_t *mesh, const point3d_t *normals, size_t items);
+                inline status_t add_triangles(const point3d_t *mesh, size_t items) { return add_triangles(mesh, NULL, items); }
+                status_t add_lines(const point3d_t *mesh, size_t items);
+
                 void set_transform(const matrix3d_t *matrix);
 
             public:
