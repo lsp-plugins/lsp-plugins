@@ -457,14 +457,6 @@ namespace lsp
         return STATUS_OK;
     }
 
-//    inline void flip_normal(vector3d_t *dst, const vector3d_t *src)
-//    {
-//        dst->dx = - src->dx;
-//        dst->dy = - src->dy;
-//        dst->dz = - src->dz;
-//        dst->dw = - src->dw;
-//    }
-
 #if defined(LSP_RT_TRACE)
     void bsp_context_t::trace_recursive(bsp_node_t *node, const color3d_t *color)
     {

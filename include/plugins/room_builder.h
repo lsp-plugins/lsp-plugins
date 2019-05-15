@@ -78,14 +78,45 @@ namespace lsp
                 IPort                  *pPan;       // Panning
             } input_t;
 
+            typedef struct source_t
+            {
+                bool                    bEnabled;
+                rt_audio_source_t       enType;
+                bool                    bPhase;
+                size_t                  nChannel;
+                point3d_t               sPos;
+                float                   fYaw;
+                float                   fPitch;
+                float                   fRoll;
+                float                   fSize;
+                float                   fHeight;
+                float                   fAngle;
+                float                   fCurvature;
+
+                IPort                  *pEnabled;
+                IPort                  *pType;
+                IPort                  *pChannel;
+                IPort                  *pPhase;
+                IPort                  *pPosX;
+                IPort                  *pPosY;
+                IPort                  *pPosZ;
+                IPort                  *pYaw;
+                IPort                  *pPitch;
+                IPort                  *pRoll;
+                IPort                  *pSize;
+                IPort                  *pHeight;
+                IPort                  *pAngle;
+                IPort                  *pCurvature;
+            } source_t;
+
             typedef struct capture_t: public room_capture_config_t
             {
                 bool                    bEnabled;   // Enabled flag
                 ssize_t                 nRMin;      // Minimum reflection order
                 ssize_t                 nRMax;      // Maximum reflection order
 
-                Sample                  sCurrent;       // Current sample
-                Sample                  sPending;       // Pending sample
+                Sample                  sCurrent;   // Current sample
+                Sample                  sPending;   // Pending sample
 
                 IPort                  *pEnabled;
                 IPort                  *pRMin;
@@ -135,6 +166,7 @@ namespace lsp
             channel_t               vChannels[2];
             convolver_t             vConvolvers[room_builder_base_metadata::CONVOLVERS];
             capture_t               vCaptures[room_builder_base_metadata::CAPTURES];
+            source_t                vSources[room_builder_base_metadata::SOURCES];
 
             Scene3D                 sScene;
             status_t                nSceneStatus;
@@ -176,6 +208,7 @@ namespace lsp
             static rt_capture_config_t  decode_config(float value);
             static rt_audio_capture_t   decode_direction(float value);
             static rt_audio_capture_t   decode_side_direction(float value);
+            static rt_audio_source_t    decode_source_type(float value);
             static status_t             configure_capture(room_capture_settings_t *out, const room_capture_config_t *in);
     };
 

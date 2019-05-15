@@ -19,6 +19,13 @@ namespace lsp
                 CtlColor        sColor;
                 room_source_settings_t sSource;
 
+                float           fPosX;
+                float           fPosY;
+                float           fPosZ;
+                float           fYaw;
+                float           fPitch;
+                float           fRoll;
+
                 CtlPort        *pMode;
                 CtlPort        *pPosX;
                 CtlPort        *pPosY;
@@ -26,10 +33,13 @@ namespace lsp
                 CtlPort        *pYaw;
                 CtlPort        *pPitch;
                 CtlPort        *pRoll;
-                CtlPort        *pRadius;
-                CtlPort        *pExtRadius;
+                CtlPort        *pCurvature;
                 CtlPort        *pHeight;
                 CtlPort        *pAngle;
+
+            protected:
+                void        update_source_location();
+                void        update_mesh_data();
 
             public:
                 explicit CtlSource3D(CtlRegistry *src, LSPMesh3D *widget);

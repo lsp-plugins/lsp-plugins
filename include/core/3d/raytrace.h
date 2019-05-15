@@ -16,18 +16,18 @@ namespace lsp
 {
     enum rt_audio_source_t
     {
-        RT_AS_OMNI,     // Omni source (icosphere)
-        RT_AS_OMNI2,    // Omni source (octasphere)
-        RT_AS_ICO,      // Icosahedron source
-        RT_AS_TETRA,    // Tetra source
-        RT_AS_OCTA,     // Octa source
-        RT_AS_BOX,      // Simple box source
-        RT_AS_CYLINDER, // Cylinder
-        RT_AS_CONE,     // Cone
-        RT_AS_SPOT,     // Conical spot
-        RT_AS_SSPOT,    // Spherical spot
-        RT_AS_CSPOT,    // Cylindric spot
-        RT_AS_TRIANGLE  // For debug purposes
+        RT_AS_TRIANGLE,     // For debug purposes
+        RT_AS_TETRA,        // Tetrahedron source
+        RT_AS_OCTA,         // Octa source
+        RT_AS_BOX,          // Simple box source
+        RT_AS_ICO,          // Icosahedron source
+        RT_AS_CYLINDER,     // Cylinder
+        RT_AS_CONE,         // Cone
+        RT_AS_OCTASPHERE,   // Omni source (octasphere)
+        RT_AS_ICOSPHERE,    // Omni source (icosphere)
+        RT_AS_FSPOT,        // Flat spot
+        RT_AS_SSPOT,        // Spherical spot
+        RT_AS_CSPOT,        // Cylindric spot
     };
 
     enum rt_audio_capture_t
@@ -57,6 +57,7 @@ namespace lsp
         float                   size;       // Size/radius
         float                   height;     // Height for the CYLINDER
         float                   angle;      // Angle of the SPOT and CYLINDRIC sources (degrees)
+        float                   curvature;  // Additional curvature
     } room_source_settings_t;
 
     // Capture configuration

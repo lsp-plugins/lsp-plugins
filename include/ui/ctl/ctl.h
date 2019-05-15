@@ -207,7 +207,8 @@ namespace lsp
             A_HUE_SHIFT,
             A_ORIENTATION_ID,
             A_RADIUS_ID,
-            A_HEIGHT_ID
+            A_HEIGHT_ID,
+            A_CURVATURE_ID,
         };
 
         // Helper functions

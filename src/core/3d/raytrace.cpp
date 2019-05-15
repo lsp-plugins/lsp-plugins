@@ -261,7 +261,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_cone_spot_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_flat_spot_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
     {
         return STATUS_OK;
     }
@@ -291,15 +291,15 @@ namespace lsp
         out.clear();
         switch (cfg->type)
         {
-            case RT_AS_OMNI:        return gen_omni_source(out, cfg);
-            case RT_AS_OMNI2:       return gen_omni2_source(out, cfg);
+            case RT_AS_ICOSPHERE:        return gen_omni_source(out, cfg);
+            case RT_AS_OCTASPHERE:       return gen_omni2_source(out, cfg);
             case RT_AS_ICO:         return gen_ico_source(out, cfg);
             case RT_AS_OCTA:        return gen_octa_source(out, cfg);
             case RT_AS_TETRA:       return gen_tetra_source(out, cfg);
             case RT_AS_BOX:         return gen_box_source(out, cfg);
             case RT_AS_CYLINDER:    return gen_cyl_source(out, cfg);
             case RT_AS_CONE:        return gen_cone_source(out, cfg);
-            case RT_AS_SPOT:        return gen_cone_spot_source(out, cfg);
+            case RT_AS_FSPOT:       return gen_flat_spot_source(out, cfg);
             case RT_AS_SSPOT:       return gen_sphere_spot_source(out, cfg);
             case RT_AS_CSPOT:       return gen_cyl_spot_source(out, cfg);
             case RT_AS_TRIANGLE:    return gen_triangle_source(out, cfg);

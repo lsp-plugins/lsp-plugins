@@ -279,7 +279,7 @@ MTEST_BEGIN("3d", reflections)
 //                if (res != STATUS_OK)
 //                    return res;
 
-                res     = trace->add_source(&sSource, RT_AS_OMNI);
+                res     = trace->add_source(&sSource, RT_AS_ICOSPHERE);
                 if (res != STATUS_OK)
                     return res;
                 res     = trace->add_capture(&sCapture, RT_AC_OMNI);

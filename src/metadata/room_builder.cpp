@@ -38,6 +38,19 @@ namespace lsp
         NULL
     };
 
+    static const char *rb_ssel[] =
+    {
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        NULL
+    };
+
     static const char *rb_csel[] =
     {
         "0",
@@ -48,6 +61,30 @@ namespace lsp
         "5",
         "6",
         "7",
+        NULL
+    };
+
+    static const char *rb_channel_sel[] =
+    {
+        "Left",
+        "Right",
+        NULL
+    };
+
+    static const char *rb_source_mode[] =
+    {
+        "Triangle",
+        "Tetrahedron",
+        "Octahedron",
+        "Box",
+        "Icosahedron",
+        "Cylinder",
+        "Cone",
+        "Octasphere",
+        "Icosphere",
+        "Flat spot",
+        "Cylinder spot"
+        "Sphere spot",
         NULL
     };
 
@@ -159,15 +196,35 @@ namespace lsp
         { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.1f, NULL, NULL }
 
+    #define RB_SOURCE_MONO(id, label, x, total, ena) \
+        SWITCH("sse" id, "Source " label " enable", ena), \
+        COMBO("sscf" id, "Source " label " type", 4, rb_source_mode), \
+        SWITCH("ssph" id, "Source " label " phase invert", 0), \
+        CONTROL_DFL("sspx" id, "Source " label " X position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
+        CONTROL_DFL("sspy" id, "Source " label " Y position", U_M, room_builder_base_metadata::POSITION, -1.0f), \
+        CONTROL_DFL("sspz" id, "Source " label " Z position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
+        { "ssay" id , "Source " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
+        { "ssap" id , "Source " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
+        { "ssar" id , "Source " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
+        CONTROL("sscs" id, "Source " label " size", U_MM, room_builder_base_metadata::SOURCE), \
+        CONTROL("ssh" id, "Source " label " height", U_MM, room_builder_base_metadata::SOURCE), \
+        CONTROL("ssa" id, "Source " label " angle", U_DEG, room_builder_base_metadata::ANGLE), \
+        PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.01f), \
+        { "ssh" id, "Source " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
+
+    #define RB_SOURCE_STEREO(id, label, x, total, ena, channel) \
+        COMBO("ssch" id, "Source " label " channel", channel, rb_channel_sel), \
+        RB_SOURCE_MONO(id, label, x, total, ena)
+
     #define RB_CAPTURE(id, label, x, total, ena) \
         SWITCH("sce" id, "Capture " label " enable", ena), \
         COMBO("scf" id, "Capture " label " first reflection order", 2, rb_reflection), \
         COMBO("scl" id, "Capture " label " last reflection order", 0, rb_reflection), \
-        CONTROL("scpx" id, "Capture " label " X position", U_M, room_builder_base_metadata::POSITION), \
-        CONTROL("scpy" id, "Capture " label " Y position", U_M, room_builder_base_metadata::POSITION), \
-        CONTROL("scpz" id, "Capture " label " Z position", U_M, room_builder_base_metadata::POSITION), \
+        CONTROL_DFL("scpx" id, "Capture " label " X position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
+        CONTROL_DFL("scpy" id, "Capture " label " Y position", U_M, room_builder_base_metadata::POSITION, 1.0f), \
+        CONTROL_DFL("scpz" id, "Capture " label " Z position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
         { "scay" id , "Capture " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
-        { "scap" id , "Capture " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.1f, NULL, NULL }, \
+        { "scap" id , "Capture " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "scar" id , "Capture " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         CONTROL("sccs" id, "Capture " label " capsule size", U_MM, room_builder_base_metadata::CAPSULE), \
         COMBO("sccf" id, "Capture " label " configuration", 1, rb_capture_config),      \
@@ -175,8 +232,7 @@ namespace lsp
         CONTROL("scab" id, "Capture " label " AB distance", U_M, room_builder_base_metadata::DISTANCE),      \
         COMBO("scmd" id, "Capture " label " microphone direction", 0, rb_capture_direction),      \
         COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction), \
-        { "sch" id, "Hue " label, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
-
+        { "sch" id, "Capture " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 
     static const port_t room_builder_mono_ports[] =
     {
@@ -185,6 +241,16 @@ namespace lsp
         AUDIO_OUTPUT_LEFT,
         AUDIO_OUTPUT_RIGHT,
         RB_COMMON(RB_PAN_MONO),
+
+        COMBO("ssel", "Source selector", 0, rb_ssel),
+        RB_SOURCE_MONO("_0", "0", 0, 8, 1),
+        RB_SOURCE_MONO("_1", "1", 1, 8, 0),
+        RB_SOURCE_MONO("_2", "2", 2, 8, 0),
+        RB_SOURCE_MONO("_3", "3", 3, 8, 0),
+        RB_SOURCE_MONO("_4", "4", 4, 8, 0),
+        RB_SOURCE_MONO("_5", "5", 5, 8, 0),
+        RB_SOURCE_MONO("_6", "6", 6, 8, 0),
+        RB_SOURCE_MONO("_7", "7", 7, 8, 0),
 
         COMBO("csel", "Capture selector", 0, rb_csel),
         RB_CAPTURE("_0", "0", 0, 8, 1),
@@ -204,6 +270,16 @@ namespace lsp
         // Input audio ports
         PORTS_STEREO_PLUGIN,
         RB_COMMON(RB_PAN_STEREO),
+
+        COMBO("ssel", "Source selector", 0, rb_ssel),
+        RB_SOURCE_STEREO("_0", "0", 0, 8, 1, 0),
+        RB_SOURCE_STEREO("_1", "1", 1, 8, 1, 1),
+        RB_SOURCE_STEREO("_2", "2", 2, 8, 0, 0),
+        RB_SOURCE_STEREO("_3", "3", 3, 8, 0, 1),
+        RB_SOURCE_STEREO("_4", "4", 4, 8, 0, 0),
+        RB_SOURCE_STEREO("_5", "5", 5, 8, 0, 1),
+        RB_SOURCE_STEREO("_6", "6", 6, 8, 0, 0),
+        RB_SOURCE_STEREO("_7", "7", 7, 8, 0, 1),
 
         COMBO("csel", "Capture selector", 0, rb_csel),
         RB_CAPTURE("_0", "0", 0, 8, 1),

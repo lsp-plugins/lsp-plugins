@@ -225,7 +225,7 @@ namespace lsp
                 case RT_AS_TRIANGLE:
                     obj     = factory.buildTriangle();
                     break;
-                case RT_AS_OMNI:
+                case RT_AS_ICOSPHERE:
                     obj     = factory.buildIcosphere(0);
                     break;
             }

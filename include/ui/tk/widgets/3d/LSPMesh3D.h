@@ -46,7 +46,7 @@ namespace lsp
 
             protected:
                 void        do_destroy();
-                status_t    rebuild_triangles(mesh_layer_t *layer);
+                void        rebuild_triangles(mesh_layer_t *layer);
                 void        mark_for_rebuild();
 
             public:

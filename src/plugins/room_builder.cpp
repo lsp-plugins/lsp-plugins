@@ -146,6 +146,40 @@ namespace lsp
                 c->pFreqGain[j]     = NULL;
         }
 
+        // Initialize sources
+        for (size_t i=0; i<room_builder_base_metadata::SOURCES; ++i)
+        {
+            source_t *src   = &vSources[i];
+
+            src->bEnabled       = false;
+            src->enType         = RT_AS_TRIANGLE;
+            src->bPhase         = false;
+            src->nChannel       = 0;
+            dsp::init_point_xyz(&src->sPos, 0.0f, -1.0f, 0.0f);
+            src->fYaw           = 0.0f;
+            src->fPitch         = 0.0f;
+            src->fRoll          = 0.0f;
+            src->fSize          = 0.0f;
+            src->fHeight        = 0.0f;
+            src->fAngle         = 0.0f;
+            src->fCurvature     = 1.0f;
+
+            src->pEnabled       = NULL;
+            src->pType          = NULL;
+            src->pChannel       = NULL;
+            src->pPhase         = NULL;
+            src->pPosX          = NULL;
+            src->pPosY          = NULL;
+            src->pPosZ          = NULL;
+            src->pYaw           = NULL;
+            src->pPitch         = NULL;
+            src->pRoll          = NULL;
+            src->pSize          = NULL;
+            src->pHeight        = NULL;
+            src->pAngle         = NULL;
+            src->pCurvature     = NULL;
+        }
+
         // Initialize captures
         for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
         {
@@ -241,6 +275,50 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);            // Skip camera pitch
         port_id++;
 
+        // Bind sources
+        TRACE_PORT(vPorts[port_id]);            // Skip source selector
+        port_id++;
+
+        for (size_t i=0; i<room_builder_base_metadata::SOURCES; ++i)
+        {
+            source_t *src   = &vSources[i];
+
+            if (nInputs > 1)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                src->pChannel          = vPorts[port_id++];
+            }
+            TRACE_PORT(vPorts[port_id]);
+            src->pEnabled       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pType          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pPhase         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pPosX          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pPosY          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pPosZ          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pYaw           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pPitch         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pRoll          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pSize          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pHeight        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pAngle         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            src->pCurvature     = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            port_id++;          // Skip hue value
+        }
+
         // Bind captures
         TRACE_PORT(vPorts[port_id]);            // Skip capture selector
         port_id++;
@@ -279,6 +357,7 @@ namespace lsp
             cap->pDirection     = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pSide          = vPorts[port_id++];
+
             TRACE_PORT(vPorts[port_id]);
             port_id++;          // Skip hue value
         }
@@ -330,6 +409,27 @@ namespace lsp
             vChannels[1].fDryPan[1] = (100.0f + pan_r) * 0.005f * dry_gain;
         }
 
+        // Update source settings
+        for (size_t i=0; i<room_builder_base_metadata::SOURCES; ++i)
+        {
+            source_t *src       = &vSources[i];
+            src->bEnabled       = src->pEnabled->getValue() >= 0.5f;
+            src->enType         = decode_source_type(src->pType->getValue());
+            src->bPhase         = src->pPhase->getValue() >= 0.5f;
+            src->nChannel       = (src->pChannel != NULL) ? src->pChannel->getValue() : 0;
+            src->sPos.x         = src->pPosX->getValue();
+            src->sPos.y         = src->pPosY->getValue();
+            src->sPos.z         = src->pPosZ->getValue();
+            src->sPos.w         = 1.0f;
+            src->fYaw           = src->pYaw->getValue();
+            src->fPitch         = src->pPitch->getValue();
+            src->fRoll          = src->pRoll->getValue();
+            src->fSize          = src->pSize->getValue();
+            src->fHeight        = src->pHeight->getValue();
+            src->fAngle         = src->pAngle->getValue();
+            src->fCurvature     = src->pCurvature->getValue() * 0.01f;
+        }
+
         // Update capture settings
         for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
         {
@@ -354,15 +454,35 @@ namespace lsp
         }
     }
 
+    rt_audio_source_t room_builder_base::decode_source_type(float value)
+    {
+        switch (ssize_t(value))
+        {
+            case 1:     return RT_AS_TETRA;
+            case 2:     return RT_AS_OCTA;
+            case 3:     return RT_AS_BOX;
+            case 4:     return RT_AS_ICO;
+            case 5:     return RT_AS_CYLINDER;
+            case 6:     return RT_AS_CONE;
+            case 7:     return RT_AS_OCTASPHERE;
+            case 8:     return RT_AS_ICOSPHERE;
+            case 9:     return RT_AS_FSPOT;
+            case 10:    return RT_AS_SSPOT;
+            case 11:    return RT_AS_CSPOT;
+            default:    break;
+        }
+        return RT_AS_TRIANGLE;
+    }
+
     rt_capture_config_t room_builder_base::decode_config(float value)
     {
         switch (ssize_t(value))
         {
-            case 1: return RT_CC_XY;
-            case 2: return RT_CC_AB;
-            case 3: return RT_CC_ORTF;
-            case 4: return RT_CC_MS;
-            default: break;
+            case 1:     return RT_CC_XY;
+            case 2:     return RT_CC_AB;
+            case 3:     return RT_CC_ORTF;
+            case 4:     return RT_CC_MS;
+            default:    break;
         }
         return RT_CC_MONO;
     }
@@ -371,12 +491,12 @@ namespace lsp
     {
         switch (ssize_t(value))
         {
-            case 1: return RT_AC_SCARDIO; break;
-            case 2: return RT_AC_HCARDIO; break;
-            case 3: return RT_AC_BIDIR; break;
-            case 4: return RT_AC_EIGHT; break;
-            case 5: return RT_AC_OMNI; break;
-            default: break;
+            case 1:     return RT_AC_SCARDIO; break;
+            case 2:     return RT_AC_HCARDIO; break;
+            case 3:     return RT_AC_BIDIR; break;
+            case 4:     return RT_AC_EIGHT; break;
+            case 5:     return RT_AC_OMNI; break;
+            default:    break;
         }
         return RT_AC_CARDIO;
     }

@@ -185,6 +185,7 @@ namespace lsp
             "orientation_id",
             "radius_id",
             "height_id",
+            "curvature_id",
             NULL
         };
 

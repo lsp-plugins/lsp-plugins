@@ -6,6 +6,7 @@
  */
 
 #include <ui/ctl/ctl.h>
+#include <plugins/room_builder.h>
 
 namespace lsp
 {
@@ -14,6 +15,13 @@ namespace lsp
         
         CtlSource3D::CtlSource3D(CtlRegistry *src, LSPMesh3D *widget): CtlWidget(src, widget)
         {
+            fPosX       = 0.0f;
+            fPosY       = 0.0f;
+            fPosZ       = 0.0f;
+            fYaw        = 0.0f;
+            fPitch      = 0.0f;
+            fRoll       = 0.0f;
+
             pMode       = NULL;
             pPosX       = NULL;
             pPosY       = NULL;
@@ -21,10 +29,15 @@ namespace lsp
             pYaw        = NULL;
             pPitch      = NULL;
             pRoll       = NULL;
-            pRadius     = NULL;
-            pExtRadius  = NULL;
+            pCurvature  = NULL;
             pHeight     = NULL;
             pAngle      = NULL;
+
+            dsp::init_matrix3d_identity(&sSource.pos);
+            sSource.type    = RT_AS_ICO;
+            sSource.size    = 1.0f;
+            sSource.height  = 1.0f;
+            sSource.angle   = 90.0f;
         }
         
         CtlSource3D::~CtlSource3D()
@@ -62,8 +75,8 @@ namespace lsp
                 case A_ROLL_ID:
                     BIND_PORT(pRegistry, pRoll, value);
                     break;
-                case A_RADIUS_ID:
-                    BIND_PORT(pRegistry, pRadius, value);
+                case A_CURVATURE_ID:
+                    BIND_PORT(pRegistry, pCurvature, value);
                     break;
                 case A_MODE_ID:
                     BIND_PORT(pRegistry, pMode, value);
@@ -83,9 +96,95 @@ namespace lsp
             }
         }
 
-        void CtlSource3D::notify(CtlPort *port)
+        void CtlSource3D::update_source_location()
+        {
+            LSPMesh3D *mesh = widget_cast<LSPMesh3D>(pWidget);
+            if (mesh == NULL)
+                return;
+
+            matrix3d_t delta, m;
+
+            // Compute rotation matrix
+            dsp::init_matrix3d_translate(&delta, fPosX, fPosY, fPosZ);
+
+            dsp::init_matrix3d_rotate_z(&m, fYaw * M_PI / 180.0f);
+            dsp::apply_matrix3d_mm1(&delta, &m);
+
+            dsp::init_matrix3d_rotate_y(&m, fPitch * M_PI / 180.0f);
+            dsp::apply_matrix3d_mm1(&delta, &m);
+
+            dsp::init_matrix3d_rotate_x(&m, fRoll * M_PI / 180.0f);
+            dsp::apply_matrix3d_mm1(&delta, &m);
+
+            // Commit matrix to mesh
+            mesh->set_transform(&delta);
+        }
+
+        void CtlSource3D::update_mesh_data()
         {
 
+        }
+
+        void CtlSource3D::notify(CtlPort *port)
+        {
+            bool sync       = false;
+            bool rebuild    = false;
+            if (port == pPosX)
+            {
+                fPosX       = port->get_value();
+                sync    = true;
+            }
+            if (port == pPosY)
+            {
+                fPosY       = port->get_value();
+                sync    = true;
+            }
+            if (port == pPosZ)
+            {
+                fPosZ       = port->get_value();
+                sync    = true;
+            }
+            if (port == pYaw)
+            {
+                fYaw        = port->get_value();
+                sync    = true;
+            }
+            if (port == pPitch)
+            {
+                fPitch      = port->get_value();
+                sync    = true;
+            }
+            if (port == pRoll)
+            {
+                fRoll       = port->get_value();
+                sync    = true;
+            }
+
+            if (port == pMode)
+            {
+                sSource.type    = room_builder_base::decode_source_type(port->get_value());
+                rebuild         = true;
+            }
+            if (port == pHeight)
+            {
+                sSource.height  = port->get_value();
+                rebuild         = true;
+            }
+            if (port == pAngle)
+            {
+                sSource.angle   = port->get_value();
+                rebuild         = true;
+            }
+            if (port == pCurvature)
+            {
+                sSource.curvature   = port->get_value();
+                rebuild             = true;
+            }
+
+            if (sync)
+                update_source_location();
+            if (rebuild)
+                update_mesh_data();
         }
 
     } /* namespace ctl */

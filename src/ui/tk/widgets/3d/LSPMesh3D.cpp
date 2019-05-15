@@ -219,8 +219,12 @@ namespace lsp
             }
         }
 
-        status_t LSPMesh3D::rebuild_triangles(mesh_layer_t *layer)
+        void LSPMesh3D::rebuild_triangles(mesh_layer_t *layer)
         {
+            if (!layer->rebuild)
+                return;
+            layer->rebuild          = false;
+
             const point3d_t *sp     = layer->mesh;
             const vector3d_t *sn    = layer->normals;
 
@@ -273,8 +277,6 @@ namespace lsp
                     dsp::flip_vector_v2(&dn[2], &n[1]);
                 }
             }
-
-            return STATUS_OK;
         }
 
     } /* namespace tk */

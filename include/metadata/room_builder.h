@@ -30,6 +30,7 @@ namespace lsp
         static const size_t CONVOLVERS              = 4;        // Number of IR convolvers
 
         static const size_t CAPTURES                = 8;        // Number of captures
+        static const size_t SOURCES                 = 8;        // Number of sources
 
         static const size_t FFT_RANK_MIN            = 9;        // Minimum FFT rank
 
@@ -37,6 +38,11 @@ namespace lsp
         static const float POSITION_MAX             = +100.0f;
         static const float POSITION_DFL             = 0.0f;
         static const float POSITION_STEP            = 0.002f;
+
+        static const float SOURCE_MIN               = 10.0f;
+        static const float SOURCE_MAX               = 1000.0f;
+        static const float SOURCE_DFL               = 300.0f;
+        static const float SOURCE_STEP              = 0.01f;
 
         static const float CAPSULE_MIN              = 10.0f;
         static const float CAPSULE_MAX              = 50.0f;

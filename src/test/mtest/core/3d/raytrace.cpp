@@ -89,7 +89,7 @@ MTEST_BEGIN("core.3d", raytrace)
         ray3d_t source;
         dsp::init_point_xyz(&source.z, -1.0f, 0.0f, 0.0f);
         dsp::init_vector_dxyz(&source.v, 0.3048f, 0.0f, 0.0f); // 12" speaker source
-        MTEST_ASSERT(trace.add_source(&source, RT_AS_OMNI) == STATUS_OK);
+        MTEST_ASSERT(trace.add_source(&source, RT_AS_ICOSPHERE) == STATUS_OK);
 
         // Add capture
         ray3d_t cap_l, cap_r;
