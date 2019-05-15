@@ -1958,6 +1958,22 @@ namespace native
         *p          = tp;
     }
 
+    void add_vector_pv1(point3d_t *p, const vector3d_t *dv)
+    {
+        p->x   += dv->dx;
+        p->y   += dv->dy;
+        p->z   += dv->dz;
+        p->w   += dv->dw;
+    }
+
+    void add_vector_pv2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv)
+    {
+        p->x    = sp->x + dv->dx;
+        p->y    = sp->y + dv->dy;
+        p->z    = sp->z + dv->dz;
+        p->w    = sp->w + dv->dw;
+    }
+
     void calc_bound_box(bound_box3d_t *b, const point3d_t *p, size_t n)
     {
         if (n <= 0)

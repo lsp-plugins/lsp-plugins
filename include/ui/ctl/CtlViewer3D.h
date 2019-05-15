@@ -46,6 +46,7 @@ namespace lsp
                 CtlPort        *pOrientation;
 
                 bool            bViewChanged;
+                float           fOpacity;
                 matrix3d_t      sOrientation;
 
                 Scene3D         sScene;

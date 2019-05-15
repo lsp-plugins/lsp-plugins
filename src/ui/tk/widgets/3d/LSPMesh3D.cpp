@@ -55,7 +55,9 @@ namespace lsp
 
             init_color(C_RED, &sColor);
             init_color(C_YELLOW, &sColor);
-            return STATUS_OK;
+
+            ssize_t id = sSlots.add(LSPSLOT_DRAW3D, slot_draw3d, self());
+            return (id >= 0) ? STATUS_OK : -id;
         }
 
         void LSPMesh3D::destroy()
@@ -73,6 +75,20 @@ namespace lsp
         void LSPMesh3D::clear()
         {
             do_destroy();
+        }
+
+        status_t LSPMesh3D::slot_draw3d(LSPWidget *sender, void *ptr, void *data)
+        {
+            if ((ptr == NULL) || (data == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPArea3D *_this   = widget_ptrcast<LSPArea3D>(ptr);
+            return (_this != NULL) ? _this->on_draw3d(static_cast<IR3DBackend *>(data)) : STATUS_BAD_ARGUMENTS;
+        }
+
+        status_t LSPMesh3D::on_draw3d(IR3DBackend *r3d)
+        {
+            return STATUS_OK;
         }
 
         status_t LSPMesh3D::add_triangles(const point3d_t *mesh, const point3d_t *normals, size_t items)
@@ -111,7 +127,7 @@ namespace lsp
             ptr                += nbytes;
 
             // Copy data to the buffer
-            ::memcpy(layer.vbuffer, mesh, sizeof(point3d_t) * items);
+            ::memcpy(layer.mesh, mesh, sizeof(point3d_t) * items);
 
             // Copy normal data if present or generate if not
             if (normals != NULL)
@@ -127,6 +143,49 @@ namespace lsp
                     n[2]    = n[0];
                 }
             }
+
+            // Try to add layer
+            if (!vLayers.add(layer))
+            {
+                free_aligned(layer.pdata);
+                return STATUS_NO_MEM;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t LSPMesh3D::add_lines(const point3d_t *mesh, size_t items)
+        {
+            if ((mesh == NULL) || (items & 1))
+                return STATUS_INVALID_VALUE;
+
+            // Allocate new layer and initialize
+            mesh_layer_t layer;
+
+            layer.type          = LT_TRIANGLES;
+            layer.mesh          = NULL;
+            layer.normals       = NULL;
+            layer.vbuffer       = NULL;
+            layer.nbuffer       = NULL;
+            layer.primitives    = items >> 1;
+            layer.pdata         = NULL;
+            layer.rebuild       = true;
+
+            // Estimate size of buffers
+            size_t vbytes       = sizeof(point3d_t) * items;
+
+            // Allocate buffers for the layer
+            uint8_t *ptr        = alloc_aligned<uint8_t>(layer.pdata, vbytes*2, DEFAULT_ALIGN);
+            if (ptr == NULL)
+                return STATUS_NO_MEM;
+
+            layer.mesh          = reinterpret_cast<point3d_t *>(ptr);
+            ptr                += vbytes;
+            layer.vbuffer       = reinterpret_cast<point3d_t *>(ptr);
+            ptr                += vbytes;
+
+            // Copy data to the buffer
+            ::memcpy(layer.mesh, mesh, sizeof(point3d_t) * items);
 
             // Try to add layer
             if (!vLayers.add(layer))
@@ -167,6 +226,10 @@ namespace lsp
             if (!visible())
                 return;
 
+            // Maybe need a sync?
+            sSlots.execute(LSPSLOT_DRAW3D, this, r3d);
+
+            // Perform draw
             r3d_buffer_t buf;
             buf.width           = 1.0f;
             buf.flags           = R3D_BUFFER_LIGHTING;

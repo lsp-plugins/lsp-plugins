@@ -48,6 +48,7 @@ namespace lsp
             "save",
             "sbar",
             "sep",
+            "source3d",
             "switch",
             "text",
             "ttap",

@@ -199,10 +199,10 @@ namespace lsp
         METER_PERCENT("ifp", "File loading progress"), \
         COMBO("ifo", "Input 3D model orientation", 9, rb_orientation), \
         CONTROL_DFL("cposx", "Camera X position", U_M, room_builder_base_metadata::POSITION, 1.0f), \
-        CONTROL_DFL("cposy", "Camera Y position", U_M, room_builder_base_metadata::POSITION, -1.0f), \
+        CONTROL_DFL("cposy", "Camera Y position", U_M, room_builder_base_metadata::POSITION, -0.2f), \
         CONTROL_DFL("cposz", "Camera Z position", U_M, room_builder_base_metadata::POSITION, 0.5f), \
-        { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
-        { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, 0, 0.1f, NULL, NULL }
+        { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 80.0f, 0.1f, NULL, NULL }, \
+        { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, -25.0f, 0.1f, NULL, NULL }
 
     #define RB_SOURCE_MONO(id, label, x, total, ena) \
         SWITCH("sse" id, "Source " label " enable", ena), \
@@ -231,7 +231,7 @@ namespace lsp
         CONTROL_DFL("scpx" id, "Capture " label " X position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
         CONTROL_DFL("scpy" id, "Capture " label " Y position", U_M, room_builder_base_metadata::POSITION, 1.0f), \
         CONTROL_DFL("scpz" id, "Capture " label " Z position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
-        { "scay" id , "Capture " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
+        { "scay" id , "Capture " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 270, 0.1f, NULL, NULL }, \
         { "scap" id , "Capture " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "scar" id , "Capture " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         CONTROL("sccs" id, "Capture " label " capsule size", U_MM, room_builder_base_metadata::CAPSULE), \

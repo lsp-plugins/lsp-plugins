@@ -60,6 +60,8 @@ namespace lsp
             nMouseX         = 0;
             nMouseY         = 0;
 
+            fOpacity        = 0.25f;
+
             dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
             dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
             dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
@@ -372,6 +374,12 @@ namespace lsp
                 case A_ORIENTATION_ID:
                     BIND_PORT(pRegistry, pOrientation, value);
                     break;
+                case A_OPACITY:
+                    PARSE_FLOAT(value, fOpacity = __);
+                    break;
+                case A_TRANSPARENCY:
+                    PARSE_FLOAT(value, fOpacity = 1.0f - __);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -483,7 +491,7 @@ namespace lsp
                     continue;
 
                 color3d_t c = *(colors[i % 6]);
-                c.a         = 0.5f; // Update alpha value
+                c.a         = fOpacity; // Update alpha value
 
                 dsp::apply_matrix3d_mm2(&m, &sOrientation, o->matrix());
                 res = ctx.add_object(o, i, &m, &c);

@@ -810,6 +810,20 @@ namespace dsp
     extern void (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k);
 
     /**
+     * Add vector to point
+     * @param p point
+     * @param dv vector to add
+     */
+    extern void (* add_vector_pv1)(point3d_t *p, const vector3d_t *dv);
+
+    /**
+     * Add vector to point
+     * @param p point
+     * @param dv vector to add
+     */
+    extern void (* add_vector_pv2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv);
+
+    /**
      * Compute bounding box around object
      * @param b bounding box object
      * @param p array of object vertexes

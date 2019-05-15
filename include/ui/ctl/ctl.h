@@ -70,6 +70,7 @@ namespace lsp
             WC_SAVE,
             WC_SBAR,
             WC_SEP,
+            WC_SOURCE3D,
             WC_SWITCH,
             WC_TEXT,
             WC_TTAP,

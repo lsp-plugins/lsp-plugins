@@ -49,6 +49,8 @@ namespace lsp
                 void        rebuild_triangles(mesh_layer_t *layer);
                 void        mark_for_rebuild();
 
+                static status_t slot_draw3d(LSPWidget *sender, void *ptr, void *data);
+
             public:
                 explicit LSPMesh3D(LSPDisplay *dpy);
                 virtual ~LSPMesh3D();
@@ -76,6 +78,8 @@ namespace lsp
                 virtual void render(IR3DBackend *r3d);
 
                 virtual void set_view_point(const point3d_t *pov);
+
+                virtual status_t on_draw3d(IR3DBackend *r3d);
         };
     
     } /* namespace tk */

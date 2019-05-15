@@ -283,6 +283,9 @@ namespace native
         EXPORT1(scale_vector1);
         EXPORT1(scale_vector2);
 
+        EXPORT1(add_vector_pv1);
+        EXPORT1(add_vector_pv2);
+
         EXPORT1(vector_mul_v2);
         EXPORT1(vector_mul_vv);
 

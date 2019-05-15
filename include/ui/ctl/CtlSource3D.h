@@ -19,6 +19,7 @@ namespace lsp
                 CtlColor        sColor;
                 room_source_settings_t sSource;
 
+                bool            bRebuildMesh;
                 float           fPosX;
                 float           fPosY;
                 float           fPosZ;
@@ -40,6 +41,8 @@ namespace lsp
             protected:
                 void        update_source_location();
                 void        update_mesh_data();
+
+                static status_t slot_on_draw3d(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit CtlSource3D(CtlRegistry *src, LSPMesh3D *widget);
