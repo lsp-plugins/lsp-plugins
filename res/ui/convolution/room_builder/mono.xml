@@ -77,12 +77,12 @@
 						<align pad_left="8" hpos="-1"><label text="Phase" /></align>
 					
 						<combo id="sscf[ssel]" />
-						<aligh hpos="-1">
+						<align hpos="-1">
 							<hbox spacing="2">
 								<button id="scph[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
 								<label text="invert" />
 							</hbox>
-						</aligh>
+						</align>
 					</grid>
 					
 					<hsep />
