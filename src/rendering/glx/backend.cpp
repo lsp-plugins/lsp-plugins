@@ -279,10 +279,11 @@ namespace lsp
         {
             ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
             TRACK_GL_ERRORS
-            ::glViewport(0, 0, _this->viewWidth, _this->viewHeight);
-            TRACK_GL_ERRORS
             ::glDrawBuffer(GL_BACK);
         }
+
+        TRACK_GL_ERRORS
+        ::glViewport(0, 0, _this->viewWidth, _this->viewHeight);
 
         // Enable depth test and culling
         ::glDepthFunc(GL_LEQUAL);
