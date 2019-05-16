@@ -61,6 +61,7 @@ namespace lsp
             nMouseY         = 0;
 
             fOpacity        = 0.25f;
+            fFov            = 70.0f;
 
             dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
             dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
@@ -260,12 +261,11 @@ namespace lsp
             matrix3d_t projection;
             ssize_t width   = r3d->context_width(), height = r3d->context_height();
 
-            float fovY      = 90.0f;
             float aspect    = float(width)/float(height);
             float zNear     = 0.1f;
             float zFar      = 100.0f;
 
-            float fH        = tan( fovY * M_PI / 360.0f) * zNear;
+            float fH        = tanf( fFov * M_PI / 360.0f) * zNear;
             float fW        = fH * aspect;
             dsp::init_matrix3d_frustum(&projection, -fW, fW, -fH, fH, zNear, zFar);
 
@@ -341,7 +341,7 @@ namespace lsp
                     if (r3d != NULL)
                         PARSE_INT(value, r3d->set_min_width(__));
                     break;
-                case A_HEIGHT:
+                case A_HEIGHT:;
                     if (r3d != NULL)
                         PARSE_INT(value, r3d->set_min_height(__));
                     break;

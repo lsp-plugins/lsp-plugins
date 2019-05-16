@@ -47,6 +47,7 @@ namespace lsp
 
                 bool            bViewChanged;
                 float           fOpacity;
+                float           fFov;
                 matrix3d_t      sOrientation;
 
                 Scene3D         sScene;

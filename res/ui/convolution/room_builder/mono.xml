@@ -11,7 +11,7 @@
 				</align>
 				<viewer3d
 					id="ifn"
-					width="320" height="200"
+					width="320" height="200" fov="70"
 					orientation_id="ifo" status_id="ifs"
 					xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
 					yaw_id="cyaw" pitch_id="cpitch"

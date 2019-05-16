@@ -97,6 +97,7 @@ namespace lsp
             "font_size",
             "format",
             "format_id",
+            "fov",
             "halign",
             "head_id",
             "height",

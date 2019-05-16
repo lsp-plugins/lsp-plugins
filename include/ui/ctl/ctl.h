@@ -121,6 +121,7 @@ namespace lsp
             A_FONT_SIZE,
             A_FORMAT,
             A_FORMAT_ID,
+            A_FOV,
             A_HALIGN,
             A_HEAD_ID,
             A_HEIGHT,
