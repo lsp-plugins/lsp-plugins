@@ -34,17 +34,17 @@ namespace lsp
                     if (grid != NULL)
                         PARSE_INT(value, grid->set_columns(__));
                     break;
-//                case A_BORDER:
-//                    PARSE_INT(value, grid->set_border(__));
-//                    break;
                 case A_VSPACING:
-                    PARSE_INT(value, grid->set_vspacing(__));
+                    if (grid != NULL)
+                        PARSE_INT(value, grid->set_vspacing(__));
                     break;
                 case A_HSPACING:
-                    PARSE_INT(value, grid->set_hspacing(__));
+                    if (grid != NULL)
+                        PARSE_INT(value, grid->set_hspacing(__));
                     break;
                 case A_SPACING:
-                    PARSE_INT(value, grid->set_spacing(__, __));
+                    if (grid != NULL)
+                        PARSE_INT(value, grid->set_spacing(__, __));
                     break;
                 case A_HORIZONTAL:
                     if ((grid != NULL) && (nOrientation < 0))

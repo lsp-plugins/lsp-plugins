@@ -153,10 +153,10 @@ namespace lsp
             A_OPACITY,
             A_ORIENTATION_ID,
             A_PAD_BOTTOM,
-            A_PADDING,
             A_PAD_LEFT,
             A_PAD_RIGHT,
             A_PAD_TOP,
+            A_PADDING,
             A_PARALLEL,
             A_PATH_ID,
             A_PITCH_ID,
@@ -211,7 +211,7 @@ namespace lsp
             A_XPOS_ID,
             A_YAW_ID,
             A_YPOS_ID,
-            A_ZPOS_ID,
+            A_ZPOS_ID
         };
 
         // Helper functions
