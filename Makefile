@@ -191,9 +191,9 @@ install_vst: all
 	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 
 install_jack: all
-	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)"
-	@mkdir -p $(DESTDIR)$(LIB_PATH)
-	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/
+	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
+	@mkdir -p $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
+	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
 	@mkdir -p $(DESTDIR)$(BIN_PATH)
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
@@ -248,9 +248,9 @@ release_vst: release_prepare
 release_jack: release_prepare
 	@echo "Releasing JACK binaries"
 	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib
+	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)
 	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin
-	@$(INSTALL) $(LIB_JACK) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib
+	@$(INSTALL) $(LIB_JACK) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin INSTALL="$(INSTALL)"
 	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
@@ -308,6 +308,7 @@ uninstall_jack:
 	@echo "Uninstalling JACK"
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
+	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 	
 uninstall_doc:
 	@echo "Uninstalling DOC"
