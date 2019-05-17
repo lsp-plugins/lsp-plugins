@@ -317,7 +317,7 @@ namespace lsp
         room_builder_classes,
         E_3D_BACKEND,
         room_builder_mono_ports,
-        "convolution/room_builder/mono.xml",
+        "simulation/room_builder/mono.xml",
         mono_to_stereo_plugin_port_groups
     };
 
@@ -334,7 +334,7 @@ namespace lsp
         room_builder_classes,
         E_3D_BACKEND,
         room_builder_stereo_ports,
-        "convolution/room_builder/stereo.xml",
+        "simulation/room_builder/stereo.xml",
         stereo_plugin_port_groups
     };
 }
