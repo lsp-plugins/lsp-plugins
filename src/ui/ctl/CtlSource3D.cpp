@@ -13,10 +13,29 @@ namespace lsp
 {
     namespace ctl
     {
-        
-        CtlSource3D::CtlSource3D(CtlRegistry *src, LSPMesh3D *widget): CtlWidget(src, widget)
+        void CtlSource3D::LSPSourceColor::color_changed()
         {
+            LSPMesh3D *mesh = widget_cast<LSPMesh3D>(pSource->pWidget);
+            if (mesh == NULL)
+                return;
+
+            LSPColor c;
+            c.copy(color());
+            mesh->color()->copy(&c);
+
+            c.hue(fmodf(c.hue() + pSource->fHueShift, 1.0f));
+            mesh->line_color()->copy(&c);
+        }
+        
+        CtlSource3D::CtlSource3D(CtlRegistry *src, LSPMesh3D *widget):
+            CtlWidget(src, widget),
+            sXColor(this)
+        {
+            fHueShift   = 0.1f;
+            sXColor.set_rgb(1.0f, 0.0f, 0.0f);
+
             bRebuildMesh= true;
+
             fPosX       = 0.0f;
             fPosY       = 0.0f;
             fPosZ       = 0.0f;
@@ -30,6 +49,7 @@ namespace lsp
             pPosZ       = NULL;
             pYaw        = NULL;
             pPitch      = NULL;
+            pSize       = NULL;
             pRoll       = NULL;
             pCurvature  = NULL;
             pHeight     = NULL;
@@ -54,6 +74,8 @@ namespace lsp
             LSPMesh3D *mesh = widget_cast<LSPMesh3D>(pWidget);
             if (mesh != NULL)
                 sColor.init_hsl2(pRegistry, pWidget, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+
+            mesh->slots()->bind(LSPSLOT_DRAW3D, slot_on_draw3d, this);
         }
 
         void CtlSource3D::set(widget_attribute_t att, const char *value)
@@ -87,8 +109,14 @@ namespace lsp
                 case A_ANGLE_ID:
                     BIND_PORT(pRegistry, pAngle, value);
                     break;
+                case A_SIZE_ID:
+                    BIND_PORT(pRegistry, pSize, value);
+                    break;
                 case A_HEIGHT_ID:
                     BIND_PORT(pRegistry, pHeight, value);
+                    break;
+                case A_HUE_SHIFT:
+                    PARSE_FLOAT(value, fHueShift = __);
                     break;
 
                 default:
@@ -97,6 +125,12 @@ namespace lsp
                         CtlWidget::set(att, value);
                     break;
             }
+        }
+
+        void CtlSource3D::end()
+        {
+            sXColor.color_changed();
+            CtlWidget::end();
         }
 
         void CtlSource3D::update_source_location()
@@ -180,13 +214,9 @@ namespace lsp
                 dsp::init_vector_p2(&dv[1], &grp->s, &grp->p[1]);
                 dsp::init_vector_p2(&dv[2], &grp->s, &grp->p[2]);
 
-                dsp::scale_vector1(&dv[0], 0.3f);
-                dsp::scale_vector1(&dv[1], 0.3f);
-                dsp::scale_vector1(&dv[2], 0.3f);
-
-                dsp::add_vector_pv2(&dl[1], &grp->p[0], &dv[0]);
-                dsp::add_vector_pv2(&dl[3], &grp->p[1], &dv[1]);
-                dsp::add_vector_pv2(&dl[5], &grp->p[2], &dv[2]);
+                dsp::add_vector_pvk2(&dl[1], &grp->p[0], &dv[0], 0.25f);
+                dsp::add_vector_pvk2(&dl[3], &grp->p[1], &dv[1], 0.25f);
+                dsp::add_vector_pvk2(&dl[5], &grp->p[2], &dv[2], 0.25f);
             }
 
             // Apply this data as layers
@@ -205,6 +235,8 @@ namespace lsp
 
         void CtlSource3D::notify(CtlPort *port)
         {
+            CtlWidget::notify(port);
+
             bool sync       = false;
             bool rebuild    = false;
 
@@ -257,6 +289,11 @@ namespace lsp
             if (port == pCurvature)
             {
                 sSource.curvature   = port->get_value();
+                rebuild             = true;
+            }
+            if (port == pSize)
+            {
+                sSource.size        = port->get_value() * 0.01f;    // cm -> m
                 rebuild             = true;
             }
 

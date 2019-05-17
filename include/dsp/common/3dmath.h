@@ -824,6 +824,23 @@ namespace dsp
     extern void (* add_vector_pv2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv);
 
     /**
+     * Add scaled vector to point: p = p + dv * k
+     * @param p target point
+     * @param dv vector to add
+     * @param k scale factor
+     */
+    extern void (* add_vector_pvk1)(point3d_t *p, const vector3d_t *dv, float k);
+
+    /**
+     * Add scaled vector to point: p = sp + dv * k
+     * @param p point
+     * @param sp source point
+     * @param dv vector to add
+     * @param k scale factor
+     */
+    extern void (* add_vector_pvk2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k);
+
+    /**
      * Compute bounding box around object
      * @param b bounding box object
      * @param p array of object vertexes

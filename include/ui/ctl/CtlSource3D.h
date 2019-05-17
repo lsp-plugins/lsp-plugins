@@ -16,7 +16,24 @@ namespace lsp
         class CtlSource3D: public CtlWidget
         {
             protected:
+                class LSPSourceColor: public LSPColor
+                {
+                    protected:
+                        CtlSource3D    *pSource;
+                        friend class CtlSource3D;
+
+                    protected:
+                        virtual void    color_changed();
+
+                    public:
+                        inline LSPSourceColor(CtlSource3D *source) { pSource = source; }
+                };
+
+            protected:
+                LSPSourceColor  sXColor;
                 CtlColor        sColor;
+                float           fHueShift;
+
                 room_source_settings_t sSource;
 
                 bool            bRebuildMesh;
@@ -34,6 +51,7 @@ namespace lsp
                 CtlPort        *pYaw;
                 CtlPort        *pPitch;
                 CtlPort        *pRoll;
+                CtlPort        *pSize;
                 CtlPort        *pCurvature;
                 CtlPort        *pHeight;
                 CtlPort        *pAngle;
@@ -54,6 +72,8 @@ namespace lsp
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void notify(CtlPort *port);
+
+                virtual void end();
         };
     
     } /* namespace ctl */

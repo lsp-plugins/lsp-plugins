@@ -384,6 +384,8 @@ namespace dsp
     void    (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k) = NULL;
     void    (* add_vector_pv1)(point3d_t *p, const vector3d_t *dv) = NULL;
     void    (* add_vector_pv2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv) = NULL;
+    void    (* add_vector_pvk1)(point3d_t *p, const vector3d_t *dv, float k);
+    void    (* add_vector_pvk2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k);
 
     void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
 

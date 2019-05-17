@@ -587,8 +587,8 @@ namespace lsp
         dsp::init_vector_dxyz(&dp[0], 0.0f, 0.0f, 0.0f);
         dsp::init_vector_dxyz(&dp[1], 0.0f, 0.0f, 0.0f);
 
-        out->r[0]       = in->fCapsule * 0.001f;
-        out->r[1]       = in->fCapsule * 0.001f;
+        out->r[0]       = in->fCapsule * 0.01f; // cm -> m
+        out->r[1]       = in->fCapsule * 0.01f; // cm -> m
         out->type[0]    = in->enDirection;
         out->type[1]    = in->enDirection;
 

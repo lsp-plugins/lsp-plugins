@@ -9,6 +9,8 @@
 
 namespace lsp
 {
+    #define X_SQRT3         1.73205080757
+
     #define V3(x, y, z)     { x, y, z, 1.0f }
 
     //-------------------------------------------------------------------------
@@ -120,15 +122,30 @@ namespace lsp
     // Tetrahedron shape
     static const point3d_t tetra_vertex[] =
     {
-        V3( 0.57735026919f, 0.942809041582f, 0.0f ),
-        V3( -0.333333333333f, -0.471404520791f, 0.816496580928f ),
-        V3( -0.333333333333f, -0.471404520791f, -0.816496580928f ),
-        V3( 1.0f, 0.0f, 0.0f )
+//        V3( 0.57735026919f, 0.942809041582f, 0.0f ),
+//        V3( -0.333333333333f, -0.471404520791f, 0.816496580928f ),
+//        V3( -0.333333333333f, -0.471404520791f, -0.816496580928f ),
+//        V3( 1.0f, 0.0f, 0.0f )
+
+        V3( 0.942809041582f, 0.0f, -0.333333333333f ),
+        V3( -0.471404520791, 0.816496580928f, -0.333333333333f ),
+        V3( -0.471404520791, -0.816496580928f, -0.333333333333f ),
+        V3( 0.0f, 0.0f, 1.0f )
+//            v1 = ( sqrt(8/9), 0, -1/3 )
+//
+//            v2 = ( -sqrt(2/9), sqrt(2/3), -1/3 )
+//
+//            v3 = ( -sqrt(2/9), -sqrt(2/3), -1/3 )
+//
+//            v4 = ( 0, 0, 1 )
     };
 
     static const uint8_t tetra_faces[] =
     {
-        // TODO
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 1,
+        1, 2, 3
     };
 
     status_t gen_triangle_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
@@ -137,12 +154,13 @@ namespace lsp
         if (g == NULL)
             return STATUS_NO_MEM;
 
-        float a = 90 - 0.5f * cfg->angle;
+        float a = 0.5f * cfg->angle;
+        float half = 0.5f * cfg->size;
 
-        dsp::init_point_xyz(&g->s, -tanf(a * M_PI / 180.0f), 0.0f, 0.0f);
-        dsp::init_point_xyz(&g->p[0], 0.0f, 0.0f, 1.0f);
-        dsp::init_point_xyz(&g->p[1], 0.0f, -0.5f * M_SQRT2, -0.5f);
-        dsp::init_point_xyz(&g->p[2], 0.0f, 0.5f * M_SQRT2, -0.5f);
+        dsp::init_point_xyz(&g->s, -cfg->size / tanf(a * M_PI / 180.0f), 0.0f, 0.0f);
+        dsp::init_point_xyz(&g->p[0], 0.0f, 0.0f, cfg->size);
+        dsp::init_point_xyz(&g->p[1], 0.0f, -half * X_SQRT3, -half);
+        dsp::init_point_xyz(&g->p[2], 0.0f, half * X_SQRT3, -half);
 
         return STATUS_OK;
     }
@@ -157,7 +175,7 @@ namespace lsp
         point3d_t sp;
         dsp::init_point_xyz(&sp, 0.0f, 0.0f, 0.0f);
 
-        const uint8_t *vi   = ico_faces;
+        const uint8_t *vi   = octa_faces;
         for (size_t i=0; i<n; ++i, vi += 3, ++g)
         {
             g->s    = sp;
@@ -209,7 +227,7 @@ namespace lsp
         point3d_t sp;
         dsp::init_point_xyz(&sp, 0.0f, 0.0f, 0.0f);
 
-        const uint8_t *vi   = ico_faces;
+        const uint8_t *vi   = box_faces;
         for (size_t i=0; i<n; ++i, vi += 3, ++g)
         {
             g->s    = sp;
@@ -235,7 +253,7 @@ namespace lsp
         point3d_t sp;
         dsp::init_point_xyz(&sp, 0.0f, 0.0f, 0.0f);
 
-        const uint8_t *vi   = ico_faces;
+        const uint8_t *vi   = tetra_faces;
         for (size_t i=0; i<n; ++i, vi += 3, ++g)
         {
             g->s    = sp;

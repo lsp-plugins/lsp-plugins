@@ -1974,6 +1974,22 @@ namespace native
         p->w    = sp->w + dv->dw;
     }
 
+    void add_vector_pvk1(point3d_t *p, const vector3d_t *dv, float k)
+    {
+        p->x   += dv->dx * k;
+        p->y   += dv->dy * k;
+        p->z   += dv->dz * k;
+        p->w   += dv->dw * k;
+    }
+
+    void add_vector_pvk2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k)
+    {
+        p->x    = sp->x + dv->dx * k;
+        p->y    = sp->y + dv->dy * k;
+        p->z    = sp->z + dv->dz * k;
+        p->w    = sp->w + dv->dw * k;
+    }
+
     void calc_bound_box(bound_box3d_t *b, const point3d_t *p, size_t n)
     {
         if (n <= 0)

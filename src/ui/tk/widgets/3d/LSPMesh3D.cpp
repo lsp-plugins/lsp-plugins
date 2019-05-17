@@ -45,6 +45,8 @@ namespace lsp
                     layer->nbuffer  = NULL;
                 }
             }
+
+            vLayers.clear();
         }
 
         status_t LSPMesh3D::init()
@@ -75,6 +77,7 @@ namespace lsp
         void LSPMesh3D::clear()
         {
             do_destroy();
+            query_draw();
         }
 
         status_t LSPMesh3D::slot_draw3d(LSPWidget *sender, void *ptr, void *data)
@@ -105,6 +108,7 @@ namespace lsp
             layer.vbuffer       = NULL;
             layer.nbuffer       = NULL;
             layer.primitives    = items / 3;
+            layer.draw          = 0;
             layer.pdata         = NULL;
             layer.rebuild       = true;
 
@@ -135,7 +139,7 @@ namespace lsp
             else
             {
                 const point3d_t *p  = mesh;
-                vector3d_t *n       = layer.nbuffer;
+                vector3d_t *n       = layer.normals;
                 for (size_t i=0; i<layer.primitives; ++i, n += 3, p += 3)
                 {
                     dsp::calc_normal3d_pv(&n[0], p);
@@ -151,6 +155,7 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
 
+            query_draw();
             return STATUS_OK;
         }
 
@@ -162,12 +167,13 @@ namespace lsp
             // Allocate new layer and initialize
             mesh_layer_t layer;
 
-            layer.type          = LT_TRIANGLES;
+            layer.type          = LT_LINES;
             layer.mesh          = NULL;
             layer.normals       = NULL;
             layer.vbuffer       = NULL;
             layer.nbuffer       = NULL;
             layer.primitives    = items >> 1;
+            layer.draw          = 0;
             layer.pdata         = NULL;
             layer.rebuild       = true;
 
@@ -194,6 +200,7 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
 
+            query_draw();
             return STATUS_OK;
         }
 
@@ -202,9 +209,10 @@ namespace lsp
             for (size_t i=0, n=vLayers.size(); i<n; ++i)
             {
                 mesh_layer_t *layer = vLayers.get(i);
-                if ((layer != NULL) && (layer->type == LT_TRIANGLES))
+                if (layer != NULL)
                     layer->rebuild      = true;
             }
+            query_draw();
         }
 
         void LSPMesh3D::set_transform(const matrix3d_t *matrix)
@@ -223,7 +231,7 @@ namespace lsp
         void LSPMesh3D::render(IR3DBackend *r3d)
         {
             // Visible?
-            if (!visible())
+            if (!is_visible())
                 return;
 
             // Maybe need a sync?
@@ -232,7 +240,6 @@ namespace lsp
             // Perform draw
             r3d_buffer_t buf;
             buf.width           = 1.0f;
-            buf.flags           = R3D_BUFFER_LIGHTING;
 
             buf.vertex.stride   = sizeof(point3d_t);
             buf.normal.stride   = sizeof(vector3d_t);
@@ -247,7 +254,6 @@ namespace lsp
                 if (layer == NULL)
                     continue;
 
-                buf.count           = layer->primitives;
                 buf.vertex.data     = layer->vbuffer;
 
                 switch (layer->type)
@@ -255,7 +261,9 @@ namespace lsp
                     case LT_TRIANGLES:
                         rebuild_triangles(layer);
 
+                        buf.count           = layer->draw;
                         buf.type            = R3D_PRIMITIVE_TRIANGLES;
+                        buf.flags           = R3D_BUFFER_LIGHTING;
                         buf.normal.data     = layer->nbuffer;
 
                         buf.color.dfl.r     = sColor.red();
@@ -265,7 +273,11 @@ namespace lsp
                         break;
 
                     case LT_LINES:
+                        rebuild_lines(layer);
+
+                        buf.count           = layer->draw;
                         buf.type            = R3D_PRIMITIVE_LINES;
+                        buf.flags           = 0;
                         buf.normal.data     = NULL;
 
                         buf.color.dfl.r     = sLineColor.red();
@@ -298,7 +310,8 @@ namespace lsp
             vector3d_t n[3], pl;
 
             // Perform rebuild relative to the point of view
-            for (size_t i=0; i<layer->primitives; ++i, sp += 3, dp += 3, sn += 3, dn += 3)
+            layer->draw     = 0;
+            for (size_t i=0; i<layer->primitives; ++i, sp += 3, sn += 3)
             {
                 // Apply transformation to points
                 dsp::apply_matrix3d_mp2(&p[0], &sp[0], &sMatrix);
@@ -327,7 +340,7 @@ namespace lsp
                     dn[1]       = n[1];
                     dn[2]       = n[2];
                 }
-                else
+                else if (d <= -DSP_3D_TOLERANCE)
                 {
                     // Reverse order of vertices
                     dp[0]       = p[0];
@@ -339,7 +352,29 @@ namespace lsp
                     dsp::flip_vector_v2(&dn[1], &n[2]);
                     dsp::flip_vector_v2(&dn[2], &n[1]);
                 }
+                else
+                    continue;
+
+                // Update pointers and number of primitives
+                dn += 3;
+                dp += 3;
+                ++ layer->draw;
             }
+        }
+
+        void LSPMesh3D::rebuild_lines(mesh_layer_t *layer)
+        {
+            if (!layer->rebuild)
+                return;
+            layer->rebuild          = false;
+
+            const point3d_t *sp     = layer->mesh;
+            point3d_t *dp           = layer->vbuffer;
+
+            for (size_t i=0, n = layer->primitives << 1; i<n; ++i, ++dp, ++sp)
+                dsp::apply_matrix3d_mp2(dp, sp, &sMatrix);
+
+            layer->draw             = layer->primitives;
         }
 
     } /* namespace tk */

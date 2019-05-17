@@ -297,6 +297,8 @@ namespace sse
 
         EXPORT1(add_vector_pv1);
         EXPORT1(add_vector_pv2);
+        EXPORT1(add_vector_pvk1);
+        EXPORT1(add_vector_pvk2);
 
         EXPORT1(init_ray_xyz);
         EXPORT1(init_ray_dxyz);

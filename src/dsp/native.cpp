@@ -285,6 +285,8 @@ namespace native
 
         EXPORT1(add_vector_pv1);
         EXPORT1(add_vector_pv2);
+        EXPORT1(add_vector_pvk1);
+        EXPORT1(add_vector_pvk2);
 
         EXPORT1(vector_mul_v2);
         EXPORT1(vector_mul_vv);

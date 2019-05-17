@@ -120,6 +120,7 @@ namespace lsp
         void CtlCapture3D::end()
         {
             sXColor.color_changed();
+            CtlWidget::end();
         }
 
         void CtlCapture3D::notify(CtlPort *port)

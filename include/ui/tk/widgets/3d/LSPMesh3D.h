@@ -31,6 +31,7 @@ namespace lsp
                     point3d_t      *vbuffer;        // Vertex Buffer for rendering
                     vector3d_t     *nbuffer;        // Normal Buffer for rendering
                     size_t          primitives;     // Number of primitives
+                    size_t          draw;           // Number of primitives to draw
                     bool            rebuild;        // Rebuild flag
                     void           *pdata;          // Allocation pointer
                 } mesh_layer_t;
@@ -47,6 +48,7 @@ namespace lsp
             protected:
                 void        do_destroy();
                 void        rebuild_triangles(mesh_layer_t *layer);
+                void        rebuild_lines(mesh_layer_t *layer);
                 void        mark_for_rebuild();
 
                 static status_t slot_draw3d(LSPWidget *sender, void *ptr, void *data);

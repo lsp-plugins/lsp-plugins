@@ -17,6 +17,17 @@
 					yaw_id="cyaw" pitch_id="cpitch"
 				>
 					<ui:for id="i" first="0" last="7" >
+						<source3d
+							visibility=":sse_${i}" 
+							mode_id="sscf_${i}"
+							hue_id="ssh_${i}" hue_shift="0.1"
+							xpos_id="sspx_${i}" ypos_id="sspy_${i}" zpos_id="sspz_${i}"
+							yaw_id="ssay_${i}" pitch_id="ssap_${i}" roll_id="ssar_${i}"
+							size_id="sss_${i}" angle_id="ssa_${i}" height_id="shh_${i}" curvature_id="sscv"
+						/>
+					</ui:for>
+					
+					<ui:for id="i" first="0" last="7" >
 						<capture3d
 							visibility=":sce_${i}" 
 							mode_id="sccf_${i}"
@@ -65,7 +76,7 @@
 					<hbox spacing="8">
 						<label text="Source:" />
 						<combo id="ssel" width="20" />
-						<button id="sce[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
+						<button id="sse[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
 						<label text="Enabled" />
 					</hbox>
 				</align>
@@ -80,7 +91,7 @@
 						<combo id="sscf[ssel]" />
 						<align hpos="-1">
 							<hbox spacing="2">
-								<button id="scph[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
+								<button id="ssph[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
 								<label text="invert" />
 							</hbox>
 						</align>

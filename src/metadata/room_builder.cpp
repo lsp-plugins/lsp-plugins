@@ -214,8 +214,8 @@ namespace lsp
         { "ssay" id , "Source " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         { "ssap" id , "Source " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "ssar" id , "Source " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
-        CONTROL("sss" id, "Source " label " size", U_MM, room_builder_base_metadata::SOURCE), \
-        CONTROL("shh" id, "Source " label " height", U_MM, room_builder_base_metadata::SOURCE), \
+        CONTROL("sss" id, "Source " label " size", U_CM, room_builder_base_metadata::SOURCE), \
+        CONTROL("shh" id, "Source " label " height", U_CM, room_builder_base_metadata::SOURCE), \
         CONTROL("ssa" id, "Source " label " angle", U_DEG, room_builder_base_metadata::ANGLE), \
         PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.01f), \
         { "ssh" id, "Source " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
@@ -234,7 +234,7 @@ namespace lsp
         { "scay" id , "Capture " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 270, 0.1f, NULL, NULL }, \
         { "scap" id , "Capture " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "scar" id , "Capture " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
-        CONTROL("sccs" id, "Capture " label " capsule size", U_MM, room_builder_base_metadata::CAPSULE), \
+        CONTROL("sccs" id, "Capture " label " capsule size", U_CM, room_builder_base_metadata::CAPSULE), \
         COMBO("sccf" id, "Capture " label " configuration", 1, rb_capture_config),      \
         CONTROL("sca" id, "Capture " label " angle", U_DEG, room_builder_base_metadata::ANGLE),      \
         CONTROL("scab" id, "Capture " label " AB distance", U_M, room_builder_base_metadata::DISTANCE),      \
