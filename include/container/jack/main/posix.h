@@ -79,6 +79,20 @@ namespace lsp
             if ((n < 0) || (ptr == NULL))
                 continue;
 
+            // Need to clarify file type?
+            if ((de->d_type == DT_UNKNOWN) || (de->d_type == DT_LNK))
+            {
+                struct stat st;
+                if (stat(ptr, &st) < 0)
+                    continue;
+
+                // Patch the d_type value
+                if (S_ISDIR(st.st_mode))
+                    de->d_type  = DT_DIR;
+                else if (S_ISREG(st.st_mode))
+                    de->d_type  = DT_REG;
+            }
+
             // Scan symbolic link if present
             if (de->d_type == DT_LNK)
             {
@@ -207,12 +221,17 @@ namespace lsp
             }
         }
 
-        // Initialize factory with NULL
-        if (homedir != NULL)
+        // Scan home directory first
+        if ((jack_main == NULL) && (homedir != NULL))
         {
             lsp_trace("home directory = %s", homedir);
-            snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lib", homedir);
-            jack_main       = lookup_jack_main(hInstance, path);
+            jack_main       = lookup_jack_main(hInstance, homedir);
+
+            if (jack_main == NULL)
+            {
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lib", homedir);
+                jack_main       = lookup_jack_main(hInstance, path);
+            }
 
             if (jack_main == NULL)
             {
