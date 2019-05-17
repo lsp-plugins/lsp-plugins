@@ -60,7 +60,7 @@ namespace lsp
             sSource.size        = 1.0f;
             sSource.height      = 1.0f;
             sSource.angle       = 90.0f;
-            sSource.curvature   = 1.0f;
+            sSource.curvature   = 100.0f;
         }
         
         CtlSource3D::~CtlSource3D()
@@ -214,6 +214,10 @@ namespace lsp
                 dsp::init_vector_p2(&dv[1], &grp->s, &grp->p[1]);
                 dsp::init_vector_p2(&dv[2], &grp->s, &grp->p[2]);
 
+                dsp::normalize_vector(&dv[0]);
+                dsp::normalize_vector(&dv[1]);
+                dsp::normalize_vector(&dv[2]);
+
                 dsp::add_vector_pvk2(&dl[1], &grp->p[0], &dv[0], 0.25f);
                 dsp::add_vector_pvk2(&dl[3], &grp->p[1], &dv[1], 0.25f);
                 dsp::add_vector_pvk2(&dl[5], &grp->p[2], &dv[2], 0.25f);
@@ -278,7 +282,7 @@ namespace lsp
             }
             if (port == pHeight)
             {
-                sSource.height  = port->get_value();
+                sSource.height  = port->get_value() * 0.01f;    // cm -> m
                 rebuild         = true;
             }
             if (port == pAngle)

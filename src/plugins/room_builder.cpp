@@ -426,10 +426,10 @@ namespace lsp
             src->fYaw           = src->pYaw->getValue();
             src->fPitch         = src->pPitch->getValue();
             src->fRoll          = src->pRoll->getValue();
-            src->fSize          = src->pSize->getValue();
-            src->fHeight        = src->pHeight->getValue();
+            src->fSize          = src->pSize->getValue() * 0.01f;   // cm -> m
+            src->fHeight        = src->pHeight->getValue() * 0.01f; // cm -> m
             src->fAngle         = src->pAngle->getValue();
-            src->fCurvature     = src->pCurvature->getValue() * 0.01f;
+            src->fCurvature     = src->pCurvature->getValue();
         }
 
         // Update capture settings
@@ -469,8 +469,8 @@ namespace lsp
             case 7:     return RT_AS_OCTASPHERE;
             case 8:     return RT_AS_ICOSPHERE;
             case 9:     return RT_AS_FSPOT;
-            case 10:    return RT_AS_SSPOT;
-            case 11:    return RT_AS_CSPOT;
+            case 10:    return RT_AS_CSPOT;
+            case 11:    return RT_AS_SSPOT;
             default:    break;
         }
         return RT_AS_TRIANGLE;

@@ -26,8 +26,8 @@ namespace lsp
         RT_AS_OCTASPHERE,   // Omni source (octasphere)
         RT_AS_ICOSPHERE,    // Omni source (icosphere)
         RT_AS_FSPOT,        // Flat spot
-        RT_AS_SSPOT,        // Spherical spot
         RT_AS_CSPOT,        // Cylindric spot
+        RT_AS_SSPOT,        // Spherical spot
     };
 
     enum rt_audio_capture_t
@@ -54,10 +54,10 @@ namespace lsp
     {
         matrix3d_t              pos;        // Position and direction of source
         rt_audio_source_t       type;       // Type of the the source
-        float                   size;       // Size/radius
-        float                   height;     // Height for the CYLINDER
-        float                   angle;      // Angle of the SPOT and CYLINDRIC sources (degrees)
-        float                   curvature;  // Additional curvature
+        float                   size;       // Size/radius [m]
+        float                   height;     // Height [m]
+        float                   angle;      // Dispersion angle [0..100] %
+        float                   curvature;  // Additional curvature [0..100] %
     } room_source_settings_t;
 
     // Capture configuration

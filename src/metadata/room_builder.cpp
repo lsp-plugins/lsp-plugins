@@ -90,7 +90,7 @@ namespace lsp
         "Octasphere",
         "Icosphere",
         "Flat spot",
-        "Cylinder spot"
+        "Cylinder spot",
         "Sphere spot",
         NULL
     };
@@ -211,13 +211,13 @@ namespace lsp
         CONTROL_DFL("sspx" id, "Source " label " X position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
         CONTROL_DFL("sspy" id, "Source " label " Y position", U_M, room_builder_base_metadata::POSITION, -1.0f), \
         CONTROL_DFL("sspz" id, "Source " label " Z position", U_M, room_builder_base_metadata::POSITION, 0.0f), \
-        { "ssay" id , "Source " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
+        { "ssay" id , "Source " label " Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0.0f, 360, 90.0f, 0.1f, NULL, NULL }, \
         { "ssap" id , "Source " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "ssar" id , "Source " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         CONTROL("sss" id, "Source " label " size", U_CM, room_builder_base_metadata::SOURCE), \
         CONTROL("shh" id, "Source " label " height", U_CM, room_builder_base_metadata::SOURCE), \
-        CONTROL("ssa" id, "Source " label " angle", U_DEG, room_builder_base_metadata::ANGLE), \
-        PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.01f), \
+        PERCENTS("ssa" id, "Source " label " angle", 50.0f, 0.025f), \
+        PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.05f), \
         { "ssh" id, "Source " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 
     #define RB_SOURCE_STEREO(id, label, x, total, ena, channel) \
