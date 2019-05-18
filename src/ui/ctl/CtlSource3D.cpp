@@ -297,7 +297,7 @@ namespace lsp
             }
             if (port == pSize)
             {
-                sSource.size        = port->get_value() * 0.01f;    // cm -> m
+                sSource.size        = port->get_value() * 0.01 * 0.5f;    // cm -> m, diameter -> radius
                 rebuild             = true;
             }
 

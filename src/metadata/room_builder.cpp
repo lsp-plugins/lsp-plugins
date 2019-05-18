@@ -90,8 +90,8 @@ namespace lsp
         "Octasphere",
         "Icosphere",
         "Flat spot",
-        "Cylinder spot",
-        "Sphere spot",
+        "Cylindrical spot",
+        "Spherical spot",
         NULL
     };
 
@@ -215,7 +215,7 @@ namespace lsp
         { "ssap" id , "Source " label " Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL }, \
         { "ssar" id , "Source " label " Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL }, \
         CONTROL("sss" id, "Source " label " size", U_CM, room_builder_base_metadata::SOURCE), \
-        CONTROL("shh" id, "Source " label " height", U_CM, room_builder_base_metadata::SOURCE), \
+        CONTROL("shh" id, "Source " label " height", U_CM, room_builder_base_metadata::HEIGHT), \
         PERCENTS("ssa" id, "Source " label " angle", 50.0f, 0.025f), \
         PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.05f), \
         { "ssh" id, "Source " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }

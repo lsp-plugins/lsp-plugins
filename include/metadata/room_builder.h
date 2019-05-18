@@ -44,6 +44,11 @@ namespace lsp
         static const float SOURCE_DFL               = 30.0f;
         static const float SOURCE_STEP              = 0.01f;
 
+        static const float HEIGHT_MIN               = 1.0f;
+        static const float HEIGHT_MAX               = 100.0f;
+        static const float HEIGHT_DFL               = 15.0f;
+        static const float HEIGHT_STEP              = 0.01f;
+
         static const float CAPSULE_MIN              = 1.0f;
         static const float CAPSULE_MAX              = 30.0f;
         static const float CAPSULE_DFL              = 2.2f;
