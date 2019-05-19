@@ -54,6 +54,36 @@ namespace avx2
 
 namespace x86
 {
+#pragma pack(push, 1)
+    typedef union vendor_sig_t
+    {
+        char    sig[12];
+        struct {
+            uint32_t    ebx, edx, ecx;
+        } reg;
+    } vendor_sig_t;
+#pragma pack(pop)
+
+    typedef struct cpu_vendor_id_t
+    {
+        const char *signature;
+        size_t      vendor_id;
+    } vendors_t;
+
+
+    static const cpu_vendor_id_t cpu_vendor_ids[] =
+    {
+        { "AMDisbetter!", CPU_VENDOR_AMD },
+        { "AuthenticAMD", CPU_VENDOR_AMD },
+        { "CentaurHauls", CPU_VENDOR_VIA },
+        { "Geode by NSC", CPU_VENDOR_NSC },
+        { "GenuineIntel", CPU_VENDOR_INTEL },
+        { "GenuineTMx86", CPU_VENDOR_TRANSMETA },
+        { "HygonGenuine", CPU_VENDOR_HYGON },
+        { "TransmetaCPU", CPU_VENDOR_TRANSMETA },
+        { "VIA VIA VIA ", CPU_VENDOR_VIA }
+    };
+
     void read_brand_string(cpuid_info_t *info, uint32_t max_ext_cpuid, char *brand)
     {
         // FUNCTION 0x80000002 - 0x80000004
@@ -276,10 +306,19 @@ namespace x86
         cpuid(&info, 0, 0);
 
         // Detect vendor
-        if ((info.ebx == X86_CPUID0_INTEL_EBX) && (info.ecx == X86_CPUID0_INTEL_ECX) && (info.edx == X86_CPUID0_INTEL_EDX))
-            f->vendor   = CPU_VENDOR_INTEL;
-        else if ((info.ebx == X86_CPUID0_AMD_EBX) && (info.ecx == X86_CPUID0_AMD_ECX) && (info.edx == X86_CPUID0_AMD_EDX))
-            f->vendor   = CPU_VENDOR_AMD;
+        vendor_sig_t sig;
+        sig.reg.ebx     = info.ebx;
+        sig.reg.ecx     = info.ecx;
+        sig.reg.edx     = info.edx;
+
+        for (size_t i=0, n=sizeof(cpu_vendor_ids)/sizeof(cpu_vendor_id_t); i<n; ++i)
+        {
+            if (!memcmp(sig.sig, cpu_vendor_ids[i].signature, sizeof(vendor_sig_t)))
+            {
+                f->vendor   = cpu_vendor_ids[i].vendor_id;
+                break;
+            }
+        }
 
         size_t max_cpuid    = info.eax;
         if (max_cpuid <= 0)
@@ -299,10 +338,20 @@ namespace x86
         cpuid(&info, 0x80000000, 0);
         size_t max_ext_cpuid = info.eax;
 
-        if (f->vendor == CPU_VENDOR_INTEL)
-            do_intel_cpuid(f, max_cpuid, max_ext_cpuid);
-        else if (f->vendor == CPU_VENDOR_AMD)
-            do_amd_cpuid(f, max_cpuid, max_ext_cpuid);
+        switch (f->vendor)
+        {
+            case CPU_VENDOR_INTEL:
+                do_intel_cpuid(f, max_cpuid, max_ext_cpuid);
+                break;
+
+            case CPU_VENDOR_AMD:
+            case CPU_VENDOR_HYGON:
+                do_amd_cpuid(f, max_cpuid, max_ext_cpuid);
+                break;
+
+            default:
+                break;
+        }
     }
 
     static dsp::start_t     dsp_start       = NULL;
@@ -325,7 +374,13 @@ namespace x86
 
     static const char *cpu_vendors[] =
     {
-        "Unknown", "Intel", "AMD"
+        "Unknown",
+        "AMD",
+        "Hygon",
+        "Intel",
+        "NSC",
+        "Transmeta",
+        "VIA"
     };
 
     static const char *cpu_features[] =
