@@ -17,8 +17,8 @@
 * Updated function signatures for libraries which now support '-fvisibility=hidden'
   compilation flag.
 * Added support of nested menus in the UI toolkit.
+* Added 3D scene rendeding support in the UI.
 - Implemented 3D reverb simulator.
-- Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
 - Implemented sampler plugin series with stereo outputs.
