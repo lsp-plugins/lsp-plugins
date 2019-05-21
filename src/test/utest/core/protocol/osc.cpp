@@ -56,6 +56,69 @@ typedef struct parameter_message_t
         float       float32;
     } array;
 } parameter_message_t;
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+typedef struct message_bundle_t
+{
+    char        signature[8];
+    uint64_t    time_tag;
+
+    uint32_t    bundle1_size;
+    struct
+    {
+        char        signature[8];
+        uint64_t    time_tag;
+
+        uint32_t    message1_size;
+        struct
+        {
+            char        address[4];
+            char        types[4];
+            int32_t     int32;
+        } message1;
+
+        uint32_t    message2_size;
+        struct
+        {
+            char        address[8];
+            char        types[8];
+            int32_t     int32;
+            float       float32;
+        } message2;
+    } bundle1;
+
+    uint32_t    bundle2_size;
+    struct
+    {
+        char        signature[8];
+        uint64_t    time_tag;
+
+        uint32_t    message1_size;
+        struct
+        {
+            char        address[4];
+            char        types[4];
+            int32_t     int32;
+        } message1;
+
+        uint32_t    message2_size;
+        struct
+        {
+            char        address[4];
+            char        types[8];
+        } message2;
+    } bundle2;
+
+    uint32_t    message_size;
+    struct
+    {
+        char        address[8];
+        char        types[8];
+        int32_t     int32;
+    } message;
+} message_bundle_t;
 #pragma pack(pop)
 
 UTEST_BEGIN("core.protocol", osc)
@@ -104,8 +167,13 @@ UTEST_BEGIN("core.protocol", osc)
 
         // Validate output data
         UTEST_ASSERT(packet.data != NULL);
-        UTEST_ASSERT(packet.size == sizeof(simple_message));
-        UTEST_ASSERT(::memcmp(packet.data, simple_message, sizeof(simple_message)) == 0);
+        bool matches = (packet.size == sizeof(simple_message)) && (::memcmp(packet.data, simple_message, sizeof(simple_message)) == 0);
+        if (!matches)
+        {
+            dump_bytes("src", simple_message, sizeof(simple_message));
+            dump_bytes("dst", packet.data, packet.size);
+            UTEST_FAIL_MSG("Source and destination messages differ");
+        }
         osc::forge_free(packet.data);
     }
 
@@ -212,10 +280,190 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_free(packet.data);
     }
 
+    void test_message_bundle()
+    {
+        // Initialize message bundle
+        message_bundle_t b;
+        bzero(&b, sizeof(b));
+
+        strcpy(b.signature, "#bundle");
+        b.time_tag  = CPU_TO_BE(uint64_t(0x1122334455667788ULL));
+
+        b.bundle1_size              = CPU_TO_BE(uint32_t(sizeof(b.bundle1)));
+        {
+            strcpy(b.bundle1.signature, "#bundle");
+            b.bundle1.time_tag          = CPU_TO_BE(uint64_t(0x2233445566778899ULL));
+
+            b.bundle1.message1_size     = CPU_TO_BE(uint32_t(sizeof(b.bundle1.message1)));
+            {
+                strcpy(b.bundle1.message1.address, "/a0");
+                strcpy(b.bundle1.message1.types, ",i");
+                b.bundle1.message1.int32    = CPU_TO_BE(int32_t(0xdeadbeef));
+            }
+
+            b.bundle1.message2_size     = CPU_TO_BE(uint32_t(sizeof(b.bundle1.message2)));
+            {
+                strcpy(b.bundle1.message2.address, "/addr0");
+                strcpy(b.bundle1.message2.types, ",TFif");
+                b.bundle1.message2.int32    = CPU_TO_BE(int32_t(0xcafeface));
+                b.bundle1.message2.float32  = CPU_TO_BE(float(440.0f));
+            }
+        }
+
+        b.bundle2_size              = CPU_TO_BE(uint32_t(sizeof(b.bundle2)));
+        {
+            strcpy(b.bundle2.signature, "#bundle");
+            b.bundle2.time_tag          = CPU_TO_BE(uint64_t(0x5566778899aabbccULL));
+
+            b.bundle2.message1_size     = CPU_TO_BE(uint32_t(sizeof(b.bundle2.message1)));
+            {
+                strcpy(b.bundle2.message1.address, "/b0");
+                strcpy(b.bundle2.message1.types, ",Ii");
+                b.bundle2.message1.int32    = CPU_TO_BE(int32_t(0xf00dfeed));
+            }
+
+            b.bundle2.message2_size     = CPU_TO_BE(uint32_t(sizeof(b.bundle2.message2)));
+            {
+                strcpy(b.bundle2.message2.address, "/c0");
+                strcpy(b.bundle2.message2.types, ",TFN");
+            }
+        }
+
+        b.message_size              = CPU_TO_BE(uint32_t(sizeof(b.message)));
+        {
+            strcpy(b.message.address, "/addr1");
+            strcpy(b.message.types, ",TFiNI");
+            b.message.int32             = CPU_TO_BE(int32_t(0x55aacc33));
+        }
+
+        // Serialize message
+        osc::packet_t packet;
+        osc::forge_t forge;
+        osc::forge_frame_t frame, bundle1, bundle2, message;
+
+        UTEST_ASSERT(osc::forge_begin_dynamic(&frame, &forge) == STATUS_OK);
+
+        UTEST_ASSERT(osc::forge_begin_bundle(&bundle1, &frame, uint64_t(0x1122334455667788ULL)) == STATUS_OK);
+        {
+            // Sub-bundle 1
+            UTEST_ASSERT(osc::forge_begin_bundle(&bundle2, &bundle1, uint64_t(0x2233445566778899ULL)) == STATUS_OK);
+            {
+                UTEST_ASSERT(osc::forge_begin_message(&message, &bundle2, "/a0") == STATUS_OK);
+                {
+                    UTEST_ASSERT(osc::forge_int32(&message, int32_t(0xdeadbeef)) == STATUS_OK);
+                }
+                UTEST_ASSERT(osc::forge_end(&message) == STATUS_OK);
+
+                UTEST_ASSERT(osc::forge_begin_message(&message, &bundle2, "/addr0") == STATUS_OK);
+                {
+                    UTEST_ASSERT(osc::forge_bool(&message, true) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_bool(&message, false) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_int32(&message, int32_t(0xcafeface)) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_float32(&message, float(440.0f)) == STATUS_OK);
+                }
+                UTEST_ASSERT(osc::forge_end(&message) == STATUS_OK);
+            }
+            UTEST_ASSERT(osc::forge_end(&bundle2) == STATUS_OK);
+
+            // Sub-bundle 2
+            UTEST_ASSERT(osc::forge_begin_bundle(&bundle2, &bundle1, uint64_t(0x5566778899aabbccULL)) == STATUS_OK);
+            {
+                UTEST_ASSERT(osc::forge_begin_message(&message, &bundle2, "/b0") == STATUS_OK);
+                {
+                    UTEST_ASSERT(osc::forge_inf(&message) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_int32(&message, int32_t(0xf00dfeed)) == STATUS_OK);
+                }
+                UTEST_ASSERT(osc::forge_end(&message) == STATUS_OK);
+
+                UTEST_ASSERT(osc::forge_begin_message(&message, &bundle2, "/c0") == STATUS_OK);
+                {
+                    UTEST_ASSERT(osc::forge_bool(&message, true) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_bool(&message, false) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_null(&message) == STATUS_OK);
+                }
+                UTEST_ASSERT(osc::forge_end(&message) == STATUS_OK);
+            }
+            UTEST_ASSERT(osc::forge_end(&bundle2) == STATUS_OK);
+
+            // Sub-message
+            UTEST_ASSERT(osc::forge_begin_message(&message, &bundle1, "/addr1") == STATUS_OK);
+            {
+                UTEST_ASSERT(osc::forge_bool(&message, true) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_bool(&message, false) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_int32(&message, int32_t(0x55aacc33)) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_null(&message) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_inf(&message) == STATUS_OK);
+            }
+            UTEST_ASSERT(osc::forge_end(&message) == STATUS_OK);
+        }
+        UTEST_ASSERT(osc::forge_end(&bundle1) == STATUS_OK);
+
+        UTEST_ASSERT(osc::forge_end(&frame) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_close(&packet, &forge) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_destroy(&forge) == STATUS_OK);
+
+        // Validate output data
+        UTEST_ASSERT(packet.data != NULL);
+        bool matches = (packet.size == sizeof(b)) && (::memcmp(packet.data, &b, sizeof(b)) == 0);
+        if (!matches)
+        {
+            dump_bytes("src", &b, sizeof(b));
+            dump_bytes("dst", packet.data, packet.size);
+            UTEST_FAIL_MSG("Source and destination messages differ");
+        }
+        osc::forge_free(packet.data);
+    }
+
+    void test_overflow()
+    {
+        uint8_t buf[22];
+
+        struct
+        {
+            char        addr[12];
+            char        types[4];
+            int32_t     int32;
+        } m;
+
+        bzero(&m, sizeof(m));
+        strcpy(m.addr, "/message");
+        strcpy(m.types, ",i");
+        m.int32     = CPU_TO_BE(uint32_t(0xdeadcafe));
+
+        osc::packet_t packet;
+        osc::forge_t forge;
+        osc::forge_frame_t frame, message;
+
+        UTEST_ASSERT(osc::forge_begin_fixed(&frame, &forge, buf, sizeof(buf)) == STATUS_OK);
+        {
+            UTEST_ASSERT(osc::forge_begin_message(&message, &frame, "/message") == STATUS_OK);
+            {
+                UTEST_ASSERT(osc::forge_int32(&message, 0xdeadcafe) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_int32(&message, 0xdeadbeef) == STATUS_OVERFLOW);
+            }
+            UTEST_ASSERT(osc::forge_end(&message) == STATUS_OK);
+        }
+        UTEST_ASSERT(osc::forge_end(&frame) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_close(&packet, &forge) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_destroy(&forge) == STATUS_OK);
+
+        // Validate output data
+        UTEST_ASSERT(packet.data != NULL);
+        bool matches = (packet.size == sizeof(m)) && (::memcmp(packet.data, &m, sizeof(m)) == 0);
+        if (!matches)
+        {
+            dump_bytes("src", &m, sizeof(m));
+            dump_bytes("dst", packet.data, packet.size);
+            UTEST_FAIL_MSG("Source and destination messages differ");
+        }
+    }
+
     UTEST_MAIN
     {
-//        test_simple_message();
+        test_simple_message();
         test_parameters();
+        test_message_bundle();
+        test_overflow();
     }
 UTEST_END;
 

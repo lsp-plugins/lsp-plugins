@@ -63,7 +63,7 @@ namespace lsp
          * @param forge serializer structure to initialize
          * @return status of operation
          */
-        status_t forge_begin_dynamic(forge_frame_t *ref, forge_t *forge);
+        status_t forge_begin_dynamic(forge_frame_t *ref, forge_t *forge, size_t reserve = 0);
 
         /**
          * Begin serialization of OSC bundle

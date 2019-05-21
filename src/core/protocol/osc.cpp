@@ -18,6 +18,7 @@ namespace lsp
         static const uint32_t BUNDLE_SIZE   = 0;
         static const uint32_t EMPTY_PARAMS  = __IF_LEBE( 0x0000002C, 0x2C000000 ); // ",\0\0\0"
 
+        #pragma pack(push, 1)
         typedef struct sized_bundle_header_t
         {
             uint32_t    size;
@@ -30,6 +31,7 @@ namespace lsp
             uint64_t    sig;
             uint64_t    tag;
         } bundle_header_t;
+        #pragma pack(pop)
 
         enum forge_ref_type_t
         {
@@ -68,6 +70,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             forge->data     = reinterpret_cast<uint8_t *>(data);
+            forge->offset   = 0;
             forge->capacity = size;
             forge->dynamic  = false;
             forge->refs     = 1;
@@ -83,13 +86,21 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t forge_begin_dynamic(forge_frame_t *ref, forge_t *forge)
+        status_t forge_begin_dynamic(forge_frame_t *ref, forge_t *forge, size_t reserve)
         {
             if ((ref == NULL) || (forge == NULL))
                 return STATUS_BAD_ARGUMENTS;
 
+            uint8_t *buf    = NULL;
+            if (reserve > 0)
+            {
+                if ((buf = reinterpret_cast<uint8_t *>(::malloc(reserve))) == NULL)
+                    return STATUS_NO_MEM;
+            }
+
             forge->data     = NULL;
-            forge->capacity = 0;
+            forge->offset   = 0;
+            forge->capacity = reserve;
             forge->dynamic  = true;
             forge->refs     = 1;
             forge->toff     = 0;
@@ -237,10 +248,6 @@ namespace lsp
 
             if (ref->type == FRT_BUNDLE)
             {
-                // Disallow multiple bundles
-                if (buf->offset > 0)
-                    return STATUS_BAD_STATE;
-
                 // Append bundle header
                 sized_bundle_header_t hdr;
                 hdr.size        = 0;
