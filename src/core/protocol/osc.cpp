@@ -109,7 +109,7 @@ namespace lsp
             if (child == NULL)
                 return false;
 
-            for ( ; ref->parent != NULL; ref = ref->parent)
+            for ( ; ref != NULL; ref = ref->parent)
                 if (ref == child)
                     return false;
 
@@ -180,8 +180,8 @@ namespace lsp
             size_t capacity = buf->offset;
 
             // Estimate additional space for tag string
-            size_t old_pad  = (buf->tsize >> 2);
-            size_t new_pad  = ((buf->tsize + 1) >> 2);
+            size_t old_pad  = ((buf->tsize + sizeof(uint32_t) - 1) >> 2);
+            size_t new_pad  = ((buf->tsize + sizeof(uint32_t)) >> 2);
             if (old_pad != new_pad)
                 capacity        += sizeof(uint32_t);
 
@@ -196,7 +196,7 @@ namespace lsp
             // Need to insert some space for parameter tags?
             if (old_pad != new_pad)
             {
-                size_t aoff     = buf->toff + old_pad;
+                size_t aoff     = buf->toff + (old_pad << 2);
                 uint8_t *ptr    = &buf->data[aoff];
 
                 ::memmove(&ptr[sizeof(uint32_t)], ptr, buf->offset - aoff);
@@ -209,7 +209,7 @@ namespace lsp
             }
 
             // Append type tag
-            buf->data[buf->toff + buf->tsize] = uint8_t(type);
+            buf->data[buf->toff + buf->tsize - 1] = uint8_t(type);
             ++ buf->tsize;
 
             // Append data to buffer and pad tail with zeros
@@ -237,6 +237,10 @@ namespace lsp
 
             if (ref->type == FRT_BUNDLE)
             {
+                // Disallow multiple bundles
+                if (buf->offset > 0)
+                    return STATUS_BAD_STATE;
+
                 // Append bundle header
                 sized_bundle_header_t hdr;
                 hdr.size        = 0;
@@ -249,6 +253,10 @@ namespace lsp
             }
             else if (ref->type == FRT_ROOT)
             {
+                // Disallow multiple bundles
+                if (buf->offset > 0)
+                    return STATUS_BAD_STATE;
+
                 // Append bundle header
                 bundle_header_t hdr;
                 hdr.sig         = BUNDLE_SIG;
@@ -265,10 +273,11 @@ namespace lsp
             ref->child      = child;
 
             child->forge    = buf;
-            child->parent   = ref->parent;
+            child->parent   = ref;
             child->child    = NULL;
             child->type     = FRT_BUNDLE;
             child->offset   = offset;
+            ++ buf->refs;
 
             return STATUS_OK;
         }
@@ -291,7 +300,13 @@ namespace lsp
                 if (res != STATUS_OK)
                     return res;
             }
-            else if (ref->type != FRT_ROOT)
+            else if (ref->type == FRT_ROOT)
+            {
+                // Disallow multiple messages
+                if (buf->offset > 0)
+                    return STATUS_BAD_STATE;
+            }
+            else
                 return STATUS_BAD_STATE;
 
             // Append message string
@@ -300,8 +315,8 @@ namespace lsp
                 return res;
 
             // Append type string (should be always present)
-            ref->forge->toff    = buf->offset;
-            ref->forge->tsize   = 2; // ',' + '\0'
+            buf->toff       = buf->offset;
+            buf->tsize      = 2; // ',' + '\0'
 
             res                 = forge_append_bytes(buf, &EMPTY_PARAMS, sizeof(EMPTY_PARAMS));
             if (res != STATUS_OK)
@@ -311,10 +326,11 @@ namespace lsp
             ref->child      = child;
 
             child->forge    = buf;
-            child->parent   = ref->parent;
+            child->parent   = ref;
             child->child    = NULL;
             child->type     = FRT_MESSAGE;
             child->offset   = offset;
+            ++ buf->refs;
 
             return STATUS_OK;
         }
@@ -337,10 +353,11 @@ namespace lsp
             ref->child      = child;
 
             child->forge    = ref->forge;
-            child->parent   = ref->parent;
+            child->parent   = ref;
             child->child    = NULL;
-            child->type     = FRT_MESSAGE;
+            child->type     = FRT_ARRAY;
             child->offset   = 0;
+            ++ ref->forge->refs;
 
             return STATUS_OK;
         }
@@ -364,7 +381,21 @@ namespace lsp
 
         status_t forge_blob(forge_frame_t *ref, const void *data, size_t bytes)
         {
-            return forge_parameter(ref, FPT_OSC_BLOB, data, bytes);
+            if (ref == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (ref->child != NULL)
+                return STATUS_BAD_STATE;
+
+            // Should be FRT_MESSAGE to emit parameters
+            if ((ref->type != FRT_MESSAGE) && (ref->type != FRT_ARRAY))
+                return STATUS_BAD_STATE;
+
+            uint32_t len    = CPU_TO_BE(uint32_t(bytes));
+            status_t res    = forge_append_bytes(ref->forge, &len, sizeof(len));
+            if (res == STATUS_OK)
+                res = forge_parameter(ref, FPT_OSC_BLOB, data, bytes);
+
+            return res;
         }
 
         status_t forge_int64(forge_frame_t *ref, int64_t value)
@@ -413,6 +444,13 @@ namespace lsp
             if (n <= 0)
                 return STATUS_BAD_ARGUMENTS;
             return forge_parameter(ref, FPT_MIDI_MESSAGE, &x, n);
+        }
+
+        status_t forge_midi_raw(forge_frame_t *ref, const void *event, size_t bytes)
+        {
+            if ((bytes <= 0) || (bytes > 3))
+                return STATUS_BAD_ARGUMENTS;
+            return forge_parameter(ref, FPT_MIDI_MESSAGE, event, bytes);
         }
 
         status_t forge_bool(forge_frame_t *ref, bool value)

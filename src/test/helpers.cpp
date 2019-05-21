@@ -45,6 +45,15 @@ namespace test
         printf("\n");
     }
 
+    void dump_bytes(const char *text, const void *buf, size_t count)
+    {
+        printf("  dump of buffer %s:\n    ", text);
+        const uint8_t *b = reinterpret_cast<const uint8_t *>(buf);
+        while (count--)
+            printf("%02x ", *(b++));
+        printf("\n");
+    }
+
     void dump_buffer(const char *text, const ssize_t *buf, size_t count)
     {
         printf("  dump of buffer %s:\n    ", text);
