@@ -18,6 +18,7 @@
   compilation flag.
 * Added support of nested menus in the UI toolkit.
 * Added 3D scene rendeding support in the UI.
+* Added support of OSC messages serialization.
 - Implemented 3D reverb simulator.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
