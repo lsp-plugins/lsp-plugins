@@ -373,6 +373,12 @@ namespace lsp
             return forge_parameter(ref, FPT_INT64, &x, sizeof(x));
         }
 
+        status_t forge_double64(forge_frame_t *ref, double value)
+        {
+            double x        = CPU_TO_BE(value);
+            return forge_parameter(ref, FPT_DOUBLE64, &x, sizeof(x));
+        }
+
         status_t forge_time_tag(forge_frame_t *ref, uint64_t value)
         {
             uint64_t x      = CPU_TO_BE(value);
@@ -386,7 +392,11 @@ namespace lsp
 
         status_t forge_ascii(forge_frame_t *ref, char c)
         {
-            uint8_t x       = uint8_t(c);
+            // Needs clarification: OSC spec says "an ascii character, sent as 32 bits"
+            // Do we need to send a single byte and pad it to 4 bytes, or convert byte to 32-bit
+            // value and send it? More probable variant is the second
+            //uint8_t x       = uint8_t(c);
+            uint32_t x      = uint8_t(c);
             return forge_parameter(ref, FPT_ASCII_CHAR, &x, sizeof(x));
         }
 

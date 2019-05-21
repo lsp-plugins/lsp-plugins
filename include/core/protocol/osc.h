@@ -96,6 +96,7 @@ namespace lsp
         status_t forge_string(forge_frame_t *ref, const char *s);
         status_t forge_blob(forge_frame_t *ref, const void *data, size_t bytes);
         status_t forge_int64(forge_frame_t *ref, int64_t value);
+        status_t forge_double64(forge_frame_t *ref, double value);
         status_t forge_time_tag(forge_frame_t *ref, uint64_t value);
         status_t forge_type(forge_frame_t *ref, const char *s);
         status_t forge_ascii(forge_frame_t *ref, char c);
