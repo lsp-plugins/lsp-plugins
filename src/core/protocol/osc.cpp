@@ -342,6 +342,119 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t forge_message(forge_frame_t *ref, const char *address, const char *params...)
+        {
+            va_list args;
+            va_start(args, params);
+            status_t res = forge_messagev(ref, address, params, args);
+            va_end(args);
+            return res;
+        }
+
+        status_t forge_messagev(forge_frame_t *ref, const char *address, const char *params, va_list args)
+        {
+            forge_frame_t message;
+            status_t res = forge_begin_message(&message, ref, address);
+            if (res != STATUS_OK)
+                return res;
+
+            ssize_t recursive = 0;
+
+            if (params != NULL)
+            {
+                for (const char *fmt=params; *fmt != '\0'; ++fmt)
+                {
+                    switch (*fmt)
+                    {
+                        case FPT_INT32:
+                            res = forge_int32(&message, va_arg(args, int32_t));
+                            break;
+                        case FPT_FLOAT32:
+                        {
+                            float v = float(va_arg(args, double));
+                            res = (isinf(v)) ? forge_inf(&message) : forge_float32(&message, v);
+                            break;
+                        }
+                        case FPT_OSC_STRING:
+                        {
+                            const char *str = va_arg(args, const char *);
+                            res = (str != NULL) ? forge_string(&message, str) : forge_null(&message);
+                            break;
+                        }
+                        case FPT_INT64:
+                            res = forge_int64(&message, va_arg(args, int64_t));
+                            break;
+                        case FPT_OSC_TIMETAG:
+                            res = forge_time_tag(&message, va_arg(args, uint64_t));
+                            break;
+                        case FPT_DOUBLE64:
+                        {
+                            double v = va_arg(args, double);
+                            res = (isinf(v)) ? forge_inf(&message) : forge_double64(&message, v);
+                            break;
+                        }
+                        case FPT_TYPE:
+                        {
+                            const char *str = va_arg(args, const char *);
+                            res = (str != NULL) ? forge_type(&message, str) : forge_null(&message);
+                            break;
+                        }
+                        case FPT_ASCII_CHAR:
+                            res = forge_ascii(&message, char(va_arg(args, int)));
+                            break;
+                        case FPT_RGBA_COLOR:
+                            res = forge_rgba(&message, va_arg(args, uint32_t));
+                            break;
+                        case FPT_TRUE:
+                        case FPT_FALSE:
+                            res = forge_bool(&message, bool(va_arg(args, int)));
+                            break;
+                        case FPT_NULL:
+                            res = forge_null(&message);
+                            break;
+                        case FPT_INF:
+                            res = forge_inf(&message);
+                            break;
+
+                        case FPT_ARRAY_START:
+                            res = forge_parameter(&message, FPT_ARRAY_START, NULL, 0);
+                            if (res == STATUS_OK)
+                                ++recursive;
+                            break;
+                        case FPT_ARRAY_END:
+                            res = forge_parameter(&message, FPT_ARRAY_END, NULL, 0);
+                            if (res == STATUS_OK)
+                            {
+                                if (--recursive < 0)
+                                    res = STATUS_BAD_FORMAT;
+                            }
+                            break;
+
+                        case FPT_MIDI_MESSAGE:
+                        case FPT_OSC_BLOB:
+                            res = STATUS_NOT_SUPPORTED;
+                            break;
+
+                        default:
+                            return STATUS_BAD_FORMAT;
+                    }
+
+                    if (res != STATUS_OK)
+                        break;
+                }
+            }
+
+            if ((res == STATUS_OK) && (recursive != 0))
+                res = STATUS_BAD_FORMAT;
+
+            if (res == STATUS_OK)
+                res = forge_end(&message);
+            else
+                forge_end(&message);
+
+            return res;
+        }
+
         status_t forge_begin_array(forge_frame_t *child, forge_frame_t *ref)
         {
             if ((ref == NULL) || (!forge_check_child(child, ref)))
@@ -434,7 +547,7 @@ namespace lsp
             // Do we need to send a single byte and pad it to 4 bytes, or convert byte to 32-bit
             // value and send it? More probable variant is the second
             //uint8_t x       = uint8_t(c);
-            uint32_t x      = uint8_t(c);
+            uint32_t x      = CPU_TO_BE(uint32_t(c & 0xff));
             return forge_parameter(ref, FPT_ASCII_CHAR, &x, sizeof(x));
         }
 

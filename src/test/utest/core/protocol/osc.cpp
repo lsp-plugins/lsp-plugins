@@ -121,6 +121,24 @@ typedef struct message_bundle_t
 } message_bundle_t;
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+typedef struct format_message_t
+{
+    char        address[12];
+    char        types[16];
+
+    int32_t     int32;
+    float       float32;
+    char        string[12];
+    int64_t     int64;
+    uint64_t    time_tag;
+    double      double64;
+    char        type[12];
+    uint32_t    ascii;
+    uint32_t    rgba;
+} format_message_t;
+#pragma pack(pop)
+
 UTEST_BEGIN("core.protocol", osc)
     void test_simple_message()
     {
@@ -194,7 +212,7 @@ UTEST_BEGIN("core.protocol", osc)
         m.double64      = CPU_TO_BE(double(M_E));
         m.time_tag      = CPU_TO_BE(uint64_t(0xff00cc01aa028803ULL));
         strcpy(m.type, "type01");
-        m.ascii         = uint8_t('\n');
+        m.ascii         = CPU_TO_BE(uint32_t(uint8_t('\n')));
         m.rgba          = CPU_TO_BE(uint32_t(0x8080ff40));
         m.midi[0]       = 0x94;
         m.midi[1]       = 51;
@@ -458,12 +476,70 @@ UTEST_BEGIN("core.protocol", osc)
         }
     }
 
+    void test_format()
+    {
+        format_message_t m;
+
+        bzero(&m, sizeof(m));
+        strcpy(m.address, "/test/msg");
+        strcpy(m.types, ",ifshtdScrFNNI");
+        m.int32     = CPU_TO_BE(uint32_t(0xdeadbeef));
+        m.float32   = CPU_TO_BE(float(440.0f));
+        strcpy(m.string, "some_string");
+        m.int64     = CPU_TO_BE(int64_t(0x1122334455667788ULL));
+        m.time_tag  = CPU_TO_BE(uint64_t(0xcafebabecafefaceULL));
+        m.double64  = CPU_TO_BE(double(M_PI));
+        strcpy(m.type, "some_type");
+        m.ascii     = CPU_TO_BE(uint32_t('\n'));
+        m.rgba      = CPU_TO_BE(uint32_t(0xccffee44));
+
+        osc::packet_t packet;
+        osc::forge_t forge;
+        osc::forge_frame_t frame;
+
+        UTEST_ASSERT(osc::forge_begin_dynamic(&frame, &forge) == STATUS_OK);
+        {
+            status_t res = osc::forge_message(&frame, "/test/msg", "ifshtdScrTsSf",
+                    uint32_t(0xdeadbeef),
+                    float(440.0f),
+                    "some_string",
+                    int64_t(0x1122334455667788ULL),
+                    uint64_t(0xcafebabecafefaceULL),
+                    double(M_PI),
+                    "some_type",
+                    '\n',
+                    uint32_t(0xccffee44),
+                    false,
+                    NULL,
+                    NULL,
+                    INFINITY
+                );
+
+            UTEST_ASSERT(res == STATUS_OK);
+        }
+        UTEST_ASSERT(osc::forge_end(&frame) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_close(&packet, &forge) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_destroy(&forge) == STATUS_OK);
+
+        // Validate output data
+        UTEST_ASSERT(packet.data != NULL);
+        bool matches = (packet.size == sizeof(m)) && (::memcmp(packet.data, &m, sizeof(m)) == 0);
+        if (!matches)
+        {
+            dump_bytes("src", &m, sizeof(m));
+            dump_bytes("dst", packet.data, packet.size);
+            UTEST_FAIL_MSG("Source and destination messages differ");
+        }
+        osc::forge_free(packet.data);
+    }
+
     UTEST_MAIN
     {
         test_simple_message();
         test_parameters();
         test_message_bundle();
         test_overflow();
+        test_format();
     }
 UTEST_END;
 

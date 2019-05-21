@@ -11,6 +11,7 @@
 #include <core/types.h>
 #include <core/status.h>
 #include <core/midi.h>
+#include <stdarg.h>
 
 namespace lsp
 {
@@ -82,6 +83,26 @@ namespace lsp
          * @return status of operation
          */
         status_t forge_begin_message(forge_frame_t *child, forge_frame_t *ref, const char *address);
+
+        /**
+         * Forge message
+         * @param ref forge reference
+         * @param address message address
+         * @param params message parameters
+         * @param args list of arguments
+         * @return status of operation
+         */
+        status_t forge_message(forge_frame_t *ref, const char *address, const char *params...);
+
+        /**
+         * Forge message
+         * @param ref forge reference
+         * @param address message address
+         * @param params message parameters
+         * @param args list of arguments
+         * @return status of operation
+         */
+        status_t forge_messagev(forge_frame_t *ref, const char *address, const char *params, va_list args);
 
         /**
          * Begin serialization of array within OSC message
