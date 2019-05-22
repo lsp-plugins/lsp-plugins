@@ -17,13 +17,13 @@ namespace lsp
 {
     namespace osc
     {
-        typedef struct forge_t  forge_t;
-
         typedef struct packet_t
         {
             uint32_t        size;
             uint8_t        *data;
         } packet_t;
+
+        typedef struct forge_t  forge_t;
 
         typedef struct forge_frame_t
         {
@@ -45,6 +45,54 @@ namespace lsp
             size_t          refs;
             size_t          toff;       // Head of types field
             size_t          tsize;      // Size of types field
+        };
+
+        typedef struct parser_t parser_t;
+
+        typedef struct parser_frame_t
+        {
+            parser_t       *parser;
+            parser_frame_t *parent;
+            parser_frame_t *child;
+            size_t          type;
+
+            size_t          limit;
+        } parser_frame_t;
+
+        struct parser_t
+        {
+            const uint8_t  *data;
+            size_t          offset;
+            size_t          size;
+
+            size_t          refs;
+            const char     *args;
+        };
+
+        enum parser_token_t
+        {
+            PT_BUNDLE,
+            PT_MESSAGE,
+            PT_EOR,
+
+            PT_INT32,
+            PT_FLOAT32,
+            PT_OSC_STRING,
+            PT_OSC_BLOB,
+            PT_INT64,
+            PT_OSC_TIMETAG,
+            PT_DOUBLE64,
+            PT_TYPE,
+            PT_ASCII_CHAR,
+            PT_RGBA_COLOR,
+            PT_MIDI_MESSAGE,
+            PT_TRUE,
+            PT_FALSE,
+            PT_NULL,
+            PT_INF,
+            PT_ARRAY,
+
+            PT_SYMBOL          = PT_TYPE
         };
 
         /**
@@ -120,6 +168,7 @@ namespace lsp
         status_t forge_double64(forge_frame_t *ref, double value);
         status_t forge_time_tag(forge_frame_t *ref, uint64_t value);
         status_t forge_type(forge_frame_t *ref, const char *s);
+        status_t forge_symbol(forge_frame_t *ref, const char *s);
         status_t forge_ascii(forge_frame_t *ref, char c);
         status_t forge_rgba(forge_frame_t *ref, const uint32_t rgba);
         status_t forge_midi(forge_frame_t *ref, const midi_event_t *event);
@@ -157,6 +206,37 @@ namespace lsp
          * @return status of operation
          */
         void forge_free(void *ptr);
+
+
+        status_t parse_begin(parser_frame_t *ref, parser_t *parser, const void *data, size_t size);
+
+        status_t parse_get_token(parser_frame_t *ref, parser_token_t *token);
+
+        status_t parse_begin_message(parser_frame_t *child, parser_frame_t *ref, char *address, size_t maxlen);
+        status_t parse_begin_bundle(parser_frame_t *child, parser_frame_t *ref, uint64_t *time_tag);
+        status_t parse_begin_array(parser_frame_t *child, parser_frame_t *ref);
+
+        status_t parse_skip(parser_frame_t *ref);
+        status_t parse_int32(parser_frame_t *ref, int32_t *value);
+        status_t parse_float32(parser_frame_t *ref, float *value);
+        status_t parse_string(parser_frame_t *ref, char *s, size_t maxlen);
+        status_t parse_blob(parser_frame_t *ref, void *data, size_t *len, size_t maxlen);
+        status_t parse_int64(parser_frame_t *ref, int64_t *value);
+        status_t parse_double64(parser_frame_t *ref, double *value);
+        status_t parse_time_tag(parser_frame_t *ref, uint64_t *value);
+        status_t parse_type(parser_frame_t *ref, char *s, size_t maxlen);
+        status_t parse_symbol(parser_frame_t *ref, char *s, size_t maxlen);
+        status_t parse_ascii(parser_frame_t *ref, char *c);
+        status_t parse_rgba(parser_frame_t *ref, uint32_t *rgba);
+        status_t parse_midi(parser_frame_t *ref, midi_event_t *event);
+        status_t parse_midi_raw(parser_frame_t *ref, void *event, size_t *len);
+        status_t parse_bool(parser_frame_t *ref, bool *value);
+        status_t parse_null(parser_frame_t *ref);
+        status_t parse_inf(parser_frame_t *ref);
+
+        status_t parse_end(parser_frame_t *ref);
+
+        status_t parse_destroy(parser_t *parser);
     }
 }
 

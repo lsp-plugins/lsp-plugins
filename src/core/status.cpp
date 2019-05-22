@@ -58,6 +58,7 @@ namespace lsp
         "Removed",
         "Debugging breakpoint",
         "Read-only device or file system",
+        "The value is NULL",
         NULL
     };
 
