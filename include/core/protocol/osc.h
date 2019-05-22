@@ -210,7 +210,7 @@ namespace lsp
 
         status_t parse_begin(parser_frame_t *ref, parser_t *parser, const void *data, size_t size);
 
-        status_t parse_get_token(parser_frame_t *ref, parser_token_t *token);
+        status_t parse_token(parser_frame_t *ref, parser_token_t *token);
 
         status_t parse_begin_message(parser_frame_t *child, parser_frame_t *ref, char *address, size_t maxlen);
         status_t parse_begin_bundle(parser_frame_t *child, parser_frame_t *ref, uint64_t *time_tag);

@@ -731,7 +731,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t parse_get_token(parser_frame_t *ref, parser_token_t *token)
+        status_t parse_token(parser_frame_t *ref, parser_token_t *token)
         {
             if (ref == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -745,13 +745,11 @@ namespace lsp
             switch (ref->type)
             {
                 case FRT_ROOT:
-                    // Prevent root from duplicate reads
-                    if (buf->offset > 0)
-                        return STATUS_BAD_STATE;
-
                     // End of record?
                     if (left <= 0)
                         tok     = PT_EOR;
+                    else if (buf->offset > 0)
+                        return STATUS_CORRUPTED;
                     else if (buf->data[buf->offset] == '/')
                         tok     = PT_MESSAGE;
                     else if (size_t(left) > sizeof(bundle_header_t))
@@ -921,6 +919,7 @@ namespace lsp
                 if (ssize_t(arg_len) >= left)
                     return STATUS_CORRUPTED;
 
+                args            = &xptr.ch[1];
                 padded          = ((arg_len + sizeof(uint32_t)) >> 2) << 2;
                 left           -= padded;
                 xptr.u8        += padded;
@@ -932,8 +931,9 @@ namespace lsp
             child->child    = NULL;
             child->type     = FRT_MESSAGE;
             child->limit    = buf->offset + size;
+            ref->child      = child;
 
-            buf->offset     = ref->limit - xleft;
+            buf->offset     = ref->limit - left;
             buf->args       = args;
             ++ buf->refs;
 
@@ -994,6 +994,7 @@ namespace lsp
             child->child    = NULL;
             child->type     = FRT_BUNDLE;
             child->limit    = buf->offset + size;
+            ref->child      = child;
 
             buf->offset     = ref->limit - xleft;
             buf->args       = NULL;
@@ -1034,6 +1035,7 @@ namespace lsp
             child->child    = NULL;
             child->type     = FRT_BUNDLE;
             child->limit    = ref->limit;
+            ref->child      = child;
 
             ++ buf->args;
             ++ buf->refs;
@@ -1128,7 +1130,7 @@ namespace lsp
                 if (ch == type)
                 {
                     // Parse integer value
-                    if ((ref->limit - buf->offset) <= sizeof(T))
+                    if ((ref->limit - buf->offset) < sizeof(T))
                         return STATUS_CORRUPTED;
                     if (value != NULL)
                         *value  = BE_TO_CPU(*(reinterpret_cast<const T *>(&buf->data[buf->offset])));
@@ -1181,7 +1183,7 @@ namespace lsp
             if (ch == FPT_ASCII_CHAR)
             {
                 // Parse as 32-bit value
-                if ((ref->limit - buf->offset) <= sizeof(uint32_t))
+                if ((ref->limit - buf->offset) < sizeof(uint32_t))
                     return STATUS_CORRUPTED;
                 if (c != NULL)
                     *c  = buf->data[buf->offset + 3];
@@ -1215,7 +1217,7 @@ namespace lsp
                 if (ch == type)
                 {
                     // Parse float value
-                    if ((ref->limit - buf->offset) <= sizeof(T))
+                    if ((ref->limit - buf->offset) < sizeof(T))
                         return STATUS_CORRUPTED;
                     if (value != NULL)
                         *value  = BE_TO_CPU(*(reinterpret_cast<const T *>(&buf->data[buf->offset])));
@@ -1320,7 +1322,7 @@ namespace lsp
                 case FPT_OSC_BLOB:
                 {
                     size_t left     = ref->limit - buf->offset;
-                    if (left <= sizeof(uint32_t))
+                    if (left < sizeof(uint32_t))
                         return STATUS_CORRUPTED;
 
                     size_t size     = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(&buf->data[buf->offset])));
@@ -1353,7 +1355,7 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        status_t parse_flag(parser_frame_t *ref, forge_param_type_t type)
+        inline status_t parse_flag(parser_frame_t *ref, forge_param_type_t type)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1423,7 +1425,7 @@ namespace lsp
                 case FPT_MIDI_MESSAGE:
                 {
                     size_t left     = ref->limit - buf->offset;
-                    if (left <= sizeof(uint32_t))
+                    if (left < sizeof(uint32_t))
                         return STATUS_CORRUPTED;
 
                     midi_event_t ev;
@@ -1459,7 +1461,7 @@ namespace lsp
                 case FPT_MIDI_MESSAGE:
                 {
                     size_t left     = ref->limit - buf->offset;
-                    if (left <= sizeof(uint32_t))
+                    if (left < sizeof(uint32_t))
                         return STATUS_CORRUPTED;
 
                     midi_event_t ev;

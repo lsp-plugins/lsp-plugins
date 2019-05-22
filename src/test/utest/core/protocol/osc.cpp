@@ -25,6 +25,12 @@ static uint8_t simple_message[] =
     0x43,   0xdc,   0,      0
 };
 
+static uint8_t legacy_message[] =
+{
+    '/',    't',    'e',    's',
+    't',    0,      0,      0
+};
+
 #pragma pack(push, 1)
 typedef struct parameter_message_t
 {
@@ -139,8 +145,16 @@ typedef struct format_message_t
 } format_message_t;
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+typedef struct special_message_t
+{
+    char        address[12];
+    char        types[24];
+} special_message_t;
+#pragma pack(pop)
+
 UTEST_BEGIN("core.protocol", osc)
-    void test_simple_message()
+    void test_forge_simple_message()
     {
         osc::packet_t packet;
         osc::forge_t forge;
@@ -195,7 +209,7 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_free(packet.data);
     }
 
-    void test_parameters()
+    void test_forge_parameters()
     {
         // Initialize parametrized message
         parameter_message_t m;
@@ -298,7 +312,7 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_free(packet.data);
     }
 
-    void test_message_bundle()
+    void test_forge_message_bundle()
     {
         // Initialize message bundle
         message_bundle_t b;
@@ -432,7 +446,7 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_free(packet.data);
     }
 
-    void test_overflow()
+    void test_forge_overflow()
     {
         uint8_t buf[22];
 
@@ -476,7 +490,7 @@ UTEST_BEGIN("core.protocol", osc)
         }
     }
 
-    void test_format()
+    void test_forge_format()
     {
         format_message_t m;
 
@@ -533,13 +547,203 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_free(packet.data);
     }
 
+    void test_parse_legacy_message()
+    {
+        osc::parser_t parser;
+        osc::parser_frame_t frame, message;
+        osc::parser_token_t token;
+        uint64_t time_tag;
+        char address[80];
+
+        UTEST_ASSERT(osc::parse_begin(&frame, &parser, legacy_message, sizeof(legacy_message) - 1) != STATUS_OK);
+        UTEST_ASSERT(osc::parse_begin(&frame, &parser, NULL, sizeof(legacy_message) - 1) != STATUS_OK);
+        UTEST_ASSERT(osc::parse_begin(&frame, &parser, legacy_message, sizeof(legacy_message)) == STATUS_OK);
+        {
+            UTEST_ASSERT(osc::parse_token(&frame, &token) == STATUS_OK);
+            UTEST_ASSERT(token == osc::PT_MESSAGE);
+
+            UTEST_ASSERT(osc::parse_begin_bundle(&message, &frame, &time_tag) != STATUS_OK);
+            UTEST_ASSERT(osc::parse_begin_array(&message, &frame) != STATUS_OK);
+            UTEST_ASSERT(osc::parse_begin_message(&frame, &frame, address, sizeof(address)) != STATUS_OK);
+            UTEST_ASSERT(osc::parse_begin_message(&message, &frame, address, 5) == STATUS_OVERFLOW);
+
+            UTEST_ASSERT(osc::parse_begin_message(&message, &frame, address, 6) == STATUS_OK);
+            {
+                UTEST_ASSERT(strcmp(address, "/test") == 0);
+                UTEST_ASSERT(osc::parse_token(&frame, &token) != STATUS_OK);
+                UTEST_ASSERT(osc::parse_token(&message, &token) == STATUS_OK);
+                UTEST_ASSERT(token == osc::PT_EOR);
+            }
+            UTEST_ASSERT(osc::parse_end(&frame) != STATUS_OK);
+            UTEST_ASSERT(osc::parse_end(&message) == STATUS_OK);
+            UTEST_ASSERT(osc::parse_end(&message) != STATUS_OK);
+
+            UTEST_ASSERT(osc::parse_token(&frame, &token) == STATUS_OK);
+            UTEST_ASSERT(token == osc::PT_EOR);
+        }
+        UTEST_ASSERT(osc::parse_end(&frame) == STATUS_OK);
+        UTEST_ASSERT(osc::parse_end(&frame) != STATUS_OK);
+        UTEST_ASSERT(osc::parse_destroy(&parser) == STATUS_OK);
+    }
+
+    void test_parse_simple_message()
+    {
+        osc::parser_t parser;
+        osc::parser_frame_t frame, message, subframe;
+        osc::parser_token_t token;
+        char address[80];
+
+        union
+        {
+            uint32_t    u32;
+            float       f32;
+            double      d64;
+            int32_t     i32;
+            uint64_t    u64;
+            int64_t     i64;
+            size_t      sz;
+            char        ch;
+            midi_event_t midi;
+            bool        tf;
+        } xptr;
+
+        UTEST_ASSERT(osc::parse_begin(&frame, &parser, simple_message, sizeof(simple_message)) == STATUS_OK);
+        {
+            UTEST_ASSERT(osc::parse_begin_message(&message, &frame, address, sizeof(address)) == STATUS_OK);
+            {
+                UTEST_ASSERT(strcmp(address, "/oscillator/4/frequency") == 0);
+                UTEST_ASSERT(osc::parse_token(&message, &token) == STATUS_OK);
+                UTEST_ASSERT(token == osc::PT_FLOAT32);
+
+                UTEST_ASSERT(osc::parse_begin_bundle(&subframe, &message, &xptr.u64) != STATUS_OK);
+                UTEST_ASSERT(osc::parse_begin_message(&subframe, &message, address, sizeof(address)) != STATUS_OK);
+                UTEST_ASSERT(osc::parse_begin_array(&subframe, &message) != STATUS_OK);
+
+                UTEST_ASSERT(osc::parse_int32(&message, &xptr.i32) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_string(&message, address, sizeof(address)) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_blob(&message, address, &xptr.sz, sizeof(address)) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_int64(&message, &xptr.i64) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_double64(&message, &xptr.d64) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_time_tag(&message, &xptr.u64) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_type(&message, address, sizeof(address)) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_ascii(&message, &xptr.ch) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_rgba(&message, &xptr.u32) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_midi(&message, &xptr.midi) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_midi_raw(&message, address, &xptr.sz) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_bool(&message, &xptr.tf) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_null(&message) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_inf(&message) == STATUS_BAD_TYPE);
+
+                UTEST_ASSERT(osc::parse_float32(&message, &xptr.f32) == STATUS_OK);
+                UTEST_ASSERT(xptr.f32 == 440.0f);
+
+                UTEST_ASSERT(osc::parse_token(&message, &token) == STATUS_OK);
+                UTEST_ASSERT(token == osc::PT_EOR);
+
+                UTEST_ASSERT(osc::parse_int32(&message, &xptr.i32) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_string(&message, address, sizeof(address)) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_blob(&message, address, &xptr.sz, sizeof(address)) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_int64(&message, &xptr.i64) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_double64(&message, &xptr.d64) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_time_tag(&message, &xptr.u64) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_type(&message, address, sizeof(address)) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_ascii(&message, &xptr.ch) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_rgba(&message, &xptr.u32) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_midi(&message, &xptr.midi) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_midi_raw(&message, address, &xptr.sz) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_bool(&message, &xptr.tf) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_null(&message) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_inf(&message) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_float32(&message, &xptr.f32) == STATUS_EOF);
+
+            }
+            UTEST_ASSERT(osc::parse_end(&frame) != STATUS_OK);
+            UTEST_ASSERT(osc::parse_end(&message) == STATUS_OK);
+            UTEST_ASSERT(osc::parse_end(&message) != STATUS_OK);
+
+            UTEST_ASSERT(osc::parse_token(&frame, &token) == STATUS_OK);
+            UTEST_ASSERT(token == osc::PT_EOR);
+        }
+        UTEST_ASSERT(osc::parse_end(&frame) == STATUS_OK);
+        UTEST_ASSERT(osc::parse_end(&frame) != STATUS_OK);
+        UTEST_ASSERT(osc::parse_destroy(&parser) == STATUS_OK);
+    }
+
+    void test_parse_specials_message()
+    {
+        special_message_t m;
+        bzero(&m, sizeof(m));
+        strcpy(m.address, "/message001");
+        strcpy(m.types, ",NNNNNNNNNNNNNNNIIII");
+
+        // Parse the message
+        osc::parser_t parser;
+        osc::parser_frame_t frame, message;
+        osc::parser_token_t token;
+        char address[80];
+
+        float f32 = 0.0f;
+        double f64 = 0.0;
+
+        UTEST_ASSERT(osc::parse_begin(&frame, &parser, &m, sizeof(m)) == STATUS_OK);
+        {
+            UTEST_ASSERT(osc::parse_begin_message(&message, &frame, address, sizeof(address)) == STATUS_OK);
+            {
+                UTEST_ASSERT(strcmp(address, "/message001") == 0);
+                UTEST_ASSERT(osc::parse_token(&message, &token) == STATUS_OK);
+                UTEST_ASSERT(token == osc::PT_NULL);
+
+                UTEST_ASSERT(osc::parse_int32(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_float32(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_string(&message, NULL, 0) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_blob(&message, NULL, NULL, 0) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_int64(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_double64(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_time_tag(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_type(&message, NULL, 0) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_ascii(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_rgba(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_midi(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_midi_raw(&message, NULL, 0) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_bool(&message, NULL) == STATUS_NULL);
+                UTEST_ASSERT(osc::parse_null(&message) == STATUS_OK);
+                UTEST_ASSERT(osc::parse_inf(&message) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_null(&message) == STATUS_OK);
+
+                UTEST_ASSERT(osc::parse_int32(&message, NULL) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_inf(&message) == STATUS_OK);
+                UTEST_ASSERT(osc::parse_null(&message) == STATUS_BAD_TYPE);
+                UTEST_ASSERT(osc::parse_inf(&message) == STATUS_OK);
+
+                UTEST_ASSERT(osc::parse_float32(&message, &f32) == STATUS_OK);
+                UTEST_ASSERT(isinf(f32));
+                UTEST_ASSERT(osc::parse_double64(&message, &f64) == STATUS_OK);
+                UTEST_ASSERT(isinf(f64));
+
+                UTEST_ASSERT(osc::parse_null(&message) == STATUS_EOF);
+                UTEST_ASSERT(osc::parse_token(&message, &token) == STATUS_OK);
+                UTEST_ASSERT(token == osc::PT_EOR);
+            }
+            UTEST_ASSERT(osc::parse_end(&message) == STATUS_OK);
+
+            UTEST_ASSERT(osc::parse_token(&frame, &token) == STATUS_OK);
+            UTEST_ASSERT(token == osc::PT_EOR);
+        }
+        UTEST_ASSERT(osc::parse_end(&frame) == STATUS_OK);
+        UTEST_ASSERT(osc::parse_destroy(&parser) == STATUS_OK);
+    }
+
     UTEST_MAIN
     {
-        test_simple_message();
-        test_parameters();
-        test_message_bundle();
-        test_overflow();
-        test_format();
+        test_forge_simple_message();
+        test_forge_parameters();
+        test_forge_message_bundle();
+        test_forge_overflow();
+        test_forge_format();
+
+        test_parse_legacy_message();
+        test_parse_simple_message();
+        test_parse_specials_message();
     }
 UTEST_END;
 
