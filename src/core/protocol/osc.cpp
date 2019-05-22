@@ -754,7 +754,7 @@ namespace lsp
                         tok     = PT_EOR;
                     else if (buf->data[buf->offset] == '/')
                         tok     = PT_MESSAGE;
-                    else if (left > sizeof(bundle_header_t))
+                    else if (size_t(left) > sizeof(bundle_header_t))
                     {
                         union
                         {
@@ -769,7 +769,7 @@ namespace lsp
 
                 case FRT_BUNDLE:
                     buf     = ref->parser;
-                    if (left >= sizeof(uint32_t) * 2)
+                    if (size_t(left) >= sizeof(uint32_t) * 2)
                     {
                         union
                         {
@@ -874,7 +874,7 @@ namespace lsp
             // Need to read size?
             if (ref->type == FRT_BUNDLE)
             {
-                if (left <= sizeof(uint32_t))
+                if (size_t(left) <= sizeof(uint32_t))
                     return STATUS_CORRUPTED;
                 size        = BE_TO_CPU(*(xptr.u32)) + sizeof(uint32_t);
                 xptr.u8    += sizeof(uint32_t);
@@ -887,7 +887,7 @@ namespace lsp
             }
 
             // Is there enough size to read address?
-            if (left <= sizeof(uint32_t))
+            if (left <= ssize_t(sizeof(uint32_t)))
                 return STATUS_CORRUPTED;
             else if ((xptr.ch[0] != '/'))
                 return STATUS_BAD_TYPE;
@@ -970,7 +970,7 @@ namespace lsp
             // Need to read size?
             if (ref->type == FRT_BUNDLE)
             {
-                if (left <= sizeof(uint32_t))
+                if (size_t(left) <= sizeof(uint32_t))
                     return STATUS_CORRUPTED;
                 size        = BE_TO_CPU(*(xptr.u32)) + sizeof(uint32_t);
                 xptr.u8    += sizeof(uint32_t);
@@ -983,7 +983,7 @@ namespace lsp
             }
 
             // Is there enough size to read bundle header? Bundle header is valid
-            if (left <= sizeof(bundle_header_t))
+            if (left <= ssize_t(sizeof(bundle_header_t)))
                 return STATUS_CORRUPTED;
             else if (xptr.hdr->sig != BUNDLE_SIG)
                 return STATUS_BAD_TYPE;
@@ -1047,8 +1047,8 @@ namespace lsp
             if (!parse_check_msg(ref))
                 return STATUS_BAD_STATE;
 
-            parser_t *buf = ref->parser;
-            ssize_t skip  = 0;
+            parser_t *buf   = ref->parser;
+            size_t skip     = 0;
 
             switch (*(buf->args))
             {
@@ -1070,24 +1070,26 @@ namespace lsp
                 case FPT_OSC_STRING:
                 case FPT_TYPE:
                 {
-                    size_t left     = ref->limit - buf->offset;
+                    ssize_t left    = ref->limit - buf->offset;
+                    if (left <= 0)
+                        return STATUS_CORRUPTED;
                     const char *ch  = reinterpret_cast<const char *>(&buf->data[buf->offset]);
                     size_t len      = ::strnlen(ch, left);
                     skip            = ((len + sizeof(uint32_t)) >> 2) << 2;
-                    if (skip > left)
+                    if (skip > size_t(left))
                         return STATUS_CORRUPTED;
                     break;
                 }
 
                 case FPT_OSC_BLOB:
                 {
-                    size_t left     = ref->limit - buf->offset;
-                    if (left <= sizeof(uint32_t))
+                    ssize_t left    = ref->limit - buf->offset;
+                    if (left <= ssize_t(sizeof(uint32_t)))
                         return STATUS_CORRUPTED;
                     const uint32_t *u32 = reinterpret_cast<const uint32_t *>(&buf->data[buf->offset]);
                     size_t size     = BE_TO_CPU(*u32);
                     skip            = ((size + 2*sizeof(uint32_t) - 1) >> 2) << 2;
-                    if (skip > left)
+                    if (skip > size_t(left))
                         return STATUS_CORRUPTED;
                     break;
                 }
@@ -1485,13 +1487,76 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        /*
+        status_t parse_end(parser_frame_t *ref)
+        {
+            if (ref == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (ref->child != NULL)
+                return STATUS_BAD_STATE;
 
+            parser_t *buf = ref->parser;
+            if (buf == NULL)
+                return STATUS_BAD_STATE;
 
+            status_t res = STATUS_OK;
+            switch (ref->type)
+            {
+                case FRT_ROOT:
+                    if (buf->refs <= 0)
+                        return STATUS_BAD_STATE;
+                    --buf->refs;
+                    return STATUS_OK;
 
-        status_t parse_end(parser_frame_t *ref);
+                case FRT_ARRAY:
+                    if ((ref->parent == NULL) || (buf->args == NULL))
+                        return STATUS_BAD_STATE;
+                    while (*(buf->args) != FPT_ARRAY_END)
+                    {
+                        res = parse_skip(ref);
+                        if (res != STATUS_OK)
+                            return (res == STATUS_EOF) ? STATUS_CORRUPTED : res;
+                    }
+                    --buf->refs;
+                    break;
 
-        status_t parse_destroy(parser_t *parser);*/
+                case FRT_BUNDLE:
+                case FRT_MESSAGE:
+                    if (ref->parent == NULL)
+                        return STATUS_BAD_STATE;
+                    else if (buf->offset > ref->limit)
+                        return STATUS_CORRUPTED;
+
+                    buf->offset     = ref->limit;
+                    --buf->refs;
+                    break;
+
+                default:
+                    return STATUS_CORRUPTED;
+            }
+
+            // Unlink frame
+            ref->parent->child  = NULL;
+            ref->parser         = NULL;
+            ref->parent         = NULL;
+            ref->type           = FRT_UNKNOWN;
+            ref->limit          = buf->size;
+
+            return res;
+        }
+
+        status_t parse_destroy(parser_t *parser)
+        {
+            if (parser == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            parser->data    = NULL;
+            parser->offset  = 0;
+            parser->size    = 0;
+            parser->refs    = 0;
+            parser->args    = NULL;
+
+            return STATUS_OK;
+        }
     }
 }
 
