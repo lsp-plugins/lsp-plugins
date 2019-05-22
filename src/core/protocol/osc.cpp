@@ -6,6 +6,7 @@
  */
 
 #include <core/protocol/osc.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <core/stdlib/string.h>
 #include <dsp/endian.h>
@@ -1113,43 +1114,57 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t parse_value32(parser_frame_t *ref, void *value, forge_param_type_t type)
-        {
-            // Check state and arguments
-            if (!parse_check_msg(ref))
-                return STATUS_BAD_STATE;
-
-            parser_t *buf   = ref->parser;
-            char ch         = *(buf->args);
-            if (!ch)
-                return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
-            else if (ch == FPT_NULL)
+        template <class T>
+            inline status_t parse_int(parser_frame_t *ref, T *value, forge_param_type_t type)
             {
-                ++buf->args;
-                return STATUS_NULL;
-            }
-            else if (ch != type)
-                return STATUS_BAD_TYPE;
+                // Check state and arguments
+                if (!parse_check_msg(ref))
+                    return STATUS_BAD_STATE;
 
-            // Parse 32-bit value
-            if ((ref->limit - buf->offset) <= sizeof(uint32_t))
-                return STATUS_CORRUPTED;
-            if (value != NULL)
-                *(reinterpret_cast<uint32_t *>(value))  =
-                    BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(&buf->data[buf->offset])));
-            buf->offset    += sizeof(uint32_t);
-            ++buf->args;
-            return STATUS_OK;
-        }
+                parser_t *buf   = ref->parser;
+                char ch         = *(buf->args);
+                if (ch == type)
+                {
+                    // Parse integer value
+                    if ((ref->limit - buf->offset) <= sizeof(T))
+                        return STATUS_CORRUPTED;
+                    if (value != NULL)
+                        *value  = BE_TO_CPU(*(reinterpret_cast<const T *>(&buf->data[buf->offset])));
+                    buf->offset    += sizeof(T);
+                    ++buf->args;
+                    return STATUS_OK;
+                }
+
+                if (!ch)
+                    return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
+
+                if (ch == FPT_NULL)
+                {
+                    ++buf->args;
+                    return STATUS_NULL;
+                }
+
+                return STATUS_BAD_TYPE;
+            }
 
         status_t parse_int32(parser_frame_t *ref, int32_t *value)
         {
-            return parse_value32(ref, value, FPT_INT32);
+            return parse_int(ref, value, FPT_INT32);
         }
 
         status_t parse_rgba(parser_frame_t *ref, uint32_t *rgba)
         {
-            return parse_value32(ref, rgba, FPT_RGBA_COLOR);
+            return parse_int(ref, rgba, FPT_RGBA_COLOR);
+        }
+
+        status_t parse_int64(parser_frame_t *ref, int64_t *value)
+        {
+            return parse_int(ref, value, FPT_INT64);
+        }
+
+        status_t parse_time_tag(parser_frame_t *ref, uint64_t *value)
+        {
+            return parse_int(ref, value, FPT_OSC_TIMETAG);
         }
 
         status_t parse_ascii(parser_frame_t *ref, char *c)
@@ -1160,135 +1175,81 @@ namespace lsp
 
             parser_t *buf   = ref->parser;
             char ch         = *(buf->args);
+
+            if (ch == FPT_ASCII_CHAR)
+            {
+                // Parse as 32-bit value
+                if ((ref->limit - buf->offset) <= sizeof(uint32_t))
+                    return STATUS_CORRUPTED;
+                if (c != NULL)
+                    *c  = buf->data[buf->offset + 3];
+
+                buf->offset    += sizeof(uint32_t);
+                ++buf->args;
+                return STATUS_OK;
+            }
+
             if (!ch)
                 return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
-            else if (ch == FPT_NULL)
+
+            if (ch == FPT_NULL)
             {
                 ++buf->args;
                 return STATUS_NULL;
             }
-            else if (ch != FPT_ASCII_CHAR)
-                return STATUS_BAD_TYPE;
 
-            // Parse 32-bit value
-            if ((ref->limit - buf->offset) <= sizeof(uint32_t))
-                return STATUS_CORRUPTED;
-            if (c != NULL)
+            return STATUS_BAD_TYPE;
+        }
+
+        template <class T>
+            inline status_t parse_float(parser_frame_t *ref, T *value, forge_param_type_t type)
             {
-                uint32_t xc =
-                    BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(&buf->data[buf->offset])));
-                *c  = char(xc & 0xff);
-            }
-            buf->offset    += sizeof(uint32_t);
-            ++buf->args;
-            return STATUS_OK;
-        }
+                // Check state and arguments
+                if (!parse_check_msg(ref))
+                    return STATUS_BAD_STATE;
 
-        status_t parse_value64(parser_frame_t *ref, void *value, forge_param_type_t type)
-        {
-            // Check state and arguments
-            if (!parse_check_msg(ref))
-                return STATUS_BAD_STATE;
-
-            parser_t *buf   = ref->parser;
-            char ch         = *(buf->args);
-            if (!ch)
-                return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
-            else if (ch == FPT_NULL)
-            {
-                ++buf->args;
-                return STATUS_NULL;
-            }
-            else if (ch != type)
-                return STATUS_BAD_TYPE;
-
-            // Parse 64-bit value
-            if ((ref->limit - buf->offset) <= sizeof(uint64_t))
-                return STATUS_CORRUPTED;
-            if (value != NULL)
-                *(reinterpret_cast<uint64_t *>(value))  =
-                    BE_TO_CPU(*(reinterpret_cast<const uint64_t *>(&buf->data[buf->offset])));
-            buf->offset    += sizeof(uint64_t);
-            ++buf->args;
-            return STATUS_OK;
-        }
-
-        status_t parse_int64(parser_frame_t *ref, int64_t *value)
-        {
-            return parse_value64(ref, value, FPT_INT64);
-        }
-
-        status_t parse_time_tag(parser_frame_t *ref, uint64_t *value)
-        {
-            return parse_value64(ref, value, FPT_OSC_TIMETAG);
-        }
-
-        status_t parse_float32(parser_frame_t *ref, float *value)
-        {
-            // Check state and arguments
-            if (!parse_check_msg(ref))
-                return STATUS_BAD_STATE;
-
-            parser_t *buf = ref->parser;
-            switch (*(buf->args))
-            {
-                case FPT_FLOAT32:
-                    if ((ref->limit - buf->offset) <= sizeof(float))
+                parser_t *buf   = ref->parser;
+                char ch         = *(buf->args);
+                if (ch == type)
+                {
+                    // Parse float value
+                    if ((ref->limit - buf->offset) <= sizeof(T))
                         return STATUS_CORRUPTED;
                     if (value != NULL)
-                        *value  = BE_TO_CPU(*(reinterpret_cast<const float *>(&buf->data[buf->offset])));
-                    buf->offset    += sizeof(float);
+                        *value  = BE_TO_CPU(*(reinterpret_cast<const T *>(&buf->data[buf->offset])));
+                    buf->offset    += sizeof(T);
                     ++buf->args;
                     return STATUS_OK;
-                case FPT_INF:
+                }
+
+                if (!ch)
+                    return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
+
+                if (ch == FPT_NULL)
+                {
+                    ++buf->args;
+                    return STATUS_NULL;
+                }
+
+                if (ch == FPT_INF)
+                {
                     if (value != NULL)
                         *value  = INFINITY;
                     ++buf->args;
                     return STATUS_OK;
-                case FPT_NULL:
-                    ++buf->args;
-                    return STATUS_NULL;
-                case 0:
-                    return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
-                default:
-                    break;
+                }
+
+                return STATUS_BAD_TYPE;
             }
 
-            return STATUS_BAD_TYPE;
+        status_t parse_float32(parser_frame_t *ref, float *value)
+        {
+            return parse_float(ref, value, FPT_FLOAT32);
         }
 
         status_t parse_double64(parser_frame_t *ref, double *value)
         {
-            // Check state and arguments
-            if (!parse_check_msg(ref))
-                return STATUS_BAD_STATE;
-
-            parser_t *buf = ref->parser;
-            switch (*(buf->args))
-            {
-                case FPT_FLOAT32:
-                    if ((ref->limit - buf->offset) <= sizeof(double))
-                        return STATUS_CORRUPTED;
-                    if (value != NULL)
-                        *value  = BE_TO_CPU(*(reinterpret_cast<const double *>(&buf->data[buf->offset])));
-                    buf->offset    += sizeof(double);
-                    ++buf->args;
-                    return STATUS_OK;
-                case FPT_INF:
-                    if (value != NULL)
-                        *value  = INFINITY;
-                    ++buf->args;
-                    return STATUS_OK;
-                case FPT_NULL:
-                    ++buf->args;
-                    return STATUS_NULL;
-                case 0:
-                    return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
-                default:
-                    break;
-            }
-
-            return STATUS_BAD_TYPE;
+            return parse_float(ref, value, FPT_DOUBLE64);
         }
 
         status_t parse_string_value(parser_frame_t *ref, char *s, size_t maxlen, forge_param_type_t type)
@@ -1299,31 +1260,35 @@ namespace lsp
 
             parser_t *buf   = ref->parser;
             char ch         = *(buf->args);
+            if (ch == type)
+            {
+                // Perform string read
+                const char *str = reinterpret_cast<const char *>(&buf->data[buf->offset]);
+                size_t left     = ref->limit - buf->offset;
+                size_t len      = ::strnlen(str, left);
+
+                if (s != NULL)
+                {
+                    if (len >= maxlen)
+                        return STATUS_OVERFLOW;
+                    ::memcpy(s, str, len + 1);
+                }
+
+                buf->offset    += ((len + sizeof(uint32_t)) >> 2) << 2;
+                ++buf->args;
+                return STATUS_OK;
+            }
+
             if (!ch)
                 return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
-            else if (ch == FPT_NULL)
+
+            if (ch == FPT_NULL)
             {
                 ++buf->args;
                 return STATUS_NULL;
             }
-            else if (ch != type)
-                return STATUS_BAD_TYPE;
 
-            // Perform string read
-            const char *str = reinterpret_cast<const char *>(&buf->data[buf->offset]);
-            size_t left     = ref->limit - buf->offset;
-            size_t len      = ::strnlen(str, left);
-
-            if (s != NULL)
-            {
-                if (len >= maxlen)
-                    return STATUS_OVERFLOW;
-                ::memcpy(s, str, len + 1);
-            }
-
-            buf->offset    += ((len + sizeof(uint32_t)) >> 2) << 2;
-            ++buf->args;
-            return STATUS_OK;
+            return STATUS_BAD_TYPE;
         }
 
         status_t parse_string(parser_frame_t *ref, char *s, size_t maxlen)
