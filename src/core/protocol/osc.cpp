@@ -8,6 +8,7 @@
 #include <core/protocol/osc.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <core/stdlib/string.h>
 #include <dsp/endian.h>
 
@@ -431,13 +432,21 @@ namespace lsp
                             }
                             break;
 
-                        case FPT_MIDI_MESSAGE:
                         case FPT_OSC_BLOB:
+                        {
+                            size_t size     = va_arg(args, size_t);
+                            const void *ptr = va_arg(args, const void *);
+                            res = forge_blob(&message, ptr, size);
+                            break;
+                        }
+
+                        case FPT_MIDI_MESSAGE:
                             res = STATUS_NOT_SUPPORTED;
                             break;
 
                         default:
-                            return STATUS_BAD_FORMAT;
+                            res = STATUS_BAD_FORMAT;
+                            break;
                     }
 
                     if (res != STATUS_OK)
@@ -697,7 +706,7 @@ namespace lsp
         }
 
 
-        bool parse_check_child(parser_frame_t *child, parser_frame_t *ref)
+        bool parse_check_child(parse_frame_t *child, parse_frame_t *ref)
         {
             if ((ref == NULL) || (child == NULL))
                 return false;
@@ -709,7 +718,7 @@ namespace lsp
             return true;
         }
 
-        status_t parse_begin(parser_frame_t *ref, parser_t *parser, const void *data, size_t size)
+        status_t parse_begin(parse_frame_t *ref, parser_t *parser, const void *data, size_t size)
         {
             if ((ref == NULL) || (parser == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -731,7 +740,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t parse_token(parser_frame_t *ref, parser_token_t *token)
+        status_t parse_token(parse_frame_t *ref, parse_token_t *token)
         {
             if (ref == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -745,54 +754,45 @@ namespace lsp
             switch (ref->type)
             {
                 case FRT_ROOT:
+                case FRT_BUNDLE:
+                {
                     // End of record?
-                    if (left <= 0)
+                    if (left == 0)
+                    {
                         tok     = PT_EOR;
+                        break;
+                    }
+
+                    union
+                    {
+                        const bundle_header_t  *hdr;
+                        const uint32_t         *u32;
+                        const uint8_t          *u8;
+                    } xptr;
+
+                    xptr.u8     = &buf->data[buf->offset];
+                    size_t size = buf->size;
+
+                    // End of record?
+                    if (ref->type != FRT_ROOT)
+                    {
+                        size        = BE_TO_CPU(xptr.u32[0]);
+                        ++xptr.u32;
+                        left       -= 4;
+                    }
                     else if (buf->offset > 0)
                         return STATUS_CORRUPTED;
-                    else if (buf->data[buf->offset] == '/')
+
+                    // Check that size field is valid
+                    if (size_t(left) < size)
+                        return STATUS_CORRUPTED;
+
+                    if ((size >= sizeof(uint32_t)) && (xptr.u8[0] == '/'))
                         tok     = PT_MESSAGE;
-                    else if (size_t(left) > sizeof(bundle_header_t))
-                    {
-                        union
-                        {
-                            const bundle_header_t  *hdr;
-                            const uint8_t          *u8;
-                        } xptr;
-                        xptr.u8     = &buf->data[buf->offset];
-                        if (xptr.hdr->sig == BUNDLE_SIG)
-                            tok     = PT_BUNDLE;
-                    }
+                    else if ((size >= sizeof(bundle_header_t)) && (xptr.hdr->sig == BUNDLE_SIG))
+                        tok     = PT_BUNDLE;
                     break;
-
-                case FRT_BUNDLE:
-                    buf     = ref->parser;
-                    if (size_t(left) >= sizeof(uint32_t) * 2)
-                    {
-                        union
-                        {
-                            const sized_bundle_header_t  *hdr;
-                            const uint32_t               *u32;
-                            const uint8_t                *u8;
-                        } xptr;
-
-                        xptr.u8         = &buf->data[buf->offset];
-                        uint32_t size   = BE_TO_CPU(xptr.u32[0]);
-                        if (size >= sizeof(uint32_t))
-                        {
-                            if (xptr.u8[0] == '/')
-                                tok         = PT_BUNDLE;
-                            else if (size >= sizeof(sized_bundle_header_t))
-                            {
-                                if (xptr.hdr->sig == BUNDLE_SIG)
-                                    tok     = PT_BUNDLE;
-                            }
-                        }
-                    }
-                    else if (left <= 0)
-                        tok     = PT_EOR;
-
-                    break;
+                }
 
                 case FRT_MESSAGE:
                 case FRT_ARRAY:
@@ -841,11 +841,11 @@ namespace lsp
                 return STATUS_CORRUPTED;
 
             if (token != NULL)
-                *token      = parser_token_t(tok);
+                *token      = parse_token_t(tok);
             return STATUS_OK;
         }
 
-        status_t parse_begin_message(parser_frame_t *child, parser_frame_t *ref, char *address, size_t maxlen)
+        status_t parse_begin_message(parse_frame_t *child, parse_frame_t *ref, const char **address)
         {
             // Check state and arguments
             if (!parse_check_child(child, ref))
@@ -867,7 +867,6 @@ namespace lsp
             ssize_t left    = ref->limit - buf->offset;
             size_t size     = buf->size;
             xptr.u8         = &buf->data[buf->offset];
-            ssize_t xleft   = 0;
 
             // Need to read size?
             if (ref->type == FRT_BUNDLE)
@@ -878,8 +877,7 @@ namespace lsp
                 xptr.u8    += sizeof(uint32_t);
 
                 // Analyze size
-                xleft       = left - size;
-                if (xleft < 0)
+                if (size_t(left) < size)
                     return STATUS_CORRUPTED;
                 left       -= sizeof(uint32_t);
             }
@@ -895,8 +893,6 @@ namespace lsp
             size_t addr_len     = ::strnlen(addr, left);
             if (ssize_t(addr_len) >= left)
                 return STATUS_CORRUPTED;
-            else if ((address != NULL) && (addr_len >= maxlen))
-                return STATUS_OVERFLOW;
 
             // Estimate the padded data size and move pointer
             size_t padded   = ((addr_len + sizeof(uint32_t)) >> 2) << 2;
@@ -938,12 +934,12 @@ namespace lsp
             ++ buf->refs;
 
             if (address != NULL)
-                ::memcpy(address, addr, addr_len + 1);
+                *address    = addr;
 
             return STATUS_OK;
         }
 
-        status_t parse_begin_bundle(parser_frame_t *child, parser_frame_t *ref, uint64_t *time_tag)
+        status_t parse_begin_bundle(parse_frame_t *child, parse_frame_t *ref, uint64_t *time_tag)
         {
             // Check state and arguments
             if (!parse_check_child(child, ref))
@@ -965,19 +961,17 @@ namespace lsp
             ssize_t left    = ref->limit - buf->offset;
             size_t size     = buf->size;
             xptr.u8         = &buf->data[buf->offset];
-            ssize_t xleft   = 0;
 
             // Need to read size?
             if (ref->type == FRT_BUNDLE)
             {
-                if (size_t(left) <= sizeof(uint32_t))
+                if (left <= ssize_t(sizeof(uint32_t)))
                     return STATUS_CORRUPTED;
                 size        = BE_TO_CPU(*(xptr.u32)) + sizeof(uint32_t);
                 xptr.u8    += sizeof(uint32_t);
 
                 // Analyze size
-                xleft       = left - size;
-                if (xleft < 0)
+                if (size_t(left) < size)
                     return STATUS_CORRUPTED;
                 left       -= sizeof(uint32_t);
             }
@@ -987,6 +981,7 @@ namespace lsp
                 return STATUS_CORRUPTED;
             else if (xptr.hdr->sig != BUNDLE_SIG)
                 return STATUS_BAD_TYPE;
+            left           -= sizeof(bundle_header_t);
 
             // Store new frame data
             child->parser   = buf;
@@ -996,7 +991,7 @@ namespace lsp
             child->limit    = buf->offset + size;
             ref->child      = child;
 
-            buf->offset     = ref->limit - xleft;
+            buf->offset     = ref->limit - left;
             buf->args       = NULL;
             ++ buf->refs;
 
@@ -1006,7 +1001,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        inline bool parse_check_msg(parser_frame_t *ref)
+        inline bool parse_check_msg(parse_frame_t *ref)
         {
             if ((ref->child != NULL) || (ref->parser == NULL))
                 return false;
@@ -1015,7 +1010,7 @@ namespace lsp
             return (ref->parser->args != NULL);
         }
 
-        status_t parse_begin_array(parser_frame_t *child, parser_frame_t *ref)
+        status_t parse_begin_array(parse_frame_t *child, parse_frame_t *ref)
         {
             // Check state and arguments
             if (!parse_check_child(child, ref))
@@ -1041,17 +1036,22 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t parse_skip(parser_frame_t *ref)
+        status_t parse_skip(parse_frame_t *ref)
         {
             if ((ref->child != NULL) || (ref->parser == NULL))
                 return STATUS_BAD_STATE;
 
             if ((ref->type == FRT_ROOT) || (ref->type == FRT_BUNDLE))
             {
-                parser_frame_t frm;
+                if (ref->parser->offset == ref->limit)
+                    return STATUS_EOF;
+                else if ((ref->type == FRT_ROOT) && (ref->parser->offset > 0))
+                    return STATUS_CORRUPTED;
+
+                parse_frame_t frm;
 
                 // Try to parse as message
-                status_t res    = parse_begin_message(&frm, ref, NULL, 0);
+                status_t res    = parse_begin_message(&frm, ref, NULL);
                 if (res == STATUS_OK)
                     res     = parse_end(&frm);
                 else
@@ -1063,7 +1063,7 @@ namespace lsp
                 }
                 return res;
             }
-            else if ((ref->type != FRT_ARRAY) && (ref->type != FRT_MESSAGE))
+            else if ((ref->type == FRT_ARRAY) || (ref->type == FRT_MESSAGE))
             {
                 parser_t *buf   = ref->parser;
                 if (buf->args == NULL)
@@ -1105,7 +1105,7 @@ namespace lsp
                     case FPT_OSC_BLOB:
                     {
                         ssize_t left    = ref->limit - buf->offset;
-                        if (left <= ssize_t(sizeof(uint32_t)))
+                        if (left < ssize_t(sizeof(uint32_t)))
                             return STATUS_CORRUPTED;
                         const uint32_t *u32 = reinterpret_cast<const uint32_t *>(&buf->data[buf->offset]);
                         size_t size     = BE_TO_CPU(*u32);
@@ -1115,8 +1115,14 @@ namespace lsp
                         break;
                     }
 
-                    case FPT_ARRAY_START: // Do not allow to skip array start
-                        return STATUS_BAD_TYPE;
+                    case FPT_ARRAY_START: // Skip the entire array
+                    {
+                        parse_frame_t frm;
+                        status_t res = parse_begin_array(&frm, ref);
+                        if (res == STATUS_OK)
+                            res     = parse_end(&frm);
+                        return res;
+                    }
 
                     case FPT_ARRAY_END: // Do not allow to skip array end
                         return (ref->type == FRT_ARRAY) ? STATUS_EOF : STATUS_CORRUPTED;
@@ -1141,7 +1147,7 @@ namespace lsp
         }
 
         template <class T>
-            inline status_t parse_int(parser_frame_t *ref, T *value, forge_param_type_t type)
+            inline status_t parse_int(parse_frame_t *ref, T *value, forge_param_type_t type)
             {
                 // Check state and arguments
                 if (!parse_check_msg(ref))
@@ -1173,27 +1179,27 @@ namespace lsp
                 return STATUS_BAD_TYPE;
             }
 
-        status_t parse_int32(parser_frame_t *ref, int32_t *value)
+        status_t parse_int32(parse_frame_t *ref, int32_t *value)
         {
             return parse_int(ref, value, FPT_INT32);
         }
 
-        status_t parse_rgba(parser_frame_t *ref, uint32_t *rgba)
+        status_t parse_rgba(parse_frame_t *ref, uint32_t *rgba)
         {
             return parse_int(ref, rgba, FPT_RGBA_COLOR);
         }
 
-        status_t parse_int64(parser_frame_t *ref, int64_t *value)
+        status_t parse_int64(parse_frame_t *ref, int64_t *value)
         {
             return parse_int(ref, value, FPT_INT64);
         }
 
-        status_t parse_time_tag(parser_frame_t *ref, uint64_t *value)
+        status_t parse_time_tag(parse_frame_t *ref, uint64_t *value)
         {
             return parse_int(ref, value, FPT_OSC_TIMETAG);
         }
 
-        status_t parse_ascii(parser_frame_t *ref, char *c)
+        status_t parse_ascii(parse_frame_t *ref, char *c)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1228,7 +1234,7 @@ namespace lsp
         }
 
         template <class T>
-            inline status_t parse_float(parser_frame_t *ref, T *value, forge_param_type_t type)
+            inline status_t parse_float(parse_frame_t *ref, T *value, forge_param_type_t type)
             {
                 // Check state and arguments
                 if (!parse_check_msg(ref))
@@ -1268,17 +1274,17 @@ namespace lsp
                 return STATUS_BAD_TYPE;
             }
 
-        status_t parse_float32(parser_frame_t *ref, float *value)
+        status_t parse_float32(parse_frame_t *ref, float *value)
         {
             return parse_float(ref, value, FPT_FLOAT32);
         }
 
-        status_t parse_double64(parser_frame_t *ref, double *value)
+        status_t parse_double64(parse_frame_t *ref, double *value)
         {
             return parse_float(ref, value, FPT_DOUBLE64);
         }
 
-        status_t parse_string_value(parser_frame_t *ref, char *s, size_t maxlen, forge_param_type_t type)
+        status_t parse_string_value(parse_frame_t *ref, const char **s, forge_param_type_t type)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1294,11 +1300,7 @@ namespace lsp
                 size_t len      = ::strnlen(str, left);
 
                 if (s != NULL)
-                {
-                    if (len >= maxlen)
-                        return STATUS_OVERFLOW;
-                    ::memcpy(s, str, len + 1);
-                }
+                    *s  = str;
 
                 buf->offset    += ((len + sizeof(uint32_t)) >> 2) << 2;
                 ++buf->args;
@@ -1311,28 +1313,31 @@ namespace lsp
             if (ch == FPT_NULL)
             {
                 ++buf->args;
-                return STATUS_NULL;
+                if (s == NULL)
+                    return STATUS_NULL;
+                *s      = NULL;
+                return STATUS_OK;
             }
 
             return STATUS_BAD_TYPE;
         }
 
-        status_t parse_string(parser_frame_t *ref, char *s, size_t maxlen)
+        status_t parse_string(parse_frame_t *ref, const char **s)
         {
-            return parse_string_value(ref, s, maxlen, FPT_OSC_STRING);
+            return parse_string_value(ref, s, FPT_OSC_STRING);
         }
 
-        status_t parse_type(parser_frame_t *ref, char *s, size_t maxlen)
+        status_t parse_type(parse_frame_t *ref, const char **s)
         {
-            return parse_string_value(ref, s, maxlen, FPT_TYPE);
+            return parse_string_value(ref, s, FPT_TYPE);
         }
 
-        status_t parse_symbol(parser_frame_t *ref, char *s, size_t maxlen)
+        status_t parse_symbol(parse_frame_t *ref, const char **s)
         {
-            return parse_string_value(ref, s, maxlen, FPT_TYPE);
+            return parse_string_value(ref, s, FPT_TYPE);
         }
 
-        status_t parse_blob(parser_frame_t *ref, void *data, size_t *len, size_t maxlen)
+        status_t parse_blob(parse_frame_t *ref, const void **data, size_t *len)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1353,21 +1358,24 @@ namespace lsp
                         return STATUS_CORRUPTED;
 
                     if (data != NULL)
-                    {
-                        if (size > maxlen)
-                            return STATUS_OVERFLOW;
-                        ::memcpy(data, &buf->data[buf->offset + sizeof(uint32_t)], size);
-                        if (len != NULL)
-                            *len    = size;
-                    }
+                        *data   = &buf->data[buf->offset + sizeof(uint32_t)];
+                    if (len != NULL)
+                        *len    = size;
 
                     buf->offset    += skip;
                     ++buf->args;
                     return STATUS_OK;
                 }
                 case FPT_NULL:
+                {
                     ++buf->args;
-                    return STATUS_NULL;
+                    if (data == NULL)
+                        return STATUS_NULL;
+                    *data   = NULL;
+                    if (len != NULL)
+                        *len    = 0;
+                    return STATUS_OK;
+                }
                 case 0:
                     return (buf->offset == ref->limit) ? STATUS_EOF : STATUS_CORRUPTED;
                 default:
@@ -1377,7 +1385,7 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        inline status_t parse_flag(parser_frame_t *ref, forge_param_type_t type)
+        inline status_t parse_flag(parse_frame_t *ref, forge_param_type_t type)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1394,17 +1402,17 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t parse_null(parser_frame_t *ref)
+        status_t parse_null(parse_frame_t *ref)
         {
             return parse_flag(ref, FPT_NULL);
         }
 
-        status_t parse_inf(parser_frame_t *ref)
+        status_t parse_inf(parse_frame_t *ref)
         {
             return parse_flag(ref, FPT_INF);
         }
 
-        status_t parse_bool(parser_frame_t *ref, bool *value)
+        status_t parse_bool(parse_frame_t *ref, bool *value)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1435,7 +1443,7 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        status_t parse_midi(parser_frame_t *ref, midi_event_t *event)
+        status_t parse_midi(parse_frame_t *ref, midi_event_t *event)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1472,7 +1480,7 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        status_t parse_midi_raw(parser_frame_t *ref, void *event, size_t *len)
+        status_t parse_midi_raw(parse_frame_t *ref, const uint8_t **event, size_t *len)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -1490,12 +1498,11 @@ namespace lsp
                     midi_event_t ev;
                     if (!decode_midi_message(&ev, &buf->data[buf->offset]))
                         return STATUS_CORRUPTED;
+
                     if (event != NULL)
-                    {
-                        size_t midilen = encode_midi_message(&ev, reinterpret_cast<uint8_t *>(event));
-                        if (len != NULL)
-                            *len    = midilen;
-                    }
+                        *event  = &buf->data[buf->offset];
+                    if (len != NULL)
+                        *len    = encoded_midi_message_size(&ev);
 
                     buf->offset    += sizeof(uint32_t);
                     ++buf->args;
@@ -1513,7 +1520,7 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        status_t parse_end(parser_frame_t *ref)
+        status_t parse_end(parse_frame_t *ref)
         {
             if (ref == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -1583,6 +1590,119 @@ namespace lsp
             parser->args    = NULL;
 
             return STATUS_OK;
+        }
+
+        status_t parse_message(parse_frame_t *ref, const char *params, const char **address...)
+        {
+            va_list args;
+            va_start(args, address);
+            status_t res = parse_messagev(ref, params, address, args);
+            va_end(args);
+            return res;
+        }
+
+        status_t parse_messagev(parse_frame_t *ref, const char *params, const char **address, va_list args)
+        {
+            parse_frame_t message;
+            status_t res = parse_begin_message(&message, ref, address);
+            if (res != STATUS_OK)
+                return res;
+
+            ssize_t recursive = 0;
+
+            if (params != NULL)
+            {
+                for (const char *fmt=params; *fmt != '\0'; ++fmt)
+                {
+                    switch (*fmt)
+                    {
+                        case FPT_INT32:
+                            res     = parse_int32(&message, va_arg(args, int32_t *));
+                            break;
+                        case FPT_FLOAT32:
+                            res     = parse_float32(&message, va_arg(args, float *));
+                            break;
+                        case FPT_OSC_STRING:
+                            res     = parse_string(&message, va_arg(args, const char **));
+                            break;
+                        case FPT_INT64:
+                            res     = parse_int64(&message, va_arg(args, int64_t *));
+                            break;
+                        case FPT_OSC_TIMETAG:
+                            res     = parse_time_tag(&message, va_arg(args, uint64_t *));
+                            break;
+                        case FPT_DOUBLE64:
+                            res     = parse_double64(&message, va_arg(args, double *));
+                            break;
+                        case FPT_TYPE:
+                            res     = parse_type(&message, va_arg(args, const char **));
+                            break;
+                        case FPT_ASCII_CHAR:
+                            res     = parse_ascii(&message, va_arg(args, char *));
+                            break;
+                        case FPT_RGBA_COLOR:
+                            res     = parse_rgba(&message, va_arg(args, uint32_t *));
+                            break;
+                        case FPT_TRUE:
+                        case FPT_FALSE:
+                            res     = parse_bool(&message, va_arg(args, bool *));
+                            break;
+
+                        case FPT_ARRAY_START:
+                            if (message.parser->args[0] == FPT_ARRAY_START)
+                            {
+                                ++recursive;
+                                ++message.parser->args;
+                            }
+                            else
+                                res = STATUS_BAD_TYPE;
+
+                            break;
+                        case FPT_ARRAY_END:
+                            if (message.parser->args[0] == FPT_ARRAY_START)
+                            {
+                                if (--recursive < 0)
+                                    res = STATUS_BAD_FORMAT;
+                                else
+                                    ++ message.parser->args;
+                            }
+                            else
+                                res = STATUS_BAD_TYPE;
+                            break;
+
+                        case FPT_OSC_BLOB:
+                        {
+                            size_t *size        = va_arg(args, size_t *);
+                            const void **ptr    = va_arg(args, const void **);
+                            res     = parse_blob(&message, ptr, size);
+                            break;
+                        }
+
+                        case FPT_MIDI_MESSAGE:
+                            res = STATUS_NOT_SUPPORTED;
+                            break;
+
+                        default:
+                            res = STATUS_BAD_FORMAT;
+                            break;
+                    }
+
+                    if (res == STATUS_NULL)
+                        res     = STATUS_OK;
+                    else if (res != STATUS_OK)
+                        break;
+                }
+            }
+
+            if ((res == STATUS_OK) && (recursive != 0))
+                res = STATUS_BAD_FORMAT;
+
+            if (res == STATUS_OK)
+                res = parse_end(&message);
+            else
+                parse_end(&message);
+
+            return res;
         }
     }
 }
