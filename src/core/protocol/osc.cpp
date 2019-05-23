@@ -1012,9 +1012,7 @@ namespace lsp
                 return false;
             if ((ref->type != FRT_ARRAY) && (ref->type != FRT_MESSAGE))
                 return false;
-            if ((ref->parser == NULL) || (ref->parser->args == NULL))
-                return false;
-            return true;
+            return (ref->parser->args != NULL);
         }
 
         status_t parse_begin_array(parser_frame_t *child, parser_frame_t *ref)
@@ -1033,7 +1031,7 @@ namespace lsp
             child->parser   = buf;
             child->parent   = ref;
             child->child    = NULL;
-            child->type     = FRT_BUNDLE;
+            child->type     = FRT_ARRAY;
             child->limit    = ref->limit;
             ref->child      = child;
 
@@ -1045,75 +1043,99 @@ namespace lsp
 
         status_t parse_skip(parser_frame_t *ref)
         {
-            // Check state and arguments
-            if (!parse_check_msg(ref))
+            if ((ref->child != NULL) || (ref->parser == NULL))
                 return STATUS_BAD_STATE;
 
-            parser_t *buf   = ref->parser;
-            size_t skip     = 0;
-
-            switch (*(buf->args))
+            if ((ref->type == FRT_ROOT) || (ref->type == FRT_BUNDLE))
             {
-                case FPT_INT32:         skip = sizeof(int32_t); break;
-                case FPT_FLOAT32:       skip = sizeof(float); break;
-                case FPT_INT64:         skip = sizeof(int64_t); break;
-                case FPT_OSC_TIMETAG:   skip = sizeof(uint64_t); break;
-                case FPT_DOUBLE64:      skip = sizeof(double); break;
-                case FPT_ASCII_CHAR:    skip = sizeof(uint32_t); break;
-                case FPT_RGBA_COLOR:    skip = sizeof(uint32_t); break;
-                case FPT_MIDI_MESSAGE:  skip = sizeof(uint32_t); break;
+                parser_frame_t frm;
 
-                case FPT_TRUE:
-                case FPT_FALSE:
-                case FPT_NULL:
-                case FPT_INF:
-                    break; // skip = 0
-
-                case FPT_OSC_STRING:
-                case FPT_TYPE:
+                // Try to parse as message
+                status_t res    = parse_begin_message(&frm, ref, NULL, 0);
+                if (res == STATUS_OK)
+                    res     = parse_end(&frm);
+                else
                 {
-                    ssize_t left    = ref->limit - buf->offset;
-                    if (left <= 0)
-                        return STATUS_CORRUPTED;
-                    const char *ch  = reinterpret_cast<const char *>(&buf->data[buf->offset]);
-                    size_t len      = ::strnlen(ch, left);
-                    skip            = ((len + sizeof(uint32_t)) >> 2) << 2;
-                    if (skip > size_t(left))
-                        return STATUS_CORRUPTED;
-                    break;
+                    // Try to parse as bundle
+                    res     = parse_begin_bundle(&frm, ref, NULL);
+                    if (res == STATUS_OK)
+                        res     = parse_end(&frm);
                 }
-
-                case FPT_OSC_BLOB:
-                {
-                    ssize_t left    = ref->limit - buf->offset;
-                    if (left <= ssize_t(sizeof(uint32_t)))
-                        return STATUS_CORRUPTED;
-                    const uint32_t *u32 = reinterpret_cast<const uint32_t *>(&buf->data[buf->offset]);
-                    size_t size     = BE_TO_CPU(*u32);
-                    skip            = ((size + 2*sizeof(uint32_t) - 1) >> 2) << 2;
-                    if (skip > size_t(left))
-                        return STATUS_CORRUPTED;
-                    break;
-                }
-
-                case FPT_ARRAY_START: // Do not allow to skip array start
-                    return STATUS_BAD_TYPE;
-
-                case FPT_ARRAY_END: // Do not allow to skip array end
-                    return (ref->type == FRT_ARRAY) ? STATUS_EOF : STATUS_CORRUPTED;
-
-                case 0:
-                    if ((ref->type == FRT_ARRAY) || (buf->offset != ref->limit))
-                        return STATUS_CORRUPTED;
-                    return STATUS_EOF;
-
-                default:
-                    return STATUS_CORRUPTED;
+                return res;
             }
+            else if ((ref->type != FRT_ARRAY) && (ref->type != FRT_MESSAGE))
+            {
+                parser_t *buf   = ref->parser;
+                if (buf->args == NULL)
+                    return STATUS_BAD_STATE;
 
-            // Update position
-            buf->offset    += skip;
-            ++buf->args;
+                size_t skip     = 0;
+
+                switch (*(buf->args))
+                {
+                    case FPT_INT32:         skip = sizeof(int32_t); break;
+                    case FPT_FLOAT32:       skip = sizeof(float); break;
+                    case FPT_INT64:         skip = sizeof(int64_t); break;
+                    case FPT_OSC_TIMETAG:   skip = sizeof(uint64_t); break;
+                    case FPT_DOUBLE64:      skip = sizeof(double); break;
+                    case FPT_ASCII_CHAR:    skip = sizeof(uint32_t); break;
+                    case FPT_RGBA_COLOR:    skip = sizeof(uint32_t); break;
+                    case FPT_MIDI_MESSAGE:  skip = sizeof(uint32_t); break;
+
+                    case FPT_TRUE:
+                    case FPT_FALSE:
+                    case FPT_NULL:
+                    case FPT_INF:
+                        break; // skip = 0
+
+                    case FPT_OSC_STRING:
+                    case FPT_TYPE:
+                    {
+                        ssize_t left    = ref->limit - buf->offset;
+                        if (left <= 0)
+                            return STATUS_CORRUPTED;
+                        const char *ch  = reinterpret_cast<const char *>(&buf->data[buf->offset]);
+                        size_t len      = ::strnlen(ch, left);
+                        skip            = ((len + sizeof(uint32_t)) >> 2) << 2;
+                        if (skip > size_t(left))
+                            return STATUS_CORRUPTED;
+                        break;
+                    }
+
+                    case FPT_OSC_BLOB:
+                    {
+                        ssize_t left    = ref->limit - buf->offset;
+                        if (left <= ssize_t(sizeof(uint32_t)))
+                            return STATUS_CORRUPTED;
+                        const uint32_t *u32 = reinterpret_cast<const uint32_t *>(&buf->data[buf->offset]);
+                        size_t size     = BE_TO_CPU(*u32);
+                        skip            = ((size + 2*sizeof(uint32_t) - 1) >> 2) << 2;
+                        if (skip > size_t(left))
+                            return STATUS_CORRUPTED;
+                        break;
+                    }
+
+                    case FPT_ARRAY_START: // Do not allow to skip array start
+                        return STATUS_BAD_TYPE;
+
+                    case FPT_ARRAY_END: // Do not allow to skip array end
+                        return (ref->type == FRT_ARRAY) ? STATUS_EOF : STATUS_CORRUPTED;
+
+                    case 0:
+                        if ((ref->type == FRT_ARRAY) || (buf->offset != ref->limit))
+                            return STATUS_CORRUPTED;
+                        return STATUS_EOF;
+
+                    default:
+                        return STATUS_CORRUPTED;
+                }
+
+                // Update position
+                buf->offset    += skip;
+                ++buf->args;
+            }
+            else
+                return STATUS_BAD_STATE;
 
             return STATUS_OK;
         }
@@ -1399,7 +1421,7 @@ namespace lsp
                 case FPT_FALSE:
                     ++buf->args;
                     if (value != NULL)
-                        *value      = true;
+                        *value      = false;
                     return STATUS_OK;
                 case FPT_NULL:
                     ++buf->args;
@@ -1434,7 +1456,8 @@ namespace lsp
                     if (event != NULL)
                         *event  = ev;
 
-                    buf    += sizeof(uint32_t);
+                    buf->offset    += sizeof(uint32_t);
+                    ++buf->args;
                     return STATUS_OK;
                 }
                 case FPT_NULL:
@@ -1474,7 +1497,8 @@ namespace lsp
                             *len    = midilen;
                     }
 
-                    buf    += sizeof(uint32_t);
+                    buf->offset    += sizeof(uint32_t);
+                    ++buf->args;
                     return STATUS_OK;
                 }
                 case FPT_NULL:
@@ -1519,6 +1543,7 @@ namespace lsp
                             return (res == STATUS_EOF) ? STATUS_CORRUPTED : res;
                     }
                     --buf->refs;
+                    ++buf->args;
                     break;
 
                 case FRT_BUNDLE:

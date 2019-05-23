@@ -733,6 +733,163 @@ UTEST_BEGIN("core.protocol", osc)
         UTEST_ASSERT(osc::parse_destroy(&parser) == STATUS_OK);
     }
 
+    void test_parse_parameters()
+    {
+        // Forge the message using OSC serializer
+        osc::packet_t packet;
+        osc::forge_t forge;
+        osc::forge_frame_t sframe, smessage, sarray1, sarray2;
+
+        midi_event_t src_midi;
+        src_midi.timestamp      = 0;
+        src_midi.type           = MIDI_MSG_NOTE_ON;
+        src_midi.channel        = 4;
+        src_midi.note.pitch     = 51;
+        src_midi.note.velocity  = 0x7f;
+
+        uint8_t src_raw_midi[4];
+        src_raw_midi[0]         = MIDI_MSG_NOTE_OFF | 4;
+        src_raw_midi[1]         = 51;
+        src_raw_midi[2]         = 0x5f;
+
+        UTEST_ASSERT(osc::forge_begin_dynamic(&sframe, &forge) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_begin_message(&smessage, &sframe, "/address/01") == STATUS_OK);
+        {
+            UTEST_ASSERT(osc::forge_int32(&smessage, 0xdeadbeef) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_float32(&smessage, 440.0f) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_string(&smessage, "string1") == STATUS_OK);
+            UTEST_ASSERT(osc::forge_blob(&smessage, "BLOB1", 5) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_int64(&smessage, uint64_t(0x1234567855aacc33ULL)) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_double64(&smessage, 48000.0) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_time_tag(&smessage, uint64_t(0xff00cc01aa028803ULL)) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_type(&smessage, "type01") == STATUS_OK);
+            UTEST_ASSERT(osc::forge_ascii(&smessage, '\n') == STATUS_OK);
+            UTEST_ASSERT(osc::forge_rgba(&smessage, 0x8080ff40) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_midi(&smessage, &src_midi) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_midi_raw(&smessage, src_raw_midi, 3) == STATUS_OK);
+
+            UTEST_ASSERT(osc::forge_begin_array(&sarray1, &smessage) == STATUS_OK);
+            {
+                UTEST_ASSERT(osc::forge_int32(&sarray1, int32_t(0xfffefcfd)) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_bool(&sarray1, true) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_begin_array(&sarray2, &sarray1) == STATUS_OK);
+                {
+                    UTEST_ASSERT(osc::forge_string(&sarray2, "string2") == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_blob(&sarray2, "BLOB02", 6) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_int32(&sarray2, int32_t(0xcafeface)) == STATUS_OK);
+                    UTEST_ASSERT(osc::forge_inf(&sarray2) == STATUS_OK);
+                }
+                UTEST_ASSERT(osc::forge_end(&sarray2) == STATUS_OK);
+                UTEST_ASSERT(osc::forge_float32(&sarray1, 44100.0f) == STATUS_OK);
+            }
+            UTEST_ASSERT(osc::forge_end(&sarray1) == STATUS_OK);
+
+            UTEST_ASSERT(osc::forge_bool(&smessage, true) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_bool(&smessage, false) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_null(&smessage) == STATUS_OK);
+            UTEST_ASSERT(osc::forge_inf(&smessage) == STATUS_OK);
+        }
+        UTEST_ASSERT(osc::forge_end(&smessage) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_end(&sframe) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_close(&packet, &forge) == STATUS_OK);
+        UTEST_ASSERT(osc::forge_destroy(&forge) == STATUS_OK);
+
+        // Now deserialize and check the packet data
+        osc::parser_t parser;
+        osc::parser_frame_t dframe, dmessage, darray1, darray2;
+        char address[80];
+
+        midi_event_t dst_midi;
+        uint8_t dst_raw_midi[4];
+
+        union
+        {
+            uint32_t    u32;
+            float       f32;
+            double      d64;
+            int32_t     i32;
+            uint64_t    u64;
+            int64_t     i64;
+            size_t      sz;
+            char        ch;
+            midi_event_t midi;
+            bool        tf;
+        } xptr;
+
+        UTEST_ASSERT(osc::parse_begin(&dframe, &parser, packet.data, packet.size) == STATUS_OK);
+        UTEST_ASSERT(osc::parse_begin_message(&dmessage, &dframe, address, sizeof(address)) == STATUS_OK);
+        {
+            UTEST_ASSERT(osc::parse_int32(&dmessage, &xptr.i32) == STATUS_OK);
+            UTEST_ASSERT(xptr.i32 == int32_t(0xdeadbeef));
+            UTEST_ASSERT(osc::parse_float32(&dmessage, &xptr.f32) == STATUS_OK);
+            UTEST_ASSERT(xptr.f32 == 440.0f);
+            UTEST_ASSERT(osc::parse_string(&dmessage, address, sizeof(address)) == STATUS_OK);
+            UTEST_ASSERT(strcmp(address, "string1") == 0);
+            UTEST_ASSERT(osc::parse_blob(&dmessage, address, &xptr.sz, sizeof(address)) == STATUS_OK);
+            UTEST_ASSERT(xptr.sz == 5);
+            address[xptr.sz] = '\0';
+            UTEST_ASSERT(strcmp(address, "BLOB1") == 0);
+            UTEST_ASSERT(osc::parse_int64(&dmessage, &xptr.i64) == STATUS_OK);
+            UTEST_ASSERT(xptr.i64 == int64_t(0x1234567855aacc33ULL));
+            UTEST_ASSERT(osc::parse_double64(&dmessage, &xptr.d64) == STATUS_OK);
+            UTEST_ASSERT(xptr.d64 == 48000.0);
+            UTEST_ASSERT(osc::parse_time_tag(&dmessage, &xptr.u64) == STATUS_OK);
+            UTEST_ASSERT(xptr.u64 == uint64_t(0xff00cc01aa028803ULL));
+            UTEST_ASSERT(osc::parse_type(&dmessage, address, sizeof(address)) == STATUS_OK);
+            UTEST_ASSERT(strcmp(address, "type01") == 0);
+            UTEST_ASSERT(osc::parse_ascii(&dmessage, &xptr.ch) == STATUS_OK);
+            UTEST_ASSERT(xptr.ch == '\n');
+            UTEST_ASSERT(osc::parse_rgba(&dmessage, &xptr.u32) == STATUS_OK);
+            UTEST_ASSERT(xptr.u32 == 0x8080ff40);
+            UTEST_ASSERT(osc::parse_midi(&dmessage, &dst_midi) == STATUS_OK);
+            UTEST_ASSERT((src_midi.type == dst_midi.type) &&
+                    (src_midi.channel == dst_midi.channel) &&
+                    (src_midi.note.pitch == dst_midi.note.pitch) &&
+                    (src_midi.note.velocity == dst_midi.note.velocity));
+            UTEST_ASSERT(osc::parse_midi_raw(&dmessage, &dst_raw_midi, &xptr.sz) == STATUS_OK);
+            UTEST_ASSERT(xptr.sz == 3);
+            UTEST_ASSERT(memcmp(src_raw_midi, dst_raw_midi, 3) == 0);
+
+            UTEST_ASSERT(osc::parse_begin_array(&darray1, &dmessage) == STATUS_OK);
+            {
+                UTEST_ASSERT(osc::parse_int32(&darray1, &xptr.i32) == STATUS_OK);
+                UTEST_ASSERT(xptr.i32 == int32_t(0xfffefcfd));
+                UTEST_ASSERT(osc::parse_bool(&darray1, &xptr.tf) == STATUS_OK);
+                UTEST_ASSERT(xptr.tf == true);
+
+                UTEST_ASSERT(osc::parse_begin_array(&darray2, &darray1) == STATUS_OK);
+                {
+                    UTEST_ASSERT(osc::parse_string(&darray2, address, sizeof(address)) == STATUS_OK);
+                    UTEST_ASSERT(strcmp(address, "string2") == 0);
+                    UTEST_ASSERT(osc::parse_blob(&darray2, address, &xptr.sz, sizeof(address)) == STATUS_OK);
+                    UTEST_ASSERT(xptr.sz == 6);
+                    address[xptr.sz] = '\0';
+                    UTEST_ASSERT(strcmp(address, "BLOB02") == 0);
+                    UTEST_ASSERT(osc::parse_int32(&darray2, &xptr.i32) == STATUS_OK);
+                    UTEST_ASSERT(xptr.i32 == int32_t(0xcafeface));
+                    UTEST_ASSERT(osc::parse_inf(&darray2) == STATUS_OK);
+                }
+                UTEST_ASSERT(osc::parse_end(&darray2) == STATUS_OK);
+                UTEST_ASSERT(osc::parse_float32(&darray1, &xptr.f32) == STATUS_OK);
+                UTEST_ASSERT(xptr.f32 == 44100.0f);
+            }
+            UTEST_ASSERT(osc::parse_end(&darray1) == STATUS_OK);
+
+            UTEST_ASSERT(osc::parse_bool(&dmessage, &xptr.tf) == STATUS_OK);
+            UTEST_ASSERT(xptr.tf == true);
+            UTEST_ASSERT(osc::parse_bool(&dmessage, &xptr.tf) == STATUS_OK);
+            UTEST_ASSERT(xptr.tf == false);
+            UTEST_ASSERT(osc::parse_null(&dmessage) == STATUS_OK);
+            UTEST_ASSERT(osc::parse_inf(&dmessage) == STATUS_OK);
+        }
+        UTEST_ASSERT(osc::parse_end(&dmessage) == STATUS_OK);
+        UTEST_ASSERT(osc::parse_end(&dframe) == STATUS_OK);
+        UTEST_ASSERT(osc::parse_destroy(&parser) == STATUS_OK);
+
+        // Free the packet data
+        osc::forge_free(packet.data);
+    }
+
     UTEST_MAIN
     {
         test_forge_simple_message();
@@ -744,6 +901,7 @@ UTEST_BEGIN("core.protocol", osc)
         test_parse_legacy_message();
         test_parse_simple_message();
         test_parse_specials_message();
+        test_parse_parameters();
     }
 UTEST_END;
 
