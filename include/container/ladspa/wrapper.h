@@ -89,6 +89,7 @@ namespace lsp
                         case R_UI_SYNC:
                         case R_MIDI:
                         case R_PATH:
+                        case R_OSC:
                         default:
                             pPlugin->add_port(new LADSPAPort(port));
                             lsp_trace("added as stub port");

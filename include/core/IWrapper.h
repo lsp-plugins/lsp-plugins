@@ -11,6 +11,7 @@
 #include <core/ipc/ITask.h>
 #include <core/ipc/IExecutor.h>
 #include <core/ICanvas.h>
+#include <core/port_data.h>
 
 namespace lsp
 {

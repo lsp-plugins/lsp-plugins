@@ -129,7 +129,8 @@ namespace lsp
         R_FBUFFER,              // Frame buffer
         R_PATH,                 // Path to the local file
         R_MIDI,                 // MIDI events
-        R_PORT_SET              // Set of ports
+        R_PORT_SET,             // Set of ports
+        R_OSC                   // OSC events
     };
 
     enum flags_t
@@ -197,9 +198,10 @@ namespace lsp
 
     enum plugin_extension_t
     {
-        E_NONE                  = 0,
-        E_INLINE_DISPLAY        = 1 << 0,
-        E_3D_BACKEND            = 1 << 1
+        E_NONE                  = 0,        // No extensions
+        E_INLINE_DISPLAY        = 1 << 0,   // Supports InlineDisplay extension originally implemented in LV2 plugin format
+        E_3D_BACKEND            = 1 << 1,   // Supports 3D rendering backend
+        E_OSC                   = 1 << 2    // Supports OSC protocol messaging
     };
 
     enum port_group_type_t

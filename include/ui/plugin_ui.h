@@ -15,6 +15,7 @@
 #include <ui/ws/ws.h>
 #include <core/files/config.h>
 #include <core/io/IInStream.h>
+#include <core/port_data.h>
 
 namespace lsp
 {
