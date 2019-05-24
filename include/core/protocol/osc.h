@@ -19,7 +19,7 @@ namespace lsp
     {
         typedef struct packet_t
         {
-            uint32_t        size;
+            size_t          size;
             uint8_t        *data;
         } packet_t;
 

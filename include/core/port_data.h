@@ -24,10 +24,10 @@ namespace lsp
     // Mesh port structure
     typedef struct mesh_t
     {
-        mesh_state_t    nState;
-        size_t          nBuffers;
-        size_t          nItems;
-        float          *pvData[];
+        volatile mesh_state_t   nState;
+        size_t                  nBuffers;
+        size_t                  nItems;
+        float                  *pvData[];
 
         inline bool isEmpty() const         { return nState == M_EMPTY; };
         inline bool containsData() const    { return nState == M_DATA; };
@@ -71,7 +71,7 @@ namespace lsp
             size_t              nRows;              // Number of rows
             size_t              nCols;              // Number of columns
             uint32_t            nCapacity;          // Capacity (power of 2)
-            uint32_t            nRowID;             // Unique row identifier
+            volatile uint32_t   nRowID;             // Unique row identifier
             float              *vData;              // Aligned row data
             uint8_t            *pData;              // Allocated row data
 
@@ -157,13 +157,32 @@ namespace lsp
 
     } frame_buffer_t;
 
+    /**
+     * Buffer to transfer OSC packets between two threads.
+     * It is safe to use if one thread is reading data and one thread is
+     * submitting data. Otherwise, additional synchronization mechanism
+     * should be used
+     */
     typedef struct osc_buffer_t
     {
         volatile size_t     nSize;
         size_t              nCapacity;
-        volatile size_t     nHead;
-        volatile size_t     nTail;
+        size_t              nHead;
+        size_t              nTail;
         uint8_t            *pBuffer;
+        void               *pData;
+
+        /**
+         * Initialize buffer
+         * @param capacity the buffer capacity
+         * @return status of operation
+         */
+        static osc_buffer_t *create(size_t capacity);
+
+        /**
+         * Destroy the buffer
+         */
+        static void destroy(osc_buffer_t *buf);
 
         /**
          * Submit OSC packet to the queue
@@ -188,7 +207,7 @@ namespace lsp
          * @param limit
          * @return status of operation
          */
-        status_t    fetch_static(void *data, size_t *size, size_t limit);
+        status_t    fetch(void *data, size_t *size, size_t limit);
 
         /**
          * Fetch OSC packet to the already allocated memory
@@ -196,29 +215,13 @@ namespace lsp
          * @param limit maximum available size of data for the packet
          * @return status of operation
          */
-        status_t    fetch_static(osc::packet_t *packet, size_t limit);
-
-        /**
-         * Fetch OSC packet to the already allocated memory
-         * @param data pointer to store the output data
-         * @param size pointer to store size of fetched data
-         * @param start initial size of allocated data
-         * @return status of operation
-         */
-        status_t    fetch_dynamic(void **data, size_t *size, size_t start);
-
-        /**
-         * Fetch OSC packet to the already allocated memory
-         * @param packet pointer to the packet structure
-         * @param start initial size of allocated data
-         * @return status of operation
-         */
-        status_t    fetch_dynamic(osc::packet_t *packet, size_t start);
+        status_t    fetch(osc::packet_t *packet, size_t limit);
 
         /**
          * Skip current message in the buffer
+         * @return number of bytes skipped
          */
-        void        skip();
+        size_t      skip();
     } osc_buffer_t;
 
     // Path port structure

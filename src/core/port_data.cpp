@@ -7,6 +7,8 @@
 
 #include <core/port_data.h>
 #include <dsp/dsp.h>
+#include <dsp/atomic.h>
+#include <dsp/endian.h>
 #include <core/alloc.h>
 
 namespace lsp
@@ -46,7 +48,7 @@ namespace lsp
     void frame_buffer_t::clear()
     {
         dsp::fill_zero(vData, nCapacity * nCols);
-        nRowID         += nRows;
+        atomic_add(&nRowID, nRows);
     }
 
     void frame_buffer_t::seek(uint32_t row_id)
@@ -76,7 +78,7 @@ namespace lsp
     {
         uint32_t off    = nRowID & (nCapacity - 1);
         dsp::copy(&vData[off * nCols], row, nCols);
-        nRowID          ++; // Increment row identifier after bulk write
+        atomic_add(&nRowID, 1); // Increment row identifier after bulk write
     }
 
     void frame_buffer_t::write_row(uint32_t row_id, const float *row)
@@ -87,7 +89,7 @@ namespace lsp
 
     void frame_buffer_t::write_row()
     {
-        nRowID          ++; // Just increment row identifier
+        atomic_add(&nRowID, 1); // Just increment row identifier
     }
 
     bool frame_buffer_t::sync(const frame_buffer_t *fb)
@@ -205,6 +207,148 @@ namespace lsp
         pos->beatsPerMinute = BPM_DEFAULT;
         pos->tick           = 0;
         pos->ticksPerBeat   = DEFAULT_TICKS_PER_BEAT;
+    }
+
+    osc_buffer_t *osc_buffer_t::create(size_t capacity)
+    {
+        if (capacity % sizeof(uint32_t))
+            return NULL;
+
+        size_t to_alloc     = sizeof(osc_buffer_t) + capacity + DEFAULT_ALIGN;
+        void *data          = NULL;
+        uint8_t *ptr        = alloc_aligned<uint8_t>(data, to_alloc, DEFAULT_ALIGN);
+        if (ptr == NULL)
+            return NULL;
+
+        osc_buffer_t *res   = reinterpret_cast<osc_buffer_t *>(ptr);
+        ptr                += ALIGN_SIZE(sizeof(osc_buffer_t), DEFAULT_ALIGN);
+
+        res->nSize          = 0;
+        res->nCapacity      = 0;
+        res->nHead          = 0;
+        res->nTail          = 0;
+        res->pBuffer        = ptr;
+        res->pData          = data;
+
+        return res;
+    }
+
+    void osc_buffer_t::destroy(osc_buffer_t *buf)
+    {
+        if ((buf != NULL) && (buf->pData != NULL))
+            free_aligned(buf->pData);
+    }
+
+    status_t osc_buffer_t::submit(const void *data, size_t size)
+    {
+        if ((!size) || (size % sizeof(uint32_t)))
+            return STATUS_BAD_ARGUMENTS;
+
+        // Ensure that there is enough space in buffer
+        size_t oldsize  = nSize;
+        size_t newsize  = oldsize + size + sizeof(uint32_t);
+        if (newsize > nCapacity)
+            return (oldsize == 0) ? STATUS_TOO_BIG : STATUS_OVERFLOW;
+
+        // Store packet size to the buffer and move the tail
+        *(reinterpret_cast<uint32_t *>(&pBuffer[nTail])) = CPU_TO_BE(uint32_t(size));
+        nTail          += sizeof(uint32_t);
+        if (nTail > nCapacity)
+            nTail          -= nCapacity;
+
+        // Store packet data and move the tail
+        size_t head     = nCapacity - nTail;
+        if (size > head)
+        {
+            const uint8_t *src  = reinterpret_cast<const uint8_t *>(data);
+            ::memcpy(&pBuffer[nTail], src, head);
+            ::memcpy(pBuffer, &src[head], size - head);
+        }
+        else
+            ::memcpy(&pBuffer[nTail], data, size);
+
+        nTail          += size;
+        if (nTail > nCapacity)
+            nTail          -= nCapacity;
+
+        // Update the size
+        nSize           = newsize;
+        return STATUS_OK;
+    }
+
+    status_t osc_buffer_t::submit(const osc::packet_t *packet)
+    {
+        return (packet != NULL) ? submit(packet->data, packet->size) : STATUS_BAD_ARGUMENTS;
+    }
+
+    status_t osc_buffer_t::fetch(void *data, size_t *size, size_t limit)
+    {
+        if ((data == NULL) || (size == NULL) || (!limit))
+            return STATUS_BAD_ARGUMENTS;
+
+        // There is enough space in the buffer?
+        size_t bufsz    = nSize;
+        if (bufsz < sizeof(uint32_t))
+            return STATUS_NO_DATA;
+
+        // Read size, analyze state of the record and update head
+        size_t psize    = BE_TO_CPU(*(reinterpret_cast<uint32_t *>(&pBuffer[nHead])));
+        if (psize > limit) // We have enough space to store the data?
+            return STATUS_OVERFLOW;
+        if ((psize + sizeof(uint32_t)) > bufsz) // Record is valid?
+            return STATUS_CORRUPTED;
+        *size           = psize;
+        nHead          += sizeof(uint32_t);
+        if (nHead > nCapacity)
+            nHead          -= nCapacity;
+
+        // Copy the buffer contents
+        size_t head     = nCapacity - nHead;
+        if (head < psize)
+        {
+            uint8_t *dst    = reinterpret_cast<uint8_t *>(data);
+            ::memcpy(dst, &pBuffer[nHead], head);
+            ::memcpy(&dst[head], pBuffer, psize - head);
+        }
+        else
+            ::memcpy(data, &pBuffer[nHead], psize);
+
+        nHead          += psize;
+        if (nHead > nCapacity)
+            nHead          -= nCapacity;
+
+        // Decrement size
+        atomic_add(&nSize, -(psize + sizeof(uint32_t)));
+
+        return STATUS_OK;
+    }
+
+    status_t osc_buffer_t::fetch(osc::packet_t *packet, size_t limit)
+    {
+        return (packet != NULL) ? fetch(packet->data, &packet->size, limit) : STATUS_BAD_ARGUMENTS;
+    }
+
+    size_t osc_buffer_t::skip()
+    {
+        if (nSize <= sizeof(uint32_t))
+            return 0;
+
+        size_t bufsz    = nSize;
+        if (bufsz < sizeof(uint32_t))
+            return STATUS_NO_DATA;
+
+        size_t ihead    = nHead;
+        uint32_t *head  = reinterpret_cast<uint32_t *>(&pBuffer[ihead]);
+        size_t psize    = BE_TO_CPU(*head);
+
+        if ((psize + sizeof(uint32_t)) > bufsz) // Record is valid?
+            return 0;
+
+        // Decrement the size and update the head
+        nHead           = (ihead + psize + sizeof(uint32_t)) % nCapacity;
+        atomic_add(&nSize, -(psize + sizeof(uint32_t)));
+
+        return psize;
     }
 }
 

@@ -59,6 +59,7 @@ namespace lsp
         "Debugging breakpoint",
         "Read-only device or file system",
         "The value is NULL",
+        "The object is currently locked",
         NULL
     };
 
