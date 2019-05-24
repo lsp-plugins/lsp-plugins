@@ -34,6 +34,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pcomplex_rcp1(float *dst, size_t count);
+        void pcomplex_rcp2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* pcomplex_rcp1_t) (float *dst, size_t count);
 typedef void (* pcomplex_rcp2_t) (float *dst, const float *src, size_t count);
 
@@ -87,12 +95,14 @@ PTEST_BEGIN("dsp.pcomplex", rcp, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:pcomplex_rcp1", out, count, native::pcomplex_rcp1);
-            CALL("native:pcomplex_rcp2", out, in, count, native::pcomplex_rcp2);
-            IF_ARCH_X86(CALL("sse:pcomplex_rcp1", out, count, sse::pcomplex_rcp1));
-            IF_ARCH_X86(CALL("sse:pcomplex_rcp2", out, in, count, sse::pcomplex_rcp2));
-            IF_ARCH_ARM(CALL("neon_d32:pcomplex_rcp1", out, count, neon_d32::pcomplex_rcp1));
-            IF_ARCH_ARM(CALL("neon_d32:pcomplex_rcp2", out, in, count, neon_d32::pcomplex_rcp2));
+            CALL("native::pcomplex_rcp1", out, count, native::pcomplex_rcp1);
+            CALL("native::pcomplex_rcp2", out, in, count, native::pcomplex_rcp2);
+            IF_ARCH_X86(CALL("sse::pcomplex_rcp1", out, count, sse::pcomplex_rcp1));
+            IF_ARCH_X86(CALL("sse::pcomplex_rcp2", out, in, count, sse::pcomplex_rcp2));
+            IF_ARCH_ARM(CALL("neon_d32::pcomplex_rcp1", out, count, neon_d32::pcomplex_rcp1));
+            IF_ARCH_ARM(CALL("neon_d32::pcomplex_rcp2", out, in, count, neon_d32::pcomplex_rcp2));
+            IF_ARCH_AARCH64(CALL("asimd::pcomplex_rcp1", out, count, asimd::pcomplex_rcp1));
+            IF_ARCH_AARCH64(CALL("asimd::pcomplex_rcp2", out, in, count, asimd::pcomplex_rcp2));
 
             PTEST_SEPARATOR;
         }

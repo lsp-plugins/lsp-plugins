@@ -31,6 +31,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pcomplex_r2c(float *dst, const float *src, size_t count);
+        void pcomplex_c2r(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* complex_cvt_t) (float *dst, const float *src, size_t count);
 
 UTEST_BEGIN("dsp.pcomplex", cvt)
@@ -75,11 +83,14 @@ UTEST_BEGIN("dsp.pcomplex", cvt)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:pcomplex_r2c", 16, 1, 2, native::pcomplex_r2c, sse::pcomplex_r2c));
-        IF_ARCH_X86(call("sse:pcomplex_c2r", 16, 2, 1, native::pcomplex_c2r, sse::pcomplex_c2r));
+        IF_ARCH_X86(call("sse::pcomplex_r2c", 16, 1, 2, native::pcomplex_r2c, sse::pcomplex_r2c));
+        IF_ARCH_X86(call("sse::pcomplex_c2r", 16, 2, 1, native::pcomplex_c2r, sse::pcomplex_c2r));
 
-        IF_ARCH_ARM(call("neon_d32:pcomplex_r2c", 16, 1, 2, native::pcomplex_r2c, neon_d32::pcomplex_r2c));
-        IF_ARCH_ARM(call("neon_d32:pcomplex_c2r", 16, 2, 1, native::pcomplex_c2r, neon_d32::pcomplex_c2r));
+        IF_ARCH_ARM(call("neon_d32::pcomplex_r2c", 16, 1, 2, native::pcomplex_r2c, neon_d32::pcomplex_r2c));
+        IF_ARCH_ARM(call("neon_d32::pcomplex_c2r", 16, 2, 1, native::pcomplex_c2r, neon_d32::pcomplex_c2r));
+
+        IF_ARCH_AARCH64(call("asimd::pcomplex_r2c", 16, 1, 2, native::pcomplex_r2c, asimd::pcomplex_r2c));
+        IF_ARCH_AARCH64(call("asimd::pcomplex_c2r", 16, 2, 1, native::pcomplex_c2r, asimd::pcomplex_c2r));
     }
 
 UTEST_END

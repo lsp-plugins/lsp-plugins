@@ -19,6 +19,9 @@
 * Added support of nested menus in the UI toolkit.
 * Added 3D scene rendeding support in the UI.
 * Added support of OSC messages serialization.
+* Optimized complex number functions for AArch64 architecture.
+* Changed installation path for jack core library from <lib-path> to <lib-path>/lsp-plugins.
+* Added more careful file type analysis for non-EXT file systems.
 - Implemented 3D reverb simulator.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
@@ -181,6 +184,23 @@ Tobbe:
     - Make all grid lines more 'darken' in the UI.
     - Add possibility to activate bands not only by switching dropdown menu in the Combo Group.
     - Implement tabs instead of combo group.
+
+==== Reference Looper ====
+  lordbullingdon
+	Hey. Does anyone know of a native Linux tool for easy mix referencing in the likes of
+	https://www.producerspot.com/magic-ab-2-utility-plugin-by-sample-magic
+	
+	Sample Magic intros Magic AB 2, the second version of their plugin utility that can be used to
+	switch between the audio you are working on in your music software, and up to nine reference tracks.
+	Magic AB v2 is an entirely new plugin, rebuilt from the ground up into a new framework.
+
+	Magic AB 2 is an indispensable mixing tool and a workflow improver that allow you to compare multiple
+	audio streams, like your track you are working on, with any commercially produced reference track in a
+	variety of audio formats (mp3, Aiff, Wav, m4a, AAC). Flick between them and your mix with a single mouse click.
+
+	Magic AB 2 new version comes with new features and powerful workflow improvements including two new referencing
+	modes, RAM-bypass mode, drag and drop files, Mono/Stereo switching – Compare stereo mixes or flip to mono
+	to check mono compatibility, also it features up to four programmable Cue and Loop point per track and many more.
 
 ==== Equalizer tuning ====
   Jan Lentfer

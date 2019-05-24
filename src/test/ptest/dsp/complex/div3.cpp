@@ -31,6 +31,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
+    }
+)
+
 typedef void (* complex_div3_t) (float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -70,9 +77,10 @@ PTEST_BEGIN("dsp.complex", div3, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:complex_div3", out, in1, in2, count, native::complex_div3);
-            IF_ARCH_X86(CALL("sse:complex_div3", out, in1, in2, count, sse::complex_div3));
-            IF_ARCH_ARM(CALL("neon_d32:complex_div3", out, in1, in2, count, neon_d32::complex_div3));
+            CALL("native::complex_div3", out, in1, in2, count, native::complex_div3);
+            IF_ARCH_X86(CALL("sse::complex_div3", out, in1, in2, count, sse::complex_div3));
+            IF_ARCH_ARM(CALL("neon_d32::complex_div3", out, in1, in2, count, neon_d32::complex_div3));
+            IF_ARCH_AARCH64(CALL("asimd:complex_div3", out, in1, in2, count, asimd::complex_div3));
 
             PTEST_SEPARATOR;
         }

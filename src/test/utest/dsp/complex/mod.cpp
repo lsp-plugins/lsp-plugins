@@ -27,6 +27,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+    }
+)
+
 typedef void (* pcomplex_mod_t)(float *dst_mod, const float *src, size_t count);
 typedef void (* complex_mod_t)(float *dst_mod, const float *src_re, const float *src_im, size_t count);
 
@@ -73,8 +80,9 @@ UTEST_BEGIN("dsp.complex", mod)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:complex_mod", 16, sse::complex_mod));
-        IF_ARCH_ARM(call("neon_d32:complex_mod", 16, neon_d32::complex_mod));
+        IF_ARCH_X86(call("sse::complex_mod", 16, sse::complex_mod));
+        IF_ARCH_ARM(call("neon_d32::complex_mod", 16, neon_d32::complex_mod));
+        IF_ARCH_AARCH64(call("asimd::complex_mod", 16, asimd::complex_mod));
     }
 
 UTEST_END

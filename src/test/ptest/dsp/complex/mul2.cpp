@@ -31,6 +31,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void complex_mul2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    }
+)
+
 typedef void (* complex_mul2_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -72,6 +79,7 @@ PTEST_BEGIN("dsp.complex", mul2, 5, 1000)
             CALL("native:complex_mul2", out, in, count, native::complex_mul2);
             IF_ARCH_X86(CALL("sse:complex_mul2", out, in, count, sse::complex_mul2));
             IF_ARCH_ARM(CALL("neon_d32:complex_mul2", out, in, count, neon_d32::complex_mul2));
+            IF_ARCH_AARCH64(CALL("asimd:complex_mul2", out, in, count, asimd::complex_mul2));
 
             PTEST_SEPARATOR;
         }
