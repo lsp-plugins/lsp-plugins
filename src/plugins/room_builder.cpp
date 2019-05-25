@@ -69,6 +69,8 @@ namespace lsp
         nSceneStatus    = STATUS_UNSPECIFIED;
         fSceneProgress  = 0.0f;
 
+        pOscIn          = NULL;
+        pOscOut         = NULL;
         pBypass         = NULL;
         pRank           = NULL;
         pDry            = NULL;
@@ -230,6 +232,11 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             vChannels[i].pOut   = vPorts[port_id++];
         }
+
+        TRACE_PORT(vPorts[port_id]);
+        pOscIn          = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pOscOut         = vPorts[port_id++];
 
         // Bind controlling ports
         lsp_trace("Binding common ports");

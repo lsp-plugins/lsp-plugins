@@ -326,6 +326,17 @@ namespace lsp
                 break;
             }
 
+            case R_OSC:
+                jp      = new JACKOscPort(port, this);
+                if (IS_OUT_PORT(port))
+                {
+                    jup     = new JACKUIOscPortIn(jp);
+                    vSyncPorts.add(jup);
+                }
+                else
+                    jup     = new JACKUIOscPortOut(jp);
+                break;
+
             case R_PATH:
                 jp      = new JACKPathPort(port, this);
                 jup     = new JACKUIPathPort(jp);
@@ -663,8 +674,10 @@ namespace lsp
         for (size_t i=0; i<sync; ++i)
         {
             JACKUIPort *jup     = vSyncPorts.at(i);
-            if (jup->sync())
-                jup->notify_all();
+            do {
+                if (jup->sync())
+                    jup->notify_all();
+            } while (jup->sync_again());
         }
         if (pUI != NULL)
             pUI->sync_meta_ports();

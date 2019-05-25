@@ -63,8 +63,10 @@
 #define LSP_LV2_LATENCY_PORT                            "out_latency"
 #define LSP_LV2_ATOM_PORT_IN                            "in_ui"
 #define LSP_LV2_MIDI_PORT_IN                            "in_midi"
+#define LSP_LV2_OSC_PORT_IN                             "in_osc"
 #define LSP_LV2_ATOM_PORT_OUT                           "out_ui"
 #define LSP_LV2_MIDI_PORT_OUT                           "out_midi"
+#define LSP_LV2_OSC_PORT_OUT                            "out_osc"
 
 #ifdef LSP_INSTALL_PREFIX
     #define LSP_LIB_PREFIX(x)       LSP_INSTALL_PREFIX x

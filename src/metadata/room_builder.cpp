@@ -248,6 +248,7 @@ namespace lsp
         AUDIO_INPUT_MONO,
         AUDIO_OUTPUT_LEFT,
         AUDIO_OUTPUT_RIGHT,
+        PORTS_OSC_CHANNEL,
         RB_COMMON(RB_PAN_MONO),
 
         COMBO("ssel", "Source selector", 0, rb_ssel),
@@ -277,6 +278,7 @@ namespace lsp
     {
         // Input audio ports
         PORTS_STEREO_PLUGIN,
+        PORTS_OSC_CHANNEL,
         RB_COMMON(RB_PAN_STEREO),
 
         COMBO("ssel", "Source selector", 0, rb_ssel),

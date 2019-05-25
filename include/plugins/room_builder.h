@@ -173,6 +173,8 @@ namespace lsp
             float                   fSceneProgress;
             SceneLoader             s3DLoader;
 
+            IPort                  *pOscIn;
+            IPort                  *pOscOut;
             IPort                  *pBypass;
             IPort                  *pRank;
             IPort                  *pDry;

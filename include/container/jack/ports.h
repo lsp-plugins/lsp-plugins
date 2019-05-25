@@ -436,6 +436,43 @@ namespace lsp
             }
     };
 
+    class JACKOscPort: public JACKPort
+    {
+        private:
+            osc_buffer_t     *pFB;
+
+        public:
+            JACKOscPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            {
+                pFB     = NULL;
+            }
+
+            virtual ~JACKOscPort()
+            {
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return pFB;
+            }
+
+            virtual int init()
+            {
+                pFB = osc_buffer_t::create(OSC_BUFFER_MAX);
+                return (pFB == NULL) ? STATUS_NO_MEM : STATUS_OK;
+            }
+
+            virtual void destroy()
+            {
+                if (pFB != NULL)
+                {
+                    osc_buffer_t::destroy(pFB);
+                    pFB     = NULL;
+                }
+            }
+    };
+
     class JACKPathPort: public JACKPort
     {
         private:

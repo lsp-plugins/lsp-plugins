@@ -29,6 +29,7 @@
 #define BPM_DEFAULT                         120.0f              /* Default BPM                                      */
 #define DEFAULT_TICKS_PER_BEAT              1920.0f             /* Default tick per beat resolution                 */
 #define MIDI_EVENTS_MAX                     4096                /* Maximum number of MIDI events per buffer         */
+#define OSC_BUFFER_MAX                      0x100000            /* Maximum size of the OSC messaging buffer (bytes) */
 #define GOLDEN_RATIO                        1.618               /* Golden ratio                                     */
 #define R_GOLDEN_RATIO                      0.618               /* Reverse golden ratio                             */
 
