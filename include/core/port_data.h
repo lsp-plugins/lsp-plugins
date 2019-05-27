@@ -8,6 +8,8 @@
 #ifndef CORE_PORT_DATA_H_
 #define CORE_PORT_DATA_H_
 
+#include <stdarg.h>
+
 #include <core/types.h>
 #include <core/status.h>
 #include <core/protocol/osc.h>
@@ -170,6 +172,8 @@ namespace lsp
         size_t              nHead;
         size_t              nTail;
         uint8_t            *pBuffer;
+        uint8_t            *pTempBuf;
+        size_t              nTempSize;
         void               *pData;
 
         /**
@@ -183,6 +187,12 @@ namespace lsp
          * Destroy the buffer
          */
         static void destroy(osc_buffer_t *buf);
+
+        /**
+         * Reserve space for temporary buffer, by default 0x1000 bytes
+         * @return status of operation
+         */
+        status_t    reserve(size_t size);
 
         /**
          * Submit OSC packet to the queue
@@ -199,6 +209,42 @@ namespace lsp
          * @return status of operation
          */
         status_t    submit(const osc::packet_t *packet);
+
+        status_t submit_int32(const char *address, int32_t value);
+        status_t submit_float32(const char *address, float value);
+        status_t submit_string(const char *address, const char *s);
+        status_t submit_blob(const char *address, const void *data, size_t bytes);
+        status_t submit_int64(const char *address, int64_t value);
+        status_t submit_double64(const char *address, double value);
+        status_t submit_time_tag(const char *address, uint64_t value);
+        status_t submit_type(const char *address, const char *s);
+        status_t submit_symbol(const char *address, const char *s);
+        status_t submit_ascii(const char *address, char c);
+        status_t submit_rgba(const char *address, const uint32_t rgba);
+        status_t submit_midi(const char *address, const midi_event_t *event);
+        status_t submit_midi_raw(const char *address, const void *event, size_t bytes);
+        status_t submit_bool(const char *address, bool value);
+        status_t submit_null(const char *address);
+        status_t submit_inf(const char *address);
+
+        /**
+         * Try to send message
+         * @param address message address
+         * @param params message parameters
+         * @param args list of arguments
+         * @return status of operation
+         */
+        status_t    submit_message(const char *address, const char *params...);
+
+        /**
+         * Try to send message
+         * @param ref forge reference
+         * @param address message address
+         * @param params message parameters
+         * @param args list of arguments
+         * @return status of operation
+         */
+        status_t    submit_messagev(const char *address, const char *params, va_list args);
 
         /**
          * Fetch OSC packet to the already allocated memory

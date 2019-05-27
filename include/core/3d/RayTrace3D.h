@@ -197,11 +197,19 @@ namespace lsp
             status_t clear_progress_callback();
 
             /**
+             * Set the material for the corresponding object
+             * @param idx the index of the material
+             * @return status of operation
+             */
+            status_t    set_material(size_t idx, const rt_material_t *material);
+
+            /**
              * Get the material for the corresponding object
+             * @param material
              * @param idx the index of the corresponding object
              * @return pointer to material or NULL
              */
-            inline rt_material_t *material(size_t idx)  { return vMaterials.get(idx); }
+            status_t    get_material(rt_material_t *material, size_t idx);
 
             /**
              * Get the scene object

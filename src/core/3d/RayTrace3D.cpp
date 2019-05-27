@@ -1655,6 +1655,27 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t RayTrace3D::set_material(size_t idx, const rt_material_t *material)
+    {
+        rt_material_t *m = vMaterials.get(idx);
+        if (m == NULL)
+            return STATUS_INVALID_VALUE;
+        *m = *material;
+        return STATUS_OK;
+    }
+
+    status_t RayTrace3D::get_material(rt_material_t *material, size_t idx)
+    {
+        if (material == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        rt_material_t *m = vMaterials.get(idx);
+        if (m == NULL)
+            return STATUS_INVALID_VALUE;
+
+        *material = *m;
+        return STATUS_OK;
+    }
+
     status_t RayTrace3D::set_progress_callback(rt_progress_t callback, void *data)
     {
         if (callback == NULL)

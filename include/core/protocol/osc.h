@@ -240,6 +240,12 @@ namespace lsp
         status_t parse_end(parse_frame_t *ref);
 
         status_t parse_destroy(parser_t *parser);
+
+        #ifdef LSP_TRACE
+            void dump_packet(const packet_t *packet);
+        #else
+            inline void dump_packet(const packet_t *packet) {}
+        #endif
     }
 }
 

@@ -24,14 +24,6 @@ namespace lsp
     class Object3D
     {
         protected:
-            enum flags_t
-            {
-                OF_VISIBLE      = 1 << 0,
-                OF_TRACEABLE    = 1 << 1,
-                OF_HAS_
-            };
-
-        protected:
             LSPString                   sName;
             cvector<obj_triangle_t>     vTriangles;
 
@@ -39,6 +31,7 @@ namespace lsp
             bool                        bVisible;
             Scene3D                    *pScene;
             obj_boundbox_t              sBoundBox;
+            point3d_t                   sCenter;
 
             friend class Scene3D;
 
@@ -62,6 +55,11 @@ namespace lsp
              *
              */
             void destroy();
+
+            /**
+             * Compute additional parameters after loading
+             */
+            void post_load();
 
             /** Add triangle
              *
@@ -150,6 +148,18 @@ namespace lsp
              * @return pointer to bounding box
              */
             inline const obj_boundbox_t *bound_box() const { return &sBoundBox; }
+
+            /**
+             * Get bounding box
+             * @return pointer to bounding box
+             */
+            inline point3d_t *center() { return &sCenter; }
+
+            /**
+             * Get bounding box (const version)
+             * @return pointer to bounding box
+             */
+            inline const point3d_t *center() const { return &sCenter; }
 
             /**
              * Get the scene the object relates to

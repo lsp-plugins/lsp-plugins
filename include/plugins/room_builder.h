@@ -16,6 +16,8 @@
 #include <core/3d/RayTrace3D.h>
 #include <core/sampling/SamplePlayer.h>
 #include <core/filters/Equalizer.h>
+#include <data/cstorage.h>
+
 
 #include <metadata/plugins.h>
 
@@ -135,12 +137,73 @@ namespace lsp
                 IPort                  *pSide;
             } capture_t;
 
+            enum prop_sync_t
+            {
+                PS_NAME                 = 1 << 0,
+                PS_POS_X                = 1 << 1,
+                PS_POS_Y                = 1 << 2,
+                PS_POS_Z                = 1 << 3,
+                PS_YAW                  = 1 << 4,
+                PS_PITCH                = 1 << 5,
+                PS_ROLL                 = 1 << 6,
+                PS_SIZE_X               = 1 << 7,
+                PS_SIZE_Y               = 1 << 8,
+                PS_SIZE_Z               = 1 << 9,
+                PS_HUE                  = 1 << 10,
+
+                PS_SYNC_ALL             = ((1 << 11) - 1)
+            };
+
+            enum material_sync_t
+            {
+                MS_ABSORPTION_0         = 1 << 0,
+                MS_ABSORPTION_1         = 1 << 1,
+                MS_DISPERSION_0         = 1 << 2,
+                MS_DISPERSION_1         = 1 << 3,
+                MS_DISSIPATION_0        = 1 << 4,
+                MS_DISSIPATION_1        = 1 << 5,
+                MS_TRANSPARENCY_0       = 1 << 6,
+                MS_TRANSPARENCY_1       = 1 << 7,
+                MS_PERMEABILITY         = 1 << 8,
+
+                MS_SYNC_ALL             = ((1 << 9) - 1)
+            };
+
+            enum osc_sync_t
+            {
+                OSC_OBJECT_COUNT        = 1 << 0,
+                OSC_OBJECTS             = 1 << 1,
+
+                OSC_SYNC_ALL            = ((1 << 2) - 1)
+            };
+
+            typedef struct obj_props_t
+            {
+                char                   *sName;      // UTF-8 object name
+                point3d_t               sPos;       // Object relative position
+                float                   fYaw;       // Yaw
+                float                   fPitch;     // Pitch
+                float                   fRoll;      // Roll
+                float                   fSizeX;     // Size of object (X)
+                float                   fSizeY;     // Size of object (Y)
+                float                   fSizeZ;     // Size of object (Z)
+                float                   fHue;       // Hue color
+                rt_material_t           sMaterial;  // Material
+                size_t                  nSync;      // Sync flags
+                size_t                  nMatSync;   // Material sync flags
+            } obj_props_t;
+
         protected:
             class SceneLoader: public ipc::ITask
             {
                 public:
-                    room_builder_base       *pCore;
-                    Scene3D                  sScene;
+                    char                    sPath[PATH_MAX];
+                    room_builder_base      *pCore;
+                    Scene3D                 sScene;
+                    cstorage<obj_props_t>   vProps;
+
+                protected:
+                    void drop_props();
 
                 public:
                     inline SceneLoader()
@@ -169,6 +232,9 @@ namespace lsp
             source_t                vSources[room_builder_base_metadata::SOURCES];
 
             Scene3D                 sScene;
+            cstorage<obj_props_t>   vObjectProps;
+            size_t                  nOscSync;
+
             status_t                nSceneStatus;
             float                   fSceneProgress;
             SceneLoader             s3DLoader;
@@ -192,6 +258,8 @@ namespace lsp
         protected:
             static size_t       get_fft_rank(size_t rank);
             void                sync_offline_tasks();
+            void                perform_osc_transmit();
+            void                perform_osc_receive();
 
         public:
             room_builder_base(const plugin_metadata_t &metadata, size_t inputs);
@@ -205,6 +273,8 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+
+            virtual void ui_activated();
 
         public:
             static rt_capture_config_t  decode_config(float value);

@@ -281,8 +281,13 @@ namespace lsp
                     switch (res)
                     {
                         case STATUS_OK:
+                        {
                             bSyncAgain    = true;
+                            lsp_trace("Received OSC message of %d bytes", int(sPacket.size));
+                            osc::dump_packet(&sPacket);
+
                             return true;
+                        }
 
                         case STATUS_NO_DATA:
                             return false;

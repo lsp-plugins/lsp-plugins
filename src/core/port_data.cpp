@@ -214,20 +214,29 @@ namespace lsp
         if (capacity % sizeof(uint32_t))
             return NULL;
 
+        uint8_t *tmp        = reinterpret_cast<uint8_t *>(malloc(0x1000));
+        if (tmp == NULL)
+            return NULL;
+
         size_t to_alloc     = sizeof(osc_buffer_t) + capacity + DEFAULT_ALIGN;
         void *data          = NULL;
         uint8_t *ptr        = alloc_aligned<uint8_t>(data, to_alloc, DEFAULT_ALIGN);
         if (ptr == NULL)
+        {
+            free(tmp);
             return NULL;
+        }
 
         osc_buffer_t *res   = reinterpret_cast<osc_buffer_t *>(ptr);
         ptr                += ALIGN_SIZE(sizeof(osc_buffer_t), DEFAULT_ALIGN);
 
         res->nSize          = 0;
-        res->nCapacity      = 0;
+        res->nCapacity      = capacity;
         res->nHead          = 0;
         res->nTail          = 0;
         res->pBuffer        = ptr;
+        res->pTempBuf       = tmp;
+        res->nTempSize      = 0x1000;
         res->pData          = data;
 
         return res;
@@ -235,6 +244,11 @@ namespace lsp
 
     void osc_buffer_t::destroy(osc_buffer_t *buf)
     {
+        if (buf->pTempBuf != NULL)
+        {
+            free(buf->pTempBuf);
+            buf->pTempBuf   = NULL;
+        }
         if ((buf != NULL) && (buf->pData != NULL))
             free_aligned(buf->pData);
     }
@@ -276,9 +290,162 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t osc_buffer_t::reserve(size_t size)
+    {
+        if (nTempSize >= size)
+            return STATUS_OK;
+        else if (size > nCapacity)
+            return STATUS_OVERFLOW;
+
+        uint8_t *tmp    = reinterpret_cast<uint8_t *>(realloc(pTempBuf, size));
+        if (tmp == NULL)
+            return STATUS_NO_MEM;
+
+        pTempBuf        = tmp;
+        nTempSize       = size;
+
+        return STATUS_OK;
+    }
+
     status_t osc_buffer_t::submit(const osc::packet_t *packet)
     {
         return (packet != NULL) ? submit(packet->data, packet->size) : STATUS_BAD_ARGUMENTS;
+    }
+
+#define SUBMIT_SIMPLE_IMPL(address, func, ...) \
+        osc::packet_t packet; \
+        osc::forge_t forge; \
+        osc::forge_frame_t sframe, message; \
+        \
+        status_t res = osc::forge_begin_fixed(&sframe, &forge, pTempBuf, nTempSize); \
+        status_t res2; \
+        if (res == STATUS_OK) {\
+            res     = osc::forge_begin_message(&message, &sframe, address); \
+            if (res == STATUS_OK) \
+                res = osc::func(&message, ## __VA_ARGS__); \
+            osc::forge_end(&message); \
+        } \
+        res2 = osc::forge_end(&sframe); \
+        if (res == STATUS_OK) res = res2; \
+        res2   = osc::forge_close(&packet, &forge); \
+        if (res == STATUS_OK) res = res2; \
+        res2   = osc::forge_destroy(&forge); \
+        if (res == STATUS_OK) res = res2; \
+        return (res == STATUS_OK) ? submit(&packet) : res;
+
+    status_t osc_buffer_t::submit_int32(const char *address, int32_t value)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_int32, value);
+    }
+
+    status_t osc_buffer_t::submit_float32(const char *address, float value)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_float32, value);
+    }
+
+    status_t osc_buffer_t::submit_string(const char *address, const char *s)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_string, s);
+    }
+
+    status_t osc_buffer_t::submit_blob(const char *address, const void *data, size_t bytes)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_blob, data, bytes);
+    }
+
+    status_t osc_buffer_t::submit_int64(const char *address, int64_t value)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_int64, value);
+    }
+
+    status_t osc_buffer_t::submit_double64(const char *address, double value)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_double64, value);
+    }
+
+    status_t osc_buffer_t::submit_time_tag(const char *address, uint64_t value)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_time_tag, value);
+    }
+
+    status_t osc_buffer_t::submit_type(const char *address, const char *s)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_type, s);
+    }
+
+    status_t osc_buffer_t::submit_symbol(const char *address, const char *s)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_symbol, s);
+    }
+
+    status_t osc_buffer_t::submit_ascii(const char *address, char c)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_ascii, c);
+    }
+
+    status_t osc_buffer_t::submit_rgba(const char *address, const uint32_t rgba)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_rgba, rgba);
+    }
+
+    status_t osc_buffer_t::submit_midi(const char *address, const midi_event_t *event)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_midi, event);
+    }
+
+    status_t osc_buffer_t::submit_midi_raw(const char *address, const void *event, size_t bytes)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_midi_raw, event, bytes);
+    }
+
+    status_t osc_buffer_t::submit_bool(const char *address, bool value)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_bool, value);
+    }
+
+    status_t osc_buffer_t::submit_null(const char *address)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_null);
+    }
+
+    status_t osc_buffer_t::submit_inf(const char *address)
+    {
+        SUBMIT_SIMPLE_IMPL(address, forge_inf);
+    }
+
+    #undef SUBMIT_SIMPLE_IMPL
+
+    status_t osc_buffer_t::submit_message(const char *address, const char *params...)
+    {
+        va_list args;
+        va_start(args, params);
+        status_t res = submit_messagev(address, params, args);
+        va_end(args);
+        return res;
+    }
+
+    status_t osc_buffer_t::submit_messagev(const char *address, const char *params, va_list args)
+    {
+        osc::packet_t packet;
+        osc::forge_t forge;
+        osc::forge_frame_t sframe;
+
+        status_t res = osc::forge_begin_fixed(&sframe, &forge, pTempBuf, nTempSize);
+        if (res == STATUS_OK)
+            res     = osc::forge_message(&sframe, address, params, args);
+
+        status_t res2   = osc::forge_end(&sframe);
+        if (res == STATUS_OK)
+            res = res2;
+
+        if (res == STATUS_OK)
+            res         = osc::forge_close(&packet, &forge);
+
+        res2   = osc::forge_destroy(&forge);
+        if (res == STATUS_OK)
+            res = res2;
+
+        return (res == STATUS_OK) ? submit(&packet) : res;
     }
 
     status_t osc_buffer_t::fetch(void *data, size_t *size, size_t limit)

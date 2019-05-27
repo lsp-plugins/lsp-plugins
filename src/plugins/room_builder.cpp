@@ -35,6 +35,19 @@ namespace lsp
         sScene.destroy();
     }
 
+    void room_builder_base::SceneLoader::drop_props()
+    {
+        // Destroy all related memory
+        for (size_t i=0, n=vProps.size(); i<n; ++i)
+        {
+            obj_props_t *props = vProps.get(i);
+            if ((props != NULL) && (props->sName != NULL))
+                free(props->sName);
+        }
+
+        vProps.flush();
+    }
+
     status_t room_builder_base::SceneLoader::run()
     {
         // Clear scene
@@ -44,18 +57,84 @@ namespace lsp
         if (pCore->p3DFile == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        // Get path
-        path_t *path = pCore->p3DFile->getBuffer<path_t>();
-        if (path == NULL)
-            return STATUS_UNKNOWN_ERR;
-
-        // Get file name
-        const char *fname = path->get_path();
-        if (strlen(fname) <= 0)
-            return STATUS_UNSPECIFIED;
-
         // Load the scene file
-        return Model3DFile::load(&sScene, fname, true);
+        status_t res = Model3DFile::load(&sScene, sPath, true);
+        if (res != STATUS_OK)
+            return res;
+
+        // Initialize object properties
+        size_t nobjs = sScene.num_objects();
+
+        // Synchronize size of object properties array with scene
+        while (vProps.size() > nobjs)
+        {
+            obj_props_t props;
+            if (vProps.pop(&props))
+            {
+                drop_props();
+                return STATUS_CORRUPTED;
+            }
+            if (props.sName != NULL)
+                free(props.sName);
+        }
+        while (vProps.size() < nobjs)
+        {
+            obj_props_t *props = vProps.add();
+            if (!props)
+            {
+                drop_props();
+                return STATUS_NO_MEM;
+            }
+            props->sName    = NULL;
+        }
+
+        // Now initialize object properties
+        for (size_t i=0; i<nobjs; ++i)
+        {
+            Object3D *obj       = sScene.object(i);
+            if (obj == NULL)
+                return STATUS_UNKNOWN_ERR;
+            obj_props_t *props  = vProps.get(i);
+            if (props == NULL)
+                return STATUS_UNKNOWN_ERR;
+
+            const char *name    = obj->get_name();
+            const point3d_t *c  = obj->center();
+            if (props->sName != NULL)
+                free(props->sName);
+
+            // Set-up object parameters
+            props->sName    = (name != NULL) ? strdup(name) : NULL;
+            props->sPos     = *c;
+            props->fYaw     = 0.0f;
+            props->fPitch   = 0.0f;
+            props->fRoll    = 0.0f;
+            props->fSizeX   = 100.0f;
+            props->fSizeY   = 100.0f;
+            props->fSizeZ   = 100.0f;
+            props->fHue     = float(i) / float(nobjs);
+
+            // Initialize material as concrete
+            rt_material_t *m = &props->sMaterial;
+
+            m->absorption[0]    = 0.02f;
+            m->dispersion[0]    = 1.0f;
+            m->dissipation[0]   = 1.0f;
+            m->transparency[0]  = 0.48f;
+
+            m->absorption[1]    = 0.0f;
+            m->dispersion[1]    = 1.0f;
+            m->dissipation[1]   = 1.0f;
+            m->transparency[1]  = 0.52f;
+
+            m->permeability     = 12.88f;
+
+            // Set-up synchronization flags
+            props->nSync    = PS_SYNC_ALL;
+            props->nMatSync = MS_SYNC_ALL;
+        }
+
+        return STATUS_OK;
     }
 
     //-------------------------------------------------------------------------
@@ -84,6 +163,7 @@ namespace lsp
 
         pData           = NULL;
         pExecutor       = NULL;
+        nOscSync        = OSC_SYNC_ALL;
     }
 
     room_builder_base::~room_builder_base()
@@ -372,6 +452,19 @@ namespace lsp
         }
     }
 
+    void room_builder_base::ui_activated()
+    {
+        nOscSync    = OSC_SYNC_ALL;
+        for (size_t i=0, n=vObjectProps.size(); i<n; ++i)
+        {
+            obj_props_t *prop = vObjectProps.get(i);
+            if (prop == NULL)
+                continue;
+            prop->nSync     = PS_SYNC_ALL;
+            prop->nMatSync  = PS_SYNC_ALL;
+        }
+    }
+
     void room_builder_base::destroy()
     {
         sScene.destroy();
@@ -387,6 +480,165 @@ namespace lsp
     size_t room_builder_base::get_fft_rank(size_t rank)
     {
         return room_builder_base_metadata::FFT_RANK_MIN + rank;
+    }
+
+    void room_builder_base::perform_osc_receive()
+    {
+        // TODO: process different incoming OSC messages
+    }
+
+    void room_builder_base::perform_osc_transmit()
+    {
+        char path[0x100], *tail;
+
+        // Perform an optimistic sync of state
+        if (pOscOut == NULL)
+            return;
+        osc_buffer_t *b = pOscOut->getBuffer<osc_buffer_t>();
+        if (b == NULL)
+            return;
+
+        #define TX_SYNC(var, flag, ...) \
+                if (var & flag) { \
+                    status_t __; \
+                    __VA_ARGS__; \
+                    if (__ != STATUS_OK) return; \
+                    var &= ~flag; \
+                }
+
+        // Output number of objects
+        TX_SYNC(nOscSync, OSC_OBJECT_COUNT,
+            __ = b->submit_int32("/scene/num_objects", vObjectProps.size())
+        );
+
+        // Output object states
+        if (nOscSync & OSC_OBJECTS)
+        {
+            // For each object
+            for (size_t i=0, n=vObjectProps.size(); i<n; ++i)
+            {
+                obj_props_t *p = vObjectProps.get(i);
+                if (p == NULL)
+                    continue;
+
+                // Sync regular parameters?
+                if (p->nSync)
+                {
+                    // Generate base address
+                    int count   = sprintf(path, "/scene/objects/%d/", int(i));
+                    if (count < 0)
+                        return;
+                    tail        = &path[count];
+
+                    // Output parameters
+                    TX_SYNC(p->nSync, PS_NAME,
+                            strcpy(tail, "name");
+                            __ = b->submit_string(path, p->sName);
+                        );
+
+                    TX_SYNC(p->nSync, PS_POS_X,
+                            strcpy(tail, "position/x");
+                            __ = b->submit_float32(path, p->sPos.x);
+                        );
+                    TX_SYNC(p->nSync, PS_POS_Y,
+                            strcpy(tail, "position/y");
+                            __ = b->submit_float32(path, p->sPos.y);
+                        );
+                    TX_SYNC(p->nSync, PS_POS_Z,
+                            strcpy(tail, "position/z");
+                            __ = b->submit_float32(path, p->sPos.z);
+                        );
+
+                    TX_SYNC(p->nSync, PS_YAW,
+                            strcpy(tail, "rotation/yaw");
+                            __ = b->submit_float32(path, p->fYaw);
+                        );
+                    TX_SYNC(p->nSync, PS_PITCH,
+                            strcpy(tail, "rotation/pitch");
+                            __ = b->submit_float32(path, p->fPitch);
+                        );
+                    TX_SYNC(p->nSync, PS_PITCH,
+                            strcpy(tail, "rotation/roll");
+                            __ = b->submit_float32(path, p->fRoll);
+                        );
+
+                    TX_SYNC(p->nSync, PS_SIZE_X,
+                            strcpy(tail, "size/x");
+                            __ = b->submit_float32(path, p->fSizeX);
+                        );
+                    TX_SYNC(p->nSync, PS_SIZE_Y,
+                            strcpy(tail, "size/y");
+                            __ = b->submit_float32(path, p->fSizeY);
+                        );
+                    TX_SYNC(p->nSync, PS_SIZE_Z,
+                            strcpy(tail, "size/z");
+                            __ = b->submit_float32(path, p->fSizeZ);
+                        );
+
+                    TX_SYNC(p->nSync, PS_HUE,
+                            strcpy(tail, "color/hue");
+                            __ = b->submit_float32(path, p->fHue);
+                        );
+                }
+
+                // Sync material parameters?
+                if (p->nMatSync)
+                {
+                    // Generate base address
+                    int count   = sprintf(path, "/scene/objects/%d/material/", int(i));
+                    if (count < 0)
+                        return;
+                    tail        = &path[count];
+
+                    // Updated material
+                    rt_material_t *m    = &p->sMaterial;
+
+                    // Output parameters
+                    TX_SYNC(p->nMatSync, MS_ABSORPTION_0,
+                            strcpy(tail, "absorption/0");
+                            __ = b->submit_float32(path, m->absorption[0]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_ABSORPTION_1,
+                            strcpy(tail, "absorption/1");
+                            __ = b->submit_float32(path, m->absorption[1]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_DISPERSION_0,
+                            strcpy(tail, "dispersion/0");
+                            __ = b->submit_float32(path, m->dispersion[0]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_DISPERSION_1,
+                            strcpy(tail, "dispersion/1");
+                            __ = b->submit_float32(path, m->dispersion[1]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_DISSIPATION_0,
+                            strcpy(tail, "dissipation/0");
+                            __ = b->submit_float32(path, m->dissipation[0]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_DISSIPATION_1,
+                            strcpy(tail, "dissipation/1");
+                            __ = b->submit_float32(path, m->dissipation[1]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_TRANSPARENCY_0,
+                            strcpy(tail, "transparency/0");
+                            __ = b->submit_float32(path, m->transparency[0]);
+                        );
+                    TX_SYNC(p->nMatSync, MS_TRANSPARENCY_1,
+                            strcpy(tail, "transparency/1");
+                            __ = b->submit_float32(path, m->transparency[1]);
+                        );
+
+                    TX_SYNC(p->nMatSync, MS_PERMEABILITY,
+                            strcpy(tail, "permeability");
+                            __ = b->submit_float32(path, m->permeability);
+                        );
+                }
+            }
+
+            // Reset sync flag
+            nOscSync &= ~OSC_OBJECTS;
+        }
+
+        #undef TX_ASSERT
     }
 
     void room_builder_base::update_settings()
@@ -534,12 +786,16 @@ namespace lsp
 
     void room_builder_base::process(size_t samples)
     {
-        //---------------------------------------------------------------------
-        // Stage 1: process reconfiguration requests and file events
+        // Stage 1: process incoming OSC events
+        perform_osc_receive();
+
+        // Stage 2: process reconfiguration requests and file events
         sync_offline_tasks();
 
-        //---------------------------------------------------------------------
-        // Stage 3: output parameters
+        // Stage 3: generate outgoing OSC events
+        perform_osc_transmit();
+
+        // Stage 4: output additional metering parameters
         if (p3DStatus != NULL)
             p3DStatus->setValue(nSceneStatus);
         if (p3DProgress != NULL)
@@ -554,6 +810,9 @@ namespace lsp
         {
             if ((path->pending()) && (s3DLoader.idle())) // There is pending request for 3D file reload
             {
+                // Copy path
+                strncpy(s3DLoader.sPath, path->get_path(), PATH_MAX);
+
                 // Try to submit task
                 if (pExecutor->submit(&s3DLoader))
                 {
@@ -568,7 +827,10 @@ namespace lsp
                 // Update file status and set re-rendering flag
                 nSceneStatus    = s3DLoader.code();
                 fSceneProgress  = 100.0f;
+
                 sScene.swap(&s3DLoader.sScene);
+                vObjectProps.swap(&s3DLoader.vProps);
+                nOscSync        = OSC_SYNC_ALL;
                 nReconfigReq    ++;
 
                 // Now we surely can commit changes and reset task state
