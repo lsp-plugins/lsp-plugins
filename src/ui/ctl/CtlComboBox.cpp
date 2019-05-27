@@ -29,10 +29,9 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
+            LSPComboBox *cbox = widget_cast<LSPComboBox>(pWidget);
+            if (cbox == NULL)
                 return;
-
-            LSPComboBox *cbox = static_cast<LSPComboBox *>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, cbox, cbox->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
@@ -44,10 +43,9 @@ namespace lsp
 
         void CtlComboBox::do_destroy()
         {
-            if (pWidget == NULL)
+            LSPComboBox *cbox = widget_cast<LSPComboBox>(pWidget);
+            if (cbox == NULL)
                 return;
-
-            LSPComboBox *cbox = static_cast<LSPComboBox *>(pWidget);
 
             if (idChange >= 0)
             {
@@ -90,7 +88,7 @@ namespace lsp
 
         void CtlComboBox::set(widget_attribute_t att, const char *value)
         {
-            LSPComboBox *cbox = (pWidget != NULL) ? static_cast<LSPComboBox *>(pWidget) : NULL;
+            LSPComboBox *cbox = widget_cast<LSPComboBox>(pWidget);
 
             switch (att)
             {
@@ -129,11 +127,14 @@ namespace lsp
             }
         }
 
-        void CtlComboBox::end()
+        void CtlComboBox::sync_metadata(CtlPort *port)
         {
-            if (pWidget != NULL)
+            LSPComboBox *cbox = widget_cast<LSPComboBox>(pWidget);
+            if (cbox == NULL)
+                return;
+
+            if (port == pPort)
             {
-                LSPComboBox *cbox = static_cast<LSPComboBox *>(pWidget);
                 const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
 
                 if (p != NULL)
@@ -145,6 +146,7 @@ namespace lsp
                         size_t value    = pPort->get_value();
                         size_t i        = 0;
                         LSPItemList *lst= cbox->items();
+                        lst->clear();
 
                         for (const char **item = p->items; (item != NULL) && (*item != NULL); ++item, ++i)
                         {
@@ -156,6 +158,12 @@ namespace lsp
                     }
                 }
             }
+        }
+
+        void CtlComboBox::end()
+        {
+            if (pPort != NULL)
+                sync_metadata(pPort);
 
             CtlWidget::end();
         }

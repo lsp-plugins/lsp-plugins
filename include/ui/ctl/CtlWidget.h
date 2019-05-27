@@ -32,7 +32,7 @@ namespace lsp
                 void            init_color(color_t value, Color *color);
 
             public:
-                CtlWidget(CtlRegistry *src, LSPWidget *widget);
+                explicit CtlWidget(CtlRegistry *src, LSPWidget *widget);
                 virtual ~CtlWidget();
 
                 /** Destroy widget controller
