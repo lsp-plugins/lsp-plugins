@@ -29,10 +29,11 @@ namespace lsp
     float room_builder_ui::CtlFloatPort::get_value()
     {
         // The record is accessible?
-        if (pUI->nSelected >= pUI->vObjectProps.size())
+        size_t selected = pUI->nSelected;
+        if (selected >= pUI->vObjectProps.size())
             return get_default_value();
 
-        obj_props_t *props = pUI->vObjectProps.get(pUI->nSelected);
+        obj_props_t *props = pUI->vObjectProps.get(selected);
         if (props == NULL)
             return get_default_value();
 
@@ -82,7 +83,7 @@ namespace lsp
 
             if (osc::forge_begin_message(&message, &sframe, address) == STATUS_OK)
             {
-                osc::forge_float32(&sframe, value);
+                osc::forge_float32(&message, value);
                 osc::forge_end(&message);
             }
             osc::forge_end(&sframe);
@@ -110,13 +111,25 @@ namespace lsp
 
         // Fetch the floating-point value
         float value;
-        status_t res = osc::parse_float32(message, &value);
+        status_t res;
+        osc::parse_token_t token;
+
+        if (pMetadata->unit == U_BOOL)
+        {
+            bool bvalue = false;
+            res = osc::parse_bool(message, &bvalue);
+            value = (bvalue) ? 1.0f : 0.0f;
+        }
+        else
+            res = osc::parse_float32(message, &value);
+
         if (res != STATUS_OK)
             return;
-        osc::parse_token_t token;
         res = osc::parse_token(message, &token);
         if ((res != STATUS_OK) || (token != osc::PT_EOR))
             return;
+
+        lsp_trace("%s[%d] = %f", sPattern, int(id), value);
 
         // Synchronize value
         float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
@@ -172,6 +185,35 @@ namespace lsp
     float room_builder_ui::CtlListPort::get_value()
     {
         return pUI->nSelected;
+    }
+
+    void room_builder_ui::notify_osc_all()
+    {
+        for (size_t i=0, n=vOscPorts.size(); i<n; ++i)
+        {
+            CtlFloatPort *p = vOscPorts.at(i);
+            if (p != NULL)
+            {
+                lsp_trace("Notifying: %s", p->metadata()->id);
+                if (!strcmp(p->metadata()->id, "osc:hue"))
+                    lsp_trace("debug");
+                p->notify_all();
+            }
+        }
+    }
+
+    void room_builder_ui::CtlListPort::set_value(float value)
+    {
+        size_t count = pUI->vObjectProps.size();
+        if (count <= 0)
+            return;
+
+        size_t id = (value < count) ? value : count - 1;
+        if (pUI->nSelected == id)
+            return;
+
+        pUI->nSelected = id;
+        pUI->notify_osc_all();
     }
 
     void room_builder_ui::CtlListPort::sync_size()
@@ -278,6 +320,7 @@ namespace lsp
         vOscPorts.add(p); \
         add_port(p); \
 
+        BIND_OSC_PORT("enabled", fEnabled);
         BIND_OSC_PORT("position/x", sPos.x);
         BIND_OSC_PORT("position/y", sPos.y);
         BIND_OSC_PORT("position/z", sPos.z);
@@ -299,12 +342,15 @@ namespace lsp
         BIND_OSC_PORT("material/sound_speed", fSndSpeed);
 
         pListPort   = new CtlListPort(this, meta++);
+        add_port(pListPort);
 
         pOscIn      = port(LSP_LV2_OSC_PORT_OUT);
         pOscOut     = port(LSP_LV2_OSC_PORT_IN);
 
         if (pOscIn != NULL)
             pOscIn->bind(&sOscListener);
+
+        notify_osc_all();
 
         return STATUS_OK;
     }
@@ -318,6 +364,11 @@ namespace lsp
                 free(p->sName);
         }
         vObjectProps.flush();
+
+        vOscPorts.flush();
+        pOscIn          = NULL;
+        pOscOut         = NULL;
+        pListPort       = NULL;
     }
 
     void room_builder_ui::process_osc_message(const char *address, osc::parser_frame_t *message)
@@ -337,7 +388,10 @@ namespace lsp
                 return;
 
             if (size >= 0)
+            {
                 resize_properties(size);
+                notify_osc_all();
+            }
             return;
         }
 

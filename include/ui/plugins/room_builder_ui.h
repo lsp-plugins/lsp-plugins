@@ -20,6 +20,7 @@ namespace lsp
             typedef struct obj_props_t
             {
                 char                   *sName;      // UTF-8 object name
+                float                   fEnabled;   // Enabled flag
                 point3d_t               sPos;       // Object relative position
                 float                   fYaw;       // Yaw
                 float                   fPitch;     // Pitch
@@ -68,6 +69,7 @@ namespace lsp
 
                 public:
                     virtual float get_value();
+                    virtual void set_value(float value);
                     void    sync_size();
                     void    sync_list();
             };
@@ -88,6 +90,7 @@ namespace lsp
         protected:
             void process_osc_message(const char *address, osc::parser_frame_t *message);
             void resize_properties(size_t count);
+            void notify_osc_all();
 
         protected:
             cvector<CtlFloatPort>   vOscPorts;

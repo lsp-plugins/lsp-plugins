@@ -101,7 +101,7 @@ namespace lsp
                     return STATUS_NO_MEM;
             }
 
-            forge->data     = NULL;
+            forge->data     = buf;
             forge->offset   = 0;
             forge->capacity = reserve;
             forge->dynamic  = true;

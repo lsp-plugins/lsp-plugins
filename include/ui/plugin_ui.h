@@ -105,6 +105,12 @@ namespace lsp
              */
             virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
 
+            /**
+             * Build UI from the XML schema
+             * @return status of operation
+             */
+            virtual status_t    build();
+
             /** Method executed when the time position of plugin was updated
              *
              */

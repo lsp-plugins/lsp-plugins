@@ -140,28 +140,29 @@ namespace lsp
             enum prop_sync_t
             {
                 PS_NAME                 = 1 << 0,
-                PS_POS_X                = 1 << 1,
-                PS_POS_Y                = 1 << 2,
-                PS_POS_Z                = 1 << 3,
-                PS_YAW                  = 1 << 4,
-                PS_PITCH                = 1 << 5,
-                PS_ROLL                 = 1 << 6,
-                PS_SIZE_X               = 1 << 7,
-                PS_SIZE_Y               = 1 << 8,
-                PS_SIZE_Z               = 1 << 9,
-                PS_HUE                  = 1 << 10,
+                PS_ENABLED              = 1 << 1,
+                PS_POS_X                = 1 << 2,
+                PS_POS_Y                = 1 << 3,
+                PS_POS_Z                = 1 << 4,
+                PS_YAW                  = 1 << 5,
+                PS_PITCH                = 1 << 6,
+                PS_ROLL                 = 1 << 7,
+                PS_SIZE_X               = 1 << 8,
+                PS_SIZE_Y               = 1 << 9,
+                PS_SIZE_Z               = 1 << 10,
+                PS_HUE                  = 1 << 11,
 
-                PS_ABSORPTION_0         = 1 << 11,
-                PS_ABSORPTION_1         = 1 << 12,
-                PS_DISPERSION_0         = 1 << 13,
-                PS_DISPERSION_1         = 1 << 14,
-                PS_DISSIPATION_0        = 1 << 15,
-                PS_DISSIPATION_1        = 1 << 16,
-                PS_TRANSPARENCY_0       = 1 << 17,
-                PS_TRANSPARENCY_1       = 1 << 18,
-                PS_SOUND_SPEED          = 1 << 19,
+                PS_ABSORPTION_0         = 1 << 12,
+                PS_ABSORPTION_1         = 1 << 13,
+                PS_DISPERSION_0         = 1 << 14,
+                PS_DISPERSION_1         = 1 << 15,
+                PS_DISSIPATION_0        = 1 << 16,
+                PS_DISSIPATION_1        = 1 << 17,
+                PS_TRANSPARENCY_0       = 1 << 18,
+                PS_TRANSPARENCY_1       = 1 << 19,
+                PS_SOUND_SPEED          = 1 << 20,
 
-                PS_SYNC_ALL             = ((1 << 20) - 1)
+                PS_SYNC_ALL             = ((1 << 21) - 1)
             };
 
             enum osc_sync_t
@@ -175,6 +176,7 @@ namespace lsp
             typedef struct obj_props_t
             {
                 char                   *sName;      // UTF-8 object name
+                bool                    bEnabled;   // Enabled flag
                 point3d_t               sPos;       // Object relative position
                 float                   fYaw;       // Yaw
                 float                   fPitch;     // Pitch
@@ -261,7 +263,7 @@ namespace lsp
             void                perform_osc_receive();
 
         public:
-            room_builder_base(const plugin_metadata_t &metadata, size_t inputs);
+            explicit room_builder_base(const plugin_metadata_t &metadata, size_t inputs);
             virtual ~room_builder_base();
 
         public:
@@ -286,14 +288,14 @@ namespace lsp
     class room_builder_mono: public room_builder_base, public room_builder_mono_metadata
     {
         public:
-            room_builder_mono();
+            explicit room_builder_mono();
             virtual ~room_builder_mono();
     };
 
     class room_builder_stereo: public room_builder_base, public room_builder_stereo_metadata
     {
         public:
-            room_builder_stereo();
+            explicit room_builder_stereo();
             virtual ~room_builder_stereo();
     };
 

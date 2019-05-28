@@ -570,9 +570,6 @@ namespace lsp
 
     status_t plugin_ui::init(IUIWrapper *wrapper, int argc, const char **argv)
     {
-        // Some variables
-        char path[PATH_MAX + 1];
-
         // Store pointer to wrapper
         pWrapper    = wrapper;
 
@@ -580,26 +577,6 @@ namespace lsp
         status_t result = sDisplay.init(argc, argv);
         if (result != STATUS_OK)
             return result;
-
-        LSPTheme *theme = sDisplay.theme();
-        if (theme == NULL)
-            return STATUS_UNKNOWN_ERR;
-
-        #ifdef LSP_USE_EXPAT
-            strncpy(path, "res/ui/theme.xml", PATH_MAX);
-        #else
-            strncpy(path, "theme.xml", PATH_MAX);
-        #endif /* LSP_USE_EXPAT */
-
-        lsp_trace("Loading theme from file %s", path);
-        result = load_theme(sDisplay.theme(), path);
-        if (result != STATUS_OK)
-            return result;
-
-        // Final tuning of the theme
-        theme->get_color(C_LABEL_TEXT, theme->font()->color());
-        font_parameters_t fp;
-        theme->font()->get_parameters(&fp); // Cache font parameters for further user
 
         // Create additional ports (ui)
         for (const port_t *p = vConfigMetadata; p->id != NULL; ++p)
@@ -646,6 +623,36 @@ namespace lsp
             }
         }
 
+        // Return successful status
+        return STATUS_OK;
+    }
+
+    status_t plugin_ui::build()
+    {
+        status_t result;
+        char path[PATH_MAX + 1];
+
+        // Load theme
+        LSPTheme *theme = sDisplay.theme();
+        if (theme == NULL)
+            return STATUS_UNKNOWN_ERR;
+
+        #ifdef LSP_USE_EXPAT
+            strncpy(path, "res/ui/theme.xml", PATH_MAX);
+        #else
+            strncpy(path, "theme.xml", PATH_MAX);
+        #endif /* LSP_USE_EXPAT */
+
+        lsp_trace("Loading theme from file %s", path);
+        result = load_theme(sDisplay.theme(), path);
+        if (result != STATUS_OK)
+            return result;
+
+        // Final tuning of the theme
+        theme->get_color(C_LABEL_TEXT, theme->font()->color());
+        font_parameters_t fp;
+        theme->font()->get_parameters(&fp); // Cache font parameters for further user
+
         // Read global configuration
         result = load_global_config();
         if (result != STATUS_OK)
@@ -666,7 +673,6 @@ namespace lsp
             return STATUS_UNKNOWN_ERR;
         }
 
-        // Return successful status
         return STATUS_OK;
     }
 
@@ -930,7 +936,7 @@ namespace lsp
             }
         }
 
-        // Check that port name contains "ui:" prefix
+        // Check that port name contains "time:" prefix
         if (strstr(name, TIME_PORT_PREFIX) == name)
         {
             const char *ui_id = &name[strlen(TIME_PORT_PREFIX)];

@@ -105,13 +105,14 @@ namespace lsp
 
             // Set-up object parameters
             props->sName    = (name != NULL) ? strdup(name) : NULL;
+            props->bEnabled = true;
             props->sPos     = *c;
             props->fYaw     = 0.0f;
             props->fPitch   = 0.0f;
             props->fRoll    = 0.0f;
-            props->fSizeX   = 100.0f;
-            props->fSizeY   = 100.0f;
-            props->fSizeZ   = 100.0f;
+            props->fSizeX   = 1.0f;
+            props->fSizeY   = 1.0f;
+            props->fSizeZ   = 1.0f;
             props->fHue     = float(i) / float(nobjs);
 
             // Initialize material as concrete
@@ -532,6 +533,10 @@ namespace lsp
                         strcpy(tail, "name");
                         __ = b->submit_string(path, p->sName);
                     );
+                TX_SYNC(p->nSync, PS_ENABLED,
+                        strcpy(tail, "enabled");
+                        __ = b->submit_bool(path, p->bEnabled);
+                    );
 
                 TX_SYNC(p->nSync, PS_POS_X,
                         strcpy(tail, "position/x");
@@ -554,7 +559,7 @@ namespace lsp
                         strcpy(tail, "rotation/pitch");
                         __ = b->submit_float32(path, p->fPitch);
                     );
-                TX_SYNC(p->nSync, PS_PITCH,
+                TX_SYNC(p->nSync, PS_ROLL,
                         strcpy(tail, "rotation/roll");
                         __ = b->submit_float32(path, p->fRoll);
                     );

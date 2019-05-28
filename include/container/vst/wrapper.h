@@ -572,7 +572,9 @@ namespace lsp
 
             // Initialize UI
             lsp_trace("init ui");
-            pUI->init(this, 0, NULL);
+            status_t res = pUI->init(this, 0, NULL);
+            if (res == STATUS_OK)
+                res = pUI->build();
 
             LSPWindow *wnd  = pUI->root_window();
             if (wnd != NULL)

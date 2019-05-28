@@ -179,7 +179,7 @@ namespace lsp
         if (port->flags & F_UPPER)
         {
             if (value > port->max)
-                return port->max;
+                value = port->max;
         }
         if (port->flags & F_LOWER)
         {

@@ -42,6 +42,7 @@ namespace lsp
     {
         "Source editor",
         "Capture editor",
+        "Object editor",
         NULL
     };
 
@@ -308,15 +309,16 @@ namespace lsp
 
     const port_t room_builder_base_metadata::osc_ports[] =
     {
+        SWITCH("osc:enabled", "Object enable", 0),
         CONTROL_DFL("osc:xpos", "Object position X", U_M, room_builder_base_metadata::POSITION, 0.0f),
         CONTROL_DFL("osc:ypos", "Object position Y", U_M, room_builder_base_metadata::POSITION, 0.0f),
         CONTROL_DFL("osc:zpos", "Object position Z", U_M, room_builder_base_metadata::POSITION, 0.0f),
-        { "osc:yaw", "Object Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0.0f, 360, 90.0f, 0.1f, NULL, NULL },
+        { "osc:yaw", "Object Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0.0f, 360, 0.0f, 0.1f, NULL, NULL },
         { "osc:pitch", "Object Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -90.0f, 90.0f, 0, 0.1f, NULL, NULL },
         { "osc:roll", "Object Roll angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 0, 0.1f, NULL, NULL },
-        CONTROL("osc:xsize", "Object size X", U_M, room_builder_base_metadata::OSIZE),
-        CONTROL("osc:ysize", "Object size Y", U_M, room_builder_base_metadata::OSIZE),
-        CONTROL("osc:zsize", "Object size Z", U_M, room_builder_base_metadata::OSIZE),
+        CONTROL("osc:xscale", "Object scaling X", U_M, room_builder_base_metadata::OSIZE),
+        CONTROL("osc:yscale", "Object scaling Y", U_M, room_builder_base_metadata::OSIZE),
+        CONTROL("osc:zscale", "Object scaling Z", U_M, room_builder_base_metadata::OSIZE),
         { "osc:hue", "Object hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, 0.0f, 0.25f/360.0f, NULL     },
         CONTROL("osc:oabs", "Outer absorption", U_M, room_builder_base_metadata::MAT_ABSORPTION),
         CONTROL("osc:iabs", "Inner absorption", U_M, room_builder_base_metadata::MAT_ABSORPTION),

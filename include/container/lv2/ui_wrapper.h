@@ -95,7 +95,9 @@ namespace lsp
 
                 // Initialize plugin
                 lsp_trace("Initializing UI");
-                pUI->init(this, 0, NULL);
+                status_t res = pUI->init(this, 0, NULL);
+                if (res == STATUS_OK)
+                    res = pUI->build();
 
                 // Initialize size of root window
                 size_request_t sr;

@@ -434,6 +434,8 @@ namespace lsp
         if (pUI != NULL)
         {
             status_t res = pUI->init(this, argc, argv);
+            if (res == STATUS_OK)
+                res     = pUI->build();
             if (res != STATUS_OK)
             {
                 if (res == STATUS_NO_DEVICE)
