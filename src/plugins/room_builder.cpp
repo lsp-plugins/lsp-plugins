@@ -560,15 +560,15 @@ namespace lsp
                     );
 
                 TX_SYNC(p->nSync, PS_SIZE_X,
-                        strcpy(tail, "size/x");
+                        strcpy(tail, "scale/x");
                         __ = b->submit_float32(path, p->fSizeX);
                     );
                 TX_SYNC(p->nSync, PS_SIZE_Y,
-                        strcpy(tail, "size/y");
+                        strcpy(tail, "scale/y");
                         __ = b->submit_float32(path, p->fSizeY);
                     );
                 TX_SYNC(p->nSync, PS_SIZE_Z,
-                        strcpy(tail, "size/z");
+                        strcpy(tail, "scale/z");
                         __ = b->submit_float32(path, p->fSizeZ);
                     );
 
@@ -586,35 +586,35 @@ namespace lsp
                 // Updated material
                 // Output parameters
                 TX_SYNC(p->nSync, PS_ABSORPTION_0,
-                        strcpy(tail, "absorption/0");
+                        strcpy(tail, "absorption/outer");
                         __ = b->submit_float32(path, p->fAbsorption[0]);
                     );
                 TX_SYNC(p->nSync, PS_ABSORPTION_1,
-                        strcpy(tail, "absorption/1");
+                        strcpy(tail, "absorption/inner");
                         __ = b->submit_float32(path, p->fAbsorption[1]);
                     );
                 TX_SYNC(p->nSync, PS_DISPERSION_0,
-                        strcpy(tail, "dispersion/0");
+                        strcpy(tail, "dispersion/outer");
                         __ = b->submit_float32(path, p->fDispersion[0]);
                     );
                 TX_SYNC(p->nSync, PS_DISPERSION_1,
-                        strcpy(tail, "dispersion/1");
+                        strcpy(tail, "dispersion/inner");
                         __ = b->submit_float32(path, p->fDispersion[1]);
                     );
                 TX_SYNC(p->nSync, PS_DISSIPATION_0,
-                        strcpy(tail, "dissipation/0");
+                        strcpy(tail, "dissipation/outer");
                         __ = b->submit_float32(path, p->fDissipation[0]);
                     );
                 TX_SYNC(p->nSync, PS_DISSIPATION_1,
-                        strcpy(tail, "dissipation/1");
+                        strcpy(tail, "dissipation/inner");
                         __ = b->submit_float32(path, p->fDissipation[1]);
                     );
                 TX_SYNC(p->nSync, PS_TRANSPARENCY_0,
-                        strcpy(tail, "transparency/0");
+                        strcpy(tail, "transparency/outer");
                         __ = b->submit_float32(path, p->fTransparency[0]);
                     );
                 TX_SYNC(p->nSync, PS_TRANSPARENCY_1,
-                        strcpy(tail, "transparency/1");
+                        strcpy(tail, "transparency/inner");
                         __ = b->submit_float32(path, p->fTransparency[1]);
                     );
                 TX_SYNC(p->nSync, PS_SOUND_SPEED,

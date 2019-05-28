@@ -40,7 +40,6 @@ namespace lsp
                 protected:
                     room_builder_ui    *pUI;
                     const char         *sPattern;
-                    float               fOldValue;
                     size_t              nOffset;
 
                 public:
@@ -51,7 +50,8 @@ namespace lsp
                     virtual float get_value();
                     virtual void set_value(float value);
 
-                    void                osc_sync();
+                    void                process_message(osc::parse_frame_t *message, size_t id, const char *path);
+                    void                init_default(size_t id, obj_props_t *props);
             };
 
             class CtlListPort: public CtlPort
@@ -72,15 +72,37 @@ namespace lsp
                     void    sync_list();
             };
 
+            class CtlOscListener: public CtlPortListener
+            {
+                protected:
+                    room_builder_ui    *pUI;
+
+                public:
+                    explicit CtlOscListener(room_builder_ui *ui);
+                    virtual ~CtlOscListener();
+
+                public:
+                    virtual void notify(CtlPort *port);
+            };
+
         protected:
-            cvector<CtlPort>        vOscPorts;
+            void process_osc_message(const char *address, osc::parser_frame_t *message);
+            void resize_properties(size_t count);
+
+        protected:
+            cvector<CtlFloatPort>   vOscPorts;
             cstorage<obj_props_t>   vObjectProps;
             size_t                  nSelected;
+            CtlPort                *pOscIn;
             CtlPort                *pOscOut;
+            CtlListPort            *pListPort;
+            CtlOscListener          sOscListener;
 
         public:
             explicit room_builder_ui(const plugin_metadata_t *mdata, void *root_widget);
             virtual ~room_builder_ui();
+
+            virtual void destroy();
 
         public:
             virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);

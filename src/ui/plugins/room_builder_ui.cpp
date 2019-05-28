@@ -6,6 +6,8 @@
  */
 
 #include <ui/plugins/room_builder_ui.h>
+#include <metadata/plugins.h>
+#include <metadata/ports.h>
 
 namespace lsp
 {
@@ -14,7 +16,6 @@ namespace lsp
     {
         pUI         = ui;
         sPattern    = pattern;
-        fOldValue   = meta->start - 1.0f;
         nOffset     = offset;
     }
 
@@ -22,7 +23,6 @@ namespace lsp
     {
         pUI         = NULL;
         sPattern    = NULL;
-        fOldValue   = 0.0f;
         nOffset     = 0;
     }
 
@@ -60,7 +60,6 @@ namespace lsp
 
         // Save new value
         *ptr        = value;
-        fOldValue   = value;
 
         // Emit new OSC message
         if (pUI->pOscOut == NULL)
@@ -75,8 +74,11 @@ namespace lsp
 
         if (res == STATUS_OK)
         {
-            char address[0x100];
-            sprintf(address, sPattern, int(selected));
+            char address[0x100]; // Should be enough
+            int count = sprintf(address, "/scene/objects/%d/", int(selected));
+            if (count <= 0)
+                return;
+            strcpy(&address[count], sPattern);
 
             if (osc::forge_begin_message(&message, &sframe, address) == STATUS_OK)
             {
@@ -95,23 +97,51 @@ namespace lsp
         }
     }
 
-    void room_builder_ui::CtlFloatPort::osc_sync()
+    void room_builder_ui::CtlFloatPort::process_message(osc::parse_frame_t *message, size_t id, const char *path)
     {
-        // The record is accessible?
-        if (pUI->nSelected >= pUI->vObjectProps.size())
+        // Does the path match?
+        if (strcmp(path, sPattern) != 0)
             return;
 
-        obj_props_t *props = pUI->vObjectProps.get(pUI->nSelected);
+        // The target record is accessible?
+        obj_props_t *props = pUI->vObjectProps.get(id);
         if (props == NULL)
             return;
 
-        // Do we need to notify clients for changes?
+        // Fetch the floating-point value
+        float value;
+        status_t res = osc::parse_float32(message, &value);
+        if (res != STATUS_OK)
+            return;
+        osc::parse_token_t token;
+        res = osc::parse_token(message, &token);
+        if ((res != STATUS_OK) || (token != osc::PT_EOR))
+            return;
+
+        // Synchronize value
         float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
-        if (*ptr != fOldValue)
-        {
-            fOldValue       = *ptr;
+        if (*ptr == value)
+            return;
+        *ptr    = value;
+
+        // Do we need to notify clients for changes?
+        if (id == pUI->nSelected)
             notify_all();
-        }
+    }
+
+    void room_builder_ui::CtlFloatPort::init_default(size_t id, obj_props_t *props)
+    {
+        float value = get_default_value();
+
+        // Synchronize value
+        float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
+        if (*ptr == value)
+            return;
+        *ptr    = value;
+
+        // Do we need to notify clients for changes?
+        if (id == pUI->nSelected)
+            notify_all();
     }
 
     room_builder_ui::CtlListPort::CtlListPort(room_builder_ui *ui, const port_t *meta):
@@ -147,7 +177,7 @@ namespace lsp
     void room_builder_ui::CtlListPort::sync_size()
     {
         size_t size     = pUI->vObjectProps.size();
-        size_t capacity = ((size + 0x10) / 0x10) * 0x10 + 1;
+        size_t capacity = ((size + 0x10) / 0x10) * 0x10;
 
         if (capacity > nCapacity)
         {
@@ -174,6 +204,8 @@ namespace lsp
                 free(pItems[i]);
             if ((props != NULL) && (props->sName != NULL))
                 pItems[i]   = strdup(props->sName);
+            else
+                pItems[i]   = strdup("<unnamed>");
         }
 
         // Update metadata and perform sync
@@ -181,11 +213,50 @@ namespace lsp
         sync_metadata();
     }
 
+    room_builder_ui::CtlOscListener::CtlOscListener(room_builder_ui *ui)
+    {
+        pUI     = ui;
+    }
+
+    room_builder_ui::CtlOscListener::~CtlOscListener()
+    {
+    }
+
+    void room_builder_ui::CtlOscListener::notify(CtlPort *port)
+    {
+        if (port != pUI->pOscIn)
+            return;
+
+        // Get OSC packet
+        osc::packet_t *packet = port->get_buffer<osc::packet_t>();
+        if ((packet == NULL) || (packet->data == NULL) || (packet->size == 0))
+            return;
+
+        // Parse OSC packet
+        status_t res;
+        osc::parser_t parser;
+        osc::parse_frame_t root, message;
+
+        res = osc::parse_begin(&root, &parser, packet->data, packet->size);
+        if (res != STATUS_OK)
+            return;
+
+        const char *address = NULL;
+        res = osc::parse_begin_message(&message, &root, &address);
+        if (res == STATUS_OK)
+            pUI->process_osc_message(address, &message);
+
+        osc::parse_end(&root);
+    }
+
     room_builder_ui::room_builder_ui(const plugin_metadata_t *mdata, void *root_widget):
-        plugin_ui(mdata, root_widget)
+        plugin_ui(mdata, root_widget),
+        sOscListener(this)
     {
         nSelected       = 0;
+        pOscIn          = NULL;
         pOscOut         = NULL;
+        pListPort       = NULL;
     }
     
     room_builder_ui::~room_builder_ui()
@@ -198,8 +269,162 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        // TODO
-        return res;
+        const port_t *meta = room_builder_base_metadata::osc_ports;
+        CtlFloatPort *p;
+
+#define BIND_OSC_PORT(pattern, field)    \
+        p = new CtlFloatPort(this, offsetof(obj_props_t, field), pattern, meta++); \
+        if (p == NULL) return STATUS_NO_MEM; \
+        vOscPorts.add(p); \
+        add_port(p); \
+
+        BIND_OSC_PORT("position/x", sPos.x);
+        BIND_OSC_PORT("position/y", sPos.y);
+        BIND_OSC_PORT("position/z", sPos.z);
+        BIND_OSC_PORT("rotation/yaw", fYaw);
+        BIND_OSC_PORT("rotation/pitch", fPitch);
+        BIND_OSC_PORT("rotation/roll", fRoll);
+        BIND_OSC_PORT("scale/x", fSizeX);
+        BIND_OSC_PORT("scale/y", fSizeY);
+        BIND_OSC_PORT("scale/z", fSizeZ);
+        BIND_OSC_PORT("color/hue", fHue);
+        BIND_OSC_PORT("material/absorption/outer", fAbsorption[0]);
+        BIND_OSC_PORT("material/absorption/inner", fAbsorption[1]);
+        BIND_OSC_PORT("material/dispersion/outer", fDispersion[0]);
+        BIND_OSC_PORT("material/dispersion/inner", fDispersion[1]);
+        BIND_OSC_PORT("material/dissipation/outer", fDissipation[0]);
+        BIND_OSC_PORT("material/dissipation/inner", fDissipation[1]);
+        BIND_OSC_PORT("material/transparency/outer", fTransparency[1]);
+        BIND_OSC_PORT("material/transparency/inner", fTransparency[1]);
+        BIND_OSC_PORT("material/sound_speed", fSndSpeed);
+
+        pListPort   = new CtlListPort(this, meta++);
+
+        pOscIn      = port(LSP_LV2_OSC_PORT_OUT);
+        pOscOut     = port(LSP_LV2_OSC_PORT_IN);
+
+        if (pOscIn != NULL)
+            pOscIn->bind(&sOscListener);
+
+        return STATUS_OK;
+    }
+
+    void room_builder_ui::destroy()
+    {
+        for (size_t i=0, n=vObjectProps.size(); i<n; ++i)
+        {
+            obj_props_t *p = vObjectProps.get(i);
+            if ((p != NULL) && (p->sName != NULL))
+                free(p->sName);
+        }
+        vObjectProps.flush();
+    }
+
+    void room_builder_ui::process_osc_message(const char *address, osc::parser_frame_t *message)
+    {
+        status_t res;
+        osc::parse_token_t token;
+
+        // It is a number of objects?
+        if (!strcmp(address, "/scene/num_objects"))
+        {
+            int32_t size;
+            res = osc::parse_int32(message, &size);
+            if (res != STATUS_OK)
+                return;
+            res = osc::parse_token(message, &token);
+            if ((res != STATUS_OK) || (token != osc::PT_EOR))
+                return;
+
+            if (size >= 0)
+                resize_properties(size);
+            return;
+        }
+
+        // Check that it is our message
+        if (strstr(address, "/scene/objects/") != address)
+            return;
+        address    += strlen("/scene/objects/");
+
+        // Parse object identifier
+        errno = 0;
+        char *endptr = NULL;
+        long id = strtol(address, &endptr, 10);
+        if ((id < 0) || (errno != 0) || (*endptr != '/'))
+            return;
+        address = endptr + 1;
+
+        // Name of the object?
+        if (!strcmp(address, "name"))
+        {
+            // Property does exist?
+            obj_props_t *props = vObjectProps.get(id);
+            if (props == NULL)
+                return;
+
+            // Fetch the string value
+            const char *name;
+            res = osc::parse_string(message, &name);
+            if (res != STATUS_OK)
+                return;
+            res = osc::parse_token(message, &token);
+            if ((res != STATUS_OK) || (token != osc::PT_EOR))
+                return;
+
+            // Update object name
+            if (props->sName != NULL)
+                free(props->sName);
+            props->sName = strdup(name);
+
+            // Synchronize list
+            if (pListPort != NULL)
+                pListPort->sync_list();
+
+            return;
+        }
+
+        // Call all OSC ports for value processing
+        for (size_t i=0, n=vOscPorts.size(); i<n; ++i)
+        {
+            CtlFloatPort *p = vOscPorts.at(i);
+            if (p != NULL)
+                p->process_message(message, id, address);
+        }
+    }
+
+    void room_builder_ui::resize_properties(size_t count)
+    {
+        if (vObjectProps.size() == count)
+            return;
+
+        while (vObjectProps.size() < count)
+        {
+            size_t id       = vObjectProps.size();
+            obj_props_t *p  = vObjectProps.add();
+            if (p == NULL)
+                return;
+
+            p->sName        = NULL;
+            p->sPos.w       = 1.0f;
+            for (size_t i=0, n=vOscPorts.size(); i<n; ++i)
+            {
+                CtlFloatPort *port = vOscPorts.at(i);
+                if (port != NULL)
+                    port->init_default(id, p);
+            }
+        }
+
+        while (vObjectProps.size() > count)
+        {
+            obj_props_t p;
+            if (!vObjectProps.pop(&p))
+                return;
+            if (p.sName != NULL)
+                free(p.sName);
+        }
+
+        if (pListPort != NULL)
+            pListPort->sync_size();
     }
 
 } /* namespace lsp */

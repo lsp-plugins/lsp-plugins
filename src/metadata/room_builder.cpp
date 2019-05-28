@@ -326,7 +326,8 @@ namespace lsp
         CONTROL("osc:idiss", "Refracted wave inner dissipation", U_M, room_builder_base_metadata::MAT_DISPERSION),
         CONTROL("osc:otransp", "Material outer transparency", U_M, room_builder_base_metadata::MAT_TRANSPARENCY),
         CONTROL("osc:itransp", "Material inner transparency", U_M, room_builder_base_metadata::MAT_TRANSPARENCY),
-        CONTROL("osc:speed", "Sound speed in material", U_MPS, room_builder_base_metadata::MAT_SOUND_SPEED)
+        CONTROL("osc:speed", "Sound speed in material", U_MPS, room_builder_base_metadata::MAT_SOUND_SPEED),
+        COMBO("osc:oid", "Selected object index", 0, NULL)
     };
 
     const plugin_metadata_t  room_builder_mono_metadata::metadata =
