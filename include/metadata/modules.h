@@ -143,8 +143,8 @@ MOD_PLUGIN(profiler_mono, plugin_ui)
 MOD_PLUGIN(profiler_stereo, plugin_ui)
 
 // Room builder
-MOD_PLUGIN(room_builder_mono, plugin_ui)
-MOD_PLUGIN(room_builder_stereo, plugin_ui)
+MOD_PLUGIN(room_builder_mono, room_builder_ui)
+MOD_PLUGIN(room_builder_stereo, room_builder_ui)
 
 // Nonlinear Convolver
 // MOD_PLUGIN(nonlinear_convolver_mono, plugin_ui)

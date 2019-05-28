@@ -70,7 +70,7 @@ namespace lsp
                 IPort          *pLowFreq;       // Low-cut frequency
                 IPort          *pHighCut;       // High-cut flag
                 IPort          *pHighFreq;      // Low-cut frequency
-                IPort          *pFreqGain[impulse_reverb_base_metadata::EQ_BANDS];   // Gain for each band of the Equalizer
+                IPort          *pFreqGain[room_builder_base_metadata::EQ_BANDS];    // Gain for each band of the Equalizer
             } channel_t;
 
             typedef struct input_t
@@ -151,22 +151,17 @@ namespace lsp
                 PS_SIZE_Z               = 1 << 9,
                 PS_HUE                  = 1 << 10,
 
-                PS_SYNC_ALL             = ((1 << 11) - 1)
-            };
+                PS_ABSORPTION_0         = 1 << 11,
+                PS_ABSORPTION_1         = 1 << 12,
+                PS_DISPERSION_0         = 1 << 13,
+                PS_DISPERSION_1         = 1 << 14,
+                PS_DISSIPATION_0        = 1 << 15,
+                PS_DISSIPATION_1        = 1 << 16,
+                PS_TRANSPARENCY_0       = 1 << 17,
+                PS_TRANSPARENCY_1       = 1 << 18,
+                PS_SOUND_SPEED          = 1 << 19,
 
-            enum material_sync_t
-            {
-                MS_ABSORPTION_0         = 1 << 0,
-                MS_ABSORPTION_1         = 1 << 1,
-                MS_DISPERSION_0         = 1 << 2,
-                MS_DISPERSION_1         = 1 << 3,
-                MS_DISSIPATION_0        = 1 << 4,
-                MS_DISSIPATION_1        = 1 << 5,
-                MS_TRANSPARENCY_0       = 1 << 6,
-                MS_TRANSPARENCY_1       = 1 << 7,
-                MS_PERMEABILITY         = 1 << 8,
-
-                MS_SYNC_ALL             = ((1 << 9) - 1)
+                PS_SYNC_ALL             = ((1 << 20) - 1)
             };
 
             enum osc_sync_t
@@ -188,9 +183,13 @@ namespace lsp
                 float                   fSizeY;     // Size of object (Y)
                 float                   fSizeZ;     // Size of object (Z)
                 float                   fHue;       // Hue color
-                rt_material_t           sMaterial;  // Material
+                float                   fAbsorption[2];
+                float                   fDispersion[2];
+                float                   fDissipation[2];
+                float                   fTransparency[2];
+                float                   fSndSpeed;
+
                 size_t                  nSync;      // Sync flags
-                size_t                  nMatSync;   // Material sync flags
             } obj_props_t;
 
         protected:

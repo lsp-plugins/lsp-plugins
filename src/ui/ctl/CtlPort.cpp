@@ -70,6 +70,13 @@ namespace lsp
             for (size_t i=0; i<count; ++i)
                 vListeners[i]->notify(this);
         }
+
+        void CtlPort::sync_metadata()
+        {
+            size_t count = vListeners.size();
+            for (size_t i=0; i<count; ++i)
+                vListeners[i]->sync_metadata(this);
+        }
     
     } /* namespace tk */
 } /* namespace lsp */

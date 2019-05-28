@@ -55,9 +55,12 @@ namespace lsp
 #include <ui/common.h>
 #include <ui/IUIWrapper.h>
 
-// Plugin UI
+// Common plugin UI
 #include <ui/plugin_ui.h>
 #include <ui/ui_builder.h>
+
+// Particular plugin UI
 #include <ui/plugins/test_plugin_ui.h>
+#include <ui/plugins/room_builder_ui.h>
 
 #endif /* _UI_UI_H_ */

@@ -91,6 +91,11 @@ namespace lsp
         U_INCH,                 // Inches
         U_KM,                   // Kilometers
 
+        // Speed
+        U_MPS,                  // Meters per second
+        U_KMPH,                 // Kilometers per hour
+
+        // Samples
         U_SAMPLES,              // Something in samples
 
         // Frequency

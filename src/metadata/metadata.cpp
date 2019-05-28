@@ -42,6 +42,9 @@ namespace lsp
         "\"",
         "km",
 
+        "m/s",
+        "km/h",
+
         "samp",
 
         "Hz",

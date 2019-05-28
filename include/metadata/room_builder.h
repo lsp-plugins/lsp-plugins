@@ -39,6 +39,11 @@ namespace lsp
         static const float POSITION_DFL             = 0.0f;
         static const float POSITION_STEP            = 0.002f;
 
+        static const float OSIZE_MIN                = 0.01f;
+        static const float OSIZE_MAX                = 100.0f;
+        static const float OSIZE_DFL                = 1.0f;
+        static const float OSIZE_STEP               = 0.1f;
+
         static const float SOURCE_MIN               = 1.0f;
         static const float SOURCE_MAX               = 100.0f;
         static const float SOURCE_DFL               = 30.0f;
@@ -63,6 +68,26 @@ namespace lsp
         static const float DISTANCE_MAX             = +10.0f;
         static const float DISTANCE_DFL             = 2.0f;
         static const float DISTANCE_STEP            = 0.01f;
+
+        static const float MAT_ABSORPTION_MIN       = 0.0001f;
+        static const float MAT_ABSORPTION_MAX       = 1.0f;
+        static const float MAT_ABSORPTION_DFL       = 0.01f;
+        static const float MAT_ABSORPTION_STEP      = 0.01f;
+
+        static const float MAT_TRANSPARENCY_MIN     = 0.0f;
+        static const float MAT_TRANSPARENCY_MAX     = 1.0f;
+        static const float MAT_TRANSPARENCY_DFL     = 0.0f;
+        static const float MAT_TRANSPARENCY_STEP    = 0.01f;
+
+        static const float MAT_DISPERSION_MIN       = 0.01f;
+        static const float MAT_DISPERSION_MAX       = 100.0f;
+        static const float MAT_DISPERSION_DFL       = 1.0f;
+        static const float MAT_DISPERSION_STEP      = 0.01f;
+
+        static const float MAT_SOUND_SPEED_MIN      = 10.0f;
+        static const float MAT_SOUND_SPEED_MAX      = 10000.0f;
+        static const float MAT_SOUND_SPEED_DFL      = SOUND_SPEED_M_S;
+        static const float MAT_SOUND_SPEED_STEP     = 10.0f;
 
         static const float LCF_MIN                  = 10.0f;
         static const float LCF_MAX                  = 1000.0f;
@@ -94,6 +119,8 @@ namespace lsp
 
             FFT_RANK_DEFAULT = FFT_RANK_32767
         };
+
+        static const port_t osc_ports[];
     };
 
     struct room_builder_mono_metadata: public room_builder_base_metadata

@@ -115,23 +115,20 @@ namespace lsp
             props->fHue     = float(i) / float(nobjs);
 
             // Initialize material as concrete
-            rt_material_t *m = &props->sMaterial;
+            props->fAbsorption[0]    = 0.02f;
+            props->fDispersion[0]    = 1.0f;
+            props->fDissipation[0]   = 1.0f;
+            props->fTransparency[0]  = 0.48f;
 
-            m->absorption[0]    = 0.02f;
-            m->dispersion[0]    = 1.0f;
-            m->dissipation[0]   = 1.0f;
-            m->transparency[0]  = 0.48f;
+            props->fAbsorption[1]    = 0.0f;
+            props->fDispersion[1]    = 1.0f;
+            props->fDissipation[1]   = 1.0f;
+            props->fTransparency[1]  = 0.52f;
 
-            m->absorption[1]    = 0.0f;
-            m->dispersion[1]    = 1.0f;
-            m->dissipation[1]   = 1.0f;
-            m->transparency[1]  = 0.52f;
-
-            m->permeability     = 12.88f;
+            props->fSndSpeed         = 12.88f * SOUND_SPEED_M_S;
 
             // Set-up synchronization flags
             props->nSync    = PS_SYNC_ALL;
-            props->nMatSync = MS_SYNC_ALL;
         }
 
         return STATUS_OK;
@@ -461,7 +458,6 @@ namespace lsp
             if (prop == NULL)
                 continue;
             prop->nSync     = PS_SYNC_ALL;
-            prop->nMatSync  = PS_SYNC_ALL;
         }
     }
 
@@ -522,117 +518,110 @@ namespace lsp
                     continue;
 
                 // Sync regular parameters?
-                if (p->nSync)
-                {
-                    // Generate base address
-                    int count   = sprintf(path, "/scene/objects/%d/", int(i));
-                    if (count < 0)
-                        return;
-                    tail        = &path[count];
+                if (!p->nSync)
+                    continue;
 
-                    // Output parameters
-                    TX_SYNC(p->nSync, PS_NAME,
-                            strcpy(tail, "name");
-                            __ = b->submit_string(path, p->sName);
-                        );
+                // Generate object's parameter base address
+                int count   = sprintf(path, "/scene/objects/%d/", int(i));
+                if (count < 0)
+                    return;
+                tail        = &path[count];
 
-                    TX_SYNC(p->nSync, PS_POS_X,
-                            strcpy(tail, "position/x");
-                            __ = b->submit_float32(path, p->sPos.x);
-                        );
-                    TX_SYNC(p->nSync, PS_POS_Y,
-                            strcpy(tail, "position/y");
-                            __ = b->submit_float32(path, p->sPos.y);
-                        );
-                    TX_SYNC(p->nSync, PS_POS_Z,
-                            strcpy(tail, "position/z");
-                            __ = b->submit_float32(path, p->sPos.z);
-                        );
+                // Output object parameters
+                TX_SYNC(p->nSync, PS_NAME,
+                        strcpy(tail, "name");
+                        __ = b->submit_string(path, p->sName);
+                    );
 
-                    TX_SYNC(p->nSync, PS_YAW,
-                            strcpy(tail, "rotation/yaw");
-                            __ = b->submit_float32(path, p->fYaw);
-                        );
-                    TX_SYNC(p->nSync, PS_PITCH,
-                            strcpy(tail, "rotation/pitch");
-                            __ = b->submit_float32(path, p->fPitch);
-                        );
-                    TX_SYNC(p->nSync, PS_PITCH,
-                            strcpy(tail, "rotation/roll");
-                            __ = b->submit_float32(path, p->fRoll);
-                        );
+                TX_SYNC(p->nSync, PS_POS_X,
+                        strcpy(tail, "position/x");
+                        __ = b->submit_float32(path, p->sPos.x);
+                    );
+                TX_SYNC(p->nSync, PS_POS_Y,
+                        strcpy(tail, "position/y");
+                        __ = b->submit_float32(path, p->sPos.y);
+                    );
+                TX_SYNC(p->nSync, PS_POS_Z,
+                        strcpy(tail, "position/z");
+                        __ = b->submit_float32(path, p->sPos.z);
+                    );
 
-                    TX_SYNC(p->nSync, PS_SIZE_X,
-                            strcpy(tail, "size/x");
-                            __ = b->submit_float32(path, p->fSizeX);
-                        );
-                    TX_SYNC(p->nSync, PS_SIZE_Y,
-                            strcpy(tail, "size/y");
-                            __ = b->submit_float32(path, p->fSizeY);
-                        );
-                    TX_SYNC(p->nSync, PS_SIZE_Z,
-                            strcpy(tail, "size/z");
-                            __ = b->submit_float32(path, p->fSizeZ);
-                        );
+                TX_SYNC(p->nSync, PS_YAW,
+                        strcpy(tail, "rotation/yaw");
+                        __ = b->submit_float32(path, p->fYaw);
+                    );
+                TX_SYNC(p->nSync, PS_PITCH,
+                        strcpy(tail, "rotation/pitch");
+                        __ = b->submit_float32(path, p->fPitch);
+                    );
+                TX_SYNC(p->nSync, PS_PITCH,
+                        strcpy(tail, "rotation/roll");
+                        __ = b->submit_float32(path, p->fRoll);
+                    );
 
-                    TX_SYNC(p->nSync, PS_HUE,
-                            strcpy(tail, "color/hue");
-                            __ = b->submit_float32(path, p->fHue);
-                        );
-                }
+                TX_SYNC(p->nSync, PS_SIZE_X,
+                        strcpy(tail, "size/x");
+                        __ = b->submit_float32(path, p->fSizeX);
+                    );
+                TX_SYNC(p->nSync, PS_SIZE_Y,
+                        strcpy(tail, "size/y");
+                        __ = b->submit_float32(path, p->fSizeY);
+                    );
+                TX_SYNC(p->nSync, PS_SIZE_Z,
+                        strcpy(tail, "size/z");
+                        __ = b->submit_float32(path, p->fSizeZ);
+                    );
 
-                // Sync material parameters?
-                if (p->nMatSync)
-                {
-                    // Generate base address
-                    int count   = sprintf(path, "/scene/objects/%d/material/", int(i));
-                    if (count < 0)
-                        return;
-                    tail        = &path[count];
+                TX_SYNC(p->nSync, PS_HUE,
+                        strcpy(tail, "color/hue");
+                        __ = b->submit_float32(path, p->fHue);
+                    );
 
-                    // Updated material
-                    rt_material_t *m    = &p->sMaterial;
+                // Generate base address
+                count   = sprintf(path, "/scene/objects/%d/material/", int(i));
+                if (count < 0)
+                    return;
+                tail        = &path[count];
 
-                    // Output parameters
-                    TX_SYNC(p->nMatSync, MS_ABSORPTION_0,
-                            strcpy(tail, "absorption/0");
-                            __ = b->submit_float32(path, m->absorption[0]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_ABSORPTION_1,
-                            strcpy(tail, "absorption/1");
-                            __ = b->submit_float32(path, m->absorption[1]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_DISPERSION_0,
-                            strcpy(tail, "dispersion/0");
-                            __ = b->submit_float32(path, m->dispersion[0]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_DISPERSION_1,
-                            strcpy(tail, "dispersion/1");
-                            __ = b->submit_float32(path, m->dispersion[1]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_DISSIPATION_0,
-                            strcpy(tail, "dissipation/0");
-                            __ = b->submit_float32(path, m->dissipation[0]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_DISSIPATION_1,
-                            strcpy(tail, "dissipation/1");
-                            __ = b->submit_float32(path, m->dissipation[1]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_TRANSPARENCY_0,
-                            strcpy(tail, "transparency/0");
-                            __ = b->submit_float32(path, m->transparency[0]);
-                        );
-                    TX_SYNC(p->nMatSync, MS_TRANSPARENCY_1,
-                            strcpy(tail, "transparency/1");
-                            __ = b->submit_float32(path, m->transparency[1]);
-                        );
-
-                    TX_SYNC(p->nMatSync, MS_PERMEABILITY,
-                            strcpy(tail, "permeability");
-                            __ = b->submit_float32(path, m->permeability);
-                        );
-                }
-            }
+                // Updated material
+                // Output parameters
+                TX_SYNC(p->nSync, PS_ABSORPTION_0,
+                        strcpy(tail, "absorption/0");
+                        __ = b->submit_float32(path, p->fAbsorption[0]);
+                    );
+                TX_SYNC(p->nSync, PS_ABSORPTION_1,
+                        strcpy(tail, "absorption/1");
+                        __ = b->submit_float32(path, p->fAbsorption[1]);
+                    );
+                TX_SYNC(p->nSync, PS_DISPERSION_0,
+                        strcpy(tail, "dispersion/0");
+                        __ = b->submit_float32(path, p->fDispersion[0]);
+                    );
+                TX_SYNC(p->nSync, PS_DISPERSION_1,
+                        strcpy(tail, "dispersion/1");
+                        __ = b->submit_float32(path, p->fDispersion[1]);
+                    );
+                TX_SYNC(p->nSync, PS_DISSIPATION_0,
+                        strcpy(tail, "dissipation/0");
+                        __ = b->submit_float32(path, p->fDissipation[0]);
+                    );
+                TX_SYNC(p->nSync, PS_DISSIPATION_1,
+                        strcpy(tail, "dissipation/1");
+                        __ = b->submit_float32(path, p->fDissipation[1]);
+                    );
+                TX_SYNC(p->nSync, PS_TRANSPARENCY_0,
+                        strcpy(tail, "transparency/0");
+                        __ = b->submit_float32(path, p->fTransparency[0]);
+                    );
+                TX_SYNC(p->nSync, PS_TRANSPARENCY_1,
+                        strcpy(tail, "transparency/1");
+                        __ = b->submit_float32(path, p->fTransparency[1]);
+                    );
+                TX_SYNC(p->nSync, PS_SOUND_SPEED,
+                        strcpy(tail, "sound_speed");
+                        __ = b->submit_float32(path, p->fSndSpeed);
+                    );
+            } // for
 
             // Reset sync flag
             nOscSync &= ~OSC_OBJECTS;

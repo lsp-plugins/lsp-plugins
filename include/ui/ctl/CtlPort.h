@@ -19,7 +19,7 @@ namespace lsp
                 cvector<CtlPortListener> vListeners;
 
             public:
-                CtlPort(const port_t *meta);
+                explicit CtlPort(const port_t *meta);
                 virtual ~CtlPort();
 
             public:
@@ -59,7 +59,7 @@ namespace lsp
                  */
                 virtual float get_value();
 
-                /** Get signle default float value
+                /** Get single default float value
                  *
                  * @return default float value
                  */
@@ -75,6 +75,11 @@ namespace lsp
                  *
                  */
                 virtual void notify_all();
+
+                /** Notify all that port metadata has been changed
+                 *
+                 */
+                virtual void sync_metadata();
 
              public:
                 /** Get port metadata
