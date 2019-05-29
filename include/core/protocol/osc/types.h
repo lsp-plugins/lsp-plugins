@@ -10,7 +10,7 @@
 
 #include <core/types.h>
 #include <core/status.h>
-#include <core/midi.h>
+#include <core/protocol/midi.h>
 #include <stdarg.h>
 
 namespace lsp
