@@ -153,6 +153,121 @@ typedef struct special_message_t
 } special_message_t;
 #pragma pack(pop)
 
+static const char *valid_patterns[] =
+{
+    "/a",
+    "/1/2/3/4",
+    "/???",
+    "/***",
+    "/[abcde]",
+    "/[a-zA-Z0-9]",
+    "/[!abc0-9]",
+    "/{}",
+    "/{,,,}",
+    "/{foo,bar,}",
+    "/{foo,bar,baz}",
+    "/{foo,bar,}?/test",
+    "/a/?*/{foo,bar,}[0-9]xx?",
+    NULL
+};
+
+static const char *invalid_patterns[] =
+{
+    "",
+    "/",
+    "/#",
+    "//",
+    "///",
+    "/\n",
+    "/[",
+    "/]",
+    "/[a-]",
+    "/[a-zA-Z0-9-#]",
+    "/[!]",
+    "/[?]",
+    "/[*]",
+    "/{",
+    "/}",
+    "/{[}",
+    "/{#}",
+    "/{foo,bar,}}",
+    "/{foo,bar,{}}",
+    "/{foo,bar,}/test#",
+    "/a/?*/{foo,bar,}[0-9]xx?}",
+    NULL
+};
+
+typedef struct pattern_match_t
+{
+    const char *pattern;
+    const char *address;
+    bool match;
+} pattern_match_t;
+
+static const pattern_match_t match_pattern[] =
+{
+    { "/one", "/one", true},
+    { "/one", "/two", false},
+    { "/one", "/one/two", false},
+    { "/one", "//one", false},
+    { "/one/two", "/one/two", true},
+    { "/one/two", "/one/two/", false},
+    { "/one/two", "/one/two/three", false},
+    { "/one/two", "//one/two/three", false},
+    { "/one/two", "/one//two/three", false},
+    { "/*", "/one", true },
+    { "/*", "/two", true },
+    { "/*", "/", false },
+    { "/*", "//", false },
+    { "/*", "", false },
+    { "/*", "/one/two", false },
+    { "/?", "/1", true },
+    { "/?", "/2", true },
+    { "/?", "/", false },
+    { "/?", "/12", false },
+    { "/?", "/1/2", false },
+    { "/??", "/12", true },
+    { "/??", "/123", false },
+    { "/??", "/12/34", false },
+    { "/a", "/a", true },
+    { "/a", "/b", false },
+    { "/a", "/ab", false },
+    { "/a", "/a/b", false },
+    { "/[abc]?", "/a1", true },
+    { "/[abc]?", "/b1", true },
+    { "/[abc]?", "/c1", true },
+    { "/[abc]?", "/d1", false },
+    { "/[abc]?", "/a1/", false },
+    { "/[abc]?", "/a1/b", false },
+    { "/[a-c]?", "/a2", true },
+    { "/[a-c]?", "/b2", true },
+    { "/[a-c]?", "/c2", true },
+    { "/[a-c]?", "/d2", false },
+    { "/[a-c]*", "/c", true },
+    { "/[a-c]*", "/c1", true },
+    { "/[a-c]*", "/c12", true },
+    { "/[a-c]*", "/c123", true },
+    { "/[a-c]*", "/c/", false },
+    { "/[a-c]*", "/c/1", false },
+    { "/{foo,bar,baz}", "/foo", true },
+    { "/{foo,bar,baz}", "/bar", true },
+    { "/{foo,bar,baz}", "/baz", true },
+    { "/{foo,bar,baz}", "/foo/bar", false },
+    { "/{foo,bar,baz}", "//bar", false },
+    { "/{foo,}?", "/x", true },
+    { "/{foo,}", "/", false },
+    { "/{foo,}*", "/", false },
+    { "/{foo,}*", "/bar", true },
+    { "/{foo,}*", "/foo/bar", false },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/foobar/AoneX", true },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/foobar/Aone?", false },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/foobar/Aone#", false },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/fooXXXbar/Bone+", true },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/XXXfooXXXbar/aone_", true },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/XXXfooXXXbarXXX/aone_", false },
+    { "/*foo*{bar,baz}/[a-bB-A]one?", "/XXX/fooXXXbar/aone_", false}
+};
+
 UTEST_BEGIN("core.protocol", osc)
     void test_forge_simple_message()
     {
@@ -1198,6 +1313,35 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_free(packet.data);
     }
 
+    void test_pattern()
+    {
+        osc::pattern_t pattern;
+
+        for (const char **p = valid_patterns; *p != NULL; ++p)
+        {
+            printf("  testing address pattern: %s\n", *p);
+            UTEST_ASSERT(osc::pattern_create(&pattern, *p) == STATUS_OK);
+            UTEST_ASSERT(osc::pattern_destroy(&pattern) == STATUS_OK);
+        }
+
+        for (const char **p = invalid_patterns; *p != NULL; ++p)
+        {
+            printf("  testing address pattern: %s\n", *p);
+            UTEST_ASSERT(osc::pattern_create(&pattern, *p) == STATUS_BAD_FORMAT);
+        }
+
+        for (size_t i=0, n=sizeof(match_pattern)/sizeof(pattern_match_t); i < n; ++i)
+        {
+            const pattern_match_t *m = &match_pattern[i];
+
+            printf("  matching string \"%s\" to pattern \"%s\"\n", m->address, m->pattern);
+
+            UTEST_ASSERT(osc::pattern_create(&pattern, m->pattern) == STATUS_OK);
+            UTEST_ASSERT(osc::pattern_match(&pattern, m->address) == m->match);
+            UTEST_ASSERT(osc::pattern_destroy(&pattern) == STATUS_OK);
+        }
+    }
+
     UTEST_MAIN
     {
         #define CALL(v) printf("Executing " #v "...\n"); v();
@@ -1214,6 +1358,8 @@ UTEST_BEGIN("core.protocol", osc)
         CALL(test_parse_bundles);
 
         CALL(test_format);
+
+        CALL(test_pattern);
     }
 UTEST_END;
 
