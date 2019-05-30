@@ -62,6 +62,8 @@ namespace lsp
         STATUS_READONLY,
         STATUS_NULL,
         STATUS_LOCKED,
+        STATUS_REJECTED,
+        STATUS_ALREADY_BOUND,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
