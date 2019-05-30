@@ -149,10 +149,9 @@ namespace lsp
                 kvt_node_t         *node;
             } kvt_link_t;
 
-            typedef struct kvt_gcparam_t {
+            typedef struct kvt_gcparam_t: public kvt_param_t {
                 kvt_node_t         *node;           // Pointer to the node that contains parameters
                 kvt_gcparam_t      *next;           // Pointer to the next garbage-collected parameter
-                kvt_param_t         param;          // The stored parameter
             } kvt_gcparam_t;
 
             typedef struct kvt_node_t
@@ -160,9 +159,8 @@ namespace lsp
                 char               *id;             // Unique node identifier
                 size_t              idlen;          // Length of the ID string
                 kvt_node_t         *parent;         // Parent node
-                size_t              references;     // Number of references
-                kvt_gcparam_t      *pcurr;          // Currently used parameter
-                kvt_gcparam_t      *pold;           // List of parameters, first parameter is
+                ssize_t             refs;           // Number of references
+                kvt_gcparam_t      *param;          // Currently used parameter
 
                 kvt_link_t          gc;             // Link to the removed list
                 kvt_link_t          mod;            // Link to the modifed list
@@ -179,6 +177,7 @@ namespace lsp
             kvt_link_t              sValid;
             kvt_link_t              sDirty;
             kvt_link_t              sGarbage;
+            kvt_gcparam_t          *pTrash;
             char                    cSeparator;
 
         protected:
@@ -187,19 +186,17 @@ namespace lsp
 
             void                    mark_dirty(kvt_node_t *node);
             void                    mark_clean(kvt_node_t *node);
-
-            void                    mark_removed(kvt_node_t *node);
-            void                    mark_existing(kvt_node_t *node);
+            void                    add_reference(kvt_node_t *node, ssize_t value);
 
             char                   *build_path(char **path, size_t *capacity, kvt_node_t *node);
 
             void                    gc_parameter(const char *path, kvt_param_t *p, size_t flags);
             status_t                commit_parameter(const char *path, kvt_node_t *node, const kvt_param_t *value, size_t flags);
-            static bool             copy_parameter(kvt_param_t *dst, const kvt_param_t *src);
+            kvt_gcparam_t          *copy_parameter(const kvt_param_t *src, size_t flags);
 
             void                    reduce_branches(kvt_node_t *node);
-            inline void             init_node(kvt_node_t *node, kvt_node_t *base, const char *name, size_t len);
-            kvt_node_t             *allocate_node(kvt_node_t *base, const char *name, size_t len);
+            inline void             init_node(kvt_node_t *node, const char *name, size_t len);
+            kvt_node_t             *allocate_node(const char *name, size_t len);
             kvt_node_t             *create_node(kvt_node_t *base, const char *name, size_t len);
             kvt_node_t             *get_node(kvt_node_t *base, const char *name, size_t len);
             status_t                walk_node(kvt_node_t **out, const char *name, size_t flags);
