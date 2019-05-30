@@ -60,15 +60,8 @@ namespace lsp
     {
         cSeparator  = separator;
 
-        sRoot.id            = NULL;
-        sRoot.idlen         = 0;
-        sRoot.parent        = NULL;
-        sRoot.flags         = 0;
-        sRoot.param.type    = KVT_ANY;
-        sRoot.dirty.next    = NULL;
-        sRoot.dirty.prev    = NULL;
-        sRoot.gc.next       = NULL;
-        sRoot.gc.prev       = NULL;
+        init_node(&sRoot, NULL, NULL, 0);
+        ++sRoot.references;
 
         sValid.next         = NULL;
         sValid.prev         = NULL;
@@ -131,6 +124,40 @@ namespace lsp
         sDirty.prev         = NULL;
         sGarbage.next       = NULL;
         sGarbage.prev       = NULL;
+    }
+
+    void KVTStorage::init_node(kvt_node_t *node, kvt_node_t *base, const char *name, size_t len)
+    {
+        node->id            = reinterpret_cast<char *>(&node[1]);
+        node->idlen         = len;
+        node->parent        = base;
+        node->references    = 0;
+        node->pcurr         = NULL;
+        node->pold          = NULL;
+        node->gc.next       = NULL;
+        node->gc.prev       = NULL;
+        node->gc.node       = node;
+        node->mod.next      = NULL;
+        node->mod.prev      = NULL;
+        node->mod.node      = node;
+        node->children      = NULL;
+        node->nchildren     = 0;
+        node->capacity      = 0;
+
+        // Copy name
+        if (len > 0)
+            ::memcpy(node->id, name, len);
+        node->id[len]       = '\0';
+    }
+
+    KVTStorage::kvt_node_t *KVTStorage::allocate_node(kvt_node_t *base, const char *name, size_t len)
+    {
+        size_t to_alloc     = ALIGN_SIZE(sizeof(kvt_node_t) + len + 1, DEFAULT_ALIGN);
+        kvt_node_t *node    = reinterpret_cast<kvt_node_t *>(::malloc(to_alloc));
+        if (node != NULL)
+            init_node(node, base, name, len);
+
+        return node;
     }
 
     void KVTStorage::link_list(kvt_link_t *root, kvt_link_t *item)

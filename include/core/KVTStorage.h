@@ -165,7 +165,7 @@ namespace lsp
                 kvt_gcparam_t      *pold;           // List of parameters, first parameter is
 
                 kvt_link_t          gc;             // Link to the removed list
-                kvt_link_t          dirty;          // Link to the dirty list
+                kvt_link_t          mod;            // Link to the modifed list
 
                 kvt_node_t        **children;       // Children
                 size_t              nchildren;      // Number of children
@@ -198,6 +198,8 @@ namespace lsp
             static bool             copy_parameter(kvt_param_t *dst, const kvt_param_t *src);
 
             void                    reduce_branches(kvt_node_t *node);
+            inline void             init_node(kvt_node_t *node, kvt_node_t *base, const char *name, size_t len);
+            kvt_node_t             *allocate_node(kvt_node_t *base, const char *name, size_t len);
             kvt_node_t             *create_node(kvt_node_t *base, const char *name, size_t len);
             kvt_node_t             *get_node(kvt_node_t *base, const char *name, size_t len);
             status_t                walk_node(kvt_node_t **out, const char *name, size_t flags);
