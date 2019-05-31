@@ -121,7 +121,11 @@ namespace lsp
         sRoot.mod.next      = NULL;
         sRoot.mod.prev      = NULL;
         sRoot.mod.node      = NULL;
-        sRoot.children      = NULL;
+        if (sRoot.children != NULL)
+        {
+            ::free(sRoot.children);
+            sRoot.children      = NULL;
+        }
         sRoot.nchildren     = 0;
         sRoot.capacity      = 0;
 
