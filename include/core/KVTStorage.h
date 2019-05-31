@@ -30,7 +30,7 @@ namespace lsp
 
     enum kvt_flags_t
     {
-        KVT_SILENT          = 1 << 0,       // Do not notify listeners about parameter change
+        KVT_COMMIT          = 1 << 0,       // Cleanup modification flag
         KVT_KEEP            = 1 << 1,       // Keep the previous value of parameter if it existed
         KVT_DELEGATE        = 1 << 2        // Delegate the control over parameter's data to the storage
     };
@@ -118,6 +118,13 @@ namespace lsp
             virtual void access(const char *id, const kvt_param_t *param);
 
             /**
+             * The parameter has been committed (it's modification flag has been reset)
+             * @param id parameter identifier
+             * @param param parameter parameter value
+             */
+            virtual void commit(const char *id, const kvt_param_t *param);
+
+            /**
              * The parameter has been accessed for reading/removal
              * @param id parameter identifier
              * @param param parameter
@@ -166,12 +173,15 @@ namespace lsp
         protected:
             cvector<KVTListener>    vListeners;
 
-            kvt_node_t              sRoot;
             kvt_link_t              sValid;
             kvt_link_t              sDirty;
             kvt_link_t              sGarbage;
             char                    cSeparator;
             kvt_gcparam_t          *pTrash;
+            kvt_node_t              sRoot;
+            size_t                  nValues;
+            size_t                  nNodes;
+            size_t                  nModified;
 
         protected:
             inline static void      link_list(kvt_link_t *root, kvt_link_t *item);
@@ -191,9 +201,10 @@ namespace lsp
             inline void             init_node(kvt_node_t *node, const char *name, size_t len);
             kvt_node_t             *allocate_node(const char *name, size_t len);
             kvt_node_t             *create_node(kvt_node_t *base, const char *name, size_t len);
+            void                    gc_node(kvt_node_t *node);
             void                    destroy_node(kvt_node_t *node);
             kvt_node_t             *get_node(kvt_node_t *base, const char *name, size_t len);
-            status_t                walk_node(kvt_node_t **out, const char *name, size_t flags);
+            status_t                walk_node(kvt_node_t **out, const char *name);
 
 
         public:
@@ -229,6 +240,12 @@ namespace lsp
              * @return status of operation
              */
             status_t    unbind_all();
+
+        public:
+            inline  size_t nodes() const        { return nNodes;    }
+            inline  size_t values() const       { return nValues;   }
+            inline  size_t modified() const     { return nModified; }
+            size_t         listeners() const;
 
         public:
             /**
@@ -298,6 +315,18 @@ namespace lsp
             status_t    remove(const char *name, double *value);
             status_t    remove(const char *name, const char **value);
             status_t    remove(const char *name, const kvt_blob_t **value);
+
+
+            /**
+             * Set the state of node
+             * @param name node name
+             * @param modified modification flag
+             * @return status of operation
+             *          STATUS_OK           if parameter has been removed
+             *          STATUS_NOT_FOUND    if parameter has been not found
+             */
+            status_t    touch(const char *name, bool modified = true);
+            status_t    commit(const char *name);
 
             /**
              * Remove the full parameter branch from storage
