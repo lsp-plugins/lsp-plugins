@@ -41,6 +41,9 @@ namespace test
             bool            __verbose;
 
         public:
+            int             printf(const char *fmt, ...);
+
+        public:
             inline const char *name() const     { return __test_name; }
             inline const char *group() const    { return __test_group; }
             const char *full_name() const;

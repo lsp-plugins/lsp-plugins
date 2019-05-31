@@ -7,6 +7,7 @@
 
 #include <core/stdlib/stdio.h>
 #include <test/test.h>
+#include <stdarg.h>
 
 namespace test
 {
@@ -58,6 +59,19 @@ namespace test
     bool Test::__check_supported(const void *ptr)
     {
         return support.index_of(ptr) >= 0;
+    }
+
+    int Test::printf(const char *fmt, ...)
+    {
+        if (!__verbose)
+            return 0;
+
+        va_list vl;
+        va_start(vl, fmt);
+        int res = vprintf(fmt, vl);
+        va_end(vl);
+        fflush(stdout);
+        return res;
     }
 }
 

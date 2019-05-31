@@ -37,9 +37,9 @@ namespace lsp
 
     typedef struct kvt_blob_t
     {
-        char   *ctype;          // Content type
-        void   *data;           // Pointer to data
-        size_t  size;           // Size of blob
+        const char    *ctype;          // Content type
+        const void    *data;           // Pointer to data
+        size_t         size;           // Size of blob
     } kvt_blob_t;
 
     typedef struct kvt_param_t
@@ -47,14 +47,14 @@ namespace lsp
         kvt_param_type_t type;
         union
         {
-            int32_t     i32;
-            uint32_t    u32;
-            int64_t     i64;
-            uint64_t    u64;
-            float       f32;
-            double      f64;
-            char       *str;
-            kvt_blob_t  blob;
+            int32_t         i32;
+            uint32_t        u32;
+            int64_t         i64;
+            uint64_t        u64;
+            float           f32;
+            double          f64;
+            const char     *str;
+            kvt_blob_t      blob;
         };
     } kvt_param_t;
 
@@ -123,13 +123,6 @@ namespace lsp
              * @param param parameter
              */
             virtual void missed(const char *id);
-
-            /**
-             * Triggers event before parameter becomes garbage-collected
-             * @param id the full unique identifier of parameter
-             * @param param parameter that will become garbage-collected
-             */
-            virtual void collected(const char *id, const kvt_param_t *param);
     };
 
     /**
@@ -149,9 +142,8 @@ namespace lsp
                 kvt_node_t         *node;
             } kvt_link_t;
 
-            typedef struct kvt_gcparam_t: public kvt_param_t {
-                kvt_node_t         *node;           // Pointer to the node that contains parameters
-                kvt_gcparam_t      *next;           // Pointer to the next garbage-collected parameter
+            typedef struct kvt_gcparam_t : public kvt_param_t {
+                kvt_gcparam_t      *next;
             } kvt_gcparam_t;
 
             typedef struct kvt_node_t
@@ -162,6 +154,7 @@ namespace lsp
                 ssize_t             refs;           // Number of references
                 kvt_gcparam_t      *param;          // Currently used parameter
 
+                bool                modified;       // Modified flag
                 kvt_link_t          gc;             // Link to the removed list
                 kvt_link_t          mod;            // Link to the modifed list
 
@@ -177,8 +170,8 @@ namespace lsp
             kvt_link_t              sValid;
             kvt_link_t              sDirty;
             kvt_link_t              sGarbage;
-            kvt_gcparam_t          *pTrash;
             char                    cSeparator;
+            kvt_gcparam_t          *pTrash;
 
         protected:
             inline static void      link_list(kvt_link_t *root, kvt_link_t *item);
@@ -186,23 +179,22 @@ namespace lsp
 
             void                    mark_dirty(kvt_node_t *node);
             void                    mark_clean(kvt_node_t *node);
-            void                    add_reference(kvt_node_t *node, ssize_t value);
+            kvt_node_t             *reference_up(kvt_node_t *node);
+            kvt_node_t             *reference_down(kvt_node_t *node);
 
             char                   *build_path(char **path, size_t *capacity, kvt_node_t *node);
 
-            void                    gc_parameter(const char *path, kvt_param_t *p, size_t flags);
+            void                    destroy_parameter(kvt_gcparam_t *p);
             status_t                commit_parameter(const char *path, kvt_node_t *node, const kvt_param_t *value, size_t flags);
             kvt_gcparam_t          *copy_parameter(const kvt_param_t *src, size_t flags);
 
-            void                    reduce_branches(kvt_node_t *node);
             inline void             init_node(kvt_node_t *node, const char *name, size_t len);
             kvt_node_t             *allocate_node(const char *name, size_t len);
             kvt_node_t             *create_node(kvt_node_t *base, const char *name, size_t len);
+            void                    destroy_node(kvt_node_t *node);
             kvt_node_t             *get_node(kvt_node_t *base, const char *name, size_t len);
             status_t                walk_node(kvt_node_t **out, const char *name, size_t flags);
 
-            void                    destroy_nodes(kvt_link_t *list);
-            void                    destroy_node(const char *path, kvt_node_t *node);
 
         public:
             explicit KVTStorage(char separator = '/');
@@ -258,6 +250,7 @@ namespace lsp
             status_t    put(const char *name, double value, size_t flags = 0);
             status_t    put(const char *name, const char *value, size_t flags = 0);
             status_t    put(const char *name, const kvt_blob_t *value, size_t flags = 0);
+            status_t    put(const char *name, size_t size, const char *type, const void *value, size_t flags = 0);
 
             /**
              * Fetch parameter from the storage
@@ -278,6 +271,14 @@ namespace lsp
             status_t    get(const char *name, double *value);
             status_t    get(const char *name, const char **value);
             status_t    get(const char *name, const kvt_blob_t **value);
+
+            /**
+             * Check that parameter of specified type exists
+             * @param name parameter name
+             * @param type parameter type (optional)
+             * @return true if parameter with such type exists
+             */
+            bool        exists(const char *name, kvt_param_type_t type = KVT_ANY);
 
             /**
              * Remove parameter from storage
@@ -312,7 +313,7 @@ namespace lsp
              * blobs can become invalid
              * @return status of operation
              */
-            void        gc();
+            status_t    gc();
     };
 
 } /* namespace lsp */

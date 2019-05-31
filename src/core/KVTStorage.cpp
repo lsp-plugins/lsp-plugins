@@ -50,11 +50,6 @@ namespace lsp
     {
     }
 
-    void KVTListener::collected(const char *id, const kvt_param_t *param)
-    {
-    }
-
-
     
     KVTStorage::KVTStorage(char separator)
     {
@@ -74,15 +69,26 @@ namespace lsp
     
     KVTStorage::~KVTStorage()
     {
-        unbind_all();
         destroy();
     }
 
     void KVTStorage::destroy()
     {
-        destroy_nodes(&sGarbage);
-        destroy_nodes(&sValid);
         unbind_all();
+
+        // Destroy trash
+        while (pTrash != NULL)
+        {
+            kvt_gcparam_t *next = pTrash->next;
+            destroy_parameter(pTrash);
+            pTrash      = next;
+        }
+
+        // Destroy garbage
+        while (sGarbage.next != NULL)
+            destroy_node(sGarbage.next->node);
+        while (sValid.next != NULL)
+            destroy_node(sValid.next->node);
 
         sRoot.id            = NULL;
         sRoot.idlen         = 0;
@@ -96,7 +102,7 @@ namespace lsp
         sRoot.mod.prev      = NULL;
         sRoot.mod.node      = NULL;
         sRoot.children      = NULL;
-        sRoot.nchildren     = NULL;
+        sRoot.nchildren     = 0;
         sRoot.capacity      = 0;
     }
 
@@ -107,6 +113,7 @@ namespace lsp
         node->parent        = NULL;
         node->refs          = 0;
         node->param         = NULL;
+        node->modified      = false;
         node->gc.next       = NULL;
         node->gc.prev       = NULL;
         node->gc.node       = node;
@@ -157,82 +164,69 @@ namespace lsp
 
     void KVTStorage::mark_dirty(kvt_node_t *node)
     {
-        if (node->mod.prev != NULL)
+        if (node->modified)
             return;
 
         // Link to dirty list
-        node->mod.next      = sDirty.next;
-        node->mod.prev      = &sDirty;
-        if (sDirty.next != NULL)
-            sDirty.next->prev   = node;
-        sDirty.next         = node;
+        link_list(&sDirty, &node->mod);
+        node->modified      = true;
     }
 
     void KVTStorage::mark_clean(kvt_node_t *node)
     {
-        if (node->mod.prev == NULL)
+        if (!node->modified)
             return;
 
         // Unlink from dirty list
-        node->mod.prev->next    = node->mod.next;
-        if (node->mod.next != NULL)
-            node->mod.next->prev    = node->mod.prev;
+        unlink_list(&node->mod);
+        node->modified      = false;
     }
 
-    void KVTStorage::add_reference(kvt_node_t *node, ssize_t value)
+    KVTStorage::kvt_node_t *KVTStorage::reference_up(kvt_node_t *node)
     {
-        if (node->refs > 0)
-        {
-            node->refs += value;
-            if (node->refs > 0)
-                return;
+        if ((node->refs++) > 0)
+            return node;
 
-            // Move to garbage
-            unlink_list(&node->gc);
-            link_list(&sGarbage, &node->gc);
-        }
-        else
-        {
-            node->refs += value;
-            if (node->refs <= 0)
-                return;
-
-            // Move to valid
-            unlink_list(&node->gc);
-            link_list(&sValid, &node->gc);
-        }
+        // Move to garbage
+        if (node->modified)
+            unlink_list(&node->mod);
+        unlink_list(&node->gc);
+        link_list(&sGarbage, &node->gc);
+        return node;
     }
 
-    void KVTStorage::gc_parameter(const char *path, kvt_param_t *param, size_t flags)
+    KVTStorage::kvt_node_t *KVTStorage::reference_down(kvt_node_t *node)
     {
-        // Notify all listeners that the parameter has been garbage-collected
-        if ((path != NULL) && (!(flags & KVT_SILENT)))
-        {
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->collected(path, param);
-            }
-        }
+        if ((--node->refs) <= 0)
+            return node;
 
+        // Move to valid
+        unlink_list(&node->gc);
+        link_list(&sValid, &node->gc);
+        if (node->modified)
+            link_list(&sDirty, &node->mod);
+        return node;
+    }
+
+    void KVTStorage::destroy_parameter(kvt_gcparam_t *param)
+    {
         // Destroy extra data
         if (param->type == KVT_STRING)
         {
             if (param->str != NULL)
-                ::free(param->str);
+                ::free(const_cast<char *>(param->str));
             param->u64      = 0;
         }
         else if (param->type == KVT_BLOB)
         {
             if (param->blob.ctype != NULL)
             {
-                ::free(param->blob.ctype);
+                ::free(const_cast<char *>(param->blob.ctype));
                 param->blob.ctype   = NULL;
             }
             if (param->blob.data != NULL)
             {
-                ::free(param->blob.data);
+                ::free(const_cast<void *>(param->blob.data));
                 param->blob.data    = NULL;
             }
             param->blob.size    = 0;
@@ -241,6 +235,7 @@ namespace lsp
             param->u64      = 0;
 
         param->type         = KVT_ANY;
+        ::free(param);
     }
 
     char *KVTStorage::build_path(char **path, size_t *capacity, kvt_node_t *node)
@@ -294,21 +289,14 @@ namespace lsp
                 last    = middle - 1;
             else if (cmp < 0)
                 first   = middle + 1;
-            else
-            {
-                // Node does exist?
-                add_reference(node, 1);
+            else // Node does exist?
                 return node;
-            }
         }
 
         // Create new node and add to the tree
         node        = allocate_node(name, len);
         if (node == NULL)
             return NULL;
-
-        // Link node to parent
-        node->parent    = base;
 
         // Add to list of children
         if (base->nchildren >= base->capacity)
@@ -319,6 +307,7 @@ namespace lsp
             kvt_node_t **rmem   = reinterpret_cast<kvt_node_t **>(::realloc(base->children, ncap * sizeof(kvt_node_t *)));
             if (rmem == NULL)
                 return NULL;
+
             base->children      = rmem;
             base->capacity      = ncap;
         }
@@ -326,6 +315,10 @@ namespace lsp
         // Insert record to the 'middle' position
         ::memmove(&base->children[middle + 1], &base->children[middle], sizeof(kvt_node_t *) * (base->nchildren - middle));
         ++base->nchildren;
+
+        // Link node to parent
+        node->parent    = base;
+        reference_up(base);
 
         // Return node
         return node;
@@ -362,11 +355,8 @@ namespace lsp
     KVTStorage::kvt_gcparam_t *KVTStorage::copy_parameter(const kvt_param_t *src, size_t flags)
     {
         kvt_gcparam_t *gcp  = reinterpret_cast<kvt_gcparam_t *>(::malloc(sizeof(kvt_gcparam_t)));
-        gcp->next           = NULL;
-        gcp->node           = NULL;
-
         kvt_param_t *dst    = gcp;
-        *dst                = *src;
+        *dst = *src;
 
         if (flags & KVT_DELEGATE)
             return gcp;
@@ -390,7 +380,7 @@ namespace lsp
                 if (!(dst->blob.ctype = ::strdup(src->blob.ctype)))
                 {
                     ::free(gcp);
-                    return false;
+                    return NULL;
                 }
             }
             if (src->blob.data != NULL)
@@ -398,11 +388,11 @@ namespace lsp
                 if (!(dst->blob.data = ::malloc(src->blob.size)))
                 {
                     if (dst->blob.ctype != NULL)
-                        ::free(dst->blob.ctype);
+                        ::free(const_cast<char *>(dst->blob.ctype));
                     ::free(gcp);
-                    return false;
+                    return NULL;
                 }
-                ::memcpy(dst->blob.data, src->blob.data, src->blob.size);
+                ::memcpy(const_cast<void *>(dst->blob.data), src->blob.data, src->blob.size);
             }
         }
 
@@ -434,7 +424,8 @@ namespace lsp
 
             // Store pointer to the copy
             node->param     = copy;
-            add_reference(node, 1);     // Increment the number of references because we linked an existing parameter
+            reference_up(node);         // Increment the number of references because we linked an existing parameter
+            mark_dirty(node);
 
             return STATUS_OK;
         }
@@ -467,8 +458,10 @@ namespace lsp
 
         if (!(flags & KVT_SILENT))
         {
-            // Mark dirty and notify listeners
+            // Mark dirty
             mark_dirty(node);
+
+            // Notify listeners
             for (size_t i=0, n=vListeners.size(); i<n; ++i)
             {
                 KVTListener *listener = vListeners.at(i);
@@ -478,15 +471,6 @@ namespace lsp
         }
 
         return STATUS_OK;
-    }
-
-    void KVTStorage::reduce_branches(kvt_node_t *node)
-    {
-        while ((node != &sRoot) && (!(node->flags & NF_PARAM)))
-        {
-            mark_removed(node);
-            node    = node->parent;
-        }
     }
 
     status_t KVTStorage::put(const char *name, const kvt_param_t *value, size_t flags)
@@ -499,8 +483,6 @@ namespace lsp
             return STATUS_INVALID_VALUE;
 
         kvt_node_t *curr = &sRoot;
-        add_reference(curr, 1);
-        status_t res;
 
         while (true)
         {
@@ -510,7 +492,7 @@ namespace lsp
                 // Estimate the length of the name
                 size_t len  = item - name;
                 if (!len) // Do not allow empty names
-                    return STATUS_BAD_ARGUMENTS;
+                    return STATUS_INVALID_VALUE;
                 if (!(curr = create_node(curr, path, len)))
                     return STATUS_NO_MEM;
             }
@@ -518,7 +500,7 @@ namespace lsp
             {
                 size_t len  = ::strlen(path);
                 if (!len) // Do not allow empty names
-                    return STATUS_BAD_ARGUMENTS;
+                    return STATUS_INVALID_VALUE;
                 if (!(curr = create_node(curr, path, len)))
                     return STATUS_NO_MEM;
 
@@ -540,7 +522,6 @@ namespace lsp
         kvt_node_t *curr    = &sRoot;
         if (*path == '\0')
         {
-            add_reference(curr, 1);
             *out    = curr;
             return STATUS_OK;
         }
@@ -553,7 +534,7 @@ namespace lsp
                 // Estimate the length of the name
                 size_t len  = item - name;
                 if (!len) // Do not allow empty names
-                    return STATUS_BAD_ARGUMENTS;
+                    return STATUS_INVALID_VALUE;
 
                 curr = get_node(curr, path, len);
                 if ((curr == NULL) || (curr->refs <= 0))
@@ -575,7 +556,7 @@ namespace lsp
             {
                 size_t len  = ::strlen(path);
                 if (!len) // Do not allow empty names
-                    return STATUS_BAD_ARGUMENTS;
+                    return STATUS_INVALID_VALUE;
 
                 curr = get_node(curr, path, len);
                 if ((curr == NULL) || (curr->refs <= 0))
@@ -629,18 +610,47 @@ namespace lsp
         if ((type != KVT_ANY) && (type != param->type))
             return STATUS_BAD_TYPE;
 
-        // Notify listeners
-        for (size_t i=0, n=vListeners.size(); i<n; ++i)
-        {
-            KVTListener *listener = vListeners.at(i);
-            if (listener != NULL)
-                listener->access(name, param);
-        }
-
         // All seems to be OK
         if (value != NULL)
+        {
             *value  = param;
+
+            // Notify listeners
+            for (size_t i=0, n=vListeners.size(); i<n; ++i)
+            {
+                KVTListener *listener = vListeners.at(i);
+                if (listener != NULL)
+                    listener->access(name, param);
+            }
+        }
         return STATUS_OK;
+    }
+
+    bool KVTStorage::exists(const char *name, kvt_param_type_t type)
+    {
+        if (name == NULL)
+            return false;
+
+        // Find the leaf node
+        kvt_node_t *node = NULL;
+        status_t res = walk_node(&node, name, 0);
+        if (res != STATUS_OK)
+            return false;
+
+        kvt_gcparam_t *param = node->param;
+        if (param == NULL)
+        {
+            // Notify listeners
+            for (size_t i=0, n=vListeners.size(); i<n; ++i)
+            {
+                KVTListener *listener = vListeners.at(i);
+                if (listener != NULL)
+                    listener->missed(name);
+            }
+            return false;
+        }
+
+        return ((type == KVT_ANY) || (type == param->type));
     }
 
     status_t KVTStorage::remove(const char *name, const kvt_param_t **value, kvt_param_type_t type)
@@ -674,7 +684,8 @@ namespace lsp
         param->next         = pTrash;
         pTrash              = param;
         node->param         = NULL;
-        add_reference(node, -1);
+        reference_up(node);
+        mark_clean(node);
 
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
@@ -695,72 +706,76 @@ namespace lsp
             return STATUS_BAD_ARGUMENTS;
 
         // Find the branch node
-        kvt_node_t *node = NULL;
+        kvt_node_t *node = NULL, *child;
         status_t res = walk_node(&node, name, KVT_SILENT);
         if (res != STATUS_OK)
             return res;
 
-        cvector<kvt_node_t> tasks, removal;
+        cvector<kvt_node_t> tasks;
         if (!tasks.add(node))
             return STATUS_NO_MEM;
 
         // Generate list of nodes for removal
+        char *str = NULL, *path;
+        size_t capacity = 0;
+
         while (tasks.size() > 0)
         {
             if (!tasks.pop(&node))
-                return STATUS_UNKNOWN_ERR;
-            // Do we need to process this node?
-            if ((node != &sRoot) && (!(node->flags & NF_REMOVED)))
             {
-                if (!removal.add(node))
-                    return STATUS_NO_MEM;
+                if (str != NULL)
+                    ::free(str);
+                return STATUS_UNKNOWN_ERR;
             }
 
             // Generate tasks for recursive search
-            kvt_node_t **child = node->children.get_array();
-            for (size_t i=0, n=node->children.size(); i<n; ++i)
+            for (size_t i=0; i<node->nchildren; ++i)
             {
-                node = *(child++);
-                if (node->flags & NF_REMOVED)
+                child = node->children[i];
+                if (child->refs <= 0)
                     continue;
-                if (!tasks.add(node))
-                    return STATUS_NO_MEM;
-            }
-        }
 
-        // Perform removal in direct order (will be stored in reverse order to the list)
-        kvt_node_t **nodes  = removal.get_array();
-        size_t n            = removal.size();
-        for (size_t i=0; i<n; ++i)
-        {
-            node    = *(nodes++);
-            mark_removed(node);
-        }
-
-        // Notify in reverse order
-        char *str = NULL;
-        size_t capacity = 0;
-
-        for (size_t i=0; i<n; ++i)
-        {
-            node    = *(--nodes);
-            if (!(node->flags & NF_PARAM))
-                continue;
-
-            // Notify listeners
-            char *path = build_path(&str, &capacity, node);
-            if (path != NULL)
-            {
-                for (size_t i=0, n=vListeners.size(); i<n; ++i)
+                // Does node have a parameter?
+                kvt_gcparam_t *param = node->param;
+                if (param != NULL)
                 {
-                    KVTListener *listener = vListeners.at(i);
-                    if (listener != NULL)
-                        listener->removed(path, &node->param);
+                    // Add parameter to trash
+                    param->next         = pTrash;
+                    pTrash              = param;
+                    node->param         = NULL;
+                    mark_clean(node);
+
+                    // Build path to node
+                    path = build_path(&str, &capacity, node);
+                    if (path == NULL)
+                    {
+                        if (str != NULL)
+                            ::free(str);
+                        return STATUS_NO_MEM;
+                    }
+
+                    // Notify listeners
+                    for (size_t i=0, n=vListeners.size(); i<n; ++i)
+                    {
+                        KVTListener *listener = vListeners.at(i);
+                        if (listener != NULL)
+                            listener->removed(path, param);
+                    }
+                }
+
+                // Need to analyze children?
+                if (child->nchildren > 0)
+                {
+                    if (!tasks.push(node))
+                    {
+                        if (str != NULL)
+                            ::free(str);
+                        return STATUS_NO_MEM;
+                    }
                 }
             }
         }
 
-        // Free string buffer
         if (str != NULL)
             ::free(str);
 
@@ -868,8 +883,18 @@ namespace lsp
     status_t KVTStorage::put(const char *name, const kvt_blob_t *value, size_t flags)
     {
         kvt_param_t param;
-        param.type  = KVT_STRING;
+        param.type  = KVT_BLOB;
         param.blob  = *value;
+        return put(name, &param, flags);
+    }
+
+    status_t KVTStorage::put(const char *name, size_t size, const char *type, const void *value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_BLOB;
+        param.blob.size     = size;
+        param.blob.ctype    = type;
+        param.blob.data     = value;
         return put(name, &param, flags);
     }
 
@@ -1017,65 +1042,72 @@ namespace lsp
         return res;
     }
 
-    void KVTStorage::destroy_node(const char *path, kvt_node_t *node)
+    void KVTStorage::destroy_node(kvt_node_t *node)
     {
-        // First, perform garbage-collection of parameter
-        gc_parameter(path, &node->param, 0);
+        if (node->parent != NULL)
+        {
+            // Remove the node from children of parent
+            size_t index = 0;
+            while (node->children[index] != node)
+                ++index;
+            --node->nchildren;
+            ::memmove(&node->children[index], &node->children[index + 1], (node->nchildren - index) * sizeof(kvt_node_t *));
 
-        // Now, remove node from lists
-        unlink_list(&node->dirty);
+            // Decrement number of references for the parent node
+            reference_down(node->parent);
+        }
+
+        unlink_list(&node->mod);
         unlink_list(&node->gc);
 
-        // Unlink node from parents
-        kvt_node_t *parent = node->parent;
-        if (parent != NULL)
+        node->id        = NULL;
+        node->idlen     = 0;
+        node->parent    = NULL;
+
+        if (node->param != NULL)
         {
-            parent->children.remove(node);
-            node->parent    = NULL;
+            destroy_parameter(node->param);
+            node->param     = NULL;
         }
+        node->modified  = false;
 
-        // Unlink node from children
-        kvt_node_t **cnode  = node->children.get_array();
-        for (size_t i=0, n=node->children.)
-    }
-
-    void destroy_nodes(kvt_link_t *list)
-    {
-
-    }
-
-    void KVTStorage::gc()
-    {
-        char *str = NULL;
-        size_t capacity = 0;
-
-        while (true)
+        if (node->children != NULL)
         {
-            kvt_link_t *lnk = sGarbage.next;
-            if (lnk == NULL)
-                break;
+            ::free(node->children);
+            node->children = NULL;
+        }
+        node->nchildren = 0;
+        node->capacity  = 0;
 
-            while (lnk != NULL)
+        ::free(node);
+    }
+
+    status_t KVTStorage::gc()
+    {
+        size_t collected = 0;
+
+        do
+        {
+            collected = 0;
+
+            // Part 1: collect all garbage parameters
+            while (pTrash != NULL)
             {
-                kvt_link_t *next = lnk->next;
-                if (next->node
+                kvt_gcparam_t *next = pTrash->next;
+                destroy_parameter(pTrash);
+                pTrash      = next;
+                ++ collected;
             }
-        }
 
-        if (str != NULL)
-            ::free(str);
+            // Part 2: collect garbage nodes
+            while (sGarbage.next != NULL)
+            {
+                destroy_node(sGarbage.next->node);
+                ++ collected;
+            }
+        } while (collected > 0);
 
-        for (kvt_link_t *lnk = &sGarbage; lnk != NULL; )
-        {
-            kvt_link_t *next = lnk->next;
-
-            // Collect garbage
-            char *path = build_path(&str, &capacity, lnk->node);
-
-
-
-            lnk = lnk->next;
-        }
+        return STATUS_OK;
     }
 
 

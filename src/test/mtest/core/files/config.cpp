@@ -17,14 +17,17 @@ MTEST_BEGIN("core.files", config)
 
     class CfgHandler: public IConfigHandler
     {
+        private:
+            Test *test;
+
         public:
-            CfgHandler() {}
+            CfgHandler(Test *tst): test(tst) {}
             virtual ~CfgHandler() {}
 
         public:
             virtual status_t handle_parameter(const LSPString *name, const LSPString *value)
             {
-                printf("name=%s, value=%s", name->get_native(), value->get_native());
+                test->printf("name=%s, value=%s", name->get_native(), value->get_native());
                 return STATUS_OK;
             }
     };
@@ -33,7 +36,7 @@ MTEST_BEGIN("core.files", config)
     {
         const char *path = (argc > 0) ? argv[0] : FILE_NAME;
 
-        CfgHandler handler;
+        CfgHandler handler(this);
         MTEST_ASSERT(config::load(path, &handler) == STATUS_OK);
     }
 

@@ -42,29 +42,29 @@
 #define UTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 
 #define UTEST_FAIL_MSG(message, ...) {  \
-            fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d with message: \n  " message  "\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d with message: \n  " message  "\n", \
                     __test_group, __test_name, __FILE__, __LINE__, ## __VA_ARGS__); \
-            exit(1); \
+            ::exit(1); \
         }
 
 #define UTEST_FAIL() {\
-            fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d\n", \
                     __test_group, __test_name, __FILE__, __LINE__); \
-            exit(1); \
+            ::exit(1); \
         }
 
 #define UTEST_ASSERT(code) \
         if (!(code)) { \
-            fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n", \
                     __test_group, __test_name, __FILE__, __LINE__, # code); \
-            exit(2); \
+            ::exit(2); \
         }
 
 #define UTEST_ASSERT_MSG(code, message, ...) \
         if (!(code)) { \
-            fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n  " message "\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n  " message "\n", \
                     __test_group, __test_name, __FILE__, __LINE__, # code, ## __VA_ARGS__); \
-            exit(2); \
+            ::exit(2); \
         }
 
 #define UTEST_FOREACH(var, ...)    \
@@ -86,9 +86,6 @@ namespace test
         private:
             static UnitTest        *__root;
             UnitTest               *__next;
-
-        protected:
-            int             printf(const char *fmt, ...);
 
         public:
             explicit UnitTest(const char *group, const char *name);
