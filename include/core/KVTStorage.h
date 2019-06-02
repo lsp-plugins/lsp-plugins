@@ -132,6 +132,8 @@ namespace lsp
             virtual void missed(const char *id);
     };
 
+    class KVTIterator;
+
     /**
      * Key-value tree storage
      */
@@ -139,6 +141,8 @@ namespace lsp
     {
         private:
             KVTStorage & operator = (const KVTStorage &);
+
+            friend class KVTIterator;
 
         protected:
             struct kvt_node_t;
@@ -343,7 +347,73 @@ namespace lsp
              * @return status of operation
              */
             status_t    gc();
+
+        public:
+            KVTIterator *get_modified();
+            KVTIterator *get_branch(const char *name, bool recursive);
     };
+
+    class KVTIterator
+    {
+        private:
+            KVTIterator & operator = (const KVTIterator &);
+
+        public:
+            explicit KVTIterator();
+            virtual ~KVTIterator();
+
+        public:
+            /**
+             * Iterate to the next entry
+             * @return STATUS_OK if the next entry is present, STATUS_NOT_FOUND if no record found
+             */
+            virtual status_t next();
+
+            virtual status_t close();
+
+        public:
+            bool        exists(kvt_param_type_t type = KVT_ANY);
+
+            status_t    get(const kvt_param_t **value, kvt_param_type_t type = KVT_ANY);
+            status_t    get(uint32_t *value);
+            status_t    get(int32_t *value);
+            status_t    get(uint64_t *value);
+            status_t    get(int64_t *value);
+            status_t    get(name, float *value);
+            status_t    get(double *value);
+            status_t    get(const char **value);
+            status_t    get(const kvt_blob_t **value);
+
+            status_t    put(const kvt_param_t *value, size_t flags = 0);
+            status_t    put(uint32_t value, size_t flags = 0);
+            status_t    put(int32_t value, size_t flags = 0);
+            status_t    put(uint64_t value, size_t flags = 0);
+            status_t    put(int64_t value, size_t flags = 0);
+            status_t    put(float value, size_t flags = 0);
+            status_t    put(double value, size_t flags = 0);
+            status_t    put(const char *value, size_t flags = 0);
+            status_t    put(const kvt_blob_t *value, size_t flags = 0);
+            status_t    put(size_t size, const char *type, const void *value, size_t flags = 0);
+
+            status_t    remove(const kvt_param_t **value = NULL, kvt_param_type_t type = KVT_ANY);
+            status_t    remove(uint32_t *value);
+            status_t    remove(int32_t *value);
+            status_t    remove(uint64_t *value);
+            status_t    remove(int64_t *value);
+            status_t    remove(float *value);
+            status_t    remove(double *value);
+            status_t    remove(const char **value);
+            status_t    remove(const kvt_blob_t **value);
+
+            status_t    touch(bool modified = true);
+            status_t    commit();
+
+            status_t    remove_branch();
+
+            const char *name();
+            const char *id();
+    };
+
 
 } /* namespace lsp */
 
