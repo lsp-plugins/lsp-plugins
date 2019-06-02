@@ -349,7 +349,9 @@ namespace lsp
             status_t    gc();
 
         public:
+
             KVTIterator *get_modified();
+
             KVTIterator *get_branch(const char *name, bool recursive);
     };
 
