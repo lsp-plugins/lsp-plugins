@@ -20,6 +20,7 @@
 * Changed installation path for jack core library from <lib-path> to <lib-path>/lsp-plugins.
 * Added more careful file type analysis for non-EXT file systems.
 * Added support of Hygon Dhyana x86 family CPU optimizations and detection of some other CPU vendors.
+* Now both release and test binaries are available to build into separate subdirectories independently.
 - Implemented 3D reverb simulator.
 - Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.
