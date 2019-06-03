@@ -10,6 +10,7 @@
 
 === 1.1.10 ===
 
+* Now both release and test binaries are available to build into separate subdirectories independently.
 - Research the work of plugins under Audacity.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs

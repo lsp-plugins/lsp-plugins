@@ -235,6 +235,12 @@ To build binaries for debugging/profiling, use the following commands:
 To build binaries for testing (developers only), use the following commands:
   make clean
   make test
+  
+To build both release binaries and binaries for testing, use the following commands:
+  make clean all test
+
+After issuing this command, the system will build release binaries into '.build'
+subdirectory and test binaries into '.test' subdirectory
 
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
@@ -309,7 +315,7 @@ To build testing subsystem, issue the following commands:
   make test
 
 After build, we can launch the test binary by issuing command:
-  .build/lsp-plugins-test
+  .test/lsp-plugins-test
 
 This binary provides simple command-line interface, so here's the full usage:  
   USAGE: {utest|ptest|mtest} [args...] [test name...]
@@ -340,17 +346,17 @@ Each test has fully-qualified name separated by dot symbols, tests from differen
 test spaces (utest, ptest, mtest) may have similar fully-qualified names.
 
 To obtain a list of all unit tests we can issue:
-  .build/lsp-plugins-test utest --list
+  .test/lsp-plugins-test utest --list
 
 And then we can launch all complex number processing unit tests and additionally
 'dsp.mix' unit test:
-  .build/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
+  .test/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
 
 If we don's specify any unit test name in argument, then all available unit tests
 will be launched.
 
 To start debugging of some unit test, you need to pass additional arguments:
-  .build/lsp-plugins-test utest --nofork --debug --verbose
+  .test/lsp-plugins-test utest --nofork --debug --verbose
   
 Because unit tests are short-time fully-automated tests, they are parallelized and
 executed by default by number_of_cores*2 processes. To disable this, we specify option
@@ -363,7 +369,7 @@ We also can use performance tests to obtain full performance profile of target m
 Because performance tests in most cases take much time for gathering statistics,
 the final statistics for each test can be saved in a separate file by specifying --outfile
 option:
-  .build/lsp-plugins-test ptest -o performance-test.log
+  .test/lsp-plugins-test ptest -o performance-test.log
 
 Manual tests are mostly designed for developers' purposes.
 
