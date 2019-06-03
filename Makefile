@@ -112,6 +112,7 @@ test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export CXXFLAGS       += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
+test: export BUILD_MODULES   = jack
 test: test_compile
 
 tracefile: export CFLAGS    += -DLSP_TRACEFILE
