@@ -1,15 +1,25 @@
 # Common definitions
-OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src build-*.sh include res Makefile release.sh
 RELEASE_SCRIPTS         = scripts/bash scripts/make
 INSTALL                 = install
+export RELEASE_TEXT
 
 # Estimate different pre-requisites before launching build
 include scripts/make/tools.mk
 include scripts/make/set_vars.mk
 include scripts/make/version.mk
 include scripts/make/configure.mk
+
+# Build directories
+export ROOTDIR          = ${CURDIR}
+export SRCDIR           = ${CURDIR}/src
+export RESDIR           = ${CURDIR}/res
+export RELEASE          = ${CURDIR}/.release
+export RELEASE_BIN      = $(RELEASE)/$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+export BUILDDIR         = ${CURDIR}/.build
+export TESTDIR          = ${CURDIR}/.test
+OBJDIR                  = $(BUILDDIR)
 
 # Installation locations
 BIN_PATH               ?= $(PREFIX)/bin
@@ -20,13 +30,6 @@ LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
 
 # Directories
-export RELEASE_TEXT
-export ROOTDIR          = ${CURDIR}
-export SRCDIR           = ${CURDIR}/src
-export RESDIR           = ${CURDIR}/res
-export RELEASE          = ${CURDIR}/.release
-export RELEASE_BIN      = $(RELEASE)/$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-export BUILDDIR         = $(OBJDIR)
 
 # Includes
 INC_FLAGS               = -I"${CURDIR}/include"
@@ -84,7 +87,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
-.PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile
+.PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
 .PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc
 .PHONY: release release_ladspa release_lv2 release_vst release_jack release_doc release_src
@@ -106,11 +109,13 @@ trace: export CXXFLAGS      += -O2 -DLSP_TRACE -g3
 trace: export EXE_FLAGS     += -g3
 trace: compile
 
+test: OBJDIR                 = $(TESTDIR)
 test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export CXXFLAGS       += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
-test: compile
+test: export BUILD_MODULES   = jack
+test: test_compile
 
 testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3
 testdebug: export CXXFLAGS       += -O0 -DLSP_TESTING -DLSP_TRACE -g3
@@ -146,7 +151,7 @@ profile: export EXE_FLAGS   += -g -pg -no-pie -fno-pie -fPIC
 profile: compile
 
 # Compilation and cleaning targets
-compile:
+compile test_compile:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Building binaries"
 	@echo "  target architecture : $(BUILD_PROFILE)"
@@ -154,6 +159,7 @@ compile:
 	@echo "  target system       : $(BUILD_SYSTEM)"
 	@echo "  compiler            : $(BUILD_COMPILER)"
 	@echo "  modules             : $(BUILD_MODULES)"
+	@echo "  build directory     : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
 	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)
@@ -163,7 +169,8 @@ compile:
 	@echo "Build OK"
 
 clean:
-	@-rm -rf $(OBJDIR)
+	@-rm -rf $(BUILDDIR)
+	@-rm -rf $(TESTDIR)
 	@echo "Clean OK"
 
 # Build targets
