@@ -11,6 +11,7 @@
 #include <core/types.h>
 #include <core/status.h>
 #include <data/cvector.h>
+#include <data/cstorage.h>
 
 namespace lsp
 {
@@ -144,6 +145,15 @@ namespace lsp
 
             friend class KVTIterator;
 
+            enum iterator_mode_t
+            {
+                IT_INVALID,
+                IT_MODIFIED,
+                IT_BRANCH,
+                IT_RECURSIVE,
+                IT_EOF
+            };
+
         protected:
             struct kvt_node_t;
 
@@ -182,10 +192,20 @@ namespace lsp
             kvt_link_t              sGarbage;
             char                    cSeparator;
             kvt_gcparam_t          *pTrash;
+            KVTIterator            *pIterators;
             kvt_node_t              sRoot;
             size_t                  nValues;
             size_t                  nNodes;
             size_t                  nModified;
+
+        protected:
+            inline void             notify_created(const char *id, const kvt_param_t *param);
+            inline void             notify_rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr);
+            inline void             notify_changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval);
+            inline void             notify_removed(const char *id, const kvt_param_t *param);
+            inline void             notify_access(const char *id, const kvt_param_t *param);
+            inline void             notify_commit(const char *id, const kvt_param_t *param);
+            inline void             notify_missed(const char *id);
 
         protected:
             inline static void      link_list(kvt_link_t *root, kvt_link_t *item);
@@ -196,7 +216,7 @@ namespace lsp
             kvt_node_t             *reference_up(kvt_node_t *node);
             kvt_node_t             *reference_down(kvt_node_t *node);
 
-            char                   *build_path(char **path, size_t *capacity, kvt_node_t *node);
+            char                   *build_path(char **path, size_t *capacity, const kvt_node_t *node);
 
             void                    destroy_parameter(kvt_gcparam_t *p);
             status_t                commit_parameter(const char *path, kvt_node_t *node, const kvt_param_t *value, size_t flags);
@@ -210,6 +230,9 @@ namespace lsp
             kvt_node_t             *get_node(kvt_node_t *base, const char *name, size_t len);
             status_t                walk_node(kvt_node_t **out, const char *name);
 
+            status_t                do_remove_node(const char *name, kvt_node_t *node, const kvt_param_t **value, kvt_param_type_t type);
+            status_t                do_touch(const char *name, kvt_node_t *node, bool modified);
+            status_t                do_remove_branch(const char *name, kvt_node_t *node);
 
         public:
             explicit KVTStorage(char separator = '/');
@@ -350,18 +373,41 @@ namespace lsp
 
         public:
 
-            KVTIterator *get_modified();
+            KVTIterator *enum_modified();
 
-            KVTIterator *get_branch(const char *name, bool recursive);
+            KVTIterator *enum_branch(const char *name, bool recursive);
     };
 
     class KVTIterator
     {
-        private:
+        protected:
+            typedef struct kvt_path_t
+            {
+                KVTStorage::kvt_node_t *node;
+                size_t                  index;
+            } kvt_path_t;
+
+        protected:
+            KVTStorage::kvt_node_t              sFake;
+            KVTStorage::iterator_mode_t         enMode;
+            KVTStorage::kvt_node_t             *pCurr;
+            KVTStorage::kvt_node_t             *pNext;
+            size_t                              nIndex;
+
+            cstorage<kvt_path_t>                vPath;
+            mutable char                       *pPath;
+            mutable char                       *pData;
+            mutable size_t                      nDataCap;
+
+            KVTStorage                         *pStorage;
+            KVTIterator                        *pGcNext;
+
+            friend class KVTStorage;
+
+        protected:
             KVTIterator & operator = (const KVTIterator &);
 
-        public:
-            explicit KVTIterator();
+            explicit KVTIterator(KVTStorage *storage, KVTStorage::kvt_node_t *node, KVTStorage::iterator_mode_t mode);
             virtual ~KVTIterator();
 
         public:
@@ -369,19 +415,20 @@ namespace lsp
              * Iterate to the next entry
              * @return STATUS_OK if the next entry is present, STATUS_NOT_FOUND if no record found
              */
-            virtual status_t next();
-
-            virtual status_t close();
+            status_t    next();
+            bool        valid() const;
+            bool        modified() const;
 
         public:
-            bool        exists(kvt_param_type_t type = KVT_ANY);
+
+            bool        exists(kvt_param_type_t type = KVT_ANY) const;
 
             status_t    get(const kvt_param_t **value, kvt_param_type_t type = KVT_ANY);
             status_t    get(uint32_t *value);
             status_t    get(int32_t *value);
             status_t    get(uint64_t *value);
             status_t    get(int64_t *value);
-            status_t    get(name, float *value);
+            status_t    get(float *value);
             status_t    get(double *value);
             status_t    get(const char **value);
             status_t    get(const kvt_blob_t **value);
@@ -412,8 +459,8 @@ namespace lsp
 
             status_t    remove_branch();
 
-            const char *name();
-            const char *id();
+            const char *name() const;
+            const char *id() const;
     };
 
 

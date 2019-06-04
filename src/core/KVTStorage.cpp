@@ -68,6 +68,7 @@ namespace lsp
         sGarbage.prev       = NULL;
         sGarbage.node       = NULL;
         pTrash              = NULL;
+        pIterators          = NULL;
         nNodes              = 0;
         nValues             = 0;
         nModified           = 0;
@@ -91,6 +92,14 @@ namespace lsp
             kvt_gcparam_t *next = pTrash->next;
             destroy_parameter(pTrash);
             pTrash      = next;
+        }
+
+        // Destroy all iterators
+        while (pIterators != NULL)
+        {
+            KVTIterator *next   = pIterators->pGcNext;
+            delete pIterators;
+            pIterators          = next;
         }
 
         // Destroy all nodes
@@ -139,6 +148,7 @@ namespace lsp
         sGarbage.prev       = NULL;
         sGarbage.node       = NULL;
         pTrash              = NULL;
+        pIterators          = NULL;
 
         nNodes              = 0;
         nValues             = 0;
@@ -259,6 +269,76 @@ namespace lsp
         return node;
     }
 
+    void KVTStorage::notify_created(const char *id, const kvt_param_t *param)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->created(id, param);
+        }
+    }
+
+    void KVTStorage::notify_rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->rejected(id, rej, curr);
+        }
+    }
+
+    void KVTStorage::notify_changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->changed(id, oval, nval);
+        }
+    }
+
+    void KVTStorage::notify_removed(const char *id, const kvt_param_t *param)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->removed(id, param);
+        }
+    }
+
+    void KVTStorage::notify_access(const char *id, const kvt_param_t *param)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->access(id, param);
+        }
+    }
+
+    void KVTStorage::notify_commit(const char *id, const kvt_param_t *param)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->commit(id, param);
+        }
+    }
+
+    void KVTStorage::notify_missed(const char *id)
+    {
+        for (size_t i=0, n=vListeners.size(); i<n; ++i)
+        {
+            KVTListener *listener = vListeners.at(i);
+            if (listener != NULL)
+                listener->missed(id);
+        }
+    }
+
     void KVTStorage::destroy_parameter(kvt_gcparam_t *param)
     {
         // Destroy extra data
@@ -289,11 +369,11 @@ namespace lsp
         ::free(param);
     }
 
-    char *KVTStorage::build_path(char **path, size_t *capacity, kvt_node_t *node)
+    char *KVTStorage::build_path(char **path, size_t *capacity, const kvt_node_t *node)
     {
         // Estimate number of bytes required
         size_t bytes = 1;
-        for (kvt_node_t *n = node; n != &sRoot; n = n->parent)
+        for (const kvt_node_t *n = node; n != &sRoot; n = n->parent)
             bytes   += n->idlen + 1;
 
         char *dst   = *path;
@@ -309,7 +389,7 @@ namespace lsp
 
         dst         = &dst[bytes];
         *(--dst)    = '\0';
-        for (kvt_node_t *n = node; n != &sRoot; n = n->parent)
+        for (const kvt_node_t *n = node; n != &sRoot; n = n->parent)
         {
             dst        -= n->idlen;
             ::memcpy(dst, n->id, n->idlen);
@@ -464,25 +544,13 @@ namespace lsp
 
             if (flags & KVT_COMMIT)
             {
-                // Mark dirty and notify listeners
                 mark_clean(node);
-                for (size_t i=0, n=vListeners.size(); i<n; ++i)
-                {
-                    KVTListener *listener = vListeners.at(i);
-                    if (listener != NULL)
-                        listener->commit(name, copy);
-                }
+                notify_commit(name, copy);
             }
             else
             {
-                // Mark dirty and notify listeners
                 mark_dirty(node);
-                for (size_t i=0, n=vListeners.size(); i<n; ++i)
-                {
-                    KVTListener *listener = vListeners.at(i);
-                    if (listener != NULL)
-                        listener->created(name, copy);
-                }
+                notify_created(name, copy);
             }
 
             // Store pointer to the copy
@@ -496,13 +564,7 @@ namespace lsp
         // Do we need to keep old value?
         if (flags & KVT_KEEP)
         {
-            // Notify all listeners that parameter has been rejected
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->rejected(name, value, curr);
-            }
+            notify_rejected(name, value, curr);
             return STATUS_ALREADY_EXISTS;
         }
 
@@ -518,22 +580,12 @@ namespace lsp
         if (flags & KVT_COMMIT)
         {
             mark_clean(node);
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->changed(name, curr, copy);
-            }
+            notify_commit(name, copy);
         }
         else
         {
             mark_dirty(node);
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->changed(name, curr, copy);
-            }
+            notify_changed(name, curr, copy);
         }
 
         return STATUS_OK;
@@ -638,12 +690,7 @@ namespace lsp
             if (res != STATUS_NOT_FOUND)
                 return res;
 
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
+            notify_missed(name);
             return res;
         }
         else if (node == &sRoot)
@@ -653,12 +700,7 @@ namespace lsp
         if (param == NULL)
         {
             // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
+            notify_missed(name);
             return STATUS_NOT_FOUND;
         }
 
@@ -669,14 +711,7 @@ namespace lsp
         if (value != NULL)
         {
             *value  = param;
-
-            // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->access(name, param);
-            }
+            notify_access(name, param);
         }
         return STATUS_OK;
     }
@@ -691,15 +726,8 @@ namespace lsp
         status_t res = walk_node(&node, name);
         if (res != STATUS_OK)
         {
-            if (res != STATUS_NOT_FOUND)
-                return false;
-
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
+            if (res == STATUS_NOT_FOUND)
+                notify_missed(name);
             return false;
         }
         if (node == &sRoot)
@@ -708,53 +736,19 @@ namespace lsp
         kvt_gcparam_t *param = node->param;
         if (param == NULL)
         {
-            // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
+            notify_missed(name);
             return false;
         }
 
         return ((type == KVT_ANY) || (type == param->type));
     }
 
-    status_t KVTStorage::remove(const char *name, const kvt_param_t **value, kvt_param_type_t type)
+    status_t KVTStorage::do_remove_node(const char *name, kvt_node_t *node, const kvt_param_t **value, kvt_param_type_t type)
     {
-        if (name == NULL)
-            return STATUS_BAD_ARGUMENTS;
-
-        // Find the leaf node
-        kvt_node_t *node = NULL;
-        status_t res = walk_node(&node, name);
-        if (res != STATUS_OK)
-        {
-            if (res != STATUS_NOT_FOUND)
-                return res;
-
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
-            return res;
-        }
-        else if (node == &sRoot)
-            return STATUS_INVALID_VALUE;
-
         kvt_gcparam_t *param = node->param;
         if (param == NULL)
         {
-            // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
+            notify_missed(name);
             return STATUS_NOT_FOUND;
         }
 
@@ -768,16 +762,56 @@ namespace lsp
         pTrash              = param;
         node->param         = NULL;
 
-        for (size_t i=0, n=vListeners.size(); i<n; ++i)
-        {
-            KVTListener *listener = vListeners.at(i);
-            if (listener != NULL)
-                listener->removed(name, param);
-        }
+        notify_removed(name, param);
 
         // All seems to be OK
         if (value != NULL)
             *value  = param;
+        return STATUS_OK;
+    }
+
+    status_t KVTStorage::remove(const char *name, const kvt_param_t **value, kvt_param_type_t type)
+    {
+        if (name == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        // Find the leaf node
+        kvt_node_t *node = NULL;
+        status_t res = walk_node(&node, name);
+        if (res != STATUS_OK)
+        {
+            if (res == STATUS_NOT_FOUND)
+                notify_missed(name);
+            return res;
+        }
+        else if (node == &sRoot)
+            return STATUS_INVALID_VALUE;
+
+        return do_remove_node(name, node, value, type);
+    }
+
+    status_t KVTStorage::do_touch(const char *name, kvt_node_t *node, bool modified)
+    {
+        // Parameter does exist?
+        kvt_gcparam_t *param = node->param;
+        if (param == NULL)
+        {
+            notify_missed(name);
+            return STATUS_NOT_FOUND;
+        }
+
+        // Add parameter to trash
+        if (modified)
+        {
+            mark_dirty(node);
+            notify_changed(name, param, param);
+        }
+        else
+        {
+            mark_clean(node);
+            notify_commit(name, param);
+        }
+
         return STATUS_OK;
     }
 
@@ -791,61 +825,14 @@ namespace lsp
         status_t res = walk_node(&node, name);
         if (res != STATUS_OK)
         {
-            if (res != STATUS_NOT_FOUND)
-                return res;
-
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
+            if (res == STATUS_NOT_FOUND)
+                notify_missed(name);
             return res;
         }
         else if (node == &sRoot)
             return STATUS_INVALID_VALUE;
 
-        // Parameter does exist?
-        kvt_gcparam_t *param = node->param;
-        if (param == NULL)
-        {
-            // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->missed(name);
-            }
-            return STATUS_NOT_FOUND;
-        }
-
-        // Add parameter to trash
-        if (modified)
-        {
-            mark_dirty(node);
-
-            // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->changed(name, param, param);
-            }
-        }
-        else
-        {
-            mark_clean(node);
-
-            // Notify listeners
-            for (size_t i=0, n=vListeners.size(); i<n; ++i)
-            {
-                KVTListener *listener = vListeners.at(i);
-                if (listener != NULL)
-                    listener->commit(name, param);
-            }
-        }
-
-        return STATUS_OK;
+        return do_touch(name, node, modified);
     }
 
     status_t KVTStorage::commit(const char *name)
@@ -853,16 +840,9 @@ namespace lsp
         return touch(name, false);
     }
 
-    status_t KVTStorage::remove_branch(const char *name)
+    status_t KVTStorage::do_remove_branch(const char *name, kvt_node_t *node)
     {
-        if (name == NULL)
-            return STATUS_BAD_ARGUMENTS;
-
-        // Find the branch node
-        kvt_node_t *node = NULL, *child;
-        status_t res = walk_node(&node, name);
-        if (res != STATUS_OK)
-            return res;
+        kvt_node_t *child;
 
         cvector<kvt_node_t> tasks;
         if (!tasks.add(node))
@@ -909,12 +889,7 @@ namespace lsp
                     }
 
                     // Notify listeners
-                    for (size_t i=0, n=vListeners.size(); i<n; ++i)
-                    {
-                        KVTListener *listener = vListeners.at(i);
-                        if (listener != NULL)
-                            listener->removed(path, param);
-                    }
+                    notify_removed(path, param);
                 }
 
                 // Need to analyze children?
@@ -934,6 +909,20 @@ namespace lsp
             ::free(str);
 
         return STATUS_OK;
+    }
+
+    status_t KVTStorage::remove_branch(const char *name)
+    {
+        if (name == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        // Find the branch node
+        kvt_node_t *node = NULL;
+        status_t res = walk_node(&node, name);
+        if (res != STATUS_OK)
+            return res;
+
+        return do_remove_branch(name, node);
     }
 
     status_t KVTStorage::bind(KVTListener *listener)
@@ -1250,7 +1239,15 @@ namespace lsp
         {
             collected = 0;
 
-            // Part 1: collect all garbage parameters
+            // Part 0: Destroy all iterators
+            while (pIterators != NULL)
+            {
+                KVTIterator *next   = pIterators->pGcNext;
+                delete pIterators;
+                pIterators          = next;
+            }
+
+            // Part 1: Collect all garbage parameters
             while (pTrash != NULL)
             {
                 kvt_gcparam_t *next = pTrash->next;
@@ -1259,7 +1256,7 @@ namespace lsp
                 ++ collected;
             }
 
-            // Part 2: collect garbage nodes
+            // Part 2: Collect garbage nodes
             while (sGarbage.next != NULL)
             {
                 gc_node(sGarbage.next->node);
@@ -1270,5 +1267,510 @@ namespace lsp
         return STATUS_OK;
     }
 
+    KVTIterator *KVTStorage::enum_modified()
+    {
+        kvt_link_t *lnk = sDirty.next;
+        return new KVTIterator(this, (lnk != NULL) ? lnk->node : NULL, IT_MODIFIED);
+    }
+
+    KVTIterator *KVTStorage::enum_branch(const char *name, bool recursive)
+    {
+        // Find the leaf node
+        kvt_node_t *node = NULL;
+        status_t res = walk_node(&node, name);
+        if (res != STATUS_OK)
+        {
+            if (res == STATUS_NOT_FOUND)
+                notify_missed(name);
+        }
+
+        return new KVTIterator(this, node, (recursive) ? IT_RECURSIVE : IT_BRANCH);
+    }
+
+
+    KVTIterator::KVTIterator(KVTStorage *storage, KVTStorage::kvt_node_t *node, KVTStorage::iterator_mode_t mode)
+    {
+        sFake.id        = NULL;
+        sFake.idlen     = 0;
+        sFake.parent    = node;
+        sFake.refs      = 0;
+        sFake.children  = NULL;
+        sFake.param     = NULL;
+        sFake.modified  = false;
+        sFake.gc.next   = NULL;
+        sFake.gc.prev   = NULL;
+        sFake.mod.next  = (node != NULL) ? &node->mod : NULL;
+        sFake.mod.prev  = NULL;
+        sFake.children  = NULL;
+        sFake.nchildren = 0;
+        sFake.capacity  = 0;
+
+        enMode          = mode;
+        pCurr           = &sFake;
+        pNext           = node;
+        nIndex          = ~size_t(0);
+        pPath           = NULL;
+        pData           = NULL;
+        nDataCap        = 0;
+        pStorage        = storage;
+
+        pGcNext         = storage->pIterators;
+        storage->pIterators = this; // Link to the garbage
+    }
+
+    KVTIterator::~KVTIterator()
+    {
+        pCurr           = NULL;
+        nIndex          = 0;
+        vPath.flush();
+        enMode          = KVTStorage::IT_INVALID;
+        pPath           = NULL;
+
+        if (pData != NULL)
+        {
+            ::free(pData);
+            pData           = NULL;
+        }
+
+        nDataCap        = 0;
+        pGcNext         = NULL;
+        pStorage        = NULL;
+    }
+
+    bool KVTIterator::valid() const
+    {
+        return (pCurr != &sFake) && (pCurr != NULL) && (pCurr->refs > 0);
+    }
+
+    bool KVTIterator::modified() const
+    {
+        return (valid()) && (pCurr->modified);
+    }
+
+    const char *KVTIterator::id() const
+    {
+        return (valid()) ? pCurr->id : NULL;
+    }
+
+    const char *KVTIterator::name() const
+    {
+        if (!valid())
+            return NULL;
+
+        if (pPath == NULL)
+            pPath = pStorage->build_path(&pData, &nDataCap, pCurr);
+
+        return pPath;
+    }
+
+    status_t KVTIterator::next()
+    {
+        switch (enMode)
+        {
+            case KVTStorage::IT_MODIFIED:
+            {
+                KVTStorage::kvt_link_t *lnk;
+
+                pCurr       = pNext;
+                if ((pCurr == NULL) || (!pCurr->modified))
+                {
+                    enMode      = KVTStorage::IT_EOF;
+                    return STATUS_NOT_FOUND;
+                }
+
+                lnk         = (pCurr != NULL) ? pCurr->mod.next : NULL;
+                pNext       = (lnk != NULL) ? lnk->node : NULL;
+                break;
+            }
+
+            case KVTStorage::IT_BRANCH:
+            {
+                do
+                {
+                    if ((++nIndex) >= pCurr->parent->nchildren)
+                    {
+                        enMode      = KVTStorage::IT_EOF;
+                        return STATUS_NOT_FOUND;
+                    }
+                    pCurr       = pCurr->parent->children[nIndex];
+                } while (pCurr->refs <= 0);
+                break;
+            }
+
+            case KVTStorage::IT_RECURSIVE:
+            {
+                do
+                {
+                    if (pCurr->nchildren > 0)
+                    {
+                        kvt_path_t *path = vPath.push();
+                        if (path == NULL)
+                            return STATUS_NO_MEM;
+                        path->index = nIndex + 1;
+                        path->node  = pCurr;
+                        pCurr       = pCurr->children[0];
+                        nIndex      = 0;
+                    }
+                    else
+                    {
+                        if ((++nIndex) >= pCurr->parent->nchildren)
+                        {
+                            kvt_path_t path;
+                            if (!vPath.pop(&path))
+                            {
+                                enMode      = KVTStorage::IT_EOF;
+                                return STATUS_NOT_FOUND;
+                            }
+                            nIndex      = path.index;
+                            pCurr       = pCurr->parent;
+                        }
+                        pCurr       = pCurr->parent->children[nIndex];
+                    }
+
+                    if ((pCurr == NULL) || (pCurr->refs <= 0))
+                    {
+                        enMode      = KVTStorage::IT_EOF;
+                        return STATUS_NOT_FOUND;
+                    }
+                } while (pCurr->refs <= 0);
+
+                break;
+            }
+
+            case KVTStorage::IT_EOF:
+                return STATUS_NOT_FOUND;
+
+            default:
+                break;
+        }
+
+        return STATUS_BAD_STATE;
+    }
+
+    bool KVTIterator::exists(kvt_param_type_t type) const
+    {
+        if (!valid())
+            return false;
+
+        KVTStorage::kvt_gcparam_t *param = pCurr->param;
+        if (param == NULL)
+        {
+            // Get parameter name
+            const char *id = name();
+            if (id == NULL)
+                return false;
+
+            pStorage->notify_missed(id);
+            return false;
+        }
+
+        return ((type == KVT_ANY) || (type == param->type));
+    }
+
+    status_t KVTIterator::get(const kvt_param_t **value, kvt_param_type_t type)
+    {
+        if (!valid())
+            return STATUS_BAD_STATE;
+
+        const char *id = name();
+        if (id == NULL)
+            return STATUS_NO_MEM;
+
+        KVTStorage::kvt_gcparam_t *param = pCurr->param;
+        if (param == NULL)
+        {
+            pStorage->notify_missed(id);
+            return STATUS_NOT_FOUND;
+        }
+
+        if ((type != KVT_ANY) && (type != param->type))
+            return STATUS_BAD_TYPE;
+
+        // All seems to be OK
+        if (value != NULL)
+        {
+            *value  = param;
+            pStorage->notify_access(id, param);
+        }
+        return STATUS_OK;
+    }
+
+    status_t KVTIterator::get(uint32_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_UINT32);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->u32;
+        return res;
+    }
+
+    status_t KVTIterator::get(int32_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_INT32);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->i32;
+        return res;
+    }
+
+    status_t KVTIterator::get(uint64_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_UINT64);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->u64;
+        return res;
+    }
+
+    status_t KVTIterator::get(int64_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_INT64);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->i64;
+        return res;
+    }
+
+    status_t KVTIterator::get(float *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_FLOAT32);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->f32;
+        return res;
+    }
+
+    status_t KVTIterator::get(double *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_FLOAT64);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->f64;
+        return res;
+    }
+
+    status_t KVTIterator::get(const char **value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_STRING);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->str;
+        return res;
+    }
+
+    status_t KVTIterator::get(const kvt_blob_t **value)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(&param, KVT_BLOB);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = &param->blob;
+        return res;
+    }
+
+    status_t KVTIterator::put(const kvt_param_t *value, size_t flags)
+    {
+        if (!valid())
+            return false;
+
+        const char *id = name();
+        if (id == NULL)
+            return STATUS_NO_MEM;
+
+        return pStorage->commit_parameter(id, pCurr, value, flags);
+    }
+
+    status_t KVTIterator::put(uint32_t value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_UINT32;
+        param.u32   = value;
+        return put(&param, flags | KVT_DELEGATE);
+    }
+
+    status_t KVTIterator::put(int32_t value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_INT32;
+        param.i32   = value;
+        return put(&param, flags | KVT_DELEGATE);
+    }
+
+    status_t KVTIterator::put(uint64_t value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_UINT64;
+        param.u64   = value;
+        return put(&param, flags | KVT_DELEGATE);
+    }
+
+    status_t KVTIterator::put(int64_t value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_INT64;
+        param.i64   = value;
+        return put(&param, flags | KVT_DELEGATE);
+    }
+
+    status_t KVTIterator::put(float value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_FLOAT32;
+        param.f32   = value;
+        return put(&param, flags | KVT_DELEGATE);
+    }
+
+    status_t KVTIterator::put(double value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_FLOAT64;
+        param.f64   = value;
+        return put(&param, flags | KVT_DELEGATE);
+    }
+
+    status_t KVTIterator::put(const char *value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_STRING;
+        param.str   = const_cast<char *>(value);
+        return put(&param, flags);
+    }
+
+    status_t KVTIterator::put(const kvt_blob_t *value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_BLOB;
+        param.blob  = *value;
+        return put(&param, flags);
+    }
+
+    status_t KVTIterator::put(size_t size, const char *type, const void *value, size_t flags)
+    {
+        kvt_param_t param;
+        param.type  = KVT_BLOB;
+        param.blob.size     = size;
+        param.blob.ctype    = type;
+        param.blob.data     = value;
+        return put(&param, flags);
+    }
+
+    status_t KVTIterator::remove(const kvt_param_t **value, kvt_param_type_t type)
+    {
+        if (!valid())
+            return STATUS_BAD_STATE;
+
+        const char *id = name();
+        if (id == NULL)
+            return STATUS_NO_MEM;
+
+        return pStorage->do_remove_node(id, pCurr, value, type);
+    }
+
+    status_t KVTIterator::remove(uint32_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_UINT32);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->u32;
+        return res;
+    }
+
+    status_t KVTIterator::remove(int32_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_INT32);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->i32;
+        return res;
+    }
+
+    status_t KVTIterator::remove(uint64_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_UINT64);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->u64;
+        return res;
+    }
+
+    status_t KVTIterator::remove(int64_t *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_INT64);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->i64;
+        return res;
+    }
+
+    status_t KVTIterator::remove(float *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_FLOAT32);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->f32;
+        return res;
+    }
+
+    status_t KVTIterator::remove(double *value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_FLOAT64);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->f64;
+        return res;
+    }
+
+    status_t KVTIterator::remove(const char **value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_STRING);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = param->str;
+        return res;
+    }
+
+    status_t KVTIterator::remove(const kvt_blob_t **value)
+    {
+        const kvt_param_t *param;
+        status_t res        = remove(&param, KVT_BLOB);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value              = &param->blob;
+        return res;
+    }
+
+    status_t KVTIterator::touch(bool modified)
+    {
+        if (!valid())
+            return STATUS_BAD_STATE;
+
+        const char *id = name();
+        if (id == NULL)
+            return STATUS_NO_MEM;
+
+        return pStorage->do_touch(id, pCurr, false);
+    }
+
+    status_t KVTIterator::commit()
+    {
+        if (!valid())
+            return STATUS_BAD_STATE;
+
+        const char *id = name();
+        if (id == NULL)
+            return STATUS_NO_MEM;
+
+        return pStorage->do_touch(id, pCurr, false);
+    }
+
+    status_t KVTIterator::remove_branch()
+    {
+        if (!valid())
+            return STATUS_BAD_STATE;
+
+        const char *id = name();
+        if (id == NULL)
+            return STATUS_NO_MEM;
+
+        return pStorage->do_remove_branch(id, pCurr);
+    }
 
 } /* namespace lsp */
