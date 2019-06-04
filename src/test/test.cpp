@@ -51,6 +51,14 @@ namespace test
         return false;
     }
 
+    void Test::init()
+    {
+    }
+
+    void Test::destroy()
+    {
+    }
+
     void Test::__mark_supported(const void *ptr)
     {
         support.add(const_cast<void *>(ptr));

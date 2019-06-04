@@ -30,6 +30,11 @@ enum
 };
 
 UTEST_BEGIN("core", kvtstorage)
+    const char *ndstr;
+    char *dstr;
+    kvt_blob_t ndblob;
+    kvt_blob_t dblob;
+
     class TestListener: public KVTListener
     {
         private:
@@ -84,6 +89,7 @@ UTEST_BEGIN("core", kvtstorage)
             {
                 clear();
             }
+
             virtual ~TestListener() {}
 
         public:
@@ -186,28 +192,22 @@ UTEST_BEGIN("core", kvtstorage)
             }
     };
 
-
-    UTEST_MAIN
+    UTEST_INIT
     {
-        TestListener l(this);
-        KVTStorage s;
+        ndstr = "Test non-delegated string";
+        dstr      = strdup("Test delegated string");
 
-        const char *ndstr = "Test non-delegated string";
-        kvt_blob_t ndblob;
         ndblob.ctype    = "text/html";
         ndblob.data     = "Some non-delegated blob data";
         ndblob.size     = strlen("Some non-delegated blob data") + 1;
 
-        char *dstr      = strdup("Test delegated string");
-        kvt_blob_t dblob;
         dblob.ctype     = strdup("application/text");
         dblob.data      = strdup("Some delegated blob data");
         dblob.size      = strlen("Some delegated blob data") + 1;
+    }
 
-        kvt_param_t p;
-        const kvt_param_t *cp;
-        const kvt_blob_t *cb;
-
+    void test_bind(KVTStorage &s, TestListener &l)
+    {
         // Bind listener
         UTEST_ASSERT(l.check(F_All, 0));
         UTEST_ASSERT(s.listeners() == 0);
@@ -216,7 +216,10 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_All ^ F_Attached, 0));
         UTEST_ASSERT(l.check(F_Attached, 1));
         UTEST_ASSERT(s.listeners() == 1);
+    }
 
+    void test_create_entries(KVTStorage &s, TestListener &l)
+    {
         // Create entries
         l.clear();
         UTEST_ASSERT(s.put("/", "fake") == STATUS_INVALID_VALUE);
@@ -249,7 +252,10 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 16);
         UTEST_ASSERT(s.nodes() == 22);
+    }
 
+    void test_replace_entries(KVTStorage &s, TestListener &l)
+    {
         // Replace entries
         l.clear();
         UTEST_ASSERT(s.put("/value1", uint32_t(100)) == STATUS_OK);
@@ -262,6 +268,13 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 16);
         UTEST_ASSERT(s.nodes() == 22);
+    }
+
+    void test_read_entries(KVTStorage &s, TestListener &l)
+    {
+        kvt_param_t p;
+        const kvt_param_t *cp;
+        const kvt_blob_t *cb;
 
         // Retrieve entries
         l.clear();
@@ -322,7 +335,10 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 16);
         UTEST_ASSERT(s.nodes() == 22);
+    }
 
+    void test_commit_entries(KVTStorage &s, TestListener &l)
+    {
         // Commit
         l.clear();
 
@@ -341,7 +357,10 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 9);
         UTEST_ASSERT(s.nodes() == 22);
+    }
 
+    void test_existense_entries(KVTStorage &s, TestListener &l)
+    {
         // Check for existence
         l.clear();
         UTEST_ASSERT(s.exists("/param/i32"));
@@ -355,6 +374,13 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 9);
         UTEST_ASSERT(s.nodes() == 22);
+    }
+
+    void test_remove_entries(KVTStorage &s, TestListener &l)
+    {
+        kvt_param_t p;
+        const kvt_param_t *cp;
+        const kvt_blob_t *cb;
 
         // Remove entries
         l.clear();
@@ -414,20 +440,42 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_Missed, 1));
         UTEST_ASSERT(s.values() == 6);
         UTEST_ASSERT(s.modified() == 4);
+    }
 
+    void test_perform_gc(KVTStorage &s, TestListener &l)
+    {
         // Perform GC
         l.clear();
         UTEST_ASSERT(s.gc() == STATUS_OK);
         UTEST_ASSERT(l.check(F_All, 0));
         UTEST_ASSERT(s.values() == 6);
         UTEST_ASSERT(s.modified() == 4);
+    }
 
+    void test_unbind(KVTStorage &s, TestListener &l)
+    {
         // Unbind listener
         l.clear();
         UTEST_ASSERT(s.unbind(&l) == STATUS_OK);
         UTEST_ASSERT(l.check(F_All ^ F_Detached, 0));
         UTEST_ASSERT(l.check(F_Detached, 1));
         UTEST_ASSERT(s.listeners() == 0);
+    }
+
+    UTEST_MAIN
+    {
+        TestListener l(this);
+        KVTStorage s;
+
+        test_bind(s, l);
+        test_create_entries(s, l);
+        test_replace_entries(s, l);
+        test_read_entries(s, l);
+        test_commit_entries(s, l);
+        test_existense_entries(s, l);
+        test_remove_entries(s, l);
+        test_perform_gc(s, l);
+        test_unbind(s, l);
 
         // Destroy storage
         s.destroy();

@@ -26,7 +26,11 @@
                     typedef utest_ ## name test_type_t;\
                 \
                 public: \
+                    \
+                    _Pragma("GCC diagnostic push") \
+                    _Pragma("GCC diagnostic ignored \"-Wuninitialized\"") \
                     explicit utest_ ## name() : UnitTest(group, #name) {} \
+                    _Pragma("GCC diagnostic pop") \
                     \
                     virtual ~utest_ ## name() {}
 
@@ -38,6 +42,12 @@
 
 #define UTEST_MAIN \
         virtual void execute(int argc, const char **argv)
+
+#define UTEST_INIT \
+        virtual void init()
+
+#define UTEST_DESTROY \
+        virtual void destroy()
 
 #define UTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 

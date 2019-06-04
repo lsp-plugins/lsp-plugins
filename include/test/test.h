@@ -57,7 +57,11 @@ namespace test
 
             virtual void execute(int argc, const char **argv) = 0;
 
+            virtual void init();
+
             virtual bool ignore() const;
+
+            virtual void destroy();
 
             virtual Test *next_test() const = 0;
 
