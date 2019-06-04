@@ -35,44 +35,44 @@ UTEST_BEGIN("core", kvtstorage)
     kvt_blob_t ndblob;
     kvt_blob_t dblob;
 
+    void dump_parameter(const char *prefix, const kvt_param_t *param)
+    {
+        printf("%s ", prefix);
+        switch (param->type)
+        {
+            case KVT_INT32:     printf("i32(0x%lx)\n", long(param->i32)); break;
+            case KVT_UINT32:    printf("u32(0x%lx)\n", (unsigned long)(param->u32)); break;
+            case KVT_INT64:     printf("i64(0x%llx)\n", (long long)(param->i64)); break;
+            case KVT_UINT64:    printf("i64(0x%llx)\n", (unsigned long long)(param->u64)); break;
+            case KVT_FLOAT32:   printf("f32(%f)\n", param->f32); break;
+            case KVT_FLOAT64:   printf("f64(%f)\n", param->f64); break;
+            case KVT_STRING:    printf("str(%s)\n", param->str); break;
+            case KVT_BLOB:
+                printf("blob(size=%d, type=(%s), data=(", int(param->blob.size), param->blob.ctype);
+                if (param->blob.data != NULL)
+                {
+                    const uint8_t *ptr = reinterpret_cast<const uint8_t *>(param->blob.data);
+                    for (size_t i=0; i<param->blob.size; ++i)
+                    {
+                        if (i) printf(" %02x", int(ptr[i]));
+                        else printf("%02x", int(ptr[i]));
+                    }
+                    printf(")\n");
+                }
+                else
+                    printf("nil))\n");
+                break;
+            default:
+                printf("Unexpected parameter type: %d\n", int(param->type));
+                exit(1);
+                break;
+        }
+    }
+
     class TestListener: public KVTListener
     {
         private:
-            Test *test;
-
-            void dump_parameter(const char *prefix, const kvt_param_t *param)
-            {
-                test->printf("%s ", prefix);
-                switch (param->type)
-                {
-                    case KVT_INT32:     test->printf("i32(0x%lx)\n", long(param->i32)); break;
-                    case KVT_UINT32:    test->printf("u32(0x%lx)\n", (unsigned long)(param->u32)); break;
-                    case KVT_INT64:     test->printf("i64(0x%llx)\n", (long long)(param->i64)); break;
-                    case KVT_UINT64:    test->printf("i64(0x%llx)\n", (unsigned long long)(param->u64)); break;
-                    case KVT_FLOAT32:   test->printf("f32(%f)\n", param->f32); break;
-                    case KVT_FLOAT64:   test->printf("f64(%f)\n", param->f64); break;
-                    case KVT_STRING:    test->printf("str(%s)\n", param->str); break;
-                    case KVT_BLOB:
-                        test->printf("blob(size=%d, type=(%s), data=(", int(param->blob.size), param->blob.ctype);
-                        if (param->blob.data != NULL)
-                        {
-                            const uint8_t *ptr = reinterpret_cast<const uint8_t *>(param->blob.data);
-                            for (size_t i=0; i<param->blob.size; ++i)
-                            {
-                                if (i) test->printf(" %02x", int(ptr[i]));
-                                else test->printf("%02x", int(ptr[i]));
-                            }
-                            test->printf(")\n");
-                        }
-                        else
-                            test->printf("nil))\n");
-                        break;
-                    default:
-                        test->printf("Unexpected parameter type: %d\n", int(param->type));
-                        exit(1);
-                        break;
-                }
-            }
+            test_type_t *test;
 
             size_t      nAttached;
             size_t      nDetached;
@@ -84,10 +84,13 @@ UTEST_BEGIN("core", kvtstorage)
             size_t      nCommitted;
             size_t      nMissed;
 
+            bool        bVerbose;
+
         public:
-            explicit TestListener(Test *tst): test(tst)
+            explicit TestListener(test_type_t *tst): test(tst)
             {
                 clear();
+                bVerbose = true;
             }
 
             virtual ~TestListener() {}
@@ -104,6 +107,11 @@ UTEST_BEGIN("core", kvtstorage)
                 nAccessed   = 0;
                 nCommitted  = 0;
                 nMissed     = 0;
+            }
+
+            void verbose(bool verbose)
+            {
+                bVerbose = verbose;
             }
 
             bool check(size_t flags, size_t value)
@@ -131,63 +139,84 @@ UTEST_BEGIN("core", kvtstorage)
 
             virtual void attached(KVTStorage *storage)
             {
-                test->printf("Attached storage %p\n", storage);
+                if (bVerbose)
+                    test->printf("Attached storage %p\n", storage);
                 ++nAttached;
             }
 
             virtual void detached(KVTStorage *storage)
             {
-                test->printf("Detached storage %p\n", storage);
+                if (bVerbose)
+                    test->printf("Detached storage %p\n", storage);
                 ++nDetached;
             }
 
             virtual void created(const char *id, const kvt_param_t *param)
             {
-                test->printf("Created parameter %s\n", id);
-                dump_parameter("  created   = ", param);
+                if (bVerbose)
+                {
+                    test->printf("Created parameter %s\n", id);
+                    test->dump_parameter("  created   = ", param);
+                }
                 ++nCreated;
             }
 
             virtual void rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
             {
-                test->printf("Parameter %s has been rejected\n", id);
-                dump_parameter("  rejected  = ", rej);
-                dump_parameter("  current   = ", curr);
+                if (bVerbose)
+                {
+                    test->printf("Parameter %s has been rejected\n", id);
+                    test->dump_parameter("  rejected  = ", rej);
+                    test->dump_parameter("  current   = ", curr);
+                }
                 ++nRejected;
             }
 
             virtual void changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
             {
-                test->printf("Parameter %s has been changed\n", id);
-                dump_parameter("  old       = ", oval);
-                dump_parameter("  new       = ", nval);
+                if (bVerbose)
+                {
+                    test->printf("Parameter %s has been changed\n", id);
+                    test->dump_parameter("  old       = ", oval);
+                    test->dump_parameter("  new       = ", nval);
+                }
                 ++nChanged;
             }
 
             virtual void removed(const char *id, const kvt_param_t *param)
             {
-                test->printf("Parameter %s has been removed\n", id);
-                dump_parameter("  removed   = ", param);
+                if (bVerbose)
+                {
+                    test->printf("Parameter %s has been removed\n", id);
+                    test->dump_parameter("  removed   = ", param);
+                }
                 ++nRemoved;
             }
 
             virtual void access(const char *id, const kvt_param_t *param)
             {
-                test->printf("Parameter %s has been accessed\n", id);
-                dump_parameter("  accessed  = ", param);
+                if (bVerbose)
+                {
+                    test->printf("Parameter %s has been accessed\n", id);
+                    test->dump_parameter("  accessed  = ", param);
+                }
                 ++nAccessed;
             }
 
             virtual void commit(const char *id, const kvt_param_t *param)
             {
-                test->printf("Parameter %s has been committed\n", id);
-                dump_parameter("  committed = ", param);
+                if (bVerbose)
+                {
+                    test->printf("Parameter %s has been committed\n", id);
+                    test->dump_parameter("  committed = ", param);
+                }
                 ++nCommitted;
             }
 
             virtual void missed(const char *id)
             {
-                test->printf("Parameter %s is missing\n", id);
+                if (bVerbose)
+                    test->printf("Parameter %s is missing\n", id);
                 ++nMissed;
             }
     };
@@ -205,6 +234,7 @@ UTEST_BEGIN("core", kvtstorage)
         dblob.data      = strdup("Some delegated blob data");
         dblob.size      = strlen("Some delegated blob data") + 1;
     }
+
 
     void test_bind(KVTStorage &s, TestListener &l)
     {
@@ -252,6 +282,36 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 16);
         UTEST_ASSERT(s.nodes() == 22);
+
+        // List modified entries
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_modified();
+        UTEST_ASSERT(it != NULL);
+        printf("Dumping the state of the modified parameters of the KVTTree\n");
+
+        status_t res;
+        size_t modified = 0;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            const char *name = it->name();
+            const kvt_param_t *cp;
+
+            if (it->exists())
+            {
+                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                dump_parameter(name, cp);
+                if (it->modified())
+                    ++modified;
+            }
+            else
+                printf("%s -> null\n", name);
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+        UTEST_ASSERT(l.check(F_Accessed, 16));
+        UTEST_ASSERT(modified == 16);
     }
 
     void test_replace_entries(KVTStorage &s, TestListener &l)
@@ -268,6 +328,50 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 16);
         UTEST_ASSERT(s.nodes() == 22);
+
+        // Print the particular content of the tree
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_branch("/param", false);
+        UTEST_ASSERT(it != NULL);
+        printf("Dumping the state of the /param branch of KVTTree\n");
+
+        status_t res;
+        size_t modified = 0;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            const char *name = it->name();
+            const kvt_param_t *cp;
+
+            if (it->exists())
+            {
+                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                dump_parameter(name, cp);
+                if (it->modified())
+                    ++modified;
+
+                if (!strcmp(it->id(), "f32"))
+                {
+                    UTEST_ASSERT(cp->f32 == 440.0f);
+                    UTEST_ASSERT(it->put(880.0f) == STATUS_OK);
+                    UTEST_ASSERT(cp->f32 == 440.0f);
+                }
+                if (!strcmp(it->id(), "f64"))
+                {
+                    UTEST_ASSERT(cp->f64 == double(48000.0));
+                    UTEST_ASSERT(it->put(440.0f, KVT_KEEP) == STATUS_ALREADY_EXISTS);
+                    UTEST_ASSERT(cp->f64 == double(48000.0));
+                }
+            }
+            else
+                printf("%s -> null\n", name);
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+        UTEST_ASSERT(l.check(F_Accessed, 10));
+        UTEST_ASSERT(l.check(F_Changed, 1));
+        UTEST_ASSERT(modified == 10);
     }
 
     void test_read_entries(KVTStorage &s, TestListener &l)
@@ -302,7 +406,7 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(p.u64 == uint64_t(0x40));
 
         UTEST_ASSERT(s.get("/param/f32", &p.f32) == STATUS_OK);
-        UTEST_ASSERT(p.f32 == 440.0f);
+        UTEST_ASSERT(p.f32 == 880.0f);
 
         UTEST_ASSERT(s.get("/param/f64", &p.f64) == STATUS_OK);
         UTEST_ASSERT(p.f64 == double(48000.0));
@@ -335,6 +439,36 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 16);
         UTEST_ASSERT(s.nodes() == 22);
+
+        // Print the whole content of the tree
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_branch("/", true);
+        UTEST_ASSERT(it != NULL);
+        printf("Dumping the whole state of the KVTTree\n");
+
+        status_t res;
+        size_t modified = 0;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            const char *name = it->name();
+            const kvt_param_t *cp;
+
+            if (it->exists())
+            {
+                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                dump_parameter(name, cp);
+                if (it->modified())
+                    ++modified;
+            }
+            else
+                printf("%s -> null\n", name);
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+        UTEST_ASSERT(l.check(F_Accessed, 18));
+        UTEST_ASSERT(modified == 16);
     }
 
     void test_commit_entries(KVTStorage &s, TestListener &l)
@@ -408,7 +542,7 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(p.u64 == uint64_t(0x40));
 
         UTEST_ASSERT(s.remove("/param/f32", &p.f32) == STATUS_OK);
-        UTEST_ASSERT(p.f32 == 440.0f);
+        UTEST_ASSERT(p.f32 == 880.0f);
 
         UTEST_ASSERT(s.remove("/param/f64", &p.f64) == STATUS_OK);
         UTEST_ASSERT(p.f64 == double(48000.0));

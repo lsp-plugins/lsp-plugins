@@ -157,7 +157,7 @@ namespace lsp
 
     void KVTStorage::init_node(kvt_node_t *node, const char *name, size_t len)
     {
-        node->id            = reinterpret_cast<char *>(&node[1]);
+        node->id            = (name != NULL) ? reinterpret_cast<char *>(&node[1]) : NULL;
         node->idlen         = len;
         node->parent        = NULL;
         node->refs          = 0;
@@ -174,9 +174,11 @@ namespace lsp
         node->capacity      = 0;
 
         // Copy name
-        if (len > 0)
+        if (node->id != NULL)
+        {
             ::memcpy(node->id, name, len);
-        node->id[len]       = '\0';
+            node->id[len]       = '\0';
+        }
     }
 
     size_t KVTStorage::listeners() const
@@ -1365,6 +1367,9 @@ namespace lsp
 
     status_t KVTIterator::next()
     {
+        // Invalidate current path
+        pPath       = NULL;
+
         switch (enMode)
         {
             case KVTStorage::IT_MODIFIED:
@@ -1415,22 +1420,18 @@ namespace lsp
                     {
                         if ((++nIndex) >= pCurr->parent->nchildren)
                         {
-                            kvt_path_t path;
-                            if (!vPath.pop(&path))
-                            {
-                                enMode      = KVTStorage::IT_EOF;
-                                return STATUS_NOT_FOUND;
-                            }
-                            nIndex      = path.index;
-                            pCurr       = pCurr->parent;
+                            do {
+                                kvt_path_t path;
+                                if (!vPath.pop(&path))
+                                {
+                                    enMode      = KVTStorage::IT_EOF;
+                                    return STATUS_NOT_FOUND;
+                                }
+                                nIndex      = path.index;
+                                pCurr       = pCurr->parent;
+                            } while (nIndex >= pCurr->parent->nchildren);
                         }
                         pCurr       = pCurr->parent->children[nIndex];
-                    }
-
-                    if ((pCurr == NULL) || (pCurr->refs <= 0))
-                    {
-                        enMode      = KVTStorage::IT_EOF;
-                        return STATUS_NOT_FOUND;
                     }
                 } while (pCurr->refs <= 0);
 
@@ -1441,10 +1442,10 @@ namespace lsp
                 return STATUS_NOT_FOUND;
 
             default:
-                break;
+                return STATUS_BAD_STATE;
         }
 
-        return STATUS_BAD_STATE;
+        return STATUS_OK;
     }
 
     bool KVTIterator::exists(kvt_param_type_t type) const
