@@ -177,7 +177,7 @@ namespace lsp
 
                 bool                modified;       // Modified flag
                 kvt_link_t          gc;             // Link to the removed list
-                kvt_link_t          mod;            // Link to the modifed list
+                kvt_link_t          mod;            // Link to the modified list
 
                 kvt_node_t        **children;       // Children
                 size_t              nchildren;      // Number of children
@@ -225,7 +225,6 @@ namespace lsp
             inline void             init_node(kvt_node_t *node, const char *name, size_t len);
             kvt_node_t             *allocate_node(const char *name, size_t len);
             kvt_node_t             *create_node(kvt_node_t *base, const char *name, size_t len);
-            void                    gc_node(kvt_node_t *node);
             void                    destroy_node(kvt_node_t *node);
             kvt_node_t             *get_node(kvt_node_t *base, const char *name, size_t len);
             status_t                walk_node(kvt_node_t **out, const char *name);
@@ -239,6 +238,7 @@ namespace lsp
             ~KVTStorage();
 
             void                    destroy();
+            status_t                clear();
 
         public:
             /**

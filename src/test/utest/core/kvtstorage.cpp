@@ -491,6 +491,28 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.values() == 18);
         UTEST_ASSERT(s.modified() == 9);
         UTEST_ASSERT(s.nodes() == 22);
+
+        // List modified entries
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_modified();
+        UTEST_ASSERT(it != NULL);
+        printf("Computing number of modified items with iterator\n");
+
+        status_t res;
+        size_t modified = 0;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            if (it->modified())
+            {
+                printf("Modified entry: %s\n", it->name());
+                ++modified;
+            }
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+        UTEST_ASSERT(modified == 9);
     }
 
     void test_existense_entries(KVTStorage &s, TestListener &l)
@@ -576,14 +598,125 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(s.modified() == 4);
     }
 
+    void test_remove_branch(KVTStorage &s, TestListener &l)
+    {
+        // Clear tree
+        printf("Cleaning up tree...\n");
+        l.clear();
+        s.clear();
+        UTEST_ASSERT(l.check(F_All ^ F_Removed, 0));
+        UTEST_ASSERT(l.check(F_Removed, 6));
+        UTEST_ASSERT(s.modified() == 0);
+        UTEST_ASSERT(s.values() == 0);
+        UTEST_ASSERT(s.nodes() == 0);
+
+        // Prepare tree
+        printf("Initializing new tree...\n");
+        l.clear();
+        UTEST_ASSERT(s.put("/tree/a0", 1) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/b0", 2) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/c0", 3) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/x0", 4) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/y0", 5) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/z0", 6) == STATUS_OK);
+
+        UTEST_ASSERT(s.put("/tree/t0", 7) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1", 7) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0/some/param1", 8) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1/some/param1", 8) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0/some/param2", 9) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1/some/param2", 9) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0/some/param3", 10) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1/some/param3", 10) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0/some/other/param", 11) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1/some/other/param", 11) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0/other", 12) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1/other", 12) == STATUS_OK);
+
+        UTEST_ASSERT(l.check(F_All ^ F_Created, 0));
+        UTEST_ASSERT(l.check(F_Created, 18));
+        UTEST_ASSERT(s.values() == 18)
+
+        // Remove entries
+        l.clear();
+        UTEST_ASSERT(s.remove_branch("/tree/t0") == STATUS_OK);
+        UTEST_ASSERT(l.check(F_All ^ F_Removed, 0));
+        UTEST_ASSERT(l.check(F_Removed, 6));
+        UTEST_ASSERT(!s.exists("/tree/t0"));
+        UTEST_ASSERT(s.values() == 12);
+
+        // Remove entries with iterator
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_branch("/tree", false);
+        UTEST_ASSERT(it != NULL);
+        printf("Dumping the state of the /tree branch of KVTTree and removing /tree/t1\n");
+
+        status_t res;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            const char *name = it->name();
+            const kvt_param_t *cp;
+
+            if (it->exists())
+            {
+                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                dump_parameter(name, cp);
+            }
+            else
+                printf("%s -> null\n", name);
+
+            if (!strcmp(it->id(), "t0"))
+            {
+                UTEST_FAIL_MSG("/tree/t0 is still visible after removal");
+            }
+            if (!strcmp(it->id(), "t1"))
+            {
+                UTEST_ASSERT(it->remove_branch() == STATUS_OK);
+            }
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+        UTEST_ASSERT(l.check(F_All ^ F_Removed ^ F_Accessed, 0));
+        UTEST_ASSERT(l.check(F_Accessed, 7));
+        UTEST_ASSERT(l.check(F_Removed, 6));
+        UTEST_ASSERT(s.values() == 6);
+    }
+
     void test_perform_gc(KVTStorage &s, TestListener &l)
     {
+        // Print the whole content of the tree
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_branch("/", true);
+        UTEST_ASSERT(it != NULL);
+        printf("Dumping the whole state of the KVTTree\n");
+
+        status_t res;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            const char *name = it->name();
+            const kvt_param_t *cp;
+
+            if (it->exists())
+            {
+                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                dump_parameter(name, cp);
+            }
+            else
+                printf("%s -> null\n", name);
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+
         // Perform GC
         l.clear();
         UTEST_ASSERT(s.gc() == STATUS_OK);
         UTEST_ASSERT(l.check(F_All, 0));
         UTEST_ASSERT(s.values() == 6);
-        UTEST_ASSERT(s.modified() == 4);
+        UTEST_ASSERT(s.modified() == 6);
     }
 
     void test_unbind(KVTStorage &s, TestListener &l)
@@ -608,6 +741,7 @@ UTEST_BEGIN("core", kvtstorage)
         test_commit_entries(s, l);
         test_existense_entries(s, l);
         test_remove_entries(s, l);
+        test_remove_branch(s, l);
         test_perform_gc(s, l);
         test_unbind(s, l);
 
