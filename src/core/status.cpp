@@ -60,6 +60,9 @@ namespace lsp
         "Read-only device or file system",
         "The value is NULL",
         "The object is currently locked",
+        "The operation has been rejected",
+        "Already bound",
+
         NULL
     };
 
