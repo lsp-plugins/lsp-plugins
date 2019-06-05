@@ -45,6 +45,8 @@ namespace lsp
             inline bool active() const                  { return bActivated;        };
             inline bool ui_active() const               { return bUIActive;         };
 
+            inline IWrapper *wrapper()                  { return pWrapper;          };
+
             inline void activate_ui()
             {
                 if (!bUIActive)

@@ -35,18 +35,16 @@ namespace lsp
         sScene.destroy();
     }
 
-    void room_builder_base::SceneLoader::drop_props()
-    {
-        // Destroy all related memory
-        for (size_t i=0, n=vProps.size(); i<n; ++i)
+    template <class T>
+        static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value)
         {
-            obj_props_t *props = vProps.get(i);
-            if ((props != NULL) && (props->sName != NULL))
-                free(props->sName);
+            size_t len = ::strlen(base) + ::strlen(branch) + 2;
+            char *name = reinterpret_cast<char *>(alloca(len));
+            char *tail = ::stpcpy(name, base);
+            *(tail++)  = '/';
+            stpcpy(tail, branch);
+            return s->put(name, value) == STATUS_OK;
         }
-
-        vProps.flush();
-    }
 
     status_t room_builder_base::SceneLoader::run()
     {
@@ -65,72 +63,82 @@ namespace lsp
         // Initialize object properties
         size_t nobjs = sScene.num_objects();
 
-        // Synchronize size of object properties array with scene
-        while (vProps.size() > nobjs)
-        {
-            obj_props_t props;
-            if (vProps.pop(&props))
-            {
-                drop_props();
-                return STATUS_CORRUPTED;
-            }
-            if (props.sName != NULL)
-                free(props.sName);
-        }
-        while (vProps.size() < nobjs)
-        {
-            obj_props_t *props = vProps.add();
-            if (!props)
-            {
-                drop_props();
-                return STATUS_NO_MEM;
-            }
-            props->sName    = NULL;
-        }
+        // Deploy object properties
+        IWrapper *wrapper = pCore->wrapper();
+        if (wrapper == NULL)
+            return STATUS_UNKNOWN_ERR;
+
+        // Get KVT storage and deploy new values
+        KVTStorage *kvt = wrapper->kvt_lock();
+        if (kvt == NULL)
+            return STATUS_UNKNOWN_ERR;
 
         // Now initialize object properties
+        char base[128];
+        kvt_deploy(kvt, "/scene", "objects", uint32_t(nobjs));
+
         for (size_t i=0; i<nobjs; ++i)
         {
             Object3D *obj       = sScene.object(i);
             if (obj == NULL)
                 return STATUS_UNKNOWN_ERR;
-            obj_props_t *props  = vProps.get(i);
-            if (props == NULL)
-                return STATUS_UNKNOWN_ERR;
-
-            const char *name    = obj->get_name();
             const point3d_t *c  = obj->center();
-            if (props->sName != NULL)
-                free(props->sName);
 
-            // Set-up object parameters
-            props->sName    = (name != NULL) ? strdup(name) : NULL;
-            props->bEnabled = true;
-            props->sPos     = *c;
-            props->fYaw     = 0.0f;
-            props->fPitch   = 0.0f;
-            props->fRoll    = 0.0f;
-            props->fSizeX   = 1.0f;
-            props->fSizeY   = 1.0f;
-            props->fSizeZ   = 1.0f;
-            props->fHue     = float(i) / float(nobjs);
+            sprintf(base, "/scene/object/%d", int(i));
+            lsp_trace("Deploying KVT parameters for %s", base);
 
-            // Initialize material as concrete
-            props->fAbsorption[0]    = 0.02f;
-            props->fDispersion[0]    = 1.0f;
-            props->fDissipation[0]   = 1.0f;
-            props->fTransparency[0]  = 0.48f;
+            kvt_deploy(kvt, base, "name", obj->get_name());
+            kvt_deploy(kvt, base, "enabled", true);
+            kvt_deploy(kvt, base, "position/x", c->x);
+            kvt_deploy(kvt, base, "position/y", c->y);
+            kvt_deploy(kvt, base, "position/z", c->z);
+            kvt_deploy(kvt, base, "rotation/yaw", 0.0f);
+            kvt_deploy(kvt, base, "rotation/pitch", 0.0f);
+            kvt_deploy(kvt, base, "rotation/roll", 0.0f);
+            kvt_deploy(kvt, base, "scale/x", 1.0f);
+            kvt_deploy(kvt, base, "scale/y", 1.0f);
+            kvt_deploy(kvt, base, "scale/z", 1.0f);
+            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs));
 
-            props->fAbsorption[1]    = 0.0f;
-            props->fDispersion[1]    = 1.0f;
-            props->fDissipation[1]   = 1.0f;
-            props->fTransparency[1]  = 0.52f;
+            strcat(base, "/material");
 
-            props->fSndSpeed         = 12.88f * SOUND_SPEED_M_S;
+            kvt_deploy(kvt, base, "absorption/outer", 0.02f);
+            kvt_deploy(kvt, base, "dispersion/outer", 1.0f);
+            kvt_deploy(kvt, base, "dissipation/outer", 1.0f);
+            kvt_deploy(kvt, base, "transparency/outer", 0.48f);
 
-            // Set-up synchronization flags
-            props->nSync    = PS_SYNC_ALL;
+            kvt_deploy(kvt, base, "absorption/inner", 0.00f);
+            kvt_deploy(kvt, base, "dispersion/inner", 1.0f);
+            kvt_deploy(kvt, base, "dissipation/inner", 1.0f);
+            kvt_deploy(kvt, base, "transparency/inner", 0.52f);
+
+            kvt_deploy(kvt, base, "sound_speed", 12.88f * SOUND_SPEED_M_S);
         }
+
+        // Drop rare (unused) objects
+        KVTIterator *it = kvt->enum_branch("/scene/object");
+        while (it->next())
+        {
+            const char *id = it->id();
+            if (id == NULL)
+                continue;
+
+            // Must be a pure object identifier
+            errno = 0;
+            char *endptr;
+            long value = strtol(id, &endptr, 10);
+            if ((errno != 0) || ((endptr - id) != strlen(id)))
+                continue;
+
+            // Remove the object
+            if ((id < 0) || (id >= nobjs))
+            {
+                lsp_trace("Removing KVT parameters from %s", it->name());
+                it->remove_branch();
+            }
+        }
+
+        wrapper->kvt_release();
 
         return STATUS_OK;
     }
@@ -146,8 +154,6 @@ namespace lsp
         nSceneStatus    = STATUS_UNSPECIFIED;
         fSceneProgress  = 0.0f;
 
-        pOscIn          = NULL;
-        pOscOut         = NULL;
         pBypass         = NULL;
         pRank           = NULL;
         pDry            = NULL;
@@ -161,7 +167,6 @@ namespace lsp
 
         pData           = NULL;
         pExecutor       = NULL;
-        nOscSync        = OSC_SYNC_ALL;
     }
 
     room_builder_base::~room_builder_base()
@@ -311,11 +316,6 @@ namespace lsp
             vChannels[i].pOut   = vPorts[port_id++];
         }
 
-        TRACE_PORT(vPorts[port_id]);
-        pOscIn          = vPorts[port_id++];
-        TRACE_PORT(vPorts[port_id]);
-        pOscOut         = vPorts[port_id++];
-
         // Bind controlling ports
         lsp_trace("Binding common ports");
         TRACE_PORT(vPorts[port_id]);
@@ -450,18 +450,6 @@ namespace lsp
         }
     }
 
-    void room_builder_base::ui_activated()
-    {
-        nOscSync    = OSC_SYNC_ALL;
-        for (size_t i=0, n=vObjectProps.size(); i<n; ++i)
-        {
-            obj_props_t *prop = vObjectProps.get(i);
-            if (prop == NULL)
-                continue;
-            prop->nSync     = PS_SYNC_ALL;
-        }
-    }
-
     void room_builder_base::destroy()
     {
         sScene.destroy();
@@ -482,157 +470,6 @@ namespace lsp
     void room_builder_base::perform_osc_receive()
     {
         // TODO: process different incoming OSC messages
-    }
-
-    void room_builder_base::perform_osc_transmit()
-    {
-        char path[0x100], *tail;
-
-        // Perform an optimistic sync of state
-        if (pOscOut == NULL)
-            return;
-        osc_buffer_t *b = pOscOut->getBuffer<osc_buffer_t>();
-        if (b == NULL)
-            return;
-
-        #define TX_SYNC(var, flag, ...) \
-                if (var & flag) { \
-                    status_t __; \
-                    __VA_ARGS__; \
-                    if (__ != STATUS_OK) return; \
-                    var &= ~flag; \
-                }
-
-        // Output number of objects
-        TX_SYNC(nOscSync, OSC_OBJECT_COUNT,
-            __ = b->submit_int32("/scene/num_objects", vObjectProps.size())
-        );
-
-        // Output object states
-        if (nOscSync & OSC_OBJECTS)
-        {
-            // For each object
-            for (size_t i=0, n=vObjectProps.size(); i<n; ++i)
-            {
-                obj_props_t *p = vObjectProps.get(i);
-                if (p == NULL)
-                    continue;
-
-                // Sync regular parameters?
-                if (!p->nSync)
-                    continue;
-
-                // Generate object's parameter base address
-                int count   = sprintf(path, "/scene/objects/%d/", int(i));
-                if (count < 0)
-                    return;
-                tail        = &path[count];
-
-                // Output object parameters
-                TX_SYNC(p->nSync, PS_NAME,
-                        strcpy(tail, "name");
-                        __ = b->submit_string(path, p->sName);
-                    );
-                TX_SYNC(p->nSync, PS_ENABLED,
-                        strcpy(tail, "enabled");
-                        __ = b->submit_bool(path, p->bEnabled);
-                    );
-
-                TX_SYNC(p->nSync, PS_POS_X,
-                        strcpy(tail, "position/x");
-                        __ = b->submit_float32(path, p->sPos.x);
-                    );
-                TX_SYNC(p->nSync, PS_POS_Y,
-                        strcpy(tail, "position/y");
-                        __ = b->submit_float32(path, p->sPos.y);
-                    );
-                TX_SYNC(p->nSync, PS_POS_Z,
-                        strcpy(tail, "position/z");
-                        __ = b->submit_float32(path, p->sPos.z);
-                    );
-
-                TX_SYNC(p->nSync, PS_YAW,
-                        strcpy(tail, "rotation/yaw");
-                        __ = b->submit_float32(path, p->fYaw);
-                    );
-                TX_SYNC(p->nSync, PS_PITCH,
-                        strcpy(tail, "rotation/pitch");
-                        __ = b->submit_float32(path, p->fPitch);
-                    );
-                TX_SYNC(p->nSync, PS_ROLL,
-                        strcpy(tail, "rotation/roll");
-                        __ = b->submit_float32(path, p->fRoll);
-                    );
-
-                TX_SYNC(p->nSync, PS_SIZE_X,
-                        strcpy(tail, "scale/x");
-                        __ = b->submit_float32(path, p->fSizeX);
-                    );
-                TX_SYNC(p->nSync, PS_SIZE_Y,
-                        strcpy(tail, "scale/y");
-                        __ = b->submit_float32(path, p->fSizeY);
-                    );
-                TX_SYNC(p->nSync, PS_SIZE_Z,
-                        strcpy(tail, "scale/z");
-                        __ = b->submit_float32(path, p->fSizeZ);
-                    );
-
-                TX_SYNC(p->nSync, PS_HUE,
-                        strcpy(tail, "color/hue");
-                        __ = b->submit_float32(path, p->fHue);
-                    );
-
-                // Generate base address
-                count   = sprintf(path, "/scene/objects/%d/material/", int(i));
-                if (count < 0)
-                    return;
-                tail        = &path[count];
-
-                // Updated material
-                // Output parameters
-                TX_SYNC(p->nSync, PS_ABSORPTION_0,
-                        strcpy(tail, "absorption/outer");
-                        __ = b->submit_float32(path, p->fAbsorption[0]);
-                    );
-                TX_SYNC(p->nSync, PS_ABSORPTION_1,
-                        strcpy(tail, "absorption/inner");
-                        __ = b->submit_float32(path, p->fAbsorption[1]);
-                    );
-                TX_SYNC(p->nSync, PS_DISPERSION_0,
-                        strcpy(tail, "dispersion/outer");
-                        __ = b->submit_float32(path, p->fDispersion[0]);
-                    );
-                TX_SYNC(p->nSync, PS_DISPERSION_1,
-                        strcpy(tail, "dispersion/inner");
-                        __ = b->submit_float32(path, p->fDispersion[1]);
-                    );
-                TX_SYNC(p->nSync, PS_DISSIPATION_0,
-                        strcpy(tail, "dissipation/outer");
-                        __ = b->submit_float32(path, p->fDissipation[0]);
-                    );
-                TX_SYNC(p->nSync, PS_DISSIPATION_1,
-                        strcpy(tail, "dissipation/inner");
-                        __ = b->submit_float32(path, p->fDissipation[1]);
-                    );
-                TX_SYNC(p->nSync, PS_TRANSPARENCY_0,
-                        strcpy(tail, "transparency/outer");
-                        __ = b->submit_float32(path, p->fTransparency[0]);
-                    );
-                TX_SYNC(p->nSync, PS_TRANSPARENCY_1,
-                        strcpy(tail, "transparency/inner");
-                        __ = b->submit_float32(path, p->fTransparency[1]);
-                    );
-                TX_SYNC(p->nSync, PS_SOUND_SPEED,
-                        strcpy(tail, "sound_speed");
-                        __ = b->submit_float32(path, p->fSndSpeed);
-                    );
-            } // for
-
-            // Reset sync flag
-            nOscSync &= ~OSC_OBJECTS;
-        }
-
-        #undef TX_ASSERT
     }
 
     void room_builder_base::update_settings()
@@ -786,10 +623,7 @@ namespace lsp
         // Stage 2: process reconfiguration requests and file events
         sync_offline_tasks();
 
-        // Stage 3: generate outgoing OSC events
-        perform_osc_transmit();
-
-        // Stage 4: output additional metering parameters
+        // Stage 3: output additional metering parameters
         if (p3DStatus != NULL)
             p3DStatus->setValue(nSceneStatus);
         if (p3DProgress != NULL)
@@ -823,8 +657,6 @@ namespace lsp
                 fSceneProgress  = 100.0f;
 
                 sScene.swap(&s3DLoader.sScene);
-                vObjectProps.swap(&s3DLoader.vProps);
-                nOscSync        = OSC_SYNC_ALL;
                 nReconfigReq    ++;
 
                 // Now we surely can commit changes and reset task state

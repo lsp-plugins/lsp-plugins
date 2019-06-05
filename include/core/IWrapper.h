@@ -12,13 +12,14 @@
 #include <core/ipc/IExecutor.h>
 #include <core/ICanvas.h>
 #include <core/port_data.h>
+#include <core/KVTStorage.h>
 
 namespace lsp
 {
     class IWrapper
     {
         public:
-            IWrapper();
+            explicit IWrapper();
             virtual ~IWrapper();
 
         public:
@@ -47,6 +48,25 @@ namespace lsp
              * @return the pointer to valid canvas object or NULL on error
              */
             virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+
+            /**
+             * Lock KVT storage and return pointer to the storage,
+             * this is non-RT-safe operation
+             * @return pointer to KVT storage or NULL if KVT is not supported
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock KVT storage and return pointer to the storage on success
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             * @return true on success
+             */
+            virtual bool kvt_release();
     };
 
 } /* namespace lsp */

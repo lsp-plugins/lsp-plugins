@@ -11,150 +11,64 @@
 
 namespace lsp
 {
-    room_builder_ui::CtlFloatPort::CtlFloatPort(room_builder_ui *ui, size_t offset, const char *pattern, const port_t *meta):
+    room_builder_ui::CtlFloatPort::CtlFloatPort(room_builder_ui *ui, const char *pattern, const port_t *meta):
         CtlPort(meta)
     {
         pUI         = ui;
         sPattern    = pattern;
-        nOffset     = offset;
     }
 
     room_builder_ui::CtlFloatPort::~CtlFloatPort()
     {
         pUI         = NULL;
         sPattern    = NULL;
-        nOffset     = 0;
     }
 
     float room_builder_ui::CtlFloatPort::get_value()
     {
-        // The record is accessible?
-        size_t selected = pUI->nSelected;
-        if (selected >= pUI->vObjectProps.size())
+        // Prepare the value
+        char name[0x100];
+        float value;
+        sprintf(name, "/scene/object/%d/%s", int(pUI->nSelected), sPattern);
+
+        // Obtain KVT storage
+        IUIWrapper *wrapper = pUI->wrapper();
+        if (wrapper == NULL)
             return get_default_value();
 
-        obj_props_t *props = pUI->vObjectProps.get(selected);
-        if (props == NULL)
-            return get_default_value();
+        // Fetch value
+        KVTStorage *kvt = wrapper->kvt_lock();
+        status_t res = STATUS_NOT_FOUND;
+        if (kvt != NULL)
+        {
+            res = kvt->get(name, &value);
+            wrapper->kvt_release();
+        }
 
-        float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
-        return limit_value(pMetadata, *ptr);
+        // Return the limited value
+        return (res == STATUS_OK) ?
+                limit_value(pMetadata, res) :
+                get_default_value();
     }
 
     void room_builder_ui::CtlFloatPort::set_value(float value)
     {
-        // The record is accessible?
-        size_t selected = pUI->nSelected;
-        if (selected >= pUI->vObjectProps.size())
-            return;
-        obj_props_t *props = pUI->vObjectProps.get(selected);
-        if (props == NULL)
-            return;
-
-        // Limit the value
+        // Prepare the value
+        char name[0x100];
+        sprintf(name, "/scene/object/%d/%s", int(pUI->nSelected), sPattern);
         value       = limit_value(pMetadata, value);
 
-        // The value has changed?
-        float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
-        if (*ptr == value)
+        // Obtain KVT storage
+        IUIWrapper *wrapper = pUI->wrapper();
+        if (wrapper == NULL)
             return;
 
-        // Save new value
-        *ptr        = value;
-
-        // Emit new OSC message
-        if (pUI->pOscOut == NULL)
-            return;
-
-        osc::packet_t packet;
-        osc::forge_t forge;
-        osc::forge_frame_t sframe, message;
-
-        packet.data     = NULL;
-        status_t res    = osc::forge_begin_dynamic(&sframe, &forge, 0x100);
-
-        if (res == STATUS_OK)
+        KVTStorage *kvt = wrapper->kvt_lock();
+        if (kvt != NULL)
         {
-            char address[0x100]; // Should be enough
-            int count = sprintf(address, "/scene/objects/%d/", int(selected));
-            if (count <= 0)
-                return;
-            strcpy(&address[count], sPattern);
-
-            if (osc::forge_begin_message(&message, &sframe, address) == STATUS_OK)
-            {
-                osc::forge_float32(&message, value);
-                osc::forge_end(&message);
-            }
-            osc::forge_end(&sframe);
-            res = osc::forge_close(&packet, &forge);
-            osc::forge_destroy(&forge);
-
-            // Write the packet data and free memory
-            if (res == STATUS_OK)
-                pUI->pOscOut->write(packet.data, packet.size);
-            if (packet.data != NULL)
-                osc::forge_free(packet.data);
+            kvt->put(name, value, KVT_COMMIT);  // Write in silent mode
+            wrapper->kvt_release();
         }
-    }
-
-    void room_builder_ui::CtlFloatPort::process_message(osc::parse_frame_t *message, size_t id, const char *path)
-    {
-        // Does the path match?
-        if (strcmp(path, sPattern) != 0)
-            return;
-
-        // The target record is accessible?
-        obj_props_t *props = pUI->vObjectProps.get(id);
-        if (props == NULL)
-            return;
-
-        // Fetch the floating-point value
-        float value;
-        status_t res;
-        osc::parse_token_t token;
-
-        if (pMetadata->unit == U_BOOL)
-        {
-            bool bvalue = false;
-            res = osc::parse_bool(message, &bvalue);
-            value = (bvalue) ? 1.0f : 0.0f;
-        }
-        else
-            res = osc::parse_float32(message, &value);
-
-        if (res != STATUS_OK)
-            return;
-        res = osc::parse_token(message, &token);
-        if ((res != STATUS_OK) || (token != osc::PT_EOR))
-            return;
-
-        lsp_trace("%s[%d] = %f", sPattern, int(id), value);
-
-        // Synchronize value
-        float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
-        if (*ptr == value)
-            return;
-        *ptr    = value;
-
-        // Do we need to notify clients for changes?
-        if (id == pUI->nSelected)
-            notify_all();
-    }
-
-    void room_builder_ui::CtlFloatPort::init_default(size_t id, obj_props_t *props)
-    {
-        float value = get_default_value();
-
-        // Synchronize value
-        float *ptr  = reinterpret_cast<float *>(reinterpret_cast<uint8_t *>(props) + nOffset);
-        if (*ptr == value)
-            return;
-        *ptr    = value;
-
-        // Do we need to notify clients for changes?
-        if (id == pUI->nSelected)
-            notify_all();
     }
 
     room_builder_ui::CtlListPort::CtlListPort(room_builder_ui *ui, const port_t *meta):
@@ -187,37 +101,37 @@ namespace lsp
         return pUI->nSelected;
     }
 
-    void room_builder_ui::notify_osc_all()
-    {
-        for (size_t i=0, n=vOscPorts.size(); i<n; ++i)
-        {
-            CtlFloatPort *p = vOscPorts.at(i);
-            if (p != NULL)
-            {
-                lsp_trace("Notifying: %s", p->metadata()->id);
-                if (!strcmp(p->metadata()->id, "osc:hue"))
-                    lsp_trace("debug");
-                p->notify_all();
-            }
-        }
-    }
-
     void room_builder_ui::CtlListPort::set_value(float value)
     {
-        size_t count = pUI->vObjectProps.size();
-        if (count <= 0)
-            return;
-
-        size_t id = (value < count) ? value : count - 1;
-        if (pUI->nSelected == id)
-            return;
-
-        pUI->nSelected = id;
-        pUI->notify_osc_all();
+        pUI->nSelected  = limit_value(pMetadata, value);
+        pUI->notify_kvt_ports();
     }
 
-    void room_builder_ui::CtlListPort::sync_size()
+    void room_builder_ui::CtlListPort::changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
     {
+        if ((nval->type == KVT_UINT32) && (!strcmp(id, "/scene/objects")))
+        {
+            sMetadata.items     = nval->i32;
+            sync_metadata();
+        }
+        else if ((nval->type == KVT_STRING) && (strstr(id, "/scene/object/") == id))
+        {
+            id += strlen("/scene/object/");
+            const char *end = strchr(id, '/');
+            if (!strcmp(end, "/name"))
+            {
+                // Vvalid object number?
+                char *endptr;
+                errno = 0;
+                long index = strtol(id, &endptr, 10);
+                if ((errno == 0) && (*endptr == '/'))
+                {
+
+                }
+            }
+        }
+
+
         size_t size     = pUI->vObjectProps.size();
         size_t capacity = ((size + 0x10) / 0x10) * 0x10;
 
@@ -266,9 +180,6 @@ namespace lsp
 
     void room_builder_ui::CtlOscListener::notify(CtlPort *port)
     {
-        if (port != pUI->pOscIn)
-            return;
-
         // Get OSC packet
         osc::packet_t *packet = port->get_buffer<osc::packet_t>();
         if ((packet == NULL) || (packet->data == NULL) || (packet->size == 0))
@@ -296,12 +207,14 @@ namespace lsp
         sOscListener(this)
     {
         nSelected       = 0;
-        pOscIn          = NULL;
-        pOscOut         = NULL;
         pListPort       = NULL;
     }
     
     room_builder_ui::~room_builder_ui()
+    {
+    }
+
+    void room_builder_ui::notify_kvt_ports()
     {
     }
 
@@ -344,14 +257,6 @@ namespace lsp
         pListPort   = new CtlListPort(this, meta++);
         add_port(pListPort);
 
-        pOscIn      = port(LSP_LV2_OSC_PORT_OUT);
-        pOscOut     = port(LSP_LV2_OSC_PORT_IN);
-
-        if (pOscIn != NULL)
-            pOscIn->bind(&sOscListener);
-
-        notify_osc_all();
-
         return STATUS_OK;
     }
 
@@ -366,8 +271,6 @@ namespace lsp
         vObjectProps.flush();
 
         vOscPorts.flush();
-        pOscIn          = NULL;
-        pOscOut         = NULL;
         pListPort       = NULL;
     }
 

@@ -137,42 +137,6 @@ namespace lsp
                 IPort                  *pSide;
             } capture_t;
 
-            enum prop_sync_t
-            {
-                PS_NAME                 = 1 << 0,
-                PS_ENABLED              = 1 << 1,
-                PS_POS_X                = 1 << 2,
-                PS_POS_Y                = 1 << 3,
-                PS_POS_Z                = 1 << 4,
-                PS_YAW                  = 1 << 5,
-                PS_PITCH                = 1 << 6,
-                PS_ROLL                 = 1 << 7,
-                PS_SIZE_X               = 1 << 8,
-                PS_SIZE_Y               = 1 << 9,
-                PS_SIZE_Z               = 1 << 10,
-                PS_HUE                  = 1 << 11,
-
-                PS_ABSORPTION_0         = 1 << 12,
-                PS_ABSORPTION_1         = 1 << 13,
-                PS_DISPERSION_0         = 1 << 14,
-                PS_DISPERSION_1         = 1 << 15,
-                PS_DISSIPATION_0        = 1 << 16,
-                PS_DISSIPATION_1        = 1 << 17,
-                PS_TRANSPARENCY_0       = 1 << 18,
-                PS_TRANSPARENCY_1       = 1 << 19,
-                PS_SOUND_SPEED          = 1 << 20,
-
-                PS_SYNC_ALL             = ((1 << 21) - 1)
-            };
-
-            enum osc_sync_t
-            {
-                OSC_OBJECT_COUNT        = 1 << 0,
-                OSC_OBJECTS             = 1 << 1,
-
-                OSC_SYNC_ALL            = ((1 << 2) - 1)
-            };
-
             typedef struct obj_props_t
             {
                 char                   *sName;      // UTF-8 object name
@@ -201,10 +165,6 @@ namespace lsp
                     char                    sPath[PATH_MAX];
                     room_builder_base      *pCore;
                     Scene3D                 sScene;
-                    cstorage<obj_props_t>   vProps;
-
-                protected:
-                    void drop_props();
 
                 public:
                     inline SceneLoader()
@@ -233,15 +193,11 @@ namespace lsp
             source_t                vSources[room_builder_base_metadata::SOURCES];
 
             Scene3D                 sScene;
-            cstorage<obj_props_t>   vObjectProps;
-            size_t                  nOscSync;
 
             status_t                nSceneStatus;
             float                   fSceneProgress;
             SceneLoader             s3DLoader;
 
-            IPort                  *pOscIn;
-            IPort                  *pOscOut;
             IPort                  *pBypass;
             IPort                  *pRank;
             IPort                  *pDry;
@@ -259,7 +215,6 @@ namespace lsp
         protected:
             static size_t       get_fft_rank(size_t rank);
             void                sync_offline_tasks();
-            void                perform_osc_transmit();
             void                perform_osc_receive();
 
         public:
@@ -274,8 +229,6 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
-
-            virtual void ui_activated();
 
         public:
             static rt_capture_config_t  decode_config(float value);

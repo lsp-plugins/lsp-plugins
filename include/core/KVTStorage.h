@@ -343,7 +343,6 @@ namespace lsp
             status_t    remove(const char *name, const char **value);
             status_t    remove(const char *name, const kvt_blob_t **value);
 
-
             /**
              * Set the state of node
              * @param name node name
@@ -354,6 +353,9 @@ namespace lsp
              */
             status_t    touch(const char *name, bool modified = true);
             status_t    commit(const char *name);
+
+            status_t    touch_all(bool modified = true);
+            status_t    commit_all();
 
             /**
              * Remove the full parameter branch from storage
@@ -375,7 +377,7 @@ namespace lsp
 
             KVTIterator *enum_modified();
 
-            KVTIterator *enum_branch(const char *name, bool recursive);
+            KVTIterator *enum_branch(const char *name, bool recursive = false);
     };
 
     class KVTIterator

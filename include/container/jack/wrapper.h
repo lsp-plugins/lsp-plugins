@@ -13,8 +13,9 @@
 #include <core/alloc.h>
 #include <core/IWrapper.h>
 #include <core/IPort.h>
-#include <core/ipc/NativeExecutor.h>
 #include <core/ICanvas.h>
+#include <core/ipc/NativeExecutor.h>
+#include <core/ipc/Mutex.h>
 #include <container/CairoCanvas.h>
 
 #include <ui/ui.h>
@@ -63,6 +64,9 @@ namespace lsp
             cvector<JACKUIPort>     vUIPorts;
             cvector<JACKUIPort>     vSyncPorts;
             cvector<port_t>         vGenMetadata;   // Generated metadata
+
+            KVTStorage              sKVT;
+            ipc::Mutex              sKVTMutex;
 
         public:
             JACKWrapper(plugin_t *plugin, plugin_ui *ui)
@@ -144,6 +148,20 @@ namespace lsp
                 nQueryDrawLast      = last;
                 return result;
             }
+
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock KVT storage and return pointer to the storage on success
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             * @return true on success
+             */
+            virtual bool kvt_release();
     };
 }
 
@@ -796,6 +814,21 @@ namespace lsp
         }
 
         return cv = ncv;
+    }
+
+    KVTStorage *JACKWrapper::kvt_lock()
+    {
+        return (sKVTMutex.lock()) ? &sKVT : NULL;
+    }
+
+    KVTStorage *JACKWrapper::kvt_trylock()
+    {
+        return (sKVTMutex.try_lock()) ? &sKVT : NULL;
+    }
+
+    bool JACKWrapper::kvt_release()
+    {
+        return sKVTMutex.unlock();
     }
 }
 

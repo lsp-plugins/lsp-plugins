@@ -8,6 +8,8 @@
 #ifndef IUIWRAPPER_H_
 #define IUIWRAPPER_H_
 
+#include <core/KVTStorage.h>
+
 namespace lsp
 {
     class IUIWrapper
@@ -26,6 +28,25 @@ namespace lsp
              *
              */
             virtual void ui_deactivated();
+
+            /**
+             * Lock KVT storage and return pointer to the storage,
+             * this is non-RT-safe operation
+             * @return pointer to KVT storage or NULL if KVT is not supported
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock KVT storage and return pointer to the storage on success
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             * @return true on success
+             */
+            virtual bool kvt_release();
     };
 
 } /* namespace lsp */

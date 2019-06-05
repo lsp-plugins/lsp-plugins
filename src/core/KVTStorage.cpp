@@ -853,6 +853,28 @@ namespace lsp
         return touch(name, false);
     }
 
+    status_t KVTStorage::touch_all(bool modified)
+    {
+        if (modified)
+        {
+            for (kvt_link_t *lnk = sValid.next; lnk != NULL; lnk = lnk->next)
+                mark_dirty(sDirty.next->node);
+        }
+        else
+        {
+            while (sDirty.next != NULL)
+                mark_clean(sDirty.next->node);
+        }
+        return STATUS_OK;
+    }
+
+    status_t KVTStorage::commit_all()
+    {
+        while (sDirty.next != NULL)
+            mark_clean(sDirty.next->node);
+        return STATUS_OK;
+    }
+
     status_t KVTStorage::do_remove_branch(const char *name, kvt_node_t *node)
     {
         kvt_node_t *child;
