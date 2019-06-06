@@ -323,6 +323,14 @@ namespace lsp
             status_t    get(const char *name, const char **value);
             status_t    get(const char *name, const kvt_blob_t **value);
 
+            status_t    get_dfl(const char *name, uint32_t *value, uint32_t dfl);
+            status_t    get_dfl(const char *name, int32_t *value, int32_t dfl);
+            status_t    get_dfl(const char *name, uint64_t *value, uint64_t dfl);
+            status_t    get_dfl(const char *name, int64_t *value, int64_t dfl);
+            status_t    get_dfl(const char *name, float *value, float dfl);
+            status_t    get_dfl(const char *name, double *value, double dfl);
+            status_t    get_dfl(const char *name, const char **value, const char *dfl);
+
             /**
              * Check that parameter of specified type exists
              * @param name parameter name

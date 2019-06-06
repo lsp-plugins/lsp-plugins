@@ -1147,6 +1147,108 @@ namespace lsp
         return res;
     }
 
+    status_t KVTStorage::get_dfl(const char *name, uint32_t *value, uint32_t dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_UINT32);
+
+        if (res == STATUS_NOT_FOUND)
+        {
+            if (value != NULL)
+                *value      = dfl;
+            res         = STATUS_OK;
+        }
+        else if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->u32;
+        return res;
+    }
+
+    status_t KVTStorage::get_dfl(const char *name, int32_t *value, int32_t dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_INT32);
+        if (res == STATUS_NOT_FOUND)
+        {
+            if (value != NULL)
+                *value      = dfl;
+            res         = STATUS_OK;
+        }
+        else if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->i32;
+        return res;
+    }
+
+    status_t KVTStorage::get_dfl(const char *name, uint64_t *value, uint64_t dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_UINT64);
+        if (res == STATUS_NOT_FOUND)
+        {
+            if (value != NULL)
+                *value      = dfl;
+            res         = STATUS_OK;
+        }
+        else if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->u64;
+        return res;
+    }
+
+    status_t KVTStorage::get_dfl(const char *name, int64_t *value, int64_t dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_INT64);
+        if (res == STATUS_NOT_FOUND)
+        {
+            if (value != NULL)
+                *value      = dfl;
+            res         = STATUS_OK;
+        }
+        else if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->i64;
+        return res;
+    }
+
+    status_t KVTStorage::get_dfl(const char *name, float *value, float dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_FLOAT32);
+        if (res == STATUS_NOT_FOUND)
+        {
+            if (value != NULL)
+                *value      = dfl;
+            res         = STATUS_OK;
+        }
+        else if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->f32;
+        return res;
+    }
+
+    status_t KVTStorage::get_dfl(const char *name, double *value, double dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_FLOAT64);
+        if (res == STATUS_NOT_FOUND)
+        {
+            if (value != NULL)
+                *value      = dfl;
+            res         = STATUS_OK;
+        }
+        else if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->f64;
+        return res;
+    }
+
+    status_t KVTStorage::get_dfl(const char *name, const char **value, const char *dfl)
+    {
+        const kvt_param_t *param;
+        status_t res        = get(name, &param, KVT_STRING);
+        if ((res == STATUS_OK) && (value != NULL))
+            *value      = param->str;
+        else if ((res == STATUS_NOT_FOUND) && (value != NULL))
+            *value      = dfl;
+        return res;
+    }
+
     status_t KVTStorage::remove(const char *name, uint32_t *value)
     {
         const kvt_param_t *param;
