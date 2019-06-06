@@ -14,8 +14,11 @@ namespace lsp
 {
     class IUIWrapper
     {
+        private:
+            IUIWrapper & operator = (const IUIWrapper &);
+
         public:
-            IUIWrapper();
+            explicit IUIWrapper();
             virtual ~IUIWrapper();
 
         public:

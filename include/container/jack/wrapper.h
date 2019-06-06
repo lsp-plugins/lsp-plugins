@@ -700,7 +700,39 @@ namespace lsp
             } while (jup->sync_again());
         }
         if (pUI != NULL)
+        {
             pUI->sync_meta_ports();
+
+            if (sKVTMutex.try_lock())
+            {
+                size_t sync;
+                do
+                {
+                    sync = 0;
+                    const kvt_param_t *kvt_value;
+                    const char *kvt_name;
+
+                    KVTIterator *it = sKVT.enum_modified();
+                    while (it->next() == STATUS_OK)
+                    {
+                        kvt_name = it->name();
+                        if (kvt_name == NULL)
+                            break;
+                        status_t res = it->get(&kvt_value);
+                        if (res != STATUS_OK)
+                            break;
+                        if ((res = it->commit()) != STATUS_OK)
+                            break;
+
+                        pUI->kvt_write(&sKVT, kvt_name, kvt_value);
+                        ++sync;
+                    }
+                } while (sync > 0);
+
+                sKVT.gc(); // Call garbage collection
+                sKVTMutex.unlock();
+            }
+        }
 
         // Limit refresh rate of window icon and refresh icon
         if (nCounter++ >= 5)

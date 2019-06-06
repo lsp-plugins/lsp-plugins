@@ -251,7 +251,7 @@ namespace lsp
 
                     // No flags
                     *flags = 0;
-                    return STATUS_OK;
+                    break;
                 }
                 case R_PATH:
                 {
@@ -266,10 +266,10 @@ namespace lsp
 
                     // No flags
                     *flags = config::SF_QUOTED;
-                    return STATUS_OK;
+                    break;
                 }
                 default:
-                    break;
+                    return STATUS_BAD_TYPE;
             }
             return STATUS_OK;
         }

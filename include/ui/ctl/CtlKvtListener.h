@@ -22,6 +22,12 @@ namespace lsp
 
             public:
                 /**
+                 * Get listener name
+                 * @return listener name or NULL
+                 */
+                virtual const char *name();
+
+                /**
                  * Handle change of the KVT paramter
                  * @param kvt KVT storage
                  * @param id KVT parameter full path identifier
@@ -29,6 +35,13 @@ namespace lsp
                  * @return true if listener processed the message, false if ignored
                  */
                 virtual bool changed(KVTStorage *kvt, const char *id, const kvt_param_t *value);
+
+                /**
+                 * Check that parameter name matches
+                 * @param id parameter identifier
+                 * @return true if parameter name matches
+                 */
+                virtual bool match(const char *id);
         };
     
     } /* namespace ctl */

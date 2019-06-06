@@ -20,6 +20,7 @@ namespace lsp
         char name[0x100];
         ::sprintf(name, "/scene/object/*/%s", sPattern);
         osc::pattern_create(&sOscPattern, name);
+        fValue      = get_default_value();
     }
 
     room_builder_ui::CtlFloatPort::~CtlFloatPort()
@@ -29,11 +30,17 @@ namespace lsp
         osc::pattern_destroy(&sOscPattern);
     }
 
+    const char *room_builder_ui::CtlFloatPort::name()
+    {
+        const char *format = NULL;
+        return (osc::pattern_get_format(&sOscPattern, &format) == STATUS_OK) ? format : NULL;
+    }
+
     float room_builder_ui::CtlFloatPort::get_value()
     {
         // Prepare the value
         char name[0x100];
-        float value;
+        float value = 0.0f;
         ::sprintf(name, "/scene/object/%d/%s", int(pUI->nSelected), sPattern);
 
         // Obtain KVT storage
@@ -51,13 +58,17 @@ namespace lsp
         }
 
         // Return the limited value
-        return (res == STATUS_OK) ?
-                limit_value(pMetadata, res) :
+        return fValue = (res == STATUS_OK) ?
+                limit_value(pMetadata, value) :
                 get_default_value();
     }
 
     void room_builder_ui::CtlFloatPort::set_value(float value)
     {
+        // Do not update value
+        if (fValue == value)
+            return;
+
         // Prepare the value
         char name[0x100];
         sprintf(name, "/scene/object/%d/%s", int(pUI->nSelected), sPattern);
@@ -71,15 +82,26 @@ namespace lsp
         KVTStorage *kvt = wrapper->kvt_lock();
         if (kvt != NULL)
         {
-            kvt->put(name, value, KVT_COMMIT);  // Write in silent mode
+            // Write in silent mode
+            if (kvt->put(name, value, KVT_COMMIT) == STATUS_OK)
+                fValue = value;
             wrapper->kvt_release();
         }
     }
 
+    bool room_builder_ui::CtlFloatPort::match(const char *id)
+    {
+        return (osc::pattern_match(&sOscPattern, id) == STATUS_OK);
+    }
+
     bool room_builder_ui::CtlFloatPort::changed(KVTStorage *storage, const char *id, const kvt_param_t *value)
     {
-        if (osc::pattern_match(&sOscPattern, id) != STATUS_OK)
+        char name[0x100];
+        ::sprintf(name, "/scene/object/%d/%s", int(pUI->nSelected), sPattern);
+        if (::strcmp(name, id) != 0)
             return false;
+
+        notify_all();
         return true;
     }
 
@@ -91,15 +113,10 @@ namespace lsp
         pUI         = ui;
         sMetadata   = *meta;
         nItems      = 0;
-        nCapacity   = 0x10;
+        nCapacity   = 0;
+        pItems      = NULL;
 
-        // Generate empty list of strings
-        pItems      = reinterpret_cast<char **>(::malloc(nCapacity * sizeof(char *)));
-        if (pItems != NULL)
-        {
-            for (size_t i=0; i<nCapacity; ++i)
-                pItems[i]   = NULL;
-        }
+        osc::pattern_create(&sOscPattern, "/scene/object/*/name");
     }
 
     room_builder_ui::CtlListPort::~CtlListPort()
@@ -120,6 +137,11 @@ namespace lsp
         }
     }
 
+    const char *room_builder_ui::CtlListPort::name()
+    {
+        return "/scene/objects";
+    }
+
     float room_builder_ui::CtlListPort::get_value()
     {
         return pUI->nSelected;
@@ -127,18 +149,25 @@ namespace lsp
 
     void room_builder_ui::CtlListPort::set_value(float value)
     {
-        ssize_t index   = limit_value(pMetadata, value);
-        if (index != pUI->nSelected)
+        ssize_t index   = -1;
+        if (nItems > 0)
         {
-            pUI->nSelected  = index;
+            if (index >= ssize_t(nItems))
+                index   = nItems-1;
+            else if (index < 0)
+                index   = 0;
+        }
+        if (index == pUI->nSelected)
+            return;
 
-            // Notify all KVT ports
-            for (size_t i=0, n=vKvtPorts.size(); i<n; ++i)
-            {
-                CtlPort *p = vKvtPorts.get(i);
-                if (p != NULL)
-                    p->notify_all();
-            }
+        pUI->nSelected  = index;
+
+        // Notify all KVT ports
+        for (size_t i=0, n=vKvtPorts.size(); i<n; ++i)
+        {
+            CtlPort *p = vKvtPorts.get(i);
+            if (p != NULL)
+                p->notify_all();
         }
     }
 
@@ -149,6 +178,9 @@ namespace lsp
 
     void room_builder_ui::CtlListPort::set_list_item(size_t id, const char *value)
     {
+        if (pItems == NULL)
+            return;
+
         // Free previous value holder
         if ((pItems[id] != NULL) && (pItems[id] != UNNAMED_STR))
             ::free(pItems[id]);
@@ -162,6 +194,13 @@ namespace lsp
         // If all is bad, do this
         if (pItems[id] == NULL)
             pItems[id]  = const_cast<char *>(UNNAMED_STR);
+    }
+
+    bool room_builder_ui::CtlListPort::match(const char *id)
+    {
+        if (!strcmp(id, "/scene/objects"))
+            return true;
+        return osc::pattern_match(&sOscPattern, id);
     }
 
     bool room_builder_ui::CtlListPort::changed(KVTStorage *storage, const char *id, const kvt_param_t *value)
@@ -178,10 +217,11 @@ namespace lsp
                 if (list == NULL)
                     return false;
                 for (size_t i=nCapacity; i<capacity; ++i)
-                    pItems[i]   = NULL;
-                pItems      = list;
-                nCapacity   = capacity;
-                sMetadata.items     = const_cast<const char **>(pItems); // Update pointer to the list
+                    list[i]     = NULL;
+
+                pItems          = list;
+                nCapacity       = capacity;
+                sMetadata.items = const_cast<const char **>(list);
             }
 
             // Allocate non-allocated strings
@@ -189,7 +229,7 @@ namespace lsp
 
             while (nItems < size)
             {
-                sprintf(pname, "/scene/object/%d/name", int(nItems));
+                ::sprintf(pname, "/scene/object/%d/name", int(nItems));
                 const char *pval = NULL;
                 status_t res = storage->get(pname, &pval);
                 set_list_item(nItems++, (res == STATUS_OK) ? pval : NULL);
@@ -203,23 +243,24 @@ namespace lsp
             // Notify all listeners
             set_value(pUI->nSelected);  // Update the current selected value
             sync_metadata();            // Call for metadata update
-            notify_all();               // Notify all listeners on the port
+            notify_all();               // Notify all bound listeners
+            return true;
         }
-        else if ((value->type == KVT_STRING) && (strstr(id, "/scene/object/") == id))
+        else if ((value->type == KVT_STRING) && (::strstr(id, "/scene/object/") == id))
         {
-            id += strlen("/scene/object/");
-            const char *end = ::strchr(id, '/');
-            if (!strcmp(end, "/name"))
+            id += ::strlen("/scene/object/");
+
+            char *endptr = NULL;
+            errno = 0;
+            long index = ::strtol(id, &endptr, 10);
+
+            // Valid object number?
+            if ((errno == 0) && (!::strcmp(endptr, "/name")) &&
+                (index >= 0) && (index < ssize_t(nItems)))
             {
-                // Valid object number?
-                char *endptr;
-                errno = 0;
-                long index = ::strtol(id, &endptr, 10);
-                if ((errno == 0) && (*endptr == '/') && (index >= 0) && (index < ssize_t(nItems)))
-                {
-                    set_list_item(index, value->str);   // Update list element
-                    sync_metadata();                    // Synchronize metadata
-                }
+                set_list_item(index, value->str);   // Update list element
+                sync_metadata();                    // Synchronize metadata
+                return true;
             }
         }
 
@@ -229,7 +270,7 @@ namespace lsp
     room_builder_ui::room_builder_ui(const plugin_metadata_t *mdata, void *root_widget):
         plugin_ui(mdata, root_widget)
     {
-        nSelected       = 0;
+        nSelected       = -1;
     }
     
     room_builder_ui::~room_builder_ui()
@@ -249,36 +290,38 @@ namespace lsp
         if (kvt_list == NULL)
             return STATUS_NO_MEM;
         add_port(kvt_list);
+        add_kvt_listener(kvt_list);
 
         CtlFloatPort *p;
 
-#define BIND_OSC_PORT(pattern, field)    \
+#define BIND_KVT_PORT(pattern, field)    \
         p = new CtlFloatPort(this, pattern, meta++); \
         if (p == NULL) \
             return STATUS_NO_MEM; \
         kvt_list->add_port(p); \
         add_port(p); \
+        add_kvt_listener(p);
 
-        BIND_OSC_PORT("enabled", fEnabled);
-        BIND_OSC_PORT("position/x", sPos.x);
-        BIND_OSC_PORT("position/y", sPos.y);
-        BIND_OSC_PORT("position/z", sPos.z);
-        BIND_OSC_PORT("rotation/yaw", fYaw);
-        BIND_OSC_PORT("rotation/pitch", fPitch);
-        BIND_OSC_PORT("rotation/roll", fRoll);
-        BIND_OSC_PORT("scale/x", fSizeX);
-        BIND_OSC_PORT("scale/y", fSizeY);
-        BIND_OSC_PORT("scale/z", fSizeZ);
-        BIND_OSC_PORT("color/hue", fHue);
-        BIND_OSC_PORT("material/absorption/outer", fAbsorption[0]);
-        BIND_OSC_PORT("material/absorption/inner", fAbsorption[1]);
-        BIND_OSC_PORT("material/dispersion/outer", fDispersion[0]);
-        BIND_OSC_PORT("material/dispersion/inner", fDispersion[1]);
-        BIND_OSC_PORT("material/dissipation/outer", fDissipation[0]);
-        BIND_OSC_PORT("material/dissipation/inner", fDissipation[1]);
-        BIND_OSC_PORT("material/transparency/outer", fTransparency[1]);
-        BIND_OSC_PORT("material/transparency/inner", fTransparency[1]);
-        BIND_OSC_PORT("material/sound_speed", fSndSpeed);
+        BIND_KVT_PORT("enabled", fEnabled);
+        BIND_KVT_PORT("position/x", sPos.x);
+        BIND_KVT_PORT("position/y", sPos.y);
+        BIND_KVT_PORT("position/z", sPos.z);
+        BIND_KVT_PORT("rotation/yaw", fYaw);
+        BIND_KVT_PORT("rotation/pitch", fPitch);
+        BIND_KVT_PORT("rotation/roll", fRoll);
+        BIND_KVT_PORT("scale/x", fSizeX);
+        BIND_KVT_PORT("scale/y", fSizeY);
+        BIND_KVT_PORT("scale/z", fSizeZ);
+        BIND_KVT_PORT("color/hue", fHue);
+        BIND_KVT_PORT("material/absorption/outer", fAbsorption[0]);
+        BIND_KVT_PORT("material/absorption/inner", fAbsorption[1]);
+        BIND_KVT_PORT("material/dispersion/outer", fDispersion[0]);
+        BIND_KVT_PORT("material/dispersion/inner", fDispersion[1]);
+        BIND_KVT_PORT("material/dissipation/outer", fDissipation[0]);
+        BIND_KVT_PORT("material/dissipation/inner", fDissipation[1]);
+        BIND_KVT_PORT("material/transparency/outer", fTransparency[1]);
+        BIND_KVT_PORT("material/transparency/inner", fTransparency[1]);
+        BIND_KVT_PORT("material/sound_speed", fSndSpeed);
 
         return STATUS_OK;
     }

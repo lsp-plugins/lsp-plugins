@@ -69,6 +69,7 @@ namespace lsp
             cvector<LSPWidget>          vWidgets;
             cvector<CtlSwitchedPort>    vSwitched;
             cvector<CtlPortAlias>       vAliases;
+            cvector<CtlKvtListener>     vKvtListeners;
 
         protected:
             static const port_t         vConfigMetadata[];
@@ -122,6 +123,13 @@ namespace lsp
              * @return status of operation
              */
             status_t add_port(CtlPort *port);
+
+            /**
+             * Add KVT listener
+             * @param listener listener to add
+             * @return status of operation
+             */
+            status_t add_kvt_listener(CtlKvtListener *listener);
 
             /** Export settings of the UI to the file
              *
@@ -217,6 +225,14 @@ namespace lsp
              * Synchronize state of meta ports
              */
             void sync_meta_ports();
+
+            /**
+             * Synchronize state of the KVT parameter
+             * @param storage KVT storage
+             * @param id kvt parameter identifier
+             * @param value KVT parameter value
+             */
+            void kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value);
 
             /** Return root window
              *

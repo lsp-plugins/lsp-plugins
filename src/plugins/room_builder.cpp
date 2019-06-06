@@ -88,10 +88,13 @@ namespace lsp
             lsp_trace("Deploying KVT parameters for %s", base);
 
             kvt_deploy(kvt, base, "name", obj->get_name());
-            kvt_deploy(kvt, base, "enabled", true);
-            kvt_deploy(kvt, base, "position/x", c->x);
-            kvt_deploy(kvt, base, "position/y", c->y);
-            kvt_deploy(kvt, base, "position/z", c->z);
+            kvt_deploy(kvt, base, "enabled", 1.0f);
+            kvt_deploy(kvt, base, "center/x", c->x);
+            kvt_deploy(kvt, base, "center/y", c->y);
+            kvt_deploy(kvt, base, "center/z", c->z);
+            kvt_deploy(kvt, base, "position/x", 0.0f);
+            kvt_deploy(kvt, base, "position/y", 0.0f);
+            kvt_deploy(kvt, base, "position/z", 0.0f);
             kvt_deploy(kvt, base, "rotation/yaw", 0.0f);
             kvt_deploy(kvt, base, "rotation/pitch", 0.0f);
             kvt_deploy(kvt, base, "rotation/roll", 0.0f);
@@ -126,7 +129,7 @@ namespace lsp
     void room_builder_base::kvt_cleanup_objects(KVTStorage *kvt, size_t objects)
     {
         KVTIterator *it = kvt->enum_branch("/scene/object");
-        while (it->next())
+        while (it->next() == STATUS_OK)
         {
             const char *id = it->id();
             if (id == NULL)
@@ -135,12 +138,12 @@ namespace lsp
             // Must be a pure object identifier
             errno = 0;
             char *endptr;
-            long value = strtol(id, &endptr, 10);
-            if ((errno != 0) || ((endptr - id) != strlen(id)))
+            long value = ::strtol(id, &endptr, 10);
+            if ((errno != 0) || (size_t(endptr - id) != size_t(::strlen(id))))
                 continue;
 
             // Remove the object
-            if ((id < 0) || (id >= ssize_t(objects)))
+            if ((value < 0) || (value >= ssize_t(objects)))
             {
                 lsp_trace("Removing KVT parameters from %s", it->name());
                 it->remove_branch();

@@ -55,8 +55,14 @@ namespace lsp
             if (!IS_IN_PORT(p))
                 continue;
 
-            // Format port value
-            return format_port_value(up, name, value, comment, flags);
+            // Try to format port value
+            status_t res = format_port_value(up, name, value, comment, flags);
+
+            // Skip port if it has bad, non-serializable type
+            if (res == STATUS_BAD_TYPE)
+                continue;
+
+            return res;
         }
 
         return STATUS_NO_DATA;
@@ -166,6 +172,7 @@ namespace lsp
         vPorts.clear();
         vSwitched.clear();
         vAliases.clear(); // Aliases will be destroyed as controllers
+        vKvtListeners.flush(); // Destroy references to KVT listeners
 
         // Destroy display
         sDisplay.destroy();
@@ -699,12 +706,30 @@ namespace lsp
         }
     };
 
+    void plugin_ui::kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value)
+    {
+        for (size_t i=0, n=vKvtListeners.size(); i<n; ++i)
+        {
+            CtlKvtListener *l = vKvtListeners.at(i);
+            if (l != NULL)
+                l->changed(storage, id, value);
+        }
+    }
+
     status_t plugin_ui::add_port(CtlPort *port)
     {
         if (!vPorts.add(port))
             return STATUS_NO_MEM;
 
         lsp_trace("added port id=%s", port->metadata()->id);
+        return STATUS_OK;
+    }
+
+    status_t plugin_ui::add_kvt_listener(CtlKvtListener *listener)
+    {
+        if (!vKvtListeners.add(listener))
+            return STATUS_NO_MEM;
+        lsp_trace("added KVT listener id=%s", listener->name());
         return STATUS_OK;
     }
 
