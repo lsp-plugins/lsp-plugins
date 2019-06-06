@@ -26,31 +26,31 @@ namespace lsp
     {
     }
 
-    void KVTListener::created(const char *id, const kvt_param_t *param)
+    void KVTListener::created(KVTStorage *storage, const char *id, const kvt_param_t *param)
     {
     }
 
-    void KVTListener::rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
+    void KVTListener::rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
     {
     }
 
-    void KVTListener::changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
+    void KVTListener::changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
     {
     }
 
-    void KVTListener::removed(const char *id, const kvt_param_t *param)
+    void KVTListener::removed(KVTStorage *storage, const char *id, const kvt_param_t *param)
     {
     }
 
-    void KVTListener::access(const char *id, const kvt_param_t *param)
+    void KVTListener::access(KVTStorage *storage, const char *id, const kvt_param_t *param)
     {
     }
 
-    void KVTListener::commit(const char *id, const kvt_param_t *param)
+    void KVTListener::commit(KVTStorage *storage, const char *id, const kvt_param_t *param)
     {
     }
 
-    void KVTListener::missed(const char *id)
+    void KVTListener::missed(KVTStorage *storage, const char *id)
     {
     }
 
@@ -286,7 +286,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->created(id, param);
+                listener->created(this, id, param);
         }
     }
 
@@ -296,7 +296,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->rejected(id, rej, curr);
+                listener->rejected(this, id, rej, curr);
         }
     }
 
@@ -306,7 +306,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->changed(id, oval, nval);
+                listener->changed(this, id, oval, nval);
         }
     }
 
@@ -316,7 +316,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->removed(id, param);
+                listener->removed(this, id, param);
         }
     }
 
@@ -326,7 +326,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->access(id, param);
+                listener->access(this, id, param);
         }
     }
 
@@ -336,7 +336,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->commit(id, param);
+                listener->commit(this, id, param);
         }
     }
 
@@ -346,7 +346,7 @@ namespace lsp
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->missed(id);
+                listener->missed(this, id);
         }
     }
 

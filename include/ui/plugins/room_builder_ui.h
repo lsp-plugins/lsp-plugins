@@ -17,11 +17,12 @@ namespace lsp
     class room_builder_ui: public plugin_ui
     {
         protected:
-            class CtlFloatPort: public CtlPort
+            class CtlFloatPort: public CtlPort, CtlKvtListener
             {
                 protected:
                     room_builder_ui    *pUI;
                     const char         *sPattern;
+                    osc::pattern_t      sOscPattern;
 
                 public:
                     explicit CtlFloatPort(room_builder_ui *ui, const char *pattern, const port_t *meta);
@@ -30,15 +31,21 @@ namespace lsp
                 public:
                     virtual float get_value();
                     virtual void set_value(float value);
+                    virtual bool changed(KVTStorage *storage, const char *id, const kvt_param_t *value);
             };
 
-            class CtlListPort: public CtlPort, KVTListener
+            class CtlListPort: public CtlPort, CtlKvtListener
             {
                 protected:
                     room_builder_ui    *pUI;
                     port_t              sMetadata;
                     char              **pItems;
                     size_t              nCapacity;
+                    size_t              nItems;
+                    cvector<CtlPort>    vKvtPorts;
+
+                protected:
+                    void set_list_item(size_t id, const char *value);
 
                 public:
                     explicit CtlListPort(room_builder_ui *ui, const port_t *meta);
@@ -47,37 +54,17 @@ namespace lsp
                 public:
                     virtual float get_value();
                     virtual void set_value(float value);
-                    virtual void changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval);
+                    virtual bool changed(KVTStorage *storage, const char *id, const kvt_param_t *value);
+
+                    void add_port(CtlPort *port);
             };
-
-            class CtlOscListener: public CtlPortListener
-            {
-                protected:
-                    room_builder_ui    *pUI;
-
-                public:
-                    explicit CtlOscListener(room_builder_ui *ui);
-                    virtual ~CtlOscListener();
-
-                public:
-                    virtual void notify(CtlPort *port);
-            };
-
-        protected:
-            void process_osc_message(const char *address, osc::parser_frame_t *message);
-            void resize_properties(size_t count);
-            void notify_kvt_ports();
 
         protected:
             size_t                  nSelected;
-            CtlListPort            *pListPort;
-            CtlOscListener          sOscListener;
 
         public:
             explicit room_builder_ui(const plugin_metadata_t *mdata, void *root_widget);
             virtual ~room_builder_ui();
-
-            virtual void destroy();
 
         public:
             virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);

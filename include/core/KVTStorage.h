@@ -82,55 +82,62 @@ namespace lsp
 
             /**
              * Triggers event when parameter has been created
+             * @param storage KVT storage that triggered the event
              * @param id the full unique identifier of parameter
              * @param param parameter
              */
-            virtual void created(const char *id, const kvt_param_t *param);
+            virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param);
 
             /**
              * Triggers event when parameter has been rejected (the put() method
              * tried to replace the existing parameter)
+             * @param storage KVT storage that triggered the event
              * @param id the full unique identifier of parameter
              * @param rej the rejected parameter
              * @param curr current value parameter
              */
-            virtual void rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr);
+            virtual void rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr);
 
             /**
              * Triggers event when parameter has been changed
+             * @param storage KVT storage that triggered the event
              * @param id the full unique identifier of parameter
              * @param oval old value of parameter
              * @param nval new value of parameter
              */
-            virtual void changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval);
+            virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval);
 
             /**
              * Triggers event when parameter has been removed
+             * @param storage KVT storage that triggered the event
              * @param id the full unique identifier of parameter
              * @param param the value of removed parameter
              */
-            virtual void removed(const char *id, const kvt_param_t *param);
+            virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param);
 
             /**
              * The parameter has been accessed for reading
+             * @param storage KVT storage that triggered the event
              * @param id parameter identifier
              * @param param parameter
              */
-            virtual void access(const char *id, const kvt_param_t *param);
+            virtual void access(KVTStorage *storage, const char *id, const kvt_param_t *param);
 
             /**
              * The parameter has been committed (it's modification flag has been reset)
+             * @param storage KVT storage that triggered the event
              * @param id parameter identifier
              * @param param parameter parameter value
              */
-            virtual void commit(const char *id, const kvt_param_t *param);
+            virtual void commit(KVTStorage *storage, const char *id, const kvt_param_t *param);
 
             /**
              * The parameter has been accessed for reading/removal
+             * @param storage KVT storage that triggered the event
              * @param id parameter identifier
              * @param param parameter
              */
-            virtual void missed(const char *id);
+            virtual void missed(KVTStorage *storage, const char *id);
     };
 
     class KVTIterator;

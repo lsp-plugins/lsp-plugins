@@ -75,7 +75,7 @@ namespace lsp
 
         // Now initialize object properties
         char base[128];
-        kvt_deploy(kvt, "/scene", "objects", uint32_t(nobjs));
+        kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs));
 
         for (size_t i=0; i<nobjs; ++i)
         {
@@ -116,6 +116,15 @@ namespace lsp
         }
 
         // Drop rare (unused) objects
+        kvt_cleanup_objects(kvt, nobjs);
+
+        wrapper->kvt_release();
+
+        return STATUS_OK;
+    }
+
+    void room_builder_base::kvt_cleanup_objects(KVTStorage *kvt, size_t objects)
+    {
         KVTIterator *it = kvt->enum_branch("/scene/object");
         while (it->next())
         {
@@ -131,16 +140,12 @@ namespace lsp
                 continue;
 
             // Remove the object
-            if ((id < 0) || (id >= nobjs))
+            if ((id < 0) || (id >= ssize_t(objects)))
             {
                 lsp_trace("Removing KVT parameters from %s", it->name());
                 it->remove_branch();
             }
         }
-
-        wrapper->kvt_release();
-
-        return STATUS_OK;
     }
 
     //-------------------------------------------------------------------------

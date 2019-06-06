@@ -151,7 +151,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nDetached;
             }
 
-            virtual void created(const char *id, const kvt_param_t *param)
+            virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param)
             {
                 if (bVerbose)
                 {
@@ -161,7 +161,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nCreated;
             }
 
-            virtual void rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
+            virtual void rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
             {
                 if (bVerbose)
                 {
@@ -172,7 +172,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nRejected;
             }
 
-            virtual void changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
+            virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
             {
                 if (bVerbose)
                 {
@@ -183,7 +183,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nChanged;
             }
 
-            virtual void removed(const char *id, const kvt_param_t *param)
+            virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param)
             {
                 if (bVerbose)
                 {
@@ -193,7 +193,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nRemoved;
             }
 
-            virtual void access(const char *id, const kvt_param_t *param)
+            virtual void access(KVTStorage *storage, const char *id, const kvt_param_t *param)
             {
                 if (bVerbose)
                 {
@@ -203,7 +203,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nAccessed;
             }
 
-            virtual void commit(const char *id, const kvt_param_t *param)
+            virtual void commit(KVTStorage *storage, const char *id, const kvt_param_t *param)
             {
                 if (bVerbose)
                 {
@@ -213,7 +213,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nCommitted;
             }
 
-            virtual void missed(const char *id)
+            virtual void missed(KVTStorage *storage, const char *id)
             {
                 if (bVerbose)
                     test->printf("Parameter %s is missing\n", id);

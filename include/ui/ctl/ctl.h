@@ -302,6 +302,7 @@ namespace lsp
 #include <ui/ctl/CtlSource3D.h>
 
 // Specials
+#include <ui/ctl/CtlKvtListener.h>
 #include <ui/ctl/CtlPortAlias.h>
 #include <ui/ctl/CtlSwitchedPort.h>
 #include <ui/ctl/CtlControlPort.h>

@@ -120,7 +120,7 @@ namespace lsp
             FFT_RANK_DEFAULT = FFT_RANK_32767
         };
 
-        static const port_t osc_ports[];
+        static const port_t kvt_ports[];
     };
 
     struct room_builder_mono_metadata: public room_builder_base_metadata
