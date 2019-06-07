@@ -25,6 +25,25 @@ namespace lsp
 {
     class room_builder_base: public plugin_t
     {
+        public:
+            typedef struct obj_props_t
+            {
+                const char             *sName;      // UTF-8 object name
+                bool                    bEnabled;   // Enabled flag
+                point3d_t               sCenter;    // Object center
+                vector3d_t              sMove;      // Object move
+                float                   fYaw;       // Yaw
+                float                   fPitch;     // Pitch
+                float                   fRoll;      // Roll
+                vector3d_t              sScale;     // Scaling of object
+                float                   fHue;       // Hue color
+                float                   fAbsorption[2];
+                float                   fDispersion[2];
+                float                   fDissipation[2];
+                float                   fTransparency[2];
+                float                   fSndSpeed;
+            } obj_props_t;
+
         protected:
             typedef struct convolver_t
             {
@@ -137,27 +156,6 @@ namespace lsp
                 IPort                  *pSide;
             } capture_t;
 
-            typedef struct obj_props_t
-            {
-                char                   *sName;      // UTF-8 object name
-                bool                    bEnabled;   // Enabled flag
-                point3d_t               sPos;       // Object relative position
-                float                   fYaw;       // Yaw
-                float                   fPitch;     // Pitch
-                float                   fRoll;      // Roll
-                float                   fSizeX;     // Size of object (X)
-                float                   fSizeY;     // Size of object (Y)
-                float                   fSizeZ;     // Size of object (Z)
-                float                   fHue;       // Hue color
-                float                   fAbsorption[2];
-                float                   fDispersion[2];
-                float                   fDissipation[2];
-                float                   fTransparency[2];
-                float                   fSndSpeed;
-
-                size_t                  nSync;      // Sync flags
-            } obj_props_t;
-
         protected:
             class SceneLoader: public ipc::ITask
             {
@@ -238,6 +236,8 @@ namespace lsp
             static status_t             configure_capture(room_capture_settings_t *out, const room_capture_config_t *in);
 
             static void                 kvt_cleanup_objects(KVTStorage *kvt, size_t objects);
+            static void                 read_object_properties(obj_props_t *props, const char *base, KVTStorage *kvt);
+            static void                 build_object_matrix(matrix3d_t *m, const obj_props_t *props);
     };
 
     class room_builder_mono: public room_builder_base, public room_builder_mono_metadata

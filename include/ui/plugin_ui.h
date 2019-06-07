@@ -21,6 +21,9 @@ namespace lsp
 {
     class plugin_ui: public CtlRegistry
     {
+        private:
+            plugin_ui &operator = (const plugin_ui &);
+
         protected:
             class ConfigHandler: public config::IConfigHandler
             {
@@ -124,13 +127,6 @@ namespace lsp
              */
             status_t add_port(CtlPort *port);
 
-            /**
-             * Add KVT listener
-             * @param listener listener to add
-             * @return status of operation
-             */
-            status_t add_kvt_listener(CtlKvtListener *listener);
-
             /** Export settings of the UI to the file
              *
              * @param filename file name
@@ -226,14 +222,6 @@ namespace lsp
              */
             void sync_meta_ports();
 
-            /**
-             * Synchronize state of the KVT parameter
-             * @param storage KVT storage
-             * @param id kvt parameter identifier
-             * @param value KVT parameter value
-             */
-            void kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value);
-
             /** Return root window
              *
              * @return root window (if exists)
@@ -245,6 +233,38 @@ namespace lsp
              * @param title title of the main window
              */
             void set_title(const char *title);
+
+            /**
+             * Notify the write of the KVT parameter
+             * @param storage KVT storage
+             * @param id kvt parameter identifier
+             * @param value KVT parameter value
+             */
+            virtual void kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value);
+
+            /**
+             * Lock the KVT storage
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock the KVT storage
+             * @return pointer to KVT storage or NULL if not locked/not supported
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             */
+            virtual void kvt_release();
+
+            /**
+             * Add KVT listener
+             * @param listener listener to add
+             * @return status of operation
+             */
+            virtual status_t add_kvt_listener(CtlKvtListener *listener);
     };
 
 } /* namespace lsp */

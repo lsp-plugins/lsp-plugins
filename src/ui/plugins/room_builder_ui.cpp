@@ -43,18 +43,13 @@ namespace lsp
         float value = 0.0f;
         ::sprintf(name, "/scene/object/%d/%s", int(pUI->nSelected), sPattern);
 
-        // Obtain KVT storage
-        IUIWrapper *wrapper = pUI->wrapper();
-        if (wrapper == NULL)
-            return get_default_value();
-
         // Fetch value
-        KVTStorage *kvt = wrapper->kvt_lock();
+        KVTStorage *kvt = pUI->kvt_lock();
         status_t res = STATUS_NOT_FOUND;
         if (kvt != NULL)
         {
             res = kvt->get(name, &value);
-            wrapper->kvt_release();
+            pUI->kvt_release();
         }
 
         // Return the limited value
@@ -75,17 +70,20 @@ namespace lsp
         value       = limit_value(pMetadata, value);
 
         // Obtain KVT storage
-        IUIWrapper *wrapper = pUI->wrapper();
-        if (wrapper == NULL)
-            return;
-
-        KVTStorage *kvt = wrapper->kvt_lock();
+        KVTStorage *kvt = pUI->kvt_lock();
         if (kvt != NULL)
         {
+            kvt_param_t param;
+            param.type  = KVT_FLOAT32;
+            param.f32   = value;
+
             // Write in silent mode
-            if (kvt->put(name, value, KVT_COMMIT) == STATUS_OK)
+            if (kvt->put(name, &param, KVT_COMMIT) == STATUS_OK)
+            {
                 fValue = value;
-            wrapper->kvt_release();
+                pUI->kvt_write(kvt, name, &param);
+            }
+            pUI->kvt_release();
         }
     }
 
@@ -211,8 +209,11 @@ namespace lsp
         {
             // Ensure that we have enough place to store object names
             size_t size     = (value->i32 < 0) ? 0 : value->i32;
-            size_t capacity = ((size + 0x10) / 0x10) * 0x10;
+            if (nItems == size)
+                return false;
 
+            // Compute the capacity and adjust array size
+            size_t capacity = ((size + 0x10) / 0x10) * 0x10;
             if (capacity > nCapacity)
             {
                 char **list = reinterpret_cast<char **>(::realloc(pItems, capacity * sizeof(char *)));

@@ -38,11 +38,15 @@ namespace lsp
     template <class T>
         static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value)
         {
+            char name[0x100]; // Should be enough
             size_t len = ::strlen(base) + ::strlen(branch) + 2;
-            char *name = reinterpret_cast<char *>(alloca(len));
+            if (len >= 0x100)
+                return false;
+
             char *tail = ::stpcpy(name, base);
             *(tail++)  = '/';
             stpcpy(tail, branch);
+
             return s->put(name, value) == STATUS_OK;
         }
 
@@ -103,19 +107,17 @@ namespace lsp
             kvt_deploy(kvt, base, "scale/z", 1.0f);
             kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs));
 
-            strcat(base, "/material");
+            kvt_deploy(kvt, base, "material/absorption/outer", 0.02f);
+            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f);
+            kvt_deploy(kvt, base, "material/dissipation/outer", 1.0f);
+            kvt_deploy(kvt, base, "material/transparency/outer", 0.48f);
 
-            kvt_deploy(kvt, base, "absorption/outer", 0.02f);
-            kvt_deploy(kvt, base, "dispersion/outer", 1.0f);
-            kvt_deploy(kvt, base, "dissipation/outer", 1.0f);
-            kvt_deploy(kvt, base, "transparency/outer", 0.48f);
+            kvt_deploy(kvt, base, "material/absorption/inner", 0.00f);
+            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f);
+            kvt_deploy(kvt, base, "material/dissipation/inner", 1.0f);
+            kvt_deploy(kvt, base, "material/transparency/inner", 0.52f);
 
-            kvt_deploy(kvt, base, "absorption/inner", 0.00f);
-            kvt_deploy(kvt, base, "dispersion/inner", 1.0f);
-            kvt_deploy(kvt, base, "dissipation/inner", 1.0f);
-            kvt_deploy(kvt, base, "transparency/inner", 0.52f);
-
-            kvt_deploy(kvt, base, "sound_speed", 12.88f * SOUND_SPEED_M_S);
+            kvt_deploy(kvt, base, "material/sound_speed", 12.88f * SOUND_SPEED_M_S);
         }
 
         // Drop rare (unused) objects
@@ -149,6 +151,87 @@ namespace lsp
                 it->remove_branch();
             }
         }
+    }
+
+    template <class T>
+        static bool kvt_fetch(KVTStorage *s, const char *base, const char *branch, T *value, T dfl)
+        {
+            char name[0x100]; // Should be enough;
+            size_t len = ::strlen(base) + ::strlen(branch) + 2;
+            if (len >= 0x100)
+                return false;
+
+            char *tail = ::stpcpy(name, base);
+            *(tail++)  = '/';
+            stpcpy(tail, branch);
+
+            return s->get_dfl(name, value, dfl);
+        }
+
+    void room_builder_base::read_object_properties(obj_props_t *props, const char *base, KVTStorage *kvt)
+    {
+        float enabled;
+
+        kvt_fetch(kvt, base, "name", &props->sName, "unnamed");
+        kvt_fetch(kvt, base, "enabled", &enabled, 1.0f);
+        kvt_fetch(kvt, base, "center/x", &props->sCenter.x, 0.0f);
+        kvt_fetch(kvt, base, "center/y", &props->sCenter.y, 0.0f);
+        kvt_fetch(kvt, base, "center/z", &props->sCenter.z, 0.0f);
+        kvt_fetch(kvt, base, "position/x", &props->sMove.dx, 0.0f);
+        kvt_fetch(kvt, base, "position/y", &props->sMove.dy, 0.0f);
+        kvt_fetch(kvt, base, "position/z", &props->sMove.dz, 0.0f);
+        kvt_fetch(kvt, base, "rotation/yaw", &props->fYaw, 0.0f);
+        kvt_fetch(kvt, base, "rotation/pitch", &props->fPitch, 0.0f);
+        kvt_fetch(kvt, base, "rotation/roll", &props->fRoll, 0.0f);
+        kvt_fetch(kvt, base, "scale/x", &props->sScale.dx, 1.0f);
+        kvt_fetch(kvt, base, "scale/y", &props->sScale.dy, 1.0f);
+        kvt_fetch(kvt, base, "scale/z", &props->sScale.dz, 1.0f);
+        kvt_fetch(kvt, base, "color/hue", &props->fHue, 0.0f);
+
+        kvt_fetch(kvt, base, "material/absorption/outer", &props->fAbsorption[0], 0.02f);
+        kvt_fetch(kvt, base, "material/dispersion/outer", &props->fDispersion[0], 1.0f);
+        kvt_fetch(kvt, base, "material/dissipation/outer", &props->fDissipation[0], 1.0f);
+        kvt_fetch(kvt, base, "material/transparency/outer", &props->fTransparency[0], 0.48f);
+
+        kvt_fetch(kvt, base, "material/absorption/inner", &props->fAbsorption[1], 0.00f);
+        kvt_fetch(kvt, base, "material/dispersion/inner", &props->fDispersion[1], 1.0f);
+        kvt_fetch(kvt, base, "material/dissipation/inner", &props->fDissipation[0], 1.0f);
+        kvt_fetch(kvt, base, "material/transparency/inner", &props->fTransparency[0], 0.52f);
+
+        kvt_fetch(kvt, base, "material/sound_speed", &props->fSndSpeed, 12.88f * SOUND_SPEED_M_S);
+
+        props->bEnabled = (enabled >= 0.5f);
+    }
+
+    void room_builder_base::build_object_matrix(matrix3d_t *m, const obj_props_t *props)
+    {
+        matrix3d_t tmp;
+
+        // Apply translation
+        dsp::init_matrix3d_translate(&tmp,
+                props->sCenter.x + props->sMove.dx,
+                props->sCenter.y + props->sMove.dy,
+                props->sCenter.z + props->sMove.dz
+        );
+        dsp::apply_matrix3d_mm1(m, &tmp);
+
+        // Apply rotation
+        dsp::init_matrix3d_rotate_z(&tmp, props->fYaw * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(m, &tmp);
+
+        dsp::init_matrix3d_rotate_y(&tmp, props->fPitch * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(m, &tmp);
+
+        dsp::init_matrix3d_rotate_x(&tmp, props->fRoll * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(m, &tmp);
+
+        // Apply scale
+        dsp::init_matrix3d_scale(&tmp, props->sScale.dx, props->sScale.dy, props->sScale.dz);
+        dsp::apply_matrix3d_mm1(m, &tmp);
+
+        // Move center to (0, 0, 0) point
+        dsp::init_matrix3d_translate(&tmp, -props->sCenter.x, -props->sCenter.y, -props->sCenter.z);
+        dsp::apply_matrix3d_mm1(m, &tmp);
     }
 
     //-------------------------------------------------------------------------

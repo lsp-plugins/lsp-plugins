@@ -65,6 +65,29 @@ namespace lsp
 
             return res;
         }
+
+        KVTStorage *CtlRegistry::kvt_lock()
+        {
+            return NULL;
+        }
+
+        KVTStorage *CtlRegistry::kvt_trylock()
+        {
+            return NULL;
+        }
+
+        void CtlRegistry::kvt_release()
+        {
+        }
+
+        void CtlRegistry::kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value)
+        {
+        }
+
+        status_t CtlRegistry::add_kvt_listener(CtlKvtListener *listener)
+        {
+            return STATUS_NOT_IMPLEMENTED;
+        }
     
     } /* namespace tk */
 } /* namespace lsp */

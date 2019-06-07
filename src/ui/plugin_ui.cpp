@@ -716,6 +716,22 @@ namespace lsp
         }
     }
 
+    KVTStorage *plugin_ui::kvt_lock()
+    {
+        return (pWrapper != NULL) ? pWrapper->kvt_lock() : NULL;
+    }
+
+    KVTStorage *plugin_ui::kvt_trylock()
+    {
+        return (pWrapper != NULL) ? pWrapper->kvt_trylock() : NULL;
+    }
+
+    void plugin_ui::kvt_release()
+    {
+        if (pWrapper != NULL)
+            pWrapper->kvt_release();
+    }
+
     status_t plugin_ui::add_port(CtlPort *port)
     {
         if (!vPorts.add(port))
