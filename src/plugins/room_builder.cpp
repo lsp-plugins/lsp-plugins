@@ -647,7 +647,8 @@ namespace lsp
             if ((path->pending()) && (s3DLoader.idle())) // There is pending request for 3D file reload
             {
                 // Copy path
-                strncpy(s3DLoader.sPath, path->get_path(), PATH_MAX);
+                ::strncpy(s3DLoader.sPath, path->get_path(), PATH_MAX);
+                s3DLoader.sPath[PATH_MAX] = '\0';
 
                 // Try to submit task
                 if (pExecutor->submit(&s3DLoader))

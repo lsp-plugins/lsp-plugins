@@ -152,10 +152,12 @@ namespace lsp
         ssize_t index   = -1;
         if (nItems > 0)
         {
-            if (index >= ssize_t(nItems))
+            if (value >= ssize_t(nItems))
                 index   = nItems-1;
-            else if (index < 0)
+            else if (value < 0)
                 index   = 0;
+            else
+                index   = value;
         }
         if (index == pUI->nSelected)
             return;

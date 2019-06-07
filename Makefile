@@ -159,6 +159,7 @@ compile test_compile:
 	@echo "  target system       : $(BUILD_SYSTEM)"
 	@echo "  compiler            : $(BUILD_COMPILER)"
 	@echo "  modules             : $(BUILD_MODULES)"
+	@echo "  3D rendering        : $(BUILD_R3D_BACKENDS)"
 	@echo "  build directory     : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src

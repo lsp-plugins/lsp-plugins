@@ -27,15 +27,15 @@ namespace lsp
             { { 0.0f, 0.0f, 0.25f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
 
-        static const color3d_t *colors[] =
-        {
-            &C3D_RED,
-            &C3D_GREEN,
-            &C3D_BLUE,
-            &C3D_CYAN,
-            &C3D_MAGENTA,
-            &C3D_YELLOW
-        };
+//        static const color3d_t *colors[] =
+//        {
+//            &C3D_RED,
+//            &C3D_GREEN,
+//            &C3D_BLUE,
+//            &C3D_CYAN,
+//            &C3D_MAGENTA,
+//            &C3D_YELLOW
+//        };
         
         CtlViewer3D::CtlViewer3D(CtlRegistry *src, LSPArea3D *widget):
             CtlWidget(src, widget)
@@ -481,6 +481,8 @@ namespace lsp
             vVertexes.clear();
 
             matrix3d_t m;
+            Color col;
+            col.set_rgba(1.0f, 0.0f, 0.0f, 0.0f);
 
             // Add all visible objects to BSP context
             for (size_t i=0, n=sScene.num_objects(); i<n; ++i)
@@ -490,7 +492,13 @@ namespace lsp
                 if (!o->is_visible())
                     continue;
 
-                color3d_t c = *(colors[i % 6]);
+                Color xc(col);
+                color3d_t c;
+                xc.hue(float(i) / float(n));
+
+                c.r         = xc.red();
+                c.g         = xc.green();
+                c.b         = xc.blue();
                 c.a         = fOpacity; // Update alpha value
 
                 dsp::apply_matrix3d_mm2(&m, &sOrientation, o->matrix());

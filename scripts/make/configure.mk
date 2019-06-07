@@ -8,9 +8,14 @@ ifndef BUILD_MODULES
   BUILD_MODULES          := $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
 endif
 
+ifndef BUILD_R3D_BACKENDS
+  BUILD_R3D_BACKENDS     := $(shell cat "$(OBJDIR)/$(R3D_BACKENDS_FILE)" 2>/dev/null || echo "glx")
+endif
+
 BUILD_COMPILER         := $(shell $(CC) --version | head -n 1 || echo "unknown")
 
 export BUILD_MODULES
+export BUILD_R3D_BACKENDS
 
 # Configure list of targets to execute
 INSTALLATIONS           =

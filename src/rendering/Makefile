@@ -6,11 +6,17 @@ GLX_HEADERS				= $(OPENGL_HEADERS)
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 
+MODULES                 = 
+
+ifeq ($(findstring jack,$(BUILD_R3D_BACKENDS)),glx)
+  MODULES                += $(LIB_R3D_GLX)
+endif
+
 .PHONY: all target
 
 target: all
 
-all: $(LIB_R3D_GLX)
+all: $(MODULES)
 
 $(LIB_R3D_GLX): $(BASE_IMPL) $(GLX_IMPL)
 	@echo "  $(CXX) $(notdir $(LIB_R3D_GLX))"
