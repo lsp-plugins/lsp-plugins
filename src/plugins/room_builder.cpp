@@ -47,7 +47,7 @@ namespace lsp
             *(tail++)  = '/';
             stpcpy(tail, branch);
 
-            return s->put(name, value) == STATUS_OK;
+            return s->put(name, value, KVT_TO_UI) == STATUS_OK;
         }
 
     status_t room_builder_base::SceneLoader::run()

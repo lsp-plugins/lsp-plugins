@@ -705,6 +705,7 @@ namespace lsp
 
             if (sKVTMutex.try_lock())
             {
+                // Synchronize DSP -> UI transfer
                 size_t sync;
                 do
                 {
@@ -712,7 +713,7 @@ namespace lsp
                     const kvt_param_t *kvt_value;
                     const char *kvt_name;
 
-                    KVTIterator *it = sKVT.enum_modified();
+                    KVTIterator *it = sKVT.enum_tx_pending();
                     while (it->next() == STATUS_OK)
                     {
                         kvt_name = it->name();
@@ -721,7 +722,7 @@ namespace lsp
                         status_t res = it->get(&kvt_value);
                         if (res != STATUS_OK)
                             break;
-                        if ((res = it->commit()) != STATUS_OK)
+                        if ((res = it->commit(KVT_TX)) != STATUS_OK)
                             break;
 
                         pUI->kvt_write(&sKVT, kvt_name, kvt_value);
@@ -729,7 +730,11 @@ namespace lsp
                     }
                 } while (sync > 0);
 
-                sKVT.gc(); // Call garbage collection
+                // Synchronize UI -> DSP transfer
+                sKVT.commit_all(KVT_RX);    // Just clear all RX queue
+
+                // Call garbage collection and release KVT storage
+                sKVT.gc();
                 sKVTMutex.unlock();
             }
         }

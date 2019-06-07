@@ -31,9 +31,14 @@ namespace lsp
 
     enum kvt_flags_t
     {
-        KVT_COMMIT          = 1 << 0,       // Cleanup modification flag
-        KVT_KEEP            = 1 << 1,       // Keep the previous value of parameter if it existed
-        KVT_DELEGATE        = 1 << 2        // Delegate the control over parameter's data to the storage
+        KVT_RX              = 1 << 0,       // Transfer from UI to DSP
+        KVT_TX              = 1 << 1,       // Transfer from DSP to UI
+        KVT_KEEP            = 1 << 2,       // Keep the previous value of parameter if it exists
+        KVT_DELEGATE        = 1 << 3,       // Delegate the control over parameter's data to the storage
+
+        // Special constants to not to be confused with KVT_RX and KVT_TX abbreviations
+        KVT_TO_UI           = KVT_TX,
+        KVT_TO_DSP          = KVT_RX
     };
 
     typedef struct kvt_blob_t
@@ -85,8 +90,9 @@ namespace lsp
              * @param storage KVT storage that triggered the event
              * @param id the full unique identifier of parameter
              * @param param parameter
+             * @param pending pending flags (KVT_TX or KVT_RX)
              */
-            virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param);
+            virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending);
 
             /**
              * Triggers event when parameter has been rejected (the put() method
@@ -95,8 +101,9 @@ namespace lsp
              * @param id the full unique identifier of parameter
              * @param rej the rejected parameter
              * @param curr current value parameter
+             * @param pending pending flags (KVT_TX or KVT_RX)
              */
-            virtual void rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr);
+            virtual void rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr, size_t pending);
 
             /**
              * Triggers event when parameter has been changed
@@ -104,32 +111,36 @@ namespace lsp
              * @param id the full unique identifier of parameter
              * @param oval old value of parameter
              * @param nval new value of parameter
+             * @param pending pending flags (KVT_TX or KVT_RX)
              */
-            virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval);
+            virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t pending);
 
             /**
              * Triggers event when parameter has been removed
              * @param storage KVT storage that triggered the event
              * @param id the full unique identifier of parameter
              * @param param the value of removed parameter
+             * @param pending pending flags (KVT_TX or KVT_RX)
              */
-            virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param);
+            virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending);
 
             /**
              * The parameter has been accessed for reading
              * @param storage KVT storage that triggered the event
              * @param id parameter identifier
              * @param param parameter
+             * @param pending pending flags (KVT_TX or KVT_RX)
              */
-            virtual void access(KVTStorage *storage, const char *id, const kvt_param_t *param);
+            virtual void access(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending);
 
             /**
              * The parameter has been committed (it's modification flag has been reset)
              * @param storage KVT storage that triggered the event
              * @param id parameter identifier
+             * @param pending pending flags (KVT_TX or KVT_RX)
              * @param param parameter parameter value
              */
-            virtual void commit(KVTStorage *storage, const char *id, const kvt_param_t *param);
+            virtual void commit(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending);
 
             /**
              * The parameter has been accessed for reading/removal
@@ -155,7 +166,8 @@ namespace lsp
             enum iterator_mode_t
             {
                 IT_INVALID,
-                IT_MODIFIED,
+                IT_TX_PENDING,
+                IT_RX_PENDING,
                 IT_BRANCH,
                 IT_RECURSIVE,
                 IT_EOF
@@ -182,9 +194,10 @@ namespace lsp
                 ssize_t             refs;           // Number of references
                 kvt_gcparam_t      *param;          // Currently used parameter
 
-                bool                modified;       // Modified flag
+                size_t              pending;         // Transmission flags
                 kvt_link_t          gc;             // Link to the removed list
-                kvt_link_t          mod;            // Link to the modified list
+                kvt_link_t          rx;             // Link to the Rx modified list
+                kvt_link_t          tx;             // Link to the Tx modified list
 
                 kvt_node_t        **children;       // Children
                 size_t              nchildren;      // Number of children
@@ -195,7 +208,8 @@ namespace lsp
             cvector<KVTListener>    vListeners;
 
             kvt_link_t              sValid;
-            kvt_link_t              sDirty;
+            kvt_link_t              sTx;
+            kvt_link_t              sRx;
             kvt_link_t              sGarbage;
             char                    cSeparator;
             kvt_gcparam_t          *pTrash;
@@ -203,23 +217,23 @@ namespace lsp
             kvt_node_t              sRoot;
             size_t                  nValues;
             size_t                  nNodes;
-            size_t                  nModified;
+            size_t                  nTxPending;
+            size_t                  nRxPending;
 
         protected:
-            inline void             notify_created(const char *id, const kvt_param_t *param);
-            inline void             notify_rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr);
-            inline void             notify_changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval);
-            inline void             notify_removed(const char *id, const kvt_param_t *param);
-            inline void             notify_access(const char *id, const kvt_param_t *param);
-            inline void             notify_commit(const char *id, const kvt_param_t *param);
+            inline void             notify_created(const char *id, const kvt_param_t *param, size_t pending);
+            inline void             notify_rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr, size_t pending);
+            inline void             notify_changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t flags);
+            inline void             notify_removed(const char *id, const kvt_param_t *param, size_t pending);
+            inline void             notify_access(const char *id, const kvt_param_t *param, size_t pending);
+            inline void             notify_commit(const char *id, const kvt_param_t *param, size_t pending);
             inline void             notify_missed(const char *id);
 
         protected:
             inline static void      link_list(kvt_link_t *root, kvt_link_t *item);
             inline static void      unlink_list(kvt_link_t *item);
 
-            void                    mark_dirty(kvt_node_t *node);
-            void                    mark_clean(kvt_node_t *node);
+            size_t                  set_pending_state(kvt_node_t *node, size_t flags);
             kvt_node_t             *reference_up(kvt_node_t *node);
             kvt_node_t             *reference_down(kvt_node_t *node);
 
@@ -237,7 +251,8 @@ namespace lsp
             status_t                walk_node(kvt_node_t **out, const char *name);
 
             status_t                do_remove_node(const char *name, kvt_node_t *node, const kvt_param_t **value, kvt_param_type_t type);
-            status_t                do_touch(const char *name, kvt_node_t *node, bool modified);
+            status_t                do_touch(const char *name, kvt_node_t *node, size_t flags);
+            status_t                do_commit(const char *name, kvt_node_t *node, size_t flags);
             status_t                do_remove_branch(const char *name, kvt_node_t *node);
 
         public:
@@ -276,9 +291,10 @@ namespace lsp
             status_t    unbind_all();
 
         public:
-            inline  size_t nodes() const        { return nNodes;    }
-            inline  size_t values() const       { return nValues;   }
-            inline  size_t modified() const     { return nModified; }
+            inline  size_t nodes() const        { return nNodes;        }
+            inline  size_t values() const       { return nValues;       }
+            inline  size_t tx_pending() const   { return nTxPending;    }
+            inline  size_t rx_pending() const   { return nRxPending;    }
             size_t         listeners() const;
 
         public:
@@ -361,16 +377,16 @@ namespace lsp
             /**
              * Set the state of node
              * @param name node name
-             * @param modified modification flag
+             * @param modified modification flag (KVT_TX and KVT_RX)
              * @return status of operation
              *          STATUS_OK           if parameter has been removed
              *          STATUS_NOT_FOUND    if parameter has been not found
              */
-            status_t    touch(const char *name, bool modified = true);
-            status_t    commit(const char *name);
+            status_t    touch(const char *name, size_t flags);
+            status_t    commit(const char *name, size_t flags);
 
-            status_t    touch_all(bool modified = true);
-            status_t    commit_all();
+            status_t    touch_all(size_t flags);
+            status_t    commit_all(size_t flags);
 
             /**
              * Remove the full parameter branch from storage
@@ -390,7 +406,9 @@ namespace lsp
 
         public:
 
-            KVTIterator *enum_modified();
+            KVTIterator *enum_tx_pending();
+
+            KVTIterator *enum_rx_pending();
 
             KVTIterator *enum_branch(const char *name, bool recursive = false);
     };
@@ -434,7 +452,9 @@ namespace lsp
              */
             status_t    next();
             bool        valid() const;
-            bool        modified() const;
+            bool        tx_pending() const;
+            bool        rx_pending() const;
+            size_t      pending() const;
 
         public:
 
@@ -471,8 +491,8 @@ namespace lsp
             status_t    remove(const char **value);
             status_t    remove(const kvt_blob_t **value);
 
-            status_t    touch(bool modified = true);
-            status_t    commit();
+            status_t    touch(size_t flags);
+            status_t    commit(size_t flags);
 
             status_t    remove_branch();
 

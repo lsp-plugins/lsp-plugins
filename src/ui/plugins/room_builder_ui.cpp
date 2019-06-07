@@ -78,7 +78,7 @@ namespace lsp
             param.f32   = value;
 
             // Write in silent mode
-            if (kvt->put(name, &param, KVT_COMMIT) == STATUS_OK)
+            if (kvt->put(name, &param, KVT_TO_DSP) == STATUS_OK)
             {
                 fValue = value;
                 pUI->kvt_write(kvt, name, &param);

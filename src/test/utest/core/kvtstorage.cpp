@@ -286,7 +286,7 @@ UTEST_BEGIN("core", kvtstorage)
         // List modified entries
         l.clear();
         l.verbose(false);
-        KVTIterator *it = s.enum_modified();
+        KVTIterator *it = s.enum_tx_pending();
         UTEST_ASSERT(it != NULL);
         printf("Dumping the state of the modified parameters of the KVTTree\n");
 
@@ -495,7 +495,7 @@ UTEST_BEGIN("core", kvtstorage)
         // List modified entries
         l.clear();
         l.verbose(false);
-        KVTIterator *it = s.enum_modified();
+        KVTIterator *it = s.enum_tx_pending();
         UTEST_ASSERT(it != NULL);
         printf("Computing number of modified items with iterator\n");
 

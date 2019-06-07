@@ -26,27 +26,27 @@ namespace lsp
     {
     }
 
-    void KVTListener::created(KVTStorage *storage, const char *id, const kvt_param_t *param)
+    void KVTListener::created(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
     {
     }
 
-    void KVTListener::rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
+    void KVTListener::rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr, size_t pending)
     {
     }
 
-    void KVTListener::changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
+    void KVTListener::changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t pending)
     {
     }
 
-    void KVTListener::removed(KVTStorage *storage, const char *id, const kvt_param_t *param)
+    void KVTListener::removed(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
     {
     }
 
-    void KVTListener::access(KVTStorage *storage, const char *id, const kvt_param_t *param)
+    void KVTListener::access(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
     {
     }
 
-    void KVTListener::commit(KVTStorage *storage, const char *id, const kvt_param_t *param)
+    void KVTListener::commit(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
     {
     }
 
@@ -61,9 +61,12 @@ namespace lsp
 
         sValid.next         = NULL;
         sValid.prev         = NULL;
-        sDirty.next         = NULL;
-        sDirty.prev         = NULL;
-        sDirty.node         = NULL;
+        sTx.next            = NULL;
+        sTx.prev            = NULL;
+        sTx.node            = NULL;
+        sRx.next            = NULL;
+        sRx.prev            = NULL;
+        sRx.node            = NULL;
         sGarbage.next       = NULL;
         sGarbage.prev       = NULL;
         sGarbage.node       = NULL;
@@ -71,7 +74,8 @@ namespace lsp
         pIterators          = NULL;
         nNodes              = 0;
         nValues             = 0;
-        nModified           = 0;
+        nTxPending          = 0;
+        nRxPending          = 0;
 
         init_node(&sRoot, NULL, 0);
         ++sRoot.refs;
@@ -127,9 +131,9 @@ namespace lsp
         sRoot.gc.next       = NULL;
         sRoot.gc.prev       = NULL;
         sRoot.gc.node       = NULL;
-        sRoot.mod.next      = NULL;
-        sRoot.mod.prev      = NULL;
-        sRoot.mod.node      = NULL;
+        sRoot.tx.next      = NULL;
+        sRoot.tx.prev      = NULL;
+        sRoot.tx.node      = NULL;
         if (sRoot.children != NULL)
         {
             ::free(sRoot.children);
@@ -141,9 +145,12 @@ namespace lsp
         sValid.next         = NULL;
         sValid.prev         = NULL;
         sValid.node         = NULL;
-        sDirty.next         = NULL;
-        sDirty.prev         = NULL;
-        sDirty.node         = NULL;
+        sTx.next            = NULL;
+        sTx.prev            = NULL;
+        sTx.node            = NULL;
+        sRx.next            = NULL;
+        sRx.prev            = NULL;
+        sRx.node            = NULL;
         sGarbage.next       = NULL;
         sGarbage.prev       = NULL;
         sGarbage.node       = NULL;
@@ -152,7 +159,8 @@ namespace lsp
 
         nNodes              = 0;
         nValues             = 0;
-        nModified           = 0;
+        nTxPending          = 0;
+        nRxPending          = 0;
     }
 
     status_t KVTStorage::clear()
@@ -167,13 +175,16 @@ namespace lsp
         node->parent        = NULL;
         node->refs          = 0;
         node->param         = NULL;
-        node->modified      = false;
+        node->pending       = 0;
         node->gc.next       = NULL;
         node->gc.prev       = NULL;
         node->gc.node       = node;
-        node->mod.next      = NULL;
-        node->mod.prev      = NULL;
-        node->mod.node      = node;
+        node->tx.next       = NULL;
+        node->tx.prev       = NULL;
+        node->tx.node       = node;
+        node->rx.next       = NULL;
+        node->rx.prev       = NULL;
+        node->rx.node       = node;
         node->children      = NULL;
         node->nchildren     = 0;
         node->capacity      = 0;
@@ -223,26 +234,45 @@ namespace lsp
         item->prev      = NULL;
     }
 
-    void KVTStorage::mark_dirty(kvt_node_t *node)
+    size_t KVTStorage::set_pending_state(kvt_node_t *node, size_t flags)
     {
-        if (node->modified)
-            return;
+        // TX state changed?
+        if ((node->pending ^ flags) & KVT_TX)
+        {
+            // Manage TX list
+            if (flags & KVT_TX) // 0 -> 1
+            {
+                link_list(&sTx, &node->tx);
+                node->pending  |= KVT_TX;
+                ++nTxPending;
+            }
+            else // 1 -> 0
+            {
+                unlink_list(&node->tx);
+                node->pending  &= ~KVT_TX;
+                --nTxPending;
+            }
+        }
 
-        // Link to dirty list
-        link_list(&sDirty, &node->mod);
-        node->modified      = true;
-        ++nModified;
-    }
+        // RX state changed?
+        if ((node->pending ^ flags) & KVT_RX)
+        {
+            // Manage TX list
+            if (flags & KVT_RX) // 0 -> 1
+            {
+                link_list(&sRx, &node->rx);
+                node->pending  |= KVT_RX;
+                ++nRxPending;
+            }
+            else // 1 -> 0
+            {
+                unlink_list(&node->rx);
+                node->pending  &= ~KVT_RX;
+                --nRxPending;
+            }
+        }
 
-    void KVTStorage::mark_clean(kvt_node_t *node)
-    {
-        if (!node->modified)
-            return;
-
-        // Unlink from dirty list
-        unlink_list(&node->mod);
-        node->modified      = false;
-        --nModified;
+        return node->pending;
     }
 
     KVTStorage::kvt_node_t *KVTStorage::reference_up(kvt_node_t *node)
@@ -280,63 +310,63 @@ namespace lsp
         return node;
     }
 
-    void KVTStorage::notify_created(const char *id, const kvt_param_t *param)
+    void KVTStorage::notify_created(const char *id, const kvt_param_t *param, size_t pending)
     {
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->created(this, id, param);
+                listener->created(this, id, param, pending);
         }
     }
 
-    void KVTStorage::notify_rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
+    void KVTStorage::notify_rejected(const char *id, const kvt_param_t *rej, const kvt_param_t *curr, size_t pending)
     {
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->rejected(this, id, rej, curr);
+                listener->rejected(this, id, rej, curr, pending);
         }
     }
 
-    void KVTStorage::notify_changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
+    void KVTStorage::notify_changed(const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t pending)
     {
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->changed(this, id, oval, nval);
+                listener->changed(this, id, oval, nval, pending);
         }
     }
 
-    void KVTStorage::notify_removed(const char *id, const kvt_param_t *param)
+    void KVTStorage::notify_removed(const char *id, const kvt_param_t *param, size_t pending)
     {
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->removed(this, id, param);
+                listener->removed(this, id, param, pending);
         }
     }
 
-    void KVTStorage::notify_access(const char *id, const kvt_param_t *param)
+    void KVTStorage::notify_access(const char *id, const kvt_param_t *param, size_t pending)
     {
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->access(this, id, param);
+                listener->access(this, id, param, pending);
         }
     }
 
-    void KVTStorage::notify_commit(const char *id, const kvt_param_t *param)
+    void KVTStorage::notify_commit(const char *id, const kvt_param_t *param, size_t pending)
     {
         for (size_t i=0, n=vListeners.size(); i<n; ++i)
         {
             KVTListener *listener = vListeners.at(i);
             if (listener != NULL)
-                listener->commit(this, id, param);
+                listener->commit(this, id, param, pending);
         }
     }
 
@@ -553,22 +583,13 @@ namespace lsp
             if (!(copy = copy_parameter(value, flags)))
                 return STATUS_NO_MEM;
 
-            if (flags & KVT_COMMIT)
-            {
-                mark_clean(node);
-                notify_commit(name, copy);
-            }
-            else
-            {
-                mark_dirty(node);
-                notify_created(name, copy);
-            }
-
             // Store pointer to the copy
+            size_t pending  = set_pending_state(node, node->pending | flags);
             reference_up(node);
             node->param     = copy;
             ++nValues;
 
+            notify_created(name, copy, pending);
             return STATUS_OK;
         }
 
@@ -576,7 +597,7 @@ namespace lsp
         // Do we need to keep old value?
         if (flags & KVT_KEEP)
         {
-            notify_rejected(name, value, curr);
+            notify_rejected(name, value, curr, node->pending);
             return STATUS_ALREADY_EXISTS;
         }
 
@@ -585,21 +606,12 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Add previous value to trash, replace with new parameter
+        size_t pending      = set_pending_state(node, node->pending | flags);
         curr->next          = pTrash;
         pTrash              = curr;
         node->param         = copy;
 
-        if (flags & KVT_COMMIT)
-        {
-            mark_clean(node);
-            notify_commit(name, copy);
-        }
-        else
-        {
-            mark_dirty(node);
-            notify_changed(name, curr, copy);
-        }
-
+        notify_changed(name, curr, copy, pending);
         return STATUS_OK;
     }
 
@@ -723,7 +735,7 @@ namespace lsp
         if (value != NULL)
         {
             *value  = param;
-            notify_access(name, param);
+            notify_access(name, param, node->pending);
         }
         return STATUS_OK;
     }
@@ -768,14 +780,15 @@ namespace lsp
             return STATUS_BAD_TYPE;
 
         // Add parameter to trash
-        mark_clean(node);
+        size_t pending      = node->pending;
+        set_pending_state(node, 0);
         reference_down(node);
         param->next         = pTrash;
         pTrash              = param;
         node->param         = NULL;
         --nValues;
 
-        notify_removed(name, param);
+        notify_removed(name, param, pending);
 
         // All seems to be OK
         if (value != NULL)
@@ -803,7 +816,7 @@ namespace lsp
         return do_remove_node(name, node, value, type);
     }
 
-    status_t KVTStorage::do_touch(const char *name, kvt_node_t *node, bool modified)
+    status_t KVTStorage::do_touch(const char *name, kvt_node_t *node, size_t flags)
     {
         // Parameter does exist?
         kvt_gcparam_t *param = node->param;
@@ -814,24 +827,45 @@ namespace lsp
         }
 
         // Add parameter to trash
-        if (modified)
-        {
-            mark_dirty(node);
-            notify_changed(name, param, param);
-        }
-        else
-        {
-            mark_clean(node);
-            notify_commit(name, param);
-        }
+        size_t op = node->pending;
+        size_t np = set_pending_state(node, op | flags);
+
+        if ((op ^ np) & KVT_TX) // TX flag has set?
+            notify_changed(name, param, param, KVT_TX);
+        if ((op ^ np) & KVT_RX) // RX flag has set?
+            notify_changed(name, param, param, KVT_RX);
 
         return STATUS_OK;
     }
 
-    status_t KVTStorage::touch(const char *name, bool modified)
+    status_t KVTStorage::do_commit(const char *name, kvt_node_t *node, size_t flags)
+    {
+        // Parameter does exist?
+        kvt_gcparam_t *param = node->param;
+        if (param == NULL)
+        {
+            notify_missed(name);
+            return STATUS_NOT_FOUND;
+        }
+
+        // Add parameter to trash
+        size_t op = node->pending;
+        size_t np = set_pending_state(node, op & (~flags));
+
+        if ((op ^ np) & KVT_TX) // TX flag has been reset?
+            notify_commit(name, param, KVT_TX);
+        if ((op ^ np) & KVT_RX) // RX flag has been reset?
+            notify_commit(name, param, KVT_RX);
+
+        return STATUS_OK;
+    }
+
+    status_t KVTStorage::touch(const char *name, size_t flags)
     {
         if (name == NULL)
             return STATUS_BAD_ARGUMENTS;
+        else if (flags == 0)
+            return STATUS_OK;
 
         // Find the leaf node
         kvt_node_t *node = NULL;
@@ -845,33 +879,105 @@ namespace lsp
         else if (node == &sRoot)
             return STATUS_INVALID_VALUE;
 
-        return do_touch(name, node, modified);
+        return do_touch(name, node, flags);
     }
 
-    status_t KVTStorage::commit(const char *name)
+    status_t KVTStorage::commit(const char *name, size_t flags)
     {
-        return touch(name, false);
+        if (name == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        else if (flags == 0)
+            return STATUS_OK;
+
+        // Find the leaf node
+        kvt_node_t *node = NULL;
+        status_t res = walk_node(&node, name);
+        if (res != STATUS_OK)
+        {
+            if (res == STATUS_NOT_FOUND)
+                notify_missed(name);
+            return res;
+        }
+        else if (node == &sRoot)
+            return STATUS_INVALID_VALUE;
+
+        return do_commit(name, node, flags);
     }
 
-    status_t KVTStorage::touch_all(bool modified)
+    status_t KVTStorage::touch_all(size_t flags)
     {
-        if (modified)
+        kvt_node_t *node;
+        char *str = NULL, *path;
+        size_t capacity = 0;
+
+        for (kvt_link_t *lnk = sValid.next; lnk != NULL; lnk = lnk->next)
         {
-            for (kvt_link_t *lnk = sValid.next; lnk != NULL; lnk = lnk->next)
-                mark_dirty(sDirty.next->node);
+            node        = lnk->node;
+
+            size_t op   = node->pending;
+            size_t np   = set_pending_state(node, op | flags);
+
+            // State has changed?
+            if (op != np)
+            {
+                // Build path to node
+                path = build_path(&str, &capacity, node);
+                if (path == NULL)
+                {
+                    if (str != NULL)
+                        ::free(str);
+                    return STATUS_NO_MEM;
+                }
+
+                // TX flag changed?
+                if ((op ^ np) & KVT_TX) // TX flag has been set?
+                    notify_changed(path, node->param, node->param, KVT_TX);
+                if ((op ^ np) & KVT_RX) // RX flag has been set?
+                    notify_changed(path, node->param, node->param, KVT_RX);
+            }
         }
-        else
-        {
-            while (sDirty.next != NULL)
-                mark_clean(sDirty.next->node);
-        }
+
+        if (str != NULL)
+            ::free(str);
+
         return STATUS_OK;
     }
 
-    status_t KVTStorage::commit_all()
+    status_t KVTStorage::commit_all(size_t flags)
     {
-        while (sDirty.next != NULL)
-            mark_clean(sDirty.next->node);
+        kvt_node_t *node;
+        char *str = NULL, *path;
+        size_t capacity = 0;
+
+        if (flags & KVT_TX)
+        {
+            while (sTx.next != NULL)
+            {
+                node        = sTx.next->node;
+                size_t op   = node->pending;
+                size_t np   = set_pending_state(node, op & (~KVT_TX));
+
+                if ((op ^ np) & KVT_TX) // TRX flag has been reset?
+                    notify_commit(path, node->param, KVT_TX);
+            }
+        }
+
+        if (flags & KVT_RX)
+        {
+            while (sRx.next != NULL)
+            {
+                node        = sRx.next->node;
+                size_t op   = node->pending;
+                size_t np   = set_pending_state(node, op & (~KVT_RX));
+
+                if ((op ^ np) & KVT_RX) // TRX flag has been reset?
+                    notify_commit(path, node->param, KVT_RX);
+            }
+        }
+
+        if (str != NULL)
+            ::free(str);
+
         return STATUS_OK;
     }
 
@@ -902,7 +1008,8 @@ namespace lsp
             if (param != NULL)
             {
                 // Add parameter to trash
-                mark_clean(node);
+                size_t pending      = node->pending;
+                set_pending_state(node, 0);
                 reference_down(node);
                 param->next         = pTrash;
                 pTrash              = param;
@@ -919,7 +1026,7 @@ namespace lsp
                 }
 
                 // Notify listeners
-                notify_removed(path, param);
+                notify_removed(path, param, pending);
             }
 
             // Generate tasks for recursive search
@@ -1332,7 +1439,7 @@ namespace lsp
             destroy_parameter(node->param);
             node->param     = NULL;
         }
-        node->modified  = false;
+        node->pending   = 0;
 
         if (node->children != NULL)
         {
@@ -1389,7 +1496,8 @@ namespace lsp
         while (sGarbage.next != NULL)
         {
             kvt_node_t *node = sGarbage.next->node;
-            unlink_list(&node->mod);
+            unlink_list(&node->tx);
+            unlink_list(&node->rx);
             unlink_list(&node->gc);
 
             destroy_node(node);
@@ -1398,10 +1506,16 @@ namespace lsp
         return STATUS_OK;
     }
 
-    KVTIterator *KVTStorage::enum_modified()
+    KVTIterator *KVTStorage::enum_tx_pending()
     {
-        kvt_link_t *lnk = sDirty.next;
-        return new KVTIterator(this, (lnk != NULL) ? lnk->node : NULL, IT_MODIFIED);
+        kvt_link_t *lnk = sTx.next;
+        return new KVTIterator(this, (lnk != NULL) ? lnk->node : NULL, IT_TX_PENDING);
+    }
+
+    KVTIterator *KVTStorage::enum_rx_pending()
+    {
+        kvt_link_t *lnk = sTx.next;
+        return new KVTIterator(this, (lnk != NULL) ? lnk->node : NULL, IT_RX_PENDING);
     }
 
     KVTIterator *KVTStorage::enum_branch(const char *name, bool recursive)
@@ -1427,11 +1541,15 @@ namespace lsp
         sFake.refs      = 0;
         sFake.children  = NULL;
         sFake.param     = NULL;
-        sFake.modified  = false;
+        sFake.pending   = 0;
         sFake.gc.next   = NULL;
         sFake.gc.prev   = NULL;
-        sFake.mod.next  = (node != NULL) ? &node->mod : NULL;
-        sFake.mod.prev  = NULL;
+        sFake.tx.next   = (node != NULL) ? &node->tx : NULL;
+        sFake.tx.prev   = NULL;
+        sFake.tx.node   = NULL;
+        sFake.rx.next   = (node != NULL) ? &node->rx : NULL;
+        sFake.rx.prev   = NULL;
+        sFake.rx.node   = NULL;
         sFake.children  = NULL;
         sFake.nchildren = 0;
         sFake.capacity  = 0;
@@ -1473,9 +1591,19 @@ namespace lsp
         return (pCurr != &sFake) && (pCurr != NULL) && (pCurr->refs > 0);
     }
 
-    bool KVTIterator::modified() const
+    bool KVTIterator::tx_pending() const
     {
-        return (valid()) && (pCurr->modified);
+        return (valid()) && (pCurr->pending & KVT_TX);
+    }
+
+    bool KVTIterator::rx_pending() const
+    {
+        return (valid()) && (pCurr->pending & KVT_RX);
+    }
+
+    size_t KVTIterator::pending() const
+    {
+        return (valid()) && (pCurr->pending & (KVT_RX | KVT_TX));
     }
 
     const char *KVTIterator::id() const
@@ -1501,18 +1629,34 @@ namespace lsp
 
         switch (enMode)
         {
-            case KVTStorage::IT_MODIFIED:
+            case KVTStorage::IT_TX_PENDING:
             {
                 KVTStorage::kvt_link_t *lnk;
 
                 pCurr       = pNext;
-                if ((pCurr == NULL) || (!pCurr->modified))
+                if ((pCurr == NULL) || (!(pCurr->pending & KVT_TX)))
                 {
                     enMode      = KVTStorage::IT_EOF;
                     return STATUS_NOT_FOUND;
                 }
 
-                lnk         = (pCurr != NULL) ? pCurr->mod.next : NULL;
+                lnk         = (pCurr != NULL) ? pCurr->tx.next : NULL;
+                pNext       = (lnk != NULL) ? lnk->node : NULL;
+                break;
+            }
+
+            case KVTStorage::IT_RX_PENDING:
+            {
+                KVTStorage::kvt_link_t *lnk;
+
+                pCurr       = pNext;
+                if ((pCurr == NULL) || (!(pCurr->pending & KVT_RX)))
+                {
+                    enMode      = KVTStorage::IT_EOF;
+                    return STATUS_NOT_FOUND;
+                }
+
+                lnk         = (pCurr != NULL) ? pCurr->rx.next : NULL;
                 pNext       = (lnk != NULL) ? lnk->node : NULL;
                 break;
             }
@@ -1620,7 +1764,7 @@ namespace lsp
         if (value != NULL)
         {
             *value  = param;
-            pStorage->notify_access(id, param);
+            pStorage->notify_access(id, param, pCurr->pending);
         }
         return STATUS_OK;
     }
@@ -1867,7 +2011,7 @@ namespace lsp
         return res;
     }
 
-    status_t KVTIterator::touch(bool modified)
+    status_t KVTIterator::touch(size_t flags)
     {
         if (!valid())
             return STATUS_BAD_STATE;
@@ -1876,10 +2020,10 @@ namespace lsp
         if (id == NULL)
             return STATUS_NO_MEM;
 
-        return pStorage->do_touch(id, pCurr, false);
+        return pStorage->do_touch(id, pCurr, flags);
     }
 
-    status_t KVTIterator::commit()
+    status_t KVTIterator::commit(size_t flags)
     {
         if (!valid())
             return STATUS_BAD_STATE;
@@ -1888,7 +2032,7 @@ namespace lsp
         if (id == NULL)
             return STATUS_NO_MEM;
 
-        return pStorage->do_touch(id, pCurr, false);
+        return pStorage->do_touch(id, pCurr, flags);
     }
 
     status_t KVTIterator::remove_branch()
