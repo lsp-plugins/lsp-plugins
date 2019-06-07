@@ -151,7 +151,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nDetached;
             }
 
-            virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param)
+            virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
             {
                 if (bVerbose)
                 {
@@ -161,7 +161,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nCreated;
             }
 
-            virtual void rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr)
+            virtual void rejected(KVTStorage *storage, const char *id, const kvt_param_t *rej, const kvt_param_t *curr, size_t pending)
             {
                 if (bVerbose)
                 {
@@ -172,7 +172,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nRejected;
             }
 
-            virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval)
+            virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t pending)
             {
                 if (bVerbose)
                 {
@@ -183,7 +183,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nChanged;
             }
 
-            virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param)
+            virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
             {
                 if (bVerbose)
                 {
@@ -193,7 +193,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nRemoved;
             }
 
-            virtual void access(KVTStorage *storage, const char *id, const kvt_param_t *param)
+            virtual void access(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
             {
                 if (bVerbose)
                 {
@@ -203,7 +203,7 @@ UTEST_BEGIN("core", kvtstorage)
                 ++nAccessed;
             }
 
-            virtual void commit(KVTStorage *storage, const char *id, const kvt_param_t *param)
+            virtual void commit(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
             {
                 if (bVerbose)
                 {
@@ -252,66 +252,100 @@ UTEST_BEGIN("core", kvtstorage)
     {
         // Create entries
         l.clear();
-        UTEST_ASSERT(s.put("/", "fake") == STATUS_INVALID_VALUE);
-        UTEST_ASSERT(s.put("/fake/", uint64_t(123123)) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(s.put("/", "fake", KVT_TX) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(s.put("/fake/", uint64_t(123123), KVT_TX) == STATUS_INVALID_VALUE);
 
-        UTEST_ASSERT(s.put("/value1", uint32_t(1)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/value3", uint64_t(3)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/value2", int32_t(2)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/some/test/value1", float(1.0f)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/some/test/value2", double(2.0f)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/some/test/value3", strdup("Delegated string"), KVT_DELEGATE) == STATUS_OK);
+        UTEST_ASSERT(s.put("/value1", uint32_t(1), KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/value3", uint64_t(3), KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/value2", int32_t(2), KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/some/test/value1", float(1.0f), KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/some/test/value2", double(2.0f), KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/some/test/value3", strdup("Delegated string"), KVT_TX | KVT_DELEGATE) == STATUS_OK);
 
-        UTEST_ASSERT(s.put("/param/i32", int32_t(0x10)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/u32", uint32_t(0x20)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/i64", int64_t(0x30)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/u64", uint64_t(0x40)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/f32", 440.0f) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/f64", double(48000.0)) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/str", ndstr) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/dstr", dstr, KVT_DELEGATE) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/blob", &ndblob) == STATUS_OK);
-        UTEST_ASSERT(s.put("/param/dblob", &dblob, KVT_DELEGATE) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/i32", int32_t(0x10), KVT_TX | KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/u32", uint32_t(0x20), KVT_TX | KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/i64", int64_t(0x30), KVT_TX | KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/u64", uint64_t(0x40), KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/f32", 440.0f, KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/f64", double(48000.0), KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/str", ndstr, KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/dstr", dstr, KVT_RX | KVT_DELEGATE) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/blob", &ndblob, KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/param/dblob", &dblob, KVT_RX | KVT_DELEGATE) == STATUS_OK);
 
-        UTEST_ASSERT(s.put("/some/value", float(M_PI), KVT_COMMIT) == STATUS_OK);
-        UTEST_ASSERT(s.put("/some/silent/value", "Math.PI", KVT_COMMIT) == STATUS_OK);
+        UTEST_ASSERT(s.put("/some/value", float(M_PI)) == STATUS_OK);
+        UTEST_ASSERT(s.put("/some/silent/value", "Math.PI") == STATUS_OK);
 
-        UTEST_ASSERT(l.check(F_All ^ (F_Created | F_Committed), 0));
-        UTEST_ASSERT(l.check(F_Created, 16));
-        UTEST_ASSERT(l.check(F_Committed, 2));
+        UTEST_ASSERT(l.check(F_All ^ F_Created, 0));
+        UTEST_ASSERT(l.check(F_Created, 18));
         UTEST_ASSERT(s.values() == 18);
-        UTEST_ASSERT(s.modified() == 16);
+        UTEST_ASSERT(s.tx_pending() == 9);
+        UTEST_ASSERT(s.rx_pending() == 10);
         UTEST_ASSERT(s.nodes() == 22);
 
-        // List modified entries
-        l.clear();
-        l.verbose(false);
-        KVTIterator *it = s.enum_tx_pending();
-        UTEST_ASSERT(it != NULL);
-        printf("Dumping the state of the modified parameters of the KVTTree\n");
-
-        status_t res;
-        size_t modified = 0;
-        while ((res = it->next()) == STATUS_OK)
+        // List modified TX entries
         {
-            const char *name = it->name();
-            const kvt_param_t *cp;
+            l.clear();
+            l.verbose(false);
+            KVTIterator *it = s.enum_tx_pending();
+            UTEST_ASSERT(it != NULL);
+            printf("Dumping the state of the TX parameters of the KVTTree\n");
 
-            if (it->exists())
+            status_t res;
+            size_t modified = 0;
+            while ((res = it->next()) == STATUS_OK)
             {
-                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
-                dump_parameter(name, cp);
-                if (it->modified())
-                    ++modified;
+                const char *name = it->name();
+                const kvt_param_t *cp;
+
+                if (it->exists())
+                {
+                    UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                    dump_parameter(name, cp);
+                    if (it->tx_pending())
+                        ++modified;
+                }
+                else
+                    printf("%s -> null\n", name);
             }
-            else
-                printf("%s -> null\n", name);
+
+            UTEST_ASSERT(res == STATUS_NOT_FOUND);
+            l.verbose(true);
+            UTEST_ASSERT(l.check(F_Accessed, 9));
+            UTEST_ASSERT(modified == 9);
         }
 
-        UTEST_ASSERT(res == STATUS_NOT_FOUND);
-        l.verbose(true);
-        UTEST_ASSERT(l.check(F_Accessed, 16));
-        UTEST_ASSERT(modified == 16);
+        // List modified RX entries
+        {
+            l.clear();
+            l.verbose(false);
+            KVTIterator *it = s.enum_rx_pending();
+            UTEST_ASSERT(it != NULL);
+            printf("Dumping the state of the RX parameters of the KVTTree\n");
+
+            status_t res;
+            size_t modified = 0;
+            while ((res = it->next()) == STATUS_OK)
+            {
+                const char *name = it->name();
+                const kvt_param_t *cp;
+
+                if (it->exists())
+                {
+                    UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                    dump_parameter(name, cp);
+                    if (it->rx_pending())
+                        ++modified;
+                }
+                else
+                    printf("%s -> null\n", name);
+            }
+
+            UTEST_ASSERT(res == STATUS_NOT_FOUND);
+            l.verbose(true);
+            UTEST_ASSERT(l.check(F_Accessed, 10));
+            UTEST_ASSERT(modified == 10);
+        }
     }
 
     void test_replace_entries(KVTStorage &s, TestListener &l)
@@ -326,7 +360,8 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_Changed, 2));
         UTEST_ASSERT(l.check(F_Rejected, 2));
         UTEST_ASSERT(s.values() == 18);
-        UTEST_ASSERT(s.modified() == 16);
+        UTEST_ASSERT(s.tx_pending() == 9);
+        UTEST_ASSERT(s.rx_pending() == 10);
         UTEST_ASSERT(s.nodes() == 22);
 
         // Print the particular content of the tree
@@ -347,7 +382,7 @@ UTEST_BEGIN("core", kvtstorage)
             {
                 UTEST_ASSERT(it->get(&cp) == STATUS_OK)
                 dump_parameter(name, cp);
-                if (it->modified())
+                if (it->pending())
                     ++modified;
 
                 if (!strcmp(it->id(), "f32"))
@@ -437,7 +472,8 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_Accessed, 12));
         UTEST_ASSERT(l.check(F_Missed, 1));
         UTEST_ASSERT(s.values() == 18);
-        UTEST_ASSERT(s.modified() == 16);
+        UTEST_ASSERT(s.tx_pending() == 9);
+        UTEST_ASSERT(s.rx_pending() == 10);
         UTEST_ASSERT(s.nodes() == 22);
 
         // Print the whole content of the tree
@@ -458,7 +494,7 @@ UTEST_BEGIN("core", kvtstorage)
             {
                 UTEST_ASSERT(it->get(&cp) == STATUS_OK)
                 dump_parameter(name, cp);
-                if (it->modified())
+                if (it->pending())
                     ++modified;
             }
             else
@@ -467,7 +503,9 @@ UTEST_BEGIN("core", kvtstorage)
 
         UTEST_ASSERT(res == STATUS_NOT_FOUND);
         l.verbose(true);
+        UTEST_ASSERT(l.check(F_All ^ (F_Accessed | F_Missed), 0));
         UTEST_ASSERT(l.check(F_Accessed, 18));
+        UTEST_ASSERT(l.check(F_Missed, 4));
         UTEST_ASSERT(modified == 16);
     }
 
@@ -476,34 +514,35 @@ UTEST_BEGIN("core", kvtstorage)
         // Commit
         l.clear();
 
-        UTEST_ASSERT(s.commit("/some/unexisting/value") == STATUS_NOT_FOUND);
-        UTEST_ASSERT(s.commit("/value2") == STATUS_OK);
-        UTEST_ASSERT(s.commit("/param/i32") == STATUS_OK);
-        UTEST_ASSERT(s.commit("/param/u32") == STATUS_OK);
-        UTEST_ASSERT(s.commit("/param/i64") == STATUS_OK);
-        UTEST_ASSERT(s.commit("/param/u64") == STATUS_OK);
-        UTEST_ASSERT(s.commit("/param/f32") == STATUS_OK);
-        UTEST_ASSERT(s.commit("/param/f64") == STATUS_OK);
+        UTEST_ASSERT(s.commit("/some/unexisting/value", KVT_RX | KVT_TX) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(s.commit("/value2", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit("/param/i32", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit("/param/u32", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit("/param/i64", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit("/param/u64", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit("/param/f32", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit("/param/f64", KVT_TX) == STATUS_OK);
 
         UTEST_ASSERT(l.check(F_All ^ (F_Committed | F_Missed), 0));
-        UTEST_ASSERT(l.check(F_Committed, 7));
+        UTEST_ASSERT(l.check(F_Committed, 9));
         UTEST_ASSERT(l.check(F_Missed, 1));
         UTEST_ASSERT(s.values() == 18);
-        UTEST_ASSERT(s.modified() == 9);
+        UTEST_ASSERT(s.tx_pending() == 5);
+        UTEST_ASSERT(s.rx_pending() == 5);
         UTEST_ASSERT(s.nodes() == 22);
 
-        // List modified entries
+        // List all entries
         l.clear();
         l.verbose(false);
-        KVTIterator *it = s.enum_tx_pending();
+        KVTIterator *it = s.enum_all();
         UTEST_ASSERT(it != NULL);
-        printf("Computing number of modified items with iterator\n");
+        printf("Computing number of modified items with full-list iterator\n");
 
         status_t res;
         size_t modified = 0;
         while ((res = it->next()) == STATUS_OK)
         {
-            if (it->modified())
+            if (it->pending())
             {
                 printf("Modified entry: %s\n", it->name());
                 ++modified;
@@ -512,7 +551,7 @@ UTEST_BEGIN("core", kvtstorage)
 
         UTEST_ASSERT(res == STATUS_NOT_FOUND);
         l.verbose(true);
-        UTEST_ASSERT(modified == 9);
+        UTEST_ASSERT(modified == 10);
     }
 
     void test_existense_entries(KVTStorage &s, TestListener &l)
@@ -528,7 +567,8 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_All ^ F_Missed, 0));
         UTEST_ASSERT(l.check(F_Missed, 1));
         UTEST_ASSERT(s.values() == 18);
-        UTEST_ASSERT(s.modified() == 9);
+        UTEST_ASSERT(s.tx_pending() == 5);
+        UTEST_ASSERT(s.rx_pending() == 5);
         UTEST_ASSERT(s.nodes() == 22);
     }
 
@@ -595,7 +635,8 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_Removed, 12));
         UTEST_ASSERT(l.check(F_Missed, 1));
         UTEST_ASSERT(s.values() == 6);
-        UTEST_ASSERT(s.modified() == 4);
+        UTEST_ASSERT(s.tx_pending() == 4);
+        UTEST_ASSERT(s.rx_pending() == 0);
     }
 
     void test_remove_branch(KVTStorage &s, TestListener &l)
@@ -606,24 +647,25 @@ UTEST_BEGIN("core", kvtstorage)
         s.clear();
         UTEST_ASSERT(l.check(F_All ^ F_Removed, 0));
         UTEST_ASSERT(l.check(F_Removed, 6));
-        UTEST_ASSERT(s.modified() == 0);
+        UTEST_ASSERT(s.tx_pending() == 0);
+        UTEST_ASSERT(s.rx_pending() == 0);
         UTEST_ASSERT(s.values() == 0);
         UTEST_ASSERT(s.nodes() == 0);
 
         // Prepare tree
         printf("Initializing new tree...\n");
         l.clear();
-        UTEST_ASSERT(s.put("/tree/a0", 1) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/b0", 2) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/c0", 3) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/x0", 4) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/y0", 5) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/z0", 6) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/a0", 1, KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/b0", 2, KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/c0", 3, KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/x0", 4, KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/y0", 5, KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/z0", 6, KVT_RX | KVT_TX) == STATUS_OK);
 
-        UTEST_ASSERT(s.put("/tree/t0", 7) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/t1", 7) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/t0/some/param1", 8) == STATUS_OK);
-        UTEST_ASSERT(s.put("/tree/t1/some/param1", 8) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0", 7, KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1", 7, KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t0/some/param1", 8, KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.put("/tree/t1/some/param1", 8, KVT_RX) == STATUS_OK);
         UTEST_ASSERT(s.put("/tree/t0/some/param2", 9) == STATUS_OK);
         UTEST_ASSERT(s.put("/tree/t1/some/param2", 9) == STATUS_OK);
         UTEST_ASSERT(s.put("/tree/t0/some/param3", 10) == STATUS_OK);
@@ -636,6 +678,8 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_All ^ F_Created, 0));
         UTEST_ASSERT(l.check(F_Created, 18));
         UTEST_ASSERT(s.values() == 18)
+        UTEST_ASSERT(s.tx_pending() == 6)
+        UTEST_ASSERT(s.rx_pending() == 6)
 
         // Remove entries
         l.clear();
@@ -644,6 +688,8 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_Removed, 6));
         UTEST_ASSERT(!s.exists("/tree/t0"));
         UTEST_ASSERT(s.values() == 12);
+        UTEST_ASSERT(s.tx_pending() == 5)
+        UTEST_ASSERT(s.rx_pending() == 5)
 
         // Remove entries with iterator
         l.clear();
@@ -682,6 +728,18 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(l.check(F_Accessed, 7));
         UTEST_ASSERT(l.check(F_Removed, 6));
         UTEST_ASSERT(s.values() == 6);
+        UTEST_ASSERT(s.tx_pending() == 5);
+        UTEST_ASSERT(s.rx_pending() == 3);
+
+        // Commit changes
+        l.clear();
+        UTEST_ASSERT(s.commit_all(KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.commit_all(KVT_RX) == STATUS_OK);
+
+        UTEST_ASSERT(l.check(F_All ^ F_Committed, 0));
+        UTEST_ASSERT(l.check(F_Committed, 8));
+        UTEST_ASSERT(s.tx_pending() == 0);
+        UTEST_ASSERT(s.rx_pending() == 0);
     }
 
     void test_perform_gc(KVTStorage &s, TestListener &l)
@@ -711,12 +769,21 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(res == STATUS_NOT_FOUND);
         l.verbose(true);
 
+        // Perform a touch
+        l.clear();
+        UTEST_ASSERT(s.touch("/tree/a0", KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(s.touch("/tree/b0", KVT_RX) == STATUS_OK);
+        UTEST_ASSERT(s.touch("/tree/c0", KVT_RX | KVT_TX) == STATUS_OK);
+        UTEST_ASSERT(l.check(F_All ^ F_Changed, 0));
+        UTEST_ASSERT(l.check(F_Changed, 4));
+
         // Perform GC
         l.clear();
         UTEST_ASSERT(s.gc() == STATUS_OK);
         UTEST_ASSERT(l.check(F_All, 0));
         UTEST_ASSERT(s.values() == 6);
-        UTEST_ASSERT(s.modified() == 6);
+        UTEST_ASSERT(s.tx_pending() == 2);
+        UTEST_ASSERT(s.tx_pending() == 2);
     }
 
     void test_unbind(KVTStorage &s, TestListener &l)

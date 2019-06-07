@@ -168,6 +168,7 @@ namespace lsp
                 IT_INVALID,
                 IT_TX_PENDING,
                 IT_RX_PENDING,
+                IT_ALL,
                 IT_BRANCH,
                 IT_RECURSIVE,
                 IT_EOF
@@ -409,6 +410,8 @@ namespace lsp
             KVTIterator *enum_tx_pending();
 
             KVTIterator *enum_rx_pending();
+
+            KVTIterator *enum_all();
 
             KVTIterator *enum_branch(const char *name, bool recursive = false);
     };

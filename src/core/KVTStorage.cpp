@@ -958,7 +958,17 @@ namespace lsp
                 size_t np   = set_pending_state(node, op & (~KVT_TX));
 
                 if ((op ^ np) & KVT_TX) // TRX flag has been reset?
+                {
+                    // Build path to node
+                    path = build_path(&str, &capacity, node);
+                    if (path == NULL)
+                    {
+                        if (str != NULL)
+                            ::free(str);
+                        return STATUS_NO_MEM;
+                    }
                     notify_commit(path, node->param, KVT_TX);
+                }
             }
         }
 
@@ -971,7 +981,18 @@ namespace lsp
                 size_t np   = set_pending_state(node, op & (~KVT_RX));
 
                 if ((op ^ np) & KVT_RX) // TRX flag has been reset?
+                {
+                    // Build path to node
+                    path = build_path(&str, &capacity, node);
+                    if (path == NULL)
+                    {
+                        if (str != NULL)
+                            ::free(str);
+                        return STATUS_NO_MEM;
+                    }
+
                     notify_commit(path, node->param, KVT_RX);
+                }
             }
         }
 
@@ -1514,8 +1535,14 @@ namespace lsp
 
     KVTIterator *KVTStorage::enum_rx_pending()
     {
-        kvt_link_t *lnk = sTx.next;
+        kvt_link_t *lnk = sRx.next;
         return new KVTIterator(this, (lnk != NULL) ? lnk->node : NULL, IT_RX_PENDING);
+    }
+
+    KVTIterator *KVTStorage::enum_all()
+    {
+        kvt_link_t *lnk = sValid.next;
+        return new KVTIterator(this, (lnk != NULL) ? lnk->node : NULL, IT_ALL);
     }
 
     KVTIterator *KVTStorage::enum_branch(const char *name, bool recursive)
@@ -1542,8 +1569,9 @@ namespace lsp
         sFake.children  = NULL;
         sFake.param     = NULL;
         sFake.pending   = 0;
-        sFake.gc.next   = NULL;
+        sFake.gc.next   = (node != NULL) ? &node->gc : NULL;
         sFake.gc.prev   = NULL;
+        sFake.gc.node   = NULL;
         sFake.tx.next   = (node != NULL) ? &node->tx : NULL;
         sFake.tx.prev   = NULL;
         sFake.tx.node   = NULL;
@@ -1657,6 +1685,22 @@ namespace lsp
                 }
 
                 lnk         = (pCurr != NULL) ? pCurr->rx.next : NULL;
+                pNext       = (lnk != NULL) ? lnk->node : NULL;
+                break;
+            }
+
+            case KVTStorage::IT_ALL:
+            {
+                KVTStorage::kvt_link_t *lnk;
+
+                pCurr       = pNext;
+                if ((pCurr == NULL) || (pCurr->refs <= 0))
+                {
+                    enMode      = KVTStorage::IT_EOF;
+                    return STATUS_NOT_FOUND;
+                }
+
+                lnk         = (pCurr != NULL) ? pCurr->gc.next : NULL;
                 pNext       = (lnk != NULL) ? lnk->node : NULL;
                 break;
             }
