@@ -125,24 +125,29 @@ and critical fixes for the previous release.
 IMPORTANT FOR VST INSTALLATIONS: If you deploy plugins as a subdirectory
 of your VST directory, the subdirectory should contain substring
 'lsp-plugins'. Otherwise plugins won't find the VST core library.
+Please notice that '~' means user's home directory.
 
 The usual directories for LADSPA are:
   * /usr/lib/ladspa
   * /usr/local/lib/ladspa
   * /usr/lib64/ladspa
   * /usr/local/lib64/ladspa
-
+  * ~/.ladspa
+  
 The usual directories for LV2 are:
   * /usr/lib/lv2
   * /usr/local/lib/lv2
   * /usr/lib64/lv2
   * /usr/local/lib64/lv2
+  * ~/.lv2
 
 The usual directories for LinuxVST are:
   * /usr/lib/vst
   * /usr/local/lib/vst
   * /usr/lib64/vst
   * /usr/local/lib64/vst
+  * ~/.lxvst
+  * ~/.vst
 
 The usual directories for JACK core library are:
   * /usr/lib
