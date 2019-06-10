@@ -149,6 +149,10 @@ namespace lsp
                 return result;
             }
 
+            /**
+             * Lock KVT storage
+             * @return pointer to locked storage or NULL
+             */
             virtual KVTStorage *kvt_lock();
 
             /**

@@ -285,7 +285,6 @@ namespace lsp
                             bSyncAgain    = true;
                             lsp_trace("Received OSC message of %d bytes", int(sPacket.size));
                             osc::dump_packet(&sPacket);
-
                             return true;
                         }
 

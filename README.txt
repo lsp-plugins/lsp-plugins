@@ -237,7 +237,8 @@ To build binaries for testing (developers only), use the following commands:
   make test
   
 To build both release binaries and binaries for testing, use the following commands:
-  make clean all test
+  make clean
+  make all test
 
 After issuing this command, the system will build release binaries into '.build'
 subdirectory and test binaries into '.test' subdirectory

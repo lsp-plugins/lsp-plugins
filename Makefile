@@ -163,15 +163,18 @@ compile test_compile:
 	@echo "  build directory     : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
-	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)
-	@test -f $(OBJDIR)/$(MODULES_FILE) || echo -n "$(BUILD_MODULES)" > $(OBJDIR)/$(MODULES_FILE)
-	@test -f $(OBJDIR)/$(BUILD_PROFILE) || echo -n "$(BUILD_PROFILE)" > $(OBJDIR)/$(BUILD_PROFILE_FILE)
+	@mkdir -p $(CFGDIR)
+	@test -f "$(CFGDIR)/$(PREFIX_FILE)" || echo -n "$(PREFIX)" > "$(CFGDIR)/$(PREFIX_FILE)"
+	@test -f "$(CFGDIR)/$(MODULES_FILE)" || echo -n "$(BUILD_MODULES)" > "$(CFGDIR)/$(MODULES_FILE)"
+	@test -f "$(CFGDIR)/$(BUILD_PROFILE)" || echo -n "$(BUILD_PROFILE)" > "$(CFGDIR)/$(BUILD_PROFILE_FILE)"
+	@test -f "$(CFGDIR)/$(R3D_BACKENDS_FILE)" || echo -n "$(BUILD_R3D_BACKENDS)" > "$(CFGDIR)/$(R3D_BACKENDS_FILE)"
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 
 clean:
 	@-rm -rf $(BUILDDIR)
 	@-rm -rf $(TESTDIR)
+	@-rm -rf $(CFGDIR)
 	@echo "Clean OK"
 
 # Build targets
@@ -204,21 +207,21 @@ install_lv2: all
 	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
 	@mkdir -p $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@$(INSTALL) $(LIB_LV2) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@$(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
 	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	
 install_vst: all
 	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/$(VST_ID)"
 	@mkdir -p $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	@$(INSTALL) $(LIB_VST) $(DESTDIR)$(VST_PATH)/$(VST_ID)/
-	@$(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 
 install_jack: all
 	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
 	@mkdir -p $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
-	@$(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
 	@mkdir -p $(DESTDIR)$(BIN_PATH)
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
@@ -256,7 +259,7 @@ release_lv2: release_prepare
 	@mkdir -p $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	@mkdir -p $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
 	@$(INSTALL) $(LIB_LV2) $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
-	@$(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
 	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
 	@$(UTL_GENTTL) $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
@@ -267,7 +270,7 @@ release_vst: release_prepare
 	@mkdir -p $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	@$(INSTALL) $(LIB_VST) $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
 	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
-	@$(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
 	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	@rm -rf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
@@ -278,7 +281,7 @@ release_jack: release_prepare
 	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)
 	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin
 	@$(INSTALL) $(LIB_JACK) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)/
-	@$(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)/
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)/
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin INSTALL="$(INSTALL)"
 	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
@@ -336,7 +339,7 @@ uninstall_jack:
 	@echo "Uninstalling JACK"
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
-	@-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_I
+	@-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
 	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_doc:

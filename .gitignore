@@ -2,6 +2,7 @@
 /.settings/*
 /design/*
 /res/specs/*
+/.builconfig/*
 /.build/*
 /.test/*
 /.release/*

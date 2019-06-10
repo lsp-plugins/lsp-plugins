@@ -41,6 +41,9 @@ namespace lsp
 
             position_t                  sPosition;
 
+            KVTStorage                  sKVT;
+            ipc::Mutex                  sKVTMutex;
+
         private:
             void transfer_dsp_to_ui();
 
@@ -144,6 +147,24 @@ namespace lsp
             void init_state_chunk();
             size_t serialize_state(const void **dst);
             void deserialize_state(const void *data);
+
+            /**
+             * Lock KVT storage
+             * @return pointer to locked storage or NULL
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock KVT storage and return pointer to the storage on success
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             * @return true on success
+             */
+            virtual bool kvt_release();
     };
 }
 
@@ -737,9 +758,68 @@ namespace lsp
         {
             // Get UI port
             VSTUIPort *vup          = vUIPorts[i];
-            if ((vup != NULL) && (vup->sync()))
-                vup->notify_all();
+            do {
+                if (vup->sync())
+                    vup->notify_all();
+            } while (vup->sync_again());
         } // for port_id
+
+        // Perform KVT synchronization
+        if (sKVTMutex.try_lock())
+        {
+            // Synchronize DSP -> UI transfer
+            size_t sync;
+            const char *kvt_name;
+            const kvt_param_t *kvt_value;
+
+            do
+            {
+                sync = 0;
+
+                KVTIterator *it = sKVT.enum_tx_pending();
+                while (it->next() == STATUS_OK)
+                {
+                    kvt_name = it->name();
+                    if (kvt_name == NULL)
+                        break;
+                    status_t res = it->get(&kvt_value);
+                    if (res != STATUS_OK)
+                        break;
+                    if ((res = it->commit(KVT_TX)) != STATUS_OK)
+                        break;
+
+                    kvt_dump_parameter("TX kvt param (DSP->UI): %s = ", kvt_value, kvt_name);
+                    pUI->kvt_write(&sKVT, kvt_name, kvt_value);
+                    ++sync;
+                }
+            } while (sync > 0);
+
+            // Synchronize UI -> DSP transfer
+            #ifdef LSP_DEBUG
+            {
+                KVTIterator *it = sKVT.enum_rx_pending();
+                while (it->next() == STATUS_OK)
+                {
+                    kvt_name = it->name();
+                    if (kvt_name == NULL)
+                        break;
+                    status_t res = it->get(&kvt_value);
+                    if (res != STATUS_OK)
+                        break;
+                    if ((res = it->commit(KVT_RX)) != STATUS_OK)
+                        break;
+
+                    kvt_dump_parameter("RX kvt param (UI->DSP): %s = ", kvt_value, kvt_name);
+                }
+            }
+            #else
+                sKVT.commit_all(KVT_RX);    // Just clear all RX queue for non-debug version
+            #endif
+
+            // Call garbage collection and release KVT storage
+            sKVT.gc();
+            sKVTMutex.unlock();
+        }
     }
 
     void VSTWrapper::init_state_chunk()
@@ -1001,6 +1081,21 @@ namespace lsp
     ICanvas *VSTWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
     {
         return NULL;
+    }
+
+    KVTStorage *VSTWrapper::kvt_lock()
+    {
+        return (sKVTMutex.lock()) ? &sKVT : NULL;
+    }
+
+    KVTStorage *VSTWrapper::kvt_trylock()
+    {
+        return (sKVTMutex.try_lock()) ? &sKVT : NULL;
+    }
+
+    bool VSTWrapper::kvt_release()
+    {
+        return sKVTMutex.unlock();
     }
 }
 

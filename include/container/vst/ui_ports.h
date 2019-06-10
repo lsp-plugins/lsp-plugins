@@ -30,6 +30,8 @@ namespace lsp
         public:
             virtual bool sync()         { return false; };
 
+            virtual bool sync_again()   { return false; };
+
             virtual void resync()       { };
     };
 
@@ -274,6 +276,102 @@ namespace lsp
             }
     };
 
+    class VSTUIOscPortIn: public VSTUIPort
+    {
+        private:
+            osc::packet_t   sPacket;
+            size_t          nCapacity;
+            bool            bSyncAgain;
+
+        public:
+            VSTUIOscPortIn(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
+            {
+                bSyncAgain      = false;
+                nCapacity       = 0x100;
+                sPacket.data    = reinterpret_cast<uint8_t *>(::malloc(nCapacity));
+                sPacket.size    = 0;
+            }
+
+            virtual ~VSTUIOscPortIn()
+            {
+                if (sPacket.data != NULL)
+                {
+                    ::free(sPacket.data);
+                    sPacket.data    = NULL;
+                }
+            }
+
+        public:
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                bSyncAgain          = false;
+                osc_buffer_t *fb    = pPort->getBuffer<osc_buffer_t>();
+
+                while (true)
+                {
+                    // Try to fetch record from buffer
+                    status_t res = fb->fetch(&sPacket, nCapacity);
+
+                    switch (res)
+                    {
+                        case STATUS_OK:
+                        {
+                            bSyncAgain    = true;
+                            lsp_trace("Received OSC message of %d bytes", int(sPacket.size));
+                            osc::dump_packet(&sPacket);
+                            return true;
+                        }
+
+                        case STATUS_NO_DATA:
+                            return false;
+
+                        case STATUS_OVERFLOW:
+                        {
+                            // Reallocate memory
+                            uint8_t *newptr    = reinterpret_cast<uint8_t *>(::realloc(sPacket.data, nCapacity << 1));
+                            if (newptr == NULL)
+                                fb->skip();
+                            else
+                                sPacket.data    = newptr;
+                            break;
+                        }
+
+                        default:
+                            return false;
+                    }
+                }
+            }
+
+            virtual bool sync_again() { return bSyncAgain; }
+
+            virtual void *get_buffer()
+            {
+                return &sPacket;
+            }
+    };
+
+    class VSTUIOscPortOut: public VSTUIPort
+    {
+        public:
+            VSTUIOscPortOut(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
+            {
+            }
+
+            virtual ~VSTUIOscPortOut()
+            {
+            }
+
+        public:
+            virtual void *get_buffer() { return NULL; }
+
+            virtual void write(const void *buffer, size_t size)
+            {
+                osc_buffer_t *fb = pPort->getBuffer<osc_buffer_t>();
+                if (fb != NULL)
+                    fb->submit(buffer, size);
+            }
+    };
 }
 
 #endif /* CONTAINER_VST_UI_PORTS_H_ */

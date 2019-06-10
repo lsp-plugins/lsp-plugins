@@ -8,7 +8,7 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 
 MODULES                 = 
 
-ifeq ($(findstring jack,$(BUILD_R3D_BACKENDS)),glx)
+ifeq ($(findstring glx,$(BUILD_R3D_BACKENDS)),glx)
   MODULES                += $(LIB_R3D_GLX)
 endif
 

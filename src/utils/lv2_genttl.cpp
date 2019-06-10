@@ -46,6 +46,8 @@ namespace lsp
         REQ_INSTANCE    = 1 << 8,
         REQ_TIME        = 1 << 9,
         REQ_IDISPLAY    = 1 << 10,
+        REQ_OSC_IN      = 1 << 11,
+        REQ_OSC_OUT     = 1 << 12,
 
         REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_WORKER | REQ_PATCH_WR,
         REQ_MIDI        = REQ_MIDI_IN | REQ_MIDI_OUT
@@ -223,6 +225,7 @@ namespace lsp
                 case R_PATH:
                 case R_PORT_SET:
                 case R_MIDI:
+                case R_OSC:
                     continue;
                 case R_AUDIO:
                     port_id++;
@@ -346,6 +349,12 @@ namespace lsp
                         result     |= REQ_MIDI_OUT;
                     else
                         result     |= REQ_MIDI_IN;
+                    break;
+                case R_OSC:
+                    if (IS_OUT_PORT(p))
+                        result     |= REQ_OSC_OUT;
+                    else
+                        result     |= REQ_OSC_IN;
                     break;
                 case R_PORT_SET:
                     if ((p->members != NULL) && (p->items != NULL))
@@ -625,6 +634,7 @@ namespace lsp
                 case R_PATH:
                 case R_PORT_SET:
                 case R_MIDI:
+                case R_OSC:
                     continue;
                 default:
                     break;
