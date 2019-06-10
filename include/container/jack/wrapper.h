@@ -707,11 +707,12 @@ namespace lsp
             {
                 // Synchronize DSP -> UI transfer
                 size_t sync;
+                const char *kvt_name;
+                const kvt_param_t *kvt_value;
+
                 do
                 {
                     sync = 0;
-                    const kvt_param_t *kvt_value;
-                    const char *kvt_name;
 
                     KVTIterator *it = sKVT.enum_tx_pending();
                     while (it->next() == STATUS_OK)
@@ -725,13 +726,33 @@ namespace lsp
                         if ((res = it->commit(KVT_TX)) != STATUS_OK)
                             break;
 
+                        kvt_dump_parameter("TX kvt param (DSP->UI): %s = ", kvt_value, kvt_name);
                         pUI->kvt_write(&sKVT, kvt_name, kvt_value);
                         ++sync;
                     }
                 } while (sync > 0);
 
                 // Synchronize UI -> DSP transfer
-                sKVT.commit_all(KVT_RX);    // Just clear all RX queue
+                #ifdef LSP_DEBUG
+                {
+                    KVTIterator *it = sKVT.enum_rx_pending();
+                    while (it->next() == STATUS_OK)
+                    {
+                        kvt_name = it->name();
+                        if (kvt_name == NULL)
+                            break;
+                        status_t res = it->get(&kvt_value);
+                        if (res != STATUS_OK)
+                            break;
+                        if ((res = it->commit(KVT_RX)) != STATUS_OK)
+                            break;
+
+                        kvt_dump_parameter("RX kvt param (UI->DSP): %s = ", kvt_value, kvt_name);
+                    }
+                }
+                #else
+                    sKVT.commit_all(KVT_RX);    // Just clear all RX queue for non-debug version
+                #endif
 
                 // Call garbage collection and release KVT storage
                 sKVT.gc();

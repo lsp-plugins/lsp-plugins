@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <core/status.h>
+#include <core/debug.h>
 #include <data/cvector.h>
 #include <data/cstorage.h>
 
@@ -503,6 +504,11 @@ namespace lsp
             const char *id() const;
     };
 
+#ifdef LSP_DEBUG
+    void            kvt_dump_parameter(const char *fmt, const kvt_param_t *param...);
+#else
+    inline void     kvt_dump_parameter(const char *fmt, const kvt_param_t *param...) {}
+#endif
 
 } /* namespace lsp */
 

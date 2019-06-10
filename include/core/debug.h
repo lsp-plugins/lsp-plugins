@@ -10,6 +10,7 @@
 
 // Include <stdio.h> to perform debugging output
 #include <stdio.h>
+#include <stdarg.h>
 
 #ifdef LSP_LOG_FD
     #undef LSP_LOG_FD
@@ -35,12 +36,14 @@
 
 // Check debug level
 #ifdef LSP_DEBUG
-    #define lsp_nprintf(msg, ...)   fprintf(LSP_LOG_FD, msg, ## __VA_ARGS__)
-    #define lsp_printf(msg, ...)    { fprintf(LSP_LOG_FD, msg "\n", ## __VA_ARGS__); fflush(LSP_LOG_FD); }
-    #define lsp_debug(msg, ...)     { fprintf(LSP_LOG_FD, "[DBG][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__); fflush(LSP_LOG_FD); }
-    #define lsp_dumpf(s, fmt, p, n) ::lsp::__lsp_dumpf(s, fmt, p, n)
+    #define lsp_nprintf(msg, ...)       fprintf(LSP_LOG_FD, msg, ## __VA_ARGS__)
+    #define lsp_nvprintf(msg, va_args)  vfprintf(LSP_LOG_FD, msg, va_args)
+    #define lsp_printf(msg, ...)        { fprintf(LSP_LOG_FD, msg "\n", ## __VA_ARGS__); fflush(LSP_LOG_FD); }
+    #define lsp_debug(msg, ...)         { fprintf(LSP_LOG_FD, "[DBG][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__); fflush(LSP_LOG_FD); }
+    #define lsp_dumpf(s, fmt, p, n)     ::lsp::__lsp_dumpf(s, fmt, p, n)
 #else
     #define lsp_nprintf(msg, ...)
+    #define lsp_nvprintf(msg, va_args)
     #define lsp_printf(msg, ...)
     #define lsp_debug(msg, ...)
     #define lsp_dumpf(s, fmt, p, n)

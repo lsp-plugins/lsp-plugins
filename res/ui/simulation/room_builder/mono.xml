@@ -259,9 +259,9 @@
 					
 					<hsep />
 					<grid rows="3" cols="3">
-						<label text="X Axis" />
-						<label text="Y Axis" />
-						<label text="Z Axis" />
+						<label text="X Move" />
+						<label text="Y Move" />
+						<label text="Z Move" />
 						
 						<knob id="kvt:xpos" size="16" scale_hue_id="kvt:hue" />
 						<knob id="kvt:ypos" size="16" scale_hue_id="kvt:hue" />
@@ -289,9 +289,9 @@
 					
 					<hsep />
 					<grid rows="3" cols="3">
-						<label text="Scale X" />
-						<label text="Scale Y" />
-						<label text="Scale Z" />
+						<label text="X Scale" />
+						<label text="Y Scale" />
+						<label text="Z Scale" />
 						
 						<knob id="kvt:xscale" size="16" scale_hue_id="kvt:hue" />
 						<knob id="kvt:yscale" size="16" scale_hue_id="kvt:hue" />

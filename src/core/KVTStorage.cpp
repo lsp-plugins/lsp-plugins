@@ -2076,7 +2076,7 @@ namespace lsp
         if (id == NULL)
             return STATUS_NO_MEM;
 
-        return pStorage->do_touch(id, pCurr, flags);
+        return pStorage->do_commit(id, pCurr, flags);
     }
 
     status_t KVTIterator::remove_branch()
@@ -2090,5 +2090,51 @@ namespace lsp
 
         return pStorage->do_remove_branch(id, pCurr);
     }
+
+#ifdef LSP_DEBUG
+    static void kvt_dump_parameterv(const char *fmt, const kvt_param_t *param, va_list args)
+    {
+        lsp_nvprintf(fmt, args);
+
+        switch (param->type)
+        {
+            case KVT_INT32:     lsp_nprintf("i32(0x%lx)\n", long(param->i32)); break;
+            case KVT_UINT32:    lsp_nprintf("u32(0x%lx)\n", (unsigned long)(param->u32)); break;
+            case KVT_INT64:     lsp_nprintf("i64(0x%llx)\n", (long long)(param->i64)); break;
+            case KVT_UINT64:    lsp_nprintf("i64(0x%llx)\n", (unsigned long long)(param->u64)); break;
+            case KVT_FLOAT32:   lsp_nprintf("f32(%f)\n", param->f32); break;
+            case KVT_FLOAT64:   lsp_nprintf("f64(%f)\n", param->f64); break;
+            case KVT_STRING:    lsp_nprintf("str(%s)\n", param->str); break;
+            case KVT_BLOB:
+                lsp_nprintf("blob(size=%d, type=(%s), data=(", int(param->blob.size), param->blob.ctype);
+                if (param->blob.data != NULL)
+                {
+                    const uint8_t *ptr = reinterpret_cast<const uint8_t *>(param->blob.data);
+                    for (size_t i=0; i<param->blob.size; ++i)
+                    {
+                        if (i)
+                            lsp_nprintf(" %02x", int(ptr[i]));
+                        else
+                            lsp_nprintf("%02x", int(ptr[i]));
+                    }
+                    lsp_nprintf(")\n");
+                }
+                else
+                    lsp_nprintf("nil))\n");
+                break;
+            default:
+                lsp_nprintf(" <unsupported parameter type %d>\n", int(param->type));
+                break;
+        }
+    }
+
+    void kvt_dump_parameter(const char *prefix, const kvt_param_t *param...)
+    {
+        va_list vlst;
+        va_start(vlst, param);
+        kvt_dump_parameterv(prefix, param, vlst);
+        va_end(vlst);
+    }
+#endif /* LSP_TRACE */
 
 } /* namespace lsp */
