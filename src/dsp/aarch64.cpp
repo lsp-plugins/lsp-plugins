@@ -71,11 +71,11 @@ namespace aarch64
         { 0xd07, "Cortex-A57" },
         { 0xd08, "Cortex-A72" },
         { 0xd09, "Cortex-A73" },
-        { 0xd0a, "Cortex‑A75" },
-        { 0xd13, "Cortex‑R52" },
+        { 0xd0a, "Cortex-A75" },
+        { 0xd13, "Cortex-R52" },
 
-        { 0xd20, "Cortex‑M23" },
-        { 0xd21, "Cortex‑M33" }
+        { 0xd20, "Cortex-M23" },
+        { 0xd21, "Cortex-M33" }
     };
 
     static const feature_t cpu_features[] =
@@ -114,8 +114,8 @@ IF_ARCH_AARCH64(
 
     const char *find_cpu_name(uint32_t id)
     {
-        ssize_t first = 0, last = sizeof(cpu_parts) / sizeof(cpu_part_t);
-        while (first < last)
+        ssize_t first = 0, last = (sizeof(cpu_parts) / sizeof(cpu_part_t)) - 1;
+        while (first <= last)
         {
             ssize_t mid     = (first + last) >> 1;
             uint32_t xmid   = cpu_parts[mid].id;
