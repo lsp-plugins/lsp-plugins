@@ -505,15 +505,15 @@ namespace neon_d32
             __ASM_EMIT("vrsqrts.f32     q11, q10, q3")
             __ASM_EMIT("vrsqrts.f32     q13, q12, q5")
             __ASM_EMIT("vrsqrts.f32     q15, q14, q7")
-            __ASM_EMIT("vmul.f32        q1, q1, q9")                // q1 = 1 / sqrt(R) = x2 = x1 * (3 - R * x1 * x1) / 2
+            __ASM_EMIT("vmul.f32        q1, q1, q9")                // q1 = 1 / sqrt(R) x2 = x1 * (3 - R * x1 * x1) / 2
             __ASM_EMIT("vmul.f32        q3, q3, q11")
             __ASM_EMIT("vmul.f32        q5, q5, q13")
             __ASM_EMIT("vmul.f32        q7, q7, q15")
 
-            __ASM_EMIT("vmul.f32        q0, q1")                    // q0 = R / sqrt(R) = sqrt(R)
-            __ASM_EMIT("vmul.f32        q1, q3")
-            __ASM_EMIT("vmul.f32        q2, q5")
-            __ASM_EMIT("vmul.f32        q3, q7")
+            __ASM_EMIT("vmul.f32        q0, q0, q1")                // q0 = R / sqrt(R) = sqrt(R)
+            __ASM_EMIT("vmul.f32        q1, q2, q3")
+            __ASM_EMIT("vmul.f32        q2, q4, q5")
+            __ASM_EMIT("vmul.f32        q3, q6, q7")
             __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
             __ASM_EMIT("subs            %[count], $16")
             __ASM_EMIT("vst1.32         {q2-q3}, [%[dst]]!")
@@ -543,11 +543,12 @@ namespace neon_d32
             __ASM_EMIT("vmul.f32        q10, q3, q2")
             __ASM_EMIT("vrsqrts.f32     q9, q8, q1")                // q9 = (3 - R * x1 * x1) / 2
             __ASM_EMIT("vrsqrts.f32     q11, q10, q3")
-            __ASM_EMIT("vmul.f32        q1, q1, q9")                // q0 = R / sqrt(R) = x2 = x1 * (3 - R * x1 * x1) / 2
+            __ASM_EMIT("vmul.f32        q1, q1, q9")                // q1 = 1 / sqrt(R) x2 = x1 * (3 - R * x1 * x1) / 2
             __ASM_EMIT("vmul.f32        q3, q3, q11")
+
             // 1 / (1/sqrt(R)) = sqrt(R) calculation
-            __ASM_EMIT("vmul.f32        q0, q1")                    // q0 = R / sqrt(R) = sqrt(R)
-            __ASM_EMIT("vmul.f32        q1, q3")
+            __ASM_EMIT("vmul.f32        q0, q0, q1")                // q0 = R / sqrt(R) = sqrt(R)
+            __ASM_EMIT("vmul.f32        q1, q2, q3")
             __ASM_EMIT("sub             %[count], $8")
             __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
 
