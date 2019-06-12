@@ -59,6 +59,7 @@ namespace arm
         { 0xc07, "Cortex-A7" },
         { 0xc08, "Cortex-A8" },
         { 0xc09, "Cortex-A9" },
+        { 0xc0d, "Cortex-A12" },
         { 0xc0e, "Cortex-A17" },
         { 0xc0f, "Cortex-A15" },
         { 0xc14, "Cortex-R4" },
