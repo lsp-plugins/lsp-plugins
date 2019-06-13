@@ -76,6 +76,16 @@ namespace lsp
         status_t forge_begin_message(forge_frame_t *child, forge_frame_t *ref, const char *address);
 
         /**
+         * Begin serialization of OSC message
+         * @param child pointer to output message frame descriptor
+         * @param ref current frame descriptor
+         * @param prefix prefix to add to address string
+         * @param address the OSC address string
+         * @return status of operation
+         */
+        status_t forge_begin_message(forge_frame_t *child, forge_frame_t *ref, const char *prefix, const char *address);
+
+        /**
          * Forge message
          * @param ref forge reference
          * @param address message address

@@ -19,7 +19,7 @@ namespace lsp
             const port_t       *pMetadata;
 
         public:
-            IPort(const port_t *meta);
+            explicit IPort(const port_t *meta);
             virtual ~IPort();
 
         public:

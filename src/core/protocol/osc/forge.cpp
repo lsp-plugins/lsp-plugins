@@ -246,6 +246,11 @@ namespace lsp
 
         status_t forge_begin_message(forge_frame_t *child, forge_frame_t *ref, const char *address)
         {
+            return forge_begin_message(child, ref, NULL, address);
+        }
+
+        status_t forge_begin_message(forge_frame_t *child, forge_frame_t *ref, const char *prefix, const char *address)
+        {
             if ((ref == NULL) || (address == NULL) || (!forge_check_child(child, ref)))
                 return STATUS_BAD_ARGUMENTS;
             if ((ref->child != NULL) || (ref->forge == NULL))
@@ -270,6 +275,14 @@ namespace lsp
             }
             else
                 return STATUS_BAD_STATE;
+
+            // Append message prefix
+            if (prefix != NULL)
+            {
+                res             = forge_append_bytes(buf, prefix, ::strlen(prefix));
+                if (res != STATUS_OK)
+                    return res;
+            }
 
             // Append message string
             res             = forge_append_padded(buf, address, ::strlen(address) + 1);

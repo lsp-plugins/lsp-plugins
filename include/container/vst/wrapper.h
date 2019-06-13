@@ -619,6 +619,13 @@ namespace lsp
         r.nWidth        = sr.nMinWidth;
         r.nHeight       = sr.nMinHeight;
         resize_ui(&r);
+
+        // Force all parameters to be re-shipped to the UI
+        if (sKVTMutex.lock())
+        {
+            sKVT.touch_all(KVT_TO_UI);
+            sKVTMutex.unlock();
+        }
 //
 //        wnd->set_width(sr.nMinWidth);
 //        wnd->set_height(sr.nMinHeight);

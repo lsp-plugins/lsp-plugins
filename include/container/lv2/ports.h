@@ -19,7 +19,7 @@ namespace lsp
             ssize_t                 nID;
 
         public:
-            LV2Port(const port_t *meta, LV2Extensions *ext): IPort(meta)
+            explicit LV2Port(const port_t *meta, LV2Extensions *ext): IPort(meta)
             {
                 pExt            =   ext;
                 urid            =   (meta != NULL) ? pExt->map_port(meta->id) : -1;
@@ -109,7 +109,7 @@ namespace lsp
             size_t                  nRows;
 
         public:
-            LV2PortGroup(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2PortGroup(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
             {
                 nCurrRow            = meta->start;
                 nCols               = port_list_size(meta->members);
@@ -186,7 +186,7 @@ namespace lsp
             void *pBuffer;
 
         public:
-            LV2RawPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext), pBuffer(NULL) { }
+            explicit LV2RawPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext), pBuffer(NULL) { }
             virtual ~LV2RawPort() { pBuffer = NULL; };
 
         public:
@@ -213,7 +213,7 @@ namespace lsp
             float           fPrev;
 
         public:
-            LV2InputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2InputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
             {
                 pData       = NULL;
                 fValue      = meta->start;
@@ -307,7 +307,7 @@ namespace lsp
             float   fValue;
 
         public:
-            LV2OutputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2OutputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
             {
                 pData       = NULL;
                 fPrev       = meta->start;
@@ -392,7 +392,7 @@ namespace lsp
             LV2Mesh                 sMesh;
 
         public:
-            LV2MeshPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2MeshPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
             {
                 sMesh.init(meta, ext);
             }
@@ -450,7 +450,7 @@ namespace lsp
             size_t              nRowID;
 
         public:
-            LV2FrameBufferPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2FrameBufferPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
             {
                 sFB.init(meta->start, meta->step);
                 nRowID = 0;
@@ -525,7 +525,7 @@ namespace lsp
             }
 
         public:
-            LV2PathPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2PathPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
             {
                 sPath.init();
             }
@@ -575,13 +575,13 @@ namespace lsp
             }
     };
 
-    class LV2MidiInputPort: public LV2RawPort
+    class LV2MidiPort: public LV2Port
     {
         private:
             midi_t      sQueue;
 
         public:
-            LV2MidiInputPort(const port_t *meta, LV2Extensions *ext): LV2RawPort(meta, ext)
+            explicit LV2MidiPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
             {
                 sQueue.clear();
             }
@@ -593,21 +593,40 @@ namespace lsp
             }
     };
 
-    class LV2MidiOutputPort: public LV2RawPort
+    class LV2OscPort: public LV2Port
     {
         private:
-            midi_t      sQueue;
+            osc_buffer_t     *pFB;
 
         public:
-            LV2MidiOutputPort(const port_t *meta, LV2Extensions *ext): LV2RawPort(meta, ext)
+            explicit LV2OscPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
             {
-                sQueue.clear();
+                pFB     = NULL;
+            }
+
+            virtual ~LV2OscPort()
+            {
             }
 
         public:
             virtual void *getBuffer()
             {
-                return &sQueue;
+                return pFB;
+            }
+
+            virtual int init()
+            {
+                pFB = osc_buffer_t::create(OSC_BUFFER_MAX);
+                return (pFB == NULL) ? STATUS_NO_MEM : STATUS_OK;
+            }
+
+            virtual void destroy()
+            {
+                if (pFB != NULL)
+                {
+                    osc_buffer_t::destroy(pFB);
+                    pFB     = NULL;
+                }
             }
     };
 

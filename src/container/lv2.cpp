@@ -5,6 +5,7 @@
 #include <core/types.h>
 #include <core/lib.h>
 #include <core/protocol/midi.h>
+#include <core/protocol/osc.h>
 #include <dsp/atomic.h>
 #include <plugins/plugins.h>
 

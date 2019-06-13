@@ -30,6 +30,8 @@ namespace lsp
             cvector<LV2Port>    vFrameBufferPorts;
             cvector<LV2Port>    vMidiInPorts;
             cvector<LV2Port>    vMidiOutPorts;
+            cvector<LV2Port>    vOscInPorts;
+            cvector<LV2Port>    vOscOutPorts;
             cvector<port_t>     vGenMetadata;   // Generated metadata
 
             plugin_t           *pPlugin;
@@ -47,8 +49,11 @@ namespace lsp
             bool                bQueueDraw;     // Queue draw request
             bool                bUpdateSettings;// Settings update
             float               fSampleRate;
+            uint8_t            *pOscPacket;     // OSC packet data
 
             position_t          sPosition;
+            KVTStorage          sKVT;
+            ipc::Mutex          sKVTMutex;
 
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
@@ -65,6 +70,8 @@ namespace lsp
             void parse_midi_event(const LV2_Atom_Event *ev);
             void parse_atom_object(const LV2_Atom_Event *ev);
             void serialize_midi_events(LV2Port *p);
+            void transmit_osc_events(LV2Port *p);
+            void transmit_kvt_events();
             void clear_midi_ports();
 
         public:
@@ -86,6 +93,7 @@ namespace lsp
                 bQueueDraw      = false;
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
+                pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
 
                 position_t::init(&sPosition);
             }
@@ -207,12 +215,13 @@ namespace lsp
                 break;
             case R_MIDI:
                 if (pExt->atom_supported())
-                {
-                    if (p->flags & F_OUT)
-                        result      = new LV2MidiOutputPort(p, pExt);
-                    else
-                        result      = new LV2MidiInputPort(p, pExt);
-                }
+                    result = new LV2MidiPort(p, pExt);
+                else
+                    result = new LV2Port(p, pExt);
+                break;
+            case R_OSC:
+                if (pExt->atom_supported())
+                    result = new LV2OscPort(p, pExt);
                 else
                     result = new LV2Port(p, pExt);
                 break;
@@ -303,12 +312,18 @@ namespace lsp
 
                 case R_MIDI:
                     pPlugin->add_port(p);
-                    if (port->flags & F_OUT)
+                    if (IS_OUT_PORT(port))
                         vMidiOutPorts.add(p);
                     else
                         vMidiInPorts.add(p);
                     break;
-
+                case R_OSC:
+                    pPlugin->add_port(p);
+                    if (IS_OUT_PORT(port))
+                        vOscOutPorts.add(p);
+                    else
+                        vOscInPorts.add(p);
+                    break;
                 case R_MESH:
                 case R_FBUFFER:
                 case R_PATH:
@@ -740,10 +755,66 @@ namespace lsp
                 int(buf.body[0]), int(buf.body[1]), int(buf.body[2]), int(buf.atom.size), int(buf.atom.size + sizeof(LV2_Atom)));
 
             // Serialize object
-            pExt->forge_frame_time(me->timestamp);
+            pExt->forge_frame_time(0);
             pExt->forge_raw(&buf.atom, sizeof(LV2_Atom) + buf.atom.size);
             pExt->forge_pad(sizeof(LV2_Atom) + buf.atom.size);
         }
+    }
+
+    void LV2Wrapper::transmit_osc_events(LV2Port *p)
+    {
+        osc_buffer_t *osc   = p->getBuffer<osc_buffer_t>();
+        if (osc == NULL)  // There are no events ?
+            return;
+
+        size_t size;
+        LV2_Atom atom;
+
+        while (true)
+        {
+            // Try to fetch record from buffer
+            status_t res = osc->fetch(pOscPacket, &size, OSC_PACKET_MAX);
+
+            switch (res)
+            {
+                case STATUS_OK:
+                {
+                    lsp_trace("Transmitting OSC packet of %d bytes", int(size));
+                    osc::dump_packet(pOscPacket, size);
+
+                    atom.size       = size;
+                    atom.type       = pExt->uridOscRawPacket;
+
+                    pExt->forge_frame_time(0);
+                    pExt->forge_raw(&atom, sizeof(LV2_Atom));
+                    pExt->forge_raw(pOscPacket, size);
+                    pExt->forge_pad(sizeof(LV2_Atom) + size);
+                    break;
+                }
+
+                case STATUS_NO_DATA: // No more data to transmit
+                    return;
+
+                case STATUS_OVERFLOW:
+                {
+                    lsp_warn("Too large OSC packet in the buffer, skipping");
+                    osc->skip();
+                    break;
+                }
+
+                default:
+                {
+                    lsp_warn("OSC packet parsing error %d, skipping", int(res));
+                    osc->skip();
+                    break;
+                }
+            }
+        }
+    }
+
+    void LV2Wrapper::transmit_kvt_events()
+    {
+
     }
 
     void LV2Wrapper::clear_midi_ports()
@@ -814,14 +885,25 @@ namespace lsp
         pExt->forge_sequence_head(&seq, 0);
 
         // For each MIDI port, serialize it's data
-        size_t n_midi       = vMidiOutPorts.size();
-        for (size_t i=0; i<n_midi; ++i)
+        for (size_t i=0, n_midi=vMidiOutPorts.size(); i<n_midi; ++i)
         {
             LV2Port *p      = vMidiOutPorts.at(i);
             if ((p == NULL) || (p->metadata()->role != R_MIDI))
                 continue;
             serialize_midi_events(p);
         }
+
+        // For each OSC port, serialize it's data
+        for (size_t i=0, n_osc=vOscOutPorts.size(); i<n_osc; ++i)
+        {
+            LV2Port *p      = vOscOutPorts.at(i);
+            if ((p == NULL) || (p->metadata()->role != R_OSC))
+                continue;
+            transmit_osc_events(p);
+        }
+
+        // Transmit KVT state
+        transmit_kvt_events();
 
         // Serialize paths that are visible in global space
         size_t n_ports      = vExtPorts.size();
@@ -1044,9 +1126,18 @@ namespace lsp
         vMeshPorts.clear();
         vMidiInPorts.clear();
         vMidiOutPorts.clear();
+        vOscInPorts.clear();
+        vOscOutPorts.clear();
         vFrameBufferPorts.clear();
         vPluginPorts.clear();
         vGenMetadata.clear();
+
+        // Delete temporary buffer for OSC serialization
+        if (pOscPacket != NULL)
+        {
+            ::free(pOscPacket);
+            pOscPacket = NULL;
+        }
 
         // Drop extensions
         if (pExt != NULL)

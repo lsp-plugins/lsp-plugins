@@ -17,8 +17,12 @@ namespace lsp
     {
     #ifdef LSP_TRACE
         void dump_packet(const packet_t *packet);
+
+        void dump_packet(const void *data, size_t size);
     #else
         inline void dump_packet(const packet_t *packet) {}
+
+        inline void dump_packet(const void *data, size_t size) {}
     #endif
     }
 }
