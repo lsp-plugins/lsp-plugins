@@ -13,6 +13,7 @@
 
 #include <core/IWrapper.h>
 #include <core/ipc/NativeExecutor.h>
+#include <core/KVTDispatcher.h>
 #include <container/CairoCanvas.h>
 
 namespace lsp
@@ -54,6 +55,7 @@ namespace lsp
             position_t          sPosition;
             KVTStorage          sKVT;
             ipc::Mutex          sKVTMutex;
+            KVTDispatcher      *pDispatcher;
 
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
@@ -72,6 +74,7 @@ namespace lsp
             void serialize_midi_events(LV2Port *p);
             void transmit_osc_events(LV2Port *p);
             void transmit_kvt_events();
+            void receive_kvt_events();
             void clear_midi_ports();
 
         public:
@@ -94,6 +97,7 @@ namespace lsp
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
                 pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
+                pDispatcher     = NULL;
 
                 position_t::init(&sPosition);
             }
@@ -385,6 +389,10 @@ namespace lsp
         // Update refresh rate
         nSyncSamples        = srate / pExt->ui_refresh_rate();
         nClients            = 0;
+
+        // Need to create KVT dispatcher?
+        if (m->extensions & E_KVT_SYNC)
+            pDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
     }
 
     LV2Port *LV2Wrapper::find_by_urid(cvector<LV2Port> &v, LV2_URID urid)
@@ -814,7 +822,10 @@ namespace lsp
 
     void LV2Wrapper::transmit_kvt_events()
     {
+        if (pDispatcher == NULL)
+            return;
 
+        // TODO
     }
 
     void LV2Wrapper::clear_midi_ports()

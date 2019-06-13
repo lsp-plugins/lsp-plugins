@@ -15,7 +15,7 @@
 
 namespace lsp
 {
-    class KVTDispathcer: public ipc::Thread
+    class KVTDispatcher: public ipc::Thread
     {
         protected:
             osc_buffer_t   *pRx;
@@ -29,8 +29,8 @@ namespace lsp
             size_t      transmit_changes();
 
         public:
-            explicit KVTDispathcer(KVTStorage *kvt, ipc::Mutex *mutex);
-            virtual ~KVTDispathcer();
+            explicit KVTDispatcher(KVTStorage *kvt, ipc::Mutex *mutex);
+            virtual ~KVTDispatcher();
 
         public:
             virtual status_t run();

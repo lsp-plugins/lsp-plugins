@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    KVTDispathcer::KVTDispathcer(KVTStorage *kvt, ipc::Mutex *mutex)
+    KVTDispatcher::KVTDispatcher(KVTStorage *kvt, ipc::Mutex *mutex)
     {
         pRx         = osc_buffer_t::create(OSC_BUFFER_MAX);
         pTx         = osc_buffer_t::create(OSC_BUFFER_MAX);
@@ -18,7 +18,7 @@ namespace lsp
         pPacket     = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
     }
 
-    KVTDispathcer::~KVTDispathcer()
+    KVTDispatcher::~KVTDispatcher()
     {
         if (pRx != NULL)
         {
@@ -37,7 +37,7 @@ namespace lsp
         }
     }
 
-    size_t  KVTDispathcer::receive_changes()
+    size_t  KVTDispatcher::receive_changes()
     {
         size_t size, changes = 0;
         const char *address;
@@ -196,7 +196,7 @@ namespace lsp
         }
     }
 
-    size_t  KVTDispathcer::transmit_changes()
+    size_t  KVTDispatcher::transmit_changes()
     {
         size_t changes = 0;
 
@@ -309,7 +309,7 @@ namespace lsp
         return changes;
     }
 
-    status_t KVTDispathcer::run()
+    status_t KVTDispatcher::run()
     {
         size_t changes;
 
