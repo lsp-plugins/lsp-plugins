@@ -6,6 +6,7 @@
  */
 
 #include <ui/plugins/room_builder_ui.h>
+#include <plugins/room_builder.h>
 #include <metadata/plugins.h>
 #include <metadata/ports.h>
 
@@ -242,6 +243,9 @@ namespace lsp
             if ((pItems[nItems] != NULL) && (pItems[nItems] != UNNAMED_STR))
                 ::free(pItems[nItems]);
             pItems[nItems] = NULL;
+
+            // Cleanup storage
+            room_builder_base::kvt_cleanup_objects(storage, nItems);
 
             // Notify all listeners
             set_value(pUI->nSelected);  // Update the current selected value
