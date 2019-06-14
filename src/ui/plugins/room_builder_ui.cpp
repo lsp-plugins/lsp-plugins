@@ -229,14 +229,14 @@ namespace lsp
 
             // Allocate non-allocated strings
             char pname[0x100]; // Should be enough
-
-            while (nItems < size)
+            for (size_t i=nItems; i < size; ++i)
             {
-                ::sprintf(pname, "/scene/object/%d/name", int(nItems));
+                ::sprintf(pname, "/scene/object/%d/name", int(i));
                 const char *pval = NULL;
                 status_t res = storage->get(pname, &pval);
-                set_list_item(nItems++, (res == STATUS_OK) ? pval : NULL);
+                set_list_item(i, (res == STATUS_OK) ? pval : NULL);
             }
+            nItems  = size; // Update size
 
             // Set the end of string list
             if ((pItems[nItems] != NULL) && (pItems[nItems] != UNNAMED_STR))

@@ -17,6 +17,8 @@ namespace lsp
         pKVT        = kvt;
         pKVTMutex   = mutex;
         pPacket     = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
+        nClients    = 0;
+        nTxRequest  = 0;
     }
 
     KVTDispatcher::~KVTDispatcher()
@@ -147,6 +149,7 @@ namespace lsp
             {
                 if (nTxRequest > 0)
                 {
+                    lsp_trace("Setting all KVT parameters as required for transfer");
                     pKVT->touch_all(KVT_TX);
                     atomic_add(&nTxRequest, -1);
                 }
@@ -213,10 +216,14 @@ namespace lsp
         status_t res;
 
         if ((res = osc::parse_begin(&root, &parser, data, size)) != STATUS_OK)
+        {
+            lsp_trace("Failed parse_begin()");
             return res;
+        }
 
         if ((res = osc::parse_begin_message(&message, &root, &address)) != STATUS_OK)
         {
+            lsp_trace("Failed parse_begin_message()");
             osc::parse_end(&root);
             osc::parse_destroy(&parser);
             return res;
@@ -224,20 +231,24 @@ namespace lsp
 
         if (::strstr(address, "/KVT/") != address) // Non-KVT destination?
         {
+            lsp_trace("Prefix does not match /KVT/");
             osc::parse_end(&root);
             osc::parse_destroy(&parser);
             return STATUS_SKIP;
         }
 
         address += ::strlen("/KVT");
+        lsp_trace("Parameter name = %s", address);
 
         if ((res = osc::parse_token(&message, &token)) != STATUS_OK)
         {
+            lsp_trace("Could not fetch token");
             osc::parse_end(&message);
             osc::parse_end(&root);
             osc::parse_destroy(&parser);
             return res;
         }
+        lsp_trace("Token type = %d", int(token));
 
         // Parse value
         switch (token)
@@ -304,6 +315,7 @@ namespace lsp
                 break;
             }
             default:
+                lsp_trace("Unknown token");
                 res     = STATUS_BAD_TYPE;
                 break;
         }
@@ -311,15 +323,16 @@ namespace lsp
         // Require end of message, and only then update KVT parameter value
         if (res == STATUS_OK)
         {
+            kvt_dump_parameter("Parsed parameter: %s = ", &p, address);
             if ((res = osc::parse_token(&message, &token)) == STATUS_OK)
             {
                 if (token == osc::PT_EOR)
                 {
+                    lsp_trace("Message has been fully read, submitting to KVT");
+
                     // Put the change to the KVT storage with RX flags set
                     // We can freely use the address pointer while the pPacket is valid
-                    res = kvt->put(address, &p, KVT_RX);
-                    if (res == STATUS_OK)
-                        kvt_dump_parameter("RX kvt param: %s = ", &p, address);
+                    res = kvt->put(address, &p, KVT_TX);
                 }
             }
         }

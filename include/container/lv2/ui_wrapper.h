@@ -259,7 +259,7 @@ namespace lsp
                     const LV2_Atom* atom = reinterpret_cast<const LV2_Atom*>(buf);
 //                    lsp_trace("atom.type = %d (%s)", int(atom->type), pExt->unmap_urid(atom->type));
 
-                    if ((atom->type == pExt->uridObject) || (atom->type != pExt->uridBlank))
+                    if ((atom->type == pExt->uridObject) || (atom->type == pExt->uridBlank))
                         receive_atom(reinterpret_cast<const LV2_Atom_Object *>(atom));
                     else if (atom->type == pExt->uridOscRawPacket)
                     {
@@ -281,7 +281,7 @@ namespace lsp
                 }
             }
 
-            void sync_kvt_state()
+            void send_kvt_state()
             {
                 KVTIterator *iter = sKVT.enum_rx_pending();
                 if (iter == NULL)
@@ -304,6 +304,9 @@ namespace lsp
                     res = KVTDispatcher::transmit_message(kvt_name, p, &pOscBuffer[sizeof(LV2_Atom)], &size, OSC_PACKET_MAX);
                     if (res == STATUS_OK)
                     {
+                        lsp_trace("Sending OSC message");
+                        osc::dump_packet(&pOscBuffer[sizeof(LV2_Atom)], size);
+
                         // Forge raw OSC message as an atom message
                         LV2_Atom *atom  = reinterpret_cast<LV2_Atom *>(pOscBuffer);
                         atom->size      = size;
@@ -317,6 +320,63 @@ namespace lsp
                     // Commit transfer
                     iter->commit(KVT_RX);
                 }
+            }
+
+            void receive_kvt_state()
+            {
+                // TODO: this method will work for direct connection
+            }
+
+            void sync_kvt_state()
+            {
+                // Synchronize DSP -> UI transfer
+                size_t sync;
+                const char *kvt_name;
+                const kvt_param_t *kvt_value;
+
+                do
+                {
+                    sync = 0;
+
+                    KVTIterator *it = sKVT.enum_tx_pending();
+                    while (it->next() == STATUS_OK)
+                    {
+                        kvt_name = it->name();
+                        if (kvt_name == NULL)
+                            break;
+                        status_t res = it->get(&kvt_value);
+                        if (res != STATUS_OK)
+                            break;
+                        if ((res = it->commit(KVT_TX)) != STATUS_OK)
+                            break;
+
+                        kvt_dump_parameter("TX kvt param (DSP->UI): %s = ", kvt_value, kvt_name);
+                        pUI->kvt_write(&sKVT, kvt_name, kvt_value);
+                        ++sync;
+                    }
+                } while (sync > 0);
+
+                // Synchronize UI -> DSP transfer
+                #ifdef LSP_DEBUG
+                {
+                    KVTIterator *it = sKVT.enum_rx_pending();
+                    while (it->next() == STATUS_OK)
+                    {
+                        kvt_name = it->name();
+                        if (kvt_name == NULL)
+                            break;
+                        status_t res = it->get(&kvt_value);
+                        if (res != STATUS_OK)
+                            break;
+                        if ((res = it->commit(KVT_RX)) != STATUS_OK)
+                            break;
+
+                        kvt_dump_parameter("RX kvt param (UI->DSP): %s = ", kvt_value, kvt_name);
+                    }
+                }
+                #else
+                    sKVT.commit_all(KVT_RX);    // Just clear all RX queue for non-debug version
+                #endif
             }
 
             int idle()
@@ -349,6 +409,8 @@ namespace lsp
                 // Transmit KVT state
                 if (sKVTMutex.try_lock())
                 {
+                    receive_kvt_state();
+                    send_kvt_state();
                     sync_kvt_state();
                     sKVT.gc();
                     sKVTMutex.unlock();
@@ -560,8 +622,8 @@ namespace lsp
                 body = lv2_atom_object_next(body)
             )
             {
-                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
                 // Try to find the corresponding port
                 LV2UIPort *p = find_by_urid(vUIPorts, body->key);
@@ -719,6 +781,9 @@ namespace lsp
             status_t res = osc::parse_raw_message(frame, &msg_start, &msg_size, &msg_addr);
             if (res != STATUS_OK)
                 return;
+
+            lsp_trace("Received OSC message, address=%s, size=%d", msg_addr, int(msg_size));
+            osc::dump_packet(msg_start, msg_size);
 
             // Try to parse KVT message first
             res = KVTDispatcher::parse_message(&sKVT, msg_start, msg_size);

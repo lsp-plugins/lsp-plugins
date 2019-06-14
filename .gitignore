@@ -4,6 +4,7 @@
 /res/specs/*
 /.builconfig/*
 /.build/*
+/.buildconfig/*
 /.test/*
 /.release/*
 /test/im_reverbs/*

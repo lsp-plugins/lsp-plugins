@@ -302,14 +302,14 @@ namespace lsp
         plugin_ui *p        = NULL;
         LV2Extensions *ext  = NULL;
 
-        lsp_trace("Creating plugin UI, parent window=%p", ext->parent_window());
-        #define MOD_PLUGIN(plugin, ui) \
+        #define MOD_PLUGIN(plugin, plugin_ui) \
             lsp_trace("Check URI: %s", LSP_PLUGIN_UI_URI(lv2, plugin)); \
             if ((!p) && (!strcmp(descriptor->URI, LSP_PLUGIN_UI_URI(lv2, plugin)))) \
             { \
                 if (plugin::metadata.ui_resource != NULL) \
                 { \
                     ext = new LV2Extensions(features, LSP_PLUGIN_URI(lv2, plugin), controller, write_function); \
+                    lsp_trace("Creating plugin UI, parent window=%p", ext->parent_window()); \
                     p   = new plugin_ui(&plugin::metadata, ext->parent_window()); \
                 } \
             }

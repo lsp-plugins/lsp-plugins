@@ -277,13 +277,21 @@ namespace lsp
 
     KVTStorage::kvt_node_t *KVTStorage::reference_up(kvt_node_t *node)
     {
-        if ((node->refs++) > 0)
-            return node;
+        kvt_node_t *x = node;
 
-        // Move to valid
-        unlink_list(&node->gc);
-        link_list(&sValid, &node->gc);
-        ++nNodes;
+        do
+        {
+            if ((x->refs++) > 0)
+                break;
+
+            // Move to valid
+            unlink_list(&x->gc);
+            link_list(&sValid, &x->gc);
+            ++nNodes;
+
+            // Move to parent
+            x = x->parent;
+        } while (x != NULL);
 
         return node;
     }
@@ -297,10 +305,12 @@ namespace lsp
             // Decrement number of references
             if ((--x->refs) > 0)
                 break;
+//            if (x->refs < 0)
+//                lsp_trace("Error");
 
             // Move to garbage
-            unlink_list(&node->gc);
-            link_list(&sGarbage, &node->gc);
+            unlink_list(&x->gc);
+            link_list(&sGarbage, &x->gc);
             --nNodes;
 
             // Move to parent
@@ -489,7 +499,6 @@ namespace lsp
         base->children[first]   = node;
         node->parent            = base;
         ++base->nchildren;
-        reference_up(base);
 
         // Return node
         return node;
@@ -910,12 +919,17 @@ namespace lsp
         char *str = NULL, *path;
         size_t capacity = 0;
 
+//        lsp_trace("kvt items: %d", int(nValues));
+
         for (kvt_link_t *lnk = sValid.next; lnk != NULL; lnk = lnk->next)
         {
             node        = lnk->node;
+            if (node->param == NULL) // Parameter does exist?
+                continue;
 
             size_t op   = node->pending;
             size_t np   = set_pending_state(node, op | flags);
+//            lsp_trace("%s op=0x%x, np=0x%x", node->id, int(op), int(np));
 
             // State has changed?
             if (op != np)
@@ -954,6 +968,9 @@ namespace lsp
             while (sTx.next != NULL)
             {
                 node        = sTx.next->node;
+                if (node->param == NULL) // Parameter does exist?
+                    continue;
+
                 size_t op   = node->pending;
                 size_t np   = set_pending_state(node, op & (~KVT_TX));
 
@@ -977,6 +994,9 @@ namespace lsp
             while (sRx.next != NULL)
             {
                 node        = sRx.next->node;
+                if (node->param == NULL) // Parameter does exist?
+                    continue;
+
                 size_t op   = node->pending;
                 size_t np   = set_pending_state(node, op & (~KVT_RX));
 
@@ -1496,21 +1516,42 @@ namespace lsp
         {
             kvt_node_t *node = lnk->node;
             kvt_node_t *parent = node->parent;
-            if (parent->refs <= 0)
+
+            if ((parent == NULL) || (parent->refs <= 0))
                 continue;
 
-            for (size_t i=0; i<parent->nchildren; )
+            // Remove all non-valid children from list
+            kvt_node_t **dst = parent->children;
+            kvt_node_t **src = parent->children;
+            for (size_t i=0; i<parent->nchildren; ++src)
             {
-                if (parent->children[i]->refs <= 0)
+                kvt_node_t *child = *src;
+                if (child->refs <= 0)
                 {
+                    child->parent   = NULL;
                     --parent->nchildren;
-                    ::memmove(&parent->children[i],
-                            &parent->children[i+1],
-                            (parent->nchildren - i) * sizeof(kvt_node_t *));
                 }
                 else
+                {
+                    if (dst < src)
+                        *dst = *src;
+                    ++dst;
                     ++i;
+                }
             }
+            
+            // Remove node from parent's list
+//            for (size_t i=0; i<parent->nchildren; ++i)
+//            {
+//                if (parent->children[i] == node)
+//                {
+//                    --parent->nchildren;
+//                    ::memmove(&parent->children[i],
+//                            &parent->children[i+1],
+//                            (parent->nchildren - i) * sizeof(kvt_node_t *));
+//                    break;
+//                }
+//            }
         }
 
         // Part 3: Collect garbage nodes

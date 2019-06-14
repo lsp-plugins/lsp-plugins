@@ -392,6 +392,16 @@ namespace lsp
         sort_by_urid(vMeshPorts);
         sort_by_urid(vFrameBufferPorts);
 
+        // Need to create and start KVT dispatcher?
+        lsp_trace("Plugin extensions=0x%x", int(m->extensions));
+        if (m->extensions & E_KVT_SYNC)
+        {
+            lsp_trace("Creating KVT dispatcher thread...");
+            pKVTDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
+            lsp_trace("Starting KVT dispatcher thread...");
+            pKVTDispatcher->start();
+        }
+
         // Initialize plugin
         lsp_trace("Initializing plugin");
         pPlugin->init(this);
@@ -401,10 +411,6 @@ namespace lsp
         // Update refresh rate
         nSyncSamples        = srate / pExt->ui_refresh_rate();
         nClients            = 0;
-
-        // Need to create KVT dispatcher?
-        if (m->extensions & E_KVT_SYNC)
-            pKVTDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
     }
 
     LV2Port *LV2Wrapper::find_by_urid(cvector<LV2Port> &v, LV2_URID urid)
@@ -591,6 +597,9 @@ namespace lsp
             status_t res = osc::parse_raw_message(frame, &msg_start, &msg_size, &msg_addr);
             if (res != STATUS_OK)
                 return;
+
+            lsp_trace("Received OSC message of %d bytes", int(msg_size));
+            osc::dump_packet(msg_start, msg_size);
 
             if (::strstr(msg_addr, "/KVT/") != msg_addr)
                 pKVTDispatcher->submit(msg_start, msg_size);
@@ -912,6 +921,9 @@ namespace lsp
             {
                 case STATUS_OK:
                 {
+                    lsp_trace("Transmitting OSC packet of %d bytes", int(size));
+                    osc::dump_packet(pOscPacket, size);
+
                     atom.size       = size;
                     atom.type       = pExt->uridOscRawPacket;
 
@@ -1200,6 +1212,15 @@ namespace lsp
         sSurface.width          = 0;
         sSurface.height         = 0;
         sSurface.stride         = 0;
+
+        // Stop KVT dispatcher
+        if (pKVTDispatcher != NULL)
+        {
+            lsp_trace("Stopping KVT dispatcher thread...");
+            pKVTDispatcher->cancel();
+            pKVTDispatcher->join();
+            delete pKVTDispatcher;
+        }
 
         // Drop canvas
         lsp_trace("canvas = %p", pCanvas);
