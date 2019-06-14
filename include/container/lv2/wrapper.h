@@ -55,7 +55,7 @@ namespace lsp
             position_t          sPosition;
             KVTStorage          sKVT;
             ipc::Mutex          sKVTMutex;
-            KVTDispatcher      *pDispatcher;
+            KVTDispatcher      *pKVTDispatcher;
 
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
@@ -70,6 +70,7 @@ namespace lsp
             static void sort_by_urid(cvector<LV2Port> &v);
 
             void parse_midi_event(const LV2_Atom_Event *ev);
+            void parse_raw_osc_event(osc::parse_frame_t *frame);
             void parse_atom_object(const LV2_Atom_Event *ev);
             void serialize_midi_events(LV2Port *p);
             void transmit_osc_events(LV2Port *p);
@@ -97,7 +98,7 @@ namespace lsp
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
                 pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
-                pDispatcher     = NULL;
+                pKVTDispatcher  = NULL;
 
                 position_t::init(&sPosition);
             }
@@ -180,7 +181,10 @@ namespace lsp
 
             void connect_direct_ui()
             {
+                // Increment number of clients
                 nDirectClients++;
+                if (pKVTDispatcher != NULL)
+                    pKVTDispatcher->connect_client();
             }
 
             void disconnect_direct_ui()
@@ -188,9 +192,17 @@ namespace lsp
                 if (nDirectClients <= 0)
                     return;
                 --nDirectClients;
+                if (pKVTDispatcher != NULL)
+                    pKVTDispatcher->disconnect_client();
             }
 
             inline float get_sample_rate() const { return fSampleRate; }
+
+            virtual KVTStorage *kvt_lock();
+
+            virtual KVTStorage *kvt_trylock();
+
+            virtual bool kvt_release();
     };
 
     LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix)
@@ -392,7 +404,7 @@ namespace lsp
 
         // Need to create KVT dispatcher?
         if (m->extensions & E_KVT_SYNC)
-            pDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
+            pKVTDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
     }
 
     LV2Port *LV2Wrapper::find_by_urid(cvector<LV2Port> &v, LV2_URID urid)
@@ -462,6 +474,18 @@ namespace lsp
 //            lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
             if (ev->body.type == pExt->uridMidiEventType)
                 parse_midi_event(ev);
+            else if (ev->body.type == pExt->uridOscRawPacket)
+            {
+                osc::parser_t parser;
+                osc::parser_frame_t root;
+                status_t res = osc::parse_begin(&root, &parser, &ev[1], ev->body.size);
+                if (res == STATUS_OK)
+                {
+                    parse_raw_osc_event(&root);
+                    osc::parse_end(&root);
+                    osc::parse_destroy(&parser);
+                }
+            }
             else if ((ev->body.type == pExt->uridObject) || (ev->body.type == pExt->uridBlank))
                 parse_atom_object(ev);
         }
@@ -537,6 +561,53 @@ namespace lsp
                 continue;
             if (!buf->push(me))
                 lsp_warn("MIDI event queue overflow");
+        }
+    }
+
+    void LV2Wrapper::parse_raw_osc_event(osc::parse_frame_t *frame)
+    {
+        osc::parse_token_t token;
+        status_t res = osc::parse_token(frame, &token);
+        if (res != STATUS_OK)
+            return;
+
+        if (token == osc::PT_BUNDLE)
+        {
+            osc::parse_frame_t child;
+            uint64_t time_tag;
+            status_t res = osc::parse_begin_bundle(&child, frame, &time_tag);
+            if (res != STATUS_OK)
+                return;
+            parse_raw_osc_event(&child); // Perform recursive call
+            osc::parse_end(&child);
+        }
+        else if (token == osc::PT_MESSAGE)
+        {
+            const void *msg_start;
+            size_t msg_size;
+            const char *msg_addr;
+
+            // Perform address lookup and routing
+            status_t res = osc::parse_raw_message(frame, &msg_start, &msg_size, &msg_addr);
+            if (res != STATUS_OK)
+                return;
+
+            if (::strstr(msg_addr, "/KVT/") != msg_addr)
+                pKVTDispatcher->submit(msg_start, msg_size);
+            else
+            {
+                for (size_t i=0, n=vOscInPorts.size(); i<n; ++i)
+                {
+                    IPort *p = vOscInPorts.at(i);
+                    if (p == NULL)
+                        continue;
+
+                    // Submit message to the buffer
+                    osc_buffer_t *buf = p->getBuffer<osc_buffer_t>();
+                    if (buf != NULL)
+                        buf->submit(msg_start, msg_size);
+                }
+            }
         }
     }
 
@@ -670,6 +741,8 @@ namespace lsp
         {
             nClients    ++;
             lsp_trace("UI has connected, current number of clients=%d", int(nClients));
+            if (pKVTDispatcher != NULL)
+                pKVTDispatcher->connect_client();
 
             // Notify all ports that UI has connected to backend
             for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
@@ -682,6 +755,8 @@ namespace lsp
         else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridDisconnectUI))
         {
             nClients    --;
+            if (pKVTDispatcher != NULL)
+                pKVTDispatcher->disconnect_client();
             lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
         }
         else
@@ -822,10 +897,44 @@ namespace lsp
 
     void LV2Wrapper::transmit_kvt_events()
     {
-        if (pDispatcher == NULL)
+        // We need to transmit data only if there are clients connected to the Atom port
+        if ((pKVTDispatcher == NULL) || (nClients == 0))
             return;
 
-        // TODO
+        LV2_Atom atom;
+
+        size_t size;
+        while (true)
+        {
+            status_t res = pKVTDispatcher->fetch(pOscPacket, &size, OSC_PACKET_MAX);
+
+            switch (res)
+            {
+                case STATUS_OK:
+                {
+                    atom.size       = size;
+                    atom.type       = pExt->uridOscRawPacket;
+
+                    pExt->forge_frame_time(0);
+                    pExt->forge_raw(&atom, sizeof(LV2_Atom));
+                    pExt->forge_raw(pOscPacket, size);
+                    pExt->forge_pad(sizeof(LV2_Atom) + size);
+                    break;
+                }
+
+                case STATUS_OVERFLOW:
+                    lsp_warn("Received too big OSC packet, skipping");
+                    pKVTDispatcher->skip();
+                    break;
+
+                case STATUS_NO_DATA:
+                    return;
+
+                default:
+                    lsp_warn("Received error while deserializing KVT changes: %d", int(res));
+                    return;
+            }
+        }
     }
 
     void LV2Wrapper::clear_midi_ports()
@@ -1383,6 +1492,21 @@ namespace lsp
         }
 
         return cv = ncv;
+    }
+
+    KVTStorage *LV2Wrapper::kvt_lock()
+    {
+        return (sKVTMutex.lock()) ? &sKVT : NULL;
+    }
+
+    KVTStorage *LV2Wrapper::kvt_trylock()
+    {
+        return (sKVTMutex.try_lock()) ? &sKVT : NULL;
+    }
+
+    bool LV2Wrapper::kvt_release()
+    {
+        return sKVTMutex.unlock();
     }
 }
 

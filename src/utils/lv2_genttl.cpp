@@ -825,12 +825,16 @@ namespace lsp
                 }
             }
 
+            long bufsize    = lv2_all_port_sizes(m.ports, IS_IN_PORT(p), IS_OUT_PORT(p));
+            if (m.extensions & E_KVT_SYNC)
+                bufsize        += OSC_BUFFER_MAX;
+
             fprintf(out, "\t\tlv2:designation lv2:control ;\n");
             fprintf(out, "\t\tlv2:index %d ;\n", int(port_id));
             fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p_id);
             fprintf(out, "\t\tlv2:name \"%s\" ;\n", p_name);
             fprintf(out, "\t\trdfs:comment \"%s\" ;\n", comm);
-            fprintf(out, "\t\trsz:minimumSize %ld ;\n", lv2_all_port_sizes(m.ports, IS_IN_PORT(p), IS_OUT_PORT(p)) * 2);
+            fprintf(out, "\t\trsz:minimumSize %ld ;\n", bufsize * 2);
             fprintf(out, "\t]");
 
             port_id++;

@@ -18,6 +18,8 @@ namespace lsp
             cvector<LV2UIPort>      vFrameBufferPorts;
             cvector<LV2UIPort>      vUIPorts;
             cvector<LV2UIPort>      vAllPorts;  // List of all created ports, for garbage collection
+            cvector<LV2UIPort>      vOscInPorts;
+            cvector<LV2UIPort>      vOscOutPorts;
             cvector<port_t>         vGenMetadata;   // Generated metadata
 
             position_t              sPosition;
@@ -27,6 +29,9 @@ namespace lsp
             size_t                  nLatencyID; // ID of latency port
             LV2UIPort              *pLatency;
             bool                    bConnected;
+            KVTStorage              sKVT;
+            ipc::Mutex              sKVTMutex;
+            uint8_t                *pOscBuffer;     // OSC packet data
 
         protected:
             LV2UIPort *create_port(const port_t *p, const char *postfix);
@@ -48,6 +53,7 @@ namespace lsp
                 nLatencyID  = 0;
                 pLatency    = NULL;
                 bConnected  = false;
+                pOscBuffer  = NULL;
 
                 position_t::init(&sPosition);
             }
@@ -59,6 +65,7 @@ namespace lsp
                 nLatencyID  = 0;
                 pLatency    = NULL;
                 bConnected  = false;
+
             }
 
         public:
@@ -66,6 +73,9 @@ namespace lsp
             {
                 // Get plugin metadata
                 const plugin_metadata_t *m  = pUI->metadata();
+
+                // Create OSC packet buffer
+                pOscBuffer      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX + sizeof(LV2_Atom)));
 
                 // Perform all port bindings
                 create_ports(m->ports);
@@ -140,6 +150,14 @@ namespace lsp
                 }
             }
 
+            virtual KVTStorage *kvt_lock();
+
+            virtual KVTStorage *kvt_trylock();
+
+            virtual bool kvt_release();
+
+            void parse_raw_osc_event(osc::parse_frame_t *frame);
+
             void ui_deactivated()
             {
                 if (!bConnected)
@@ -203,6 +221,12 @@ namespace lsp
                 vMeshPorts.clear();
                 vFrameBufferPorts.clear();
 
+                if (pOscBuffer != NULL)
+                {
+                    ::free(pOscBuffer);
+                    pOscBuffer = NULL;
+                }
+
                 // Drop extensions
                 if (pExt != NULL)
                 {
@@ -235,15 +259,63 @@ namespace lsp
                     const LV2_Atom* atom = reinterpret_cast<const LV2_Atom*>(buf);
 //                    lsp_trace("atom.type = %d (%s)", int(atom->type), pExt->unmap_urid(atom->type));
 
-                    if ((atom->type != pExt->uridObject) && (atom->type != pExt->uridBlank))
-                        return;
-
-                    receive_atom(reinterpret_cast<const LV2_Atom_Object *>(atom));
+                    if ((atom->type == pExt->uridObject) || (atom->type != pExt->uridBlank))
+                        receive_atom(reinterpret_cast<const LV2_Atom_Object *>(atom));
+                    else if (atom->type == pExt->uridOscRawPacket)
+                    {
+                        osc::parser_t parser;
+                        osc::parser_frame_t root;
+                        status_t res = osc::parse_begin(&root, &parser, &atom[1], atom->size);
+                        if (res == STATUS_OK)
+                        {
+                            parse_raw_osc_event(&root);
+                            osc::parse_end(&root);
+                            osc::parse_destroy(&parser);
+                        }
+                    }
                 }
                 else if (id == nLatencyID)
                 {
                     if (pLatency != NULL)
                         pLatency->notify(buf, format, size);
+                }
+            }
+
+            void sync_kvt_state()
+            {
+                KVTIterator *iter = sKVT.enum_rx_pending();
+                if (iter == NULL)
+                    return;
+
+                const kvt_param_t *p;
+                const char *kvt_name;
+                size_t size;
+                status_t res;
+
+                while (iter->next() == STATUS_OK)
+                {
+                    // Fetch next change
+                    res = iter->get(&p);
+                    kvt_name = iter->name();
+                    if ((res != STATUS_OK) || (kvt_name == NULL))
+                        break;
+
+                    // Try to serialize changes
+                    res = KVTDispatcher::transmit_message(kvt_name, p, &pOscBuffer[sizeof(LV2_Atom)], &size, OSC_PACKET_MAX);
+                    if (res == STATUS_OK)
+                    {
+                        // Forge raw OSC message as an atom message
+                        LV2_Atom *atom  = reinterpret_cast<LV2_Atom *>(pOscBuffer);
+                        atom->size      = size;
+                        atom->type      = pExt->uridOscRawPacket;
+                        size            = (size + sizeof(LV2_Atom) + sizeof(uint64_t) - 1) & ~(sizeof(uint64_t) - 1); // padding
+
+                        // Submit message to the atom output port
+                        pExt->write_data(pExt->nAtomOut, size, pExt->uridEventTransfer, pOscBuffer);
+                    }
+
+                    // Commit transfer
+                    iter->commit(KVT_RX);
                 }
             }
 
@@ -272,6 +344,14 @@ namespace lsp
                     position_t pos      = *(w->position());
                     pUI->position_updated(&pos);
                     sPosition           = pos;
+                }
+
+                // Transmit KVT state
+                if (sKVTMutex.try_lock())
+                {
+                    sync_kvt_state();
+                    sKVT.gc();
+                    sKVTMutex.unlock();
                 }
 
                 // Call UI to process events
@@ -594,6 +674,69 @@ namespace lsp
         {
             lsp_trace("obj->body.otype = %d (%s)", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
             lsp_trace("obj->body.id = %d (%s)", int(obj->body.id), pExt->unmap_urid(obj->body.id));
+        }
+    }
+
+    KVTStorage *LV2UIWrapper::kvt_lock()
+    {
+        return (sKVTMutex.lock()) ? &sKVT : NULL;
+    }
+
+    KVTStorage *LV2UIWrapper::kvt_trylock()
+    {
+        return (sKVTMutex.try_lock()) ? &sKVT : NULL;
+    }
+
+    bool LV2UIWrapper::kvt_release()
+    {
+        return sKVTMutex.unlock();
+    }
+
+    void LV2UIWrapper::parse_raw_osc_event(osc::parse_frame_t *frame)
+    {
+        osc::parse_token_t token;
+        status_t res = osc::parse_token(frame, &token);
+        if (res != STATUS_OK)
+            return;
+
+        if (token == osc::PT_BUNDLE)
+        {
+            osc::parse_frame_t child;
+            uint64_t time_tag;
+            status_t res = osc::parse_begin_bundle(&child, frame, &time_tag);
+            if (res != STATUS_OK)
+                return;
+            parse_raw_osc_event(&child); // Perform recursive call
+            osc::parse_end(&child);
+        }
+        else if (token == osc::PT_MESSAGE)
+        {
+            const void *msg_start;
+            size_t msg_size;
+            const char *msg_addr;
+
+            // Perform address lookup and routing
+            status_t res = osc::parse_raw_message(frame, &msg_start, &msg_size, &msg_addr);
+            if (res != STATUS_OK)
+                return;
+
+            // Try to parse KVT message first
+            res = KVTDispatcher::parse_message(&sKVT, msg_start, msg_size);
+            if (res != STATUS_SKIP)
+                return;
+
+            // Not a KVT message, submit to OSC ports (if present)
+            for (size_t i=0, n=vOscInPorts.size(); i<n; ++i)
+            {
+                LV2UIPort *p = vOscInPorts.at(i);
+                if (p == NULL)
+                    continue;
+
+                // Submit message to the buffer
+                osc_buffer_t *buf = p->get_buffer<osc_buffer_t>();
+                if (buf != NULL)
+                    buf->submit(msg_start, msg_size);
+            }
         }
     }
 }

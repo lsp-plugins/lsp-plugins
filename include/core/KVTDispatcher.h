@@ -18,11 +18,13 @@ namespace lsp
     class KVTDispatcher: public ipc::Thread
     {
         protected:
-            osc_buffer_t   *pRx;
-            osc_buffer_t   *pTx;
-            KVTStorage     *pKVT;
-            ipc::Mutex     *pKVTMutex;
-            uint8_t        *pPacket;
+            osc_buffer_t       *pRx;
+            osc_buffer_t       *pTx;
+            KVTStorage         *pKVT;
+            ipc::Mutex         *pKVTMutex;
+            uint8_t            *pPacket;
+            volatile atomic_t   nClients;
+            volatile atomic_t   nTxRequest;
 
         protected:
             size_t      receive_changes();
@@ -34,6 +36,22 @@ namespace lsp
 
         public:
             virtual status_t run();
+
+            status_t submit(const void *data, size_t size);
+            status_t submit(const osc::packet_t *packet);
+
+            status_t fetch(void *data, size_t *size, size_t limit);
+            status_t fetch(osc::packet_t *packet, size_t limit);
+            status_t skip();
+
+            void     connect_client();
+            void     disconnect_client();
+
+            static status_t parse_message(KVTStorage *kvt, const void *data, size_t size);
+            static status_t parse_message(KVTStorage *kvt, const osc::packet_t *packet);
+
+            static status_t transmit_message(const char *param_name, const kvt_param_t *param, osc::packet_t *packet, size_t limit);
+            static status_t transmit_message(const char *param_name, const kvt_param_t *param, void *data, size_t *size, size_t limit);
     };
 }
 

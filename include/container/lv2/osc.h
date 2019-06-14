@@ -11,7 +11,7 @@
 // The URI definitions originally taken from OpenMusicKontrollers
 #define LV2_OSC_URI                     "http://open-music-kontrollers.ch/lv2/osc"
 #define LV2_OSC_PREFIX                  LV2_OSC_URI "#"
-#define LV2_RAW_OSC_URI                 "http://opensoundcontrol.org/lv2/osc/spec-1_0"
+#define LV2_RAW_OSC_URI                 "http://opensoundcontrol.org/spec-1_0"
 
 #define LV2_OSC__Bundle                 LV2_OSC_PREFIX "Bundle"             /* atom object type     */
 #define LV2_OSC__bundleTimetag          LV2_OSC_PREFIX "bundleTimetag"      /* atom object property */

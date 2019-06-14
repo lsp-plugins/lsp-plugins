@@ -314,6 +314,63 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t parse_raw_message(parse_frame_t *ref, const void **start, size_t *msize, const char **address)
+        {
+            // Check state and arguments
+            if ((ref->child != NULL) || (ref->parser == NULL))
+                return STATUS_BAD_STATE;
+            if ((ref->type != FRT_ROOT) && (ref->type != FRT_BUNDLE))
+                return STATUS_BAD_STATE;
+
+            // Initialize lookup
+            union
+            {
+                const uint8_t  *u8;
+                const uint32_t *u32;
+                const char     *ch;
+            } xptr;
+
+            parser_t *buf   = ref->parser;
+            ssize_t left    = ref->limit - buf->offset;
+            size_t xsize    = buf->size;
+            xptr.u8         = &buf->data[buf->offset];
+
+            // Need to read size?
+            if (ref->type == FRT_BUNDLE)
+            {
+                if (size_t(left) <= sizeof(uint32_t))
+                    return STATUS_CORRUPTED;
+                xsize       = BE_TO_CPU(*(xptr.u32));
+                xptr.u8    += sizeof(uint32_t);
+
+                // Analyze size
+                if (size_t(left) < (xsize + sizeof(uint32_t)))
+                    return STATUS_CORRUPTED;
+                left       -= sizeof(uint32_t);
+            }
+
+            // Is there enough size to read address?
+            if (left <= ssize_t(sizeof(uint32_t)))
+                return STATUS_CORRUPTED;
+            else if ((xptr.ch[0] != '/'))
+                return STATUS_BAD_TYPE;
+
+            // Check address length
+            const char *addr    = xptr.ch;
+            size_t addr_len     = ::strnlen(addr, left);
+            if (ssize_t(addr_len) >= left)
+                return STATUS_CORRUPTED;
+
+            // Return address string
+            if (address != NULL)
+                *address        = addr;
+            if (start != NULL)
+                *start          = xptr.u8;
+            if (msize != NULL)
+                *msize          = xsize;
+            return STATUS_OK;
+        }
+
         inline bool parse_check_msg(parse_frame_t *ref)
         {
             if ((ref->child != NULL) || (ref->parser == NULL))

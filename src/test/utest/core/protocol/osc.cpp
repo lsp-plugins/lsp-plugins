@@ -764,6 +764,11 @@ UTEST_BEGIN("core.protocol", osc)
 
         UTEST_ASSERT(osc::parse_begin(&frame, &parser, simple_message, sizeof(simple_message)) == STATUS_OK);
         {
+            UTEST_ASSERT(osc::parse_raw_message(&frame, &bytes, &xptr.sz, &address) == STATUS_OK);
+            UTEST_ASSERT(strcmp(address, "/oscillator/4/frequency") == 0);
+            UTEST_ASSERT(bytes == simple_message);
+            UTEST_ASSERT(xptr.sz == sizeof(simple_message));
+
             UTEST_ASSERT(osc::parse_begin_message(&message, &frame, &address) == STATUS_OK);
             {
                 UTEST_ASSERT(strcmp(address, "/oscillator/4/frequency") == 0);
@@ -1167,6 +1172,7 @@ UTEST_BEGIN("core.protocol", osc)
         osc::parser_t parser;
         osc::parse_frame_t dframe, dbundle1, dbundle2, dmessage;
         const char *address;
+        const void *bytes;
         osc::parse_token_t token;
 
         UTEST_ASSERT(osc::parse_begin(&dframe, &parser, packet.data, packet.size) == STATUS_OK);
@@ -1219,6 +1225,12 @@ UTEST_BEGIN("core.protocol", osc)
             {
                 UTEST_ASSERT(osc::parse_token(&dbundle2, &token) == STATUS_OK);
                 UTEST_ASSERT(token == osc::PT_MESSAGE);
+
+                UTEST_ASSERT(osc::parse_raw_message(&dbundle2, &bytes, &xptr.sz, &address) == STATUS_OK);
+                UTEST_ASSERT(strcmp(address, "/b0") == 0);
+                UTEST_ASSERT(bytes == address);
+                UTEST_ASSERT(xptr.sz == 12); // 4 bytes per address, 4 bytes per args, 4 bytes per int32 argument
+
                 UTEST_ASSERT(osc::parse_begin_message(&dmessage, &dbundle2, &address) == STATUS_OK);
                 UTEST_ASSERT(strcmp(address, "/b0") == 0);
                 {

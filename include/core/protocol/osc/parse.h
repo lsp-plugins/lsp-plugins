@@ -19,8 +19,8 @@ namespace lsp
         typedef struct parse_frame_t
         {
             parser_t       *parser;
-            parse_frame_t *parent;
-            parse_frame_t *child;
+            parse_frame_t  *parent;
+            parse_frame_t  *child;
             size_t          type;
 
             size_t          limit;
@@ -70,6 +70,7 @@ namespace lsp
         status_t parse_begin_bundle(parse_frame_t *child, parse_frame_t *ref, uint64_t *time_tag);
         status_t parse_begin_array(parse_frame_t *child, parse_frame_t *ref);
 
+        status_t parse_raw_message(parse_frame_t *ref, const void **start, size_t *size, const char **address);
         status_t parse_skip(parse_frame_t *ref);
         status_t parse_int32(parse_frame_t *ref, int32_t *value);
         status_t parse_float32(parse_frame_t *ref, float *value);
