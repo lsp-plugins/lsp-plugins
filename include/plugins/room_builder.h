@@ -213,7 +213,6 @@ namespace lsp
         protected:
             static size_t       get_fft_rank(size_t rank);
             void                sync_offline_tasks();
-            void                perform_osc_receive();
 
         public:
             explicit room_builder_base(const plugin_metadata_t &metadata, size_t inputs);

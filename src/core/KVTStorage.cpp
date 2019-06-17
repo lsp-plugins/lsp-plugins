@@ -1748,15 +1748,23 @@ namespace lsp
 
             case KVTStorage::IT_BRANCH:
             {
-                do
+                if (pCurr->parent != NULL)
                 {
-                    if ((++nIndex) >= pCurr->parent->nchildren)
+                    do
                     {
-                        enMode      = KVTStorage::IT_EOF;
-                        return STATUS_NOT_FOUND;
-                    }
-                    pCurr       = pCurr->parent->children[nIndex];
-                } while (pCurr->refs <= 0);
+                        if ((++nIndex) >= pCurr->parent->nchildren)
+                        {
+                            enMode      = KVTStorage::IT_EOF;
+                            return STATUS_NOT_FOUND;
+                        }
+                        pCurr       = pCurr->parent->children[nIndex];
+                    } while (pCurr->refs <= 0);
+                }
+                else
+                {
+                    enMode      = KVTStorage::IT_EOF;
+                    return STATUS_NOT_FOUND;
+                }
                 break;
             }
 
@@ -1774,7 +1782,7 @@ namespace lsp
                         pCurr       = pCurr->children[0];
                         nIndex      = 0;
                     }
-                    else
+                    else if (pCurr->parent != NULL)
                     {
                         if ((++nIndex) >= pCurr->parent->nchildren)
                         {
@@ -1790,6 +1798,11 @@ namespace lsp
                             } while (nIndex >= pCurr->parent->nchildren);
                         }
                         pCurr       = pCurr->parent->children[nIndex];
+                    }
+                    else
+                    {
+                        enMode      = KVTStorage::IT_EOF;
+                        return STATUS_NOT_FOUND;
                     }
                 } while (pCurr->refs <= 0);
 

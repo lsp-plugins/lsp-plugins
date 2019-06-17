@@ -153,6 +153,23 @@ namespace lsp
              *
              */
             virtual void deactivated();
+
+            /**
+             * Lock the KVT storage
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock the KVT storage
+             * @return pointer to KVT storage or NULL if not locked/not supported
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             */
+            virtual void kvt_release();
     };
 
 }

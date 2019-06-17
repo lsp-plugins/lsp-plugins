@@ -56,30 +56,31 @@ namespace lsp
         sScene.clear();
 
         // Check state
-        if (pCore->p3DFile == NULL)
-            return STATUS_UNKNOWN_ERR;
+        size_t nobjs = 0;
+        status_t res = STATUS_UNSPECIFIED;
 
         // Load the scene file
-        status_t res = Model3DFile::load(&sScene, sPath, true);
-        if (res != STATUS_OK)
-            return res;
-
-        // Initialize object properties
-        size_t nobjs = sScene.num_objects();
-
-        // Deploy object properties
-        IWrapper *wrapper = pCore->wrapper();
-        if (wrapper == NULL)
-            return STATUS_UNKNOWN_ERR;
+        if (pCore->p3DFile == NULL)
+            res = STATUS_UNKNOWN_ERR;
+        else if (::strlen(sPath) > 0)
+        {
+            res = Model3DFile::load(&sScene, sPath, true);
+            if (res == STATUS_OK)
+            {
+                // Initialize object properties
+                nobjs = sScene.num_objects();
+            }
+        }
 
         // Get KVT storage and deploy new values
-        KVTStorage *kvt = wrapper->kvt_lock();
+        KVTStorage *kvt = pCore->kvt_lock();
         if (kvt == NULL)
             return STATUS_UNKNOWN_ERR;
 
         // Now initialize object properties
         char base[128];
         kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs));
+        kvt_deploy(kvt, "/scene", "selected", 0.0f);
 
         for (size_t i=0; i<nobjs; ++i)
         {
@@ -123,9 +124,9 @@ namespace lsp
         // Drop rare (unused) objects
         kvt_cleanup_objects(kvt, nobjs);
 
-        wrapper->kvt_release();
+        pCore->kvt_release();
 
-        return STATUS_OK;
+        return res;
     }
 
     void room_builder_base::kvt_cleanup_objects(KVTStorage *kvt, size_t objects)
@@ -558,11 +559,6 @@ namespace lsp
         return room_builder_base_metadata::FFT_RANK_MIN + rank;
     }
 
-    void room_builder_base::perform_osc_receive()
-    {
-        // TODO: process different incoming OSC messages
-    }
-
     void room_builder_base::update_settings()
     {
         float out_gain      = pOutGain->getValue();
@@ -708,10 +704,7 @@ namespace lsp
 
     void room_builder_base::process(size_t samples)
     {
-        // Stage 1: process incoming OSC events
-        perform_osc_receive();
-
-        // Stage 2: process reconfiguration requests and file events
+        // Process reconfiguration requests and file events
         sync_offline_tasks();
 
         // Stage 3: output additional metering parameters

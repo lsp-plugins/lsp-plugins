@@ -47,11 +47,11 @@ namespace lsp
             void     connect_client();
             void     disconnect_client();
 
-            static status_t parse_message(KVTStorage *kvt, const void *data, size_t size);
-            static status_t parse_message(KVTStorage *kvt, const osc::packet_t *packet);
+            static status_t parse_message(KVTStorage *kvt, const void *data, size_t size, size_t flags);
+            static status_t parse_message(KVTStorage *kvt, const osc::packet_t *packet, size_t flags);
 
-            static status_t transmit_message(const char *param_name, const kvt_param_t *param, osc::packet_t *packet, size_t limit);
-            static status_t transmit_message(const char *param_name, const kvt_param_t *param, void *data, size_t *size, size_t limit);
+            static status_t build_message(const char *param_name, const kvt_param_t *param, osc::packet_t *packet, size_t limit);
+            static status_t build_message(const char *param_name, const kvt_param_t *param, void *data, size_t *size, size_t limit);
     };
 }
 

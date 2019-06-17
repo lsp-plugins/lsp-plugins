@@ -301,7 +301,7 @@ namespace lsp
                         break;
 
                     // Try to serialize changes
-                    res = KVTDispatcher::transmit_message(kvt_name, p, &pOscBuffer[sizeof(LV2_Atom)], &size, OSC_PACKET_MAX);
+                    res = KVTDispatcher::build_message(kvt_name, p, &pOscBuffer[sizeof(LV2_Atom)], &size, OSC_PACKET_MAX);
                     if (res == STATUS_OK)
                     {
                         lsp_trace("Sending OSC message");
@@ -786,7 +786,7 @@ namespace lsp
             osc::dump_packet(msg_start, msg_size);
 
             // Try to parse KVT message first
-            res = KVTDispatcher::parse_message(&sKVT, msg_start, msg_size);
+            res = KVTDispatcher::parse_message(&sKVT, msg_start, msg_size, KVT_TX);
             if (res != STATUS_SKIP)
                 return;
 

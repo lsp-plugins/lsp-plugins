@@ -53,8 +53,11 @@ namespace lsp
             {
                 case STATUS_OK:
                 {
+                    lsp_trace("Fetched OSC message (%d bytes)", int(size));
+                    osc::dump_packet(pPacket, size);
+
                     // Analyze parsing result
-                    if ((res = parse_message(pKVT, pPacket, size)) != STATUS_OK)
+                    if ((res = parse_message(pKVT, pPacket, size, KVT_RX)) != STATUS_OK)
                     {
                         // Skipped message?
                         if (res != STATUS_SKIP)
@@ -103,12 +106,15 @@ namespace lsp
                 break;
 
             // Try to serialize changes
-            res = transmit_message(kvt_name, p, pPacket, &size, OSC_PACKET_MAX);
+            res = build_message(kvt_name, p, pPacket, &size, OSC_PACKET_MAX);
             if (res != STATUS_OK)
             {
                 iter->commit(KVT_TX);
                 continue;
             }
+
+            lsp_trace("Transmitting OSC message (%d bytes)", int(size));
+            osc::dump_packet(pPacket, size);
 
             // Submit to queue
             res = pTx->submit(pPacket, size);
@@ -205,7 +211,7 @@ namespace lsp
             nTxRequest  = 0;
     }
 
-    status_t KVTDispatcher::parse_message(KVTStorage *kvt, const void *data, size_t size)
+    status_t KVTDispatcher::parse_message(KVTStorage *kvt, const void *data, size_t size, size_t flags)
     {
         osc::parser_t parser;
         osc::parse_frame_t root, message;
@@ -330,9 +336,9 @@ namespace lsp
                 {
                     lsp_trace("Message has been fully read, submitting to KVT");
 
-                    // Put the change to the KVT storage with RX flags set
+                    // Put the change to the KVT storage with RX/TX flags set
                     // We can freely use the address pointer while the pPacket is valid
-                    res = kvt->put(address, &p, KVT_TX);
+                    res = kvt->put(address, &p, flags);
                 }
             }
         }
@@ -345,17 +351,17 @@ namespace lsp
         return res;
     }
 
-    status_t KVTDispatcher::parse_message(KVTStorage *kvt, const osc::packet_t *packet)
+    status_t KVTDispatcher::parse_message(KVTStorage *kvt, const osc::packet_t *packet, size_t flags)
     {
-        return parse_message(kvt, packet->data, packet->size);
+        return parse_message(kvt, packet->data, packet->size, flags);
     }
 
 
-    status_t KVTDispatcher::transmit_message(const char *kvt_name, const kvt_param_t *p, void *data, size_t *size, size_t limit)
+    status_t KVTDispatcher::build_message(const char *kvt_name, const kvt_param_t *p, void *data, size_t *size, size_t limit)
     {
         status_t res;
         osc::forge_t forge;
-        osc::forge_frame_t root, message;\
+        osc::forge_frame_t root, message;
         osc::packet_t packet;
 
         // Serialize message
@@ -414,8 +420,8 @@ namespace lsp
         return res;
     }
 
-    status_t KVTDispatcher::transmit_message(const char *param_name, const kvt_param_t *param, osc::packet_t *packet, size_t limit)
+    status_t KVTDispatcher::build_message(const char *param_name, const kvt_param_t *param, osc::packet_t *packet, size_t limit)
     {
-        return transmit_message(param_name, param, &packet->data, &packet->size, limit);
+        return build_message(param_name, param, &packet->data, &packet->size, limit);
     }
 }

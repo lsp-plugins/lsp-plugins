@@ -73,7 +73,7 @@ namespace lsp
 
             LSPMesh3D *mesh = widget_cast<LSPMesh3D>(pWidget);
             if (mesh != NULL)
-                sColor.init_hsl2(pRegistry, pWidget, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+                sColor.init_hsl2(pRegistry, pWidget, &sXColor, A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
 
             mesh->slots()->bind(LSPSLOT_DRAW3D, slot_on_draw3d, this);
         }

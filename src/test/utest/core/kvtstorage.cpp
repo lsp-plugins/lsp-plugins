@@ -509,6 +509,40 @@ UTEST_BEGIN("core", kvtstorage)
         UTEST_ASSERT(modified == 16);
     }
 
+    void test_unexisting_branch(KVTStorage &s, TestListener &l)
+    {
+        // Print the whole content of the tree
+        l.clear();
+        l.verbose(false);
+        KVTIterator *it = s.enum_branch("/some/branch", true);
+        UTEST_ASSERT(it != NULL);
+        printf("Dumping the state of unexisting branch of KVTTree\n");
+
+        status_t res;
+        size_t modified = 0;
+        while ((res = it->next()) == STATUS_OK)
+        {
+            const char *name = it->name();
+            const kvt_param_t *cp;
+
+            if (it->exists())
+            {
+                UTEST_ASSERT(it->get(&cp) == STATUS_OK)
+                dump_parameter(name, cp);
+                if (it->pending())
+                    ++modified;
+            }
+            else
+                printf("%s -> null\n", name);
+        }
+
+        UTEST_ASSERT(res == STATUS_NOT_FOUND);
+        l.verbose(true);
+        UTEST_ASSERT(l.check(F_All ^ F_Missed, 0));
+        UTEST_ASSERT(l.check(F_Missed, 1));
+    }
+
+
     void test_commit_entries(KVTStorage &s, TestListener &l)
     {
         // Commit
@@ -805,6 +839,7 @@ UTEST_BEGIN("core", kvtstorage)
         test_create_entries(s, l);
         test_replace_entries(s, l);
         test_read_entries(s, l);
+        test_unexisting_branch(s, l);
         test_commit_entries(s, l);
         test_existense_entries(s, l);
         test_remove_entries(s, l);

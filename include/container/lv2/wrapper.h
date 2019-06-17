@@ -598,10 +598,10 @@ namespace lsp
             if (res != STATUS_OK)
                 return;
 
-            lsp_trace("Received OSC message of %d bytes", int(msg_size));
+            lsp_trace("Received OSC message of %d bytes, address=%s", int(msg_size), msg_addr);
             osc::dump_packet(msg_start, msg_size);
 
-            if (::strstr(msg_addr, "/KVT/") != msg_addr)
+            if (::strstr(msg_addr, "/KVT/") == msg_addr)
                 pKVTDispatcher->submit(msg_start, msg_size);
             else
             {
