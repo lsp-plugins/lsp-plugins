@@ -31,7 +31,7 @@ namespace lsp
                 void        commit_value(float value);
 
             public:
-                CtlKnob(CtlRegistry *src, LSPKnob *widget);
+                explicit CtlKnob(CtlRegistry *src, LSPKnob *widget);
                 virtual ~CtlKnob();
 
             public:

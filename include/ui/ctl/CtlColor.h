@@ -17,8 +17,15 @@ namespace lsp
             private:
                 enum component_t
                 {
-                    C_BASIC, C_R, C_G, C_B, C_H, C_S, C_L,
+                    C_BASIC,
+                    C_R, C_G, C_B, C_H, C_S, C_L,
                     C_TOTAL
+                };
+
+                enum static_t
+                {
+                    C_ST_R, C_ST_G, C_ST_B, C_ST_H, C_ST_S, C_ST_L,
+                    C_ST_TOTAL
                 };
 
             private:
@@ -26,6 +33,7 @@ namespace lsp
                 LSPWidget      *pWidget;
                 CtlPort        *vComponents[C_TOTAL];
                 size_t          vAttributes[C_TOTAL];
+                size_t          vStatic[C_ST_TOTAL];
                 char           *vValues[C_TOTAL];
                 Color           sColor;
                 Color          *pDstColor;
@@ -80,6 +88,10 @@ namespace lsp
                 {
                     do_init(reg, widget, NULL, col, basic, -1, -1, -1, -1, -1, -1);
                 }
+
+                void map_static(size_t r, size_t g, size_t b, size_t h, size_t s, size_t l);
+                void map_static_rgb(size_t r, size_t g, size_t b);
+                void map_static_hsl(size_t h, size_t s, size_t l);
 
                 void set_alpha(float alpha);
 

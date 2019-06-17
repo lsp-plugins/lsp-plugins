@@ -9,6 +9,7 @@
 #include <core/3d/common.h>
 #include <core/3d/bsp_context.h>
 #include <core/files/Model3DFile.h>
+#include <plugins/room_builder.h>
 
 namespace lsp
 {
@@ -380,6 +381,10 @@ namespace lsp
                 case A_TRANSPARENCY:
                     PARSE_FLOAT(value, fOpacity = 1.0f - __);
                     break;
+                case A_KVT_ROOT:
+                    sKvtRoot.set_utf8(value);
+                    pRegistry->add_kvt_listener(this);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -492,6 +497,29 @@ namespace lsp
                 if (!o->is_visible())
                     continue;
 
+                matrix3d_t om = *(o->matrix());
+                if (!sKvtRoot.is_empty())
+                {
+                    KVTStorage *kvt = pRegistry->kvt_lock();
+                    if (kvt)
+                    {
+                        room_builder_base::obj_props_t props;
+                        LSPString base;
+                        bool res = base.set(&sKvtRoot);
+                        if (res) res = base.fmt_append_ascii("%d", int(i));
+
+                        if (res)
+                        {
+                            matrix3d_t tmp;
+                            room_builder_base::read_object_properties(&props, base.get_utf8(), kvt);
+                            room_builder_base::build_object_matrix(&tmp, &props);
+                            dsp::apply_matrix3d_mm2(&om, &tmp, &om);
+                        }
+
+                        pRegistry->kvt_release();
+                    }
+                }
+
                 Color xc(col);
                 color3d_t c;
                 xc.hue(float(i) / float(n));
@@ -501,7 +529,7 @@ namespace lsp
                 c.b         = xc.blue();
                 c.a         = fOpacity; // Update alpha value
 
-                dsp::apply_matrix3d_mm2(&m, &sOrientation, o->matrix());
+                dsp::apply_matrix3d_mm2(&m, &sOrientation, &om);
                 res = ctx.add_object(o, i, &m, &c);
                 if (res != STATUS_OK)
                     return;
@@ -572,26 +600,6 @@ namespace lsp
             // Draw call
             r3d->draw_primitives(&buf);
 
-//            static const v_point3d_t points[] =
-//            {
-//                { { -1.0f, -1.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-//                { { 1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-//                { { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-//            };
-//
-//            buf.type    = R3D_PRIMITIVE_TRIANGLES;
-//            buf.count   = 1;
-//            buf.width   = 1.0f;
-//
-//            buf.vertex.data     = &points[0].p;
-//            buf.vertex.stride   = sizeof(v_point3d_t);
-//            buf.normal.data     = NULL;
-//            buf.color.data      = &points[0].c;
-//            buf.color.stride    = sizeof(v_point3d_t);
-//            buf.index.data      = NULL;
-//
-//            r3d->draw_primitives(&buf);
-
             // Render supplementary objects
             for (size_t i=0, n=area->num_objects3d(); i<n; ++i)
             {
@@ -622,6 +630,16 @@ namespace lsp
             r3d->draw_primitives(&buf);
 
             return STATUS_OK;
+        }
+
+        bool CtlViewer3D::changed(KVTStorage *kvt, const char *id, const kvt_param_t *value)
+        {
+            if (::strstr(id, sKvtRoot.get_utf8()) != id)
+                return false;
+
+            bViewChanged    = true;
+            pWidget->query_draw();
+            return true;
         }
     
     } /* namespace ctl */

@@ -139,6 +139,7 @@ namespace lsp
             A_ID2,
             A_INVERT,
             A_KEY,
+            A_KVT_ROOT,
             A_LED,
             A_LENGTH,
             A_LENGTH_ID,
@@ -174,6 +175,7 @@ namespace lsp
             A_SAT2_ID,
             A_SAT_ID,
             A_SCALE_COLOR,
+            A_SCALE_HUE,
             A_SCALE_HUE_ID,
             A_SCALE_LIGHT_ID,
             A_SCALE_SAT_ID,
@@ -253,6 +255,7 @@ namespace lsp
 #include <ui/ctl/CtlExpression.h>
 #include <ui/ctl/CtlColor.h>
 #include <ui/ctl/CtlPadding.h>
+#include <ui/ctl/CtlKvtListener.h>
 
 // Parsing header
 #include <ui/ctl/parse.h>
@@ -302,7 +305,6 @@ namespace lsp
 #include <ui/ctl/CtlSource3D.h>
 
 // Specials
-#include <ui/ctl/CtlKvtListener.h>
 #include <ui/ctl/CtlPortAlias.h>
 #include <ui/ctl/CtlSwitchedPort.h>
 #include <ui/ctl/CtlControlPort.h>

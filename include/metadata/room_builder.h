@@ -39,9 +39,9 @@ namespace lsp
         static const float POSITION_DFL             = 0.0f;
         static const float POSITION_STEP            = 0.002f;
 
-        static const float OSIZE_MIN                = 0.01f;
-        static const float OSIZE_MAX                = 100.0f;
-        static const float OSIZE_DFL                = 1.0f;
+        static const float OSIZE_MIN                = 10.0f;
+        static const float OSIZE_MAX                = 1000.0f;
+        static const float OSIZE_DFL                = 100.0f;
         static const float OSIZE_STEP               = 0.1f;
 
         static const float SOURCE_MIN               = 1.0f;

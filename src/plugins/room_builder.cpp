@@ -103,9 +103,9 @@ namespace lsp
             kvt_deploy(kvt, base, "rotation/yaw", 0.0f);
             kvt_deploy(kvt, base, "rotation/pitch", 0.0f);
             kvt_deploy(kvt, base, "rotation/roll", 0.0f);
-            kvt_deploy(kvt, base, "scale/x", 1.0f);
-            kvt_deploy(kvt, base, "scale/y", 1.0f);
-            kvt_deploy(kvt, base, "scale/z", 1.0f);
+            kvt_deploy(kvt, base, "scale/x", 100.0f);
+            kvt_deploy(kvt, base, "scale/y", 100.0f);
+            kvt_deploy(kvt, base, "scale/z", 100.0f);
             kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs));
 
             kvt_deploy(kvt, base, "material/absorption/outer", 0.02f);
@@ -208,6 +208,8 @@ namespace lsp
     {
         matrix3d_t tmp;
 
+        dsp::init_matrix3d_identity(m);
+
         // Apply translation
         dsp::init_matrix3d_translate(&tmp,
                 props->sCenter.x + props->sMove.dx,
@@ -227,7 +229,7 @@ namespace lsp
         dsp::apply_matrix3d_mm1(m, &tmp);
 
         // Apply scale
-        dsp::init_matrix3d_scale(&tmp, props->sScale.dx, props->sScale.dy, props->sScale.dz);
+        dsp::init_matrix3d_scale(&tmp, props->sScale.dx * 0.01f, props->sScale.dy * 0.01f, props->sScale.dz * 0.01f);
         dsp::apply_matrix3d_mm1(m, &tmp);
 
         // Move center to (0, 0, 0) point

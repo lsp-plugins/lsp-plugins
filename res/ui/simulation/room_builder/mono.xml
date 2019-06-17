@@ -15,6 +15,7 @@
 					orientation_id="ifo" status_id="ifs"
 					xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
 					yaw_id="cyaw" pitch_id="cpitch"
+					kvt_root="/scene/object/"
 				>
 					<ui:for id="i" first="0" last="7" >
 						<source3d
@@ -263,9 +264,9 @@
 						<label text="Y Move" />
 						<label text="Z Move" />
 						
-						<knob id="kvt:xpos" size="16" scale_hue_id="kvt:hue" />
-						<knob id="kvt:ypos" size="16" scale_hue_id="kvt:hue" />
-						<knob id="kvt:zpos" size="16" scale_hue_id="kvt:hue" />
+						<knob id="kvt:xpos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<knob id="kvt:ypos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<knob id="kvt:zpos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 						
 						<value id="kvt:xpos" same_line="true" />
 						<value id="kvt:ypos" same_line="true" />
@@ -278,9 +279,9 @@
 						<label text="Pitch" />
 						<label text="Roll" />
 						
-						<knob id="kvt:yaw" size="16" scale_hue_id="kvt:hue" />
-						<knob id="kvt:pitch" size="16" scale_hue_id="kvt:hue" />
-						<knob id="kvt:roll" size="16" scale_hue_id="kvt:hue" />
+						<knob id="kvt:yaw" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<knob id="kvt:pitch" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<knob id="kvt:roll" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 						
 						<value id="kvt:yaw" same_line="true" />
 						<value id="kvt:pitch" same_line="true" />
@@ -293,9 +294,9 @@
 						<label text="Y Scale" />
 						<label text="Z Scale" />
 						
-						<knob id="kvt:xscale" size="16" scale_hue_id="kvt:hue" />
-						<knob id="kvt:yscale" size="16" scale_hue_id="kvt:hue" />
-						<knob id="kvt:zscale" size="16" scale_hue_id="kvt:hue" />
+						<knob id="kvt:xscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<knob id="kvt:yscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<knob id="kvt:zscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 						
 						<value id="kvt:xscale" same_line="true" />
 						<value id="kvt:yscale" same_line="true" />

@@ -19,7 +19,7 @@ namespace lsp
         /**
          * 3D Model viewer
          */
-        class CtlViewer3D: public CtlWidget
+        class CtlViewer3D: public CtlWidget, public CtlKvtListener
         {
             protected:
                 typedef struct pov_angles_t
@@ -52,6 +52,7 @@ namespace lsp
                 matrix3d_t      sOrientation;
 
                 Scene3D         sScene;
+                LSPString       sKvtRoot;
                 cstorage<v_vertex3d_t>      vVertexes;  // Vertexes of the scene
 
                 // Camera position
@@ -106,6 +107,8 @@ namespace lsp
                 virtual void notify(CtlPort *port);
 
                 virtual status_t add(LSPWidget *child);
+
+                virtual bool changed(KVTStorage *kvt, const char *id, const kvt_param_t *value);
         };
     
     } /* namespace ctl */

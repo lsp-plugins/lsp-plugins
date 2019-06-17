@@ -38,10 +38,10 @@ namespace lsp
 
         void CtlColor::do_init(CtlRegistry *reg, LSPWidget *widget, Color *col, LSPColor *lcol, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
         {
-            pRegistry           = reg;
-            pWidget             = widget;
-            pDstColor           = col;
-            pLspColor           = lcol;
+            pRegistry               = reg;
+            pWidget                 = widget;
+            pDstColor               = col;
+            pLspColor               = lcol;
 
             vAttributes[C_BASIC]    = basic;
             vAttributes[C_R]        = r;
@@ -51,6 +51,13 @@ namespace lsp
             vAttributes[C_S]        = s;
             vAttributes[C_L]        = l;
 
+            vStatic[C_ST_R]         = -1;
+            vStatic[C_ST_G]         = -1;
+            vStatic[C_ST_B]         = -1;
+            vStatic[C_ST_H]         = -1;
+            vStatic[C_ST_S]         = -1;
+            vStatic[C_ST_L]         = -1;
+
             for (size_t i=0; i<C_TOTAL; ++i)
                 vValues[i]              = NULL;
 
@@ -58,6 +65,30 @@ namespace lsp
                 sColor.copy(pDstColor);
             else if (pLspColor != NULL)
                 sColor.copy(pLspColor->color());
+        }
+
+        void CtlColor::map_static(size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
+        {
+            vStatic[C_ST_R]         = r;
+            vStatic[C_ST_G]         = g;
+            vStatic[C_ST_B]         = b;
+            vStatic[C_ST_H]         = h;
+            vStatic[C_ST_S]         = s;
+            vStatic[C_ST_L]         = l;
+        }
+
+        void CtlColor::map_static_rgb(size_t r, size_t g, size_t b)
+        {
+            vStatic[C_ST_R]         = r;
+            vStatic[C_ST_G]         = g;
+            vStatic[C_ST_B]         = b;
+        }
+
+        void CtlColor::map_static_hsl(size_t h, size_t s, size_t l)
+        {
+            vStatic[C_ST_H]         = h;
+            vStatic[C_ST_S]         = s;
+            vStatic[C_ST_L]         = l;
         }
 
         void CtlColor::notify(CtlPort *port)
@@ -174,6 +205,30 @@ namespace lsp
                 p->bind(this);
                 vComponents[i] = p;
                 set = true;
+            }
+
+            for (size_t i=C_ST_R; i<=C_ST_L; ++i)
+            {
+                if (size_t(att) != vStatic[i])
+                    continue;
+
+                float res;
+                if (parse_float(value, &res))
+                {
+                    switch (i)
+                    {
+                        case C_ST_R: sColor.red(res); break;
+                        case C_ST_G: sColor.green(res); break;
+                        case C_ST_B: sColor.blue(res); break;
+                        case C_ST_H: sColor.hue(res); break;
+                        case C_ST_S: sColor.saturation(res); break;
+                        case C_ST_L: sColor.lightness(res); break;
+                        default:
+                            continue;
+                    }
+
+                    commit_color();
+                }
             }
 
             return set;
