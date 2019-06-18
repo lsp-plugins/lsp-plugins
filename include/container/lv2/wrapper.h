@@ -1406,13 +1406,15 @@ namespace lsp
 
     static status_t append_buffer(LV2_Atom_Object **buf, size_t *size, size_t *capacity, const void *data, size_t bytes, bool pad)
     {
-        size_t reserve = (pad) ? (bytes + sizeof(uint64_t) - 1) & (~sizeof(uint64_t)) : bytes;
+        size_t tail = *size + bytes;
+        if (pad)
+            tail    = (tail + sizeof(uint64_t) - 1) & (~(sizeof(uint64_t) - 1));
+        size_t osize = *size;
 
         // Ensure that we have enough space
-        size_t new_cap = *size + reserve;
-        if (new_cap > *capacity)
+        if (tail > *capacity)
         {
-            new_cap     = new_cap + (new_cap >> 1);
+            size_t new_cap     = tail + (tail >> 1);
             LV2_Atom_Object *ptr = reinterpret_cast<LV2_Atom_Object *>(::realloc(*buf, new_cap));
             if (ptr == NULL)
                 return STATUS_NO_MEM;
@@ -1426,14 +1428,14 @@ namespace lsp
         *size      += bytes;
 
         // Perform padding?
-        if (*size < reserve)
+        if (*size < tail)
         {
-            ::bzero(&dst[*size], reserve - (*size));
-            *size   = reserve;
+            ::bzero(&dst[*size], tail - (*size));
+            *size   = tail;
         }
 
         // Update object size
-        (*buf)->atom.size      += reserve;
+        (*buf)->atom.size      += tail - osize;
         return STATUS_OK;
     }
 
@@ -1453,7 +1455,7 @@ namespace lsp
         status_t res;
 
         // Emit size
-        LV2_Atom_Property prop;
+        LV2_Atom_Property prop; // TODO:  LV2_Atom_Property  -> LV2_Atom_Property_Body
         int64_t bsize           = b->size;
         prop.atom.size          = sizeof(LV2_Atom_Property_Body) - sizeof(LV2_Atom);
         prop.atom.type          = pExt->forge.Property;
@@ -1553,12 +1555,28 @@ namespace lsp
             size_t size     = sizeof(LV2_Atom_Object);
             size_t capacity = size + 0x100;
 
+            lsp_trace("Atom mapping:");
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridObject), pExt->uridObject);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Property), pExt->forge.Property);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Int), pExt->forge.Int);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Long), pExt->forge.Long);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridTypeUInt), pExt->uridTypeUInt);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridTypeULong), pExt->uridTypeULong);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Float), pExt->forge.Float);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Double), pExt->forge.Double);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.String), pExt->forge.String);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Chunk), pExt->forge.Chunk);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridKvtStorage), pExt->uridKvtStorage);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridBlobSize), pExt->uridBlobSize);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridContentType), pExt->uridContentType);
+            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridBlobData), pExt->uridBlobData);
+
             LV2_Atom_Object *obj = reinterpret_cast<LV2_Atom_Object *>(::malloc(capacity));
             if (obj != NULL)
             {
                 obj->atom.size  = sizeof(LV2_Atom_Object_Body);
                 obj->atom.type  = pExt->uridObject;
-                obj->body.id    = 0;
+                obj->body.id    = pExt->uridKvtStorage;
                 obj->body.otype = pExt->uridKvtStorage;
 
                 status_t res    = STATUS_OK;
@@ -1574,23 +1592,20 @@ namespace lsp
                     if (name == NULL)
                         break;
 
-                    kvt_dump_parameter("Saving state of KVT parameter: %s", p, name);
+                    kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
 
-                    LV2_Atom_Property prop;
+                    LV2_Atom_Property_Body prop;
 
-                    prop.atom.size          = sizeof(LV2_Atom_Property_Body) - sizeof(LV2_Atom);
-                    prop.atom.type          = pExt->forge.Property;
-                    prop.body.key           = pExt->map_uri(name);
-                    prop.body.context       = 0;
+                    prop.key           = pExt->map_kvt(name);
+                    prop.context       = 0;
 
                     switch (p->type)
                     {
                         case KVT_INT32:
                         case KVT_UINT32:
                         {
-                            prop.body.value.size    = sizeof(int32_t);
-                            prop.body.value.type    = (p->type == KVT_INT32) ? pExt->forge.Int : pExt->uridTypeUInt;
-                            prop.atom.size         += prop.body.value.size;
+                            prop.value.size         = sizeof(int32_t);
+                            prop.value.type         = (p->type == KVT_INT32) ? pExt->forge.Int : pExt->uridTypeUInt;
                             res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
                             if (res == STATUS_OK)
                                 res                     = append_buffer(&obj, &size, &capacity, &p->u32, sizeof(p->u32), true);
@@ -1600,9 +1615,8 @@ namespace lsp
                         case KVT_INT64:
                         case KVT_UINT64:
                         {
-                            prop.body.value.size    = sizeof(int64_t);
-                            prop.body.value.type    = (p->type == KVT_INT64) ? pExt->forge.Long : pExt->uridTypeULong;
-                            prop.atom.size         += prop.body.value.size;
+                            prop.value.size         = sizeof(int64_t);
+                            prop.value.type         = (p->type == KVT_INT64) ? pExt->forge.Long : pExt->uridTypeULong;
                             res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
                             if (res == STATUS_OK)
                                 res                     = append_buffer(&obj, &size, &capacity, &p->u64, sizeof(p->u64), true);
@@ -1610,9 +1624,8 @@ namespace lsp
                         }
                         case KVT_FLOAT32:
                         {
-                            prop.body.value.size    = sizeof(float);
-                            prop.body.value.type    = pExt->forge.Float;
-                            prop.atom.size         += prop.body.value.size;
+                            prop.value.size         = sizeof(float);
+                            prop.value.type         = pExt->forge.Float;
                             res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
                             if (res == STATUS_OK)
                                 res                     = append_buffer(&obj, &size, &capacity, &p->f32, sizeof(p->f32), true);
@@ -1620,9 +1633,8 @@ namespace lsp
                         }
                         case KVT_FLOAT64:
                         {
-                            prop.body.value.size    = sizeof(double);
-                            prop.body.value.type    = pExt->forge.Double;
-                            prop.atom.size         += prop.body.value.size;
+                            prop.value.size         = sizeof(double);
+                            prop.value.type         = pExt->forge.Double;
                             res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
                             if (res == STATUS_OK)
                                 res                     = append_buffer(&obj, &size, &capacity, &p->f64, sizeof(p->f64), true);
@@ -1630,12 +1642,11 @@ namespace lsp
                         }
                         case KVT_STRING:
                         {
-                            prop.body.value.size    = ::strlen(p->str) + 1;
-                            prop.body.value.type    = pExt->forge.String;
-                            prop.atom.size         += prop.body.value.size;
+                            prop.value.size         = ::strlen(p->str) + 1;
+                            prop.value.type         = pExt->forge.String;
                             res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
                             if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, p->str, prop.body.value.size, true);
+                                res                     = append_buffer(&obj, &size, &capacity, p->str, prop.value.size, true);
                             break;
                         }
                         case KVT_BLOB:
@@ -1646,8 +1657,8 @@ namespace lsp
                             if (res != STATUS_OK)
                                 break;
 
-                            prop.body.value.size    = bsize;
-                            prop.body.value.type    = pExt->forge.Object;
+                            prop.value.size         = bsize + sizeof(LV2_Atom);
+                            prop.value.type         = pExt->forge.Object;
 
                             res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
                             if (res == STATUS_OK)

@@ -515,7 +515,7 @@ namespace lsp
                 va_end(vl);
 
                 LV2_URID res = map->map(map->handle, tmpbuf);
-                lsp_trace("URID for <%s> is %d", tmpbuf, int(res));
+                lsp_trace("URID for <%s> is %d (0x%x)", tmpbuf, int(res), int(res));
                 return res;
             }
 
