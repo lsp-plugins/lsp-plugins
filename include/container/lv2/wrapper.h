@@ -1574,6 +1574,35 @@ namespace lsp
             LV2_Atom_Object *obj = reinterpret_cast<LV2_Atom_Object *>(::malloc(capacity));
             if (obj != NULL)
             {
+//                LV2_Atom_Forge_Frame frame;
+//                LV2_Atom *msg       = pExt->forge_object(&frame, 0, pExt->uridKvtStorage);
+//
+//                pExt->forge_key(pExt->map_kvt("/scene/selected"));
+//                pExt->forge_int(int32_t(0));
+//                pExt->forge_key(pExt->map_kvt("/scene/objects"));
+//                pExt->forge_int(int32_t(0));
+//                pExt->forge_key(pExt->map_kvt("/scene/object/0/enabled"));
+//                pExt->forge_float(1.0f);
+//                pExt->forge_pop(&frame);
+//
+//                lsp_dumpb("KVT state dump", msg, msg->size + sizeof(LV2_Atom_Object) - sizeof(LV2_Atom_Object_Body));
+//
+//                pExt->store_value(0, pExt->uridObject, &msg[1], msg->size);
+
+//                LV2_Atom_Forge forge;
+//                LV2_State_Store_Function hStore;
+//                LV2_URID_Map *map;
+//
+//                LV2_Atom *msg       = lv2_atom_forge_object(&forge, &frame, 0, map->map(map->handle, "http://lsp-plug.in/kvt/KVT"));
+//                lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/selected"));
+//                lv2_atom_forge_int(&forge, int32_t(0));
+//                lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/objects"));
+//                lv2_atom_forge_int(&forge, int32_t(0));
+//                lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/object/0/enabled"));
+//                lv2_atom_forge_float(&forge, 1.0f);
+//                lv2_atom_forge_pop(&forge, &frame);
+//                hStore(handle, 0, &msg[1], msg->size, forge.Object, LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
+
                 obj->atom.size  = sizeof(LV2_Atom_Object_Body);
                 obj->atom.type  = pExt->uridObject;
                 obj->body.id    = pExt->uridKvtStorage;
