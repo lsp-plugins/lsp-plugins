@@ -115,6 +115,13 @@ namespace lsp
             LV2_URID                uridDisconnectUI;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
+            LV2_URID                uridKvtStorage;
+            LV2_URID                uridBlob;
+            LV2_URID                uridBlobSize;
+            LV2_URID                uridBlobData;
+            LV2_URID                uridContentType;
+            LV2_URID                uridTypeUInt;
+            LV2_URID                uridTypeULong;
 
             LV2_URID                uridPatchGet;
             LV2_URID                uridPatchSet;
@@ -209,7 +216,6 @@ namespace lsp
                             ui_resize = reinterpret_cast<LV2UI_Resize *>(f->data);
                         else if (!strcmp(f->URI, LV2_INLINEDISPLAY__queue_draw))
                             iDisplay = reinterpret_cast<LV2_Inline_Display *>(f->data);
-// TODO: return INSTANCE_ACCESS when the LV2:Atom transport will be ready
                         else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
                             pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
                         else if (!strcmp(f->URI, LV2_OPTIONS__options))
@@ -248,6 +254,15 @@ namespace lsp
                 uridStateChange             = map_type("StateChange");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
+                uridKvtStorage              = map_type("KVT");
+                uridBlob                    = map_type("Blob");
+                uridBlobSize                = map_type("BlobSize");
+                uridBlobData                = map_type("BlobData");
+                uridContentType             = map_type("ContentType");
+
+                uridTypeUInt                = map_uri(LV2_ATOM_PREFIX "UInt" );
+                uridTypeULong               = map_uri(LV2_ATOM_PREFIX "ULong" );
+
                 uridPatchGet                = map_uri(LV2_PATCH__Get);
                 uridPatchSet                = map_uri(LV2_PATCH__Set);
                 uridPatchMessage            = map_uri(LV2_PATCH__Message);
@@ -517,6 +532,11 @@ namespace lsp
             inline LV2_URID map_field(const char *id)
             {
                 return map_uri("%s/%s", LSP_TYPE_URI(lv2), id);
+            }
+
+            inline LV2_URID map_kvt(const char *id)
+            {
+                return map_uri(LSP_KVT_URI "%s", id);
             }
 
             inline LV2_URID map_primitive(const char *id)

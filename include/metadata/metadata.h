@@ -23,6 +23,7 @@
 #define LSP_URI(format)                                 LSP_BASE_URI "plugins/" #format "/"
 #define LSP_TYPE_URI(format)                            LSP_BASE_URI "types/" #format
 #define LSP_UI_URI(format)                              LSP_BASE_URI "ui/" #format "/"
+#define LSP_KVT_URI                                     LSP_BASE_URI "kvt"
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
 #define LSP_PLUGIN_UI_URI(format, plugin)               LSP_UI_URI(format) #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
