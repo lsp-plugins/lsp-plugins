@@ -203,6 +203,8 @@ namespace lsp
             virtual KVTStorage *kvt_trylock();
 
             virtual bool kvt_release();
+
+            inline KVTDispatcher *kvt_dispatcher() { return pKVTDispatcher; }
     };
 
     LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix)

@@ -177,6 +177,17 @@ namespace lsp
         void               *pData;
 
         /**
+         * Clear the buffer
+         */
+        void                clear();
+
+        /**
+         * Get buffer size
+         * @return buffer size
+         */
+        inline size_t       size() const { return nSize; }
+
+        /**
          * Initialize buffer
          * @param capacity the buffer capacity
          * @return status of operation

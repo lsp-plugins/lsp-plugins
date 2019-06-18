@@ -53,7 +53,7 @@ namespace lsp
             {
                 case STATUS_OK:
                 {
-                    lsp_trace("Fetched OSC message (%d bytes)", int(size));
+                    lsp_trace("Received OSC message (%d bytes)", int(size));
                     osc::dump_packet(pPacket, size);
 
                     // Analyze parsing result
@@ -162,6 +162,11 @@ namespace lsp
 
                 changes    += receive_changes();    // Perform receive first
                 changes    += transmit_changes();   // Perform transmit then
+            }
+            else
+            {
+                pTx->clear();
+                pRx->clear();
             }
             pKVT->gc();                         // Perform garbage collection
             pKVTMutex->unlock();

@@ -304,17 +304,29 @@ namespace lsp
                     res = KVTDispatcher::build_message(kvt_name, p, &pOscBuffer[sizeof(LV2_Atom)], &size, OSC_PACKET_MAX);
                     if (res == STATUS_OK)
                     {
-                        lsp_trace("Sending OSC message");
-                        osc::dump_packet(&pOscBuffer[sizeof(LV2_Atom)], size);
+                        KVTDispatcher *d = (pExt->wrapper() != NULL) ? pExt->wrapper()->kvt_dispatcher() : NULL;
 
                         // Forge raw OSC message as an atom message
-                        LV2_Atom *atom  = reinterpret_cast<LV2_Atom *>(pOscBuffer);
-                        atom->size      = size;
-                        atom->type      = pExt->uridOscRawPacket;
-                        size            = (size + sizeof(LV2_Atom) + sizeof(uint64_t) - 1) & ~(sizeof(uint64_t) - 1); // padding
+                        if (d != NULL)
+                        {
+                            lsp_trace("Submitting OSC message");
+                            osc::dump_packet(&pOscBuffer[sizeof(LV2_Atom)], size);
+                            d->submit(&pOscBuffer[sizeof(LV2_Atom)], size); // Submit directly to the KVT dispatcher
+                        }
+                        else
+                        {
+                            lsp_trace("Sending OSC message");
+                            osc::dump_packet(&pOscBuffer[sizeof(LV2_Atom)], size);
 
-                        // Submit message to the atom output port
-                        pExt->write_data(pExt->nAtomOut, size, pExt->uridEventTransfer, pOscBuffer);
+                            // Transmit message via atom interface
+                            LV2_Atom *atom  = reinterpret_cast<LV2_Atom *>(pOscBuffer);
+                            atom->size      = size;
+                            atom->type      = pExt->uridOscRawPacket;
+                            size            = (size + sizeof(LV2_Atom) + sizeof(uint64_t) - 1) & ~(sizeof(uint64_t) - 1); // padding
+
+                            // Submit message to the atom output port
+                            pExt->write_data(pExt->nAtomOut, size, pExt->uridEventTransfer, pOscBuffer);
+                        }
                     }
 
                     // Commit transfer
@@ -324,7 +336,63 @@ namespace lsp
 
             void receive_kvt_state()
             {
-                // TODO: this method will work for direct connection
+                LV2Wrapper *w = pExt->wrapper();
+                if (w == NULL)
+                    return;
+
+                // Obtain the dispatcher
+                KVTDispatcher *d = (pExt->wrapper() != NULL) ? pExt->wrapper()->kvt_dispatcher() : NULL;
+                if (d == NULL)
+                    return;
+                if (d->tx_size() <= 0) // Is there data for transfer?
+                    return;
+
+                KVTStorage *skvt = w->kvt_trylock();
+                if (skvt == NULL)
+                    return;
+
+                size_t size;
+                if (sKVTMutex.lock())
+                {
+                    status_t res;
+
+                    do
+                    {
+                        // Try to fetch record from buffer
+                        res = d->fetch(pOscBuffer, &size, OSC_PACKET_MAX);
+
+                        switch (res)
+                        {
+                            case STATUS_OK:
+                            {
+                                lsp_trace("Fetched OSC packet of %d bytes", int(size));
+                                osc::dump_packet(pOscBuffer, size);
+                                KVTDispatcher::parse_message(&sKVT, pOscBuffer, size, KVT_TX);
+                                break;
+                            }
+
+                            case STATUS_NO_DATA: // No more data to transmit
+                                break;
+
+                            case STATUS_OVERFLOW:
+                            {
+                                lsp_warn("Too large OSC packet in the buffer, skipping");
+                                d->skip();
+                                break;
+                            }
+
+                            default:
+                            {
+                                lsp_warn("OSC packet parsing error %d, skipping", int(res));
+                                d->skip();
+                                break;
+                            }
+                        }
+                    } while (res != STATUS_NO_DATA);
+
+                    sKVTMutex.unlock();
+                }
+                w->kvt_release();
             }
 
             void sync_kvt_state()

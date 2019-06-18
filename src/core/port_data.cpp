@@ -312,6 +312,13 @@ namespace lsp
         return (packet != NULL) ? submit(packet->data, packet->size) : STATUS_BAD_ARGUMENTS;
     }
 
+    void osc_buffer_t::clear()
+    {
+        nSize   = 0;
+        nHead   = 0;
+        nTail   = 0;
+    }
+
 #define SUBMIT_SIMPLE_IMPL(address, func, ...) \
         osc::packet_t packet; \
         osc::forge_t forge; \

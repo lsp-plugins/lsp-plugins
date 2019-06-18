@@ -47,6 +47,9 @@ namespace lsp
             void     connect_client();
             void     disconnect_client();
 
+            inline size_t rx_size() const { return pRx->size(); }
+            inline size_t tx_size() const { return pTx->size(); }
+
             static status_t parse_message(KVTStorage *kvt, const void *data, size_t size, size_t flags);
             static status_t parse_message(KVTStorage *kvt, const osc::packet_t *packet, size_t flags);
 

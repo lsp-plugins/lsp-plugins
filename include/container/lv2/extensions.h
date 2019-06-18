@@ -210,8 +210,8 @@ namespace lsp
                         else if (!strcmp(f->URI, LV2_INLINEDISPLAY__queue_draw))
                             iDisplay = reinterpret_cast<LV2_Inline_Display *>(f->data);
 // TODO: return INSTANCE_ACCESS when the LV2:Atom transport will be ready
-//                        else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
-//                            pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
+                        else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
+                            pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
                         else if (!strcmp(f->URI, LV2_OPTIONS__options))
                         {
                             lsp_trace("Received options from host");
