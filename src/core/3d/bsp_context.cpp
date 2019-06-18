@@ -148,6 +148,11 @@ namespace lsp
         dsp::calc_plane_pv(&task->pl, ct->v);
         bsp_triangle_t *t0, *t1;//, *spt;
 
+        // Add current triangle to 'on' list and walk through
+        on          = ct;
+        ct          = ct->next;
+        on->next    = NULL;
+
 //        RT_TRACE_BREAK(debug,
 //            lsp_trace("Prepare split space into 'in', 'out' and 'on' sub-spaces");
 //            for (bsp_triangle_t *st = task->on; st != NULL; st = st->next)
@@ -159,7 +164,6 @@ namespace lsp
 //        );
 
         // Process each triangle
-//        spt = ct;
         while (ct != NULL)
         {
             bsp_triangle_t *nt  = ct->next;
