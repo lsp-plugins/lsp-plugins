@@ -11,6 +11,7 @@
 #include <data/cvector.h>
 #include <data/chashmap.h>
 
+#include <dsp/endian.h>
 #include <core/IWrapper.h>
 #include <core/ipc/NativeExecutor.h>
 #include <core/KVTDispatcher.h>
@@ -77,7 +78,6 @@ namespace lsp
             void transmit_kvt_events();
             void receive_kvt_events();
             void clear_midi_ports();
-            status_t serialize_blob(LV2_Atom_Object **blob, const kvt_blob_t *b, size_t *out_size);
 
         public:
             inline explicit LV2Wrapper(plugin_t *plugin, LV2Extensions *ext)
@@ -1404,127 +1404,6 @@ namespace lsp
         return pExecutor;
     }
 
-    static status_t append_buffer(LV2_Atom_Object **buf, size_t *size, size_t *capacity, const void *data, size_t bytes, bool pad)
-    {
-        size_t tail = *size + bytes;
-        if (pad)
-            tail    = (tail + sizeof(uint64_t) - 1) & (~(sizeof(uint64_t) - 1));
-        size_t osize = *size;
-
-        // Ensure that we have enough space
-        if (tail > *capacity)
-        {
-            size_t new_cap     = tail + (tail >> 1);
-            LV2_Atom_Object *ptr = reinterpret_cast<LV2_Atom_Object *>(::realloc(*buf, new_cap));
-            if (ptr == NULL)
-                return STATUS_NO_MEM;
-            *buf        = ptr;
-            *capacity   = new_cap;
-        }
-
-        // Copy data to buffer
-        uint8_t *dst = reinterpret_cast<uint8_t *>(*buf);
-        ::memcpy(&dst[*size], data, bytes);
-        *size      += bytes;
-
-        // Perform padding?
-        if (*size < tail)
-        {
-            ::bzero(&dst[*size], tail - (*size));
-            *size   = tail;
-        }
-
-        // Update object size
-        (*buf)->atom.size      += tail - osize;
-        return STATUS_OK;
-    }
-
-    status_t LV2Wrapper::serialize_blob(LV2_Atom_Object **blob, const kvt_blob_t *b, size_t *out_size)
-    {
-        size_t size             = sizeof(LV2_Atom_Object);
-        size_t capacity         = size + 0x100;
-        LV2_Atom_Object *obj    = reinterpret_cast<LV2_Atom_Object *>(::malloc(capacity));
-        if (obj == NULL)
-            return STATUS_NO_MEM;
-
-        obj->atom.size          = sizeof(LV2_Atom_Object_Body);
-        obj->atom.type          = pExt->uridObject;
-        obj->body.id            = 0;
-        obj->body.otype         = pExt->uridBlob;
-
-        status_t res;
-
-        // Emit size
-        LV2_Atom_Property prop; // TODO:  LV2_Atom_Property  -> LV2_Atom_Property_Body
-        int64_t bsize           = b->size;
-        prop.atom.size          = sizeof(LV2_Atom_Property_Body) - sizeof(LV2_Atom);
-        prop.atom.type          = pExt->forge.Property;
-        prop.body.key           = pExt->uridBlobSize;
-        prop.body.context       = 0;
-        prop.body.value.size    = sizeof(uint64_t);
-        prop.body.value.type    = pExt->forge.Long;
-        prop.atom.size         += prop.body.value.size;
-
-        res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-        if (res == STATUS_OK)
-            res                     = append_buffer(&obj, &size, &capacity, &bsize, sizeof(bsize), true);
-        if (res != STATUS_OK)
-        {
-            ::free(obj);
-            return STATUS_NO_MEM;
-        }
-
-        // Emit content type
-        if (b->ctype != NULL)
-        {
-            prop.atom.size          = sizeof(LV2_Atom_Property_Body) - sizeof(LV2_Atom);
-            prop.atom.type          = pExt->forge.Property;
-            prop.body.key           = pExt->uridContentType;
-            prop.body.context       = 0;
-            prop.body.value.size    = ::strlen(b->ctype) + 1;
-            prop.body.value.type    = pExt->forge.String;
-            prop.atom.size         += prop.body.value.size;
-
-            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-            if (res == STATUS_OK)
-                res                     = append_buffer(&obj, &size, &capacity, b->ctype, prop.body.value.size, true);
-
-            if (res != STATUS_OK)
-            {
-                ::free(obj);
-                return STATUS_NO_MEM;
-            }
-        }
-
-        // Emit Content
-        if (b->data != NULL)
-        {
-            prop.atom.size          = sizeof(LV2_Atom_Property_Body) - sizeof(LV2_Atom);
-            prop.atom.type          = pExt->forge.Property;
-            prop.body.key           = pExt->uridBlobData;
-            prop.body.context       = 0;
-            prop.body.value.size    = b->size;
-            prop.body.value.type    = pExt->forge.Chunk;
-            prop.atom.size         += prop.body.value.size;
-
-            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-            if (res == STATUS_OK)
-                res                     = append_buffer(&obj, &size, &capacity, b->data, b->size, true);
-
-            if (res != STATUS_OK)
-            {
-                ::free(obj);
-                return STATUS_NO_MEM;
-            }
-        }
-
-        // Return successful result
-        *blob       = obj;
-        *out_size   = size;
-
-        return STATUS_OK;
-    }
-
     inline void LV2Wrapper::save_state(
         LV2_State_Store_Function   store,
         LV2_State_Handle           handle,
@@ -1552,169 +1431,92 @@ namespace lsp
 
         if (sKVTMutex.lock())
         {
-            size_t size     = sizeof(LV2_Atom_Object);
-            size_t capacity = size + 0x100;
+            status_t res    = STATUS_OK;
 
-            lsp_trace("Atom mapping:");
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridObject), pExt->uridObject);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Property), pExt->forge.Property);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Int), pExt->forge.Int);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Long), pExt->forge.Long);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridTypeUInt), pExt->uridTypeUInt);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridTypeULong), pExt->uridTypeULong);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Float), pExt->forge.Float);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Double), pExt->forge.Double);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.String), pExt->forge.String);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->forge.Chunk), pExt->forge.Chunk);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridKvtStorage), pExt->uridKvtStorage);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridBlobSize), pExt->uridBlobSize);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridContentType), pExt->uridContentType);
-            lsp_trace("  %s = 0x%x", pExt->unmap_urid(pExt->uridBlobData), pExt->uridBlobData);
-
-            LV2_Atom_Object *obj = reinterpret_cast<LV2_Atom_Object *>(::malloc(capacity));
-            if (obj != NULL)
+            // Read the whole KVT storage
+            KVTIterator *it = sKVT.enum_all();
+            while (it->next() == STATUS_OK)
             {
-//                LV2_Atom_Forge_Frame frame;
-//                LV2_Atom *msg       = pExt->forge_object(&frame, 0, pExt->uridKvtStorage);
-//
-//                pExt->forge_key(pExt->map_kvt("/scene/selected"));
-//                pExt->forge_int(int32_t(0));
-//                pExt->forge_key(pExt->map_kvt("/scene/objects"));
-//                pExt->forge_int(int32_t(0));
-//                pExt->forge_key(pExt->map_kvt("/scene/object/0/enabled"));
-//                pExt->forge_float(1.0f);
-//                pExt->forge_pop(&frame);
-//
-//                lsp_dumpb("KVT state dump", msg, msg->size + sizeof(LV2_Atom_Object) - sizeof(LV2_Atom_Object_Body));
-//
-//                pExt->store_value(0, pExt->uridObject, &msg[1], msg->size);
-
-//                LV2_Atom_Forge forge;
-//                LV2_State_Store_Function hStore;
-//                LV2_URID_Map *map;
-//
-//                LV2_Atom *msg       = lv2_atom_forge_object(&forge, &frame, 0, map->map(map->handle, "http://lsp-plug.in/kvt/KVT"));
-//                lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/selected"));
-//                lv2_atom_forge_int(&forge, int32_t(0));
-//                lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/objects"));
-//                lv2_atom_forge_int(&forge, int32_t(0));
-//                lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/object/0/enabled"));
-//                lv2_atom_forge_float(&forge, 1.0f);
-//                lv2_atom_forge_pop(&forge, &frame);
-//                hStore(handle, 0, &msg[1], msg->size, forge.Object, LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
-
-                obj->atom.size  = sizeof(LV2_Atom_Object_Body);
-                obj->atom.type  = pExt->uridObject;
-                obj->body.id    = pExt->uridKvtStorage;
-                obj->body.otype = pExt->uridKvtStorage;
-
-                status_t res    = STATUS_OK;
-
-                // Read the whole KVT storage
-                KVTIterator *it = sKVT.enum_all();
-                while (it->next() == STATUS_OK)
+                res             = it->get(&p);
+                if (res == STATUS_NOT_FOUND) // Not a parameter
+                    continue;
+                else if (res != STATUS_OK)
                 {
-                    status_t res = it->get(&p);
-                    if (res != STATUS_OK)
-                        continue;
-                    const char *name = it->name();
-                    if (name == NULL)
+                    lsp_trace("it->get() returned %d", int(res));
+                    break;
+                }
+                const char *name = it->name();
+                if (name == NULL)
+                {
+                    lsp_trace("it->name() returned NULL");
+                    break;
+                }
+
+                kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
+
+                LV2_URID key        =  pExt->map_kvt(name);
+
+                switch (p->type)
+                {
+                    case KVT_INT32:
+                        pExt->store_value(key, pExt->forge.Int, &p->i32, sizeof(p->i32));
                         break;
-
-                    kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
-
-                    LV2_Atom_Property_Body prop;
-
-                    prop.key           = pExt->map_kvt(name);
-                    prop.context       = 0;
-
-                    switch (p->type)
+                    case KVT_UINT32:
+                        pExt->store_value(key, pExt->uridTypeUInt, &p->u32, sizeof(p->u32));
+                        break;
+                    case KVT_INT64:
+                        pExt->store_value(key, pExt->forge.Long, &p->i64, sizeof(p->i64));
+                        break;
+                    case KVT_UINT64:
+                        pExt->store_value(key, pExt->uridTypeULong, &p->u64, sizeof(p->u64));
+                        break;
+                    case KVT_FLOAT32:
+                        pExt->store_value(key, pExt->forge.Float, &p->f32, sizeof(p->f32));
+                        break;
+                    case KVT_FLOAT64:
+                        pExt->store_value(key, pExt->forge.Float, &p->f64, sizeof(p->f64));
+                        break;
+                    case KVT_STRING:
+                        if (p->str != NULL)
+                            pExt->store_value(key, pExt->forge.String, p->str, ::strlen(p->str) + 1);
+                        break;
+                    case KVT_BLOB:
                     {
-                        case KVT_INT32:
-                        case KVT_UINT32:
+                        size_t clen             = (p->blob.ctype != NULL) ?  ::strlen(p->blob.ctype) : 0;
+                        size_t total            = sizeof(uint16_t) + sizeof(uint64_t) + clen + p->blob.size;
+                        uint8_t *blob           = reinterpret_cast<uint8_t *>(::malloc(total));
+                        if (blob == NULL)
                         {
-                            prop.value.size         = sizeof(int32_t);
-                            prop.value.type         = (p->type == KVT_INT32) ? pExt->forge.Int : pExt->uridTypeUInt;
-                            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-                            if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, &p->u32, sizeof(p->u32), true);
+                            res     = STATUS_NO_MEM;
                             break;
                         }
 
-                        case KVT_INT64:
-                        case KVT_UINT64:
-                        {
-                            prop.value.size         = sizeof(int64_t);
-                            prop.value.type         = (p->type == KVT_INT64) ? pExt->forge.Long : pExt->uridTypeULong;
-                            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-                            if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, &p->u64, sizeof(p->u64), true);
-                            break;
-                        }
-                        case KVT_FLOAT32:
-                        {
-                            prop.value.size         = sizeof(float);
-                            prop.value.type         = pExt->forge.Float;
-                            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-                            if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, &p->f32, sizeof(p->f32), true);
-                            break;
-                        }
-                        case KVT_FLOAT64:
-                        {
-                            prop.value.size         = sizeof(double);
-                            prop.value.type         = pExt->forge.Double;
-                            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-                            if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, &p->f64, sizeof(p->f64), true);
-                            break;
-                        }
-                        case KVT_STRING:
-                        {
-                            prop.value.size         = ::strlen(p->str) + 1;
-                            prop.value.type         = pExt->forge.String;
-                            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-                            if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, p->str, prop.value.size, true);
-                            break;
-                        }
-                        case KVT_BLOB:
-                        {
-                            size_t bsize            = 0;
-                            LV2_Atom_Object *blob   = NULL;
-                            res                     = serialize_blob(&blob, &p->blob, &bsize);
-                            if (res != STATUS_OK)
-                                break;
+                        uint8_t *ptr            = blob;
+                        *(reinterpret_cast<uint16_t *>(ptr)) = CPU_TO_BE(uint16_t(clen));
+                        ptr                    += sizeof(uint16_t);
+                        if (clen > 0)
+                            ::memcpy(ptr, p->blob.ctype, clen);
+                        ptr                    += clen;
+                        *(reinterpret_cast<uint64_t *>(ptr)) = CPU_TO_BE(uint64_t(p->blob.size));
+                        ptr                    += sizeof(uint64_t);
+                        if (p->blob.size > 0)
+                            ::memcpy(ptr, p->blob.data, p->blob.size);
 
-                            prop.value.size         = bsize + sizeof(LV2_Atom);
-                            prop.value.type         = pExt->forge.Object;
+                        pExt->store_value(key, pExt->uridRawBlob, blob, total);
 
-                            res                     = append_buffer(&obj, &size, &capacity, &prop, sizeof(prop), false);
-                            if (res == STATUS_OK)
-                                res                     = append_buffer(&obj, &size, &capacity, &blob->body, blob->atom.size, true);
-
-                            // Free memory allocated for the object
-                            ::free(blob);
-                            break;
-                        }
-
-                        default:
-                            res     = STATUS_BAD_TYPE;
-                            break;
+                        // Free memory allocated for the object
+                        ::free(blob);
+                        break;
                     }
 
-                    // Successful status?
-                    if (res != STATUS_OK)
+                    default:
+                        res     = STATUS_BAD_TYPE;
                         break;
                 }
 
-                lsp_dumpb("KVT state dump", obj, obj->atom.size + sizeof(LV2_Atom_Object) - sizeof(LV2_Atom_Object_Body));
-
-                if (res == STATUS_OK)
-                    pExt->store_value(0, pExt->uridObject, &obj->body, obj->atom.size);
-
-                // Free memory allocated for the object
-                ::free(obj);
+                // Successful status?
+                if (res != STATUS_OK)
+                    break;
             }
 
             sKVT.gc();

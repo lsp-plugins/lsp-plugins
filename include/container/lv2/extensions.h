@@ -116,9 +116,7 @@ namespace lsp
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
             LV2_URID                uridKvtStorage;
-            LV2_URID                uridBlob;
-            LV2_URID                uridBlobSize;
-            LV2_URID                uridBlobData;
+            LV2_URID                uridRawBlob;
             LV2_URID                uridContentType;
             LV2_URID                uridTypeUInt;
             LV2_URID                uridTypeULong;
@@ -255,9 +253,7 @@ namespace lsp
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
                 uridKvtStorage              = map_type("KVT");
-                uridBlob                    = map_type("Blob");
-                uridBlobSize                = map_type("BlobSize");
-                uridBlobData                = map_type("BlobData");
+                uridRawBlob                 = map_type("RawBlob");
                 uridContentType             = map_type("ContentType");
 
                 uridTypeUInt                = map_uri(LV2_ATOM_PREFIX "UInt" );
