@@ -633,6 +633,7 @@ namespace lsp
         if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
         {
             lsp_trace("triggered state change");
+            size_t flags = 0;
 
             for (
                 LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
@@ -642,11 +643,15 @@ namespace lsp
             {
                 lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
                 lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-
-                // Try to find the corresponding port
-                LV2Port *p = find_by_urid(vPluginPorts, body->key);
-                if ((p != NULL) && (p->get_type_urid() == body->value.type))
-                    p->deserialize(&body->value);
+                if ((body->key == pExt->uridStateFlags) && (body->value.type == pExt->forge.Int))
+                    flags = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
+                else
+                {
+                    // Try to find the corresponding port
+                    LV2Port *p = find_by_urid(vPluginPorts, body->key);
+                    if ((p != NULL) && (p->get_type_urid() == body->value.type))
+                        p->deserialize(&body->value, flags);
+                }
             }
         }
         else if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
@@ -699,7 +704,7 @@ namespace lsp
                 {
                     LV2Port *p = find_by_urid(vPluginPorts, body->value.type);
                     if ((p != NULL) && (p->get_type_urid() == value->type))
-                        p->deserialize(value);
+                        p->deserialize(value, 0); // No flags for simple PATCH message
 
                     key     = NULL;
                     value   = NULL;
@@ -1579,7 +1584,6 @@ namespace lsp
             {
                 LSPString kvt_keys, kvt_key, kvt_uri;
 
-                lsp_dumpb("Received KVT key set", ptr, p_size);
                 const char *key_list = reinterpret_cast<const char *>(ptr);
                 if ((p_size > 0) && (key_list[p_size-1] == '\0'))
                     --p_size;

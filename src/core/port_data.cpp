@@ -26,6 +26,11 @@ namespace lsp
         return "";
     }
 
+    size_t path_t::get_flags()
+    {
+        return 0;
+    }
+
     void path_t::accept()
     {
     }

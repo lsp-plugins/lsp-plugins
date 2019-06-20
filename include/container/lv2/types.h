@@ -21,7 +21,9 @@ namespace lsp
 
         atomic_t    nRequest;
         size_t      nState;
+        size_t      nFlags;
         bool        bRequest;
+        size_t      sFlags;
         char        sPath[PATH_MAX];
         char        sRequest[PATH_MAX];
 
@@ -29,7 +31,9 @@ namespace lsp
         {
             atomic_init(nRequest);
             nState      = S_EMPTY;
+            nFlags      = 0;
             bRequest    = false;
+            sFlags      = 0;
             sPath[0]    = '\0';
             sRequest[0] = '\0';
         }
@@ -37,6 +41,11 @@ namespace lsp
         virtual const char *get_path()
         {
             return sPath;
+        }
+
+        virtual size_t get_flags()
+        {
+            return nFlags;
         }
 
         virtual void accept()
@@ -66,9 +75,11 @@ namespace lsp
             if (atomic_trylock(nRequest))
             {
                 // Copy the data
-                strcpy(sPath, sRequest);
+                ::strncpy(sPath, sRequest, PATH_MAX);
                 sPath[PATH_MAX-1]   = '\0';
                 sRequest[0]         = '\0';
+                nFlags              = sFlags;
+                sFlags              = 0;
                 bRequest            = false;
                 nState              = S_PENDING;
 
@@ -83,7 +94,13 @@ namespace lsp
             return (nState == S_ACCEPTED);
         }
 
-        void submit(const char *path, size_t len)
+        /**
+         * This is non-RT-safe method to submit new path value to the RT thread
+         * @param path path string to submit
+         * @param len length of the path string
+         * @param flags additional flags
+         */
+        void submit(const char *path, size_t len, size_t flags = 0)
         {
             // Determine size of path
             size_t count = (len >= PATH_MAX) ? PATH_MAX - 1 : len;
@@ -96,8 +113,9 @@ namespace lsp
                 if (atomic_trylock(nRequest))
                 {
                     // Copy data to request
-                    memcpy(sRequest, path, count);
+                    ::memcpy(sRequest, path, count);
                     sRequest[count]     = '\0';
+                    sFlags              = flags;
                     bRequest            = true; // Mark request pending
 
                     // Release critical section

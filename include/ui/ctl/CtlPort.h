@@ -8,6 +8,8 @@
 #ifndef UI_CTL_CTLPORT_H_
 #define UI_CTL_CTLPORT_H_
 
+#include <core/IPort.h>
+
 namespace lsp
 {
     namespace ctl
@@ -47,6 +49,14 @@ namespace lsp
                  */
                 virtual void write(const void *buffer, size_t size);
 
+                /** Write some data to port
+                 *
+                 * @param buffer data to write to port
+                 * @param size size of data
+                 * @param flags additional control flags
+                 */
+                virtual void write(const void *buffer, size_t size, size_t flags);
+
                 /** Get data from port
                  *
                  * @return associated buffer (may be NULL)
@@ -70,6 +80,12 @@ namespace lsp
                  * @param value value to set
                  */
                 virtual void set_value(float value);
+
+                /** Set single float value
+                 *
+                 * @param flags additional control flags
+                 */
+                virtual void set_value(float value, size_t flags);
 
                 /** Notify all that port data has been changed
                  *

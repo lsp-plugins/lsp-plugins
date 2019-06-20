@@ -300,6 +300,12 @@ namespace lsp
          */
         virtual const char *get_path();
 
+        /**
+         * Get current flags
+         * @return current flags
+         */
+        virtual size_t get_flags();
+
         /** Check if there is pending request
          *
          * @return true if there is a pending state-change request

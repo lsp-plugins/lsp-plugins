@@ -864,7 +864,7 @@ namespace lsp
             const port_t *meta  = p->metadata();
             if ((meta == NULL) || (meta->id == NULL))
                 continue;
-            if (!strcmp(meta->id, key))
+            if (!::strcmp(meta->id, key))
                 return set_port_value(p, value);
         }
         return false;

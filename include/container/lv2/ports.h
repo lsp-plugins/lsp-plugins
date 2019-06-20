@@ -55,9 +55,9 @@ namespace lsp
             virtual void serialize()                    { };
 
             /** Deserialize state of the port from LV2 Atom
-             *
+             * @param flags additional flags
              */
-            virtual void deserialize(const void *data)  { };
+            virtual void deserialize(const void *data, size_t flags)  { };
 
             /** Get type of the LV2 port in terms of Atom
              *
@@ -140,7 +140,7 @@ namespace lsp
                 pExt->forge_int(nCurrRow);
             }
 
-            virtual void deserialize(const void *data)
+            virtual void deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Int *atom = reinterpret_cast<const LV2_Atom_Int *>(data);
                 if ((atom->body >= 0) && (atom->body < int32_t(nRows)))
@@ -280,7 +280,7 @@ namespace lsp
                     fValue      = limit_value(pMetadata, *(reinterpret_cast<const float *>(data)));
             }
 
-            virtual void deserialize(const void *data)
+            virtual void deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
                 fValue      = atom->body;
@@ -518,10 +518,10 @@ namespace lsp
         private:
             lv2_path_t      sPath;
 
-            inline void set_string(const char *string, size_t len)
+            inline void set_string(const char *string, size_t len, size_t flags)
             {
-                lsp_trace("submitting path to '%s' (length = %d)", string, int(len));
-                sPath.submit(string, len);
+                lsp_trace("submitting path to '%s' (length = %d), flags=0x%x", string, int(len), int(flags));
+                sPath.submit(string, len, flags);
             }
 
         public:
@@ -549,9 +549,9 @@ namespace lsp
                 size_t count            = 0;
                 const char *path        = reinterpret_cast<const char *>(pExt->restore_value(urid, pExt->uridPathType, &count));
                 if ((path != NULL) && (count > 0))
-                    set_string(path, count);
+                    set_string(path, count, PF_STATE_IMPORT);
                 else
-                    set_string("", 0);
+                    set_string("", 0, PF_STATE_IMPORT);
             }
 
             virtual void serialize()
@@ -559,12 +559,12 @@ namespace lsp
                 pExt->forge_path(sPath.get_path());
             }
 
-            virtual void deserialize(const void *data)
+            virtual void deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom *atom = reinterpret_cast<const LV2_Atom *>(data);
                 if (atom->type != pExt->uridPathType)
                     return;
-                set_string(reinterpret_cast<const char *>(atom + 1), atom->size);
+                set_string(reinterpret_cast<const char *>(atom + 1), atom->size, flags);
             }
 
             virtual LV2_URID get_type_urid()    { return pExt->uridPathType; }

@@ -36,7 +36,7 @@ namespace lsp
     }
 
     template <class T>
-        static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value)
+        static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value, size_t flags = 0)
         {
             char name[0x100]; // Should be enough
             size_t len = ::strlen(base) + ::strlen(branch) + 2;
@@ -47,7 +47,7 @@ namespace lsp
             *(tail++)  = '/';
             stpcpy(tail, branch);
 
-            return s->put(name, value, KVT_TO_UI) == STATUS_OK;
+            return s->put(name, value, KVT_TO_UI | flags) == STATUS_OK;
         }
 
     status_t room_builder_base::SceneLoader::run()
@@ -82,6 +82,9 @@ namespace lsp
         kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs));
         kvt_deploy(kvt, "/scene", "selected", 0.0f);
 
+        lsp_trace("Extra loading flags=0x%x", int(nFlags));
+        size_t extra = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP : 0;
+
         for (size_t i=0; i<nobjs; ++i)
         {
             Object3D *obj       = sScene.object(i);
@@ -92,33 +95,34 @@ namespace lsp
             sprintf(base, "/scene/object/%d", int(i));
             lsp_trace("Deploying KVT parameters for %s", base);
 
-            kvt_deploy(kvt, base, "name", obj->get_name());
-            kvt_deploy(kvt, base, "enabled", 1.0f);
-            kvt_deploy(kvt, base, "center/x", c->x);
-            kvt_deploy(kvt, base, "center/y", c->y);
-            kvt_deploy(kvt, base, "center/z", c->z);
-            kvt_deploy(kvt, base, "position/x", 0.0f);
-            kvt_deploy(kvt, base, "position/y", 0.0f);
-            kvt_deploy(kvt, base, "position/z", 0.0f);
-            kvt_deploy(kvt, base, "rotation/yaw", 0.0f);
-            kvt_deploy(kvt, base, "rotation/pitch", 0.0f);
-            kvt_deploy(kvt, base, "rotation/roll", 0.0f);
-            kvt_deploy(kvt, base, "scale/x", 100.0f);
-            kvt_deploy(kvt, base, "scale/y", 100.0f);
-            kvt_deploy(kvt, base, "scale/z", 100.0f);
-            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs));
+            kvt_deploy(kvt, base, "name", obj->get_name()); // Always overwrite name
 
-            kvt_deploy(kvt, base, "material/absorption/outer", 0.02f);
-            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f);
-            kvt_deploy(kvt, base, "material/dissipation/outer", 1.0f);
-            kvt_deploy(kvt, base, "material/transparency/outer", 0.48f);
+            kvt_deploy(kvt, base, "enabled", 1.0f, extra);
+            kvt_deploy(kvt, base, "center/x", c->x, extra);
+            kvt_deploy(kvt, base, "center/y", c->y, extra);
+            kvt_deploy(kvt, base, "center/z", c->z, extra);
+            kvt_deploy(kvt, base, "position/x", 0.0f, extra);
+            kvt_deploy(kvt, base, "position/y", 0.0f, extra);
+            kvt_deploy(kvt, base, "position/z", 0.0f, extra);
+            kvt_deploy(kvt, base, "rotation/yaw", 0.0f, extra);
+            kvt_deploy(kvt, base, "rotation/pitch", 0.0f, extra);
+            kvt_deploy(kvt, base, "rotation/roll", 0.0f, extra);
+            kvt_deploy(kvt, base, "scale/x", 100.0f, extra);
+            kvt_deploy(kvt, base, "scale/y", 100.0f, extra);
+            kvt_deploy(kvt, base, "scale/z", 100.0f, extra);
+            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), extra);
 
-            kvt_deploy(kvt, base, "material/absorption/inner", 0.00f);
-            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f);
-            kvt_deploy(kvt, base, "material/dissipation/inner", 1.0f);
-            kvt_deploy(kvt, base, "material/transparency/inner", 0.52f);
+            kvt_deploy(kvt, base, "material/absorption/outer", 0.02f, extra);
+            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/dissipation/outer", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/transparency/outer", 0.48f, extra);
 
-            kvt_deploy(kvt, base, "material/sound_speed", 12.88f * SOUND_SPEED_M_S);
+            kvt_deploy(kvt, base, "material/absorption/inner", 0.00f, extra);
+            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/dissipation/inner", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/transparency/inner", 0.52f, extra);
+
+            kvt_deploy(kvt, base, "material/sound_speed", 12.88f * SOUND_SPEED_M_S, extra);
         }
 
         // Drop rare (unused) objects
@@ -726,7 +730,8 @@ namespace lsp
             {
                 // Copy path
                 ::strncpy(s3DLoader.sPath, path->get_path(), PATH_MAX);
-                s3DLoader.sPath[PATH_MAX] = '\0';
+                s3DLoader.nFlags            = path->get_flags();
+                s3DLoader.sPath[PATH_MAX]   = '\0';
 
                 // Try to submit task
                 if (pExecutor->submit(&s3DLoader))

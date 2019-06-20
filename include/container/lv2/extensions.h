@@ -109,6 +109,7 @@ namespace lsp
             LV2_URID                uridBlank;
             LV2_URID                uridState;
             LV2_URID                uridStateChange;
+            LV2_URID                uridStateFlags;
             LV2_URID                uridStateRequest;
             LV2_URID                uridConnectUI;
             LV2_URID                uridUINotification;
@@ -250,6 +251,7 @@ namespace lsp
                 uridDisconnectUI            = map_primitive("ui_disconnect");
                 uridStateRequest            = map_type("StateRequest");
                 uridStateChange             = map_type("StateChange");
+                uridStateFlags              = map_type("StateFlags");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
                 uridKvtKeys                 = map_kvt("#keys");
@@ -681,7 +683,7 @@ namespace lsp
                 return true;
             }
 
-            inline bool ui_write_state(LV2Serializable *p)
+            inline bool ui_write_state(LV2Serializable *p, size_t flags = 0)
             {
                 if ((map == NULL) || (p->get_urid() <= 0))
                     return false;
@@ -692,6 +694,11 @@ namespace lsp
 
                 forge_frame_time(0);
                 LV2_Atom *msg = forge_object(&frame, uridState, uridStateChange);
+                if (flags != 0)
+                {
+                    forge_key(uridStateFlags);
+                    forge_int(int(flags));
+                }
                 forge_key(p->get_urid());
                 p->serialize();
                 forge_pop(&frame);

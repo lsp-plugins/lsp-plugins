@@ -150,14 +150,14 @@ namespace lsp
                         if (p->unit == U_BOOL)
                         {
                             PARSE_BOOL(value,
-                                up->set_value(__);
+                                up->set_value(__, PF_STATE_IMPORT);
                                 up->notify_all();
                             );
                         }
                         else
                         {
                             PARSE_INT(value,
-                                up->set_value(__);
+                                up->set_value(__, PF_STATE_IMPORT);
                                 up->notify_all();
                             );
                         }
@@ -165,7 +165,7 @@ namespace lsp
                     else
                     {
                         PARSE_FLOAT(value,
-                            up->set_value(__);
+                            up->set_value(__, PF_STATE_IMPORT);
                             up->notify_all();
                         );
                     }
@@ -173,8 +173,8 @@ namespace lsp
                 }
                 case R_PATH:
                 {
-                    size_t len      = strlen(value);
-                    up->write(value, len);
+                    size_t len      = ::strlen(value);
+                    up->write(value, len, PF_STATE_IMPORT);
                     up->notify_all();
                     break;
                 }

@@ -12,6 +12,12 @@
 
 namespace lsp
 {
+    enum port_flags_t
+    {
+        PF_NONE             = 0,            // No flags
+        PF_STATE_RESTORE    = 1 << 1,       // Port's state restore
+        PF_STATE_IMPORT     = 1 << 2        // Port's state import
+    };
 
     class IPort
     {

@@ -40,6 +40,11 @@ namespace lsp
         {
         }
 
+        void CtlPort::write(const void *buffer, size_t size, size_t flags)
+        {
+            write(buffer, size);
+        }
+
         void *CtlPort::get_buffer()
         {
             return NULL;
@@ -57,6 +62,11 @@ namespace lsp
 
         void CtlPort::set_value(float value)
         {
+        }
+
+        void CtlPort::set_value(float value, size_t flags)
+        {
+            set_value(value);
         }
 
         const char *CtlPort::id() const

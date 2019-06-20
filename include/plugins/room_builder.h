@@ -160,6 +160,7 @@ namespace lsp
             class SceneLoader: public ipc::ITask
             {
                 public:
+                    size_t                  nFlags;
                     char                    sPath[PATH_MAX+1];
                     room_builder_base      *pCore;
                     Scene3D                 sScene;
@@ -167,6 +168,7 @@ namespace lsp
                 public:
                     inline SceneLoader()
                     {
+                        nFlags      = 0;
                         pCore       = NULL;
                     }
 
