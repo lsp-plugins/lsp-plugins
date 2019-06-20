@@ -115,7 +115,7 @@ namespace lsp
             LV2_URID                uridDisconnectUI;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
-            LV2_URID                uridKvtStorage;
+            LV2_URID                uridKvtKeys;
             LV2_URID                uridRawBlob;
             LV2_URID                uridContentType;
             LV2_URID                uridTypeUInt;
@@ -252,7 +252,7 @@ namespace lsp
                 uridStateChange             = map_type("StateChange");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
-                uridKvtStorage              = map_type("KVT");
+                uridKvtKeys                 = map_kvt("#keys");
                 uridRawBlob                 = map_type("RawBlob");
                 uridContentType             = map_type("ContentType");
 
@@ -504,7 +504,7 @@ namespace lsp
                     return -1;
 
                 va_list vl;
-                char tmpbuf[1024];
+                char tmpbuf[2048];
 
                 va_start(vl, fmt);
                 vsnprintf(tmpbuf, sizeof(tmpbuf), fmt, vl);
@@ -560,23 +560,28 @@ namespace lsp
                 hStore(hHandle, urid, data, size, type, LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
             }
 
-            inline const void *restore_value(LV2_URID urid, LV2_URID type, size_t *size)
+            inline const void *retrieve_value(LV2_URID urid, uint32_t *type, size_t *size)
             {
                 if ((hRetrieve == NULL) || (hHandle == NULL))
                     return NULL;
 
-                size_t t_size;
-                uint32_t t_type, t_flags;
+                uint32_t t_flags;
                 lsp_trace("retrieve(%d (%s))", urid, unmap_urid(urid));
-                const void *ptr   = hRetrieve(hHandle, urid, &t_size, &t_type, &t_flags);
-                lsp_trace("retrieved ptr = %p, size=%d, type=%d, flags=0x%x", ptr, int(t_size), int(t_type), int(t_flags));
-                if (ptr == NULL)
-                    return NULL;
+                const void *ptr   = hRetrieve(hHandle, urid, size, type, &t_flags);
+                lsp_trace("retrieved ptr = %p, size=%d, type=%d, flags=0x%x", ptr, int(*size), int(*type), int(t_flags));
 
-                lsp_trace("retrieved type = %d (%s)", int(t_type), unmap_urid(t_type));
+                return ptr;
+            }
+
+            inline const void *restore_value(LV2_URID urid, LV2_URID type, size_t *size)
+            {
+                uint32_t t_type;
+                size_t t_size;
+                const void *ptr = retrieve_value(urid, &t_type, &t_size);
                 if (t_type != type)
                     return NULL;
 
+                lsp_trace("retrieved type = %d (%s)", int(t_type), unmap_urid(t_type));
                 *size    = t_size;
                 return ptr;
             }
