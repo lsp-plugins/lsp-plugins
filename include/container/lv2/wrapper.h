@@ -1522,17 +1522,18 @@ namespace lsp
                         break;
                 }
 
-                // Store KVT keys
-                if (!kvt_keys.is_empty())
-                {
-                    const char *text = kvt_keys.get_utf8();
-                    pExt->store_value(pExt->uridKvtKeys, pExt->forge.String, text, ::strlen(text) + 1);
-                    kvt_keys.clear();
-                }
-
                 // Successful status?
                 if (res != STATUS_OK)
                     break;
+            }
+
+            // Store KVT keys
+            if (!kvt_keys.is_empty())
+            {
+                const char *text = kvt_keys.get_utf8();
+                lsp_trace("Storing KVT keys: %s", text);
+                pExt->store_value(pExt->uridKvtKeys, pExt->forge.String, text, ::strlen(text) + 1);
+                kvt_keys.clear();
             }
 
             sKVT.gc();
@@ -1577,17 +1578,28 @@ namespace lsp
             if ((ptr != NULL) && (p_type == pExt->forge.String))
             {
                 LSPString kvt_keys, kvt_key, kvt_uri;
-                kvt_keys.set_utf8(reinterpret_cast<const char *>(ptr), p_size);
+
+                lsp_dumpb("Received KVT key set", ptr, p_size);
+                const char *key_list = reinterpret_cast<const char *>(ptr);
+                if ((p_size > 0) && (key_list[p_size-1] == '\0'))
+                    --p_size;
+                kvt_keys.set_utf8(key_list, p_size);
 
                 for (ssize_t start = 0, end = kvt_keys.length(); start < end; )
                 {
                     // Fetch key
                     ssize_t idx = kvt_keys.index_of(start, ':');
                     if (idx >= 0)
+                    {
                         kvt_key.set(&kvt_keys, start, idx);
+                        start       = idx + 1;
+                    }
                     else
+                    {
                         kvt_key.set(&kvt_keys, start);
-                    start      = idx + 1;
+                        start       = end;
+                    }
+
                     if (kvt_key.is_empty())
                         continue;
                     if (!kvt_uri.set_ascii(LSP_KVT_URI))
@@ -1600,10 +1612,13 @@ namespace lsp
                     const char *name    = kvt_key.get_utf8();
                     lsp_trace("Retrieveing property name=%s with uri=%s", name, uri);
 
-                    LV2_URID key        = pExt->map_kvt(uri);
+                    LV2_URID key        = pExt->map_uri(uri);
                     ptr                 = pExt->retrieve_value(key, &p_type, &p_size);
                     if (ptr == NULL)
+                    {
+                        lsp_trace("No property found for name=%s with uri=%s", name, uri);
                         continue;
+                    }
 
                     // Analyze type of value
                     kvt_param_t p;
