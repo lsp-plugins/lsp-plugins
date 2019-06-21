@@ -1430,7 +1430,31 @@ namespace lsp
             // Save state of port
             lvp->save();
         }
+/*
+ This WON't work, LV2:State does not allow to save objects
+        {
+            uint8_t buf[0x100];
+            LV2_Atom_Forge &forge   = pExt->forge;
+            LV2_URID_Map *map       = pExt->map;
+            LV2_Atom_Forge_Frame frame;
 
+            lv2_atom_forge_set_buffer(&forge, buf, sizeof(buf));
+            lv2_atom_forge_object(&forge, &frame, 0, map->map(map->handle, "http://lsp-plug.in/types/lv2/types#KVT"));
+            lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/selected"));
+            lv2_atom_forge_int(&forge, int32_t(0));
+            lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/objects"));
+            lv2_atom_forge_int(&forge, int32_t(0));
+            lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/object/0/enabled"));
+            lv2_atom_forge_float(&forge, 1.0f);
+
+            LV2_Atom *msg           = reinterpret_cast<LV2_Atom *>(buf);
+
+            lv2_atom_forge_pop(&forge, &frame);
+            store(handle, map->map(map->handle, "http://lsp-plug.in/plugins/lv2/room_builder_mono#KVT"),
+                    msg, lv2_atom_total_size(msg),
+                    forge.Object, LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
+        }
+*/
         // Save state of all KVT parameters
         const kvt_param_t *p;
         LSPString kvt_keys;
