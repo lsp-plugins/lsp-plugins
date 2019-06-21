@@ -516,7 +516,8 @@ namespace lsp
     class LV2PathPort: public LV2Port
     {
         private:
-            lv2_path_t      sPath;
+            lv2_path_t          sPath;
+            atomic_t            nLastChange;
 
             inline void set_string(const char *string, size_t len, size_t flags)
             {
@@ -528,6 +529,7 @@ namespace lsp
             explicit LV2PathPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
             {
                 sPath.init();
+                nLastChange = sPath.nChanges;
             }
 
         public:
@@ -543,6 +545,12 @@ namespace lsp
                     pExt->store_value(urid, pExt->uridPathType, sPath.sPath, strlen(sPath.sPath) + sizeof(char));
             }
 
+            void tx_request()
+            {
+                lsp_trace("tx_request");
+                atomic_add(&sPath.nChanges, 1);
+            }
+
             virtual void restore()
             {
                 lsp_trace("restore port id=%s, urid=%d (%s)", pMetadata->id, urid, get_uri());
@@ -552,11 +560,24 @@ namespace lsp
                     set_string(path, count, PF_STATE_IMPORT);
                 else
                     set_string("", 0, PF_STATE_IMPORT);
+                tx_request();
+            }
+
+            virtual bool tx_pending()
+            {
+                return sPath.nChanges != nLastChange;
+            }
+
+            void reset_tx_pending()
+            {
+                lsp_trace("reset_tx_pending");
+                nLastChange     = sPath.nChanges;
             }
 
             virtual void serialize()
             {
                 pExt->forge_path(sPath.get_path());
+                reset_tx_pending();
             }
 
             virtual void deserialize(const void *data, size_t flags)

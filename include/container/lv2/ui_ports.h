@@ -521,14 +521,12 @@ namespace lsp
     {
         protected:
             LV2PathPort    *pPort;
-            bool            bForce;
             char            sPath[PATH_MAX];
 
         public:
             explicit LV2UIPathPort(const port_t *meta, LV2Extensions *ext, LV2Port *xport) :  LV2UIPort(meta, ext)
             {
                 sPath[0]    = '\0';
-                bForce      = false;
                 pPort       = NULL;
 
                 lsp_trace("id=%s, ext=%p, xport=%p", meta->id, ext, xport);
@@ -538,8 +536,7 @@ namespace lsp
                 if ((xmeta != NULL) && (xmeta->role == R_PATH))
                 {
                     pPort               = static_cast<LV2PathPort *>(xport);
-                    bForce              = true;
-
+                    pPort->tx_request();
                     lsp_trace("Connected direct path port id=%s", xmeta->id);
                 }
             }
@@ -604,16 +601,16 @@ namespace lsp
 
             virtual bool sync()
             {
-                if (!bForce)
+                if (!pPort->tx_pending())
                     return false;
-                bForce      = false;
+                pPort->reset_tx_pending();
 
                 path_t *path        = static_cast<path_t *>(pPort->getBuffer());
-                strncpy(sPath, path->get_path(), PATH_MAX); // Copy current contents
+                ::strncpy(sPath, path->get_path(), PATH_MAX); // Copy current contents
                 sPath[PATH_MAX-1]   = '\0';
 
-//                lsp_trace("Directly received path port id=%s, path=%s",
-//                        pPort->metadata()->id, sPath);
+                lsp_trace("Directly received path port id=%s, path=%s",
+                        pPort->metadata()->id, sPath);
 
                 return true;
             }

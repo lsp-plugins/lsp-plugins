@@ -660,7 +660,7 @@ namespace lsp
             lsp_trace("triggered state request");
             nStateReqs  ++;
         }
-        else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchGet)) // PatchGet request
+        else if (obj->body.otype == pExt->uridPatchGet) // PatchGet request
         {
             lsp_trace("triggered patch request");
             #ifdef LSP_TRACE
@@ -678,7 +678,7 @@ namespace lsp
             // Increment the number of patch requests
             nPatchReqs  ++;
         }
-        else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchSet)) // PatchSet request
+        else if (obj->body.otype == pExt->uridPatchSet) // PatchSet request
         {
             // Parse atom body
             const LV2_Atom_URID    *key     = NULL;

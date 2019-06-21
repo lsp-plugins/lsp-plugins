@@ -704,7 +704,7 @@ namespace lsp
                     lsp_warn("Port id=%d (%s) not found or has bad type", int(body->key), pExt->unmap_urid(body->key));
             }
         }
-        else if ((obj->body.otype == pExt->uridPatchSet) && (obj->body.id == pExt->uridPatchMessage))
+        else if (obj->body.otype == pExt->uridPatchSet)
         {
             lsp_trace("received PATCH_SET request");
 

@@ -20,6 +20,7 @@ namespace lsp
         };
 
         atomic_t    nRequest;
+        atomic_t    nChanges;
         size_t      nState;
         size_t      nFlags;
         bool        bRequest;
@@ -52,6 +53,7 @@ namespace lsp
         {
             if (nState != S_PENDING)
                 return;
+            atomic_add(&nChanges, 1);
             nState  = S_ACCEPTED;
         }
 
