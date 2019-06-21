@@ -117,8 +117,11 @@ namespace lsp
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
             LV2_URID                uridKvtKeys;
-            LV2_URID                uridRawBlob;
+            LV2_URID                uridKvtObject;
+            LV2_URID                uridKvtType;
+            LV2_URID                uridBlobType;
             LV2_URID                uridContentType;
+            LV2_URID                uridContent;
             LV2_URID                uridTypeUInt;
             LV2_URID                uridTypeULong;
 
@@ -255,8 +258,11 @@ namespace lsp
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
                 uridKvtKeys                 = map_kvt("#keys");
-                uridRawBlob                 = map_type("RawBlob");
-                uridContentType             = map_type("ContentType");
+                uridKvtObject               = map_primitive("KVT");
+                uridKvtType                 = map_type("KVT");
+                uridBlobType                = map_type("Blob");
+                uridContentType             = map_field("Blob#ContentType");
+                uridContent                 = map_field("Blob#Content");
 
                 uridTypeUInt                = map_uri(LV2_ATOM_PREFIX "UInt" );
                 uridTypeULong               = map_uri(LV2_ATOM_PREFIX "ULong" );
@@ -442,8 +448,14 @@ namespace lsp
 
             inline LV2_Atom_Forge_Ref forge_path(const char *str)
             {
-                size_t len = strlen(str);
+                size_t len = ::strlen(str);
                 return lv2_atom_forge_typed_string(&forge, forge.Path, str, len);
+            }
+
+            inline LV2_Atom_Forge_Ref forge_string(const char *str)
+            {
+                size_t len = ::strlen(str);
+                return lv2_atom_forge_typed_string(&forge, forge.String, str, len);
             }
 
             inline void forge_pop(LV2_Atom_Forge_Frame* frame)
