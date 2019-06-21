@@ -1659,10 +1659,10 @@ namespace lsp
             const void *ptr = pExt->retrieve_value(pExt->uridKvtObject, &p_type, &p_size);
             size_t prefix_len = ::strlen(LSP_KVT_URI);
 
-            lsp_dumpb("Contents of the atom object:", ptr, p_size);
-
             if (ptr != NULL)
             {
+                lsp_dumpb("Contents of the atom object:", ptr, p_size);
+
                 lsp_trace("p_type = %d (%s), p_size = %d", int(p_type), pExt->unmap_urid(p_type), int(p_size));
 
                 if ((p_type == pExt->forge.Object) || (p_type == pExt->uridBlank))
