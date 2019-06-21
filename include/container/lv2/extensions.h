@@ -580,7 +580,7 @@ namespace lsp
                     return NULL;
 
                 uint32_t t_flags;
-                lsp_trace("retrieve(%d (%s))", urid, unmap_urid(urid));
+                lsp_trace("retrieve %d (%s)", urid, unmap_urid(urid));
                 const void *ptr   = hRetrieve(hHandle, urid, size, type, &t_flags);
                 lsp_trace("retrieved ptr = %p, size=%d, type=%d, flags=0x%x", ptr, int(*size), int(*type), int(t_flags));
 

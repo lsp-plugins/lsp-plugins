@@ -1593,7 +1593,7 @@ namespace lsp
                     p = &xp;
 
                     LV2_Atom_Forge_Frame obj;
-                    LV2_URID key        =  pExt->map_kvt("TEST_BLOB");
+                    LV2_URID key        =  pExt->map_kvt("/TEST_BLOB");
 
                     lv2_atom_forge_key(&forge, key);
                     lv2_atom_forge_object(&forge, &obj, 0, pExt->uridBlobType);
@@ -1612,11 +1612,9 @@ namespace lsp
                     }
                     lv2_atom_forge_pop(&forge, &obj);
                 }
-
+                
                 lv2_atom_forge_pop(&forge, &frame);
-
                 LV2_Atom *msg = reinterpret_cast<LV2_Atom *>(sink.buf);
-                lsp_dumpb("Atom data", msg, lv2_atom_total_size(msg));
                 pExt->store_value(pExt->uridKvtObject, msg->type, &msg[1], msg->size);
             }
             else
@@ -1656,9 +1654,136 @@ namespace lsp
             // Clear KVT
             sKVT.clear();
 
-            // Retireve keys
-            /*uint32_t p_type;
+            uint32_t p_type;
             size_t p_size;
+            const void *ptr = pExt->retrieve_value(pExt->uridKvtObject, &p_type, &p_size);
+            size_t prefix_len = ::strlen(LSP_KVT_URI);
+
+            lsp_dumpb("Contents of the atom object:", ptr, p_size);
+
+            if (ptr != NULL)
+            {
+                lsp_trace("p_type = %d (%s), p_size = %d", int(p_type), pExt->unmap_urid(p_type), int(p_size));
+
+                if ((p_type == pExt->forge.Object) || (p_type == pExt->uridBlank))
+                {
+                    const LV2_Atom_Object_Body *obody = reinterpret_cast<const LV2_Atom_Object_Body *>(ptr);
+
+                    for (
+                        LV2_Atom_Property_Body *body = lv2_atom_object_begin(obody) ;
+                        !lv2_atom_object_is_end(obody, p_size, body) ;
+                        body = lv2_atom_object_next(body)
+                    )
+                    {
+                        lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+                        lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                        const char *uri = pExt->unmap_urid(body->key);
+                        if (::strstr(uri, LSP_KVT_URI "/") != uri)
+                        {
+                            lsp_warn("Invalid property: urid=%d, uri=%s", body->key, uri);
+                            continue;
+                        }
+                        const char *name = &uri[prefix_len];
+
+                        // Analyze type of value
+                        kvt_param_t p;
+                        p_type      = body->value.type;
+                        p.type      = KVT_ANY;
+
+                        if (p_type == pExt->forge.Int)
+                        {
+                            p.type  = KVT_INT32;
+                            p.i32   = (reinterpret_cast<const LV2_Atom_Int *>(&body->value))->body;
+                        }
+                        else if (p_type == pExt->uridTypeUInt)
+                        {
+                            p.type  = KVT_UINT32;
+                            p.u32   = (reinterpret_cast<const LV2_Atom_Int *>(&body->value))->body;
+                        }
+                        else if (p_type == pExt->forge.Long)
+                        {
+                            p.type  = KVT_INT64;
+                            p.i64   = (reinterpret_cast<const LV2_Atom_Long *>(&body->value))->body;
+                        }
+                        else if (p_type == pExt->uridTypeULong)
+                        {
+                            p.type  = KVT_UINT64;
+                            p.u64   = (reinterpret_cast<const LV2_Atom_Long *>(&body->value))->body;
+                        }
+                        else if (p_type == pExt->forge.Float)
+                        {
+                            p.type  = KVT_FLOAT32;
+                            p.f32   = (reinterpret_cast<const LV2_Atom_Float *>(&body->value))->body;
+                        }
+                        else if (p_type == pExt->forge.Double)
+                        {
+                            p.type  = KVT_FLOAT64;
+                            p.f64   = (reinterpret_cast<const LV2_Atom_Double *>(&body->value))->body;
+                        }
+                        else if (p_type == pExt->forge.String)
+                        {
+                            p.type  = KVT_STRING;
+                            p.str   = reinterpret_cast<const char *>(&body[1]);
+                        }
+                        else if ((p_type == pExt->uridObject) || (p_type == pExt->uridBlank))
+                        {
+                            const LV2_Atom_Object *obj = reinterpret_cast<const LV2_Atom_Object *>(&body->value);
+                            lsp_trace("obj->atom.type = %d (%s), obj->body.id = %d (%s), obj->body.otype = %d (%s)",
+                                    obj->atom.type, pExt->unmap_urid(obj->atom.type),
+                                    obj->body.id, pExt->unmap_urid(obj->body.id),
+                                    obj->body.otype, pExt->unmap_urid(obj->body.otype)
+                                    );
+
+                            if (obj->body.otype != pExt->uridBlobType)
+                                break;
+
+                            // Read the value
+                            p.blob.ctype    = NULL;
+                            p.blob.data     = NULL;
+                            p.blob.size     = ~size_t(0);
+
+                            for (
+                                LV2_Atom_Property_Body *blob = lv2_atom_object_begin(&obj->body) ;
+                                !lv2_atom_object_is_end(&obj->body, obj->atom.size, blob) ;
+                                blob = lv2_atom_object_next(blob)
+                            )
+                            {
+                                lsp_trace("blob->key (%d) = %s", int(blob->key), pExt->unmap_urid(blob->key));
+                                lsp_trace("blob->value.type (%d) = %s", int(blob->value.type), pExt->unmap_urid(blob->value.type));
+
+                                if ((blob->key == pExt->uridContentType) && (blob->value.type == pExt->forge.String))
+                                    p.blob.ctype    = reinterpret_cast<const char *>(&blob[1]);
+                                else if ((blob->key == pExt->uridContent) && (blob->value.type == pExt->forge.Chunk))
+                                {
+                                    p.blob.size     = blob->value.size;
+                                    if (p.blob.size > 0)
+                                        p.blob.data     = &blob[1];
+                                }
+                            }
+
+                            // Change type
+                            if (p.blob.size != (~size_t(0)))
+                                p.type          = KVT_BLOB;
+                        }
+
+                        // Store property
+                        if (p.type != KVT_ANY)
+                        {
+                            kvt_dump_parameter("Fetched parameter %s = ", &p, name);
+                            status_t res = sKVT.put(name, &p, KVT_TX);
+                            if (res != STATUS_OK)
+                                lsp_warn("Could not store parameter to KVT");
+                        }
+                        else
+                            lsp_warn("KVT property %s has unsupported type or is invalid: 0x%x (%s)",
+                                    name, p_type, pExt->unmap_urid(p_type));
+                    }
+                } // for
+            }
+
+            // Retireve keys
+            /*
             const void *ptr = pExt->retrieve_value(pExt->uridKvtKeys, &p_type, &p_size);
 
             if ((ptr != NULL) && (p_type == pExt->forge.String))
