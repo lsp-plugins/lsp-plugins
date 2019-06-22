@@ -92,6 +92,40 @@ namespace test
         float v = float(rand()) / (float(RAND_MAX) + 1.0f);
         return min + (max - min) * v;
     }
+
+    void randomize_positive(float *buf, size_t n)
+    {
+        for (size_t i=0; i<n; ++i)
+            buf[i] = (float(rand())/float(RAND_MAX)) + 0.001f;
+    }
+
+    void randomize_0to1(float *buf, size_t n)
+    {
+        for (size_t i=0; i<n; ++i)
+            buf[i] = (float(rand())/float(RAND_MAX-1));
+    }
+
+    void randomize(float *buf, size_t n, float min, float max)
+    {
+        float delta = max - min;
+        for (size_t i=0; i<n; ++i)
+            buf[i] = min + delta * (float(rand())/(RAND_MAX-1));
+    }
+
+    void randomize_negative(float *buf, size_t n)
+    {
+        for (size_t i=0; i<n; ++i)
+            buf[i] = - ((float(rand())/float(RAND_MAX)) + 0.001f);
+    }
+
+    void randomize_sign(float *buf, size_t n)
+    {
+        for (size_t i=0; i<n; ++i)
+        {
+            float tmp = (float(rand())/float(RAND_MAX)) + 0.001f;
+            buf[i] = (rand() >= (RAND_MAX >> 1)) ? tmp : -tmp;
+        }
+    }
 }
 
 

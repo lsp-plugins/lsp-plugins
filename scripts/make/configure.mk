@@ -85,6 +85,13 @@ ifeq ($(BUILD_PROFILE),x86_64)
   LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
+ifeq ($(BUILD_PLATFORM), BSD)
+  ifeq ($(BUILD_PROFILE),arm)
+    CC_ARCH          = -marm -Wl,-rpath=/usr/local/lib/gcc8
+    LD_PATH          = /usr/local/lib/gcc8
+  endif
+endif
+
 ifeq ($(BUILD_PROFILE),armv6a)
   CC_ARCH          = -march=armv6-a -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64

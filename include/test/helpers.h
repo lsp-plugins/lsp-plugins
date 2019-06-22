@@ -30,6 +30,16 @@ namespace test
     void printf_buffer(const float *buf, size_t count, const char *fmt, ...);
 
     float randf(float min, float max);
+
+    void randomize_positive(float *buf, size_t n);
+
+    void randomize_0to1(float *buf, size_t n);
+
+    void randomize(float *buf, size_t n, float min, float max);
+
+    void randomize_negative(float *buf, size_t n);
+
+    void randomize_sign(float *buf, size_t n);
 }
 
 #endif /* TEST_HELPERS_H_ */
