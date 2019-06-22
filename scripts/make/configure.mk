@@ -80,7 +80,8 @@ endif
 
 ifeq ($(BUILD_PLATFORM), BSD)
   ifeq ($(BUILD_PROFILE),arm)
-    CC_ARCH          = -marm
+    CC_ARCH          = -marm -Wl,-rpath=/usr/local/lib/gcc8
+    LD_PATH          = /usr/local/lib/gcc8
   endif
 endif
 
