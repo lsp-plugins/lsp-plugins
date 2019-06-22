@@ -52,6 +52,20 @@ typedef struct vst_state_buffer
 #define VST_BANK_HDR_SIZE               (sizeof(fxBank) - 2 * sizeof(VstInt32))
 #define VST_STATE_BUFFER_SIZE           (VST_BANK_HDR_SIZE + sizeof(vst_state))
 
+enum
+{
+    LSP_VST_INT32   = 'i',
+    LSP_VST_UINT32  = 'u',
+    LSP_VST_INT64   = 'I',
+    LSP_VST_UINT64  = 'U',
+    LSP_VST_FLOAT32 = 'f',
+    LSP_VST_FLOAT64 = 'F',
+    LSP_VST_STRING  = 's',
+    LSP_VST_BLOB    = 'B'
+};
+
+#define VST_FX_VERSION_KVT_SUPPORT      2000
+
 namespace lsp
 {
     typedef unsigned long               vst_serial_t;

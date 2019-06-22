@@ -9,6 +9,7 @@
 #define CONTAINER_VST_WRAPPER_H_
 
 #include <container/vst/defs.h>
+#include <container/vst/chunk.h>
 #include <core/ipc/NativeExecutor.h>
 
 namespace lsp
@@ -27,7 +28,7 @@ namespace lsp
             ERect                       sRect;
             audioMasterCallback         pMaster;
             ipc::IExecutor             *pExecutor;
-            vst_state_buffer           *pState;
+            vst_chunk_t                 sChunk;
             bool                        bUpdateSettings;
             float                       fLatency;
 
@@ -48,10 +49,13 @@ namespace lsp
             void transfer_dsp_to_ui();
 
             VSTPort *create_port(const port_t *port, const char *postfix);
+            VSTPort *find_by_id(const char *id);
             void create_ports(const port_t *meta);
 
         protected:
             static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
+            void deserialize_v1(const fxBank *bank, size_t bytes);
+            void deserialize_v2(const fxBank *bank, size_t bytes);
 
             void sync_position();
 
@@ -68,7 +72,6 @@ namespace lsp
                 pUI             = NULL;
                 pMaster         = callback;
                 pExecutor       = NULL;
-                pState          = NULL;
                 sRect.top       = 0;
                 sRect.left      = 0;
                 sRect.bottom    = 0;
@@ -144,7 +147,6 @@ namespace lsp
 
             virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
 
-            void init_state_chunk();
             size_t serialize_state(const void **dst);
             void deserialize_state(const void *data);
 
@@ -335,7 +337,7 @@ namespace lsp
             vParams[id]->setID(id);
 
         // Initialize state chunk
-        init_state_chunk();
+        pEffect->flags                 |= effFlagsProgramChunks;
 
         // Initialize plugin
         pPlugin->init(this);
@@ -391,13 +393,6 @@ namespace lsp
         vParams.clear();
         vPorts.clear();
         vUIPorts.clear();
-
-        if (pState != NULL)
-        {
-            lsp_trace("Destroy state %p", pState);
-            delete [] reinterpret_cast<uint8_t *>(pState);
-            pState          = NULL;
-        }
 
         pMaster     = NULL;
         pEffect     = NULL;
@@ -829,49 +824,6 @@ namespace lsp
         }
     }
 
-    void VSTWrapper::init_state_chunk()
-    {
-        // Calculate the overall maximum size of the chunk
-        size_t chunk_size       = 0;
-        for (size_t i=0; i<vPorts.size(); ++i)
-        {
-            size_t p_size           = vPorts[i]->serial_size();
-            if (p_size > 0)
-            {
-                chunk_size             += p_size;
-                chunk_size             += LSP_MAX_PARAM_ID_BYTES;
-            }
-        }
-
-        // Allocate chunk
-        if (chunk_size <= 0)
-            return;
-        chunk_size                      = ALIGN_SIZE(chunk_size, DEFAULT_ALIGN);
-        size_t alloc_size               = chunk_size + sizeof(vst_state_buffer);
-        uint8_t *data                   = new uint8_t[alloc_size];
-        if (data == NULL)
-            return;
-
-        // Update state
-        pEffect->flags                 |= effFlagsProgramChunks;
-        pState                          = reinterpret_cast<vst_state_buffer *>(data);
-
-        // Initialize state with constant values
-        pState->nDataSize               = chunk_size;
-
-        memset(&pState->sHeader, 0x00, sizeof(fxBank));
-        pState->sHeader.chunkMagic      = CPU_TO_BE(VstInt32(cMagic));
-        pState->sHeader.byteSize        = 0;
-        pState->sHeader.fxMagic         = CPU_TO_BE(VstInt32(chunkBankMagic));
-        pState->sHeader.version         = CPU_TO_BE(1);
-        pState->sHeader.fxID            = CPU_TO_BE(VstInt32(pEffect->uniqueID));
-        pState->sHeader.fxVersion       = CPU_TO_BE(VstInt32(pEffect->version));
-        pState->sHeader.numPrograms     = 0;
-
-        pState->sState.nItems           = 0;
-    }
-
-
     #ifdef LSP_TRACE
         static void dump_vst_bank(const fxBank *bank)
         {
@@ -918,13 +870,27 @@ namespace lsp
 
     size_t VSTWrapper::serialize_state(const void **dst)
     {
-        if (pState == NULL)
-            return 0;
+        // Clear chunk
+        sChunk.clear();
 
-        uint8_t *ptr                    = pState->sState.vData;
-        uint8_t *tail                   = reinterpret_cast<uint8_t *>(&pState->sState) + pState->nDataSize;
-        size_t params                   = 0;
+        // Write the bank header
+        fxBank bank;
+        ::bzero(&bank, sizeof(bank));
 
+        bank.chunkMagic     = CPU_TO_BE(VstInt32(cMagic));
+        bank.byteSize       = 0;
+        bank.fxMagic        = CPU_TO_BE(VstInt32(chunkBankMagic));
+        bank.version        = CPU_TO_BE(VstInt32(1));
+        bank.fxID           = CPU_TO_BE(VstInt32(pEffect->uniqueID));
+        bank.fxVersion      = CPU_TO_BE(VstInt32(2000)); // Version 2.0.0 of the bank
+        bank.numPrograms    = 0;
+        bank.currentProgram = 0;
+
+        size_t bank_off     = sChunk.write(&bank, sizeof(bank));
+        size_t data_off     = sChunk.offset;
+        size_t param_off    = 0;
+
+        // Serialize all regular ports
         for (size_t i=0; i<vPorts.size(); ++i)
         {
             // Get VST port
@@ -934,48 +900,152 @@ namespace lsp
 
             // Get metadata
             const port_t *p         = vp->metadata();
-            if ((p == NULL) || (p->id == NULL) || (IS_OUT_PORT(p)))
+            if ((p == NULL) || (p->id == NULL) || (IS_OUT_PORT(p)) || (!vp->serializable()))
                 continue;
 
             // Check that port is serializable
-            size_t p_size           = vp->serial_size();
-            if (p_size <= 0)
-                continue;
-
             lsp_trace("Serializing port id=%s", p->id);
 
-            // Write ID of the port
-            ssize_t delta           = vst_serialize_string(p->id, ptr, tail - ptr);
-            if (delta < 0)
+            // Write port data to the chunk
+            param_off   = sChunk.write(uint32_t(0)); // Reserve space for size
+            sChunk.write_string(p->id);     // ID of the port
+            vp->serialize(&sChunk);         // Value of the port
+            sChunk.write_at(param_off, uint32_t(sChunk.offset - param_off - sizeof(uint32_t))); // Write the actual size
+
+            if (sChunk.res != STATUS_OK)
             {
-                lsp_error("Error serializing port id=%s", p->id);
+                lsp_warn("Error serializing parameter is=%s, code=%d", p->id, int(sChunk.res));
+                *dst = NULL;
                 return 0;
             }
-            ptr                    += delta;
+        }
 
-            // Serialize port
-            delta                   = vp->serialize(ptr, tail - ptr);
-            if (delta < 0)
+        status_t res = STATUS_OK;
+
+        // Serialize KVT storage
+        if (sKVTMutex.lock())
+        {
+            const kvt_param_t *p;
+
+            // Read the whole KVT storage
+            KVTIterator *it = sKVT.enum_all();
+            while (it->next() == STATUS_OK)
             {
-                lsp_error("Error serializing port id=%s", p->id);
-                return 0;
-            }
-            ptr                    += delta;
+                res             = it->get(&p);
+                if (res == STATUS_NOT_FOUND) // Not a parameter
+                    continue;
+                else if (res != STATUS_OK)
+                {
+                    lsp_trace("it->get() returned %d", int(res));
+                    break;
+                }
+                const char *name = it->name();
+                if (name == NULL)
+                {
+                    lsp_trace("it->name() returned NULL");
+                    break;
+                }
 
-            // Increment number of params
-            params                  ++;
+                kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
+
+                param_off   = sChunk.write(uint32_t(0)); // Reserve space for size
+                sChunk.write_string(name); // Name of the KVT parameter
+
+                // Serialize parameter according to it's type
+                switch (p->type)
+                {
+                    case KVT_INT32:
+                    {
+                        sChunk.write_byte(LSP_VST_INT32);
+                        sChunk.write(p->i32);
+                        break;
+                    };
+                    case KVT_UINT32:
+                    {
+                        sChunk.write_byte(LSP_VST_UINT32);
+                        sChunk.write(p->u32);
+                        break;
+                    }
+                    case KVT_INT64:
+                    {
+                        sChunk.write_byte(LSP_VST_INT64);
+                        sChunk.write(p->i64);
+                        break;
+                    };
+                    case KVT_UINT64:
+                    {
+                        sChunk.write_byte(LSP_VST_UINT64);
+                        sChunk.write(p->u64);
+                        break;
+                    }
+                    case KVT_FLOAT32:
+                    {
+                        sChunk.write_byte(LSP_VST_FLOAT32);
+                        sChunk.write(p->f32);
+                        break;
+                    }
+                    case KVT_FLOAT64:
+                    {
+                        sChunk.write_byte(LSP_VST_FLOAT64);
+                        sChunk.write(p->f64);
+                        break;
+                    }
+                    case KVT_STRING:
+                    {
+                        sChunk.write_byte(LSP_VST_STRING);
+                        sChunk.write_string((p->str != NULL) ? p->str : "");
+                        break;
+                    }
+                    case KVT_BLOB:
+                    {
+                        if ((p->blob.size > 0) && (p->blob.data == NULL))
+                        {
+                            res = STATUS_INVALID_VALUE;
+                            break;
+                        }
+
+                        sChunk.write_byte(LSP_VST_BLOB);
+                        sChunk.write_string((p->blob.ctype != NULL) ? p->blob.ctype : "");
+                        sChunk.write(p->blob.data, p->blob.size);
+                        break;
+                    }
+
+                    default:
+                        res     = STATUS_BAD_TYPE;
+                        break;
+                }
+
+                // Successful status?
+                if (res != STATUS_OK)
+                {
+                    lsp_trace("it->name() returned NULL");
+                    break;
+                }
+
+                // Complete the parameter size
+                sChunk.write_at(param_off, uint32_t(sChunk.offset - param_off - sizeof(uint32_t))); // Write the actual size
+            }
+
+            sKVT.gc();
+            sKVTMutex.unlock();
+        }
+
+        if (res != STATUS_OK)
+        {
+            *dst    = NULL;
+            return 0;
         }
 
         // Write the size of chunk
-        pState->sState.nItems           = CPU_TO_BE(uint32_t(params));
-        pState->sHeader.byteSize        = CPU_TO_BE(VstInt32(ptr - reinterpret_cast<uint8_t *>(&pState->sState) + VST_BANK_HDR_SIZE));
-        size_t ck_size                  = ptr - reinterpret_cast<uint8_t *>(&pState->sHeader);
+        fxBank *pbank               = sChunk.fetch<fxBank>(bank_off);
+        pbank->content.data.size    = CPU_TO_BE(VstInt32(sChunk.offset - data_off));
+        pbank->byteSize             = CPU_TO_BE(VstInt32(sChunk.offset - VST_BANK_HDR_SIZE));
 
-        dump_vst_bank(&pState->sHeader);
+        dump_vst_bank(pbank);
 
         // Return result
-        *dst = &pState->sHeader;
-        return ck_size;
+        *dst = pbank;
+        return sChunk.offset;
     }
 
     void VSTWrapper::deserialize_state(const void *data)
@@ -1027,11 +1097,45 @@ namespace lsp
             return;
         }
 
+        // Check the version
+        VstInt32 fxVersion = BE_TO_CPU(bank->fxVersion);
+        if (fxVersion < VST_FX_VERSION_KVT_SUPPORT)
+            deserialize_v1(bank, byte_size);
+        else
+            deserialize_v2(bank, byte_size);
+    }
+
+    VSTPort *VSTWrapper::find_by_id(const char *id)
+    {
+        for (size_t i=0; i< vPorts.size(); ++i)
+        {
+            // Get VST port
+            VSTPort *sp             = vPorts[i];
+            if (sp == NULL)
+                continue;
+
+            // Get port metadata
+            const port_t *p         = sp->metadata();
+            if ((p == NULL) || (p->id == NULL))
+                continue;
+
+            // Check that ID of the port matches
+            if (!::strcmp(p->id, id))
+                return sp;
+        }
+
+        return NULL;
+    }
+
+    void VSTWrapper::deserialize_v1(const fxBank *bank, size_t bytes)
+    {
+        lsp_debug("Performing V1 parameter deserialization");
+
         // Ready to de-serialize
         const vst_state *state  = reinterpret_cast<const vst_state *>(bank + 1);
         size_t params           = BE_TO_CPU(state->nItems);
         const uint8_t *ptr      = state->vData;
-        const uint8_t *tail     = reinterpret_cast<const uint8_t *>(state) + byte_size - sizeof(vst_state);
+        const uint8_t *tail     = reinterpret_cast<const uint8_t *>(state) + bytes - sizeof(vst_state);
         char param_id[LSP_MAX_PARAM_ID_BYTES];
 
         while ((params--) > 0)
@@ -1047,27 +1151,7 @@ namespace lsp
 
             // Find port
             lsp_trace("Deserializing port id=%s", param_id);
-            VSTPort *vp             = NULL;
-            for (size_t i=0; i< vPorts.size(); ++i)
-            {
-                // Get VST port
-                VSTPort *sp             = vPorts[i];
-                if (sp == NULL)
-                    continue;
-
-                // Get port metadata
-                const port_t *p         = sp->metadata();
-                if ((p == NULL) || (p->id == NULL))
-                    continue;
-
-                // Check that ID of the port matches
-                if (!strcmp(p->id, param_id))
-                {
-                    vp                      = sp;
-                    break;
-                }
-            }
-
+            VSTPort *vp             = find_by_id(param_id);
             if (vp == NULL)
             {
                 lsp_error("Bank data corrupted: port id=%s not found", param_id);
@@ -1075,7 +1159,7 @@ namespace lsp
             }
 
             // Deserialize port data
-            delta                   = vp->deserialize(ptr, tail - ptr);
+            delta                   = vp->deserialize_v1(ptr, tail - ptr);
             if (delta <= 0)
             {
                 lsp_error("bank data corrupted, could not deserialize port id=%s", param_id);
@@ -1083,6 +1167,187 @@ namespace lsp
             }
             ptr                    += delta;
         }
+    }
+
+    void VSTWrapper::deserialize_v2(const fxBank *bank, size_t bytes)
+    {
+        lsp_debug("Performing V2 parameter deserialization");
+
+        const uint8_t *head = reinterpret_cast<const uint8_t *>(bank);
+        const uint8_t *tail = &head[bytes + sizeof(fxBank) - VST_BANK_HDR_SIZE];
+        head               += sizeof(fxBank);
+
+        lsp_debug("Reading regular ports...");
+        while (size_t(tail - head) >= sizeof(uint32_t))
+        {
+            // Read parameter length
+            uint32_t len        = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head))) + sizeof(uint32_t);
+            if (len > (tail - head))
+            {
+                lsp_warn("Unexpected end of chunk while fetching parameter size");
+                return;
+            }
+            const uint8_t *next = &head[len];
+            head               += sizeof(uint32_t);
+
+            // Read name of port
+            const char *name    = reinterpret_cast<const char *>(head);
+            len                 = ::strnlen(name, next - head) + 1;
+            if (len > (next - head))
+            {
+                lsp_warn("Unexpected end of chunk while fetching parameter name");
+                return;
+            }
+            if (name[0] == '/') // This is KVT port?
+                break;
+            head               += len;
+
+            // Find port
+            lsp_trace("Deserializing port id=%s", name);
+            VSTPort *vp             = find_by_id(name);
+            if (vp == NULL)
+            {
+                lsp_warn("Port id=%s not found, skipping", name);
+                head        = next;
+                continue;
+            }
+
+            // Deserialize port
+            if (!vp->deserialize_v2(head, next - head))
+            {
+                lsp_warn("Error deserializing port %s, skipping", name);
+                head        = next;
+                continue;
+            }
+
+            // Move to next parameter
+            head        = next;
+        }
+
+        // Nothing to de-serialize more?
+        if (tail >= head)
+            return;
+
+        // Deserialize KVT state
+        lsp_debug("Reading KVT ports...");
+        if (sKVTMutex.lock())
+        {
+            sKVT.clear();
+
+            while (size_t(tail - head) >= sizeof(uint32_t))
+            {
+                // Read parameter length
+                uint32_t len        = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head))) + sizeof(uint32_t);
+                if (len > (tail - head))
+                {
+                    lsp_warn("Unexpected end of chunk while fetching KVT parameter size");
+                    break;
+                }
+                const uint8_t *next = &head[len];
+                head               += sizeof(uint32_t);
+
+                // Read name of parameter
+                const char *name    = reinterpret_cast<const char *>(head);
+                len                 = ::strnlen(name, next - head) + 1;
+                if (len > (next - head))
+                {
+                    lsp_warn("Unexpected end of chunk while fetching KVT parameter name");
+                    break;
+                }
+                head               += len;
+
+                // Deserialize KVT parameter
+                lsp_trace("Deserializing KVT parameter id=%s", name);
+                uint8_t type        = *(head++);
+                kvt_param_t p;
+                p.type              = KVT_ANY;
+
+                switch (type)
+                {
+                    case LSP_VST_INT32:
+                        if ((next - head) != sizeof(int32_t))
+                            break;
+                        p.type      = KVT_INT32;
+                        p.i32       = BE_TO_CPU(*(reinterpret_cast<const int32_t *>(head)));
+                        head       += sizeof(int32_t);
+                        break;
+
+                    case LSP_VST_UINT32:
+                        if ((next - head) != sizeof(uint32_t))
+                            break;
+                        p.type      = KVT_UINT32;
+                        p.u32       = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head)));
+                        head       += sizeof(uint32_t);
+                        break;
+
+                    case LSP_VST_INT64:
+                        if ((next - head) != sizeof(int64_t))
+                            break;
+                        p.type      = KVT_INT64;
+                        p.i64       = BE_TO_CPU(*(reinterpret_cast<const int64_t *>(head)));
+                        head       += sizeof(int64_t);
+                        break;
+
+                    case LSP_VST_UINT64:
+                        if ((next - head) != sizeof(uint64_t))
+                            break;
+                        p.type      = KVT_UINT64;
+                        p.u64       = BE_TO_CPU(*(reinterpret_cast<const uint64_t *>(head)));
+                        head       += sizeof(uint64_t);
+                        break;
+
+                    case LSP_VST_FLOAT32:
+                        if ((next - head) != sizeof(float))
+                            break;
+                        p.type      = KVT_FLOAT32;
+                        p.f32       = BE_TO_CPU(*(reinterpret_cast<const float *>(head)));
+                        head       += sizeof(float);
+                        break;
+
+                    case LSP_VST_FLOAT64:
+                        if ((next - head) != sizeof(double))
+                            break;
+                        p.type      = KVT_FLOAT64;
+                        p.f64       = BE_TO_CPU(*(reinterpret_cast<const double *>(head)));
+                        head       += sizeof(double);
+                        break;
+
+                    case LSP_VST_STRING:
+                        p.str       = reinterpret_cast<const char *>(head);
+                        if (::strnlen(p.str, next-head) < size_t(next - head))
+                            p.type      = KVT_STRING;
+                        break;
+
+                    case LSP_VST_BLOB:
+                        p.blob.ctype    = reinterpret_cast<const char *>(head);
+                        len             = ::strnlen(p.blob.ctype, next-head) + 1;
+                        if (len > size_t(next - head))
+                            break;
+
+                        head           += len;
+                        p.blob.size     = next - head;
+                        p.blob.data     = (p.blob.size > 0) ? head : NULL;
+                        break;
+                    default:
+                        lsp_warn("Unknown KVT parameter type: %d ('%c') for id=%s", type, type, name);
+                        break;
+                }
+
+                if (p.type != KVT_ANY)
+                {
+                    kvt_dump_parameter("Fetched parameter %s = ", &p, name);
+                    sKVT.put(name, &p, KVT_TX);
+                }
+
+                // Move to next parameter
+                head        = next;
+            }
+
+            sKVT.gc();
+            sKVTMutex.unlock();
+        }
+
+        lsp_debug("Completed state read");
     }
 
     ICanvas *VSTWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)

@@ -1544,11 +1544,12 @@ namespace lsp
                         break;
                     }
                     case KVT_STRING:
-                        if (p->str != NULL) {
-                            lv2_atom_forge_key(&forge, key);
-                            lv2_atom_forge_typed_string(&forge, forge.String, p->str, ::strlen(p->str));
-                        }
+                    {
+                        lv2_atom_forge_key(&forge, key);
+                        const char *str = (p->str != NULL) ? p->str : "";
+                        lv2_atom_forge_typed_string(&forge, forge.String, str, ::strlen(str));
                         break;
+                    }
                     case KVT_BLOB:
                     {
                         LV2_Atom_Forge_Frame obj;

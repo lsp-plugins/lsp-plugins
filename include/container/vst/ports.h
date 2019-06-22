@@ -100,35 +100,35 @@ namespace lsp
 
             virtual void writeValue(float value)    {};
 
-            /** Get the maximum size of serialized data for this port
-             *
-             * @return maximum size of serialized data for this port
-             */
-            virtual size_t serial_size()
-            {
-                return 0;
-            }
+            virtual bool serializable() const { return false; }
 
             /** Serialize the state of the port to the chunk
              *
-             * @param data data buffer
-             * @param length length of the buffer in bytes
-             * @return number of bytes serialized or error
+             * @param chunk chunk to perform serialization
              */
-            virtual ssize_t serialize(void *data, size_t length)
-            {
-                return -1;
-            }
+            virtual void serialize(vst_chunk_t *chunk) {}
 
-            /** Deserialize the state of the port to the chunk
+            /** Deserialize the state of the port from the chunk (legacy version)
              *
              * @param data data buffer
              * @param length length of the buffer in bytes
              * @return number of bytes deserialized or error
              */
-            virtual ssize_t deserialize(const void *data, size_t length)
+            virtual ssize_t deserialize_v1(const void *data, size_t length)
             {
                 return -1;
+            }
+
+            /**
+             * Deserialize the state of the port from the chunk data, data pointer should
+             * be updated
+             * @param data chunk data
+             * @param limit the data size
+             * @return true on success
+             */
+            virtual bool deserialize_v2(const uint8_t *data, size_t size)
+            {
+                return true;
             }
     };
 
@@ -167,20 +167,15 @@ namespace lsp
                 return nCurrRow;
             }
 
-            virtual size_t serial_size()
+            virtual bool serializable() const { return true; }
+
+            virtual void serialize(vst_chunk_t *chunk)
             {
-                return sizeof(int32_t);
+                int32_t v = CPU_TO_BE(int32_t(nCurrRow));
+                chunk->write(&v, sizeof(v));
             }
 
-            virtual ssize_t serialize(void *data, size_t length)
-            {
-                if (length < sizeof(int32_t))
-                    return -1;
-                *(reinterpret_cast<int32_t *>(data))    = CPU_TO_BE(nCurrRow);
-                return sizeof(int32_t);
-            }
-
-            virtual ssize_t deserialize(const void *data, size_t length)
+            virtual ssize_t deserialize_v1(const void *data, size_t length)
             {
                 if (length < sizeof(int32_t))
                     return -1;
@@ -188,6 +183,18 @@ namespace lsp
                 if ((value >= 0) && (value < ssize_t(nRows)))
                     nCurrRow        = value;
                 return sizeof(int32_t);
+            }
+
+            virtual bool deserialize_v2(const uint8_t *data, size_t size)
+            {
+                if (size < sizeof(int32_t))
+                    return false;
+
+                int32_t v       = BE_TO_CPU(*(reinterpret_cast<const int32_t *>(data)));
+                if ((v >= 0) && (v < ssize_t(nRows)))
+                    nCurrRow        = v;
+
+                return true;
             }
 
         public:
@@ -298,27 +305,31 @@ namespace lsp
                 return nSID;
             }
 
-            virtual size_t serial_size()
+            virtual bool serializable() const { return true; }
+
+            virtual void serialize(vst_chunk_t *chunk)
             {
-                return sizeof(float);
+                float v = CPU_TO_BE(fValue);
+                chunk->write(&v, sizeof(v));
             }
 
-            virtual ssize_t serialize(void *data, size_t length)
-            {
-                if (length < sizeof(float))
-                    return -1;
-                *(reinterpret_cast<float *>(data))      = CPU_TO_BE(fValue);
-
-                return sizeof(float);
-            }
-
-            virtual ssize_t deserialize(const void *data, size_t length)
+            virtual ssize_t deserialize_v1(const void *data, size_t length)
             {
                 if (length < sizeof(float))
                     return -1;
                 float value     = BE_TO_CPU(*(reinterpret_cast<const float *>(data)));
                 writeValue(value);
                 return sizeof(float);
+            }
+
+            virtual bool deserialize_v2(const uint8_t *data, size_t size)
+            {
+                if (size < sizeof(float))
+                    return false;
+
+                float v         = BE_TO_CPU(*(reinterpret_cast<const float *>(data)));
+                writeValue(v);
+                return true;
             }
     };
 
@@ -673,31 +684,12 @@ namespace lsp
                 return bytes;
             }
 
-            virtual ssize_t serialize(void *data, size_t length)
+            virtual void serialize(vst_chunk_t *chunk)
             {
-                size_t slen     = strlen(sPath.sPath);
-                if (slen >= 0x7fff)
-                    slen            = 0x7fff;
-                size_t bytes    = (slen > 0x7f) ? slen + 2 : slen + 1;
-                if (length < bytes)
-                    return -1;
-
-                // Write the size of string (1-2 bytes)
-                uint8_t *ptr    = reinterpret_cast<uint8_t *>(data);
-                if (slen > 0x7f)
-                {
-                    *ptr++      = (slen >> 8) | 0x80;
-                    *ptr++      = slen & 0xff;
-                }
-                else
-                    *ptr++      = slen;
-
-                // Write the string
-                memcpy(ptr, sPath.sPath, slen);
-                return bytes;
+                chunk->write_string(sPath.sPath);
             }
 
-            virtual ssize_t deserialize(const void *data, size_t length)
+            virtual ssize_t deserialize_v1(const void *data, size_t length)
             {
                 const uint8_t  *ptr     = reinterpret_cast<const uint8_t *>(data);
                 const uint8_t  *tail    = ptr + length;
@@ -725,10 +717,18 @@ namespace lsp
                 return ptr - reinterpret_cast<const uint8_t *>(data);
             }
 
-            virtual size_t serial_size()
+            virtual bool deserialize_v2(const uint8_t *data, size_t size)
             {
-                return PATH_MAX + 2; // 2 bytes for length, PATH_MAX as length
+                const char *str = reinterpret_cast<const char *>(data);
+                size_t len  = ::strnlen(str, size) + 1;
+                if (len > size)
+                    return false;
+
+                sPath.submit(str, len, false);
+                return true;
             }
+
+            virtual bool serializable() const { return true; }
     };
 
 
