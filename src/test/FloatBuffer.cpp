@@ -85,14 +85,15 @@ namespace test
 
     void FloatBuffer::randomize_positive()
     {
+
         for (size_t i=0; i<nLength; ++i)
-            pBuffer[i] = (float(rand())/RAND_MAX) + 0.001f;
+            pBuffer[i] = (float(rand())/float(RAND_MAX)) + 0.001f;
     }
 
     void FloatBuffer::randomize_0to1()
     {
         for (size_t i=0; i<nLength; ++i)
-            pBuffer[i] = (float(rand())/(RAND_MAX-1));
+            pBuffer[i] = (float(rand())/float(RAND_MAX-1));
     }
 
     void FloatBuffer::randomize(float min, float max)
@@ -105,14 +106,14 @@ namespace test
     void FloatBuffer::randomize_negative()
     {
         for (size_t i=0; i<nLength; ++i)
-            pBuffer[i] = - ((float(rand())/RAND_MAX) + 0.001f);
+            pBuffer[i] = - ((float(rand())/float(RAND_MAX)) + 0.001f);
     }
 
     void FloatBuffer::randomize_sign()
     {
         for (size_t i=0; i<nLength; ++i)
         {
-            float tmp = (float(rand())/RAND_MAX) + 0.001f;
+            float tmp = (float(rand())/float(RAND_MAX)) + 0.001f;
             pBuffer[i] = (rand() >= (RAND_MAX >> 1)) ? tmp : -tmp;
         }
     }
