@@ -54,8 +54,8 @@ namespace lsp
 
         protected:
             static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
-            void deserialize_v1(const fxBank *bank, size_t bytes);
-            void deserialize_v2(const fxBank *bank, size_t bytes);
+            void deserialize_v1(const fxBank *bank);
+            void deserialize_v2(const fxBank *bank);
 
             void sync_position();
 
@@ -886,7 +886,7 @@ namespace lsp
         bank.numPrograms    = 0;
         bank.currentProgram = 0;
 
-        size_t bank_off     = sChunk.write(&bank, sizeof(bank));
+        size_t bank_off     = sChunk.write(&bank, offsetof(fxBank, content.data.chunk));
         size_t data_off     = sChunk.offset;
         size_t param_off    = 0;
 
@@ -1009,7 +1009,8 @@ namespace lsp
 
                         sChunk.write_byte(LSP_VST_BLOB);
                         sChunk.write_string((p->blob.ctype != NULL) ? p->blob.ctype : "");
-                        sChunk.write(p->blob.data, p->blob.size);
+                        if (p->blob.size > 0)
+                            sChunk.write(p->blob.data, p->blob.size);
                         break;
                     }
 
@@ -1042,7 +1043,7 @@ namespace lsp
         // Write the size of chunk
         fxBank *pbank               = sChunk.fetch<fxBank>(bank_off);
         pbank->content.data.size    = CPU_TO_BE(VstInt32(sChunk.offset - data_off));
-        pbank->byteSize             = CPU_TO_BE(VstInt32(sChunk.offset - VST_BANK_HDR_SIZE));
+        pbank->byteSize             = CPU_TO_BE(VstInt32(sChunk.offset - VST_BANK_HDR_SKIP));
 
         dump_vst_bank(pbank);
 
@@ -1060,14 +1061,6 @@ namespace lsp
         if (bank->chunkMagic != BE_TO_CPU(cMagic))
         {
             lsp_trace("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_TO_CPU(cMagic)));
-            return;
-        }
-
-        // Get size of chunk
-        size_t byte_size                = BE_TO_CPU(VstInt32(bank->byteSize));
-        if (byte_size < VST_STATE_BUFFER_SIZE)
-        {
-            lsp_trace("byte_size (%d) < VST_STATE_BUFFER_SIZE (%d)", int(byte_size), int(VST_STATE_BUFFER_SIZE));
             return;
         }
 
@@ -1103,9 +1096,9 @@ namespace lsp
         // Check the version
         VstInt32 fxVersion = BE_TO_CPU(bank->fxVersion);
         if (fxVersion < VST_FX_VERSION_KVT_SUPPORT)
-            deserialize_v1(bank, byte_size);
+            deserialize_v1(bank);
         else
-            deserialize_v2(bank, byte_size);
+            deserialize_v2(bank);
     }
 
     VSTPort *VSTWrapper::find_by_id(const char *id)
@@ -1130,9 +1123,17 @@ namespace lsp
         return NULL;
     }
 
-    void VSTWrapper::deserialize_v1(const fxBank *bank, size_t bytes)
+    void VSTWrapper::deserialize_v1(const fxBank *bank)
     {
         lsp_debug("Performing V1 parameter deserialization");
+
+        // Get size of chunk
+        size_t bytes                    = BE_TO_CPU(VstInt32(bank->byteSize));
+        if (bytes < VST_STATE_BUFFER_SIZE)
+        {
+            lsp_trace("byte_size (%d) < VST_STATE_BUFFER_SIZE (%d)", int(bytes), int(VST_STATE_BUFFER_SIZE));
+            return;
+        }
 
         // Ready to de-serialize
         const vst_state *state  = reinterpret_cast<const vst_state *>(bank + 1);
@@ -1172,13 +1173,28 @@ namespace lsp
         }
     }
 
-    void VSTWrapper::deserialize_v2(const fxBank *bank, size_t bytes)
+    void VSTWrapper::deserialize_v2(const fxBank *bank)
     {
         lsp_debug("Performing V2 parameter deserialization");
 
+        // Get size of chunk
+        size_t bytes                    = BE_TO_CPU(VstInt32(bank->byteSize));
+        if (bytes < offsetof(fxBank, content.data.chunk))
+        {
+            lsp_trace("byte_size (%d) < VST_STATE_BUFFER_SIZE (%d)", int(bytes), int(VST_STATE_BUFFER_SIZE));
+            return;
+        }
+
         const uint8_t *head = reinterpret_cast<const uint8_t *>(bank);
-        const uint8_t *tail = &head[bytes + sizeof(fxBank) - VST_BANK_HDR_SIZE];
-        head               += sizeof(fxBank);
+        const uint8_t *tail = &head[bytes + VST_BANK_HDR_SKIP];
+        head               += offsetof(fxBank, content.data.chunk);
+
+        bytes               = BE_TO_CPU(bank->content.data.size);
+        if (size_t(tail - head) != bytes)
+        {
+            lsp_trace("Content size=0x%x does not match specified=0x%x", int(tail-head), int(bytes));
+            return;
+        }
 
         lsp_debug("Reading regular ports...");
         while (size_t(tail - head) >= sizeof(uint32_t))
@@ -1191,9 +1207,9 @@ namespace lsp
                 return;
             }
             const uint8_t *next = &head[len];
-            head               += sizeof(uint32_t);
 
             // Read name of port
+            head               += sizeof(uint32_t);
             const char *name    = reinterpret_cast<const char *>(head);
             len                 = ::strnlen(name, next - head) + 1;
             if (len > (next - head))
@@ -1202,7 +1218,10 @@ namespace lsp
                 return;
             }
             if (name[0] == '/') // This is KVT port?
+            {
+                head               -= sizeof(uint32_t); // Rollback head pointer
                 break;
+            }
             head               += len;
 
             // Find port
@@ -1228,7 +1247,7 @@ namespace lsp
         }
 
         // Nothing to de-serialize more?
-        if (tail >= head)
+        if (head >= tail)
             return;
 
         // Deserialize KVT state
@@ -1241,15 +1260,16 @@ namespace lsp
             {
                 // Read parameter length
                 uint32_t len        = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head))) + sizeof(uint32_t);
+                lsp_trace("Reading block: off=0x%x, size=%d", int(head - reinterpret_cast<const uint8_t *>(bank)), int(len));
                 if (len > (tail - head))
                 {
                     lsp_warn("Unexpected end of chunk while fetching KVT parameter size");
                     break;
                 }
                 const uint8_t *next = &head[len];
-                head               += sizeof(uint32_t);
 
                 // Read name of parameter
+                head               += sizeof(uint32_t);
                 const char *name    = reinterpret_cast<const char *>(head);
                 len                 = ::strnlen(name, next - head) + 1;
                 if (len > (next - head))
@@ -1260,10 +1280,11 @@ namespace lsp
                 head               += len;
 
                 // Deserialize KVT parameter
-                lsp_trace("Deserializing KVT parameter id=%s", name);
-                uint8_t type        = *(head++);
                 kvt_param_t p;
                 p.type              = KVT_ANY;
+                uint8_t type        = *(head++);
+
+                lsp_trace("Deserializing KVT parameter id=%s, type=0x%x", name, int(type));
 
                 switch (type)
                 {
@@ -1325,11 +1346,15 @@ namespace lsp
                         p.blob.ctype    = reinterpret_cast<const char *>(head);
                         len             = ::strnlen(p.blob.ctype, next-head) + 1;
                         if (len > size_t(next - head))
+                        {
+                            lsp_trace("BLOB: clen=%d out of range %d", int(len), int(next-head));
                             break;
+                        }
 
                         head           += len;
                         p.blob.size     = next - head;
                         p.blob.data     = (p.blob.size > 0) ? head : NULL;
+                        p.type          = KVT_BLOB;
                         break;
                     default:
                         lsp_warn("Unknown KVT parameter type: %d ('%c') for id=%s", type, type, name);

@@ -36,7 +36,7 @@ namespace lsp
     }
 
     template <class T>
-        static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value, size_t flags = 0)
+        static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value, size_t flags)
         {
             char name[0x100]; // Should be enough
             size_t len = ::strlen(base) + ::strlen(branch) + 2;
@@ -47,7 +47,7 @@ namespace lsp
             *(tail++)  = '/';
             stpcpy(tail, branch);
 
-            return s->put(name, value, KVT_TO_UI | flags) == STATUS_OK;
+            return s->put(name, value, flags) == STATUS_OK;
         }
 
     status_t room_builder_base::SceneLoader::run()
@@ -79,11 +79,11 @@ namespace lsp
 
         // Now initialize object properties
         char base[128];
-        kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs));
-        kvt_deploy(kvt, "/scene", "selected", 0.0f);
+        kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs), KVT_TX);
+        kvt_deploy(kvt, "/scene", "selected", 0.0f, KVT_TX);
 
         lsp_trace("Extra loading flags=0x%x", int(nFlags));
-        size_t extra = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP : 0;
+        size_t extra = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
 
         for (size_t i=0; i<nobjs; ++i)
         {
@@ -95,12 +95,12 @@ namespace lsp
             sprintf(base, "/scene/object/%d", int(i));
             lsp_trace("Deploying KVT parameters for %s", base);
 
-            kvt_deploy(kvt, base, "name", obj->get_name()); // Always overwrite name
+            kvt_deploy(kvt, base, "name", obj->get_name(), KVT_TX); // Always overwrite name
 
             kvt_deploy(kvt, base, "enabled", 1.0f, extra);
-            kvt_deploy(kvt, base, "center/x", c->x, extra);
-            kvt_deploy(kvt, base, "center/y", c->y, extra);
-            kvt_deploy(kvt, base, "center/z", c->z, extra);
+            kvt_deploy(kvt, base, "center/x", c->x, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
+            kvt_deploy(kvt, base, "center/y", c->y, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
+            kvt_deploy(kvt, base, "center/z", c->z, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
             kvt_deploy(kvt, base, "position/x", 0.0f, extra);
             kvt_deploy(kvt, base, "position/y", 0.0f, extra);
             kvt_deploy(kvt, base, "position/z", 0.0f, extra);

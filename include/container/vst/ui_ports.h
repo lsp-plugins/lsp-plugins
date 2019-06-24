@@ -271,8 +271,13 @@ namespace lsp
 
             virtual void write(const void *buffer, size_t size)
             {
+                write(buffer, size, 0);
+            }
+
+            virtual void write(const void *buffer, size_t size, size_t flags)
+            {
                 if (pPath != NULL)
-                    pPath->submit(reinterpret_cast<const char *>(buffer), size, true);
+                    pPath->submit(reinterpret_cast<const char *>(buffer), size, true, flags);
             }
     };
 

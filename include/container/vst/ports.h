@@ -712,7 +712,7 @@ namespace lsp
                     return -1;
 
                 // Submit data
-                sPath.submit(reinterpret_cast<const char *>(ptr), bytes, false);
+                sPath.submit(reinterpret_cast<const char *>(ptr), bytes, false, PF_STATE_RESTORE);
                 ptr            += bytes;
                 return ptr - reinterpret_cast<const uint8_t *>(data);
             }
@@ -724,7 +724,7 @@ namespace lsp
                 if (len > size)
                     return false;
 
-                sPath.submit(str, len, false);
+                sPath.submit(str, len, false, PF_STATE_RESTORE);
                 return true;
             }
 

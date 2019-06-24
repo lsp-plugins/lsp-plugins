@@ -26,6 +26,9 @@ namespace lsp
 
         size_t      nFlags;
 
+        size_t      nXFlags;
+        size_t      nXFlagsReq;
+
         char        sPath[PATH_MAX];
         char        sDspRequest[PATH_MAX];
         char        sUiPath[PATH_MAX];
@@ -39,6 +42,8 @@ namespace lsp
             nUiCommit       = 0;
 
             nFlags          = 0;
+            nXFlags         = 0;
+            nXFlagsReq      = 0;
 
             sPath[0]        = '\0';
             sDspRequest[0]  = '\0';
@@ -48,6 +53,11 @@ namespace lsp
         virtual const char *get_path()
         {
             return sPath;
+        }
+
+        virtual size_t get_flags()
+        {
+            return nXFlags;
         }
 
         virtual void accept()
@@ -75,7 +85,9 @@ namespace lsp
                 if (nDspSerial != nDspCommit)
                 {
                     // Copy the data
-                    strcpy(sPath, sDspRequest);
+                    nXFlags         = nXFlagsReq;
+                    nXFlagsReq      = 0;
+                    ::strcpy(sPath, sDspRequest);
                     nFlags          = F_PENDING;
 
                     // Update serial(s)
@@ -94,7 +106,7 @@ namespace lsp
             return nFlags & F_ACCEPTED;
         }
 
-        void submit(const char *path, size_t len, bool ui)
+        void submit(const char *path, size_t len, bool ui, size_t flags)
         {
             // Determine size of path
             size_t count = (len >= PATH_MAX) ? PATH_MAX - 1 : len;
@@ -109,7 +121,8 @@ namespace lsp
                     if (atomic_trylock(nDspRequest))
                     {
                         // Write DSP request
-                        memcpy(sDspRequest, path, count);
+                        ::memcpy(sDspRequest, path, count);
+                        nXFlagsReq          = flags;
                         sDspRequest[count]  = '\0';
                         nDspSerial          ++;
 
@@ -121,13 +134,14 @@ namespace lsp
                     }
 
                     // Wait for a while
-                    nanosleep(&spec, NULL);
+                    ::nanosleep(&spec, NULL);
                 }
             }
             else
             {
                 // Write DSP request
-                memcpy(sDspRequest, path, count);
+                ::memcpy(sDspRequest, path, count);
+                nXFlagsReq          = flags;
                 sDspRequest[count]  = '\0';
                 nDspSerial          ++;
             }
@@ -140,7 +154,7 @@ namespace lsp
             bool sync = (nUiSerial != nUiCommit);
             if (sync)
             {
-                strcpy(sUiPath, sPath);
+                ::strcpy(sUiPath, sPath);
                 nUiCommit++;
             }
             atomic_unlock(nDspRequest);

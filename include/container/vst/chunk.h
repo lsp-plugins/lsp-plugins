@@ -89,7 +89,7 @@ namespace lsp
                     return 0;
 
                 size_t off      = offset;
-                *(reinterpret_cast<T *>(&data[offset])) = CPU_TO_BE(value);
+                *(reinterpret_cast<T *>(&data[off])) = CPU_TO_BE(value);
                 offset         += sizeof(value);
                 return off;
             }

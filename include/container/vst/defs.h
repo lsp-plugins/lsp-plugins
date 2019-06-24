@@ -49,7 +49,8 @@ typedef struct vst_state_buffer
 
 #define LSP_VST_USER_MAGIC              CCONST('L', 'S', 'P', 'U')
 #define VST_PROGRAM_HDR_SIZE            (sizeof(fxProgram) - 2 * sizeof(VstInt32))
-#define VST_BANK_HDR_SIZE               (sizeof(fxBank) - 2 * sizeof(VstInt32))
+#define VST_BANK_HDR_SKIP               (2*sizeof(VstInt32))
+#define VST_BANK_HDR_SIZE               (sizeof(fxBank) - VST_BANK_HDR_SKIP)
 #define VST_STATE_BUFFER_SIZE           (VST_BANK_HDR_SIZE + sizeof(vst_state))
 
 enum
