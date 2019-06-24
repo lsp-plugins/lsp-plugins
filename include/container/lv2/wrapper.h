@@ -1586,7 +1586,7 @@ namespace lsp
             if ((res == STATUS_OK) && (sink.res == STATUS_OK))
             {
                 // TEST
-                {
+                /*{
                     kvt_param_t xp;
                     xp.blob.ctype   = "text/plain";
                     xp.blob.data    = "Test text";
@@ -1612,7 +1612,7 @@ namespace lsp
                             lv2_atom_forge_write(&forge, p->blob.data, size);
                     }
                     lv2_atom_forge_pop(&forge, &obj);
-                }
+                }*/
                 
                 lv2_atom_forge_pop(&forge, &frame);
                 LV2_Atom *msg = reinterpret_cast<LV2_Atom *>(sink.buf);
