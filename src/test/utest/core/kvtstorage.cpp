@@ -252,6 +252,9 @@ UTEST_BEGIN("core", kvtstorage)
     {
         // Create entries
         l.clear();
+        kvt_param_t p;
+        p.type  = kvt_param_type_t(1234);
+        UTEST_ASSERT(s.put("/bad_type", &p, KVT_TX) == STATUS_BAD_TYPE);
         UTEST_ASSERT(s.put("/", "fake", KVT_TX) == STATUS_INVALID_VALUE);
         UTEST_ASSERT(s.put("/fake/", uint64_t(123123), KVT_TX) == STATUS_INVALID_VALUE);
 

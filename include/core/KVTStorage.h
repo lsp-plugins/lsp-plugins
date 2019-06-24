@@ -36,6 +36,8 @@ namespace lsp
         KVT_TX              = 1 << 1,       // Transfer from DSP to UI
         KVT_KEEP            = 1 << 2,       // Keep the previous value of parameter if it exists
         KVT_DELEGATE        = 1 << 3,       // Delegate the control over parameter's data to the storage
+        KVT_PRIVATE         = 1 << 4,       // Private option (do not transfer)
+        KVT_TRANSIENT       = 1 << 5,       // Transient option (do not serialize)
 
         // Special constants to not to be confused with KVT_RX and KVT_TX abbreviations
         KVT_TO_UI           = KVT_TX,
@@ -185,6 +187,7 @@ namespace lsp
             } kvt_link_t;
 
             typedef struct kvt_gcparam_t : public kvt_param_t {
+                size_t              flags;
                 kvt_gcparam_t      *next;
             } kvt_gcparam_t;
 
@@ -256,6 +259,8 @@ namespace lsp
             status_t                do_touch(const char *name, kvt_node_t *node, size_t flags);
             status_t                do_commit(const char *name, kvt_node_t *node, size_t flags);
             status_t                do_remove_branch(const char *name, kvt_node_t *node);
+
+            static inline bool      validate_type(size_t type) { return (type >= KVT_INT32) && (type <= KVT_BLOB); }
 
         public:
             explicit KVTStorage(char separator = '/');
@@ -459,6 +464,9 @@ namespace lsp
             bool        tx_pending() const;
             bool        rx_pending() const;
             size_t      pending() const;
+            size_t      flags() const;
+            inline bool is_transient() const    { return flags() & KVT_TRANSIENT; }
+            inline bool is_private() const      { return flags() & KVT_PRIVATE; }
 
         public:
 

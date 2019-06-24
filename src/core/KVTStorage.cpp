@@ -535,6 +535,7 @@ namespace lsp
     KVTStorage::kvt_gcparam_t *KVTStorage::copy_parameter(const kvt_param_t *src, size_t flags)
     {
         kvt_gcparam_t *gcp  = reinterpret_cast<kvt_gcparam_t *>(::malloc(sizeof(kvt_gcparam_t)));
+        gcp->flags          = flags & (KVT_PRIVATE | KVT_TRANSIENT);
         gcp->next           = NULL;
 
         kvt_param_t *dst    = gcp;
@@ -630,7 +631,9 @@ namespace lsp
             return STATUS_BAD_ARGUMENTS;
 
         const char *path    = name;
-        if ((value->type == KVT_ANY) || (*(path++) != cSeparator))
+        if (!validate_type(value->type))
+            return STATUS_BAD_TYPE;
+        else if (*(path++) != cSeparator)
             return STATUS_INVALID_VALUE;
 
         kvt_node_t *curr = &sRoot;
@@ -835,6 +838,10 @@ namespace lsp
             return STATUS_NOT_FOUND;
         }
 
+        // Skip private parameters if KVT_PRIVATE flag was not set
+        if ((param->flags & KVT_PRIVATE) && (!(flags & KVT_PRIVATE)))
+            return STATUS_OK;
+
         // Add parameter to trash
         size_t op = node->pending;
         size_t np = set_pending_state(node, op | flags);
@@ -925,6 +932,10 @@ namespace lsp
         {
             node        = lnk->node;
             if (node->param == NULL) // Parameter does exist?
+                continue;
+
+            // Skip private parameters if KVT_PRIVATE flag was not set
+            if ((node->param->flags & KVT_PRIVATE) && (!(flags & KVT_PRIVATE)))
                 continue;
 
             size_t op   = node->pending;
@@ -1675,6 +1686,11 @@ namespace lsp
         return (valid()) && (pCurr->pending & (KVT_RX | KVT_TX));
     }
 
+    size_t KVTIterator::flags() const
+    {
+        return ((valid()) && (pCurr->param != 0)) ? pCurr->param->flags : 0;
+    }
+
     const char *KVTIterator::id() const
     {
         return (valid()) ? pCurr->id : NULL;
@@ -1942,7 +1958,9 @@ namespace lsp
     status_t KVTIterator::put(const kvt_param_t *value, size_t flags)
     {
         if (!valid())
-            return false;
+            return STATUS_BAD_STATE;
+        if (!KVTStorage::validate_type(value->type))
+            return STATUS_BAD_TYPE;
 
         const char *id = name();
         if (id == NULL)

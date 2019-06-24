@@ -125,6 +125,14 @@ namespace lsp
             kvt_deploy(kvt, base, "material/sound_speed", 12.88f * SOUND_SPEED_M_S, extra);
         }
 
+        // Test
+        kvt_param_t xp;
+        xp.type         = KVT_BLOB;
+        xp.blob.ctype   = "text/plain";
+        xp.blob.data    = "Test text";
+        xp.blob.size    = strlen("Test text") + 1;
+        kvt->put("/TEST_BLOB", &xp, KVT_PRIVATE);
+
         // Drop rare (unused) objects
         kvt_cleanup_objects(kvt, nobjs);
 

@@ -936,9 +936,12 @@ namespace lsp
                     continue;
                 else if (res != STATUS_OK)
                 {
-                    lsp_trace("it->get() returned %d", int(res));
+                    lsp_warn("it->get() returned %d", int(res));
                     break;
                 }
+                else if (it->is_transient()) // Skip transient parameters
+                    continue;
+
                 const char *name = it->name();
                 if (name == NULL)
                 {
