@@ -25,9 +25,9 @@ MTEST_BEGIN("core.files", config)
             virtual ~CfgHandler() {}
 
         public:
-            virtual status_t handle_parameter(const LSPString *name, const LSPString *value)
+            virtual status_t handle_parameter(const LSPString *name, const LSPString *value, size_t flags)
             {
-                test->printf("name=%s, value=%s", name->get_native(), value->get_native());
+                test->printf("name=%s, value=%s, flags=0x%x", name->get_native(), value->get_native(), int(flags));
                 return STATUS_OK;
             }
     };

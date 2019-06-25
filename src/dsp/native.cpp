@@ -41,6 +41,8 @@
 #include <dsp/arch/native/mix.h>
 #include <dsp/arch/native/3dmath.h>
 
+#include <dsp/arch/native/coding.h>
+
 #undef __DSP_NATIVE_IMPL
 
 namespace native
@@ -416,6 +418,9 @@ namespace native
         EXPORT1(unit_vector_p1pv);
 
         EXPORT1(convolve);
+
+        EXPORT1(base64_enc);
+        EXPORT1(base64_dec);
     }
 
     #undef EXPORT1

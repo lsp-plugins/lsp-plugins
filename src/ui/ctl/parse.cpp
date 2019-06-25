@@ -125,7 +125,7 @@ namespace lsp
             return true;
         }
 
-        bool set_port_value(CtlPort *up, const char *value)
+        bool set_port_value(CtlPort *up, const char *value, size_t flags)
         {
             if (up == NULL)
                 return false;
@@ -149,33 +149,23 @@ namespace lsp
                     {
                         if (p->unit == U_BOOL)
                         {
-                            PARSE_BOOL(value,
-                                up->set_value(__, PF_STATE_IMPORT);
-                                up->notify_all();
-                            );
+                            PARSE_BOOL(value, up->set_value(__, flags); );
                         }
                         else
                         {
-                            PARSE_INT(value,
-                                up->set_value(__, PF_STATE_IMPORT);
-                                up->notify_all();
-                            );
+                            PARSE_INT(value, up->set_value(__, flags); );
                         }
                     }
                     else
                     {
-                        PARSE_FLOAT(value,
-                            up->set_value(__, PF_STATE_IMPORT);
-                            up->notify_all();
-                        );
+                        PARSE_FLOAT(value, up->set_value(__, flags); );
                     }
                     break;
                 }
                 case R_PATH:
                 {
                     size_t len      = ::strlen(value);
-                    up->write(value, len, PF_STATE_IMPORT);
-                    up->notify_all();
+                    up->write(value, len, flags);
                     break;
                 }
                 default:

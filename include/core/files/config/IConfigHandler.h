@@ -18,8 +18,11 @@ namespace lsp
     {
         class IConfigHandler
         {
+            private:
+                IConfigHandler & operator = (const IConfigHandler &);
+
             public:
-                IConfigHandler();
+                explicit IConfigHandler();
                 virtual ~IConfigHandler();
 
             public:
@@ -27,17 +30,19 @@ namespace lsp
                  * Main interface
                  * @param name parameter name
                  * @param value parameter value
+                 * @param flags additional parameter flags
                  * @return status of operation
                  */
-                virtual status_t handle_parameter(const LSPString *name, const LSPString *value);
+                virtual status_t handle_parameter(const LSPString *name, const LSPString *value, size_t flags);
 
                 /**
                  * Legacy interface
                  * @param name parameter name
                  * @param value parameter value
+                 * @param flags additional parameter flags
                  * @return status of operation
                  */
-                virtual status_t handle_parameter(const char *name, const char *value);
+                virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
         };
     
     } /* namespace ctl */

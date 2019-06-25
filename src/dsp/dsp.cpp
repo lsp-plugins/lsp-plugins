@@ -431,6 +431,9 @@ namespace dsp
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
 
     void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
+
+    size_t  (* base64_enc)(void *dst, size_t *dst_left, const void *src, size_t *src_left) = NULL;
+    ssize_t (* base64_dec)(void *dst, size_t *dst_left, const void *src, size_t *src_left) = NULL;
 }
 
 namespace dsp

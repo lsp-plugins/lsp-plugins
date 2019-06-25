@@ -24,10 +24,173 @@
 
 namespace lsp
 {
-    status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value)
+    plugin_ui::ConfigHandler::~ConfigHandler()
     {
-        pUI->apply_changes(name, value, hPorts);
+        for (size_t i=0, n=vNotify.size(); i<n; ++i)
+        {
+            char *p = vNotify.get(i);
+            if (p != NULL)
+                ::free(p);
+        }
+        vNotify.flush();
+    }
+
+    status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value, size_t flags)
+    {
+        using namespace lsp::config;
+
+        if (name[0] == '/')
+        {
+            if (pKVT == NULL)
+                return STATUS_OK;
+
+            kvt_param_t p;
+
+            switch (flags & SF_TYPE_MASK)
+            {
+                case SF_TYPE_I32:
+                    PARSE_INT(value, { p.i32 = __; p.type = KVT_INT32; } );
+                    break;
+                case SF_TYPE_U32:
+                    PARSE_UINT(value, { p.u32 = __; p.type = KVT_UINT32; } );
+                    break;
+                case SF_TYPE_I64:
+                    PARSE_LLINT(value, { p.i64 = __; p.type = KVT_INT64; } );
+                    break;
+                case SF_TYPE_U64:
+                    PARSE_ULLINT(value, { p.u64 = __; p.type = KVT_UINT64; } );
+                    break;
+                case SF_TYPE_F64:
+                    PARSE_DOUBLE(value, { p.f64 = __; p.type = KVT_FLOAT64; } );
+                    break;
+                case SF_TYPE_STR:
+                    p.str       = ::strdup(value);
+                    if (p.str == NULL)
+                        return STATUS_NO_MEM;
+                    p.type      = KVT_STRING;
+                    break;
+                case SF_TYPE_BLOB:
+                {
+                    // Get content type
+                    const char *split = ::strchr(value, ':');
+                    if (split == NULL)
+                        return STATUS_BAD_FORMAT;
+
+                    char *ctype = NULL;
+                    size_t clen = (++split) - value;
+
+                    if (clen > 0)
+                    {
+                        ctype = ::strndup(value, clen);
+                        if (ctype == NULL)
+                            return STATUS_NO_MEM;
+                        ctype[clen-1]   = '\0';
+                    }
+                    p.blob.ctype    = ctype;
+
+                    // Get content size
+                    errno = 0;
+                    char *base64 = NULL;
+                    p.blob.size = size_t(::strtoull(split, &base64, 10));
+                    if ((errno != 0) || (*(base64++) != ':'))
+                    {
+                        if (ctype != NULL)
+                            ::free(ctype);
+                        return STATUS_BAD_FORMAT;
+                    }
+
+                    // Decode content
+                    size_t src_left = ::strlen(base64); // Size of base64-block
+                    p.blob.data     = NULL;
+                    if (src_left > 0)
+                    {
+                        // Allocate memory
+                        size_t dst_left = 0x10 + ((src_left * 3) / 4);
+                        void *blob      = ::malloc(dst_left);
+                        if (blob == NULL)
+                        {
+                            if (ctype != NULL)
+                                ::free(ctype);
+                            return STATUS_NO_MEM;
+                        }
+
+                        // Decode
+                        size_t n = dsp::base64_dec(blob, &dst_left, base64, &src_left);
+                        if ((n != p.blob.size) || (src_left != 0))
+                        {
+                            ::free(ctype);
+                            ::free(blob);
+                            return STATUS_BAD_FORMAT;
+                        }
+                        p.blob.data = blob;
+                    }
+                    else if (p.blob.size != 0)
+                    {
+                        ::free(ctype);
+                        return STATUS_BAD_FORMAT;
+                    }
+
+                    break;
+                }
+
+                case SF_TYPE_NATIVE:
+                case SF_TYPE_F32:
+                default:
+                    PARSE_FLOAT(value, { p.f32 = __; p.type = KVT_FLOAT32; } );
+                    break;
+            }
+
+            // Update KVT patameter & sync
+            if (p.type != KVT_ANY)
+            {
+                pKVT->put(name, &p, KVT_RX | KVT_DELEGATE);
+                add_notification(name);
+            }
+            else
+                return STATUS_BAD_FORMAT;
+        }
+        else
+        {
+            add_notification(name);
+            pUI->apply_changes(name, value, hPorts);
+        }
+
         return STATUS_OK;
+    }
+
+    void plugin_ui::ConfigHandler::add_notification(const char *id)
+    {
+        char *notify = ::strdup(id);
+        if (notify == NULL)
+            return;
+
+        if (!vNotify.add(notify))
+            ::free(notify);
+    }
+
+    void plugin_ui::ConfigHandler::notify_all()
+    {
+        for (size_t i=0, n=vNotify.size(); i<n; ++i)
+        {
+            char *p = vNotify.get(i);
+            if (p == NULL)
+                continue;
+
+            if (p[0] == '/') // KVT ?
+            {
+                const kvt_param_t *param = NULL;
+                if ((pKVT->get(p, &param) == STATUS_OK) && (param != NULL))
+                    pUI->kvt_write(pKVT, p, param);
+            }
+            else
+            {
+                CtlPort *ctl = pUI->port(p);
+                if (ctl != NULL)
+                    ctl->notify_all();
+            }
+            ::free(p);
+        }
+        vNotify.flush();
     }
 
     status_t plugin_ui::ConfigSource::get_head_comment(LSPString *comment)
@@ -37,6 +200,7 @@ namespace lsp
 
     status_t plugin_ui::ConfigSource::get_parameter(LSPString *name, LSPString *value, LSPString *comment, int *flags)
     {
+        // Get regular ports
         size_t n_ports = hPorts.size();
 
         while (nPortID < n_ports)
@@ -63,6 +227,110 @@ namespace lsp
                 continue;
 
             return res;
+        }
+
+        // Get KVT parameters
+        while ((pIter != NULL) && (pIter->next() == STATUS_OK))
+        {
+            const kvt_param_t *p;
+
+            // Get KVT parameter
+            status_t res = pIter->get(&p);
+            if (res == STATUS_NOT_FOUND)
+                continue;
+            else if (res != STATUS_OK)
+            {
+                lsp_warn("Could not get parameter: code=%d", int(res));
+                break;
+            }
+//            else if (pIter->is_transient())
+//                continue;
+
+            // Get parameter name
+            const char *pname = pIter->name();
+            if (pname == NULL)
+                continue;
+            if (pIter->is_transient())
+                continue;
+            if (!name->set_ascii(pname))
+            {
+                lsp_warn("Failed to do set_ascii");
+                continue;
+            }
+
+            // Serialize state
+            bool fmt = false;
+            switch (p->type)
+            {
+                case KVT_INT32:
+                    fmt     = value->fmt_ascii("%li", (signed long)(p->i32));
+                    *flags  = config::SF_TYPE_I32;
+                    break;
+                case KVT_UINT32:
+                    fmt = value->fmt_ascii("%lu", (unsigned long)(p->u32));
+                    *flags  = config::SF_TYPE_U32;
+                    break;
+                case KVT_INT64:
+                    fmt = value->fmt_ascii("%lli", (signed long long)(p->i64));
+                    *flags  = config::SF_TYPE_I64;
+                    break;
+                case KVT_UINT64:
+                    fmt = value->fmt_ascii("%llu", (unsigned long long)(p->u64));
+                    *flags  = config::SF_TYPE_U64;
+                    break;
+                case KVT_FLOAT32:
+                    fmt = value->fmt_ascii("%f", p->f32);
+                    *flags  = config::SF_TYPE_F32;
+                    break;
+                case KVT_FLOAT64:
+                    fmt = value->fmt_ascii("%f", p->f64);
+                    *flags  = config::SF_TYPE_F64;
+                    break;
+                case KVT_STRING:
+                    fmt = value->set_utf8(p->str);
+                    *flags  = config::SF_TYPE_STR | config::SF_QUOTED;
+                    break;
+                case KVT_BLOB:
+                {
+                    fmt = value->fmt_ascii("%s:%ld:",
+                            (p->blob.ctype != NULL) ? p->blob.ctype : "",
+                            (long)(p->blob.size)
+                        );
+                    if ((p->blob.size > 0) && (p->blob.data == NULL))
+                        break;
+
+                    // Base-64 encode blob value
+                    if (p->blob.size > 0)
+                    {
+                        size_t dst_size = 0x10 + ((p->blob.size * 4) / 3);
+                        char *base64 = reinterpret_cast<char *>(::malloc(dst_size));
+                        if (base64 == NULL)
+                            break;
+
+                        size_t dst_left = dst_size, src_left = p->blob.size;
+                        dsp::base64_enc(base64, &dst_left, p->blob.data, &src_left);
+                        fmt = value->append_ascii(base64, dst_size - dst_left);
+                        ::free(base64);
+                    }
+                    else
+                        fmt = true;
+
+                    if (fmt)
+                        *flags  = config::SF_TYPE_BLOB | config::SF_QUOTED;
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            if (!fmt)
+            {
+                lsp_warn("Error formatting parameter %s", pname);
+                continue;
+            }
+
+            // All is OK
+            return STATUS_OK;
         }
 
         return STATUS_NO_DATA;
@@ -165,11 +433,23 @@ namespace lsp
             }
         }
 
+        // Destroy custom ports
+        for (size_t i=0, n=vCustomPorts.size(); i<n; ++i)
+        {
+            CtlPort *p = vCustomPorts.at(i);
+            if (p != NULL)
+            {
+                lsp_trace("Destroy timing port id=%s", p->metadata()->id);
+                delete p;
+            }
+        }
+
         // Clear ports
         vSortedPorts.clear();
         vConfigPorts.clear();
         vTimePorts.clear();
         vPorts.clear();
+        vCustomPorts.clear();
         vSwitched.clear();
         vAliases.clear(); // Aliases will be destroyed as controllers
         vKvtListeners.flush(); // Destroy references to KVT listeners
@@ -741,6 +1021,15 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t plugin_ui::add_custom_port(CtlPort *port)
+    {
+        if (!vCustomPorts.add(port))
+            return STATUS_NO_MEM;
+
+        lsp_trace("added custom port id=%s", port->metadata()->id);
+        return STATUS_OK;
+    }
+
     status_t plugin_ui::add_kvt_listener(CtlKvtListener *listener)
     {
         if (!vKvtListeners.add(listener))
@@ -801,15 +1090,28 @@ namespace lsp
         c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
         c.append_utf8       ("  " LSP_BASE_URI " \n");
 
-        ConfigSource cfg(this, vPorts, &c);
+        KVTStorage *kvt = kvt_lock();
+        ConfigSource cfg(this, vPorts, kvt, &c);
+        status_t res = config::save(filename, &cfg, true);
+        kvt->gc();
+        kvt_release();
 
-        return config::save(filename, &cfg, true);
+        return res;
     }
 
     status_t plugin_ui::import_settings(const char *filename)
     {
-        ConfigHandler handler(this, vPorts);
-        return config::load(filename, &handler);
+        KVTStorage *kvt = kvt_lock();
+        ConfigHandler handler(this, vPorts, kvt);
+        status_t res = config::load(filename, &handler);
+        handler.notify_all();
+        if (kvt != NULL)
+        {
+            kvt->gc();
+            kvt_release();
+        }
+
+        return res;
     }
 
     status_t plugin_ui::save_global_config()
@@ -825,7 +1127,7 @@ namespace lsp
         c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
         c.append_utf8       ("  " LSP_BASE_URI " \n");
 
-        ConfigSource cfg(this, vConfigPorts, &c);
+        ConfigSource cfg(this, vConfigPorts, NULL, &c);
 
         status_t status = config::save(fd, &cfg, true);
 
@@ -842,7 +1144,7 @@ namespace lsp
         if (fd == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        ConfigHandler handler(this, vConfigPorts);
+        ConfigHandler handler(this, vConfigPorts, NULL);
         status_t status = config::load(fd, &handler);
 
         // Close file
@@ -865,7 +1167,7 @@ namespace lsp
             if ((meta == NULL) || (meta->id == NULL))
                 continue;
             if (!::strcmp(meta->id, key))
-                return set_port_value(p, value);
+                return set_port_value(p, value, PF_STATE_IMPORT);
         }
         return false;
     }
@@ -995,6 +1297,15 @@ namespace lsp
                 if (!strcmp(p_id, ui_id))
                     return p;
             }
+        }
+
+        // Look to custom ports
+        for (size_t i=0, n=vCustomPorts.size(); i<n; ++i)
+        {
+            CtlPort *p = vCustomPorts.get(i);
+            const port_t *ctl = (p != NULL) ? p->metadata() : NULL;
+            if ((ctl != NULL) && (!strcmp(ctl->id, name)))
+                return p;
         }
 
         // Do usual stuff

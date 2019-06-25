@@ -30,25 +30,37 @@ namespace lsp
                 private:
                     plugin_ui   *pUI;
                     cvector<CtlPort> &hPorts;
+                    KVTStorage  *pKVT;
+                    cvector<char>   vNotify;
+
+                protected:
+                    void add_notification(const char *id);
 
                 public:
-                    ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports): pUI(ui), hPorts(ports) {}
+                    explicit ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt):
+                        pUI(ui), hPorts(ports), pKVT(kvt) {}
+                    virtual ~ConfigHandler();
 
                 public:
-                    virtual status_t handle_parameter(const char *name, const char *value);
+                    virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
+
+                    void notify_all();
             };
 
             class ConfigSource: public config::IConfigSource
             {
                 private:
-                    plugin_ui   *pUI;
+                    plugin_ui      *pUI;
                     cvector<CtlPort> &hPorts;
-                    LSPString   *pComment;
-                    size_t       nPortID;
+                    LSPString      *pComment;
+                    KVTIterator    *pIter;
+                    size_t          nPortID;
 
                 public:
-                    ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports, LSPString *comment):
-                        pUI(ui), hPorts(ports), pComment(comment), nPortID(0) {}
+                    explicit ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt, LSPString *comment):
+                        pUI(ui), hPorts(ports), pComment(comment), nPortID(0) {
+                        pIter       = (kvt != NULL) ? kvt->enum_all() : NULL;
+                    }
 
                 public:
                     virtual status_t get_head_comment(LSPString *comment);
@@ -66,6 +78,7 @@ namespace lsp
             LSPDisplay                  sDisplay;
 
             cvector<CtlPort>            vPorts;
+            cvector<CtlPort>            vCustomPorts;
             cvector<CtlPort>            vSortedPorts;
             cvector<CtlPort>            vConfigPorts;
             cvector<CtlValuePort>       vTimePorts;
@@ -126,6 +139,13 @@ namespace lsp
              * @return status of operation
              */
             status_t add_port(CtlPort *port);
+
+            /** Add custom port to UI
+             *
+             * @param port custom UI port
+             * @return status of operation
+             */
+            status_t add_custom_port(CtlPort *port);
 
             /** Export settings of the UI to the file
              *

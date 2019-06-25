@@ -296,7 +296,7 @@ namespace lsp
         CtlListPort *kvt_list = new CtlListPort(this, meta++);
         if (kvt_list == NULL)
             return STATUS_NO_MEM;
-        add_port(kvt_list);
+        add_custom_port(kvt_list);
         add_kvt_listener(kvt_list);
 
         CtlFloatPort *p;
@@ -306,7 +306,7 @@ namespace lsp
         if (p == NULL) \
             return STATUS_NO_MEM; \
         kvt_list->add_port(p); \
-        add_port(p); \
+        add_custom_port(p); \
         add_kvt_listener(p);
 
         BIND_KVT_PORT("enabled", fEnabled);
