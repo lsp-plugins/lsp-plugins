@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 
 /*
     ARM-predefined macros on Raspberry Pi
@@ -43,26 +44,26 @@
 
 //-----------------------------------------------------------------------------
 // Detect build architecture
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(__x86_64)
     #define ARCH_X86_64
-    #define ARCH_STRING "x86_64"
-    #define IF_ARCH_X86_64(...)     __VA_ARGS__
-#elif defined(__i386__)
+#elif defined(__i386__) || defined(__i386)
     #define ARCH_I386
-    #define ARCH_STRING "i586"
-    #define IF_ARCH_I386(...)       __VA_ARGS__
 #elif defined(__aarch64__)
     #define ARCH_AARCH64
-    #define IF_ARCH_AARCH64(...)    __VA_ARGS__
 #elif defined(__arm__)
     #define ARCH_ARM
-    #define IF_ARCH_ARM(...)        __VA_ARGS__
+#elif defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__)
+    #define ARCH_PPC64
+#elif defined(__ppc__) || defined(__powerpc__) || defined(__ppc)
+    #define ARCH_PPC
+#elif defined(__s390x__) || defined(__s390__) || defined(__zarch__)
+    #define ARCH_S390
 #else
     #warning "Unsupported archtecture"
 #endif
 
 //-----------------------------------------------------------------------------
-// Detect endianess
+// Detect endianess of architecture
 #if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
     #define ARCH_LE
 #elif (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
@@ -70,14 +71,18 @@
 #endif
 
 //-----------------------------------------------------------------------------
+// Detect bitness of architecture
+#if ( __WORDSIZE == 64 )
+    #define ARCH_64BIT
+#elif ( __WORDSIZE == 32 )
+    #define ARCH_32BIT
+#else
+    #warning "Unsupported architecture bitness"
+#endif /* __WORDSIZE */
+
+//-----------------------------------------------------------------------------
 // Detect endianess and operations
 #if defined(ARCH_I386) || defined(ARCH_X86_64)
-    #if defined(ARCH_X86_64)
-        #define ARCH_64BIT
-    #else
-        #define ARCH_32BIT
-    #endif
-
     #define IF_ARCH_X86(...)        __VA_ARGS__
     #define ARCH_X86_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
@@ -91,21 +96,22 @@
 
     #define ARCH_X86
 
-    #ifdef ARCH_BE
-        #undef ARCH_BE
-    #endif /* ARCH_BE */
-    #ifndef ARCH_LE
-        #define ARCH_LE
-    #endif /* ARCH_LE */
+    #if defined(ARCH_I386)
+        #define ARCH_STRING             "i386"
+        #define IF_ARCH_I386(...)       __VA_ARGS__
+    #else
+        #define ARCH_STRING             "x86_64"
+        #define IF_ARCH_X86_64(...)     __VA_ARGS__
+    #endif
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
 
 #if defined(ARCH_ARM)
-    #define ARCH_32BIT
+    #define IF_ARCH_ARM(...)            __VA_ARGS__
+    #define ARCH_ARM_ASM(...)           __asm__ __volatile__ ( __VA_ARGS__ )
+
     #if !defined(ARCH_BE) && !defined(ARCH_BE)
         #define ARCH_LE
     #endif
-
-    #define ARCH_ARM_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
     #if (__ARM_ARCH == 7)
         #define ARCH_ARM7
@@ -116,26 +122,46 @@
         #define ARCH_STRING             "armv6a"
         #define IF_ARCH_ARM6(...)        __VA_ARGS__
     #else
-        #define ARCH_STRING "arm-generic"
+        #define ARCH_STRING             "arm-generic"
     #endif
 #endif /* defined(ARCH_ARM) */
 
 #if defined(ARCH_AARCH64)
-    #define ARCH_64BIT
+    #define IF_ARCH_AARCH64(...)        __VA_ARGS__
+    #define ARCH_AARCH64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+
     #if !defined(ARCH_BE) && !defined(ARCH_BE)
         #define ARCH_LE
     #endif
 
-    #define ARCH_AARCH64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+    #define ARCH_STRING                 "aarch64"
 
     #if (__ARM_ARCH == 8)
         #define ARCH_ARM8
-        #define ARCH_STRING             "aarch64"
         #define IF_ARCH_ARM8(...)        __VA_ARGS__
-    #else
-        #define ARCH_STRING             "aarch64-generic"
     #endif
 #endif /* defined(ARCH_ARM) */
+
+#if defined(ARCH_PPC)
+    #define IF_ARCH_PPC(...)            __VA_ARGS__
+    #define ARCH_PPC_ASM(...)           __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "ppc"
+#endif /* defined(ARCH_PPC) */
+
+#if defined(ARCH_PPC64)
+    #define IF_ARCH_PPC64(...)          __VA_ARGS__
+    #define ARCH_PPC64_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "ppc64"
+#endif /* defined(ARCH_PPC) */
+
+#if defined(ARCH_S390)
+    #define IF_ARCH_S390(...)           __VA_ARGS__
+    #define ARCH_S390_ASM(...)          __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "S390"
+#endif /* defined(ARCH_PPC) */
 
 #if defined(ARCH_LE)
     #define __IF_LEBE(le, be)   le
@@ -374,6 +400,18 @@
     #define IF_ARCH_AARCH64(...)
 #endif /* IF_ARCH_AARCH64 */
 
+#ifndef IF_ARCH_PPC
+    #define IF_ARCH_PPC(...)
+#endif /* IF_ARCH_PPC */
+
+#ifndef IF_ARCH_PPC64
+    #define IF_ARCH_PPC64(...)
+#endif /* IF_ARCH_PPC64 */
+
+#ifndef IF_ARCH_S390
+    #define IF_ARCH_S390(...)
+#endif /* IF_ARCH_S390 */
+
 //-----------------------------------------------------------------------------
 // Default platform
 #ifndef IF_PLATFORM_UNIX
@@ -416,8 +454,6 @@ __IF_32( typedef        uint32_t            umword_t );
 __IF_32( typedef        int32_t             smword_t );
 __IF_64( typedef        uint64_t            umword_t );
 __IF_64( typedef        int64_t             smword_t );
-
-#include <limits.h>
 
 #ifdef PLATFORM_LINUX
     #include <linux/limits.h>

@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 
 //-------------------------------------------------------------------------------------------------------
 // Configure compilation options
@@ -37,13 +38,19 @@
 // Define __cdecl modifier
 #ifdef __GNUC__
     #ifndef __cdecl
-        #if defined(__i386__)
+        #if defined(__i386__) || defined(__i386)
             #define __cdecl __attribute__((__cdecl__))
-        #elif defined(__x86_64__)
+        #elif defined(__x86_64__) || defined(__x86_64)
+            #define __cdecl
+        #elif defined(__aarch64__)
             #define __cdecl
         #elif defined(__arm__)
             #define __cdecl
-        #elif defined(__aarch64__)
+        #elif defined(__ppc64__) || defined(__ppc64)
+            #define __cdecl
+        #elif defined(__ppc__) || defined(__ppc)
+            #define __cdecl
+        #elif defined(__s390x__) || defined(__s390__) || defined(__zarch__)
             #define __cdecl
         #endif /* __cdecl */
     #endif /* __cdecl */
@@ -55,13 +62,19 @@
     #define VST_C_EXTERN
 #endif /* __cplusplus */
 
-/** Test whether system runs in 64-bit moe */
-#ifndef VST_64BIT_PLATFORM
-    #define VST_64BIT_PLATFORM _WIN64 || __LP64__
-#endif /* VST_64BIT_PLATFORM */
+/** Test whether system runs in 64-bit mode */
+#ifdef __GNUC__
+    #ifndef VST_64BIT_PLATFORM
+        #define VST_64BIT_PLATFORM  (__x86_64__) || (__aarch64__) || (__ppc64__) || (__WORDSIZE == 64)
+    #endif /* VST_64BIT_PLATFORM */
+#else
+    #ifndef VST_64BIT_PLATFORM
+        #define VST_64BIT_PLATFORM _WIN64 || __LP64__
+    #endif /* VST_64BIT_PLATFORM */
+#endif /* __GNUC__ */
 
 #if TARGET_API_MAC_CARBON
-    #ifdef __LP64__
+    #ifdef (__LP64__) || (__ppc64__)
         #pragma options align=power
     #else
         #pragma options align=mac68k
