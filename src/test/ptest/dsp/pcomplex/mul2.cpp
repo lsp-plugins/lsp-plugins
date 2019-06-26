@@ -22,6 +22,18 @@ IF_ARCH_X86(
     {
         void pcomplex_mul2(float *dst, const float *src, size_t count);
     }
+
+    namespace sse3
+    {
+        void pcomplex_mul2(float *dst, const float *src, size_t count);
+    }
+)
+
+IF_ARCH_X86_64(
+    namespace sse3
+    {
+        void x64_pcomplex_mul2(float *dst, const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -78,6 +90,8 @@ PTEST_BEGIN("dsp.pcomplex", mul2, 5, 1000)
 
             CALL("native::pcomplex_mul2", out, in, count, native::pcomplex_mul2);
             IF_ARCH_X86(CALL("sse::pcomplex_mul2", out, in, count, sse::pcomplex_mul2));
+            IF_ARCH_X86(CALL("sse3::pcomplex_mul2", out, in, count, sse3::pcomplex_mul2));
+            IF_ARCH_X86(CALL("sse3::x64_pcomplex_mul2", out, in, count, sse3::x64_pcomplex_mul2));
             IF_ARCH_ARM(CALL("neon_d32::pcomplex_mul2", out, in, count, neon_d32::pcomplex_mul2));
             IF_ARCH_AARCH64(CALL("asimd::pcomplex_mul2", out, in, count, asimd::pcomplex_mul2));
 
