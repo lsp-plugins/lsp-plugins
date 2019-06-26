@@ -27,9 +27,9 @@
 * Now both release and test binaries are available to build into separate subdirectories independently.
 * Implemented key-value tree storage (KVTStorage) for storing and managing dynamic parameters.
 * Implemented key-value tree storage (KVTStorage) UI<->DSP synchronization mechanisms.
-- Implemented key-value tree storage (KVTStorage) serialization/deserialization in parameters.
-- Implemented key-value tree storage (KVTStorage) serialization/deserialization for the plugin state.
-- Implemented mechanism for UI<->DSP OSC message interchange.
+* Implemented key-value tree storage (KVTStorage) serialization/deserialization in parameters.
+* Implemented key-value tree storage (KVTStorage) serialization/deserialization for the plugin state.
+* Implemented mechanism for UI<->DSP OSC message interchange.
 - Fixed broken settings export.
 - Implemented 3D reverb simulator.
 - Additional code updates to get compatibility with WindowsNT platform.

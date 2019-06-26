@@ -16,7 +16,7 @@ namespace lsp
             JACKWrapper        *pWrapper;
 
         public:
-            JACKPort(const port_t *meta, JACKWrapper *w): IPort(meta)
+            explicit JACKPort(const port_t *meta, JACKWrapper *w): IPort(meta)
             {
                 pWrapper        = w;
             }
@@ -45,7 +45,7 @@ namespace lsp
             size_t                  nRows;
 
         public:
-            JACKPortGroup(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKPortGroup(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 nCurrRow            = meta->start;
                 nCols               = port_list_size(meta->members);
@@ -86,7 +86,7 @@ namespace lsp
             midi_t         *pMidi;
 
         public:
-            JACKDataPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKDataPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 pPort       = NULL;
                 pBuffer     = NULL;
@@ -286,7 +286,7 @@ namespace lsp
             float       fCurrValue;
 
         public:
-            JACKControlPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKControlPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 fNewValue   = meta->start;
                 fCurrValue  = meta->start;
@@ -326,7 +326,7 @@ namespace lsp
             bool        bForce;
 
         public:
-            JACKMeterPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKMeterPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 fValue      = meta->start;
                 bForce      = true;
@@ -373,7 +373,7 @@ namespace lsp
             mesh_t     *pMesh;
 
         public:
-            JACKMeshPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKMeshPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 pMesh   = NULL;
             }
@@ -411,7 +411,7 @@ namespace lsp
             frame_buffer_t      sFB;
 
         public:
-            JACKFrameBufferPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKFrameBufferPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
             }
 
@@ -442,7 +442,7 @@ namespace lsp
             osc_buffer_t     *pFB;
 
         public:
-            JACKOscPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKOscPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 pFB     = NULL;
             }
@@ -479,7 +479,7 @@ namespace lsp
             jack_path_t     sPath;
 
         public:
-            JACKPathPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            explicit JACKPathPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 sPath.init();
             }

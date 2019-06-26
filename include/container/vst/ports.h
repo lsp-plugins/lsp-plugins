@@ -74,7 +74,7 @@ namespace lsp
             }
 
         public:
-            VSTPort(const port_t *meta, AEffect *effect, audioMasterCallback callback): IPort(meta)
+            explicit VSTPort(const port_t *meta, AEffect *effect, audioMasterCallback callback): IPort(meta)
             {
                 pEffect         = effect;
                 hCallback       = callback;
@@ -140,7 +140,7 @@ namespace lsp
             size_t                  nRows;
 
         public:
-            VSTPortGroup(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTPortGroup(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 nCurrRow            = meta->start;
                 nCols               = port_list_size(meta->members);
@@ -209,7 +209,7 @@ namespace lsp
             float *pBuffer;
 
         public:
-            VSTAudioPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTAudioPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 pBuffer     = NULL;
             }
@@ -237,7 +237,7 @@ namespace lsp
             volatile vst_serial_t nSID; // Serial ID of the parameter
 
         public:
-            VSTParameterPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTParameterPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 fValue      = meta->start;
                 fVstPrev    = to_vst(meta->start);
@@ -340,7 +340,7 @@ namespace lsp
             bool    bForce;
 
         public:
-            VSTMeterPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTMeterPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 fValue      = meta->start;
                 bForce      = true;
@@ -388,7 +388,7 @@ namespace lsp
             mesh_t     *pMesh;
 
         public:
-            VSTMeshPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTMeshPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 pMesh   = vst_create_mesh(meta);
             }
@@ -412,7 +412,7 @@ namespace lsp
             frame_buffer_t     sFB;
 
         public:
-            VSTFrameBufferPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTFrameBufferPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 sFB.init(pMetadata->start, pMetadata->step);
             }
@@ -440,7 +440,7 @@ namespace lsp
             midi_t      sQueue;         // MIDI event buffer
 
         public:
-            VSTMidiInputPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTMidiInputPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 sQueue.clear();
             }
@@ -541,7 +541,7 @@ namespace lsp
             VstMidiEvent    vEvents[MIDI_EVENTS_MAX];   // Buffer for VST MIDI events
 
         public:
-            VSTMidiOutputPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTMidiOutputPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 sQueue.clear();
 
@@ -651,7 +651,7 @@ namespace lsp
             vst_path_t     sPath;
 
         public:
-            VSTPathPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            explicit VSTPathPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 sPath.init();
             }
@@ -731,7 +731,42 @@ namespace lsp
             virtual bool serializable() const { return true; }
     };
 
+    class VSTOscPort: public VSTPort
+    {
+        private:
+            osc_buffer_t     *pFB;
 
+        public:
+            explicit VSTOscPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            {
+                pFB     = NULL;
+            }
+
+            virtual ~VSTOscPort()
+            {
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return pFB;
+            }
+
+            virtual int init()
+            {
+                pFB = osc_buffer_t::create(OSC_BUFFER_MAX);
+                return (pFB == NULL) ? STATUS_NO_MEM : STATUS_OK;
+            }
+
+            virtual void destroy()
+            {
+                if (pFB != NULL)
+                {
+                    osc_buffer_t::destroy(pFB);
+                    pFB     = NULL;
+                }
+            }
+    };
 }
 
 

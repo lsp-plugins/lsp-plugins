@@ -16,7 +16,7 @@ namespace lsp
             VSTPort                *pPort;
 
         public:
-            VSTUIPort(const port_t *meta, VSTPort *port):
+            explicit VSTUIPort(const port_t *meta, VSTPort *port):
                 CtlPort(meta)
             {
                 pPort       = port;
@@ -41,7 +41,7 @@ namespace lsp
             VSTPortGroup           *pPG;
 
         public:
-            VSTUIPortGroup(VSTPortGroup *port) : VSTUIPort(port->metadata(), port)
+            explicit VSTUIPortGroup(VSTPortGroup *port) : VSTUIPort(port->metadata(), port)
             {
                 pPG                 = port;
             }
@@ -73,7 +73,7 @@ namespace lsp
             vst_serial_t    nSID;
 
         public:
-            VSTUIParameterPort(const port_t *meta, VSTParameterPort *port):
+            explicit VSTUIParameterPort(const port_t *meta, VSTParameterPort *port):
                 VSTUIPort(meta, port)
             {
                 fValue      = meta->start;
@@ -128,7 +128,7 @@ namespace lsp
             float   fValue;
 
         public:
-            VSTUIMeterPort(const port_t *meta, VSTPort *port):
+            explicit VSTUIMeterPort(const port_t *meta, VSTPort *port):
                 VSTUIPort(meta, port)
             {
                 fValue      = meta->start;
@@ -171,7 +171,7 @@ namespace lsp
             mesh_t      *pMesh;
 
         public:
-            VSTUIMeshPort(const port_t *meta, VSTPort *port):
+            explicit VSTUIMeshPort(const port_t *meta, VSTPort *port):
                 VSTUIPort(meta, port)
             {
                 pMesh       = vst_create_mesh(meta);
@@ -213,7 +213,7 @@ namespace lsp
             frame_buffer_t      sFB;
 
         public:
-            VSTUIFrameBufferPort(const port_t *meta, VSTPort *port):
+            explicit VSTUIFrameBufferPort(const port_t *meta, VSTPort *port):
                 VSTUIPort(meta, port)
             {
                 sFB.init(pMetadata->start, pMetadata->step);
@@ -244,7 +244,7 @@ namespace lsp
             vst_path_t     *pPath;
 
         public:
-            VSTUIPathPort(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
+            explicit VSTUIPathPort(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
             {
                 path_t *path    = reinterpret_cast<path_t *>(pPort->getBuffer());
                 if (path != NULL)
@@ -289,7 +289,7 @@ namespace lsp
             bool            bSyncAgain;
 
         public:
-            VSTUIOscPortIn(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
+            explicit VSTUIOscPortIn(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
             {
                 bSyncAgain      = false;
                 nCapacity       = 0x100;

@@ -203,6 +203,14 @@ namespace lsp
                 }
                 break;
 
+            case R_OSC:
+                vp      = new VSTOscPort(port, pEffect, pMaster);
+                if (IS_OUT_PORT(port))
+                    vup     = new VSTUIOscPortIn(port, vp);
+                else
+                    vup     = new VSTUIOscPortOut(port, vp);
+                break;
+
             case R_PATH:
                 vp  = new VSTPathPort(port, pEffect, pMaster);
                 vup = new VSTUIPathPort(port, vp);
