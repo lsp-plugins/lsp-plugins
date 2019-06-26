@@ -75,7 +75,9 @@ namespace sse3
         lsp_trace("Optimizing DSP for SSE3 instruction set");
 
         // Additional xmm registers are available only in 64-bit mode
+        EXPORT1(pcomplex_mul2);
         EXPORT1(pcomplex_mul3);
+
         if (!feature_check(f, FEAT_FAST_MOVS))
         {
             EXPORT2(copy, copy);
@@ -94,6 +96,7 @@ namespace sse3
         EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         EXPORT2_X64(axis_apply_log1, x64_axis_apply_log1);
         EXPORT2_X64(axis_apply_log2, x64_axis_apply_log2);
+        EXPORT2_X64(pcomplex_mul2, x64_pcomplex_mul2);
         EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
 
         EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);

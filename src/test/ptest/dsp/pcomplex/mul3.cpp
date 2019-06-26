@@ -26,20 +26,21 @@ IF_ARCH_X86(
     namespace sse3
     {
         void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
+    }
+)
+
+IF_ARCH_X86_64(
+    namespace sse3
+    {
+        void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 
-    IF_ARCH_X86_64(
-        namespace sse3
-        {
-            void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
-        }
-
-        namespace avx
-        {
-            void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
-            void x64_pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count);
-        }
-    )
+    namespace avx
+    {
+        void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void x64_pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -98,9 +99,9 @@ PTEST_BEGIN("dsp.pcomplex", mul3, 5, 1000)
             CALL("native::pcomplex_mul3", out, in1, in2, count, native::pcomplex_mul3);
             IF_ARCH_X86(CALL("sse::pcomplex_mul3", out, in1, in2, count, sse::pcomplex_mul3));
             IF_ARCH_X86(CALL("sse3::pcomplex_mul3", out, in1, in2, count, sse3::pcomplex_mul3));
-            IF_ARCH_X86_64(CALL("x64_sse3::pcomplex_mul3", out, in1, in2, count, sse3::x64_pcomplex_mul3));
-            IF_ARCH_X86_64(CALL("x64_avx::pcomplex_mul3", out, in1, in2, count, avx::x64_pcomplex_mul3));
-            IF_ARCH_X86_64(CALL("x64_fma3::pcomplex_mul3", out, in1, in2, count, avx::x64_pcomplex_mul3_fma3));
+            IF_ARCH_X86_64(CALL("sse3::x64_pcomplex_mul3", out, in1, in2, count, sse3::x64_pcomplex_mul3));
+            IF_ARCH_X86_64(CALL("avx::x64_pcomplex_mul3", out, in1, in2, count, avx::x64_pcomplex_mul3));
+            IF_ARCH_X86_64(CALL("avx::x64_pcomplex_mul3_fma3", out, in1, in2, count, avx::x64_pcomplex_mul3_fma3));
             IF_ARCH_ARM(CALL("neon_d32::pcomplex_mul3", out, in1, in2, count, neon_d32::pcomplex_mul3));
             IF_ARCH_AARCH64(CALL("asimd::pcomplex_mul3", out, in1, in2, count, asimd::pcomplex_mul3));
 
