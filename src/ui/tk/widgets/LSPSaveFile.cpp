@@ -30,6 +30,7 @@ namespace lsp
             nButtons    = 0;
             nBtnState   = 0;
             pDisk       = NULL;
+            nSize       = -1;
 
             for (size_t i=0; i<SFS_TOTAL; ++i)
                 vStates[i].pColor   = NULL;
@@ -237,6 +238,14 @@ namespace lsp
             return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
         }
 
+        void LSPSaveFile::set_size(ssize_t size)
+        {
+            if (nSize == size)
+                return;
+            nSize   = size;
+            query_resize();
+        }
+
         ISurface *LSPSaveFile::render_disk(ISurface *s, ssize_t w, const Color &c)
         {
 #define N 9
@@ -414,6 +423,9 @@ namespace lsp
                 tp.Width    = fp.Height *2;
 
             r->nMinWidth        = ((tp.Width * 8) / 7) + 14;
+            if ((nSize > 0) && (r->nMinWidth < nSize))
+                r->nMinWidth        = nSize;
+
             r->nMinHeight       = r->nMinWidth;
             r->nMaxWidth        = r->nMinWidth;
             r->nMaxHeight       = r->nMinHeight;

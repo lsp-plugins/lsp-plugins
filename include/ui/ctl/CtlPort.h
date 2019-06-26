@@ -8,6 +8,8 @@
 #ifndef UI_CTL_CTLPORT_H_
 #define UI_CTL_CTLPORT_H_
 
+#include <core/IPort.h>
+
 namespace lsp
 {
     namespace ctl
@@ -19,7 +21,7 @@ namespace lsp
                 cvector<CtlPortListener> vListeners;
 
             public:
-                CtlPort(const port_t *meta);
+                explicit CtlPort(const port_t *meta);
                 virtual ~CtlPort();
 
             public:
@@ -47,6 +49,14 @@ namespace lsp
                  */
                 virtual void write(const void *buffer, size_t size);
 
+                /** Write some data to port
+                 *
+                 * @param buffer data to write to port
+                 * @param size size of data
+                 * @param flags additional control flags
+                 */
+                virtual void write(const void *buffer, size_t size, size_t flags);
+
                 /** Get data from port
                  *
                  * @return associated buffer (may be NULL)
@@ -59,7 +69,7 @@ namespace lsp
                  */
                 virtual float get_value();
 
-                /** Get signle default float value
+                /** Get single default float value
                  *
                  * @return default float value
                  */
@@ -71,10 +81,21 @@ namespace lsp
                  */
                 virtual void set_value(float value);
 
+                /** Set single float value
+                 *
+                 * @param flags additional control flags
+                 */
+                virtual void set_value(float value, size_t flags);
+
                 /** Notify all that port data has been changed
                  *
                  */
                 virtual void notify_all();
+
+                /** Notify all that port metadata has been changed
+                 *
+                 */
+                virtual void sync_metadata();
 
              public:
                 /** Get port metadata

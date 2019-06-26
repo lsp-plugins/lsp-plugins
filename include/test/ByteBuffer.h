@@ -60,14 +60,14 @@ namespace test
             }
 
             template <typename T>
-                inline T *data()
+                inline T *data(size_t off = 0)
                 {
-                    return reinterpret_cast<T *>(pBuffer);
+                    return reinterpret_cast<T *>(&pBuffer[off]);
                 }
 
-            inline uint8_t *data()
+            inline uint8_t *data(size_t off = 0)
             {
-                return pBuffer;
+                return &pBuffer[off];
             }
 
             inline operator uint8_t *()

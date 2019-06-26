@@ -27,6 +27,7 @@ namespace lsp
             { "cfg", "*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg", LSPFileMask::NONE },
             { "audio", "*.wav", "All supported audio files (*.wav)", ".wav", LSPFileMask::NONE },
             { "audio_lspc", "*.wav|*.lspc", "All supported audio containers (*.wav, *.lspc)", ".wav", LSPFileMask::NONE },
+            { "obj3d", "*.obj", "Wavefont 3D file format (*.obj)", ".obj", LSPFileMask::NONE },
             { "all", "*", "All files (*.*)", "", LSPFileMask::NONE },
             { NULL, NULL, NULL, 0 }
         };
@@ -124,7 +125,7 @@ namespace lsp
             return true;
         }
 
-        bool set_port_value(CtlPort *up, const char *value)
+        bool set_port_value(CtlPort *up, const char *value, size_t flags)
         {
             if (up == NULL)
                 return false;
@@ -148,33 +149,23 @@ namespace lsp
                     {
                         if (p->unit == U_BOOL)
                         {
-                            PARSE_BOOL(value,
-                                up->set_value(__);
-                                up->notify_all();
-                            );
+                            PARSE_BOOL(value, up->set_value(__, flags); );
                         }
                         else
                         {
-                            PARSE_INT(value,
-                                up->set_value(__);
-                                up->notify_all();
-                            );
+                            PARSE_INT(value, up->set_value(__, flags); );
                         }
                     }
                     else
                     {
-                        PARSE_FLOAT(value,
-                            up->set_value(__);
-                            up->notify_all();
-                        );
+                        PARSE_FLOAT(value, up->set_value(__, flags); );
                     }
                     break;
                 }
                 case R_PATH:
                 {
-                    size_t len      = strlen(value);
-                    up->write(value, len);
-                    up->notify_all();
+                    size_t len      = ::strlen(value);
+                    up->write(value, len, flags);
                     break;
                 }
                 default:
@@ -250,7 +241,7 @@ namespace lsp
 
                     // No flags
                     *flags = 0;
-                    return STATUS_OK;
+                    break;
                 }
                 case R_PATH:
                 {
@@ -265,10 +256,10 @@ namespace lsp
 
                     // No flags
                     *flags = config::SF_QUOTED;
-                    return STATUS_OK;
+                    break;
                 }
                 default:
-                    break;
+                    return STATUS_BAD_TYPE;
             }
             return STATUS_OK;
         }

@@ -28,6 +28,7 @@ namespace lsp
             fTinyStep   = 0.001f;
             fMin        = 0.0f;
             fMax        = 1.0f;
+            bCycling    = false;
 
             nState      = 0;
             nLastY      = 0;
@@ -71,19 +72,39 @@ namespace lsp
 
         float LSPKnob::limit_value(float value)
         {
-            if (fMin < fMax)
+            if (bCycling)
             {
-                if (value < fMin)
-                    return fMin;
-                else if (value > fMax)
-                    return fMax;
+                if (fMin < fMax)
+                {
+                    while (value >= fMax)
+                        value  -= (fMax - fMin);
+                    while (value < fMin)
+                        value  += (fMax - fMin);
+                }
+                else
+                {
+                    while (value > fMin)
+                        value  -= (fMin - fMax);
+                    while (value <= fMax)
+                        value  += (fMin - fMax);
+                }
             }
             else
             {
-                if (value < fMax)
-                    return fMax;
-                else if (value > fMin)
-                    return fMin;
+                if (fMin < fMax)
+                {
+                    if (value < fMin)
+                        return fMin;
+                    else if (value > fMax)
+                        return fMax;
+                }
+                else
+                {
+                    if (value < fMax)
+                        return fMax;
+                    else if (value > fMin)
+                        return fMin;
+                }
             }
 
             return value;
@@ -148,10 +169,33 @@ namespace lsp
             set_value(fValue);
         }
 
-        float LSPKnob::get_normalized_value()
+        void LSPKnob::set_cycling(bool cycling)
         {
+            if (cycling == bCycling)
+                return;
+            bCycling    = cycling;
+            query_draw();
+        }
+
+        float LSPKnob::get_normalized_value(float value)
+        {
+            if (fMin < fMax)
+            {
+                if (value < fMin)
+                    value = fMin;
+                else if (value > fMax)
+                    value = fMax;
+            }
+            else
+            {
+                if (value < fMax)
+                    value = fMax;
+                else if (value > fMin)
+                    value = fMin;
+            }
+
             // Float and other values
-            return (fValue - fMin) / (fMax - fMin);
+            return (value - fMin) / (fMax - fMin);
         }
 
         void LSPKnob::set_normalized_value(float value)
@@ -190,18 +234,33 @@ namespace lsp
                 return;
 
             float angle     = asinf(dy / d);
-            if (angle < (-M_PI / 3.0))
+            if (bCycling)
             {
-                set_normalized_value((dx > 0) ? 1.0f : 0.0f);
-                return;
+                if (dx < 0.0f)
+                    angle           = M_PI - angle;
+                // Angle is now between -PI/2 .. 3*PI/2
+                if (angle < M_PI * 0.5f)
+                    angle          += 1.5f * M_PI;
+                else
+                    angle          -= M_PI * 0.5f;
+
+                set_normalized_value(1.0f - angle / (M_PI * 2.0f));
             }
-            if (dx < 0.0f)
-                angle           = M_PI - angle;
+            else
+            {
+                if (angle < (-M_PI / 3.0))
+                {
+                    set_normalized_value((dx > 0) ? 1.0f : 0.0f);
+                    return;
+                }
+                if (dx < 0.0f)
+                    angle           = M_PI - angle;
 
-            angle          += M_PI / 3.0;
+                angle          += M_PI / 3.0;
 
-            // Update value
-            set_normalized_value(1.0f - (angle / (5.0f * M_PI  / 3.0f)));
+                // Update value
+                set_normalized_value(1.0f - (angle / (5.0f * M_PI  / 3.0f)));
+            }
         }
 
         size_t LSPKnob::check_mouse_over(ssize_t x, ssize_t y)
@@ -330,7 +389,8 @@ namespace lsp
 
         void LSPKnob::draw(ISurface *s)
         {
-            float value     = get_normalized_value();
+            float value     = get_normalized_value(fValue);
+            float balance   = get_normalized_value(fBalance);
 
             // Draw background
             s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
@@ -345,30 +405,56 @@ namespace lsp
             Color hole(0.0f, 0.0f, 0.0f);
             dark.blend(0.0f, 0.0f, 0.0f, 0.75f);
 
-            float base          = 2.0f * M_PI / 3.0f;
-            float delta         = 5.0f * M_PI / 3.0f;
             float knob_r        = (nSize >> 1);
             float hole_r        = (nSize >> 1) + 1;
             float scale_in_r    = hole_r + 2;
             float scale_out_r   = scale_in_r + 5;
-            float v_angle1      = base + value * delta;
-            float v_angle2      = base + fBalance * delta;
+
+            float delta, base, v_angle1, v_angle2;
+            size_t nsectors;
 
             bool aa = s->set_antialiasing(true);
 
-            s->fill_sector(c_x, c_y, scale_out_r, base, base + delta, dark);
-            if (value < fBalance)
-                s->fill_sector(c_x, c_y, scale_out_r, v_angle1, v_angle2, col);
-            else
-                s->fill_sector(c_x, c_y, scale_out_r, v_angle2, v_angle1, col);
+            if (!bCycling)
+            {
+                nsectors      = 20;
+                base          = 2.0f * M_PI / 3.0f;
+                delta         = 5.0f * M_PI / 3.0f;
+                v_angle1      = base + value * delta;
+                v_angle2      = base + balance * delta;
 
-            s->fill_circle(c_x, c_y, scale_in_r, sBgColor);
-            s->fill_circle(c_x, c_y, hole_r, hole);
+                s->fill_sector(c_x, c_y, scale_out_r, base, base + delta, dark);
+                if (value < balance)
+                    s->fill_sector(c_x, c_y, scale_out_r, v_angle1, v_angle2, col);
+                else
+                    s->fill_sector(c_x, c_y, scale_out_r, v_angle2, v_angle1, col);
+
+                s->fill_circle(c_x, c_y, scale_in_r, sBgColor);
+                s->fill_circle(c_x, c_y, hole_r, hole);
+
+            }
+            else
+            {
+                nsectors      = 24;
+                base          = 1.5f * M_PI;
+                delta         = 2.0f * M_PI;
+                v_angle1      = base + value * delta;
+                v_angle2      = base + balance * delta * 0.5f;
+
+                s->fill_circle(c_x, c_y, scale_out_r, dark);
+                if (value < balance)
+                    s->fill_sector(c_x, c_y, scale_out_r, v_angle1, v_angle2, col);
+                else
+                    s->fill_sector(c_x, c_y, scale_out_r, v_angle2, v_angle1, col);
+
+                s->fill_circle(c_x, c_y, scale_in_r, sBgColor);
+                s->fill_circle(c_x, c_y, hole_r, hole);
+            }
 
             // Draw scales: overall 10 segments separated by 2 sub-segments
-            delta *= 0.05f;
+            delta   = 0.25f * M_PI / 3.0f;
 
-            for (size_t i=0; i<=20; ++i)
+            for (size_t i=0; i<=nsectors; ++i)
             {
                 float angle = base + delta * i;
                 float r2    = scale_in_r + 3.0f * (i & 1);

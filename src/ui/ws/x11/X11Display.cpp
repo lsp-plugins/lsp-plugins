@@ -171,18 +171,23 @@ namespace lsp
 
             INativeWindow *X11Display::createWindow()
             {
-                return new X11Window(this, DefaultScreen(pDisplay), 0);
+                return new X11Window(this, DefaultScreen(pDisplay), 0, NULL, false);
             }
 
             INativeWindow *X11Display::createWindow(size_t screen)
             {
-                return new X11Window(this, screen, 0);
+                return new X11Window(this, screen, 0, NULL, false);
             }
 
             INativeWindow *X11Display::createWindow(void *handle)
             {
                 lsp_trace("handle = %p", handle);
-                return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)));
+                return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)), NULL, false);
+            }
+
+            INativeWindow *X11Display::wrapWindow(void *handle)
+            {
+                return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)), NULL, true);
             }
 
             ISurface *X11Display::createSurface(size_t width, size_t height)
@@ -192,6 +197,7 @@ namespace lsp
 
             void X11Display::do_destroy()
             {
+                // Perform resource release
                 for (size_t i=0; i< vWindows.size(); )
                 {
                     X11Window *wnd  = vWindows.at(i);
@@ -249,6 +255,7 @@ namespace lsp
             void X11Display::destroy()
             {
                 do_destroy();
+                IDisplay::destroy();
             }
 
             int X11Display::main()
@@ -295,13 +302,15 @@ namespace lsp
                     else if ((wtime <= 0) || ((poll_res > 0) && (x11_poll.events > 0)))
                     {
                         // Do iteration
-                        status_t result = do_main_iteration(xts);
+                        status_t result = IDisplay::main_iteration();
+                        if (result == STATUS_OK)
+                            result = do_main_iteration(xts);
                         if (result != STATUS_OK)
                             return result;
                     }
                 }
 
-                return 0;
+                return STATUS_OK;
             }
 
             status_t X11Display::do_main_iteration(timestamp_t ts)
@@ -387,8 +396,13 @@ namespace lsp
                 XFlush(pDisplay);
             }
 
-            int X11Display::main_iteration()
+            status_t X11Display::main_iteration()
             {
+                // Call parent class for iteration
+                status_t result = IDisplay::main_iteration();
+                if (result != STATUS_OK)
+                    return result;
+
                 // Get current time to determine if need perform a rendering
                 struct timespec ts;
                 clock_gettime(CLOCK_REALTIME, &ts);
@@ -1046,16 +1060,13 @@ namespace lsp
                         X11Window *wnd = sTargets.at(i);
 
                         // Translate coordinates if originating and target window differs
-                        if (wnd != target)
-                        {
-                            int x, y;
-                            XTranslateCoordinates(pDisplay,
-                                ev->xany.window, wnd->x11handle(),
-                                ue.nLeft, ue.nTop,
-                                &x, &y, &child);
-                            se.nLeft    = x;
-                            se.nTop     = y;
-                        }
+                        int x, y;
+                        XTranslateCoordinates(pDisplay,
+                            ev->xany.window, wnd->x11handle(),
+                            ue.nLeft, ue.nTop,
+                            &x, &y, &child);
+                        se.nLeft    = x;
+                        se.nTop     = y;
 
 //                        lsp_trace("Sending event to target=%p", wnd);
                         wnd->handle_event(&se);

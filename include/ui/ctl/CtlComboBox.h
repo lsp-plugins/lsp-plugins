@@ -31,7 +31,7 @@ namespace lsp
                 void do_destroy();
 
             public:
-                CtlComboBox(CtlRegistry *src, LSPComboBox *widget);
+                explicit CtlComboBox(CtlRegistry *src, LSPComboBox *widget);
                 virtual ~CtlComboBox();
 
                 virtual void init();
@@ -43,7 +43,10 @@ namespace lsp
 
                 virtual void notify(CtlPort *port);
 
+                virtual void sync_metadata(CtlPort *port);
+
                 virtual void end();
+
         };
     
     } /* namespace ctl */

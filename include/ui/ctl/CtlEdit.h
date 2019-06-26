@@ -23,7 +23,7 @@ namespace lsp
                 static status_t slot_on_cancel(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                CtlEdit(CtlRegistry *src, LSPEdit *widget);
+                explicit CtlEdit(CtlRegistry *src, LSPEdit *widget);
                 virtual ~CtlEdit();
 
             public:

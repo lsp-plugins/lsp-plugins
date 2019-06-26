@@ -13,6 +13,7 @@
 #include <data/cstorage.h>
 #include <core/sampling/Sample.h>
 #include <core/3d/common.h>
+#include <core/3d/raytrace.h>
 #include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
 #include <core/3d/RTObjectFactory.h>
@@ -21,24 +22,6 @@
 
 namespace lsp
 {
-    enum rt_audio_source_t
-    {
-        RT_AS_SPOT,
-        RT_AS_SPEAKER,
-        RT_AS_OMNI,
-        RT_AS_TRIANGLE
-    };
-
-    enum rt_audio_capture_t
-    {
-        RT_AC_CARDIO,
-        RT_AC_SCARDIO,
-        RT_AC_HCARDIO,
-        RT_AC_BIDIR,
-        RT_AC_EIGHT,
-        RT_AC_OMNI
-    };
-
     /** Ray tracing storage implemented as a stack
      *
      */
@@ -214,11 +197,19 @@ namespace lsp
             status_t clear_progress_callback();
 
             /**
+             * Set the material for the corresponding object
+             * @param idx the index of the material
+             * @return status of operation
+             */
+            status_t    set_material(size_t idx, const rt_material_t *material);
+
+            /**
              * Get the material for the corresponding object
+             * @param material
              * @param idx the index of the corresponding object
              * @return pointer to material or NULL
              */
-            inline rt_material_t *material(size_t idx)  { return vMaterials.get(idx); }
+            status_t    get_material(rt_material_t *material, size_t idx);
 
             /**
              * Get the scene object
@@ -257,6 +248,15 @@ namespace lsp
              * @return non-negative capture identifier or negative error status code
              */
             ssize_t add_capture(const ray3d_t *position, rt_audio_capture_t type);
+
+            /**
+             * Add audio capture
+             * @param type audio capture type
+             * @param position matrix that defines the proper transformations of the
+             *      { 0, 0, 0 } point and { 1, 0, 0 } vector
+             * @return non-negative capture identifier or negative error status code
+             */
+            ssize_t add_capture(const matrix3d_t *position, rt_audio_capture_t type);
 
             /**
              * Bind audio sample to capture

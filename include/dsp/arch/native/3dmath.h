@@ -125,6 +125,20 @@ namespace native
             *v      = *src;
     }
 
+    void flip_vector_v1(vector3d_t *v)
+    {
+        v->dx       = -v->dx;
+        v->dy       = -v->dy;
+        v->dz       = -v->dz;
+    }
+
+    void flip_vector_v2(vector3d_t *v, const vector3d_t *sv)
+    {
+        v->dx       = -sv->dx;
+        v->dy       = -sv->dy;
+        v->dz       = -sv->dz;
+    }
+
     void scale_vector1(vector3d_t *v, float r)
     {
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
@@ -974,6 +988,178 @@ namespace native
         M[15]   =  1.0f;
     }
 
+    void init_matrix3d_orientation(matrix3d_t *m, axis_orientation_t orientation)
+    {
+        float *M    = m->m;
+        M[0]        = 0.0f;
+        M[1]        = 0.0f;
+        M[2]        = 0.0f;
+        M[3]        = 0.0f;
+
+        M[4]        = 0.0f;
+        M[5]        = 0.0f;
+        M[6]        = 0.0f;
+        M[7]        = 0.0f;
+
+        M[8]        = 0.0f;
+        M[9]        = 0.0f;
+        M[10]       = 0.0f;
+        M[11]       = 0.0f;
+
+        M[12]       = 0.0f;
+        M[13]       = 0.0f;
+        M[14]       = 0.0f;
+        M[15]       = 1.0f;
+
+        size_t o    = orientation;
+
+        // Update the forward coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+                M[1]    = 1.0f;
+                break;
+
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+                M[1]    = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+                M[5]    = 1.0f;
+                break;
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[5]    = -1.0f;
+                break;
+
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+                M[9]    = 1.0f;
+                break;
+
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[9]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the up coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[6]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+                M[10]   = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[6]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[10]   = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[2]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[2]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the side coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+                M[8]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[4]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+                M[8]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[4]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[0]    =  1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[0]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+    }
+
     void calc_matrix3d_transform_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
     {
         matrix3d_t xm;
@@ -1770,6 +1956,38 @@ namespace native
         tp.z        = pv[0].z + (pv[1].z - pv[0].z) * k;
         tp.w        = 1.0f;
         *p          = tp;
+    }
+
+    void add_vector_pv1(point3d_t *p, const vector3d_t *dv)
+    {
+        p->x   += dv->dx;
+        p->y   += dv->dy;
+        p->z   += dv->dz;
+        p->w   += dv->dw;
+    }
+
+    void add_vector_pv2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv)
+    {
+        p->x    = sp->x + dv->dx;
+        p->y    = sp->y + dv->dy;
+        p->z    = sp->z + dv->dz;
+        p->w    = sp->w + dv->dw;
+    }
+
+    void add_vector_pvk1(point3d_t *p, const vector3d_t *dv, float k)
+    {
+        p->x   += dv->dx * k;
+        p->y   += dv->dy * k;
+        p->z   += dv->dz * k;
+        p->w   += dv->dw * k;
+    }
+
+    void add_vector_pvk2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k)
+    {
+        p->x    = sp->x + dv->dx * k;
+        p->y    = sp->y + dv->dy * k;
+        p->z    = sp->z + dv->dz * k;
+        p->w    = sp->w + dv->dw * k;
     }
 
     void calc_bound_box(bound_box3d_t *b, const point3d_t *p, size_t n)

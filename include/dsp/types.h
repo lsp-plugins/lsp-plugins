@@ -196,8 +196,8 @@
 
 // File separators for platform tuning
 #if defined(PLATFORM_UNIX) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOSX)
-    #define FILE_SEPARATOR_C      '/'
-    #define FILE_SEPARATOR_S      "/"
+    #define FILE_SEPARATOR_C        '/'
+    #define FILE_SEPARATOR_S        "/"
 #elif defined(PLATFORM_WINDOWS)
     #define FILE_SEPARATOR_C      '\\'
     #define FILE_SEPARATOR_S      "\\"

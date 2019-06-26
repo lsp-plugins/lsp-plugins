@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#include <core/midi.h>
 #include <stdlib.h>
+#include <core/protocol/midi.h>
 
 namespace lsp
 {

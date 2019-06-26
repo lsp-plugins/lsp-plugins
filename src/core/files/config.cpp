@@ -28,7 +28,7 @@ namespace lsp
                 if (((ch >= 'a') && (ch <= 'z')) ||
                     ((ch >= 'A') && (ch <= 'Z')) ||
                     ((ch >= '0') && (ch <= '9')) ||
-                    (ch == '_'))
+                    (ch == '_') || (ch == '/'))
                     continue;
 
                 return false;
@@ -75,7 +75,7 @@ namespace lsp
                 else if (((ch >= 'a') && (ch <= 'z')) ||
                         ((ch >= 'A') && (ch <= 'Z')) ||
                         ((ch >= '0') && (ch <= '9')) ||
-                        (ch == '_'))
+                        (ch == '_') || (ch == '/'))
                 {
                     LSP_BOOL_ASSERT(key->append(ch), STATUS_NO_MEM)
                 }
@@ -83,13 +83,78 @@ namespace lsp
                     return STATUS_BAD_FORMAT;
             }
 
+            // Validate that key should start with '/' or not contain any '/' character
+            if (key->index_of('/') > 0)
+                return STATUS_BAD_FORMAT;
+
             return STATUS_OK;
         }
 
-        static status_t read_value(const LSPString *line, LSPString *value, size_t &off)
+        static status_t check_type(const LSPString *line, size_t &off, size_t &flags)
+        {
+            size_t last = off + 4;
+            if (last > line->length())
+                last    = line->length();
+
+            const char *utf8 = line->get_utf8(off - 1, last);
+            if (::strstr(utf8, "i32:") == utf8)
+            {
+                flags  |= SF_TYPE_I32;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "u32:") == utf8)
+            {
+                flags  |= SF_TYPE_U32;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "i64:") == utf8)
+            {
+                flags  |= SF_TYPE_I64;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "u64:") == utf8)
+            {
+                flags  |= SF_TYPE_U64;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "f32:") == utf8)
+            {
+                flags  |= SF_TYPE_F32;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "f64:") == utf8)
+            {
+                flags  |= SF_TYPE_F64;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "str:") == utf8)
+            {
+                flags  |= SF_TYPE_STR;
+                off += 3;
+                return STATUS_SKIP;
+            }
+            else if (::strstr(utf8, "blob:") == utf8)
+            {
+                flags  |= SF_TYPE_BLOB;
+                off += 4;
+                return STATUS_SKIP;
+            }
+
+            return STATUS_OK;
+        }
+
+        static status_t read_value(const LSPString *line, LSPString *value, size_t &off, size_t &flags)
         {
             size_t len      = line->length();
 
+            flags           = 0;
+            bool type_set   = false;
             bool quoted     = false;
             bool protector  = false;
 
@@ -110,6 +175,7 @@ namespace lsp
                             if (!value->is_empty())
                                 return STATUS_BAD_FORMAT;
                             quoted      = true;
+                            flags      |= SF_QUOTED;
                         }
                         else
                             return STATUS_OK;
@@ -155,6 +221,16 @@ namespace lsp
 
                     case 'n':
                     case 't':
+                        if (!type_set)
+                        {
+                            status_t res = check_type(line, off, flags);
+                            type_set = true;
+                            if (res == STATUS_SKIP)
+                                break;
+                            else if (res != STATUS_OK)
+                                return res;
+                        }
+
                         if (protector)
                             ch = (ch == 'n') ? '\n' : '\t';
 
@@ -163,6 +239,17 @@ namespace lsp
                         break;
 
                     default:
+                        // Check type prefix
+                        if (!type_set)
+                        {
+                            status_t res = check_type(line, off, flags);
+                            type_set = true;
+                            if (res == STATUS_SKIP)
+                                break;
+                            else if (res != STATUS_OK)
+                                return res;
+                        }
+
                         if (protector)
                         {
                             LSP_BOOL_ASSERT(value->append('\\'), STATUS_NO_MEM);
@@ -179,7 +266,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        static status_t parse_line(const LSPString *line, LSPString *key, LSPString *value)
+        static status_t parse_line(const LSPString *line, LSPString *key, LSPString *value, size_t *flags)
         {
             size_t len      = line->length();
             if (len <= 0)
@@ -209,8 +296,8 @@ namespace lsp
             else if ((key->is_empty()) || (ch != '='))
                 return STATUS_BAD_FORMAT;
 
-            // Fetch the value value
-            res             = read_value(line, value, off);
+            // Fetch the value's value
+            res             = read_value(line, value, off, *flags);
             if (res != STATUS_OK)
                 return res;
 
@@ -256,11 +343,33 @@ namespace lsp
 
         static status_t serialize_value(io::IOutSequence *os, const LSPString *value, int flags)
         {
+            // Write type prefix if type specified
+            const char *prefix = 0;
+
+            switch (flags & SF_TYPE_MASK)
+            {
+                case SF_TYPE_I32: prefix = "i32:"; break;
+                case SF_TYPE_U32: prefix = "u32:"; break;
+                case SF_TYPE_I64: prefix = "i64:"; break;
+                case SF_TYPE_U64: prefix = "u64:"; break;
+                case SF_TYPE_F32: prefix = "f32:"; break;
+                case SF_TYPE_F64: prefix = "f64:"; break;
+                case SF_TYPE_STR: prefix = "str:"; flags |= SF_QUOTED; break;
+                case SF_TYPE_BLOB: prefix = "blob:"; flags |= SF_QUOTED; break;
+                default:
+                    break;
+            }
+
+            if (prefix != NULL)
+                LSP_STATUS_ASSERT(os->write_ascii(prefix));
+
             size_t n = value->length();
+
             if (n > 0)
             {
-                LSPString escaped;
-                escaped.reserve(value->length() + 32);
+                // Emit quote
+                if (flags & SF_QUOTED)
+                    LSP_STATUS_ASSERT(os->write('\"'));
 
                 for (size_t i=0; i<n; ++i)
                 {
@@ -272,21 +381,15 @@ namespace lsp
                         case '\\':
                         case '\n':
                         case '\t':
-                            if (!escaped.append('\\'))
-                                return STATUS_NO_MEM;
+                            LSP_STATUS_ASSERT(os->write('\\'));
                             break;
                         default:
                             break;
                     }
-
-                    if (!escaped.append(ch))
-                        return STATUS_NO_MEM;
+                    LSP_STATUS_ASSERT(os->write(ch));
                 }
 
-                // Emit parameter
-                if (flags & SF_QUOTED)
-                    LSP_STATUS_ASSERT(os->write('\"'));
-                LSP_STATUS_ASSERT(os->write(&escaped));
+                // Emit quote
                 if (flags & SF_QUOTED)
                     LSP_STATUS_ASSERT(os->write('\"'));
             }
@@ -482,14 +585,15 @@ namespace lsp
                 //lsp_trace("Config line: %s", line.get_native());
 
                 // Parse the line
-                result = parse_line(&line, &key, &value);
+                size_t flags = 0;
+                result = parse_line(&line, &key, &value, &flags);
                 if (result != STATUS_OK)
                     break;
 
                 if (!key.is_empty())
                 {
-                    lsp_trace("Configuration: %s = %s", key.get_native(), value.get_native());
-                    result = h->handle_parameter(&key, &value);
+                    lsp_trace("Configuration: %s = %s (flags=0x%x)", key.get_native(), value.get_native(), int(flags));
+                    result = h->handle_parameter(&key, &value, flags);
                 }
             }
 

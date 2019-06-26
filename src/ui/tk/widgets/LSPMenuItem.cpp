@@ -53,6 +53,17 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t LSPMenuItem::set_text(const LSPString *text)
+        {
+            if (sText.equals(text))
+                return STATUS_OK;
+            if (!sText.set(text))
+                return STATUS_NO_MEM;
+
+            query_draw();
+            return STATUS_OK;
+        }
+
         status_t LSPMenuItem::set_submenu(LSPMenu *submenu)
         {
             if (pSubmenu == submenu)

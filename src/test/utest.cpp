@@ -29,19 +29,6 @@ namespace test
         return 5.0;
     }
 
-    int UnitTest::printf(const char *fmt, ...)
-    {
-        if (!__verbose)
-            return 0;
-
-        va_list vl;
-        va_start(vl, fmt);
-        int res = vprintf(fmt, vl);
-        va_end(vl);
-        fflush(stdout);
-        return res;
-    }
-
     UnitTest *utest_init()
     {
         return UnitTest::__root;

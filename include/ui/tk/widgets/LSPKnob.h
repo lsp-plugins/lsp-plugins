@@ -39,13 +39,14 @@ namespace lsp
                 float               fTinyStep;
                 float               fMin;
                 float               fMax;
+                bool                bCycling;
 
                 ssize_t             nLastY;
                 size_t              nState;
 
             protected:
                 size_t          check_mouse_over(ssize_t x, ssize_t y);
-                float           get_normalized_value();
+                float           get_normalized_value(float value);
                 void            set_normalized_value(float value);
                 void            update_value(float delta);
                 void            on_click(ssize_t x, ssize_t y);
@@ -60,43 +61,28 @@ namespace lsp
 
             public:
                 inline Color           *color() { return &sColor; }
-
                 inline Color           *bg_color() { return &sBgColor; }
-
                 inline Color           *scale_color() { return &sScaleColor; }
-
                 inline size_t           size() const { return nSize; }
-
                 inline float            balance() const { return fBalance; }
-
                 inline float            value() const { return fValue; }
-
                 inline float            default_value() const { return fDflValue; }
-
                 inline float            step() const { return fStep; }
-
                 inline float            tiny_step() const { return fTinyStep; }
-
                 inline float            min_value() const { return fMin; }
-
                 inline float            max_value() const { return fMax; }
+                inline bool             cyclic() const { return bCycling; }
 
             public:
                 void                    set_size(size_t value);
-
                 void                    set_balance(float value);
-
                 void                    set_value(float value);
-
                 void                    set_default_value(float value);
-
                 void                    set_step(float value);
-
                 void                    set_tiny_step(float value);
-
                 void                    set_min_value(float value);
-
                 void                    set_max_value(float value);
+                void                    set_cycling(bool cycling);
 
             public:
                 virtual void size_request(size_request_t *r);

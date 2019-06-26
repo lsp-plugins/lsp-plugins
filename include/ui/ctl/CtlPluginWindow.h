@@ -17,6 +17,14 @@ namespace lsp
         class CtlPluginWindow: public CtlWidget
         {
             protected:
+                typedef struct backend_sel_t
+                {
+                    CtlPluginWindow    *ctl;
+                    LSPWidget          *item;
+                    size_t              id;
+                } backend_sel_t;
+
+            protected:
                 bool                bResizable;
                 LSPWindow          *pWnd;
                 LSPWindow          *pMessage;
@@ -31,6 +39,9 @@ namespace lsp
                 CtlPort            *pPVersion;
                 CtlPort            *pPBypass;
                 CtlPort            *pPath;
+                CtlPort            *pR3DBackend;
+
+                cstorage<backend_sel_t>     vBackendSel;
 
             protected:
                 static status_t slot_window_close(LSPWidget *sender, void *ptr, void *data);
@@ -50,10 +61,14 @@ namespace lsp
                 static status_t slot_fetch_path(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_commit_path(LSPWidget *sender, void *ptr, void *data);
 
-                status_t show_notification();
-                status_t show_menu(size_t actor_id, void *data);
-                LSPLabel *create_label(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
-                LSPHyperlink *create_hlink(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
+                static status_t slot_select_backend(LSPWidget *sender, void *ptr, void *data);
+
+            protected:
+                status_t        show_notification();
+                status_t        show_menu(size_t actor_id, void *data);
+                LSPLabel       *create_label(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
+                LSPHyperlink   *create_hlink(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
+                status_t        init_r3d_support(LSPMenu *menu);
 
             public:
                 CtlPluginWindow(plugin_ui *src, LSPWindow *wnd);
@@ -84,6 +99,8 @@ namespace lsp
                 virtual void end();
 
                 virtual void notify(CtlPort *port);
+
+                virtual LSPWidget *resolve(const char *uid);
         };
     
     } /* namespace ctl */

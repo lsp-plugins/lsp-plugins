@@ -19,7 +19,7 @@ namespace lsp
                 plugin_ui      *pUI;
 
             public:
-                CtlPathPort(const port_t *meta, plugin_ui *ui);
+                explicit CtlPathPort(const port_t *meta, plugin_ui *ui);
                 virtual ~CtlPathPort();
 
             public:

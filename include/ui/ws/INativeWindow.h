@@ -21,8 +21,11 @@ namespace lsp
                 IEventHandler  *pHandler;
                 IDisplay       *pDisplay;
 
+            private:
+                INativeWindow & operator = (const INativeWindow);
+
             public:
-                INativeWindow(IDisplay *dpy, IEventHandler *handler = NULL);
+                explicit INativeWindow(IDisplay *dpy, IEventHandler *handler = NULL);
                 virtual ~INativeWindow();
 
                 /** Window initialization routine
@@ -366,6 +369,12 @@ namespace lsp
                  * @return clipboard object or NULL.
                  */
                 virtual IClipboard *get_clipboard(size_t id);
+
+                /**
+                 * Grab mouse and keyboard events
+                 * @return status of operation
+                 */
+                virtual status_t grab_events();
         };
     } /* namespace ws */
 } /* namespace lsp */

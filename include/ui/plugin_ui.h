@@ -15,36 +15,52 @@
 #include <ui/ws/ws.h>
 #include <core/files/config.h>
 #include <core/io/IInStream.h>
+#include <core/port_data.h>
 
 namespace lsp
 {
     class plugin_ui: public CtlRegistry
     {
+        private:
+            plugin_ui &operator = (const plugin_ui &);
+
         protected:
             class ConfigHandler: public config::IConfigHandler
             {
                 private:
                     plugin_ui   *pUI;
                     cvector<CtlPort> &hPorts;
+                    KVTStorage  *pKVT;
+                    cvector<char>   vNotify;
+
+                protected:
+                    void add_notification(const char *id);
 
                 public:
-                    ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports): pUI(ui), hPorts(ports) {}
+                    explicit ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt):
+                        pUI(ui), hPorts(ports), pKVT(kvt) {}
+                    virtual ~ConfigHandler();
 
                 public:
-                    virtual status_t handle_parameter(const char *name, const char *value);
+                    virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
+
+                    void notify_all();
             };
 
             class ConfigSource: public config::IConfigSource
             {
                 private:
-                    plugin_ui   *pUI;
+                    plugin_ui      *pUI;
                     cvector<CtlPort> &hPorts;
-                    LSPString   *pComment;
-                    size_t       nPortID;
+                    LSPString      *pComment;
+                    KVTIterator    *pIter;
+                    size_t          nPortID;
 
                 public:
-                    ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports, LSPString *comment):
-                        pUI(ui), hPorts(ports), pComment(comment), nPortID(0) {}
+                    explicit ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt, LSPString *comment):
+                        pUI(ui), hPorts(ports), pComment(comment), nPortID(0) {
+                        pIter       = (kvt != NULL) ? kvt->enum_all() : NULL;
+                    }
 
                 public:
                     virtual status_t get_head_comment(LSPString *comment);
@@ -56,17 +72,20 @@ namespace lsp
             const plugin_metadata_t    *pMetadata;
             IUIWrapper                 *pWrapper;
             LSPWindow                  *pRoot;
+            CtlPluginWindow            *pRootCtl;
             void                       *pRootWidget;
 
             LSPDisplay                  sDisplay;
 
             cvector<CtlPort>            vPorts;
+            cvector<CtlPort>            vCustomPorts;
             cvector<CtlPort>            vSortedPorts;
             cvector<CtlPort>            vConfigPorts;
             cvector<CtlValuePort>       vTimePorts;
             cvector<LSPWidget>          vWidgets;
             cvector<CtlSwitchedPort>    vSwitched;
             cvector<CtlPortAlias>       vAliases;
+            cvector<CtlKvtListener>     vKvtListeners;
 
         protected:
             static const port_t         vConfigMetadata[];
@@ -101,7 +120,13 @@ namespace lsp
              * @param argv list of arguments
              * @return status of operation
              */
-            status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+            virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+
+            /**
+             * Build UI from the XML schema
+             * @return status of operation
+             */
+            virtual status_t    build();
 
             /** Method executed when the time position of plugin was updated
              *
@@ -114,6 +139,13 @@ namespace lsp
              * @return status of operation
              */
             status_t add_port(CtlPort *port);
+
+            /** Add custom port to UI
+             *
+             * @param port custom UI port
+             * @return status of operation
+             */
+            status_t add_custom_port(CtlPort *port);
 
             /** Export settings of the UI to the file
              *
@@ -197,7 +229,7 @@ namespace lsp
              *
              * @return main function
              */
-            inline status_t main() { return sDisplay.main(); };
+            inline status_t main()          { return sDisplay.main(); };
 
             /** Main iteration
              *
@@ -205,6 +237,9 @@ namespace lsp
              */
             inline status_t main_iteration() { return sDisplay.main_iteration(); }
 
+            /**
+             * Synchronize state of meta ports
+             */
             void sync_meta_ports();
 
             /** Return root window
@@ -213,7 +248,43 @@ namespace lsp
              */
             inline LSPWindow *root_window() { return pRoot; }
 
+            /**
+             * Set title of the main window
+             * @param title title of the main window
+             */
             void set_title(const char *title);
+
+            /**
+             * Notify the write of the KVT parameter
+             * @param storage KVT storage
+             * @param id kvt parameter identifier
+             * @param value KVT parameter value
+             */
+            virtual void kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value);
+
+            /**
+             * Lock the KVT storage
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock the KVT storage
+             * @return pointer to KVT storage or NULL if not locked/not supported
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             */
+            virtual void kvt_release();
+
+            /**
+             * Add KVT listener
+             * @param listener listener to add
+             * @return status of operation
+             */
+            virtual status_t add_kvt_listener(CtlKvtListener *listener);
     };
 
 } /* namespace lsp */

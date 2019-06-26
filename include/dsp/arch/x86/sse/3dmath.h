@@ -431,6 +431,74 @@ namespace sse
         );
     }
 
+    void add_vector_pv1(point3d_t *p, const vector3d_t *dv)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[p]), %[x0]")
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1)
+            : [p] "r" (p), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
+    void add_vector_pv2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sp]), %[x0]")
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1)
+            : [p] "r" (p), [sp] "r" (sp), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
+    void add_vector_pvk1(point3d_t *p, const vector3d_t *dv, float k)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")
+            __ASM_EMIT("movups      (%[p]), %[x0]")
+            __ASM_EMIT("mulps       %[x2], %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "+x" (k)
+            : [p] "r" (p), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
+    void add_vector_pvk2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")
+            __ASM_EMIT("movups      (%[sp]), %[x0]")
+            __ASM_EMIT("mulps       %[x2], %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "+x" (k)
+            : [p] "r" (p), [sp] "r" (sp), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
     void normalize_vector(vector3d_t *v)
     {
         float x0, x1, x2;
@@ -444,6 +512,52 @@ namespace sse
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
             : [v] "r" (v)
             : "cc", "memory"
+        );
+    }
+
+    void normalize_vector2(vector3d_t *v, const vector3d_t *sv)
+    {
+        float x0, x1, x2;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sv]), %[x0]")    // xmm0 = dx dy dz dw
+            NORMALIZE("[x0]", "[x1]", "[x2]")
+            __ASM_EMIT("movups      %[x0], (%[v])")
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
+            : [v] "r" (v), [sv] "r" (sv)
+            : "cc", "memory"
+        );
+    }
+
+    void flip_vector_v1(vector3d_t *v)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[v]), %%xmm0")    // xmm0 = dx dy dz dw
+            __ASM_EMIT("xorps       %[mask], %%xmm0")
+            __ASM_EMIT("movups      %%xmm0, (%[v])")
+            :
+            : [v] "r" (v),
+              [mask] "m" (X_SMASK0111)
+            : "memory",
+              "xmm0"
+        );
+    }
+
+    void flip_vector_v2(vector3d_t *v, const vector3d_t *sv)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sv]), %%xmm0")   // xmm0 = dx dy dz dw
+            __ASM_EMIT("xorps       %[mask], %%xmm0")
+            __ASM_EMIT("movups      %%xmm0, (%[v])")
+            :
+            : [v] "r" (v), [sv] "r" (sv),
+              [mask] "m" (X_SMASK0111)
+            : "memory",
+              "xmm0"
         );
     }
 

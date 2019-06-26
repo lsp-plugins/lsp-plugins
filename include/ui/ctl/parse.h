@@ -17,6 +17,30 @@
             { code; } \
     }
 
+#define PARSE_UINT(var, code) \
+    { \
+        errno = 0; \
+        unsigned long __ = strtoul(var, NULL, 10); \
+        if (errno == 0) \
+            { code; } \
+    }
+
+#define PARSE_LLINT(var, code) \
+    { \
+        errno = 0; \
+        long long __ = strtoll(var, NULL, 10); \
+        if (errno == 0) \
+            { code; } \
+    }
+
+#define PARSE_ULLINT(var, code) \
+    { \
+        errno = 0; \
+        unsigned long long __ = strtoull(var, NULL, 10); \
+        if (errno == 0) \
+            { code; } \
+    }
+
 #define PARSE_BOOL(var, code) \
     { \
         bool __ = !strcasecmp(var, "true"); \
@@ -82,7 +106,7 @@ namespace lsp
 
         bool parse_file_formats(const char *variable, LSPFileFilter *flt);
 
-        bool set_port_value(CtlPort *port, const char *value);
+        bool set_port_value(CtlPort *port, const char *value, size_t flags);
 
         status_t format_port_value(CtlPort *port, LSPString *name, LSPString *value, LSPString *comment, int *flags);
     }

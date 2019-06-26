@@ -8,6 +8,7 @@
 #include <ui/ctl/ctl.h>
 #include <ui/common.h>
 #include <core/files/config.h>
+#include <core/port_data.h>
 
 namespace lsp
 {

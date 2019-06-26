@@ -27,10 +27,10 @@ namespace lsp
 
         HMODULE hm = NULL;
 
-        if (!::GetModuleHandleEx(
+        if (!::GetModuleHandleExW(
                 GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                 GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                reinterpret_cast<LPCSTR>(&get_library_path),
+                reinterpret_cast<LPCWSTR>(&get_library_path),
                 &hm)
            )
         {
@@ -39,7 +39,7 @@ namespace lsp
             return NULL;
         }
 
-        if (::GetModuleFileNameW(hm, path, sizeof(path)) == 0)
+        if (::GetModuleFileNameW(hm, path, PATH_MAX) == 0)
         {
             int ret = ::GetLastError();
             fprintf(stderr, "GetModuleFileName failed, error = %d\n", ret);

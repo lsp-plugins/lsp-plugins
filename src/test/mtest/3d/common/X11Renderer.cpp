@@ -11,15 +11,131 @@
 #include <errno.h>
 #include <time.h>
 
+#include <metadata/metadata.h>
+#include <core/io/Path.h>
+#include <core/io/Dir.h>
+#include <rendering/factory.h>
 #include <test/mtest/3d/common/X11Renderer.h>
+
+#ifdef LSP_IDE_DEBUG
+    #ifdef PLATFORM_UNIX_COMPATIBLE
+        #define USE_GLX_FACTORY
+
+        #include <rendering/glx/factory.h>
+
+        namespace lsp
+        {
+            extern glx_factory_t   glx_factory;
+        }
+    #endif
+#endif /* LSP_IDE_DEBUG */
 
 namespace mtest
 {
+    r3d_factory_t *probe_3d_backend(ipc::Library *dlib, const io::Path *path)
+    {
+        ipc::Library lib;
+
+        lsp_trace("Probing file %s as 3D rendering backend...", path->as_native());
+
+        // Open library
+        status_t res = lib.open(path);
+        if (res != STATUS_OK)
+        {
+            lsp_trace("Could not open library %s", path->as_native());
+            return NULL;
+        }
+
+        // Lookup function
+        lsp_r3d_factory_function_t func = reinterpret_cast<lsp_r3d_factory_function_t>(lib.import(R3D_FACTORY_FUNCTION_NAME));
+        if (func == NULL)
+        {
+            lsp_trace("Could not lookup function %s", R3D_FACTORY_FUNCTION_NAME);
+            lib.close();
+            return NULL;
+        }
+
+        // Try to instantiate factory
+        r3d_factory_t *factory  = func(LSP_MAIN_VERSION);
+        if (factory == NULL)
+        {
+            lsp_trace("Could not obtain factory pointer");
+            lib.close();
+            return NULL;
+        }
+
+        lib.swap(dlib);
+        return factory;
+    }
+
+    r3d_factory_t *lookup_factory(ipc::Library *dlib, const io::Path *path)
+    {
+        io::Dir dir;
+
+        status_t res = dir.open(path);
+        if (res != STATUS_OK)
+            return NULL;
+
+        io::Path child;
+        LSPString item, prefix, postfix;
+        if (!prefix.set_ascii(LSP_R3D_BACKEND_PREFIX))
+            return NULL;
+
+        io::fattr_t fattr;
+        r3d_factory_t *factory;
+        while ((res = dir.read(&item, false)) == STATUS_OK)
+        {
+            if (!item.starts_with(&prefix))
+                continue;
+
+            if ((res = child.set(path, &item)) != STATUS_OK)
+                continue;
+            if ((res = child.stat(&fattr)) != STATUS_OK)
+                continue;
+
+            switch (fattr.type)
+            {
+                case io::fattr_t::FT_DIRECTORY:
+                case io::fattr_t::FT_BLOCK:
+                case io::fattr_t::FT_CHARACTER:
+                    continue;
+                default:
+                    if ((factory = probe_3d_backend(dlib, &child)) != NULL)
+                        return factory;
+                    break;
+            }
+        }
+
+        return NULL;
+    }
+
+    r3d_factory_t *get_r3d_factory(ipc::Library *dlib)
+    {
+#ifdef USE_GLX_FACTORY
+        return &glx_factory;
+#else
+        status_t res;
+        io::Path path;
+        r3d_factory_t *factory = NULL;
+
+        res = ipc::Library::get_self_file(&path);
+        if (res == STATUS_OK)
+            res     = path.parent();
+        if (res == STATUS_OK)
+        {
+            if ((factory = lookup_factory(dlib, &path)) != NULL)
+                return factory;
+        }
+
+        return factory;
+#endif
+    }
+
     X11Renderer::X11Renderer(View3D *view)
     {
         dpy                 = NULL;
         win                 = None;
-        glc                 = NULL;
+        glwnd               = None;
         stopped             = true;
         nBMask              = 0;
         nMouseX             = 0;
@@ -41,15 +157,8 @@ namespace mtest
         bDrawCapture        = true;
         bDrawSource         = true;
 
-//        fAngleX             = 0.0f;
-//        fAngleY             = 0.0f;
-//        fAngleZ             = 0.0f;
-//        fScale              = 1.0f;
-//
-//        fAngleDX            = 0.0f;
-//        fAngleDY            = 0.0f;
-//        fAngleDZ            = 0.0f;
-//        fDeltaScale         = 0.0f;
+        pBackend            = NULL;
+
         pView               = view;
 
         sAngles.fYaw        = 0.0f;
@@ -57,16 +166,10 @@ namespace mtest
         sAngles.fRoll       = 0.0f;
         dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
 
-//        sAngles.fYaw        = -4.508185f;
-//        sAngles.fPitch      = 0.741765f;
-//        sAngles.fRoll       = 0.000000f;
-//        dsp::init_point_xyz(&sPov, 3.377625f, 1.006218f, -3.435355f);
-
         dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
         dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
         dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
 
-//        dsp::init_matrix3d_identity(&sWorld);
         // Article about yaw-pitch-roll
         // http://in2gpu.com/2016/02/26/opengl-fps-camera/
         // https://sites.google.com/site/csc8820/educational/move-a-camera
@@ -89,66 +192,64 @@ namespace mtest
 
     status_t X11Renderer::init()
     {
-        Window                  root;
-        GLint                   att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-        XVisualInfo             *vi;
-        Colormap                cmap;
-        XSetWindowAttributes    swa;
+        // Fetch factory
+        r3d_factory_t *factory = get_r3d_factory(&sLibrary);
+        if (factory == NULL)
+        {
+            lsp_error("Could not find proper 3D rendering backend");
+            return STATUS_NOT_FOUND;
+        }
 
-        dpy = XOpenDisplay(NULL);
+        // Create backend
+        pBackend        = factory->create(factory, 0);
+        if (pBackend == NULL)
+            return STATUS_UNKNOWN_ERR;
+
+        // Connect to X11
+        dpy = ::XOpenDisplay(NULL);
         if (dpy == NULL)
         {
             lsp_error("cannot connect to X server");
             return STATUS_NO_DEVICE;
         }
 
-        root = DefaultRootWindow(dpy);
-        vi = glXChooseVisual(dpy, 0, att);
-        if (vi == NULL)
+        Window root = DefaultRootWindow(dpy);
+
+        nWidth          = 800;
+        nHeight         = 600;
+
+        XSetWindowAttributes    swa;
+        swa.event_mask = ExposureMask | StructureNotifyMask |
+                KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+        win     = ::XCreateWindow(dpy, root, 0, 0, nWidth, nHeight, 0, CopyFromParent, InputOutput, CopyFromParent, CWEventMask, &swa);
+
+        ::XSelectInput(dpy, win, swa.event_mask);
+
+        Atom wm_delete = ::XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+        ::XSetWMProtocols(dpy, win, &wm_delete, 1);
+
+        ::XMapWindow(dpy, win);
+        ::XStoreName(dpy, win, "3D Viewer");
+
+        void *hwnd = NULL;
+        status_t res = pBackend->init_window(pBackend, &hwnd);
+        if (res == STATUS_OK)
+            res = pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
+
+        // Reparent window and show
+        if (hwnd != NULL)
         {
-            lsp_error("no appropriate visual found");
-            return STATUS_UNSUPPORTED_FORMAT;
-        }
-        lsp_info("tvisual %p selected", (void *)vi->visualid); /* %p creates hexadecimal output like in glxinfo */
+            glwnd = reinterpret_cast<Window>(hwnd);
 
-        cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
-
-        swa.colormap = cmap;
-        swa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-
-        win = XCreateWindow(dpy, root, 0, 0, 800, 600, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
-        if (win == None)
-        {
-            lsp_error("error creating window");
-            return STATUS_NO_DEVICE;
-        }
-
-        XSelectInput(dpy, win, swa.event_mask);
-        Atom wm_delete = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-        XSetWMProtocols(dpy, win, &wm_delete, 1);
-
-        XMapWindow(dpy, win);
-        XStoreName(dpy, win, "3D Viewer");
-        glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-        if (glc == NULL)
-        {
-            lsp_error("error creating GLX context");
-            return STATUS_NO_DEVICE;
-        }
-        glXMakeCurrent(dpy, win, glc);
-
-        // Get extensions
-        const char* extensions = (const char *)glGetString(GL_EXTENSIONS);
-        if (extensions != NULL)
-        {
-            lsp_trace("OpenGL extension list: %s", extensions);
-            lsp_trace("GL_ARB_arrays_of_arrays supported: %s", is_supported(extensions, "gl_arb_arrays_of_arrays") ? "true" : "false");
-            lsp_trace("GL_SUN_slice_accum supported: %s", is_supported(extensions, "gl_sun_slice_accum") ? "true" : "false");
-            lsp_trace("INVALID_EXTENSION supported: %s", is_supported(extensions, "invalid_extension") ? "true" : "false");
-            // TODO: detect several set of extensions
+            ::XReparentWindow(dpy, glwnd, win, 0, 0);
+            ::XMapWindow(dpy, glwnd);
+            ::XSelectInput(dpy, glwnd,
+                KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
+            );
+            ::XSync(dpy, False);
         }
 
-        return STATUS_OK;
+        return res;
     }
 
     void X11Renderer::move_camera(const vector3d_t *dir, float amount)
@@ -184,33 +285,26 @@ namespace mtest
         bViewChanged    = true;
     }
 
-
     status_t X11Renderer::run()
     {
         if (dpy == NULL)
             return STATUS_BAD_STATE;
 
-        XWindowAttributes       gwa;
-
         stopped                 = false;
+
         int x11_fd              = ConnectionNumber(dpy);
         struct pollfd x11_poll;
         struct timespec ts;
         struct timespec sLastRender;
 
-        clock_gettime(CLOCK_REALTIME, &sLastRender);
-        Atom wm_proto           = XInternAtom(dpy, "WM_PROTOCOLS", False);
-        Atom wm_delete          = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-
-        XGetWindowAttributes(dpy, win, &gwa);
-        nWidth          = gwa.width;
-        nHeight         = gwa.height;
-        bViewChanged    = true;
+        ::clock_gettime(CLOCK_REALTIME, &sLastRender);
+        Atom wm_proto           = ::XInternAtom(dpy, "WM_PROTOCOLS", False);
+        Atom wm_delete          = ::XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 
         while (!stopped)
         {
             // Get current time
-            clock_gettime(CLOCK_REALTIME, &ts);
+            ::clock_gettime(CLOCK_REALTIME, &ts);
             ssize_t dmsec   = (ts.tv_nsec - sLastRender.tv_nsec) / 1000000;
             ssize_t dsec    = (ts.tv_sec - sLastRender.tv_sec);
             dmsec          += dsec * 1000;
@@ -237,22 +331,16 @@ namespace mtest
             {
                 if (force)
                 {
-                    XGetWindowAttributes(dpy, win, &gwa);
-                    if ((gwa.width != nWidth) || (gwa.height != nHeight))
-                        bViewChanged = true;
-
-                    glViewport(0, 0, gwa.width, gwa.height);
                     render();
-                    glXSwapBuffers(dpy, win);
                     sLastRender = ts;
                 }
 
                 XEvent xev;
-                int pending = XPending(dpy);
+                int pending = ::XPending(dpy);
 
                 for (int i=0; i<pending; i++)
                 {
-                    XNextEvent(dpy, &xev);
+                    ::XNextEvent(dpy, &xev);
 
                     switch (xev.type)
                     {
@@ -274,6 +362,28 @@ namespace mtest
                         case MotionNotify:
                             on_mouse_move(xev.xmotion);
                             break;
+                        case ConfigureNotify:
+                            bViewChanged    = true;
+                            nWidth          = xev.xconfigure.width;
+                            nHeight         = xev.xconfigure.height;
+                            XMoveResizeWindow(dpy, glwnd, 0, 0, nWidth, nHeight);
+                            XFlush(dpy);
+                            pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
+                            render();
+                            sLastRender = ts;
+                            break;
+                        case ResizeRequest:
+                            bViewChanged    = true;
+                            nWidth          = xev.xresizerequest.width;
+                            nHeight         = xev.xresizerequest.height;
+                            XMoveResizeWindow(dpy, glwnd, 0, 0, nWidth, nHeight);
+                            XFlush(dpy);
+                            pBackend->locate(pBackend, 0, 0, nWidth, nHeight);
+                            render();
+                            sLastRender = ts;
+                            break;
+                        case Expose:
+                            break;
                         case ClientMessage:
                             if (xev.xclient.message_type == wm_proto)
                             {
@@ -291,25 +401,21 @@ namespace mtest
 
     void X11Renderer::destroy()
     {
-        if (glc != NULL)
+        if (pBackend != NULL)
         {
-            if (dpy != NULL)
-            {
-                glXMakeCurrent(dpy, None, NULL);
-                glXDestroyContext(dpy, glc);
-            }
-            glc = NULL;
+            pBackend->destroy(pBackend);
+            pBackend    = NULL;
         }
 
         if (win != None)
         {
-            XDestroyWindow(dpy, win);
+            ::XDestroyWindow(dpy, win);
             win = None;
         }
 
         if (dpy != NULL)
         {
-            XCloseDisplay(dpy);
+            ::XCloseDisplay(dpy);
             dpy = NULL;
         }
     }
@@ -440,10 +546,48 @@ namespace mtest
         return false;
     }
 
+    void X11Renderer::draw_normals(v_vertex3d_t *vv, size_t nvertex)
+    {
+        r3d_buffer_t buffer;
+        point3d_t *np       = reinterpret_cast<point3d_t *>(::malloc(sizeof(point3d_t) * 2 * nvertex));
+        if (np == NULL)
+            return;
+
+        buffer.type         = R3D_PRIMITIVE_LINES;
+        buffer.width        = 1.0f;
+        buffer.flags        = 0;
+        buffer.count        = nvertex;
+
+        // Fill primitive array
+        point3d_t *dp       = np;
+        v_vertex3d_t *sv    = vv;
+        for (size_t i=0; i<nvertex; ++i, dp += 2, ++sv)
+        {
+            dp[0]   = sv->p;
+            dp[1].x = sv->p.x + sv->n.dx;
+            dp[1].y = sv->p.y + sv->n.dy;
+            dp[1].z = sv->p.z + sv->n.dz;
+            dp[1].w = 1.0f;
+        }
+
+        buffer.vertex.data      = np;
+        buffer.vertex.stride    = sizeof(point3d_t);
+        buffer.normal.data      = NULL;
+        buffer.color.data       = NULL;
+        buffer.index.data       = NULL;
+        buffer.color.dfl.r      = 1.0f;
+        buffer.color.dfl.g      = 1.0f;
+        buffer.color.dfl.b      = 0.0f;
+        buffer.color.dfl.a      = 0.0f;
+
+        // Draw call
+        pBackend->draw_primitives(pBackend, &buffer);
+
+        ::free(np);
+    }
+
     void X11Renderer::render()
     {
-        static const float light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
         // Changed view? Recompute matrices
         if (bViewChanged)
         {
@@ -471,309 +615,235 @@ namespace mtest
             bViewChanged = false;
         }
 
-        glEnable(GL_DEPTH_TEST);
-        if (bCullFace)
-        {
-            glEnable(GL_CULL_FACE);
-            glCullFace((bInvert) ? GL_FRONT : GL_BACK);
-        }
-        glEnable(GL_COLOR_MATERIAL);
+        // Light parameters
+        r3d_light_t light;
 
-        glShadeModel(GL_SMOOTH);
+        light.type          = R3D_LIGHT_POINT; //R3D_LIGHT_DIRECTIONAL;
+        light.position      = sPov;
+        light.direction.dx  = -sDir.dx;
+        light.direction.dy  = -sDir.dy;
+        light.direction.dz  = -sDir.dz;
+        light.direction.dw  = 0.0f;
 
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf(sProjection.m);
+        light.ambient.r     = 0.0f;
+        light.ambient.g     = 0.0f;
+        light.ambient.b     = 0.0f;
+        light.ambient.a     = 1.0f;
 
-        // Clear buffer
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClearDepth(1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        light.diffuse.r     = 1.0f;
+        light.diffuse.g     = 1.0f;
+        light.diffuse.b     = 1.0f;
+        light.diffuse.a     = 1.0f;
 
-        // Initialize lighting
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        if (bLight)
-        {
-            glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_RESCALE_NORMAL);
-        }
-        glLoadMatrixf(sView.m);
+        light.specular.r    = 1.0f;
+        light.specular.g    = 1.0f;
+        light.specular.b    = 1.0f;
+        light.specular.a    = 1.0f;
 
-        // Initialize scene's world matrix
-//        glTranslatef(0.0f, 0.0f, -6.0f);
-//
-//        float scale = fScale + fDeltaScale;
-//        glScalef(scale, scale, scale); // Scale
-//
-//        glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
-//        glRotatef(fAngleY + fAngleDY, 0.0f, 1.0f, 0.0f);
-//        glRotatef(fAngleZ + fAngleDZ, 0.0f, 0.0f, 1.0f);
+        light.constant      = 1.0f;
+        light.linear        = 0.0f;
+        light.quadratic     = 0.0f;
+        light.cutoff        = 180.0f;
 
-        glPolygonOffset(-1, -1);
-        glEnable(GL_POLYGON_OFFSET_POINT);
-        glPointSize(5.0f);
+        r3d_buffer_t buffer;
 
-        if (bDrawTriangles)
-        {
-            size_t n = pView->num_vertexes();
-            v_vertex3d_t *vv = pView->get_vertexes();
+        // Start rendering
+        pBackend->start(pBackend);
 
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_NORMAL_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
+            pBackend->set_matrix(pBackend, R3D_MATRIX_PROJECTION, &sProjection);
+            pBackend->set_matrix(pBackend, R3D_MATRIX_VIEW, &sView);
 
-            glVertexPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->p);
-            glNormalPointer(GL_FLOAT, sizeof(v_vertex3d_t), &vv->n);
-            glColorPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->c);
+            // Enable/disable lighting
+            pBackend->set_lights(pBackend, &light, 1);
 
-            if (bWireframe)
+            // Draw non-transparent data
+            if (bDrawTriangles)
             {
-                for (size_t i=0; i<n; i += 3)
-                    glDrawArrays(GL_LINE_LOOP, i, 3);
-            }
-            else
-                glDrawArrays(GL_TRIANGLES, 0, n);
+                v_vertex3d_t *vv    = pView->get_vertexes();
+                size_t nvertex      = pView->num_vertexes();
 
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_NORMAL_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            if (bDrawNormals)
-            {
+                // Fill buffer
+                buffer.type         = (bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
+                buffer.width        = 1.0f;
+                buffer.count        = nvertex / 3;
+                buffer.flags        = 0;
                 if (bLight)
-                    glDisable(GL_LIGHTING);
+                    buffer.flags       |= R3D_BUFFER_LIGHTING;
 
-                glColor3f(1.0f, 1.0f, 0.0f);
-                glBegin(GL_LINES);
+                buffer.vertex.data  = &vv->p;
+                buffer.vertex.stride= sizeof(v_vertex3d_t);
+                buffer.normal.data  = &vv->n;
+                buffer.normal.stride= sizeof(v_vertex3d_t);
+                buffer.color.data   = &vv->c;
+                buffer.color.stride = sizeof(v_vertex3d_t);
+                buffer.index.data   = NULL;
 
-                for (size_t i=0; i < n; ++i)
+                // Draw call
+                pBackend->draw_primitives(pBackend, &buffer);
+
+                // Draw normals?
+                if (bDrawNormals)
+                    draw_normals(vv, nvertex);
+            }
+
+            // Draw rays
+            if (bDrawRays)
+            {
+                v_ray3d_t *rays = pView->get_rays();
+                size_t nrays    = pView->num_rays();
+
+                // Draw ray points
+                buffer.type             = R3D_PRIMITIVE_POINTS;
+                buffer.width            = 5.0f;
+                buffer.count            = nrays;
+                buffer.flags            = 0;
+
+                buffer.vertex.data      = &rays->p;
+                buffer.vertex.stride    = sizeof(v_ray3d_t);
+                buffer.normal.data      = NULL;
+                buffer.color.data       = &rays->c;
+                buffer.color.stride     = sizeof(v_ray3d_t);
+                buffer.index.data       = NULL;
+
+                pBackend->draw_primitives(pBackend, &buffer);
+
+                // Now draw segments
+                v_point3d_t *tmp        = reinterpret_cast<v_point3d_t *>(::malloc(sizeof(v_point3d_t) * 2 * nrays));
+                if (tmp != NULL)
                 {
-                    v_vertex3d_t *v = &vv[i];
-                    glVertex3fv(&v[0].p.x);
-                    glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
+                    v_ray3d_t *sr   = rays;
+                    v_point3d_t *dp = tmp;
+                    for (size_t i=0; i<nrays; ++i, dp += 2, ++sr)
+                    {
+                        dp[0].p     = sr->p;
+                        dp[0].c     = sr->c;
+                        dp[1].p.x   = sr->p.x + sr->v.dx * 4.0f;
+                        dp[1].p.y   = sr->p.y + sr->v.dy * 4.0f;
+                        dp[1].p.z   = sr->p.z + sr->v.dz * 4.0f;
+                        dp[1].p.w   = 1.0f;
+                        dp[1].c     = sr->c;
+                        dp[1].c.a   = 0.0f;
+                    }
+
+                    buffer.type             = R3D_PRIMITIVE_LINES;
+                    buffer.width            = 1.0f;
+                    buffer.flags            = R3D_BUFFER_BLENDING;
+                    buffer.count            = nrays;
+
+                    buffer.vertex.data      = &tmp->p;
+                    buffer.vertex.stride    = sizeof(v_point3d_t);
+                    buffer.normal.data      = NULL;
+                    buffer.color.data       = &tmp->c;
+                    buffer.color.stride     = sizeof(v_point3d_t);
+                    buffer.index.data       = NULL;
+
+                    // Draw call
+                    pBackend->draw_primitives(pBackend, &buffer);
+
+                    ::free(tmp);
                 }
-                glEnd();
-
-                if (bLight)
-                    glEnable(GL_LIGHTING);
-            }
-        }
-
-        if (bLight)
-        {
-            glDisable(GL_RESCALE_NORMAL);
-            glDisable(GL_LIGHTING);
-        }
-
-        // Draw segments
-        if (bDrawSegments)
-        {
-            v_segment3d_t *s = pView->get_segments();
-            size_t n = pView->num_segments();
-
-            glLineWidth(3.0f);
-
-            for (size_t i=0; i<n; ++i, ++s)
-            {
-                glBegin(GL_POINTS);
-                    glColor3fv(&s->c[0].r);
-                    glVertex3fv(&s->p[0].x);
-                    glColor3fv(&s->c[1].r);
-                    glVertex3fv(&s->p[1].x);
-                glEnd();
-
-                glBegin(GL_LINES);
-                    glColor3fv(&s->c[0].r);
-                    glVertex3fv(&s->p[0].x);
-                    glColor3fv(&s->c[1].r);
-                    glVertex3fv(&s->p[1].x);
-                glEnd();
             }
 
-            glLineWidth(1.0f);
-        }
-
-        // Draw rays
-        if (bDrawRays)
-        {
-            glEnable (GL_BLEND);
-            glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            v_ray3d_t *r    = pView->get_rays();
-            size_t n        = pView->num_rays();
-
-            glPointSize(5.0f);
-
-            for (size_t i=0; i<n; ++i, ++r)
+            // Draw points
+            if (bDrawPoints)
             {
-                if (r->v.dw < 0.0f)
-                    continue;
+                v_point3d_t *points     = pView->get_points();
+                size_t npoints          = pView->num_points();
 
-                glColor4f(r->c.r, r->c.g, r->c.b, 1.0f);
-                glBegin(GL_POINTS);
-                    glVertex3fv(&r->p.x);
-                glEnd();
+                buffer.type             = R3D_PRIMITIVE_POINTS;
+                buffer.width            = 5.0f;
+                buffer.count            = npoints;
+                buffer.flags            = 0;
 
-                glBegin(GL_LINES);
-                    glVertex3fv(&r->p.x);
-                    glColor4f(r->c.r, r->c.g, r->c.b, 0.0f);
-                    glVertex3f(r->p.x + r->v.dx*4.0f, r->p.y + r->v.dy*4.0f, r->p.z + r->v.dz*4.0f);
-                glEnd();
+                buffer.vertex.data      = &points->p;
+                buffer.vertex.stride    = sizeof(v_point3d_t);
+                buffer.normal.data      = NULL;
+                buffer.color.data       = &points->c;
+                buffer.color.stride     = sizeof(v_point3d_t);
+                buffer.index.data       = NULL;
+
+                // Draw call
+                pBackend->draw_primitives(pBackend, &buffer);
             }
 
-            glDisable(GL_BLEND);
-        }
-
-        // Draw points
-        if (bDrawPoints)
-        {
-            v_point3d_t *p = pView->get_points();
-            size_t n = pView->num_points();
-
-            glColor3f(0.0f, 1.0f, 1.0f);
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-
-            glVertexPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->p.x);
-            glColorPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->c.r);
-
-            glDrawArrays(GL_POINTS, 0, n);
-
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-        }
-
-        glDisable(GL_POLYGON_OFFSET_POINT);
-
-        // Draw second-order triangles
-        if (bLight)
-        {
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_RESCALE_NORMAL);
-        }
-
-        if (bDrawTriangles)
-        {
-//            glPushMatrix();
-//            glLoadIdentity();
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            size_t n = pView->num_vertexes2();
-            v_vertex3d_t *vv = pView->get_vertexes2();
-
-            glEnableClientState(GL_VERTEX_ARRAY);
-            glEnableClientState(GL_NORMAL_ARRAY);
-            glEnableClientState(GL_COLOR_ARRAY);
-
-            glVertexPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->p);
-            glNormalPointer(GL_FLOAT, sizeof(v_vertex3d_t), &vv->n);
-            glColorPointer(4, GL_FLOAT, sizeof(v_vertex3d_t), &vv->c);
-
-            if (bWireframe)
+            // Draw segments
+            if (bDrawSegments)
             {
-                for (size_t i=0; i<n; i += 3)
-                    glDrawArrays(GL_LINE_LOOP, i, 3);
-            }
-            else
-                glDrawArrays(GL_TRIANGLES, 0, n);
+                v_segment3d_t *segments = pView->get_segments();
+                size_t nsegments        = pView->num_segments();
 
-            glDisableClientState(GL_COLOR_ARRAY);
-            glDisableClientState(GL_NORMAL_ARRAY);
-            glDisableClientState(GL_VERTEX_ARRAY);
-
-            if (bDrawNormals)
-            {
-                if (bLight)
-                    glDisable(GL_LIGHTING);
-
-                glColor3f(1.0f, 1.0f, 0.0f);
-                glBegin(GL_LINES);
-
-                for (size_t i=0; i < n; ++i)
+                v_point3d_t *tmp        = reinterpret_cast<v_point3d_t *>(::malloc(sizeof(v_point3d_t) * 2 * nsegments));
+                if (tmp != NULL)
                 {
-                    v_vertex3d_t *v = &vv[i];
-                    glVertex3fv(&v[0].p.x);
-                    glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
-                }
-                glEnd();
+                    v_point3d_t *dp     = tmp;
+                    v_segment3d_t *ss   = segments;
 
-                if (bLight)
-                    glEnable(GL_LIGHTING);
+                    for (size_t i=0; i<nsegments; ++i, dp += 2, ++ss)
+                    {
+                        dp[0].p     = ss->p[0];
+                        dp[0].c     = ss->c[0];
+                        dp[1].p     = ss->p[1];
+                        dp[1].c     = ss->c[1];
+                    }
+
+                    // Draw lines
+                    buffer.type             = R3D_PRIMITIVE_LINES;
+                    buffer.width            = 3.0f;
+                    buffer.flags            = 0;
+                    buffer.count            = nsegments;
+
+                    buffer.vertex.data      = &tmp->p;
+                    buffer.vertex.stride    = sizeof(v_point3d_t);
+                    buffer.normal.data      = NULL;
+                    buffer.color.data       = &tmp->c;
+                    buffer.color.stride     = sizeof(v_point3d_t);
+                    buffer.index.data       = NULL;
+
+                    // Draw call
+                    pBackend->draw_primitives(pBackend, &buffer);
+
+                    // Draw points
+                    buffer.type             = R3D_PRIMITIVE_POINTS;
+                    buffer.width            = 5.0f;
+                    buffer.count            = nsegments * 2;
+
+                    // Draw call
+                    pBackend->draw_primitives(pBackend, &buffer);
+
+                    ::free(tmp);
+                }
             }
 
-            glDisable(GL_BLEND);
-//            glPopMatrix();
-        }
+            // Draw transparent data
+            if (bDrawTriangles)
+            {
+                v_vertex3d_t *vv    = pView->get_vertexes2();
+                size_t nvertex      = pView->num_vertexes2();
 
-        if (bLight)
-        {
-            glDisable(GL_RESCALE_NORMAL);
-            glDisable(GL_LIGHTING);
-        }
+                // Fill buffer
+                buffer.type         = (bWireframe) ? R3D_PRIMITIVE_WIREFRAME_TRIANGLES : R3D_PRIMITIVE_TRIANGLES;
+                buffer.width        = 1.0f;
+                buffer.count        = nvertex / 3;
+                buffer.flags        = R3D_BUFFER_BLENDING;
+                if (bLight)
+                    buffer.flags       |= R3D_BUFFER_LIGHTING;
 
-        glDisable(GL_DEPTH_TEST);
+                buffer.vertex.data  = &vv->p;
+                buffer.vertex.stride= sizeof(v_vertex3d_t);
+                buffer.normal.data  = &vv->n;
+                buffer.normal.stride= sizeof(v_vertex3d_t);
+                buffer.color.data   = &vv->c;
+                buffer.color.stride = sizeof(v_vertex3d_t);
+                buffer.index.data   = NULL;
 
-        /*
-        // Draw axis coordinates
-        glLoadIdentity();
-        glTranslatef(-0.8f * float(nWidth)/float(nHeight), -0.8f , -0.9f);
-        glScalef(0.2, 0.2, 0.2); // Scale
+                // Draw call
+                pBackend->draw_primitives(pBackend, &buffer);
 
-        glRotatef(fAngleX + fAngleDX, 1.0f, 0.0f, 0.0f);
-        glRotatef(fAngleY + fAngleDY, 0.0f, 1.0f, 0.0f);
-        glRotatef(fAngleZ + fAngleDZ, 0.0f, 0.0f, 1.0f);
+                // Draw normals?
+                if (bDrawNormals)
+                    draw_normals(vv, nvertex);
+            }
 
-        glBegin(GL_LINES);
-            glColor3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, 0.05f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, -0.05f, 0.0f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, 0.0f, 0.05f);
-            glVertex3f(1.0f, 0.0f, 0.0f);
-            glVertex3f(0.8f, 0.0f, -0.05f);
-
-            glColor3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 0.8f, 0.05f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.0f, 0.8f, -0.05f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(0.05f, 0.8f, 0.0f);
-            glVertex3f(0.0f, 1.0f, 0.0f);
-            glVertex3f(-0.05f, 0.8f, 0.0f);
-
-            glColor3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.05f, 0.0f, 0.8f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(-0.05f, 0.0f, 0.8f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.0f, 0.05f, 0.8f);
-            glVertex3f(0.0f, 0.0f, 1.0f);
-            glVertex3f(0.0f, -0.05f, 0.8f);
-        glEnd();
-
-        if (bCullFace)
-            glDisable(GL_CULL_FACE);
-
-        // Rotate scene if it is possible
-        if (bRotate)
-        {
-            fAngleX -= 0.3f;
-            fAngleZ -= 0.4f;
-        }*/
+        pBackend->finish(pBackend);
     }
 } /* namespace mtest */

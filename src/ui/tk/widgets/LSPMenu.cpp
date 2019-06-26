@@ -38,24 +38,40 @@ namespace lsp
                 LSPWindow::render(s, force);
         }
 
+        LSPMenu *LSPMenu::MenuWindow::get_handler(ws_event_t *e)
+        {
+            LSPMenu *handler = (pMenu != NULL) ? pMenu->check_inside_submenu(e) : NULL;
+            if (handler == NULL)
+                handler = pMenu;
+            return handler;
+        }
+
         status_t LSPMenu::MenuWindow::on_mouse_down(const ws_event_t *e)
         {
-            return (pMenu != NULL) ? pMenu->on_mouse_down(e) : LSPWindow::on_mouse_down(e);
+            ws_event_t xev = *e;
+            LSPMenu *handler = get_handler(&xev);
+            return (handler != NULL) ? handler->on_mouse_down(&xev) : LSPWindow::on_mouse_down(&xev);
         }
 
         status_t LSPMenu::MenuWindow::on_mouse_up(const ws_event_t *e)
         {
-            return (pMenu != NULL) ? pMenu->on_mouse_up(e) : LSPWindow::on_mouse_up(e);
+            ws_event_t xev = *e;
+            LSPMenu *handler = get_handler(&xev);
+            return (handler != NULL) ? handler->on_mouse_up(&xev) : LSPWindow::on_mouse_up(&xev);
         }
 
         status_t LSPMenu::MenuWindow::on_mouse_scroll(const ws_event_t *e)
         {
-            return (pMenu != NULL) ? pMenu->on_mouse_scroll(e) : LSPWindow::on_mouse_scroll(e);
+            ws_event_t xev = *e;
+            LSPMenu *handler = get_handler(&xev);
+            return (handler != NULL) ? handler->on_mouse_scroll(e) : LSPWindow::on_mouse_scroll(e);
         }
 
         status_t LSPMenu::MenuWindow::on_mouse_move(const ws_event_t *e)
         {
-            return (pMenu != NULL) ? pMenu->on_mouse_move(e) : LSPWindow::on_mouse_move(e);
+            ws_event_t xev = *e;
+            LSPMenu *handler = get_handler(&xev);
+            return (handler != NULL) ? handler->on_mouse_move(&xev) : LSPWindow::on_mouse_move(&xev);
         }
 
         void LSPMenu::MenuWindow::size_request(size_request_t *r)
@@ -78,7 +94,8 @@ namespace lsp
             sFont(dpy, this)
         {
             pWindow     = NULL;
-            pActive     = NULL;
+            pParentMenu = NULL;
+            pActiveMenu = NULL;
             nPopupLeft  = -1;
             nPopupTop   = -1;
             nSelected   = SEL_NONE;
@@ -238,8 +255,54 @@ namespace lsp
             return STATUS_NOT_FOUND;
         }
 
-        ssize_t LSPMenu::find_item(ssize_t mx, ssize_t my)
+        LSPMenu *LSPMenu::check_inside_submenu(ws_event_t *ev)
         {
+            LSPMenu *handler = NULL;
+            if ((pActiveMenu != NULL) &&
+                (pActiveMenu->pWindow != NULL) &&
+                (pActiveMenu->pWindow->visible()))
+            {
+                // Get window geometry
+                realize_t r1, r2;
+                pWindow->get_absolute_geometry(&r1);
+                pActiveMenu->pWindow->get_absolute_geometry(&r2);
+                lsp_trace("r1={%d, %d}, r2={%d, %d}", int(r1.nLeft), int(r1.nTop), int(r2.nLeft), int(r2.nTop));
+
+                ws_event_t xev = *ev;
+                xev.nLeft   = r1.nLeft + ev->nLeft - r2.nLeft;
+                xev.nTop    = r1.nTop  + ev->nTop - r2.nTop;
+
+                if ((handler = pActiveMenu->check_inside_submenu(&xev)) != NULL)
+                {
+                    *ev         = xev;
+                    return handler;
+                }
+            }
+
+            if ((pWindow != NULL) &&
+                (pWindow->visible()))
+            {
+                lsp_trace("check {%d, %d} inside of {%d, %d, %d, %d}",
+                        int(ev->nLeft), int(ev->nTop),
+                        int(pWindow->left()), int(pWindow->top()),
+                        int(pWindow->right()), int(pWindow->bottom()));
+
+                if ((ev->nLeft >= 0) &&
+                    (ev->nTop >= 0) &&
+                    (ev->nLeft < pWindow->width()) &&
+                    (ev->nTop < pWindow->height()))
+                    return this;
+            }
+
+            return NULL;
+        }
+
+        ssize_t LSPMenu::find_item(ssize_t mx, ssize_t my, ssize_t *ry)
+        {
+//            // Are we inside of submenu?
+//            if (check_inside_submenu(mx, my))
+//                return nSelected;
+
             if ((mx < 0) || (mx >= sSize.nWidth))
                 return SEL_NONE;
             if ((my < 0) || (my >= sSize.nHeight))
@@ -274,7 +337,11 @@ namespace lsp
                 else
                 {
                     if ((my >= y) && (my < (y + fp.Height)))
+                    {
+                        if (ry != NULL)
+                            *ry     = y;
                         return i;
+                    }
 
                     y += fp.Height;
                 }
@@ -288,6 +355,7 @@ namespace lsp
             s->clear(sColor);
 
             font_parameters_t fp;
+            text_parameters_t tp;
             sFont.get_parameters(s, &fp);
 
             ssize_t separator = fp.Height * 0.5f + nSpacing;
@@ -325,14 +393,24 @@ namespace lsp
                     if (y > (-fp.Height))
                     {
                         const char *text = item->text();
+                        Color c;
+
                         if (nSelected == ssize_t(i))
                         {
                             s->fill_rect(nBorder, y, sSize.nWidth - nBorder*2, fp.Height, sSelColor);
-                            if (text != NULL)
-                                sFont.draw(s, x, y + fp.Ascent + hspace, sColor, text);
+                            c.copy(sColor);
                         }
-                        else if (text != NULL)
-                            sFont.draw(s, x, y + fp.Ascent + hspace, text);
+                        else
+                            c.copy(sFont.color());
+
+                        if (text != NULL)
+                            sFont.draw(s, x, y + fp.Ascent + hspace, c, text);
+
+                        if (item->has_submenu())
+                        {
+                            sFont.get_text_parameters(s, &tp, "►");
+                            sFont.draw(s, sSize.nWidth - nBorder - nSpacing - tp.XAdvance - 2, y + fp.Ascent + hspace, c, "►");
+                        }
                     }
 
                     y += fp.Height;
@@ -406,19 +484,22 @@ namespace lsp
 
         bool LSPMenu::hide()
         {
-            if (!is_visible())
-                return false;
+            // Forget the parent menu
+            pParentMenu = NULL;
 
             // Hide active submenu if present
-            if (pActive != NULL)
+            if (pActiveMenu != NULL)
             {
-                pActive->hide();
-                pActive = NULL;
+                pActiveMenu->hide();
+                pActiveMenu = NULL;
             }
 
             // Hide window showing menu
             if (pWindow != NULL)
                 pWindow->hide();
+
+            if (!is_visible())
+                return false;
 
             return LSPWidgetContainer::hide();
         }
@@ -456,7 +537,7 @@ namespace lsp
             if (top != NULL)
                 screen = top->screen();
 
-            return show(screen, x, y);
+            return show(w, screen, x, y);
         }
 
         bool LSPMenu::show(LSPWidget *w, const ws_event_t *ev)
@@ -478,6 +559,11 @@ namespace lsp
         }
 
         bool LSPMenu::show(size_t screen, ssize_t left, ssize_t top)
+        {
+            return show(NULL, screen, left, top);
+        }
+
+        bool LSPMenu::show(LSPWidget *w, size_t screen, ssize_t left, ssize_t top)
         {
             if (is_visible())
                 return false;
@@ -546,6 +632,11 @@ namespace lsp
 
             pWindow->show();
 
+            // Need to perform grabbing?
+            pParentMenu = widget_cast<LSPMenu>(w);
+            if (pParentMenu == NULL)
+                pWindow->grab_events();
+
             return LSPWidgetContainer::show();
         }
 
@@ -567,6 +658,7 @@ namespace lsp
             sFont.get_parameters(s, &fp);
             size_t n = vItems.size();
             ssize_t separator = fp.Height * 0.5f;
+            ssize_t subitem = 0;
 
             for (size_t i=0; i<n; ++i)
             {
@@ -592,12 +684,18 @@ namespace lsp
                         width          += tp.XAdvance;
                     }
 
+                    if ((subitem <= 0) && (mi->has_submenu()))
+                    {
+                        sFont.get_text_parameters(s, &tp, "►");
+                        subitem        += tp.XAdvance + 2;
+                    }
+
                     if (r->nMinWidth < width)
                         r->nMinWidth        = width;
                 }
             }
 
-            r->nMinWidth    += nBorder * 2 + sPadding.horizontal();
+            r->nMinWidth    += nBorder * 2 + subitem + sPadding.horizontal();
             r->nMinHeight   += nBorder * 2 + sPadding.vertical();
 
             // Destroy surface
@@ -633,6 +731,10 @@ namespace lsp
             }
 
             nMBState |= (1 << e->nCode);
+            ssize_t iy = 0;
+            ssize_t sel = find_item(e->nLeft, e->nTop, &iy);
+            selection_changed(sel, iy);
+
             return STATUS_OK;
         }
 
@@ -640,28 +742,44 @@ namespace lsp
         {
             if ((nMBState == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT))
             {
+                LSPMenu *parent = this;
+                while (parent->pParentMenu != NULL)
+                    parent  = parent->pParentMenu;
+
                 // Cleanup mouse button state flag
                 nMBState &= ~ (1 << e->nCode);
 
                 // Selection was found ?
-                ssize_t sel = find_item(e->nLeft, e->nTop);
                 LSPMenuItem *item = NULL;
+                ssize_t iy = 0;
+                ssize_t sel = find_item(e->nLeft, e->nTop, &iy);
+
+                // Notify that selection has changed
+                selection_changed(sel, iy);
 
                 if (sel >= 0)
                 {
                     item = vItems.get(sel);
-                    if ((item != NULL) && (item->hidden()))
-                        item = NULL;
+                    if (item == NULL)
+                        parent->hide();
+                    else if (item->hidden())
+                    {
+                        item    = NULL;
+                        parent->hide();
+                    }
+                    else if (!item->has_submenu())
+                        parent->hide();
+
+                    if (item != NULL)
+                    {
+                        ws_event_t ev = *e;
+                        item->slots()->execute(LSPSLOT_SUBMIT, this, &ev);
+                    }
                 }
-
-                // Hide only if scroll is not pressed
-                if ((sel != SEL_TOP_SCROLL) && (sel != SEL_BOTTOM_SCROLL))
-                    hide();
-
-                if (item != NULL)
+                else
                 {
-                    ws_event_t ev = *e;
-                    item->slots()->execute(LSPSLOT_SUBMIT, this, &ev);
+                    if ((sel != SEL_TOP_SCROLL) && (sel != SEL_BOTTOM_SCROLL))
+                        parent->hide();
                 }
             }
             else
@@ -691,11 +809,14 @@ namespace lsp
 
             if (scroll != nScroll)
             {
-                ssize_t sel = nSelected;
-                nSelected   = find_item(e->nLeft, e->nTop);
+                ssize_t sel = nSelected, iy = 0;
+                nSelected   = find_item(e->nLeft, e->nTop, &iy);
 
                 if (sel != nSelected)
                 {
+                    // Notify that selection has changed
+                    selection_changed(nSelected, iy);
+
                     // Query for draw
                     query_draw();
                     if (pWindow != NULL)
@@ -706,12 +827,53 @@ namespace lsp
             return STATUS_OK;
         }
 
+        void LSPMenu::selection_changed(ssize_t sel, ssize_t iy)
+        {
+            // Get menu item
+            LSPMenuItem *item = (sel >= 0) ? vItems.get(sel) : NULL;
+            if ((item != NULL) && (pActiveMenu == item->submenu()))
+                return;
+
+            if (pActiveMenu != NULL)
+            {
+                pActiveMenu->hide();
+                pActiveMenu = NULL;
+            }
+
+            if (item == NULL)
+                return;
+
+            if ((pActiveMenu = item->submenu()) == NULL)
+                return;
+
+            // Get screen size
+            IDisplay *dpy = pDisplay->display();
+            ssize_t sw = 0, sh = 0;
+            dpy->screen_size(pWindow->screen(), &sw, &sh);
+
+            // Get window geometry
+            realize_t wr;
+            pWindow->get_geometry(&wr);
+            ssize_t xlast = wr.nLeft + wr.nWidth;
+
+            // Estimate active window size
+            size_request_t sr;
+            pActiveMenu->size_request(&sr);
+            if (sr.nMinWidth < 0)
+                sr.nMinWidth = 0;
+
+            if ((xlast + sr.nMinWidth) < sw)
+                pActiveMenu->show(this, xlast, iy + wr.nTop);
+            else
+                pActiveMenu->show(this, wr.nLeft - sr.nMinWidth, iy + wr.nTop);
+        }
+
         status_t LSPMenu::on_mouse_move(const ws_event_t *e)
         {
-//            lsp_trace("x=%d, y=%d", int(e->nLeft), int(e->nTop));
-
+            lsp_trace("x=%d, y=%d", int(e->nLeft), int(e->nTop));
             ssize_t sel = nSelected;
-            nSelected   = find_item(e->nLeft, e->nTop);
+            ssize_t iy  = 0;
+            nSelected   = find_item(e->nLeft, e->nTop, &iy);
 
             if (sel != nSelected)
             {
@@ -720,7 +882,10 @@ namespace lsp
                 if ((nSelected == SEL_TOP_SCROLL) || (nSelected == SEL_BOTTOM_SCROLL))
                     sScroll.launch(0, 25);
                 else
+                {
                     sScroll.cancel();
+                    selection_changed(nSelected, iy);
+                }
 
                 // Query for draw
                 query_draw();

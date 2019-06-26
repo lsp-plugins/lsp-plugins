@@ -19,6 +19,8 @@ namespace test
 
     bool float_equals_adaptive(float a, float b, float tolerance=1e-6);
 
+    void dump_bytes(const char *text, const void *buf, size_t count);
+
     void dump_buffer(const char *text, const size_t *buf, size_t count);
 
     void dump_buffer(const char *text, const ssize_t *buf, size_t count);

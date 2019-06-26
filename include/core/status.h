@@ -8,6 +8,8 @@
 #ifndef CORE_STATUS_H_
 #define CORE_STATUS_H_
 
+typedef int     status_t;
+
 namespace lsp
 {
     enum status_codes
@@ -42,6 +44,7 @@ namespace lsp
         STATUS_INVALID_VALUE,
         STATUS_BAD_LOCALE,
         STATUS_NO_DEVICE,
+        STATUS_UNSUPPORTED_DEVICE,
         STATUS_OPENED,
         STATUS_BAD_TYPE,
         STATUS_CORRUPTED,
@@ -57,13 +60,15 @@ namespace lsp
         STATUS_REMOVED,
         STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
         STATUS_READONLY,
+        STATUS_NULL,
+        STATUS_LOCKED,
+        STATUS_REJECTED,
+        STATUS_ALREADY_BOUND,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
         STATUS_SUCCESS = STATUS_OK
     };
-
-    typedef int     status_t;
 
     extern const char *status_descriptions[];
 

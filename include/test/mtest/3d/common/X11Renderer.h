@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_TEST_MTEST_3D_COMMON_X11RENDERER_H_
-#define INCLUDE_TEST_MTEST_3D_COMMON_X11RENDERER_H_
+#ifndef TEST_MTEST_3D_COMMON_X11RENDERER_H_
+#define TEST_MTEST_3D_COMMON_X11RENDERER_H_
 
 #include <core/types.h>
 #include <core/status.h>
@@ -15,11 +15,11 @@
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
-#include <X11/keysymdef.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
+#include <X11/Xutil.h>
 #include <sys/poll.h>
+
+#include <rendering/backend.h>
+#include <core/ipc/Library.h>
 
 namespace mtest
 {
@@ -38,13 +38,15 @@ namespace mtest
         private:
             Display                 *dpy;
             Window                  win;
-            GLXContext              glc;
-            bool                    stopped;
+            Window                  glwnd;
+            volatile bool           stopped;
             size_t                  nBMask;
             ssize_t                 nMouseX, nMouseY;
             ssize_t                 nWidth;
             ssize_t                 nHeight;
             bool                    bViewChanged;
+            r3d_backend_t          *pBackend;
+            ipc::Library            sLibrary;
 
         protected:
             // 3D rendering model
@@ -72,17 +74,7 @@ namespace mtest
             bool                    bDrawCapture;
             bool                    bDrawSource;
 
-//            float                   fAngleX;
-//            float                   fAngleY;
-//            float                   fAngleZ;
-//            float                   fScale;
-//
-//            float                   fAngleDX;
-//            float                   fAngleDY;
-//            float                   fAngleDZ;
-//            float                   fDeltaScale;
             View3D                 *pView;
-//            Scene3D                *pScene;
 
         public:
             X11Renderer(View3D *view);
@@ -97,6 +89,7 @@ namespace mtest
             inline void update_view() { bViewChanged = true; }
             void move_camera(const vector3d_t *dir, float amount);
             void rotate_camera(ssize_t x, ssize_t y, bool commit);
+            void draw_normals(v_vertex3d_t *vv, size_t nvertex);
 
         public:
             virtual status_t init();
@@ -114,4 +107,4 @@ namespace mtest
 
 } /* namespace mtest */
 
-#endif /* INCLUDE_TEST_MTEST_3D_COMMON_X11RENDERER_H_ */
+#endif /* TEST_MTEST_3D_COMMON_X11RENDERER_H_ */

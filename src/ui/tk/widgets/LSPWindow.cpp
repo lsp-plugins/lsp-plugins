@@ -328,6 +328,11 @@ namespace lsp
             return update_pointer();
         }
 
+        status_t LSPWindow::grab_events()
+        {
+            return (pWindow != NULL) ? pWindow->grab_events() : STATUS_BAD_STATE;
+        }
+
         void LSPWindow::set_policy(window_poilicy_t policy)
         {
             window_poilicy_t old = enPolicy;

@@ -18,7 +18,7 @@ namespace lsp
                 Color       sColor;
 
             public:
-                LSPColor();
+                explicit LSPColor();
                 virtual ~LSPColor();
 
             protected:

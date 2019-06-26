@@ -40,6 +40,11 @@ namespace lsp
         {
         }
 
+        void CtlPort::write(const void *buffer, size_t size, size_t flags)
+        {
+            write(buffer, size);
+        }
+
         void *CtlPort::get_buffer()
         {
             return NULL;
@@ -59,6 +64,11 @@ namespace lsp
         {
         }
 
+        void CtlPort::set_value(float value, size_t flags)
+        {
+            set_value(value);
+        }
+
         const char *CtlPort::id() const
         {
             return (pMetadata != NULL) ? pMetadata->id : NULL;
@@ -69,6 +79,13 @@ namespace lsp
             size_t count = vListeners.size();
             for (size_t i=0; i<count; ++i)
                 vListeners[i]->notify(this);
+        }
+
+        void CtlPort::sync_metadata()
+        {
+            size_t count = vListeners.size();
+            for (size_t i=0; i<count; ++i)
+                vListeners[i]->sync_metadata(this);
         }
     
     } /* namespace tk */

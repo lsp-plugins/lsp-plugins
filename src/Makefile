@@ -1,4 +1,4 @@
-SUBDIRS                 = core metadata utils 
+SUBDIRS                 = core metadata utils rendering 
 MODULES                 = $(SUBDIRS)
 CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES) 
 
@@ -38,7 +38,7 @@ endif
 
 ifeq ($(NEED_PLUGINS), 1)
   SUBDIRS                += dsp plugins container
-  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS)
+  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS) rendering
 endif
 ifeq ($(NEED_UI),1)
   SUBDIRS                += ui
@@ -73,7 +73,7 @@ $(UTL_FILES): utils
 
 $(UTL_JACKMAKE): utils
 
-$(OBJ_TEST_CORE): test
+$(OBJ_TEST_CORE): test rendering
 
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"

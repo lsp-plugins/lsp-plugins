@@ -12,17 +12,26 @@
 
 * Fixed improper InlineDisplay feature support in LV2 TTL files.
 * Plugin names now have 'LSP' prefix for the LV2 format.
+* Each plugin can now provide it's custom UI class which is derived from common plugin class.
 * Added command-line option to pass configuration file name for standalone JACK plugins.
   The settings stored in configuration file will be automatically loaded at startup.
 * Updated function signatures for libraries which now support '-fvisibility=hidden'
   compilation flag.
+* Added support of nested menus in the UI toolkit.
+* Added 3D scene rendering support in the UI.
+* Added support of OSC protocol messages serialization, deserialization and pattern matching.
 * Optimized complex number functions for AArch64 architecture.
 * Changed installation path for jack core library from <lib-path> to <lib-path>/lsp-plugins.
 * Added more careful file type analysis for non-EXT file systems.
 * Added support of Hygon Dhyana x86 family CPU optimizations and detection of some other CPU vendors.
 * Now both release and test binaries are available to build into separate subdirectories independently.
+* Implemented key-value tree storage (KVTStorage) for storing and managing dynamic parameters.
+* Implemented key-value tree storage (KVTStorage) UI<->DSP synchronization mechanisms.
+* Implemented key-value tree storage (KVTStorage) serialization/deserialization in parameters.
+* Implemented key-value tree storage (KVTStorage) serialization/deserialization for the plugin state.
+* Implemented mechanism for UI<->DSP OSC message interchange.
+- Fixed broken settings export.
 - Implemented 3D reverb simulator.
-- Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
 - Implemented sampler plugin series with stereo outputs.

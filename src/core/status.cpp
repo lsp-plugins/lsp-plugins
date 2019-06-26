@@ -42,6 +42,7 @@ namespace lsp
         "Invalid value",
         "Bad locale",
         "No device",
+        "Unsupported device",
         "Opened",
         "Bad type",
         "Corrupted data",
@@ -57,6 +58,11 @@ namespace lsp
         "Removed",
         "Debugging breakpoint",
         "Read-only device or file system",
+        "The value is NULL",
+        "The object is currently locked",
+        "The operation has been rejected",
+        "Already bound",
+
         NULL
     };
 

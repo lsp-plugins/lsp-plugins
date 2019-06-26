@@ -249,11 +249,14 @@ namespace dsp
     void    (* axis_apply_log1)(float *x, const float *v, float zero, float norm_x, size_t count) = NULL;
     void    (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
     void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
+    void    (* abgr32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
+    void    (* abgr32_to_bgrff32)(void *dst, const void *src, size_t count) = NULL;
     void    (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count) = NULL;
     void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;
     void    (* rgba_to_hsla)(float *dst, const float *src, size_t count) = NULL;
     void    (* hsla_to_rgba)(float *dst, const float *src, size_t count) = NULL;
     void    (* rgba_to_bgra32)(void *dst, const float *src, size_t count) = NULL;
+    void    (* rgba32_to_bgra32_ra)(void *dst, const void *src, size_t count) = NULL;
     void    (* eff_hsla_hue)(float *dst, const float *v, const hsla_hue_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_sat)(float *dst, const float *v, const hsla_sat_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_light)(float *dst, const float *v, const hsla_light_eff_t *eff, size_t count) = NULL;
@@ -291,6 +294,8 @@ namespace dsp
     void    (* init_vector_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
     void    (* normalize_vector)(vector3d_t *v) = NULL;
     void    (* normalize_vector2)(vector3d_t *v, const vector3d_t *src) = NULL;
+    void    (* flip_vector_v1)(vector3d_t *v) = NULL;
+    void    (* flip_vector_v2)(vector3d_t *v, const vector3d_t *sv) = NULL;
     void    (* scale_vector1)(vector3d_t *v, float r) = NULL;
     void    (* scale_vector2)(vector3d_t *v, const vector3d_t *s, float r) = NULL;
 
@@ -317,6 +322,7 @@ namespace dsp
     void    (* init_matrix3d_frustum)(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far) = NULL;
     void    (* init_matrix3d_lookat_p1v2)(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up) = NULL;
     void    (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up) = NULL;
+    void    (* init_matrix3d_orientation)(matrix3d_t *m, axis_orientation_t orientation) = NULL;
     void    (* calc_matrix3d_transform_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v) = NULL;
     void    (* calc_matrix3d_transform_r1)(matrix3d_t *m, const ray3d_t *r) = NULL;
     void    (* apply_matrix3d_mv2)(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m) = NULL;
@@ -376,6 +382,10 @@ namespace dsp
 
     void    (* move_point3d_p2)(point3d_t *p, const point3d_t *p1, const point3d_t *p2, float k) = NULL;
     void    (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k) = NULL;
+    void    (* add_vector_pv1)(point3d_t *p, const vector3d_t *dv) = NULL;
+    void    (* add_vector_pv2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv) = NULL;
+    void    (* add_vector_pvk1)(point3d_t *p, const vector3d_t *dv, float k);
+    void    (* add_vector_pvk2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k);
 
     void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
 
@@ -421,6 +431,9 @@ namespace dsp
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
 
     void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
+
+    size_t  (* base64_enc)(void *dst, size_t *dst_left, const void *src, size_t *src_left) = NULL;
+    ssize_t (* base64_dec)(void *dst, size_t *dst_left, const void *src, size_t *src_left) = NULL;
 }
 
 namespace dsp

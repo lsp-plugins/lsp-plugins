@@ -67,7 +67,7 @@ namespace mtest
         dsp::init_point_xyz(&p[0], -1, -1, t[0]);
         dsp::init_point_xyz(&p[1], 1, 1, t[1]);
         dsp::init_point_xyz(&p[2], -1, 1, t[2]);
-        v->add_triangle_pv1c(p, &C_RED);
+        v->add_triangle_pv1c(p, &C3D_RED);
         p[0].z = 0.0f;
         p[1].z = 0.0f;
         p[2].z = 0.0f;
@@ -84,7 +84,7 @@ namespace mtest
 
                 sp.z    = (t[0]*a[0] + t[1]*a[1] + t[2]*a[2])/ s;
 
-                v->add_point(&sp, &C_YELLOW);
+                v->add_point(&sp, &C3D_YELLOW);
             }
     }
 
@@ -279,7 +279,7 @@ MTEST_BEGIN("3d", reflections)
 //                if (res != STATUS_OK)
 //                    return res;
 
-                res     = trace->add_source(&sSource, RT_AS_OMNI);
+                res     = trace->add_source(&sSource, RT_AS_ICOSPHERE);
                 if (res != STATUS_OK)
                     return res;
                 res     = trace->add_capture(&sCapture, RT_AC_OMNI);
@@ -330,8 +330,8 @@ MTEST_BEGIN("3d", reflections)
                 // Render bounding boxes of the scene
                 if (bBoundBoxes)
                 {
-                    s.c[0] = C_ORANGE;
-                    s.c[1] = C_ORANGE;
+                    s.c[0] = C3D_ORANGE;
+                    s.c[1] = C3D_ORANGE;
                     for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
                     {
                         Object3D *o = pScene->object(i);
@@ -361,7 +361,7 @@ MTEST_BEGIN("3d", reflections)
                 if (bDrawIgnored)
                 {
                     for (size_t i=0, m=global.ignored.size(); i < m; ++i)
-                        pView->add_triangle_1c(global.ignored.at(i), &C_GRAY);
+                        pView->add_triangle_1c(global.ignored.at(i), &C3D_GRAY);
                 }
 
                 if (bDrawMatched)
@@ -371,15 +371,15 @@ MTEST_BEGIN("3d", reflections)
                         v_triangle3d_t *t = global.matched.at(i);
                         v[0].p     = t->p[0];
                         v[0].n     = t->n[0];
-                        v[0].c     = C_RED;
+                        v[0].c     = C3D_RED;
 
                         v[1].p     = t->p[1];
                         v[1].n     = t->n[1];
-                        v[1].c     = C_GREEN;
+                        v[1].c     = C3D_GREEN;
 
                         v[2].p     = t->p[2];
                         v[2].n     = t->n[2];
-                        v[2].c     = C_BLUE;
+                        v[2].c     = C3D_BLUE;
 
                         pView->add_triangle(v);
                     }

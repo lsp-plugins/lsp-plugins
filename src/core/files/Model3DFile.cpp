@@ -80,6 +80,7 @@ namespace lsp
                 if (pObject == NULL)
                     return STATUS_BAD_STATE;
 
+                pObject->post_load();
                 pObject = NULL;
                 return STATUS_OK;
             }

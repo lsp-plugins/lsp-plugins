@@ -91,10 +91,11 @@ namespace lsp
                     virtual INativeWindow *createWindow();
                     virtual INativeWindow *createWindow(size_t screen);
                     virtual INativeWindow *createWindow(void *handle);
+                    virtual INativeWindow *wrapWindow(void *handle);
                     virtual ISurface *createSurface(size_t width, size_t height);
 
                     virtual int main();
-                    virtual int main_iteration();
+                    virtual status_t main_iteration();
                     virtual void quit_main();
 
                     virtual size_t screens();
@@ -121,7 +122,7 @@ namespace lsp
                     status_t            lock_events(X11Window *wnd, X11Window *lock);
                     status_t            unlock_events(X11Window *wnd);
 
-                    void                sync();
+                    virtual void        sync();
                     void                flush();
 
                 public:

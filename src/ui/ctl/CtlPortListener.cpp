@@ -22,6 +22,10 @@ namespace lsp
         void CtlPortListener::notify(CtlPort *port)
         {
         }
+
+        void CtlPortListener::sync_metadata(CtlPort *port)
+        {
+        }
     
     } /* namespace tk */
 } /* namespace lsp */

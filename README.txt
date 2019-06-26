@@ -41,9 +41,13 @@ Current matrix of architecture and platform support is:
     N - No support, the code does not compile and does not work
 
 Details about architectures supported in experimental mode:
-  * ARMv7-AR support has been tested on Raspberry Pi 3 Model B under Raspbian OS.
+  * ARMv7-AR support has been tested on:
+    * Raspbian @ Raspberry Pi 3 B.
+    * Raspbian @ Raspberry Pi 2 B+ v1.2.
+    * TinkerOS @ TinkerBoard S.
     There is not enough feedback from users about correct work of all plugins.
-  * AArch64 support has been tested on Raspberry Pi 3 Model B+ under Arch Linux OS.
+  * AArch64 support has been tested on:
+    * Arch Linux @ Raspberry Pi 3 B+.
     There is not enough feedback from users about correct work of all plugins.
 
 Supported plugin formats:
@@ -242,7 +246,8 @@ To build binaries for testing (developers only), use the following commands:
   make test
   
 To build both release binaries and binaries for testing, use the following commands:
-  make clean all test
+  make clean
+  make all test
 
 After issuing this command, the system will build release binaries into '.build'
 subdirectory and test binaries into '.test' subdirectory

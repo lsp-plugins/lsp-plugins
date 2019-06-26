@@ -132,6 +132,36 @@ namespace x86
         );
     }
     #endif /* ARCH_X86_64 */
+
+    // Limited number of registers
+    void abgr32_to_bgra32(void *dst, const void *src, size_t count)
+    {
+        uint32_t tmp;
+
+        ARCH_X86_ASM
+        (
+            // Check count
+            __ASM_EMIT("test    %[count], %[count]")
+            __ASM_EMIT("jz      2f")
+
+            // Loop multiple of 4
+            __ASM_EMIT("1:")
+            __ASM_EMIT("lodsl") // eax = *src = RGBA
+            __ASM_EMIT("ror     $8, %%eax")             // eax = ARGB
+            __ASM_EMIT("stosl") // eax = *src = RGBA
+            __ASM_EMIT("loop    1b")                    // count > 0 ?
+
+            // Loop not multiple of 4
+            __ASM_EMIT("2:")
+
+            : [count] "+c" (count),
+              [dst] "+D"(dst),
+              [src] "+S"(src),
+              [tmp] "=a"(tmp)
+            :
+            : "cc", "memory"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_X86_GRAPHICS_H_ */

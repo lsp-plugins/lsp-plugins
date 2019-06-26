@@ -22,6 +22,7 @@ namespace lsp
 
                 bool                bLog;
                 bool                bLogSet;
+                bool                bCyclingSet;
                 CtlPort            *pPort;
 
             protected:
@@ -30,7 +31,7 @@ namespace lsp
                 void        commit_value(float value);
 
             public:
-                CtlKnob(CtlRegistry *src, LSPKnob *widget);
+                explicit CtlKnob(CtlRegistry *src, LSPKnob *widget);
                 virtual ~CtlKnob();
 
             public:

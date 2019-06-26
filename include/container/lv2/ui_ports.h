@@ -521,14 +521,12 @@ namespace lsp
     {
         protected:
             LV2PathPort    *pPort;
-            bool            bForce;
             char            sPath[PATH_MAX];
 
         public:
             explicit LV2UIPathPort(const port_t *meta, LV2Extensions *ext, LV2Port *xport) :  LV2UIPort(meta, ext)
             {
                 sPath[0]    = '\0';
-                bForce      = false;
                 pPort       = NULL;
 
                 lsp_trace("id=%s, ext=%p, xport=%p", meta->id, ext, xport);
@@ -538,8 +536,7 @@ namespace lsp
                 if ((xmeta != NULL) && (xmeta->role == R_PATH))
                 {
                     pPort               = static_cast<LV2PathPort *>(xport);
-                    bForce              = true;
-
+                    pPort->tx_request();
                     lsp_trace("Connected direct path port id=%s", xmeta->id);
                 }
             }
@@ -576,7 +573,7 @@ namespace lsp
                 pExt->forge_path(sPath);
             }
 
-            virtual void write(const void* buffer, size_t size)
+            virtual void write(const void* buffer, size_t size, size_t flags)
             {
                 set_string(reinterpret_cast<const char *>(buffer), size);
 
@@ -586,29 +583,34 @@ namespace lsp
                 {
                     lsp_trace("Directly writing path port id=%s, path=%s (%d)",
                             pPort->metadata()->id, static_cast<const char *>(buffer), int(size));
-                    path->submit(static_cast<const char *>(buffer), size);
+                    path->submit(static_cast<const char *>(buffer), size, flags);
                     return;
                 }
 
                 // Write data using atom port
-                if (nID >= 0)
+                if ((nID >= 0) && (flags == 0))
                     pExt->ui_write_patch(this);
                 else
-                    pExt->ui_write_state(this);
+                    pExt->ui_write_state(this, flags);
+            }
+
+            virtual void write(const void* buffer, size_t size)
+            {
+                write(buffer, size, 0);
             }
 
             virtual bool sync()
             {
-                if (!bForce)
+                if (!pPort->tx_pending())
                     return false;
-                bForce      = false;
+                pPort->reset_tx_pending();
 
                 path_t *path        = static_cast<path_t *>(pPort->getBuffer());
-                strncpy(sPath, path->get_path(), PATH_MAX); // Copy current contents
+                ::strncpy(sPath, path->get_path(), PATH_MAX); // Copy current contents
                 sPath[PATH_MAX-1]   = '\0';
 
-//                lsp_trace("Directly received path port id=%s, path=%s",
-//                        pPort->metadata()->id, sPath);
+                lsp_trace("Directly received path port id=%s, path=%s",
+                        pPort->metadata()->id, sPath);
 
                 return true;
             }

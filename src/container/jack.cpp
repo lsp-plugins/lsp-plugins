@@ -239,7 +239,7 @@ extern "C"
             lsp_trace("test plugin uid=%s", plugin::metadata.lv2_uid); \
             if ((!p) && (!pui) && (!strcmp(plugin::metadata.lv2_uid, plugin_id))) \
             { \
-                p = new plugin_t(plugin::metadata); \
+                p = new plugin(); \
                 if (plugin::metadata.ui_resource != NULL) \
                     pui = new ui(&plugin::metadata, NULL); \
             }

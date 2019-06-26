@@ -14,6 +14,7 @@
 #define LSP_ACRONYM                                     "LSP"
 #define LSP_PREFIX                                      "lsp"
 #define LSP_ARTIFACT_ID                                 LSP_PREFIX "-plugins"
+#define LSP_R3D_BACKEND_PREFIX                          LSP_ARTIFACT_ID "-r3d"
 #define LSP_BINARY                                      LSP_ARTIFACT_ID
 #define LSP_FULL_NAME                                   "Linux Studio Plugins Project"
 #define LSP_COPYRIGHT                                   LSP_ACRONYM " (Linux Studio Plugins)"
@@ -22,6 +23,7 @@
 #define LSP_URI(format)                                 LSP_BASE_URI "plugins/" #format "/"
 #define LSP_TYPE_URI(format)                            LSP_BASE_URI "types/" #format
 #define LSP_UI_URI(format)                              LSP_BASE_URI "ui/" #format "/"
+#define LSP_KVT_URI                                     LSP_BASE_URI "kvt"
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
 #define LSP_PLUGIN_UI_URI(format, plugin)               LSP_UI_URI(format) #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
@@ -62,8 +64,10 @@
 #define LSP_LV2_LATENCY_PORT                            "out_latency"
 #define LSP_LV2_ATOM_PORT_IN                            "in_ui"
 #define LSP_LV2_MIDI_PORT_IN                            "in_midi"
+#define LSP_LV2_OSC_PORT_IN                             "in_osc"
 #define LSP_LV2_ATOM_PORT_OUT                           "out_ui"
 #define LSP_LV2_MIDI_PORT_OUT                           "out_midi"
+#define LSP_LV2_OSC_PORT_OUT                            "out_osc"
 
 #ifdef LSP_INSTALL_PREFIX
     #define LSP_LIB_PREFIX(x)       LSP_INSTALL_PREFIX x
@@ -88,6 +92,11 @@ namespace lsp
         U_INCH,                 // Inches
         U_KM,                   // Kilometers
 
+        // Speed
+        U_MPS,                  // Meters per second
+        U_KMPH,                 // Kilometers per hour
+
+        // Samples
         U_SAMPLES,              // Something in samples
 
         // Frequency
@@ -128,7 +137,8 @@ namespace lsp
         R_FBUFFER,              // Frame buffer
         R_PATH,                 // Path to the local file
         R_MIDI,                 // MIDI events
-        R_PORT_SET              // Set of ports
+        R_PORT_SET,             // Set of ports
+        R_OSC                   // OSC events
     };
 
     enum flags_t
@@ -143,7 +153,8 @@ namespace lsp
         F_TRG           = (1 << 6),     // Trigger
         F_GROWING       = (1 << 7),     // Proportionally growing default value (for port sets)
         F_LOWERING      = (1 << 8),     // Proportionally lowering default value (for port sets)
-        F_PEAK          = (1 << 9)      // Peak flag
+        F_PEAK          = (1 << 9),     // Peak flag
+        F_CYCLIC        = (1 << 10),    // Cyclic flag
     };
 
     #define IS_OUT_PORT(p)      ((p)->flags & F_OUT)
@@ -195,8 +206,11 @@ namespace lsp
 
     enum plugin_extension_t
     {
-        E_NONE                  = 0,
-        E_INLINE_DISPLAY        = 1 << 0
+        E_NONE                  = 0,        // No extensions
+        E_INLINE_DISPLAY        = 1 << 0,   // Supports InlineDisplay extension originally implemented in LV2 plugin format
+        E_3D_BACKEND            = 1 << 1,   // Supports 3D rendering backend
+        E_OSC                   = 1 << 2,   // Supports OSC protocol messaging
+        E_KVT_SYNC              = 1 << 3    // KVT synchronization required
     };
 
     enum port_group_type_t
@@ -304,6 +318,7 @@ namespace lsp
     unit_t          decode_unit(const char *name);
     bool            is_discrete_unit(size_t unit);
     bool            is_decibel_unit(size_t unit);
+    bool            is_degree_unit(size_t unit);
     bool            is_log_rule(const port_t *port);
 
     size_t          list_size(const char **list);
