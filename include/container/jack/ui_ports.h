@@ -16,7 +16,7 @@ namespace lsp
             JACKPort               *pPort;
 
         public:
-            JACKUIPort(JACKPort *port) : CtlPort(port->metadata())
+            explicit JACKUIPort(JACKPort *port) : CtlPort(port->metadata())
             {
                 pPort       = port;
             }
@@ -39,7 +39,7 @@ namespace lsp
             JACKPortGroup          *pPG;
 
         public:
-            JACKUIPortGroup(JACKPortGroup *port) : JACKUIPort(port)
+            explicit JACKUIPortGroup(JACKPortGroup *port) : JACKUIPort(port)
             {
                 pPG                 = port;
             }
@@ -70,7 +70,7 @@ namespace lsp
             float           fValue;
 
         public:
-            JACKUIControlPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIControlPort(JACKPort *port): JACKUIPort(port)
             {
                 fValue      = port->getValue();
             }
@@ -108,7 +108,7 @@ namespace lsp
             float   fValue;
 
         public:
-            JACKUIMeterPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIMeterPort(JACKPort *port): JACKUIPort(port)
             {
                 fValue      = port->getValue();
             }
@@ -146,7 +146,7 @@ namespace lsp
             float   fValue;
 
         public:
-            JACKUIInPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIInPort(JACKPort *port): JACKUIPort(port)
             {
                 fValue      = port->getValue();
             }
@@ -176,7 +176,7 @@ namespace lsp
             mesh_t      *pMesh;
 
         public:
-            JACKUIMeshPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIMeshPort(JACKPort *port): JACKUIPort(port)
             {
                 pMesh       = jack_create_mesh(port->metadata());
             }
@@ -217,7 +217,7 @@ namespace lsp
             frame_buffer_t     sFB;
 
         public:
-            JACKUIFrameBufferPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIFrameBufferPort(JACKPort *port): JACKUIPort(port)
             {
                 sFB.init(pMetadata->start, pMetadata->step);
             }
@@ -249,7 +249,7 @@ namespace lsp
             bool            bSyncAgain;
 
         public:
-            JACKUIOscPortIn(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIOscPortIn(JACKPort *port): JACKUIPort(port)
             {
                 bSyncAgain      = false;
                 nCapacity       = 0x100;
@@ -319,7 +319,7 @@ namespace lsp
     class JACKUIOscPortOut: public JACKUIPort
     {
         public:
-            JACKUIOscPortOut(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIOscPortOut(JACKPort *port): JACKUIPort(port)
             {
             }
 
@@ -345,7 +345,7 @@ namespace lsp
             char            sPath[PATH_MAX];
 
         public:
-            JACKUIPathPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIPathPort(JACKPort *port): JACKUIPort(port)
             {
                 path_t *path    = reinterpret_cast<path_t *>(pPort->getBuffer());
                 if (path != NULL)
@@ -368,15 +368,20 @@ namespace lsp
 
             virtual void write(const void *buffer, size_t size)
             {
+                write(buffer, size, 0);
+            }
+
+            virtual void write(const void *buffer, size_t size, size_t flags)
+            {
                 // Store path string
                 if (size >= PATH_MAX)
                     size = PATH_MAX - 1;
-                memcpy(sPath, buffer, size);
+                ::memcpy(sPath, buffer, size);
                 sPath[size] = '\0';
 
                 // Submit path string to DSP
                 if (pPath != NULL)
-                    pPath->submit(sPath);
+                    pPath->submit(sPath, flags);
             }
     };
 

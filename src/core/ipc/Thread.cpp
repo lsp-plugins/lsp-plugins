@@ -263,7 +263,7 @@ namespace lsp
                 req.tv_sec  = millis / 1000;
                 req.tv_nsec = (millis % 1000) * 1000000;
 
-                while (nanosleep(&req, &rem) != 0)
+                while (::nanosleep(&req, &rem) != 0)
                 {
                     int code = errno;
                     if (code != EINTR)
@@ -285,7 +285,7 @@ namespace lsp
                     req.tv_sec  = 0;
                     req.tv_nsec = interval * 1000000;
 
-                    while (nanosleep(&req, &rem) != 0)
+                    while (::nanosleep(&req, &rem) != 0)
                     {
                         int code = errno;
                         if (code != EINTR)

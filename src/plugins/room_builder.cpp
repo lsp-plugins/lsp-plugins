@@ -78,12 +78,12 @@ namespace lsp
             return STATUS_UNKNOWN_ERR;
 
         // Now initialize object properties
-        char base[128];
-        kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs), KVT_TX);
-        kvt_deploy(kvt, "/scene", "selected", 0.0f, KVT_TX);
-
         lsp_trace("Extra loading flags=0x%x", int(nFlags));
         size_t extra = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
+
+        char base[128];
+        kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs), KVT_TX);
+        kvt_deploy(kvt, "/scene", "selected", 0.0f, extra);
 
         for (size_t i=0; i<nobjs; ++i)
         {

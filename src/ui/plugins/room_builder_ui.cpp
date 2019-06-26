@@ -114,6 +114,7 @@ namespace lsp
         nItems      = 0;
         nCapacity   = 0;
         pItems      = NULL;
+        nSelectedReq= -1;
 
         osc::pattern_create(&sOscPattern, "/scene/object/*/name");
     }
@@ -143,25 +144,35 @@ namespace lsp
 
     float room_builder_ui::CtlListPort::get_value()
     {
-        return pUI->nSelected;
+        ssize_t index = pUI->nSelected;
+        if (nItems > 0)
+        {
+            if (index >= ssize_t(nItems))
+                index   = nItems-1;
+            else if (index < 0)
+                index   = 0;
+        }
+        else
+            index = -1;
+
+        return index;
     }
 
     void room_builder_ui::CtlListPort::set_value(float value)
     {
-        ssize_t index   = -1;
-        if (nItems > 0)
-        {
-            if (value >= ssize_t(nItems))
-                index   = nItems-1;
-            else if (value < 0)
-                index   = 0;
-            else
-                index   = value;
-        }
+        ssize_t index   = value;
         if (index == pUI->nSelected)
             return;
 
         pUI->nSelected  = index;
+
+        // Deploy new value to KVT
+        KVTStorage *kvt = pUI->kvt_lock();
+        if (kvt != NULL)
+        {
+            kvt->put("/scene/selected", float(index), KVT_RX);
+            pUI->kvt_release();
+        }
 
         // Notify all KVT ports
         for (size_t i=0, n=vKvtPorts.size(); i<n; ++i)
@@ -200,6 +211,8 @@ namespace lsp
     bool room_builder_ui::CtlListPort::match(const char *id)
     {
         if (!strcmp(id, "/scene/objects"))
+            return true;
+        if (!strcmp(id, "/scene/selected"))
             return true;
         return osc::pattern_match(&sOscPattern, id);
     }
@@ -247,11 +260,27 @@ namespace lsp
             // Cleanup storage
             room_builder_base::kvt_cleanup_objects(storage, nItems);
 
-            // Notify all listeners
-            set_value(pUI->nSelected);  // Update the current selected value
+            // Change selected value
+            ssize_t index = pUI->nSelected;
+            if (storage->get(id, &value) == STATUS_OK)
+            {
+                if (value->type == KVT_FLOAT32)
+                    index   = value->f32;
+            }
+
+            if (index < 0)
+                index = 0;
+            else if (index >= ssize_t(nItems))
+                index = nItems-1;
+            set_value(index);           // Update the current selected value
+
             sync_metadata();            // Call for metadata update
             notify_all();               // Notify all bound listeners
             return true;
+        }
+        else if ((value->type == KVT_FLOAT32) && (!strcmp(id, "/scene/selected")))
+        {
+            set_value(value->f32);
         }
         else if ((value->type == KVT_STRING) && (::strstr(id, "/scene/object/") == id))
         {

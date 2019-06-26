@@ -23,6 +23,8 @@ namespace lsp
         atomic_t    nCommit;
 
         size_t      nFlags;
+        size_t      nXFlags;
+        size_t      nXFlagsReq;
 
         char        sPath[PATH_MAX];
         char        sRequest[PATH_MAX];
@@ -34,6 +36,8 @@ namespace lsp
             nCommit         = 0;
 
             nFlags          = 0;
+            nXFlags         = 0;
+            nXFlagsReq      = 0;
 
             sPath[0]        = '\0';
             sRequest[0]     = '\0';
@@ -42,6 +46,11 @@ namespace lsp
         virtual const char *get_path()
         {
             return sPath;
+        }
+
+        virtual size_t get_flags()
+        {
+            return nXFlags;
         }
 
         virtual void accept()
@@ -69,9 +78,11 @@ namespace lsp
                 if (nSerial != nCommit)
                 {
                     // Copy the data
-                    strncpy(sPath, sRequest, PATH_MAX);
+                    ::strncpy(sPath, sRequest, PATH_MAX);
                     sPath[PATH_MAX-1]   = '\0';
                     nFlags              = F_PENDING;
+                    nXFlags             = nXFlagsReq;
+                    nXFlagsReq          = 0;
 
                     // Update commit
                     nCommit             ++;
@@ -88,28 +99,26 @@ namespace lsp
             return nFlags & F_ACCEPTED;
         }
 
-        void submit(const char *path)
+        void submit(const char *path, size_t flags)
         {
             // Wait until the queue is empty
-            struct timespec spec = { 0, 1 * 1000 * 1000 }; // 1 msec
             while (true)
             {
                 // Try to acquire critical section
                 if (atomic_trylock(nRequest))
                 {
                     // Write request to DSP
-                    strcpy(sRequest, path);
-                    nSerial          ++;
+                    ::strcpy(sRequest, path);
+                    nXFlagsReq      = flags;
+                    nSerial         ++;
 
-                    // Release critical section
+                    // Release critical section and leave the cycle
                     atomic_unlock(nRequest);
-
-                    // Leave the cycle
                     break;
                 }
 
-                // Wait for a while
-                nanosleep(&spec, NULL);
+                // Wait for a while (10 milliseconds)
+                ipc::Thread::sleep(10);
             }
         }
 

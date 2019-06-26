@@ -108,7 +108,6 @@ namespace lsp
             size_t count = (len >= PATH_MAX) ? PATH_MAX - 1 : len;
 
             // Wait until the queue is empty
-            struct timespec spec = { 0, 1 * 1000 * 1000 }; // 1 msec
             while (true)
             {
                 // Try to acquire critical section, this will always be true when using LV2 atom transport
@@ -120,15 +119,13 @@ namespace lsp
                     sFlags              = flags;
                     bRequest            = true; // Mark request pending
 
-                    // Release critical section
+                    // Release critical section and leave the cycle
                     atomic_unlock(nRequest);
-
-                    // Leave the cycle
                     break;
                 }
 
                 // Wait for a while, this won't happen when lv2
-                nanosleep(&spec, NULL);
+                ipc::Thread::sleep(10);
             }
         }
 

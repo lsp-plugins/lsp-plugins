@@ -47,6 +47,7 @@ namespace lsp
                     size_t              nItems;
                     cvector<CtlPort>    vKvtPorts;
                     osc::pattern_t      sOscPattern;
+                    ssize_t             nSelectedReq;
 
                 protected:
                     void set_list_item(size_t id, const char *value);

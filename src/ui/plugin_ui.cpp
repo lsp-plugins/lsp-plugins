@@ -144,7 +144,7 @@ namespace lsp
             if (p.type != KVT_ANY)
             {
                 pKVT->put(name, &p, KVT_RX | KVT_DELEGATE);
-                add_notification(name);
+                pUI->kvt_write(pKVT, name, &p);
             }
             else
                 return STATUS_BAD_FORMAT;

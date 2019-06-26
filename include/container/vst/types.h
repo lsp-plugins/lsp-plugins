@@ -114,7 +114,6 @@ namespace lsp
             // Wait until the queue is empty
             if (ui)
             {
-                struct timespec spec = { 0, 1 * 1000 * 1000 }; // 1 msec
                 while (true)
                 {
                     // Try to acquire critical section
@@ -126,15 +125,13 @@ namespace lsp
                         sDspRequest[count]  = '\0';
                         nDspSerial          ++;
 
-                        // Release critical section
+                        // Release critical section and leave
                         atomic_unlock(nDspRequest);
-
-                        // Leave the cycle
                         break;
                     }
 
-                    // Wait for a while
-                    ::nanosleep(&spec, NULL);
+                    // Wait for a while (10 milliseconds)
+                    ipc::Thread::sleep(10);
                 }
             }
             else
