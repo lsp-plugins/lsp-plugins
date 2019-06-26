@@ -88,6 +88,11 @@ namespace lsp
             // Execute slots and unbind all to prevent duplicate on_destroy calls
             sSlots.execute(LSPSLOT_DESTROY, this);
             sSlots.destroy();
+
+            // Destroy widget identifier
+            if (pUID != NULL)
+                ::free(pUID);
+            pUID = NULL;
         }
 
         void LSPWidget::unlink_widget(LSPWidget *w)
