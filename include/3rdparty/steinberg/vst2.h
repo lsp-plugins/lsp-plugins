@@ -46,9 +46,9 @@
             #define __cdecl
         #elif defined(__arm__)
             #define __cdecl
-        #elif defined(__ppc64__) || defined(__ppc64)
+        #elif defined(__PPC64__) || defined(__LP64__) || defined(__ppc64__) || defined(__ppc64)
             #define __cdecl
-        #elif defined(__ppc__) || defined(__ppc)
+        #elif defined(__PPC__) || defined(__ppc__) || defined(__ppc)
             #define __cdecl
         #elif defined(__s390x__) || defined(__s390__) || defined(__zarch__)
             #define __cdecl

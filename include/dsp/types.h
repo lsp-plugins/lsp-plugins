@@ -52,9 +52,9 @@
     #define ARCH_AARCH64
 #elif defined(__arm__)
     #define ARCH_ARM
-#elif defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__)
+#elif defined(__PPC64__) || defined(__LP64__) || defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__)
     #define ARCH_PPC64
-#elif defined(__ppc__) || defined(__powerpc__) || defined(__ppc)
+#elif defined(__PPC__) || defined(__ppc__) || defined(__powerpc__) || defined(__ppc)
     #define ARCH_PPC
 #elif defined(__s390x__) || defined(__s390__) || defined(__zarch__)
     #define ARCH_S390
