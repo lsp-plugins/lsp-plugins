@@ -24,6 +24,23 @@ static const char *base64 =
         "dWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRo"
         "ZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=";
 
+typedef struct base64check_t
+{
+    const char *decoded;
+    const char *encoded;
+} base64check_t;
+
+static const base64check_t base64checks[] =
+{
+    { "", "" },
+    { "1", "MQ" },
+    { "12", "MTI" },
+    { "123", "MTIz" },
+    { "Test string for base64 encoding", "VGVzdCBzdHJpbmcgZm9yIGJhc2U2NCBlbmNvZGluZw" },
+    { "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/", "MDEyMzQ1Njc4OWFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVorLw" },
+    { NULL, NULL }
+};
+
 namespace native
 {
     size_t base64_enc(void *dst, size_t *dst_left, const void *src, size_t *src_left);
@@ -80,10 +97,42 @@ UTEST_BEGIN("dsp.coding", base64)
         UTEST_ASSERT(memcmp(buf.data<uint8_t>(), text, (strlen(text)-dst_left)) == 0);
     }
 
+    void test_encdec(const char *caption, base64_enc_t enc, base64_dec_t dec)
+    {
+        printf("Testing %s...\n", caption);
+
+        for (const base64check_t *c = base64checks; c->decoded != NULL; ++c)
+        {
+            printf("Testing encoding of string \"%s\"...\n", c->decoded);
+            size_t src_left = strlen(c->decoded);
+            size_t dst_left = strlen(c->encoded);
+
+            ByteBuffer ebuf(dst_left);
+            size_t n = enc(ebuf.data<uint8_t>(), &dst_left, c->decoded, &src_left);
+            UTEST_ASSERT(!ebuf.corrupted());
+            UTEST_ASSERT(n == strlen(c->decoded));
+            UTEST_ASSERT(dst_left == 0);
+            UTEST_ASSERT(src_left == 0);
+            UTEST_ASSERT(memcmp(ebuf.data<void>(), c->encoded, (strlen(c->encoded))) == 0);
+
+            printf("Testing decoding of string \"%s\"...\n", c->encoded);
+            src_left = strlen(c->encoded);
+            dst_left = strlen(c->decoded);
+            ByteBuffer dbuf(dst_left);
+            n = dec(dbuf.data<uint8_t>(), &dst_left, c->encoded, &src_left);
+            UTEST_ASSERT(!dbuf.corrupted());
+            UTEST_ASSERT(n == strlen(c->decoded));
+            UTEST_ASSERT(dst_left == 0);
+            UTEST_ASSERT(src_left == 0);
+            UTEST_ASSERT(memcmp(dbuf.data<void>(), c->decoded, (strlen(c->decoded))) == 0);
+        }
+    }
+
     UTEST_MAIN
     {
         test_encode("native::base64_enc", native::base64_enc);
         test_decode("native::base64_dec", native::base64_dec);
+        test_encdec("native::base64_encdec", native::base64_enc, native::base64_dec);
     }
 UTEST_END;
 
