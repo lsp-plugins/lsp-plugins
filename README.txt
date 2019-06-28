@@ -33,7 +33,7 @@ Current matrix of architecture and platform support is:
   ╞══════════╪══════╪════════╪══════════╪═════════╪═══════╡
   │GNU/Linux │  F   │   F    │    E     │    E    │   C   │
   ├──────────┼──────┼────────┼──────────┼─────────┼───────┤
-  │FreeBSD   │  E   │   E    │    E     │    U    │   N   │
+  │FreeBSD   │  E   │   E    │    E     │    U    │   U   │
   └──────────┴──────┴────────┴──────────┴─────────┴───────┘
     F - Full support.
     C - The code does compile, not enough knowledge about it's correct work.
