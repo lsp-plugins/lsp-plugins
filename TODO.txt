@@ -13,6 +13,7 @@
 * Fixed improper InlineDisplay feature support in LV2 TTL files.
 * Plugin names now have 'LSP' prefix for the LV2 format.
 * Each plugin can now provide it's custom UI class which is derived from common plugin class.
+* Code now compiles for the PPC64 architecture.
 * Added command-line option to pass configuration file name for standalone JACK plugins.
   The settings stored in configuration file will be automatically loaded at startup.
 * Updated function signatures for libraries which now support '-fvisibility=hidden'
