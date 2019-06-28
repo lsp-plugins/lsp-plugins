@@ -529,6 +529,10 @@ namespace lsp
                 if (o == NULL)
                     continue;
 
+                Color xc(col);
+                color3d_t c;
+                xc.hue(float(i) / float(n));
+
                 // Apply changes
                 matrix3d_t om = *(o->matrix());
                 if (!sKvtRoot.is_empty())
@@ -549,6 +553,7 @@ namespace lsp
                             room_builder_base::build_object_matrix(&tmp, &props);
                             dsp::apply_matrix3d_mm2(&om, &tmp, &om);
                             dsp::apply_matrix3d_mm2(&om, &scale, &om);
+                            xc.hue(props.fHue);
                         }
 
                         pRegistry->kvt_release();
@@ -558,10 +563,6 @@ namespace lsp
                 // Object is invisible?
                 if (!o->is_visible())
                     continue;
-
-                Color xc(col);
-                color3d_t c;
-                xc.hue(float(i) / float(n));
 
                 c.r         = xc.red();
                 c.g         = xc.green();

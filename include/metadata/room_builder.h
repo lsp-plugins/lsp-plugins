@@ -12,6 +12,13 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Room builder metadata
+    typedef struct room_material_t
+    {
+        const char *name;
+        float       speed;
+        float       absorption;
+    } room_material_t;
+
     struct room_builder_base_metadata
     {
         static const float CONV_LENGTH_MIN          = 0.0f;     // Minimum convolution length (ms)
@@ -121,7 +128,10 @@ namespace lsp
         };
 
         static const port_t kvt_ports[];
+        static const room_material_t materials[];
     };
+
+
 
     struct room_builder_mono_metadata: public room_builder_base_metadata
     {

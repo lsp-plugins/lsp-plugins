@@ -334,6 +334,49 @@ namespace lsp
         CONTROL("kvt:speed", "Sound speed in material", U_MPS, room_builder_base_metadata::MAT_SOUND_SPEED)
     };
 
+    const room_material_t materials[] =
+    {
+        { "Sea water",      1533.0f,    0.0f    },
+        { "Fresh water",    1493.0f,    0.0f    },
+        { "Ice",            3280.0f,    0.0f    },
+        { "Concrete",       4250.0f,    0.015f  },
+        { "Aluminum",       5080.0f,    0.0f    },
+        { "Iron",           5170.0f,    0.0f    },
+        { "Silicon",        3770.0f,    0.02f   },
+        { "Brass",          3490.0f,    0.0f    },
+        { "Copper",         3710.0f,    0.0f    },
+        { "Nickel silver",  3580.0f,    0.0f    },
+        { "Nickel",         4785.0f,    0.0f    },
+        { "Tin",            2730.0f,    0.001f  },
+        { "Lead",           1200.0f,    0.002f  },
+        { "Steel",          5050.0f,    0.0f    },
+        { "Cast Iron",      3850.0f,    0.001f  },
+        { "Plexiglass",     2670.0f,    0.15f   },
+        { "Polystyrene",    2350.0f,    0.04f   },
+        { "Gypsum",         4970.0f,    0.062f  },
+        { "Granite",        3950.0f,    0.015f  },
+        { "Oak",            4050.0f,    0.07f   },
+        { "Marble",         6150.0f,    0.013f  },
+        { "Corkwood",       500.0f,     0.1f    },
+        { "Rubber",         1600.0f,    0.06f   },
+        { "Glass",          5370.0f,    0.03f   },
+        { "Pine",           5030.0f,    0.06f   },
+        { "Brick",          3600.0f,    0.032f  },
+        { "Slate",          4510.0f,    0.019f  },
+        { "Fir",            4600.0f,    0.06f   },
+        { "Ash",            5065.0f,    0.06f   },
+        { "Maple",          4450.0f,    0.06f   },
+        { "Birch",          3625.0f,    0.08f   },
+        { "Alder",          5060.0f,    0.06f   },
+        { "Mineral wool",   340.29f,    0.87f   },
+        { "Fiberglass",     340.29f,    0.75f   },
+        { "Fiberboard",     340.29f,    0.7f    },
+        { "Cotton",         340.29f,    0.17f   },
+        { "Velvet",         340.29f,    0.45f   },
+        { "Basalt fiber",   340.29f,    0.95f   },
+        { NULL,             0.0f,       0.0f    }
+    };
+
     const plugin_metadata_t  room_builder_mono_metadata::metadata =
     {
         "Raumbauer Mono",

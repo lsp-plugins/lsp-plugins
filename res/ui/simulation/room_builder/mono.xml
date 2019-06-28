@@ -325,6 +325,13 @@
 						<value id="kvt:yscale" same_line="true" />
 						<value id="kvt:zscale" same_line="true" />
 					</grid>
+					
+					<hsep />
+					<grid rows="3" cols="1">
+						<label text="Hue" />
+						<knob id="kvt:hue" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<value id="kvt:hue" same_line="true" />
+					</grid>
 
 				</vbox>
 			</align>
