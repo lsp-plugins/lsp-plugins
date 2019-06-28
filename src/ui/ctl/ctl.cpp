@@ -188,9 +188,12 @@ namespace lsp
             "vspacing",
             "width",
             "xpos_id",
+            "xscale_id",
             "yaw_id",
             "ypos_id",
-            "zpos_id"
+            "yscale_id",
+            "zpos_id",
+            "zscale_id"
         };
 
         widget_ctl_t widget_ctl(const char *name)

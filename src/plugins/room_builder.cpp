@@ -270,9 +270,14 @@ namespace lsp
         p3DStatus       = NULL;
         p3DProgress     = NULL;
         p3DOrientation  = NULL;
+        pScaleX         = NULL;
+        pScaleY         = NULL;
+        pScaleZ         = NULL;
 
         pData           = NULL;
         pExecutor       = NULL;
+
+        dsp::init_vector_dxyz(&sScale, 1.0f, 1.0f, 1.0f);
     }
 
     room_builder_base::~room_builder_base()
@@ -455,6 +460,12 @@ namespace lsp
         p3DProgress     = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         p3DOrientation  = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pScaleX         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pScaleY         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pScaleZ         = vPorts[port_id++];
 
         // Skip camera settings
         TRACE_PORT(vPorts[port_id]);            // Skip camera x
@@ -581,6 +592,10 @@ namespace lsp
         bool bypass         = pBypass->getValue() >= 0.5f;
         float predelay      = pPredelay->getValue();
         size_t rank         = get_fft_rank(pRank->getValue());
+
+        sScale.dx           = pScaleX->getValue() * 0.01f;
+        sScale.dy           = pScaleY->getValue() * 0.01f;
+        sScale.dz           = pScaleZ->getValue() * 0.01f;
 
         // Adjust volume of dry channel
         if (nInputs == 1)

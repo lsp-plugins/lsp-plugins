@@ -193,6 +193,7 @@ namespace lsp
             source_t                vSources[room_builder_base_metadata::SOURCES];
 
             Scene3D                 sScene;
+            vector3d_t              sScale;
 
             status_t                nSceneStatus;
             float                   fSceneProgress;
@@ -208,6 +209,9 @@ namespace lsp
             IPort                  *p3DProgress;
             IPort                  *p3DStatus;
             IPort                  *p3DOrientation;
+            IPort                  *pScaleX;
+            IPort                  *pScaleY;
+            IPort                  *pScaleZ;
 
             void                   *pData;      // Allocated data
             ipc::IExecutor         *pExecutor;

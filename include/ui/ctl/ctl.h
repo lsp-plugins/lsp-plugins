@@ -212,9 +212,12 @@ namespace lsp
             A_VSPACING,
             A_WIDTH,
             A_XPOS_ID,
+            A_XSCALE_ID,
             A_YAW_ID,
             A_YPOS_ID,
-            A_ZPOS_ID
+            A_YSCALE_ID,
+            A_ZPOS_ID,
+            A_ZSCALE_ID
         };
 
         // Helper functions

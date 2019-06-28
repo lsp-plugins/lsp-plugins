@@ -4,15 +4,38 @@
 		<cgroup id="view">
 			<vbox spacing="2">
 				<align hpos="-1">
-					<hbox spacing="8">
-						<label text="Room orientation:" />
-						<combo id="ifo" />
+					<hbox spacing="4">
+						<vbox>
+							<align hpos="-1"><label text="Room orientation:" /></align>
+							<align hpos="-1"><combo id="ifo" /></align>
+						</vbox>
+						<vsep />
+						
+						<knob id="xscale" scale_color="red" size="16" />
+						<vbox>
+							<align hpos="-1"><label text="Sz X:" /></align>
+							<align hpos="-1"><value id="xscale" same_line="true" /></align>
+						</vbox>
+						
+						<knob id="yscale" scale_color="green"  size="16" />
+						<vbox>
+							<align hpos="-1"><label text="Sz Y:" /></align>
+							<align hpos="-1"><value id="yscale" same_line="true" /></align>
+						</vbox>
+						
+						<knob id="zscale" scale_color="blue" size="16" />
+						<vbox>
+							<align hpos="-1"><label text="Sz Z:" /></align>
+							<align hpos="-1"><value id="zscale" same_line="true" /></align>
+						</vbox>
 					</hbox>
 				</align>
+			
 				<viewer3d
 					id="ifn"
 					width="320" height="200" fov="70"
 					orientation_id="ifo" status_id="ifs"
+					xscale_id="xscale" yscale_id="yscale" zscale_id="zscale"
 					xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
 					yaw_id="cyaw" pitch_id="cpitch"
 					kvt_root="/scene/object/"
@@ -302,6 +325,7 @@
 						<value id="kvt:yscale" same_line="true" />
 						<value id="kvt:zscale" same_line="true" />
 					</grid>
+
 				</vbox>
 			</align>
 		</cgroup>

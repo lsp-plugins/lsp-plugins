@@ -199,11 +199,15 @@ namespace lsp
         STATUS("ifs", "Input 3D model load status"), \
         METER_PERCENT("ifp", "File loading progress"), \
         COMBO("ifo", "Input 3D model orientation", 9, rb_orientation), \
+        CONTROL("xscale", "Scene X scale", U_PERCENT, room_builder_base_metadata::OSIZE), \
+        CONTROL("yscale", "Scene Y scale", U_PERCENT, room_builder_base_metadata::OSIZE), \
+        CONTROL("zscale", "Scene Z scale", U_PERCENT, room_builder_base_metadata::OSIZE), \
         CONTROL_DFL("cposx", "Camera X position", U_M, room_builder_base_metadata::POSITION, 1.0f), \
         CONTROL_DFL("cposy", "Camera Y position", U_M, room_builder_base_metadata::POSITION, -0.2f), \
         CONTROL_DFL("cposz", "Camera Z position", U_M, room_builder_base_metadata::POSITION, 0.5f), \
         { "cyaw", "Camera Yaw angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, 0, 360, 80.0f, 0.1f, NULL, NULL }, \
         { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, -25.0f, 0.1f, NULL, NULL }
+
 
     #define RB_SOURCE_MONO(id, label, x, total, ena) \
         SWITCH("sse" id, "Source " label " enable", ena), \
