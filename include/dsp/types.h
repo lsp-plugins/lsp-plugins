@@ -175,8 +175,8 @@
     #define __IF_LE(le)
     #define __IF_BE(be)         be
 
-    #ifndef ARCH_LE
-        #define ARCH_LE
+    #ifdef ARCH_LE
+        #undef ARCH_LE
     #endif /* ARCH_LE */
 #else
     #warning "Could not detect endianess of the target architecture"
