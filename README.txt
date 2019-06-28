@@ -28,17 +28,18 @@ For more information about licensing, please read LICENSE.txt.
 ==== SYSTEM REQUIREMENTS ====
 
 Current matrix of architecture and platform support is:
-  ┌──────────┬──────┬────────┬──────────┬─────────┐
-  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │
-  ╞══════════╪══════╪════════╪══════════╪═════════╡
-  │GNU/Linux │  F   │   F    │    E     │    E    │
-  ├──────────┼──────┼────────┼──────────┼─────────┤
-  │FreeBSD   │  E   │   E    │    U     │    U    │
-  └──────────┴──────┴────────┴──────────┴─────────┘
-    F - Full support
-    E - Experimental support, not enough feedback from users
-    U - Unknown, the code may build but it's work is not tested
-    N - No support, the code does not compile and does not work
+  ┌──────────┬──────┬────────┬──────────┬─────────┬───────┐
+  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │ ppc64 │
+  ╞══════════╪══════╪════════╪══════════╪═════════╪═══════╡
+  │GNU/Linux │  F   │   F    │    E     │    E    │   C   │
+  ├──────────┼──────┼────────┼──────────┼─────────┼───────┤
+  │FreeBSD   │  E   │   E    │    E     │    U    │   N   │
+  └──────────┴──────┴────────┴──────────┴─────────┴───────┘
+    F - Full support.
+    C - The code does compile, not enough knowledge about it's correct work.
+    E - Experimental support, not enough feedback from users.
+    U - Unknown, the code may be built but the correctness of it's work has not been tested.
+    N - No support, the code may compile but the work has not been tested.
 
 Details about architectures supported in experimental mode:
   * ARMv7-AR support has been tested on:
