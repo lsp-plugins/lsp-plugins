@@ -26,7 +26,7 @@ namespace test
 
     double UnitTest::time_limit() const
     {
-        return 5.0;
+        return 30.0;
     }
 
     UnitTest *utest_init()
