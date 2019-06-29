@@ -21,6 +21,7 @@
     #include <errno.h>
 #else
     #include <pthread.h>
+    #include <sched.h>
     #include <errno.h>
 #endif
 
@@ -140,7 +141,13 @@ namespace lsp
                         switch (pthread_mutex_lock(&sMutex))
                         {
                             case 0: return true;
-                            case EBUSY: pthread_yield(); break;
+                            case EBUSY:
+                                #ifdef PLATFORM_SOLARIS
+                                    sched_yield();
+                                #else
+                                    pthread_yield();
+                                #endif /* PLATFORM_SOLARIS */
+                                break;
                             default: return false;
                         }
                     }

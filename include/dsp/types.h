@@ -197,6 +197,11 @@
     #define IF_PLATFORM_UNIX(...)       __VA_ARGS__
 #endif /* __unix__ */
 
+#if defined(__sun__) || defined(__sun) || defined(sun)
+    #define PLATFORM_SOLARIS
+    #define IF_PLATFORM_SOLARIS(...)    __VA_ARGS__
+#endif /* __sun__ */
+
 #if defined(__linux__) || defined(__linux) || defined(linux)
     #define PLATFORM_LINUX
     #define IF_PLATFORM_LINUX(...)      __VA_ARGS__
@@ -421,6 +426,10 @@
 #ifndef IF_PLATFORM_UNIX
     #define IF_PLATFORM_UNIX(...)
 #endif /* IF_PLATFORM_UNIX */
+
+#ifndef IF_PLATFORM_SOLARIS
+    #define IF_PLATFORM_SOLARIS(...)
+#endif /* IF_PLATFORM_SOLARIS */
 
 #ifndef IF_PLATFORM_LINUX
     #define IF_PLATFORM_LINUX(...)
