@@ -25,7 +25,7 @@ ifndef BUILD_PLATFORM
     BUILD_PLATFORM          = Linux
   endif
   ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
-    BUILD_PLATFORM          = Solaris 
+    BUILD_PLATFORM          = Solaris
   endif
 endif
 
