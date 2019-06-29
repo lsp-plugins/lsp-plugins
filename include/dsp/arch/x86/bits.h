@@ -917,8 +917,6 @@ inline int32_t __lsp_forced_inline    reverse_bits(int32_t v, size_t count)
 #else
     inline int __lsp_forced_inline     int_log2(uint64_t v)
     {
-        int res;
-
         ARCH_X86_ASM (
             __ASM_EMIT("test    %%edx, %%edx")
             __ASM_EMIT("jz      2f")
@@ -936,17 +934,15 @@ inline int32_t __lsp_forced_inline    reverse_bits(int32_t v, size_t count)
 
             __ASM_EMIT("4:")
 
-            : [res] "=r" (res), [v] "+A" (v)
+            : [v] "+A" (v)
             :
             : "cc"
         );
-        return res;
+        return int(v);
     }
 
     inline int __lsp_forced_inline     int_log2(int64_t v)
     {
-        int res;
-
         ARCH_X86_ASM (
             __ASM_EMIT("test    %%edx, %%edx")
             __ASM_EMIT("jz      2f")
@@ -964,11 +960,11 @@ inline int32_t __lsp_forced_inline    reverse_bits(int32_t v, size_t count)
 
             __ASM_EMIT("4:")
 
-            : [res] "=r" (res), [v] "+A" (v)
+            : [v] "+A" (v)
             :
             : "cc"
         );
-        return res;
+        return int(v);
     }
 #endif /* ARCH_X86_64 */
 
