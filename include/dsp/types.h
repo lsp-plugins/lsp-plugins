@@ -72,13 +72,17 @@
 
 //-----------------------------------------------------------------------------
 // Detect bitness of architecture
-#if ( __WORDSIZE == 64 )
+#if defined(__WORDSIZE) && (__WORDSIZE == 64)
     #define ARCH_64BIT
-#elif ( __WORDSIZE == 32 )
+#elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 64)
+    #define ARCH_64BIT
+#elif defined(__WORDSIZE) && (__WORDSIZE == 32)
+    #define ARCH_32BIT
+#elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 32)
     #define ARCH_32BIT
 #else
     #warning "Unsupported architecture bitness"
-#endif /* __WORDSIZE */
+#endif /* __WORDSIZE, __SIZE_WIDTH__ */
 
 //-----------------------------------------------------------------------------
 // Detect endianess and operations
