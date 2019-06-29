@@ -8,6 +8,7 @@
 #include <core/alloc.h>
 #include <core/3d/common.h>
 #include <core/3d/RayTrace3D.h>
+#include <alloca.h>
 
 #define SAMPLE_QUANTITY     512
 #define TASK_LO_THRESH      1024

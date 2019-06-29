@@ -24,6 +24,9 @@ ifndef BUILD_PLATFORM
   ifeq ($(findstring Linux,$(BUILD_SYSTEM)),Linux)
     BUILD_PLATFORM          = Linux
   endif
+  ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
+    BUILD_PLATFORM          = Solaris 
+  endif
 endif
 
 export BUILD_SYSTEM
@@ -63,6 +66,9 @@ else # BUILD_PLATFORM != Windows
       BUILD_PROFILE           = x86_64
     endif
     ifeq ($(BUILD_ARCH),amd64)
+      BUILD_PROFILE           = x86_64
+    endif
+    ifeq ($(BUILD_ARCH),i86pc)
       BUILD_PROFILE           = x86_64
     endif
     ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)), i586)
