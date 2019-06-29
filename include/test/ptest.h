@@ -149,6 +149,9 @@ namespace test
             static void out_text(FILE *out, size_t length, const char *text, int align, const char *padding, const char *tail);
 
         public:
+            int             printf(const char *fmt, ...);
+
+        public:
             explicit PerformanceTest(const char *group, const char *name, float time, size_t iterations);
             virtual ~PerformanceTest();
 
