@@ -72,13 +72,17 @@
 
 //-----------------------------------------------------------------------------
 // Detect bitness of architecture
-#if ( __WORDSIZE == 64 )
+#if defined(__WORDSIZE) && (__WORDSIZE == 64)
     #define ARCH_64BIT
-#elif ( __WORDSIZE == 32 )
+#elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 64)
+    #define ARCH_64BIT
+#elif defined(__WORDSIZE) && (__WORDSIZE == 32)
+    #define ARCH_32BIT
+#elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 32)
     #define ARCH_32BIT
 #else
     #warning "Unsupported architecture bitness"
-#endif /* __WORDSIZE */
+#endif /* __WORDSIZE, __SIZE_WIDTH__ */
 
 //-----------------------------------------------------------------------------
 // Detect endianess and operations
@@ -192,6 +196,11 @@
     #define PLATFORM_UNIX
     #define IF_PLATFORM_UNIX(...)       __VA_ARGS__
 #endif /* __unix__ */
+
+#if defined(__sun__) || defined(__sun) || defined(sun)
+    #define PLATFORM_SOLARIS
+    #define IF_PLATFORM_SOLARIS(...)    __VA_ARGS__
+#endif /* __sun__ */
 
 #if defined(__linux__) || defined(__linux) || defined(linux)
     #define PLATFORM_LINUX
@@ -417,6 +426,10 @@
 #ifndef IF_PLATFORM_UNIX
     #define IF_PLATFORM_UNIX(...)
 #endif /* IF_PLATFORM_UNIX */
+
+#ifndef IF_PLATFORM_SOLARIS
+    #define IF_PLATFORM_SOLARIS(...)
+#endif /* IF_PLATFORM_SOLARIS */
 
 #ifndef IF_PLATFORM_LINUX
     #define IF_PLATFORM_LINUX(...)
