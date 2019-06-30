@@ -38,9 +38,13 @@ namespace lsp
                 vector3d_t              sScale;     // Scaling of object
                 float                   fHue;       // Hue color
                 float                   fAbsorption[2];
+                float                   lnkAbsorption;
                 float                   fDispersion[2];
-                float                   fDissipation[2];
+                float                   lnkDispersion;
+                float                   fDiffusion[2];
+                float                   lnkDiffusion;
                 float                   fTransparency[2];
+                float                   lnkTransparency;
                 float                   fSndSpeed;
             } obj_props_t;
 

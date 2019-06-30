@@ -335,6 +335,102 @@
 
 				</vbox>
 			</align>
+			
+			<!-- Material editor -->
+			<align vpos="-1">
+				<vbox>
+					<!-- Object selector -->
+					<align hpos="-1" vpos="-1">
+						<hbox spacing="8">
+							<label text="Object:" />
+							<button id="kvt:enabled" size="16" led="true" color="red" hue_id="kvt:hue" />
+							<label text="Enabled" />
+						</hbox>
+					</align>
+					<combo id="kvt:oid" width="192" />
+					<align hpos="-1" vpos="-1">
+						<label text="Material preset:" />
+					</align>
+					<combo id="ui:mpreset" width="192" />
+					
+					<hsep />
+					<hbox>
+						<label text="Sound speed" />
+						<knob id="kvt:speed" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<value id="kvt:speed" same_line="true" />
+					</hbox>
+					<hsep />
+					<align hpos="-1" vpos="-1">
+						<label text="Physical properties:" />
+					</align>
+					<grid rows="9" cols="4">
+						<label />
+						<label text="Out -> In" />
+						<label />
+						<label text="In -> Out" />
+						
+						<!-- Absorption -->
+						<label text="Absorption" />
+						<knob id="kvt:oabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<cell rows="2">
+							<vbox>
+								<button id="kvt:labs" size="12" led="true" color="red" hue_id="kvt:hue" />
+								<label font_size="8" text="L&#xA;N&#xA;K" />
+							</vbox>
+						</cell>
+						<knob id="kvt:iabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						
+						<label text="(%)" />
+						<value id="kvt:oabs" detailed="false" />
+						<value id="kvt:iabs" detailed="false" />
+						
+						<!-- Transparency -->
+						<label text="Transparency" />
+						<knob id="kvt:otransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<cell rows="2">
+							<vbox>
+								<button id="kvt:ltransp" size="12" led="true" color="red" hue_id="kvt:hue" />
+								<label font_size="8" text="L&#xA;N&#xA;K" />
+							</vbox>
+						</cell>
+						<knob id="kvt:itransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						
+						<label text="(%)" />
+						<value id="kvt:otransp" detailed="false" />
+						<value id="kvt:itransp" detailed="false" />
+						
+						<!-- Dispersion -->
+						<label text="Dispersion" />
+						<knob id="kvt:odisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<cell rows="2">
+							<vbox>
+								<button id="kvt:ldisp" size="12" led="true" color="red" hue_id="kvt:hue" />
+								<label font_size="8" text="L&#xA;N&#xA;K" />
+							</vbox>
+						</cell>
+						<knob id="kvt:idisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						
+						<label />
+						<value id="kvt:odisp" detailed="false" />
+						<value id="kvt:idisp" detailed="false" />
+						
+						<!-- Diffusion -->
+						<label text="Diffusion" />
+						<knob id="kvt:odiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						<cell rows="2">
+							<vbox>
+								<button id="kvt:ldiff" size="12" led="true" color="red" hue_id="kvt:hue" />
+								<label font_size="8" text="L&#xA;N&#xA;K" />
+							</vbox>
+						</cell>
+						<knob id="kvt:idiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+						
+						<label />
+						<value id="kvt:odiff" detailed="false" />
+						<value id="kvt:idiff" detailed="false" />
+					</grid>
+				</vbox>
+			</align>			
 		</cgroup>
 	</hbox>
 </plugin>

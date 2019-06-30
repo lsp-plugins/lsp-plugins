@@ -351,12 +351,16 @@ namespace lsp
         BIND_KVT_PORT("color/hue", fHue);
         BIND_KVT_PORT("material/absorption/outer", fAbsorption[0]);
         BIND_KVT_PORT("material/absorption/inner", fAbsorption[1]);
+        BIND_KVT_PORT("material/absorption/link", lnkAbsorption);
         BIND_KVT_PORT("material/dispersion/outer", fDispersion[0]);
         BIND_KVT_PORT("material/dispersion/inner", fDispersion[1]);
-        BIND_KVT_PORT("material/dissipation/outer", fDissipation[0]);
-        BIND_KVT_PORT("material/dissipation/inner", fDissipation[1]);
+        BIND_KVT_PORT("material/dispersion/link", lnkDispersion);
+        BIND_KVT_PORT("material/diffusion/outer", fDiffusion[0]);
+        BIND_KVT_PORT("material/diffusion/inner", fDiffusion[1]);
+        BIND_KVT_PORT("material/diffusion/link", lnkDiffusion);
         BIND_KVT_PORT("material/transparency/outer", fTransparency[1]);
         BIND_KVT_PORT("material/transparency/inner", fTransparency[1]);
+        BIND_KVT_PORT("material/transparency/link", lnkTransparency);
         BIND_KVT_PORT("material/sound_speed", fSndSpeed);
 
         return STATUS_OK;

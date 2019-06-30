@@ -43,6 +43,7 @@ namespace lsp
         "Source editor",
         "Capture editor",
         "Object editor",
+        "Material editor",
         NULL
     };
 
@@ -323,14 +324,18 @@ namespace lsp
         CONTROL("kvt:yscale", "Object scaling Y", U_PERCENT, room_builder_base_metadata::OSIZE),
         CONTROL("kvt:zscale", "Object scaling Z", U_PERCENT, room_builder_base_metadata::OSIZE),
         { "kvt:hue", "Object hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, 0.0f, 0.25f/360.0f, NULL     },
-        CONTROL("kvt:oabs", "Outer absorption", U_M, room_builder_base_metadata::MAT_ABSORPTION),
-        CONTROL("kvt:iabs", "Inner absorption", U_M, room_builder_base_metadata::MAT_ABSORPTION),
-        CONTROL("kvt:odisp", "Reflected wave outer dispersion", U_M, room_builder_base_metadata::MAT_DISPERSION),
-        CONTROL("kvt:idisp", "Reflected wave inner dispersion", U_M, room_builder_base_metadata::MAT_DISPERSION),
-        CONTROL("kvt:odiss", "Refracted wave outer dissipation", U_M, room_builder_base_metadata::MAT_DISPERSION),
-        CONTROL("kvt:idiss", "Refracted wave inner dissipation", U_M, room_builder_base_metadata::MAT_DISPERSION),
-        CONTROL("kvt:otransp", "Material outer transparency", U_M, room_builder_base_metadata::MAT_TRANSPARENCY),
-        CONTROL("kvt:itransp", "Material inner transparency", U_M, room_builder_base_metadata::MAT_TRANSPARENCY),
+        LOG_CONTROL("kvt:oabs", "Outer absorption", U_PERCENT, room_builder_base_metadata::MAT_ABSORPTION),
+        LOG_CONTROL("kvt:iabs", "Inner absorption", U_PERCENT, room_builder_base_metadata::MAT_ABSORPTION),
+        SWITCH("kvt:labs", "Link absorption parameters", 1.0f),
+        LOG_CONTROL("kvt:odisp", "Refracted wave outer dispersion", U_NONE, room_builder_base_metadata::MAT_DISPERSION),
+        LOG_CONTROL("kvt:idisp", "Refracted wave inner dispersion", U_NONE, room_builder_base_metadata::MAT_DISPERSION),
+        SWITCH("kvt:ldisp", "Link refracted wave dispersion parameters", 1.0f),
+        LOG_CONTROL("kvt:odiff", "Reflected wave outer diffusion", U_NONE, room_builder_base_metadata::MAT_DISPERSION),
+        LOG_CONTROL("kvt:idiff", "Reflected wave inner diffusion", U_NONE, room_builder_base_metadata::MAT_DISPERSION),
+        SWITCH("kvt:ldiff", "Link reflected wave inner diffusion parameters", 1.0f),
+        LOG_CONTROL("kvt:otransp", "Material outer transparency", U_NONE, room_builder_base_metadata::MAT_TRANSPARENCY),
+        LOG_CONTROL("kvt:itransp", "Material inner transparency", U_NONE, room_builder_base_metadata::MAT_TRANSPARENCY),
+        SWITCH("kvt:ltransp", "Link material transparency parameters", 1.0f),
         CONTROL("kvt:speed", "Sound speed in material", U_MPS, room_builder_base_metadata::MAT_SOUND_SPEED)
     };
 

@@ -797,14 +797,14 @@ namespace lsp
                 cv.amplitude    = v.amplitude * m->absorption[0];
                 v.amplitude    *= (1.0f - m->absorption[0]);
 
-                kd              = (1.0f + 1.0f / m->dispersion[0]) * distance;
+                kd              = (1.0f + 1.0f / m->diffusion[0]) * distance;
                 rv.amplitude    = v.amplitude * (m->transparency[0] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
                 rv.rnum         = v.rnum + 1;       // Increment reflection number
 
-                kd              = (m->permeability/m->dissipation[0] - 1.0f) * distance;
+                kd              = (m->permeability/m->dispersion[0] - 1.0f) * distance;
                 tv.amplitude    = v.amplitude * m->transparency[0];
                 tv.speed       *= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
@@ -820,8 +820,8 @@ namespace lsp
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Outside->inside reflect_view");
                     lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
-                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
-                            m->absorption[0], m->transparency[0], m->permeability, m->dispersion[0], m->dissipation[0]);
+                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, diffusion=%f, dispersion=%f",
+                            m->absorption[0], m->transparency[0], m->permeability, m->diffusion[0], m->dispersion[0]);
 
                     ctx->trace.add_view_1c(&sv, &C3D_RED);
                     ctx->trace.add_view_1c(&rv, &C3D_GREEN);
@@ -833,14 +833,14 @@ namespace lsp
                 cv.amplitude    = v.amplitude * m->absorption[1];
                 v.amplitude    *= (1.0f - m->absorption[1]);
 
-                kd              = (1.0f + 1.0f / m->dispersion[1]) * distance;
+                kd              = (1.0f + 1.0f / m->diffusion[1]) * distance;
                 rv.amplitude    = v.amplitude * (m->transparency[1] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
                 rv.rnum         = v.rnum + 1;       // Increment reflection number
 
-                kd              = (1.0f/(m->dissipation[1]*m->permeability) - 1.0f) * distance;
+                kd              = (1.0f/(m->dispersion[1]*m->permeability) - 1.0f) * distance;
                 tv.amplitude    = v.amplitude * m->transparency[1];
                 tv.speed       /= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
@@ -856,8 +856,8 @@ namespace lsp
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Inside->outside reflect_view");
                     lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
-                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
-                            m->absorption[1], m->transparency[1], m->permeability, m->dispersion[1], m->dissipation[1]);
+                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, diffusion=%f, dispersion=%f",
+                            m->absorption[1], m->transparency[1], m->permeability, m->diffusion[1], m->dispersion[1]);
 
                     ctx->trace.add_view_1c(&sv, &C3D_RED);
                     ctx->trace.add_view_1c(&rv, &C3D_GREEN);
@@ -1496,13 +1496,13 @@ namespace lsp
 
                 // By default, we set the material to 'Concrete'
                 m->absorption[0]    = 0.02f;
-                m->dispersion[0]    = 1.0f;
-                m->dissipation[0]   = 1.0f;
+                m->diffusion[0]    = 1.0f;
+                m->dispersion[0]   = 1.0f;
                 m->transparency[0]  = 0.48f;
 
                 m->absorption[1]    = 0.0f;
-                m->dispersion[1]    = 1.0f;
-                m->dissipation[1]   = 1.0f;
+                m->diffusion[1]    = 1.0f;
+                m->dispersion[1]   = 1.0f;
                 m->transparency[1]  = 0.52f;
 
                 m->permeability     = 12.88f;
@@ -1575,13 +1575,13 @@ namespace lsp
         // "Black hole"
         rt_material_t *m    = &cap->material;
         m->absorption[0]    = 1.0f;
-        m->dispersion[0]    = 1.0f;
-        m->dissipation[0]   = 1.0f;
+        m->diffusion[0]    = 1.0f;
+        m->dispersion[0]   = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->absorption[0]    = 1.0f;
-        m->dispersion[0]    = 1.0f;
-        m->dissipation[0]   = 1.0f;
+        m->diffusion[0]    = 1.0f;
+        m->dispersion[0]   = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->permeability     = 1.0f;
@@ -1612,13 +1612,13 @@ namespace lsp
         // "Black hole"
         rt_material_t *m    = &cap->material;
         m->absorption[0]    = 1.0f;
-        m->dispersion[0]    = 1.0f;
-        m->dissipation[0]   = 1.0f;
+        m->diffusion[0]    = 1.0f;
+        m->dispersion[0]   = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->absorption[0]    = 1.0f;
-        m->dispersion[0]    = 1.0f;
-        m->dissipation[0]   = 1.0f;
+        m->diffusion[0]    = 1.0f;
+        m->dispersion[0]   = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->permeability     = 1.0f;

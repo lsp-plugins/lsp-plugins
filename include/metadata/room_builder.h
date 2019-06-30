@@ -76,14 +76,14 @@ namespace lsp
         static const float DISTANCE_DFL             = 2.0f;
         static const float DISTANCE_STEP            = 0.01f;
 
-        static const float MAT_ABSORPTION_MIN       = 0.0001f;
-        static const float MAT_ABSORPTION_MAX       = 1.0f;
-        static const float MAT_ABSORPTION_DFL       = 0.01f;
+        static const float MAT_ABSORPTION_MIN       = 0.0f;
+        static const float MAT_ABSORPTION_MAX       = 100.0f;
+        static const float MAT_ABSORPTION_DFL       = 1.0f;
         static const float MAT_ABSORPTION_STEP      = 0.01f;
 
         static const float MAT_TRANSPARENCY_MIN     = 0.0f;
-        static const float MAT_TRANSPARENCY_MAX     = 1.0f;
-        static const float MAT_TRANSPARENCY_DFL     = 0.0f;
+        static const float MAT_TRANSPARENCY_MAX     = 100.0f;
+        static const float MAT_TRANSPARENCY_DFL     = 50.0f;
         static const float MAT_TRANSPARENCY_STEP    = 0.01f;
 
         static const float MAT_DISPERSION_MIN       = 0.01f;

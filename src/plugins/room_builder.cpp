@@ -112,15 +112,20 @@ namespace lsp
             kvt_deploy(kvt, base, "scale/z", 100.0f, extra);
             kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), extra);
 
-            kvt_deploy(kvt, base, "material/absorption/outer", 0.02f, extra);
+            kvt_deploy(kvt, base, "material/absorption/outer", 2.0f, extra);
             kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/dissipation/outer", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, extra);
             kvt_deploy(kvt, base, "material/transparency/outer", 0.48f, extra);
 
-            kvt_deploy(kvt, base, "material/absorption/inner", 0.00f, extra);
+            kvt_deploy(kvt, base, "material/absorption/inner", 0.0f, extra);
             kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/dissipation/inner", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, extra);
             kvt_deploy(kvt, base, "material/transparency/inner", 0.52f, extra);
+
+            kvt_deploy(kvt, base, "material/absorption/link", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/dispersion/link", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/diffusion/link", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/transparency/link", 1.0f, extra);
 
             kvt_deploy(kvt, base, "material/sound_speed", 12.88f * SOUND_SPEED_M_S, extra);
         }
@@ -203,13 +208,18 @@ namespace lsp
 
         kvt_fetch(kvt, base, "material/absorption/outer", &props->fAbsorption[0], 0.02f);
         kvt_fetch(kvt, base, "material/dispersion/outer", &props->fDispersion[0], 1.0f);
-        kvt_fetch(kvt, base, "material/dissipation/outer", &props->fDissipation[0], 1.0f);
+        kvt_fetch(kvt, base, "material/dissipation/outer", &props->fDiffusion[0], 1.0f);
         kvt_fetch(kvt, base, "material/transparency/outer", &props->fTransparency[0], 0.48f);
 
         kvt_fetch(kvt, base, "material/absorption/inner", &props->fAbsorption[1], 0.00f);
         kvt_fetch(kvt, base, "material/dispersion/inner", &props->fDispersion[1], 1.0f);
-        kvt_fetch(kvt, base, "material/dissipation/inner", &props->fDissipation[0], 1.0f);
+        kvt_fetch(kvt, base, "material/diffusion/inner", &props->fDiffusion[0], 1.0f);
         kvt_fetch(kvt, base, "material/transparency/inner", &props->fTransparency[0], 0.52f);
+
+        kvt_fetch(kvt, base, "material/absorption/link", &props->lnkAbsorption, 1.00f);
+        kvt_fetch(kvt, base, "material/dispersion/link", &props->lnkDispersion, 1.0f);
+        kvt_fetch(kvt, base, "material/diffusion/link", &props->lnkDiffusion, 1.0f);
+        kvt_fetch(kvt, base, "material/transparency/link", &props->lnkTransparency, 1.0f);
 
         kvt_fetch(kvt, base, "material/sound_speed", &props->fSndSpeed, 12.88f * SOUND_SPEED_M_S);
 
