@@ -6,8 +6,8 @@ INSTALL                 = install
 export RELEASE_TEXT
 
 # Estimate different pre-requisites before launching build
-include scripts/make/tools.mk
 include scripts/make/set_vars.mk
+include scripts/make/tools.mk
 include scripts/make/version.mk
 include scripts/make/configure.mk
 

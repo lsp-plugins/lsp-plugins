@@ -191,7 +191,6 @@ For successful build you need the following packages to be installed:
   * php >= 5.5.14
 
 For development, additional packages are required to be installed:
-  * glu-devel >= 9.0.0
   * libGL-devel >= 11.2.2
 
 Currently there is no automake/CMake supported, so to build plugins you

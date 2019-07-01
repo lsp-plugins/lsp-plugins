@@ -121,21 +121,21 @@ export LD_PATH
 ifeq ($(BUILD_SYSTEM),Windows)
 # TODO
 else
-	export PTHREAD_LIBS     = -lpthread
-	export ICONV_LIBS       = -liconv
-	export MATH_LIBS        = -lm
-	export DL_LIBS          = -ldl
-	export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
-	export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
-	export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
-	export XLIB_LIBS        = $(shell pkg-config --libs x11)
-	export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
-	export EXPAT_LIBS       = $(shell pkg-config --libs expat)
-	export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
-	export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
-	export JACK_HEADERS     = $(shell pkg-config --cflags jack)
-	export JACK_LIBS        = $(shell pkg-config --libs jack)
-	export OPENGL_HEADERS   = $(shell pkg-config --cflags gl 2>/dev/null || echo "")
-	export OPENGL_LIBS      = $(shell pkg-config --libs gl 2>/dev/null || echo "")
+  export PTHREAD_LIBS     = -lpthread
+  export ICONV_LIBS       = -liconv
+  export MATH_LIBS        = -lm
+  export DL_LIBS          = -ldl
+  export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
+  export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
+  export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
+  export XLIB_LIBS        = $(shell pkg-config --libs x11)
+  export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
+  export EXPAT_LIBS       = $(shell pkg-config --libs expat)
+  export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
+  export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
+  export JACK_HEADERS     = $(shell pkg-config --cflags jack)
+  export JACK_LIBS        = $(shell pkg-config --libs jack)
+  export OPENGL_HEADERS   = $(shell pkg-config --cflags gl 2>/dev/null || echo "")
+  export OPENGL_LIBS      = $(shell pkg-config --libs gl 2>/dev/null || echo "")
 endif
 

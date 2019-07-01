@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <test/ptest.h>
 
 namespace test
@@ -277,6 +278,15 @@ namespace test
     {
         return PerformanceTest::__root;
     }
-}
+
+    int PerformanceTest::printf(const char *fmt, ...)
+    {
+        va_list vl;
+        va_start(vl, fmt);
+        int res = vprintf(fmt, vl);
+        va_end(vl);
+        fflush(stdout);
+        return res;
+    }}
 
 
