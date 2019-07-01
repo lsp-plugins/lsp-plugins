@@ -310,20 +310,34 @@ namespace lsp
     room_builder_ui::CtlMaterialPreset::CtlMaterialPreset(room_builder_ui *ui)
     {
         pUI         = ui;
-        fSpeed      = -1.0f;
-        fAbsorption = -1.0f;
         pCBox       = NULL;
         hHandler    = -1;
-        nSelected   = -1;
+        pSpeed      = NULL;
+        pAbsorption = NULL;
+        pSelected   = NULL;
     }
 
-    void room_builder_ui::CtlMaterialPreset::init()
+    room_builder_ui::CtlMaterialPreset::~CtlMaterialPreset()
     {
+        pSpeed      = NULL;
+        pAbsorption = NULL;
+        pSelected   = NULL;
+    }
+
+    void room_builder_ui::CtlMaterialPreset::init(const char *preset, const char *selected, const char *speed, const char *absorption)
+    {
+        // Just bind ports
+        pSpeed      = pUI->port(speed);
+        pAbsorption = pUI->port(absorption);
+        pSelected   = pUI->port(selected);
+
+        // Fetch widget
         pCBox = widget_cast<LSPComboBox>(pUI->resolve("mpreset"));
 
         // Initialize list of presets
         if (pCBox != NULL)
         {
+            // Initialize box
             pCBox->items()->add("<select material>", -1.0f);
             size_t i=0;
             for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m)
@@ -334,7 +348,22 @@ namespace lsp
             hHandler    = pCBox->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
         }
 
-        pUI->add_kvt_listener(this);
+        // Bind handlers and notify changes
+        if (pSpeed != NULL)
+        {
+            pSpeed->bind(this);
+            pSpeed->notify_all();
+        }
+        if (pAbsorption != NULL)
+        {
+            pAbsorption->bind(this);
+            pAbsorption->notify_all();
+        }
+        if (pSelected != NULL)
+        {
+            pSelected->bind(this);
+            pSelected->notify_all();
+        }
     }
 
     status_t room_builder_ui::CtlMaterialPreset::slot_change(LSPWidget *sender, void *ptr, void *data)
@@ -343,7 +372,7 @@ namespace lsp
         if (ptr == NULL)
             return STATUS_BAD_STATE;
 
-        ssize_t sel = _this->nSelected;
+        ssize_t sel = _this->pSelected->get_value();
         if (sel < 0)
             return STATUS_OK;
 
@@ -353,78 +382,28 @@ namespace lsp
 
         const room_material_t *m = &room_builder_base_metadata::materials[idx];
 
-        KVTStorage *kvt = _this->pUI->kvt_lock();
-        if (kvt != NULL)
+        if (_this->pAbsorption->get_value() != m->absorption)
         {
-            char ss[0x40], abs[0x40];
-            kvt_param_t ssp, absp;
+            _this->pAbsorption->set_value(m->absorption);
+            _this->pAbsorption->notify_all();
+        }
 
-            ::sprintf(ss, "/scene/object/%d/material/sound_speed", int(sel));
-            ssp.type    = KVT_FLOAT32;
-            ssp.f32     = m->speed;
-            kvt->put(ss, &ssp, KVT_TX);
-
-            ::sprintf(abs, "/scene/object/%d/material/absorption/outer", int(sel));
-            absp.type   = KVT_FLOAT32;
-            absp.f32    = m->absorption;
-            kvt->put(abs, &absp, KVT_TX);
-
-            _this->pUI->kvt_write(kvt, ss, &ssp);
-            _this->pUI->kvt_write(kvt, abs, &absp);
-
-            _this->pUI->kvt_release();
+        if (_this->pSpeed->get_value() != m->speed)
+        {
+            _this->pSpeed->set_value(m->speed);
+            _this->pSpeed->notify_all();
         }
 
         return STATUS_OK;
     }
 
-    room_builder_ui::CtlMaterialPreset::~CtlMaterialPreset()
+    void room_builder_ui::CtlMaterialPreset::notify(CtlPort *port)
     {
-    }
-
-    bool room_builder_ui::CtlMaterialPreset::changed(KVTStorage *storage, const char *id, const kvt_param_t *value)
-    {
-        char prefix[0x100];
         if (pCBox == NULL)
-            return false;
+            return;
 
-        bool handled = false;
-        bool reset   = false;
-
-        char ss[0x40], abs[0x40];
-        if ((!::strcmp(id, "/scene/selected")) && (value->type == KVT_FLOAT32))
-        {
-            nSelected   = value->f32;
-            handled     = true;
-            reset       = true;
-        }
-
-        ::sprintf(ss, "/scene/object/%d/material/sound_speed", int(nSelected));
-        ::sprintf(abs, "/scene/object/%d/material/absorption/outer", int(nSelected));
-        if (reset)
-        {
-            fSpeed      = -1;
-            fAbsorption = -1;
-            storage->get_dfl(ss, &fSpeed, -1);
-            storage->get_dfl(abs, &fAbsorption, -1);
-        }
-
-        ::sprintf(prefix, "/scene/object/%d/material/sound_speed", int(nSelected));
-        if ((!::strcmp(id, prefix)) && (value->type == KVT_FLOAT32))
-        {
-            fSpeed      = value->f32;
-            handled     = true;
-        }
-
-        ::sprintf(prefix, "/scene/object/%d/material/absorption/outer", int(nSelected));
-        if ((!::strcmp(id, prefix)) && (value->type == KVT_FLOAT32))
-        {
-            fAbsorption = value->f32;
-            handled     = true;
-        }
-
-        if (!handled)
-            return false;
+        float fAbsorption   = pAbsorption->get_value();
+        float fSpeed        = pSpeed->get_value();
 
         // Find best match
         ssize_t idx = 0, i = 1;
@@ -437,14 +416,13 @@ namespace lsp
             }
         }
 
+        // Set-up selected index in non-notify mode
         if (pCBox->selected() != idx)
         {
             pCBox->slots()->disable(LSPSLOT_CHANGE, hHandler);
             pCBox->set_selected(idx);
             pCBox->slots()->enable(LSPSLOT_CHANGE, hHandler);
         }
-
-        return true;
     }
 
     room_builder_ui::CtlKnobBinding::CtlKnobBinding(room_builder_ui *ui, bool reverse)
@@ -472,7 +450,7 @@ namespace lsp
         pInner      = pUI->port(inner);
         pLink       = pUI->port(link);
 
-        // Notify changes
+        // Bind handlers and notify changes
         if (pLink != NULL)
         {
             pLink->bind(this);
@@ -610,7 +588,7 @@ namespace lsp
     {
         status_t res = plugin_ui::build();
         if (res == STATUS_OK)
-            sPresets.init();
+            sPresets.init("mpreset", "kvt:oid", "kvt:speed", "kvt:oabs");
         return res;
     }
 

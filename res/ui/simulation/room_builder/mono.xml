@@ -375,7 +375,7 @@
 						<cell rows="2">
 							<vbox>
 								<button id="kvt:labs" size="12" led="true" color="red" hue_id="kvt:hue" />
-								<label font_size="8" text="L&#xA;N&#xA;K" />
+								<label font_size="9" text="Link" />
 							</vbox>
 						</cell>
 						<knob id="kvt:iabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -390,7 +390,7 @@
 						<cell rows="2">
 							<vbox>
 								<button id="kvt:ltransp" size="12" led="true" color="red" hue_id="kvt:hue" />
-								<label font_size="8" text="L&#xA;N&#xA;K" />
+								<label font_size="9" text="Link" />
 							</vbox>
 						</cell>
 						<knob id="kvt:itransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -405,7 +405,7 @@
 						<cell rows="2">
 							<vbox>
 								<button id="kvt:ldisp" size="12" led="true" color="red" hue_id="kvt:hue" />
-								<label font_size="8" text="L&#xA;N&#xA;K" />
+								<label font_size="9" text="Link" />
 							</vbox>
 						</cell>
 						<knob id="kvt:idisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -420,7 +420,7 @@
 						<cell rows="2">
 							<vbox>
 								<button id="kvt:ldiff" size="12" led="true" color="red" hue_id="kvt:hue" />
-								<label font_size="8" text="L&#xA;N&#xA;K" />
+								<label font_size="9" text="Link" />
 							</vbox>
 						</cell>
 						<knob id="kvt:idiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />

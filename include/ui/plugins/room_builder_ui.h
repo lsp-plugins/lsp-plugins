@@ -66,24 +66,24 @@ namespace lsp
                     void add_port(CtlPort *port);
             };
 
-            class CtlMaterialPreset: public CtlKvtListener
+            class CtlMaterialPreset: public CtlPortListener
             {
                 protected:
                     room_builder_ui    *pUI;
-                    float               fSpeed;
-                    float               fAbsorption;
                     LSPComboBox        *pCBox;
                     ui_handler_id_t     hHandler;
-                    ssize_t             nSelected;
+                    CtlPort            *pSpeed;
+                    CtlPort            *pAbsorption;
+                    CtlPort            *pSelected;
 
                 public:
                     explicit CtlMaterialPreset(room_builder_ui *ui);
                     virtual ~CtlMaterialPreset();
 
-                    void init();
+                    void init(const char *preset, const char *selected, const char *speed, const char *absorption);
 
                 public:
-                    virtual bool changed(KVTStorage *storage, const char *id, const kvt_param_t *value);
+                    virtual void notify(CtlPort *port);
 
                     static status_t slot_change(LSPWidget *sender, void *ptr, void *data);
             };
