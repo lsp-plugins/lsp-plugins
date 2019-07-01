@@ -71,7 +71,7 @@ namespace lsp
     }
 
 #ifndef ARCH_LE
-    int LSPString::xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n);
+    int LSPString::xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n)
     {
         while (n--)
         {
