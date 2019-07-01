@@ -66,8 +66,31 @@ namespace lsp
                     void add_port(CtlPort *port);
             };
 
+            class CtlMaterialPreset: public CtlKvtListener
+            {
+                protected:
+                    room_builder_ui    *pUI;
+                    float               fSpeed;
+                    float               fAbsorption;
+                    LSPComboBox        *pCBox;
+                    ui_handler_id_t     hHandler;
+                    ssize_t             nSelected;
+
+                public:
+                    explicit CtlMaterialPreset(room_builder_ui *ui);
+                    virtual ~CtlMaterialPreset();
+
+                    void init();
+
+                public:
+                    virtual bool changed(KVTStorage *storage, const char *id, const kvt_param_t *value);
+
+                    static status_t slot_change(LSPWidget *sender, void *ptr, void *data);
+            };
+
         protected:
             ssize_t                 nSelected;
+            CtlMaterialPreset       sPresets;
 
         public:
             explicit room_builder_ui(const plugin_metadata_t *mdata, void *root_widget);
@@ -75,6 +98,8 @@ namespace lsp
 
         public:
             virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+
+            virtual status_t    build();
     };
 
 } /* namespace lsp */

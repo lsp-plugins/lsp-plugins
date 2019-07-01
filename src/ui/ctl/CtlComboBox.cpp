@@ -70,13 +70,12 @@ namespace lsp
 
         void CtlComboBox::submit_value()
         {
+            if (pPort == NULL)
+                return;
+
             LSPComboBox *cbox = widget_cast<LSPComboBox>(pWidget);
             if (cbox == NULL)
-            {
-                lsp_trace("CBOX IS NULL");
                 return;
-            }
-            lsp_trace("CBOX IS NOT NULL");
             ssize_t index = cbox->selected();
 
             float value = fMin + fStep * index;

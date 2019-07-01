@@ -170,7 +170,11 @@ namespace lsp
         KVTStorage *kvt = pUI->kvt_lock();
         if (kvt != NULL)
         {
-            kvt->put("/scene/selected", float(index), KVT_RX);
+            kvt_param_t p;
+            p.type      = KVT_FLOAT32;
+            p.f32       = index;
+            kvt->put("/scene/selected", &p, KVT_RX);
+            pUI->kvt_write(kvt, "/scene/selected", &p);
             pUI->kvt_release();
         }
 
@@ -303,8 +307,149 @@ namespace lsp
         return false;
     }
 
+    room_builder_ui::CtlMaterialPreset::CtlMaterialPreset(room_builder_ui *ui)
+    {
+        pUI         = ui;
+        fSpeed      = -1.0f;
+        fAbsorption = -1.0f;
+        pCBox       = NULL;
+        hHandler    = -1;
+        nSelected   = -1;
+    }
+
+    void room_builder_ui::CtlMaterialPreset::init()
+    {
+        pCBox = widget_cast<LSPComboBox>(pUI->resolve("mpreset"));
+
+        // Initialize list of presets
+        if (pCBox != NULL)
+        {
+            pCBox->items()->add("<select material>", -1.0f);
+            size_t i=0;
+            for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m)
+                pCBox->items()->add(m->name, i++);
+            pCBox->set_selected(0);
+
+            // Bind listener
+            hHandler    = pCBox->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+        }
+
+        pUI->add_kvt_listener(this);
+    }
+
+    status_t room_builder_ui::CtlMaterialPreset::slot_change(LSPWidget *sender, void *ptr, void *data)
+    {
+        CtlMaterialPreset *_this = reinterpret_cast<CtlMaterialPreset *>(ptr);
+        if (ptr == NULL)
+            return STATUS_BAD_STATE;
+
+        ssize_t sel = _this->nSelected;
+        if (sel < 0)
+            return STATUS_OK;
+
+        ssize_t idx = (_this->pCBox != NULL) ? _this->pCBox->selected() - 1 : -1;
+        if (idx < 0)
+            return STATUS_OK;
+
+        const room_material_t *m = &room_builder_base_metadata::materials[idx];
+
+        KVTStorage *kvt = _this->pUI->kvt_lock();
+        if (kvt != NULL)
+        {
+            char ss[0x40], abs[0x40];
+            kvt_param_t ssp, absp;
+
+            ::sprintf(ss, "/scene/object/%d/material/sound_speed", int(sel));
+            ssp.type    = KVT_FLOAT32;
+            ssp.f32     = m->speed;
+            kvt->put(ss, &ssp, KVT_TX);
+
+            ::sprintf(abs, "/scene/object/%d/material/absorption/outer", int(sel));
+            absp.type   = KVT_FLOAT32;
+            absp.f32    = m->absorption;
+            kvt->put(abs, &absp, KVT_TX);
+
+            _this->pUI->kvt_write(kvt, ss, &ssp);
+            _this->pUI->kvt_write(kvt, abs, &absp);
+
+            _this->pUI->kvt_release();
+        }
+
+        return STATUS_OK;
+    }
+
+    room_builder_ui::CtlMaterialPreset::~CtlMaterialPreset()
+    {
+    }
+
+    bool room_builder_ui::CtlMaterialPreset::changed(KVTStorage *storage, const char *id, const kvt_param_t *value)
+    {
+        char prefix[0x100];
+        if (pCBox == NULL)
+            return false;
+
+        bool handled = false;
+        bool reset   = false;
+
+        char ss[0x40], abs[0x40];
+        if ((!::strcmp(id, "/scene/selected")) && (value->type == KVT_FLOAT32))
+        {
+            nSelected   = value->f32;
+            handled     = true;
+            reset       = true;
+        }
+
+        ::sprintf(ss, "/scene/object/%d/material/sound_speed", int(nSelected));
+        ::sprintf(abs, "/scene/object/%d/material/absorption/outer", int(nSelected));
+        if (reset)
+        {
+            fSpeed      = -1;
+            fAbsorption = -1;
+            storage->get_dfl(ss, &fSpeed, -1);
+            storage->get_dfl(abs, &fAbsorption, -1);
+        }
+
+        ::sprintf(prefix, "/scene/object/%d/material/sound_speed", int(nSelected));
+        if ((!::strcmp(id, prefix)) && (value->type == KVT_FLOAT32))
+        {
+            fSpeed      = value->f32;
+            handled     = true;
+        }
+
+        ::sprintf(prefix, "/scene/object/%d/material/absorption/outer", int(nSelected));
+        if ((!::strcmp(id, prefix)) && (value->type == KVT_FLOAT32))
+        {
+            fAbsorption = value->f32;
+            handled     = true;
+        }
+
+        if (!handled)
+            return false;
+
+        // Find best match
+        ssize_t idx = 0, i = 1;
+        for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m, ++i)
+        {
+            if ((m->speed == fSpeed) && (m->absorption == fAbsorption))
+            {
+                idx = i;
+                break;
+            }
+        }
+
+        if (pCBox->selected() != idx)
+        {
+            pCBox->slots()->disable(LSPSLOT_CHANGE, hHandler);
+            pCBox->set_selected(idx);
+            pCBox->slots()->enable(LSPSLOT_CHANGE, hHandler);
+        }
+
+        return true;
+    }
+
     room_builder_ui::room_builder_ui(const plugin_metadata_t *mdata, void *root_widget):
-        plugin_ui(mdata, root_widget)
+        plugin_ui(mdata, root_widget),
+        sPresets(this)
     {
         nSelected       = -1;
     }
@@ -364,6 +509,14 @@ namespace lsp
         BIND_KVT_PORT("material/sound_speed", fSndSpeed);
 
         return STATUS_OK;
+    }
+
+    status_t room_builder_ui::build()
+    {
+        status_t res = plugin_ui::build();
+        if (res == STATUS_OK)
+            sPresets.init();
+        return res;
     }
 
 } /* namespace lsp */
