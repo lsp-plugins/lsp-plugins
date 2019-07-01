@@ -46,7 +46,7 @@
             #define __cdecl
         #elif defined(__arm__)
             #define __cdecl
-        #elif defined(__PPC64__) || defined(__LP64__) || defined(__ppc64__) || defined(__ppc64)
+        #elif defined(__PPC64__) || defined(__ppc64__) || defined(__ppc64)
             #define __cdecl
         #elif defined(__PPC__) || defined(__ppc__) || defined(__ppc)
             #define __cdecl
@@ -65,7 +65,7 @@
 /** Test whether system runs in 64-bit mode */
 #ifdef __GNUC__
     #ifndef VST_64BIT_PLATFORM
-        #define VST_64BIT_PLATFORM  (__x86_64__) || (__aarch64__) || (__ppc64__) || (__WORDSIZE == 64)
+        #define VST_64BIT_PLATFORM  (__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__) || (__WORDSIZE == 64)
     #endif /* VST_64BIT_PLATFORM */
 #else
     #ifndef VST_64BIT_PLATFORM
