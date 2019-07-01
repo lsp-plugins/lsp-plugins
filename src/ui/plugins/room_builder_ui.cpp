@@ -447,9 +447,99 @@ namespace lsp
         return true;
     }
 
+    room_builder_ui::CtlKnobBinding::CtlKnobBinding(room_builder_ui *ui, bool reverse)
+    {
+        pUI         = ui;
+        pOuter      = NULL;
+        pInner      = NULL;
+        pLink       = NULL;
+        bReverse    = reverse;
+    }
+
+    room_builder_ui::CtlKnobBinding::~CtlKnobBinding()
+    {
+        pUI         = NULL;
+        pOuter      = NULL;
+        pInner      = NULL;
+        pLink       = NULL;
+        bReverse    = false;
+    }
+
+    void room_builder_ui::CtlKnobBinding::init(const char *outer, const char *inner, const char *link)
+    {
+        // Just bind ports
+        pOuter      = pUI->port(outer);
+        pInner      = pUI->port(inner);
+        pLink       = pUI->port(link);
+
+        // Notify changes
+        if (pLink != NULL)
+        {
+            pLink->bind(this);
+            pLink->notify_all();
+        }
+        if (pInner != NULL)
+        {
+            pInner->bind(this);
+            pInner->notify_all();
+        }
+        if (pOuter != NULL)
+        {
+            pOuter->bind(this);
+            pInner->notify_all();
+        }
+    }
+
+    void room_builder_ui::CtlKnobBinding::notify(CtlPort *port)
+    {
+        if (port == NULL)
+            return;
+
+        bool link = (pLink != NULL) ? pLink->get_value() >= 0.5f : false;
+        if (!link)
+            return;
+
+        if (port == pLink)
+            port = pOuter;
+
+        if ((port == pInner) && (pInner != NULL))
+        {
+            const port_t *meta = pInner->metadata();
+            float v = pInner->get_value();
+            if (bReverse)
+                v = meta->max - v;
+
+            if (pOuter->get_value() != v)
+            {
+                pOuter->set_value(v);
+                pOuter->notify_all();
+            }
+        }
+        else if ((port == pOuter) && (pOuter != NULL))
+        {
+            const port_t *meta = pOuter->metadata();
+            float v = pOuter->get_value();
+            if (bReverse)
+                v = meta->max - v;
+
+            if (pInner->get_value() != v)
+            {
+                pInner->set_value(v);
+                pInner->notify_all();
+            }
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    // Main class methods
+
     room_builder_ui::room_builder_ui(const plugin_metadata_t *mdata, void *root_widget):
         plugin_ui(mdata, root_widget),
-        sPresets(this)
+        sPresets(this),
+        sAbsorption(this, false),
+        sTransparency(this, true),
+        sDispersion(this, false),
+        sDiffuse(this, false)
     {
         nSelected       = -1;
     }
@@ -507,6 +597,11 @@ namespace lsp
         BIND_KVT_PORT("material/transparency/inner", fTransparency[1]);
         BIND_KVT_PORT("material/transparency/link", lnkTransparency);
         BIND_KVT_PORT("material/sound_speed", fSndSpeed);
+
+        sAbsorption.init("kvt:oabs", "kvt:iabs", "kvt:labs");
+        sTransparency.init("kvt:otransp", "kvt:itransp", "kvt:ltransp");
+        sDispersion.init("kvt:odisp", "kvt:idisp", "kvt:ldisp");
+        sDiffuse.init("kvt:odiff", "kvt:idiff", "kvt:ldiff");
 
         return STATUS_OK;
     }

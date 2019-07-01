@@ -84,7 +84,7 @@ namespace lsp
         static const float MAT_TRANSPARENCY_MIN     = 0.0f;
         static const float MAT_TRANSPARENCY_MAX     = 100.0f;
         static const float MAT_TRANSPARENCY_DFL     = 50.0f;
-        static const float MAT_TRANSPARENCY_STEP    = 0.01f;
+        static const float MAT_TRANSPARENCY_STEP    = 0.05f;
 
         static const float MAT_DISPERSION_MIN       = 0.01f;
         static const float MAT_DISPERSION_MAX       = 100.0f;

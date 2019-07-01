@@ -88,9 +88,32 @@ namespace lsp
                     static status_t slot_change(LSPWidget *sender, void *ptr, void *data);
             };
 
+            class CtlKnobBinding: public CtlPortListener
+            {
+                protected:
+                    room_builder_ui    *pUI;
+                    CtlPort            *pOuter;
+                    CtlPort            *pInner;
+                    CtlPort            *pLink;
+                    bool                bReverse;
+
+                public:
+                    explicit CtlKnobBinding(room_builder_ui *ui, bool reverse);
+                    virtual ~CtlKnobBinding();
+
+                    void init(const char *outer, const char *inner, const char *link);
+
+                public:
+                    virtual void notify(CtlPort *port);
+            };
+
         protected:
             ssize_t                 nSelected;
             CtlMaterialPreset       sPresets;
+            CtlKnobBinding          sAbsorption;
+            CtlKnobBinding          sTransparency;
+            CtlKnobBinding          sDispersion;
+            CtlKnobBinding          sDiffuse;
 
         public:
             explicit room_builder_ui(const plugin_metadata_t *mdata, void *root_widget);

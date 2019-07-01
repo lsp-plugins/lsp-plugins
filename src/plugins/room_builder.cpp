@@ -115,12 +115,12 @@ namespace lsp
             kvt_deploy(kvt, base, "material/absorption/outer", 2.0f, extra);
             kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
             kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/outer", 0.48f, extra);
+            kvt_deploy(kvt, base, "material/transparency/outer", 48.0f, extra);
 
             kvt_deploy(kvt, base, "material/absorption/inner", 0.0f, extra);
             kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, extra);
             kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/inner", 0.52f, extra);
+            kvt_deploy(kvt, base, "material/transparency/inner", 52.0f, extra);
 
             kvt_deploy(kvt, base, "material/absorption/link", 1.0f, extra);
             kvt_deploy(kvt, base, "material/dispersion/link", 1.0f, extra);

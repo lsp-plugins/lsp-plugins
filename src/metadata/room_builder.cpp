@@ -333,8 +333,8 @@ namespace lsp
         LOG_CONTROL("kvt:odiff", "Reflected wave outer diffusion", U_NONE, room_builder_base_metadata::MAT_DISPERSION),
         LOG_CONTROL("kvt:idiff", "Reflected wave inner diffusion", U_NONE, room_builder_base_metadata::MAT_DISPERSION),
         SWITCH("kvt:ldiff", "Link reflected wave inner diffusion parameters", 1.0f),
-        LOG_CONTROL("kvt:otransp", "Material outer transparency", U_NONE, room_builder_base_metadata::MAT_TRANSPARENCY),
-        LOG_CONTROL("kvt:itransp", "Material inner transparency", U_NONE, room_builder_base_metadata::MAT_TRANSPARENCY),
+        CONTROL("kvt:otransp", "Material outer transparency", U_NONE, room_builder_base_metadata::MAT_TRANSPARENCY),
+        CONTROL("kvt:itransp", "Material inner transparency", U_NONE, room_builder_base_metadata::MAT_TRANSPARENCY),
         SWITCH("kvt:ltransp", "Link material transparency parameters", 1.0f),
         CONTROL("kvt:speed", "Sound speed in material", U_MPS, room_builder_base_metadata::MAT_SOUND_SPEED)
     };
