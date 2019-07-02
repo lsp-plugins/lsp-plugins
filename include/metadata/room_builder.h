@@ -111,6 +111,11 @@ namespace lsp
         static const float BA_DFL                   = GAIN_AMP_0_DB;
         static const float BA_STEP                  = 0.0025f;
 
+        static const float THREADS_MIN              = 1;
+        static const float THREADS_MAX              = 0x10000;
+        static const float THREADS_DFL              = 1;
+        static const float THREADS_STEP             = 1;
+
         static const size_t EQ_BANDS                = 8;        // 8 bands for equalization
 
         enum fft_rank_t

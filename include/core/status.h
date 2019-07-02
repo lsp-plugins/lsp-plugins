@@ -17,6 +17,7 @@ namespace lsp
         STATUS_OK,
         STATUS_UNSPECIFIED,
         STATUS_LOADING,
+        STATUS_IN_PROCESS,
         STATUS_UNKNOWN_ERR,
         STATUS_NO_MEM,
         STATUS_NOT_FOUND,

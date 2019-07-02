@@ -52,6 +52,7 @@ namespace lsp
             "source3d",
             "switch",
             "text",
+            "threadcombo",
             "ttap",
             "value",
             "vbox",

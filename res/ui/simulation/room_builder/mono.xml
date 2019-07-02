@@ -445,13 +445,17 @@
 					<align hpos="-1"><label text="Progress" /></align>
 	
 					<align hpos="-1"><label text="OK" /></align>
-					<align hpos="-1"><combo width="64" /></align>
+					<align hpos="-1"><threadcombo id="threads" width="32" /></align>
 					<cell cols="2"><combo fill="true" /></cell>
 					
 					<cell rows="2">
-						<vbox>
+						<vbox visibility=":status ine 4">
 							<label text="Launch" />
-							<button size="32" />
+							<button id="render" led="true" color="green" size="32" />
+						</vbox>
+						<vbox visibility=":status ieq 4">
+							<label text="Stop" />
+							<button id="render" led="true" color="red" size="32" />
 						</vbox>
 					</cell>
 				</grid>

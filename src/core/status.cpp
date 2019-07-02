@@ -15,6 +15,7 @@ namespace lsp
         "Success",
         "Unspecified",
         "Loading",
+        "In process",
         "Unknown error",
         "Not enough memory",
         "Not found or does not exist",

@@ -74,6 +74,7 @@ namespace lsp
             WC_SOURCE3D,
             WC_SWITCH,
             WC_TEXT,
+            WC_THREADCOMBO,
             WC_TTAP,
             WC_VALUE,
             WC_VBOX,
@@ -316,5 +317,6 @@ namespace lsp
 #include <ui/ctl/CtlPortHandler.h>
 #include <ui/ctl/CtlConfigSource.h>
 #include <ui/ctl/CtlConfigHandler.h>
+#include <ui/ctl/CtlThreadComboBox.h>
 
 #endif /* UI_CTL_CTL_H_ */

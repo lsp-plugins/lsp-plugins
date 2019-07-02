@@ -278,6 +278,11 @@ namespace lsp
         nReconfigReq    = 0;
         nReconfigResp   = 0;
 
+        nRenderThreads  = 0;
+        enRenderStatus  = STATUS_OK;
+        fRenderProgress = 0.0f;
+        fRenderCmd      = 0.0f;
+
         nSceneStatus    = STATUS_UNSPECIFIED;
         fSceneProgress  = 0.0f;
 
@@ -287,6 +292,10 @@ namespace lsp
         pWet            = NULL;
         pOutGain        = NULL;
         pPredelay       = NULL;
+        pRenderThreads  = NULL;
+        pRenderStatus   = NULL;
+        pRenderProgress = NULL;
+        pRenderCmd      = NULL;
         p3DFile         = NULL;
         p3DStatus       = NULL;
         p3DProgress     = NULL;
@@ -475,6 +484,16 @@ namespace lsp
         pWet            = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pOutGain        = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pRenderThreads  = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRenderStatus   = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRenderProgress = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRenderCmd      = vPorts[port_id++];
+
         TRACE_PORT(vPorts[port_id]);
         p3DFile         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -675,6 +694,15 @@ namespace lsp
         sScale.dx           = pScaleX->getValue() * 0.01f;
         sScale.dy           = pScaleY->getValue() * 0.01f;
         sScale.dz           = pScaleZ->getValue() * 0.01f;
+        nRenderThreads      = pRenderThreads->getValue();
+
+        float old_cmd       = fRenderCmd;
+        fRenderCmd          = pRenderCmd->getValue();
+        if ((old_cmd >= 0.5f) && (fRenderCmd < 0.5f))
+        {
+            lsp_trace("Triggered render request");
+            // TODO: handle render request
+        }
 
         // Adjust volume of dry channel
         if (nInputs == 1)
@@ -925,6 +953,10 @@ namespace lsp
             p3DStatus->setValue(nSceneStatus);
         if (p3DProgress != NULL)
             p3DProgress->setValue(fSceneProgress);
+        if (pRenderStatus != NULL)
+            pRenderStatus->setValue(enRenderStatus);
+        if (pRenderProgress != NULL)
+            pRenderProgress->setValue(fRenderProgress);
     }
 
     void room_builder_base::sync_offline_tasks()

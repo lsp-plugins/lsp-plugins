@@ -235,6 +235,10 @@ namespace lsp
         DRY_GAIN(1.0f), \
         WET_GAIN(1.0f), \
         OUT_GAIN, \
+        CONTROL("threads", "Number of threads for processing", U_NONE, room_builder_base_metadata::THREADS), \
+        STATUS("status", "Render status"), \
+        OUT_PERCENTS("prog", "Rendering progress"), \
+        TRIGGER("render", "Launch/Stop rendering process"), \
         PATH("ifn", "Input 3D model file name"),    \
         STATUS("ifs", "Input 3D model load status"), \
         METER_PERCENT("ifp", "File loading progress"), \

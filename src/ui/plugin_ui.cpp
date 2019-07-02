@@ -639,6 +639,13 @@ namespace lsp
                 vWidgets.add(cbox);
                 return new CtlComboBox(this, cbox);
             }
+            case WC_THREADCOMBO:
+            {
+                LSPComboBox *cbox = new LSPComboBox(&sDisplay);
+                cbox->init();
+                vWidgets.add(cbox);
+                return new CtlThreadComboBox(this, cbox);
+            }
             case WC_EDIT:
             {
                 LSPEdit *edit = new LSPEdit(&sDisplay);

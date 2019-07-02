@@ -189,6 +189,10 @@ namespace lsp
             size_t                  nInputs;
             size_t                  nReconfigReq;
             size_t                  nReconfigResp;
+            ssize_t                 nRenderThreads;
+            status_t                enRenderStatus;
+            float                   fRenderProgress;
+            float                   fRenderCmd;
 
             input_t                 vInputs[2];
             channel_t               vChannels[2];
@@ -207,6 +211,10 @@ namespace lsp
             IPort                  *pRank;
             IPort                  *pDry;
             IPort                  *pWet;
+            IPort                  *pRenderThreads;
+            IPort                  *pRenderStatus;
+            IPort                  *pRenderProgress;
+            IPort                  *pRenderCmd;
             IPort                  *pOutGain;
             IPort                  *pPredelay;
             IPort                  *p3DFile;
