@@ -21,7 +21,7 @@
 
 namespace lsp
 {
-    static float band_freqs[] =
+    static const float band_freqs[] =
     {
         73.0f,
         156.0f,

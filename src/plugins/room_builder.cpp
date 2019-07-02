@@ -17,6 +17,17 @@
 
 namespace lsp
 {
+    static const float band_freqs[] =
+    {
+        73.0f,
+        156.0f,
+        332.0f,
+        707.0f,
+        1507.0f,
+        3213.0f,
+        6849.0f
+    };
+
     //-------------------------------------------------------------------------
     // 3D Scene loader
     room_builder_base::SceneLoader::~SceneLoader()
@@ -305,7 +316,7 @@ namespace lsp
 
         // Allocate memory
         size_t tmp_buf_size = TMP_BUF_SIZE * sizeof(float);
-        size_t alloc        = tmp_buf_size * (impulse_reverb_base_metadata::CONVOLVERS + 2);
+        size_t alloc        = tmp_buf_size * (room_builder_base_metadata::CONVOLVERS + 2);
         uint8_t *ptr        = alloc_aligned<uint8_t>(pData, alloc);
         if (pData == NULL)
             return;
@@ -327,9 +338,9 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
-            if (!c->sPlayer.init(impulse_reverb_base_metadata::FILES, 32))
+            if (!c->sPlayer.init(room_builder_base_metadata::CAPTURES, 32))
                 return;
-            if (!c->sEqualizer.init(impulse_reverb_base_metadata::EQ_BANDS + 2, CONV_RANK))
+            if (!c->sEqualizer.init(room_builder_base_metadata::EQ_BANDS + 2, CONV_RANK))
                 return;
             c->sEqualizer.set_mode(EQM_BYPASS);
 
@@ -444,6 +455,8 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);            // Skip view selector
         port_id++;
         TRACE_PORT(vPorts[port_id]);            // Skip editor selector
+        port_id++;
+        TRACE_PORT(vPorts[port_id]);            // Skip processor selector
         port_id++;
         TRACE_PORT(vPorts[port_id]);            // FFT rank
         pRank           = vPorts[port_id++];
@@ -575,6 +588,62 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             port_id++;          // Skip hue value
         }
+
+        // Bind convolver ports
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+        {
+            lsp_trace("Binding convolution #%d ports", int(i));
+            convolver_t *c  = &vConvolvers[i];
+
+            if (nInputs > 1)    // Input panning
+            {
+                TRACE_PORT(vPorts[port_id]);
+                c->pPanIn       = vPorts[port_id++];
+            }
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pSample      = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pTrack       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pMakeup      = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pMute        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pActivity    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pPredelay    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pPanOut      = vPorts[port_id++];
+        }
+
+        // Bind wet processing ports
+        lsp_trace("Binding wet processing ports");
+        size_t port         = port_id;
+        for (size_t i=0; i<2; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pWetEq           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pLowCut          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pLowFreq         = vPorts[port_id++];
+
+            for (size_t j=0; j<room_builder_base_metadata::EQ_BANDS; ++j)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                c->pFreqGain[j]     = vPorts[port_id++];
+            }
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pHighCut         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pHighFreq        = vPorts[port_id++];
+
+            port_id         = port;
+        }
     }
 
     void room_builder_base::destroy()
@@ -669,6 +738,111 @@ namespace lsp
             cap->fDistance      = cap->pDistance->getValue();
             cap->enDirection    = decode_direction(cap->pDirection->getValue());
             cap->enSide         = decode_side_direction(cap->pSide->getValue());
+        }
+
+        // Adjust channel setup
+        for (size_t i=0; i<2; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+            c->sBypass.set_bypass(bypass);
+            c->sPlayer.set_gain(out_gain);
+
+            // Update equalization parameters
+            Equalizer *eq               = &c->sEqualizer;
+            equalizer_mode_t eq_mode    = (c->pWetEq->getValue() >= 0.5f) ? EQM_IIR : EQM_BYPASS;
+            eq->set_mode(eq_mode);
+
+            if (eq_mode != EQM_BYPASS)
+            {
+                filter_params_t fp;
+                size_t band     = 0;
+
+                // Set-up parametric equalizer
+                while (band < room_builder_base_metadata::EQ_BANDS)
+                {
+                    if (band == 0)
+                    {
+                        fp.fFreq        = band_freqs[band];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = FLT_MT_LRX_LOSHELF;
+                    }
+                    else if (band == (room_builder_base_metadata::EQ_BANDS - 1))
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = FLT_MT_LRX_HISHELF;
+                    }
+                    else
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = band_freqs[band];
+                        fp.nType        = FLT_MT_LRX_LADDERPASS;
+                    }
+
+                    fp.fGain        = c->pFreqGain[band]->getValue();
+                    fp.nSlope       = 2;
+                    fp.fQuality     = 0.0f;
+
+                    // Update filter parameters
+                    eq->set_params(band++, &fp);
+                }
+
+                // Setup hi-pass filter
+                size_t hp_slope = c->pLowCut->getValue() * 2;
+                fp.nType        = (hp_slope > 0) ? FLT_BT_BWC_HIPASS : FLT_NONE;
+                fp.fFreq        = c->pLowFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = hp_slope;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+
+                // Setup low-pass filter
+                size_t lp_slope = c->pHighCut->getValue() * 2;
+                fp.nType        = (lp_slope > 0) ? FLT_BT_BWC_LOPASS : FLT_NONE;
+                fp.fFreq        = c->pHighFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = lp_slope;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+            }
+        }
+
+        // Apply panning to each convolver
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+        {
+            convolver_t *cv         = &vConvolvers[i];
+            float makeup            = cv->pMakeup->getValue() * wet_gain;
+            if (nInputs == 1)
+            {
+                cv->fPanIn[0]       = 1.0f;
+                cv->fPanIn[1]       = 0.0f;
+            }
+            else
+            {
+                float pan           = cv->pPanIn->getValue();
+                cv->fPanIn[0]       = (100.0f - pan) * 0.005f;
+                cv->fPanIn[1]       = (100.0f + pan) * 0.005f;
+            }
+
+            float pan           = cv->pPanOut->getValue();
+            cv->fPanOut[0]      = (100.0f - pan) * 0.005f * makeup;
+            cv->fPanOut[1]      = (100.0f + pan) * 0.005f * makeup;
+
+            // Set pre-delay
+            cv->sDelay.set_delay(millis_to_samples(fSampleRate, predelay + cv->pPredelay->getValue()));
+
+            // Analyze source
+            size_t file         = (cv->pMute->getValue() < 0.5f) ? cv->pSample->getValue() : 0;
+            size_t track        = cv->pTrack->getValue();
+            if ((file != cv->nFileReq) || (track != cv->nTrackReq) || (rank != cv->nRankReq))
+            {
+                nReconfigReq        ++;
+                cv->nFileReq        = file;
+                cv->nTrackReq       = track;
+                cv->nRankReq        = rank;
+            }
         }
     }
 

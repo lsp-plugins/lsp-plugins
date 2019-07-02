@@ -69,8 +69,8 @@ namespace lsp
                 IPort          *pMakeup;        // Makeup gain of convolver
                 IPort          *pPanIn;         // Input panning of convolver
                 IPort          *pPanOut;        // Output panning of convolver
-                IPort          *pFile;          // Convolver source file
-                IPort          *pTrack;         // Convolver source file track
+                IPort          *pSample;        // Convolver source sample
+                IPort          *pTrack;         // Convolver source sample track
                 IPort          *pPredelay;      // Pre-delay
                 IPort          *pMute;          // Mute button
                 IPort          *pActivity;      // Activity indicator

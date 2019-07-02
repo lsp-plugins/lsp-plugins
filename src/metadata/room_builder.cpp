@@ -38,12 +38,49 @@ namespace lsp
         NULL
     };
 
+    static const char *rb_samples[] =
+    {
+        "None",
+        "Sample 0",
+        "Sample 1",
+        "Sample 2",
+        "Sample 3",
+        "Sample 4",
+        "Sample 5",
+        "Sample 6",
+        "Sample 7",
+        NULL
+    };
+
+    static const char *rb_tracks[] =
+    {
+        "Track 1",
+        "Track 2",
+        NULL
+    };
+
+    static const char *filter_slope[] =
+    {
+        "off",
+        "6dB/oct",
+        "12dB/oct",
+        "18dB/oct",
+        NULL
+    };
+
     static const char *rb_editor[] =
     {
         "Source editor",
         "Capture editor",
         "Object editor",
         "Material editor",
+        NULL
+    };
+
+    static const char *rb_processors[] =
+    {
+        "Convolvers",
+        "Wet Equalizer",
         NULL
     };
 
@@ -190,6 +227,7 @@ namespace lsp
         BYPASS, \
         COMBO("view", "Current view", 0, rb_view),              \
         COMBO("editor", "Current editor", 0, rb_editor),        \
+        COMBO("signal", "Current signal processor", 0, rb_processors),  \
         COMBO("fft", "FFT size", room_builder_base_metadata::FFT_RANK_DEFAULT, rb_fft_rank), \
         CONTROL("pd", "Pre-delay", U_MSEC, room_builder_base_metadata::PREDELAY), \
         pan, \
@@ -248,6 +286,37 @@ namespace lsp
         COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction), \
         { "sch" id, "Capture " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 
+    #define RB_CONVOLVER_MONO(id, label, track, mix) \
+        COMBO("csf" id, "Channel source sample" label, 0, rb_samples), \
+        COMBO("cst" id, "Channel source track" label, track, rb_tracks), \
+        AMP_GAIN100("mk" id, "Makeup gain" label, 1.0f), \
+        SWITCH("cam" id, "Channel mute" label, 0.0f), \
+        BLINK("ca" id, "Channel activity" label), \
+        CONTROL("pd" id, "Channel pre-delay" label, U_MSEC, impulse_reverb_base_metadata::PREDELAY), \
+        PAN_CTL("com" id, "Channel Left/Right output mix" label, mix)
+
+    #define RB_CONVOLVER_STEREO(id, label, track, in_mix, out_mix) \
+        PAN_CTL("cim" id, "Left/Right input mix" label, in_mix), \
+        RB_CONVOLVER_MONO(id, label, track, out_mix)
+
+    #define RB_EQ_BAND(id, freq)    \
+        CONTROL("eq_" #id, "Band " freq "Hz gain", U_GAIN_AMP, room_builder_base_metadata::BA)
+
+    #define RB_EQUALIZER    \
+        SWITCH("wpp", "Wet post-process", 0),    \
+        COMBO("lcm", "Low-cut mode", 0, filter_slope),      \
+        CONTROL("lcf", "Low-cut frequency", U_HZ, room_builder_base_metadata::LCF),   \
+        RB_EQ_BAND(0, "50"), \
+        RB_EQ_BAND(1, "107"), \
+        RB_EQ_BAND(2, "227"), \
+        RB_EQ_BAND(3, "484"), \
+        RB_EQ_BAND(4, "1 k"), \
+        RB_EQ_BAND(5, "2.2 k"), \
+        RB_EQ_BAND(6, "4.7 k"), \
+        RB_EQ_BAND(7, "10 k"), \
+        COMBO("hcm", "High-cut mode", 0, filter_slope),      \
+        CONTROL("hcf", "High-cut frequency", U_HZ, room_builder_base_metadata::HCF)
+
     static const port_t room_builder_mono_ports[] =
     {
         // Input audio ports
@@ -275,6 +344,13 @@ namespace lsp
         RB_CAPTURE("_5", "5", 5, 8, 0),
         RB_CAPTURE("_6", "6", 6, 8, 0),
         RB_CAPTURE("_7", "7", 7, 8, 0),
+
+        RB_CONVOLVER_MONO("0", " 0", 0, -100.0f),
+        RB_CONVOLVER_MONO("1", " 1", 1, +100.0f),
+        RB_CONVOLVER_MONO("2", " 2", 0, -100.0f),
+        RB_CONVOLVER_MONO("3", " 3", 1, +100.0f),
+
+        RB_EQUALIZER,
 
         PORTS_END
     };
@@ -304,6 +380,13 @@ namespace lsp
         RB_CAPTURE("_5", "5", 5, 8, 0),
         RB_CAPTURE("_6", "6", 6, 8, 0),
         RB_CAPTURE("_7", "7", 7, 8, 0),
+
+        RB_CONVOLVER_STEREO("0", " 0", 0, -100.0f, -100.0f),
+        RB_CONVOLVER_STEREO("1", " 1", 1, -100.0f, +100.0f),
+        RB_CONVOLVER_STEREO("2", " 2", 2, +100.0f, -100.0f),
+        RB_CONVOLVER_STEREO("3", " 3", 3, +100.0f, +100.0f),
+
+        RB_EQUALIZER,
 
         PORTS_END
     };
@@ -344,7 +427,7 @@ namespace lsp
         { "Alder",          5060.0f,    6.0f    },
         { "Aluminum",       5080.0f,    0.0f    },
         { "Ash",            5065.0f,    6.0f    },
-        { "Basalt fiber",   340.29f,    95.0f   },
+        { "Basalt Fiber",   340.29f,    95.0f   },
         { "Birch",          3625.0f,    8.0f    },
         { "Brass",          3490.0f,    0.0f    },
         { "Brick",          3600.0f,    3.2f    },
@@ -356,7 +439,7 @@ namespace lsp
         { "Fiberboard",     340.29f,    70.0f   },
         { "Fiberglass",     340.29f,    75.0f   },
         { "Fir",            4600.0f,    6.0f    },
-        { "Fresh water",    1493.0f,    0.0f    },
+        { "Fresh Water",    1493.0f,    0.0f    },
         { "Glass",          5370.0f,    3.0f    },
         { "Granite",        3950.0f,    1.5f    },
         { "Gypsum",         4970.0f,    6.2f    },
@@ -365,9 +448,9 @@ namespace lsp
         { "Lead",           1200.0f,    0.2f    },
         { "Maple",          4450.0f,    6.0f    },
         { "Marble",         6150.0f,    1.3f    },
-        { "Mineral wool",   340.29f,    87.0f   },
+        { "Mineral Wool",   340.29f,    87.0f   },
         { "Nickel",         4785.0f,    0.0f    },
-        { "Nickel silver",  3580.0f,    0.0f    },
+        { "Nickel Silver",  3580.0f,    0.0f    },
         { "Oak",            4050.0f,    7.0f    },
         { "Pine",           5030.0f,    6.0f    },
         { "Plexiglass",     2670.0f,    15.0f   },

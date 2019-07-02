@@ -1,98 +1,99 @@
 <plugin resizable="false">
-	<hbox spacing="4">
-		<!-- IR editor -->
-		<cgroup id="view">
-			<vbox spacing="2">
-				<align hpos="-1">
-					<hbox spacing="4">
-						<vbox>
-							<align hpos="-1"><label text="Room orientation:" /></align>
-							<align hpos="-1"><combo id="ifo" /></align>
-						</vbox>
-						<vsep />
+	<vbox spacing="4">
+		<hbox spacing="4">
+			<!-- IR editor -->
+			<cgroup id="view">
+				<vbox spacing="2">
+					<align hpos="-1">
+						<hbox spacing="4">
+							<vbox>
+								<align hpos="-1"><label text="Room orientation:" /></align>
+								<align hpos="-1"><combo id="ifo" /></align>
+							</vbox>
+							<vsep />
+							
+							<knob id="xscale" scale_color="red" size="16" />
+							<vbox>
+								<align hpos="-1"><label text="Sz X:" /></align>
+								<align hpos="-1"><value id="xscale" same_line="true" /></align>
+							</vbox>
+							
+							<knob id="yscale" scale_color="green"  size="16" />
+							<vbox>
+								<align hpos="-1"><label text="Sz Y:" /></align>
+								<align hpos="-1"><value id="yscale" same_line="true" /></align>
+							</vbox>
+							
+							<knob id="zscale" scale_color="blue" size="16" />
+							<vbox>
+								<align hpos="-1"><label text="Sz Z:" /></align>
+								<align hpos="-1"><value id="zscale" same_line="true" /></align>
+							</vbox>
+						</hbox>
+					</align>
+				
+					<viewer3d
+						id="ifn"
+						width="320" height="200" fov="70"
+						orientation_id="ifo" status_id="ifs"
+						xscale_id="xscale" yscale_id="yscale" zscale_id="zscale"
+						xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
+						yaw_id="cyaw" pitch_id="cpitch"
+						kvt_root="/scene/object/"
+					>
+						<ui:for id="i" first="0" last="7" >
+							<source3d
+								visibility=":sse_${i}" 
+								mode_id="sscf_${i}"
+								hue_id="ssh_${i}" hue_shift="0.1"
+								xpos_id="sspx_${i}" ypos_id="sspy_${i}" zpos_id="sspz_${i}"
+								yaw_id="ssay_${i}" pitch_id="ssap_${i}" roll_id="ssar_${i}"
+								size_id="sss_${i}" angle_id="ssa_${i}" height_id="shh_${i}" curvature_id="sscv_${i}"
+							/>
+						</ui:for>
 						
-						<knob id="xscale" scale_color="red" size="16" />
-						<vbox>
-							<align hpos="-1"><label text="Sz X:" /></align>
-							<align hpos="-1"><value id="xscale" same_line="true" /></align>
-						</vbox>
+						<ui:for id="i" first="0" last="7" >
+							<capture3d
+								visibility=":sce_${i}" 
+								mode_id="sccf_${i}"
+								hue_id="sch_${i}" hue_shift="0.1"
+								xpos_id="scpx_${i}" ypos_id="scpy_${i}" zpos_id="scpz_${i}"
+								yaw_id="scay_${i}" pitch_id="scap_${i}" roll_id="scar_${i}"
+								size_id="sccs_${i}" angle_id="sca_${i}" distance_id="scab_${i}"
+							/>
+						</ui:for>
+					</viewer3d>
+					<!--  yaw_id="cyaw" pitch_id="cpitch" -->
+					<grid rows="4" cols="7">
+						<label text="3D model" />
+						<cell rows="4"><vsep /></cell>
+						<cell cols="5"><label text="Camera" /></cell>
 						
-						<knob id="yscale" scale_color="green"  size="16" />
-						<vbox>
-							<align hpos="-1"><label text="Sz Y:" /></align>
-							<align hpos="-1"><value id="yscale" same_line="true" /></align>
-						</vbox>
+						<cell rows="3">
+							<load size="48" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
+						</cell>
 						
-						<knob id="zscale" scale_color="blue" size="16" />
-						<vbox>
-							<align hpos="-1"><label text="Sz Z:" /></align>
-							<align hpos="-1"><value id="zscale" same_line="true" /></align>
-						</vbox>
-					</hbox>
-				</align>
-			
-				<viewer3d
-					id="ifn"
-					width="320" height="200" fov="70"
-					orientation_id="ifo" status_id="ifs"
-					xscale_id="xscale" yscale_id="yscale" zscale_id="zscale"
-					xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
-					yaw_id="cyaw" pitch_id="cpitch"
-					kvt_root="/scene/object/"
-				>
-					<ui:for id="i" first="0" last="7" >
-						<source3d
-							visibility=":sse_${i}" 
-							mode_id="sscf_${i}"
-							hue_id="ssh_${i}" hue_shift="0.1"
-							xpos_id="sspx_${i}" ypos_id="sspy_${i}" zpos_id="sspz_${i}"
-							yaw_id="ssay_${i}" pitch_id="ssap_${i}" roll_id="ssar_${i}"
-							size_id="sss_${i}" angle_id="ssa_${i}" height_id="shh_${i}" curvature_id="sscv_${i}"
-						/>
-					</ui:for>
-					
-					<ui:for id="i" first="0" last="7" >
-						<capture3d
-							visibility=":sce_${i}" 
-							mode_id="sccf_${i}"
-							hue_id="sch_${i}" hue_shift="0.1"
-							xpos_id="scpx_${i}" ypos_id="scpy_${i}" zpos_id="scpz_${i}"
-							yaw_id="scay_${i}" pitch_id="scap_${i}" roll_id="scar_${i}"
-							size_id="sccs_${i}" angle_id="sca_${i}" distance_id="scab_${i}"
-						/>
-					</ui:for>
-				</viewer3d>
-				<!--  yaw_id="cyaw" pitch_id="cpitch" -->
-				<grid rows="4" cols="7">
-					<label text="3D model" />
-					<cell rows="4"><vsep /></cell>
-					<cell cols="5"><label text="Camera" /></cell>
-					
-					<cell rows="3">
-						<load size="48" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
-					</cell>
-					
-					<label text="X Axis" />
-					<label text="Y Axis" />
-					<label text="Z Axis" />
-					<label text="Yaw" />
-					<label text="Pitch" />
-					
-					<knob id="cposx" size="24" scale_color="red" />
-					<knob id="cposy" size="24" scale_color="green" />
-					<knob id="cposz" size="24" scale_color="blue" />
-					<knob id="cyaw" size="24" />
-					<knob id="cpitch" size="24" />
-					
-					<value id="cposx" same_line="true" />
-					<value id="cposy" same_line="true" />
-					<value id="cposz" same_line="true" />
-					<value id="cyaw" same_line="true" />
-					<value id="cpitch" same_line="true" />
-				</grid>
-			</vbox>
-		</cgroup>
-		<cgroup id="editor">
+						<label text="X Axis" />
+						<label text="Y Axis" />
+						<label text="Z Axis" />
+						<label text="Yaw" />
+						<label text="Pitch" />
+						
+						<knob id="cposx" size="24" scale_color="red" />
+						<knob id="cposy" size="24" scale_color="green" />
+						<knob id="cposz" size="24" scale_color="blue" />
+						<knob id="cyaw" size="24" />
+						<knob id="cpitch" size="24" />
+						
+						<value id="cposx" same_line="true" />
+						<value id="cposy" same_line="true" />
+						<value id="cposz" same_line="true" />
+						<value id="cyaw" same_line="true" />
+						<value id="cpitch" same_line="true" />
+					</grid>
+				</vbox>
+			</cgroup>
+			<cgroup id="editor">
 			<!-- Source editor -->
 			<align vpos="-1">
 				<vbox spacing="2">
@@ -432,5 +433,114 @@
 				</vbox>
 			</align>			
 		</cgroup>
-	</hbox>
+		</hbox>
+	
+		<!-- IR routing -->
+		<cgroup id="signal">
+			<!-- Processors -->
+			<hbox>
+				<grid rows="5" cols="5" expand="true">
+					<label text="#" />
+					<label text="Pre-delay" />
+					<label text="Source" />
+					<label text="Makeup" />
+					<label text="Out L/R" />
+					
+					<ui:for id="i" first="0" last="1">
+						<label text="${i}" />
+						<knob id="pd${i}" size="20" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
+						<knob id="mk${i}" size="20" />
+						<knob id="com${i}" size="20" />
+						
+						<label />
+						<value id="pd${i}" same_line="true" />
+						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
+							<led id="ca${i}" />
+							<label text="Active" />
+						</hbox>
+						<value id="mk${i}" same_line="true" />
+						<value id="com${i}" same_line="true" />
+					</ui:for>
+				</grid>
+				<vsep />
+				<grid rows="5" cols="5" expand="true">
+					<label text="#" />
+					<label text="Pre-delay" />
+					<label text="Source" />
+					<label text="Makeup" />
+					<label text="Out L/R" />
+					
+					<ui:for id="i" first="2" last="3">
+						<label text="${i}" />
+						<knob id="pd${i}" size="20" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
+						<knob id="mk${i}" size="20" />
+						<knob id="com${i}" size="20" />
+						
+						<label />
+						<value id="pd${i}" same_line="true" />
+						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
+							<led id="ca${i}" />
+							<label text="Active" />
+						</hbox>
+						<value id="mk${i}" same_line="true" />
+						<value id="com${i}" same_line="true" />
+					</ui:for>
+				</grid>
+			</hbox>
+			
+			<!-- Equalizer -->
+			<grid rows="5" cols="10">
+				<label text="Low-cut" />
+				<label text="50" />
+				<label text="107" />
+				<label text="227" />
+				<label text="484" />
+				<label text="1k" />
+				<label text="2.2k" />
+				<label text="4.7k" />
+				<label text="10k" />
+				<label text="High-cut" />
+				
+				<combo id="lcm" />
+				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_1" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_2" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_3" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_4" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_5" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_6" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
+				<combo id="hcm" />
+				
+				<label text="Freq" />
+				<label text="Freq" />
+				
+				<knob id="lcf" logarithmic="true" />
+				<knob id="hcf" logarithmic="true" />
+				
+				<value id="lcf" />
+				<value id="eq_0" />
+				<value id="eq_1" />
+				<value id="eq_2" />
+				<value id="eq_3" />
+				<value id="eq_4" />
+				<value id="eq_5" />
+				<value id="eq_6" />
+				<value id="eq_7" />
+				<value id="hcf" />
+			</grid>
+		</cgroup>
+	</vbox>
 </plugin>
