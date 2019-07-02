@@ -112,12 +112,12 @@ namespace lsp
             kvt_deploy(kvt, base, "scale/z", 100.0f, extra);
             kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), extra);
 
-            kvt_deploy(kvt, base, "material/absorption/outer", 2.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/outer", 1.5f, extra); // Absorption of concrete material
             kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
             kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, extra);
             kvt_deploy(kvt, base, "material/transparency/outer", 48.0f, extra);
 
-            kvt_deploy(kvt, base, "material/absorption/inner", 0.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/inner", 1.5f, extra);
             kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, extra);
             kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, extra);
             kvt_deploy(kvt, base, "material/transparency/inner", 52.0f, extra);
@@ -127,7 +127,7 @@ namespace lsp
             kvt_deploy(kvt, base, "material/diffusion/link", 1.0f, extra);
             kvt_deploy(kvt, base, "material/transparency/link", 1.0f, extra);
 
-            kvt_deploy(kvt, base, "material/sound_speed", 12.88f * SOUND_SPEED_M_S, extra);
+            kvt_deploy(kvt, base, "material/sound_speed", 4250.0f, extra);  // Sound speed in concrete material
         }
 
         // Test
