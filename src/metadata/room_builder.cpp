@@ -79,6 +79,7 @@ namespace lsp
 
     static const char *rb_processors[] =
     {
+        "Rendering",
         "Convolvers",
         "Wet Equalizer",
         NULL
