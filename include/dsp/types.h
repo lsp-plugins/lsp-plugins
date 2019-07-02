@@ -52,7 +52,7 @@
     #define ARCH_AARCH64
 #elif defined(__arm__)
     #define ARCH_ARM
-#elif defined(__PPC64__) || defined(__LP64__) || defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__)
+#elif defined(__PPC64__) || defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__)
     #define ARCH_PPC64
 #elif defined(__PPC__) || defined(__ppc__) || defined(__powerpc__) || defined(__ppc)
     #define ARCH_PPC
@@ -179,8 +179,8 @@
     #define __IF_LE(le)
     #define __IF_BE(be)         be
 
-    #ifndef ARCH_LE
-        #define ARCH_LE
+    #ifdef ARCH_LE
+        #undef ARCH_LE
     #endif /* ARCH_LE */
 #else
     #warning "Could not detect endianess of the target architecture"

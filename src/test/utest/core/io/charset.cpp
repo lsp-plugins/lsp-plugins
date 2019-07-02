@@ -7,6 +7,7 @@
 
 #include <core/types.h>
 #include <test/utest.h>
+#include <test/helpers.h>
 #include <dsp/endian.h>
 
 #include <core/io/charset.h>

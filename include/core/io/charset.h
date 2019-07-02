@@ -196,7 +196,7 @@ namespace lsp
     inline lsp_utf32_t    *utf16be_to_utf32(const lsp_utf16_t *str) { return __IF_LEBE(utf16be_to_utf32le, utf16be_to_utf32be)(str); }
     inline lsp_utf32_t    *utf16_to_utf32le(const lsp_utf16_t *str) { return __IF_LEBE(utf16le_to_utf32le, utf16be_to_utf32le)(str); }
     inline lsp_utf32_t    *utf16_to_utf32be(const lsp_utf16_t *str) { return __IF_LEBE(utf16le_to_utf32be, utf16be_to_utf32be)(str); }
-    inline lsp_utf32_t    *utf16_to_utf32(const lsp_utf16_t *str) { return __IF_LEBE(utf16le_to_utf32le, utf16le_to_utf32le)(str); }
+    inline lsp_utf32_t    *utf16_to_utf32(const lsp_utf16_t *str) { return __IF_LEBE(utf16le_to_utf32le, utf16be_to_utf32be)(str); }
 
     /**
      * Encode sequence of UTF-16 characters into sequence of UTF-32 characters
