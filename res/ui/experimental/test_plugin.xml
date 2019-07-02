@@ -67,8 +67,9 @@
 		</group>
 		<group text="Meters">
 			<hbox>
-				<vbox>
+				<vbox spacing="2">
 					<listbox />
+					<progress value=":kn3" scale_hue_id="fbh1" />
 					<meter id="kn0" angle="0" activity=":sw1" />
 					<fader id="fd0" angle="0" />
 					<meter id="kn1" angle="2" activity=":sw2" />

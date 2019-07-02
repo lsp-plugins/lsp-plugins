@@ -446,7 +446,7 @@
 	
 					<align hpos="-1"><label text="OK" /></align>
 					<align hpos="-1"><threadcombo id="threads" width="32" /></align>
-					<cell cols="2"><combo fill="true" /></cell>
+					<cell cols="2"><progress id="prog" /></cell>
 					
 					<cell rows="2">
 						<vbox visibility=":status ine 4">

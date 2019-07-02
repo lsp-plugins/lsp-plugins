@@ -22,13 +22,19 @@ namespace lsp
                 float           fMin;
                 float           fMax;
                 float           fValue;
+                ssize_t         nMinWidth;
+                ssize_t         nMinHeight;
                 LSPString       sText;
-                Color           sBgColor;
                 LSPWidgetFont   sFont;
+                LSPColor        sBgColor;
+                LSPColor        sColor;
+                LSPColor        sSelColor;
 
             public:
                 explicit LSPProgressBar(LSPDisplay *dpy);
                 virtual ~LSPProgressBar();
+
+                virtual status_t        init();
 
             public:
                 /** Get font
@@ -48,12 +54,25 @@ namespace lsp
                  *
                  * @return background color
                  */
-                inline Color           *bg_color() { return &sBgColor; }
+                inline LSPColor        *bg_color()  { return &sBgColor;     }
+                inline LSPColor        *color()     { return &sColor;       }
+                inline LSPColor        *sel_color() { return &sSelColor;    }
+
+                inline float            get_min_value() const   { return fMin;      }
+                inline float            get_max_value() const   { return fMax;      }
+                inline float            get_value() const       { return fValue;    }
 
             public:
                 status_t                set_text(const char *text);
 
                 status_t                set_text(const LSPString *text);
+
+                bool                    set_min_value(const float v);
+                bool                    set_max_value(const float v);
+                bool                    set_value(const float v);
+
+                void                    set_min_width(ssize_t value);
+                void                    set_min_height(ssize_t value);
 
             public:
                 virtual void            draw(ISurface *s);

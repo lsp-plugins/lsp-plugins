@@ -706,6 +706,13 @@ namespace lsp
                 vWidgets.add(mtr);
                 return new CtlMeter(this, mtr);
             }
+            case WC_PROGRESS:
+            {
+                LSPProgressBar *bar = new LSPProgressBar(&sDisplay);
+                bar->init();
+                vWidgets.add(bar);
+                return new CtlProgressBar(this, bar);
+            }
 
             // Separator
             case WC_HSEP:
