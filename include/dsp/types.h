@@ -44,22 +44,24 @@
 
 //-----------------------------------------------------------------------------
 // Detect build architecture
-#if defined(__x86_64__) || defined(__x86_64)
+#if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) || defined(_M_AMD64)
     #define ARCH_X86_64
 #elif defined(__i386__) || defined(__i386)
     #define ARCH_I386
 #elif defined(__aarch64__)
     #define ARCH_AARCH64
-#elif defined(__arm__)
+#elif defined(__arm__) || defined(__arm) || defined(_M_ARM) || defined(_ARM)
     #define ARCH_ARM
-#elif defined(__PPC64__) || defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__)
+#elif defined(__PPC64__) || defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__) || defined(_ARCH_PPC64)
     #define ARCH_PPC64
-#elif defined(__PPC__) || defined(__ppc__) || defined(__powerpc__) || defined(__ppc)
+#elif defined(__PPC__) || defined(__ppc__) || defined(__powerpc__) || defined(__ppc) || defined(_M_PPC) || defined(_ARCH_PPC)
     #define ARCH_PPC
 #elif defined(__s390x__) || defined(__s390__) || defined(__zarch__)
     #define ARCH_S390
-#else
-    #warning "Unsupported archtecture"
+#elif defined(__mips__) || defined(__mips) || defined(__MIPS__)
+    #define ARCH_MIPS
+#elif defined(__sparc__) || defined(__sparc)
+    #define ARCH_SPARC
 #endif
 
 //-----------------------------------------------------------------------------
@@ -167,6 +169,20 @@
     #define ARCH_STRING                 "S390"
 #endif /* defined(ARCH_PPC) */
 
+#if defined(ARCH_MIPS)
+    #define IF_ARCH_MIPS(...)           __VA_ARGS__
+    #define ARCH_MIPS_ASM(...)          __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "MIPS"
+#endif /* defined(ARCH_PPC) */
+
+#if defined(ARCH_SPARC)
+    #define IF_ARCH_SPARC(...)          __VA_ARGS__
+    #define ARCH_SPARC_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "SPARC"
+#endif /* defined(ARCH_PPC) */
+
 #if defined(ARCH_LE)
     #define __IF_LEBE(le, be)   le
     #define __IF_LE(le)         le
@@ -187,7 +203,7 @@
 #endif /* ARCH_LE */
 
 #ifndef ARCH_STRING
-    #define ARCH_STRING     "native"
+    #define ARCH_STRING                 "native"
 #endif /* ARCH_STRING */
 
 //-----------------------------------------------------------------------------
@@ -287,6 +303,26 @@
 #ifndef ARCH_AARCH64_ASM
     #define ARCH_AARCH64_ASM(...)
 #endif /* ARCH_AARCH64_ASM */
+
+#ifndef ARCH_PPC64_ASM
+    #define ARCH_PPC64_ASM(...)
+#endif /* ARCH_PPC64_ASM */
+
+#ifndef ARCH_PPC_ASM
+    #define ARCH_PPC_ASM(...)
+#endif /* ARCH_PPC_ASM */
+
+#ifndef ARCH_S390_ASM
+    #define ARCH_S390_ASM(...)
+#endif /* ARCH_S390_ASM */
+
+#ifndef ARCH_MIPS_ASM
+    #define ARCH_MIPS_ASM(...)
+#endif /* ARCH_MIPS_ASM */
+
+#ifndef ARCH_SPARC_ASM
+    #define ARCH_SPARC_ASM(...)
+#endif /* ARCH_SPARC_ASM */
 
 #define __ASM_ARG_TMP(var)                      __IF_32P("=&g"(var)) __IF_32NP("=&r"(var)) __IF_64("=&r"(var))
 #define __ASM_ARG_RW(var)                       __IF_32P("+g"(var))  __IF_32NP("+r"(var))  __IF_64("+r"(var))
@@ -420,6 +456,14 @@
 #ifndef IF_ARCH_S390
     #define IF_ARCH_S390(...)
 #endif /* IF_ARCH_S390 */
+
+#ifndef IF_ARCH_MIPS
+    #define IF_ARCH_MIPS(...)
+#endif /* IF_ARCH_MIPS */
+
+#ifndef IF_ARCH_SPARC
+    #define IF_ARCH_SPARC(...)
+#endif /* IF_ARCH_MIPS */
 
 //-----------------------------------------------------------------------------
 // Default platform
