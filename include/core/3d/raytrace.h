@@ -49,6 +49,20 @@ namespace lsp
         RT_CC_MS
     };
 
+    typedef struct room_source_config_t
+    {
+        point3d_t               sPos;       // Position in 3D space
+        float                   fYaw;       // Yaw angle (degrees)
+        float                   fPitch;     // Pitch angle (degrees)
+        float                   fRoll;      // Roll angle (degrees)
+        rt_audio_source_t       enType;     // Type of source
+        float                   fSize;      // Size/radius [m]
+        float                   fHeight;    // Height [m]
+        float                   fAngle;     // Dispersion angle [0..100] %
+        float                   fCurvature; // Additional curvature [0..100] %
+        float                   fAmplitude; // Initial amplitude of the signal
+    } room_source_config_t;
+
     // Source configuration
     typedef struct room_source_settings_t
     {
@@ -58,6 +72,7 @@ namespace lsp
         float                   height;     // Height [m]
         float                   angle;      // Dispersion angle [0..100] %
         float                   curvature;  // Additional curvature [0..100] %
+        float                   amplitude;  // Initial amplitude of the signal
     } room_source_settings_t;
 
     // Capture configuration
@@ -86,11 +101,21 @@ namespace lsp
 
     /**
      * Generate raytracing groups according to settings of the audio source
+     * The function does not apply transform matrix to the output
+     *
      * @param out raytracing groups
-     * @param cfg configuration
+     * @param cfg source configuration
      * @return status of operation
      */
-    status_t gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg);
+    status_t rt_gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg);
+
+    /**
+     * Configure source settings
+     * @param out source settings
+     * @param in source configuration
+     * @return status of operation
+     */
+    status_t rt_configure_source(room_source_settings_t *out, const room_source_config_t *in);
 
 }
 

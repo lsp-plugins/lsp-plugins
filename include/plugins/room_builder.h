@@ -103,24 +103,12 @@ namespace lsp
                 IPort                  *pPan;       // Panning
             } input_t;
 
-            typedef struct source_t
+            typedef struct source_t: public room_source_config_t
             {
                 bool                    bEnabled;
-                rt_audio_source_t       enType;
-                bool                    bPhase;
-                size_t                  nChannel;
-                point3d_t               sPos;
-                float                   fYaw;
-                float                   fPitch;
-                float                   fRoll;
-                float                   fSize;
-                float                   fHeight;
-                float                   fAngle;
-                float                   fCurvature;
 
                 IPort                  *pEnabled;
                 IPort                  *pType;
-                IPort                  *pChannel;
                 IPort                  *pPhase;
                 IPort                  *pPosX;
                 IPort                  *pPosY;
@@ -160,6 +148,12 @@ namespace lsp
                 IPort                  *pSide;
             } capture_t;
 
+            typedef struct sample_t
+            {
+                Sample                  sSample;
+                size_t                  nID;
+            } sample_t;
+
         protected:
             class SceneLoader: public ipc::ITask
             {
@@ -180,6 +174,18 @@ namespace lsp
 
                     void init(room_builder_base *base);
                     void destroy();
+
+                public:
+                    virtual status_t run();
+            };
+
+            class RenderLauncher: public ipc::ITask
+            {
+                public:
+                    room_builder_base  *pBuilder;
+
+                public:
+                    inline RenderLauncher(room_builder_base *builder): pBuilder(builder) {}
 
                 public:
                     virtual status_t run();
@@ -231,6 +237,10 @@ namespace lsp
         protected:
             static size_t       get_fft_rank(size_t rank);
             void                sync_offline_tasks();
+            status_t            start_rendering();
+            status_t            bind_sources(RayTrace3D *rt);
+            status_t            bind_captures(cvector<sample_t> &samples, RayTrace3D *rt);
+            void                destroy_samples(cvector<sample_t> &samples);
 
         public:
             explicit room_builder_base(const plugin_metadata_t &metadata, size_t inputs);

@@ -46,6 +46,11 @@ namespace lsp
         sScene.destroy();
     }
 
+    status_t room_builder_base::RenderLauncher::run()
+    {
+        return pBuilder->start_rendering();
+    }
+
     template <class T>
         static bool kvt_deploy(KVTStorage *s, const char *base, const char *branch, T value, size_t flags)
         {
@@ -379,8 +384,6 @@ namespace lsp
 
             src->bEnabled       = false;
             src->enType         = RT_AS_TRIANGLE;
-            src->bPhase         = false;
-            src->nChannel       = 0;
             dsp::init_point_xyz(&src->sPos, 0.0f, -1.0f, 0.0f);
             src->fYaw           = 0.0f;
             src->fPitch         = 0.0f;
@@ -389,10 +392,10 @@ namespace lsp
             src->fHeight        = 0.0f;
             src->fAngle         = 0.0f;
             src->fCurvature     = 1.0f;
+            src->fAmplitude     = 1.0f;
 
             src->pEnabled       = NULL;
             src->pType          = NULL;
-            src->pChannel       = NULL;
             src->pPhase         = NULL;
             src->pPosX          = NULL;
             src->pPosY          = NULL;
@@ -529,11 +532,6 @@ namespace lsp
         {
             source_t *src   = &vSources[i];
 
-            if (nInputs > 1)
-            {
-                TRACE_PORT(vPorts[port_id]);
-                src->pChannel          = vPorts[port_id++];
-            }
             TRACE_PORT(vPorts[port_id]);
             src->pEnabled       = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -730,8 +728,6 @@ namespace lsp
             source_t *src       = &vSources[i];
             src->bEnabled       = src->pEnabled->getValue() >= 0.5f;
             src->enType         = decode_source_type(src->pType->getValue());
-            src->bPhase         = src->pPhase->getValue() >= 0.5f;
-            src->nChannel       = (src->pChannel != NULL) ? src->pChannel->getValue() : 0;
             src->sPos.x         = src->pPosX->getValue();
             src->sPos.y         = src->pPosY->getValue();
             src->sPos.z         = src->pPosZ->getValue();
@@ -743,6 +739,7 @@ namespace lsp
             src->fHeight        = src->pHeight->getValue() * 0.01f; // cm -> m
             src->fAngle         = src->pAngle->getValue();
             src->fCurvature     = src->pCurvature->getValue();
+            src->fAmplitude     = (src->pPhase->getValue() >= 0.5f) ? 1.0f : -1.0f;
         }
 
         // Update capture settings
@@ -1082,6 +1079,139 @@ namespace lsp
             dsp::init_matrix3d_rotate_z(&m, a[i] * M_PI / 180.0f);
             dsp::apply_matrix3d_mm1(&out->pos[i], &m);
         }
+
+        return STATUS_OK;
+    }
+
+    status_t room_builder_base::bind_sources(RayTrace3D *rt)
+    {
+        size_t sources = 0;
+
+        for (size_t i=0; i<room_builder_base_metadata::SOURCES; ++i)
+        {
+            source_t *src = &vSources[i];
+            if (!src->bEnabled)
+                continue;
+
+
+
+            src->enType;
+        }
+    }
+
+    status_t room_builder_base::bind_captures(cvector<sample_t> &samples, RayTrace3D *rt)
+    {
+        size_t captures = 0;
+
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *cap = &vCaptures[i];
+            if (!cap->bEnabled)
+                continue;
+            else if ((cap->nRMax > 0) && (cap->nRMax < cap->nRMin)) // Validate nRMin and nRMax
+                continue;
+
+            // Configure capture
+            room_capture_settings_t cs;
+            status_t res = configure_capture(&cs, cap);
+            if (res != STATUS_OK)
+                return res;
+
+            // Create sample, add to list and initialize
+            sample_t *s = new sample_t();
+            if (s == NULL)
+                return STATUS_NO_MEM;
+            else if (!samples.add(s))
+            {
+                delete s;
+                return STATUS_NO_MEM;
+            }
+            s->nID  = i;
+            if (!s->sSample.init(cs.n, 512))
+                return STATUS_NO_MEM;
+
+            // Bind captures to samples
+            for (size_t i=0; i<cs.n; ++i)
+            {
+                ssize_t cap_id = rt->add_capture(&cs.pos[i], cs.type[i]);
+                if (cap_id < 0)
+                    return status_t(-cap_id);
+                ++captures;
+                res = rt->bind_capture(cap_id, &s->sSample, i, cap->nRMin, (cap->nRMax <= 0) ? -1 : cap->nRMax);
+                if (res != STATUS_OK)
+                    return res;
+            }
+        }
+
+        return (captures <= 0) ? STATUS_NO_CAPTURES : STATUS_OK;
+    }
+
+    void room_builder_base::destroy_samples(cvector<sample_t> &samples)
+    {
+        for (size_t i=0, n=samples.size(); i<n; ++i)
+        {
+            sample_t *s = samples.at(i);
+            if (s != NULL)
+            {
+                s->sSample.destroy();
+                delete s;
+            }
+        }
+        samples.flush();
+    }
+
+    status_t room_builder_base::start_rendering()
+    {
+        // Create raytracing object and initialize with basic values
+        RayTrace3D *rt = new RayTrace3D();
+        if (rt == NULL)
+            return STATUS_NO_MEM;
+
+        status_t res = rt->init();
+        if (res != STATUS_OK)
+        {
+            rt->destroy(false);
+            delete rt;
+            return res;
+        }
+
+        rt->set_sample_rate(fSampleRate);
+        rt->set_energy_threshold(1e-5f);
+        rt->set_tolerance(1e-5f);
+        rt->set_detalization(1e-9f);
+
+        // Bind sources
+        res = bind_sources(rt);
+        if (res != STATUS_OK)
+        {
+            rt->destroy(false);
+            delete rt;
+            return res;
+        }
+
+        // Bind captures
+        cvector<sample_t> samples;
+        res = bind_captures(samples, rt);
+        if (res != STATUS_OK)
+        {
+            destroy_samples(samples);
+            rt->destroy(false);
+            delete rt;
+            return res;
+        }
+
+        // Bind object attributes
+        KVTStorage *kvt = kvt_lock();
+        if (kvt == NULL)
+        {
+            rt->destroy(false);
+            delete rt;
+            return STATUS_NO_DATA;
+        }
+
+
+
+        kvt_release();
 
         return STATUS_OK;
     }

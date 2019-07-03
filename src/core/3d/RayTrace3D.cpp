@@ -213,62 +213,39 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::generate_tasks(cvector<rt_context_t> *tasks, float initial)
     {
+        status_t res;
+
         for (size_t i=0,n=trace->vSources.size(); i<n; ++i)
         {
-            source_t *src = trace->vSources.get(i);
+            room_source_settings_t *src = trace->vSources.get(i);
             if (src == NULL)
                 return STATUS_CORRUPTED;
 
-            // Generate/fetch object
-            Object3D *obj = NULL;
-            switch (src->type)
-            {
-                case RT_AS_TRIANGLE:
-                    obj     = factory.buildTriangle();
-                    break;
-                case RT_AS_ICOSPHERE:
-                    obj     = factory.buildIcosphere(0);
-                    break;
-            }
-
-            if (obj == NULL)
-                return STATUS_NO_MEM;
-
-            // Prepare transformation matrix
-            matrix3d_t tm;
-            dsp::calc_matrix3d_transform_r1(&tm, &src->position);
-
-            // Estimate area of the source surface and apply it as a denominator of initial energy
-            point3d_t p[3];
-            float area = 0.0f;
-
-            for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
-            {
-                obj_triangle_t *t   = obj->triangle(ti);
-                dsp::apply_matrix3d_mp2(&p[0], t->v[0], &tm);
-                dsp::apply_matrix3d_mp2(&p[1], t->v[1], &tm);
-                dsp::apply_matrix3d_mp2(&p[2], t->v[2], &tm);
-                area               += dsp::calc_area_pv(p);
-            }
-//            float e_norming     = initial * src->volume / sqrtf(area);
+            // Generate source mesh
+            cstorage<rt_group_t> groups;
+            res = rt_gen_source_mesh(groups, src);
+            if (res != STATUS_OK)
+                return res;
 
             // Generate sources
-            for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
-            {
-//                if (ti != 6) // TODO: DEBUG
-//                    continue;
+            matrix3d_t tm = src->pos;
 
-                obj_triangle_t *t   = obj->triangle(ti);
+            for (size_t ti=0, n=groups.size(); ti<n; ++ti)
+            {
+                rt_group_t *grp = groups.at(ti);
+                if (grp == NULL)
+                    continue;
+
                 rt_context_t *ctx   = new rt_context_t();
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
 
                 RT_TRACE(trace->pDebug, ctx->set_debug_context(trace->pDebug); )
 
-                ctx->view.s         = src->position.z;
-                dsp::apply_matrix3d_mp2(&ctx->view.p[0], t->v[0], &tm);
-                dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[2], &tm);
-                dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[1], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.s, &grp->s, &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[0], &grp->p[0], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[1], &grp->p[1], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[2], &grp->p[2], &tm);
 
                 ctx->state          = S_SCAN_OBJECTS;
                 ctx->view.location  = 1.0f;
@@ -276,8 +253,7 @@ namespace lsp
                 ctx->view.face      = -1;
                 ctx->view.speed     = SOUND_SPEED_M_S;
 
-                ctx->view.amplitude = 1.0f; //sqrtf(dsp::calc_area_pv(ctx->view.p)) * e_norming;
-//                ctx->view.energy    = dsp::calc_area_pv(ctx->view.p) * e_norming;
+                ctx->view.amplitude = src->amplitude;
                 ctx->view.time[0]   = 0.0f;
                 ctx->view.time[1]   = 0.0f;
                 ctx->view.time[2]   = 0.0f;
@@ -287,16 +263,16 @@ namespace lsp
                     delete ctx;
                     return STATUS_NO_MEM;
                 }
-            }
 
-            RT_TRACE_BREAK(trace->pDebug,
-                lsp_trace("Generated %d raytrace contexts for source %d", int(obj->num_triangles()), int(i));
-                for (size_t i=0, n=tasks->size(); i<n; ++i)
-                {
-                    rt_context_t *ctx = tasks->at(i);
-                    trace->pDebug->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
-                }
-            );
+                RT_TRACE_BREAK(trace->pDebug,
+                    lsp_trace("Generated %d raytrace contexts for source %d", int(groups.size()), int(i));
+                    for (size_t i=0, n=tasks->size(); i<n; ++i)
+                    {
+                        rt_context_t *ctx = tasks->at(i);
+                        trace->pDebug->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
+                    }
+                );
+            }
         }
 
         return STATUS_OK;
@@ -1539,17 +1515,16 @@ namespace lsp
         vCaptures.flush();
     }
 
-    status_t RayTrace3D::add_source(const ray3d_t *position, rt_audio_source_t type)
+    status_t RayTrace3D::add_source(const room_source_settings_t *settings)
     {
-        if (position == NULL)
-            return STATUS_NO_MEM;
+        if (settings == NULL)
+            return STATUS_BAD_ARGUMENTS;
 
-        source_t *src       = vSources.add();
+        room_source_settings_t *src = vSources.add();
         if (src == NULL)
             return STATUS_NO_MEM;
 
-        src->position       = *position;
-        src->type           = type;
+        *src        = *settings;
 
         return STATUS_OK;
     }

@@ -8,6 +8,7 @@
 #include <test/mtest.h>
 #include <test/mtest/3d/common/X11Renderer.h>
 #include <core/files/Model3DFile.h>
+#include <core/3d/raytrace.h>
 #include <core/3d/rt_context.h>
 #include <core/3d/RayTrace3D.h>
 
@@ -119,7 +120,7 @@ MTEST_BEGIN("3d", reflections)
 //                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, -1.0f); // 12" speaker source
 
                 dsp::init_point_xyz(&sSource.z, -1.0f, 0.0f, 0.0f);
-                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
+                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 1.0f);
                 dsp::init_point_xyz(&sCapture.z, 1.0f, 0.0f, 0.0f);
                 dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
             }
@@ -277,8 +278,16 @@ MTEST_BEGIN("3d", reflections)
 //                res     = trace->add_source(&sSource, RT_AS_TRIANGLE, 1.0f);
 //                if (res != STATUS_OK)
 //                    return res;
+                room_source_settings_t src;
+                dsp::calc_matrix3d_transform_r1(&src.pos, &sSource);
+                src.type        = RT_AS_ICOSPHERE;
+                src.size        = 0.3048f; // 12" speaker source
+                src.height      = 0.3048f;
+                src.angle       = 0.0f;
+                src.curvature   = 0.0f;
+                src.amplitude   = 1.0f;
 
-                res     = trace->add_source(&sSource, RT_AS_ICOSPHERE);
+                res     = trace->add_source(&src);
                 if (res != STATUS_OK)
                     return res;
                 res     = trace->add_capture(&sCapture, RT_AC_OMNI);

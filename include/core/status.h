@@ -65,6 +65,8 @@ namespace lsp
         STATUS_LOCKED,
         STATUS_REJECTED,
         STATUS_ALREADY_BOUND,
+        STATUS_NO_CAPTURES,
+        STATUS_NO_SOURCES,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

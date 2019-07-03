@@ -86,10 +86,16 @@ MTEST_BEGIN("core.3d", raytrace)
         MTEST_ASSERT(trace.set_scene(&scene, true) == STATUS_OK);
 
         // Add source
-        ray3d_t source;
-        dsp::init_point_xyz(&source.z, -1.0f, 0.0f, 0.0f);
-        dsp::init_vector_dxyz(&source.v, 0.3048f, 0.0f, 0.0f); // 12" speaker source
-        MTEST_ASSERT(trace.add_source(&source, RT_AS_ICOSPHERE) == STATUS_OK);
+        room_source_settings_t src;
+        dsp::init_matrix3d_identity(&src.pos);
+        src.type        = RT_AS_ICOSPHERE;
+        src.size        = 0.3048f; // 12" speaker source
+        src.height      = 0.3048f;
+        src.angle       = 0.0f;
+        src.curvature   = 0.0f;
+        src.amplitude   = 1.0f;
+
+        MTEST_ASSERT(trace.add_source(&src) == STATUS_OK);
 
         // Add capture
         ray3d_t cap_l, cap_r;

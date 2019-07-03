@@ -253,7 +253,7 @@ namespace lsp
         { "cpitch", "Camera Pitch angle", U_DEG, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -89.0f, 89.0f, -25.0f, 0.1f, NULL, NULL }
 
 
-    #define RB_SOURCE_MONO(id, label, x, total, ena) \
+    #define RB_SOURCE(id, label, x, total, ena) \
         SWITCH("sse" id, "Source " label " enable", ena), \
         COMBO("sscf" id, "Source " label " type", 4, rb_source_mode), \
         SWITCH("ssph" id, "Source " label " phase invert", 0), \
@@ -268,10 +268,6 @@ namespace lsp
         PERCENTS("ssa" id, "Source " label " angle", 50.0f, 0.025f), \
         PERCENTS("sscv" id, "Source " label " curvature", 100.0f, 0.05f), \
         { "ssh" id, "Source " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
-
-    #define RB_SOURCE_STEREO(id, label, x, total, ena, channel) \
-        COMBO("ssch" id, "Source " label " channel", channel, rb_channel_sel), \
-        RB_SOURCE_MONO(id, label, x, total, ena)
 
     #define RB_CAPTURE(id, label, x, total, ena) \
         SWITCH("sce" id, "Capture " label " enable", ena), \
@@ -331,14 +327,14 @@ namespace lsp
         RB_COMMON(RB_PAN_MONO),
 
         COMBO("ssel", "Source selector", 0, rb_ssel),
-        RB_SOURCE_MONO("_0", "0", 0, 8, 1),
-        RB_SOURCE_MONO("_1", "1", 1, 8, 0),
-        RB_SOURCE_MONO("_2", "2", 2, 8, 0),
-        RB_SOURCE_MONO("_3", "3", 3, 8, 0),
-        RB_SOURCE_MONO("_4", "4", 4, 8, 0),
-        RB_SOURCE_MONO("_5", "5", 5, 8, 0),
-        RB_SOURCE_MONO("_6", "6", 6, 8, 0),
-        RB_SOURCE_MONO("_7", "7", 7, 8, 0),
+        RB_SOURCE("_0", "0", 0, 8, 1),
+        RB_SOURCE("_1", "1", 1, 8, 0),
+        RB_SOURCE("_2", "2", 2, 8, 0),
+        RB_SOURCE("_3", "3", 3, 8, 0),
+        RB_SOURCE("_4", "4", 4, 8, 0),
+        RB_SOURCE("_5", "5", 5, 8, 0),
+        RB_SOURCE("_6", "6", 6, 8, 0),
+        RB_SOURCE("_7", "7", 7, 8, 0),
 
         COMBO("csel", "Capture selector", 0, rb_csel),
         RB_CAPTURE("_0", "0", 0, 8, 1),
@@ -367,14 +363,14 @@ namespace lsp
         RB_COMMON(RB_PAN_STEREO),
 
         COMBO("ssel", "Source selector", 0, rb_ssel),
-        RB_SOURCE_STEREO("_0", "0", 0, 8, 1, 0),
-        RB_SOURCE_STEREO("_1", "1", 1, 8, 1, 1),
-        RB_SOURCE_STEREO("_2", "2", 2, 8, 0, 0),
-        RB_SOURCE_STEREO("_3", "3", 3, 8, 0, 1),
-        RB_SOURCE_STEREO("_4", "4", 4, 8, 0, 0),
-        RB_SOURCE_STEREO("_5", "5", 5, 8, 0, 1),
-        RB_SOURCE_STEREO("_6", "6", 6, 8, 0, 0),
-        RB_SOURCE_STEREO("_7", "7", 7, 8, 0, 1),
+        RB_SOURCE("_0", "0", 0, 8, 1),
+        RB_SOURCE("_1", "1", 1, 8, 1),
+        RB_SOURCE("_2", "2", 2, 8, 0),
+        RB_SOURCE("_3", "3", 3, 8, 0),
+        RB_SOURCE("_4", "4", 4, 8, 0),
+        RB_SOURCE("_5", "5", 5, 8, 0),
+        RB_SOURCE("_6", "6", 6, 8, 0),
+        RB_SOURCE("_7", "7", 7, 8, 0),
 
         COMBO("csel", "Capture selector", 0, rb_csel),
         RB_CAPTURE("_0", "0", 0, 8, 1),

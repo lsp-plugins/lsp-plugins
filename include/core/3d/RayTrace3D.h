@@ -30,8 +30,8 @@ namespace lsp
         protected:
             typedef struct source_t
             {
-                ray3d_t             position;
-                rt_audio_source_t   type;
+                matrix3d_t              matrix;
+                room_source_settings_t  settings;
             } source_t;
 
             typedef struct sample_t
@@ -114,7 +114,7 @@ namespace lsp
 
         private:
             cstorage<rt_material_t>     vMaterials;
-            cstorage<source_t>          vSources;
+            cstorage<room_source_settings_t>    vSources;
             cvector<capture_t>          vCaptures;
             Scene3D                    *pScene;
             rt_progress_t               pProgress;
@@ -232,12 +232,10 @@ namespace lsp
 
             /**
              * Add audio source
-             * @param type audio source type
-             * @param position audio source position, direction and size
-             * @param volume audio source volume
+             * @param settings source settings
              * @return status of operation
              */
-            status_t add_source(const ray3d_t *position, rt_audio_source_t type);
+            status_t add_source(const room_source_settings_t *settings);
 
             /**
              * Add audio capture

@@ -63,6 +63,8 @@ namespace lsp
         "The object is currently locked",
         "The operation has been rejected",
         "Already bound",
+        "No valid captures",
+        "No valid sources",
 
         NULL
     };

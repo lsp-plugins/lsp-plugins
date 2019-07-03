@@ -648,7 +648,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t rt_gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
     {
         out.clear();
         switch (cfg->type)
@@ -667,6 +667,34 @@ namespace lsp
             case RT_AS_TRIANGLE:    return gen_triangle_source(out, cfg);
         }
         return STATUS_BAD_ARGUMENTS;
+    }
+
+    status_t rt_configure_source(room_source_settings_t *out, const room_source_config_t *in)
+    {
+        matrix3d_t delta, m;
+
+        // Compute position
+        dsp::init_matrix3d_translate_p1(&delta, &in->sPos);
+
+        dsp::init_matrix3d_rotate_z(&m, in->fYaw * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        dsp::init_matrix3d_rotate_y(&m, in->fPitch * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        dsp::init_matrix3d_rotate_x(&m, in->fRoll * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        // Store parameters
+        out->pos        = delta;
+        out->type       = in->enType;
+        out->size       = in->fSize;
+        out->height     = in->fHeight;
+        out->angle      = in->fAngle;
+        out->curvature  = in->fCurvature;
+        out->amplitude  = in->fAmplitude;
+
+        return STATUS_OK;
     }
 }
 
