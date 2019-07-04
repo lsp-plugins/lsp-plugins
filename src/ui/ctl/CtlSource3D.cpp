@@ -136,7 +136,7 @@ namespace lsp
             if (mesh == NULL)
                 return;
 
-            room_source_settings_t settings;
+            rt_source_settings_t settings;
             if (rt_configure_source(&settings, &sSource) != STATUS_OK)
                 return;
 
@@ -164,7 +164,7 @@ namespace lsp
             if (mesh == NULL)
                 return;
 
-            room_source_settings_t settings;
+            rt_source_settings_t settings;
             if (rt_configure_source(&settings, &sSource) != STATUS_OK)
                 return;
 

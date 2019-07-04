@@ -217,7 +217,7 @@ namespace lsp
 
         for (size_t i=0,n=trace->vSources.size(); i<n; ++i)
         {
-            room_source_settings_t *src = trace->vSources.get(i);
+            rt_source_settings_t *src = trace->vSources.get(i);
             if (src == NULL)
                 return STATUS_CORRUPTED;
 
@@ -354,12 +354,12 @@ namespace lsp
             if (cap == NULL)
                 return STATUS_BAD_STATE;
 
-            Object3D *obj       = factory.buildIcosphere(1);
+            Object3D *obj       = factory.buildIcosphere(1); // TODO: add radius analysis
             if (obj == NULL)
                 return STATUS_NO_MEM;
 
             // Add capture object to context
-            res     = root.add_object(obj, obj_id, &cap->matrix, &cap->material);
+            res     = root.add_object(obj, obj_id, &cap->pos, &cap->material);
             if (res != STATUS_OK)
                 return res;
         }
@@ -458,7 +458,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Add capture identifier to list of visible objects
-            res     =  check_object(ctx, obj, &cap->matrix);
+            res     =  check_object(ctx, obj, &cap->pos);
             if (res == STATUS_OK)
                 objs[n_objs++]      = obj_id;
             else if (res == STATUS_SKIP)
@@ -938,7 +938,7 @@ namespace lsp
         vector3d_t cv, pv;
         float afactor       = v->amplitude / sqrtf(v_area); // The norming energy factor
         dsp::unit_vector_p1pv(&cv, &v->s, v->p);
-        dsp::normalize_vector2(&pv, &capture->position.v);
+        dsp::normalize_vector2(&pv, &capture->direction);
         float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // -cos(a)
 
         // Analyze capture type
@@ -1235,10 +1235,11 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
 
-            dcap->matrix    = scap->matrix;
-            dcap->position  = scap->position;
-            dcap->material  = scap->material;
+            dcap->pos       = scap->pos;
+            dcap->direction = scap->direction;
+            dcap->radius    = scap->radius;
             dcap->type      = scap->type;
+            dcap->material  = scap->material;
 
             // Copy bindings
             for (size_t j=0; j<scap->bindings.size(); ++j)
@@ -1515,12 +1516,12 @@ namespace lsp
         vCaptures.flush();
     }
 
-    status_t RayTrace3D::add_source(const room_source_settings_t *settings)
+    status_t RayTrace3D::add_source(const rt_source_settings_t *settings)
     {
         if (settings == NULL)
             return STATUS_BAD_ARGUMENTS;
 
-        room_source_settings_t *src = vSources.add();
+        rt_source_settings_t *src = vSources.add();
         if (src == NULL)
             return STATUS_NO_MEM;
 
@@ -1529,8 +1530,11 @@ namespace lsp
         return STATUS_OK;
     }
 
-    ssize_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type)
+    ssize_t RayTrace3D::add_capture(const rt_capture_settings_t *settings)
     {
+        if (settings == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         capture_t *cap      = new capture_t();
         if (cap == NULL)
             return -STATUS_NO_MEM;
@@ -1542,58 +1546,24 @@ namespace lsp
             return -STATUS_NO_MEM;
         }
 
-        cap->position       = *position;
-        cap->type           = type;
+        cap->pos            = settings->pos;
+        dsp::init_vector_dxyz(&cap->direction, 1.0f, 0.0f, 0.0f);
+        cap->radius         = settings->radius;
+        cap->type           = settings->type;
 
-        dsp::calc_matrix3d_transform_r1(&cap->matrix, position);
-
-        // "Black hole"
-        rt_material_t *m    = &cap->material;
-        m->absorption[0]    = 1.0f;
-        m->diffusion[0]    = 1.0f;
-        m->dispersion[0]   = 1.0f;
-        m->transparency[0]  = 0.0f;
-
-        m->absorption[0]    = 1.0f;
-        m->diffusion[0]    = 1.0f;
-        m->dispersion[0]   = 1.0f;
-        m->transparency[0]  = 0.0f;
-
-        m->permeability     = 1.0f;
-
-        return idx;
-    }
-
-    ssize_t RayTrace3D::add_capture(const matrix3d_t *position, rt_audio_capture_t type)
-    {
-        capture_t *cap      = new capture_t();
-        if (cap == NULL)
-            return -STATUS_NO_MEM;
-
-        size_t idx          = vCaptures.size();
-        if (!vCaptures.add(cap))
-        {
-            delete cap;
-            return -STATUS_NO_MEM;
-        }
-
-        cap->type           = type;
-        cap->matrix     = *position;
-        dsp::init_point_xyz(&cap->position.z, 0.0f, 0.0f, 0.0f);
-        dsp::init_vector_dxyz(&cap->position.v, 1.0f, 0.0f, 0.0f);
-        dsp::apply_matrix3d_mp1(&cap->position.z, position);
-        dsp::apply_matrix3d_mv1(&cap->position.v, position);
+        dsp::apply_matrix3d_mv1(&cap->direction, &cap->pos);
+        dsp::normalize_vector(&cap->direction);
 
         // "Black hole"
         rt_material_t *m    = &cap->material;
         m->absorption[0]    = 1.0f;
-        m->diffusion[0]    = 1.0f;
-        m->dispersion[0]   = 1.0f;
+        m->diffusion[0]     = 1.0f;
+        m->dispersion[0]    = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->absorption[0]    = 1.0f;
-        m->diffusion[0]    = 1.0f;
-        m->dispersion[0]   = 1.0f;
+        m->diffusion[0]     = 1.0f;
+        m->dispersion[0]    = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->permeability     = 1.0f;

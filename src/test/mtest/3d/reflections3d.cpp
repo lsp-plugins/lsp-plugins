@@ -122,7 +122,7 @@ MTEST_BEGIN("3d", reflections)
                 dsp::init_point_xyz(&sSource.z, -1.0f, 0.0f, 0.0f);
                 dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 1.0f);
                 dsp::init_point_xyz(&sCapture.z, 1.0f, 0.0f, 0.0f);
-                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
+                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 1.0f); // 2" microphone diaphragm
             }
 
             virtual ~Renderer()
@@ -278,7 +278,7 @@ MTEST_BEGIN("3d", reflections)
 //                res     = trace->add_source(&sSource, RT_AS_TRIANGLE, 1.0f);
 //                if (res != STATUS_OK)
 //                    return res;
-                room_source_settings_t src;
+                rt_source_settings_t src;
                 dsp::calc_matrix3d_transform_r1(&src.pos, &sSource);
                 src.type        = RT_AS_ICOSPHERE;
                 src.size        = 0.3048f; // 12" speaker source
@@ -290,7 +290,13 @@ MTEST_BEGIN("3d", reflections)
                 res     = trace->add_source(&src);
                 if (res != STATUS_OK)
                     return res;
-                res     = trace->add_capture(&sCapture, RT_AC_OMNI);
+
+                rt_capture_settings_t cap;
+                dsp::calc_matrix3d_transform_r1(&cap.pos, &sCapture);
+                cap.type        = RT_AC_OMNI;
+                cap.radius      = 0.0508f;
+
+                res     = trace->add_capture(&cap);
                 if (res != STATUS_OK)
                     return res;
 

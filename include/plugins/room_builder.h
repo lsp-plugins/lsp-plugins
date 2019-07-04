@@ -260,7 +260,6 @@ namespace lsp
             static rt_audio_capture_t   decode_direction(float value);
             static rt_audio_capture_t   decode_side_direction(float value);
             static rt_audio_source_t    decode_source_type(float value);
-            static status_t             configure_capture(room_capture_settings_t *out, const room_capture_config_t *in);
 
             static void                 kvt_cleanup_objects(KVTStorage *kvt, size_t objects);
             static void                 read_object_properties(obj_props_t *props, const char *base, KVTStorage *kvt);

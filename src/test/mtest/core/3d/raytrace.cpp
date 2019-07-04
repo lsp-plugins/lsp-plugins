@@ -86,7 +86,7 @@ MTEST_BEGIN("core.3d", raytrace)
         MTEST_ASSERT(trace.set_scene(&scene, true) == STATUS_OK);
 
         // Add source
-        room_source_settings_t src;
+        rt_source_settings_t src;
         dsp::init_matrix3d_identity(&src.pos);
         src.type        = RT_AS_ICOSPHERE;
         src.size        = 0.3048f; // 12" speaker source
@@ -99,12 +99,21 @@ MTEST_BEGIN("core.3d", raytrace)
 
         // Add capture
         ray3d_t cap_l, cap_r;
-        dsp::init_point_xyz(&cap_l.z, 1.0f, -0.04f, 0.0f);
-        dsp::init_point_xyz(&cap_r.z, 1.0f, 0.04f, 0.0f);
-        dsp::init_vector_dxyz(&cap_l.v, -0.036f,  0.036f, 0.0f); // 2" microphone diaphragm
-        dsp::init_vector_dxyz(&cap_r.v, -0.036f, -0.036f, 0.0f); // 2" microphone diaphragm
-        MTEST_ASSERT(trace.add_capture(&cap_l, RT_AC_CARDIO) == 0);
-        MTEST_ASSERT(trace.add_capture(&cap_r, RT_AC_CARDIO) == 1);
+        dsp::init_point_xyz(&cap_l.z, 1.0f, -0.06f, 0.0f);
+        dsp::init_point_xyz(&cap_r.z, 1.0f, 0.06f, 0.0f);
+        dsp::init_vector_dxyz(&cap_l.v, -M_SQRT2, +M_SQRT2, 0.0f); // 2" microphone diaphragm
+        dsp::init_vector_dxyz(&cap_r.v, -M_SQRT2, -M_SQRT2, 0.0f); // 2" microphone diaphragm
+
+        rt_capture_settings_t cs_l, cs_r;
+        dsp::calc_matrix3d_transform_r1(&cs_l.pos, &cap_l);
+        dsp::calc_matrix3d_transform_r1(&cs_r.pos, &cap_r);
+        cs_l.radius = 0.0254 * 2; // 2" diaphragm
+        cs_r.radius = 0.0254 * 2; // 2" diaphragm
+        cs_l.type   = RT_AC_CARDIO;
+        cs_r.type   = RT_AC_CARDIO;
+
+        MTEST_ASSERT(trace.add_capture(&cs_l) == 0);
+        MTEST_ASSERT(trace.add_capture(&cs_r) == 1);
 
         // Left audio channel
         trace.bind_capture(0, &direct, 0, 0, 0);    // Direct reflections

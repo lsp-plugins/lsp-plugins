@@ -995,94 +995,6 @@ namespace lsp
         }
     }
 
-    status_t room_builder_base::configure_capture(room_capture_settings_t *out, const room_capture_config_t *in)
-    {
-        matrix3d_t m, delta;
-        float a[2];
-        vector3d_t dp[2];
-
-//        // Compute parameters of capture in point(0, 0, 0)
-//        for (size_t i=0; i<2; ++i)
-//        {
-//            dsp::init_point_xyz(&out->pos[i].z, 0.0f, 0.0f, 0.0f);
-//            dsp::init_vector_dxyz(&out->pos[i].v, 1.0f, 0.0f, 0.0f);
-//        }
-        dsp::init_vector_dxyz(&dp[0], 0.0f, 0.0f, 0.0f);
-        dsp::init_vector_dxyz(&dp[1], 0.0f, 0.0f, 0.0f);
-
-        out->r[0]       = in->fCapsule * 0.01f; // cm -> m
-        out->r[1]       = in->fCapsule * 0.01f; // cm -> m
-        out->type[0]    = in->enDirection;
-        out->type[1]    = in->enDirection;
-
-        switch (in->sConfig)
-        {
-            case RT_CC_MONO:
-                out->n              = 1;
-                a[0]                = 0.0f;
-                a[1]                = 0.0f;
-                break;
-            case RT_CC_XY:
-                out->n              = 2;
-                dp[0].dy           += out->r[0];
-                dp[1].dy           -= out->r[1];
-                a[0]                = -45.0f - (in->fAngle - 90.0f) * 0.5f;
-                a[1]                = 45.0f + (in->fAngle - 90.0f) * 0.5f;
-                break;
-            case RT_CC_AB:
-                out->n              = 2;
-                dp[0].dy           += in->fDistance * 0.5f;
-                dp[1].dy           -= in->fDistance * 0.5f;
-                a[0]                = 0.0f;
-                a[1]                = 0.0f;
-                break;
-            case RT_CC_ORTF:
-                out->n              = 2;
-                dp[0].dy           += 0.075f;  // Half of human's head width
-                dp[1].dy           -= 0.075f;  // Half of human's head width
-                a[0]                =  45.0f + (in->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
-                a[1]                = -45.0f - (in->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
-                break;
-            case RT_CC_MS:
-                out->n              = 2;
-                dp[0].dz           += out->r[0];
-                dp[1].dz           -= out->r[1];
-                out->type[1]        = in->enSide;
-                a[0]                = 0.0f;
-                a[1]                = 90.0f;
-                break;
-
-            default:
-                return STATUS_BAD_ARGUMENTS;
-        }
-
-        // Compute rotation matrix
-        dsp::init_matrix3d_translate(&delta, in->sPos.x, in->sPos.y, in->sPos.z);
-
-        dsp::init_matrix3d_rotate_z(&m, in->fYaw * M_PI / 180.0f);
-        dsp::apply_matrix3d_mm1(&delta, &m);
-
-        dsp::init_matrix3d_rotate_y(&m, in->fPitch * M_PI / 180.0f);
-        dsp::apply_matrix3d_mm1(&delta, &m);
-
-        dsp::init_matrix3d_rotate_x(&m, in->fRoll * M_PI / 180.0f);
-        dsp::apply_matrix3d_mm1(&delta, &m);
-
-        // Compute initial matrices
-        for (size_t i=0; i<2; ++i)
-        {
-            out->pos[i] = delta;
-
-            dsp::init_matrix3d_translate(&m, dp[i].dx, dp[i].dy, dp[i].dz);
-            dsp::apply_matrix3d_mm1(&out->pos[i], &m);
-
-            dsp::init_matrix3d_rotate_z(&m, a[i] * M_PI / 180.0f);
-            dsp::apply_matrix3d_mm1(&out->pos[i], &m);
-        }
-
-        return STATUS_OK;
-    }
-
     status_t room_builder_base::bind_sources(RayTrace3D *rt)
     {
         size_t sources = 0;
@@ -1093,10 +1005,10 @@ namespace lsp
             if (!src->bEnabled)
                 continue;
 
-
-
-            src->enType;
+            // TODO: add proper binding
         }
+
+        return (sources <= 0) ? STATUS_NO_SOURCES : STATUS_OK;
     }
 
     status_t room_builder_base::bind_captures(cvector<sample_t> &samples, RayTrace3D *rt)
@@ -1112,8 +1024,9 @@ namespace lsp
                 continue;
 
             // Configure capture
-            room_capture_settings_t cs;
-            status_t res = configure_capture(&cs, cap);
+            size_t n = 0;
+            rt_capture_settings_t cs[2];
+            status_t res = rt_configure_capture(&n, cs, cap);
             if (res != STATUS_OK)
                 return res;
 
@@ -1127,13 +1040,13 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             s->nID  = i;
-            if (!s->sSample.init(cs.n, 512))
+            if (!s->sSample.init(n, 512))
                 return STATUS_NO_MEM;
 
             // Bind captures to samples
-            for (size_t i=0; i<cs.n; ++i)
+            for (size_t i=0; i<n; ++i)
             {
-                ssize_t cap_id = rt->add_capture(&cs.pos[i], cs.type[i]);
+                ssize_t cap_id = rt->add_capture(&cs[i]);
                 if (cap_id < 0)
                     return status_t(-cap_id);
                 ++captures;
