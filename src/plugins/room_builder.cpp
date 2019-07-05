@@ -1007,30 +1007,24 @@ namespace lsp
     void room_builder_base::sync_offline_tasks()
     {
         // The render signal is pending?
-        if (nSync & SYNC_TOGGLE_RENDER)
+        if ((nSync & SYNC_TOGGLE_RENDER) && (s3DLauncher.idle()) && (s3DLoader.idle()))
         {
-            if (s3DLauncher.idle())
+            if (pExecutor->submit(&s3DLauncher))
             {
-                if (pExecutor->submit(&s3DLauncher))
-                {
-                    lsp_trace("Successfully submitted Render launcher task");
-                    nSync &= ~SYNC_TOGGLE_RENDER;
-                }
-
-                // Do not permit other tasks to be executed
-                return;
+                lsp_trace("Successfully submitted Render launcher task");
+                nSync &= ~SYNC_TOGGLE_RENDER;       // Reset render request flag
             }
-            else if (s3DLauncher.completed())
-            {
-                s3DLauncher.reset();
-            }
+        }
+        else if (s3DLauncher.completed())
+        {
+            s3DLauncher.reset();
         }
 
         // Check the state of input file
         path_t *path        = p3DFile->getBuffer<path_t>();
         if (path != NULL)
         {
-            if ((path->pending()) && (s3DLoader.idle())) // There is pending request for 3D file reload
+            if ((path->pending()) && (s3DLoader.idle()) && (s3DLauncher.idle())) // There is pending request for 3D file reload
             {
                 // Copy path
                 ::strncpy(s3DLoader.sPath, path->get_path(), PATH_MAX);
@@ -1083,6 +1077,8 @@ namespace lsp
             res = rt->add_source(&ss);
             if (res != STATUS_OK)
                 return res;
+
+            ++sources;
         }
 
         return (sources <= 0) ? STATUS_NO_SOURCES : STATUS_OK;
@@ -1126,10 +1122,12 @@ namespace lsp
                 ssize_t cap_id = rt->add_capture(&cs[i]);
                 if (cap_id < 0)
                     return status_t(-cap_id);
-                ++captures;
+
                 res = rt->bind_capture(cap_id, &s->sSample, i, cap->nRMin, (cap->nRMax <= 0) ? -1 : cap->nRMax);
                 if (res != STATUS_OK)
                     return res;
+
+                ++captures;
             }
         }
 
@@ -1216,7 +1214,7 @@ namespace lsp
     {
         room_builder_base *_this    = reinterpret_cast<room_builder_base *>(ptr);
         _this->enRenderStatus       = STATUS_IN_PROCESS;
-        _this->fRenderProgress      = progress;     // Update the progress value
+        _this->fRenderProgress      = progress * 100.0f;    // Update the progress value
         return STATUS_OK;
     }
 
@@ -1311,8 +1309,6 @@ namespace lsp
         }
 
         // All seems to be OK
-        enRenderStatus  = STATUS_CANCELLED;
-
         return STATUS_OK;
     }
 

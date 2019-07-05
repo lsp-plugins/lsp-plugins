@@ -991,7 +991,7 @@ namespace lsp
         else
             csn     = (tsn[1] < tsn[2]) ? tsn[1] : tsn[2];
 #ifdef LSP_TRACE
-        ssize_t ssn = csn;                                      // Start culling sample number
+//        ssize_t ssn = csn;                                      // Start culling sample number
 #endif
         ++csn;
 
@@ -1111,8 +1111,8 @@ namespace lsp
             ++csn; // Increment culling sample number for next iteration
         } while (n_out > 0);
 
-        lsp_trace("Samples %d-%d -> area=%e amplitude=%e kcos=%f rnum=%d",
-                int(ssn), int(csn-1), v_area, v->amplitude, kcos, int(v->rnum));
+//        lsp_trace("Samples %d-%d -> area=%e amplitude=%e kcos=%f rnum=%d",
+//                int(ssn), int(csn-1), v_area, v->amplitude, kcos, int(v->rnum));
 
         return STATUS_OK;
     }
