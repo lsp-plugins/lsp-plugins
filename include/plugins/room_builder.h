@@ -49,6 +49,12 @@ namespace lsp
             } obj_props_t;
 
         protected:
+            enum sync_t
+            {
+                SYNC_TOGGLE_RENDER      = 1 << 0
+            };
+
+        protected:
             typedef struct convolver_t
             {
                 Delay           sDelay;         // Delay line
@@ -191,6 +197,27 @@ namespace lsp
                     virtual status_t run();
             };
 
+            class Renderer: public ipc::Thread
+            {
+                protected:
+                    room_builder_base      *pBuilder;
+                    RayTrace3D             *pRT;
+                    size_t                  nThreads;
+                    cvector<sample_t>       vSamples;
+                    ipc::Mutex              lkTerminate;
+
+                public:
+                    inline Renderer(room_builder_base *bld, RayTrace3D *rt, size_t threads, cvector<sample_t> &samples):
+                        pBuilder(bld), pRT(rt), nThreads(threads)
+                    {
+                        vSamples.swap_data(&samples);
+                    }
+
+                    virtual status_t run();
+
+                    void            terminate();
+            };
+
         protected:
             size_t                  nInputs;
             size_t                  nReconfigReq;
@@ -208,10 +235,14 @@ namespace lsp
 
             Scene3D                 sScene;
             vector3d_t              sScale;
+            Renderer               *pRenderer;
 
             status_t                nSceneStatus;
             float                   fSceneProgress;
+            size_t                  nSync;
+
             SceneLoader             s3DLoader;
+            RenderLauncher          s3DLauncher;
 
             IPort                  *pBypass;
             IPort                  *pRank;
@@ -238,10 +269,12 @@ namespace lsp
             static size_t       get_fft_rank(size_t rank);
             void                sync_offline_tasks();
             status_t            start_rendering();
+            status_t            run_rendring(void *arg);
             status_t            bind_sources(RayTrace3D *rt);
             status_t            bind_captures(cvector<sample_t> &samples, RayTrace3D *rt);
             status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
-            void                destroy_samples(cvector<sample_t> &samples);
+            static void         destroy_samples(cvector<sample_t> &samples);
+            static status_t     progress_callback(float progress, void *ptr);
 
         public:
             explicit room_builder_base(const plugin_metadata_t &metadata, size_t inputs);

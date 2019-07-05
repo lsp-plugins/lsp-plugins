@@ -275,9 +275,46 @@ namespace lsp
         dsp::apply_matrix3d_mm1(m, &tmp);
     }
 
+    status_t room_builder_base::Renderer::run()
+    {
+        // Perform processing
+        lsp_trace("Launching process() method");
+        status_t res    = pRT->process(nThreads, 1.0f);
+
+        // TODO: Deploy success result
+        if (res == STATUS_OK)
+        {
+
+        }
+
+        // Free all resources
+        if (lkTerminate.lock())
+        {
+            pRT->destroy(true);
+            delete pRT;
+            pRT = NULL;
+            lkTerminate.unlock();
+        }
+
+        room_builder_base::destroy_samples(vSamples);
+
+        return res;
+    }
+
+    void room_builder_base::Renderer::terminate()
+    {
+        if (lkTerminate.lock())
+        {
+            if (pRT != NULL)
+                pRT->cancel();
+            lkTerminate.unlock();
+        }
+    }
+
     //-------------------------------------------------------------------------
     room_builder_base::room_builder_base(const plugin_metadata_t &metadata, size_t inputs):
-        plugin_t(metadata)
+        plugin_t(metadata),
+        s3DLauncher(this)
     {
         nInputs         = inputs;
         nReconfigReq    = 0;
@@ -290,6 +327,7 @@ namespace lsp
 
         nSceneStatus    = STATUS_UNSPECIFIED;
         fSceneProgress  = 0.0f;
+        nSync           = 0;
 
         pBypass         = NULL;
         pRank           = NULL;
@@ -308,6 +346,7 @@ namespace lsp
         pScaleX         = NULL;
         pScaleY         = NULL;
         pScaleZ         = NULL;
+        pRenderer       = NULL;
 
         pData           = NULL;
         pExecutor       = NULL;
@@ -665,6 +704,15 @@ namespace lsp
 
     void room_builder_base::destroy()
     {
+        // Stop active rendering task
+        if (pRenderer != NULL)
+        {
+            pRenderer->terminate();
+            pRenderer->join();
+            delete pRenderer;
+            pRenderer = NULL;
+        }
+
         sScene.destroy();
         s3DLoader.destroy();
 
@@ -699,7 +747,7 @@ namespace lsp
         if ((old_cmd >= 0.5f) && (fRenderCmd < 0.5f))
         {
             lsp_trace("Triggered render request");
-            // TODO: handle render request
+            nSync              |= SYNC_TOGGLE_RENDER;
         }
 
         // Adjust volume of dry channel
@@ -958,6 +1006,26 @@ namespace lsp
 
     void room_builder_base::sync_offline_tasks()
     {
+        // The render signal is pending?
+        if (nSync & SYNC_TOGGLE_RENDER)
+        {
+            if (s3DLauncher.idle())
+            {
+                if (pExecutor->submit(&s3DLauncher))
+                {
+                    lsp_trace("Successfully submitted Render launcher task");
+                    nSync &= ~SYNC_TOGGLE_RENDER;
+                }
+
+                // Do not permit other tasks to be executed
+                return;
+            }
+            else if (s3DLauncher.completed())
+            {
+                s3DLauncher.reset();
+            }
+        }
+
         // Check the state of input file
         path_t *path        = p3DFile->getBuffer<path_t>();
         if (path != NULL)
@@ -972,7 +1040,7 @@ namespace lsp
                 // Try to submit task
                 if (pExecutor->submit(&s3DLoader))
                 {
-                    lsp_trace("successfully submitted load task");
+                    lsp_trace("Successfully submitted load task");
                     nSceneStatus    = STATUS_LOADING;
                     fSceneProgress  = 0.0f;
                     path->accept();
@@ -1144,8 +1212,34 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t room_builder_base::progress_callback(float progress, void *ptr)
+    {
+        room_builder_base *_this    = reinterpret_cast<room_builder_base *>(ptr);
+        _this->enRenderStatus       = STATUS_IN_PROCESS;
+        _this->fRenderProgress      = progress;     // Update the progress value
+        return STATUS_OK;
+    }
+
     status_t room_builder_base::start_rendering()
     {
+        // Terminate previous thread (if active)
+        if (pRenderer != NULL)
+        {
+            bool finished = pRenderer->finished();
+
+            pRenderer->terminate();
+            pRenderer->join();
+            delete pRenderer;
+            pRenderer = NULL;
+
+            // Current task has been cancelled?
+            if (!finished)
+            {
+                enRenderStatus  = STATUS_CANCELLED;
+                return STATUS_OK;
+            }
+        }
+
         // Create raytracing object and initialize with basic values
         RayTrace3D *rt = new RayTrace3D();
         if (rt == NULL)
@@ -1163,12 +1257,13 @@ namespace lsp
         rt->set_energy_threshold(1e-5f);
         rt->set_tolerance(1e-5f);
         rt->set_detalization(1e-9f);
+        rt->set_progress_callback(progress_callback, this);
 
         // Bind sources
         res = bind_sources(rt);
         if (res != STATUS_OK)
         {
-            rt->destroy(false);
+            rt->destroy(true);
             delete rt;
             return res;
         }
@@ -1179,26 +1274,44 @@ namespace lsp
         if (res != STATUS_OK)
         {
             destroy_samples(samples);
-            rt->destroy(false);
+            rt->destroy(true);
             delete rt;
             return res;
-        }
-
-        // Bind object attributes
-        KVTStorage *kvt = kvt_lock();
-        if (kvt == NULL)
-        {
-            rt->destroy(false);
-            delete rt;
-            return STATUS_NO_DATA;
         }
 
         // Bind scene to the raytracing
-        res = bind_scene(kvt, rt);
-        kvt_release();
-        if (res != STATUS_OK)
-            return res;
+        KVTStorage *kvt = kvt_lock();
+        if (kvt != NULL)
+        {
+            res = bind_scene(kvt, rt);
+            kvt_release();
+        }
+        else
+            res = STATUS_NO_DATA;
 
+        // Create renderer and start execution
+        if (res == STATUS_OK)
+        {
+            pRenderer = new Renderer(this, rt, nRenderThreads, samples);
+            if (pRenderer == NULL)
+                res = STATUS_NO_MEM;
+            else if ((res = pRenderer->start()) != STATUS_OK)
+            {
+                delete pRenderer;
+                pRenderer = NULL;
+            }
+        }
+
+        if (res != STATUS_OK)
+        {
+            destroy_samples(samples);
+            rt->destroy(true);
+            delete rt;
+            return res;
+        }
+
+        // All seems to be OK
+        enRenderStatus  = STATUS_CANCELLED;
 
         return STATUS_OK;
     }
