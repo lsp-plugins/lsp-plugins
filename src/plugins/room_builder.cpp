@@ -1005,7 +1005,16 @@ namespace lsp
             if (!src->bEnabled)
                 continue;
 
-            // TODO: add proper binding
+            // Configure source
+            rt_source_settings_t ss;
+            status_t res = rt_configure_source(&ss, src);
+            if (res != STATUS_OK)
+                return res;
+
+            // Add source to capture
+            res = rt->add_source(&ss);
+            if (res != STATUS_OK)
+                return res;
         }
 
         return (sources <= 0) ? STATUS_NO_SOURCES : STATUS_OK;
