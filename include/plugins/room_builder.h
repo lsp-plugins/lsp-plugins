@@ -240,6 +240,7 @@ namespace lsp
             status_t            start_rendering();
             status_t            bind_sources(RayTrace3D *rt);
             status_t            bind_captures(cvector<sample_t> &samples, RayTrace3D *rt);
+            status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
             void                destroy_samples(cvector<sample_t> &samples);
 
         public:

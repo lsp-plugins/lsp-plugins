@@ -222,22 +222,22 @@ namespace lsp
         kvt_fetch(kvt, base, "scale/z", &props->sScale.dz, 1.0f);
         kvt_fetch(kvt, base, "color/hue", &props->fHue, 0.0f);
 
-        kvt_fetch(kvt, base, "material/absorption/outer", &props->fAbsorption[0], 0.02f);
+        kvt_fetch(kvt, base, "material/absorption/outer", &props->fAbsorption[0], 1.5f);
         kvt_fetch(kvt, base, "material/dispersion/outer", &props->fDispersion[0], 1.0f);
         kvt_fetch(kvt, base, "material/dissipation/outer", &props->fDiffusion[0], 1.0f);
-        kvt_fetch(kvt, base, "material/transparency/outer", &props->fTransparency[0], 0.48f);
+        kvt_fetch(kvt, base, "material/transparency/outer", &props->fTransparency[0], 48.0f);
 
-        kvt_fetch(kvt, base, "material/absorption/inner", &props->fAbsorption[1], 0.00f);
+        kvt_fetch(kvt, base, "material/absorption/inner", &props->fAbsorption[1], 1.5f);
         kvt_fetch(kvt, base, "material/dispersion/inner", &props->fDispersion[1], 1.0f);
         kvt_fetch(kvt, base, "material/diffusion/inner", &props->fDiffusion[0], 1.0f);
-        kvt_fetch(kvt, base, "material/transparency/inner", &props->fTransparency[0], 0.52f);
+        kvt_fetch(kvt, base, "material/transparency/inner", &props->fTransparency[0], 52.0f);
 
-        kvt_fetch(kvt, base, "material/absorption/link", &props->lnkAbsorption, 1.00f);
+        kvt_fetch(kvt, base, "material/absorption/link", &props->lnkAbsorption, 1.0f);
         kvt_fetch(kvt, base, "material/dispersion/link", &props->lnkDispersion, 1.0f);
         kvt_fetch(kvt, base, "material/diffusion/link", &props->lnkDiffusion, 1.0f);
         kvt_fetch(kvt, base, "material/transparency/link", &props->lnkTransparency, 1.0f);
 
-        kvt_fetch(kvt, base, "material/sound_speed", &props->fSndSpeed, 12.88f * SOUND_SPEED_M_S);
+        kvt_fetch(kvt, base, "material/sound_speed", &props->fSndSpeed, 4250.0f);
 
         props->bEnabled = (enabled >= 0.5f);
     }
@@ -1082,6 +1082,68 @@ namespace lsp
         samples.flush();
     }
 
+    status_t room_builder_base::bind_scene(KVTStorage *kvt, RayTrace3D *rt)
+    {
+        // Clone the scene
+        Scene3D *dst = new Scene3D();
+        if (dst == NULL)
+            return STATUS_NO_MEM;
+
+        status_t res = dst->clone_from(&sScene);
+        if (res != STATUS_OK)
+        {
+            delete dst;
+            return res;
+        }
+
+        // Set-up scene
+        res = rt->set_scene(dst, true);
+        if (res != STATUS_OK)
+        {
+            dst->destroy();
+            delete dst;
+            return res;
+        }
+
+        // Update object properties
+        obj_props_t props;
+        char base[0x40];
+        rt_material_t mat;
+
+        for (size_t i=0, n=dst->num_objects(); i<n; ++i)
+        {
+            Object3D *obj = dst->object(i);
+            if (obj == NULL)
+                continue;
+
+            // Read object properties
+            sprintf(base, "/scene/object/%d", int(i));
+            read_object_properties(&props, base, kvt);
+
+            // Update object matrix and visibility
+            build_object_matrix(obj->matrix(), &props);
+            obj->set_visible(props.bEnabled);
+
+            // Initialize material
+            mat.absorption[0]   = props.fAbsorption[0] * 0.01f; // % -> units
+            mat.absorption[1]   = props.fAbsorption[1] * 0.01f; // % -> units
+            mat.diffusion[0]    = props.fDiffusion[0];
+            mat.diffusion[1]    = props.fDiffusion[1];
+            mat.dispersion[0]   = props.fDispersion[0];
+            mat.dispersion[1]   = props.fDispersion[1];
+            mat.transparency[0] = props.fTransparency[0] * 0.01f; // % -> units
+            mat.transparency[1] = props.fTransparency[1] * 0.01f; // % -> units
+            mat.permeability    = props.fSndSpeed / SOUND_SPEED_M_S;
+
+            // Commit material properties
+            res = rt->set_material(i, &mat);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        return STATUS_OK;
+    }
+
     status_t room_builder_base::start_rendering()
     {
         // Create raytracing object and initialize with basic values
@@ -1131,9 +1193,12 @@ namespace lsp
             return STATUS_NO_DATA;
         }
 
-
-
+        // Bind scene to the raytracing
+        res = bind_scene(kvt, rt);
         kvt_release();
+        if (res != STATUS_OK)
+            return res;
+
 
         return STATUS_OK;
     }
