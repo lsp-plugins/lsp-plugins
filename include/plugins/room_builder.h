@@ -55,6 +55,7 @@ namespace lsp
             };
 
         protected:
+
             typedef struct convolver_t
             {
                 Delay           sDelay;         // Delay line
@@ -133,9 +134,6 @@ namespace lsp
                 bool                    bEnabled;   // Enabled flag
                 ssize_t                 nRMin;      // Minimum reflection order
                 ssize_t                 nRMax;      // Maximum reflection order
-
-                Sample                  sCurrent;   // Current sample
-                Sample                  sPending;   // Pending sample
 
                 IPort                  *pEnabled;
                 IPort                  *pRMin;
@@ -273,6 +271,7 @@ namespace lsp
             status_t            bind_sources(RayTrace3D *rt);
             status_t            bind_captures(cvector<sample_t> &samples, RayTrace3D *rt);
             status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
+            status_t            commit_samples(cvector<sample_t> &samples);
             static void         destroy_samples(cvector<sample_t> &samples);
             static status_t     progress_callback(float progress, void *ptr);
 

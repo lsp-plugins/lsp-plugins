@@ -10,6 +10,7 @@
 #include <core/files/Model3DFile.h>
 
 #include <plugins/room_builder.h>
+#include <dsp/endian.h>
 
 #define TMP_BUF_SIZE            4096
 #define CONV_RANK               10
@@ -281,11 +282,9 @@ namespace lsp
         lsp_trace("Launching process() method");
         status_t res    = pRT->process(nThreads, 1.0f);
 
-        // TODO: Deploy success result
+        // Deploy success result
         if (res == STATUS_OK)
-        {
-
-        }
+            res = pBuilder->commit_samples(vSamples);
 
         // Free all resources
         if (lkTerminate.lock())
@@ -298,7 +297,7 @@ namespace lsp
 
         room_builder_base::destroy_samples(vSamples);
 
-        return res;
+        return pBuilder->enRenderStatus = res;
     }
 
     void room_builder_base::Renderer::terminate()
@@ -1309,6 +1308,69 @@ namespace lsp
         }
 
         // All seems to be OK
+        return STATUS_OK;
+    }
+
+    status_t room_builder_base::commit_samples(cvector<sample_t> &samples)
+    {
+        // Put each sample to KVT and toggle the reload flag
+        kvt_param_t p;
+        char path[0x40];
+
+        for (size_t i=0, n=samples.size(); i<n; ++i)
+        {
+            sample_t *s     = samples.at(i);
+            if (s == NULL)
+                continue;
+
+            // Create sample data
+            size_t slen         = s->sSample.length();
+            size_t payload      = slen * s->sSample.channels() * sizeof(float);
+            sample_header_t *hdr = reinterpret_cast<sample_header_t *>(::malloc(sizeof(sample_header_t) + payload));
+            if (hdr == NULL)
+                return STATUS_NO_MEM;
+            hdr->version        = __IF_LEBE(0, 1);
+            hdr->channels       = s->sSample.channels();
+            hdr->sample_rate    = fSampleRate;
+            hdr->samples        = s->sSample.length();
+
+            hdr->version        = CPU_TO_BE(hdr->version);
+            hdr->channels       = CPU_TO_BE(hdr->channels);
+            hdr->sample_rate    = CPU_TO_BE(hdr->sample_rate);
+            hdr->samples        = CPU_TO_BE(hdr->samples);
+
+            float *fdst         = reinterpret_cast<float *>(&hdr[1]);
+            for (size_t i=0; i<s->sSample.channels(); ++i, fdst += slen)
+            {
+                ::memcpy(fdst, s->sSample.getBuffer(i), slen * sizeof(float));
+                CPU_TO_VBE(fdst, slen);
+            }
+
+            // Create KVT parameter
+            p.type          = KVT_BLOB;
+            p.blob.ctype    = ::strdup(AUDIO_SAMPLE_CONTENT_TYPE);
+            if (p.blob.ctype == NULL)
+            {
+                ::free(hdr);
+                return STATUS_NO_MEM;
+            }
+            p.blob.data     = hdr;
+
+            // Deploy KVT parameter
+            sprintf(path, "/samples/%d", int(s->nID));
+            KVTStorage *kvt = kvt_lock();
+            if (kvt != NULL)
+            {
+                kvt->put(path, &p, KVT_PRIVATE | KVT_DELEGATE); // Delegate memory management to KVT Storage
+                kvt->gc();
+                kvt_release();
+            }
+            else
+                return STATUS_BAD_STATE;
+
+            // TODO: toggle change of the sample
+        }
+
         return STATUS_OK;
     }
 
