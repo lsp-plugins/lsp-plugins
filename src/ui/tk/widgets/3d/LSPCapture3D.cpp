@@ -235,22 +235,23 @@ namespace lsp
 
                 raw_triangle_t *tv  = mesh.get_array();
                 ray3d_t *tr         = vertices.get_array();
-                for (size_t i=0, n=mesh.size(); i<n; ++i)
+                for (size_t i=0, n=mesh.size(); i<n; ++i, tr += 3)
                 {
-                    dsp::apply_matrix3d_mp2(&tr[i+0].z, &tv[i].v[0], &cap->pos);
-                    dsp::apply_matrix3d_mp2(&tr[i+1].z, &tv[i].v[1], &cap->pos);
-                    dsp::apply_matrix3d_mp2(&tr[i+2].z, &tv[i].v[2], &cap->pos);
+                    dsp::apply_matrix3d_mp2(&tr[0].z, &tv[i].v[0], &cap->pos);
+                    dsp::apply_matrix3d_mp2(&tr[1].z, &tv[i].v[1], &cap->pos);
+                    dsp::apply_matrix3d_mp2(&tr[2].z, &tv[i].v[2], &cap->pos);
 
-                    dsp::calc_normal3d_p3(&tr[i+0].v, &tv[i].v[0], &tv[i].v[1], &tv[i].v[2]);
-                    tr[i+1].v       = tr[i].v;
-                    tr[i+2].v       = tr[i].v;
+                    dsp::calc_normal3d_p3(&tr[0].v, &tr[0].z, &tr[1].z, &tr[2].z);
+                    tr[1].v             = tr[0].v;
+                    tr[2].v             = tr[0].v;
                 }
+                tr                  = vertices.get_array();
 
                 // Call draw of capsule
                 buf.type            = R3D_PRIMITIVE_TRIANGLES;
                 buf.flags           = R3D_BUFFER_LIGHTING;
                 buf.width           = 1.0f;
-                buf.count           = 8;
+                buf.count           = mesh.size();
                 buf.color.dfl.r     = sColor.red();
                 buf.color.dfl.g     = sColor.green();
                 buf.color.dfl.b     = sColor.blue();

@@ -42,8 +42,8 @@ namespace lsp
             sCapture.sConfig    = RT_CC_MONO;
             sCapture.fAngle     = 0.0f;
             sCapture.fDistance  = 0.0f;
-            sCapture.enDirection= RT_AC_EIGHT;
-            sCapture.enSide     = RT_AC_EIGHT;
+            sCapture.enDirection= RT_AC_OMNI;
+            sCapture.enSide     = RT_AC_OMNI;
 
             pPosX           = NULL;
             pPosY           = NULL;

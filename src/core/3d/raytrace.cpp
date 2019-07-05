@@ -843,9 +843,6 @@ namespace lsp
         dsp::init_matrix3d_rotate_x(&m, cfg->fRoll * M_PI / 180.0f);
         dsp::apply_matrix3d_mm1(&delta, &m);
 
-        dsp::init_matrix3d_scale(&m, r, r, r);
-        dsp::apply_matrix3d_mm1(&delta, &m);
-
         // Compute initial matrices
         for (size_t i=0; i<2; ++i)
         {
