@@ -449,13 +449,11 @@
 					<cell cols="2"><progress id="prog" /></cell>
 					
 					<cell rows="2">
-						<vbox visibility=":status ine 4">
-							<label text="Launch" />
-							<button id="render" led="true" color="green" size="32" />
-						</vbox>
-						<vbox visibility=":status ieq 4">
-							<label text="Stop" />
-							<button id="render" led="true" color="red" size="32" />
+						<vbox>
+							<label text="Launch" visibility=":status ine 3" />
+							<button id="render" led="true" color="green" size="32" visibility=":status ine 3" />
+							<label text="Stop" visibility=":status eq 3" />
+							<button id="render" led="true" color="red" size="32" visibility=":status ieq 3" />
 						</vbox>
 					</cell>
 				</grid>

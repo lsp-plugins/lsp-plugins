@@ -280,6 +280,7 @@ namespace lsp
     {
         // Perform processing
         lsp_trace("Launching process() method");
+        pBuilder->enRenderStatus    = STATUS_IN_PROCESS;
         status_t res    = pRT->process(nThreads, 1.0f);
 
         // Deploy success result
@@ -1232,6 +1233,7 @@ namespace lsp
             // Current task has been cancelled?
             if (!finished)
             {
+                fRenderProgress = 0;
                 enRenderStatus  = STATUS_CANCELLED;
                 return STATUS_OK;
             }
@@ -1325,8 +1327,8 @@ namespace lsp
 
             // Create sample data
             size_t slen         = s->sSample.length();
-            size_t payload      = slen * s->sSample.channels() * sizeof(float);
-            sample_header_t *hdr = reinterpret_cast<sample_header_t *>(::malloc(sizeof(sample_header_t) + payload));
+            size_t payload      = sizeof(sample_header_t) + slen * s->sSample.channels() * sizeof(float);
+            sample_header_t *hdr = reinterpret_cast<sample_header_t *>(::malloc(payload));
             if (hdr == NULL)
                 return STATUS_NO_MEM;
             hdr->version        = __IF_LEBE(0, 1);
@@ -1354,6 +1356,7 @@ namespace lsp
                 ::free(hdr);
                 return STATUS_NO_MEM;
             }
+            p.blob.size     = payload;
             p.blob.data     = hdr;
 
             // Deploy KVT parameter

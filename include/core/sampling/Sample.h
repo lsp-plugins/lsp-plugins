@@ -22,6 +22,7 @@ namespace lsp
         uint32_t    sample_rate;
         uint32_t    samples;
     } sample_header_t;
+#pragma pack(pop)
 
     class Sample
     {

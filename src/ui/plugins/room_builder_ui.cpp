@@ -464,7 +464,7 @@ namespace lsp
         if (pOuter != NULL)
         {
             pOuter->bind(this);
-            pInner->notify_all();
+            pOuter->notify_all();
         }
     }
 
