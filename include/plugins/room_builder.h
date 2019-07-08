@@ -132,21 +132,27 @@ namespace lsp
 
             typedef struct capture_t: public room_capture_config_t
             {
-                bool                    bEnabled;   // Enabled flag
-                ssize_t                 nRMin;      // Minimum reflection order
-                ssize_t                 nRMax;      // Maximum reflection order
+                bool                    bEnabled;       // Enabled flag
+                ssize_t                 nRMin;          // Minimum reflection order
+                ssize_t                 nRMax;          // Maximum reflection order
 
                 float                   fHeadCut;
                 float                   fTailCut;
                 float                   fFadeIn;
                 float                   fFadeOut;
+                bool                    bReverse;
                 float                   nLength;
                 status_t                nStatus;
+
+                Sample                 *pCurr;          // Current sample for playback
+                Sample                 *pSwap;          // Swap sample
 
                 float                  *vThumbs[room_builder_base_metadata::TRACKS_MAX];
 
                 volatile size_t         nChangeReq;     // Change request
                 size_t                  nChangeResp;    // Change commit
+                size_t                  nCommitReq;
+                size_t                  nCommitResp;
 
                 // Capture functions
                 IPort                  *pEnabled;

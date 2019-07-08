@@ -11,6 +11,7 @@
 
 #include <plugins/room_builder.h>
 #include <dsp/endian.h>
+#include <core/fade.h>
 
 #define TMP_BUF_SIZE            4096
 #define CONV_RANK               10
@@ -422,7 +423,7 @@ namespace lsp
             c->pHighCut     = NULL;
             c->pHighFreq    = NULL;
 
-            for (size_t j=0; j<impulse_reverb_base_metadata::EQ_BANDS; ++j)
+            for (size_t j=0; j<room_builder_base_metadata::EQ_BANDS; ++j)
                 c->pFreqGain[j]     = NULL;
         }
 
@@ -485,6 +486,9 @@ namespace lsp
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
 
+            cap->pCurr          = NULL;
+            cap->pSwap          = NULL;
+
             for (size_t j=0; j<room_builder_base_metadata::TRACKS_MAX; ++j)
             {
                 cap->vThumbs[j]     = reinterpret_cast<float *>(ptr);
@@ -493,6 +497,8 @@ namespace lsp
 
             cap->nChangeReq     = 0;
             cap->nChangeResp    = 0;
+            cap->nCommitReq     = 0;
+            cap->nCommitResp    = 0;
 
             cap->pEnabled       = NULL;
             cap->pRMin          = NULL;
@@ -920,21 +926,24 @@ namespace lsp
                 float tcut      = cap->pTailCut->getValue();
                 float fadein    = cap->pFadeIn->getValue();
                 float fadeout   = cap->pFadeOut->getValue();
+                bool  reverse   = cap->pReverse->getValue() >= 0.5f;
 
                 if ((cap->fHeadCut != hcut) ||
                     (cap->fTailCut != tcut) ||
                     (cap->fFadeIn != fadein) ||
-                    (cap->fFadeOut != fadeout))
+                    (cap->fFadeOut != fadeout) ||
+                    (cap->bReverse != reverse))
                 {
                     cap->fHeadCut       = hcut;
                     cap->fTailCut       = tcut;
                     cap->fFadeIn        = fadein;
                     cap->fFadeOut       = fadeout;
+                    cap->bReverse       = reverse;
 
                     atomic_add(&cap->nChangeReq, 1);
                 }
 
-                // Mark configurator as required for launch
+                // Submit changes to configurator
                 if (cap->nChangeReq != cap->nChangeResp)
                     sConfigurator.queue_launch();
             }
@@ -1028,6 +1037,7 @@ namespace lsp
                     atomic_add(&cv->nChangeReq, 1);
                 }
 
+                // Submit changes to configurator
                 if (cv->nChangeReq != cv->nChangeResp)
                     sConfigurator.queue_launch();
             }
@@ -1114,8 +1124,8 @@ namespace lsp
 
     void room_builder_base::update_sample_rate(long sr)
     {
-        for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
-            vConvolvers[i].sDelay.init(millis_to_samples(sr, impulse_reverb_base_metadata::PREDELAY_MAX * 4.0f));
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+            vConvolvers[i].sDelay.init(millis_to_samples(sr, room_builder_base_metadata::PREDELAY_MAX * 4.0f));
 
         for (size_t i=0; i<2; ++i)
         {
@@ -1206,7 +1216,7 @@ namespace lsp
             lsp_trace("Reconfiguration task has completed with status %d", int(sConfigurator.code()));
 
             // Commit state of convolvers
-            for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+            for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
             {
                 convolver_t *c  = &vConvolvers[i];
                 Convolver *cv   = c->pCurr;
@@ -1507,10 +1517,7 @@ namespace lsp
 
             float *fdst         = reinterpret_cast<float *>(&hdr[1]);
             for (size_t i=0; i<s->sSample.channels(); ++i, fdst += slen)
-            {
                 ::memcpy(fdst, s->sSample.getBuffer(i), slen * sizeof(float));
-                CPU_TO_VBE(fdst, slen);
-            }
 
             // Create KVT parameter
             p.type          = KVT_BLOB;
@@ -1544,15 +1551,164 @@ namespace lsp
 
     status_t room_builder_base::reconfigure()
     {
+        status_t res;
+        const kvt_param_t *p;
+        char path[0x40];
+        sample_header_t hdr;
+        const sample_header_t *phdr;
+
         // Collect the garbage
-        for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
         {
             convolver_t *c  = &vConvolvers[i];
             if (c->pSwap != NULL)
             {
                 c->pSwap->destroy();
                 delete c->pSwap;
+                c->pSwap    = NULL;
             }
+        }
+
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *c  = &vCaptures[i];
+            if (c->pSwap != NULL)
+            {
+                c->pSwap->destroy();
+                delete c->pSwap;
+                c->pSwap    = NULL;
+            }
+        }
+
+        // Re-render samples
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *c    = &vCaptures[i];
+
+            // Do we need to change the sample?
+            if (c->nChangeReq == c->nCommitReq)
+                continue;
+
+            // Mark that sample has been updated
+            atomic_add(&c->nCommitReq, 1);
+            sprintf(path, "/samples/%d", int(i));
+
+            // Lock KVT and fetch sample data
+            KVTStorage *kvt = kvt_lock();
+            if (kvt == NULL)
+                return STATUS_BAD_STATE;
+
+            res = kvt->get(path, &p, KVT_BLOB);
+            if ((res != STATUS_OK) ||
+                (p == NULL))
+            {
+                c->nStatus      = STATUS_NO_DATA;
+                kvt_release();
+                continue;
+            }
+
+            // Validate blob settings
+            if ((p->blob.ctype == NULL) ||
+                (p->blob.data == NULL) ||
+                (p->blob.size <= sizeof(sample_header_t)) ||
+                (::strcmp(p->blob.ctype, AUDIO_SAMPLE_CONTENT_TYPE) != 0))
+            {
+                c->nStatus      = STATUS_CORRUPTED;
+                kvt_release();
+                continue;
+            }
+
+            // Decode sample data
+            phdr                = reinterpret_cast<const sample_header_t *>(p->blob.data);
+            hdr.version         = BE_TO_CPU(phdr->version);
+            hdr.channels        = BE_TO_CPU(phdr->channels);
+            hdr.sample_rate     = BE_TO_CPU(phdr->sample_rate);
+            hdr.samples         = BE_TO_CPU(phdr->samples);
+
+            if (((hdr.version >> 1) != 0) ||
+                ((hdr.samples * hdr.channels * sizeof(float) + sizeof(sample_header_t)) != p->blob.size))
+            {
+                c->nStatus      = STATUS_CORRUPTED;
+                kvt_release();
+                continue;
+            }
+
+            // Allocate new sample
+            Sample *s           = new Sample();
+            if (s == NULL)
+            {
+                kvt_release();
+                c->nStatus      = STATUS_NO_MEM;
+                continue;
+            }
+            c->pSwap            = s;
+            lsp_trace("Allocated sample=%p", s);
+
+            // Initialize sample
+            if (!s->init(hdr.channels, hdr.samples, hdr.samples))
+            {
+                kvt_release();
+                c->nStatus      = STATUS_NO_MEM;
+                continue;
+            }
+
+            // Sample is present, check boundaries
+            size_t head_cut     = millis_to_samples(fSampleRate, c->fHeadCut);
+            size_t tail_cut     = millis_to_samples(fSampleRate, c->fTailCut);
+            ssize_t fsamples    = hdr.samples - head_cut - tail_cut;
+            if (fsamples <= 0)
+            {
+                s->setLength(0);
+                kvt_release();
+                continue;
+            }
+
+            // Render the sample
+            float norm          = 0.0f;
+            const float *src    = reinterpret_cast<const float *>(&phdr[1]);
+            for (size_t j=0; j<hdr.channels; ++j, src += hdr.samples)
+            {
+                float *dst = s->getBuffer(j);
+
+                // Copy sample data and apply fading
+                if (c->bReverse)
+                    dsp::reverse2(dst, &src[tail_cut], fsamples);
+                else
+                    dsp::copy(dst, &src[head_cut], fsamples);
+                if ((hdr.version & 1) != __IF_LEBE(0, 1)) // Endianess does not match?
+                    byte_swap(dst, fsamples);
+
+                float xnorm         = dsp::abs_max(dst, fsamples);
+                if (xnorm > norm)
+                    norm            = xnorm;
+
+                fade_in(dst, dst, millis_to_samples(fSampleRate, c->fFadeIn), fsamples);
+                fade_out(dst, dst, millis_to_samples(fSampleRate, c->fFadeOut), fsamples);
+
+                // Now render thumbnail
+                src                 = dst;
+                dst                 = c->vThumbs[j];
+                for (size_t k=0; k<room_builder_base_metadata::MESH_SIZE; ++k)
+                {
+                    size_t first    = (k * fsamples) / room_builder_base_metadata::MESH_SIZE;
+                    size_t last     = ((k + 1) * fsamples) / room_builder_base_metadata::MESH_SIZE;
+                    if (first < last)
+                        dst[k]          = dsp::abs_max(&src[first], last - first);
+                    else
+                        dst[k]          = fabs(src[first]);
+                }
+            }
+
+            // Normalize graph if possible
+            if (norm != 0.0f)
+            {
+                norm    = 1.0f / norm;
+                for (size_t j=0; j<hdr.channels; ++j)
+                    dsp::scale2(s->getBuffer(j), norm, room_builder_base_metadata::MESH_SIZE);
+            }
+
+            // Release KVT storage
+            kvt_release();
         }
 
         return STATUS_OK;

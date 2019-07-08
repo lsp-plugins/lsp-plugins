@@ -92,6 +92,43 @@
 						<value id="cpitch" same_line="true" />
 					</grid>
 				</vbox>
+				
+				<!-- Sample editors -->
+				<ui:for id="i" first="0" last="7">
+					<vbox spacing="2">
+						<hbox border="2">
+							<file
+								head_id="ihc_${i}" tail_id="itc_${i}"
+								fadein_id="ifi_${i}" fadeout_id="ifo_${i}" length_id="ifl_${i}"
+								status_id="ifs_${i}" mesh_id="ifd_${i}"
+								width="320" height="240"
+							/>
+						</hbox>
+						
+						<grid rows="3" cols="6">
+							<label text="Reverse" />
+							<label text="Head cut" />
+							<label text="Tail cut" />
+							<label text="Fade in" />
+							<label text="Fade out" />
+							<label text="Listen" />
+							
+							<button id="irv_${i}" size="32" toggle="false" />
+							<knob id="ihc_${i}" size="20" />
+							<knob id="itc_${i}" size="20" />
+							<knob id="ifi_${i}" size="20" scale_color="yellow" />
+							<knob id="ifo_${i}" size="20" scale_color="yellow" />
+							<button id="ils_${i}" size="32" toggle="false" />
+							
+							<led id="irv_${i}" />
+							<value id="ihc_${i}" />
+							<value id="itc_${i}" />
+							<value id="ifi_${i}" />
+							<value id="ifo_${i}" />
+							<led id="ils_${i}" />
+						</grid>
+					</vbox>
+				</ui:for>
 			</cgroup>
 			<cgroup id="editor">
 				<!-- Source editor -->
