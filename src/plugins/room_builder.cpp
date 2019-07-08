@@ -942,10 +942,6 @@ namespace lsp
 
                     atomic_add(&cap->nChangeReq, 1);
                 }
-
-                // Submit changes to configurator
-                if (cap->nChangeReq != cap->nChangeResp)
-                    sConfigurator.queue_launch();
             }
         }
 
@@ -1036,10 +1032,6 @@ namespace lsp
                     cv->nTrackID            = trackid;
                     atomic_add(&cv->nChangeReq, 1);
                 }
-
-                // Submit changes to configurator
-                if (cv->nChangeReq != cv->nChangeResp)
-                    sConfigurator.queue_launch();
             }
 
             // Apply panning to each convolver
@@ -1203,12 +1195,39 @@ namespace lsp
         }
 
         // Do we need to launch configurator task?
-        if ((sConfigurator.need_launch()) && (sConfigurator.idle()))
+        if (sConfigurator.idle())
         {
-            if (pExecutor->submit(&sConfigurator))
+            // Submit changes to configurator
+            for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
             {
-                sConfigurator.launched();
-                lsp_trace("Successfully submitted reconfigurator task");
+                capture_t *cap      = &vCaptures[i];
+                size_t req          = cap->nChangeReq;
+                if (cap->nChangeResp != req)
+                {
+                    cap->nChangeResp    = req;
+                    sConfigurator.queue_launch();
+                }
+            }
+
+            for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+            {
+                convolver_t *cv     = &vConvolvers[i];
+                size_t req          = cv->nChangeReq;
+                if (cv->nChangeResp != req)
+                {
+                    cv->nChangeResp     = req;
+                    sConfigurator.queue_launch();
+                }
+            }
+
+            // Try to launch configurator
+            if (sConfigurator.need_launch())
+            {
+                if (pExecutor->submit(&sConfigurator))
+                {
+                    sConfigurator.launched();
+                    lsp_trace("Successfully submitted reconfigurator task");
+                }
             }
         }
         else if (sConfigurator.completed())
@@ -1589,6 +1608,10 @@ namespace lsp
             if (c->nChangeReq == c->nCommitReq)
                 continue;
 
+            // Update status and commit request
+            c->nStatus      = STATUS_OK;
+            atomic_add(&c->nCommitReq, 1);
+
             // Mark that sample has been updated
             atomic_add(&c->nCommitReq, 1);
             sprintf(path, "/samples/%d", int(i));
@@ -1596,7 +1619,10 @@ namespace lsp
             // Lock KVT and fetch sample data
             KVTStorage *kvt = kvt_lock();
             if (kvt == NULL)
-                return STATUS_BAD_STATE;
+            {
+                c->nStatus      = STATUS_BAD_STATE;
+                continue;
+            }
 
             res = kvt->get(path, &p, KVT_BLOB);
             if ((res != STATUS_OK) ||
@@ -1610,7 +1636,7 @@ namespace lsp
             // Validate blob settings
             if ((p->blob.ctype == NULL) ||
                 (p->blob.data == NULL) ||
-                (p->blob.size <= sizeof(sample_header_t)) ||
+                (p->blob.size < sizeof(sample_header_t)) ||
                 (::strcmp(p->blob.ctype, AUDIO_SAMPLE_CONTENT_TYPE) != 0))
             {
                 c->nStatus      = STATUS_CORRUPTED;
