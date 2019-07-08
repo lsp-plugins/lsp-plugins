@@ -32,7 +32,7 @@ namespace lsp
         static const float PREDELAY_STEP            = 0.01f;    // Pre-delay step (ms)
 
         static const size_t MESH_SIZE               = 600;      // Maximum mesh size
-        static const size_t TRACKS_MAX              = 8;        // Maximum tracks per mesh/sample
+        static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
 
         static const size_t CONVOLVERS              = 4;        // Number of IR convolvers
 

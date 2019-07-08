@@ -58,49 +58,50 @@ namespace lsp
 
             typedef struct convolver_t
             {
-                Delay           sDelay;         // Delay line
+                Delay               sDelay;         // Delay line
 
-                Convolver      *pCurr;          // Currently used convolver
-                Convolver      *pSwap;          // Swap
+                Convolver          *pCurr;          // Currently used convolver
+                Convolver          *pSwap;          // Swap
 
-                size_t          nRank;          // Last applied rank
-                size_t          nRankReq;       // Rank request
-                size_t          nSource;        // Source
-                size_t          nFileReq;       // File request
-                size_t          nTrackReq;      // Track request
+                size_t              nSampleID;      // Sample identifier
+                size_t              nTrackID;       // Track identifier
+                bool                bMute;          // Mute flag
 
-                float          *vBuffer;        // Buffer for convolution
-                float           fPanIn[2];      // Input panning of convolver
-                float           fPanOut[2];     // Output panning of convolver
+                volatile size_t     nChangeReq;     // Change request
+                size_t              nChangeResp;    // Change commit
 
-                IPort          *pMakeup;        // Makeup gain of convolver
-                IPort          *pPanIn;         // Input panning of convolver
-                IPort          *pPanOut;        // Output panning of convolver
-                IPort          *pSample;        // Convolver source sample
-                IPort          *pTrack;         // Convolver source sample track
-                IPort          *pPredelay;      // Pre-delay
-                IPort          *pMute;          // Mute button
-                IPort          *pActivity;      // Activity indicator
+                float              *vBuffer;        // Buffer for convolution
+                float               fPanIn[2];      // Input panning of convolver
+                float               fPanOut[2];     // Output panning of convolver
+
+                IPort              *pMakeup;        // Makeup gain of convolver
+                IPort              *pPanIn;         // Input panning of convolver
+                IPort              *pPanOut;        // Output panning of convolver
+                IPort              *pSample;        // Convolver source sample
+                IPort              *pTrack;         // Convolver source sample track
+                IPort              *pPredelay;      // Pre-delay
+                IPort              *pMute;          // Mute button
+                IPort              *pActivity;      // Activity indicator
             } convolver_t;
 
             typedef struct channel_t
             {
-                Bypass          sBypass;
-                SamplePlayer    sPlayer;
-                Equalizer       sEqualizer;     // Wet signal equalizer
+                Bypass              sBypass;
+                SamplePlayer        sPlayer;
+                Equalizer           sEqualizer;     // Wet signal equalizer
 
-                float          *vOut;
-                float          *vBuffer;        // Rendering buffer
-                float           fDryPan[2];     // Dry panorama
+                float              *vOut;
+                float              *vBuffer;        // Rendering buffer
+                float               fDryPan[2];     // Dry panorama
 
-                IPort          *pOut;
+                IPort              *pOut;
 
-                IPort          *pWetEq;         // Wet equalization flag
-                IPort          *pLowCut;        // Low-cut flag
-                IPort          *pLowFreq;       // Low-cut frequency
-                IPort          *pHighCut;       // High-cut flag
-                IPort          *pHighFreq;      // Low-cut frequency
-                IPort          *pFreqGain[room_builder_base_metadata::EQ_BANDS];    // Gain for each band of the Equalizer
+                IPort              *pWetEq;         // Wet equalization flag
+                IPort              *pLowCut;        // Low-cut flag
+                IPort              *pLowFreq;       // Low-cut frequency
+                IPort              *pHighCut;       // High-cut flag
+                IPort              *pHighFreq;      // Low-cut frequency
+                IPort              *pFreqGain[room_builder_base_metadata::EQ_BANDS];    // Gain for each band of the Equalizer
             } channel_t;
 
             typedef struct input_t
@@ -135,6 +136,19 @@ namespace lsp
                 ssize_t                 nRMin;      // Minimum reflection order
                 ssize_t                 nRMax;      // Maximum reflection order
 
+                float                   fHeadCut;
+                float                   fTailCut;
+                float                   fFadeIn;
+                float                   fFadeOut;
+                float                   nLength;
+                status_t                nStatus;
+
+                float                  *vThumbs[room_builder_base_metadata::TRACKS_MAX];
+
+                volatile size_t         nChangeReq;     // Change request
+                size_t                  nChangeResp;    // Change commit
+
+                // Capture functions
                 IPort                  *pEnabled;
                 IPort                  *pRMin;
                 IPort                  *pRMax;
@@ -150,6 +164,17 @@ namespace lsp
                 IPort                  *pDistance;
                 IPort                  *pDirection;
                 IPort                  *pSide;
+
+                // Sample editor functions
+                IPort                  *pHeadCut;
+                IPort                  *pTailCut;
+                IPort                  *pFadeIn;
+                IPort                  *pFadeOut;
+                IPort                  *pListen;
+                IPort                  *pReverse;       // Reverse
+                IPort                  *pStatus;        // Status of rendering
+                IPort                  *pLength;        // Length of sample
+                IPort                  *pThumbs;        // Thumbnails of sample
             } capture_t;
 
             typedef struct sample_t
@@ -216,6 +241,30 @@ namespace lsp
                     void            terminate();
             };
 
+            class Configurator: public ipc::ITask
+            {
+                protected:
+                    room_builder_base      *pBuilder;
+                    volatile uatomic_t      nChangeReq;
+                    uatomic_t               nChangeResp;
+
+                public:
+                    inline Configurator(room_builder_base *bld):
+                        pBuilder(bld)
+                    {
+                        nChangeReq      = 0;
+                        nChangeResp     = 0;
+                    }
+
+                    virtual status_t run();
+
+                    inline bool need_launch() const { return nChangeReq != nChangeResp; }
+
+                    inline void queue_launch() { atomic_add(&nChangeReq, 1); }
+
+                    inline void launched() { nChangeResp = nChangeReq; }
+            };
+
         protected:
             size_t                  nInputs;
             size_t                  nReconfigReq;
@@ -224,6 +273,7 @@ namespace lsp
             status_t                enRenderStatus;
             float                   fRenderProgress;
             float                   fRenderCmd;
+            size_t                  nFftRank;
 
             input_t                 vInputs[2];
             channel_t               vChannels[2];
@@ -241,6 +291,7 @@ namespace lsp
 
             SceneLoader             s3DLoader;
             RenderLauncher          s3DLauncher;
+            Configurator            sConfigurator;
 
             IPort                  *pBypass;
             IPort                  *pRank;
@@ -272,6 +323,7 @@ namespace lsp
             status_t            bind_captures(cvector<sample_t> &samples, RayTrace3D *rt);
             status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
             status_t            commit_samples(cvector<sample_t> &samples);
+            status_t            reconfigure();
             static void         destroy_samples(cvector<sample_t> &samples);
             static status_t     progress_callback(float progress, void *ptr);
 
@@ -296,7 +348,7 @@ namespace lsp
 
             static void                 kvt_cleanup_objects(KVTStorage *kvt, size_t objects);
             static void                 read_object_properties(obj_props_t *props, const char *base, KVTStorage *kvt);
-            static void                 build_object_matrix(matrix3d_t *m, const obj_props_t *props);
+            static void                 build_object_matrix(matrix3d_t *m, const obj_props_t *props, const matrix3d_t *world);
     };
 
     class room_builder_mono: public room_builder_base, public room_builder_mono_metadata

@@ -111,13 +111,6 @@ namespace lsp
         NULL
     };
 
-    static const char *rb_channel_sel[] =
-    {
-        "Left",
-        "Right",
-        NULL
-    };
-
     static const char *rb_source_mode[] =
     {
         "Triangle",
@@ -285,6 +278,17 @@ namespace lsp
         CONTROL("scab" id, "Capture " label " AB distance", U_M, room_builder_base_metadata::DISTANCE),      \
         COMBO("scmd" id, "Capture " label " microphone direction", 0, rb_capture_direction),      \
         COMBO("scsd" id, "Capture " label " side microphone direction", 0, rb_capture_side_direction), \
+        \
+        CONTROL("ihc" id, "Head cut" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
+        CONTROL("itc" id, "Tail cut" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
+        CONTROL("ifi" id, "Fade in" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
+        CONTROL("ifo" id, "Fade out" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
+        TRIGGER("ils" id, "Impulse listen" label), \
+        SWITCH("irv" id, "Impulse reverse" label, 0.0f), \
+        STATUS("ifs" id, "Impulse status" label), \
+        METER("ifl" id, "Impulse length" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
+        MESH("ifd" id, "Impulse file contents" label, room_builder_base_metadata::TRACKS_MAX, room_builder_base_metadata::MESH_SIZE), \
+        \
         { "sch" id, "Capture " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 
     #define RB_CONVOLVER_MONO(id, label, track, mix) \

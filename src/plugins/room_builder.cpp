@@ -243,11 +243,12 @@ namespace lsp
         props->bEnabled = (enabled >= 0.5f);
     }
 
-    void room_builder_base::build_object_matrix(matrix3d_t *m, const obj_props_t *props)
+    void room_builder_base::build_object_matrix(matrix3d_t *m, const obj_props_t *props, const matrix3d_t *world)
     {
         matrix3d_t tmp;
 
-        dsp::init_matrix3d_identity(m);
+        // Copy world matrix
+        *m  = *world;
 
         // Apply translation
         dsp::init_matrix3d_translate(&tmp,
@@ -311,10 +312,16 @@ namespace lsp
         }
     }
 
+    status_t room_builder_base::Configurator::run()
+    {
+        return pBuilder->reconfigure();
+    }
+
     //-------------------------------------------------------------------------
     room_builder_base::room_builder_base(const plugin_metadata_t &metadata, size_t inputs):
         plugin_t(metadata),
-        s3DLauncher(this)
+        s3DLauncher(this),
+        sConfigurator(this)
     {
         nInputs         = inputs;
         nReconfigReq    = 0;
@@ -324,6 +331,7 @@ namespace lsp
         enRenderStatus  = STATUS_OK;
         fRenderProgress = 0.0f;
         fRenderCmd      = 0.0f;
+        nFftRank        = 0;
 
         nSceneStatus    = STATUS_UNSPECIFIED;
         fSceneProgress  = 0.0f;
@@ -369,7 +377,9 @@ namespace lsp
 
         // Allocate memory
         size_t tmp_buf_size = TMP_BUF_SIZE * sizeof(float);
-        size_t alloc        = tmp_buf_size * (room_builder_base_metadata::CONVOLVERS + 2);
+        size_t thumb_size   = room_builder_base_metadata::MESH_SIZE *
+                              room_builder_base_metadata::TRACKS_MAX * sizeof(float);
+        size_t alloc        = tmp_buf_size * (room_builder_base_metadata::CONVOLVERS + 2) + thumb_size;
         uint8_t *ptr        = alloc_aligned<uint8_t>(pData, alloc);
         if (pData == NULL)
             return;
@@ -453,9 +463,6 @@ namespace lsp
         {
             capture_t *cap  = &vCaptures[i];
 
-            cap->bEnabled       = (i == 0);
-            cap->nRMin          = 1;
-            cap->nRMax          = -1;
             dsp::init_point_xyz(&cap->sPos, 0.0f, 1.0f, 0.0f);
             cap->fYaw           = 0.0f;
             cap->fPitch         = 0.0f;
@@ -466,6 +473,26 @@ namespace lsp
             cap->fDistance      = room_builder_base_metadata::DISTANCE_DFL;
             cap->enDirection    = RT_AC_OMNI;
             cap->enSide         = RT_AC_BIDIR;
+
+            cap->bEnabled       = (i == 0);
+            cap->nRMin          = 1;
+            cap->nRMax          = -1;
+
+            cap->fHeadCut       = 0.0f;
+            cap->fTailCut       = 0.0f;
+            cap->fFadeIn        = 0.0f;
+            cap->fFadeOut       = 0.0f;
+            cap->nLength        = 0;
+            cap->nStatus        = STATUS_NO_DATA;
+
+            for (size_t j=0; j<room_builder_base_metadata::TRACKS_MAX; ++j)
+            {
+                cap->vThumbs[j]     = reinterpret_cast<float *>(ptr);
+                ptr                += room_builder_base_metadata::MESH_SIZE * sizeof(float);
+            }
+
+            cap->nChangeReq     = 0;
+            cap->nChangeResp    = 0;
 
             cap->pEnabled       = NULL;
             cap->pRMin          = NULL;
@@ -482,6 +509,49 @@ namespace lsp
             cap->pDistance      = NULL;
             cap->pDirection     = NULL;
             cap->pSide          = NULL;
+
+            cap->pHeadCut       = NULL;
+            cap->pTailCut       = NULL;
+            cap->pFadeIn        = NULL;
+            cap->pFadeOut       = NULL;
+            cap->pListen        = NULL;
+            cap->pReverse       = NULL;
+            cap->pStatus        = NULL;
+            cap->pLength        = NULL;
+            cap->pThumbs        = NULL;
+        }
+
+        // Initialize convolvers
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+        {
+            lsp_trace("Binding convolution #%d ports", int(i));
+            convolver_t *c  = &vConvolvers[i];
+
+            c->sDelay.init(millis_to_samples(MAX_SAMPLE_RATE, room_builder_base_metadata::PREDELAY_MAX));
+            c->pCurr            = NULL;
+            c->pSwap            = NULL;
+            c->bMute            = false;
+
+            c->nSampleID        = 0;
+            c->nTrackID         = 0;
+            c->nChangeReq       = 0;
+            c->nChangeResp      = 0;
+
+            c->vBuffer          = NULL; // TODO
+
+            c->fPanIn[0]        = 0.0f;
+            c->fPanIn[1]        = 0.0f;
+            c->fPanOut[0]       = 0.0f;
+            c->fPanOut[1]       = 0.0f;
+
+            c->pMakeup          = NULL;
+            c->pPanIn           = NULL;
+            c->pPanOut          = NULL;
+            c->pSample          = NULL;
+            c->pTrack           = NULL;
+            c->pPredelay        = NULL;
+            c->pMute            = NULL;
+            c->pActivity        = NULL;
         }
 
         // Bind ports
@@ -642,6 +712,25 @@ namespace lsp
             cap->pSide          = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
+            cap->pHeadCut       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pTailCut       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pFadeIn        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pFadeOut       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pListen        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pReverse       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pStatus        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pLength        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pThumbs        = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
             port_id++;          // Skip hue value
         }
 
@@ -737,11 +826,23 @@ namespace lsp
         float predelay      = pPredelay->getValue();
         size_t rank         = get_fft_rank(pRank->getValue());
 
+        // Adjust FFT rank
+        if (sConfigurator.idle())
+        {
+            if (rank != nFftRank)
+            {
+                nFftRank        = rank;
+                sConfigurator.queue_launch();
+            }
+        }
+
+        // Adjust size of scene and number of threads to render
         sScale.dx           = pScaleX->getValue() * 0.01f;
         sScale.dy           = pScaleY->getValue() * 0.01f;
         sScale.dz           = pScaleZ->getValue() * 0.01f;
         nRenderThreads      = pRenderThreads->getValue();
 
+        // Check that render request has been triggered
         float old_cmd       = fRenderCmd;
         fRenderCmd          = pRenderCmd->getValue();
         if ((old_cmd >= 0.5f) && (fRenderCmd < 0.5f))
@@ -793,7 +894,7 @@ namespace lsp
         // Update capture settings
         for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
         {
-            capture_t *cap  = &vCaptures[i];
+            capture_t *cap      = &vCaptures[i];
 
             cap->bEnabled       = cap->pEnabled->getValue() >= 0.5f;
             cap->nRMin          = ssize_t(cap->pRMin->getValue()) - 1;
@@ -811,6 +912,32 @@ namespace lsp
             cap->fDistance      = cap->pDistance->getValue();
             cap->enDirection    = decode_direction(cap->pDirection->getValue());
             cap->enSide         = decode_side_direction(cap->pSide->getValue());
+
+            // Check that we need to synchronize capture settings with convolver
+            if (sConfigurator.idle())
+            {
+                float hcut      = cap->pHeadCut->getValue();
+                float tcut      = cap->pTailCut->getValue();
+                float fadein    = cap->pFadeIn->getValue();
+                float fadeout   = cap->pFadeOut->getValue();
+
+                if ((cap->fHeadCut != hcut) ||
+                    (cap->fTailCut != tcut) ||
+                    (cap->fFadeIn != fadein) ||
+                    (cap->fFadeOut != fadeout))
+                {
+                    cap->fHeadCut       = hcut;
+                    cap->fTailCut       = tcut;
+                    cap->fFadeIn        = fadein;
+                    cap->fFadeOut       = fadeout;
+
+                    atomic_add(&cap->nChangeReq, 1);
+                }
+
+                // Mark configurator as required for launch
+                if (cap->nChangeReq != cap->nChangeResp)
+                    sConfigurator.queue_launch();
+            }
         }
 
         // Adjust channel setup
@@ -882,10 +1009,30 @@ namespace lsp
             }
         }
 
-        // Apply panning to each convolver
+        // Update settings of convolvers
         for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
         {
             convolver_t *cv         = &vConvolvers[i];
+
+            // Allow to reconfigure convolver only when configuration task is in idle state
+            if (sConfigurator.idle())
+            {
+                size_t sampleid = cv->pSample->getValue();
+                size_t trackid  = cv->pTrack->getValue();
+
+                if ((cv->nSampleID != sampleid) ||
+                    (cv->nTrackID != trackid))
+                {
+                    cv->nSampleID           = sampleid;
+                    cv->nTrackID            = trackid;
+                    atomic_add(&cv->nChangeReq, 1);
+                }
+
+                if (cv->nChangeReq != cv->nChangeResp)
+                    sConfigurator.queue_launch();
+            }
+
+            // Apply panning to each convolver
             float makeup            = cv->pMakeup->getValue() * wet_gain;
             if (nInputs == 1)
             {
@@ -905,17 +1052,6 @@ namespace lsp
 
             // Set pre-delay
             cv->sDelay.set_delay(millis_to_samples(fSampleRate, predelay + cv->pPredelay->getValue()));
-
-            // Analyze source
-            size_t file         = (cv->pMute->getValue() < 0.5f) ? cv->pSample->getValue() : 0;
-            size_t track        = cv->pTrack->getValue();
-            if ((file != cv->nFileReq) || (track != cv->nTrackReq) || (rank != cv->nRankReq))
-            {
-                nReconfigReq        ++;
-                cv->nFileReq        = file;
-                cv->nTrackReq       = track;
-                cv->nRankReq        = rank;
-            }
         }
     }
 
@@ -1055,6 +1191,32 @@ namespace lsp
                 s3DLoader.reset();
             }
         }
+
+        // Do we need to launch configurator task?
+        if ((sConfigurator.need_launch()) && (sConfigurator.idle()))
+        {
+            if (pExecutor->submit(&sConfigurator))
+            {
+                sConfigurator.launched();
+                lsp_trace("Successfully submitted reconfigurator task");
+            }
+        }
+        else if (sConfigurator.completed())
+        {
+            lsp_trace("Reconfiguration task has completed with status %d", int(sConfigurator.code()));
+
+            // Commit state of convolvers
+            for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+            {
+                convolver_t *c  = &vConvolvers[i];
+                Convolver *cv   = c->pCurr;
+                c->pCurr        = c->pSwap;
+                c->pSwap        = cv;
+            }
+
+            // Accept the configurator task
+            sConfigurator.reset();
+        }
     }
 
     status_t room_builder_base::bind_sources(RayTrace3D *rt)
@@ -1175,6 +1337,8 @@ namespace lsp
         obj_props_t props;
         char base[0x40];
         rt_material_t mat;
+        matrix3d_t world;
+        dsp::init_matrix3d_scale(&world, sScale.dx, sScale.dy, sScale.dz);
 
         for (size_t i=0, n=dst->num_objects(); i<n; ++i)
         {
@@ -1187,7 +1351,7 @@ namespace lsp
             read_object_properties(&props, base, kvt);
 
             // Update object matrix and visibility
-            build_object_matrix(obj->matrix(), &props);
+            build_object_matrix(obj->matrix(), &props, &world);
             obj->set_visible(props.bEnabled);
 
             // Initialize material
@@ -1371,7 +1535,24 @@ namespace lsp
             else
                 return STATUS_BAD_STATE;
 
-            // TODO: toggle change of the sample
+            // Update the number of changes
+            atomic_add(&vCaptures[s->nID].nChangeReq, 1);
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t room_builder_base::reconfigure()
+    {
+        // Collect the garbage
+        for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+        {
+            convolver_t *c  = &vConvolvers[i];
+            if (c->pSwap != NULL)
+            {
+                c->pSwap->destroy();
+                delete c->pSwap;
+            }
         }
 
         return STATUS_OK;

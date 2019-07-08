@@ -547,12 +547,13 @@ namespace lsp
 
                         if (res)
                         {
-                            matrix3d_t tmp;
+//                            matrix3d_t tmp;
                             room_builder_base::read_object_properties(&props, base.get_utf8(), kvt);
                             o->set_visible(props.bEnabled);
-                            room_builder_base::build_object_matrix(&tmp, &props);
-                            dsp::apply_matrix3d_mm2(&om, &tmp, &om);
-                            dsp::apply_matrix3d_mm2(&om, &scale, &om);
+                            room_builder_base::build_object_matrix(&om, &props, &scale);
+//                            dsp::apply_matrix3d_mm2(&om, &tmp, &om);
+//                            dsp::apply_matrix3d_mm2(&om, &scale, &om);
+//                            dsp::apply_matrix3d_mm2(&om, &tmp, &scale);
                             xc.hue(props.fHue);
                         }
 
