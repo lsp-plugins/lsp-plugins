@@ -76,6 +76,10 @@ namespace lsp
     extern const char *status_descriptions[];
 
     const char *get_status(status_t code);
+
+    bool status_is_success(status_t code);
+    bool status_is_preliminary(status_t code);
+    bool status_is_error(status_t code);
 }
 
 #endif /* CORE_STATUS_H_ */

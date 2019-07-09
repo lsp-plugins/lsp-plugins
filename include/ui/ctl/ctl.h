@@ -73,6 +73,7 @@ namespace lsp
             WC_SBAR,
             WC_SEP,
             WC_SOURCE3D,
+            WC_STATUS,
             WC_SWITCH,
             WC_TEXT,
             WC_THREADCOMBO,

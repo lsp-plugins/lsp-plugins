@@ -676,6 +676,13 @@ namespace lsp
                 vWidgets.add(lbl);
                 return new CtlLabel(this, lbl, CTL_LABEL_VALUE);
             }
+            case WC_STATUS:
+            {
+                LSPLabel *lbl = new LSPLabel(&sDisplay);
+                lbl->init();
+                vWidgets.add(lbl);
+                return new CtlLabel(this, lbl, CTL_STATUS_CODE);
+            }
             case WC_HLINK:
             {
                 LSPHyperlink *hlink = new LSPHyperlink(&sDisplay);

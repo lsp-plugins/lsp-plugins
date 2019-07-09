@@ -86,7 +86,7 @@ namespace lsp
                 static status_t     slot_on_close(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                LSPAudioFile(LSPDisplay *dpy);
+                explicit LSPAudioFile(LSPDisplay *dpy);
                 virtual ~LSPAudioFile();
 
                 virtual status_t init();

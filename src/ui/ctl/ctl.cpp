@@ -51,6 +51,7 @@ namespace lsp
             "sbar",
             "sep",
             "source3d",
+            "status",
             "switch",
             "text",
             "threadcombo",
