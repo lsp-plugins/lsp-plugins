@@ -135,6 +135,8 @@ namespace lsp
             ::free(pItems);
             pItems      = NULL;
         }
+
+        osc::pattern_destroy(&sOscPattern);
     }
 
     const char *room_builder_ui::CtlListPort::name()

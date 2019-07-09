@@ -483,6 +483,7 @@ namespace lsp
             cap->fTailCut       = 0.0f;
             cap->fFadeIn        = 0.0f;
             cap->fFadeOut       = 0.0f;
+            cap->bReverse       = false;
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
 
@@ -534,7 +535,6 @@ namespace lsp
             lsp_trace("Binding convolution #%d ports", int(i));
             convolver_t *c  = &vConvolvers[i];
 
-            c->sDelay.init(millis_to_samples(MAX_SAMPLE_RATE, room_builder_base_metadata::PREDELAY_MAX));
             c->pCurr            = NULL;
             c->pSwap            = NULL;
             c->bMute            = false;
@@ -816,6 +816,43 @@ namespace lsp
         {
             free_aligned(pData);
             pData       = NULL;
+        }
+
+        // Destroy captures
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *c    = &vCaptures[i];
+            if (c->pCurr != NULL)
+            {
+                c->pCurr->destroy();
+                delete c->pCurr;
+                c->pCurr        = NULL;
+            }
+            if (c->pSwap != NULL)
+            {
+                c->pSwap->destroy();
+                delete c->pSwap;
+                c->pSwap        = NULL;
+            }
+        }
+
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+        {
+            convolver_t *c  = &vConvolvers[i];
+            if (c->pCurr != NULL)
+            {
+                c->pCurr->destroy();
+                delete c->pCurr;
+                c->pCurr    = NULL;
+            }
+            if (c->pSwap != NULL)
+            {
+                c->pSwap->destroy();
+                delete c->pSwap;
+                c->pSwap    = NULL;
+            }
+
+            c->sDelay.destroy();
         }
     }
 
@@ -1238,10 +1275,7 @@ namespace lsp
                 capture_t *cap      = &vCaptures[i];
                 size_t req          = cap->nChangeReq;
                 if (cap->nChangeResp != req)
-                {
-                    cap->nChangeResp    = req;
                     sConfigurator.queue_launch();
-                }
             }
 
             for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
@@ -1249,10 +1283,7 @@ namespace lsp
                 convolver_t *cv     = &vConvolvers[i];
                 size_t req          = cv->nChangeReq;
                 if (cv->nChangeResp != req)
-                {
-                    cv->nChangeResp     = req;
                     sConfigurator.queue_launch();
-                }
             }
 
             // Try to launch configurator
@@ -1655,14 +1686,14 @@ namespace lsp
             capture_t *c    = &vCaptures[i];
 
             // Do we need to change the sample?
-            if (c->nChangeReq == c->nCommitReq)
+            size_t req      = c->nChangeReq;
+            if (c->nChangeResp == req)
                 continue;
 
             // Update status and commit request
             c->nStatus      = STATUS_OK;
+            c->nChangeResp  = req;
             atomic_add(&c->nCommitReq, 1);
-
-            // Mark that sample has been updated
             atomic_add(&c->nCommitReq, 1);
             sprintf(path, "/samples/%d", int(i));
 
@@ -1742,9 +1773,9 @@ namespace lsp
 
             // Render the sample
             float norm          = 0.0f;
-            const float *src    = reinterpret_cast<const float *>(&phdr[1]);
-            for (size_t j=0; j<hdr.channels; ++j, src += hdr.samples)
+            for (size_t j=0; j<hdr.channels; ++j)
             {
+                const float *src    = reinterpret_cast<const float *>(&phdr[1]) + j * hdr.samples;
                 float *dst = s->getBuffer(j);
 
                 // Copy sample data and apply fading
@@ -1781,11 +1812,25 @@ namespace lsp
             {
                 norm    = 1.0f / norm;
                 for (size_t j=0; j<hdr.channels; ++j)
-                    dsp::scale2(s->getBuffer(j), norm, room_builder_base_metadata::MESH_SIZE);
+                    dsp::scale2(c->vThumbs[j], norm, room_builder_base_metadata::MESH_SIZE);
             }
 
             // Release KVT storage
             kvt_release();
+        }
+
+        // Reconfigure convolvers
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+        {
+            convolver_t *c  = &vConvolvers[i];
+
+            // Do we need to change the sample?
+            size_t req      = c->nChangeReq;
+            if (c->nChangeResp == req)
+                continue;
+
+            // Commit request
+            c->nChangeResp  = req;
         }
 
         return STATUS_OK;

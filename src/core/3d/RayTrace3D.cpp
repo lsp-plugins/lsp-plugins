@@ -74,7 +74,6 @@ namespace lsp
         dsp::context_t ctx;
         dsp::start(&ctx);
 
-        clear_stats(&stats);
         status_t res = main_loop();
         destroy_tasks(&tasks);
 
@@ -1119,6 +1118,9 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::prepare_main_loop(float initial)
     {
+        // Cleanup stats
+        clear_stats(&stats);
+
         // Report progress as 0%
         status_t res    = trace->report_progress(0.0f);
         if (res != STATUS_OK)
@@ -1157,6 +1159,14 @@ namespace lsp
         {
             destroy_tasks(&estimate);
             return STATUS_CANCELLED;
+        }
+
+        // Prepare captures
+        res = prepare_captures();
+        if (res != STATUS_OK)
+        {
+            destroy_tasks(&estimate);
+            return res;
         }
 
         // Estimate the progress by doing set of steps
@@ -1216,7 +1226,7 @@ namespace lsp
             return STATUS_CANCELLED;
         }
 
-        return prepare_captures();
+        return STATUS_OK;
     }
 
     status_t RayTrace3D::TaskThread::prepare_captures()
@@ -1236,10 +1246,10 @@ namespace lsp
             }
 
             dcap->pos       = scap->pos;
-            dcap->direction = scap->direction;
             dcap->radius    = scap->radius;
             dcap->type      = scap->type;
             dcap->material  = scap->material;
+            dcap->direction = scap->direction;
 
             // Copy bindings
             for (size_t j=0; j<scap->bindings.size(); ++j)
@@ -1277,9 +1287,14 @@ namespace lsp
     {
         // Cleanup statistics
         clear_stats(&stats);
+
+        // Copy context
         status_t res = root.copy(&t->root);
+
+        // Prepare captures
         if (res == STATUS_OK)
             res = prepare_captures();
+
         return res;
     }
 

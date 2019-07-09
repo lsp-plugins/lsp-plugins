@@ -263,7 +263,15 @@ namespace lsp
                 delete backend;
             }
 
+            // Destroy all libs
+            for (size_t j=0, m=s3DLibs.size(); j<m; ++j)
+            {
+                r3d_library_t *r3dlib = s3DLibs.at(j);
+                delete r3dlib;
+            }
+
             // Flush list of backends and close library
+            s3DLibs.flush();
             s3DBackends.flush();
             s3DFactory = NULL;
             s3DLibrary.close();
