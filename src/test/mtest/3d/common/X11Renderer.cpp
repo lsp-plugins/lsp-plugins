@@ -669,6 +669,8 @@ namespace mtest
                 buffer.flags        = 0;
                 if (bLight)
                     buffer.flags       |= R3D_BUFFER_LIGHTING;
+                if (!bCullFace)
+                    buffer.flags       |= R3D_BUFFER_NO_CULLING;
 
                 buffer.vertex.data  = &vv->p;
                 buffer.vertex.stride= sizeof(v_vertex3d_t);

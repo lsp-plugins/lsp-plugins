@@ -31,7 +31,7 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     11
+    #define BREAKPOINT_STEP     84
 //    #define BREAKPOINT_STEP     0
 
 /*
@@ -197,12 +197,12 @@ MTEST_BEGIN("3d", reflections)
                         break;
                     }
 
-                    case XK_Up:
+                    case XK_Home:
                         nTrace++;
                         lsp_trace("Set trace breakpoint to %d", int(nTrace));
                         update_view();
                         break;
-                    case XK_Down:
+                    case XK_End:
                         if (nTrace >= 0)
                         {
                             nTrace--;
@@ -281,9 +281,9 @@ MTEST_BEGIN("3d", reflections)
                 rt_source_settings_t src;
                 dsp::calc_matrix3d_transform_r1(&src.pos, &sSource);
                 src.type        = RT_AS_ICOSPHERE;
-                src.size        = 0.3048f; // 12" speaker source
+                src.size        = 0.3048f;  // 12" speaker source
                 src.height      = 0.3048f;
-                src.angle       = 0.0f;
+                src.angle       = 50.0f;
                 src.curvature   = 0.0f;
                 src.amplitude   = 1.0f;
 

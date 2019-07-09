@@ -468,6 +468,8 @@ namespace lsp
         }
         if (buffer->flags & R3D_BUFFER_LIGHTING)
             ::glEnable(GL_LIGHTING);
+        if (buffer->flags & R3D_BUFFER_NO_CULLING)
+            ::glDisable(GL_CULL_FACE);
 
         // Enable vertex pointer (if present)
         if (buffer->vertex.data != NULL)
@@ -543,6 +545,8 @@ namespace lsp
             ::glDisable(GL_BLEND);
         if (buffer->flags & R3D_BUFFER_LIGHTING)
             ::glDisable(GL_LIGHTING);
+        if (buffer->flags & R3D_BUFFER_NO_CULLING)
+            ::glEnable(GL_CULL_FACE);
 
         return STATUS_OK;
     }

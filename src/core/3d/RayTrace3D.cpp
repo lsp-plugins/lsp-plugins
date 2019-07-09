@@ -354,7 +354,7 @@ namespace lsp
             if (cap == NULL)
                 return STATUS_BAD_STATE;
 
-            Object3D *obj       = factory.buildIcosphere(1); // TODO: add radius analysis
+            Object3D *obj       = factory.buildIcosphere(1);
             if (obj == NULL)
                 return STATUS_NO_MEM;
 
@@ -1546,7 +1546,9 @@ namespace lsp
             return -STATUS_NO_MEM;
         }
 
-        cap->pos            = settings->pos;
+        matrix3d_t delta;
+        dsp::init_matrix3d_scale(&delta, settings->radius, settings->radius, settings->radius);
+        dsp::apply_matrix3d_mm2(&cap->pos, &settings->pos, &delta);
         dsp::init_vector_dxyz(&cap->direction, 1.0f, 0.0f, 0.0f);
         cap->radius         = settings->radius;
         cap->type           = settings->type;
