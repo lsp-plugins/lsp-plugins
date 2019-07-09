@@ -48,7 +48,6 @@ namespace lsp
                 LSPWidgetFont       sFont;
                 LSPWidgetFont       sHintFont;
                 LSPSizeConstraints  sConstraints;
-                LSPPadding          sPadding;
                 LSPFileDialog       sDialog;
                 Color               sBgColor;
                 Color               sColor;
@@ -104,7 +103,6 @@ namespace lsp
 
                 inline LSPFont         *font() { return &sFont; }
                 inline LSPFont         *hint_font() { return &sHintFont; }
-                inline LSPPadding      *padding() { return &sPadding; }
 
                 inline Color           *color() { return &sColor; }
                 inline Color           *bg_color() { return &sBgColor; }
@@ -181,8 +179,6 @@ namespace lsp
                 virtual status_t on_close();
 
                 virtual status_t on_activate();
-
-                virtual void realize(const realize_t *r);
         };
     
     } /* namespace tk */
