@@ -277,6 +277,7 @@ namespace lsp
             size_t                  nReconfigReq;
             size_t                  nReconfigResp;
             ssize_t                 nRenderThreads;
+            float                   fRenderQuality;
             status_t                enRenderStatus;
             float                   fRenderProgress;
             float                   fRenderCmd;
@@ -305,6 +306,7 @@ namespace lsp
             IPort                  *pDry;
             IPort                  *pWet;
             IPort                  *pRenderThreads;
+            IPort                  *pRenderQuality;
             IPort                  *pRenderStatus;
             IPort                  *pRenderProgress;
             IPort                  *pRenderCmd;

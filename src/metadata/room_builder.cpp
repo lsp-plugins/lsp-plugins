@@ -229,6 +229,7 @@ namespace lsp
         WET_GAIN(1.0f), \
         OUT_GAIN, \
         CONTROL("threads", "Number of threads for processing", U_NONE, room_builder_base_metadata::THREADS), \
+        PERCENTS("quality", "Quality factor", 50.0f, 0.1f), \
         STATUS("status", "Render status"), \
         OUT_PERCENTS("prog", "Rendering progress"), \
         TRIGGER("render", "Launch/Stop rendering process"), \

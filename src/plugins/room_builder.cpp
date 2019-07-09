@@ -12,6 +12,7 @@
 #include <plugins/room_builder.h>
 #include <dsp/endian.h>
 #include <core/fade.h>
+#include <core/stdlib/math.h>
 
 #define TMP_BUF_SIZE            4096
 #define CONV_RANK               10
@@ -329,6 +330,7 @@ namespace lsp
         nReconfigResp   = 0;
 
         nRenderThreads  = 0;
+        fRenderQuality  = 0.5f;
         enRenderStatus  = STATUS_OK;
         fRenderProgress = 0.0f;
         fRenderCmd      = 0.0f;
@@ -345,6 +347,7 @@ namespace lsp
         pOutGain        = NULL;
         pPredelay       = NULL;
         pRenderThreads  = NULL;
+        pRenderQuality  = NULL;
         pRenderStatus   = NULL;
         pRenderProgress = NULL;
         pRenderCmd      = NULL;
@@ -606,6 +609,8 @@ namespace lsp
 
         TRACE_PORT(vPorts[port_id]);
         pRenderThreads  = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRenderQuality  = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pRenderStatus   = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -885,6 +890,7 @@ namespace lsp
         sScale.dy           = pScaleY->getValue() * 0.01f;
         sScale.dz           = pScaleZ->getValue() * 0.01f;
         nRenderThreads      = pRenderThreads->getValue();
+        fRenderQuality      = pRenderQuality->getValue() * 0.01f;
 
         // Check that render request has been triggered
         float old_cmd       = fRenderCmd;
@@ -1527,12 +1533,19 @@ namespace lsp
         }
 
         rt->set_sample_rate(fSampleRate);
+
+        float energy    = 1e-3f * expf(-4.0f * M_LN10 * fRenderQuality);    // 1e-3 .. 1e-7
+        float tolerance = 1e-4f * expf(-2.0f * M_LN10 * fRenderQuality);    // 1e-4 .. 1e-6
+        float details   = 1e-8f * expf(-2.0f * M_LN10 * fRenderQuality);    // 1e-8 .. 1e-10
+
+        rt->set_energy_threshold(energy);
+        rt->set_tolerance(tolerance);
+        rt->set_detalization(details);
+
 //        rt->set_energy_threshold(1e-5f);
-        rt->set_energy_threshold(1e-6f);
-        rt->set_tolerance(1e-5f);
-//        rt->set_tolerance(1e-6f);
+//        rt->set_tolerance(1e-5f);
 //        rt->set_detalization(1e-9f);
-        rt->set_detalization(1e-10f);
+
         rt->set_normalize(true);
         rt->set_progress_callback(progress_callback, this);
 
