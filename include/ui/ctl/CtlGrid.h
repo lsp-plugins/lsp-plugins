@@ -18,7 +18,7 @@ namespace lsp
                 ssize_t     nOrientation;
 
             public:
-                CtlGrid(CtlRegistry *src, LSPGrid *widget, ssize_t orientation = -1);
+                explicit CtlGrid(CtlRegistry *src, LSPGrid *widget, ssize_t orientation = -1);
                 virtual ~CtlGrid();
 
             public:

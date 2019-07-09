@@ -21,7 +21,7 @@ namespace lsp
                 CtlColor        sColor;
 
             public:
-                CtlMesh(CtlRegistry *src, LSPMesh *mesh);
+                explicit CtlMesh(CtlRegistry *src, LSPMesh *mesh);
                 virtual ~CtlMesh();
 
             public:

@@ -36,7 +36,7 @@ namespace lsp
                 void sync_numerator(LSPFraction *frac);
 
             public:
-                CtlFraction(CtlRegistry *src, LSPFraction *frac);
+                explicit CtlFraction(CtlRegistry *src, LSPFraction *frac);
                 virtual ~CtlFraction();
 
             public:
