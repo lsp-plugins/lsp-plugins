@@ -231,8 +231,8 @@ namespace lsp
 
         kvt_fetch(kvt, base, "material/absorption/inner", &props->fAbsorption[1], 1.5f);
         kvt_fetch(kvt, base, "material/dispersion/inner", &props->fDispersion[1], 1.0f);
-        kvt_fetch(kvt, base, "material/diffusion/inner", &props->fDiffusion[0], 1.0f);
-        kvt_fetch(kvt, base, "material/transparency/inner", &props->fTransparency[0], 52.0f);
+        kvt_fetch(kvt, base, "material/diffusion/inner", &props->fDiffusion[1], 1.0f);
+        kvt_fetch(kvt, base, "material/transparency/inner", &props->fTransparency[1], 52.0f);
 
         kvt_fetch(kvt, base, "material/absorption/link", &props->lnkAbsorption, 1.0f);
         kvt_fetch(kvt, base, "material/dispersion/link", &props->lnkDispersion, 1.0f);
@@ -1527,9 +1527,13 @@ namespace lsp
         }
 
         rt->set_sample_rate(fSampleRate);
-        rt->set_energy_threshold(1e-5f);
+//        rt->set_energy_threshold(1e-5f);
+        rt->set_energy_threshold(1e-6f);
         rt->set_tolerance(1e-5f);
-        rt->set_detalization(1e-9f);
+//        rt->set_tolerance(1e-6f);
+//        rt->set_detalization(1e-9f);
+        rt->set_detalization(1e-10f);
+        rt->set_normalize(true);
         rt->set_progress_callback(progress_callback, this);
 
         // Bind sources

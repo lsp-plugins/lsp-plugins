@@ -714,7 +714,7 @@ namespace lsp
                 a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
 
                 float dA    = A - (a[0] + a[1] + a[2]); // Point should lay within the view
-                if ((dA <= -DSP_3D_TOLERANCE) || (dA >= DSP_3D_TOLERANCE))
+                if ((dA <= -trace->fTolerance) || (dA >= trace->fTolerance))
                 {
                     valid = false;
                     break;
@@ -722,7 +722,7 @@ namespace lsp
 
                 t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
                 v.time[j]   = t[j] + (d[j] / sv.speed);
-                if (v.time[j] > 1.0f)
+                if (v.time[j] > 30.0f)
                     invalid_state_hook();
             }
 
