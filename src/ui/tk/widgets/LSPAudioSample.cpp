@@ -53,6 +53,30 @@ namespace lsp
             destroy_data();
         }
 
+        status_t LSPAudioSample::init()
+        {
+            status_t result = LSPWidget::init();
+            if (result != STATUS_OK)
+                return result;
+
+            sHintFont.init();
+            sHintFont.set_size(16);
+            sHintFont.set_bold(true);
+
+            init_color(C_BACKGROUND, &sBgColor);
+            init_color(C_GLASS, &sColor);
+            init_color(C_GRAPH_LINE, &sAxisColor);
+            init_color(C_STATUS_OK, sHintFont.color());
+
+            return STATUS_OK;
+        }
+
+        void LSPAudioSample::destroy()
+        {
+            destroy_data();
+            LSPWidget::destroy();
+        }
+
         void LSPAudioSample::drop_glass()
         {
             if (pGlass != NULL)
@@ -332,29 +356,40 @@ namespace lsp
             return STATUS_OK;
         }
 
-
-        status_t LSPAudioSample::init()
+        void LSPAudioSample::set_show_data(bool value)
         {
-            status_t result = LSPWidget::init();
-            if (result != STATUS_OK)
-                return result;
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_DATA : nStatus & (~AF_SHOW_DATA);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
 
-            sHintFont.init();
-            sHintFont.set_size(16);
-            sHintFont.set_bold(true);
+        void LSPAudioSample::set_show_hint(bool value)
+        {
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_HINT : nStatus & (~AF_SHOW_HINT);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
 
-            init_color(C_BACKGROUND, &sBgColor);
-            init_color(C_GLASS, &sColor);
-            init_color(C_GRAPH_LINE, &sAxisColor);
-            init_color(C_STATUS_OK, sHintFont.color());
-
+        status_t LSPAudioSample::set_radius(size_t radius)
+        {
+            if (nRadius == radius)
+                return STATUS_OK;
+            nRadius = radius;
+            query_resize();
             return STATUS_OK;
         }
 
-        void LSPAudioSample::destroy()
+        status_t LSPAudioSample::set_border(size_t border)
         {
-            destroy_data();
-            LSPWidget::destroy();
+            if (nBorder == border)
+                return STATUS_OK;
+            nBorder = border;
+            query_resize();
+            return STATUS_OK;
         }
 
         void LSPAudioSample::render_channel(ISurface *s, channel_t *c, ssize_t y, ssize_t w, ssize_t h)

@@ -69,6 +69,7 @@ namespace lsp
             WC_PLUGIN,
             WC_PORT,
             WC_PROGRESS,
+            WC_SAMPLE,
             WC_SAVE,
             WC_SBAR,
             WC_SEP,
@@ -293,6 +294,7 @@ namespace lsp
 #include <ui/ctl/CtlLoadFile.h>
 #include <ui/ctl/CtlComboGroup.h>
 #include <ui/ctl/CtlProgressBar.h>
+#include <ui/ctl/CtlAudioSample.h>
 
 #include <ui/ctl/CtlGraph.h>
 #include <ui/ctl/CtlAxis.h>

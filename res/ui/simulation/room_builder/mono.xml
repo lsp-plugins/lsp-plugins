@@ -97,7 +97,7 @@
 				<ui:for id="i" first="0" last="7">
 					<vbox spacing="2">
 						<hbox border="2">
-							<file
+							<sample
 								head_id="ihc_${i}" tail_id="itc_${i}"
 								fadein_id="ifi_${i}" fadeout_id="ifo_${i}" length_id="ifl_${i}"
 								status_id="ifs_${i}" mesh_id="ifd_${i}"

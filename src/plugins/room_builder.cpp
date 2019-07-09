@@ -499,6 +499,7 @@ namespace lsp
             cap->nChangeResp    = 0;
             cap->nCommitReq     = 0;
             cap->nCommitResp    = 0;
+            cap->bSync          = false;
 
             cap->pEnabled       = NULL;
             cap->pRMin          = NULL;
@@ -1128,7 +1129,7 @@ namespace lsp
 
     void room_builder_base::process(size_t samples)
     {
-        // Process reconfiguration requests and file events
+        // Stage 1: Process reconfiguration requests and file events
         sync_offline_tasks();
 
         // Stage 3: output additional metering parameters
@@ -1140,6 +1141,40 @@ namespace lsp
             pRenderStatus->setValue(enRenderStatus);
         if (pRenderProgress != NULL)
             pRenderProgress->setValue(fRenderProgress);
+
+        for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+        {
+            // Output information about the convolver
+            convolver_t *c          = &vConvolvers[i];
+            c->pActivity->setValue(c->pCurr != NULL);
+        }
+
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *c            = &vCaptures[i];
+
+            // Output information about the file
+            size_t length           = c->nLength;
+            c->pLength->setValue(samples_to_millis(fSampleRate, length));
+            c->pStatus->setValue(c->nStatus);
+
+            // Store file dump to mesh
+            mesh_t *mesh        = c->pThumbs->getBuffer<mesh_t>();
+            if ((mesh == NULL) || (!mesh->isEmpty()) || (!c->bSync))
+                continue;
+
+            size_t channels     = (c->pCurr != NULL) ? c->pCurr->channels() : 0;
+            if (channels > 0)
+            {
+                // Copy thumbnails
+                for (size_t j=0; j<channels; ++j)
+                    dsp::copy(mesh->pvData[j], c->vThumbs[j], room_builder_base_metadata::MESH_SIZE);
+                mesh->data(channels, room_builder_base_metadata::MESH_SIZE);
+            }
+            else
+                mesh->data(0, 0);
+            c->bSync            = false;
+        }
     }
 
     void room_builder_base::sync_offline_tasks()
@@ -1241,6 +1276,21 @@ namespace lsp
                 Convolver *cv   = c->pCurr;
                 c->pCurr        = c->pSwap;
                 c->pSwap        = cv;
+            }
+
+            for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+            {
+                capture_t  *c   = &vCaptures[i];
+                if (c->nCommitReq == c->nCommitResp)
+                    continue;
+
+                // TODO: sync with player
+                c->nCommitResp  = c->nCommitReq;
+                c->bSync        = true;
+
+                Sample *s       = c->pCurr;
+                c->pCurr        = c->pSwap;
+                c->pSwap        = s;
             }
 
             // Accept the configurator task
@@ -1667,8 +1717,9 @@ namespace lsp
                 c->nStatus      = STATUS_NO_MEM;
                 continue;
             }
+            c->nLength          = hdr.samples;
             c->pSwap            = s;
-            lsp_trace("Allocated sample=%p", s);
+            lsp_trace("Allocated sample=%p, original length=%d samples", s, int(c->nLength));
 
             // Initialize sample
             if (!s->init(hdr.channels, hdr.samples, hdr.samples))

@@ -47,6 +47,7 @@ namespace lsp
             "plugin",
             "port",
             "progress",
+            "sample",
             "save",
             "sbar",
             "sep",

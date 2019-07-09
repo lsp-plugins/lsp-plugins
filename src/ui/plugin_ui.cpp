@@ -766,6 +766,13 @@ namespace lsp
                 vWidgets.add(load);
                 return new CtlLoadFile(this, load);
             }
+            case WC_SAMPLE:
+            {
+                LSPAudioSample *sample = new LSPAudioSample(&sDisplay);
+                sample->init();
+                vWidgets.add(sample);
+                return new CtlAudioSample(this, sample);
+            }
 
             // 3D viewer object
             case WC_VIEWER3D:

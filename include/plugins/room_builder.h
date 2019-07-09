@@ -141,8 +141,8 @@ namespace lsp
                 float                   fFadeIn;
                 float                   fFadeOut;
                 bool                    bReverse;
-                float                   nLength;
-                status_t                nStatus;
+                size_t                  nLength;        // Output: length of captured response in samples
+                status_t                nStatus;        // Output: status of sample rendering
 
                 Sample                 *pCurr;          // Current sample for playback
                 Sample                 *pSwap;          // Swap sample
@@ -153,6 +153,7 @@ namespace lsp
                 size_t                  nChangeResp;    // Change commit
                 size_t                  nCommitReq;
                 size_t                  nCommitResp;
+                bool                    bSync;          // Sync with UI
 
                 // Capture functions
                 IPort                  *pEnabled;

@@ -40,6 +40,15 @@ namespace lsp
                 theme->get_color(value, color);
         }
 
+        void CtlWidget::init_color(color_t value, LSPColor *color)
+        {
+            LSPDisplay *dpy = (pWidget != NULL) ? pWidget->display() : NULL;
+            LSPTheme *theme = (dpy != NULL) ? dpy->theme() : NULL;
+
+            if (theme != NULL)
+                theme->get_color(value, color);
+        }
+
         void CtlWidget::set(const char *name, const char *value)
         {
             widget_attribute_t att = widget_attribute(name);
