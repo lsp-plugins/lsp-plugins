@@ -937,7 +937,7 @@ namespace lsp
         vector3d_t cv, pv;
         float afactor       = v->amplitude / sqrtf(v_area); // The norming energy factor
         dsp::unit_vector_p1pv(&cv, &v->s, v->p);
-        dsp::normalize_vector2(&pv, &capture->direction);
+        pv                  = capture->direction;
         float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // -cos(a)
 
         // Analyze capture type
