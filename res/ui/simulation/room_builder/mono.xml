@@ -116,9 +116,9 @@
 							<label text="Listen" />
 							
 							<cell rows="2">
-								<save size="64" id="osn_${i}"
-									format="wav,lspc,all" command_id="osc_${i}"
-									status_id="oss_${i}" progress_id="osp_${i}"
+								<save size="64" id="ofn_${i}"
+									format="wav,lspc,all" command_id="ofc_${i}"
+									status_id="ofs_${i}" progress_id="ofp_${i}"
 								/>
 							</cell>
 							<button id="irv_${i}" size="32" toggle="false" />

@@ -145,8 +145,8 @@ namespace lsp
                 size_t                  nLength;        // Output: length of captured response in samples
                 status_t                nStatus;        // Output: status of sample rendering
 
-                Sample                 *pCurr;          // Current sample for playback
-                Sample                 *pSwap;          // Swap sample
+                Sample                 *pCurr;          // Current sample for playback (rendered)
+                Sample                 *pSwap;          // Swap sample (garbage or pending)
 
                 float                  *vThumbs[room_builder_base_metadata::TRACKS_MAX];
 
@@ -283,17 +283,17 @@ namespace lsp
                 public:
                     room_builder_base      *pBuilder;
                     char                    sPath[PATH_MAX+1];
-                    capture_t              *pCapture;
+                    size_t                  nSampleID;
 
                 public:
                     inline SampleSaver(room_builder_base *builder)
                     {
                         pBuilder    = builder;
                         sPath[0]    = '\0';
-                        pCapture    = NULL;
+                        nSampleID   = 0;
                     }
 
-                    void bind(capture_t *capture);
+                    void bind(size_t sample_id, capture_t *capture);
 
                 public:
                     virtual status_t run();
@@ -361,9 +361,10 @@ namespace lsp
             status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
             status_t            commit_samples(cvector<sample_t> &samples);
             status_t            reconfigure();
-            status_t            save_sample(const char *path, capture_t *cap);
+            status_t            save_sample(const char *path, size_t sample_id);
             static void         destroy_samples(cvector<sample_t> &samples);
             static status_t     progress_callback(float progress, void *ptr);
+            static status_t     fetch_kvt_sample(KVTStorage *kvt, size_t sample_id, sample_header_t *hdr, const float **samples);
 
         public:
             explicit room_builder_base(const plugin_metadata_t &metadata, size_t inputs);

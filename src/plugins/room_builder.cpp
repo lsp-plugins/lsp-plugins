@@ -13,6 +13,8 @@
 #include <dsp/endian.h>
 #include <core/fade.h>
 #include <core/stdlib/math.h>
+#include <core/files/lspc/LSPCAudioWriter.h>
+#include <core/files/AudioFile.h>
 
 #define TMP_BUF_SIZE            4096
 #define CONV_RANK               10
@@ -319,9 +321,9 @@ namespace lsp
         return pBuilder->reconfigure();
     }
 
-    void room_builder_base::SampleSaver::bind(capture_t *capture)
+    void room_builder_base::SampleSaver::bind(size_t sample_id, capture_t *capture)
     {
-        pCapture    = capture;
+        nSampleID   = sample_id;
         IPort *p    = capture->pOutFile;
         if (p == NULL)
             return;
@@ -340,7 +342,7 @@ namespace lsp
 
     status_t room_builder_base::SampleSaver::run()
     {
-        return pBuilder->save_sample(sPath, pCapture);
+        return pBuilder->save_sample(sPath, nSampleID);
     }
 
     //-------------------------------------------------------------------------
@@ -978,7 +980,7 @@ namespace lsp
             src->fHeight        = src->pHeight->getValue() * 0.01f; // cm -> m
             src->fAngle         = src->pAngle->getValue();
             src->fCurvature     = src->pCurvature->getValue();
-            src->fAmplitude     = (src->pPhase->getValue() >= 0.5f) ? 1.0f : -1.0f;
+            src->fAmplitude     = (src->pPhase->getValue() >= 0.5f) ? -1.0f : 1.0f;
         }
 
         // Update capture settings
@@ -1006,7 +1008,12 @@ namespace lsp
             // Accept changes
             path_t *path        = cap->pOutFile->getBuffer<path_t>();
             if ((path != NULL) && (path->pending()))
+            {
                 path->accept();
+                path->commit();
+            }
+            if (cap->pSaveCmd->getValue() >= 0.5f) // Toggle the export flag
+                cap->bExport        = true;
 
             // Check that we need to synchronize capture settings with convolver
             if (sConfigurator.idle())
@@ -1326,7 +1333,7 @@ namespace lsp
                 if (!cap->bExport)
                     continue;
 
-                sSaver.bind(cap);
+                sSaver.bind(i, cap);
                 if (pExecutor->submit(&sSaver))
                 {
                     cap->bExport        = false;
@@ -1338,7 +1345,7 @@ namespace lsp
         }
         else if (sSaver.completed())
         {
-            capture_t *cap = sSaver.pCapture;
+            capture_t *cap = &vCaptures[sSaver.nSampleID];
             cap->pSaveStatus->setValue(sSaver.code());
             cap->pSaveProgress->setValue(100.0f);
 
@@ -1444,7 +1451,7 @@ namespace lsp
             capture_t *cap = &vCaptures[i];
             if (!cap->bEnabled)
                 continue;
-            else if ((cap->nRMax > 0) && (cap->nRMax < cap->nRMin)) // Validate nRMin and nRMax
+            else if ((cap->nRMax >= 0) && (cap->nRMax < cap->nRMin)) // Validate nRMin and nRMax
                 continue;
 
             // Configure capture
@@ -1474,7 +1481,7 @@ namespace lsp
                 if (cap_id < 0)
                     return status_t(-cap_id);
 
-                res = rt->bind_capture(cap_id, &s->sSample, i, cap->nRMin, (cap->nRMax <= 0) ? -1 : cap->nRMax);
+                res = rt->bind_capture(cap_id, &s->sSample, i, cap->nRMin, cap->nRMax);
                 if (res != STATUS_OK)
                     return res;
 
@@ -1622,6 +1629,16 @@ namespace lsp
         rt->set_normalize(true);
         rt->set_progress_callback(progress_callback, this);
 
+        // Bind scene to the raytracing
+        KVTStorage *kvt = kvt_lock();
+        if (kvt != NULL)
+        {
+            res = bind_scene(kvt, rt);
+            kvt_release();
+        }
+        else
+            res = STATUS_NO_DATA;
+
         // Bind sources
         res = bind_sources(rt);
         if (res != STATUS_OK)
@@ -1641,16 +1658,6 @@ namespace lsp
             delete rt;
             return res;
         }
-
-        // Bind scene to the raytracing
-        KVTStorage *kvt = kvt_lock();
-        if (kvt != NULL)
-        {
-            res = bind_scene(kvt, rt);
-            kvt_release();
-        }
-        else
-            res = STATUS_NO_DATA;
 
         // Create renderer and start execution
         if (res == STATUS_OK)
@@ -1742,10 +1749,6 @@ namespace lsp
     status_t room_builder_base::reconfigure()
     {
         status_t res;
-        const kvt_param_t *p;
-        char path[0x40];
-        sample_header_t hdr;
-        const sample_header_t *phdr;
 
         // Collect the garbage
         for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
@@ -1783,9 +1786,9 @@ namespace lsp
             // Update status and commit request
             c->nStatus      = STATUS_OK;
             c->nChangeResp  = req;
+
             atomic_add(&c->nCommitReq, 1);
             atomic_add(&c->nCommitReq, 1);
-            sprintf(path, "/samples/%d", int(i));
 
             // Lock KVT and fetch sample data
             KVTStorage *kvt = kvt_lock();
@@ -1795,37 +1798,13 @@ namespace lsp
                 continue;
             }
 
-            res = kvt->get(path, &p, KVT_BLOB);
-            if ((res != STATUS_OK) ||
-                (p == NULL))
+            // Fetch KVT sample
+            sample_header_t hdr;
+            const float *samples;
+            res = fetch_kvt_sample(kvt, i, &hdr, &samples);
+            if (res != STATUS_OK)
             {
-                c->nStatus      = STATUS_NO_DATA;
-                kvt_release();
-                continue;
-            }
-
-            // Validate blob settings
-            if ((p->blob.ctype == NULL) ||
-                (p->blob.data == NULL) ||
-                (p->blob.size < sizeof(sample_header_t)) ||
-                (::strcmp(p->blob.ctype, AUDIO_SAMPLE_CONTENT_TYPE) != 0))
-            {
-                c->nStatus      = STATUS_CORRUPTED;
-                kvt_release();
-                continue;
-            }
-
-            // Decode sample data
-            phdr                = reinterpret_cast<const sample_header_t *>(p->blob.data);
-            hdr.version         = BE_TO_CPU(phdr->version);
-            hdr.channels        = BE_TO_CPU(phdr->channels);
-            hdr.sample_rate     = BE_TO_CPU(phdr->sample_rate);
-            hdr.samples         = BE_TO_CPU(phdr->samples);
-
-            if (((hdr.version >> 1) != 0) ||
-                ((hdr.samples * hdr.channels * sizeof(float) + sizeof(sample_header_t)) != p->blob.size))
-            {
-                c->nStatus      = STATUS_CORRUPTED;
+                c->nStatus      = res;
                 kvt_release();
                 continue;
             }
@@ -1865,7 +1844,7 @@ namespace lsp
             float norm          = 0.0f;
             for (size_t j=0; j<hdr.channels; ++j)
             {
-                const float *src    = reinterpret_cast<const float *>(&phdr[1]) + j * hdr.samples;
+                const float *src    = &samples[j * hdr.samples];
                 float *dst = s->getBuffer(j);
 
                 // Copy sample data and apply fading
@@ -1926,7 +1905,44 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t room_builder_base::save_sample(const char *path, capture_t *cap)
+    status_t room_builder_base::fetch_kvt_sample(KVTStorage *kvt, size_t sample_id, sample_header_t *hdr, const float **samples)
+    {
+        status_t res;
+        const kvt_param_t *p;
+        const sample_header_t *phdr;
+        char path[0x40];
+
+        sprintf(path, "/samples/%d", int(sample_id));
+
+        // Fetch parameter
+        res = kvt->get(path, &p, KVT_BLOB);
+        if ((res != STATUS_OK) ||
+            (p == NULL))
+            return STATUS_NO_DATA;
+
+        // Validate blob settings
+        if ((p->blob.ctype == NULL) ||
+            (p->blob.data == NULL) ||
+            (p->blob.size < sizeof(sample_header_t)) ||
+            (::strcmp(p->blob.ctype, AUDIO_SAMPLE_CONTENT_TYPE) != 0))
+            return STATUS_CORRUPTED;
+
+        // Decode sample data
+        phdr                = reinterpret_cast<const sample_header_t *>(p->blob.data);
+        hdr->version        = BE_TO_CPU(phdr->version);
+        hdr->channels       = BE_TO_CPU(phdr->channels);
+        hdr->sample_rate    = BE_TO_CPU(phdr->sample_rate);
+        hdr->samples        = BE_TO_CPU(phdr->samples);
+
+        if (((hdr->version >> 1) != 0) ||
+            ((hdr->samples * hdr->channels * sizeof(float) + sizeof(sample_header_t)) != p->blob.size))
+            return STATUS_CORRUPTED;
+
+        *samples            = reinterpret_cast<const float *>(&phdr[1]);
+        return STATUS_OK;
+    }
+
+    status_t room_builder_base::save_sample(const char *path, size_t sample_id)
     {
         if (::strlen(path) <= 0)
             return STATUS_BAD_PATH;
@@ -1935,17 +1951,79 @@ namespace lsp
         if ((!sp.set_utf8(path)) || (!lspc.set_ascii(".lspc")))
             return STATUS_NO_MEM;
 
+        // Lock KVT storage
+        KVTStorage *kvt = kvt_lock();
+        if (kvt == NULL)
+            return STATUS_BAD_STATE;
+
+        sample_header_t hdr;
+        const float *samples;
+        status_t res    = fetch_kvt_sample(kvt, sample_id, &hdr, &samples);
+
         // Check the extension of file
         if (sp.ends_with_nocase(&lspc))
         {
+            lspc_audio_parameters_t params;
+            params.channels         = hdr.channels;
+            params.sample_format    = (hdr.version & 1) ? LSPC_SAMPLE_FMT_F32BE : LSPC_SAMPLE_FMT_F32LE;
+            params.sample_rate      = hdr.sample_rate;
+            params.codec            = LSPC_CODEC_PCM;
+            params.frames           = hdr.samples;
 
+            // Initialize sample array
+            const float **vs        = reinterpret_cast<const float **>(::malloc(params.channels * sizeof(float *)));
+            if (vs == NULL)
+            {
+                kvt_release();
+                return STATUS_NO_MEM;
+            }
+            for (size_t i=0; i<params.channels; ++i)
+                vs[i]               = &samples[i * params.frames];
+
+            // Create LSPC writer
+            LSPCAudioWriter wr;
+            res = wr.create(&sp, &params);
+            if (res != STATUS_OK)
+            {
+                ::free(vs);
+                kvt_release();
+                return res;
+            }
+
+            // Write all samples to the file
+            res = wr.write_samples(vs, params.frames);
+            status_t res2 = wr.close();
+            if (res == STATUS_OK)
+                res     = res2;
+            ::free(vs);
         }
         else
         {
+            AudioFile af;
+            res     = af.create_samples(hdr.channels, hdr.sample_rate, hdr.samples);
+            if (res != STATUS_OK)
+            {
+                kvt_release();
+                return res;
+            }
 
+            // Prepare file contents
+            for (size_t i=0; i<hdr.channels; ++i)
+            {
+                float *dst = af.channel(i);
+                dsp::copy(dst, &samples[i * hdr.samples], hdr.samples);
+                if ((hdr.version & 1) != __IF_LEBE(0, 1))
+                    byte_swap(dst, hdr.samples);
+            }
+
+            // Store file contents
+            res     = af.store(&sp);
+            af.destroy();
         }
 
-        return STATUS_OK;
+        // Release KVT storage and return result
+        kvt_release();
+        return res;
     }
 
     //-------------------------------------------------------------------------

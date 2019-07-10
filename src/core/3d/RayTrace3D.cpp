@@ -787,9 +787,9 @@ namespace lsp
                 tv.s.z         += kd * ct->n.dz;
                 tv.location     = - v.location;     // Invert location of transparent trace
 
-                if (tv.speed > 5000.0f)
+                if (tv.speed > 10000.0f)
                     invalid_state_hook();
-                else if (tv.speed < 300.0f)
+                else if (tv.speed < 10.0f)
                     invalid_state_hook();
 
                 RT_TRACE_BREAK(trace->pDebug,
@@ -938,7 +938,7 @@ namespace lsp
         float afactor       = v->amplitude / sqrtf(v_area); // The norming energy factor
         dsp::unit_vector_p1pv(&cv, &v->s, v->p);
         pv                  = capture->direction;
-        float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // -cos(a)
+        float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // cos(a)
 
         // Analyze capture type
         switch (capture->type)
@@ -963,7 +963,7 @@ namespace lsp
                 afactor    *= kcos*kcos;  // factor = factor * cos(a)^2
                 break;
 
-            case RT_AC_OMNI: // fatctor = factor * 1
+            case RT_AC_OMNI: // factor = factor * 1
             default:
                 break;
         }
@@ -1488,13 +1488,13 @@ namespace lsp
 
                 // By default, we set the material to 'Concrete'
                 m->absorption[0]    = 0.02f;
-                m->diffusion[0]    = 1.0f;
-                m->dispersion[0]   = 1.0f;
+                m->diffusion[0]     = 1.0f;
+                m->dispersion[0]    = 1.0f;
                 m->transparency[0]  = 0.48f;
 
                 m->absorption[1]    = 0.0f;
-                m->diffusion[1]    = 1.0f;
-                m->dispersion[1]   = 1.0f;
+                m->diffusion[1]     = 1.0f;
+                m->dispersion[1]    = 1.0f;
                 m->transparency[1]  = 0.52f;
 
                 m->permeability     = 12.88f;
