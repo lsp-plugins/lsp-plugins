@@ -34,7 +34,7 @@
 				
 					<viewer3d
 						id="ifn"
-						width="320" height="200" fov="70"
+						width="340" height="210" fov="70"
 						orientation_id="ifo" status_id="ifs"
 						xscale_id="xscale" yscale_id="yscale" zscale_id="zscale"
 						xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
@@ -70,7 +70,7 @@
 						<cell cols="5"><label text="Camera" /></cell>
 						
 						<cell rows="3">
-							<load size="48" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
+							<load size="64" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
 						</cell>
 						
 						<label text="X Axis" />
@@ -101,11 +101,13 @@
 								head_id="ihc_${i}" tail_id="itc_${i}"
 								fadein_id="ifi_${i}" fadeout_id="ifo_${i}" length_id="ifl_${i}"
 								status_id="ifs_${i}" mesh_id="ifd_${i}"
-								width="320" height="240"
+								width="340" height="210"
 							/>
 						</hbox>
 						
-						<grid rows="3" cols="6">
+						<grid rows="3" cols="8" hspacing="4">
+							<label text="Export" />
+							<cell rows="3"><vsep /></cell>
 							<label text="Reverse" />
 							<label text="Head cut" />
 							<label text="Tail cut" />
@@ -113,13 +115,19 @@
 							<label text="Fade out" />
 							<label text="Listen" />
 							
+							<cell rows="2">
+								<save size="64" id="osn_${i}"
+									format="wav,lspc,all" command_id="osc_${i}"
+									status_id="oss_${i}" progress_id="osp_${i}"
+								/>
+							</cell>
 							<button id="irv_${i}" size="32" toggle="false" />
 							<knob id="ihc_${i}" size="20" />
 							<knob id="itc_${i}" size="20" />
 							<knob id="ifi_${i}" size="20" scale_color="yellow" />
 							<knob id="ifo_${i}" size="20" scale_color="yellow" />
 							<button id="ils_${i}" size="32" toggle="false" />
-							
+
 							<led id="irv_${i}" />
 							<value id="ihc_${i}" />
 							<value id="itc_${i}" />
