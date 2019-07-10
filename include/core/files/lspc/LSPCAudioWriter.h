@@ -19,6 +19,9 @@ namespace lsp
     class LSPCAudioWriter
     {
         private:
+            LSPCAudioWriter & operator = (const LSPCAudioWriter &);
+
+        private:
             enum flags_t
             {
                 F_OPENED            = 1 << 0,
@@ -62,7 +65,7 @@ namespace lsp
             status_t write_header(LSPCChunkWriter *wr);
 
         public:
-            LSPCAudioWriter();
+            explicit LSPCAudioWriter();
             ~LSPCAudioWriter();
 
         public:

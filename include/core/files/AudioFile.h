@@ -37,6 +37,9 @@ namespace lsp
 
             file_content_t *pData;
 
+        private:
+            AudioFile & operator = (const AudioFile &);
+
         protected:
             static file_content_t *create_file_content(size_t channels, size_t samples);
             static void destroy_file_content(file_content_t *content);
@@ -56,7 +59,7 @@ namespace lsp
             status_t load_sndfile(const char *path, float max_duration);
 
         public:
-            AudioFile();
+            explicit AudioFile();
             ~AudioFile();
 
         public:

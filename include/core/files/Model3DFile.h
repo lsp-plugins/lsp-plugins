@@ -20,8 +20,11 @@ namespace lsp
      */
     class Model3DFile
     {
+        private:
+            Model3DFile & operator = (const Model3DFile &);
+
         public:
-            Model3DFile();
+            explicit Model3DFile();
             ~Model3DFile();
 
         public:
