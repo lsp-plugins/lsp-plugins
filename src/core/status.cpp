@@ -65,6 +65,7 @@ namespace lsp
         "Already bound",
         "No valid captures",
         "No valid sources",
+        "Bad path",
 
         NULL
     };

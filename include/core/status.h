@@ -67,6 +67,7 @@ namespace lsp
         STATUS_ALREADY_BOUND,
         STATUS_NO_CAPTURES,
         STATUS_NO_SOURCES,
+        STATUS_BAD_PATH,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

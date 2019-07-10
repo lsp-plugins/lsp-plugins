@@ -319,11 +319,36 @@ namespace lsp
         return pBuilder->reconfigure();
     }
 
+    void room_builder_base::SampleSaver::bind(capture_t *capture)
+    {
+        pCapture    = capture;
+        IPort *p    = capture->pOutFile;
+        if (p == NULL)
+            return;
+        path_t *path = p->getBuffer<path_t>();
+        if (path == NULL)
+            return;
+        const char *spath = path->get_path();
+        if (spath != NULL)
+        {
+            ::strncpy(sPath, spath, PATH_MAX);
+            sPath[PATH_MAX] = '\0';
+        }
+        else
+            sPath[0] = '\0';
+    }
+
+    status_t room_builder_base::SampleSaver::run()
+    {
+        return pBuilder->save_sample(sPath, pCapture);
+    }
+
     //-------------------------------------------------------------------------
     room_builder_base::room_builder_base(const plugin_metadata_t &metadata, size_t inputs):
         plugin_t(metadata),
         s3DLauncher(this),
-        sConfigurator(this)
+        sConfigurator(this),
+        sSaver(this)
     {
         nInputs         = inputs;
         nReconfigReq    = 0;
@@ -487,6 +512,7 @@ namespace lsp
             cap->fFadeIn        = 0.0f;
             cap->fFadeOut       = 0.0f;
             cap->bReverse       = false;
+            cap->bExport        = false;
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
 
@@ -530,6 +556,11 @@ namespace lsp
             cap->pStatus        = NULL;
             cap->pLength        = NULL;
             cap->pThumbs        = NULL;
+
+            cap->pOutFile       = NULL;
+            cap->pSaveCmd       = NULL;
+            cap->pSaveStatus    = NULL;
+            cap->pSaveProgress  = NULL;
         }
 
         // Initialize convolvers
@@ -741,6 +772,15 @@ namespace lsp
             cap->pLength        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pThumbs        = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            cap->pOutFile       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pSaveCmd       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pSaveStatus    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pSaveProgress  = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
             port_id++;          // Skip hue value
@@ -962,6 +1002,11 @@ namespace lsp
             cap->fDistance      = cap->pDistance->getValue();
             cap->enDirection    = decode_direction(cap->pDirection->getValue());
             cap->enSide         = decode_side_direction(cap->pSide->getValue());
+
+            // Accept changes
+            path_t *path        = cap->pOutFile->getBuffer<path_t>();
+            if ((path != NULL) && (path->pending()))
+                path->accept();
 
             // Check that we need to synchronize capture settings with convolver
             if (sConfigurator.idle())
@@ -1272,6 +1317,34 @@ namespace lsp
             }
         }
 
+        if (sSaver.idle())
+        {
+            // Submit save requests
+            for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+            {
+                capture_t *cap      = &vCaptures[i];
+                if (!cap->bExport)
+                    continue;
+
+                sSaver.bind(cap);
+                if (pExecutor->submit(&sSaver))
+                {
+                    cap->bExport        = false;
+                    cap->pSaveStatus->setValue(STATUS_LOADING);
+                    cap->pSaveProgress->setValue(0.0f);
+                    break;
+                }
+            }
+        }
+        else if (sSaver.completed())
+        {
+            capture_t *cap = sSaver.pCapture;
+            cap->pSaveStatus->setValue(sSaver.code());
+            cap->pSaveProgress->setValue(100.0f);
+
+            sSaver.reset();
+        }
+
         // Do we need to launch configurator task?
         if (sConfigurator.idle())
         {
@@ -1302,7 +1375,7 @@ namespace lsp
                 }
             }
         }
-        else if (sConfigurator.completed())
+        else if ((sConfigurator.completed()) && (sSaver.idle()))
         {
             lsp_trace("Reconfiguration task has completed with status %d", int(sConfigurator.code()));
 
@@ -1848,6 +1921,28 @@ namespace lsp
 
             // Commit request
             c->nChangeResp  = req;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t room_builder_base::save_sample(const char *path, capture_t *cap)
+    {
+        if (::strlen(path) <= 0)
+            return STATUS_BAD_PATH;
+
+        LSPString sp, lspc;
+        if ((!sp.set_utf8(path)) || (!lspc.set_ascii(".lspc")))
+            return STATUS_NO_MEM;
+
+        // Check the extension of file
+        if (sp.ends_with_nocase(&lspc))
+        {
+
+        }
+        else
+        {
+
         }
 
         return STATUS_OK;

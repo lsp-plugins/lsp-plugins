@@ -141,6 +141,7 @@ namespace lsp
                 float                   fFadeIn;
                 float                   fFadeOut;
                 bool                    bReverse;
+                bool                    bExport;        // Export flag
                 size_t                  nLength;        // Output: length of captured response in samples
                 status_t                nStatus;        // Output: status of sample rendering
 
@@ -182,6 +183,11 @@ namespace lsp
                 IPort                  *pStatus;        // Status of rendering
                 IPort                  *pLength;        // Length of sample
                 IPort                  *pThumbs;        // Thumbnails of sample
+
+                IPort                  *pOutFile;       // Output file name
+                IPort                  *pSaveCmd;       // Save command
+                IPort                  *pSaveStatus;    // Save status
+                IPort                  *pSaveProgress;  // Save progress points
             } capture_t;
 
             typedef struct sample_t
@@ -272,6 +278,27 @@ namespace lsp
                     inline void launched() { nChangeResp = nChangeReq; }
             };
 
+            class SampleSaver: public ipc::ITask
+            {
+                public:
+                    room_builder_base      *pBuilder;
+                    char                    sPath[PATH_MAX+1];
+                    capture_t              *pCapture;
+
+                public:
+                    inline SampleSaver(room_builder_base *builder)
+                    {
+                        pBuilder    = builder;
+                        sPath[0]    = '\0';
+                        pCapture    = NULL;
+                    }
+
+                    void bind(capture_t *capture);
+
+                public:
+                    virtual status_t run();
+            };
+
         protected:
             size_t                  nInputs;
             size_t                  nReconfigReq;
@@ -300,6 +327,7 @@ namespace lsp
             SceneLoader             s3DLoader;
             RenderLauncher          s3DLauncher;
             Configurator            sConfigurator;
+            SampleSaver             sSaver;
 
             IPort                  *pBypass;
             IPort                  *pRank;
@@ -333,6 +361,7 @@ namespace lsp
             status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
             status_t            commit_samples(cvector<sample_t> &samples);
             status_t            reconfigure();
+            status_t            save_sample(const char *path, capture_t *cap);
             static void         destroy_samples(cvector<sample_t> &samples);
             static status_t     progress_callback(float progress, void *ptr);
 
