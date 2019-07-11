@@ -646,10 +646,12 @@ namespace lsp
         return submit_task(ctx);
     }
 
+#ifdef LSP_TRACE
     void invalid_state_hook()
     {
         lsp_error("Invalid state");
     }
+#endif
 
     status_t RayTrace3D::TaskThread::reflect_view(rt_context_t *ctx)
     {
@@ -725,8 +727,10 @@ namespace lsp
 
                 t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
                 v.time[j]   = t[j] + (d[j] / sv.speed);
-                if (v.time[j] > 30.0f)
-                    invalid_state_hook();
+                #ifdef LSP_TRACE
+                    if (v.time[j] > 30.0f)
+                        invalid_state_hook();
+                #endif
             }
 
             if (!valid)
@@ -790,10 +794,12 @@ namespace lsp
                 tv.s.z         += kd * ct->n.dz;
                 tv.location     = - v.location;     // Invert location of transparent trace
 
-                if (tv.speed > 10000.0f)
-                    invalid_state_hook();
-                else if (tv.speed < 10.0f)
-                    invalid_state_hook();
+                #ifdef LSP_TRACE
+                    if (tv.speed > 10000.0f)
+                        invalid_state_hook();
+                    else if (tv.speed < 10.0f)
+                        invalid_state_hook();
+                #endif
 
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Outside->inside reflect_view");
@@ -826,10 +832,12 @@ namespace lsp
                 tv.s.z         += kd * ct->n.dz;
                 tv.location     = - v.location;     // Invert location of transparent trace
 
-                if (tv.speed > 5000.0f)
-                    invalid_state_hook();
-                else if (tv.speed < 300.0f)
-                    invalid_state_hook();
+                #ifdef LSP_TRACE
+                    if (tv.speed > 10000.0f)
+                        invalid_state_hook();
+                    else if (tv.speed < 10.0f)
+                        invalid_state_hook();
+                #endif
 
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Inside->outside reflect_view");
@@ -1087,11 +1095,15 @@ namespace lsp
                                 lsp_trace("Requesting sample resize: csn=0x%llx, len=0x%llx, channels=%d",
                                     (long long)csn, (long long)len, int(s->sample->channels())
                                     );
-                                if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
-                                    invalid_state_hook();
+                                #ifdef LSP_TRACE
+                                    if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
+                                        invalid_state_hook();
+                                #endif
                                 if (!s->sample->resize(s->sample->channels(), len, len))
                                 {
-                                    invalid_state_hook();
+                                    #ifdef LSP_TRACE
+                                        invalid_state_hook();
+                                    #endif
                                     return STATUS_NO_MEM;
                                 }
                             }
