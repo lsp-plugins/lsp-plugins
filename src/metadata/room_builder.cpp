@@ -54,8 +54,8 @@ namespace lsp
 
     static const char *rb_tracks[] =
     {
-        "Track 1",
-        "Track 2",
+        "Left",
+        "Right",
         NULL
     };
 
@@ -81,7 +81,7 @@ namespace lsp
     {
         "Rendering",
         "Convolvers",
-        "Wet Equalizer",
+        "IR Equalizer",
         NULL
     };
 

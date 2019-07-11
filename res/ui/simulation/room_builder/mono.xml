@@ -1,5 +1,16 @@
 <plugin resizable="false">
 	<vbox spacing="4">
+		<!-- Main settings -->
+		<align hpos="-1">
+			<hbox spacing="4">
+				<label text="FFT frame" />
+				<combo id="fft" />
+				<vsep />
+				<button id="wpp" size="16" color="green" led="true" />
+				<label text="IR Equalizer" />
+			</hbox>
+		</align>
+		
 		<hbox spacing="4">
 			<!-- IR editor -->
 			<cgroup id="view">
@@ -479,7 +490,7 @@
 				</align>			
 			</cgroup>
 		</hbox>
-	
+		
 		<hbox spacing="4">
 			<!-- IR routing -->
 			<cgroup id="signal" expand="true">
