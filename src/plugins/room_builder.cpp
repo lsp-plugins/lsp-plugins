@@ -318,7 +318,7 @@ namespace lsp
 
     status_t room_builder_base::Configurator::run()
     {
-        return pBuilder->reconfigure();
+        return pBuilder->reconfigure(&sConfig);
     }
 
     void room_builder_base::SampleSaver::bind(size_t sample_id, capture_t *capture)
@@ -410,7 +410,8 @@ namespace lsp
         size_t tmp_buf_size = TMP_BUF_SIZE * sizeof(float);
         size_t thumb_size   = room_builder_base_metadata::MESH_SIZE *
                               room_builder_base_metadata::TRACKS_MAX * sizeof(float);
-        size_t alloc        = tmp_buf_size * (room_builder_base_metadata::CONVOLVERS + 2) + thumb_size;
+        size_t alloc        = tmp_buf_size * (room_builder_base_metadata::CONVOLVERS + 2) +
+                              thumb_size * room_builder_base_metadata::CAPTURES;
         uint8_t *ptr        = alloc_aligned<uint8_t>(pData, alloc);
         if (pData == NULL)
             return;
@@ -514,9 +515,14 @@ namespace lsp
             cap->fFadeIn        = 0.0f;
             cap->fFadeOut       = 0.0f;
             cap->bReverse       = false;
-            cap->bExport        = false;
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
+
+            cap->bCommit        = false;
+            cap->bSync          = false;
+            cap->bExport        = false;
+            cap->nChangeReq     = 0;
+            cap->nChangeResp    = 0;
 
             cap->pCurr          = NULL;
             cap->pSwap          = NULL;
@@ -526,12 +532,6 @@ namespace lsp
                 cap->vThumbs[j]     = reinterpret_cast<float *>(ptr);
                 ptr                += room_builder_base_metadata::MESH_SIZE * sizeof(float);
             }
-
-            cap->nChangeReq     = 0;
-            cap->nChangeResp    = 0;
-            cap->nCommitReq     = 0;
-            cap->nCommitResp    = 0;
-            cap->bSync          = false;
 
             cap->pEnabled       = NULL;
             cap->pRMin          = NULL;
@@ -577,10 +577,9 @@ namespace lsp
 
             c->nSampleID        = 0;
             c->nTrackID         = 0;
-            c->nChangeReq       = 0;
-            c->nChangeResp      = 0;
 
-            c->vBuffer          = NULL; // TODO
+            c->vBuffer          = reinterpret_cast<float *>(ptr);
+            ptr                += tmp_buf_size;
 
             c->fPanIn[0]        = 0.0f;
             c->fPanIn[1]        = 0.0f;
@@ -918,13 +917,10 @@ namespace lsp
         size_t rank         = get_fft_rank(pRank->getValue());
 
         // Adjust FFT rank
-        if (sConfigurator.idle())
+        if (rank != nFftRank)
         {
-            if (rank != nFftRank)
-            {
-                nFftRank        = rank;
-                sConfigurator.queue_launch();
-            }
+            nFftRank            = rank;
+            sConfigurator.queue_launch();
         }
 
         // Adjust size of scene and number of threads to render
@@ -1016,27 +1012,36 @@ namespace lsp
                 cap->bExport        = true;
 
             // Check that we need to synchronize capture settings with convolver
-            if (sConfigurator.idle())
+            float hcut      = cap->pHeadCut->getValue();
+            float tcut      = cap->pTailCut->getValue();
+            float fadein    = cap->pFadeIn->getValue();
+            float fadeout   = cap->pFadeOut->getValue();
+            bool  reverse   = cap->pReverse->getValue() >= 0.5f;
+
+            if ((cap->fHeadCut != hcut) ||
+                (cap->fTailCut != tcut) ||
+                (cap->fFadeIn != fadein) ||
+                (cap->fFadeOut != fadeout) ||
+                (cap->bReverse != reverse))
             {
-                float hcut      = cap->pHeadCut->getValue();
-                float tcut      = cap->pTailCut->getValue();
-                float fadein    = cap->pFadeIn->getValue();
-                float fadeout   = cap->pFadeOut->getValue();
-                bool  reverse   = cap->pReverse->getValue() >= 0.5f;
+                cap->fHeadCut       = hcut;
+                cap->fTailCut       = tcut;
+                cap->fFadeIn        = fadein;
+                cap->fFadeOut       = fadeout;
+                cap->bReverse       = reverse;
 
-                if ((cap->fHeadCut != hcut) ||
-                    (cap->fTailCut != tcut) ||
-                    (cap->fFadeIn != fadein) ||
-                    (cap->fFadeOut != fadeout) ||
-                    (cap->bReverse != reverse))
+                atomic_add(&cap->nChangeReq, 1);
+                sConfigurator.queue_launch();
+            }
+
+            // Listen button pressed?
+            if (cap->pListen->getValue() >= 0.5f)
+            {
+                size_t n_c = (cap->pCurr != NULL) ? cap->pCurr->channels() : 0;
+                if (n_c > 0)
                 {
-                    cap->fHeadCut       = hcut;
-                    cap->fTailCut       = tcut;
-                    cap->fFadeIn        = fadein;
-                    cap->fFadeOut       = fadeout;
-                    cap->bReverse       = reverse;
-
-                    atomic_add(&cap->nChangeReq, 1);
+                    for (size_t j=0; j<2; ++j)
+                        vChannels[j].sPlayer.play(i, j % n_c, 1.0f, 0);
                 }
             }
         }
@@ -1116,18 +1121,15 @@ namespace lsp
             convolver_t *cv         = &vConvolvers[i];
 
             // Allow to reconfigure convolver only when configuration task is in idle state
-            if (sConfigurator.idle())
-            {
-                size_t sampleid = cv->pSample->getValue();
-                size_t trackid  = cv->pTrack->getValue();
+            size_t sampleid = cv->pSample->getValue();
+            size_t trackid  = cv->pTrack->getValue();
 
-                if ((cv->nSampleID != sampleid) ||
-                    (cv->nTrackID != trackid))
-                {
-                    cv->nSampleID           = sampleid;
-                    cv->nTrackID            = trackid;
-                    atomic_add(&cv->nChangeReq, 1);
-                }
+            if ((cv->nSampleID != sampleid) ||
+                (cv->nTrackID != trackid))
+            {
+                cv->nSampleID           = sampleid;
+                cv->nTrackID            = trackid;
+                sConfigurator.queue_launch();
             }
 
             // Apply panning to each convolver
@@ -1226,6 +1228,76 @@ namespace lsp
     {
         // Stage 1: Process reconfiguration requests and file events
         sync_offline_tasks();
+
+        // Stage 2: Main processing
+        for (size_t i=0; i<nInputs; ++i)
+            vInputs[i].vIn      = vInputs[i].pIn->getBuffer<float>();
+
+        for (size_t i=0; i<2; ++i)
+            vChannels[i].vOut   = vChannels[i].pOut->getBuffer<float>();
+
+        // Process samples
+        while (samples > 0)
+        {
+            // Determine number of samples to process
+            size_t to_do        = TMP_BUF_SIZE;
+            if (to_do > samples)
+                to_do               = samples;
+
+            // Clear temporary channel buffer
+            dsp::fill_zero(vChannels[0].vBuffer, to_do);
+            dsp::fill_zero(vChannels[1].vBuffer, to_do);
+
+            // Call convolvers
+            for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
+            {
+                convolver_t *c      = &vConvolvers[i];
+
+                // Prepare input buffer: apply panning if present
+                if (nInputs == 1)
+                    dsp::copy(c->vBuffer, vInputs[0].vIn, to_do);
+                else
+                    dsp::mix_copy2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fPanIn[0], c->fPanIn[1], to_do);
+
+                // Do processing
+                if (c->pCurr != NULL)
+                    c->pCurr->process(c->vBuffer, c->vBuffer, to_do);
+                else
+                    dsp::fill_zero(c->vBuffer, to_do);
+                c->sDelay.process(c->vBuffer, c->vBuffer, to_do);
+
+                // Apply processed signal to output channels
+                dsp::scale_add3(vChannels[0].vBuffer, c->vBuffer, c->fPanOut[0], to_do);
+                dsp::scale_add3(vChannels[1].vBuffer, c->vBuffer, c->fPanOut[1], to_do);
+            }
+
+            // Now apply equalization, bypass control and players
+            for (size_t i=0; i<2; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                // Apply equalization
+                c->sEqualizer.process(c->vBuffer, c->vBuffer, to_do);
+
+                // Pass dry sound to output channels
+                if (nInputs == 1)
+                    dsp::scale_add3(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
+                else
+                    dsp::mix_add2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fDryPan[0], c->fDryPan[1], to_do);
+
+                // Apply player and bypass
+                c->sPlayer.process(c->vBuffer, c->vBuffer, to_do);
+                c->sBypass.process(c->vOut, vInputs[i%nInputs].vIn, c->vBuffer, to_do);
+
+                // Update pointers
+                c->vOut            += to_do;
+            }
+
+            for (size_t i=0; i<nInputs; ++i)
+                vInputs[i].vIn     += to_do;
+
+            samples            -= to_do;
+        }
 
         // Stage 3: output additional metering parameters
         if (p3DStatus != NULL)
@@ -1353,33 +1425,34 @@ namespace lsp
         }
 
         // Do we need to launch configurator task?
-        if (sConfigurator.idle())
+        if ((sConfigurator.idle()) && (sConfigurator.need_launch()))
         {
-            // Submit changes to configurator
+            reconfig_t *cfg = &sConfigurator.sConfig;
+
+            // Deploy actual configuration to the configurator
             for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
             {
                 capture_t *cap      = &vCaptures[i];
                 size_t req          = cap->nChangeReq;
-                if (cap->nChangeResp != req)
-                    sConfigurator.queue_launch();
+
+                cfg->bReconfigure[i]    = (cap->nChangeResp != req);
+                cfg->nChangeResp[i]     = req;
             }
 
             for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
             {
                 convolver_t *cv     = &vConvolvers[i];
-                size_t req          = cv->nChangeReq;
-                if (cv->nChangeResp != req)
-                    sConfigurator.queue_launch();
+
+                cfg->nSampleID[i]   = cv->nSampleID;
+                cfg->nTrack[i]      = cv->nTrackID;
+                cfg->nRank[i]       = nFftRank;
             }
 
             // Try to launch configurator
-            if (sConfigurator.need_launch())
+            if (pExecutor->submit(&sConfigurator))
             {
-                if (pExecutor->submit(&sConfigurator))
-                {
-                    sConfigurator.launched();
-                    lsp_trace("Successfully submitted reconfigurator task");
-                }
+                sConfigurator.launched();
+                lsp_trace("Successfully submitted reconfigurator task");
             }
         }
         else if ((sConfigurator.completed()) && (sSaver.idle()))
@@ -1398,16 +1471,22 @@ namespace lsp
             for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
             {
                 capture_t  *c   = &vCaptures[i];
-                if (c->nCommitReq == c->nCommitResp)
+                if (!c->bCommit)
                     continue;
 
-                // TODO: sync with player
-                c->nCommitResp  = c->nCommitReq;
+                c->bCommit      = false;
                 c->bSync        = true;
 
                 Sample *s       = c->pCurr;
                 c->pCurr        = c->pSwap;
                 c->pSwap        = s;
+
+                // Bind sample player
+                for (size_t j=0; j<2; ++j)
+                {
+                    channel_t *sc = &vChannels[j];
+                    sc->sPlayer.bind(i, c->pCurr, false);
+                }
             }
 
             // Accept the configurator task
@@ -1739,14 +1818,15 @@ namespace lsp
             else
                 return STATUS_BAD_STATE;
 
-            // Update the number of changes
+            // Update the number of changes for the sample and toggle configurator launch
             atomic_add(&vCaptures[s->nID].nChangeReq, 1);
+            sConfigurator.queue_launch();
         }
 
         return STATUS_OK;
     }
 
-    status_t room_builder_base::reconfigure()
+    status_t room_builder_base::reconfigure(const reconfig_t *cfg)
     {
         status_t res;
 
@@ -1779,16 +1859,13 @@ namespace lsp
             capture_t *c    = &vCaptures[i];
 
             // Do we need to change the sample?
-            size_t req      = c->nChangeReq;
-            if (c->nChangeResp == req)
+            if (!cfg->bReconfigure[i])
                 continue;
 
             // Update status and commit request
             c->nStatus      = STATUS_OK;
-            c->nChangeResp  = req;
-
-            atomic_add(&c->nCommitReq, 1);
-            atomic_add(&c->nCommitReq, 1);
+            c->nChangeResp  = cfg->nChangeResp[i];
+            c->bCommit      = true;
 
             // Lock KVT and fetch sample data
             KVTStorage *kvt = kvt_lock();
@@ -1888,18 +1965,40 @@ namespace lsp
             kvt_release();
         }
 
+        // Randomize phase of the convolver
+        uint32_t phase  = seed_addr(this);
+        phase           = ((phase << 16) | (phase >> 16)) & 0x7fffffff;
+        uint32_t step   = 0x80000000 / (room_builder_base_metadata::CONVOLVERS + 1);
+
         // Reconfigure convolvers
         for (size_t i=0; i<room_builder_base_metadata::CONVOLVERS; ++i)
         {
             convolver_t *c  = &vConvolvers[i];
 
-            // Do we need to change the sample?
-            size_t req      = c->nChangeReq;
-            if (c->nChangeResp == req)
+            // Check that routing has changed
+            size_t capture  = cfg->nSampleID[i];
+            size_t track    = cfg->nTrack[i];
+            if ((capture <= 0) || (capture > room_builder_base_metadata::CAPTURES))
+                continue;
+            else
+                --capture;
+
+            // Analyze sample
+            Sample *s       = (vCaptures[capture].bCommit) ? vCaptures[capture].pSwap: vCaptures[capture].pCurr;
+            if ((s == NULL) || (!s->valid()) || (s->channels() <= track))
                 continue;
 
-            // Commit request
-            c->nChangeResp  = req;
+            // Now we can create convolver
+            Convolver *cv   = new Convolver();
+            if (!cv->init(s->getBuffer(track), s->length(), cfg->nRank[i], float((phase + i*step)& 0x7fffffff)/float(0x80000000)))
+            {
+                cv->destroy();
+                delete cv;
+                return STATUS_NO_MEM;
+            }
+
+            lsp_trace("Allocated convolver pSwap=%p for channel %d (pCurr=%p)", cv, int(i), c->pCurr);
+            c->pSwap        = cv;
         }
 
         return STATUS_OK;

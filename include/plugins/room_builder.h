@@ -67,9 +67,6 @@ namespace lsp
                 size_t              nTrackID;       // Track identifier
                 bool                bMute;          // Mute flag
 
-                volatile size_t     nChangeReq;     // Change request
-                size_t              nChangeResp;    // Change commit
-
                 float              *vBuffer;        // Buffer for convolution
                 float               fPanIn[2];      // Input panning of convolver
                 float               fPanOut[2];     // Output panning of convolver
@@ -141,20 +138,19 @@ namespace lsp
                 float                   fFadeIn;
                 float                   fFadeOut;
                 bool                    bReverse;
-                bool                    bExport;        // Export flag
                 size_t                  nLength;        // Output: length of captured response in samples
                 status_t                nStatus;        // Output: status of sample rendering
+
+                volatile uatomic_t      nChangeReq;     // Reconfiguration request
+                uatomic_t               nChangeResp;    // Reconfiguration response
+                bool                    bCommit;        // Commit reconfiguration
+                bool                    bSync;          // Sync with UI
+                bool                    bExport;        // Export flag
 
                 Sample                 *pCurr;          // Current sample for playback (rendered)
                 Sample                 *pSwap;          // Swap sample (garbage or pending)
 
                 float                  *vThumbs[room_builder_base_metadata::TRACKS_MAX];
-
-                volatile size_t         nChangeReq;     // Change request
-                size_t                  nChangeResp;    // Change commit
-                size_t                  nCommitReq;
-                size_t                  nCommitResp;
-                bool                    bSync;          // Sync with UI
 
                 // Capture functions
                 IPort                  *pEnabled;
@@ -195,6 +191,15 @@ namespace lsp
                 Sample                  sSample;
                 size_t                  nID;
             } sample_t;
+
+            typedef struct reconfig_t
+            {
+                bool                    bReconfigure[room_builder_base_metadata::CAPTURES];
+                uatomic_t               nChangeResp[room_builder_base_metadata::CAPTURES];
+                size_t                  nSampleID[room_builder_base_metadata::CONVOLVERS];
+                size_t                  nTrack[room_builder_base_metadata::CONVOLVERS];
+                size_t                  nRank[room_builder_base_metadata::CONVOLVERS];
+            } reconfig_t;
 
         protected:
             class SceneLoader: public ipc::ITask
@@ -260,6 +265,7 @@ namespace lsp
                     room_builder_base      *pBuilder;
                     volatile uatomic_t      nChangeReq;
                     uatomic_t               nChangeResp;
+                    reconfig_t              sConfig;
 
                 public:
                     inline Configurator(room_builder_base *bld):
@@ -360,7 +366,7 @@ namespace lsp
             status_t            bind_captures(cvector<sample_t> &samples, RayTrace3D *rt);
             status_t            bind_scene(KVTStorage *kvt, RayTrace3D *rt);
             status_t            commit_samples(cvector<sample_t> &samples);
-            status_t            reconfigure();
+            status_t            reconfigure(const reconfig_t *cfg);
             status_t            save_sample(const char *path, size_t sample_id);
             static void         destroy_samples(cvector<sample_t> &samples);
             static status_t     progress_callback(float progress, void *ptr);
