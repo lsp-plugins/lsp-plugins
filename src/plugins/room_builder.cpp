@@ -900,6 +900,16 @@ namespace lsp
 
             c->sDelay.destroy();
         }
+
+        // Destroy channels
+        for (size_t i=0; i<2; ++i)
+        {
+            channel_t *c = &vChannels[i];
+            c->sEqualizer.destroy();
+            c->sPlayer.destroy(false);
+            c->vOut     = NULL;
+            c->vBuffer  = NULL;
+        }
     }
 
     size_t room_builder_base::get_fft_rank(size_t rank)

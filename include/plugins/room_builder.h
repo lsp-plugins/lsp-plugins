@@ -261,7 +261,7 @@ namespace lsp
 
             class Configurator: public ipc::ITask
             {
-                protected:
+                public:
                     room_builder_base      *pBuilder;
                     volatile uatomic_t      nChangeReq;
                     uatomic_t               nChangeResp;
