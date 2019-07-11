@@ -71,12 +71,15 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::run()
     {
+        // Initialize DSP context
         dsp::context_t ctx;
         dsp::start(&ctx);
 
+        // Enter the main loop
         status_t res = main_loop();
         destroy_tasks(&tasks);
 
+        // Finalize DSP context and return result
         dsp::finish(&ctx);
         return res;
     }
@@ -1663,7 +1666,7 @@ namespace lsp
         return pProgress(progress, pProgressData);
     }
 
-    status_t RayTrace3D::process(size_t threads, float initial)
+    status_t RayTrace3D::do_process(size_t threads, float initial)
     {
         status_t res = STATUS_OK;
         bCancelled   = false;
@@ -1769,6 +1772,20 @@ namespace lsp
         ++nProgressPoints;
 
         return report_progress(prg);
+    }
+
+    status_t RayTrace3D::process(size_t threads, float initial)
+    {
+        // We need to initialize DSP context for processing
+        dsp::context_t ctx;
+        dsp::start(&ctx);
+
+        // Call processing routine
+        status_t res = do_process(threads, initial);
+
+        // Finalize DSP context and exit
+        dsp::finish(&ctx);
+        return res;
     }
 
     bool RayTrace3D::is_already_passed(const sample_t *bind)

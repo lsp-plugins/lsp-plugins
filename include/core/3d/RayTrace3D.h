@@ -143,6 +143,8 @@ namespace lsp
             void        normalize_output();
             bool        is_already_passed(const sample_t *bind);
 
+            status_t    do_process(size_t threads, float initial);
+
         public:
             /** Default constructor
              *
