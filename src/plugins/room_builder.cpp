@@ -358,6 +358,7 @@ namespace lsp
 
         nRenderThreads  = 0;
         fRenderQuality  = 0.5f;
+        bRenderNormalize= true;
         enRenderStatus  = STATUS_OK;
         fRenderProgress = 0.0f;
         fRenderCmd      = 0.0f;
@@ -377,6 +378,7 @@ namespace lsp
         pRenderQuality  = NULL;
         pRenderStatus   = NULL;
         pRenderProgress = NULL;
+        pRenderNormalize= NULL;
         pRenderCmd      = NULL;
         p3DFile         = NULL;
         p3DStatus       = NULL;
@@ -647,6 +649,8 @@ namespace lsp
         pRenderStatus   = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pRenderProgress = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRenderNormalize= vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pRenderCmd      = vPorts[port_id++];
 
@@ -938,6 +942,7 @@ namespace lsp
         sScale.dy           = pScaleY->getValue() * 0.01f;
         sScale.dz           = pScaleZ->getValue() * 0.01f;
         nRenderThreads      = pRenderThreads->getValue();
+        bRenderNormalize    = pRenderNormalize->getValue() >= 0.5f;
         fRenderQuality      = pRenderQuality->getValue() * 0.01f;
 
         // Check that render request has been triggered
@@ -1710,12 +1715,7 @@ namespace lsp
         rt->set_energy_threshold(energy);
         rt->set_tolerance(tolerance);
         rt->set_detalization(details);
-
-//        rt->set_energy_threshold(1e-5f);
-//        rt->set_tolerance(1e-5f);
-//        rt->set_detalization(1e-9f);
-
-        rt->set_normalize(true);
+        rt->set_normalize(bRenderNormalize);
         rt->set_progress_callback(progress_callback, this);
 
         // Bind scene to the raytracing

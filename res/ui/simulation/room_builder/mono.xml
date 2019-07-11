@@ -492,9 +492,8 @@
 		</hbox>
 		
 		<hbox spacing="4">
-			<!-- IR routing -->
-			<cgroup id="signal" expand="true">
-				<!-- Rendering and output -->
+			<!-- Rendering -->
+			<group text="Rendering">
 				<grid rows="4" cols="3" transpose="true" vspacing="4" hspacing="4">
 					<align hpos="-1"><label text="Status" /></align>
 					<align hpos="-1"><label text="Threads" /></align>
@@ -502,7 +501,13 @@
 					<align hpos="-1"><label text="Progress" /></align>
 	
 					<align hpos="-1" expand="true"><status id="status" /></align>
-					<align hpos="-1"><threadcombo id="threads" width="32" /></align>
+					<align hpos="-1">
+						<hbox spacing="4">
+							<threadcombo id="threads" width="32" />
+							<button id="normal" led="true" color="yellow" size="16" />
+							<label text="Normalize" />
+						</hbox>
+					</align>
 					<align hpos="-1">
 						<hbox spacing="4">
 							<fader id="quality" angle="0" size="64" />
@@ -520,115 +525,10 @@
 						</vbox>
 					</cell>
 				</grid>
-			
-				<!-- Processors -->
-				<hbox>
-					<grid rows="5" cols="5" expand="true">
-						<label text="#" />
-						<label text="Pre-delay" />
-						<label text="Source" />
-						<label text="Makeup" />
-						<label text="Out L/R" />
-						
-						<ui:for id="i" first="0" last="1">
-							<label text="${i}" />
-							<knob id="pd${i}" size="20" />
-							<vbox spacing="2">
-								<combo id="csf${i}" fill="true" />
-								<combo id="cst${i}" fill="true" />
-							</vbox>
-							<knob id="mk${i}" size="20" />
-							<knob id="com${i}" size="20" />
-							
-							<label />
-							<value id="pd${i}" same_line="true" />
-							<hbox fill="false">
-								<button id="cam${i}" size="12" color="red" led="true" />
-								<label text="Mute" font_size="9" />
-								<led id="ca${i}" />
-								<label text="Active" />
-							</hbox>
-							<value id="mk${i}" same_line="true" />
-							<value id="com${i}" same_line="true" />
-						</ui:for>
-					</grid>
-					<vsep />
-					<grid rows="5" cols="5" expand="true">
-						<label text="#" />
-						<label text="Pre-delay" />
-						<label text="Source" />
-						<label text="Makeup" />
-						<label text="Out L/R" />
-						
-						<ui:for id="i" first="2" last="3">
-							<label text="${i}" />
-							<knob id="pd${i}" size="20" />
-							<vbox spacing="2">
-								<combo id="csf${i}" fill="true" />
-								<combo id="cst${i}" fill="true" />
-							</vbox>
-							<knob id="mk${i}" size="20" />
-							<knob id="com${i}" size="20" />
-							
-							<label />
-							<value id="pd${i}" same_line="true" />
-							<hbox fill="false">
-								<button id="cam${i}" size="12" color="red" led="true" />
-								<label text="Mute" font_size="9" />
-								<led id="ca${i}" />
-								<label text="Active" />
-							</hbox>
-							<value id="mk${i}" same_line="true" />
-							<value id="com${i}" same_line="true" />
-						</ui:for>
-					</grid>
-				</hbox>
-				
-				<!-- Equalizer -->
-				<grid rows="5" cols="10">
-					<label text="Low-cut" />
-					<label text="50" />
-					<label text="107" />
-					<label text="227" />
-					<label text="484" />
-					<label text="1k" />
-					<label text="2.2k" />
-					<label text="4.7k" />
-					<label text="10k" />
-					<label text="High-cut" />
-					
-					<combo id="lcm" />
-					<cell rows="3"><fader id="eq_0" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_1" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_2" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_3" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_4" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_5" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_6" angle="1" /></cell>
-					<cell rows="3"><fader id="eq_7" angle="1" /></cell>
-					<combo id="hcm" />
-					
-					<label text="Freq" />
-					<label text="Freq" />
-					
-					<knob id="lcf" logarithmic="true" />
-					<knob id="hcf" logarithmic="true" />
-					
-					<value id="lcf" />
-					<value id="eq_0" />
-					<value id="eq_1" />
-					<value id="eq_2" />
-					<value id="eq_3" />
-					<value id="eq_4" />
-					<value id="eq_5" />
-					<value id="eq_6" />
-					<value id="eq_7" />
-					<value id="hcf" />
-				</grid>
-			</cgroup>
+			</group>
 			
 			<!-- Output -->
-			<group text="Output" visibility=":signal ieq 0" expand="false">
+			<group text="Output" expand="false">
 				<hbox>
 					<grid rows="3" cols="2" expand="true" fill="true">
 						<label text="Dry Pan" />
@@ -658,5 +558,113 @@
 				</hbox>
 			</group>
 		</hbox>
+			
+		<!-- IR routing -->
+		<cgroup id="signal" expand="true">
+			<!-- Processors -->
+			<hbox>
+				<grid rows="5" cols="5" expand="true">
+					<label text="#" />
+					<label text="Pre-delay" />
+					<label text="Source" />
+					<label text="Makeup" />
+					<label text="Out L/R" />
+					
+					<ui:for id="i" first="0" last="1">
+						<label text="${i}" />
+						<knob id="pd${i}" size="20" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
+						<knob id="mk${i}" size="20" />
+						<knob id="com${i}" size="20" />
+						
+						<label />
+						<value id="pd${i}" same_line="true" />
+						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
+							<led id="ca${i}" />
+							<label text="Active" />
+						</hbox>
+						<value id="mk${i}" same_line="true" />
+						<value id="com${i}" same_line="true" />
+					</ui:for>
+				</grid>
+				<vsep />
+				<grid rows="5" cols="5" expand="true">
+					<label text="#" />
+					<label text="Pre-delay" />
+					<label text="Source" />
+					<label text="Makeup" />
+					<label text="Out L/R" />
+					
+					<ui:for id="i" first="2" last="3">
+						<label text="${i}" />
+						<knob id="pd${i}" size="20" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
+						<knob id="mk${i}" size="20" />
+						<knob id="com${i}" size="20" />
+						
+						<label />
+						<value id="pd${i}" same_line="true" />
+						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
+							<led id="ca${i}" />
+							<label text="Active" />
+						</hbox>
+						<value id="mk${i}" same_line="true" />
+						<value id="com${i}" same_line="true" />
+					</ui:for>
+				</grid>
+			</hbox>
+			
+			<!-- Equalizer -->
+			<grid rows="5" cols="10">
+				<label text="Low-cut" />
+				<label text="50" />
+				<label text="107" />
+				<label text="227" />
+				<label text="484" />
+				<label text="1k" />
+				<label text="2.2k" />
+				<label text="4.7k" />
+				<label text="10k" />
+				<label text="High-cut" />
+				
+				<combo id="lcm" />
+				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_1" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_2" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_3" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_4" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_5" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_6" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
+				<combo id="hcm" />
+				
+				<label text="Freq" />
+				<label text="Freq" />
+				
+				<knob id="lcf" logarithmic="true" />
+				<knob id="hcf" logarithmic="true" />
+				
+				<value id="lcf" />
+				<value id="eq_0" />
+				<value id="eq_1" />
+				<value id="eq_2" />
+				<value id="eq_3" />
+				<value id="eq_4" />
+				<value id="eq_5" />
+				<value id="eq_6" />
+				<value id="eq_7" />
+				<value id="hcf" />
+			</grid>
+		</cgroup>
 	</vbox>
 </plugin>

@@ -311,6 +311,7 @@ namespace lsp
             size_t                  nReconfigResp;
             ssize_t                 nRenderThreads;
             float                   fRenderQuality;
+            bool                    bRenderNormalize;
             status_t                enRenderStatus;
             float                   fRenderProgress;
             float                   fRenderCmd;
@@ -343,6 +344,7 @@ namespace lsp
             IPort                  *pRenderQuality;
             IPort                  *pRenderStatus;
             IPort                  *pRenderProgress;
+            IPort                  *pRenderNormalize;
             IPort                  *pRenderCmd;
             IPort                  *pOutGain;
             IPort                  *pPredelay;

@@ -79,7 +79,6 @@ namespace lsp
 
     static const char *rb_processors[] =
     {
-        "Rendering",
         "Convolvers",
         "IR Equalizer",
         NULL
@@ -232,6 +231,7 @@ namespace lsp
         PERCENTS("quality", "Quality factor", 50.0f, 0.1f), \
         STATUS("status", "Render status"), \
         OUT_PERCENTS("prog", "Rendering progress"), \
+        SWITCH("normal", "Normalize rendered samples", 1.0f), \
         TRIGGER("render", "Launch/Stop rendering process"), \
         PATH("ifn", "Input 3D model file name"),    \
         STATUS("ifs", "Input 3D model load status"), \
