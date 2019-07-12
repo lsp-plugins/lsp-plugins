@@ -32,6 +32,7 @@
 * Implemented key-value tree storage (KVTStorage) serialization/deserialization in parameters.
 * Implemented key-value tree storage (KVTStorage) serialization/deserialization for the plugin state.
 * Implemented mechanism for UI<->DSP OSC message interchange.
+* Improved builtin resource generation tool.
 - Fixed broken settings export.
 - Implemented 3D reverb simulator.
 - Additional code updates to get compatibility with WindowsNT platform.
