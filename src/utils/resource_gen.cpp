@@ -13,6 +13,7 @@
 #endif /* PLATFORM_WINDOWS */
 
 #include <core/types.h>
+#include <core/status.h>
 
 #include <data/cvector.h>
 
@@ -22,6 +23,14 @@
 
 namespace lsp
 {
+    typedef struct scan_resource_t
+    {
+        const char         *path;   // Real path to resource
+        const char         *id;     // Resourse character identifier
+        const char         *hex;    // Resource hexadecimal identifier
+        int                 type;   // Resource type
+    } scan_resource_t;
+
     typedef struct xml_word_t
     {
         size_t      length;
@@ -47,6 +56,25 @@ namespace lsp
         bool                        new_line;
         cvector<xml_word_t>        *dict;
     } xml_parser_t;
+
+    static void free_resource(scan_resource_t *resource)
+    {
+        if (resource == NULL)
+            return;
+        if (resource->path != NULL)
+            free(const_cast<char *>(resource->path));
+        if (resource->id != NULL)
+            free(const_cast<char *>(resource->id));
+        if (resource->hex != NULL)
+            free(const_cast<char *>(resource->hex));
+        delete resource;
+    }
+
+    static void free_resources(cvector<scan_resource_t> &resources)
+    {
+        for (size_t i=0, n=resources.size(); i<n; ++i)
+            free_resource(resources[i]);
+    }
 
     static xml_word_t *res_dict_get(cvector<xml_word_t> *dict, const char *key)
     {
@@ -198,7 +226,7 @@ namespace lsp
         parser->new_line    = true;
     }
 
-    static int preprocess_resource(const char *path, const resource_t *resource, cvector<xml_word_t> *dict)
+    static int preprocess_resource(const scan_resource_t *resource, cvector<xml_word_t> *dict)
     {
         // Initialize context
         xml_parser_t context;
@@ -217,18 +245,15 @@ namespace lsp
         XML_SetElementHandler(parser, xml_pre_start_element_handler, xml_pre_end_element_handler);
 
         // Open input file
-        char filename[PATH_MAX];
-        snprintf(filename, PATH_MAX, "%s" FILE_SEPARATOR_S "%s", path, resource->id);
-
-        FILE *in = fopen(filename, "r");
+        FILE *in = fopen(resource->path, "r");
         if (in == NULL)
         {
-            fprintf(stderr, "Could not open file %s\n", filename);
+            fprintf(stderr, "Could not open file %s\n", resource->path);
             XML_ParserFree(parser);
             return -3;
         }
 
-        printf("Preprocessing file %s\n", filename);
+        printf("Preprocessing file %s\n", resource->path);
 
         // Parse file
         char buf[4096];
@@ -257,7 +282,7 @@ namespace lsp
         return 0;
     }
 
-    static int serialize_resource(FILE *out, const char *path, const resource_t *resource, cvector<xml_word_t> *dict)
+    static int serialize_resource(FILE *out, const scan_resource_t *resource, cvector<xml_word_t> *dict)
     {
         // Initialize context
         xml_parser_t context;
@@ -268,7 +293,7 @@ namespace lsp
 
         // Output resource descriptor
         fprintf(out,    "\t// Contents of file %s\n", resource->id);
-        fprintf(out,    "\tstatic const char *xml_resource%s =", resource->text);
+        fprintf(out,    "\tstatic const char *builtin_resource%s =", resource->hex);
 
         // Create XML parser
         XML_Parser parser = XML_ParserCreate(NULL);
@@ -280,18 +305,15 @@ namespace lsp
         XML_SetElementHandler(parser, xml_start_element_handler, xml_end_element_handler);
 
         // Open input file
-        char filename[PATH_MAX];
-        snprintf(filename, PATH_MAX, "%s/%s", path, resource->id);
-
-        FILE *in = fopen(filename, "r");
+        FILE *in = fopen(resource->path, "r");
         if (in == NULL)
         {
-            fprintf(stderr, "Could not open file %s\n", filename);
+            fprintf(stderr, "Could not open file %s\n", resource->path);
             XML_ParserFree(parser);
             return -3;
         }
 
-        printf("Processing file %s\n", filename);
+        printf("Processing file %s\n", resource->path);
 
         // Parse file
         char buf[4096];
@@ -322,46 +344,83 @@ namespace lsp
         return 0;
     }
 
-    static resource_t *create_xml_resource(const char *path, const char *name, size_t id)
+    static scan_resource_t *create_resource(const char *basedir, const char *path, const char *name, size_t type, size_t id)
     {
-        resource_t *res = new resource_t;
+        // Allocate resource data and store ID
+        scan_resource_t *res = new scan_resource_t;
         if (res == NULL)
             return NULL;
 
-        int n = 0;
-        char *ptr = NULL;
-        if (path != NULL)
-            n = asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, name);
-        else
-            ptr     = strdup(name);
-        if ((n < 0) || (ptr == NULL))
+        res->id     = NULL;
+        res->path   = NULL;
+        res->hex    = NULL;
+        res->type   = type;
+
+        char tmp_path[PATH_MAX + 1], *ptr;
+
+        // Generate resource absolute name
+        ptr         = tmp_path;
+        *ptr        = '\0';
+        if ((basedir != NULL) && (strlen(basedir) > 0))
         {
-            delete res;
+            ptr = stpcpy(ptr, basedir);
+            ptr = stpcpy(ptr, FILE_SEPARATOR_S);
+        }
+        if ((path != NULL) && (strlen(path) > 0))
+        {
+            ptr = stpcpy(ptr, path);
+            ptr = stpcpy(ptr, FILE_SEPARATOR_S);
+        }
+        ptr     = stpcpy(ptr, name);
+        ptr     = strdup(tmp_path);
+        if (ptr == NULL)
+        {
+            free_resource(res);
+            return NULL;
+        }
+        res->path   = ptr;
+
+        // Generate resource relative name
+        ptr         = tmp_path;
+        *ptr        = '\0';
+
+        const char *group = strrchr(basedir, FILE_SEPARATOR_C);
+        group = (group == NULL) ? basedir : &group[1];
+        if ((group != NULL) && (strlen(group) > 0))
+        {
+            ptr = stpcpy(ptr, group);
+            ptr = stpcpy(ptr, "/");
+        }
+        if ((path != NULL) && (strlen(path) > 0))
+        {
+            ptr = stpcpy(ptr, path);
+            ptr = stpcpy(ptr, "/");
+        }
+        ptr     = stpcpy(ptr, name);
+        for (ptr = tmp_path; *ptr != '\0'; ++ptr)
+            if (*ptr == '\\')
+                *ptr        = '/';
+        ptr     = strdup(tmp_path);
+        if (ptr == NULL)
+        {
+            free_resource(res);
             return NULL;
         }
         res->id     = ptr;
 
-        char *dst   = NULL;
-        n = asprintf(&dst, "%08x", int(id));
-        if ((n < 0) || (dst == NULL))
+        // Allocate resource unique identifier
+        ptr         = NULL;
+        int n       = asprintf(&ptr, "%08x", int(id));
+        if ((n < 0) || (ptr == NULL))
         {
             free(const_cast<char *>(res->id));
             delete res;
             return NULL;
         }
-        res->text   = dst;
-        return res;
-    }
+        res->hex    = ptr;
 
-    static void free_xml_resource(resource_t *resource)
-    {
-        if (resource == NULL)
-            return;
-        if (resource->id != NULL)
-            free(const_cast<char *>(resource->id));
-        if (resource->text != NULL)
-            free(const_cast<char *>(resource->text));
-        delete resource;
+        // Store other fields
+        return res;
     }
 
     int emit_dictionary(FILE *out, cvector<xml_word_t> *dict)
@@ -380,8 +439,8 @@ namespace lsp
 
         // Output resource descriptor
         fprintf(out,    "\t// XML Dictionary\n");
-        fprintf(out,    "\textern const char *xml_dictionary;\n\n");
-        fprintf(out,    "\tconst char *xml_dictionary =\n");
+        fprintf(out,    "\textern const char *string_dictionary;\n\n");
+        fprintf(out,    "\tconst char *string_dictionary =\n");
 
         // Emit data
         size_t offset = 0;
@@ -409,10 +468,11 @@ namespace lsp
         return STATUS_SUCCESS;
     }
 
-    int scan_directory(const char *basedir, const char *path, cvector<resource_t> &resources)
+    int scan_directory(const char *basedir, const char *path, cvector<scan_resource_t> &resources, size_t *resource_id)
     {
         int n = 0;
         char *realpath = NULL;
+
         if (path != NULL)
             n = asprintf(&realpath, "%s" FILE_SEPARATOR_S "%s", basedir, path);
         else
@@ -474,7 +534,7 @@ namespace lsp
                 if ((n < 0) || (subdir == NULL))
                     return -STATUS_NO_MEM;
 
-                result = scan_directory(basedir, subdir, resources);
+                result = scan_directory(basedir, subdir, resources, resource_id);
 
                 // Free the allocated resource
                 free(subdir);
@@ -490,7 +550,7 @@ namespace lsp
                     continue;
 
                 // Generate resource descriptor
-                resource_t *res = create_xml_resource(path, ent->d_name, resources.size());
+                scan_resource_t *res = create_resource(basedir, path, ent->d_name, RESOURCE_XML, (*resource_id)++);
                 if (res == NULL)
                 {
                     result = -STATUS_NO_MEM;
@@ -500,7 +560,7 @@ namespace lsp
                 // Add resource to list
                 if (!resources.add(res))
                 {
-                    free_xml_resource(res);
+                    free_resource(res);
                     result = -STATUS_NO_MEM;
                     break;
                 }
@@ -515,7 +575,7 @@ namespace lsp
         return result;
     }
 
-    int gen_xml_resource_file(const char *path, const char *fname)
+    int gen_xml_resource_file(const char *fname, cvector<scan_resource_t> &resources)
     {
         FILE *out = fopen(fname, "w");
         if (out == NULL)
@@ -530,7 +590,7 @@ namespace lsp
         // Write header
         fprintf(out,    "//------------------------------------------------------------------------------\n");
         fprintf(out,    "// File:            %s\n", fname);
-        fprintf(out,    "// Description:     resource file containing parsed XML\n");
+        fprintf(out,    "// Description:     resource file containing builtin data\n");
         fprintf(out,    "// \n");
         fprintf(out,    "// This is auto-generated file, do not edit!\n");
         fprintf(out,    "//------------------------------------------------------------------------------\n\n");
@@ -553,27 +613,20 @@ namespace lsp
         fprintf(out,    "{\n");
 
         // Convert XML files into CPP code
-        cvector<resource_t> resources;
         cvector<xml_word_t> dictionary;
         int result      = 0;
-
-        // Try to scan directory
-        printf("Scanning resources in path: %s\n", path);
-        result          = scan_directory(path, NULL, resources);
-        if (result != STATUS_SUCCESS)
-            return result;
 
         // Preprocess resources
         for (size_t i=0, n=resources.size(); i<n; ++i)
         {
-            resource_t *res = resources[i];
+            scan_resource_t *res = resources[i];
             if (res == NULL)
             {
                 result = -STATUS_NOT_FOUND;
                 break;
             }
 
-            result = preprocess_resource(path, res, &dictionary);
+            result = preprocess_resource(res, &dictionary);
             if (result != STATUS_SUCCESS)
                 break;
         }
@@ -588,14 +641,14 @@ namespace lsp
         // Pass 2: Generate XML resources body
         for (size_t i=0; i<resources.size(); ++i)
         {
-            resource_t *res = resources[i];
+            scan_resource_t *res = resources[i];
             if (res == NULL)
             {
                 result = -STATUS_NOT_FOUND;
                 break;
             }
 
-            result = serialize_resource(out, path, res, &dictionary);
+            result = serialize_resource(out, res, &dictionary);
             if (result != STATUS_SUCCESS)
                 break;
         }
@@ -603,25 +656,20 @@ namespace lsp
         // Write footer
         if (result == STATUS_OK)
         {
-            fprintf(out,    "\textern const resource_t xml_resources[] =\n");
+            fprintf(out,    "\textern const resource_t builtin_resources[] =\n");
             fprintf(out,    "\t{\n");
 
             for (size_t i=0; i<resources.size(); ++i)
             {
-                resource_t *res  = resources[i];
-                fprintf(out,    "\t\t{ \"%s\", xml_resource%s },\n", res->id, res->text);
-                // Delete resource
-                free_xml_resource(res);
+                scan_resource_t *res  = resources[i];
+                fprintf(out,    "\t\t{ \"%s\", builtin_resource%s, %d },\n", res->id, res->hex, res->type);
             }
 
-            fprintf(out,    "\t\t{ NULL, NULL }\n");
+            fprintf(out,    "\t\t{ NULL, NULL, %d }\n", RESOURCE_UNKNOWN);
             fprintf(out,    "\t};\n\n");
 
             fprintf(out,    "}\n"); // End of namespace
         }
-
-        // Free vector
-        resources.clear();
 
         // Free dictionary
         for (size_t i=0; i<dictionary.size(); ++i)
@@ -630,16 +678,46 @@ namespace lsp
 
         return fclose(out);
     }
+
+    status_t resource_gen_main(int argc, const char **argv)
+    {
+        const char *target = NULL;
+        int i = 1;
+        status_t res;
+
+        // Get target file name
+        if (i >= argc)
+        {
+            fprintf(stderr, "Required path to output file");
+            return STATUS_UNSPECIFIED;
+        }
+        target = argv[i++];
+
+        // Scan resources
+        cvector<scan_resource_t> resources;
+        size_t resource_id = 0;
+
+        while (i < argc)
+        {
+            const char *path = argv[i++];
+            printf("Scanning resources in path: %s\n", path);
+            res = scan_directory(path, NULL, resources, &resource_id);
+            if (res != STATUS_SUCCESS)
+            {
+                free_resources(resources);
+                return res;
+            }
+        }
+
+        res = gen_xml_resource_file(target, resources);
+        free_resources(resources);
+        return res;
+    }
 }
 
 #ifndef LSP_IDE_DEBUG
 int main(int argc, const char **argv)
 {
-    if (argc < 3)
-    {
-        fprintf(stderr, "required resource path and destination file name");
-        return -1;
-    }
-    return lsp::gen_xml_resource_file(argv[1], argv[2]);
+    return lsp::resource_gen_main(argc, argv);
 }
 #endif /* LSP_IDE_DEBUG */

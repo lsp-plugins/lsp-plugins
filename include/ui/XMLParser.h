@@ -27,6 +27,9 @@ namespace lsp
     class XMLParser
     {
         private:
+            XMLParser & operator = (const XMLParser &);
+
+        private:
             typedef struct node_t
             {
                 XMLHandler *handler;
@@ -60,7 +63,7 @@ namespace lsp
             node_t  *top();
 
         public:
-            XMLParser();
+            explicit XMLParser();
             ~XMLParser();
 
         public:

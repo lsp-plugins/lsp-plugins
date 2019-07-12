@@ -92,10 +92,18 @@ namespace lsp
         float_buffer_t         *resize(size_t lines, size_t items);
     } float_buffer_t;
 
+    enum resource_type_t
+    {
+        RESOURCE_UNKNOWN,
+        RESOURCE_XML,
+        RESOURCE_PRESET
+    };
+
     typedef struct resource_t
     {
-        const char *id;
-        const char *text;
+        const char         *id;
+        const char         *text;
+        int                 type;
     } resource_t;
 }
 

@@ -19,9 +19,9 @@
 namespace lsp
 {
 #if defined(LSP_XML_BUILTIN)
-    extern const char *xml_dictionary;
+    extern const char *string_dictionary;
 
-    extern const resource_t xml_resources[];
+    extern const resource_t builtin_resources[];
 #endif /* LSP_XML_BUILTIN */
 
 
@@ -133,9 +133,8 @@ namespace lsp
                 break;
             shift          += 7;
         }
-//        lsp_trace("fetch_string: offset=%x, string=%s", int(offset), &xml_dictionary[offset]);
 
-        return &xml_dictionary[offset];
+        return &string_dictionary[offset];
     }
 #endif /* LSP_XML_BUILTIN */
 
@@ -219,10 +218,10 @@ namespace lsp
 #elif defined(LSP_USE_MSXML)
         // TODO
 #elif defined(LSP_XML_BUILTIN)
-        for (const resource_t *res = xml_resources; (res->id != NULL) && (res->text != NULL); ++res)
+        for (const resource_t *res = builtin_resources; (res->id != NULL) && (res->text != NULL); ++res)
         {
             // Check that resource matched
-            if (strcmp(res->id, path) != 0)
+            if ((strcmp(res->id, path) != 0) || (res->type != RESOURCE_XML))
                 continue;
 
             // Process data

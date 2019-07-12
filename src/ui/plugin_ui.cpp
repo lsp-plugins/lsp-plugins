@@ -955,7 +955,7 @@ namespace lsp
         #ifdef LSP_USE_EXPAT
             strncpy(path, "res/ui/theme.xml", PATH_MAX);
         #else
-            strncpy(path, "theme.xml", PATH_MAX);
+            strncpy(path, "ui/theme.xml", PATH_MAX);
         #endif /* LSP_USE_EXPAT */
 
         lsp_trace("Loading theme from file %s", path);
@@ -977,7 +977,7 @@ namespace lsp
         #ifdef LSP_USE_EXPAT
             snprintf(path, PATH_MAX, "res/ui/%s", pMetadata->ui_resource);
         #else
-            strncpy(path, pMetadata->ui_resource, PATH_MAX);
+            snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
         #endif /* LSP_USE_EXPAT */
         lsp_trace("Generating UI from file %s", path);
 
