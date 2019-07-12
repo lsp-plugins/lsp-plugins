@@ -14,8 +14,10 @@
 
 #include <core/types.h>
 #include <core/status.h>
+#include <core/files/Model3DFile.h>
 
 #include <data/cvector.h>
+#include <data/cstorage.h>
 
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
@@ -29,6 +31,11 @@ namespace lsp
         const char         *id;     // Resourse character identifier
         const char         *hex;    // Resource hexadecimal identifier
         int                 type;   // Resource type
+        union
+        {
+            Scene3D        *scene;
+            void           *ptr;
+        };
     } scan_resource_t;
 
     typedef struct xml_word_t
@@ -46,8 +53,24 @@ namespace lsp
 
             return strcmp(text, w->text);
         }
-
     } xml_word_t;
+
+    typedef struct dict_float_t
+    {
+        size_t      refs;
+        float       value;
+
+        inline int compare(const dict_float_t *w) const
+        {
+            return refs - w->refs;
+        }
+
+        void swap(dict_float_t *b)
+        {
+            ::swap(refs, b->refs);
+            ::swap(value, b->value);
+        }
+    } dict_float_t;
 
     typedef struct xml_parser_t
     {
@@ -67,6 +90,13 @@ namespace lsp
             free(const_cast<char *>(resource->id));
         if (resource->hex != NULL)
             free(const_cast<char *>(resource->hex));
+
+        if (resource->type == RESOURCE_3D_SCENE)
+        {
+            resource->scene->destroy();
+            delete resource->scene;
+            resource->scene = NULL;
+        }
         delete resource;
     }
 
@@ -118,6 +148,34 @@ namespace lsp
             return false;
         }
 
+        return true;
+    }
+
+    static dict_float_t *float_dict_get(cstorage<dict_float_t> *dict, float v)
+    {
+        for (size_t i=0, n=dict->size(); i<n; ++i)
+        {
+            dict_float_t *w   = dict->at(i);
+            if (w->value == v)
+                return w;
+        }
+        return NULL;
+    }
+
+    static bool float_dict_add(cstorage<dict_float_t> *dict, float value)
+    {
+        dict_float_t *item = float_dict_get(dict, value);
+        if (item != NULL)
+        {
+            ++item->refs;
+            return true;
+        }
+
+        if ((item = dict->add()) == NULL)
+            return false;
+
+        item->refs  = 1;
+        item->value = value;
         return true;
     }
 
@@ -226,7 +284,7 @@ namespace lsp
         parser->new_line    = true;
     }
 
-    static int preprocess_resource(const scan_resource_t *resource, cvector<xml_word_t> *dict)
+    static int preprocess_xml_resource(const scan_resource_t *resource, cvector<xml_word_t> *dict)
     {
         // Initialize context
         xml_parser_t context;
@@ -282,7 +340,66 @@ namespace lsp
         return 0;
     }
 
-    static int serialize_resource(FILE *out, const scan_resource_t *resource, cvector<xml_word_t> *dict)
+    static int preprocess_3d_scene(scan_resource_t *resource, cstorage<dict_float_t> *dict)
+    {
+        Scene3D *pscene = NULL;
+        Model3DFile file;
+
+        // Load scene
+        LSPString path;
+        if (!path.set_native(resource->path))
+            return STATUS_NO_MEM;
+
+        status_t res = file.load(&pscene, &path);
+        if (res == STATUS_OK)
+        {
+            // Vertices
+            for (size_t i=0, n=pscene->num_vertexes(); i<n; ++i)
+            {
+                obj_vertex_t *v = pscene->vertex(i);
+                if (!float_dict_add(dict, v->x))
+                    return STATUS_NO_MEM;
+                if (!float_dict_add(dict, v->y))
+                    return STATUS_NO_MEM;
+                if (!float_dict_add(dict, v->z))
+                    return STATUS_NO_MEM;
+            }
+
+            // Normals
+            for (size_t i=0, n=pscene->num_normals(); i<n; ++i)
+            {
+                obj_normal_t *v = pscene->normal(i);
+                if (!float_dict_add(dict, v->dx))
+                    return STATUS_NO_MEM;
+                if (!float_dict_add(dict, v->dy))
+                    return STATUS_NO_MEM;
+                if (!float_dict_add(dict, v->dz))
+                    return STATUS_NO_MEM;
+            }
+
+            resource->scene     = pscene;
+        }
+
+        return res;
+    }
+
+    static int preprocess_resource(scan_resource_t *resource,
+            cvector<xml_word_t> *sdict,
+            cstorage<dict_float_t> *fdict
+        )
+    {
+        printf("Preprocessing resource file %s\n", resource->path);
+        switch (resource->type)
+        {
+            case RESOURCE_XML: return preprocess_xml_resource(resource, sdict);
+            case RESOURCE_3D_SCENE: return preprocess_3d_scene(resource, fdict);
+            default: break;
+        }
+
+        return STATUS_OK;
+    }
+
+    static int serialize_xml_resource(FILE *out, const scan_resource_t *resource, cvector<xml_word_t> *dict)
     {
         // Initialize context
         xml_parser_t context;
@@ -313,8 +430,6 @@ namespace lsp
             return -3;
         }
 
-        printf("Processing file %s\n", resource->path);
-
         // Parse file
         char buf[4096];
         while (true)
@@ -344,6 +459,18 @@ namespace lsp
         return 0;
     }
 
+    static int serialize_resource(FILE *out, const scan_resource_t *resource, cvector<xml_word_t> *dict)
+    {
+        printf("Serializing resource file %s\n", resource->path);
+        switch (resource->type)
+        {
+            case RESOURCE_XML: return serialize_xml_resource(out, resource, dict);
+            default: break;
+        }
+
+        return STATUS_OK;
+    }
+
     static scan_resource_t *create_resource(const char *basedir, const char *path, const char *name, size_t type, size_t id)
     {
         // Allocate resource data and store ID
@@ -355,6 +482,7 @@ namespace lsp
         res->path   = NULL;
         res->hex    = NULL;
         res->type   = type;
+        res->ptr    = NULL;
 
         char tmp_path[PATH_MAX + 1], *ptr;
 
@@ -423,7 +551,7 @@ namespace lsp
         return res;
     }
 
-    int emit_dictionary(FILE *out, cvector<xml_word_t> *dict)
+    int emit_string_dictionary(FILE *out, cvector<xml_word_t> *dict)
     {
         size_t items    = dict->size();
 
@@ -438,7 +566,7 @@ namespace lsp
             }
 
         // Output resource descriptor
-        fprintf(out,    "\t// XML Dictionary\n");
+        fprintf(out,    "\t// String Dictionary\n");
         fprintf(out,    "\textern const char *string_dictionary;\n\n");
         fprintf(out,    "\tconst char *string_dictionary =\n");
 
@@ -465,7 +593,55 @@ namespace lsp
 
         fprintf(out, "\t\t;\n\n");
 
-        return STATUS_SUCCESS;
+        return STATUS_OK;
+    }
+
+    int emit_float_dictionary(FILE *out, cstorage<dict_float_t> *dict)
+    {
+        size_t items    = dict->size();
+
+        // Sort dictionary
+        for (size_t i=0; i<(items-1); ++i)
+            for (size_t j=i+1; j<items; ++j)
+            {
+                dict_float_t *w1  = dict->at(i);
+                dict_float_t *w2  = dict->at(j);
+                if (w1->compare(w2) < 0)
+                    w1->swap(w2);
+            }
+
+        // Output resource descriptor
+        fprintf(out,    "\t// Floating-Point Dictionary\n");
+        fprintf(out,    "\textern const float float_dictionary[];\n\n");
+        fprintf(out,    "\tconst float float_dictionary[] =\n");
+        fprintf(out,    "\t{\n");
+
+        // Emit data
+        for (size_t i=0; i<items; ++i)
+        {
+            dict_float_t *w   = dict->at(i);
+            fprintf(out, "\t\t%f, // index: 0x%08x, refs=%d\n", w->value, int(i), int(w->refs));
+        }
+
+        fprintf(out, "\t};\n\n");
+
+        return STATUS_OK;
+    }
+
+    int get_resource_type(const char *fname)
+    {
+        const char *dot = strrchr(fname, '.');
+        if (dot == NULL)
+            return RESOURCE_UNKNOWN;
+
+        if (strcasecmp(dot, ".xml") == 0)
+            return RESOURCE_XML;
+        if (strcasecmp(dot, ".obj") == 0)
+            return RESOURCE_3D_SCENE;
+        if (strcasecmp(dot, ".preset") == 0)
+            return RESOURCE_PRESET;
+
+        return RESOURCE_UNKNOWN;
     }
 
     int scan_directory(const char *basedir, const char *path, cvector<scan_resource_t> &resources, size_t *resource_id)
@@ -543,14 +719,12 @@ namespace lsp
             }
             else if (S_ISREG(st.st_mode))
             {
-                char *dot = strrchr(ent->d_name, '.');
-                if (dot == NULL)
-                    continue;
-                else if (strcasecmp(dot, ".xml") != 0)
+                int rtype = get_resource_type(ent->d_name);
+                if (rtype == RESOURCE_UNKNOWN)
                     continue;
 
                 // Generate resource descriptor
-                scan_resource_t *res = create_resource(basedir, path, ent->d_name, RESOURCE_XML, (*resource_id)++);
+                scan_resource_t *res = create_resource(basedir, path, ent->d_name, rtype, (*resource_id)++);
                 if (res == NULL)
                 {
                     result = -STATUS_NO_MEM;
@@ -575,7 +749,7 @@ namespace lsp
         return result;
     }
 
-    int gen_xml_resource_file(const char *fname, cvector<scan_resource_t> &resources)
+    int gen_resource_file(const char *fname, cvector<scan_resource_t> &resources)
     {
         FILE *out = fopen(fname, "w");
         if (out == NULL)
@@ -613,7 +787,8 @@ namespace lsp
         fprintf(out,    "{\n");
 
         // Convert XML files into CPP code
-        cvector<xml_word_t> dictionary;
+        cvector<xml_word_t> sdict;
+        cstorage<dict_float_t> fdict;
         int result      = 0;
 
         // Preprocess resources
@@ -626,31 +801,34 @@ namespace lsp
                 break;
             }
 
-            result = preprocess_resource(res, &dictionary);
-            if (result != STATUS_SUCCESS)
+            result = preprocess_resource(res, &sdict, &fdict);
+            if (result != STATUS_OK)
                 break;
         }
-        if (result != STATUS_SUCCESS)
+        if (result != STATUS_OK)
             return result;
 
         // Emit dictionary
-        result = emit_dictionary(out, &dictionary);
-        if (result != STATUS_SUCCESS)
-            return result;
+        result = emit_string_dictionary(out, &sdict);
+        if (result == STATUS_OK)
+            result = emit_float_dictionary(out, &fdict);
 
         // Pass 2: Generate XML resources body
-        for (size_t i=0; i<resources.size(); ++i)
+        if (result == STATUS_OK)
         {
-            scan_resource_t *res = resources[i];
-            if (res == NULL)
+            for (size_t i=0; i<resources.size(); ++i)
             {
-                result = -STATUS_NOT_FOUND;
-                break;
-            }
+                scan_resource_t *res = resources[i];
+                if (res == NULL)
+                {
+                    result = -STATUS_NOT_FOUND;
+                    break;
+                }
 
-            result = serialize_resource(out, res, &dictionary);
-            if (result != STATUS_SUCCESS)
-                break;
+                result = serialize_resource(out, res, &sdict);
+                if (result != STATUS_SUCCESS)
+                    break;
+            }
         }
 
         // Write footer
@@ -672,15 +850,18 @@ namespace lsp
         }
 
         // Free dictionary
-        for (size_t i=0; i<dictionary.size(); ++i)
-            free(dictionary.at(i));
-        dictionary.clear();
+        for (size_t i=0; i<sdict.size(); ++i)
+            free(sdict.at(i));
+        sdict.flush();
+        fdict.flush();
 
         return fclose(out);
     }
 
     status_t resource_gen_main(int argc, const char **argv)
     {
+        dsp::init();
+
         const char *target = NULL;
         int i = 1;
         status_t res;
@@ -709,7 +890,7 @@ namespace lsp
             }
         }
 
-        res = gen_xml_resource_file(target, resources);
+        res = gen_resource_file(target, resources);
         free_resources(resources);
         return res;
     }

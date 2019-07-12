@@ -225,7 +225,7 @@ namespace lsp
                 continue;
 
             // Process data
-            const char *text = res->text;
+            const char *text = reinterpret_cast<const char *>(res->data);
 
             root->enter();
 

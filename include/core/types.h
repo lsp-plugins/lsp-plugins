@@ -96,13 +96,14 @@ namespace lsp
     {
         RESOURCE_UNKNOWN,
         RESOURCE_XML,
+        RESOURCE_3D_SCENE,
         RESOURCE_PRESET
     };
 
     typedef struct resource_t
     {
         const char         *id;
-        const char         *text;
+        const void         *data;
         int                 type;
     } resource_t;
 }

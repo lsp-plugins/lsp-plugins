@@ -78,7 +78,7 @@ $(OBJ_TEST_CORE): test rendering
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"
 	@mkdir -p $(OBJDIR)/res
-	@$(UTL_RESGEN) $(OBJDIR)/res/xml_resource.cpp $(BASEDIR)/res/ui
+	@$(UTL_RESGEN) $(OBJDIR)/res/xml_resource.cpp $(BASEDIR)/res/ui $(BASEDIR)/res/presets $(BASEDIR)/res/models
 	@-rm gmon.out >/dev/null 2>&1
 	@$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/xml_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 

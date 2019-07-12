@@ -153,12 +153,12 @@ namespace lsp
                     v2 = vertex.at((index+1) % n);
                     v3 = vertex.at((index+2) % n);
 
-                    lsp_trace(
-                        "analyzing triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
-                        v1->p->x, v1->p->y, v1->p->z,
-                        v2->p->x, v2->p->y, v2->p->z,
-                        v3->p->x, v3->p->y, v3->p->z
-                    );
+//                    lsp_trace(
+//                        "analyzing triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
+//                        v1->p->x, v1->p->y, v1->p->z,
+//                        v2->p->x, v2->p->y, v2->p->z,
+//                        v3->p->x, v3->p->y, v3->p->z
+//                    );
 
                     // Check that it is an ear
                     ck = dsp::check_triplet3d_p3n(v1->p, v2->p, v3->p, v1->n);
@@ -193,7 +193,7 @@ namespace lsp
                         ck  = dsp::check_point3d_on_triangle_p3p(v1->p, v2->p, v3->p, vx->p);
                         if (ck >= 0.0f)
                         {
-                            lsp_trace("point (%8.3f, %8.3f, %8.3f) has failed", vx->p->x, vx->p->y, vx->p->z);
+//                            lsp_trace("point (%8.3f, %8.3f, %8.3f) has failed", vx->p->x, vx->p->y, vx->p->z);
                             found ++;
                             break;
                         }
@@ -206,12 +206,12 @@ namespace lsp
                     }
 
                     // It's an ear, there are no points inside, can emit triangle and remove the middle point
-                    lsp_trace(
-                        "emit triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
-                        v1->p->x, v1->p->y, v1->p->z,
-                        v2->p->x, v2->p->y, v2->p->z,
-                        v3->p->x, v3->p->y, v3->p->z
-                    );
+//                    lsp_trace(
+//                        "emit triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
+//                        v1->p->x, v1->p->y, v1->p->z,
+//                        v2->p->x, v2->p->y, v2->p->z,
+//                        v3->p->x, v3->p->y, v3->p->z
+//                    );
                     status_t result = pObject->add_triangle(face_id, v1->ip, v2->ip, v3->ip, v1->in, v2->in, v3->in);
                     if (result != STATUS_OK)
                         return result;
