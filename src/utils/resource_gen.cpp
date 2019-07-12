@@ -57,8 +57,9 @@ namespace lsp
 
     typedef struct dict_float_t
     {
-        size_t      refs;
         float       value;
+        size_t      refs;
+        size_t      index;
 
         inline int compare(const dict_float_t *w) const
         {
@@ -67,8 +68,9 @@ namespace lsp
 
         void swap(dict_float_t *b)
         {
-            ::swap(refs, b->refs);
             ::swap(value, b->value);
+            ::swap(refs, b->refs);
+            ::swap(index, b->index);
         }
     } dict_float_t;
 
@@ -174,8 +176,10 @@ namespace lsp
         if ((item = dict->add()) == NULL)
             return false;
 
-        item->refs  = 1;
         item->value = value;
+        item->index = 0;
+        item->refs  = 1;
+
         return true;
     }
 
@@ -205,25 +209,72 @@ namespace lsp
             fputc('\t', parser->out);
     }
 
+    static void encode_string(FILE *out, const char *p)
+    {
+        bool quote = false;
+        int tokens = 0;
+
+        // Output string
+        for (; *p != '\0'; ++p, ++tokens)
+        {
+            if (((*p) >= 0x20) && ((*p) <= 0x7f))
+            {
+                if (!quote)
+                {
+                    if (tokens > 0)
+                        fputs(" \"", out);
+                    else
+                        fputc('\"', out);
+                    quote = true;
+                }
+
+                switch (*p)
+                {
+                    case '\"': fputs("\\\"", out); break;
+                    case '\\': fputs("\\\\", out); break;
+                    default: fputc(*p, out); break;
+                }
+            }
+            else
+            {
+                if (quote)
+                {
+                    fputs("\" ", out);
+                    quote = false;
+                }
+                if (tokens > 0)
+                    fputc(' ', out);
+                fprintf(out, "\"\\x%02x\"", uint8_t(*p));
+            }
+        }
+
+        // Finalize string state
+        if (tokens == 0)
+        {
+            fputc('\"', out);
+            quote = true;
+        }
+        if (quote)
+            fputc('\"', out);
+    }
+
+    static void encode_value(FILE *out, size_t value)
+    {
+        int tokens = 0;
+        do
+        {
+            if ((tokens++) > 0)
+                fputc(' ', out);
+            size_t flag = (value > 0x7f) ? 0x80 : 0x00;
+            fprintf(out, "\"\\x%02x\"", int((value & 0x7f) | flag));
+            value >>= 7;
+        } while (value > 0);
+    }
+
     static void encode_word(FILE *out, cvector<xml_word_t> *dict, const char *key)
     {
         xml_word_t *w   = res_dict_get(dict, key);
-        fprintf(out, "\"");
-
-        if (w != NULL)
-        {
-            size_t off = w->offset;
-            do
-            {
-                size_t flag = (off > 0x7f) ? 0x80 : 0x00;
-                fprintf(out, "\\x%02x", int((off & 0x7f) | flag));
-                off >>= 7;
-            } while (off > 0);
-        }
-        else
-            fprintf(out, "\\x00");
-
-        fprintf(out, "\"");
+        encode_value(out, (w != NULL) ? w->offset : 0);
     }
 
     static void xml_start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
@@ -459,12 +510,121 @@ namespace lsp
         return 0;
     }
 
-    static int serialize_resource(FILE *out, const scan_resource_t *resource, cvector<xml_word_t> *dict)
+    static int serialize_3d_scene(FILE *out, const scan_resource_t *resource, cstorage<dict_float_t> *fdict)
+    {
+        // Output resource descriptor
+        fprintf(out,    "\t// Contents of file %s\n", resource->id);
+        fprintf(out,    "\tstatic const char *builtin_resource%s =", resource->hex);
+
+        dict_float_t *f;
+        LSPString name;
+        Scene3D *s      = resource->scene;
+
+        // Encode vertices
+        fprintf(out,    "\n\t\t");
+        encode_value(out, s->num_vertexes());
+        fprintf(out,    " // Vertex count");
+        fprintf(out,    "\n\t\t\t// Vertex data { x, y, z }");
+        for (size_t i=0, n=s->num_vertexes(); i<n; ++i)
+        {
+            obj_vertex_t *v = s->vertex(i);
+            fprintf(out, "\n\t\t\t");
+
+            f = float_dict_get(fdict, v->x);
+            encode_value(out, f->index);
+            fprintf(out, " ");
+
+            f = float_dict_get(fdict, v->y);
+            encode_value(out, f->index);
+            fprintf(out, " ");
+
+            f = float_dict_get(fdict, v->z);
+            encode_value(out, f->index);
+        }
+
+        // Encode normals
+        fprintf(out,    "\n\t\t");
+        encode_value(out, s->num_normals());
+        fprintf(out,    " // Normal count");
+        fprintf(out,    "\n\t\t\t// Normal data { dx, dy, dz }");
+        for (size_t i=0, n=s->num_normals(); i<n; ++i)
+        {
+            obj_normal_t *v = s->normal(i);
+            fprintf(out, "\n\t\t\t");
+
+            f = float_dict_get(fdict, v->dx);
+            encode_value(out, f->index);
+            fprintf(out, " ");
+
+            f = float_dict_get(fdict, v->dy);
+            encode_value(out, f->index);
+            fprintf(out, " ");
+
+            f = float_dict_get(fdict, v->dz);
+            encode_value(out, f->index);
+        }
+
+        // Encode objects
+        fprintf(out,    "\n\t\t");
+        encode_value(out, s->num_objects());
+        fprintf(out,    " // Objects count");
+        for (size_t i=0, n=s->num_objects(); i<n; ++i)
+        {
+            Object3D *o = s->object(i);
+
+            fprintf(out, "\n\t\t\t");
+            o->get_name(&name);
+            encode_string(out, name.get_utf8());
+            fprintf(out, " // Object name");
+
+            fprintf(out, "\n\t\t\t");
+            encode_value(out, o->num_triangles());
+            fprintf(out,    " // Object triangles { face_id, v1, v2, v3, n1, n2, n3 }");
+
+            for (size_t j=0, m=o->num_triangles(); j<m; ++j)
+            {
+                obj_triangle_t *t = o->triangle(j);
+                fprintf(out, "\n\t\t\t\t");
+
+                encode_value(out, t->face);
+                fprintf(out, " ");
+
+                encode_value(out, t->v[0]->id);
+                fprintf(out, " ");
+
+                encode_value(out, t->v[1]->id);
+                fprintf(out, " ");
+
+                encode_value(out, t->v[2]->id);
+                fprintf(out, " ");
+
+                encode_value(out, t->n[0]->id);
+                fprintf(out, " ");
+
+                encode_value(out, t->n[1]->id);
+                fprintf(out, " ");
+
+                encode_value(out, t->n[2]->id);
+                fprintf(out, " ");
+            }
+        }
+
+        fprintf(out,    "\n\t\t;\n\n");
+
+        return STATUS_OK;
+    }
+
+    static int serialize_resource(FILE *out,
+            const scan_resource_t *resource,
+            cvector<xml_word_t> *dict,
+            cstorage<dict_float_t> *fdict
+        )
     {
         printf("Serializing resource file %s\n", resource->path);
         switch (resource->type)
         {
             case RESOURCE_XML: return serialize_xml_resource(out, resource, dict);
+            case RESOURCE_3D_SCENE: return serialize_3d_scene(out, resource, fdict);
             default: break;
         }
 
@@ -576,18 +736,11 @@ namespace lsp
         {
             xml_word_t *w   = dict->at(i);
             w->offset       = offset;
-            fprintf(out, "\t\tK(\"");
+            fprintf(out, "\t\tK(");
 
-            // Output string
-            for (const char *p=w->text; *p != '\0'; ++p)
-            {
-                if (((*p) >= 0x20) && ((*p) <= 0x7f))
-                    fputc(*p, out);
-                else
-                    fprintf(out, "\" \"\\x%02x\" \"", uint8_t(*p));
-            }
+            encode_string(out, w->text);
 
-            fprintf(out, "\") // offset: 0x%08x, refs=%d\n", int(w->offset), int(w->refs));
+            fprintf(out, ") // offset: 0x%08x, refs=%d\n", int(w->offset), int(w->refs));
             offset         += w->length + 1; // 1 char separator
         }
 
@@ -619,7 +772,8 @@ namespace lsp
         // Emit data
         for (size_t i=0; i<items; ++i)
         {
-            dict_float_t *w   = dict->at(i);
+            dict_float_t *w     = dict->at(i);
+            w->index            = i;
             fprintf(out, "\t\t%f, // index: 0x%08x, refs=%d\n", w->value, int(i), int(w->refs));
         }
 
@@ -825,7 +979,7 @@ namespace lsp
                     break;
                 }
 
-                result = serialize_resource(out, res, &sdict);
+                result = serialize_resource(out, res, &sdict, &fdict);
                 if (result != STATUS_SUCCESS)
                     break;
             }

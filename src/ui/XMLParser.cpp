@@ -218,7 +218,7 @@ namespace lsp
 #elif defined(LSP_USE_MSXML)
         // TODO
 #elif defined(LSP_XML_BUILTIN)
-        for (const resource_t *res = builtin_resources; (res->id != NULL) && (res->text != NULL); ++res)
+        for (const resource_t *res = builtin_resources; (res->id != NULL) && (res->data != NULL); ++res)
         {
             // Check that resource matched
             if ((strcmp(res->id, path) != 0) || (res->type != RESOURCE_XML))
