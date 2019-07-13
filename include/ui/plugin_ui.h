@@ -13,8 +13,8 @@
 #include <data/cvector.h>
 
 #include <ui/ws/ws.h>
-#include <core/files/config.h>
 #include <core/io/IInStream.h>
+#include <core/files/config.h>
 #include <core/files/config/TextConfigHandler.h>
 #include <core/port_data.h>
 
