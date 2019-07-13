@@ -1,4 +1,5 @@
-ifn = "builtin://models/3d/devel-room.obj"
+#ifn = "builtin://models/3d/devel-room.obj"
+ifn = "res/models/3d/devel-room.obj"
 ifo = 9
 xscale = 100.000000
 yscale = 100.000000

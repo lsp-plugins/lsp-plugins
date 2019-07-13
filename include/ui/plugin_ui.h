@@ -15,6 +15,7 @@
 #include <ui/ws/ws.h>
 #include <core/files/config.h>
 #include <core/io/IInStream.h>
+#include <core/files/config/TextConfigHandler.h>
 #include <core/port_data.h>
 
 namespace lsp
@@ -25,7 +26,7 @@ namespace lsp
             plugin_ui &operator = (const plugin_ui &);
 
         protected:
-            class ConfigHandler: public config::IConfigHandler
+            class ConfigHandler: public config::TextConfigHandler
             {
                 private:
                     plugin_ui   *pUI;
@@ -42,7 +43,9 @@ namespace lsp
                     virtual ~ConfigHandler();
 
                 public:
-                    virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
+                    virtual status_t handle_regular_parameter(const char *name, const char *value, size_t flags);
+
+                    virtual status_t handle_kvt_parameter(const char *name, const kvt_param_t *param, size_t flags);
 
                     void notify_all();
             };

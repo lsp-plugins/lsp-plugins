@@ -35,125 +35,20 @@ namespace lsp
         vNotify.flush();
     }
 
-    status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value, size_t flags)
+    status_t plugin_ui::ConfigHandler::handle_regular_parameter(const char *name, const char *value, size_t flags)
     {
-        using namespace lsp::config;
+        add_notification(name);
+        pUI->apply_changes(name, value, hPorts);
+        return STATUS_OK;
+    }
 
-        if (name[0] == '/')
-        {
-            if (pKVT == NULL)
-                return STATUS_OK;
+    status_t plugin_ui::ConfigHandler::handle_kvt_parameter(const char *name, const kvt_param_t *value, size_t flags)
+    {
+        if (pKVT == NULL)
+            return STATUS_OK;
 
-            kvt_param_t p;
-
-            switch (flags & SF_TYPE_MASK)
-            {
-                case SF_TYPE_I32:
-                    PARSE_INT(value, { p.i32 = __; p.type = KVT_INT32; } );
-                    break;
-                case SF_TYPE_U32:
-                    PARSE_UINT(value, { p.u32 = __; p.type = KVT_UINT32; } );
-                    break;
-                case SF_TYPE_I64:
-                    PARSE_LLINT(value, { p.i64 = __; p.type = KVT_INT64; } );
-                    break;
-                case SF_TYPE_U64:
-                    PARSE_ULLINT(value, { p.u64 = __; p.type = KVT_UINT64; } );
-                    break;
-                case SF_TYPE_F64:
-                    PARSE_DOUBLE(value, { p.f64 = __; p.type = KVT_FLOAT64; } );
-                    break;
-                case SF_TYPE_STR:
-                    p.str       = ::strdup(value);
-                    if (p.str == NULL)
-                        return STATUS_NO_MEM;
-                    p.type      = KVT_STRING;
-                    break;
-                case SF_TYPE_BLOB:
-                {
-                    // Get content type
-                    const char *split = ::strchr(value, ':');
-                    if (split == NULL)
-                        return STATUS_BAD_FORMAT;
-
-                    char *ctype = NULL;
-                    size_t clen = (++split) - value;
-
-                    if (clen > 0)
-                    {
-                        ctype = ::strndup(value, clen);
-                        if (ctype == NULL)
-                            return STATUS_NO_MEM;
-                        ctype[clen-1]   = '\0';
-                    }
-                    p.blob.ctype    = ctype;
-
-                    // Get content size
-                    errno = 0;
-                    char *base64 = NULL;
-                    p.blob.size = size_t(::strtoull(split, &base64, 10));
-                    if ((errno != 0) || (*(base64++) != ':'))
-                    {
-                        if (ctype != NULL)
-                            ::free(ctype);
-                        return STATUS_BAD_FORMAT;
-                    }
-
-                    // Decode content
-                    size_t src_left = ::strlen(base64); // Size of base64-block
-                    p.blob.data     = NULL;
-                    if (src_left > 0)
-                    {
-                        // Allocate memory
-                        size_t dst_left = 0x10 + ((src_left * 3) / 4);
-                        void *blob      = ::malloc(dst_left);
-                        if (blob == NULL)
-                        {
-                            if (ctype != NULL)
-                                ::free(ctype);
-                            return STATUS_NO_MEM;
-                        }
-
-                        // Decode
-                        size_t n = dsp::base64_dec(blob, &dst_left, base64, &src_left);
-                        if ((n != p.blob.size) || (src_left != 0))
-                        {
-                            ::free(ctype);
-                            ::free(blob);
-                            return STATUS_BAD_FORMAT;
-                        }
-                        p.blob.data = blob;
-                    }
-                    else if (p.blob.size != 0)
-                    {
-                        ::free(ctype);
-                        return STATUS_BAD_FORMAT;
-                    }
-
-                    break;
-                }
-
-                case SF_TYPE_NATIVE:
-                case SF_TYPE_F32:
-                default:
-                    PARSE_FLOAT(value, { p.f32 = __; p.type = KVT_FLOAT32; } );
-                    break;
-            }
-
-            // Update KVT patameter & sync
-            if (p.type != KVT_ANY)
-            {
-                pKVT->put(name, &p, KVT_RX | KVT_DELEGATE);
-                pUI->kvt_write(pKVT, name, &p);
-            }
-            else
-                return STATUS_BAD_FORMAT;
-        }
-        else
-        {
-            add_notification(name);
-            pUI->apply_changes(name, value, hPorts);
-        }
+        pKVT->put(name, value, KVT_RX);
+        pUI->kvt_write(pKVT, name, value);
 
         return STATUS_OK;
     }
