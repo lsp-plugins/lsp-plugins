@@ -186,6 +186,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         limiter_mono_ports,
         "dynamics/limiter/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -203,6 +204,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         limiter_stereo_ports,
         "dynamics/limiter/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -220,6 +222,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_limiter_mono_ports,
         "dynamics/limiter/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -237,6 +240,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_limiter_stereo_ports,
         "dynamics/limiter/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

@@ -489,6 +489,7 @@ namespace lsp
         E_3D_BACKEND | E_KVT_SYNC,
         room_builder_mono_ports,
         "simulation/room_builder/mono.xml",
+        "simulation/room_builder",
         mono_to_stereo_plugin_port_groups
     };
 
@@ -506,6 +507,7 @@ namespace lsp
         E_3D_BACKEND | E_KVT_SYNC,
         room_builder_stereo_ports,
         "simulation/room_builder/stereo.xml",
+        "simulation/room_builder",
         stereo_plugin_port_groups
     };
 }

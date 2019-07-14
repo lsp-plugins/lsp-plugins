@@ -307,6 +307,7 @@ namespace lsp
         const int               extensions;     // Additional extensions
         const port_t           *ports;          // List of all ports
         const char             *ui_resource;    // Location of the UI file resource
+        const char             *ui_presets;     // Prefix of the preset location
         const port_group_t     *port_groups;    // List of all port groups
     } plugin_metadata_t;
 

@@ -586,6 +586,7 @@ namespace lsp
         E_NONE,
         sampler_mono_ports,
         "sampling/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -603,6 +604,7 @@ namespace lsp
         E_NONE,
         sampler_stereo_ports,
         "sampling/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -620,6 +622,7 @@ namespace lsp
         E_NONE,
         sampler_x12_ports,
         "sampling/multiple/x12.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -637,6 +640,7 @@ namespace lsp
         E_NONE,
         sampler_x24_ports,
         "sampling/multiple/x24.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -654,6 +658,7 @@ namespace lsp
         E_NONE,
         sampler_x48_ports,
         "sampling/multiple/x48.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -671,6 +676,7 @@ namespace lsp
         E_NONE,
         sampler_x12_do_ports,
         "sampling/multiple/x12_do.xml",
+        NULL,
         sampler_x12_port_groups
     };
 
@@ -688,6 +694,7 @@ namespace lsp
         E_NONE,
         sampler_x24_do_ports,
         "sampling/multiple/x24_do.xml",
+        NULL,
         sampler_x24_port_groups
     };
 
@@ -705,6 +712,7 @@ namespace lsp
         E_NONE,
         sampler_x48_do_ports,
         "sampling/multiple/x48_do.xml",
+        NULL,
         sampler_x48_port_groups
     };
 

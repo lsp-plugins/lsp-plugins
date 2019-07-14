@@ -44,6 +44,7 @@ namespace lsp
         E_NONE,
         latency_meter_ports,
         "util/latency_meter.xml",
+        NULL,
         mono_plugin_port_groups
     };
 }

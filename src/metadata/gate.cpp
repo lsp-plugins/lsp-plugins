@@ -232,6 +232,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         gate_mono_ports,
         "dynamics/gate/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -249,6 +250,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         gate_stereo_ports,
         "dynamics/gate/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -266,6 +268,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         gate_lr_ports,
         "dynamics/gate/single/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -283,6 +286,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         gate_ms_ports,
         "dynamics/gate/single/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -301,6 +305,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_gate_mono_ports,
         "dynamics/gate/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -318,6 +323,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_gate_stereo_ports,
         "dynamics/gate/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -335,6 +341,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_gate_lr_ports,
         "dynamics/gate/single/lr.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -352,6 +359,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_gate_ms_ports,
         "dynamics/gate/single/ms.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

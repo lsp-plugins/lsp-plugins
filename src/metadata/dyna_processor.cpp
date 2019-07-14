@@ -266,6 +266,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         dyna_processor_mono_ports,
         "dynamics/processor/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -283,6 +284,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         dyna_processor_stereo_ports,
         "dynamics/processor/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -300,6 +302,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         dyna_processor_lr_ports,
         "dynamics/processor/single/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -317,6 +320,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         dyna_processor_ms_ports,
         "dynamics/processor/single/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -335,6 +339,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_dyna_processor_mono_ports,
         "dynamics/processor/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -352,6 +357,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_dyna_processor_stereo_ports,
         "dynamics/processor/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -369,6 +375,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_dyna_processor_lr_ports,
         "dynamics/processor/single/lr.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -386,6 +393,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_dyna_processor_ms_ports,
         "dynamics/processor/single/ms.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

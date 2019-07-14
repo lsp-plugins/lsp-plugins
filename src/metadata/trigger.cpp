@@ -189,6 +189,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         trigger_mono_ports,
         "trigger/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -206,6 +207,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         trigger_stereo_ports,
         "trigger/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -223,6 +225,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         trigger_mono_midi_ports,
         "trigger/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -240,6 +243,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         trigger_stereo_midi_ports,
         "trigger/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 }

@@ -77,6 +77,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         phase_detector_ports,
         "util/phase_detector.xml",
+        NULL,
         NULL
     };
 
