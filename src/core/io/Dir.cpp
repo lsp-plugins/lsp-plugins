@@ -192,6 +192,8 @@ namespace lsp
             else if (path == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
+            LSPString out;
+
 #ifdef PLATFORM_WINDOWS
             if (nPending != STATUS_OK)
                 return set_error(nPending);
@@ -199,7 +201,7 @@ namespace lsp
                 return set_error(STATUS_BAD_STATE);
 
             // Set result
-            if (!path->set_utf16(sData.cFileName))
+            if (!out.set_utf16(sData.cFileName))
                 return set_error(STATUS_NO_MEM);
 
             // Perform next iteration
@@ -229,10 +231,23 @@ namespace lsp
             }
 
             // Return value
-            if (!path->set_native(dent->d_name))
+            if (!out.set_native(dent->d_name))
                 return set_error(STATUS_NO_MEM);
 
 #endif /* PLATFORM_WINDOWS */
+            if (full)
+            {
+                Path tmp;
+                status_t res = tmp.set(&sPath);
+                if (res == STATUS_OK)
+                    res = tmp.append_child(&out);
+                if (res == STATUS_OK)
+                    res = (out.set(tmp.as_string())) ? STATUS_OK : STATUS_NO_MEM;
+                if (res != STATUS_OK)
+                    set_error(res);
+            }
+
+            path->swap(&out);
             return set_error(STATUS_OK);
         }
 
@@ -267,6 +282,8 @@ namespace lsp
             else if (path == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
+            LSPString out;
+
 #ifdef PLATFORM_WINDOWS
             if (nPending != STATUS_OK)
                 return set_error(nPending);
@@ -274,7 +291,7 @@ namespace lsp
                 return set_error(STATUS_BAD_STATE);
 
             // Set result
-            if (!path->set_utf16(sData.cFileName))
+            if (!out.set_utf16(sData.cFileName))
                 return set_error(STATUS_NO_MEM);
 
             // Perform next iteration
@@ -351,7 +368,7 @@ namespace lsp
             }
 
             // Return value
-            if (!path->set_native(dent->d_name))
+            if (!out.set_native(dent->d_name))
                 return set_error(STATUS_NO_MEM);
 
             // Decode file type
@@ -373,6 +390,21 @@ namespace lsp
             attr->mtime     = (sb.st_mtim.tv_sec * 1000L) + (sb.st_mtim.tv_nsec / 1000000);
             attr->atime     = (sb.st_atim.tv_sec * 1000L) + (sb.st_atim.tv_nsec / 1000000);
 #endif /* PLATFORM_WINDOWS */
+
+            if (full)
+            {
+                Path tmp;
+                status_t res = tmp.set(&sPath);
+                if (res == STATUS_OK)
+                    res = tmp.append_child(&out);
+                if (res == STATUS_OK)
+                    res = (out.set(tmp.as_string())) ? STATUS_OK : STATUS_NO_MEM;
+                if (res != STATUS_OK)
+                    set_error(res);
+            }
+
+            path->swap(&out);
+
             return set_error(STATUS_OK);
         }
 

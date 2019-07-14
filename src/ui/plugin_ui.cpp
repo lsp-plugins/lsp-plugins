@@ -9,7 +9,9 @@
 #include <core/alloc.h>
 #include <core/buffer.h>
 #include <core/system.h>
+#include <core/resource.h>
 #include <core/io/Path.h>
+#include <core/io/Dir.h>
 #include <core/io/NativeFile.h>
 
 #include <ui/ui.h>
@@ -351,6 +353,9 @@ namespace lsp
 
         // Destroy display
         sDisplay.destroy();
+
+        // Destroy list of presets
+        destroy_presets();
     }
 
     CtlWidget *plugin_ui::create_widget(const char *w_ctl)
@@ -833,8 +838,160 @@ namespace lsp
             }
         }
 
+        result = scan_presets();
+        if (result != STATUS_OK)
+            return result;
+
+//        // Add presets
+//        LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));
+//        if (menu != NULL)
+//        {
+//            // Get display
+//            LSPDisplay *dpy     = menu->display();
+//
+//            // Create submenu item
+//            LSPMenuItem *item   = new LSPMenuItem(dpy);
+//            item->init();
+//            vWidgets.add(item);
+//            item->set_text("Load Preset");
+//            menu->add(item);
+//        }
+
         // Return successful status
         return STATUS_OK;
+    }
+
+    status_t plugin_ui::scan_presets()
+    {
+        char base[PATH_MAX + 1];
+
+#ifdef LSP_BUILTIN_RESOURCES
+        ::snprintf(base, PATH_MAX, "presets/%s/", pMetadata->ui_presets);
+
+        base[PATH_MAX] = '\0';
+        size_t prefix_len = ::strlen(base);
+
+        for (const resource_t *r = resource_all(); (r->id != NULL); ++r)
+        {
+            // Check that resource matches
+            if (r->type != RESOURCE_PRESET)
+                continue;
+            if (::strstr(r->id, base) != r->id)
+                continue;
+
+            // Add preset
+            preset_t *p = vPresets.add();
+            if (p == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+            p->name     = NULL;
+            p->path     = NULL;
+            p->item     = NULL;
+
+            if ((p->path = ::strdup(r->id)) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+
+            if ((p->name = ::strdup(&r->id[prefix_len])) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+
+            // Remove '.preset' extension from name
+            size_t len = ::strlen(p->name);
+            if ((len >= 7) && (::strcasecmp(&p->name[len-7], ".preset") == 0))
+                p->name[len-7]   = '\0';
+        }
+#else
+        ::snprintf(base, PATH_MAX, "res" FILE_SEPARATOR_S "presets" FILE_SEPARATOR_S "%s", pMetadata->ui_presets);
+
+        io::Dir dir;
+        io::Path entry;
+        io::fattr_t fattr;
+        LSPString extension, tmp;
+
+        if (!extension.set_ascii(".preset"))
+            return STATUS_NO_MEM;
+
+        status_t res = dir.open(base);
+        if (res != STATUS_OK)
+            return STATUS_OK;
+
+        while (true)
+        {
+            // Read entry
+            res = dir.reads(&entry, &fattr, true);
+            if (res == STATUS_EOF)
+                break;
+            else if (res != STATUS_OK)
+            {
+                destroy_presets();
+                dir.close();
+                return res;
+            }
+            if (fattr.type != io::fattr_t::FT_REGULAR)
+                continue;
+            if (!entry.as_string()->ends_with_nocase(&extension))
+                continue;
+
+            // Add preset
+            preset_t *p = vPresets.add();
+            if (p == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+            p->name     = NULL;
+            p->path     = NULL;
+            p->item     = NULL;
+
+            if ((p->path = ::strdup(entry.as_string()->get_utf8())) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+
+            res = entry.get_last(&tmp);
+            if (res != STATUS_OK)
+            {
+                destroy_presets();
+                return res;
+            }
+
+            ssize_t len = tmp.length() - extension.length();
+            if (len >= 0)
+                tmp.set_length(len);
+
+            if ((p->name = ::strdup(tmp.get_utf8())) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+        }
+
+        dir.close();
+#endif
+
+        return STATUS_OK;
+    }
+
+    void plugin_ui::destroy_presets()
+    {
+        for (size_t i=0, n=vPresets.size(); i<n; ++i)
+        {
+            preset_t *p = vPresets.at(i);
+            if (p->name != NULL)
+                ::free(p->name);
+            if (p->path != NULL)
+                ::free(p->path);
+            p->item = NULL;
+        }
+        vPresets.flush();
     }
 
     status_t plugin_ui::build()
@@ -847,11 +1004,11 @@ namespace lsp
         if (theme == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        #ifdef LSP_USE_EXPAT
-            strncpy(path, "res/ui/theme.xml", PATH_MAX);
-        #else
+        #ifdef LSP_BUILTIN_RESOURCES
             strncpy(path, "ui/theme.xml", PATH_MAX);
-        #endif /* LSP_USE_EXPAT */
+        #else
+            strncpy(path, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml", PATH_MAX);
+        #endif /* LSP_BUILTIN_RESOURCES */
 
         lsp_trace("Loading theme from file %s", path);
         result = load_theme(sDisplay.theme(), path);
@@ -869,11 +1026,11 @@ namespace lsp
             lsp_error("Error while loading global configuration file");
 
         // Generate path to UI schema
-        #ifdef LSP_USE_EXPAT
-            snprintf(path, PATH_MAX, "res/ui/%s", pMetadata->ui_resource);
-        #else
+        #ifdef LSP_BUILTIN_RESOURCES
             snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
-        #endif /* LSP_USE_EXPAT */
+        #else
+            snprintf(path, PATH_MAX, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource);
+        #endif /* LSP_BUILTIN_RESOURCES */
         lsp_trace("Generating UI from file %s", path);
 
         ui_builder bld(this);

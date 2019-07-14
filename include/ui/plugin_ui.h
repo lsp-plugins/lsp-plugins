@@ -26,6 +26,13 @@ namespace lsp
             plugin_ui &operator = (const plugin_ui &);
 
         protected:
+            typedef struct preset_t
+            {
+                char       *name;
+                char       *path;
+                LSPWidget  *item;
+            } preset_t;
+
             class ConfigHandler: public config::TextConfigHandler
             {
                 private:
@@ -90,6 +97,8 @@ namespace lsp
             cvector<CtlPortAlias>       vAliases;
             cvector<CtlKvtListener>     vKvtListeners;
 
+            cstorage<preset_t>          vPresets;
+
         protected:
             static const port_t         vConfigMetadata[];
             static const port_t         vTimeMetadata[];
@@ -99,6 +108,8 @@ namespace lsp
             CtlWidget      *build_widget(widget_ctl_t w_class);
             io::File       *open_config_file(bool write);
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
+            status_t        scan_presets();
+            void            destroy_presets();
 
         public:
             explicit plugin_ui(const plugin_metadata_t *mdata, void *root_widget);
