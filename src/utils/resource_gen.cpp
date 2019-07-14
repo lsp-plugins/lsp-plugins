@@ -8,6 +8,7 @@
 
 #include <core/types.h>
 #include <core/status.h>
+#include <core/resource.h>
 #include <core/files/Model3DFile.h>
 
 #include <data/cvector.h>
@@ -189,7 +190,7 @@ namespace lsp
             fprintf(out,    "// This is auto-generated file, do not edit!\n");
             fprintf(out,    "//------------------------------------------------------------------------------\n\n");
 
-            fprintf(out,    "#include <core/types.h>\n\n");
+            fprintf(out,    "#include <core/resource.h>\n\n");
 
             fprintf(out,    "// Control characters\n");
     //        fprintf(out,    "#define X_TAG_OPEN      \"\\x55\"\n");

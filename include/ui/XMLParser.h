@@ -37,7 +37,7 @@ namespace lsp
                 xml_char_t *tag;
             #elif defined(LSP_USE_MSXML)
                 // TODO
-            #elif defined(LSP_XML_BUILTIN)
+            #elif defined(LSP_BUILTIN_RESOURCES)
                 const char *tag;
             #endif /* LSP_USE_EXPAT */
             } node_t;
@@ -54,9 +54,6 @@ namespace lsp
             static void startElementHandler(void *userData, const xml_char_t *name, const xml_char_t **atts);
             static void endElementHandler(void *userData, const xml_char_t *);
 
-#if defined(LSP_XML_BUILTIN)
-            static const char *fetch_string(const char * &text);
-#endif /* LSP_XML_BUILTIN */
         private:
             bool push(const xml_char_t *tag, XMLHandler *handler);
             node_t  *pop();

@@ -23,7 +23,7 @@
     #endif /* PLATFORM */
     //#define LSP_HOST_SIMULATION
 #else
-    #define LSP_XML_BUILTIN
+    #define LSP_BUILTIN_RESOURCES
 #endif /* LSP_IDE_DEBUG */
 
 #ifdef __cplusplus
@@ -91,21 +91,6 @@ namespace lsp
         void                    detroy();
         float_buffer_t         *resize(size_t lines, size_t items);
     } float_buffer_t;
-
-    enum resource_type_t
-    {
-        RESOURCE_UNKNOWN,
-        RESOURCE_XML,
-        RESOURCE_3D_SCENE,
-        RESOURCE_PRESET
-    };
-
-    typedef struct resource_t
-    {
-        const char         *id;
-        const void         *data;
-        int                 type;
-    } resource_t;
 }
 
 #endif /* CORE_TYPES_H_ */

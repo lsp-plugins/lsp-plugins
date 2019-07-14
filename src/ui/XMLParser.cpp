@@ -7,24 +7,18 @@
 
 #include <ui/ui.h>
 #include <core/alloc.h>
+#include <core/resource.h>
 
 #include <string.h>
 
-#if defined(LSP_XML_BUILTIN)
+#if defined(LSP_BUILTIN_RESOURCES)
 //    #define XML_OPEN_TAG        '\x55'
-    #define XML_CLOSE_TAG       '\xff'
+    #define XML_CLOSE_TAG       0xff
 //    #define XML_END_DOCUMENT    '\0'
 #endif /* LSP_XML_BUILTIN */
 
 namespace lsp
 {
-#if defined(LSP_XML_BUILTIN)
-    extern const char *string_dictionary;
-
-    extern const resource_t builtin_resources[];
-#endif /* LSP_XML_BUILTIN */
-
-
     XMLParser::XMLParser()
     {
         nCapacity   = 0;
@@ -71,9 +65,9 @@ namespace lsp
             node->tag           = NULL;
 #elif defined(LSP_USE_MSXML)
         // TODO
-#elif defined(LSP_XML_BUILTIN)
+#elif defined(LSP_BUILTIN_RESOURCES)
         node->tag           = tag;
-#endif /* LSP_XML_BUILTIN */
+#endif /* LSP_BUILTIN_RESOURCES */
 
         node->handler       = handler;
         return true;
@@ -119,24 +113,6 @@ namespace lsp
         // Free memory
         free_node(node);
     }
-
-#if defined(LSP_XML_BUILTIN)
-    const char *XMLParser::fetch_string(const char * &text)
-    {
-        size_t offset       = 0;
-        size_t shift        = 0;
-        while (true)
-        {
-            size_t idx          = *(text++);
-            offset             |= ((idx & 0x7f) << shift);
-            if (!(idx & 0x80))
-                break;
-            shift          += 7;
-        }
-
-        return &string_dictionary[offset];
-    }
-#endif /* LSP_XML_BUILTIN */
 
     bool XMLParser::push(const xml_char_t *tag, XMLHandler *handler)
     {
@@ -217,71 +193,72 @@ namespace lsp
         return true;
 #elif defined(LSP_USE_MSXML)
         // TODO
-#elif defined(LSP_XML_BUILTIN)
-        for (const resource_t *res = builtin_resources; (res->id != NULL) && (res->data != NULL); ++res)
+#elif defined(LSP_BUILTIN_RESOURCES)
+        // Obtain resource
+        const resource_t *res = resource_get(path, RESOURCE_XML);
+        if (res == NULL)
+            return false;
+        lsp_trace("Resource id=%s, type=%d, data=%p", res->id, int(res->type), res->data);
+
+        // Process data
+        const void *data = res->data;
+
+        root->enter();
+
+        ssize_t level = 0;
+        do
         {
-            // Check that resource matched
-            if ((strcmp(res->id, path) != 0) || (res->type != RESOURCE_XML))
-                continue;
+            uint8_t token = resource_fetch_byte(&data);
+            lsp_trace("token = 0x%02x", int(token));
 
-            // Process data
-            const char *text = reinterpret_cast<const char *>(res->data);
-
-            root->enter();
-
-            ssize_t level = 0;
-            do
+            if (token != XML_CLOSE_TAG)
             {
-                char token = *(text++);
+                // Increment level
+                level   ++;
+                size_t elements = token;
 
-                if (token != XML_CLOSE_TAG)
+                // Get tag name
+                const char *tag = resource_fetch_dstring(&data);
+                lsp_trace("tag = %s", tag);
+
+                // Allocate list of attributes
+                const char **attributes = new const char *[(elements + 1) * 2];
+                if (attributes == NULL)
                 {
-                    // Increment level
-                    level   ++;
-                    size_t elements = ((unsigned char)token);
-
-                    // Get tag name
-                    const char *tag = fetch_string(text);
-
-                    // Allocate list of attributes
-                    const char **attributes = new const char *[(elements + 1) * 2];
-                    if (attributes == NULL)
-                    {
-                        lsp_error("Not enough memory");
-                        return false;
-                    }
-
-                    // Fill list with attributes
-                    const char **dst = attributes;
-                    for (size_t i=0; i<elements; ++i)
-                    {
-                        *(dst++)    = fetch_string(text);
-                        *(dst++)    = fetch_string(text);
-                    }
-                    *(dst++)     = NULL;
-                    *(dst++)     = NULL;
-
-                    // Now we are ready to parse tag
-                    startElementHandler(this, tag, attributes);
-
-                    // Finally, delete all attributes
-                    delete [] attributes;
+                    lsp_error("Not enough memory");
+                    return false;
                 }
-                else
+
+                // Fill list with attributes
+                const char **dst = attributes;
+                for (size_t i=0; i<elements; ++i)
                 {
-                    endElementHandler(this, NULL); // Tag name is not used
-                    level--;
+                    *(dst++)    = resource_fetch_dstring(&data);
+                    lsp_trace("  att = %s", dst[-1]);
+                    *(dst++)    = resource_fetch_dstring(&data);
+                    lsp_trace("  value = %s", dst[-2]);
                 }
+                *(dst++)     = NULL;
+                *(dst++)     = NULL;
+
+                // Now we are ready to parse tag
+                startElementHandler(this, tag, attributes);
+
+                // Finally, delete all attributes
+                delete [] attributes;
             }
-            while (level > 0);
-
-            root->quit();
-
-            return true;
+            else
+            {
+                endElementHandler(this, NULL); // Tag name is not used
+                level--;
+            }
         }
+        while (level > 0);
 
-        return false;
-#endif /* LSP_XML_BUILTIN */
+        root->quit();
+
+        return true;
+#endif /* LSP_BUILTIN_RESOURCES */
     }
 
 } /* namespace lsp */
