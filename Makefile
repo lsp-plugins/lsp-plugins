@@ -6,7 +6,6 @@ INSTALL                 = install
 export RELEASE_TEXT
 
 # Estimate different pre-requisites before launching build
-include modules/lsp-commons/configure.mk
 include scripts/make/set_vars.mk
 include scripts/make/tools.mk
 include scripts/make/version.mk
@@ -29,8 +28,6 @@ DOC_PATH               ?= $(PREFIX)/share/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
-
-# Directories
 
 # Location
 export BASEDIR          = ${CURDIR}
