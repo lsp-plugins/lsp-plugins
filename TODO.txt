@@ -33,6 +33,7 @@
 * Implemented key-value tree storage (KVTStorage) serialization/deserialization for the plugin state.
 * Implemented mechanism for UI<->DSP OSC message interchange.
 * Improved built-in resource generation tool.
+* Embedded resources are now alphabetically sorted to make the build more deterministic.
 - Added support of presets for plugin's UI.
 - Fixed broken settings export.
 - Implemented 3D reverb simulator.

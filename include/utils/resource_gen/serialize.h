@@ -94,14 +94,17 @@ namespace lsp
             size_t items    = dict->size();
 
             // Sort dictionary
-            for (size_t i=0; i<(items-1); ++i)
-                for (size_t j=i+1; j<items; ++j)
-                {
-                    xml_word_t *w1  = dict->at(i);
-                    xml_word_t *w2  = dict->at(j);
-                    if (w1->compare(w2) < 0)
-                        dict->swap_unsafe(i, j);
-                }
+            if (items > 1)
+            {
+                for (size_t i=0; i<(items-1); ++i)
+                    for (size_t j=i+1; j<items; ++j)
+                    {
+                        xml_word_t *w1  = dict->at(i);
+                        xml_word_t *w2  = dict->at(j);
+                        if (w1->compare(w2) < 0)
+                            dict->swap_unsafe(i, j);
+                    }
+            }
 
             // Output resource descriptor
             fprintf(out,    "\t// String Dictionary\n");
@@ -132,14 +135,17 @@ namespace lsp
             size_t items    = dict->size();
 
             // Sort dictionary
-            for (size_t i=0; i<(items-1); ++i)
-                for (size_t j=i+1; j<items; ++j)
-                {
-                    dict_float_t *w1  = dict->at(i);
-                    dict_float_t *w2  = dict->at(j);
-                    if (w1->compare(w2) < 0)
-                        w1->swap(w2);
-                }
+            if (items > 1)
+            {
+                for (size_t i=0; i<(items-1); ++i)
+                    for (size_t j=i+1; j<items; ++j)
+                    {
+                        dict_float_t *w1  = dict->at(i);
+                        dict_float_t *w2  = dict->at(j);
+                        if (w1->compare(w2) < 0)
+                            w1->swap(w2);
+                    }
+            }
 
             // Output resource descriptor
             fprintf(out,    "\t// Floating-Point Dictionary\n");

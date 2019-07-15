@@ -11,6 +11,8 @@
 #include <core/resource.h>
 #include <core/files/Model3DFile.h>
 
+#include <core/io/Dir.h>
+
 #include <data/cvector.h>
 #include <data/cstorage.h>
 
@@ -29,6 +31,13 @@
 
 namespace lsp
 {
+    typedef struct dirent_t
+    {
+        LSPString       name;
+        io::fattr_t     fattr;
+        int             type;
+    } dirent_t;
+
     namespace resgen
     {
         static int preprocess_resource(scan_resource_t *resource,
@@ -66,90 +75,159 @@ namespace lsp
             return STATUS_OK;
         }
 
-        int scan_directory(const char *basedir, const char *path, cvector<scan_resource_t> &resources, size_t *resource_id)
+        void destroy_list(cvector<dirent_t> &items)
         {
-            int n = 0;
-            char *realpath = NULL;
-
-            if (path != NULL)
-                n = asprintf(&realpath, "%s" FILE_SEPARATOR_S "%s", basedir, path);
-            else
-                realpath = strdup(basedir);
-            if ((n < 0) || (realpath == NULL))
-                return -STATUS_NO_MEM;
-
-            // Try to scan directory
-            DIR *dirhdl     = opendir(realpath);
-            if (dirhdl == NULL)
+            for (size_t i=0, n=items.size(); i<n; ++i)
             {
-                fprintf(stderr, "Could not open directory %s\n", realpath);
-                free(realpath);
-                return -STATUS_IO_ERROR;
+                dirent_t *de = items.at(i);
+                if (de != NULL)
+                    delete de;
             }
+            items.clear();
+        }
 
-            int result      = STATUS_OK;
-            struct stat st;
+        status_t get_list(const LSPString *path, cvector<dirent_t> &items)
+        {
+            io::Dir dirhdl;
+            destroy_list(items);
+
+            status_t res = dirhdl.open(path);
+            if (res != STATUS_OK)
+                return res;
+
+            LSPString ipath;
+            io::fattr_t fattr;
 
             while (true)
             {
-                // Read next entry
-                struct dirent *ent  = readdir(dirhdl);
-                if (ent == NULL)
-                    break;
+                // Read item
+                res = dirhdl.reads(&ipath, &fattr);
 
-                // Skip dot and dot-dot
-                if (!strcmp(ent->d_name, "."))
-                    continue;
-                else if (!strcmp(ent->d_name, ".."))
-                    continue;
-
-                // Obtain file type
-                char *fname = NULL;
-                n = asprintf(&fname, "%s" FILE_SEPARATOR_S "%s", realpath, ent->d_name);
-                if ((n < 0) || (fname == NULL))
-                    continue;
-                if (stat(fname, &st) < 0)
+                if (res == STATUS_EOF)
                 {
-                    free(fname);
-                    continue;
+                    if (items.size() > 1)
+                    {
+                        for (size_t i=0, n=items.size(); i<(n-1); ++i)
+                            for (size_t j=i+1; j<n; ++j)
+                            {
+                                dirent_t *a = items.at(i);
+                                dirent_t *b = items.at(j);
+                                if (a->name.compare_to(&b->name) > 0)
+                                    items.swap_unsafe(i, j);
+                            }
+                    }
+                    return STATUS_OK;
                 }
-                free(fname);
+                else if (res != STATUS_OK)
+                {
+                    destroy_list(items);
+                    return res;
+                }
 
-                // Check file extension
-                if (S_ISDIR(st.st_mode))
+                // Analyze item
+                if ((ipath.equals_ascii(".")) ||
+                    (ipath.equals_ascii("..")))
+                    continue;
+
+                // Check file type
+                int rtype = RESOURCE_UNKNOWN;
+                if (fattr.type == io::fattr_t::FT_REGULAR)
+                {
+                    rtype = get_resource_type(ipath.get_utf8());
+                    if (rtype == RESOURCE_UNKNOWN)
+                        continue;
+                }
+                else if (fattr.type != io::fattr_t::FT_DIRECTORY)
+                    continue;
+
+                // Allocate record
+                dirent_t *dent = new dirent_t;
+                if (dent == NULL)
+                {
+                    destroy_list(items);
+                    return STATUS_NO_MEM;
+                }
+
+                dent->name.take(&ipath);
+                dent->fattr     = fattr;
+                dent->type      = rtype;
+
+                if (!items.add(dent))
+                {
+                    delete dent;
+                    destroy_list(items);
+                    return STATUS_NO_MEM;
+                }
+            }
+        }
+
+        int scan_directory(const LSPString *basedir, const LSPString *path, cvector<scan_resource_t> &resources, size_t *resource_id)
+        {
+            // Form the path of file
+            LSPString realpath;
+            if (!realpath.set(basedir))
+                return STATUS_NO_MEM;
+            if (path != NULL)
+            {
+                if (!realpath.append_ascii(FILE_SEPARATOR_S))
+                    return STATUS_NO_MEM;
+                if (!realpath.append(path))
+                    return STATUS_NO_MEM;
+            }
+
+            // Obtain list of files in directory
+            cvector<dirent_t> items;
+            status_t result = get_list(&realpath, items);
+            if (result != STATUS_OK)
+                return result;
+
+            // Try to scan directory
+            LSPString subdir;
+
+            for (size_t i=0, n=items.size(); i<n; ++i)
+            {
+                dirent_t *de = items.at(i);
+
+                // Generate resource name
+                subdir.clear();
+                if (path != NULL)
+                {
+                    if (!subdir.append(path))
+                    {
+                        result = STATUS_NO_MEM;
+                        break;
+                    }
+                    if (!subdir.append_ascii(FILE_SEPARATOR_S))
+                    {
+                        result = STATUS_NO_MEM;
+                        break;
+                    }
+                }
+                if (!subdir.append(&de->name))
+                {
+                    result = STATUS_NO_MEM;
+                    break;
+                }
+
+                if (de->fattr.type == io::fattr_t::FT_DIRECTORY)
                 {
                 #ifdef LSP_NO_EXPERIMENTAL
-                    if ((path == NULL) && (!strcmp(ent->d_name, "experimental")))
+                    if ((path == NULL) && (de->name.equals_ascii("experimental")))
                         continue;
                 #endif /* LSP_NO_EXPERIMENTAL */
 
-                    // Generate subdirectory name
-                    char *subdir = NULL;
-                    if (path != NULL)
-                        n = asprintf(&subdir, "%s" FILE_SEPARATOR_S "%s", path, ent->d_name);
-                    else
-                        subdir = strdup(ent->d_name);
-                    if ((n < 0) || (subdir == NULL))
-                        return -STATUS_NO_MEM;
-
-                    result = scan_directory(basedir, subdir, resources, resource_id);
-
-                    // Free the allocated resource
-                    free(subdir);
+                    // Scan sub-directory
+                    result = scan_directory(basedir, &subdir, resources, resource_id);
                     if (result != STATUS_OK)
                         break;
                 }
-                else if (S_ISREG(st.st_mode))
+                else if (de->fattr.type == io::fattr_t::FT_REGULAR)
                 {
-                    int rtype = get_resource_type(ent->d_name);
-                    if (rtype == RESOURCE_UNKNOWN)
-                        continue;
-
                     // Generate resource descriptor
-                    scan_resource_t *res = create_resource(basedir, path, ent->d_name, rtype, (*resource_id)++);
+                    scan_resource_t *res = create_resource(basedir, path, &de->name, de->type, (*resource_id)++);
                     if (res == NULL)
                     {
-                        result = -STATUS_NO_MEM;
+                        result = STATUS_NO_MEM;
                         break;
                     }
 
@@ -157,17 +235,14 @@ namespace lsp
                     if (!resources.add(res))
                     {
                         free_resource(res);
-                        result = -STATUS_NO_MEM;
+                        result = STATUS_NO_MEM;
                         break;
                     }
-                    printf("Found resource: %s" FILE_SEPARATOR_S "%s\n", path, ent->d_name);
+                    printf("Found resource: %s\n", res->path);
                 }
             }
 
-            // Close directory
-            closedir(dirhdl);
-            free(realpath);
-
+            destroy_list(items);
             return result;
         }
 
@@ -300,11 +375,14 @@ namespace lsp
             cvector<scan_resource_t> resources;
             size_t resource_id = 0;
 
+            LSPString path;
             while (i < argc)
             {
-                const char *path = argv[i++];
-                printf("Scanning resources in path: %s\n", path);
-                res = scan_directory(path, NULL, resources, &resource_id);
+                if (!path.set_native(argv[i++]))
+                    return STATUS_NO_MEM;
+
+                printf("Scanning resources in path: %s\n", path.get_native());
+                res = scan_directory(&path, NULL, resources, &resource_id);
                 if (res != STATUS_SUCCESS)
                 {
                     free_resources(resources);

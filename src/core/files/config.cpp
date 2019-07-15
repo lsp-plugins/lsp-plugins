@@ -884,7 +884,7 @@ namespace lsp
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
-            status_t res;
+            status_t res = STATUS_OK;
             io::InSequence fis;
 
             if (path->starts_with_ascii("builtin://"))
