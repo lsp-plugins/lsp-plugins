@@ -12,7 +12,7 @@ namespace lsp
 {
     namespace resgen
     {
-        static int preprocess_3d_scene(scan_resource_t *resource, cstorage<dict_float_t> *dict)
+        static int preprocess_3d_scene(scan_resource_t *resource, cvector<xml_word_t> *wdict, cstorage<dict_float_t> *dict)
         {
             Scene3D *pscene = NULL;
             Model3DFile file;
@@ -49,20 +49,29 @@ namespace lsp
                         return STATUS_NO_MEM;
                 }
 
+                for (size_t i=0, n=pscene->num_objects(); i<n; ++i)
+                {
+                    Object3D *o = pscene->object(i);
+                    if (o == NULL)
+                        continue;
+
+                    if (!res_dict_add(wdict, o->get_name()))
+                        return STATUS_NO_MEM;
+                }
+
                 resource->scene     = pscene;
             }
 
             return res;
         }
 
-        static int serialize_3d_scene(FILE *out, const scan_resource_t *resource, cstorage<dict_float_t> *fdict)
+        static int serialize_3d_scene(FILE *out, const scan_resource_t *resource, cvector<xml_word_t> *wdict, cstorage<dict_float_t> *fdict)
         {
             // Output resource descriptor
             fprintf(out,    "\t// Contents of file %s\n", resource->id);
             fprintf(out,    "\tstatic const char *builtin_resource%s =", resource->hex);
 
             dict_float_t *f;
-            LSPString name;
             Scene3D *s      = resource->scene;
 
             // Encode vertices
@@ -118,8 +127,7 @@ namespace lsp
                 Object3D *o = s->object(i);
 
                 fprintf(out, "\n\t\t\t");
-                o->get_name(&name);
-                encode_string(out, name.get_utf8());
+                encode_word(out, wdict, o->get_name());
                 fprintf(out, " // Object name");
 
                 fprintf(out, "\n\t\t\t");

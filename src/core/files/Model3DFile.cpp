@@ -6,6 +6,7 @@
  */
 
 #include <core/debug.h>
+#include <core/resource.h>
 #include <core/files/Model3DFile.h>
 #include <core/files/3d/ObjFileParser.h>
 #include <core/files/3d/IFileHandler3D.h>
@@ -29,7 +30,7 @@ namespace lsp
             ssize_t                 nFaceID;
 
         public:
-            FileHandler3D(Scene3D *scene)
+            explicit FileHandler3D(Scene3D *scene)
             {
                 pScene      = scene;
                 pObject     = NULL;
@@ -298,19 +299,113 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t Model3DFile::load_from_resource(Scene3D *scene, const void *data)
+    {
+        size_t iv = scene->num_vertexes();
+        size_t in = scene->num_normals();
+
+        // Fetch vertexes
+        size_t nv = resource_fetch_number(&data);
+        for (size_t i=0; i<nv; ++i)
+        {
+            point3d_t p;
+            p.x     = resource_fetch_dfloat(&data);
+            p.y     = resource_fetch_dfloat(&data);
+            p.z     = resource_fetch_dfloat(&data);
+            p.w     = 1.0f;
+
+            ssize_t res = scene->add_vertex(&p);
+            if (res < 0)
+                return -res;
+        }
+
+        // Fetch normals
+        size_t nn = resource_fetch_number(&data);
+        for (size_t i=0; i<nn; ++i)
+        {
+            vector3d_t v;
+            v.dx    = resource_fetch_dfloat(&data);
+            v.dy    = resource_fetch_dfloat(&data);
+            v.dz    = resource_fetch_dfloat(&data);
+            v.dw    = 0.0f;
+
+            ssize_t res = scene->add_normal(&v);
+            if (res < 0)
+                return -res;
+        }
+
+        // Fetch objects
+        size_t no = resource_fetch_number(&data);
+        for (size_t i=0; i<no; ++i)
+        {
+            const char *name = resource_fetch_dstring(&data);
+            Object3D *obj = scene->add_object(name);
+            if (obj == NULL)
+                return STATUS_NO_MEM;
+
+            size_t triangles= resource_fetch_number(&data);
+            for (size_t j=0; j<triangles; ++j)
+            {
+                size_t face_id  = resource_fetch_number(&data);
+                size_t v0       = resource_fetch_number(&data) + iv;
+                size_t v1       = resource_fetch_number(&data) + iv;
+                size_t v2       = resource_fetch_number(&data) + iv;
+                size_t n0       = resource_fetch_number(&data) + in;
+                size_t n1       = resource_fetch_number(&data) + in;
+                size_t n2       = resource_fetch_number(&data) + in;
+
+                ssize_t res     = obj->add_triangle(face_id, v0, v1, v2, n0, n1, n2);
+                if (res < 0)
+                    return -res;
+            }
+        }
+
+        return STATUS_OK;
+    }
+
     status_t Model3DFile::load(Scene3D *scene, const LSPString *path, bool clear)
     {
         if (clear)
             scene->clear();
 
-        FileHandler3D fh(scene);
+        // Check builtin prefix
+        status_t status = STATUS_OK;
 
-        // Try to parse as obj file
-        status_t status = ObjFileParser::parse(path, &fh);
-        if (status == STATUS_OK)
-            return fh.complete();
+        if (path->starts_with_ascii("builtin://"))
+        {
+        #ifdef LSP_BUILTIN_RESOURCES
+            const resource_t *r = resource_get(path->get_utf8(10), RESOURCE_3D_SCENE);
+            if (r == NULL)
+                return STATUS_NOT_FOUND;
 
-        fh.reset_state();
+            return load_from_resource(scene, r->data);
+        #else
+            LSPString tmp;
+            if (!tmp.append_ascii("res/"))
+                return STATUS_NO_MEM;
+            if (!tmp.append(path, 10))
+                return STATUS_NO_MEM;
+
+            // Try to parse as obj file
+            FileHandler3D fh(scene);
+            status = ObjFileParser::parse(&tmp, &fh);
+            if (status == STATUS_OK)
+                return fh.complete();
+
+            fh.reset_state();
+        #endif
+        }
+        else
+        {
+            // Try to parse as obj file
+            FileHandler3D fh(scene);
+            status = ObjFileParser::parse(path, &fh);
+            if (status == STATUS_OK)
+                return fh.complete();
+
+            fh.reset_state();
+        }
+
         return status;
     }
 
