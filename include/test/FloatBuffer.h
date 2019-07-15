@@ -8,7 +8,7 @@
 #ifndef TEST_FLOATBUFFER_H_
 #define TEST_FLOATBUFFER_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 #include <sys/types.h>
 #include <stdint.h>
 #include <test/helpers.h>

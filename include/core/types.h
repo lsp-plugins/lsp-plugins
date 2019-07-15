@@ -8,7 +8,7 @@
 #ifndef CORE_TYPES_H_
 #define CORE_TYPES_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 #if defined(PLATFORM_WINDOWS)
     #include <windows.h>

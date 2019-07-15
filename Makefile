@@ -31,13 +31,8 @@ VST_PATH                = $(LIB_PATH)/vst
 
 # Directories
 
-# Includes
-INC_FLAGS               = -I"${CURDIR}/include"
-
 # Location
 export BASEDIR          = ${CURDIR}
-export INCLUDE          = ${INC_FLAGS}
-
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o

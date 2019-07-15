@@ -116,6 +116,9 @@ export CC_ARCH
 export LD_ARCH
 export LD_PATH
 
+export INCLUDE		= \
+  -I"${CURDIR}/include" \
+  -I"${CURDIR}/modules/lsp-commons/include"
 
 # Dependencies: compile headers and linkage libraries
 ifeq ($(BUILD_SYSTEM),Windows)

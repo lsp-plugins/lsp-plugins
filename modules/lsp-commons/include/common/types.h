@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef DSP_TYPES_H_
-#define DSP_TYPES_H_
+#ifndef COMMON_TYPES_H_
+#define COMMON_TYPES_H_
 
 #include <sys/types.h>
 #include <stddef.h>
@@ -14,33 +14,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <limits.h>
-
-/*
-    ARM-predefined macros on Raspberry Pi
-
-    #define __ARM_SIZEOF_WCHAR_T 4
-    #define __ARM_FEATURE_SAT 1
-    #define __ARM_ARCH_ISA_ARM 1
-    #define __ARMEL__ 1
-    #define __ARM_FEATURE_UNALIGNED 1
-    #define __ARM_FEATURE_IDIV 1
-    #define __ARM_FP 12
-    #define __ARM_ARCH_8A__ 1
-    #define __ARM_SIZEOF_MINIMAL_ENUM 4
-    #define __ARM_PCS_VFP 1
-    #define __ARM_FEATURE_LDREX 15
-    #define __ARM_FEATURE_QBIT 1
-    #define __ARM_ARCH_PROFILE 65
-    #define __ARM_32BIT_STATE 1
-    #define __ARM_FEATURE_CLZ 1
-    #define __ARM_ARCH_ISA_THUMB 2
-    #define __ARM_ARCH 8
-    #define __ARM_FEATURE_SIMD32 1
-    #define __ARM_FEATURE_CRC32 1
-    #define __ARM_ARCH_EXT_IDIV__ 1
-    #define __ARM_EABI__ 1
-    #define __ARM_FEATURE_DSP 1
- */
 
 //-----------------------------------------------------------------------------
 // Detect build architecture
@@ -524,4 +497,4 @@ __IF_64( typedef        int64_t             smword_t );
     #define WCHART_16BIT
 #endif /* WCHAR_MAX */
 
-#endif /* DSP_TYPES_H_ */
+#endif /* COMMON_TYPES_H_ */

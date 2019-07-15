@@ -8,7 +8,7 @@
 #ifndef TEST_BYTEBUFFER_H_
 #define TEST_BYTEBUFFER_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 #include <sys/types.h>
 #include <stdint.h>
 

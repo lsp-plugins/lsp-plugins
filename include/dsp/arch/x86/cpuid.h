@@ -8,8 +8,6 @@
 #ifndef DSP_ARCH_X86_CPUID_H_
 #define DSP_ARCH_X86_CPUID_H_
 
-#include <dsp/types.h>
-
 //-------------------------------------------------------------------------
 // CPUID Function 0
 #define X86_CPUID0_INTEL_EBX                    0x756e6547
