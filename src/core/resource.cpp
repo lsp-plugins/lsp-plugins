@@ -10,9 +10,6 @@
 namespace lsp
 {
 #ifdef LSP_BUILTIN_RESOURCES
-    extern const char *string_dictionary;
-    extern const float float_dictionary[];
-    extern const resource_t builtin_resources[];
 
     const resource_t *resource_get(const char *id, resource_type_t type)
     {
@@ -95,10 +92,14 @@ namespace lsp
         return count;
     }
 #else
-    static const resource_t builtin_resources[] =
+    const resource_t builtin_resources[] =
     {
         { NULL, NULL, RESOURCE_UNKNOWN }
     };
+
+    const char *string_dictionary = "";
+    const float float_dictionary[] = { 0.0f };
+
 
     const resource_t *resource_get(const char *id, resource_type_t type)
     {

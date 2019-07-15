@@ -869,7 +869,7 @@ namespace lsp
         char base[PATH_MAX + 1];
 
 #ifdef LSP_BUILTIN_RESOURCES
-        ::snprintf(base, PATH_MAX, "builtin://presets/%s/", pMetadata->ui_presets);
+        ::snprintf(base, PATH_MAX, "presets/%s/", pMetadata->ui_presets);
 
         base[PATH_MAX] = '\0';
         size_t prefix_len = ::strlen(base);
@@ -893,7 +893,8 @@ namespace lsp
             p->path     = NULL;
             p->item     = NULL;
 
-            if ((p->path = ::strdup(r->id)) == NULL)
+            int xres    = ::asprintf(&p->path, "builtin://%s", r->id);
+            if ((xres <= 0) || (p->path == NULL))
             {
                 destroy_presets();
                 return STATUS_NO_MEM;
@@ -981,17 +982,20 @@ namespace lsp
 #endif
 
         // Sort presets in alphabetical order
-        for (size_t i=0, n=vPresets.size(); i<n-1; ++i)
+        if (vPresets.size() > 0)
         {
-            preset_t *a = vPresets.at(i);
-            for (size_t j=i+1; j<n; ++j)
+            for (ssize_t i=0, n=vPresets.size(); i<n-1; ++i)
             {
-                preset_t *b = vPresets.at(j);
-                if (strcmp(a->name, b->name) > 0)
+                preset_t *a = vPresets.at(i);
+                for (ssize_t j=i+1; j<n; ++j)
                 {
-                    swap(a->path, b->path);
-                    swap(a->name, b->name);
-                    swap(a->item, b->item);
+                    preset_t *b = vPresets.at(j);
+                    if (strcmp(a->name, b->name) > 0)
+                    {
+                        swap(a->path, b->path);
+                        swap(a->name, b->name);
+                        swap(a->item, b->item);
+                    }
                 }
             }
         }

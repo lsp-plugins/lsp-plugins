@@ -27,6 +27,10 @@ namespace lsp
         int                 type;
     } resource_t;
 
+    extern const char *string_dictionary;
+    extern const float float_dictionary[];
+    extern const resource_t builtin_resources[];
+
     const resource_t *resource_get(const char *id, resource_type_t type);
     const resource_t *resource_all();
 

@@ -6,6 +6,7 @@
 #include <metadata/plugins.h>
 
 #include <plugins/plugins.h>
+#include <utils/common.h>
 
 namespace lsp
 {

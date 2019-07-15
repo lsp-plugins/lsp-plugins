@@ -894,12 +894,12 @@ namespace lsp
                 if (!tmp.set(path, 10))    // strlen("builtin://");
                     return STATUS_NO_MEM;
 
-                const resource_t *res = resource_get(tmp.get_utf8(), RESOURCE_PRESET);
-                if (res == NULL)
+                const resource_t *r = resource_get(tmp.get_utf8(), RESOURCE_PRESET);
+                if (r == NULL)
                     return STATUS_NOT_FOUND;
 
-                lsp_trace("Loading builtin resource \"%s\"", res->id);
-                load_from_resource(res->data, h);
+                lsp_trace("Loading builtin resource \"%s\"", r->id);
+                load_from_resource(r->data, h);
 #else
                 if (!tmp.set_ascii("res/"))
                     return STATUS_NO_MEM;

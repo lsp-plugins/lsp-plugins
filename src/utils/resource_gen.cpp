@@ -16,6 +16,7 @@
 
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
+#include <utils/common.h>
 
 #include <utils/resource_gen/resource.h>
 #include <utils/resource_gen/wdict.h>

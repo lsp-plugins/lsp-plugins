@@ -39,7 +39,7 @@ namespace lsp
                 }
 
             public:
-                virtual status_t handle_regular_parameter(const char *name, const char *value, size_t flags)
+                virtual status_t handle_parameter(const char *name, const char *value, size_t flags)
                 {
                     if (!res_dict_add(wDict, name))
                         return STATUS_NO_MEM;
@@ -117,7 +117,7 @@ namespace lsp
                 static size_t estimate(const char *name)
                 {
                     size_t res = 0;
-                    for (const char *p = &name[1]; *p != '\0'; ++p)
+                    for (const char *p = name; *p != '\0'; ++p)
                         if (*p == '/')
                             ++res;
                     return res;
@@ -139,7 +139,7 @@ namespace lsp
                 }
 
             public:
-                virtual status_t handle_regular_parameter(const char *name, const char *value, size_t flags)
+                virtual status_t handle_parameter(const char *name, const char *value, size_t flags)
                 {
                     fputs("\t\t", pOut);
                     encode_value(pOut, 0);
@@ -157,17 +157,17 @@ namespace lsp
                 {
                     // Copy string, remove first '/' character
                     char *curr;
-                    char *tmp = strdup(&name[1]);
+                    char *tmp       = ::strdup(name);
                     if (tmp == NULL)
                         return STATUS_NO_MEM;
 
                     // Split KVT path into substrings and encode them
-                    curr = tmp;
-                    status_t res = STATUS_OK;
-
                     fputs("\t\t", pOut);
                     encode_value(pOut, estimate(name));
                     fputc(' ', pOut);
+
+                    curr            = &tmp[1];
+                    status_t res    = STATUS_OK;
 
                     while (true)
                     {

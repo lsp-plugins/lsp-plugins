@@ -6,6 +6,7 @@
 
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
+#include <utils/common.h>
 
 #include <container/lv2/extensions.h>
 
