@@ -67,9 +67,12 @@ namespace lsp
             dsp::apply_matrix3d_mp2(&dt->v[0], st->v[0], transform);
             dsp::apply_matrix3d_mp2(&dt->v[1], st->v[1], transform);
             dsp::apply_matrix3d_mp2(&dt->v[2], st->v[2], transform);
-            dsp::apply_matrix3d_mv2(&dt->n[0], st->n[0], transform);
-            dsp::apply_matrix3d_mv2(&dt->n[1], st->n[1], transform);
-            dsp::apply_matrix3d_mv2(&dt->n[2], st->n[2], transform);
+            dsp::calc_normal3d_pv(&dt->n[0], dt->v);
+            dt->n[1] = dt->n[0];
+            dt->n[2] = dt->n[0];
+//            dsp::apply_matrix3d_mv2(&dt->n[0], st->n[0], transform);
+//            dsp::apply_matrix3d_mv2(&dt->n[1], st->n[1], transform);
+//            dsp::apply_matrix3d_mv2(&dt->n[2], st->n[2], transform);
 
             dt->c               = *col;
             dt->oid             = oid;
