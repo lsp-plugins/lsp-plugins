@@ -891,10 +891,10 @@ namespace lsp
             {
                 LSPString tmp;
 #ifdef LSP_BUILTIN_RESOURCES
-                if (!tmp.set(&path, 10))    // strlen("builtin://");
+                if (!tmp.set(path, 10))    // strlen("builtin://");
                     return STATUS_NO_MEM;
 
-                resource_t *res = resource_get(tmp.get_utf8(), RESOURCE_PRESET);
+                const resource_t *res = resource_get(tmp.get_utf8(), RESOURCE_PRESET);
                 if (res == NULL)
                     return STATUS_NOT_FOUND;
 

@@ -17,7 +17,7 @@ namespace lsp
     const resource_t *resource_get(const char *id, resource_type_t type)
     {
         if (id == NULL)
-            return STATUS_NOT_FOUND;
+            return NULL;
 
         // Iterate list of all resources and lookup for the proper one
         for (const resource_t *res = builtin_resources; (res->id != NULL) && (res->data != NULL); ++res)
