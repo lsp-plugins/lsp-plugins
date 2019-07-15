@@ -129,6 +129,26 @@ UTEST_BEGIN("core.files", config)
 
                 return handle_parameter(&xname, &xvalue, flags);
             }
+
+            virtual status_t handle_kvt_parameter(const char *name, const kvt_param_t *p, size_t flags)
+            {
+                LSPString xname, xvalue;
+                TEST_ASSERT(name != NULL);
+                TEST_ASSERT(p != NULL);
+
+                for (size_t i=0, n=pTuples->size(); i<n; ++i)
+                {
+                    tuple_t *t = pTuples->get(i);
+                    if (!t->key.equals_ascii(name))
+                        continue;
+
+                    TEST_ASSERT(!t->matched);
+                    t->matched = true;
+                    break;
+                }
+
+                return STATUS_OK;
+            }
     };
 
     void add_param(cvector<tuple_t> &vt, const char *key, const char *value, const char *comment, size_t flags)

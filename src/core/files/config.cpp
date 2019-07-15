@@ -660,7 +660,7 @@ namespace lsp
                         ::free(ctype);
                         return STATUS_BAD_FORMAT;
                     }
-
+                    p.type      = KVT_BLOB;
                     break;
                 }
 
