@@ -6,6 +6,7 @@ INSTALL                 = install
 export RELEASE_TEXT
 
 # Estimate different pre-requisites before launching build
+include modules/lsp-commons/configure.mk
 include scripts/make/set_vars.mk
 include scripts/make/tools.mk
 include scripts/make/version.mk
