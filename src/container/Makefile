@@ -12,7 +12,7 @@ endif
 
 # Configure set of modules to build
 ifeq ($(LSP_TESTING),1)
-  OBJFILES               += $(OBJ_TEST_CORE)
+  OBJFILES               += $(OBJ_TEST_CORE) $(OBJ_TESTING_CORE)
   MODULES                 = $(BIN_TEST)
 endif
 ifneq ($(LSP_TESTING),1)

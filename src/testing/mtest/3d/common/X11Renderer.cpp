@@ -15,7 +15,7 @@
 #include <core/io/Path.h>
 #include <core/io/Dir.h>
 #include <rendering/factory.h>
-#include <test/mtest/3d/common/X11Renderer.h>
+#include <testing/mtest/3d/common/X11Renderer.h>
 
 #ifdef LSP_IDE_DEBUG
     #ifdef PLATFORM_UNIX_COMPATIBLE

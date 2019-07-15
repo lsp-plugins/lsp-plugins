@@ -1,5 +1,5 @@
 /*
- * FloatBuffer.h
+ * ByteBuffer.h
  *
  *  Created on: 23 авг. 2018 г.
  *      Author: vsadovnikov
@@ -9,8 +9,6 @@
 #define TEST_BYTEBUFFER_H_
 
 #include <common/types.h>
-#include <sys/types.h>
-#include <stdint.h>
 
 namespace test
 {

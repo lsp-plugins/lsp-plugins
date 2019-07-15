@@ -9,8 +9,6 @@
 #define TEST_FLOATBUFFER_H_
 
 #include <common/types.h>
-#include <sys/types.h>
-#include <stdint.h>
 #include <test/helpers.h>
 
 namespace test

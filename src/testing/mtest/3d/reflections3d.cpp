@@ -6,7 +6,7 @@
  */
 
 #include <test/mtest.h>
-#include <test/mtest/3d/common/X11Renderer.h>
+#include <testing/mtest/3d/common/X11Renderer.h>
 #include <core/files/Model3DFile.h>
 #include <core/3d/raytrace.h>
 #include <core/3d/rt_context.h>

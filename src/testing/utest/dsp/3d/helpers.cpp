@@ -6,7 +6,7 @@
  */
 
 
-#include <test/utest/dsp/3d/helpers.h>
+#include <testing/utest/dsp/3d/helpers.h>
 
 namespace test
 {
