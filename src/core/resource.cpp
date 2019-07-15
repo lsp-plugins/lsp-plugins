@@ -16,6 +16,9 @@ namespace lsp
 
     const resource_t *resource_get(const char *id, resource_type_t type)
     {
+        if (id == NULL)
+            return STATUS_NOT_FOUND;
+
         // Iterate list of all resources and lookup for the proper one
         for (const resource_t *res = builtin_resources; (res->id != NULL) && (res->data != NULL); ++res)
         {
@@ -85,6 +88,12 @@ namespace lsp
         return count;
     }
 
+    ssize_t     resource_skip_bytes(const void **ptr, size_t count)
+    {
+        const uint8_t *data = reinterpret_cast<const uint8_t *>(*ptr);
+        *ptr                = &data[count];
+        return count;
+    }
 #else
     static const resource_t builtin_resources[] =
     {
@@ -127,6 +136,11 @@ namespace lsp
     }
 
     ssize_t     resource_fetch_bytes(void *dst, const void **ptr, size_t count)
+    {
+        return -1;
+    }
+
+    ssize_t     resource_skip_bytes(const void **ptr, size_t count)
     {
         return -1;
     }

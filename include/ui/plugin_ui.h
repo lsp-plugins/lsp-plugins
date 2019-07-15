@@ -15,7 +15,6 @@
 #include <ui/ws/ws.h>
 #include <core/io/IInStream.h>
 #include <core/files/config.h>
-#include <core/files/config/TextConfigHandler.h>
 #include <core/port_data.h>
 
 namespace lsp
@@ -33,7 +32,7 @@ namespace lsp
                 LSPWidget  *item;
             } preset_t;
 
-            class ConfigHandler: public config::TextConfigHandler
+            class ConfigHandler: public config::IConfigHandler
             {
                 private:
                     plugin_ui   *pUI;
@@ -50,7 +49,7 @@ namespace lsp
                     virtual ~ConfigHandler();
 
                 public:
-                    virtual status_t handle_regular_parameter(const char *name, const char *value, size_t flags);
+                    virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
 
                     virtual status_t handle_kvt_parameter(const char *name, const kvt_param_t *param, size_t flags);
 
@@ -110,6 +109,8 @@ namespace lsp
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
             status_t        scan_presets();
             void            destroy_presets();
+
+            static status_t slot_preset_select(LSPWidget *sender, void *ptr, void *data);
 
         public:
             explicit plugin_ui(const plugin_metadata_t *mdata, void *root_widget);

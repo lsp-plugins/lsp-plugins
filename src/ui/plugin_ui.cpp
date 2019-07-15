@@ -37,7 +37,7 @@ namespace lsp
         vNotify.flush();
     }
 
-    status_t plugin_ui::ConfigHandler::handle_regular_parameter(const char *name, const char *value, size_t flags)
+    status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value, size_t flags)
     {
         add_notification(name);
         pUI->apply_changes(name, value, hPorts);
@@ -842,22 +842,25 @@ namespace lsp
         if (result != STATUS_OK)
             return result;
 
-//        // Add presets
-//        LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));
-//        if (menu != NULL)
-//        {
-//            // Get display
-//            LSPDisplay *dpy     = menu->display();
-//
-//            // Create submenu item
-//            LSPMenuItem *item   = new LSPMenuItem(dpy);
-//            item->init();
-//            vWidgets.add(item);
-//            item->set_text("Load Preset");
-//            menu->add(item);
-//        }
-
         // Return successful status
+        return STATUS_OK;
+    }
+
+    status_t plugin_ui::slot_preset_select(LSPWidget *sender, void *ptr, void *data)
+    {
+        plugin_ui *_this = reinterpret_cast<plugin_ui *>(ptr);
+        if (_this == NULL)
+            return STATUS_BAD_STATE;
+
+        for (size_t i=0, n=_this->vPresets.size(); i<n; ++i)
+        {
+            preset_t *p     = _this->vPresets.at(i);
+            if ((p == NULL) || (p->item != sender))
+                continue;
+
+            return _this->import_settings(p->path);
+        }
+
         return STATUS_OK;
     }
 
@@ -866,7 +869,7 @@ namespace lsp
         char base[PATH_MAX + 1];
 
 #ifdef LSP_BUILTIN_RESOURCES
-        ::snprintf(base, PATH_MAX, "presets/%s/", pMetadata->ui_presets);
+        ::snprintf(base, PATH_MAX, "builtin://presets/%s/", pMetadata->ui_presets);
 
         base[PATH_MAX] = '\0';
         size_t prefix_len = ::strlen(base);
@@ -977,6 +980,22 @@ namespace lsp
         dir.close();
 #endif
 
+        // Sort presets in alphabetical order
+        for (size_t i=0, n=vPresets.size(); i<n-1; ++i)
+        {
+            preset_t *a = vPresets.at(i);
+            for (size_t j=i+1; j<n; ++j)
+            {
+                preset_t *b = vPresets.at(j);
+                if (strcmp(a->name, b->name) > 0)
+                {
+                    swap(a->path, b->path);
+                    swap(a->name, b->name);
+                    swap(a->item, b->item);
+                }
+            }
+        }
+
         return STATUS_OK;
     }
 
@@ -1005,9 +1024,9 @@ namespace lsp
             return STATUS_UNKNOWN_ERR;
 
         #ifdef LSP_BUILTIN_RESOURCES
-            strncpy(path, "ui/theme.xml", PATH_MAX);
+            ::strncpy(path, "ui/theme.xml", PATH_MAX);
         #else
-            strncpy(path, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml", PATH_MAX);
+            ::strncpy(path, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml", PATH_MAX);
         #endif /* LSP_BUILTIN_RESOURCES */
 
         lsp_trace("Loading theme from file %s", path);
@@ -1027,9 +1046,9 @@ namespace lsp
 
         // Generate path to UI schema
         #ifdef LSP_BUILTIN_RESOURCES
-            snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
+            ::snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
         #else
-            snprintf(path, PATH_MAX, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource);
+            ::snprintf(path, PATH_MAX, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource);
         #endif /* LSP_BUILTIN_RESOURCES */
         lsp_trace("Generating UI from file %s", path);
 
@@ -1038,6 +1057,62 @@ namespace lsp
         {
             lsp_error("Could not build UI from file %s", path);
             return STATUS_UNKNOWN_ERR;
+        }
+
+        // Fetch main menu
+        LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));
+        if (menu == NULL)
+            return STATUS_NO_MEM;
+
+        // Add presets if they are present
+        if ((menu != NULL) && (vPresets.size() > 0))
+        {
+            // Get display
+            LSPDisplay *dpy     = menu->display();
+
+            // Create submenu item
+            LSPMenuItem *item   = new LSPMenuItem(dpy);
+            if (item == NULL)
+                return STATUS_NO_MEM;
+            vWidgets.add(item);
+            result = item->init();
+            if (result != STATUS_OK)
+                return result;
+
+            item->set_text("Load Preset");
+            menu->add(item);
+
+            // Create submenu
+            LSPMenu *submenu    = new LSPMenu(dpy);
+            if (submenu == NULL)
+                return STATUS_NO_MEM;
+            vWidgets.add(submenu);
+            result = submenu->init();
+            if (result != STATUS_OK)
+                return result;
+            item->set_submenu(submenu);
+
+            // Iterate all presets
+            for (size_t i=0, n=vPresets.size(); i<n; ++i)
+            {
+                preset_t *p     = vPresets.at(i);
+                if (p == NULL)
+                    continue;
+
+                // Create menu item and bind handler
+                item        = new LSPMenuItem(dpy);
+                if (item == NULL)
+                    return STATUS_NO_MEM;
+                vWidgets.add(item);
+                result = item->init();
+                if (result != STATUS_OK)
+                    return result;
+                item->set_text(p->name);
+                p->item     = item;
+
+                item->slots()->bind(LSPSLOT_SUBMIT, slot_preset_select, this);
+                submenu->add(item);
+            }
         }
 
         return STATUS_OK;

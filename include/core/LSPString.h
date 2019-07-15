@@ -304,6 +304,7 @@ namespace lsp
             bool starts_with(lsp_wchar_t ch) const;
             inline bool starts_with(char ch) const { return starts_with(lsp_wchar_t(uint8_t(ch))); };
             bool starts_with(const LSPString *src) const;
+            bool starts_with_ascii(const char *src) const;
             bool starts_with_nocase(lsp_wchar_t ch) const;
             inline bool starts_with_nocase(char ch) const { return starts_with_nocase(lsp_wchar_t(uint8_t(ch))); };
             bool starts_with_nocase(const LSPString *src) const;

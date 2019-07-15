@@ -36,6 +36,7 @@ namespace lsp
     uint8_t     resource_fetch_byte(const void **ptr);
     uint8_t     resource_get_byte(const void **ptr);
     ssize_t     resource_fetch_bytes(void *dst, const void **ptr, size_t count);
+    ssize_t     resource_skip_bytes(const void **ptr, size_t count);
 }
 
 #endif /* CORE_RESOURCE_H_ */

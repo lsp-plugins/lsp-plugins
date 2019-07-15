@@ -22,7 +22,7 @@ namespace lsp
             static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
 
         public:
-            virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+            virtual status_t    build();
     };
 
 } /* namespace lsp */

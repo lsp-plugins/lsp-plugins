@@ -10,7 +10,7 @@
 
 #include <core/stdlib/stdio.h>
 #include <core/files/config.h>
-#include <core/files/config/TextConfigHandler.h>
+#include <core/files/config/IConfigHandler.h>
 
 #include <utils/resource_gen/wdict.h>
 #include <utils/resource_gen/fdict.h>
@@ -19,7 +19,7 @@ namespace lsp
 {
     namespace resgen
     {
-        class PresetPreprocessor: public config::TextConfigHandler
+        class PresetPreprocessor: public config::IConfigHandler
         {
             private:
                 cvector<xml_word_t>        *wDict;
@@ -107,7 +107,7 @@ namespace lsp
                 }
         };
 
-        class PresetSerializer: public config::TextConfigHandler
+        class PresetSerializer: public config::IConfigHandler
         {
             private:
                 cvector<xml_word_t>        *wDict;
@@ -152,8 +152,6 @@ namespace lsp
                     fputs("\n", pOut);
                     return STATUS_OK;
                 }
-
-
 
                 virtual status_t handle_kvt_parameter(const char *name, const kvt_param_t *param, size_t flags)
                 {
@@ -247,6 +245,9 @@ namespace lsp
 
         static int preprocess_preset(scan_resource_t *resource, cvector<xml_word_t> *wdict, cstorage<dict_float_t> *fdict)
         {
+            if (!res_dict_add(wdict, "")) // Empty string is used to specify end of sequence
+                return STATUS_NO_MEM;
+
             PresetPreprocessor pp(wdict, fdict);
             return config::load(resource->path, &pp);
         }
@@ -261,7 +262,9 @@ namespace lsp
             PresetSerializer ps(wdict, fdict, out);
             status_t res = config::load(resource->path, &ps);
 
-            fprintf(out,    "\t\t;\n\n");
+            fprintf(out,    "\t\t\"\\x00\"");
+            encode_word(out, wdict, "");
+            fprintf(out,    "\n\t\t;\n\n");
 
             return res;
         }
