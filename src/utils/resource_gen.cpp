@@ -421,8 +421,9 @@ namespace lsp
             return -STATUS_NO_MEM;
 
         // Try to scan directory
-        DIR *dirhdl     = opendir(realpath);
-        if (dirhdl == NULL)
+        struct dirent **namelist;
+        int scandirn = scandir(realpath, &namelist, NULL, alphasort);
+        if (scandirn == -1)
         {
             fprintf(stderr, "Could not open directory %s\n", realpath);
             free(realpath);
@@ -432,12 +433,10 @@ namespace lsp
         int result      = STATUS_OK;
         struct stat st;
 
-        while (true)
+        for(int i = scandirn; i>0;)
         {
             // Read next entry
-            struct dirent *ent  = readdir(dirhdl);
-            if (ent == NULL)
-                break;
+            struct dirent *ent  = namelist[--i];
 
             // Skip dot and dot-dot
             if (!strcmp(ent->d_name, "."))
@@ -509,7 +508,10 @@ namespace lsp
         }
 
         // Close directory
-        closedir(dirhdl);
+        while (scandirn--) {
+                free(namelist[scandirn]);
+        }
+        free(namelist);
         free(realpath);
 
         return result;
