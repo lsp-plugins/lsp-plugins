@@ -445,7 +445,11 @@ namespace lsp
 
         // Initialize scan variables
         size_t max_objs     = trace->pScene->num_objects() + trace->vCaptures.size();
-        size_t *objs        = reinterpret_cast<size_t *>(alloca(sizeof(size_t) * max_objs));
+        size_t segs         = (max_objs + (sizeof(size_t) * 8) - 1) / (sizeof(size_t) * 8);
+        size_t *objs        = reinterpret_cast<size_t *>(alloca(sizeof(size_t) * segs));
+        for (size_t i=0; i<segs; ++i)
+            objs[i]             = 0;
+
         size_t n_objs       = 0;
         size_t obj_id       = 0;
 
@@ -463,7 +467,12 @@ namespace lsp
             // Add capture identifier to list of visible objects
             res     =  check_object(ctx, obj, &cap->pos);
             if (res == STATUS_OK)
-                objs[n_objs++]      = obj_id;
+            {
+                size_t part = obj_id / (sizeof(size_t) * 8);
+                size_t off  = obj_id % (sizeof(size_t) * 8);
+                objs[part] |= size_t(1) << off;
+                ++n_objs;
+            }
             else if (res == STATUS_SKIP)
                 res                 = STATUS_OK;
             else
@@ -488,7 +497,12 @@ namespace lsp
             // Add object identifier to list of visible objects
             res     =  check_object(ctx, obj, obj->matrix());
             if (res == STATUS_OK)
-                objs[n_objs++]      = obj_id;
+            {
+                size_t part = obj_id / (sizeof(size_t) * 8);
+                size_t off  = obj_id % (sizeof(size_t) * 8);
+                objs[part] |= size_t(1) << off;
+                ++n_objs;
+            }
             else if (res == STATUS_SKIP)
                 res                 = STATUS_OK;
             else
@@ -497,7 +511,10 @@ namespace lsp
 
         // Fetch visible objects from root context into current context
 //        lsp_trace("Fetch %d objects", int(n_objs));
-        res     = ctx->fetch_objects(&root, n_objs, objs);
+        if (n_objs <= 0)
+            return STATUS_OK;
+
+        res     = ctx->fetch_objects(&root, segs, objs);
         if (res != STATUS_OK) // Some error occurred
             return res;
 

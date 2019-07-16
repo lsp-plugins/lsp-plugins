@@ -662,7 +662,7 @@ namespace lsp
         return (plan.add_edge(sp)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids)
+    status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *mask)
     {
         // Clean state
         triangle.clear();
@@ -671,7 +671,7 @@ namespace lsp
             return STATUS_OK;
 
         // Initialize cull planes
-        size_t tag;
+        size_t part, off;
 
         // Initialize itag
         RT_FOREACH(rtm_edge_t, e, src->edge)
@@ -681,16 +681,17 @@ namespace lsp
         // Build set of triangles
         status_t res;
         RT_FOREACH(rtm_triangle_t, t, src->triangle)
-            // Check that triangle matches specified object
-            tag = 1;
-            for (size_t i=0; i<n; ++i)
-                if (t->oid == ssize_t(ids[i]))
-                {
-                    tag = 0;
-                    break;
-                };
+            // Check ID match
+            part = t->oid / (sizeof(size_t) * 8);
+            off  = t->oid % (sizeof(size_t) * 8);
+            if (!(mask[part] & (size_t(1) << off)))
+            {
+                RT_TRACE(debug, ignore(t); );
+                continue;
+            }
 
-            if ((tag) || ((t->oid == view.oid) && (t->face == view.face)))
+            // Check that triangle matches specified object
+            if ((t->oid == view.oid) && (t->face == view.face))
             {
                 RT_TRACE(debug, ignore(t); );
                 continue;
@@ -708,16 +709,19 @@ namespace lsp
             {
                 if ((res = add_edge(t->e[0])) != STATUS_OK)
                     return res;
+                t->e[0]->itag   = 1;
             }
             if (t->e[1]->itag)
             {
                 if ((res = add_edge(t->e[1])) != STATUS_OK)
                     return res;
+                t->e[1]->itag   = 1;
             }
             if (t->e[2]->itag)
             {
                 if ((res = add_edge(t->e[2])) != STATUS_OK)
                     return res;
+                t->e[2]->itag   = 1;
             }
         RT_FOREACH_END;
 
