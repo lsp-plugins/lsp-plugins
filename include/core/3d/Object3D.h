@@ -172,6 +172,11 @@ namespace lsp
              * @return object transformation matrix
              */
             inline matrix3d_t *matrix() { return &sMatrix; }
+
+            /**
+             * Compute bounding box
+             */
+            void calc_bound_box();
     };
 
 } /* namespace lsp */

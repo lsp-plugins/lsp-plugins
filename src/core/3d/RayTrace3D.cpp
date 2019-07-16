@@ -381,7 +381,8 @@ namespace lsp
             if (m == NULL)
                 return STATUS_BAD_STATE;
 
-            // Add object to context
+            // Compute bounding box and add object to context
+            obj->calc_bound_box();
             res         = root.add_object(obj, obj_id, obj->matrix(), m);
             if (res != STATUS_OK)
                 return res;
