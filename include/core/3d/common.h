@@ -13,7 +13,7 @@
 #include <core/debug.h>
 
 #if defined(LSP_DEBUG)
-    #define LSP_RT_TRACE
+    //#define LSP_RT_TRACE
 #endif /* LSP_DEBUG */
 
 #if defined(LSP_RT_TRACE)

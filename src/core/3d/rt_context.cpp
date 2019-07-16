@@ -709,19 +709,19 @@ namespace lsp
             {
                 if ((res = add_edge(t->e[0])) != STATUS_OK)
                     return res;
-                t->e[0]->itag   = 1;
+                t->e[0]->itag   = 0;
             }
             if (t->e[1]->itag)
-            {
+             {
                 if ((res = add_edge(t->e[1])) != STATUS_OK)
                     return res;
-                t->e[1]->itag   = 1;
+                t->e[1]->itag   = 0;
             }
             if (t->e[2]->itag)
             {
                 if ((res = add_edge(t->e[2])) != STATUS_OK)
                     return res;
-                t->e[2]->itag   = 1;
+                t->e[2]->itag   = 0;
             }
         RT_FOREACH_END;
 
