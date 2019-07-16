@@ -31,7 +31,7 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     84
+    #define BREAKPOINT_STEP     0
 //    #define BREAKPOINT_STEP     0
 
 /*
@@ -275,12 +275,10 @@ MTEST_BEGIN("3d", reflections)
                 if (res != STATUS_OK)
                     return res;
 
-//                res     = trace->add_source(&sSource, RT_AS_TRIANGLE, 1.0f);
-//                if (res != STATUS_OK)
-//                    return res;
                 rt_source_settings_t src;
                 dsp::calc_matrix3d_transform_r1(&src.pos, &sSource);
-                src.type        = RT_AS_ICOSPHERE;
+//                src.type        = RT_AS_ICOSPHERE;
+                src.type        = RT_AS_TRIANGLE;
                 src.size        = 0.3048f;  // 12" speaker source
                 src.height      = 0.3048f;
                 src.angle       = 50.0f;

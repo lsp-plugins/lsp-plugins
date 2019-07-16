@@ -98,52 +98,51 @@ namespace lsp
 
             while (true)
             {
-                if (nLock)
+                if (atomic_cas(&nLock, 1, 0))
                 {
-                    // Increment number of waiters
-                    res = atomic_swap(&nLock, 0);
-                    if (res) // Lock succeeded ?
-                    {
-                        if (!(nLocks++))
-                            nThreadId       = tid; // Save thread identifier
-                        return true;
-                    }
+                    if (!(nLocks++))
+                        nThreadId       = tid; // Save thread identifier
+                    return true;
                 }
-
-                // Increment number of waiters
-                atomic_add(&nWaiters, 1);
 
                 // Issue wait
                 res = syscall(SYS_futex, &nLock, FUTEX_WAIT, 1, NULL, 0, 0);
                 if ((res == ENOSYS) || (res == EAGAIN))
                     pthread_yield();
-
-                // Decrement number of waiters
-                atomic_add(&nWaiters, -1);
             }
         }
 
         bool Mutex::try_lock() const
         {
-            if (nLock)
-            {
-                // Increment number of waiters
-                if (atomic_swap(&nLock, 0)) // Lock succeeded ?
-                {
-                    if (!(nLocks++))
-                        nThreadId       = pthread_self(); // Save thread identifier
-                    return true;
-                }
-            }
-
             // Check that we already own the mutex
+            pthread_t tid   = pthread_self();
             if (nThreadId == pthread_self())
             {
                 ++nLocks;
                 return true;
             }
 
+            if (atomic_cas(&nLock, 1, 0))
+            {
+                if (!(nLocks++))
+                    nThreadId       = tid; // Save thread identifier
+                return true;
+            }
+
             return false;
+        }
+
+        bool Mutex::unlock() const
+        {
+            if (nThreadId != pthread_self())
+                return false;
+            if (!(--nLocks))
+            {
+                nThreadId       = -1;
+                atomic_cas(&nLock, 0, 1);
+                syscall(SYS_futex, &nLock, FUTEX_WAKE, 1, NULL, 0, 0);
+            }
+            return true;
         }
 
 #else
