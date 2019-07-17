@@ -7,6 +7,8 @@
   plugin series
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
+- Review implementation of multiband compressor according to the article:
+  https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
 === 1.1.10 ===
 
