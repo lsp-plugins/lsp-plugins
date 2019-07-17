@@ -1924,7 +1924,12 @@ namespace lsp
             for (size_t j=0; j<hdr.channels; ++j)
             {
                 const float *src    = &samples[j * hdr.samples];
-                float *dst = s->getBuffer(j);
+                float *dst          = s->getBuffer(j);
+
+                // Get normalizing factor
+                float xnorm         = dsp::abs_max(src, hdr.samples);
+                if (xnorm > norm)
+                    norm            = xnorm;
 
                 // Copy sample data and apply fading
                 if (c->bReverse)
@@ -1933,10 +1938,6 @@ namespace lsp
                     dsp::copy(dst, &src[head_cut], fsamples);
                 if ((hdr.version & 1) != __IF_LEBE(0, 1)) // Endianess does not match?
                     byte_swap(dst, fsamples);
-
-                float xnorm         = dsp::abs_max(dst, fsamples);
-                if (xnorm > norm)
-                    norm            = xnorm;
 
                 fade_in(dst, dst, millis_to_samples(fSampleRate, c->fFadeIn), fsamples);
                 fade_out(dst, dst, millis_to_samples(fSampleRate, c->fFadeOut), fsamples);
