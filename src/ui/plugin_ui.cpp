@@ -140,14 +140,14 @@ namespace lsp
                 lsp_warn("Could not get parameter: code=%d", int(res));
                 break;
             }
-//            else if (pIter->is_transient())
-//                continue;
+
+            // Skip transient and private parameters
+            if ((pIter->is_transient()) || (pIter->is_private()))
+                continue;
 
             // Get parameter name
             const char *pname = pIter->name();
             if (pname == NULL)
-                continue;
-            if (pIter->is_transient())
                 continue;
             if (!name->set_ascii(pname))
             {
