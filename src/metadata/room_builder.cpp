@@ -466,7 +466,7 @@ namespace lsp
         { "Plexiglass",     2670.0f,    15.0f   },
         { "Polystyrene",    2350.0f,    4.0f    },
         { "Rubber",         1600.0f,    6.0f    },
-        { "Sea water",      1533.0f,    0.0f    },
+        { "Sea Water",      1533.0f,    0.0f    },
         { "Silicon",        3770.0f,    2.0f    },
         { "Slate",          4510.0f,    1.9f    },
         { "Steel",          5050.0f,    0.0f    },
