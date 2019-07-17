@@ -373,7 +373,7 @@ namespace lsp
 
         COMBO("ssel", "Source selector", 0, rb_ssel),
         RB_SOURCE("_0", "0", 0, 8, 1),
-        RB_SOURCE("_1", "1", 1, 8, 1),
+        RB_SOURCE("_1", "1", 1, 8, 0),
         RB_SOURCE("_2", "2", 2, 8, 0),
         RB_SOURCE("_3", "3", 3, 8, 0),
         RB_SOURCE("_4", "4", 4, 8, 0),
@@ -393,8 +393,8 @@ namespace lsp
 
         RB_CONVOLVER_STEREO("0", " 0", 0, -100.0f, -100.0f),
         RB_CONVOLVER_STEREO("1", " 1", 1, -100.0f, +100.0f),
-        RB_CONVOLVER_STEREO("2", " 2", 2, +100.0f, -100.0f),
-        RB_CONVOLVER_STEREO("3", " 3", 3, +100.0f, +100.0f),
+        RB_CONVOLVER_STEREO("2", " 2", 0, +100.0f, -100.0f),
+        RB_CONVOLVER_STEREO("3", " 3", 1, +100.0f, +100.0f),
 
         RB_EQUALIZER,
 
