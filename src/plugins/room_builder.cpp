@@ -2137,7 +2137,7 @@ namespace lsp
     {
     }
 
-    room_builder_stereo::room_builder_stereo(): room_builder_base(metadata, 1)
+    room_builder_stereo::room_builder_stereo(): room_builder_base(metadata, 2)
     {
     }
 
