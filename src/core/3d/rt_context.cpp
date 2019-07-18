@@ -712,7 +712,7 @@ namespace lsp
                 t->e[0]->itag   = 0;
             }
             if (t->e[1]->itag)
-             {
+            {
                 if ((res = add_edge(t->e[1])) != STATUS_OK)
                     return res;
                 t->e[1]->itag   = 0;

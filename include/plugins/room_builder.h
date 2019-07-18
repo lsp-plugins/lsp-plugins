@@ -140,6 +140,8 @@ namespace lsp
                 bool                    bReverse;
                 size_t                  nLength;        // Output: length of captured response in samples
                 status_t                nStatus;        // Output: status of sample rendering
+                float                   fCurrLen;
+                float                   fMaxLen;
 
                 volatile uatomic_t      nChangeReq;     // Reconfiguration request
                 uatomic_t               nChangeResp;    // Reconfiguration response
@@ -178,6 +180,8 @@ namespace lsp
                 IPort                  *pReverse;       // Reverse
                 IPort                  *pStatus;        // Status of rendering
                 IPort                  *pLength;        // Length of sample
+                IPort                  *pCurrLen;       // Current duration
+                IPort                  *pMaxLen;        // Max duration
                 IPort                  *pThumbs;        // Thumbnails of sample
 
                 IPort                  *pOutFile;       // Output file name

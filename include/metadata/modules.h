@@ -142,11 +142,11 @@ MOD_PLUGIN(sc_mb_compressor_ms, plugin_ui)
 MOD_PLUGIN(profiler_mono, plugin_ui)
 MOD_PLUGIN(profiler_stereo, plugin_ui)
 
-#ifndef LSP_NO_EXPERIMENTAL
-    // Room builder
-    MOD_PLUGIN(room_builder_mono, room_builder_ui)
-    MOD_PLUGIN(room_builder_stereo, room_builder_ui)
+// Room builder
+MOD_PLUGIN(room_builder_mono, room_builder_ui)
+MOD_PLUGIN(room_builder_stereo, room_builder_ui)
 
+#ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver
     // MOD_PLUGIN(nonlinear_convolver_mono, plugin_ui)
 

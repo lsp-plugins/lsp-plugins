@@ -26,6 +26,8 @@ namespace lsp
                 CtlPort        *pTailCut;
                 CtlPort        *pFadeIn;
                 CtlPort        *pFadeOut;
+                CtlPort        *pCurrLen;
+                CtlPort        *pMaxLen;
 
             protected:
                 void            sync_status();

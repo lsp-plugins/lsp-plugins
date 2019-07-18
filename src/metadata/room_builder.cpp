@@ -288,11 +288,13 @@ namespace lsp
         SWITCH("irv" id, "Impulse reverse" label, 0.0f), \
         STATUS("ifs" id, "Impulse status" label), \
         METER("ifl" id, "Impulse length" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
+        METER("sdur" id, "Impulse current duration" label, U_MSEC, room_builder_base_metadata::DURATION), \
+        METER("smdur" id, "Impulse max duration" label, U_MSEC, room_builder_base_metadata::DURATION), \
         MESH("ifd" id, "Impulse file contents" label, room_builder_base_metadata::TRACKS_MAX, room_builder_base_metadata::MESH_SIZE), \
         PATH("ofn" id, "Sample file name" label), \
         TRIGGER("ofc" id , "Sample save command" label), \
         STATUS("ofs" id, "Sample saving status" label), \
-        METER_PERCENT("ofp" id, "Sample saving progress"), \
+        METER_PERCENT("ofp" id, "Sample saving progress" label), \
         \
         { "sch" id, "Capture " label " hue", U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }
 

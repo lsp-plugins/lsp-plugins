@@ -36,9 +36,10 @@ namespace lsp
 
                 enum flags_t
                 {
-                    AF_PRESSED      = 1 << 0,
-                    AF_SHOW_DATA    = 1 << 1,
-                    AF_SHOW_HINT    = 1 << 2
+                    AF_SHOW_DATA        = 1 << 0,
+                    AF_SHOW_HINT        = 1 << 1,
+                    AF_SHOW_CURR_LEN    = 1 << 2,
+                    AF_SHOW_MAX_LEN     = 1 << 3
                 };
 
             protected:
@@ -48,6 +49,7 @@ namespace lsp
 
                 LSPString           sHint;
 
+                LSPWidgetFont       sFont;
                 LSPWidgetFont       sHintFont;
                 LSPSizeConstraints  sConstraints;
 
@@ -61,6 +63,8 @@ namespace lsp
                 size_t              nBorder;
                 size_t              nRadius;
                 size_t              nStatus;
+                float               fCurrLen;
+                float               fMaxLen;
 
             protected:
                 channel_t          *create_channel(color_t color);
@@ -83,6 +87,7 @@ namespace lsp
 
                 inline LSPSizeConstraints  *constraints()   { return &sConstraints; }
 
+                inline LSPFont         *font() { return &sFont; }
                 inline LSPFont         *hint_font() { return &sHintFont; }
 
                 inline LSPColor        *color() { return &sColor; }
@@ -98,11 +103,15 @@ namespace lsp
                 inline LSPColor        *channel_fade_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sFadeColor : NULL; }
                 inline LSPColor        *channel_line_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sLineColor : NULL; }
 
-                inline bool             show_data() const       { return nStatus & AF_SHOW_DATA; }
-                inline bool             show_hint() const       { return nStatus & AF_SHOW_HINT; }
+                inline bool             show_data() const           { return nStatus & AF_SHOW_DATA; }
+                inline bool             show_hint() const           { return nStatus & AF_SHOW_HINT; }
+                inline bool             show_curr_length() const    { return nStatus & AF_SHOW_CURR_LEN; }
+                inline bool             show_max_length() const     { return nStatus & AF_SHOW_CURR_LEN; }
 
                 inline size_t           radius() const { return nRadius; }
                 inline size_t           border() const { return nBorder; }
+                inline float            curr_length() const         { return fCurrLen; }
+                inline float            max_length() const          { return fMaxLen; }
 
             public:
                 status_t        set_hint(const char *text);
@@ -125,6 +134,10 @@ namespace lsp
 
                 void            set_show_data(bool value = true);
                 void            set_show_hint(bool value = true);
+                void            set_show_curr_length(bool value = true);
+                void            set_show_max_length(bool value = true);
+                void            set_curr_length(float value);
+                void            set_max_length(float value);
 
             public:
                 virtual void draw(ISurface *s);

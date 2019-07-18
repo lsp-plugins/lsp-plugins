@@ -23,6 +23,8 @@ namespace lsp
             pTailCut        = NULL;
             pFadeIn         = NULL;
             pFadeOut        = NULL;
+            pCurrLen        = NULL;
+            pMaxLen         = NULL;
         }
         
         CtlAudioSample::~CtlAudioSample()
@@ -76,6 +78,12 @@ namespace lsp
                 case A_MESH_ID:
                     BIND_PORT(pRegistry, pMesh, value);
                     break;
+                case A_DURATION_ID:
+                    BIND_PORT(pRegistry, pCurrLen, value);
+                    break;
+                case A_MAX_DURATION_ID:
+                    BIND_PORT(pRegistry, pMaxLen, value);
+                    break;
                 case A_WIDTH:
                     if (as != NULL)
                         PARSE_INT(value, as->constraints()->set_width(__, __));
@@ -107,7 +115,9 @@ namespace lsp
         {
             CtlWidget::notify(port);
 
-            if (port == pStatus)
+            if ((port == pStatus) ||
+                (port == pCurrLen) ||
+                (port == pMaxLen))
                 sync_status();
             if (port == pMesh)
                 sync_mesh();
@@ -156,6 +166,17 @@ namespace lsp
                 as->set_show_data(false);
                 as->set_show_hint(true);
                 as->set_hint(get_status(status_t(status)));
+            }
+
+            if (pCurrLen != NULL)
+            {
+                as->set_show_curr_length(true);
+                as->set_curr_length(pCurrLen->get_value());
+            }
+            if (pMaxLen != NULL)
+            {
+                as->set_show_max_length(true);
+                as->set_max_length(pMaxLen->get_value());
             }
         }
 

@@ -551,6 +551,8 @@ namespace lsp
             cap->pReverse       = NULL;
             cap->pStatus        = NULL;
             cap->pLength        = NULL;
+            cap->pCurrLen       = NULL;
+            cap->pMaxLen        = NULL;
             cap->pThumbs        = NULL;
 
             cap->pOutFile       = NULL;
@@ -767,6 +769,10 @@ namespace lsp
             cap->pStatus        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pLength        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pCurrLen       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pMaxLen        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pThumbs        = vPorts[port_id++];
 
@@ -1330,6 +1336,8 @@ namespace lsp
             // Output information about the file
             size_t length           = c->nLength;
             c->pLength->setValue(samples_to_millis(fSampleRate, length));
+            c->pCurrLen->setValue(c->fCurrLen);
+            c->pMaxLen->setValue(c->fMaxLen);
             c->pStatus->setValue(c->nStatus);
 
             // Store file dump to mesh
@@ -1897,6 +1905,7 @@ namespace lsp
                 continue;
             }
             c->nLength          = hdr.samples;
+            c->fMaxLen          = samples_to_millis(hdr.sample_rate, hdr.samples);
             c->pSwap            = s;
             lsp_trace("Allocated sample=%p, original length=%d samples", s, int(c->nLength));
 
@@ -1915,9 +1924,14 @@ namespace lsp
             if (fsamples <= 0)
             {
                 s->setLength(0);
+                c->fCurrLen         = 0.0f;
                 kvt_release();
+
+                for (size_t j=0; j<hdr.channels; ++j)
+                    dsp::fill_zero(c->vThumbs[j], room_builder_base_metadata::MESH_SIZE);
                 continue;
             }
+            c->fCurrLen         = samples_to_millis(hdr.sample_rate, fsamples);
 
             // Render the sample
             float norm          = 0.0f;

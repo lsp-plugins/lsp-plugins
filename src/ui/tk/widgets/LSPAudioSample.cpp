@@ -32,6 +32,7 @@ namespace lsp
             sBgColor(this),
             sColor(this),
             sAxisColor(this),
+            sFont(this),
             sHintFont(this),
             sConstraints(this)
         {
@@ -46,6 +47,8 @@ namespace lsp
             nDecimSize      = 0;
             vDecimX         = NULL;
             vDecimY         = NULL;
+            fCurrLen        = 0.0f;
+            fMaxLen         = 0.0f;
         }
         
         LSPAudioSample::~LSPAudioSample()
@@ -59,6 +62,10 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
+            sFont.init();
+            sFont.set_size(10);
+            sFont.set_bold(true);
+
             sHintFont.init();
             sHintFont.set_size(16);
             sHintFont.set_bold(true);
@@ -66,6 +73,7 @@ namespace lsp
             init_color(C_BACKGROUND, &sBgColor);
             init_color(C_GLASS, &sColor);
             init_color(C_GRAPH_LINE, &sAxisColor);
+            init_color(C_GRAPH_TEXT, sFont.color());
             init_color(C_STATUS_OK, sHintFont.color());
 
             return STATUS_OK;
@@ -374,6 +382,38 @@ namespace lsp
             query_draw();
         }
 
+        void LSPAudioSample::set_show_curr_length(bool value)
+        {
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_CURR_LEN : nStatus & (~AF_SHOW_CURR_LEN);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
+
+        void LSPAudioSample::set_show_max_length(bool value)
+        {
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_MAX_LEN : nStatus & (~AF_SHOW_MAX_LEN);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
+
+        void LSPAudioSample::set_curr_length(float value)
+        {
+            if ((value != fCurrLen) && (nStatus & AF_SHOW_DATA))
+                query_draw();
+            fCurrLen    = value;
+        }
+
+        void LSPAudioSample::set_max_length(float value)
+        {
+            if ((value != fMaxLen) && (nStatus & AF_SHOW_DATA))
+                query_draw();
+            fMaxLen     = value;
+        }
+
         status_t LSPAudioSample::set_radius(size_t radius)
         {
             if (nRadius == radius)
@@ -552,6 +592,37 @@ namespace lsp
                     pGraph->set_antialiasing(false);
                     pGraph->line(0.0f, yc, w, yc, 1.0f, sAxisColor);
                 }
+
+                // Draw time information
+                if (nStatus & (AF_SHOW_CURR_LEN | AF_SHOW_MAX_LEN))
+                {
+                    LSPString text;
+                    if (nStatus & AF_SHOW_CURR_LEN)
+                        text.fmt_ascii("%.1f", fCurrLen);
+                    if (nStatus & AF_SHOW_MAX_LEN)
+                    {
+                        if (!text.is_empty())
+                            text.fmt_append_ascii(" / %.1f", fMaxLen);
+                        else
+                            text.fmt_ascii("%.1f", fMaxLen);
+                    }
+                    text.append_ascii(" ms");
+
+                    font_parameters_t fp;
+                    text_parameters_t tp;
+
+                    sFont.get_parameters(pGraph, &fp);
+                    sFont.get_text_parameters(pGraph, &tp, &text);
+
+                    Color cl(sColor, 0.25f);
+//                    Color cl;
+//                    cl.set_rgb(1.0f, 0.0f, 0.0f);
+                    size_t bw = 4;
+                    pGraph->set_antialiasing(true);
+                    pGraph->fill_round_rect(pGraph->width() - tp.Width - bw*2, h - bw - fp.Height, tp.Width + bw * 2, fp.Height + bw, bw, SURFMASK_ALL_CORNER, cl);
+                    pGraph->set_antialiasing(false);
+                    sFont.draw(pGraph, pGraph->width() - tp.Width - bw + tp.XBearing, h - bw*0.5f - fp.Descent, &text);
+                }
             }
 
             if (nStatus & AF_SHOW_HINT)
@@ -599,16 +670,11 @@ namespace lsp
             {
                 ISurface *cv    = render_graph(s, gw, gh);
                 if (cv != NULL)
-                {
-                    if (nStatus & AF_PRESSED)
-                        s->draw(cv, rl + 1, rt + 1, float(gw - 2.0f) / gw, float(gh - 2.0f) / gh);
-                    else
-                        s->draw(cv, rl, rt);
-                }
+                    s->draw(cv, rl, rt);
             }
 
             // Draw the glass and the border
-            ISurface *cv = create_border_glass(s, &pGlass, bw, bh, nBorder + ((nStatus & AF_PRESSED) ? 1 : 0), nRadius, SURFMASK_ALL_CORNER, sColor);
+            ISurface *cv = create_border_glass(s, &pGlass, bw, bh, nBorder, nRadius, SURFMASK_ALL_CORNER, sColor);
             if (cv != NULL)
                 s->draw(cv, bl, bt);
         }

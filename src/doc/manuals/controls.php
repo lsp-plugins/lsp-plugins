@@ -11,17 +11,19 @@
 	<li><b>Combo</b> - combo box control.</li>
 	<li><b>Combo Group</b> - combo group control.</li>
 	<li><b>Fader</b> - fader control.</li>
-	<li><b>FileSaver</b> - file saving control.</li>
+	<li><b>File Saver</b> - file saving control.</li>
 	<li><b>Fraction</b> - control for setting musical time signature.</li>
 	<li><b>Graph</b> - graphical output area.</li>
 	<li><b>Group</b> - group control.</li>
 	<li><b>Indicator</b> - digital LED indicator.</li>
-	<li><b>Inline display</b> - inline display.</li>
+	<li><b>Inline Display</b> - inline display.</li>
 	<li><b>Knob</b> - rotating knob control.</li>
 	<li><b>Label</b> - label with text information.</li>
 	<li><b>Led</b> - LED.</li>
 	<li><b>Meter</b> - metering control.</li>
+	<li><b>Progress Bar</b> - progress control.</li>
 	<li><b>Rack</b> - Rack ears with menu and mounting studs.</li>
+	<li><b>Sample Editor</b> - sample editor.</li>
 	<li><b>Switch</b> - Switch control.</li>
 </ul>
 
@@ -270,8 +272,17 @@ and red zones. They respectivelly show that signal exceeds -6dB and 0dB levels.<
 	<img src="<?= $CTL ?>vu_meters_red.png">
 </div>
 
-<h2>Rack</h2>
+<h2>Progress Bar</h2>
+<p>
+  Progress Bar is a widget for monitoring execution progress of offline tasks.
+  It shows the actual completion percentage of the background job.
+<p>
+<p>Example of progress bar:</p>
+<div class="images">
+	<img src="<?= $CTL ?>progress_bar.png">
+</div>
 
+<h2>Rack</h2>
 <p>Rack ears contain the logo 'LSP' in the left part of UI and it's short model code in the right part of UI</p>
 <div class="images">
 	<img src="<?= $CTL ?>rack_left.png">
@@ -356,6 +367,18 @@ g_out = 1.000000
 from the context menu:</p>
 <div class="images">
 	<img src="<?= $CTL ?>rack_top.png">
+</div>
+
+<h2>Sample Editor</h2>
+
+<p>Sampe Editor widget is used for viewing and editing audio samples. It is similar to AudioFile wiget but
+unlike AudioFile widget, it does not allow to load files from file system.</p>
+
+<p>By default if there is no sample data, the file widget displays
+<b style="color: #00c000">'No data'</b> text.</p>
+<p>Example of sample editor widget:</p>
+<div class="images">
+	<img src="<?= $CTL ?>sample_editor.png">
 </div>
 
 <h2>Switch</h2>

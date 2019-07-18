@@ -111,6 +111,7 @@
 							<sample
 								head_id="ihc_${i}" tail_id="itc_${i}"
 								fadein_id="ifi_${i}" fadeout_id="ifo_${i}" length_id="ifl_${i}"
+								duration_id="sdur_${i}" max_duration_id="smdur_${i}"
 								status_id="ifs_${i}" mesh_id="ifd_${i}"
 								width="340" height="210"
 							/>

@@ -116,6 +116,11 @@ namespace lsp
         static const float THREADS_DFL              = 1;
         static const float THREADS_STEP             = 1;
 
+        static const float DURATION_MIN             = 0.0f;
+        static const float DURATION_MAX             = 100000.0f;
+        static const float DURATION_STEP            = 1.0f;
+        static const float DURATION_DFL             = 0.0f;
+
         static const size_t EQ_BANDS                = 8;        // 8 bands for equalization
 
         enum fft_rank_t

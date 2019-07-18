@@ -36,8 +36,7 @@
 * Implemented mechanism for UI<->DSP OSC message interchange.
 * Improved built-in resource generation tool.
 * Embedded resources are now alphabetically sorted to make the build more deterministic.
-- Added support of presets for plugin's UI.
-- Fixed broken settings export.
+* Added support of built-in presets for plugin's UI.
 - Implemented 3D reverb simulator.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
