@@ -38,9 +38,10 @@ namespace lsp
 
             typedef struct capture_t: public rt_capture_settings_t
             {
-                rt_material_t       material;
-                vector3d_t          direction;
-                cstorage<sample_t>  bindings;
+                vector3d_t                  direction;
+                cstorage<sample_t>          bindings;
+                cstorage<triangle3d_t>      mesh;
+                obj_boundbox_t              bbox;
             } capture_t;
 
             typedef struct stats_t
@@ -59,13 +60,13 @@ namespace lsp
             class TaskThread: public ipc::Thread
             {
                 private:
-                    RayTrace3D             *trace;
-                    stats_t                 stats;
-                    cvector<rt_context_t>   tasks;
-                    cvector<capture_t>      captures;
-                    rt_mesh_t               root;
-                    ssize_t                 heavy_state;
-                    RTObjectFactory         factory;
+                    RayTrace3D                 *trace;
+                    stats_t                     stats;
+                    cvector<rt_context_t>       tasks;
+                    cvector<capture_t>          captures;
+                    rt_mesh_t                   root;
+                    ssize_t                     heavy_state;
+                    RTObjectFactory             factory;
 
                 protected:
                     status_t    main_loop();
@@ -75,6 +76,7 @@ namespace lsp
                     status_t    cull_view(rt_context_t *ctx);
                     status_t    split_view(rt_context_t *ctx);
                     status_t    cullback_view(rt_context_t *ctx);
+                    status_t    capture_view(const rt_context_t *ctx);
                     status_t    reflect_view(rt_context_t *ctx);
                 #ifdef LSP_RT_TRACE
                     status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
@@ -89,7 +91,7 @@ namespace lsp
                     status_t    submit_task(rt_context_t *ctx);
 
                 public:
-                    TaskThread(RayTrace3D *trace);
+                    explicit TaskThread(RayTrace3D *trace);
                     virtual ~TaskThread();
 
                 public:
