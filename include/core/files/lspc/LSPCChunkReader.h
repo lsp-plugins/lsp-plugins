@@ -15,6 +15,9 @@ namespace lsp
     
     class LSPCChunkReader: public LSPCChunkAccessor
     {
+        private:
+            LSPCChunkReader & operator = (const LSPCChunkReader &);
+
         protected:
             friend class LSPCFile;
 
@@ -25,7 +28,7 @@ namespace lsp
             bool                bLast;
 
         protected:
-            LSPCChunkReader(LSPCResource *fd, uint32_t magic, uint32_t uid);
+            explicit LSPCChunkReader(LSPCResource *fd, uint32_t magic, uint32_t uid);
 
         public:
             virtual ~LSPCChunkReader();

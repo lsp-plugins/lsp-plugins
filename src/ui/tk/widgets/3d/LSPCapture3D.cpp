@@ -22,19 +22,19 @@ namespace lsp
             V3(0.22, 0, 0.06),
             V3(0.22, 0, -0.06)
         };
-
-        static const point3d_t tk_capture_capsule[] =
-        {
-            V3(0, 0, 1), V3(1, 0, 0), V3(0, 1, 0),
-            V3(0, 0, 1), V3(0, 1, 0), V3(-1, 0, 0),
-            V3(0, 0, 1), V3(-1, 0, 0), V3(0, -1, 0),
-            V3(0, 0, 1), V3(0, -1, 0), V3(1, 0, 0),
-
-            V3(0, 0, -1), V3(0, 1, 0), V3(1, 0, 0),
-            V3(0, 0, -1), V3(-1, 0, 0), V3(0, 1, 0),
-            V3(0, 0, -1), V3(0, -1, 0), V3(-1, 0, 0),
-            V3(0, 0, -1), V3(1, 0, 0), V3(0, -1, 0),
-        };
+//
+//        static const point3d_t tk_capture_capsule[] =
+//        {
+//            V3(0, 0, 1), V3(1, 0, 0), V3(0, 1, 0),
+//            V3(0, 0, 1), V3(0, 1, 0), V3(-1, 0, 0),
+//            V3(0, 0, 1), V3(-1, 0, 0), V3(0, -1, 0),
+//            V3(0, 0, 1), V3(0, -1, 0), V3(1, 0, 0),
+//
+//            V3(0, 0, -1), V3(0, 1, 0), V3(1, 0, 0),
+//            V3(0, 0, -1), V3(-1, 0, 0), V3(0, 1, 0),
+//            V3(0, 0, -1), V3(0, -1, 0), V3(-1, 0, 0),
+//            V3(0, 0, -1), V3(1, 0, 0), V3(0, -1, 0),
+//        };
 
         static const uint32_t tk_arrow_indexes[] =
         {
@@ -53,7 +53,6 @@ namespace lsp
             sAxisColor(this)
         {
             pClass          = &metadata;
-            fRadius         = 1.0f;
         }
         
         LSPCapture3D::~LSPCapture3D()
@@ -82,7 +81,7 @@ namespace lsp
             if (cap == NULL)
                 return STATUS_NOT_FOUND;
             dsp::init_point_xyz(dst, 0.0f, 0.0f, 0.0f);
-            dsp::apply_matrix3d_mp1(dst, &cap->sMatrix);
+            dsp::apply_matrix3d_mp1(dst, &cap->pos);
             return STATUS_OK;
         }
 
@@ -92,7 +91,7 @@ namespace lsp
             if (cap == NULL)
                 return STATUS_NOT_FOUND;
             dsp::init_vector_dxyz(dst, 1.0f, 0.0f, 0.0f);
-            dsp::apply_matrix3d_mv1(dst, &cap->sMatrix);
+            dsp::apply_matrix3d_mv1(dst, &cap->pos);
             return STATUS_OK;
         }
 
@@ -103,15 +102,23 @@ namespace lsp
                 return STATUS_NOT_FOUND;
             dsp::init_point_xyz(&dst->z, 0.0f, 0.0f, 0.0f);
             dsp::init_vector_dxyz(&dst->v, 1.0f, 0.0f, 0.0f);
-            dsp::apply_matrix3d_mp1(&dst->z, &cap->sMatrix);
-            dsp::apply_matrix3d_mv1(&dst->v, &cap->sMatrix);
+            dsp::apply_matrix3d_mp1(&dst->z, &cap->pos);
+            dsp::apply_matrix3d_mv1(&dst->v, &cap->pos);
             return STATUS_OK;
         }
 
-        bool LSPCapture3D::enabled(size_t id)
+        bool LSPCapture3D::enabled(size_t id) const
         {
-            v_capture_t *cap = vItems.get(id);
+            LSPCapture3D *_this = const_cast<LSPCapture3D *>(this);
+            v_capture_t *cap = _this->vItems.get(id);
             return (cap != NULL) ? cap->bEnabled : false;
+        }
+
+        float LSPCapture3D::radius(size_t id) const
+        {
+            LSPCapture3D *_this = const_cast<LSPCapture3D *>(this);
+            v_capture_t *cap = _this->vItems.get(id);
+            return (cap != NULL) ? cap->radius : false;
         }
 
         void LSPCapture3D::clear()
@@ -134,7 +141,7 @@ namespace lsp
                 if (cap == NULL)
                     return STATUS_NO_MEM;
 
-                dsp::init_matrix3d_identity(&cap->sMatrix);
+                dsp::init_matrix3d_identity(&cap->pos);
                 cap->bEnabled   = false;
             }
 
@@ -150,7 +157,7 @@ namespace lsp
             v_capture_t *cap = vItems.get(id);
             if (cap == NULL)
                 return STATUS_NOT_FOUND;
-            cap->sMatrix    = *matrix;
+            cap->pos        = *matrix;
             query_draw();
             return STATUS_OK;
         }
@@ -167,12 +174,14 @@ namespace lsp
             return STATUS_OK;
         }
 
-        void LSPCapture3D::set_radius(float radius)
+        void LSPCapture3D::set_radius(size_t id, float radius)
         {
-            if (fRadius == radius)
+            v_capture_t *cap = vItems.get(id);
+            if ((cap == NULL) || (cap->radius == radius))
                 return;
-            fRadius     = radius;
-            query_draw();
+            cap->radius     = radius;
+            if (cap->bEnabled)
+                query_draw();
         }
 
         void LSPCapture3D::render(IR3DBackend *r3d)
@@ -181,6 +190,8 @@ namespace lsp
                 return;
 
             r3d_buffer_t buf;
+            cstorage<raw_triangle_t> mesh;
+            cstorage<ray3d_t> vertices;
 
             // Draw all elements of the capture
             for (size_t id=0, nid=vItems.size(); id < nid; ++id)
@@ -191,7 +202,7 @@ namespace lsp
 
                 // Update mesh data for lines
                 for (size_t i=0; i<6; ++i)
-                    dsp::apply_matrix3d_mp2(&sLines[i], &tk_capture_vertices[i], &cap->sMatrix);
+                    dsp::apply_matrix3d_mp2(&sLines[i], &tk_capture_vertices[i], &cap->pos);
 
                 // Call draw of lines
                 buf.type            = R3D_PRIMITIVE_LINES;
@@ -214,36 +225,41 @@ namespace lsp
                 r3d->draw_primitives(&buf);
 
                 // Update mesh data for body
-                for (size_t i=0; i<24; ++i)
-                {
-                    sBody[i].z      = tk_capture_capsule[i];
-                    sBody[i].z.x   *= fRadius;
-                    sBody[i].z.y   *= fRadius;
-                    sBody[i].z.z   *= fRadius;
+                status_t res = rt_gen_capture_mesh(mesh, cap);
+                if (res != STATUS_OK)
+                    continue;
 
-                    dsp::apply_matrix3d_mp1(&sBody[i].z, &cap->sMatrix);
-                }
+                vertices.clear();
+                if (!vertices.append_n(mesh.size() * 3))
+                    continue;
 
-                for (size_t i=0; i<24; i += 3)
+                raw_triangle_t *tv  = mesh.get_array();
+                ray3d_t *tr         = vertices.get_array();
+                for (size_t i=0, n=mesh.size(); i<n; ++i, tr += 3)
                 {
-                    dsp::calc_normal3d_p3(&sBody[i].v, &sBody[i].z, &sBody[i+1].z, &sBody[i+2].z);
-                    sBody[i+1].v    = sBody[i].v;
-                    sBody[i+2].v    = sBody[i].v;
+                    dsp::apply_matrix3d_mp2(&tr[0].z, &tv[i].v[0], &cap->pos);
+                    dsp::apply_matrix3d_mp2(&tr[1].z, &tv[i].v[1], &cap->pos);
+                    dsp::apply_matrix3d_mp2(&tr[2].z, &tv[i].v[2], &cap->pos);
+
+                    dsp::calc_normal3d_p3(&tr[0].v, &tr[0].z, &tr[1].z, &tr[2].z);
+                    tr[1].v             = tr[0].v;
+                    tr[2].v             = tr[0].v;
                 }
+                tr                  = vertices.get_array();
 
                 // Call draw of capsule
                 buf.type            = R3D_PRIMITIVE_TRIANGLES;
                 buf.flags           = R3D_BUFFER_LIGHTING;
                 buf.width           = 1.0f;
-                buf.count           = 8;
+                buf.count           = mesh.size();
                 buf.color.dfl.r     = sColor.red();
                 buf.color.dfl.g     = sColor.green();
                 buf.color.dfl.b     = sColor.blue();
                 buf.color.dfl.a     = 1.0f;
 
-                buf.vertex.data     = &sBody[0].z;
+                buf.vertex.data     = &tr[0].z;
                 buf.vertex.stride   = sizeof(ray3d_t);
-                buf.normal.data     = &sBody[0].v;
+                buf.normal.data     = &tr[0].v;
                 buf.normal.stride   = sizeof(ray3d_t);
                 buf.index.data      = NULL;
 

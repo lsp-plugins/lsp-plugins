@@ -22,6 +22,9 @@ namespace lsp
             friend class LSPCChunkReader;
             friend class LSPCChunkWriter;
 
+        private:
+            LSPCFile & operator = (const LSPCFile &);
+
         protected:
             LSPCResource       *pFile;      // Shared resource
             bool                bWrite;     // Read/Write mode
@@ -31,7 +34,7 @@ namespace lsp
             LSPCResource       *create_resource(lsp_fhandle_t fd);
 
         public:
-            LSPCFile();
+            explicit LSPCFile();
             virtual ~LSPCFile();
 
         public:

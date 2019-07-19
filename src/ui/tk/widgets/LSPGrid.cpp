@@ -524,20 +524,28 @@ namespace lsp
             if (cell == NULL)
                 return STATUS_OVERFLOW;
 
-            cell->pWidget   = widget;
-            widget->set_parent(this);
+            if (cell->pWidget != NULL)
+            {
+                unlink_widget(cell->pWidget);
+                cell->pWidget       = NULL;
+            }
 
             LSPCell *w      = widget_cast<LSPCell>(widget);
             if (w != NULL)
             {
                 cell->nRows     = w->rowspan();
                 cell->nCols     = w->colspan();
+                cell->pWidget   = w->unwrap();
             }
             else
             {
                 cell->nRows     = 1;
                 cell->nCols     = 1;
+                cell->pWidget   = widget;
             }
+
+            if (cell->pWidget != NULL)
+                cell->pWidget->set_parent(this);
 
             return tag_cell(cell, false);
         }
@@ -554,20 +562,23 @@ namespace lsp
                 unlink_widget(cell->pWidget);
                 cell->pWidget       = NULL;
             }
-            cell->pWidget   = widget;
-            widget->set_parent(this);
 
             LSPCell *w      = widget_cast<LSPCell>(widget);
             if (w != NULL)
             {
                 cell->nRows     = w->rowspan();
                 cell->nCols     = w->colspan();
+                cell->pWidget   = w->unwrap();
             }
             else
             {
                 cell->nRows     = rowspan;
                 cell->nCols     = colspan;
+                cell->pWidget   = widget;
             }
+
+            if (cell->pWidget != NULL)
+                cell->pWidget->set_parent(this);
 
             return tag_cell(cell, false);
         }

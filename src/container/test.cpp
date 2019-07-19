@@ -233,7 +233,7 @@ status_t create_outfile(const config_t *cfg)
     return STATUS_OK;
 }
 
-int main(int argc, const char **argv)
+int test_main(int argc, const char **argv)
 {
 //    // Enable mcheck
 //    if (mcheck(NULL) != 0)
@@ -352,3 +352,10 @@ int main(int argc, const char **argv)
 
     return res;
 }
+
+//#if 0
+int main(int argc, const char **argv)
+{
+    return test_main(argc, argv);
+}
+//#endif

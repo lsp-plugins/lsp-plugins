@@ -17,6 +17,7 @@
 #include <core/files/config/IConfigSource.h>
 
 #include <core/io/File.h>
+#include <core/io/Path.h>
 #include <core/io/IInSequence.h>
 #include <core/io/IInStream.h>
 #include <core/io/IOutSequence.h>
@@ -33,6 +34,22 @@ namespace lsp
          * @return status of operation
          */
         status_t load(const char *path, IConfigHandler *h);
+
+        /**
+         * Load configuration file
+         * @param path location of the file
+         * @param h configuration parameter handler
+         * @return status of operation
+         */
+        status_t load(const LSPString *path, IConfigHandler *h);
+
+        /**
+         * Load configuration file
+         * @param path location of the file
+         * @param h configuration parameter handler
+         * @return status of operation
+         */
+        status_t load(const io::Path *path, IConfigHandler *h);
 
         /**
          * Load configuration from file

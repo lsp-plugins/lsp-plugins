@@ -13,7 +13,7 @@
 #include <core/debug.h>
 
 #if defined(LSP_DEBUG)
-    #define LSP_RT_TRACE
+    //#define LSP_RT_TRACE
 #endif /* LSP_DEBUG */
 
 #if defined(LSP_RT_TRACE)
@@ -155,8 +155,8 @@ namespace lsp
     typedef struct rt_material_t
     {
         float           absorption[2];      // The amount of energy that will be absorpted
-        float           dispersion[2];      // The dispersion coefficients for reflected signal
-        float           dissipation[2];     // The dissipation coefficients for refracted signal
+        float           diffusion[2];       // The diffusion coefficients for reflected signal
+        float           dispersion[2];      // The dispersion coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
         float           __pad[3];           // Padding

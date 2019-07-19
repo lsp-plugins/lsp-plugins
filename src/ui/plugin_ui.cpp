@@ -9,7 +9,9 @@
 #include <core/alloc.h>
 #include <core/buffer.h>
 #include <core/system.h>
+#include <core/resource.h>
 #include <core/io/Path.h>
+#include <core/io/Dir.h>
 #include <core/io/NativeFile.h>
 
 #include <ui/ui.h>
@@ -37,123 +39,18 @@ namespace lsp
 
     status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value, size_t flags)
     {
-        using namespace lsp::config;
+        add_notification(name);
+        pUI->apply_changes(name, value, hPorts);
+        return STATUS_OK;
+    }
 
-        if (name[0] == '/')
-        {
-            if (pKVT == NULL)
-                return STATUS_OK;
+    status_t plugin_ui::ConfigHandler::handle_kvt_parameter(const char *name, const kvt_param_t *value, size_t flags)
+    {
+        if (pKVT == NULL)
+            return STATUS_OK;
 
-            kvt_param_t p;
-
-            switch (flags & SF_TYPE_MASK)
-            {
-                case SF_TYPE_I32:
-                    PARSE_INT(value, { p.i32 = __; p.type = KVT_INT32; } );
-                    break;
-                case SF_TYPE_U32:
-                    PARSE_UINT(value, { p.u32 = __; p.type = KVT_UINT32; } );
-                    break;
-                case SF_TYPE_I64:
-                    PARSE_LLINT(value, { p.i64 = __; p.type = KVT_INT64; } );
-                    break;
-                case SF_TYPE_U64:
-                    PARSE_ULLINT(value, { p.u64 = __; p.type = KVT_UINT64; } );
-                    break;
-                case SF_TYPE_F64:
-                    PARSE_DOUBLE(value, { p.f64 = __; p.type = KVT_FLOAT64; } );
-                    break;
-                case SF_TYPE_STR:
-                    p.str       = ::strdup(value);
-                    if (p.str == NULL)
-                        return STATUS_NO_MEM;
-                    p.type      = KVT_STRING;
-                    break;
-                case SF_TYPE_BLOB:
-                {
-                    // Get content type
-                    const char *split = ::strchr(value, ':');
-                    if (split == NULL)
-                        return STATUS_BAD_FORMAT;
-
-                    char *ctype = NULL;
-                    size_t clen = (++split) - value;
-
-                    if (clen > 0)
-                    {
-                        ctype = ::strndup(value, clen);
-                        if (ctype == NULL)
-                            return STATUS_NO_MEM;
-                        ctype[clen-1]   = '\0';
-                    }
-                    p.blob.ctype    = ctype;
-
-                    // Get content size
-                    errno = 0;
-                    char *base64 = NULL;
-                    p.blob.size = size_t(::strtoull(split, &base64, 10));
-                    if ((errno != 0) || (*(base64++) != ':'))
-                    {
-                        if (ctype != NULL)
-                            ::free(ctype);
-                        return STATUS_BAD_FORMAT;
-                    }
-
-                    // Decode content
-                    size_t src_left = ::strlen(base64); // Size of base64-block
-                    p.blob.data     = NULL;
-                    if (src_left > 0)
-                    {
-                        // Allocate memory
-                        size_t dst_left = 0x10 + ((src_left * 3) / 4);
-                        void *blob      = ::malloc(dst_left);
-                        if (blob == NULL)
-                        {
-                            if (ctype != NULL)
-                                ::free(ctype);
-                            return STATUS_NO_MEM;
-                        }
-
-                        // Decode
-                        size_t n = dsp::base64_dec(blob, &dst_left, base64, &src_left);
-                        if ((n != p.blob.size) || (src_left != 0))
-                        {
-                            ::free(ctype);
-                            ::free(blob);
-                            return STATUS_BAD_FORMAT;
-                        }
-                        p.blob.data = blob;
-                    }
-                    else if (p.blob.size != 0)
-                    {
-                        ::free(ctype);
-                        return STATUS_BAD_FORMAT;
-                    }
-
-                    break;
-                }
-
-                case SF_TYPE_NATIVE:
-                case SF_TYPE_F32:
-                default:
-                    PARSE_FLOAT(value, { p.f32 = __; p.type = KVT_FLOAT32; } );
-                    break;
-            }
-
-            // Update KVT patameter & sync
-            if (p.type != KVT_ANY)
-            {
-                pKVT->put(name, &p, KVT_RX | KVT_DELEGATE);
-                pUI->kvt_write(pKVT, name, &p);
-            }
-            else
-                return STATUS_BAD_FORMAT;
-        }
-        else
-        {
-            add_notification(name);
-            pUI->apply_changes(name, value, hPorts);
-        }
+        pKVT->put(name, value, KVT_RX);
+        pUI->kvt_write(pKVT, name, value);
 
         return STATUS_OK;
     }
@@ -243,14 +140,14 @@ namespace lsp
                 lsp_warn("Could not get parameter: code=%d", int(res));
                 break;
             }
-//            else if (pIter->is_transient())
-//                continue;
+
+            // Skip transient and private parameters
+            if ((pIter->is_transient()) || (pIter->is_private()))
+                continue;
 
             // Get parameter name
             const char *pname = pIter->name();
             if (pname == NULL)
-                continue;
-            if (pIter->is_transient())
                 continue;
             if (!name->set_ascii(pname))
             {
@@ -456,6 +353,9 @@ namespace lsp
 
         // Destroy display
         sDisplay.destroy();
+
+        // Destroy list of presets
+        destroy_presets();
     }
 
     CtlWidget *plugin_ui::create_widget(const char *w_ctl)
@@ -639,6 +539,13 @@ namespace lsp
                 vWidgets.add(cbox);
                 return new CtlComboBox(this, cbox);
             }
+            case WC_THREADCOMBO:
+            {
+                LSPComboBox *cbox = new LSPComboBox(&sDisplay);
+                cbox->init();
+                vWidgets.add(cbox);
+                return new CtlThreadComboBox(this, cbox);
+            }
             case WC_EDIT:
             {
                 LSPEdit *edit = new LSPEdit(&sDisplay);
@@ -669,6 +576,13 @@ namespace lsp
                 vWidgets.add(lbl);
                 return new CtlLabel(this, lbl, CTL_LABEL_VALUE);
             }
+            case WC_STATUS:
+            {
+                LSPLabel *lbl = new LSPLabel(&sDisplay);
+                lbl->init();
+                vWidgets.add(lbl);
+                return new CtlLabel(this, lbl, CTL_STATUS_CODE);
+            }
             case WC_HLINK:
             {
                 LSPHyperlink *hlink = new LSPHyperlink(&sDisplay);
@@ -698,6 +612,13 @@ namespace lsp
                 mtr->init();
                 vWidgets.add(mtr);
                 return new CtlMeter(this, mtr);
+            }
+            case WC_PROGRESS:
+            {
+                LSPProgressBar *bar = new LSPProgressBar(&sDisplay);
+                bar->init();
+                vWidgets.add(bar);
+                return new CtlProgressBar(this, bar);
             }
 
             // Separator
@@ -744,6 +665,13 @@ namespace lsp
                 load->init();
                 vWidgets.add(load);
                 return new CtlLoadFile(this, load);
+            }
+            case WC_SAMPLE:
+            {
+                LSPAudioSample *sample = new LSPAudioSample(&sDisplay);
+                sample->init();
+                vWidgets.add(sample);
+                return new CtlAudioSample(this, sample);
             }
 
             // 3D viewer object
@@ -910,8 +838,183 @@ namespace lsp
             }
         }
 
+        result = scan_presets();
+        if (result != STATUS_OK)
+            return result;
+
         // Return successful status
         return STATUS_OK;
+    }
+
+    status_t plugin_ui::slot_preset_select(LSPWidget *sender, void *ptr, void *data)
+    {
+        plugin_ui *_this = reinterpret_cast<plugin_ui *>(ptr);
+        if (_this == NULL)
+            return STATUS_BAD_STATE;
+
+        for (size_t i=0, n=_this->vPresets.size(); i<n; ++i)
+        {
+            preset_t *p     = _this->vPresets.at(i);
+            if ((p == NULL) || (p->item != sender))
+                continue;
+
+            return _this->import_settings(p->path);
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t plugin_ui::scan_presets()
+    {
+        char base[PATH_MAX + 1];
+
+#ifdef LSP_BUILTIN_RESOURCES
+        ::snprintf(base, PATH_MAX, "presets/%s/", pMetadata->ui_presets);
+
+        base[PATH_MAX] = '\0';
+        size_t prefix_len = ::strlen(base);
+
+        for (const resource_t *r = resource_all(); (r->id != NULL); ++r)
+        {
+            // Check that resource matches
+            if (r->type != RESOURCE_PRESET)
+                continue;
+            if (::strstr(r->id, base) != r->id)
+                continue;
+
+            // Add preset
+            preset_t *p = vPresets.add();
+            if (p == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+            p->name     = NULL;
+            p->path     = NULL;
+            p->item     = NULL;
+
+            int xres    = ::asprintf(&p->path, "builtin://%s", r->id);
+            if ((xres <= 0) || (p->path == NULL))
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+
+            if ((p->name = ::strdup(&r->id[prefix_len])) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+
+            // Remove '.preset' extension from name
+            size_t len = ::strlen(p->name);
+            if ((len >= 7) && (::strcasecmp(&p->name[len-7], ".preset") == 0))
+                p->name[len-7]   = '\0';
+        }
+#else
+        ::snprintf(base, PATH_MAX, "res" FILE_SEPARATOR_S "presets" FILE_SEPARATOR_S "%s", pMetadata->ui_presets);
+
+        io::Dir dir;
+        io::Path entry;
+        io::fattr_t fattr;
+        LSPString extension, tmp;
+
+        if (!extension.set_ascii(".preset"))
+            return STATUS_NO_MEM;
+
+        status_t res = dir.open(base);
+        if (res != STATUS_OK)
+            return STATUS_OK;
+
+        while (true)
+        {
+            // Read entry
+            res = dir.reads(&entry, &fattr, true);
+            if (res == STATUS_EOF)
+                break;
+            else if (res != STATUS_OK)
+            {
+                destroy_presets();
+                dir.close();
+                return res;
+            }
+            if (fattr.type != io::fattr_t::FT_REGULAR)
+                continue;
+            if (!entry.as_string()->ends_with_nocase(&extension))
+                continue;
+
+            // Add preset
+            preset_t *p = vPresets.add();
+            if (p == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+            p->name     = NULL;
+            p->path     = NULL;
+            p->item     = NULL;
+
+            if ((p->path = ::strdup(entry.as_string()->get_utf8())) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+
+            res = entry.get_last(&tmp);
+            if (res != STATUS_OK)
+            {
+                destroy_presets();
+                return res;
+            }
+
+            ssize_t len = tmp.length() - extension.length();
+            if (len >= 0)
+                tmp.set_length(len);
+
+            if ((p->name = ::strdup(tmp.get_utf8())) == NULL)
+            {
+                destroy_presets();
+                return STATUS_NO_MEM;
+            }
+        }
+
+        dir.close();
+#endif
+
+        // Sort presets in alphabetical order
+        if (vPresets.size() > 0)
+        {
+            for (ssize_t i=0, n=vPresets.size(); i<n-1; ++i)
+            {
+                preset_t *a = vPresets.at(i);
+                for (ssize_t j=i+1; j<n; ++j)
+                {
+                    preset_t *b = vPresets.at(j);
+                    if (strcmp(a->name, b->name) > 0)
+                    {
+                        swap(a->path, b->path);
+                        swap(a->name, b->name);
+                        swap(a->item, b->item);
+                    }
+                }
+            }
+        }
+
+        return STATUS_OK;
+    }
+
+    void plugin_ui::destroy_presets()
+    {
+        for (size_t i=0, n=vPresets.size(); i<n; ++i)
+        {
+            preset_t *p = vPresets.at(i);
+            if (p->name != NULL)
+                ::free(p->name);
+            if (p->path != NULL)
+                ::free(p->path);
+            p->item = NULL;
+        }
+        vPresets.flush();
     }
 
     status_t plugin_ui::build()
@@ -924,11 +1027,11 @@ namespace lsp
         if (theme == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        #ifdef LSP_USE_EXPAT
-            strncpy(path, "res/ui/theme.xml", PATH_MAX);
+        #ifdef LSP_BUILTIN_RESOURCES
+            ::strncpy(path, "ui/theme.xml", PATH_MAX);
         #else
-            strncpy(path, "theme.xml", PATH_MAX);
-        #endif /* LSP_USE_EXPAT */
+            ::strncpy(path, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml", PATH_MAX);
+        #endif /* LSP_BUILTIN_RESOURCES */
 
         lsp_trace("Loading theme from file %s", path);
         result = load_theme(sDisplay.theme(), path);
@@ -946,11 +1049,11 @@ namespace lsp
             lsp_error("Error while loading global configuration file");
 
         // Generate path to UI schema
-        #ifdef LSP_USE_EXPAT
-            snprintf(path, PATH_MAX, "res/ui/%s", pMetadata->ui_resource);
+        #ifdef LSP_BUILTIN_RESOURCES
+            ::snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
         #else
-            strncpy(path, pMetadata->ui_resource, PATH_MAX);
-        #endif /* LSP_USE_EXPAT */
+            ::snprintf(path, PATH_MAX, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource);
+        #endif /* LSP_BUILTIN_RESOURCES */
         lsp_trace("Generating UI from file %s", path);
 
         ui_builder bld(this);
@@ -958,6 +1061,62 @@ namespace lsp
         {
             lsp_error("Could not build UI from file %s", path);
             return STATUS_UNKNOWN_ERR;
+        }
+
+        // Fetch main menu
+        LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));
+        if (menu == NULL)
+            return STATUS_NO_MEM;
+
+        // Add presets if they are present
+        if ((menu != NULL) && (vPresets.size() > 0))
+        {
+            // Get display
+            LSPDisplay *dpy     = menu->display();
+
+            // Create submenu item
+            LSPMenuItem *item   = new LSPMenuItem(dpy);
+            if (item == NULL)
+                return STATUS_NO_MEM;
+            vWidgets.add(item);
+            result = item->init();
+            if (result != STATUS_OK)
+                return result;
+
+            item->set_text("Load Preset");
+            menu->add(item);
+
+            // Create submenu
+            LSPMenu *submenu    = new LSPMenu(dpy);
+            if (submenu == NULL)
+                return STATUS_NO_MEM;
+            vWidgets.add(submenu);
+            result = submenu->init();
+            if (result != STATUS_OK)
+                return result;
+            item->set_submenu(submenu);
+
+            // Iterate all presets
+            for (size_t i=0, n=vPresets.size(); i<n; ++i)
+            {
+                preset_t *p     = vPresets.at(i);
+                if (p == NULL)
+                    continue;
+
+                // Create menu item and bind handler
+                item        = new LSPMenuItem(dpy);
+                if (item == NULL)
+                    return STATUS_NO_MEM;
+                vWidgets.add(item);
+                result = item->init();
+                if (result != STATUS_OK)
+                    return result;
+                item->set_text(p->name);
+                p->item     = item;
+
+                item->slots()->bind(LSPSLOT_SUBMIT, slot_preset_select, this);
+                submenu->add(item);
+            }
         }
 
         return STATUS_OK;

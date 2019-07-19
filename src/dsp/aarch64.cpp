@@ -5,7 +5,6 @@
  *      Author: sadko
  */
 
-#include <dsp/types.h>
 #include <dsp/dsp.h>
 
 #ifdef ARCH_AARCH64

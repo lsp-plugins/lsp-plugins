@@ -137,6 +137,25 @@ namespace lsp
         return STATUS_OK;
     }
 
+    void Object3D::calc_bound_box()
+    {
+        obj_triangle_t **vt = vTriangles.get_array();
+        for (size_t i=0, n=vTriangles.size(); i<n; ++i)
+        {
+            obj_triangle_t *t = *(vt++);
+            if (i == 0)
+            {
+                for (size_t i=0; i<8; ++i)
+                    sBoundBox.p[i] = *(t->v[0]);
+            }
+            else
+                calc_bound_box(t->v[0]);
+
+            calc_bound_box(t->v[1]);
+            calc_bound_box(t->v[2]);
+        }
+    }
+
     obj_edge_t *Object3D::register_edge(obj_vertex_t *v0, obj_vertex_t *v1)
     {
         // Lookup for already existing edge

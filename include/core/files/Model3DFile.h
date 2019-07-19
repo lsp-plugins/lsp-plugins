@@ -20,8 +20,14 @@ namespace lsp
      */
     class Model3DFile
     {
+        private:
+            Model3DFile & operator = (const Model3DFile &);
+
+        protected:
+            static status_t load_from_resource(Scene3D *scene, const void *data);
+
         public:
-            Model3DFile();
+            explicit Model3DFile();
             ~Model3DFile();
 
         public:

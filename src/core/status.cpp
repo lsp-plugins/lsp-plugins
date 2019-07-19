@@ -15,6 +15,7 @@ namespace lsp
         "Success",
         "Unspecified",
         "Loading",
+        "In process",
         "Unknown error",
         "Not enough memory",
         "Not found or does not exist",
@@ -62,6 +63,9 @@ namespace lsp
         "The object is currently locked",
         "The operation has been rejected",
         "Already bound",
+        "No valid captures",
+        "No valid sources",
+        "Bad path",
 
         NULL
     };
@@ -69,6 +73,30 @@ namespace lsp
     const char *get_status(status_t code)
     {
         return ((code >= 0) && (code < STATUS_TOTAL)) ? status_descriptions[code] : NULL;
+    }
+
+    bool status_is_success(status_t code)
+    {
+        return code == STATUS_OK;
+    }
+
+    bool status_is_preliminary(status_t code)
+    {
+        switch (code)
+        {
+            case STATUS_IN_PROCESS:
+            case STATUS_LOADING:
+                return true;
+        }
+        return false;
+    }
+
+    bool status_is_error(status_t code)
+    {
+        if (status_is_success(code))
+            return true;
+
+        return ! status_is_preliminary(code);
     }
 }
 

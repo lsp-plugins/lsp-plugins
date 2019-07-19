@@ -20,7 +20,7 @@ namespace lsp
                 CtlColor        sBgColor;
 
             public:
-                CtlGroup(CtlRegistry *src, LSPGroup *widget);
+                explicit CtlGroup(CtlRegistry *src, LSPGroup *widget);
                 virtual ~CtlGroup();
 
             public:

@@ -207,6 +207,11 @@ namespace lsp
 
         // Destroy objects
         w.disconnect();
+        if (pui != NULL)
+        {
+            pui->destroy();
+            delete pui;
+        }
         w.destroy();
 
         return status;
@@ -258,7 +263,10 @@ extern "C"
             res = STATUS_BAD_STATE;
         }
         else
+        {
             res = jack_plugin_main(p, pui, argc, argv);
+            pui = NULL; // Already destroyed by jack_plugin_main
+        }
 
         // Destroy objects
         if (pui != NULL)

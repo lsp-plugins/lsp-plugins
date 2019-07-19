@@ -71,7 +71,7 @@ namespace lsp
                 status_t        init_r3d_support(LSPMenu *menu);
 
             public:
-                CtlPluginWindow(plugin_ui *src, LSPWindow *wnd);
+                explicit CtlPluginWindow(plugin_ui *src, LSPWindow *wnd);
                 virtual ~CtlPluginWindow();
 
             public:

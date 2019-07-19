@@ -49,8 +49,22 @@ namespace lsp
         RT_CC_MS
     };
 
+    typedef struct room_source_config_t
+    {
+        point3d_t               sPos;       // Position in 3D space
+        float                   fYaw;       // Yaw angle (degrees)
+        float                   fPitch;     // Pitch angle (degrees)
+        float                   fRoll;      // Roll angle (degrees)
+        rt_audio_source_t       enType;     // Type of source
+        float                   fSize;      // Size/radius [m]
+        float                   fHeight;    // Height [m]
+        float                   fAngle;     // Dispersion angle [0..100] %
+        float                   fCurvature; // Additional curvature [0..100] %
+        float                   fAmplitude; // Initial amplitude of the signal
+    } room_source_config_t;
+
     // Source configuration
-    typedef struct room_source_settings_t
+    typedef struct rt_source_settings_t
     {
         matrix3d_t              pos;        // Position and direction of source
         rt_audio_source_t       type;       // Type of the the source
@@ -58,6 +72,7 @@ namespace lsp
         float                   height;     // Height [m]
         float                   angle;      // Dispersion angle [0..100] %
         float                   curvature;  // Additional curvature [0..100] %
+        float                   amplitude;  // Initial amplitude of the signal
     } room_source_settings_t;
 
     // Capture configuration
@@ -75,22 +90,51 @@ namespace lsp
         rt_audio_capture_t      enSide;     // Side microphone direction
     } room_capture_config_t;
 
-    typedef struct room_capture_settings_t
+    typedef struct rt_capture_settings_t
     {
-        matrix3d_t              pos[2];     // Position and direction of capture
-        rt_audio_capture_t      type[2];    // Type of capture
-        float                   r[2];       // Capture radius
-        size_t                  n;          // Number of elements
-    } room_capture_settings_t;
-
+        matrix3d_t              pos;        // Position in 3D space
+        float                   radius;     // Capture radius
+        rt_audio_capture_t      type;       // Capture type
+    } rt_capture_settings_t;
 
     /**
-     * Generate raytracing groups according to settings of the audio source
+     * Generate raytracing source groups' mesh according to settings of the audio source
+     * The function does not apply transform matrix to the output
+     *
      * @param out raytracing groups
-     * @param cfg configuration
+     * @param cfg source configuration
      * @return status of operation
      */
-    status_t gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg);
+    status_t rt_gen_source_mesh(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg);
+
+    /**
+     * Generate raytracing capture mesh groups according to settings of the audio capture
+     * The function does not apply transform matrix to the output
+     *
+     * @param out triangle mesh
+     * @param cfg source configuration
+     * @return status of operation
+     */
+    status_t rt_gen_capture_mesh(cstorage<raw_triangle_t> &out, const rt_capture_settings_t *cfg);
+
+    /**
+     * Configure capture
+     * @param n number of captures generated
+     * @param settings array of two structures to store capture settings
+     * @param cfg capture configuration
+     * @return status of operation
+     */
+    status_t rt_configure_capture(size_t *n, rt_capture_settings_t *settings, const room_capture_config_t *cfg);
+
+    /**
+     * Configure source settings
+     * @param out source settings
+     * @param in source configuration
+     * @return status of operation
+     */
+    status_t rt_configure_source(rt_source_settings_t *out, const room_source_config_t *in);
+
+
 
 }
 

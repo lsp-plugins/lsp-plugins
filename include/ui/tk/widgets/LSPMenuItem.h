@@ -31,7 +31,7 @@ namespace lsp
                 static status_t        slot_on_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                LSPMenuItem(LSPDisplay *dpy);
+                explicit LSPMenuItem(LSPDisplay *dpy);
                 virtual ~LSPMenuItem();
 
                 virtual status_t init();

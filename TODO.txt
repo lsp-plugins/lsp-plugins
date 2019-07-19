@@ -7,13 +7,17 @@
   plugin series
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
+- Review implementation of multiband compressor according to the article:
+  https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
 === 1.1.10 ===
 
+* Implemented 3D reverb simulator.
 * Fixed improper InlineDisplay feature support in LV2 TTL files.
 * Plugin names now have 'LSP' prefix for the LV2 format.
 * Each plugin can now provide it's custom UI class which is derived from common plugin class.
 * Code now compiles for the PPC64 architecture.
+* Code now compiles for the IBM s390x architecture.
 * Added command-line option to pass configuration file name for standalone JACK plugins.
   The settings stored in configuration file will be automatically loaded at startup.
 * Updated function signatures for libraries which now support '-fvisibility=hidden'
@@ -31,8 +35,9 @@
 * Implemented key-value tree storage (KVTStorage) serialization/deserialization in parameters.
 * Implemented key-value tree storage (KVTStorage) serialization/deserialization for the plugin state.
 * Implemented mechanism for UI<->DSP OSC message interchange.
-- Fixed broken settings export.
-- Implemented 3D reverb simulator.
+* Improved built-in resource generation tool.
+* Embedded resources are now alphabetically sorted to make the build more deterministic.
+* Added support of built-in presets for plugin's UI.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
 - Implemented sampler plugin series with stereo outputs.

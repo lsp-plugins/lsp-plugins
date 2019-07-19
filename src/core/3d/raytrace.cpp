@@ -146,7 +146,7 @@ namespace lsp
         return d;
     }
 
-    status_t gen_triangle_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_triangle_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         rt_group_t *g = out.append();
         if (g == NULL)
@@ -164,7 +164,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_octa_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_octa_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = sizeof(octa_faces) / (sizeof(uint8_t) * 3);
         rt_group_t *g       = out.append_n(n);
@@ -193,7 +193,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_ico_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_ico_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = sizeof(ico_faces) / (sizeof(uint8_t) * 3);
         rt_group_t *g       = out.append_n(n);
@@ -222,7 +222,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_box_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_box_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = sizeof(box_faces) / (sizeof(uint8_t) * 3);
         rt_group_t *g       = out.append_n(n);
@@ -251,7 +251,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_tetra_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_tetra_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = sizeof(tetra_faces) / (sizeof(uint8_t) * 3);
         rt_group_t *g       = out.append_n(n);
@@ -280,7 +280,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_cyl_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_cyl_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = 16;
         rt_group_t *g       = out.append_n(n*2);
@@ -327,7 +327,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_cone_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_cone_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = 16;
         rt_group_t *g       = out.append_n(n);
@@ -358,7 +358,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_flat_spot_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_flat_spot_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = 16;
         rt_group_t *g       = out.append_n(n);
@@ -389,7 +389,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_sphere_spot_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_sphere_spot_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n = 16, r = 4;
         rt_group_t *g       = out.append_n(n * r * 2);
@@ -453,7 +453,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_cyl_spot_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_cyl_spot_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = 8;
         rt_group_t *g       = out.append_n(n*2 + 1);
@@ -516,7 +516,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_icosphere_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_icosphere_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = sizeof(ico_faces) / (sizeof(uint8_t) * 3);
         rt_group_t *g       = out.append_n(n * 4);
@@ -582,7 +582,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_octasphere_source(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t gen_octasphere_source(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         size_t n            = sizeof(octa_faces) / (sizeof(uint8_t) * 3);
         rt_group_t *g       = out.append_n(n * 4);
@@ -648,7 +648,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t gen_source_mesh(cstorage<rt_group_t> &out, const room_source_settings_t *cfg)
+    status_t rt_gen_source_mesh(cstorage<rt_group_t> &out, const rt_source_settings_t *cfg)
     {
         out.clear();
         switch (cfg->type)
@@ -667,6 +667,195 @@ namespace lsp
             case RT_AS_TRIANGLE:    return gen_triangle_source(out, cfg);
         }
         return STATUS_BAD_ARGUMENTS;
+    }
+
+    status_t rt_gen_capture_mesh(cstorage<raw_triangle_t> &out, const rt_capture_settings_t *cfg)
+    {
+        out.clear();
+
+        size_t n            = sizeof(ico_faces) / (sizeof(uint8_t) * 3);
+        raw_triangle_t *g   = out.append_n(n * 4);
+        if (g == NULL)
+            return STATUS_NO_MEM;
+
+        point3d_t sp;
+        dsp::init_point_xyz(&sp, 0.0f, 0.0f, 0.0f);
+
+        const uint8_t *vi   = ico_faces;
+        point3d_t p[3], xp[3];
+
+        for (size_t i=0; i<n; ++i, vi += 3, g += 4)
+        {
+            xp[0]   = ico_vertex[vi[0]];
+            xp[1]   = ico_vertex[vi[1]];
+            xp[2]   = ico_vertex[vi[2]];
+
+            p[0].x  = (xp[0].x + xp[1].x) * 0.5f;
+            p[0].y  = (xp[0].y + xp[1].y) * 0.5f;
+            p[0].z  = (xp[0].z + xp[1].z) * 0.5f;
+            p[0].w  = 1.0f;
+
+            p[1].x  = (xp[1].x + xp[2].x) * 0.5f;
+            p[1].y  = (xp[1].y + xp[2].y) * 0.5f;
+            p[1].z  = (xp[1].z + xp[2].z) * 0.5f;
+            p[1].w  = 1.0f;
+
+            p[2].x  = (xp[2].x + xp[0].x) * 0.5f;
+            p[2].y  = (xp[2].y + xp[0].y) * 0.5f;
+            p[2].z  = (xp[2].z + xp[0].z) * 0.5f;
+            p[2].w  = 1.0f;
+
+            dsp::scale_point2(&g[0].v[0], &xp[0], cfg->radius);
+            dsp::scale_point2(&g[0].v[1], &p[0], cfg->radius);
+            dsp::scale_point2(&g[0].v[2], &p[2], cfg->radius);
+
+            dsp::scale_point2(&g[1].v[0], &xp[1], cfg->radius);
+            dsp::scale_point2(&g[1].v[1], &p[1], cfg->radius);
+            g[1].v[2]   = g[0].v[1];
+
+            dsp::scale_point2(&g[2].v[0], &xp[2], cfg->radius);
+            g[2].v[1]   = g[0].v[2];
+            g[2].v[2]   = g[1].v[1];
+
+            g[3].v[0]   = g[0].v[1];
+            g[3].v[1]   = g[1].v[1];
+            g[3].v[2]   = g[2].v[1];
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t rt_configure_source(rt_source_settings_t *out, const room_source_config_t *in)
+    {
+        matrix3d_t delta, m;
+
+        // Compute position
+        dsp::init_matrix3d_translate_p1(&delta, &in->sPos);
+
+        dsp::init_matrix3d_rotate_z(&m, in->fYaw * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        dsp::init_matrix3d_rotate_y(&m, in->fPitch * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        dsp::init_matrix3d_rotate_x(&m, in->fRoll * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        // Store parameters
+        out->pos        = delta;
+        out->type       = in->enType;
+        out->size       = in->fSize;
+        out->height     = in->fHeight;
+        out->angle      = in->fAngle;
+        out->curvature  = in->fCurvature;
+        out->amplitude  = in->fAmplitude;
+
+        return STATUS_OK;
+    }
+
+    status_t rt_configure_capture(size_t *n, rt_capture_settings_t *out, const room_capture_config_t *cfg)
+    {
+        matrix3d_t m, delta;
+        float a[2];
+        vector3d_t dp[2];
+
+//        // Compute parameters of capture in point(0, 0, 0)
+//        for (size_t i=0; i<2; ++i)
+//        {
+//            dsp::init_point_xyz(&out->pos[i].z, 0.0f, 0.0f, 0.0f);
+//            dsp::init_vector_dxyz(&out->pos[i].v, 1.0f, 0.0f, 0.0f);
+//        }
+        dsp::init_vector_dxyz(&dp[0], 0.0f, 0.0f, 0.0f);
+        dsp::init_vector_dxyz(&dp[1], 0.0f, 0.0f, 0.0f);
+
+//        out->r[0]       = in->fCapsule * 0.01f; // cm -> m
+//        out->r[1]       = in->fCapsule * 0.01f; // cm -> m
+//        out->type[0]    = in->enDirection;
+//        out->type[1]    = in->enDirection;
+        float r         = cfg->fCapsule * 0.01f;
+
+        switch (cfg->sConfig)
+        {
+            case RT_CC_MONO:
+                *n                  = 1;
+                a[0]                = 0.0f;
+                a[1]                = 0.0f;
+                out[0].type         = cfg->enDirection;
+                out[1].type         = cfg->enDirection;
+                break;
+            case RT_CC_XY:
+                *n                  = 2;
+                dp[0].dy           += r;
+                dp[1].dy           -= r;
+                a[0]                = -45.0f - (cfg->fAngle - 90.0f) * 0.5f;
+                a[1]                = 45.0f + (cfg->fAngle - 90.0f) * 0.5f;
+
+                out[0].type         = cfg->enDirection;
+                out[1].type         = cfg->enDirection;
+                break;
+            case RT_CC_AB:
+                *n                  = 2;
+                dp[0].dy           += cfg->fDistance * 0.5f;
+                dp[1].dy           -= cfg->fDistance * 0.5f;
+                a[0]                = 0.0f;
+                a[1]                = 0.0f;
+
+                out[0].type         = cfg->enDirection;
+                out[1].type         = cfg->enDirection;
+                break;
+            case RT_CC_ORTF:
+                *n                  = 2;
+                dp[0].dy           += 0.075f;  // Half of human's head width
+                dp[1].dy           -= 0.075f;  // Half of human's head width
+                a[0]                =  45.0f + (cfg->fAngle - 90.0f) * 0.5f;  // -45 + (a - 90) * 45 / 90
+                a[1]                = -45.0f - (cfg->fAngle - 90.0f) * 0.5f; // -45 - (a - 90) * 45 / 90
+
+                out[0].type         = cfg->enDirection;
+                out[1].type         = cfg->enDirection;
+                break;
+            case RT_CC_MS:
+                *n                  = 2;
+                dp[0].dz           += r;
+                dp[1].dz           -= r;
+                a[0]                = 0.0f;
+                a[1]                = 90.0f;
+
+                out[0].type         = cfg->enDirection;
+                out[1].type         = cfg->enSide;
+                break;
+
+            default:
+                return STATUS_BAD_ARGUMENTS;
+        }
+
+        out[0].radius       = r;
+        out[1].radius       = r;
+
+        // Compute rotation matrix
+        dsp::init_matrix3d_translate_p1(&delta, &cfg->sPos);
+
+        dsp::init_matrix3d_rotate_z(&m, cfg->fYaw * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        dsp::init_matrix3d_rotate_y(&m, cfg->fPitch * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        dsp::init_matrix3d_rotate_x(&m, cfg->fRoll * M_PI / 180.0f);
+        dsp::apply_matrix3d_mm1(&delta, &m);
+
+        // Compute initial matrices
+        for (size_t i=0; i<2; ++i)
+        {
+            out[i].pos  = delta;
+
+            dsp::init_matrix3d_translate(&m, dp[i].dx, dp[i].dy, dp[i].dz);
+            dsp::apply_matrix3d_mm1(&out[i].pos, &m);
+
+            dsp::init_matrix3d_rotate_z(&m, a[i] * M_PI / 180.0f);
+            dsp::apply_matrix3d_mm1(&out[i].pos, &m);
+        }
+
+        return STATUS_OK;
     }
 }
 

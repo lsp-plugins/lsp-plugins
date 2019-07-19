@@ -16,7 +16,7 @@ namespace lsp
         class CtlCell: public CtlWidget
         {
             public:
-                CtlCell(CtlRegistry *src, LSPCell *cell);
+                explicit CtlCell(CtlRegistry *src, LSPCell *cell);
                 virtual ~CtlCell();
 
             public:

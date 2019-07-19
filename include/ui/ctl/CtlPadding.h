@@ -19,7 +19,7 @@ namespace lsp
                 ssize_t         vAttributes[5];
 
             public:
-                CtlPadding();
+                explicit CtlPadding();
                 virtual ~CtlPadding();
 
             public:

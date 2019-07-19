@@ -17,6 +17,7 @@ namespace lsp
         STATUS_OK,
         STATUS_UNSPECIFIED,
         STATUS_LOADING,
+        STATUS_IN_PROCESS,
         STATUS_UNKNOWN_ERR,
         STATUS_NO_MEM,
         STATUS_NOT_FOUND,
@@ -64,6 +65,9 @@ namespace lsp
         STATUS_LOCKED,
         STATUS_REJECTED,
         STATUS_ALREADY_BOUND,
+        STATUS_NO_CAPTURES,
+        STATUS_NO_SOURCES,
+        STATUS_BAD_PATH,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
@@ -73,6 +77,10 @@ namespace lsp
     extern const char *status_descriptions[];
 
     const char *get_status(status_t code);
+
+    bool status_is_success(status_t code);
+    bool status_is_preliminary(status_t code);
+    bool status_is_error(status_t code);
 }
 
 #endif /* CORE_STATUS_H_ */

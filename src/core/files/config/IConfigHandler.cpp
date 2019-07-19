@@ -28,6 +28,16 @@ namespace lsp
         {
             return STATUS_OK;
         }
+
+        status_t IConfigHandler::handle_kvt_parameter(const LSPString *name, const kvt_param_t *param, size_t flags)
+        {
+            return handle_kvt_parameter(name->get_utf8(), param, flags);
+        }
+
+        status_t IConfigHandler::handle_kvt_parameter(const char *name, const kvt_param_t *param, size_t flags)
+        {
+            return STATUS_OK;
+        }
     
     } /* namespace ctl */
 } /* namespace lsp */

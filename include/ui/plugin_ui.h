@@ -13,8 +13,8 @@
 #include <data/cvector.h>
 
 #include <ui/ws/ws.h>
-#include <core/files/config.h>
 #include <core/io/IInStream.h>
+#include <core/files/config.h>
 #include <core/port_data.h>
 
 namespace lsp
@@ -25,6 +25,13 @@ namespace lsp
             plugin_ui &operator = (const plugin_ui &);
 
         protected:
+            typedef struct preset_t
+            {
+                char       *name;
+                char       *path;
+                LSPWidget  *item;
+            } preset_t;
+
             class ConfigHandler: public config::IConfigHandler
             {
                 private:
@@ -43,6 +50,8 @@ namespace lsp
 
                 public:
                     virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
+
+                    virtual status_t handle_kvt_parameter(const char *name, const kvt_param_t *param, size_t flags);
 
                     void notify_all();
             };
@@ -87,6 +96,8 @@ namespace lsp
             cvector<CtlPortAlias>       vAliases;
             cvector<CtlKvtListener>     vKvtListeners;
 
+            cstorage<preset_t>          vPresets;
+
         protected:
             static const port_t         vConfigMetadata[];
             static const port_t         vTimeMetadata[];
@@ -96,6 +107,10 @@ namespace lsp
             CtlWidget      *build_widget(widget_ctl_t w_class);
             io::File       *open_config_file(bool write);
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
+            status_t        scan_presets();
+            void            destroy_presets();
+
+            static status_t slot_preset_select(LSPWidget *sender, void *ptr, void *data);
 
         public:
             explicit plugin_ui(const plugin_metadata_t *mdata, void *root_widget);

@@ -71,7 +71,6 @@ namespace lsp
         {
             private:
                 mutable volatile atomic_t       nLock;      // 1 = locked, 0 = locked
-                mutable volatile atomic_t       nWaiters;   // Number of waiters
                 mutable pthread_t               nThreadId;  // Locked thread identifier
                 mutable atomic_t                nLocks;     // Number of locks by current thread
 
@@ -82,7 +81,6 @@ namespace lsp
                 explicit Mutex()
                 {
                     nLock       = 1;
-                    nWaiters    = 0;
                     nThreadId   = -1;
                     nLocks      = 0;
                 }
@@ -101,19 +99,7 @@ namespace lsp
                 /** Unlock mutex
                  *
                  */
-                inline bool unlock() const
-                {
-                    if (nThreadId != pthread_self())
-                        return false;
-                    if (!(--nLocks))
-                    {
-                        nThreadId       = -1;
-                        atomic_swap(&nLock, 1);
-                        if (nWaiters > 0)
-                            syscall(SYS_futex, &nLock, FUTEX_WAKE, 1, NULL, 0, 0);
-                    }
-                    return true;
-                }
+                bool unlock() const;
         };
 #else
         /**

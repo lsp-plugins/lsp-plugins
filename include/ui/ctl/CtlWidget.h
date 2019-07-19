@@ -30,6 +30,7 @@ namespace lsp
 
             protected:
                 void            init_color(color_t value, Color *color);
+                void            init_color(color_t value, LSPColor *color);
 
             public:
                 explicit CtlWidget(CtlRegistry *src, LSPWidget *widget);

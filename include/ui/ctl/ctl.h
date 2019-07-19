@@ -68,12 +68,16 @@ namespace lsp
             WC_PARAM,
             WC_PLUGIN,
             WC_PORT,
+            WC_PROGRESS,
+            WC_SAMPLE,
             WC_SAVE,
             WC_SBAR,
             WC_SEP,
             WC_SOURCE3D,
+            WC_STATUS,
             WC_SWITCH,
             WC_TEXT,
+            WC_THREADCOMBO,
             WC_TTAP,
             WC_VALUE,
             WC_VBOX,
@@ -113,6 +117,7 @@ namespace lsp
             A_DEFAULT,
             A_DETAILED,
             A_DISTANCE_ID,
+            A_DURATION_ID,
             A_EDITABLE,
             A_EXPAND,
             A_FADEIN_ID,
@@ -147,6 +152,7 @@ namespace lsp
             A_LIGHT_ID,
             A_LOGARITHMIC,
             A_MAX,
+            A_MAX_DURATION_ID,
             A_MESH_ID,
             A_MIN,
             A_MODE,
@@ -212,9 +218,12 @@ namespace lsp
             A_VSPACING,
             A_WIDTH,
             A_XPOS_ID,
+            A_XSCALE_ID,
             A_YAW_ID,
             A_YPOS_ID,
-            A_ZPOS_ID
+            A_YSCALE_ID,
+            A_ZPOS_ID,
+            A_ZSCALE_ID
         };
 
         // Helper functions
@@ -286,6 +295,8 @@ namespace lsp
 #include <ui/ctl/CtlSaveFile.h>
 #include <ui/ctl/CtlLoadFile.h>
 #include <ui/ctl/CtlComboGroup.h>
+#include <ui/ctl/CtlProgressBar.h>
+#include <ui/ctl/CtlAudioSample.h>
 
 #include <ui/ctl/CtlGraph.h>
 #include <ui/ctl/CtlAxis.h>
@@ -313,5 +324,6 @@ namespace lsp
 #include <ui/ctl/CtlPortHandler.h>
 #include <ui/ctl/CtlConfigSource.h>
 #include <ui/ctl/CtlConfigHandler.h>
+#include <ui/ctl/CtlThreadComboBox.h>
 
 #endif /* UI_CTL_CTL_H_ */

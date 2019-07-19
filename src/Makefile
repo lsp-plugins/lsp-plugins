@@ -1,13 +1,15 @@
 SUBDIRS                 = core metadata utils rendering 
 MODULES                 = $(SUBDIRS)
-CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES) 
+CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES)
+UTL_DEPS                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
 
 NEED_UI                 = 0
 NEED_PLUGINS            = 0
 
 ifeq ($(LSP_TESTING),1)
-  SUBDIRS                += test
-  CONTAINER_DEPS         += $(OBJ_TEST_CORE)
+  SUBDIRS                += test testing
+  CONTAINER_DEPS         += $(OBJ_TEST_CORE) $(OBJ_TESTING_CORE)
+  UTL_DEPS               += $(OBJ_TEST_CORE)
   NEED_UI                 = 1
   NEED_PLUGINS            = 1
 endif
@@ -71,21 +73,25 @@ $(OBJ_UI_CORE): ui
 
 $(UTL_FILES): utils
 
+$(UTL_RESGEN): utils
+
 $(UTL_JACKMAKE): utils
 
-$(OBJ_TEST_CORE): test rendering
+$(OBJ_TEST_CORE): test
+
+$(OBJ_TESTING_CORE): test rendering
 
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
-	@echo "Generating XML resources"
+	@echo "Generating builtin resources"
 	@mkdir -p $(OBJDIR)/res
-	@$(UTL_RESGEN) $(BASEDIR)/res/ui $(OBJDIR)/res/xml_resource.cpp
+	@$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(BASEDIR)/res/ui $(BASEDIR)/res/presets $(BASEDIR)/res/models
 	@-rm gmon.out >/dev/null 2>&1
-	@$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/xml_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
+	@$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/builtin_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 
 # Target dependencies
 container: $(CONTAINER_DEPS)
 
-utils: $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
+utils: $(UTL_DEPS)
 
 doc: utils $(PHP_PLUGINS)
 

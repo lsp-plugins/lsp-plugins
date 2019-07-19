@@ -23,7 +23,7 @@ namespace lsp
                 void        update_coords();
 
             public:
-                CtlText(CtlRegistry *src, LSPText *text);
+                explicit CtlText(CtlRegistry *src, LSPText *text);
                 virtual ~CtlText();
 
             public:

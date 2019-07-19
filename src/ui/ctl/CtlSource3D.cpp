@@ -36,13 +36,6 @@ namespace lsp
 
             bRebuildMesh= true;
 
-            fPosX       = 0.0f;
-            fPosY       = 0.0f;
-            fPosZ       = 0.0f;
-            fYaw        = 0.0f;
-            fPitch      = 0.0f;
-            fRoll       = 0.0f;
-
             pMode       = NULL;
             pPosX       = NULL;
             pPosY       = NULL;
@@ -55,12 +48,16 @@ namespace lsp
             pHeight     = NULL;
             pAngle      = NULL;
 
-            dsp::init_matrix3d_identity(&sSource.pos);
-            sSource.type        = RT_AS_ICO;
-            sSource.size        = 1.0f;
-            sSource.height      = 1.0f;
-            sSource.angle       = 90.0f;
-            sSource.curvature   = 100.0f;
+            dsp::init_point_xyz(&sSource.sPos, 0.0f, 0.0f, 0.0f);
+            sSource.fYaw        = 0.0f;
+            sSource.fPitch      = 0.0f;
+            sSource.fRoll       = 0.0f;
+            sSource.enType       = RT_AS_ICO;
+            sSource.fSize        = 1.0f;
+            sSource.fHeight      = 1.0f;
+            sSource.fAngle       = 90.0f;
+            sSource.fCurvature   = 100.0f;
+            sSource.fAmplitude   = 1.0f;
         }
         
         CtlSource3D::~CtlSource3D()
@@ -139,22 +136,12 @@ namespace lsp
             if (mesh == NULL)
                 return;
 
-            matrix3d_t delta, m;
-
-            // Compute rotation matrix
-            dsp::init_matrix3d_translate(&delta, fPosX, fPosY, fPosZ);
-
-            dsp::init_matrix3d_rotate_z(&m, fYaw * M_PI / 180.0f);
-            dsp::apply_matrix3d_mm1(&delta, &m);
-
-            dsp::init_matrix3d_rotate_y(&m, fPitch * M_PI / 180.0f);
-            dsp::apply_matrix3d_mm1(&delta, &m);
-
-            dsp::init_matrix3d_rotate_x(&m, fRoll * M_PI / 180.0f);
-            dsp::apply_matrix3d_mm1(&delta, &m);
+            rt_source_settings_t settings;
+            if (rt_configure_source(&settings, &sSource) != STATUS_OK)
+                return;
 
             // Commit matrix to mesh
-            mesh->set_transform(&delta);
+            mesh->set_transform(&settings.pos);
             mesh->query_draw();
         }
 
@@ -177,9 +164,13 @@ namespace lsp
             if (mesh == NULL)
                 return;
 
+            rt_source_settings_t settings;
+            if (rt_configure_source(&settings, &sSource) != STATUS_OK)
+                return;
+
             // Generate source mesh depending on current configuration
             cstorage<rt_group_t> groups;
-            status_t res    = gen_source_mesh(groups, &sSource);
+            status_t res    = rt_gen_source_mesh(groups, &settings);
             if (res != STATUS_OK)
                 return;
 
@@ -246,58 +237,58 @@ namespace lsp
 
             if (port == pPosX)
             {
-                fPosX       = port->get_value();
-                sync    = true;
+                sSource.sPos.x  = port->get_value();
+                sync            = true;
             }
             if (port == pPosY)
             {
-                fPosY       = port->get_value();
-                sync    = true;
+                sSource.sPos.y  = port->get_value();
+                sync            = true;
             }
             if (port == pPosZ)
             {
-                fPosZ       = port->get_value();
-                sync    = true;
+                sSource.sPos.z  = port->get_value();
+                sync            = true;
             }
             if (port == pYaw)
             {
-                fYaw        = port->get_value();
-                sync    = true;
+                sSource.fYaw    = port->get_value();
+                sync            = true;
             }
             if (port == pPitch)
             {
-                fPitch      = port->get_value();
-                sync    = true;
+                sSource.fPitch  = port->get_value();
+                sync            = true;
             }
             if (port == pRoll)
             {
-                fRoll       = port->get_value();
-                sync    = true;
+                sSource.fRoll   = port->get_value();
+                sync            = true;
             }
 
             if (port == pMode)
             {
-                sSource.type    = room_builder_base::decode_source_type(port->get_value());
+                sSource.enType  = room_builder_base::decode_source_type(port->get_value());
                 rebuild         = true;
             }
             if (port == pHeight)
             {
-                sSource.height  = port->get_value() * 0.01f;    // cm -> m
+                sSource.fHeight = port->get_value() * 0.01f;    // cm -> m
                 rebuild         = true;
             }
             if (port == pAngle)
             {
-                sSource.angle   = port->get_value();
+                sSource.fAngle  = port->get_value();
                 rebuild         = true;
             }
             if (port == pCurvature)
             {
-                sSource.curvature   = port->get_value();
+                sSource.fCurvature  = port->get_value();
                 rebuild             = true;
             }
             if (port == pSize)
             {
-                sSource.size        = port->get_value() * 0.01 * 0.5f;    // cm -> m, diameter -> radius
+                sSource.fSize       = port->get_value() * 0.01 * 0.5f;    // cm -> m, diameter -> radius
                 rebuild             = true;
             }
 

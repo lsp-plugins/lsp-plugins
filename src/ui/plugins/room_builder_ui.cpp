@@ -135,6 +135,8 @@ namespace lsp
             ::free(pItems);
             pItems      = NULL;
         }
+
+        osc::pattern_destroy(&sOscPattern);
     }
 
     const char *room_builder_ui::CtlListPort::name()
@@ -170,7 +172,11 @@ namespace lsp
         KVTStorage *kvt = pUI->kvt_lock();
         if (kvt != NULL)
         {
-            kvt->put("/scene/selected", float(index), KVT_RX);
+            kvt_param_t p;
+            p.type      = KVT_FLOAT32;
+            p.f32       = index;
+            kvt->put("/scene/selected", &p, KVT_RX);
+            pUI->kvt_write(kvt, "/scene/selected", &p);
             pUI->kvt_release();
         }
 
@@ -303,8 +309,217 @@ namespace lsp
         return false;
     }
 
+    room_builder_ui::CtlMaterialPreset::CtlMaterialPreset(room_builder_ui *ui)
+    {
+        pUI         = ui;
+        pCBox       = NULL;
+        hHandler    = -1;
+        pSpeed      = NULL;
+        pAbsorption = NULL;
+        pSelected   = NULL;
+    }
+
+    room_builder_ui::CtlMaterialPreset::~CtlMaterialPreset()
+    {
+        pSpeed      = NULL;
+        pAbsorption = NULL;
+        pSelected   = NULL;
+    }
+
+    void room_builder_ui::CtlMaterialPreset::init(const char *preset, const char *selected, const char *speed, const char *absorption)
+    {
+        // Just bind ports
+        pSpeed      = pUI->port(speed);
+        pAbsorption = pUI->port(absorption);
+        pSelected   = pUI->port(selected);
+
+        // Fetch widget
+        pCBox = widget_cast<LSPComboBox>(pUI->resolve("mpreset"));
+
+        // Initialize list of presets
+        if (pCBox != NULL)
+        {
+            // Initialize box
+            pCBox->items()->add("<select material>", -1.0f);
+            size_t i=0;
+            for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m)
+                pCBox->items()->add(m->name, i++);
+            pCBox->set_selected(0);
+
+            // Bind listener
+            hHandler    = pCBox->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+        }
+
+        // Bind handlers and notify changes
+        if (pSpeed != NULL)
+        {
+            pSpeed->bind(this);
+            pSpeed->notify_all();
+        }
+        if (pAbsorption != NULL)
+        {
+            pAbsorption->bind(this);
+            pAbsorption->notify_all();
+        }
+        if (pSelected != NULL)
+        {
+            pSelected->bind(this);
+            pSelected->notify_all();
+        }
+    }
+
+    status_t room_builder_ui::CtlMaterialPreset::slot_change(LSPWidget *sender, void *ptr, void *data)
+    {
+        CtlMaterialPreset *_this = reinterpret_cast<CtlMaterialPreset *>(ptr);
+        if (ptr == NULL)
+            return STATUS_BAD_STATE;
+
+        ssize_t sel = _this->pSelected->get_value();
+        if (sel < 0)
+            return STATUS_OK;
+
+        ssize_t idx = (_this->pCBox != NULL) ? _this->pCBox->selected() - 1 : -1;
+        if (idx < 0)
+            return STATUS_OK;
+
+        const room_material_t *m = &room_builder_base_metadata::materials[idx];
+
+        if (_this->pAbsorption->get_value() != m->absorption)
+        {
+            _this->pAbsorption->set_value(m->absorption);
+            _this->pAbsorption->notify_all();
+        }
+
+        if (_this->pSpeed->get_value() != m->speed)
+        {
+            _this->pSpeed->set_value(m->speed);
+            _this->pSpeed->notify_all();
+        }
+
+        return STATUS_OK;
+    }
+
+    void room_builder_ui::CtlMaterialPreset::notify(CtlPort *port)
+    {
+        if (pCBox == NULL)
+            return;
+
+        float fAbsorption   = pAbsorption->get_value();
+        float fSpeed        = pSpeed->get_value();
+
+        // Find best match
+        ssize_t idx = 0, i = 1;
+        for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m, ++i)
+        {
+            if ((m->speed == fSpeed) && (m->absorption == fAbsorption))
+            {
+                idx = i;
+                break;
+            }
+        }
+
+        // Set-up selected index in non-notify mode
+        if (pCBox->selected() != idx)
+        {
+            pCBox->slots()->disable(LSPSLOT_CHANGE, hHandler);
+            pCBox->set_selected(idx);
+            pCBox->slots()->enable(LSPSLOT_CHANGE, hHandler);
+        }
+    }
+
+    room_builder_ui::CtlKnobBinding::CtlKnobBinding(room_builder_ui *ui, bool reverse)
+    {
+        pUI         = ui;
+        pOuter      = NULL;
+        pInner      = NULL;
+        pLink       = NULL;
+        bReverse    = reverse;
+    }
+
+    room_builder_ui::CtlKnobBinding::~CtlKnobBinding()
+    {
+        pUI         = NULL;
+        pOuter      = NULL;
+        pInner      = NULL;
+        pLink       = NULL;
+        bReverse    = false;
+    }
+
+    void room_builder_ui::CtlKnobBinding::init(const char *outer, const char *inner, const char *link)
+    {
+        // Just bind ports
+        pOuter      = pUI->port(outer);
+        pInner      = pUI->port(inner);
+        pLink       = pUI->port(link);
+
+        // Bind handlers and notify changes
+        if (pLink != NULL)
+        {
+            pLink->bind(this);
+            pLink->notify_all();
+        }
+        if (pInner != NULL)
+        {
+            pInner->bind(this);
+            pInner->notify_all();
+        }
+        if (pOuter != NULL)
+        {
+            pOuter->bind(this);
+            pOuter->notify_all();
+        }
+    }
+
+    void room_builder_ui::CtlKnobBinding::notify(CtlPort *port)
+    {
+        if (port == NULL)
+            return;
+
+        bool link = (pLink != NULL) ? pLink->get_value() >= 0.5f : false;
+        if (!link)
+            return;
+
+        if (port == pLink)
+            port = pOuter;
+
+        if ((port == pInner) && (pInner != NULL))
+        {
+            const port_t *meta = pInner->metadata();
+            float v = pInner->get_value();
+            if (bReverse)
+                v = meta->max - v;
+
+            if (pOuter->get_value() != v)
+            {
+                pOuter->set_value(v);
+                pOuter->notify_all();
+            }
+        }
+        else if ((port == pOuter) && (pOuter != NULL))
+        {
+            const port_t *meta = pOuter->metadata();
+            float v = pOuter->get_value();
+            if (bReverse)
+                v = meta->max - v;
+
+            if (pInner->get_value() != v)
+            {
+                pInner->set_value(v);
+                pInner->notify_all();
+            }
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    // Main class methods
+
     room_builder_ui::room_builder_ui(const plugin_metadata_t *mdata, void *root_widget):
-        plugin_ui(mdata, root_widget)
+        plugin_ui(mdata, root_widget),
+        sPresets(this),
+        sAbsorption(this, false),
+        sTransparency(this, true),
+        sDispersion(this, false),
+        sDiffuse(this, false)
     {
         nSelected       = -1;
     }
@@ -351,15 +566,32 @@ namespace lsp
         BIND_KVT_PORT("color/hue", fHue);
         BIND_KVT_PORT("material/absorption/outer", fAbsorption[0]);
         BIND_KVT_PORT("material/absorption/inner", fAbsorption[1]);
+        BIND_KVT_PORT("material/absorption/link", lnkAbsorption);
         BIND_KVT_PORT("material/dispersion/outer", fDispersion[0]);
         BIND_KVT_PORT("material/dispersion/inner", fDispersion[1]);
-        BIND_KVT_PORT("material/dissipation/outer", fDissipation[0]);
-        BIND_KVT_PORT("material/dissipation/inner", fDissipation[1]);
+        BIND_KVT_PORT("material/dispersion/link", lnkDispersion);
+        BIND_KVT_PORT("material/diffusion/outer", fDiffusion[0]);
+        BIND_KVT_PORT("material/diffusion/inner", fDiffusion[1]);
+        BIND_KVT_PORT("material/diffusion/link", lnkDiffusion);
         BIND_KVT_PORT("material/transparency/outer", fTransparency[1]);
         BIND_KVT_PORT("material/transparency/inner", fTransparency[1]);
+        BIND_KVT_PORT("material/transparency/link", lnkTransparency);
         BIND_KVT_PORT("material/sound_speed", fSndSpeed);
 
+        sAbsorption.init("kvt:oabs", "kvt:iabs", "kvt:labs");
+        sTransparency.init("kvt:otransp", "kvt:itransp", "kvt:ltransp");
+        sDispersion.init("kvt:odisp", "kvt:idisp", "kvt:ldisp");
+        sDiffuse.init("kvt:odiff", "kvt:idiff", "kvt:ldiff");
+
         return STATUS_OK;
+    }
+
+    status_t room_builder_ui::build()
+    {
+        status_t res = plugin_ui::build();
+        if (res == STATUS_OK)
+            sPresets.init("mpreset", "kvt:oid", "kvt:speed", "kvt:oabs");
+        return res;
     }
 
 } /* namespace lsp */

@@ -11,6 +11,7 @@
 #include <core/types.h>
 #include <core/status.h>
 #include <core/LSPString.h>
+#include <core/KVTStorage.h>
 
 namespace lsp
 {
@@ -43,6 +44,24 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t handle_parameter(const char *name, const char *value, size_t flags);
+
+                /**
+                 * Handle KVT parameter
+                 * @param name parameter name
+                 * @param param parameter value
+                 * @param flags parameter flags
+                 * @return status of operation
+                 */
+                virtual status_t handle_kvt_parameter(const LSPString *name, const kvt_param_t *param, size_t flags);
+
+                /**
+                 * Handle KVT parameter
+                 * @param name parameter name
+                 * @param param parameter value
+                 * @param flags parameter flags
+                 * @return status of operation
+                 */
+                virtual status_t handle_kvt_parameter(const char *name, const kvt_param_t *param, size_t flags);
         };
     
     } /* namespace ctl */

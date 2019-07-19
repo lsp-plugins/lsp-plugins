@@ -66,8 +66,54 @@ namespace lsp
                     void add_port(CtlPort *port);
             };
 
+            class CtlMaterialPreset: public CtlPortListener
+            {
+                protected:
+                    room_builder_ui    *pUI;
+                    LSPComboBox        *pCBox;
+                    ui_handler_id_t     hHandler;
+                    CtlPort            *pSpeed;
+                    CtlPort            *pAbsorption;
+                    CtlPort            *pSelected;
+
+                public:
+                    explicit CtlMaterialPreset(room_builder_ui *ui);
+                    virtual ~CtlMaterialPreset();
+
+                    void init(const char *preset, const char *selected, const char *speed, const char *absorption);
+
+                public:
+                    virtual void notify(CtlPort *port);
+
+                    static status_t slot_change(LSPWidget *sender, void *ptr, void *data);
+            };
+
+            class CtlKnobBinding: public CtlPortListener
+            {
+                protected:
+                    room_builder_ui    *pUI;
+                    CtlPort            *pOuter;
+                    CtlPort            *pInner;
+                    CtlPort            *pLink;
+                    bool                bReverse;
+
+                public:
+                    explicit CtlKnobBinding(room_builder_ui *ui, bool reverse);
+                    virtual ~CtlKnobBinding();
+
+                    void init(const char *outer, const char *inner, const char *link);
+
+                public:
+                    virtual void notify(CtlPort *port);
+            };
+
         protected:
             ssize_t                 nSelected;
+            CtlMaterialPreset       sPresets;
+            CtlKnobBinding          sAbsorption;
+            CtlKnobBinding          sTransparency;
+            CtlKnobBinding          sDispersion;
+            CtlKnobBinding          sDiffuse;
 
         public:
             explicit room_builder_ui(const plugin_metadata_t *mdata, void *root_widget);
@@ -75,6 +121,8 @@ namespace lsp
 
         public:
             virtual status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+
+            virtual status_t    build();
     };
 
 } /* namespace lsp */

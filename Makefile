@@ -29,15 +29,8 @@ LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
 
-# Directories
-
-# Includes
-INC_FLAGS               = -I"${CURDIR}/include"
-
 # Location
 export BASEDIR          = ${CURDIR}
-export INCLUDE          = ${INC_FLAGS}
-
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -49,6 +42,7 @@ export OBJ_WS_X11_CORE  = $(OBJDIR)/ws_x11_core.o
 export OBJ_UI_CORE      = $(OBJDIR)/ui_core.o
 export OBJ_RES_CORE     = $(OBJDIR)/res_core.o
 export OBJ_TEST_CORE    = $(OBJDIR)/test_core.o
+export OBJ_TESTING_CORE = $(OBJDIR)/testing_core.o
 export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_PLUGIN_UIS	= $(OBJDIR)/plugin_uis.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o

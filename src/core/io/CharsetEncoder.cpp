@@ -280,8 +280,12 @@ namespace lsp
         {
             if (bBuffer == NULL)
                 return -STATUS_CLOSED;
-            if (cBufTail >= &cBuffer[DATA_BUFSIZE])
-                return 0;
+
+            // Is there a space in the buffer for reading?
+            size_t bufsz = prepare_buffer();
+            if (bufsz <= 0)
+                return bufsz;
+
             *(cBufTail++)   = ch;
             return 1;
         }

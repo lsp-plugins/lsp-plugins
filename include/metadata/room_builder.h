@@ -12,6 +12,13 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Room builder metadata
+    typedef struct room_material_t
+    {
+        const char *name;
+        float       speed;
+        float       absorption;
+    } room_material_t;
+
     struct room_builder_base_metadata
     {
         static const float CONV_LENGTH_MIN          = 0.0f;     // Minimum convolution length (ms)
@@ -24,8 +31,8 @@ namespace lsp
         static const float PREDELAY_DFL             = 0.0f;     // Pre-delay length (ms)
         static const float PREDELAY_STEP            = 0.01f;    // Pre-delay step (ms)
 
-        static const size_t MESH_SIZE               = 600;      // Maximum mesh size
-        static const size_t TRACKS_MAX              = 8;        // Maximum tracks per mesh/sample
+        static const size_t MESH_SIZE               = 340;      // Maximum mesh size
+        static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
 
         static const size_t CONVOLVERS              = 4;        // Number of IR convolvers
 
@@ -69,15 +76,15 @@ namespace lsp
         static const float DISTANCE_DFL             = 2.0f;
         static const float DISTANCE_STEP            = 0.01f;
 
-        static const float MAT_ABSORPTION_MIN       = 0.0001f;
-        static const float MAT_ABSORPTION_MAX       = 1.0f;
-        static const float MAT_ABSORPTION_DFL       = 0.01f;
+        static const float MAT_ABSORPTION_MIN       = 0.0f;
+        static const float MAT_ABSORPTION_MAX       = 100.0f;
+        static const float MAT_ABSORPTION_DFL       = 1.0f;
         static const float MAT_ABSORPTION_STEP      = 0.01f;
 
         static const float MAT_TRANSPARENCY_MIN     = 0.0f;
-        static const float MAT_TRANSPARENCY_MAX     = 1.0f;
-        static const float MAT_TRANSPARENCY_DFL     = 0.0f;
-        static const float MAT_TRANSPARENCY_STEP    = 0.01f;
+        static const float MAT_TRANSPARENCY_MAX     = 100.0f;
+        static const float MAT_TRANSPARENCY_DFL     = 50.0f;
+        static const float MAT_TRANSPARENCY_STEP    = 0.05f;
 
         static const float MAT_DISPERSION_MIN       = 0.01f;
         static const float MAT_DISPERSION_MAX       = 100.0f;
@@ -104,6 +111,16 @@ namespace lsp
         static const float BA_DFL                   = GAIN_AMP_0_DB;
         static const float BA_STEP                  = 0.0025f;
 
+        static const float THREADS_MIN              = 1;
+        static const float THREADS_MAX              = 0x10000;
+        static const float THREADS_DFL              = 1;
+        static const float THREADS_STEP             = 1;
+
+        static const float DURATION_MIN             = 0.0f;
+        static const float DURATION_MAX             = 100000.0f;
+        static const float DURATION_STEP            = 1.0f;
+        static const float DURATION_DFL             = 0.0f;
+
         static const size_t EQ_BANDS                = 8;        // 8 bands for equalization
 
         enum fft_rank_t
@@ -121,7 +138,10 @@ namespace lsp
         };
 
         static const port_t kvt_ports[];
+        static const room_material_t materials[];
     };
+
+
 
     struct room_builder_mono_metadata: public room_builder_base_metadata
     {

@@ -26,9 +26,10 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t test_plugin_ui::init(IUIWrapper *wrapper, int argc, const char **argv)
+    status_t test_plugin_ui::build()
     {
-        status_t res = plugin_ui::init(wrapper, argc, argv);
+        // Call parent class for build
+        status_t res = plugin_ui::build();
         if (res != STATUS_OK)
             return res;
 

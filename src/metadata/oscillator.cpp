@@ -98,6 +98,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         oscillator_ports,
         "util/oscillator_mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 }

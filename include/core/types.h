@@ -8,7 +8,7 @@
 #ifndef CORE_TYPES_H_
 #define CORE_TYPES_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 #if defined(PLATFORM_WINDOWS)
     #include <windows.h>
@@ -23,7 +23,7 @@
     #endif /* PLATFORM */
     //#define LSP_HOST_SIMULATION
 #else
-    #define LSP_XML_BUILTIN
+    #define LSP_BUILTIN_RESOURCES
 #endif /* LSP_IDE_DEBUG */
 
 #ifdef __cplusplus
@@ -91,12 +91,6 @@ namespace lsp
         void                    detroy();
         float_buffer_t         *resize(size_t lines, size_t items);
     } float_buffer_t;
-
-    typedef struct resource_t
-    {
-        const char *id;
-        const char *text;
-    } resource_t;
 }
 
 #endif /* CORE_TYPES_H_ */

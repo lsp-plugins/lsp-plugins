@@ -54,6 +54,10 @@ namespace lsp
             pPosZ           = NULL;
             pYaw            = NULL;
             pPitch          = NULL;
+            pScaleX         = NULL;
+            pScaleY         = NULL;
+            pScaleZ         = NULL;
+            pOrientation    = NULL;
 
             bViewChanged    = true;
 
@@ -65,6 +69,7 @@ namespace lsp
             fFov            = 70.0f;
 
             dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
+            dsp::init_vector_dxyz(&sScale, 1.0f, 1.0f, 1.0f);
             dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
             dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
             dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
@@ -366,6 +371,15 @@ namespace lsp
                 case A_ZPOS_ID:
                     BIND_PORT(pRegistry, pPosZ, value);
                     break;
+                case A_XSCALE_ID:
+                    BIND_PORT(pRegistry, pScaleX, value);
+                    break;
+                case A_YSCALE_ID:
+                    BIND_PORT(pRegistry, pScaleY, value);
+                    break;
+                case A_ZSCALE_ID:
+                    BIND_PORT(pRegistry, pScaleZ, value);
+                    break;
                 case A_YAW_ID:
                     BIND_PORT(pRegistry, pYaw, value);
                     break;
@@ -404,6 +418,19 @@ namespace lsp
                 return;
             *dst    = psrc->get_value();
             update_camera_state();
+            bViewChanged    = true;
+            pWidget->query_draw();
+        }
+
+        void CtlViewer3D::sync_scale_change(float *dst, CtlPort *port, CtlPort *psrc)
+        {
+            if ((psrc != port) || (port == NULL))
+                return;
+            float v = psrc->get_value() * 0.01f;
+            if (*dst == v)
+                return;
+
+            *dst            = v;
             bViewChanged    = true;
             pWidget->query_draw();
         }
@@ -472,6 +499,9 @@ namespace lsp
             sync_pov_change(&sPov.z, pPosZ, port);
             sync_angle_change(&sAngles.fYaw, pYaw, port);
             sync_angle_change(&sAngles.fPitch, pPitch, port);
+            sync_scale_change(&sScale.dx, pScaleX, port);
+            sync_scale_change(&sScale.dy, pScaleY, port);
+            sync_scale_change(&sScale.dz, pScaleZ, port);
         }
 
         void CtlViewer3D::commit_view(IR3DBackend *r3d)
@@ -485,18 +515,25 @@ namespace lsp
 
             vVertexes.clear();
 
-            matrix3d_t m;
+            matrix3d_t m, scale;
             Color col;
             col.set_rgba(1.0f, 0.0f, 0.0f, 0.0f);
+
+            dsp::init_matrix3d_scale(&scale, sScale.dx, sScale.dy, sScale.dz);
 
             // Add all visible objects to BSP context
             for (size_t i=0, n=sScene.num_objects(); i<n; ++i)
             {
                 // Check object visibility
                 Object3D *o = sScene.object(i);
-                if (!o->is_visible())
+                if (o == NULL)
                     continue;
 
+                Color xc(col);
+                color3d_t c;
+                xc.hue(float(i) / float(n));
+
+                // Apply changes
                 matrix3d_t om = *(o->matrix());
                 if (!sKvtRoot.is_empty())
                 {
@@ -510,19 +547,23 @@ namespace lsp
 
                         if (res)
                         {
-                            matrix3d_t tmp;
+//                            matrix3d_t tmp;
                             room_builder_base::read_object_properties(&props, base.get_utf8(), kvt);
-                            room_builder_base::build_object_matrix(&tmp, &props);
-                            dsp::apply_matrix3d_mm2(&om, &tmp, &om);
+                            o->set_visible(props.bEnabled);
+                            room_builder_base::build_object_matrix(&om, &props, &scale);
+//                            dsp::apply_matrix3d_mm2(&om, &tmp, &om);
+//                            dsp::apply_matrix3d_mm2(&om, &scale, &om);
+//                            dsp::apply_matrix3d_mm2(&om, &tmp, &scale);
+                            xc.hue(props.fHue);
                         }
 
                         pRegistry->kvt_release();
                     }
                 }
 
-                Color xc(col);
-                color3d_t c;
-                xc.hue(float(i) / float(n));
+                // Object is invisible?
+                if (!o->is_visible())
+                    continue;
 
                 c.r         = xc.red();
                 c.g         = xc.green();
@@ -604,7 +645,7 @@ namespace lsp
             for (size_t i=0, n=area->num_objects3d(); i<n; ++i)
             {
                 LSPObject3D *obj = area->object3d(i);
-                if (obj != NULL)
+                if ((obj != NULL) && (obj->visible()))
                     obj->render(r3d);
             }
 

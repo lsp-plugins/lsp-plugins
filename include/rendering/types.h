@@ -47,7 +47,8 @@ enum r3d_primitive_type_t {
 
 enum r3d_buffer_flags_t {
     R3D_BUFFER_BLENDING     = 1 << 0,
-    R3D_BUFFER_LIGHTING     = 1 << 1
+    R3D_BUFFER_LIGHTING     = 1 << 1,
+    R3D_BUFFER_NO_CULLING   = 1 << 2
 };
 
 // Basic type: backend

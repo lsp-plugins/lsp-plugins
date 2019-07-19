@@ -12,13 +12,17 @@ namespace lsp
 {
     namespace tk
     {
+        class LSPWidget;
+
         class LSPColor
         {
             protected:
                 Color       sColor;
+                LSPWidget  *pWidget;
 
             public:
                 explicit LSPColor();
+                explicit LSPColor(LSPWidget *widget);
                 virtual ~LSPColor();
 
             protected:

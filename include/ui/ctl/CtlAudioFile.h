@@ -65,7 +65,7 @@ namespace lsp
                 static status_t     clipboard_handler(void *arg, status_t s, io::IInStream *is);
 
             public:
-                CtlAudioFile(CtlRegistry *src, LSPAudioFile *af);
+                explicit CtlAudioFile(CtlRegistry *src, LSPAudioFile *af);
                 virtual ~CtlAudioFile();
 
             public:

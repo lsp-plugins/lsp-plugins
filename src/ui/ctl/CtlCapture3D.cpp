@@ -42,8 +42,8 @@ namespace lsp
             sCapture.sConfig    = RT_CC_MONO;
             sCapture.fAngle     = 0.0f;
             sCapture.fDistance  = 0.0f;
-            sCapture.enDirection= RT_AC_EIGHT;
-            sCapture.enSide     = RT_AC_EIGHT;
+            sCapture.enDirection= RT_AC_OMNI;
+            sCapture.enSide     = RT_AC_OMNI;
 
             pPosX           = NULL;
             pPosY           = NULL;
@@ -191,8 +191,9 @@ namespace lsp
                 return;
 
             // Configure capture settings
-            room_capture_settings_t cset;
-            status_t res = room_builder_base::configure_capture(&cset, &sCapture);
+            size_t n = 0;
+            rt_capture_settings_t cset[2];
+            status_t res = rt_configure_capture(&n, cset, &sCapture);
             if (res != STATUS_OK)
                 return;
 
@@ -201,11 +202,11 @@ namespace lsp
             if (res != STATUS_OK)
                 return;
 
-            cap->set_radius(cset.r[0]);
             for (size_t i=0; i<2; ++i)
             {
-                cap->set_transform(i, &cset.pos[i]);
-                cap->set_enabled(i, cset.n > i);
+                cap->set_radius(i, cset[i].radius);
+                cap->set_transform(i, &cset[i].pos);
+                cap->set_enabled(i, i < n);
             }
         }
     

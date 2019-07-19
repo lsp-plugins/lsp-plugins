@@ -52,7 +52,7 @@ namespace lsp
 
             public:
                 explicit CtlSwitchedPort(plugin_ui *ui);
-                ~CtlSwitchedPort();
+                virtual ~CtlSwitchedPort();
 
             public:
                 bool compile(const char *id);

@@ -317,7 +317,7 @@ namespace lsp
 
     status_t ObjFileParser::parse_line(parse_state_t *st, const char *s)
     {
-        lsp_trace("%s", s);
+//        lsp_trace("%s", s);
         status_t result = ((st->nLines++) > 0) ? STATUS_CORRUPTED_FILE : STATUS_BAD_FORMAT;
 
         switch (*(s++))

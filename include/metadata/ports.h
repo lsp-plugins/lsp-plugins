@@ -73,6 +73,8 @@
     { id, label, U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -100.0f, 100.0f, dfl, 0.1, NULL, NULL }
 #define PERCENTS(id, label, dfl, step) \
     { id, label, U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, 0, 100, dfl, step, NULL, NULL }
+#define OUT_PERCENTS(id, label) \
+    { id, label, U_PERCENT, R_METER, F_OUT | F_LOWER | F_UPPER, 0, 100, 0, 0, NULL, NULL }
 #define METER_GAIN(id, label, max) \
     { id, label, U_GAIN_AMP, R_METER, F_OUT | F_LOG | F_UPPER | F_LOWER | F_PEAK, 0, max, 0.0f, 0, NULL, NULL }
 #define METER_GAIN_DFL(id, label, max, dfl) \

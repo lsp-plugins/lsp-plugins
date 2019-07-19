@@ -44,6 +44,9 @@ namespace lsp
                 CtlPort        *pPosZ;
                 CtlPort        *pYaw;
                 CtlPort        *pPitch;
+                CtlPort        *pScaleX;
+                CtlPort        *pScaleY;
+                CtlPort        *pScaleZ;
                 CtlPort        *pOrientation;
 
                 bool            bViewChanged;
@@ -58,6 +61,7 @@ namespace lsp
                 // Camera position
                 point3d_t       sPov;           // Point-of-view for the camera
                 point3d_t       sOldPov;        // Old point of view
+                vector3d_t      sScale;         // Scene scaling
                 pov_angles_t    sAngles;        // Yaw, pitch, roll
                 pov_angles_t    sOldAngles;     // Old angles
                 vector3d_t      sTop;           // Top-of-view for the camera
@@ -86,11 +90,12 @@ namespace lsp
                 void    rotate_camera(ssize_t dx, ssize_t dy);
                 void    move_camera(ssize_t dx, ssize_t dy, ssize_t dz);
 
-                static float get_delta(CtlPort *p, float dfl);
-                static float get_adelta(CtlPort *p, float dfl);
+                static  float get_delta(CtlPort *p, float dfl);
+                static  float get_adelta(CtlPort *p, float dfl);
                 void    submit_pov_change(float *vold, float vnew, CtlPort *port);
                 void    submit_angle_change(float *vold, float vnew, CtlPort *port);
                 void    sync_pov_change(float *dst, CtlPort *port, CtlPort *psrc);
+                void    sync_scale_change(float *dst, CtlPort *port, CtlPort *psrc);
                 void    sync_angle_change(float *dst, CtlPort *port, CtlPort *psrc);
 
             public:

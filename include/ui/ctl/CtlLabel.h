@@ -16,7 +16,8 @@ namespace lsp
         {
             CTL_LABEL_TEXT,
             CTL_LABEL_VALUE,
-            CTL_LABEL_PARAM
+            CTL_LABEL_PARAM,
+            CTL_STATUS_CODE
         };
 
 
@@ -37,7 +38,7 @@ namespace lsp
                 void commit_value();
 
             public:
-                CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type);
+                explicit CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type);
                 virtual ~CtlLabel();
 
             public:

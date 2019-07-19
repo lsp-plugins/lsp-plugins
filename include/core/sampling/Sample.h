@@ -10,8 +10,20 @@
 
 #include <core/types.h>
 
+#define AUDIO_SAMPLE_CONTENT_TYPE       "application/x-lsp-audio-sample"
+
 namespace lsp
 {
+#pragma pack(push, 1)
+    typedef struct sample_header_t
+    {
+        uint16_t    version;        // Version + endianess
+        uint16_t    channels;
+        uint32_t    sample_rate;
+        uint32_t    samples;
+    } sample_header_t;
+#pragma pack(pop)
+
     class Sample
     {
         private:
@@ -20,8 +32,11 @@ namespace lsp
             size_t      nMaxLength;
             size_t      nChannels;
 
+        private:
+            Sample & operator = (const Sample &);
+
         public:
-            Sample();
+            explicit Sample();
             ~Sample();
 
         public:

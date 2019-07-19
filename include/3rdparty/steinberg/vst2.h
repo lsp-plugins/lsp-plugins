@@ -40,17 +40,23 @@
     #ifndef __cdecl
         #if defined(__i386__) || defined(__i386)
             #define __cdecl __attribute__((__cdecl__))
-        #elif defined(__x86_64__) || defined(__x86_64)
+        #elif defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) || defined(_M_AMD64)
+            #define VST_64BIT_PLATFORM      1
             #define __cdecl
         #elif defined(__aarch64__)
+            #define VST_64BIT_PLATFORM      1
             #define __cdecl
-        #elif defined(__arm__)
+        #elif defined(__arm__) || defined(__arm) || defined(_M_ARM) || defined(_ARM)
             #define __cdecl
-        #elif defined(__PPC64__) || defined(__ppc64__) || defined(__ppc64)
+        #elif defined(__PPC64__) || defined(__ppc64__) || defined(__ppc64) || defined(__powerpc64__) || defined(_ARCH_PPC64)
+            #define VST_64BIT_PLATFORM      1
             #define __cdecl
-        #elif defined(__PPC__) || defined(__ppc__) || defined(__ppc)
+        #elif defined(__PPC__) || defined(__ppc__) || defined(__powerpc__) || defined(__ppc) || defined(_M_PPC) || defined(_ARCH_PPC)
             #define __cdecl
         #elif defined(__s390x__) || defined(__s390__) || defined(__zarch__)
+            #define VST_64BIT_PLATFORM      1
+            #define __cdecl
+        #elif defined(__mips__) || defined(__mips) || defined(__MIPS__)
             #define __cdecl
         #endif /* __cdecl */
     #endif /* __cdecl */
@@ -65,7 +71,15 @@
 /** Test whether system runs in 64-bit mode */
 #ifdef __GNUC__
     #ifndef VST_64BIT_PLATFORM
-        #define VST_64BIT_PLATFORM  (__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__) || (__WORDSIZE == 64)
+        #if defined(__WORDSIZE) && (__WORDSIZE == 64)
+            #define VST_64BIT_PLATFORM      1
+        #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 64)
+            #define VST_64BIT_PLATFORM      1
+        #endif /* __WORDSIZE, __SIZE_WIDTH__ */
+    #endif
+
+    #ifndef VST_64BIT_PLATFORM
+        #define VST_64BIT_PLATFORM  (__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__)
     #endif /* VST_64BIT_PLATFORM */
 #else
     #ifndef VST_64BIT_PLATFORM

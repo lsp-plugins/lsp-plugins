@@ -55,9 +55,9 @@ namespace lsp
     static const char *filter_slope[] =
     {
         "off",
-        "6dB/oct",
-        "12dB/oct",
-        "18dB/oct",
+        "6 dB/oct",
+        "12 dB/oct",
+        "18 dB/oct",
         NULL
     };
 
@@ -150,6 +150,7 @@ namespace lsp
         E_NONE,
         impulse_responses_mono_ports,
         "convolution/impulse_responses/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -167,6 +168,7 @@ namespace lsp
         E_NONE,
         impulse_responses_stereo_ports,
         "convolution/impulse_responses/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 }

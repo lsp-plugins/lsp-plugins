@@ -46,12 +46,16 @@ namespace lsp
             "param",
             "plugin",
             "port",
+            "progress",
+            "sample",
             "save",
             "sbar",
             "sep",
             "source3d",
+            "status",
             "switch",
             "text",
+            "threadcombo",
             "ttap",
             "value",
             "vbox",
@@ -89,6 +93,7 @@ namespace lsp
             "default",
             "detailed",
             "distance_id",
+            "duration_id",
             "editable",
             "expand",
             "fadein_id",
@@ -123,6 +128,7 @@ namespace lsp
             "light_id",
             "logarithmic",
             "max",
+            "max_duration_id",
             "mesh_id",
             "min",
             "mode",
@@ -188,9 +194,12 @@ namespace lsp
             "vspacing",
             "width",
             "xpos_id",
+            "xscale_id",
             "yaw_id",
             "ypos_id",
-            "zpos_id"
+            "yscale_id",
+            "zpos_id",
+            "zscale_id"
         };
 
         widget_ctl_t widget_ctl(const char *name)

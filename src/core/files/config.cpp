@@ -8,13 +8,18 @@
 #include <core/files/config.h>
 #include <core/debug.h>
 #include <core/io/IInSequence.h>
+#include <core/resource.h>
+#include <core/parse.h>
 #include <stdio.h>
 #include <locale.h>
+#include <errno.h>
+#include <dsp/dsp.h>
 
 #include <core/io/InSequence.h>
 #include <core/io/InStringSequence.h>
 #include <core/io/OutSequence.h>
 #include <core/io/OutStringSequence.h>
+#include <core/KVTStorage.h>
 
 namespace lsp
 {
@@ -562,6 +567,133 @@ namespace lsp
             return fos.close();
         }
 
+        status_t handle_parameter(IConfigHandler *h, const LSPString *name, const LSPString *v, size_t flags)
+        {
+            // Check if parameter is regular
+            if (name->char_at(0) != '/')
+                return h->handle_parameter(name, v, flags); // Just call regular parameter callback
+
+            // Parse KVT parameter
+            kvt_param_t p;
+            const char *value = v->get_utf8();
+
+            switch (flags & SF_TYPE_MASK)
+            {
+                case SF_TYPE_I32:
+                    PARSE_INT(value, { p.i32 = __; p.type = KVT_INT32; } );
+                    break;
+                case SF_TYPE_U32:
+                    PARSE_UINT(value, { p.u32 = __; p.type = KVT_UINT32; } );
+                    break;
+                case SF_TYPE_I64:
+                    PARSE_LLINT(value, { p.i64 = __; p.type = KVT_INT64; } );
+                    break;
+                case SF_TYPE_U64:
+                    PARSE_ULLINT(value, { p.u64 = __; p.type = KVT_UINT64; } );
+                    break;
+                case SF_TYPE_F64:
+                    PARSE_DOUBLE(value, { p.f64 = __; p.type = KVT_FLOAT64; } );
+                    break;
+                case SF_TYPE_STR:
+                    p.str       = ::strdup(value);
+                    if (p.str == NULL)
+                        return STATUS_NO_MEM;
+                    p.type      = KVT_STRING;
+                    break;
+                case SF_TYPE_BLOB:
+                {
+                    // Get content type
+                    const char *split = ::strchr(value, ':');
+                    if (split == NULL)
+                        return STATUS_BAD_FORMAT;
+
+                    char *ctype = NULL;
+                    size_t clen = (++split) - value;
+
+                    if (clen > 0)
+                    {
+                        ctype = ::strndup(value, clen);
+                        if (ctype == NULL)
+                            return STATUS_NO_MEM;
+                        ctype[clen-1]   = '\0';
+                    }
+                    p.blob.ctype    = ctype;
+
+                    // Get content size
+                    errno = 0;
+                    char *base64 = NULL;
+                    p.blob.size = size_t(::strtoull(split, &base64, 10));
+                    if ((errno != 0) || (*(base64++) != ':'))
+                    {
+                        if (ctype != NULL)
+                            ::free(ctype);
+                        return STATUS_BAD_FORMAT;
+                    }
+
+                    // Decode content
+                    size_t src_left = ::strlen(base64); // Size of base64-block
+                    p.blob.data     = NULL;
+                    if (src_left > 0)
+                    {
+                        // Allocate memory
+                        size_t dst_left = 0x10 + ((src_left * 3) / 4);
+                        void *blob      = ::malloc(dst_left);
+                        if (blob == NULL)
+                        {
+                            if (ctype != NULL)
+                                ::free(ctype);
+                            return STATUS_NO_MEM;
+                        }
+
+                        // Decode
+                        size_t n = dsp::base64_dec(blob, &dst_left, base64, &src_left);
+                        if ((n != p.blob.size) || (src_left != 0))
+                        {
+                            ::free(ctype);
+                            ::free(blob);
+                            return STATUS_BAD_FORMAT;
+                        }
+                        p.blob.data = blob;
+                    }
+                    else if (p.blob.size != 0)
+                    {
+                        ::free(ctype);
+                        return STATUS_BAD_FORMAT;
+                    }
+                    p.type      = KVT_BLOB;
+                    break;
+                }
+
+                case SF_TYPE_NATIVE:
+                case SF_TYPE_F32:
+                default:
+                    PARSE_FLOAT(value, { p.f32 = __; p.type = KVT_FLOAT32; } );
+                    break;
+            }
+
+            if (p.type == KVT_ANY)
+                return STATUS_BAD_FORMAT;
+
+            // Call KVT parameter callback
+            status_t res = h->handle_kvt_parameter(name, &p, flags);
+
+            // Destroy allocated data for KVT parameter
+            if (p.type == KVT_STRING)
+            {
+                if (p.str != NULL)
+                    ::free(const_cast<char *>(p.str));
+            }
+            else if (p.type == KVT_BLOB)
+            {
+                if (p.blob.ctype != NULL)
+                    ::free(const_cast<char *>(p.blob.ctype));
+                if (p.blob.data != NULL)
+                    ::free(const_cast<void *>(p.blob.data));
+            }
+
+            return res;
+        }
+
         status_t load(io::IInSequence *is, IConfigHandler *h)
         {
             status_t result = STATUS_OK;
@@ -593,7 +725,7 @@ namespace lsp
                 if (!key.is_empty())
                 {
                     lsp_trace("Configuration: %s = %s (flags=0x%x)", key.get_native(), value.get_native(), int(flags));
-                    result = h->handle_parameter(&key, &value, flags);
+                    result = handle_parameter(h, &key, &value, flags);
                 }
             }
 
@@ -660,10 +792,126 @@ namespace lsp
             return fis.close();
         }
 
-        status_t load(const char *path, IConfigHandler *h)
+        status_t load_from_resource(const void *data, IConfigHandler *h)
         {
+            status_t res;
+            LSPString path;
+            kvt_param_t kp;
+
+            while (true)
+            {
+                size_t items = resource_fetch_number(&data);
+                if (items == 0) // Regular parameter
+                {
+                    const char *id = resource_fetch_dstring(&data);
+                    if (::strlen(id) <= 0) // End of sequence?
+                        break;
+
+                    size_t flags        = resource_fetch_number(&data);
+                    const char *value   = resource_fetch_dstring(&data);
+                    res = h->handle_parameter(id, value, flags);
+                    if (res != STATUS_OK)
+                        return res;
+                }
+                else // KVT
+                {
+                    // Parse the original path of KVT parameter
+                    path.clear();
+                    for (size_t i=0; i<items; ++i)
+                    {
+                        if (!path.append('/'))
+                            return STATUS_NO_MEM;
+                        if (!path.append_utf8(resource_fetch_dstring(&data)))
+                            return STATUS_NO_MEM;
+                    }
+
+
+                    size_t flags        = resource_fetch_number(&data);
+
+                    switch (flags & SF_TYPE_MASK)
+                    {
+                        case SF_TYPE_I32:
+                            kp.type     = KVT_INT32;
+                            kp.i32      = resource_fetch_number(&data);
+                            break;
+                        case SF_TYPE_U32:
+                            kp.type     = KVT_UINT32;
+                            kp.u32      = resource_fetch_number(&data);
+                            break;
+                        case SF_TYPE_I64:
+                            kp.type     = KVT_INT64;
+                            kp.i64      = resource_fetch_number(&data);
+                            break;
+                        case SF_TYPE_U64:
+                            kp.type     = KVT_UINT64;
+                            kp.u64      = resource_fetch_number(&data);
+                            break;
+                        case SF_TYPE_F32:
+                            kp.type     = KVT_FLOAT32;
+                            kp.f32      = resource_fetch_dfloat(&data);
+                            break;
+                        case SF_TYPE_F64:
+                            kp.type     = KVT_FLOAT64;
+                            resource_fetch_bytes(&kp.f64, &data, sizeof(kp.f64));
+                            break;
+                        case SF_TYPE_STR:
+                            kp.type     = KVT_STRING;
+                            kp.str      = resource_fetch_dstring(&data);
+                            break;
+                        case SF_TYPE_BLOB:
+                            kp.type         = KVT_BLOB;
+                            kp.blob.size    = resource_fetch_number(&data);
+                            kp.blob.ctype   = resource_fetch_dstring(&data);
+                            kp.blob.data    = (kp.blob.size > 0) ? data : NULL;
+                            resource_skip_bytes(&data, kp.blob.size);
+                            break;
+                        default:
+                            return STATUS_CORRUPTED;
+                    }
+
+                    // Pass parameter to the config handler
+                    res = h->handle_kvt_parameter(&path, &kp, flags);
+                    if (res != STATUS_OK)
+                        return res;
+                }
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t load(const LSPString *path, IConfigHandler *h)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            status_t res = STATUS_OK;
             io::InSequence fis;
-            status_t res = fis.open(path);
+
+            if (path->starts_with_ascii("builtin://"))
+            {
+                LSPString tmp;
+#ifdef LSP_BUILTIN_RESOURCES
+                if (!tmp.set(path, 10))    // strlen("builtin://");
+                    return STATUS_NO_MEM;
+
+                const resource_t *r = resource_get(tmp.get_utf8(), RESOURCE_PRESET);
+                if (r == NULL)
+                    return STATUS_NOT_FOUND;
+
+                lsp_trace("Loading builtin resource \"%s\"", r->id);
+                load_from_resource(r->data, h);
+#else
+                if (!tmp.set_ascii("res/"))
+                    return STATUS_NO_MEM;
+                if (!tmp.append(path, 10))  // strlen("builtin://");
+                    return STATUS_NO_MEM;
+
+                res = fis.open(path);
+#endif
+            }
+            else
+                res = fis.open(path);
+
             if (res != STATUS_OK)
             {
                 fis.close();
@@ -678,6 +926,20 @@ namespace lsp
             }
 
             return fis.close();
+        }
+
+        status_t load(const io::Path *path, IConfigHandler *h)
+        {
+            return load(path->as_string(), h);
+        }
+
+        status_t load(const char *path, IConfigHandler *h)
+        {
+            LSPString tmp;
+            if (!tmp.set_utf8(path))
+                return STATUS_NO_MEM;
+
+            return load(&tmp, h);
         }
 
         status_t serialize(LSPString *cfg, IConfigSource *s, bool comments)

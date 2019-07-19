@@ -24,7 +24,7 @@ namespace lsp
                 void commit_value();
 
             public:
-                CtlHyperlink(CtlRegistry *src, LSPHyperlink *widget, ctl_label_type_t type);
+                explicit CtlHyperlink(CtlRegistry *src, LSPHyperlink *widget, ctl_label_type_t type);
                 virtual ~CtlHyperlink();
 
             public:

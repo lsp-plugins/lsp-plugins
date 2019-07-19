@@ -15,7 +15,7 @@ namespace lsp
         class CtlAlign: public CtlWidget
         {
             public:
-                CtlAlign(CtlRegistry *src, LSPAlign *widget);
+                explicit CtlAlign(CtlRegistry *src, LSPAlign *widget);
                 virtual ~CtlAlign();
 
             public:

@@ -4,6 +4,11 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
 OBJ_FILES               = $(OBJ_CORE) $(OBJ_METADATA)
 OBJ_LIBS                = $(PTHREAD_LIBS) $(MATH_LIBS)
+OBJ_EXTRA				= 
+
+ifeq ($(LSP_TESTING),1)
+  OBJ_EXTRA              += $(OBJ_TEST_CORE)
+endif
 
 ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
   MODULES                += $(UTL_GENTTL)
@@ -59,6 +64,6 @@ $(UTL_GENPHP): $(FILES) $(SUBDIRS)
 	
 $(UTL_RESGEN): $(FILES) $(SUBDIRS)
 	@echo "  $(CXX) $(notdir $(UTL_RESGEN))"
-	@$(CXX) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_FILES) $(EXPAT_HEADERS) $(EXE_FLAGS) $(EXPAT_LIBS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
+	@$(CXX) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_FILES) $(OBJ_DSP) $(OBJ_EXTRA) $(EXPAT_HEADERS) $(EXE_FLAGS) $(EXPAT_LIBS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
 
 	

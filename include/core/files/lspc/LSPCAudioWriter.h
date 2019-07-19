@@ -19,6 +19,9 @@ namespace lsp
     class LSPCAudioWriter
     {
         private:
+            LSPCAudioWriter & operator = (const LSPCAudioWriter &);
+
+        private:
             enum flags_t
             {
                 F_OPENED            = 1 << 0,
@@ -26,7 +29,8 @@ namespace lsp
                 F_CLOSE_FILE        = 1 << 2,
                 F_REV_BYTES         = 1 << 3,
                 F_DROP_WRITER       = 1 << 4,
-                F_INTEGER_SAMPLE    = 1 << 5
+                F_INTEGER_SAMPLE    = 1 << 5,
+                F_DROP_FILE         = 1 << 6
             };
 
             typedef void (*encode_func_t)(void *dst, const float *src, size_t ns);
@@ -62,10 +66,34 @@ namespace lsp
             status_t write_header(LSPCChunkWriter *wr);
 
         public:
-            LSPCAudioWriter();
+            explicit LSPCAudioWriter();
             ~LSPCAudioWriter();
 
         public:
+            /**
+             * Create new LSPC file and open for writing, write header to LSPC file
+             * @param path UTF-8 path to the LSPC file
+             * @param params audio parameters
+             * @return status of operation
+             */
+            status_t create(const char *path, const lspc_audio_parameters_t *params);
+
+            /**
+             * Create new LSPC file and open for writing, write header to LSPC file
+             * @param path path to the LSPC file
+             * @param params audio parameters
+             * @return status of operation
+             */
+            status_t create(const LSPString *path, const lspc_audio_parameters_t *params);
+
+            /**
+             * Create new LSPC file and open for writing, write header to LSPC file
+             * @param path path to the LSPC file
+             * @param params audio parameters
+             * @return status of operation
+             */
+            status_t create(const io::Path *path, const lspc_audio_parameters_t *params);
+
             /**
              * Create chunk in LSPC file with magic=LSPC_CHUNK_AUDIO and write header
              * @param lspc LSPC file
