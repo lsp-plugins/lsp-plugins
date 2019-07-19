@@ -12,6 +12,7 @@
 
 === 1.1.10 ===
 
+* Implemented 3D reverb simulator.
 * Fixed improper InlineDisplay feature support in LV2 TTL files.
 * Plugin names now have 'LSP' prefix for the LV2 format.
 * Each plugin can now provide it's custom UI class which is derived from common plugin class.
@@ -37,7 +38,6 @@
 * Improved built-in resource generation tool.
 * Embedded resources are now alphabetically sorted to make the build more deterministic.
 * Added support of built-in presets for plugin's UI.
-- Implemented 3D reverb simulator.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
 - Implemented sampler plugin series with stereo outputs.
