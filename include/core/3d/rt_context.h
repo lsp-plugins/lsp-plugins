@@ -32,7 +32,8 @@ namespace lsp
         S_SCAN_OBJECTS,
         S_SPLIT,
         S_CULL_BACK,
-        S_REFLECT
+        S_REFLECT,
+        S_CAPTURE
     };
 
     typedef struct rt_context_t

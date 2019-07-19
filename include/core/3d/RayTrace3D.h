@@ -76,7 +76,7 @@ namespace lsp
                     status_t    cull_view(rt_context_t *ctx);
                     status_t    split_view(rt_context_t *ctx);
                     status_t    cullback_view(rt_context_t *ctx);
-                    status_t    capture_view(const rt_context_t *ctx);
+                    status_t    capture_view(rt_context_t *ctx);
                     status_t    reflect_view(rt_context_t *ctx);
                 #ifdef LSP_RT_TRACE
                     status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
@@ -130,22 +130,23 @@ namespace lsp
             ipc::Mutex                  lkTasks;
 
         protected:
-            static void destroy_tasks(cvector<rt_context_t> *tasks);
-            static void clear_stats(stats_t *stats);
-            static void dump_stats(const char *label, const stats_t *stats);
-            static void merge_stats(stats_t *dst, const stats_t *src);
-            static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view);
+            static void     destroy_tasks(cvector<rt_context_t> *tasks);
+            static void     clear_stats(stats_t *stats);
+            static void     dump_stats(const char *label, const stats_t *stats);
+            static void     merge_stats(stats_t *dst, const stats_t *src);
+            static bool     check_bound_box(const bound_box3d_t *bbox, const vector3d_t *vpl, size_t npl);
+            static size_t   split_triangle(raw_triangle_t *dst, const point3d_t *pv, const vector3d_t *vpl, size_t npl);
 
-            void        remove_scene(bool destroy);
-            status_t    resize_materials(size_t objects);
+            void            remove_scene(bool destroy);
+            status_t        resize_materials(size_t objects);
 
-            status_t    report_progress(float progress);
+            status_t        report_progress(float progress);
 
             // Main ray-tracing routines
-            void        normalize_output();
-            bool        is_already_passed(const sample_t *bind);
+            void            normalize_output();
+            bool            is_already_passed(const sample_t *bind);
 
-            status_t    do_process(size_t threads, float initial);
+            status_t        do_process(size_t threads, float initial);
 
         public:
             /** Default constructor

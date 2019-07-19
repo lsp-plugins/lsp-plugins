@@ -190,13 +190,12 @@ namespace lsp
                 res     = cullback_view(ctx);
                 break;
             case S_REFLECT:
-                // Call for capture
-                ++stats.calls_capture;
-                res     = capture_view(ctx);
-                if (res != STATUS_OK)
-                    break;
                 ++stats.calls_reflect;
                 res     = reflect_view(ctx);
+                break;
+            case S_CAPTURE:
+                ++stats.calls_capture;
+                res     = capture_view(ctx);
                 break;
             default:
                 res = STATUS_BAD_STATE;
@@ -320,7 +319,7 @@ namespace lsp
         )
 
         // Perform simple bounding-box check
-        bool res    = check_bound_box(&box, &ctx->view);
+        bool res    = check_bound_box(&box, ctx->view.pl, 4);
 
         if (!res)
         {
@@ -506,14 +505,7 @@ namespace lsp
         // Update state
         n_objs = ctx->triangle.size();
         if (n_objs <= 1)
-        {
-            if (n_objs <= 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state  = S_REFLECT;
-        }
+            ctx->state = (n_objs <= 0) ? S_CAPTURE : S_REFLECT;
         else
             ctx->state  = S_SPLIT;
 
@@ -528,14 +520,7 @@ namespace lsp
 
         size_t n = ctx->triangle.size();
         if (n <= 1)
-        {
-            if (n <= 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state  = S_REFLECT;
-        }
+            ctx->state  = (n <= 0) ? S_CAPTURE : S_REFLECT;
         else
             ctx->state  = S_SPLIT;
 
@@ -593,18 +578,16 @@ namespace lsp
 
             // Update context state
             ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
-            return submit_task(ctx);
         }
         else if (out.triangle.size() > 0)
         {
             ctx->swap(&out);
             ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
-
-            return submit_task(ctx);
         }
+        else
+            ctx->state  = S_CAPTURE;
 
-        delete ctx;
-        return STATUS_OK;
+        return submit_task(ctx);
     }
 
     status_t RayTrace3D::TaskThread::cullback_view(rt_context_t *ctx)
@@ -628,13 +611,7 @@ namespace lsp
                 ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C3D_GREEN);
         );
 
-        if (ctx->triangle.size() <= 0)
-        {
-            delete ctx;
-            return STATUS_OK;
-        }
-        ctx->state  = S_REFLECT;
-
+        ctx->state  = (ctx->triangle.size() > 0) ? S_REFLECT : S_CAPTURE;
         return submit_task(ctx);
     }
 
@@ -645,19 +622,33 @@ namespace lsp
     }
 #endif
 
-    status_t RayTrace3D::TaskThread::capture_view(const rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::capture_view(rt_context_t *ctx)
     {
         status_t res;
+        size_t npl;
         point3d_t p[3];                 // Projection points
         float d[3], t[3];               // distance, time
         float a[3], A, revA;            // particular area, area, dispersion coefficient
+        vector3d_t spl[5];
+        raw_triangle_t rt[32];
 
         // Compute proper culling plane
         rt_view_t sv        = ctx->view;
-        rt_triangle_t *rtt  =
-        dsp::calc_rev_oriented_plane_pv(&sv.pl[0], &sv.s, sv.p);
-
         rt_view_t cv        = sv;
+        spl[0]              = sv.pl[0];
+        spl[1]              = sv.pl[1];
+        spl[2]              = sv.pl[2];
+        spl[3]              = sv.pl[3];
+        if (ctx->triangle.size() > 0)
+        {
+            rt_triangle_t *xrt  = ctx->triangle.get(0);
+            dsp::orient_plane_v1p1(&spl[4], &sv.s, &xrt->n);
+            npl                 = 5;
+        }
+        else
+            npl                 = 4;
+
+        // Compute area
         A                   = dsp::calc_area_pv(sv.p);
         revA                = 1.0f / A;
 
@@ -666,65 +657,73 @@ namespace lsp
         {
             // Test bound box
             capture_t *cap  = captures.get(i);
-            if (!check_bound_box(&cap->bbox, &sv))
+            if (!check_bound_box(&cap->bbox, spl, npl))
                 continue;
 
             // Test each triangle of the capture
-            for (size_t k=0,m=cap->mesh.size(); k<m; ++k)
+            for (size_t j=0,m=cap->mesh.size(); j<m; ++j)
             {
                 // Estimate co-location of source point and current triangle,
                 // skip all faces that have invalid locations
-                triangle3d_t *ct  = cap->mesh.get(k);
+                triangle3d_t *ct  = cap->mesh.get(j);
                 float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
                 if (distance <= 0.0f)
                     continue;
 
-                // Pass the normalized value to the capture
-                cv.amplitude = sv.amplitude * sqrtf(revA);
-                cv.p[0]      = ct->p[0];
-                cv.p[1]      = ct->p[1];
-                cv.p[2]      = ct->p[2];
-
-                // Estimate the start time for each trace point using barycentric coordinates
-                // Additionally filter invalid triangles
-                bool valid = true;
-                for (size_t j=0; j<3; ++j)
+                // Split triangle into sub-triangles
+                size_t nt       = split_triangle(rt, ct->p, spl, npl);
+                for (size_t k=0; k<nt; ++k)
                 {
-                    dsp::calc_split_point_p2v1(&p[j], &sv.s, &cv.p[j], &sv.pl[0]); // Project triangle point to trace point
-                    d[j]        = dsp::calc_distance_p2(&p[j], &cv.p[j]);          // Compute distance between projected point and triangle point
+                    // Pass the normalized value to the capture
+                    cv.amplitude    = sv.amplitude * sqrtf(revA);
+                    cv.p[0]         = rt[k].v[0];
+                    cv.p[1]         = rt[k].v[1];
+                    cv.p[2]         = rt[k].v[2];
 
-                    a[0]        = dsp::calc_area_p3(&p[j], &sv.p[1], &sv.p[2]);     // Compute area 0
-                    a[1]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[2]);     // Compute area 1
-                    a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);     // Compute area 2
-
-                    float dA    = A - (a[0] + a[1] + a[2]); // Point should lay within the view
-                    if ((dA <= -trace->fTolerance) || (dA >= trace->fTolerance))
+                    // Estimate the start time for each trace point using barycentric coordinates
+                    // Additionally filter invalid triangles
+                    bool valid = true;
+                    for (size_t s=0; s<3; ++s)
                     {
-                        valid = false;
-                        break;
+                        dsp::calc_split_point_p2v1(&p[s], &sv.s, &cv.p[s], &sv.pl[0]); // Project triangle point to trace point
+                        d[s]        = dsp::calc_distance_p2(&p[s], &cv.p[s]);          // Compute distance between projected point and triangle point
+
+                        a[0]        = dsp::calc_area_p3(&p[s], &sv.p[1], &sv.p[2]);     // Compute area 0
+                        a[1]        = dsp::calc_area_p3(&p[s], &sv.p[0], &sv.p[2]);     // Compute area 1
+                        a[2]        = dsp::calc_area_p3(&p[s], &sv.p[0], &sv.p[1]);     // Compute area 2
+
+                        float dA    = A - (a[0] + a[1] + a[2]); // Point should lay within the view
+                        if ((dA <= -trace->fTolerance) || (dA >= trace->fTolerance))
+                        {
+                            valid = false;
+                            break;
+                        }
+
+                        t[s]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
+                        cv.time[s]  = t[s] + (d[s] / sv.speed);
+                        #ifdef LSP_TRACE
+                            if (cv.time[s] > 30.0f)
+                                invalid_state_hook();
+                        #endif
                     }
 
-                    t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
-                    cv.time[j]  = t[j] + (d[j] / sv.speed);
-                    #ifdef LSP_TRACE
-                        if (cv.time[j] > 30.0f)
-                            invalid_state_hook();
-                    #endif
-                }
+                    if (!valid)
+                        continue;
 
-                if (!valid)
-                    continue;
+                    // Call for capture
+                    #ifdef LSP_RT_TRACE
+                        res = capture(cap, &cv, &ctx->trace);
+                    #else
+                        res = capture(cap, &cv);
+                    #endif /* LSP_RT_TRACE */
+                    if (res != STATUS_OK)
+                        return res;
+                } // for k
+            } // for j
+        } // for i
 
-                #ifdef LSP_RT_TRACE
-                    res = capture(cap, &cv, &ctx->trace);
-                #else
-                    res = capture(cap, &cv);
-                #endif /* LSP_RT_TRACE */
-                if (res != STATUS_OK)
-                    break;
-            }
-        }
-
+        // Free memory allocated by the context
+        delete ctx;
         return STATUS_OK;
     }
 
@@ -850,17 +849,17 @@ namespace lsp
 
             if (distance > 0.0f)
             {
-                A               = v.amplitude * (1.0f - m->absorption[0]);
+                float amp       = v.amplitude * (1.0f - m->absorption[0]);
 
                 kd              = (1.0f + 1.0f / m->diffusion[0]) * distance;
-                rv.amplitude    = A * (m->transparency[0] - 1.0f); // Sign negated
+                rv.amplitude    = amp * (m->transparency[0] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
                 rv.rnum         = v.rnum + 1;       // Increment reflection number
 
                 kd              = (m->permeability/m->dispersion[0] - 1.0f) * distance;
-                tv.amplitude    = A * m->transparency[0];
+                tv.amplitude    = amp * m->transparency[0];
                 tv.speed       *= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
@@ -887,17 +886,17 @@ namespace lsp
             }
             else
             {
-                A               = v.amplitude * (1.0f - m->absorption[0]);
+                float amp       = v.amplitude * (1.0f - m->absorption[0]);
 
                 kd              = (1.0f + 1.0f / m->diffusion[1]) * distance;
-                rv.amplitude    = A * (m->transparency[1] - 1.0f); // Sign negated
+                rv.amplitude    = amp * (m->transparency[1] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
                 rv.rnum         = v.rnum + 1;       // Increment reflection number
 
                 kd              = (1.0f/(m->dispersion[1]*m->permeability) - 1.0f) * distance;
-                tv.amplitude    = A * m->transparency[1];
+                tv.amplitude    = amp * m->transparency[1];
                 tv.speed       /= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
@@ -972,9 +971,12 @@ namespace lsp
             }
         }
 
-        if (res == STATUS_OK)
-            delete ctx;
-        return res;
+        if (res != STATUS_OK)
+            return res;
+
+        ctx->state      = S_CAPTURE;
+        ++stats.calls_capture;
+        return capture_view(ctx); // Do not enqueue, just call capture
     }
 
 #ifdef LSP_RT_TRACE
@@ -995,9 +997,9 @@ namespace lsp
 //            );
 
         // Compute the area of triangle
-//        float v_area = dsp::calc_area_pv(v->p);
-//        if (v_area <= trace->fDetalization) // Prevent from becoming NaNs
-//            return STATUS_OK;
+        float v_area = dsp::calc_area_pv(v->p);
+        if (v_area <= trace->fDetalization) // Prevent from becoming NaNs
+            return STATUS_OK;
 
         vector3d_t cv, pv;
         float afactor       = v->amplitude; // The norming energy factor
@@ -1923,16 +1925,11 @@ namespace lsp
         }
     }
 
-    bool RayTrace3D::check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
+    bool RayTrace3D::check_bound_box(const bound_box3d_t *bbox, const vector3d_t *vpl, size_t npl)
     {
         const vector3d_t *pl;
-        raw_triangle_t buf1[16], buf2[16], *in, *out;
+        raw_triangle_t buf1[64], buf2[64], *in, *out;   // We support up to 6 culling planes
         size_t nin, nout;
-
-//        dsp::calc_plane_p3(&spl[0], &view->s, &view->p[0], &view->p[1]);
-//        dsp::calc_plane_p3(&spl[1], &view->s, &view->p[1], &view->p[2]);
-//        dsp::calc_plane_p3(&spl[2], &view->s, &view->p[2], &view->p[0]);
-//        dsp::calc_plane_p3(&spl[3], &view->p[0], &view->p[1], &view->p[2]);
 
         // Cull each triangle of bounding box with four scissor planes
         for (size_t i=0, m = sizeof(bbox_map)/sizeof(size_t); i < m; )
@@ -1945,10 +1942,10 @@ namespace lsp
             in->v[0]    = bbox->p[bbox_map[i++]];
             in->v[1]    = bbox->p[bbox_map[i++]];
             in->v[2]    = bbox->p[bbox_map[i++]];
-            pl          = view->pl;
+            pl          = vpl;
 
             // Cull triangle with planes
-            for (size_t j=0; j<4; ++j, ++pl)
+            for (size_t j=0; j<npl; ++j, ++pl)
             {
                 // Reset counters
                 nout    = 0;
@@ -1972,6 +1969,32 @@ namespace lsp
         }
 
         return nout;
+    }
+
+    size_t RayTrace3D::split_triangle(raw_triangle_t *dst, const point3d_t *pv, const vector3d_t *vpl, size_t npl)
+    {
+        raw_triangle_t buf1[64], buf2[64], *out;   // We support up to 6 culling planes
+        const raw_triangle_t *in = reinterpret_cast<const raw_triangle_t *>(pv);
+        size_t nin = 1, nout;
+
+        for ( ; npl > 0; ++vpl)
+        {
+            out     = (--npl) ? ((in == buf2) ? buf1 : buf2) : dst;
+
+            // Reset counters
+            nout    = 0;
+            for (size_t i=0; i < nin; ++i, ++in)
+                dsp::cull_triangle_raw(out, &nout, vpl, in);
+
+            // Interrupt cycle if there is no data to process
+            if (!nout)
+                return 0;
+
+            nin     = nout;
+            in      = out;
+        }
+
+        return nin;
     }
 
 
