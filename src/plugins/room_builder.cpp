@@ -2148,7 +2148,7 @@ namespace lsp
         for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
         {
             capture_t *cap      = &vCaptures[i];
-            atomic_add(&vCaptures[i].nChangeReq, 1);
+            atomic_add(&cap->nChangeReq, 1);
             sConfigurator.queue_launch();
         }
     }
