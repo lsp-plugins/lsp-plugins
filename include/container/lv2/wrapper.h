@@ -1490,6 +1490,10 @@ namespace lsp
                 else if (it->is_transient()) // Skip transient parameters
                     continue;
 
+                int flags       = 0;
+                if (it->is_private())
+                    flags          |= LSP_LV2_PRIVATE;
+
                 const char *name = it->name();
                 if (name == NULL)
                 {
@@ -1500,7 +1504,6 @@ namespace lsp
                 kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
 
                 LV2_URID key        =  pExt->map_kvt(name);
-
                 switch (p->type)
                 {
                     case KVT_INT32:
@@ -1629,6 +1632,7 @@ namespace lsp
         }
 
         pExt->reset_state_context();
+        pPlugin->state_saved();
     }
 
     inline void LV2Wrapper::restore_state(
@@ -1786,170 +1790,12 @@ namespace lsp
                 } // for
             }
 
-            // Retireve keys
-            /*
-            const void *ptr = pExt->retrieve_value(pExt->uridKvtKeys, &p_type, &p_size);
-
-            if ((ptr != NULL) && (p_type == pExt->forge.String))
-            {
-                LSPString kvt_keys, kvt_key, kvt_uri;
-
-                const char *key_list = reinterpret_cast<const char *>(ptr);
-                if ((p_size > 0) && (key_list[p_size-1] == '\0'))
-                    --p_size;
-                kvt_keys.set_utf8(key_list, p_size);
-
-                for (ssize_t start = 0, end = kvt_keys.length(); start < end; )
-                {
-                    // Fetch key
-                    ssize_t idx = kvt_keys.index_of(start, ':');
-                    if (idx >= 0)
-                    {
-                        kvt_key.set(&kvt_keys, start, idx);
-                        start       = idx + 1;
-                    }
-                    else
-                    {
-                        kvt_key.set(&kvt_keys, start);
-                        start       = end;
-                    }
-
-                    if (kvt_key.is_empty())
-                        continue;
-                    if (!kvt_uri.set_ascii(LSP_KVT_URI))
-                        continue;
-                    if (!kvt_uri.append(&kvt_key))
-                        continue;
-
-                    // Fetch the value
-                    const char *uri     = kvt_uri.get_utf8();
-                    const char *name    = kvt_key.get_utf8();
-                    lsp_trace("Retrieveing property name=%s with uri=%s", name, uri);
-
-                    LV2_URID key        = pExt->map_uri(uri);
-                    ptr                 = pExt->retrieve_value(key, &p_type, &p_size);
-                    if (ptr == NULL)
-                    {
-                        lsp_trace("No property found for name=%s with uri=%s", name, uri);
-                        continue;
-                    }
-
-                    // Analyze type of value
-                    kvt_param_t p;
-                    p.type      = KVT_ANY;
-
-                    if (p_type == pExt->forge.Int)
-                    {
-                        if (p_size == sizeof(int32_t))
-                        {
-                            p.type  = KVT_INT32;
-                            p.i32   = *(reinterpret_cast<const int32_t *>(ptr));
-                        }
-                    }
-                    else if (p_type == pExt->uridTypeUInt)
-                    {
-                        if (p_size == sizeof(uint32_t))
-                        {
-                            p.type  = KVT_UINT32;
-                            p.u32   = *(reinterpret_cast<const uint32_t *>(ptr));
-                        }
-                    }
-                    else if (p_type == pExt->forge.Long)
-                    {
-                        if (p_size == sizeof(int64_t))
-                        {
-                            p.type  = KVT_INT64;
-                            p.i64   = *(reinterpret_cast<const int64_t *>(ptr));
-                        }
-                    }
-                    else if (p_type == pExt->uridTypeULong)
-                    {
-                        if (p_size == sizeof(uint64_t))
-                        {
-                            p.type  = KVT_UINT64;
-                            p.u64   = *(reinterpret_cast<const uint64_t *>(ptr));
-                        }
-                    }
-                    else if (p_type == pExt->forge.Float)
-                    {
-                        if (p_size == sizeof(float))
-                        {
-                            p.type  = KVT_FLOAT32;
-                            p.f32   = *(reinterpret_cast<const float *>(ptr));
-                        }
-                    }
-                    else if (p_type == pExt->forge.String)
-                    {
-                        if (p_size == sizeof(double))
-                        {
-                            p.type  = KVT_FLOAT64;
-                            p.f64   = *(reinterpret_cast<const double *>(ptr));
-                        }
-                    }
-                    else // if (p_type == pExt->uridRawBlob) // TODO
-                    {
-                        const uint8_t *bp   = reinterpret_cast<const uint8_t *>(ptr);
-                        const uint8_t *be   = &bp[p_size];
-
-                        p.blob.ctype        = NULL;
-                        p.blob.data         = NULL;
-                        p.blob.size         = 0;
-
-                        ssize_t clen        = -1;
-
-                        // Extract content-type length
-                        if ((be - bp) >= ssize_t(sizeof(uint16_t)))
-                        {
-                            clen            = BE_TO_CPU(*(reinterpret_cast<const uint16_t *>(bp)));
-                            bp             += sizeof(uint16_t);
-                        }
-
-                        // Extract content-type string
-                        if ((clen > 0) && ((be - bp) >= clen))
-                        {
-                            p.blob.ctype    = reinterpret_cast<const char *>(bp);
-                            bp             += clen;
-                            if (bp[-1] != '\0')
-                                clen            = -1;
-                        }
-
-                        // Extract content size
-                        if ((clen >= 0) && ((be - bp) >= ssize_t(sizeof(uint64_t))))
-                        {
-                            p.blob.size     = size_t(BE_TO_CPU(*(reinterpret_cast<const uint64_t *>(bp))));
-                            bp             += sizeof(uint16_t);
-                        }
-
-                        // Extract content
-                        if ((clen >= 0) && ((be - bp) >= ssize_t(p.blob.size)))
-                            p.blob.data     = (p.blob.size > 0) ? bp : NULL;
-                        else
-                            clen            = -1;
-
-                        // Change type
-                        if (clen >= 0)
-                            p.type          = KVT_BLOB;
-                    }
-
-                    // Store property
-                    if (p.type != KVT_ANY)
-                    {
-                        kvt_dump_parameter("Fetched parameter %s = ", &p, name);
-                        status_t res = sKVT.put(name, &p, KVT_TX);
-                        if (res != STATUS_OK)
-                            lsp_warn("Could not store parameter to KVT");
-                    }
-                    else
-                        lsp_warn("KVT property %s has unsupported type or is invalid: 0x%x (%s)",
-                                name, p_type, pExt->unmap_urid(p_type));
-                }
-            }*/
-
             sKVT.gc();
             sKVTMutex.unlock();
         }
 
         pExt->reset_state_context();
+        pPlugin->state_loaded();
     }
 
     inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)

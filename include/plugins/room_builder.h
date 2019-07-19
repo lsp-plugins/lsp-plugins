@@ -391,6 +391,8 @@ namespace lsp
 
             virtual void process(size_t samples);
 
+            virtual void state_loaded();
+
         public:
             static rt_capture_config_t  decode_config(float value);
             static rt_audio_capture_t   decode_direction(float value);

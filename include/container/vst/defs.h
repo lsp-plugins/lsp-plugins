@@ -65,6 +65,11 @@ enum
     LSP_VST_BLOB    = 'B'
 };
 
+enum
+{
+    LSP_VST_PRIVATE = 1 << 0
+};
+
 #define VST_FX_VERSION_KVT_SUPPORT      2000
 
 namespace lsp
