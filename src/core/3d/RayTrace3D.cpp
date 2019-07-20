@@ -11,8 +11,8 @@
 #include <alloca.h>
 
 #define SAMPLE_QUANTITY     512
-#define TASK_LO_THRESH      1024
-#define TASK_HI_THRESH      8192
+#define TASK_LO_THRESH      0x2000
+#define TASK_HI_THRESH      0x4000
 
 namespace lsp
 {
