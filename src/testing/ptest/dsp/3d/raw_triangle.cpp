@@ -34,6 +34,8 @@ IF_ARCH_X86(
     {
         void cull_triangle_raw(raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv);
         void split_triangle_raw(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv);
+
+        void cull_triangle_raw_v2(raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv);
     }
 )
 
