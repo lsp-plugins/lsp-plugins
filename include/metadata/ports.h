@@ -24,6 +24,9 @@
 #define AMP_GAIN1(id, label, dfl)  AMP_GAIN(id, label, dfl, 1.0f)
 #define AMP_GAIN10(id, label, dfl)  AMP_GAIN(id, label, dfl, 10.0f)
 #define AMP_GAIN100(id, label, dfl)  AMP_GAIN(id, label, dfl, 100.0f)
+#define AMP_GAIN1000(id, label, dfl)  AMP_GAIN(id, label, dfl, 1000.0f)
+#define AMP_GAIN_RANGE(id, label, dfl, min, max) \
+    { id, label, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, min, max, dfl, GAIN_AMP_S_0_5_DB, NULL, NULL }
 #define STATUS(id, label) \
     { id, label, U_NONE, R_METER, F_OUT | F_INT | F_UPPER | F_LOWER, 0, STATUS_MAX, STATUS_UNSPECIFIED, 0, NULL, NULL }
 #define MESH(id, label, dim, points) \

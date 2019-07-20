@@ -785,10 +785,10 @@ namespace lsp
                 break;
             case RT_CC_XY:
                 *n                  = 2;
-                dp[0].dy           += r;
-                dp[1].dy           -= r;
-                a[0]                = -45.0f - (cfg->fAngle - 90.0f) * 0.5f;
-                a[1]                = 45.0f + (cfg->fAngle - 90.0f) * 0.5f;
+                dp[0].dy           -= r;
+                dp[1].dy           += r;
+                a[0]                = 45.0f + (cfg->fAngle - 90.0f) * 0.5f;
+                a[1]                = -45.0f - (cfg->fAngle - 90.0f) * 0.5f;
 
                 out[0].type         = cfg->enDirection;
                 out[1].type         = cfg->enDirection;

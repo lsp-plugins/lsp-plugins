@@ -95,6 +95,7 @@ This allows to understand the final result with minimum number of actions.</p>
 	<li><b>Fade in</b> - adds additional fading at the beginning of the sample.</li>
 	<li><b>Fade out</b> - adds additional fading at the end of the sample.</li>
 	<li><b>Listen</b> - this button allows to listen contents of the sample.</li>
+	<li><b>Makeup</b> - additional fader to control the gain of the rendered impulse response.</li>
 </ul>
 
 <p><b>'Source editor' section:</b></p>

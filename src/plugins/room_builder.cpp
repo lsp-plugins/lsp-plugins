@@ -509,6 +509,7 @@ namespace lsp
             cap->fFadeIn        = 0.0f;
             cap->fFadeOut       = 0.0f;
             cap->bReverse       = false;
+            cap->fMakeup        = 1.0f;
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
 
@@ -549,6 +550,7 @@ namespace lsp
             cap->pFadeOut       = NULL;
             cap->pListen        = NULL;
             cap->pReverse       = NULL;
+            cap->pMakeup        = NULL;
             cap->pStatus        = NULL;
             cap->pLength        = NULL;
             cap->pCurrLen       = NULL;
@@ -765,6 +767,8 @@ namespace lsp
             cap->pListen        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pReverse       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pMakeup        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pStatus        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -1013,6 +1017,7 @@ namespace lsp
             cap->fDistance      = cap->pDistance->getValue();
             cap->enDirection    = decode_direction(cap->pDirection->getValue());
             cap->enSide         = decode_side_direction(cap->pSide->getValue());
+            cap->fMakeup        = cap->pMakeup->getValue();
 
             // Accept changes
             path_t *path        = cap->pOutFile->getBuffer<path_t>();
@@ -1054,7 +1059,7 @@ namespace lsp
                 if (n_c > 0)
                 {
                     for (size_t j=0; j<2; ++j)
-                        vChannels[j].sPlayer.play(i, j % n_c, 1.0f, 0);
+                        vChannels[j].sPlayer.play(i, j % n_c, cap->fMakeup, 0);
                 }
             }
         }
@@ -1134,8 +1139,8 @@ namespace lsp
             convolver_t *cv         = &vConvolvers[i];
 
             // Allow to reconfigure convolver only when configuration task is in idle state
-            size_t sampleid = cv->pSample->getValue();
-            size_t trackid  = cv->pTrack->getValue();
+            size_t sampleid         = cv->pSample->getValue();
+            size_t trackid          = cv->pTrack->getValue();
 
             if ((cv->nSampleID != sampleid) ||
                 (cv->nTrackID != trackid))
@@ -1146,7 +1151,8 @@ namespace lsp
             }
 
             // Apply panning to each convolver
-            float makeup            = cv->pMakeup->getValue() * wet_gain;
+            float smakeup           = (sampleid > 0) ? vCaptures[sampleid-1].fMakeup : 1.0f; // Sample makeup
+            float makeup            = cv->pMakeup->getValue() * wet_gain * smakeup;
             if (nInputs == 1)
             {
                 cv->fPanIn[0]       = 1.0f;
@@ -1565,7 +1571,8 @@ namespace lsp
                 delete s;
                 return STATUS_NO_MEM;
             }
-            s->nID  = i;
+            s->nID          = i;
+            s->enConfig     = cap->sConfig;
             if (!s->sSample.init(n, 512))
                 return STATUS_NO_MEM;
 
@@ -1805,6 +1812,14 @@ namespace lsp
             float *fdst         = reinterpret_cast<float *>(&hdr[1]);
             for (size_t i=0; i<s->sSample.channels(); ++i, fdst += slen)
                 ::memcpy(fdst, s->sSample.getBuffer(i), slen * sizeof(float));
+
+            // Post-process Mid/Side audio data
+            if (s->enConfig == RT_CC_MS)
+            {
+                float *l            = reinterpret_cast<float *>(&hdr[1]);
+                float *r            = &l[slen];
+                dsp::ms_to_lr(l, r, l, r, slen);
+            }
 
             // Create KVT parameter
             p.type          = KVT_BLOB;
