@@ -65,7 +65,6 @@ namespace lsp
 
                 size_t              nSampleID;      // Sample identifier
                 size_t              nTrackID;       // Track identifier
-                bool                bMute;          // Mute flag
 
                 float              *vBuffer;        // Buffer for convolution
                 float               fPanIn[2];      // Input panning of convolver

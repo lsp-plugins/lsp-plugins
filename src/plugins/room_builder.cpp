@@ -571,7 +571,6 @@ namespace lsp
 
             c->pCurr            = NULL;
             c->pSwap            = NULL;
-            c->bMute            = false;
 
             c->nSampleID        = 0;
             c->nTrackID         = 0;
@@ -1152,7 +1151,7 @@ namespace lsp
 
             // Apply panning to each convolver
             float smakeup           = (sampleid > 0) ? vCaptures[sampleid-1].fMakeup : 1.0f; // Sample makeup
-            float makeup            = cv->pMakeup->getValue() * wet_gain * smakeup;
+            float makeup            = (cv->pMute->getValue() < 0.5f) ? cv->pMakeup->getValue() * wet_gain * smakeup : 0.0f;
             if (nInputs == 1)
             {
                 cv->fPanIn[0]       = 1.0f;
