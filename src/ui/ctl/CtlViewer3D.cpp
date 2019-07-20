@@ -269,7 +269,7 @@ namespace lsp
 
             float aspect    = float(width)/float(height);
             float zNear     = 0.1f;
-            float zFar      = 100.0f;
+            float zFar      = 1000.0f;
 
             float fH        = tanf( fFov * M_PI / 360.0f) * zNear;
             float fW        = fH * aspect;
