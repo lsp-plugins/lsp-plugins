@@ -119,6 +119,9 @@ namespace lsp
             LV2_URID                uridKvtKeys;
             LV2_URID                uridKvtObject;
             LV2_URID                uridKvtType;
+            LV2_URID                uridKvtPropertyType;
+            LV2_URID                uridKvtPropertyValue;
+            LV2_URID                uridKvtPropertyFlags;
             LV2_URID                uridBlobType;
             LV2_URID                uridContentType;
             LV2_URID                uridContent;
@@ -257,9 +260,11 @@ namespace lsp
                 uridStateFlags              = map_type("StateFlags");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
-                uridKvtKeys                 = map_kvt("#keys");
                 uridKvtObject               = map_primitive("KVT");
                 uridKvtType                 = map_type("KVT");
+                uridKvtPropertyType         = map_type("KVTProperty");
+                uridKvtPropertyValue        = map_field("KVTProperty#value");
+                uridKvtPropertyFlags        = map_field("KVTProperty#flags");
                 uridBlobType                = map_type("Blob");
                 uridContentType             = map_field("Blob#ContentType");
                 uridContent                 = map_field("Blob#Content");

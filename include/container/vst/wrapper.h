@@ -957,9 +957,14 @@ namespace lsp
                     break;
                 }
 
+                uint8_t flags = 0;
+                if (it->is_private())
+                    flags      |= LSP_VST_PRIVATE;
+
                 kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
 
                 param_off   = sChunk.write(uint32_t(0)); // Reserve space for size
+                sChunk.write_byte(flags);
                 sChunk.write_string(name); // Name of the KVT parameter
 
                 // Serialize parameter according to it's type
@@ -1048,6 +1053,9 @@ namespace lsp
             return 0;
         }
 
+        // Issue callback
+        pPlugin->state_saved();
+
         // Write the size of chunk
         fxBank *pbank               = sChunk.fetch<fxBank>(bank_off);
         pbank->content.data.size    = CPU_TO_BE(VstInt32(sChunk.offset - data_off));
@@ -1107,6 +1115,9 @@ namespace lsp
             deserialize_v1(bank);
         else
             deserialize_v2(bank);
+
+        // Call callback
+        pPlugin->state_loaded();
     }
 
     VSTPort *VSTWrapper::find_by_id(const char *id)
@@ -1291,6 +1302,7 @@ namespace lsp
                 kvt_param_t p;
                 p.type              = KVT_ANY;
                 uint8_t type        = *(head++);
+                uint8_t flags       = *(head++);
 
                 lsp_trace("Deserializing KVT parameter id=%s, type=0x%x", name, int(type));
 
@@ -1371,8 +1383,12 @@ namespace lsp
 
                 if (p.type != KVT_ANY)
                 {
+                    size_t kflags = KVT_TX;
+                    if (flags & LSP_VST_PRIVATE)
+                        kflags     |= KVT_PRIVATE;
+
                     kvt_dump_parameter("Fetched parameter %s = ", &p, name);
-                    sKVT.put(name, &p, KVT_TX);
+                    sKVT.put(name, &p, kflags);
                 }
 
                 // Move to next parameter

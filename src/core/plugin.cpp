@@ -90,5 +90,13 @@ namespace lsp
         if (pWrapper != NULL)
             pWrapper->kvt_release();
     }
+
+    void plugin_t::state_saved()
+    {
+    }
+
+    void plugin_t::state_loaded()
+    {
+    }
 }
 

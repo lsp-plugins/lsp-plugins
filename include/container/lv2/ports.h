@@ -555,7 +555,26 @@ namespace lsp
             {
                 lsp_trace("restore port id=%s, urid=%d (%s)", pMetadata->id, urid, get_uri());
                 size_t count            = 0;
-                const char *path        = reinterpret_cast<const char *>(pExt->restore_value(urid, pExt->uridPathType, &count));
+                uint32_t type           = -1;
+
+                const char *path        = reinterpret_cast<const char *>(pExt->retrieve_value(urid, &type, &count));
+                if (path != NULL)
+                {
+                    if (type == pExt->forge.URID)
+                    {
+                        const LV2_URID *urid    = reinterpret_cast<const LV2_URID *>(path);
+                        path                = pExt->unmap_urid(*urid);
+                        if (path != NULL)
+                            count               = strnlen(path, PATH_MAX);
+                    }
+                    else if ((type != pExt->uridPathType) && (type != pExt->forge.String))
+                    {
+                        if (path != NULL)
+                            lsp_trace("Invalid type: %d = %s", int(type), pExt->unmap_urid(type));
+                        path                    = NULL;
+                    }
+                }
+
                 if ((path != NULL) && (count > 0))
                     set_string(path, count, PF_STATE_IMPORT);
                 else

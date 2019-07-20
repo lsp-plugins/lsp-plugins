@@ -1385,6 +1385,7 @@ namespace lsp
                 ::strncpy(s3DLoader.sPath, path->get_path(), PATH_MAX);
                 s3DLoader.nFlags            = path->get_flags();
                 s3DLoader.sPath[PATH_MAX]   = '\0';
+                lsp_trace("Submitted scene file %s", s3DLoader.sPath);
 
                 // Try to submit task
                 if (pExecutor->submit(&s3DLoader))
@@ -2140,6 +2141,24 @@ namespace lsp
         // Release KVT storage and return result
         kvt_release();
         return res;
+    }
+
+    void room_builder_base::state_loaded()
+    {
+        // We need to sync all loaded samples in KVT with internal state
+        for (size_t i=0; i<room_builder_base_metadata::CAPTURES; ++i)
+        {
+            capture_t *cap      = &vCaptures[i];
+            atomic_add(&cap->nChangeReq, 1);
+            sConfigurator.queue_launch();
+        }
+    }
+
+    void room_builder_base::ui_activated()
+    {
+        // Synchronize thumbnails with UI
+        for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
+            vCaptures[i].bSync  = true;
     }
 
     //-------------------------------------------------------------------------
