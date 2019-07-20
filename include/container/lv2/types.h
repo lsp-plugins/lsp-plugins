@@ -10,6 +10,11 @@
 
 namespace lsp
 {
+    enum
+    {
+        LSP_LV2_PRIVATE     = 1 << 0
+    };
+
     typedef struct lv2_path_t: public path_t
     {
         enum flags_t

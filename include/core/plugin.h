@@ -170,6 +170,16 @@ namespace lsp
              * Release the KVT storage
              */
             virtual void kvt_release();
+
+            /** Callback for case when plugin's state has been saved
+             *
+             */
+            virtual void state_saved();
+
+            /** Callback for case when plugin's state has been loaded
+             *
+             */
+            virtual void state_loaded();
     };
 
 }

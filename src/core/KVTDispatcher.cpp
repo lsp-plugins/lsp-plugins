@@ -99,11 +99,20 @@ namespace lsp
 
         while (iter->next() == STATUS_OK)
         {
+            // Do not transfer private properties
+            if (iter->is_private())
+                continue;
+
             // Fetch next change
-            res = iter->get(&p);
-            kvt_name = iter->name();
-            if ((res != STATUS_OK) || (kvt_name == NULL))
+            res     = iter->get(&p);
+            if (res == STATUS_NOT_FOUND)
+                continue;
+            else if (res != STATUS_OK)
                 break;
+
+            kvt_name = iter->name();
+            if (kvt_name == NULL)
+                continue;;
 
             // Try to serialize changes
             res = build_message(kvt_name, p, pPacket, &size, OSC_PACKET_MAX);

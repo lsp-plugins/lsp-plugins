@@ -11,8 +11,8 @@
 #include <alloca.h>
 
 #define SAMPLE_QUANTITY     512
-#define TASK_LO_THRESH      1024
-#define TASK_HI_THRESH      8192
+#define TASK_LO_THRESH      0x2000
+#define TASK_HI_THRESH      0x4000
 
 namespace lsp
 {
@@ -1702,6 +1702,10 @@ namespace lsp
         bCancelled   = false;
         bFailed      = false;
 
+        // Get time of execution start
+        struct timespec tstart;
+        clock_gettime(CLOCK_REALTIME, &tstart);
+
         // Create main thread
         TaskThread *root = new TaskThread(this);
         if (root == NULL)
@@ -1786,7 +1790,15 @@ namespace lsp
 
         // Dump overall statistics
         if (res != STATUS_BREAKPOINT)
+        {
+            // Get time of execution end
+            struct timespec tend;
+            clock_gettime(CLOCK_REALTIME, &tend);
+            double etime = double(tend.tv_sec - tstart.tv_sec) + double(tend.tv_nsec - tend.tv_nsec) * 1e-6;
+
             dump_stats("Overall statistics", &overall);
+            lsp_trace("Overall execution time:      %f s", etime);
+        }
 
         // Destroy all tasks
         destroy_tasks(&vTasks);
