@@ -61,16 +61,23 @@ namespace lsp
 
             bViewChanged    = true;
 
+            fOpacity        = 0.25f;
+            fFov            = 70.0f;
+
+            sAngles.fYaw    = 0.0f;
+            sAngles.fPitch  = 0.0f;
+            sAngles.fRoll   = 0.0f;
+            sOldAngles      = sAngles;
+
             nBMask          = 0;
             nMouseX         = 0;
             nMouseY         = 0;
 
-            fOpacity        = 0.25f;
-            fFov            = 70.0f;
-
             dsp::init_point_xyz(&sPov, 0.0f, -6.0f, 0.0f);
+            dsp::init_point_xyz(&sOldPov, 0.0f, -6.0f, 0.0f);
             dsp::init_vector_dxyz(&sScale, 1.0f, 1.0f, 1.0f);
             dsp::init_vector_dxyz(&sTop, 0.0f, 0.0f, -1.0f);
+            dsp::init_vector_dxyz(&sXTop, 0.0f, 0.0f, -1.0f);
             dsp::init_vector_dxyz(&sDir, 0.0f, -1.0f, 0.0f);
             dsp::init_vector_dxyz(&sSide, -1.0f, 0.0f, 0.0f);
             dsp::init_matrix3d_identity(&sOrientation);
