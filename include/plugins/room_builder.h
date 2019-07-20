@@ -392,6 +392,7 @@ namespace lsp
             virtual void process(size_t samples);
 
             virtual void state_loaded();
+            virtual void ui_activated();
 
         public:
             static rt_capture_config_t  decode_config(float value);

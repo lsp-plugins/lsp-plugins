@@ -1679,8 +1679,7 @@ namespace lsp
 
             if (ptr != NULL)
             {
-                lsp_dumpb("Contents of the atom object:", ptr, p_size);
-
+//                lsp_dumpb("Contents of the atom object:", ptr, p_size);
                 lsp_trace("p_type = %d (%s), p_size = %d", int(p_type), pExt->unmap_urid(p_type), int(p_size));
 
                 if ((p_type == pExt->forge.Object) || (p_type == pExt->uridBlank))
@@ -1693,8 +1692,8 @@ namespace lsp
                         body = lv2_atom_object_next(body)
                     )
                     {
-                        lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                        lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+//                        lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                        lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
                         const LV2_Atom_Object *pobject = reinterpret_cast<const LV2_Atom_Object *>(&body->value);
                         if ((pobject->atom.type != pExt->uridObject) && (pobject->atom.type != pExt->uridBlank))
@@ -1702,7 +1701,7 @@ namespace lsp
                             lsp_warn("Unsupported value type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
                             continue;
                         }
-                        lsp_trace("pobject->body.otype (%d) = %s", int(pobject->body.otype), pExt->unmap_urid(pobject->body.otype));
+//                        lsp_trace("pobject->body.otype (%d) = %s", int(pobject->body.otype), pExt->unmap_urid(pobject->body.otype));
                         if (pobject->body.otype != pExt->uridKvtPropertyType)
                         {
                             lsp_warn("Unsupported object type (%d) = %s", int(pobject->body.otype), pExt->unmap_urid(pobject->body.otype));
@@ -1727,8 +1726,8 @@ namespace lsp
                             xbody = lv2_atom_object_next(xbody)
                         )
                         {
-                            lsp_trace("xbody->key (%d) = %s", int(xbody->key), pExt->unmap_urid(xbody->key));
-                            lsp_trace("xbody->value.type (%d) = %s", int(xbody->value.type), pExt->unmap_urid(xbody->value.type));
+//                            lsp_trace("xbody->key (%d) = %s", int(xbody->key), pExt->unmap_urid(xbody->key));
+//                            lsp_trace("xbody->value.type (%d) = %s", int(xbody->value.type), pExt->unmap_urid(xbody->value.type));
 
                             // Analyze type of value
                             if (xbody->key == pExt->uridKvtPropertyFlags)
