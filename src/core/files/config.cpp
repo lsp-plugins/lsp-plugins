@@ -622,7 +622,7 @@ namespace lsp
                     // Get content size
                     errno = 0;
                     char *base64 = NULL;
-                    p.blob.size = size_t(::strtoull(split, &base64, 10));
+                    p.blob.size = size_t(::strtoul(split, &base64, 10));
                     if ((errno != 0) || (*(base64++) != ':'))
                     {
                         if (ctype != NULL)
