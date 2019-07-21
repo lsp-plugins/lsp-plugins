@@ -47,6 +47,9 @@ namespace lsp
             nDecimSize      = 0;
             vDecimX         = NULL;
             vDecimY         = NULL;
+            nBorder         = 4;
+            nRadius         = 10;
+            nStatus         = 0;
             fCurrLen        = 0.0f;
             fMaxLen         = 0.0f;
         }

@@ -394,20 +394,6 @@ namespace lsp
                 trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
 
-        // Normalize capture volume
-//        for (size_t i=0, n=vCaptures.size(); i<n; ++i, ++obj_id)
-//        {
-//            capture_t *cap      = vCaptures.get(i);
-//            cap->volume        /= max_volume;
-//        }
-
-        // Update source energy (add extra volume)
-//        for (size_t i=0,n=vTasks.size();i<n; ++i)
-//        {
-//            rt_context_t *ct    = vTasks.get(i);
-//            ct->view.energy    *= max_volume;
-//        }
-
         // Solve conflicts between all objects
         res = root.solve_conflicts();
         if (res != STATUS_OK)
@@ -474,7 +460,7 @@ namespace lsp
                 ++n_objs;
             }
             else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
+                res     = STATUS_OK;
             else
                 return res;
         }
@@ -504,7 +490,7 @@ namespace lsp
                 ++n_objs;
             }
             else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
+                res     = STATUS_OK;
             else
                 return res;
         }
@@ -512,7 +498,10 @@ namespace lsp
         // Fetch visible objects from root context into current context
 //        lsp_trace("Fetch %d objects", int(n_objs));
         if (n_objs <= 0)
+        {
+            delete ctx;
             return STATUS_OK;
+        }
 
         res     = ctx->fetch_objects(&root, segs, objs);
         if (res != STATUS_OK) // Some error occurred
