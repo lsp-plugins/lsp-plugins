@@ -964,8 +964,8 @@ namespace lsp
                 kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
 
                 param_off   = sChunk.write(uint32_t(0)); // Reserve space for size
-                sChunk.write_byte(flags);
                 sChunk.write_string(name); // Name of the KVT parameter
+                sChunk.write_byte(flags);
 
                 // Serialize parameter according to it's type
                 switch (p->type)
@@ -1301,8 +1301,8 @@ namespace lsp
                 // Deserialize KVT parameter
                 kvt_param_t p;
                 p.type              = KVT_ANY;
-                uint8_t type        = *(head++);
                 uint8_t flags       = *(head++);
+                uint8_t type        = *(head++);
 
                 lsp_trace("Deserializing KVT parameter id=%s, type=0x%x", name, int(type));
 

@@ -1379,6 +1379,12 @@ namespace lsp
         }
         else if (s3DLauncher.completed())
         {
+            status_t res = s3DLauncher.code();
+            if (res != STATUS_OK)
+            {
+                fRenderProgress = 0.0f;
+                enRenderStatus  = s3DLauncher.code();
+            }
             s3DLauncher.reset();
         }
 
