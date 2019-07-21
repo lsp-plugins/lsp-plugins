@@ -646,7 +646,7 @@ namespace lsp
                         // Now get content type
                         char *ctype             = XGetAtomName(pDisplay, sr->target);
                         io::IInStream *is    = (ctype != NULL) ? cb->read(ctype) : NULL;
-                        lsp_trace("requested content type: %s", ctype);
+                        lsp_trace("requested content type: %s", (ctype != NULL) ? ctype : "(null)");
                         if (ctype != NULL)
                             XFree(ctype);
 
