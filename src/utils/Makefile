@@ -3,8 +3,12 @@ FILELIST                = resource_gen.o
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
 OBJ_FILES               = $(OBJ_CORE) $(OBJ_METADATA)
-OBJ_LIBS                = $(PTHREAD_LIBS) $(MATH_LIBS) $(ICONV_LIBS)
+OBJ_LIBS                = $(PTHREAD_LIBS) $(MATH_LIBS)
 OBJ_EXTRA				= 
+
+ifeq ($(BUILD_PLATFORM),BSD)
+  OBJ_LIBS               += $(ICONV_LIBS)
+endif
 
 ifeq ($(LSP_TESTING),1)
   OBJ_EXTRA              += $(OBJ_TEST_CORE)
