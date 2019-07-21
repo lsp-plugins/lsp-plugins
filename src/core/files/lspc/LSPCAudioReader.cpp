@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <core/debug.h>
 #include <core/files/lspc/LSPCAudioReader.h>
-#include <alloca.h>
 
 #define BUFFER_SIZE     0x2000
 #define BUFFER_FRAMES   0x400
