@@ -40,7 +40,7 @@ namespace lsp
     status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value, size_t flags)
     {
         add_notification(name);
-        pUI->apply_changes(name, value, hPorts);
+        pUI->apply_changes(name, value, hPorts, bPreset);
         return STATUS_OK;
     }
 
@@ -858,7 +858,7 @@ namespace lsp
             if ((p == NULL) || (p->item != sender))
                 continue;
 
-            return _this->import_settings(p->path);
+            return _this->import_settings(p->path, true);
         }
 
         return STATUS_OK;
@@ -1258,10 +1258,10 @@ namespace lsp
         return res;
     }
 
-    status_t plugin_ui::import_settings(const char *filename)
+    status_t plugin_ui::import_settings(const char *filename, bool preset)
     {
         KVTStorage *kvt = kvt_lock();
-        ConfigHandler handler(this, vPorts, kvt);
+        ConfigHandler handler(this, vPorts, kvt, preset);
         status_t res = config::load(filename, &handler);
         handler.notify_all();
         if (kvt != NULL)
@@ -1303,7 +1303,7 @@ namespace lsp
         if (fd == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        ConfigHandler handler(this, vConfigPorts, NULL);
+        ConfigHandler handler(this, vConfigPorts, NULL, false);
         status_t status = config::load(fd, &handler);
 
         // Close file
@@ -1313,7 +1313,7 @@ namespace lsp
         return status;
     }
 
-    bool plugin_ui::apply_changes(const char *key, const char *value, cvector<CtlPort> &ports)
+    bool plugin_ui::apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset)
     {
         // Get UI port
         size_t n_ports  = ports.size();
@@ -1326,7 +1326,7 @@ namespace lsp
             if ((meta == NULL) || (meta->id == NULL))
                 continue;
             if (!::strcmp(meta->id, key))
-                return set_port_value(p, value, PF_STATE_IMPORT);
+                return set_port_value(p, value, (preset) ? PF_PRESET_IMPORT : PF_STATE_IMPORT);
         }
         return false;
     }

@@ -100,11 +100,12 @@ namespace lsp
 
         // Now initialize object properties
         lsp_trace("Extra loading flags=0x%x", int(nFlags));
-        size_t extra = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
+        size_t f_extra  = (nFlags & (PF_STATE_IMPORT | PF_PRESET_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
+        size_t f_hue    = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
 
         char base[128];
         kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs), KVT_TX);
-        kvt_deploy(kvt, "/scene", "selected", 0.0f, extra);
+        kvt_deploy(kvt, "/scene", "selected", 0.0f, f_extra);
 
         for (size_t i=0; i<nobjs; ++i)
         {
@@ -118,37 +119,37 @@ namespace lsp
 
             kvt_deploy(kvt, base, "name", obj->get_name(), KVT_TX); // Always overwrite name
 
-            kvt_deploy(kvt, base, "enabled", 1.0f, extra);
+            kvt_deploy(kvt, base, "enabled", 1.0f, f_extra);
             kvt_deploy(kvt, base, "center/x", c->x, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
             kvt_deploy(kvt, base, "center/y", c->y, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
             kvt_deploy(kvt, base, "center/z", c->z, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
-            kvt_deploy(kvt, base, "position/x", 0.0f, extra);
-            kvt_deploy(kvt, base, "position/y", 0.0f, extra);
-            kvt_deploy(kvt, base, "position/z", 0.0f, extra);
-            kvt_deploy(kvt, base, "rotation/yaw", 0.0f, extra);
-            kvt_deploy(kvt, base, "rotation/pitch", 0.0f, extra);
-            kvt_deploy(kvt, base, "rotation/roll", 0.0f, extra);
-            kvt_deploy(kvt, base, "scale/x", 100.0f, extra);
-            kvt_deploy(kvt, base, "scale/y", 100.0f, extra);
-            kvt_deploy(kvt, base, "scale/z", 100.0f, extra);
-            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), KVT_TX); // Always overwrite hue
+            kvt_deploy(kvt, base, "position/x", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "position/y", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "position/z", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "rotation/yaw", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "rotation/pitch", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "rotation/roll", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "scale/x", 100.0f, f_extra);
+            kvt_deploy(kvt, base, "scale/y", 100.0f, f_extra);
+            kvt_deploy(kvt, base, "scale/z", 100.0f, f_extra);
+            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), f_hue); // Always overwrite hue
 
-            kvt_deploy(kvt, base, "material/absorption/outer", 1.5f, extra); // Absorption of concrete material
-            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/outer", 48.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/outer", 1.5f, f_extra); // Absorption of concrete material
+            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/transparency/outer", 48.0f, f_extra);
 
-            kvt_deploy(kvt, base, "material/absorption/inner", 1.5f, extra);
-            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/inner", 52.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/inner", 1.5f, f_extra);
+            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/transparency/inner", 52.0f, f_extra);
 
-            kvt_deploy(kvt, base, "material/absorption/link", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/dispersion/link", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/diffusion/link", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/link", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/link", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/dispersion/link", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/diffusion/link", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/transparency/link", 1.0f, f_extra);
 
-            kvt_deploy(kvt, base, "material/sound_speed", 4250.0f, extra);  // Sound speed in concrete material
+            kvt_deploy(kvt, base, "material/sound_speed", 4250.0f, f_extra);  // Sound speed in concrete material
         }
 
         // Drop rare (unused) objects
