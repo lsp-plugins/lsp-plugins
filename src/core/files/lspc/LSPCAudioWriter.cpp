@@ -8,7 +8,7 @@
 #include <dsp/dsp.h>
 #include <dsp/endian.h>
 #include <core/files/lspc/LSPCAudioWriter.h>
-#include <alloca.h>
+#include <stdlib.h>
 
 #define BUFFER_FRAMES   0x400
 

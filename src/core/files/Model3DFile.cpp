@@ -233,12 +233,12 @@ namespace lsp
                 ck = dsp::check_triplet3d_p3n(v1->p, v2->p, v3->p, v1->n);
                 if (ck != 0.0f)
                 {
-                    lsp_trace(
-                        "emit triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
-                        v1->p->x, v1->p->y, v1->p->z,
-                        v2->p->x, v2->p->y, v2->p->z,
-                        v3->p->x, v3->p->y, v3->p->z
-                    );
+//                    lsp_trace(
+//                        "emit triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
+//                        v1->p->x, v1->p->y, v1->p->z,
+//                        v2->p->x, v2->p->y, v2->p->z,
+//                        v3->p->x, v3->p->y, v3->p->z
+//                    );
                     status_t result = (ck < 0.0f) ?
                         pObject->add_triangle(face_id, v1->ip, v3->ip, v2->ip, v1->in, v3->in, v2->in) :
                         pObject->add_triangle(face_id, v1->ip, v2->ip, v3->ip, v1->in, v2->in, v3->in);

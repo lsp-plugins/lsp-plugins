@@ -622,7 +622,7 @@ namespace lsp
                     // Get content size
                     errno = 0;
                     char *base64 = NULL;
-                    p.blob.size = size_t(::strtoull(split, &base64, 10));
+                    p.blob.size = size_t(::strtoul(split, &base64, 10));
                     if ((errno != 0) || (*(base64++) != ':'))
                     {
                         if (ctype != NULL)
@@ -724,7 +724,7 @@ namespace lsp
 
                 if (!key.is_empty())
                 {
-                    lsp_trace("Configuration: %s = %s (flags=0x%x)", key.get_native(), value.get_native(), int(flags));
+//                    lsp_trace("Configuration: %s = %s (flags=0x%x)", key.get_native(), value.get_native(), int(flags));
                     result = handle_parameter(h, &key, &value, flags);
                 }
             }
