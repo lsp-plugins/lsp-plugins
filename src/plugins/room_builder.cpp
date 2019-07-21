@@ -131,7 +131,7 @@ namespace lsp
             kvt_deploy(kvt, base, "scale/x", 100.0f, extra);
             kvt_deploy(kvt, base, "scale/y", 100.0f, extra);
             kvt_deploy(kvt, base, "scale/z", 100.0f, extra);
-            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), extra);
+            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), KVT_TX); // Always overwrite hue
 
             kvt_deploy(kvt, base, "material/absorption/outer", 1.5f, extra); // Absorption of concrete material
             kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
