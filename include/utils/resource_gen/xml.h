@@ -146,8 +146,6 @@ namespace lsp
                 return -3;
             }
 
-            printf("Preprocessing file %s\n", resource->path);
-
             // Parse file
             char buf[4096];
             while (true)
