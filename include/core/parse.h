@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <core/stdlib/math.h>
 
 // Data parsing
