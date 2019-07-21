@@ -10,7 +10,7 @@
 #include <core/debug.h>
 #include <core/util/SyncChirpProcessor.h>
 #include <math.h>
-#include <alloca.h>
+#include <stdlib.h>
 #include <core/files/LSPCFile.h>
 #include <core/files/lspc/LSPCAudioWriter.h>
 #include <core/files/lspc/LSPCAudioReader.h>
