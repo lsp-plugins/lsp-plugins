@@ -8,7 +8,7 @@
 #ifndef DSP_ARCH_ARM_FPSCR_H_
 #define DSP_ARCH_ARM_FPSCR_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 #define FPSCR_IOC               (1 << 0)    /* Invlid operation cumulative exception */
 #define FPSCR_DZC               (1 << 1)    /* Division by zero cumulative exception */

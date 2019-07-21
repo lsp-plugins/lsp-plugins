@@ -8,7 +8,7 @@
 #ifndef DSP_ARCH_AARCH64_FEATURES_H_
 #define DSP_ARCH_AARCH64_FEATURES_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 #ifdef PLATFORM_POSIX
     #include <sys/auxv.h>
