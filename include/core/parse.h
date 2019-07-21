@@ -22,43 +22,66 @@
     { \
         errno = 0; \
         char *__endptr = NULL; \
-        long __ = strtol(var, &__endptr, 10); \
+        long __ = ::strtol(var, &__endptr, 10); \
         if ((errno == 0) && (*__endptr == '\0')) \
             { code; } \
     }
 
-#define PARSE_UINT(var, code) \
-    { \
-        errno = 0; \
-        char *__endptr = NULL; \
-        unsigned long __ = strtoul(var, &__endptr, 10); \
-        if ((errno == 0) && (*__endptr == '\0')) \
-            { code; } \
-    }
+    #define PARSE_UINT(var, code) \
+        { \
+            errno = 0; \
+            char *__endptr = NULL; \
+            unsigned long __ = ::strtoul(var, &__endptr, 10); \
+            if ((errno == 0) && (*__endptr == '\0')) \
+                { code; } \
+        }
 
-#define PARSE_LLINT(var, code) \
-    { \
-        errno = 0; \
-        char *__endptr = NULL; \
-        long long __ = strtoll(var, &__endptr, 10); \
-        if ((errno == 0) && (*__endptr == '\0')) \
-            { code; } \
-    }
+#ifdef PLATFORM_BSD
 
-#define PARSE_ULLINT(var, code) \
-    { \
-        errno = 0; \
-        char *__endptr = NULL; \
-        unsigned long long __ = strtoull(var, &__endptr, 10); \
-        if ((errno == 0) && (*__endptr == '\0')) \
-            { code; } \
-    }
+    #define PARSE_LLINT(var, code) \
+        { \
+            errno = 0; \
+            char *__endptr = NULL; \
+            long long __ = ::strtol(var, &__endptr, 10); \
+            if ((errno == 0) && (*__endptr == '\0')) \
+                { code; } \
+        }
+
+    #define PARSE_ULLINT(var, code) \
+        { \
+            errno = 0; \
+            char *__endptr = NULL; \
+            unsigned long long __ = ::strtoul(var, &__endptr, 10); \
+            if ((errno == 0) && (*__endptr == '\0')) \
+                { code; } \
+        }
+
+#else
+
+    #define PARSE_LLINT(var, code) \
+        { \
+            errno = 0; \
+            char *__endptr = NULL; \
+            long long __ = ::strtoll(var, &__endptr, 10); \
+            if ((errno == 0) && (*__endptr == '\0')) \
+                { code; } \
+        }
+
+    #define PARSE_ULLINT(var, code) \
+        { \
+            errno = 0; \
+            char *__endptr = NULL; \
+            unsigned long long __ = ::strtoull(var, &__endptr, 10); \
+            if ((errno == 0) && (*__endptr == '\0')) \
+                { code; } \
+        }
+#endif /* PLATFORM_BSD */
 
 #define PARSE_BOOL(var, code) \
     { \
-        bool __ = !strcasecmp(var, "true"); \
+        bool __ = !::strcasecmp(var, "true"); \
         if (! __ ) \
-            __ = !strcasecmp(var, "1"); \
+            __ = !::strcasecmp(var, "1"); \
         { code; } \
     }
 
