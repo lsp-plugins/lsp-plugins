@@ -1220,7 +1220,7 @@ namespace lsp
         {
             // Read parameter length
             uint32_t len        = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head))) + sizeof(uint32_t);
-            if (len > (tail - head))
+            if (len > size_t(tail - head))
             {
                 lsp_warn("Unexpected end of chunk while fetching parameter size");
                 return;
@@ -1231,7 +1231,7 @@ namespace lsp
             head               += sizeof(uint32_t);
             const char *name    = reinterpret_cast<const char *>(head);
             len                 = ::strnlen(name, next - head) + 1;
-            if (len > (next - head))
+            if (len > size_t(next - head))
             {
                 lsp_warn("Unexpected end of chunk while fetching parameter name");
                 return;
@@ -1280,7 +1280,7 @@ namespace lsp
                 // Read parameter length
                 uint32_t len        = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head))) + sizeof(uint32_t);
                 lsp_trace("Reading block: off=0x%x, size=%d", int(head - reinterpret_cast<const uint8_t *>(bank)), int(len));
-                if (len > (tail - head))
+                if (len > size_t(tail - head))
                 {
                     lsp_warn("Unexpected end of chunk while fetching KVT parameter size");
                     break;
@@ -1291,7 +1291,7 @@ namespace lsp
                 head               += sizeof(uint32_t);
                 const char *name    = reinterpret_cast<const char *>(head);
                 len                 = ::strnlen(name, next - head) + 1;
-                if (len > (next - head))
+                if (len > size_t(next - head))
                 {
                     lsp_warn("Unexpected end of chunk while fetching KVT parameter name");
                     break;
