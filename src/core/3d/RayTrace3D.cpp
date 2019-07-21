@@ -1214,6 +1214,7 @@ namespace lsp
                 }
 
                 // Process new task but store into
+                ++stats.root_tasks;
                 res     = process_context(ctx);
                 if (res != STATUS_OK)
                 {
@@ -1692,8 +1693,10 @@ namespace lsp
         bFailed      = false;
 
         // Get time of execution start
+#ifdef LSP_TRACE
         struct timespec tstart;
         clock_gettime(CLOCK_REALTIME, &tstart);
+#endif
 
         // Create main thread
         TaskThread *root = new TaskThread(this);
@@ -1710,27 +1713,30 @@ namespace lsp
 
         // Launch supplementary threads
         cvector<TaskThread> workers;
-        for (size_t i=1; i<threads; ++i)
+        if (vTasks.size() > 0)
         {
-            // Create thread object
-            TaskThread *t   = new TaskThread(this);
-            if ((t == NULL) || (!workers.add(t)))
+            for (size_t i=1; i<threads; ++i)
             {
-                if (t != NULL)
-                    delete t;
-                res = STATUS_NO_MEM;
-                break;
+                // Create thread object
+                TaskThread *t   = new TaskThread(this);
+                if ((t == NULL) || (!workers.add(t)))
+                {
+                    if (t != NULL)
+                        delete t;
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+
+                // Sync thread data
+                res = t->prepare_supplementary_loop(root);
+                if (res != STATUS_OK)
+                    break;
+
+                // Launch thread
+                res = t->start();
+                if (res != STATUS_OK)
+                    break;
             }
-
-            // Sync thread data
-            res = t->prepare_supplementary_loop(root);
-            if (res != STATUS_OK)
-                break;
-
-            // Launch thread
-            res = t->start();
-            if (res != STATUS_OK)
-                break;
         }
 
         // If successful status, perform main loop
@@ -1781,9 +1787,11 @@ namespace lsp
         if (res != STATUS_BREAKPOINT)
         {
             // Get time of execution end
+#ifdef LSP_TRACE
             struct timespec tend;
             clock_gettime(CLOCK_REALTIME, &tend);
             double etime = double(tend.tv_sec - tstart.tv_sec) + double(tend.tv_nsec - tend.tv_nsec) * 1e-6;
+#endif
 
             dump_stats("Overall statistics", &overall);
             lsp_trace("Overall execution time:      %f s", etime);

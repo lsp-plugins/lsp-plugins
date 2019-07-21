@@ -111,11 +111,13 @@ test: export MAKE_OPTS      += LSP_TESTING=1
 test: export BUILD_MODULES   = jack
 test: test_compile
 
+testdebug: OBJDIR                 = $(TESTDIR)
 testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3
 testdebug: export CXXFLAGS       += -O0 -DLSP_TESTING -DLSP_TRACE -g3
 testdebug: export EXE_TEST_FLAGS += -g3
 testdebug: export MAKE_OPTS      += LSP_TESTING=1
-testdebug: compile
+testdebug: export BUILD_MODULES   = jack
+testdebug: test_compile
 
 testprofile: export CFLAGS         += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC
 testprofile: export CXXFLAGS       += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC

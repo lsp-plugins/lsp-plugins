@@ -512,12 +512,14 @@ namespace lsp
             cap->fMakeup        = 1.0f;
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
+            cap->fCurrLen       = 0.0f;
+            cap->fMaxLen        = 0.0f;
 
+            cap->nChangeReq     = 0;
+            cap->nChangeResp    = 0;
             cap->bCommit        = false;
             cap->bSync          = false;
             cap->bExport        = false;
-            cap->nChangeReq     = 0;
-            cap->nChangeResp    = 0;
 
             cap->pCurr          = NULL;
             cap->pSwap          = NULL;
