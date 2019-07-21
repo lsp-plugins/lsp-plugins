@@ -724,7 +724,7 @@ namespace lsp
 
                 if (!key.is_empty())
                 {
-                    lsp_trace("Configuration: %s = %s (flags=0x%x)", key.get_native(), value.get_native(), int(flags));
+//                    lsp_trace("Configuration: %s = %s (flags=0x%x)", key.get_native(), value.get_native(), int(flags));
                     result = handle_parameter(h, &key, &value, flags);
                 }
             }
