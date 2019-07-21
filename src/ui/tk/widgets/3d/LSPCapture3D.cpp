@@ -142,6 +142,7 @@ namespace lsp
                     return STATUS_NO_MEM;
 
                 dsp::init_matrix3d_identity(&cap->pos);
+                cap->radius     = 1.0f;
                 cap->bEnabled   = false;
             }
 

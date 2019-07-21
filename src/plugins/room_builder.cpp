@@ -100,11 +100,12 @@ namespace lsp
 
         // Now initialize object properties
         lsp_trace("Extra loading flags=0x%x", int(nFlags));
-        size_t extra = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
+        size_t f_extra  = (nFlags & (PF_STATE_IMPORT | PF_PRESET_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
+        size_t f_hue    = (nFlags & (PF_STATE_IMPORT | PF_STATE_RESTORE)) ? KVT_KEEP | KVT_TX : KVT_TX;
 
         char base[128];
         kvt_deploy(kvt, "/scene", "objects", int32_t(nobjs), KVT_TX);
-        kvt_deploy(kvt, "/scene", "selected", 0.0f, extra);
+        kvt_deploy(kvt, "/scene", "selected", 0.0f, f_extra);
 
         for (size_t i=0; i<nobjs; ++i)
         {
@@ -118,37 +119,37 @@ namespace lsp
 
             kvt_deploy(kvt, base, "name", obj->get_name(), KVT_TX); // Always overwrite name
 
-            kvt_deploy(kvt, base, "enabled", 1.0f, extra);
+            kvt_deploy(kvt, base, "enabled", 1.0f, f_extra);
             kvt_deploy(kvt, base, "center/x", c->x, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
             kvt_deploy(kvt, base, "center/y", c->y, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
             kvt_deploy(kvt, base, "center/z", c->z, KVT_TX | KVT_TRANSIENT); // Always overwrite, do not save in state
-            kvt_deploy(kvt, base, "position/x", 0.0f, extra);
-            kvt_deploy(kvt, base, "position/y", 0.0f, extra);
-            kvt_deploy(kvt, base, "position/z", 0.0f, extra);
-            kvt_deploy(kvt, base, "rotation/yaw", 0.0f, extra);
-            kvt_deploy(kvt, base, "rotation/pitch", 0.0f, extra);
-            kvt_deploy(kvt, base, "rotation/roll", 0.0f, extra);
-            kvt_deploy(kvt, base, "scale/x", 100.0f, extra);
-            kvt_deploy(kvt, base, "scale/y", 100.0f, extra);
-            kvt_deploy(kvt, base, "scale/z", 100.0f, extra);
-            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), extra);
+            kvt_deploy(kvt, base, "position/x", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "position/y", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "position/z", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "rotation/yaw", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "rotation/pitch", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "rotation/roll", 0.0f, f_extra);
+            kvt_deploy(kvt, base, "scale/x", 100.0f, f_extra);
+            kvt_deploy(kvt, base, "scale/y", 100.0f, f_extra);
+            kvt_deploy(kvt, base, "scale/z", 100.0f, f_extra);
+            kvt_deploy(kvt, base, "color/hue", float(i) / float(nobjs), f_hue); // Always overwrite hue
 
-            kvt_deploy(kvt, base, "material/absorption/outer", 1.5f, extra); // Absorption of concrete material
-            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/outer", 48.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/outer", 1.5f, f_extra); // Absorption of concrete material
+            kvt_deploy(kvt, base, "material/dispersion/outer", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/diffusion/outer", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/transparency/outer", 48.0f, f_extra);
 
-            kvt_deploy(kvt, base, "material/absorption/inner", 1.5f, extra);
-            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/inner", 52.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/inner", 1.5f, f_extra);
+            kvt_deploy(kvt, base, "material/dispersion/inner", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/diffusion/inner", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/transparency/inner", 52.0f, f_extra);
 
-            kvt_deploy(kvt, base, "material/absorption/link", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/dispersion/link", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/diffusion/link", 1.0f, extra);
-            kvt_deploy(kvt, base, "material/transparency/link", 1.0f, extra);
+            kvt_deploy(kvt, base, "material/absorption/link", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/dispersion/link", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/diffusion/link", 1.0f, f_extra);
+            kvt_deploy(kvt, base, "material/transparency/link", 1.0f, f_extra);
 
-            kvt_deploy(kvt, base, "material/sound_speed", 4250.0f, extra);  // Sound speed in concrete material
+            kvt_deploy(kvt, base, "material/sound_speed", 4250.0f, f_extra);  // Sound speed in concrete material
         }
 
         // Drop rare (unused) objects
@@ -364,17 +365,17 @@ namespace lsp
         pRank           = NULL;
         pDry            = NULL;
         pWet            = NULL;
-        pOutGain        = NULL;
-        pPredelay       = NULL;
         pRenderThreads  = NULL;
         pRenderQuality  = NULL;
         pRenderStatus   = NULL;
         pRenderProgress = NULL;
         pRenderNormalize= NULL;
         pRenderCmd      = NULL;
+        pOutGain        = NULL;
+        pPredelay       = NULL;
         p3DFile         = NULL;
-        p3DStatus       = NULL;
         p3DProgress     = NULL;
+        p3DStatus       = NULL;
         p3DOrientation  = NULL;
         pScaleX         = NULL;
         pScaleY         = NULL;
@@ -509,14 +510,17 @@ namespace lsp
             cap->fFadeIn        = 0.0f;
             cap->fFadeOut       = 0.0f;
             cap->bReverse       = false;
+            cap->fMakeup        = 1.0f;
             cap->nLength        = 0;
             cap->nStatus        = STATUS_NO_DATA;
+            cap->fCurrLen       = 0.0f;
+            cap->fMaxLen        = 0.0f;
 
+            cap->nChangeReq     = 0;
+            cap->nChangeResp    = 0;
             cap->bCommit        = false;
             cap->bSync          = false;
             cap->bExport        = false;
-            cap->nChangeReq     = 0;
-            cap->nChangeResp    = 0;
 
             cap->pCurr          = NULL;
             cap->pSwap          = NULL;
@@ -549,6 +553,7 @@ namespace lsp
             cap->pFadeOut       = NULL;
             cap->pListen        = NULL;
             cap->pReverse       = NULL;
+            cap->pMakeup        = NULL;
             cap->pStatus        = NULL;
             cap->pLength        = NULL;
             cap->pCurrLen       = NULL;
@@ -569,7 +574,6 @@ namespace lsp
 
             c->pCurr            = NULL;
             c->pSwap            = NULL;
-            c->bMute            = false;
 
             c->nSampleID        = 0;
             c->nTrackID         = 0;
@@ -765,6 +769,8 @@ namespace lsp
             cap->pListen        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pReverse       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            cap->pMakeup        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             cap->pStatus        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -1013,6 +1019,7 @@ namespace lsp
             cap->fDistance      = cap->pDistance->getValue();
             cap->enDirection    = decode_direction(cap->pDirection->getValue());
             cap->enSide         = decode_side_direction(cap->pSide->getValue());
+            cap->fMakeup        = cap->pMakeup->getValue();
 
             // Accept changes
             path_t *path        = cap->pOutFile->getBuffer<path_t>();
@@ -1054,7 +1061,7 @@ namespace lsp
                 if (n_c > 0)
                 {
                     for (size_t j=0; j<2; ++j)
-                        vChannels[j].sPlayer.play(i, j % n_c, 1.0f, 0);
+                        vChannels[j].sPlayer.play(i, j % n_c, cap->fMakeup, 0);
                 }
             }
         }
@@ -1134,8 +1141,8 @@ namespace lsp
             convolver_t *cv         = &vConvolvers[i];
 
             // Allow to reconfigure convolver only when configuration task is in idle state
-            size_t sampleid = cv->pSample->getValue();
-            size_t trackid  = cv->pTrack->getValue();
+            size_t sampleid         = cv->pSample->getValue();
+            size_t trackid          = cv->pTrack->getValue();
 
             if ((cv->nSampleID != sampleid) ||
                 (cv->nTrackID != trackid))
@@ -1146,7 +1153,8 @@ namespace lsp
             }
 
             // Apply panning to each convolver
-            float makeup            = cv->pMakeup->getValue() * wet_gain;
+            float smakeup           = (sampleid > 0) ? vCaptures[sampleid-1].fMakeup : 1.0f; // Sample makeup
+            float makeup            = (cv->pMute->getValue() < 0.5f) ? cv->pMakeup->getValue() * wet_gain * smakeup : 0.0f;
             if (nInputs == 1)
             {
                 cv->fPanIn[0]       = 1.0f;
@@ -1372,6 +1380,12 @@ namespace lsp
         }
         else if (s3DLauncher.completed())
         {
+            status_t res = s3DLauncher.code();
+            if (res != STATUS_OK)
+            {
+                fRenderProgress = 0.0f;
+                enRenderStatus  = s3DLauncher.code();
+            }
             s3DLauncher.reset();
         }
 
@@ -1565,7 +1579,8 @@ namespace lsp
                 delete s;
                 return STATUS_NO_MEM;
             }
-            s->nID  = i;
+            s->nID          = i;
+            s->enConfig     = cap->sConfig;
             if (!s->sSample.init(n, 512))
                 return STATUS_NO_MEM;
 
@@ -1805,6 +1820,14 @@ namespace lsp
             float *fdst         = reinterpret_cast<float *>(&hdr[1]);
             for (size_t i=0; i<s->sSample.channels(); ++i, fdst += slen)
                 ::memcpy(fdst, s->sSample.getBuffer(i), slen * sizeof(float));
+
+            // Post-process Mid/Side audio data
+            if (s->enConfig == RT_CC_MS)
+            {
+                float *l            = reinterpret_cast<float *>(&hdr[1]);
+                float *r            = &l[slen];
+                dsp::ms_to_lr(l, r, l, r, slen);
+            }
 
             // Create KVT parameter
             p.type          = KVT_BLOB;

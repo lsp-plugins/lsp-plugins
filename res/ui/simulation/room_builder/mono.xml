@@ -117,9 +117,9 @@
 							/>
 						</hbox>
 						
-						<grid rows="3" cols="8" hspacing="4">
+						<grid rows="4" cols="8" hspacing="4">
 							<label text="Export" />
-							<cell rows="3"><vsep /></cell>
+							<cell rows="4"><vsep /></cell>
 							<label text="Reverse" />
 							<label text="Head cut" />
 							<label text="Tail cut" />
@@ -127,7 +127,7 @@
 							<label text="Fade out" />
 							<label text="Listen" />
 							
-							<cell rows="2">
+							<cell rows="3">
 								<save size="64" id="ofn_${i}"
 									format="wav,lspc,all" command_id="ofc_${i}"
 									status_id="ofs_${i}" progress_id="ofp_${i}"
@@ -146,6 +146,14 @@
 							<value id="ifi_${i}" />
 							<value id="ifo_${i}" />
 							<led id="ils_${i}" />
+							
+							<label text="Makeup" />
+							<cell cols="3">
+								<fader id="imkp_${i}" size="20" />
+							</cell>
+							<cell cols="2">
+								<value id="imkp_${i}" same_line="true" />
+							</cell>
 						</grid>
 					</vbox>
 				</ui:for>
@@ -552,9 +560,9 @@
 						<knob id="wet" scale_color="yellow" />
 						<knob id="g_out" />
 						
-						<value id="dry" same_line="true" />
-						<value id="wet" same_line="true" />
-						<value id="g_out" same_line="true" />
+						<value id="dry" />
+						<value id="wet" />
+						<value id="g_out" />
 					</grid>
 				</hbox>
 			</group>

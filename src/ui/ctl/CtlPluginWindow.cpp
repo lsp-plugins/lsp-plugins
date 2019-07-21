@@ -548,7 +548,7 @@ namespace lsp
         status_t CtlPluginWindow::slot_call_import_settings(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
-            __this->pUI->import_settings(__this->pImport->selected_file());
+            __this->pUI->import_settings(__this->pImport->selected_file(), false);
             return STATUS_OK;
         }
 

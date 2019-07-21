@@ -66,12 +66,14 @@ The LV2 distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
+  * libGL
   * Host compatible with LV2
   
 The LinuxVST distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
+  * libGL
   * Host compatible with LinuxVST 2.4
 
 The JACK distribution requirements:
@@ -79,12 +81,14 @@ The JACK distribution requirements:
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
   * jack >= 1.9.5
+  * libGL
   
 The profiling distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
   * jack >= 1.9.5
+  * libGL
 
 Known list of supported plugin hosts:
   * Ardour
@@ -189,8 +193,6 @@ For successful build you need the following packages to be installed:
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14
-
-For development, additional packages are required to be installed:
   * libGL-devel >= 11.2.2
 
 Currently there is no automake/CMake supported, so to build plugins you

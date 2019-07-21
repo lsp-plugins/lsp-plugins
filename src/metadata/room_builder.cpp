@@ -224,8 +224,8 @@ namespace lsp
         COMBO("fft", "FFT size", room_builder_base_metadata::FFT_RANK_DEFAULT, rb_fft_rank), \
         CONTROL("pd", "Pre-delay", U_MSEC, room_builder_base_metadata::PREDELAY), \
         pan, \
-        DRY_GAIN(1.0f), \
-        WET_GAIN(1.0f), \
+        AMP_GAIN1000("dry", "Dry amount", 1.0f), \
+        AMP_GAIN1000("wet", "Wet amount", 1.0f), \
         OUT_GAIN, \
         CONTROL("threads", "Number of threads for processing", U_NONE, room_builder_base_metadata::THREADS), \
         PERCENTS("quality", "Quality factor", 50.0f, 0.1f), \
@@ -286,6 +286,7 @@ namespace lsp
         CONTROL("ifo" id, "Fade out" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
         TRIGGER("ils" id, "Impulse listen" label), \
         SWITCH("irv" id, "Impulse reverse" label, 0.0f), \
+        AMP_GAIN_RANGE("imkp" id, "Impulse makeup gain" label, 1.0f, 0.001f, 1000.0f), \
         STATUS("ifs" id, "Impulse status" label), \
         METER("ifl" id, "Impulse length" label, U_MSEC, room_builder_base_metadata::CONV_LENGTH), \
         METER("sdur" id, "Impulse current duration" label, U_MSEC, room_builder_base_metadata::DURATION), \

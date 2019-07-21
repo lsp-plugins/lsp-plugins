@@ -35,17 +35,18 @@ namespace lsp
             class ConfigHandler: public config::IConfigHandler
             {
                 private:
-                    plugin_ui   *pUI;
-                    cvector<CtlPort> &hPorts;
-                    KVTStorage  *pKVT;
-                    cvector<char>   vNotify;
+                    plugin_ui          *pUI;
+                    cvector<CtlPort>   &hPorts;
+                    KVTStorage         *pKVT;
+                    cvector<char>       vNotify;
+                    bool                bPreset;
 
                 protected:
                     void add_notification(const char *id);
 
                 public:
-                    explicit ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt):
-                        pUI(ui), hPorts(ports), pKVT(kvt) {}
+                    explicit ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt, bool preset):
+                        pUI(ui), hPorts(ports), pKVT(kvt), bPreset(preset) {}
                     virtual ~ConfigHandler();
 
                 public:
@@ -106,7 +107,7 @@ namespace lsp
             size_t          rebuild_sorted_ports();
             CtlWidget      *build_widget(widget_ctl_t w_class);
             io::File       *open_config_file(bool write);
-            bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
+            bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset);
             status_t        scan_presets();
             void            destroy_presets();
 
@@ -172,9 +173,10 @@ namespace lsp
             /** Import settings of the UI from the file
              *
              * @param filename file name
+             * @param preset indicator that the source is preset
              * @return status of operation
              */
-            status_t import_settings(const char *filename);
+            status_t import_settings(const char *filename, bool preset);
 
             /** Save global configuration file
              *

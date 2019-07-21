@@ -394,20 +394,6 @@ namespace lsp
                 trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
 
-        // Normalize capture volume
-//        for (size_t i=0, n=vCaptures.size(); i<n; ++i, ++obj_id)
-//        {
-//            capture_t *cap      = vCaptures.get(i);
-//            cap->volume        /= max_volume;
-//        }
-
-        // Update source energy (add extra volume)
-//        for (size_t i=0,n=vTasks.size();i<n; ++i)
-//        {
-//            rt_context_t *ct    = vTasks.get(i);
-//            ct->view.energy    *= max_volume;
-//        }
-
         // Solve conflicts between all objects
         res = root.solve_conflicts();
         if (res != STATUS_OK)
@@ -474,7 +460,7 @@ namespace lsp
                 ++n_objs;
             }
             else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
+                res     = STATUS_OK;
             else
                 return res;
         }
@@ -504,7 +490,7 @@ namespace lsp
                 ++n_objs;
             }
             else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
+                res     = STATUS_OK;
             else
                 return res;
         }
@@ -512,7 +498,10 @@ namespace lsp
         // Fetch visible objects from root context into current context
 //        lsp_trace("Fetch %d objects", int(n_objs));
         if (n_objs <= 0)
+        {
+            delete ctx;
             return STATUS_OK;
+        }
 
         res     = ctx->fetch_objects(&root, segs, objs);
         if (res != STATUS_OK) // Some error occurred
@@ -1225,6 +1214,7 @@ namespace lsp
                 }
 
                 // Process new task but store into
+                ++stats.root_tasks;
                 res     = process_context(ctx);
                 if (res != STATUS_OK)
                 {
@@ -1703,8 +1693,10 @@ namespace lsp
         bFailed      = false;
 
         // Get time of execution start
+#ifdef LSP_TRACE
         struct timespec tstart;
         clock_gettime(CLOCK_REALTIME, &tstart);
+#endif
 
         // Create main thread
         TaskThread *root = new TaskThread(this);
@@ -1721,27 +1713,30 @@ namespace lsp
 
         // Launch supplementary threads
         cvector<TaskThread> workers;
-        for (size_t i=1; i<threads; ++i)
+        if (vTasks.size() > 0)
         {
-            // Create thread object
-            TaskThread *t   = new TaskThread(this);
-            if ((t == NULL) || (!workers.add(t)))
+            for (size_t i=1; i<threads; ++i)
             {
-                if (t != NULL)
-                    delete t;
-                res = STATUS_NO_MEM;
-                break;
+                // Create thread object
+                TaskThread *t   = new TaskThread(this);
+                if ((t == NULL) || (!workers.add(t)))
+                {
+                    if (t != NULL)
+                        delete t;
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+
+                // Sync thread data
+                res = t->prepare_supplementary_loop(root);
+                if (res != STATUS_OK)
+                    break;
+
+                // Launch thread
+                res = t->start();
+                if (res != STATUS_OK)
+                    break;
             }
-
-            // Sync thread data
-            res = t->prepare_supplementary_loop(root);
-            if (res != STATUS_OK)
-                break;
-
-            // Launch thread
-            res = t->start();
-            if (res != STATUS_OK)
-                break;
         }
 
         // If successful status, perform main loop
@@ -1792,9 +1787,11 @@ namespace lsp
         if (res != STATUS_BREAKPOINT)
         {
             // Get time of execution end
+#ifdef LSP_TRACE
             struct timespec tend;
             clock_gettime(CLOCK_REALTIME, &tend);
             double etime = double(tend.tv_sec - tstart.tv_sec) + double(tend.tv_nsec - tend.tv_nsec) * 1e-6;
+#endif
 
             dump_stats("Overall statistics", &overall);
             lsp_trace("Overall execution time:      %f s", etime);

@@ -98,7 +98,7 @@ namespace lsp
         // Create initial triangles (icosahedron has 20 triangles)
         size_t total_triangles  = 20 << (level << 1);  // 20 * 4^level
 
-        sp_triangle_t *vt   = new sp_triangle_t[total_triangles]; // Temporary array
+        sp_triangle_t *vt   = reinterpret_cast<sp_triangle_t *>(::malloc(total_triangles * sizeof(sp_triangle_t))); // Temporary array
         if (vt == NULL)
             return NULL;
 
@@ -150,21 +150,21 @@ namespace lsp
                 dt[0].vi[0] = sScene.add_vertex(&sp[0]);
                 if (dt[0].vi[0] < 0)
                 {
-                    delete [] vt;
+                    ::free(vt);
                     return NULL;
                 }
 
                 dt[0].vi[1] = sScene.add_vertex(&sp[1]);
                 if (dt[0].vi[1] < 0)
                 {
-                    delete [] vt;
+                    ::free(vt);
                     return NULL;
                 }
 
                 dt[0].vi[2] = sScene.add_vertex(&sp[2]);
                 if (dt[0].vi[2] < 0)
                 {
-                    delete [] vt;
+                    ::free(vt);
                     return NULL;
                 }
 
@@ -185,7 +185,7 @@ namespace lsp
         Object3D *obj = sScene.add_object(&obj_name);
         if (obj == NULL)
         {
-            delete [] vt;
+            ::free(vt);
             return NULL;
         }
 
@@ -200,7 +200,7 @@ namespace lsp
 
             if ((p[0] == NULL) || (p[1] == NULL) || (p[2] == NULL))
             {
-                delete [] vt;
+                ::free(vt);
                 return NULL;
             }
 
@@ -209,7 +209,7 @@ namespace lsp
             size_t nid  = sScene.add_normal(&n);
             if (nid < 0)
             {
-                delete [] vt;
+                ::free(vt);
                 return NULL;
             }
 
@@ -217,12 +217,13 @@ namespace lsp
             status_t res = obj->add_triangle(i, vt[i].vi[0], vt[i].vi[1], vt[i].vi[2], nid, nid, nid);
             if (res != STATUS_OK)
             {
-                delete [] vt;
+                ::free(vt);
                 return NULL;
             }
         }
 
         // Now all is OK, we can swap scene state and save spere identifier
+        ::free(vt);
         return obj;
     }
 

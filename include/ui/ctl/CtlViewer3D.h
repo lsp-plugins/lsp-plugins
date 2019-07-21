@@ -34,7 +34,6 @@ namespace lsp
                 CtlColor        sBgColor;
                 CtlColor        sBaseColor;
                 CtlPadding      sPadding;
-//                LSPTimer        sTimer;
 
                 CtlPort        *pFile;
                 CtlPort        *pStatus;

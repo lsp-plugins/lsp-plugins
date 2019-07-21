@@ -65,7 +65,6 @@ namespace lsp
 
                 size_t              nSampleID;      // Sample identifier
                 size_t              nTrackID;       // Track identifier
-                bool                bMute;          // Mute flag
 
                 float              *vBuffer;        // Buffer for convolution
                 float               fPanIn[2];      // Input panning of convolver
@@ -138,6 +137,7 @@ namespace lsp
                 float                   fFadeIn;
                 float                   fFadeOut;
                 bool                    bReverse;
+                float                   fMakeup;        // Makeup gain
                 size_t                  nLength;        // Output: length of captured response in samples
                 status_t                nStatus;        // Output: status of sample rendering
                 float                   fCurrLen;
@@ -178,6 +178,7 @@ namespace lsp
                 IPort                  *pFadeOut;
                 IPort                  *pListen;
                 IPort                  *pReverse;       // Reverse
+                IPort                  *pMakeup;        // Makeup gain
                 IPort                  *pStatus;        // Status of rendering
                 IPort                  *pLength;        // Length of sample
                 IPort                  *pCurrLen;       // Current duration
@@ -194,6 +195,7 @@ namespace lsp
             {
                 Sample                  sSample;
                 size_t                  nID;
+                rt_capture_config_t     enConfig;
             } sample_t;
 
             typedef struct reconfig_t

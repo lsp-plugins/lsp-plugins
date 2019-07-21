@@ -16,7 +16,8 @@ namespace lsp
     {
         PF_NONE             = 0,            // No flags
         PF_STATE_RESTORE    = 1 << 1,       // Port's state restore
-        PF_STATE_IMPORT     = 1 << 2        // Port's state import
+        PF_STATE_IMPORT     = 1 << 2,       // Port's state import
+        PF_PRESET_IMPORT    = 1 << 3        // Port's preset import
     };
 
     class IPort
