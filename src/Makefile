@@ -79,7 +79,7 @@ $(UTL_JACKMAKE): utils
 
 $(OBJ_TEST_CORE): test
 
-$(OBJ_TESTING_CORE): test rendering
+$(OBJ_TESTING_CORE): test testing rendering
 
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating builtin resources"
