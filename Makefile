@@ -82,6 +82,7 @@ SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
 .PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
+.PHONY: compile_info
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
 .PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc
 .PHONY: release release_ladspa release_lv2 release_vst release_jack release_doc release_src
@@ -147,7 +148,7 @@ profile: export EXE_FLAGS   += -g -pg -no-pie -fno-pie -fPIC
 profile: compile
 
 # Compilation and cleaning targets
-compile test_compile:
+compile_info:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Building binaries"
 	@echo "  target architecture : $(BUILD_PROFILE)"
@@ -158,6 +159,8 @@ compile test_compile:
 	@echo "  3D rendering        : $(BUILD_R3D_BACKENDS)"
 	@echo "  build directory     : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"
+
+compile: | compile_info
 	@mkdir -p $(OBJDIR)/src
 	@mkdir -p $(CFGDIR)
 	@test -f "$(CFGDIR)/$(PREFIX_FILE)" || echo -n "$(PREFIX)" > "$(CFGDIR)/$(PREFIX_FILE)"
@@ -166,6 +169,11 @@ compile test_compile:
 	@test -f "$(CFGDIR)/$(R3D_BACKENDS_FILE)" || echo -n "$(BUILD_R3D_BACKENDS)" > "$(CFGDIR)/$(R3D_BACKENDS_FILE)"
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
+	
+test_compile: | compile_info
+	@mkdir -p $(OBJDIR)/src
+	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
+	@echo "Test Build OK"
 
 clean:
 	@-rm -rf $(BUILDDIR)
