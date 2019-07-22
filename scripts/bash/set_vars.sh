@@ -32,6 +32,8 @@ elif [[ "$ARCH" =~ ^aarch64 ]]; then
     ARCH=aarch64
 elif [[ "$ARCH" =~ ^armv7.* ]]; then
     ARCH=armv7a
+elif [[ "$ARCH" =~ ^arm.* ]]; then
+    ARCH=armv7a
 else
     ARCH=native
 fi
