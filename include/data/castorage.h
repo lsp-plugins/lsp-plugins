@@ -136,7 +136,7 @@ namespace lsp
                 return (nItems > 0) ? &vItems[(--nItems)*nSizeOf] : NULL;
             }
 
-            inline void do_swap_data(basic_storage *src)
+            inline void do_swap_data(basic_aligned_storage *src)
             {
                 uint8_t *_vItems    = src->vItems;
                 size_t  _nCapacity  = src->nCapacity;
@@ -219,17 +219,21 @@ namespace lsp
     template <class T, size_t A=DEFAULT_ALIGN>
         class castorage: public basic_aligned_storage
         {
+            private:
+                castorage(const castorage<T, A> &src);                          // Disable copying
+                castorage<T, A> & operator = (const castorage<T, A> & src);     // Disable copying
+
             public:
                 castorage() : basic_aligned_storage(sizeof(T), A) {};
                 ~castorage() {};
 
             public:
-                inline T *append() { return reinterpret_cast<T *>(basic_storage::alloc_item()); }
-                inline T *add() { return reinterpret_cast<T *>(basic_storage::alloc_item()); }
+                inline T *append() { return reinterpret_cast<T *>(basic_aligned_storage::alloc_item()); }
+                inline T *add() { return reinterpret_cast<T *>(basic_aligned_storage::alloc_item()); }
 
                 inline T *append(const T *v)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::alloc_item());
                     if (dst != NULL)
                         *dst = *v;
                     return dst;
@@ -237,7 +241,7 @@ namespace lsp
 
                 inline T *append(const T *v, size_t n)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::alloc_item());
                     if (dst != NULL)
                         ::memcpy(dst, v, n*sizeof(T));
                     return dst;
@@ -245,7 +249,7 @@ namespace lsp
 
                 inline T *append(T v)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::alloc_item());
                     if (dst != NULL)
                         *dst = v;
                     return dst;
@@ -253,7 +257,7 @@ namespace lsp
 
                 inline T *add(const T *v)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::alloc_item());
                     if (dst != NULL)
                         *dst = *v;
                     return dst;
@@ -261,66 +265,66 @@ namespace lsp
 
                 inline T *add(T v)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::alloc_item());
                     if (dst != NULL)
                         *dst = v;
                     return dst;
                 }
 
-                inline T *get(size_t idx) { return reinterpret_cast<T *>(basic_storage::get_item(idx)); }
+                inline T *get(size_t idx) { return reinterpret_cast<T *>(basic_aligned_storage::get_item(idx)); }
 
-                inline T *c_get(size_t idx) { return reinterpret_cast<T *>(basic_storage::c_get_item(idx)); }
+                inline T *c_get(size_t idx) { return reinterpret_cast<T *>(basic_aligned_storage::c_get_item(idx)); }
 
-                inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_storage::get_item(index)); }
+                inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_aligned_storage::get_item(index)); }
 
-                inline T *append_n(size_t n) { return (n == 0) ? NULL : reinterpret_cast<T *>(basic_storage::alloc_items(n)); }
+                inline T *append_n(size_t n) { return (n == 0) ? NULL : reinterpret_cast<T *>(basic_aligned_storage::alloc_items(n)); }
 
-                inline T *at(size_t index) { return reinterpret_cast<T *>(basic_storage::at(index)); }
+                inline T *at(size_t index) { return reinterpret_cast<T *>(basic_aligned_storage::at(index)); }
 
-                inline T *c_at(size_t index) { return reinterpret_cast<T *>(basic_storage::c_at(index)); }
+                inline T *c_at(size_t index) { return reinterpret_cast<T *>(basic_aligned_storage::c_at(index)); }
 
-                inline T *first() { return reinterpret_cast<T *>(basic_storage::first()); }
+                inline T *first() { return reinterpret_cast<T *>(basic_aligned_storage::first()); }
 
-                inline T *get_array() { return reinterpret_cast<T *>(basic_storage::first()); }
+                inline T *get_array() { return reinterpret_cast<T *>(basic_aligned_storage::first()); }
 
-                inline T *last() { return reinterpret_cast<T *>(basic_storage::last()); }
+                inline T *last() { return reinterpret_cast<T *>(basic_aligned_storage::last()); }
 
-                inline T *insert(size_t idx) { return reinterpret_cast<T *>(basic_storage::insert_items(idx, 1)); }
+                inline T *insert(size_t idx) { return reinterpret_cast<T *>(basic_aligned_storage::insert_items(idx, 1)); }
 
                 inline T *insert(size_t idx, const T *v)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::insert_items(idx, 1));
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::insert_items(idx, 1));
                     if (dst != NULL)
                         *dst = *v;
                     return dst;
                 }
 
-                inline T *insert_n(size_t idx, size_t n) { return reinterpret_cast<T *>(basic_storage::insert_items(idx, n)); }
+                inline T *insert_n(size_t idx, size_t n) { return reinterpret_cast<T *>(basic_aligned_storage::insert_items(idx, n)); }
 
                 inline T *insert_n(size_t idx, const T *v, size_t n)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::insert_items(idx, n));
+                    T *dst = reinterpret_cast<T *>(basic_aligned_storage::insert_items(idx, n));
                     if (dst != NULL)
                         ::memcpy(dst, v, n*sizeof(T));
                     return dst;
                 }
 
-                inline bool remove(size_t idx) { return basic_storage::remove(idx); }
+                inline bool remove(size_t idx) { return basic_aligned_storage::remove(idx); }
 
                 inline bool remove(size_t idx, T *dst)
                 {
-                    void *p = basic_storage::get_item(idx);
+                    void *p = basic_aligned_storage::get_item(idx);
                     if (p == NULL)
                         return false;
                     *dst = *(reinterpret_cast<T *>(p));
-                    return basic_storage::remove(idx);
+                    return basic_aligned_storage::remove(idx);
                 }
 
-                inline bool remove_n(size_t idx, size_t n) { return basic_storage::remove_n(idx, n); }
+                inline bool remove_n(size_t idx, size_t n) { return basic_aligned_storage::remove_n(idx, n); }
 
                 inline bool pop(T *dst)
                 {
-                    T *src = reinterpret_cast<T *>(basic_storage::pop_last());
+                    T *src = reinterpret_cast<T *>(basic_aligned_storage::pop_last());
                     if (src == NULL)
                         return false;
                     *dst = *src;
@@ -329,13 +333,13 @@ namespace lsp
 
                 inline bool remove_last()
                 {
-                    void *ptr = basic_storage::pop_last();
+                    void *ptr = basic_aligned_storage::pop_last();
                     return ptr != NULL;
                 }
 
                 inline bool pop()
                 {
-                    void *ptr = basic_storage::pop_last();
+                    void *ptr = basic_aligned_storage::pop_last();
                     return ptr != NULL;
                 }
 
@@ -348,7 +352,7 @@ namespace lsp
                     return ((idx < 0) || (idx >= nItems)) ? -1 : idx;
                 }
 
-                inline void swap(cstorage<T, A> *src) { do_swap_data(src); }
+                inline void swap(castorage<T, A> *src) { do_swap_data(src); }
         };
 }
 

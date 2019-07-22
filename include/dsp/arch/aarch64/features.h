@@ -8,13 +8,13 @@
 #ifndef DSP_ARCH_AARCH64_FEATURES_H_
 #define DSP_ARCH_AARCH64_FEATURES_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 #ifdef PLATFORM_POSIX
     #include <sys/auxv.h>
 #endif /* PLATFORM_UNIX */
 
-#ifdef ARCH_AARCH64
+#ifndef ARCH_AARCH64
     /* This is feature definition taken from ARM headers for non-ARM architecture
      * to simply compile from IDE
      */
@@ -46,6 +46,35 @@
     #define HWCAP_AARCH64_USCAT             (1 << 25)
     #define HWCAP_AARCH64_ILRCPC            (1 << 26)
     #define HWCAP_AARCH64_FLAGM             (1 << 27)
+#else
+    #define HWCAP_AARCH64_FP                HWCAP_FP
+    #define HWCAP_AARCH64_ASIMD             HWCAP_ASIMD
+    #define HWCAP_AARCH64_EVTSTRM           HWCAP_EVTSTRM
+    #define HWCAP_AARCH64_AES               HWCAP_AES
+    #define HWCAP_AARCH64_PMULL             HWCAP_PMULL
+    #define HWCAP_AARCH64_SHA1              HWCAP_SHA1
+    #define HWCAP_AARCH64_SHA2              HWCAP_SHA2
+    #define HWCAP_AARCH64_CRC32             HWCAP_CRC32
+    #define HWCAP_AARCH64_ATOMICS           HWCAP_ATOMICS
+    #define HWCAP_AARCH64_FPHP              HWCAP_FPHP
+    #define HWCAP_AARCH64_ASIMDHP           HWCAP_ASIMDHP
+    #define HWCAP_AARCH64_CPUID             HWCAP_CPUID
+    #define HWCAP_AARCH64_ASIMDRDM          HWCAP_ASIMDRDM
+    #define HWCAP_AARCH64_JSCVT             HWCAP_JSCVT
+    #define HWCAP_AARCH64_FCMA              HWCAP_FCMA
+    #define HWCAP_AARCH64_LRCPC             HWCAP_LRCPC
+    #define HWCAP_AARCH64_DCPOP             HWCAP_DCPOP
+    #define HWCAP_AARCH64_SHA3              HWCAP_SHA3
+    #define HWCAP_AARCH64_SM3               HWCAP_SM3
+    #define HWCAP_AARCH64_SM4               HWCAP_SM4
+    #define HWCAP_AARCH64_ASIMDDP           HWCAP_ASIMDDP
+    #define HWCAP_AARCH64_SHA512            HWCAP_SHA512
+    #define HWCAP_AARCH64_SVE               HWCAP_SVE
+    #define HWCAP_AARCH64_ASIMDFHM          HWCAP_ASIMDFHM
+    #define HWCAP_AARCH64_DIT               HWCAP_DIT
+    #define HWCAP_AARCH64_USCAT             HWCAP_USCAT
+    #define HWCAP_AARCH64_ILRCPC            HWCAP_ILRCPC
+    #define HWCAP_AARCH64_FLAGM             HWCAP_FLAGM
 #endif /* ARCH_AARCH64 */
 
 namespace aarch64

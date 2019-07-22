@@ -313,7 +313,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int sampler_classes[] = { C_INSTRUMENT, C_SIMULATOR, -1 };
+    static const int sampler_classes[] = { C_INSTRUMENT, -1 };
 
     // Define port lists for each plugin
     static const port_t sampler_mono_ports[] =
@@ -583,8 +583,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_mono_ports,
         "sampling/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -599,8 +601,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_stereo_ports,
         "sampling/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -615,8 +619,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_x12_ports,
         "sampling/multiple/x12.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -631,8 +637,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_x24_ports,
         "sampling/multiple/x24.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -647,8 +655,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_x48_ports,
         "sampling/multiple/x48.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -663,8 +673,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_x12_do_ports,
         "sampling/multiple/x12_do.xml",
+        NULL,
         sampler_x12_port_groups
     };
 
@@ -679,8 +691,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_x24_do_ports,
         "sampling/multiple/x24_do.xml",
+        NULL,
         sampler_x24_port_groups
     };
 
@@ -695,8 +709,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         sampler_classes,
+        E_NONE,
         sampler_x48_do_ports,
         "sampling/multiple/x48_do.xml",
+        NULL,
         sampler_x48_port_groups
     };
 

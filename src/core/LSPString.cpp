@@ -71,7 +71,7 @@ namespace lsp
     }
 
 #ifndef ARCH_LE
-    int LSPString::xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n);
+    int LSPString::xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n)
     {
         while (n--)
         {
@@ -729,6 +729,19 @@ namespace lsp
             return false;
 
         return xcasecmp(pData, src->pData, src->nLength) == 0;
+    }
+
+    bool LSPString::starts_with_ascii(const char *str) const
+    {
+        for (size_t i=0, n=nLength; (i < n); ++i)
+        {
+            lsp_wchar_t c = uint8_t(*(str++));
+            if (c == 0)
+                return true;
+            else if (c != pData[i])
+                return false;
+        }
+        return false;
     }
 
     bool LSPString::starts_with_nocase(const LSPString *src) const

@@ -18,7 +18,7 @@ namespace lsp
                 ssize_t     nOrientation;
 
             public:
-                CtlBox(CtlRegistry *src, LSPBox *widget, ssize_t orientation = -1);
+                explicit CtlBox(CtlRegistry *src, LSPBox *widget, ssize_t orientation = -1);
                 virtual ~CtlBox();
 
             public:

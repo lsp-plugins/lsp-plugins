@@ -11,9 +11,12 @@
 #include <data/cvector.h>
 #include <data/chashmap.h>
 
+#include <dsp/endian.h>
 #include <core/IWrapper.h>
 #include <core/ipc/NativeExecutor.h>
+#include <core/KVTDispatcher.h>
 #include <container/CairoCanvas.h>
+#include <container/lv2/lv2_sink.h>
 
 namespace lsp
 {
@@ -30,6 +33,8 @@ namespace lsp
             cvector<LV2Port>    vFrameBufferPorts;
             cvector<LV2Port>    vMidiInPorts;
             cvector<LV2Port>    vMidiOutPorts;
+            cvector<LV2Port>    vOscInPorts;
+            cvector<LV2Port>    vOscOutPorts;
             cvector<port_t>     vGenMetadata;   // Generated metadata
 
             plugin_t           *pPlugin;
@@ -47,8 +52,12 @@ namespace lsp
             bool                bQueueDraw;     // Queue draw request
             bool                bUpdateSettings;// Settings update
             float               fSampleRate;
+            uint8_t            *pOscPacket;     // OSC packet data
 
             position_t          sPosition;
+            KVTStorage          sKVT;
+            ipc::Mutex          sKVTMutex;
+            KVTDispatcher      *pKVTDispatcher;
 
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
@@ -63,8 +72,12 @@ namespace lsp
             static void sort_by_urid(cvector<LV2Port> &v);
 
             void parse_midi_event(const LV2_Atom_Event *ev);
+            void parse_raw_osc_event(osc::parse_frame_t *frame);
             void parse_atom_object(const LV2_Atom_Event *ev);
             void serialize_midi_events(LV2Port *p);
+            void transmit_osc_events(LV2Port *p);
+            void transmit_kvt_events();
+            void receive_kvt_events();
             void clear_midi_ports();
 
         public:
@@ -86,6 +99,8 @@ namespace lsp
                 bQueueDraw      = false;
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
+                pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
+                pKVTDispatcher  = NULL;
 
                 position_t::init(&sPosition);
             }
@@ -168,7 +183,10 @@ namespace lsp
 
             void connect_direct_ui()
             {
+                // Increment number of clients
                 nDirectClients++;
+                if (pKVTDispatcher != NULL)
+                    pKVTDispatcher->connect_client();
             }
 
             void disconnect_direct_ui()
@@ -176,9 +194,19 @@ namespace lsp
                 if (nDirectClients <= 0)
                     return;
                 --nDirectClients;
+                if (pKVTDispatcher != NULL)
+                    pKVTDispatcher->disconnect_client();
             }
 
             inline float get_sample_rate() const { return fSampleRate; }
+
+            virtual KVTStorage *kvt_lock();
+
+            virtual KVTStorage *kvt_trylock();
+
+            virtual bool kvt_release();
+
+            inline KVTDispatcher *kvt_dispatcher() { return pKVTDispatcher; }
     };
 
     LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix)
@@ -207,12 +235,13 @@ namespace lsp
                 break;
             case R_MIDI:
                 if (pExt->atom_supported())
-                {
-                    if (p->flags & F_OUT)
-                        result      = new LV2MidiOutputPort(p, pExt);
-                    else
-                        result      = new LV2MidiInputPort(p, pExt);
-                }
+                    result = new LV2MidiPort(p, pExt);
+                else
+                    result = new LV2Port(p, pExt);
+                break;
+            case R_OSC:
+                if (pExt->atom_supported())
+                    result = new LV2OscPort(p, pExt);
                 else
                     result = new LV2Port(p, pExt);
                 break;
@@ -303,12 +332,18 @@ namespace lsp
 
                 case R_MIDI:
                     pPlugin->add_port(p);
-                    if (port->flags & F_OUT)
+                    if (IS_OUT_PORT(port))
                         vMidiOutPorts.add(p);
                     else
                         vMidiInPorts.add(p);
                     break;
-
+                case R_OSC:
+                    pPlugin->add_port(p);
+                    if (IS_OUT_PORT(port))
+                        vOscOutPorts.add(p);
+                    else
+                        vOscInPorts.add(p);
+                    break;
                 case R_MESH:
                 case R_FBUFFER:
                 case R_PATH:
@@ -360,6 +395,16 @@ namespace lsp
         sort_by_urid(vPluginPorts);
         sort_by_urid(vMeshPorts);
         sort_by_urid(vFrameBufferPorts);
+
+        // Need to create and start KVT dispatcher?
+        lsp_trace("Plugin extensions=0x%x", int(m->extensions));
+        if (m->extensions & E_KVT_SYNC)
+        {
+            lsp_trace("Creating KVT dispatcher thread...");
+            pKVTDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
+            lsp_trace("Starting KVT dispatcher thread...");
+            pKVTDispatcher->start();
+        }
 
         // Initialize plugin
         lsp_trace("Initializing plugin");
@@ -439,6 +484,18 @@ namespace lsp
 //            lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
             if (ev->body.type == pExt->uridMidiEventType)
                 parse_midi_event(ev);
+            else if (ev->body.type == pExt->uridOscRawPacket)
+            {
+                osc::parser_t parser;
+                osc::parser_frame_t root;
+                status_t res = osc::parse_begin(&root, &parser, &ev[1], ev->body.size);
+                if (res == STATUS_OK)
+                {
+                    parse_raw_osc_event(&root);
+                    osc::parse_end(&root);
+                    osc::parse_destroy(&parser);
+                }
+            }
             else if ((ev->body.type == pExt->uridObject) || (ev->body.type == pExt->uridBlank))
                 parse_atom_object(ev);
         }
@@ -517,6 +574,56 @@ namespace lsp
         }
     }
 
+    void LV2Wrapper::parse_raw_osc_event(osc::parse_frame_t *frame)
+    {
+        osc::parse_token_t token;
+        status_t res = osc::parse_token(frame, &token);
+        if (res != STATUS_OK)
+            return;
+
+        if (token == osc::PT_BUNDLE)
+        {
+            osc::parse_frame_t child;
+            uint64_t time_tag;
+            status_t res = osc::parse_begin_bundle(&child, frame, &time_tag);
+            if (res != STATUS_OK)
+                return;
+            parse_raw_osc_event(&child); // Perform recursive call
+            osc::parse_end(&child);
+        }
+        else if (token == osc::PT_MESSAGE)
+        {
+            const void *msg_start;
+            size_t msg_size;
+            const char *msg_addr;
+
+            // Perform address lookup and routing
+            status_t res = osc::parse_raw_message(frame, &msg_start, &msg_size, &msg_addr);
+            if (res != STATUS_OK)
+                return;
+
+            lsp_trace("Received OSC message of %d bytes, address=%s", int(msg_size), msg_addr);
+            osc::dump_packet(msg_start, msg_size);
+
+            if (::strstr(msg_addr, "/KVT/") == msg_addr)
+                pKVTDispatcher->submit(msg_start, msg_size);
+            else
+            {
+                for (size_t i=0, n=vOscInPorts.size(); i<n; ++i)
+                {
+                    IPort *p = vOscInPorts.at(i);
+                    if (p == NULL)
+                        continue;
+
+                    // Submit message to the buffer
+                    osc_buffer_t *buf = p->getBuffer<osc_buffer_t>();
+                    if (buf != NULL)
+                        buf->submit(msg_start, msg_size);
+                }
+            }
+        }
+    }
+
     void LV2Wrapper::parse_atom_object(const LV2_Atom_Event *ev)
     {
             // Analyze object type
@@ -527,6 +634,7 @@ namespace lsp
         if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
         {
             lsp_trace("triggered state change");
+            size_t flags = 0;
 
             for (
                 LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
@@ -536,11 +644,15 @@ namespace lsp
             {
                 lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
                 lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-
-                // Try to find the corresponding port
-                LV2Port *p = find_by_urid(vPluginPorts, body->key);
-                if ((p != NULL) && (p->get_type_urid() == body->value.type))
-                    p->deserialize(&body->value);
+                if ((body->key == pExt->uridStateFlags) && (body->value.type == pExt->forge.Int))
+                    flags = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
+                else
+                {
+                    // Try to find the corresponding port
+                    LV2Port *p = find_by_urid(vPluginPorts, body->key);
+                    if ((p != NULL) && (p->get_type_urid() == body->value.type))
+                        p->deserialize(&body->value, flags);
+                }
             }
         }
         else if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
@@ -548,7 +660,7 @@ namespace lsp
             lsp_trace("triggered state request");
             nStateReqs  ++;
         }
-        else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchGet)) // PatchGet request
+        else if (obj->body.otype == pExt->uridPatchGet) // PatchGet request
         {
             lsp_trace("triggered patch request");
             #ifdef LSP_TRACE
@@ -566,7 +678,7 @@ namespace lsp
             // Increment the number of patch requests
             nPatchReqs  ++;
         }
-        else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchSet)) // PatchSet request
+        else if (obj->body.otype == pExt->uridPatchSet) // PatchSet request
         {
             // Parse atom body
             const LV2_Atom_URID    *key     = NULL;
@@ -593,7 +705,7 @@ namespace lsp
                 {
                     LV2Port *p = find_by_urid(vPluginPorts, body->value.type);
                     if ((p != NULL) && (p->get_type_urid() == value->type))
-                        p->deserialize(value);
+                        p->deserialize(value, 0); // No flags for simple PATCH message
 
                     key     = NULL;
                     value   = NULL;
@@ -647,6 +759,8 @@ namespace lsp
         {
             nClients    ++;
             lsp_trace("UI has connected, current number of clients=%d", int(nClients));
+            if (pKVTDispatcher != NULL)
+                pKVTDispatcher->connect_client();
 
             // Notify all ports that UI has connected to backend
             for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
@@ -659,6 +773,8 @@ namespace lsp
         else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridDisconnectUI))
         {
             nClients    --;
+            if (pKVTDispatcher != NULL)
+                pKVTDispatcher->disconnect_client();
             lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
         }
         else
@@ -740,9 +856,105 @@ namespace lsp
                 int(buf.body[0]), int(buf.body[1]), int(buf.body[2]), int(buf.atom.size), int(buf.atom.size + sizeof(LV2_Atom)));
 
             // Serialize object
-            pExt->forge_frame_time(me->timestamp);
+            pExt->forge_frame_time(0);
             pExt->forge_raw(&buf.atom, sizeof(LV2_Atom) + buf.atom.size);
             pExt->forge_pad(sizeof(LV2_Atom) + buf.atom.size);
+        }
+    }
+
+    void LV2Wrapper::transmit_osc_events(LV2Port *p)
+    {
+        osc_buffer_t *osc   = p->getBuffer<osc_buffer_t>();
+        if (osc == NULL)  // There are no events ?
+            return;
+
+        size_t size;
+        LV2_Atom atom;
+
+        while (true)
+        {
+            // Try to fetch record from buffer
+            status_t res = osc->fetch(pOscPacket, &size, OSC_PACKET_MAX);
+
+            switch (res)
+            {
+                case STATUS_OK:
+                {
+                    lsp_trace("Transmitting OSC packet of %d bytes", int(size));
+                    osc::dump_packet(pOscPacket, size);
+
+                    atom.size       = size;
+                    atom.type       = pExt->uridOscRawPacket;
+
+                    pExt->forge_frame_time(0);
+                    pExt->forge_raw(&atom, sizeof(LV2_Atom));
+                    pExt->forge_raw(pOscPacket, size);
+                    pExt->forge_pad(sizeof(LV2_Atom) + size);
+                    break;
+                }
+
+                case STATUS_NO_DATA: // No more data to transmit
+                    return;
+
+                case STATUS_OVERFLOW:
+                {
+                    lsp_warn("Too large OSC packet in the buffer, skipping");
+                    osc->skip();
+                    break;
+                }
+
+                default:
+                {
+                    lsp_warn("OSC packet parsing error %d, skipping", int(res));
+                    osc->skip();
+                    break;
+                }
+            }
+        }
+    }
+
+    void LV2Wrapper::transmit_kvt_events()
+    {
+        // We need to transmit data only if there are clients connected to the Atom port
+        if ((pKVTDispatcher == NULL) || (nClients == 0))
+            return;
+
+        LV2_Atom atom;
+
+        size_t size;
+        while (true)
+        {
+            status_t res = pKVTDispatcher->fetch(pOscPacket, &size, OSC_PACKET_MAX);
+
+            switch (res)
+            {
+                case STATUS_OK:
+                {
+                    lsp_trace("Transmitting OSC packet of %d bytes", int(size));
+                    osc::dump_packet(pOscPacket, size);
+
+                    atom.size       = size;
+                    atom.type       = pExt->uridOscRawPacket;
+
+                    pExt->forge_frame_time(0);
+                    pExt->forge_raw(&atom, sizeof(LV2_Atom));
+                    pExt->forge_raw(pOscPacket, size);
+                    pExt->forge_pad(sizeof(LV2_Atom) + size);
+                    break;
+                }
+
+                case STATUS_OVERFLOW:
+                    lsp_warn("Received too big OSC packet, skipping");
+                    pKVTDispatcher->skip();
+                    break;
+
+                case STATUS_NO_DATA:
+                    return;
+
+                default:
+                    lsp_warn("Received error while deserializing KVT changes: %d", int(res));
+                    return;
+            }
         }
     }
 
@@ -814,14 +1026,25 @@ namespace lsp
         pExt->forge_sequence_head(&seq, 0);
 
         // For each MIDI port, serialize it's data
-        size_t n_midi       = vMidiOutPorts.size();
-        for (size_t i=0; i<n_midi; ++i)
+        for (size_t i=0, n_midi=vMidiOutPorts.size(); i<n_midi; ++i)
         {
             LV2Port *p      = vMidiOutPorts.at(i);
             if ((p == NULL) || (p->metadata()->role != R_MIDI))
                 continue;
             serialize_midi_events(p);
         }
+
+        // For each OSC port, serialize it's data
+        for (size_t i=0, n_osc=vOscOutPorts.size(); i<n_osc; ++i)
+        {
+            LV2Port *p      = vOscOutPorts.at(i);
+            if ((p == NULL) || (p->metadata()->role != R_OSC))
+                continue;
+            transmit_osc_events(p);
+        }
+
+        // Transmit KVT state
+        transmit_kvt_events();
 
         // Serialize paths that are visible in global space
         size_t n_ports      = vExtPorts.size();
@@ -999,6 +1222,15 @@ namespace lsp
         sSurface.height         = 0;
         sSurface.stride         = 0;
 
+        // Stop KVT dispatcher
+        if (pKVTDispatcher != NULL)
+        {
+            lsp_trace("Stopping KVT dispatcher thread...");
+            pKVTDispatcher->cancel();
+            pKVTDispatcher->join();
+            delete pKVTDispatcher;
+        }
+
         // Drop canvas
         lsp_trace("canvas = %p", pCanvas);
         if (pCanvas != NULL)
@@ -1044,9 +1276,18 @@ namespace lsp
         vMeshPorts.clear();
         vMidiInPorts.clear();
         vMidiOutPorts.clear();
+        vOscInPorts.clear();
+        vOscOutPorts.clear();
         vFrameBufferPorts.clear();
         vPluginPorts.clear();
         vGenMetadata.clear();
+
+        // Delete temporary buffer for OSC serialization
+        if (pOscPacket != NULL)
+        {
+            ::free(pOscPacket);
+            pOscPacket = NULL;
+        }
 
         // Drop extensions
         if (pExt != NULL)
@@ -1177,6 +1418,7 @@ namespace lsp
     {
         pExt->init_state_context(store, NULL, handle, flags, features);
 
+        // Save state of all ports
         size_t ports_count = vAllPorts.size();
 
         for (size_t i=0; i<ports_count; ++i)
@@ -1190,7 +1432,217 @@ namespace lsp
             lvp->save();
         }
 
+// This works, LV2:State does not allow to save objects
+/*
+        {
+            uint8_t buf[0x100];
+            LV2_Atom_Forge &forge   = pExt->forge;
+            LV2_URID_Map *map       = pExt->map;
+            LV2_Atom_Forge_Frame frame;
+
+            lv2_atom_forge_set_buffer(&forge, buf, sizeof(buf));
+            lv2_atom_forge_object(&forge, &frame, 0, map->map(map->handle, "http://lsp-plug.in/types/lv2/types#KVT"));
+            lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/selected"));
+            lv2_atom_forge_int(&forge, int32_t(0));
+            lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/objects"));
+            lv2_atom_forge_int(&forge, int32_t(0));
+            lv2_atom_forge_key(&forge, map->map(map->handle, "http://lsp-plug.in/kvt/scene/object/0/enabled"));
+            lv2_atom_forge_float(&forge, 1.0f);
+
+            LV2_Atom *msg           = reinterpret_cast<LV2_Atom *>(buf);
+
+            lv2_atom_forge_pop(&forge, &frame);
+            store(handle, map->map(map->handle, "http://lsp-plug.in/plugins/lv2/room_builder_mono#KVT"),
+                    &msg[1], msg->size,
+                    msg->type, LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
+        }
+*/
+
+        // Save state of all KVT parameters
+        const kvt_param_t *p;
+
+        if (sKVTMutex.lock())
+        {
+            status_t res    = STATUS_OK;
+
+            // We should use our own forge to prevent from race condition
+            LV2_Atom_Forge forge;
+            LV2_Atom_Forge_Frame frame;
+            lv2_sink        sink(0x100);
+
+            // Initialize sink
+            lv2_atom_forge_init(&forge, pExt->map);
+            lv2_atom_forge_set_sink(&forge, lv2_sink::sink, lv2_sink::deref, &sink);
+            lv2_atom_forge_object(&forge, &frame, 0, pExt->uridKvtType);
+
+            // Read the whole KVT storage
+            KVTIterator *it = sKVT.enum_all();
+            while (it->next() == STATUS_OK)
+            {
+                res             = it->get(&p);
+                if (res == STATUS_NOT_FOUND) // Not a parameter
+                    continue;
+                else if (res != STATUS_OK)
+                {
+                    lsp_warn("it->get() returned %d", int(res));
+                    break;
+                }
+                else if (it->is_transient()) // Skip transient parameters
+                    continue;
+
+                int flags       = 0;
+                if (it->is_private())
+                    flags          |= LSP_LV2_PRIVATE;
+
+                const char *name = it->name();
+                if (name == NULL)
+                {
+                    lsp_trace("it->name() returned NULL");
+                    break;
+                }
+
+                kvt_dump_parameter("Saving state of KVT parameter: %s = ", p, name);
+
+                LV2_URID key        =  pExt->map_kvt(name);
+
+                LV2_Atom_Forge_Frame prop;
+                lv2_atom_forge_key(&forge, key);
+                lv2_atom_forge_object(&forge, &prop, 0, pExt->uridKvtPropertyType);
+                lv2_atom_forge_key(&forge, pExt->uridKvtPropertyFlags);
+                lv2_atom_forge_int(&forge, flags);
+
+                switch (p->type)
+                {
+                    case KVT_INT32:
+                    case KVT_UINT32:
+                    {
+                        LV2_Atom_Int v;
+                        v.atom.type     = (p->type == KVT_INT32) ? pExt->forge.Int : pExt->uridTypeUInt;
+                        v.atom.size     = sizeof(v) - sizeof(LV2_Atom);
+                        v.body          = p->i32;
+
+                        lv2_atom_forge_key(&forge, pExt->uridKvtPropertyValue);
+                        lv2_atom_forge_primitive(&forge, &v.atom);
+                        break;
+                    }
+
+                    case KVT_INT64:
+                    case KVT_UINT64:
+                    {
+                        LV2_Atom_Long v;
+                        v.atom.type     = (p->type == KVT_INT64) ? pExt->forge.Long : pExt->uridTypeULong;
+                        v.atom.size     = sizeof(v) - sizeof(LV2_Atom);
+                        v.body          = p->i64;
+                        lv2_atom_forge_key(&forge, pExt->uridKvtPropertyValue);
+                        lv2_atom_forge_primitive(&forge, &v.atom);
+                        break;
+                    }
+                    case KVT_FLOAT32:
+                    {
+                        LV2_Atom_Float v;
+                        v.atom.type     = pExt->forge.Float;
+                        v.atom.size     = sizeof(v) - sizeof(LV2_Atom);
+                        v.body          = p->f32;
+                        lv2_atom_forge_key(&forge, pExt->uridKvtPropertyValue);
+                        lv2_atom_forge_primitive(&forge, &v.atom);
+                        break;
+                    }
+                    case KVT_FLOAT64:
+                    {
+                        LV2_Atom_Double v;
+                        v.atom.type     = pExt->forge.Double;
+                        v.atom.size     = sizeof(v) - sizeof(LV2_Atom);
+                        v.body          = p->f64;
+                        lv2_atom_forge_key(&forge, pExt->uridKvtPropertyValue);
+                        lv2_atom_forge_primitive(&forge, &v.atom);
+                        break;
+                    }
+                    case KVT_STRING:
+                    {
+                        lv2_atom_forge_key(&forge, pExt->uridKvtPropertyValue);
+                        const char *str = (p->str != NULL) ? p->str : "";
+                        lv2_atom_forge_typed_string(&forge, forge.String, str, ::strlen(str));
+                        break;
+                    }
+                    case KVT_BLOB:
+                    {
+                        LV2_Atom_Forge_Frame obj;
+
+                        lv2_atom_forge_key(&forge, pExt->uridKvtPropertyValue);
+                        lv2_atom_forge_object(&forge, &obj, 0, pExt->uridBlobType);
+                        {
+                            if (p->blob.ctype != NULL)
+                            {
+                                lv2_atom_forge_key(&forge, pExt->uridContentType);
+                                lv2_atom_forge_typed_string(&forge, forge.String, p->blob.ctype, ::strlen(p->blob.ctype));
+                            }
+
+                            uint32_t size = ((p->blob.size > 0) && (p->blob.data != NULL)) ? p->blob.size : 0;
+                            lv2_atom_forge_key(&forge, pExt->uridContent);
+                            lv2_atom_forge_atom(&forge, size, forge.Chunk);
+                            if (size > 0)
+                                lv2_atom_forge_write(&forge, p->blob.data, size);
+                        }
+                        lv2_atom_forge_pop(&forge, &obj);
+                        break;
+                    }
+
+                    default:
+                        res     = STATUS_BAD_TYPE;
+                        break;
+                }
+
+                lv2_atom_forge_pop(&forge, &prop);
+
+                // Successful status?
+                if (res != STATUS_OK)
+                    break;
+            } // while
+
+            if ((res == STATUS_OK) && (sink.res == STATUS_OK))
+            {
+                // TEST
+                /*{
+                    kvt_param_t xp;
+                    xp.blob.ctype   = "text/plain";
+                    xp.blob.data    = "Test text";
+                    xp.blob.size    = strlen("Test text") + 1;
+                    p = &xp;
+
+                    LV2_Atom_Forge_Frame obj;
+                    LV2_URID key        =  pExt->map_kvt("/TEST_BLOB");
+
+                    lv2_atom_forge_key(&forge, key);
+                    lv2_atom_forge_object(&forge, &obj, 0, pExt->uridBlobType);
+                    {
+                        if (p->blob.ctype != NULL)
+                        {
+                            lv2_atom_forge_key(&forge, pExt->uridContentType);
+                            lv2_atom_forge_typed_string(&forge, forge.String, p->blob.ctype, ::strlen(p->blob.ctype));
+                        }
+
+                        uint32_t size = ((p->blob.size > 0) && (p->blob.data != NULL)) ? p->blob.size : 0;
+                        lv2_atom_forge_key(&forge, pExt->uridContent);
+                        lv2_atom_forge_atom(&forge, size, forge.Chunk);
+                        if (size > 0)
+                            lv2_atom_forge_write(&forge, p->blob.data, size);
+                    }
+                    lv2_atom_forge_pop(&forge, &obj);
+                }*/
+                
+                lv2_atom_forge_pop(&forge, &frame);
+                LV2_Atom *msg = reinterpret_cast<LV2_Atom *>(sink.buf);
+                pExt->store_value(pExt->uridKvtObject, msg->type, &msg[1], msg->size);
+            }
+            else
+                lsp_trace("Failed execution, result=%d, sink state=%d", int(res), int(sink.res));
+
+            sKVT.gc();
+            sKVTMutex.unlock();
+        }
+
         pExt->reset_state_context();
+        pPlugin->state_saved();
     }
 
     inline void LV2Wrapper::restore_state(
@@ -1202,9 +1654,8 @@ namespace lsp
     {
         pExt->init_state_context(NULL, retrieve, handle, flags, features);
 
-        size_t ports_count = vAllPorts.size();
-
-        for (size_t i=0; i<ports_count; ++i)
+        // Restore posts state
+        for (size_t i=0, n=vAllPorts.size(); i<n; ++i)
         {
             // Get port
             LV2Port *lvp    = vAllPorts[i];
@@ -1215,11 +1666,192 @@ namespace lsp
             lvp->restore();
         }
 
+        // Restore KVT state
+        if (sKVTMutex.lock())
+        {
+            // Clear KVT
+            sKVT.clear();
+
+            uint32_t p_type;
+            size_t p_size;
+            const void *ptr = pExt->retrieve_value(pExt->uridKvtObject, &p_type, &p_size);
+            size_t prefix_len = ::strlen(LSP_KVT_URI);
+
+            if (ptr != NULL)
+            {
+//                lsp_dumpb("Contents of the atom object:", ptr, p_size);
+                lsp_trace("p_type = %d (%s), p_size = %d", int(p_type), pExt->unmap_urid(p_type), int(p_size));
+
+                if ((p_type == pExt->forge.Object) || (p_type == pExt->uridBlank))
+                {
+                    const LV2_Atom_Object_Body *obody = reinterpret_cast<const LV2_Atom_Object_Body *>(ptr);
+
+                    for (
+                        LV2_Atom_Property_Body *body = lv2_atom_object_begin(obody) ;
+                        !lv2_atom_object_is_end(obody, p_size, body) ;
+                        body = lv2_atom_object_next(body)
+                    )
+                    {
+//                        lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                        lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                        const LV2_Atom_Object *pobject = reinterpret_cast<const LV2_Atom_Object *>(&body->value);
+                        if ((pobject->atom.type != pExt->uridObject) && (pobject->atom.type != pExt->uridBlank))
+                        {
+                            lsp_warn("Unsupported value type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+                            continue;
+                        }
+//                        lsp_trace("pobject->body.otype (%d) = %s", int(pobject->body.otype), pExt->unmap_urid(pobject->body.otype));
+                        if (pobject->body.otype != pExt->uridKvtPropertyType)
+                        {
+                            lsp_warn("Unsupported object type (%d) = %s", int(pobject->body.otype), pExt->unmap_urid(pobject->body.otype));
+                            continue;
+                        }
+
+                        const char *uri = pExt->unmap_urid(body->key);
+                        if (::strstr(uri, LSP_KVT_URI "/") != uri)
+                        {
+                            lsp_warn("Invalid property: urid=%d, uri=%s", body->key, uri);
+                            continue;
+                        }
+
+                        const char *name = &uri[prefix_len];
+                        kvt_param_t p;
+                        size_t flags    = KVT_TX;
+                        p.type          = KVT_ANY;
+
+                        for (
+                            LV2_Atom_Property_Body *xbody = lv2_atom_object_begin(&pobject->body) ;
+                            !lv2_atom_object_is_end(&pobject->body, body->value.size, xbody) ;
+                            xbody = lv2_atom_object_next(xbody)
+                        )
+                        {
+//                            lsp_trace("xbody->key (%d) = %s", int(xbody->key), pExt->unmap_urid(xbody->key));
+//                            lsp_trace("xbody->value.type (%d) = %s", int(xbody->value.type), pExt->unmap_urid(xbody->value.type));
+
+                            // Analyze type of value
+                            if (xbody->key == pExt->uridKvtPropertyFlags)
+                            {
+                                if (xbody->value.type == pExt->forge.Int)
+                                {
+                                    size_t pflags   = (reinterpret_cast<const LV2_Atom_Int *>(&xbody->value))->body;
+                                    lsp_trace("pflags = %d", int(pflags));
+                                    if (pflags & LSP_LV2_PRIVATE)
+                                        flags          |= KVT_PRIVATE;
+                                }
+                            }
+                            else if (xbody->key == pExt->uridKvtPropertyValue)
+                            {
+                                p_type      = xbody->value.type;
+
+                                if (p_type == pExt->forge.Int)
+                                {
+                                    p.type  = KVT_INT32;
+                                    p.i32   = (reinterpret_cast<const LV2_Atom_Int *>(&xbody->value))->body;
+                                }
+                                else if (p_type == pExt->uridTypeUInt)
+                                {
+                                    p.type  = KVT_UINT32;
+                                    p.u32   = (reinterpret_cast<const LV2_Atom_Int *>(&xbody->value))->body;
+                                }
+                                else if (p_type == pExt->forge.Long)
+                                {
+                                    p.type  = KVT_INT64;
+                                    p.i64   = (reinterpret_cast<const LV2_Atom_Long *>(&xbody->value))->body;
+                                }
+                                else if (p_type == pExt->uridTypeULong)
+                                {
+                                    p.type  = KVT_UINT64;
+                                    p.u64   = (reinterpret_cast<const LV2_Atom_Long *>(&xbody->value))->body;
+                                }
+                                else if (p_type == pExt->forge.Float)
+                                {
+                                    p.type  = KVT_FLOAT32;
+                                    p.f32   = (reinterpret_cast<const LV2_Atom_Float *>(&xbody->value))->body;
+                                }
+                                else if (p_type == pExt->forge.Double)
+                                {
+                                    p.type  = KVT_FLOAT64;
+                                    p.f64   = (reinterpret_cast<const LV2_Atom_Double *>(&xbody->value))->body;
+                                }
+                                else if (p_type == pExt->forge.String)
+                                {
+                                    p.type  = KVT_STRING;
+                                    p.str   = reinterpret_cast<const char *>(&body[1]);
+                                }
+                                else if ((p_type == pExt->uridObject) || (p_type == pExt->uridBlank))
+                                {
+                                    const LV2_Atom_Object *obj = reinterpret_cast<const LV2_Atom_Object *>(&xbody->value);
+                                    lsp_trace("obj->atom.type = %d (%s), obj->body.id = %d (%s), obj->body.otype = %d (%s)",
+                                            obj->atom.type, pExt->unmap_urid(obj->atom.type),
+                                            obj->body.id, pExt->unmap_urid(obj->body.id),
+                                            obj->body.otype, pExt->unmap_urid(obj->body.otype)
+                                            );
+
+                                    if (obj->body.otype != pExt->uridBlobType)
+                                        break;
+
+                                    // Read the value
+                                    p.blob.ctype    = NULL;
+                                    p.blob.data     = NULL;
+                                    p.blob.size     = ~size_t(0);
+
+                                    for (
+                                        LV2_Atom_Property_Body *blob = lv2_atom_object_begin(&obj->body) ;
+                                        !lv2_atom_object_is_end(&obj->body, obj->atom.size, blob) ;
+                                        blob = lv2_atom_object_next(blob)
+                                    )
+                                    {
+                                        lsp_trace("blob->key (%d) = %s", int(blob->key), pExt->unmap_urid(blob->key));
+                                        lsp_trace("blob->value.type (%d) = %s", int(blob->value.type), pExt->unmap_urid(blob->value.type));
+
+                                        if ((blob->key == pExt->uridContentType) && (blob->value.type == pExt->forge.String))
+                                            p.blob.ctype    = reinterpret_cast<const char *>(&blob[1]);
+                                        else if ((blob->key == pExt->uridContent) && (blob->value.type == pExt->forge.Chunk))
+                                        {
+                                            p.blob.size     = blob->value.size;
+                                            if (p.blob.size > 0)
+                                                p.blob.data     = &blob[1];
+                                        }
+                                    }
+
+                                    // Change type
+                                    if (p.blob.size != (~size_t(0)))
+                                        p.type          = KVT_BLOB;
+                                }
+                            }
+                        }
+
+                        // Store property
+                        if (p.type != KVT_ANY)
+                        {
+                            kvt_dump_parameter("Fetched parameter %s = ", &p, name);
+                            status_t res = sKVT.put(name, &p, flags);
+                            if (res != STATUS_OK)
+                                lsp_warn("Could not store parameter to KVT");
+                        }
+                        else
+                            lsp_warn("KVT property %s has unsupported type or is invalid: 0x%x (%s)",
+                                    name, p_type, pExt->unmap_urid(p_type));
+                    }
+                } // for
+            }
+
+            sKVT.gc();
+            sKVTMutex.unlock();
+        }
+
         pExt->reset_state_context();
+        pPlugin->state_loaded();
     }
 
     inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)
     {
+        // Check for Inline display support
+        const plugin_metadata_t *meta = pPlugin->get_metadata();
+        if ((meta == NULL) || (!(meta->extensions & E_INLINE_DISPLAY)))
+            return NULL;
+
         // Lazy initialization
 //        lsp_trace("pCanvas = %p", pCanvas);
         if (pCanvas == NULL)
@@ -1276,6 +1908,21 @@ namespace lsp
         }
 
         return cv = ncv;
+    }
+
+    KVTStorage *LV2Wrapper::kvt_lock()
+    {
+        return (sKVTMutex.lock()) ? &sKVT : NULL;
+    }
+
+    KVTStorage *LV2Wrapper::kvt_trylock()
+    {
+        return (sKVTMutex.try_lock()) ? &sKVT : NULL;
+    }
+
+    bool LV2Wrapper::kvt_release()
+    {
+        return sKVTMutex.unlock();
     }
 }
 

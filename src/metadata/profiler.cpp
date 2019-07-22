@@ -11,7 +11,7 @@
 
 namespace lsp
 {
-    static const int profiler_classes[] = {C_ANALYSER, C_UTILITY, -1};
+    static const int profiler_classes[] = { C_UTILITY, -1};
 
     static const char *profiler_states[] =
     {
@@ -125,8 +125,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         profiler_classes,
+        E_NONE,
         profiler_mono_ports,
         "util/profiler/profiler_mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -141,8 +143,10 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         profiler_classes,
+        E_NONE,
         profiler_stereo_ports,
         "util/profiler/profiler_stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 }

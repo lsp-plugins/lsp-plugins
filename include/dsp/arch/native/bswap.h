@@ -29,8 +29,8 @@ inline uint64_t __lsp_forced_inline     byte_swap(uint64_t v)
 inline float __lsp_forced_inline byte_swap(float v)
 {
     union {
-        float fValue;
-        uint32_t uValue;
+        float       fValue;
+        uint32_t    uValue;
     } tmp;
     tmp.fValue      = v;
     tmp.uValue      = byte_swap(tmp.uValue);
@@ -40,7 +40,7 @@ inline float __lsp_forced_inline byte_swap(float v)
 inline double __lsp_forced_inline byte_swap(double v)
 {
     union {
-        float fValue;
+        double   fValue;
         uint64_t uValue;
     } tmp;
     tmp.fValue      = v;

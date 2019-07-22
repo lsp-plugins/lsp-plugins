@@ -8,6 +8,8 @@
 #ifndef CORE_STATUS_H_
 #define CORE_STATUS_H_
 
+typedef int     status_t;
+
 namespace lsp
 {
     enum status_codes
@@ -15,6 +17,7 @@ namespace lsp
         STATUS_OK,
         STATUS_UNSPECIFIED,
         STATUS_LOADING,
+        STATUS_IN_PROCESS,
         STATUS_UNKNOWN_ERR,
         STATUS_NO_MEM,
         STATUS_NOT_FOUND,
@@ -42,28 +45,42 @@ namespace lsp
         STATUS_INVALID_VALUE,
         STATUS_BAD_LOCALE,
         STATUS_NO_DEVICE,
+        STATUS_UNSUPPORTED_DEVICE,
         STATUS_OPENED,
         STATUS_BAD_TYPE,
+        STATUS_CORRUPTED,
         STATUS_INSUFFICIENT,
         STATUS_KILLED,
         STATUS_TIMED_OUT,
         STATUS_FAILED,
+        STATUS_SKIP,
         STATUS_CANCELLED,
         STATUS_NOT_EMPTY,
         STATUS_IS_DIRECTORY,
         STATUS_NOT_DIRECTORY,
         STATUS_REMOVED,
+        STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
+        STATUS_READONLY,
+        STATUS_NULL,
+        STATUS_LOCKED,
+        STATUS_REJECTED,
+        STATUS_ALREADY_BOUND,
+        STATUS_NO_CAPTURES,
+        STATUS_NO_SOURCES,
+        STATUS_BAD_PATH,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
         STATUS_SUCCESS = STATUS_OK
     };
 
-    typedef int     status_t;
-
     extern const char *status_descriptions[];
 
     const char *get_status(status_t code);
+
+    bool status_is_success(status_t code);
+    bool status_is_preliminary(status_t code);
+    bool status_is_error(status_t code);
 }
 
 #endif /* CORE_STATUS_H_ */

@@ -11,7 +11,7 @@
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
-#include <core/midi.h>
+#include <core/protocol/midi.h>
 
 #include <core/ITrigger.h>
 #include <core/util/Bypass.h>

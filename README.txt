@@ -28,22 +28,27 @@ For more information about licensing, please read LICENSE.txt.
 ==== SYSTEM REQUIREMENTS ====
 
 Current matrix of architecture and platform support is:
-  ┌──────────┬──────┬────────┬──────────┬─────────┐
-  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │
-  ╞══════════╪══════╪════════╪══════════╪═════════╡
-  │GNU/Linux │  F   │   F    │    E     │    E    │
-  ├──────────┼──────┼────────┼──────────┼─────────┤
-  │FreeBSD   │  E   │   E    │    U     │    U    │
-  └──────────┴──────┴────────┴──────────┴─────────┘
-    F - Full support
-    E - Experimental support, not enough feedback from users
-    U - Unknown, the code may build but it's work is not tested
-    N - No support, the code does not compile and does not work
+  ┌──────────┬──────┬────────┬──────────┬─────────┬───────┬───────┐
+  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │ ppc64 │ s390x │
+  ╞══════════╪══════╪════════╪══════════╪═════════╪═══════╪═══════╡
+  │GNU/Linux │  F   │   F    │    E     │    E    │   C   │   C   │
+  ├──────────┼──────┼────────┼──────────┼─────────┼───────┼───────┤
+  │FreeBSD   │  E   │   E    │    E     │    U    │   U   │   U   │
+  └──────────┴──────┴────────┴──────────┴─────────┴───────┴───────┘
+    F - Full support.
+    C - The code does compile, not enough knowledge about it's correct work.
+    E - Experimental support, not enough feedback from users.
+    U - Unknown, the code may be built but the correctness of it's work has not been tested.
+    N - No support, the code may compile but the work has not been tested.
 
 Details about architectures supported in experimental mode:
-  * ARMv7-AR support has been tested on Raspberry Pi 3 Model B under Raspbian OS.
+  * ARMv7-AR support has been tested on:
+    * Raspbian @ Raspberry Pi 3 B.
+    * Raspbian @ Raspberry Pi 2 B+ v1.2.
+    * TinkerOS @ TinkerBoard S.
     There is not enough feedback from users about correct work of all plugins.
-  * AArch64 support has been tested on Raspberry Pi 3 Model B+ under Arch Linux OS.
+  * AArch64 support has been tested on:
+    * Arch Linux @ Raspberry Pi 3 B+.
     There is not enough feedback from users about correct work of all plugins.
 
 Supported plugin formats:
@@ -61,12 +66,14 @@ The LV2 distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
+  * libGL
   * Host compatible with LV2
   
 The LinuxVST distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
+  * libGL
   * Host compatible with LinuxVST 2.4
 
 The JACK distribution requirements:
@@ -74,12 +81,14 @@ The JACK distribution requirements:
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
   * jack >= 1.9.5
+  * libGL
   
 The profiling distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
   * jack >= 1.9.5
+  * libGL
 
 Known list of supported plugin hosts:
   * Ardour
@@ -125,24 +134,29 @@ and critical fixes for the previous release.
 IMPORTANT FOR VST INSTALLATIONS: If you deploy plugins as a subdirectory
 of your VST directory, the subdirectory should contain substring
 'lsp-plugins'. Otherwise plugins won't find the VST core library.
+Please notice that '~' means user's home directory.
 
 The usual directories for LADSPA are:
   * /usr/lib/ladspa
   * /usr/local/lib/ladspa
   * /usr/lib64/ladspa
   * /usr/local/lib64/ladspa
-
+  * ~/.ladspa
+  
 The usual directories for LV2 are:
   * /usr/lib/lv2
   * /usr/local/lib/lv2
   * /usr/lib64/lv2
   * /usr/local/lib64/lv2
+  * ~/.lv2
 
 The usual directories for LinuxVST are:
   * /usr/lib/vst
   * /usr/local/lib/vst
   * /usr/lib64/vst
   * /usr/local/lib64/vst
+  * ~/.lxvst
+  * ~/.vst
 
 The usual directories for JACK core library are:
   * /usr/lib
@@ -179,9 +193,6 @@ For successful build you need the following packages to be installed:
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14
-
-For development, additional packages are required to be installed:
-  * glu-devel >= 9.0.0
   * libGL-devel >= 11.2.2
 
 Currently there is no automake/CMake supported, so to build plugins you
@@ -235,6 +246,13 @@ To build binaries for debugging/profiling, use the following commands:
 To build binaries for testing (developers only), use the following commands:
   make clean
   make test
+  
+To build both release binaries and binaries for testing, use the following commands:
+  make clean
+  make all test
+
+After issuing this command, the system will build release binaries into '.build'
+subdirectory and test binaries into '.test' subdirectory
 
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
@@ -309,7 +327,7 @@ To build testing subsystem, issue the following commands:
   make test
 
 After build, we can launch the test binary by issuing command:
-  .build/lsp-plugins-test
+  .test/lsp-plugins-test
 
 This binary provides simple command-line interface, so here's the full usage:  
   USAGE: {utest|ptest|mtest} [args...] [test name...]
@@ -340,17 +358,17 @@ Each test has fully-qualified name separated by dot symbols, tests from differen
 test spaces (utest, ptest, mtest) may have similar fully-qualified names.
 
 To obtain a list of all unit tests we can issue:
-  .build/lsp-plugins-test utest --list
+  .test/lsp-plugins-test utest --list
 
 And then we can launch all complex number processing unit tests and additionally
 'dsp.mix' unit test:
-  .build/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
+  .test/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
 
 If we don's specify any unit test name in argument, then all available unit tests
 will be launched.
 
 To start debugging of some unit test, you need to pass additional arguments:
-  .build/lsp-plugins-test utest --nofork --debug --verbose
+  .test/lsp-plugins-test utest --nofork --debug --verbose
   
 Because unit tests are short-time fully-automated tests, they are parallelized and
 executed by default by number_of_cores*2 processes. To disable this, we specify option
@@ -363,7 +381,7 @@ We also can use performance tests to obtain full performance profile of target m
 Because performance tests in most cases take much time for gathering statistics,
 the final statistics for each test can be saved in a separate file by specifying --outfile
 option:
-  .build/lsp-plugins-test ptest -o performance-test.log
+  .test/lsp-plugins-test ptest -o performance-test.log
 
 Manual tests are mostly designed for developers' purposes.
 

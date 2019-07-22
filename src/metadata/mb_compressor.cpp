@@ -16,7 +16,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Multiband compressor
-    static const int mb_compressor_classes[] = { C_DYNAMICS, C_COMPRESSOR, -1 };
+    static const int mb_compressor_classes[] = { C_COMPRESSOR, -1 };
 
     static const char *mb_comp_modes[] =
     {
@@ -516,8 +516,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 0,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         mb_compressor_mono_ports,
         "dynamics/compressor/multiband/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -532,8 +534,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 1,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         mb_compressor_stereo_ports,
         "dynamics/compressor/multiband/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -548,8 +552,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 2,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         mb_compressor_lr_ports,
         "dynamics/compressor/multiband/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -564,8 +570,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 3,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         mb_compressor_ms_ports,
         "dynamics/compressor/multiband/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -581,8 +589,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 4,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         sc_mb_compressor_mono_ports,
         "dynamics/compressor/multiband/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -597,8 +607,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 5,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         sc_mb_compressor_stereo_ports,
         "dynamics/compressor/multiband/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -613,8 +625,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 6,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         sc_mb_compressor_lr_ports,
         "dynamics/compressor/multiband/lr.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -629,8 +643,10 @@ namespace lsp
         LSP_MB_COMPRESSOR_BASE + 7,
         LSP_VERSION(1, 0, 0),
         mb_compressor_classes,
+        E_INLINE_DISPLAY,
         sc_mb_compressor_ms_ports,
         "dynamics/compressor/multiband/ms.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 

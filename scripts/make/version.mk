@@ -1,9 +1,10 @@
 PRODUCT                 = lsp
 ARTIFACT_ID             = $(PRODUCT)-plugins
+R3D_ARTIFACT_ID         = $(ARTIFACT_ID)-r3d
 
 # Package version
 ifndef VERSION
-  VERSION                 = 1.1.9
+  VERSION                 = 1.1.10
 endif
 
 export VERSION

@@ -19,7 +19,7 @@ namespace lsp
                 CtlColor        sColor;
 
             public:
-                CtlCenter(CtlRegistry *src, LSPCenter *cnt);
+                explicit CtlCenter(CtlRegistry *src, LSPCenter *cnt);
                 virtual ~CtlCenter();
 
             public:

@@ -117,7 +117,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int slap_delay_classes[] = { C_DELAY, C_SPATIAL, -1 };
+    static const int slap_delay_classes[] = { C_DELAY, -1 };
 
     const plugin_metadata_t  slap_delay_mono_metadata::metadata =
     {
@@ -130,8 +130,10 @@ namespace lsp
         LSP_SLAP_DELAY_BASE + 0,
         LSP_VERSION(1, 0, 1),
         slap_delay_classes,
+        E_NONE,
         slap_delay_mono_ports,
         "delay/slap_delay/mono.xml",
+        NULL,
         mono_to_stereo_plugin_port_groups
     };
 
@@ -146,8 +148,10 @@ namespace lsp
         LSP_SLAP_DELAY_BASE + 1,
         LSP_VERSION(1, 0, 1),
         slap_delay_classes,
+        E_NONE,
         slap_delay_stereo_ports,
         "delay/slap_delay/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 

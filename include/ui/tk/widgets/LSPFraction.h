@@ -55,7 +55,7 @@ namespace lsp
                 static status_t     slot_on_list_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                LSPFraction(LSPDisplay *dpy);
+                explicit LSPFraction(LSPDisplay *dpy);
                 virtual ~LSPFraction();
 
                 virtual status_t init();

@@ -75,7 +75,8 @@ namespace lsp
              */
             void destroy(bool cascade = true);
 
-            /** Bind sample to specified ID
+            /** Bind sample to specified ID, cancel all active playbacks previously associated
+             * with this sample
              *
              * @param id id of the sample
              * @param sample pointer to the sample
@@ -83,7 +84,8 @@ namespace lsp
              */
             bool bind(size_t id, Sample **sample);
 
-            /** Bind sample to specified ID
+            /** Bind sample to specified ID, cancel all active playbacks previously associated
+             * with this sample
              *
              * @param id id of the sample
              * @param sample pointer to the sample

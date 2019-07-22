@@ -31,7 +31,7 @@ namespace lsp
                 static status_t        slot_on_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                LSPMenuItem(LSPDisplay *dpy);
+                explicit LSPMenuItem(LSPDisplay *dpy);
                 virtual ~LSPMenuItem();
 
                 virtual status_t init();
@@ -44,6 +44,7 @@ namespace lsp
 
             public:
                 status_t            set_text(const char *text);
+                status_t            set_text(const LSPString *text);
                 status_t            set_submenu(LSPMenu *submenu);
                 status_t            set_separator(bool value);
 

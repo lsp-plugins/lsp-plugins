@@ -843,6 +843,8 @@ namespace lsp
             ssize_t fsamples    = flen - head_cut - tail_cut;
             if (fsamples <= 0)
             {
+                for (size_t j=0; j<channels; ++j)
+                    dsp::fill_zero(f->vThumbs[j], impulse_responses_base_metadata::MESH_SIZE);
                 s->setLength(0);
                 continue;
             }

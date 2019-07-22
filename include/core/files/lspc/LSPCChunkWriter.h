@@ -16,6 +16,9 @@ namespace lsp
     
     class LSPCChunkWriter: public LSPCChunkAccessor
     {
+        private:
+            LSPCChunkWriter & operator = (const LSPCChunkWriter &);
+
         protected:
             friend class LSPCFile;
 
@@ -32,7 +35,7 @@ namespace lsp
             status_t            do_flush(size_t flags);
 
         protected:
-            LSPCChunkWriter(LSPCResource *fd, uint32_t magic);
+            explicit LSPCChunkWriter(LSPCResource *fd, uint32_t magic);
 
         public:
             virtual ~LSPCChunkWriter();

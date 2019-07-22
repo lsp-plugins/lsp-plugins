@@ -147,7 +147,7 @@ namespace lsp
                 inline status_t close() { return set_opened(false); }
 
             public:
-                LSPComboGroup(LSPDisplay *dpy);
+                explicit LSPComboGroup(LSPDisplay *dpy);
                 virtual ~LSPComboGroup();
 
                 virtual status_t init();

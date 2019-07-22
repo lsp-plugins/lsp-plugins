@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Limiter
-    static const int limiter_classes[] = { C_DYNAMICS, C_LIMITER, -1 };
+    static const int limiter_classes[] = { C_LIMITER, -1 };
 
     static const char *limiter_oper_modes[] =
     {
@@ -183,8 +183,10 @@ namespace lsp
         LSP_LIMITER_BASE + 0,
         LSP_VERSION(1, 0, 1),
         limiter_classes,
+        E_INLINE_DISPLAY,
         limiter_mono_ports,
         "dynamics/limiter/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -199,8 +201,10 @@ namespace lsp
         LSP_LIMITER_BASE + 1,
         LSP_VERSION(1, 0, 1),
         limiter_classes,
+        E_INLINE_DISPLAY,
         limiter_stereo_ports,
         "dynamics/limiter/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -215,8 +219,10 @@ namespace lsp
         LSP_LIMITER_BASE + 2,
         LSP_VERSION(1, 0, 1),
         limiter_classes,
+        E_INLINE_DISPLAY,
         sc_limiter_mono_ports,
         "dynamics/limiter/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -231,8 +237,10 @@ namespace lsp
         LSP_LIMITER_BASE + 3,
         LSP_VERSION(1, 0, 1),
         limiter_classes,
+        E_INLINE_DISPLAY,
         sc_limiter_stereo_ports,
         "dynamics/limiter/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

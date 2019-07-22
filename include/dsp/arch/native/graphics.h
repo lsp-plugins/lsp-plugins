@@ -55,6 +55,54 @@ namespace native
         }
     }
 
+    void abgr32_to_bgra32(void *dst, const void *src, size_t count)
+    {
+        const uint32_t *s   = reinterpret_cast<const uint32_t *>(src);
+        uint32_t *d         = reinterpret_cast<uint32_t *>(dst);
+
+        for (size_t i=0; i<count; ++i)
+        {
+            uint32_t c      = s[i];
+            d[i]            = (c << 24) | (c >> 8);
+        }
+    }
+
+    void abgr32_to_bgrff32(void *dst, const void *src, size_t count)
+    {
+        const uint32_t *s   = reinterpret_cast<const uint32_t *>(src);
+        uint32_t *d         = reinterpret_cast<uint32_t *>(dst);
+
+        for (size_t i=0; i<count; ++i)
+        {
+            uint32_t c      = s[i];
+            d[i]            = 0xff000000 | (c >> 8);
+        }
+    }
+
+    void rgba32_to_bgra32_ra(void *dst, const void *src, size_t count)
+    {
+        const uint8_t *s   = reinterpret_cast<const uint8_t *>(src);
+        uint8_t *d         = reinterpret_cast<uint8_t *>(dst);
+        uint32_t    r, g, b, a, k;
+
+        for (size_t i=0; i<count; ++i)
+        {
+            a       = 0xff - s[3];
+            k       = 0x10101 * d[3]; // k = (0x1000000 * a) / 0xff
+            r       = (s[0] * k) >> 24;
+            g       = (s[1] * k) >> 24;
+            b       = (s[2] * k) >> 24;
+
+            d[0]    = uint8_t(b);
+            d[1]    = uint8_t(g);
+            d[2]    = uint8_t(r);
+            d[3]    = uint8_t(a);
+
+            s      += 4;
+            d      += 4;
+        }
+    }
+
     void fill_rgba(float *dst, float r, float g, float b, float a, size_t count)
     {
         while (count--)

@@ -2299,3 +2299,58 @@ with stereo capability.
     Registration:   
         
     *Plugin ID: hubw
+
+    
+    VST Plugin ID registration:
+
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Room Builder Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Plugin for simulation of reverberation for different kinds of rooms.
+		
+	Registration:	
+		
+	*Plugin ID:	cqbr
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Room Builder Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Plugin for simulation of reverberation for different kinds of rooms.
+		
+	Registration:	
+		
+	*Plugin ID:	mprh
+	
+	
+	

@@ -328,6 +328,11 @@ namespace lsp
             return update_pointer();
         }
 
+        status_t LSPWindow::grab_events()
+        {
+            return (pWindow != NULL) ? pWindow->grab_events() : STATUS_BAD_STATE;
+        }
+
         void LSPWindow::set_policy(window_poilicy_t policy)
         {
             window_poilicy_t old = enPolicy;
@@ -403,6 +408,16 @@ namespace lsp
                     case BS_DIALOG:
                     {
                         realize_t r, rw;
+                        r.nLeft     = 0;
+                        r.nTop      = 0;
+                        r.nWidth    = 0;
+                        r.nHeight   = 0;
+
+                        rw.nLeft    = 0;
+                        rw.nTop     = 0;
+                        rw.nWidth   = 0;
+                        rw.nHeight  = 0;
+
                         wnd->get_geometry(&r);
                         pWindow->get_geometry(&rw);
 

@@ -8,6 +8,7 @@
 #include <dsp/dsp.h>
 #include <dsp/endian.h>
 #include <core/files/lspc/LSPCAudioWriter.h>
+#include <stdlib.h>
 
 #define BUFFER_FRAMES   0x400
 
@@ -159,13 +160,18 @@ namespace lsp
                 res     = xr;
         }
 
-        if ((pFD != NULL) && (nFlags & F_CLOSE_FILE))
+        if (pFD != NULL)
         {
-            status_t xr = pFD->close();
-            pWD         = NULL;
+            if (nFlags & F_CLOSE_FILE)
+            {
+                status_t xr = pFD->close();
+                if (res == STATUS_OK)
+                    res     = xr;
+            }
+            if (nFlags & F_DROP_FILE)
+                delete pFD;
 
-            if (res == STATUS_OK)
-                res     = xr;
+            pFD         = NULL;
         }
 
         if (pFBuffer != NULL)
@@ -349,6 +355,43 @@ namespace lsp
         hdr.offset          = CPU_TO_BE(hdr.offset);
 
         return wr->write_header(&hdr);
+    }
+
+    status_t LSPCAudioWriter::create(const char *path, const lspc_audio_parameters_t *params)
+    {
+        LSPString tmp;
+        if (!tmp.set_utf8(path))
+            return STATUS_NO_MEM;
+        return create(&tmp, params);
+    }
+
+    status_t LSPCAudioWriter::create(const LSPString *path, const lspc_audio_parameters_t *params)
+    {
+        LSPCFile *fd = new LSPCFile();
+        if (fd == NULL)
+            return STATUS_NO_MEM;
+
+        status_t res = fd->create(path);
+        if (res == STATUS_OK)
+        {
+            res     = open(fd, params, true);
+            if (res == STATUS_OK)
+                nFlags     |= F_CLOSE_FILE | F_DROP_FILE;
+        }
+
+        if (res != STATUS_OK)
+        {
+            fd->close();
+            delete fd;
+            return res;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t LSPCAudioWriter::create(const io::Path *path, const lspc_audio_parameters_t *params)
+    {
+        return create(path->as_string(), params);
     }
 
     status_t LSPCAudioWriter::open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool auto_close)

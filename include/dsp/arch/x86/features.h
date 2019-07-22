@@ -49,8 +49,12 @@ namespace x86
     enum cpu_vendor_enum
     {
         CPU_VENDOR_UNKNOWN,
+        CPU_VENDOR_AMD,
+        CPU_VENDOR_HYGON,
         CPU_VENDOR_INTEL,
-        CPU_VENDOR_AMD
+        CPU_VENDOR_NSC,
+        CPU_VENDOR_TRANSMETA,
+        CPU_VENDOR_VIA
     };
 
     typedef struct cpu_features_t

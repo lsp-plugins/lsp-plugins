@@ -8,7 +8,7 @@
 #ifndef DSP_ATOMIC_H_
 #define DSP_ATOMIC_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 typedef unsigned int    uatomic_t;
 typedef signed int      atomic_t;

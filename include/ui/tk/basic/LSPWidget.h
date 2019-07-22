@@ -35,6 +35,8 @@ namespace lsp
                 };
 
             protected:
+                char               *pUID;           // Unique widget identifier
+
                 LSPDisplay         *pDisplay;
                 ISurface           *pSurface;
 
@@ -282,6 +284,12 @@ namespace lsp
                  */
                 ssize_t relative_bottom() const;
 
+                /**
+                 * Get unique widget identifier for DOM search
+                 * @return unique widget identifier for DOM search
+                 */
+                inline const char *unique_id() const {  return pUID;    }
+
                 /** Check that specified window coordinate lies within widget's bounds
                  * Always returns false for invisible widgets
                  *
@@ -331,6 +339,13 @@ namespace lsp
             //---------------------------------------------------------------------------------
             // Manipulation
             public:
+                /**
+                 * Set unique widget identifier for DOM search
+                 * @param uid unique widget identifier for DOM search
+                 * @return status of operation
+                 */
+                status_t set_unique_id(const char *uid);
+
                 /** Query widget for redraw
                  *
                  * @param flags redraw flags

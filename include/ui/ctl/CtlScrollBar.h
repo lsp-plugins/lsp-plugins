@@ -16,7 +16,7 @@ namespace lsp
         class CtlScrollBar: public CtlWidget
         {
             public:
-                CtlScrollBar(CtlRegistry *src, LSPScrollBar *widget);
+                explicit CtlScrollBar(CtlRegistry *src, LSPScrollBar *widget);
                 virtual ~CtlScrollBar();
         };
     

@@ -6,6 +6,7 @@
  */
 
 #include <ui/ctl/ctl.h>
+#include <core/port_data.h>
 
 namespace lsp
 {

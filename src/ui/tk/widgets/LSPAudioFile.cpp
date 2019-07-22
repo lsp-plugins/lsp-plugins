@@ -20,7 +20,6 @@ namespace lsp
             sFont(dpy, this),
             sHintFont(dpy, this),
             sConstraints(this),
-            sPadding(this),
             sDialog(dpy)
         {
             pClass          = &metadata;
@@ -922,10 +921,5 @@ namespace lsp
             return STATUS_OK;
         }
 
-        void LSPAudioFile::realize(const realize_t *r)
-        {
-            LSPWidget::realize(r);
-        }
-    
     } /* namespace tk */
 } /* namespace lsp */

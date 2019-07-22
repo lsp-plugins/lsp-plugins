@@ -254,7 +254,9 @@ namespace lsp
 
             test->set_verbose(pCfg->verbose);
             start_memcheck(test);
+            test->init();
             test->execute(pCfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+            test->destroy();
             end_memcheck();
         }
 
@@ -277,7 +279,9 @@ namespace lsp
         // Execute performance test
         test->set_verbose(pCfg->verbose);
         start_memcheck(test);
+        test->init();
         test->execute(pCfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+        test->destroy();
         end_memcheck();
 
         // Output peformance test statistics
@@ -310,7 +314,9 @@ namespace lsp
         // Execute performance test
         test->set_verbose(pCfg->verbose);
         start_memcheck(test);
+        test->init();
         test->execute(pCfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+        test->destroy();
         end_memcheck();
 
         return STATUS_OK;

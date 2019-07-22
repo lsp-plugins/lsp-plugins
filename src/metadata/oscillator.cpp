@@ -11,7 +11,7 @@
 
 namespace lsp
 {
-    static const int oscillator_classes[] = {C_OSCILLATOR, -1};
+    static const int oscillator_classes[] = { C_OSCILLATOR, -1};
 
     static const char *sc_func[] =
     {
@@ -95,8 +95,10 @@ namespace lsp
         LSP_OSCILLATOR_BASE + 0,
         LSP_VERSION(1, 0, 0),
         oscillator_classes,
+        E_INLINE_DISPLAY,
         oscillator_ports,
         "util/oscillator_mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 }

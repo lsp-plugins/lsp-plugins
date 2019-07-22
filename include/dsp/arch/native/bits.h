@@ -102,4 +102,66 @@ inline int64_t __lsp_forced_inline     reverse_bits(int64_t v, size_t count)
     return reverse_bits(uint64_t(v), count);
 }
 
+inline int __lsp_forced_inline     int_log2(uint8_t v)
+{
+    int res = 0;
+    if (v & 0xf0) { res += 4; v >>= 4; }
+    if (v & 0x0c) { res += 2; v >>= 2; }
+    if (v & 0x02) ++res;
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(uint16_t v)
+{
+    int res = 0;
+    if (v & 0xff00) { res += 8; v >>= 8; }
+    if (v & 0xf0) { res += 4; v >>= 4; }
+    if (v & 0x0c) { res += 2; v >>= 2; }
+    if (v & 0x02) ++res;
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(uint32_t v)
+{
+    int res = 0;
+    if (v & 0xffff0000) { res += 16; v >>= 16; }
+    if (v & 0xff00) { res += 8; v >>= 8; }
+    if (v & 0xf0) { res += 4; v >>= 4; }
+    if (v & 0x0c) { res += 2; v >>= 2; }
+    if (v & 0x02) ++res;
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(uint64_t v)
+{
+    int res = 0;
+    if (v & 0xffffffff00000000ULL) { res += 32; v >>= 32; }
+    if (v & 0xffff0000) { res += 16; v >>= 16; }
+    if (v & 0xff00) { res += 8; v >>= 8; }
+    if (v & 0xf0) { res += 4; v >>= 4; }
+    if (v & 0x0c) { res += 2; v >>= 2; }
+    if (v & 0x02) ++res;
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(int8_t v)
+{
+    return int_log2(uint8_t(v));
+}
+
+inline int __lsp_forced_inline     int_log2(int16_t v)
+{
+    return int_log2(uint16_t(v));
+}
+
+inline int __lsp_forced_inline     int_log2(int32_t v)
+{
+    return int_log2(uint32_t(v));
+}
+
+inline int __lsp_forced_inline     int_log2(int64_t v)
+{
+    return int_log2(uint64_t(v));
+}
+
 #endif /* DSP_ARCH_NATIVE_BITS_H_ */

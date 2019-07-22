@@ -20,7 +20,7 @@ namespace lsp
                 plugin_ui  *pUI;
 
             public:
-                CtlControlPort(const port_t *meta, plugin_ui *ui);
+                explicit CtlControlPort(const port_t *meta, plugin_ui *ui);
                 virtual ~CtlControlPort();
 
             public:

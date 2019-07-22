@@ -16,7 +16,7 @@ namespace lsp
             JACKPort               *pPort;
 
         public:
-            JACKUIPort(JACKPort *port) : CtlPort(port->metadata())
+            explicit JACKUIPort(JACKPort *port) : CtlPort(port->metadata())
             {
                 pPort       = port;
             }
@@ -28,6 +28,7 @@ namespace lsp
 
         public:
             virtual bool sync()         { return false; };
+            virtual bool sync_again()   { return false; };
 
             virtual void resync()       { };
     };
@@ -38,7 +39,7 @@ namespace lsp
             JACKPortGroup          *pPG;
 
         public:
-            JACKUIPortGroup(JACKPortGroup *port) : JACKUIPort(port)
+            explicit JACKUIPortGroup(JACKPortGroup *port) : JACKUIPort(port)
             {
                 pPG                 = port;
             }
@@ -69,7 +70,7 @@ namespace lsp
             float           fValue;
 
         public:
-            JACKUIControlPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIControlPort(JACKPort *port): JACKUIPort(port)
             {
                 fValue      = port->getValue();
             }
@@ -107,7 +108,7 @@ namespace lsp
             float   fValue;
 
         public:
-            JACKUIMeterPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIMeterPort(JACKPort *port): JACKUIPort(port)
             {
                 fValue      = port->getValue();
             }
@@ -145,7 +146,7 @@ namespace lsp
             float   fValue;
 
         public:
-            JACKUIInPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIInPort(JACKPort *port): JACKUIPort(port)
             {
                 fValue      = port->getValue();
             }
@@ -175,7 +176,7 @@ namespace lsp
             mesh_t      *pMesh;
 
         public:
-            JACKUIMeshPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIMeshPort(JACKPort *port): JACKUIPort(port)
             {
                 pMesh       = jack_create_mesh(port->metadata());
             }
@@ -216,7 +217,7 @@ namespace lsp
             frame_buffer_t     sFB;
 
         public:
-            JACKUIFrameBufferPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIFrameBufferPort(JACKPort *port): JACKUIPort(port)
             {
                 sFB.init(pMetadata->start, pMetadata->step);
             }
@@ -240,6 +241,103 @@ namespace lsp
             }
     };
 
+    class JACKUIOscPortIn: public JACKUIPort
+    {
+        private:
+            osc::packet_t   sPacket;
+            size_t          nCapacity;
+            bool            bSyncAgain;
+
+        public:
+            explicit JACKUIOscPortIn(JACKPort *port): JACKUIPort(port)
+            {
+                bSyncAgain      = false;
+                nCapacity       = 0x100;
+                sPacket.data    = reinterpret_cast<uint8_t *>(::malloc(nCapacity));
+                sPacket.size    = 0;
+            }
+
+            virtual ~JACKUIOscPortIn()
+            {
+                if (sPacket.data != NULL)
+                {
+                    ::free(sPacket.data);
+                    sPacket.data    = NULL;
+                }
+            }
+
+        public:
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                bSyncAgain          = false;
+                osc_buffer_t *fb    = pPort->getBuffer<osc_buffer_t>();
+
+                while (true)
+                {
+                    // Try to fetch record from buffer
+                    status_t res = fb->fetch(&sPacket, nCapacity);
+
+                    switch (res)
+                    {
+                        case STATUS_OK:
+                        {
+                            bSyncAgain    = true;
+                            lsp_trace("Received OSC message of %d bytes", int(sPacket.size));
+                            osc::dump_packet(&sPacket);
+                            return true;
+                        }
+
+                        case STATUS_NO_DATA:
+                            return false;
+
+                        case STATUS_OVERFLOW:
+                        {
+                            // Reallocate memory
+                            uint8_t *newptr    = reinterpret_cast<uint8_t *>(::realloc(sPacket.data, nCapacity << 1));
+                            if (newptr == NULL)
+                                fb->skip();
+                            else
+                                sPacket.data    = newptr;
+                            break;
+                        }
+
+                        default:
+                            return false;
+                    }
+                }
+            }
+
+            virtual bool sync_again() { return bSyncAgain; }
+
+            virtual void *get_buffer()
+            {
+                return &sPacket;
+            }
+    };
+
+    class JACKUIOscPortOut: public JACKUIPort
+    {
+        public:
+            explicit JACKUIOscPortOut(JACKPort *port): JACKUIPort(port)
+            {
+            }
+
+            virtual ~JACKUIOscPortOut()
+            {
+            }
+
+        public:
+            virtual void *get_buffer() { return NULL; }
+
+            virtual void write(const void *buffer, size_t size)
+            {
+                osc_buffer_t *fb = pPort->getBuffer<osc_buffer_t>();
+                if (fb != NULL)
+                    fb->submit(buffer, size);
+            }
+    };
+
     class JACKUIPathPort: public JACKUIPort
     {
         private:
@@ -247,7 +345,7 @@ namespace lsp
             char            sPath[PATH_MAX];
 
         public:
-            JACKUIPathPort(JACKPort *port): JACKUIPort(port)
+            explicit JACKUIPathPort(JACKPort *port): JACKUIPort(port)
             {
                 path_t *path    = reinterpret_cast<path_t *>(pPort->getBuffer());
                 if (path != NULL)
@@ -270,15 +368,20 @@ namespace lsp
 
             virtual void write(const void *buffer, size_t size)
             {
+                write(buffer, size, 0);
+            }
+
+            virtual void write(const void *buffer, size_t size, size_t flags)
+            {
                 // Store path string
                 if (size >= PATH_MAX)
                     size = PATH_MAX - 1;
-                memcpy(sPath, buffer, size);
+                ::memcpy(sPath, buffer, size);
                 sPath[size] = '\0';
 
                 // Submit path string to DSP
                 if (pPath != NULL)
-                    pPath->submit(sPath);
+                    pPath->submit(sPath, flags);
             }
     };
 

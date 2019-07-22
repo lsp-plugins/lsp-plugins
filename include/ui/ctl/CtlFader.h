@@ -25,7 +25,7 @@ namespace lsp
                 void        commit_value(float value);
 
             public:
-                CtlFader(CtlRegistry *src, LSPFader *widget);
+                explicit CtlFader(CtlRegistry *src, LSPFader *widget);
                 virtual ~CtlFader();
 
             public:

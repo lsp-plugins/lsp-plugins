@@ -29,7 +29,7 @@ namespace lsp
                 float       next_value(bool down);
 
             public:
-                CtlButton(CtlRegistry *src, LSPButton *widget);
+                explicit CtlButton(CtlRegistry *src, LSPButton *widget);
                 virtual ~CtlButton();
 
             public:

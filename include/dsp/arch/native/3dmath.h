@@ -110,6 +110,35 @@ namespace native
         v->dw       = 0.0f;
     }
 
+    void normalize_vector2(vector3d_t *v, const vector3d_t *src)
+    {
+        float w     = sqrtf(src->dx * src->dx + src->dy * src->dy + src->dz * src->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx       = src->dx * w;
+            v->dy       = src->dy * w;
+            v->dz       = src->dz * w;
+            v->dw       = 0.0f;
+        }
+        else
+            *v      = *src;
+    }
+
+    void flip_vector_v1(vector3d_t *v)
+    {
+        v->dx       = -v->dx;
+        v->dy       = -v->dy;
+        v->dz       = -v->dz;
+    }
+
+    void flip_vector_v2(vector3d_t *v, const vector3d_t *sv)
+    {
+        v->dx       = -sv->dx;
+        v->dy       = -sv->dy;
+        v->dz       = -sv->dz;
+    }
+
     void scale_vector1(vector3d_t *v, float r)
     {
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
@@ -503,87 +532,6 @@ namespace native
         calc_triangle3d_params(dst);
     }
 
-    void init_intersection3d(intersection3d_t *is)
-    {
-        // Initialize intersection as not found
-        is->p.x     = 0.0f;
-        is->p.y     = 0.0f;
-        is->p.z     = 0.0f;
-        is->p.w     = DSP_3D_MAXVALUE;
-
-        is->n       = 0;
-    }
-
-    void init_raytrace3d(raytrace3d_t *rt, const raytrace3d_t *r)
-    {
-        rt->r           = r->r;
-        rt->x.p         = r->x.p;
-        rt->amplitude   = r->amplitude;
-        rt->delay       = r->delay;
-
-        for (size_t i=0; i<r->x.n; ++i)
-        {
-            rt->x.t[i]      = r->x.t[i];
-            rt->x.m[i]      = r->x.m[i];
-        }
-        rt->x.n         = r->x.n;
-    }
-
-    void init_raytrace3d_r(raytrace3d_t *rt, const ray3d_t *r)
-    {
-        rt->r           = *r;
-        rt->amplitude   = 1.0f;
-        rt->delay       = 0.0f;
-        init_intersection3d(&rt->x);
-    }
-
-    void init_raytrace3d_ix(raytrace3d_t *rt, const ray3d_t *r, const intersection3d_t *ix)
-    {
-        rt->r           = *r;
-        rt->x.p         = ix->p;
-        rt->amplitude   = 1.0f;
-        rt->delay       = 0.0f;
-
-        for (size_t i=0; i<ix->n; ++i)
-        {
-            rt->x.t[i]  = ix->t[i];
-            rt->x.m[i]  = ix->m[i];
-        }
-        rt->x.n     = ix->n;
-    }
-
-    static inline void swap_vectors(vector3d_t *a, vector3d_t *b)
-    {
-        vector3d_t  t;
-        t.dx         = a->dx;
-        t.dy         = a->dy;
-        t.dz         = a->dz;
-        t.dw         = a->dw;
-
-        a->dx        = b->dx;
-        a->dy        = b->dy;
-        a->dz        = b->dz;
-        a->dw        = b->dw;
-
-        b->dx        = t.dx;
-        b->dy        = t.dy;
-        b->dz        = t.dz;
-        b->dw        = t.dw;
-    }
-
-    static inline bool is_zero(float x)
-    {
-        return fabs(x) < DSP_3D_TOLERANCE;
-    }
-
-    static inline bool has_triangle(const intersection3d_t *is, const triangle3d_t *t)
-    {
-        for (size_t i=0; i<is->n; ++i)
-            if (is->t[i] == t)
-                return true;
-        return false;
-    }
-
     void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src)
     {
         *dst        = *src;
@@ -687,6 +635,56 @@ namespace native
         v[13]       = dy;
         v[14]       = dz;
         v[15]       = 1.0;
+    }
+
+    void init_matrix3d_translate_p1(matrix3d_t *m, const point3d_t *p)
+    {
+        float *v    = m->m;
+
+        v[0]        = 1.0f;
+        v[1]        = 0.0f;
+        v[2]        = 0.0f;
+        v[3]        = 0.0f;
+
+        v[4]        = 0.0f;
+        v[5]        = 1.0f;
+        v[6]        = 0.0f;
+        v[7]        = 0.0f;
+
+        v[8]        = 0.0f;
+        v[9]        = 0.0f;
+        v[10]       = 1.0f;
+        v[11]       = 0.0f;
+
+        v[12]       = p->x;
+        v[13]       = p->y;
+        v[14]       = p->z;
+        v[15]       = p->w;
+    }
+
+    void init_matrix3d_translate_v1(matrix3d_t *m, const vector3d_t *vt)
+    {
+        float *v    = m->m;
+
+        v[0]        = 1.0f;
+        v[1]        = 0.0f;
+        v[2]        = 0.0f;
+        v[3]        = 0.0f;
+
+        v[4]        = 0.0f;
+        v[5]        = 1.0f;
+        v[6]        = 0.0f;
+        v[7]        = 0.0f;
+
+        v[8]        = 0.0f;
+        v[9]        = 0.0f;
+        v[10]       = 1.0f;
+        v[11]       = 0.0f;
+
+        v[12]       = vt->dx;
+        v[13]       = vt->dy;
+        v[14]       = vt->dz;
+        v[15]       = 1.0f;
     }
 
     void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz)
@@ -856,6 +854,436 @@ namespace native
         M[13]       = 0.0f;
         M[14]       = 0.0f;
         M[15]       = 0.0f;
+    }
+
+    void init_matrix3d_frustum(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far)
+    {
+        float *M    = m->m;
+        M[0]        = 2.0f * near / (right - left);
+        M[1]        = 0.0f;
+        M[2]        = 0.0f;
+        M[3]        = 0.0f;
+
+        M[4]        = 0.0f;
+        M[5]        = 2.0f * near / (top - bottom);
+        M[6]        = 0.0f;
+        M[7]        = 0.0f;
+
+        M[8]        = (right + left) / (right - left);
+        M[9]        = (top + bottom) / (top - bottom);
+        M[10]       = - (far + near) / (far - near);
+        M[11]       = -1.0f;
+
+        M[12]       = 0.0f;
+        M[13]       = 0.0f;
+        M[14]       = -2.0f * far * near / (far - near);
+        M[15]       = 0.0f;
+    }
+
+    void init_matrix3d_lookat_p1v2(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up)
+    {
+        vector3d_t f, s, u;
+        float fw, fs;
+
+        // Normalize forward vector
+        fw      = sqrtf(fwd->dx*fwd->dx + fwd->dy*fwd->dy + fwd->dz*fwd->dz);
+        f.dx    = fwd->dx / fw;
+        f.dy    = fwd->dy / fw;
+        f.dz    = fwd->dz / fw;
+        f.dw    = 0.0f;
+
+        // Compute and normalize side vector
+        s.dx    = f.dy*up->dz - f.dz*up->dy;
+        s.dy    = f.dz*up->dx - f.dx*up->dz;
+        s.dz    = f.dx*up->dy - f.dy*up->dx;
+        s.dw    = 0.0f;
+
+        fs      = sqrtf(s.dx*s.dx + s.dy*s.dy + s.dz*s.dz);
+        s.dx   /= fs;
+        s.dy   /= fs;
+        s.dz   /= fs;
+
+        // Compute orthogonal up vector
+        u.dx    = f.dy*s.dz - f.dz*s.dy;
+        u.dy    = f.dz*s.dx - f.dx*s.dz;
+        u.dz    = f.dx*s.dy - f.dy*s.dx;
+        u.dw    = 0.0f;
+
+        // Fill matrix
+        float *M    = m->m;
+        M[0]    =  s.dx;
+        M[1]    =  u.dx;
+        M[2]    =  f.dx;
+        M[3]    =  0.0f;
+
+        M[4]    =  s.dy;
+        M[5]    =  u.dy;
+        M[6]    =  f.dy;
+        M[7]    =  0.0f;
+
+        M[8]    =  s.dz;
+        M[9]    =  u.dz;
+        M[10]   =  f.dz;
+        M[11]   =  0.0f;
+
+        M[12]   = -(s.dx*pov->x + s.dy*pov->y + s.dz*pov->z);
+        M[13]   = -(u.dx*pov->x + u.dy*pov->y + u.dz*pov->z);
+        M[14]   = -(f.dx*pov->x + f.dy*pov->y + f.dz*pov->z);
+        M[15]   =  1.0f;
+    }
+
+    void init_matrix3d_lookat_p2v1(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up)
+    {
+        vector3d_t f, s, u;
+        float fw, fs;
+
+        // Normalize forward vector
+        f.dx    = pov->x - pod->x;
+        f.dy    = pov->y - pod->y;
+        f.dz    = pov->z - pod->z;
+        f.dw    = 0.0f;
+
+        fw      = sqrtf(f.dx*f.dx + f.dy*f.dy + f.dz*f.dz);
+        f.dx    = f.dx / fw;
+        f.dy    = f.dy / fw;
+        f.dz    = f.dz / fw;
+
+        // Compute and normalize side vector
+        s.dx    = f.dy*up->dz - f.dz*up->dy;
+        s.dy    = f.dz*up->dx - f.dx*up->dz;
+        s.dz    = f.dx*up->dy - f.dy*up->dx;
+        s.dw    = 0.0f;
+
+        fs      = sqrtf(s.dx*s.dx + s.dy*s.dy + s.dz*s.dz);
+        s.dx   /= fs;
+        s.dy   /= fs;
+        s.dz   /= fs;
+
+        // Compute orthogonal up vector
+        u.dx    = f.dy*s.dz - f.dz*s.dy;
+        u.dy    = f.dz*s.dx - f.dx*s.dz;
+        u.dz    = f.dx*s.dy - f.dy*s.dx;
+        u.dw    = 0.0f;
+
+        // Fill matrix
+        float *M    = m->m;
+        M[0]    =  s.dx;
+        M[1]    =  u.dx;
+        M[2]    =  f.dx;
+        M[3]    =  0.0f;
+
+        M[4]    =  s.dy;
+        M[5]    =  u.dy;
+        M[6]    =  f.dy;
+        M[7]    =  0.0f;
+
+        M[8]    =  s.dz;
+        M[9]    =  u.dz;
+        M[10]   =  f.dz;
+        M[11]   =  0.0f;
+
+        M[12]   = -(s.dx*pov->x + s.dy*pov->y + s.dz*pov->z);
+        M[13]   = -(u.dx*pov->x + u.dy*pov->y + u.dz*pov->z);
+        M[14]   = -(f.dx*pov->x + f.dy*pov->y + f.dz*pov->z);
+        M[15]   =  1.0f;
+    }
+
+    void init_matrix3d_orientation(matrix3d_t *m, axis_orientation_t orientation)
+    {
+        float *M    = m->m;
+        M[0]        = 0.0f;
+        M[1]        = 0.0f;
+        M[2]        = 0.0f;
+        M[3]        = 0.0f;
+
+        M[4]        = 0.0f;
+        M[5]        = 0.0f;
+        M[6]        = 0.0f;
+        M[7]        = 0.0f;
+
+        M[8]        = 0.0f;
+        M[9]        = 0.0f;
+        M[10]       = 0.0f;
+        M[11]       = 0.0f;
+
+        M[12]       = 0.0f;
+        M[13]       = 0.0f;
+        M[14]       = 0.0f;
+        M[15]       = 1.0f;
+
+        size_t o    = orientation;
+
+        // Update the forward coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+                M[1]    = 1.0f;
+                break;
+
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+                M[1]    = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+                M[5]    = 1.0f;
+                break;
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[5]    = -1.0f;
+                break;
+
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+                M[9]    = 1.0f;
+                break;
+
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[9]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the up coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[6]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+                M[10]   = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[6]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+                M[10]   = -1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[2]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[2]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+
+        // Update the side coordinate
+        switch (o)
+        {
+            case AO3D_POS_X_FWD_POS_Y_UP:
+            case AO3D_NEG_X_FWD_NEG_Y_UP:
+            case AO3D_POS_Y_FWD_NEG_X_UP:
+            case AO3D_NEG_Y_FWD_POS_X_UP:
+                M[8]    = 1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_POS_Z_UP:
+            case AO3D_NEG_X_FWD_NEG_Z_UP:
+            case AO3D_POS_Z_FWD_NEG_X_UP:
+            case AO3D_NEG_Z_FWD_POS_X_UP:
+                M[4]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Y_UP:
+            case AO3D_NEG_X_FWD_POS_Y_UP:
+            case AO3D_POS_Y_FWD_POS_X_UP:
+            case AO3D_NEG_Y_FWD_NEG_X_UP:
+                M[8]    = -1.0f;
+                break;
+
+            case AO3D_POS_X_FWD_NEG_Z_UP:
+            case AO3D_NEG_X_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_X_UP:
+            case AO3D_NEG_Z_FWD_NEG_X_UP:
+                M[4]    = 1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_POS_Z_UP:
+            case AO3D_NEG_Y_FWD_NEG_Z_UP:
+            case AO3D_POS_Z_FWD_NEG_Y_UP:
+            case AO3D_NEG_Z_FWD_POS_Y_UP:
+                M[0]    =  1.0f;
+                break;
+
+            case AO3D_POS_Y_FWD_NEG_Z_UP:
+            case AO3D_NEG_Y_FWD_POS_Z_UP:
+            case AO3D_POS_Z_FWD_POS_Y_UP:
+            case AO3D_NEG_Z_FWD_NEG_Y_UP:
+                M[0]    = -1.0f;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    void calc_matrix3d_transform_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
+    {
+        matrix3d_t xm;
+
+        // Initialize matrix with translation and scaling parameters
+        float l = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        m->m[0]     = l;
+        m->m[1]     = 0.0f;
+        m->m[2]     = 0.0f;
+        m->m[3]     = 0.0f;
+
+        m->m[4]     = 0.0f;
+        m->m[5]     = l;
+        m->m[6]     = 0.0f;
+        m->m[7]     = 0.0f;
+
+        m->m[8]     = 0.0f;
+        m->m[9]     = 0.0f;
+        m->m[10]    = l;
+        m->m[11]    = 0.0f;
+
+        m->m[12]    = p->x;
+        m->m[13]    = p->y;
+        m->m[14]    = p->z;
+        m->m[15]    = 1.0f;
+
+        if (l <= 0.0f)
+            return;
+
+        // Compute normalized vector (with length = 1)
+        vector3d_t tv;
+        tv.dx       = v->dx / l;
+        tv.dy       = v->dy / l;
+        tv.dz       = v->dz / l;
+        tv.dw       = 0.0f;
+
+        // Compute theta and phi
+        float sinp  = tv.dx;
+        float cosp  = sqrtf(tv.dy*tv.dy + tv.dz*tv.dz);
+
+        // Apply rotation matrix around X axis
+        if (cosp > 0.0f)
+        {
+            float cost  = tv.dz/cosp;
+            float sint  = tv.dy/cosp;
+
+            dsp::init_matrix3d_identity(&xm);
+            xm.m[5]     = cost;
+            xm.m[6]     = -sint;
+            xm.m[9]     = sint;
+            xm.m[10]    = cost;
+            dsp::apply_matrix3d_mm1(m, &xm);
+        }
+
+        // Apply rotation matrix around Y axis
+        dsp::init_matrix3d_identity(&xm);
+        xm.m[0]     = cosp;
+        xm.m[2]     = -sinp;
+        xm.m[8]     = sinp;
+        xm.m[10]    = cosp;
+        dsp::apply_matrix3d_mm1(m, &xm);
+    }
+
+    void calc_matrix3d_transform_r1(matrix3d_t *m, const ray3d_t *r)
+    {
+        matrix3d_t xm;
+
+        // Initialize matrix with translation and scaling parameters
+        float l     = sqrtf(r->v.dx * r->v.dx + r->v.dy * r->v.dy + r->v.dz * r->v.dz);
+        m->m[0]     = l;
+        m->m[1]     = 0.0f;
+        m->m[2]     = 0.0f;
+        m->m[3]     = 0.0f;
+
+        m->m[4]     = 0.0f;
+        m->m[5]     = l;
+        m->m[6]     = 0.0f;
+        m->m[7]     = 0.0f;
+
+        m->m[8]     = 0.0f;
+        m->m[9]     = 0.0f;
+        m->m[10]    = l;
+        m->m[11]    = 0.0f;
+
+        m->m[12]    = r->z.x;
+        m->m[13]    = r->z.y;
+        m->m[14]    = r->z.z;
+        m->m[15]    = 1.0f;
+
+        if (l <= 0.0f)
+            return;
+
+        // Compute normalized vector (with length = 1)
+        vector3d_t tv;
+        tv.dx       = r->v.dx / l;
+        tv.dy       = r->v.dy / l;
+        tv.dz       = r->v.dz / l;
+        tv.dw       = 0.0f;
+
+        // Compute theta and phi
+        float sinp  = tv.dx;
+        float cosp  = sqrtf(tv.dy*tv.dy + tv.dz*tv.dz);
+
+        // Apply rotation matrix around X axis
+        if (cosp > 0.0f)
+        {
+            float cost  = tv.dz/cosp;
+            float sint  = tv.dy/cosp;
+
+            dsp::init_matrix3d_identity(&xm);
+            xm.m[5]     = cost;
+            xm.m[6]     = -sint;
+            xm.m[9]     = sint;
+            xm.m[10]    = cost;
+            dsp::apply_matrix3d_mm1(m, &xm);
+        }
+
+        // Apply rotation matrix around Y axis
+        dsp::init_matrix3d_identity(&xm);
+        xm.m[0]     = cosp;
+        xm.m[2]     = -sinp;
+        xm.m[8]     = sinp;
+        xm.m[10]    = cosp;
+        dsp::apply_matrix3d_mm1(m, &xm);
     }
 
     void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m)
@@ -1117,111 +1545,6 @@ namespace native
         // Return result of scalar multiplication to the normal
         return n->dx * v[2].dx + n->dy * v[2].dy + n->dz * v[2].dz;
     }
-
-    //        float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p)
-    //        {
-    //            vector3d_t  v[3];
-    //            v[0].dx             = p->x - t->p[0].x;
-    //            v[0].dy             = p->y - t->p[0].y;
-    //            v[0].dz             = p->z - t->p[0].z;
-    //
-    //            v[1].dx             = p->x - t->p[1].x;
-    //            v[1].dy             = p->y - t->p[1].y;
-    //            v[1].dz             = p->z - t->p[1].z;
-    //
-    //            v[2].dx             = p->x - t->p[2].x;
-    //            v[2].dy             = p->y - t->p[2].y;
-    //            v[2].dz             = p->z - t->p[2].z;
-    //
-    //            vector3d_t  m[3];
-    //            m[0].dx             = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
-    //            m[0].dy             = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
-    //            m[0].dz             = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
-    //
-    //            m[1].dx             = v[1].dy * v[2].dz - v[1].dz * v[2].dy;
-    //            m[1].dy             = v[1].dz * v[2].dx - v[1].dx * v[2].dz;
-    //            m[1].dz             = v[1].dx * v[2].dy - v[1].dy * v[2].dx;
-    //
-    //            m[2].dx             = v[2].dy * v[0].dz - v[2].dz * v[0].dy;
-    //            m[2].dy             = v[2].dz * v[0].dx - v[2].dx * v[0].dz;
-    //            m[2].dz             = v[2].dx * v[0].dy - v[2].dy * v[0].dx;
-    //
-    //            float r[2];
-    //            r[0]                = m[0].dx * m[1].dx + m[0].dy * m[1].dy + m[0].dz * m[1].dz;
-    //            r[1]                = m[1].dx * m[2].dx + m[1].dy * m[2].dy + m[1].dz * m[2].dz;
-    //
-    //            return (r[0] < 0.0f) ? r[0] : r[1];
-    //        }
-    //
-    //        float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p)
-    //        {
-    //            vector3d_t  v[3];
-    //            v[0].dx             = p->x - t[0].x;
-    //            v[0].dy             = p->y - t[0].y;
-    //            v[0].dz             = p->z - t[0].z;
-    //
-    //            v[1].dx             = p->x - t[1].x;
-    //            v[1].dy             = p->y - t[1].y;
-    //            v[1].dz             = p->z - t[1].z;
-    //
-    //            v[2].dx             = p->x - t[2].x;
-    //            v[2].dy             = p->y - t[2].y;
-    //            v[2].dz             = p->z - t[2].z;
-    //
-    //            vector3d_t  m[3];
-    //            m[0].dx             = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
-    //            m[0].dy             = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
-    //            m[0].dz             = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
-    //
-    //            m[1].dx             = v[1].dy * v[2].dz - v[1].dz * v[2].dy;
-    //            m[1].dy             = v[1].dz * v[2].dx - v[1].dx * v[2].dz;
-    //            m[1].dz             = v[1].dx * v[2].dy - v[1].dy * v[2].dx;
-    //
-    //            m[2].dx             = v[2].dy * v[0].dz - v[2].dz * v[0].dy;
-    //            m[2].dy             = v[2].dz * v[0].dx - v[2].dx * v[0].dz;
-    //            m[2].dz             = v[2].dx * v[0].dy - v[2].dy * v[0].dx;
-    //
-    //            float r[2];
-    //            r[0]                = m[0].dx * m[1].dx + m[0].dy * m[1].dy + m[0].dz * m[1].dz;
-    //            r[1]                = m[1].dx * m[2].dx + m[1].dy * m[2].dy + m[1].dz * m[2].dz;
-    //
-    //            return (r[0] < 0.0f) ? r[0] : r[1];
-    //        }
-    //
-    //        float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p)
-    //        {
-    //            vector3d_t  v[3];
-    //            v[0].dx             = p->x - p1->x;
-    //            v[0].dy             = p->y - p1->y;
-    //            v[0].dz             = p->z - p1->z;
-    //
-    //            v[1].dx             = p->x - p2->x;
-    //            v[1].dy             = p->y - p2->y;
-    //            v[1].dz             = p->z - p2->z;
-    //
-    //            v[2].dx             = p->x - p3->x;
-    //            v[2].dy             = p->y - p3->y;
-    //            v[2].dz             = p->z - p3->z;
-    //
-    //            vector3d_t  m[3];
-    //            m[0].dx             = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
-    //            m[0].dy             = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
-    //            m[0].dz             = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
-    //
-    //            m[1].dx             = v[1].dy * v[2].dz - v[1].dz * v[2].dy;
-    //            m[1].dy             = v[1].dz * v[2].dx - v[1].dx * v[2].dz;
-    //            m[1].dz             = v[1].dx * v[2].dy - v[1].dy * v[2].dx;
-    //
-    //            m[2].dx             = v[2].dy * v[0].dz - v[2].dz * v[0].dy;
-    //            m[2].dy             = v[2].dz * v[0].dx - v[2].dx * v[0].dz;
-    //            m[2].dz             = v[2].dx * v[0].dy - v[2].dy * v[0].dx;
-    //
-    //            float r[2];
-    //            r[0]                = m[0].dx * m[1].dx + m[0].dy * m[1].dy + m[0].dz * m[1].dz;
-    //            r[1]                = m[1].dx * m[2].dx + m[1].dy * m[2].dy + m[1].dz * m[2].dz;
-    //
-    //            return (r[0] < 0.0f) ? r[0] : r[1];
-    //        }
 
     float check_point3d_on_triangle_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p)
     {
@@ -1499,283 +1822,6 @@ namespace native
         return (r[1] > r[2]) ? 1 : 2;
     }
 
-    float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t)
-    {
-        point3d_t   ix; // intersection point
-
-        //---------------------------------------------------
-        // PART 0: perform simple culling
-        if (l->v.dx >= 0.0f)
-        {
-            if ((t->p[0].x < l->z.x) && (t->p[1].x < l->z.x) && (t->p[2].x < l->z.x))
-                return -1.0f;
-        }
-        else
-        {
-            if ((t->p[0].x >= l->z.x) && (t->p[1].x >= l->z.x) && (t->p[2].x >= l->z.x))
-                return -1.0f;
-        }
-
-        if (l->v.dy >= 0.0f)
-        {
-            if ((t->p[0].y < l->z.y) && (t->p[1].y < l->z.y) && (t->p[2].y < l->z.y))
-                return -1.0f;
-        }
-        else
-        {
-            if ((t->p[0].y >= l->z.y) && (t->p[1].y >= l->z.y) && (t->p[2].y >= l->z.y))
-                return -1.0f;
-        }
-
-        if (l->v.dz >= 0.0f)
-        {
-            if ((t->p[0].z < l->z.z) && (t->p[1].z < l->z.z) && (t->p[2].z < l->z.z))
-                return -1.0f;
-        }
-        else
-        {
-            if ((t->p[0].z >= l->z.z) && (t->p[1].z >= l->z.z) && (t->p[2].z >= l->z.z))
-                return -1.0f;
-        }
-
-        //---------------------------------------------------
-        // PART 1: check intersection with plane
-        // Form equations
-        // Form equations
-        /*
-
-         Nx*x0 + Ny*y0 + Nz*z0    + W               = 0
-       - dz*x0 +         dx*z0    + (dz*xs - dx*zs) = 0
-         dy*x0 - dx*y0            + (dx*ys - dy*xs) = 0
-                 dz*y0 - dy*z0    + (dy*zs - dz*ys) = 0
-
-         */
-        vector3d_t  m[4];
-
-        m[0].dx      = t->n.dx;
-        m[0].dy      = t->n.dy;
-        m[0].dz      = t->n.dz;
-        m[0].dw      = t->n.dw;
-
-        m[1].dx      = -l->v.dz;
-        m[1].dy      = 0.0f;
-        m[1].dz      = l->v.dx;
-        m[1].dw      = l->v.dz * l->z.x - l->v.dx * l->z.z;
-
-        m[2].dx      = l->v.dy;
-        m[2].dy      = -l->v.dx;
-        m[2].dz      = 0.0f;
-        m[2].dw      = l->v.dx * l->z.y - l->v.dy * l->z.x;
-
-        m[3].dx      = 0.0f;
-        m[3].dy      = l->v.dz;
-        m[3].dz      = -l->v.dy;
-        m[3].dw      = l->v.dy * l->z.z - l->v.dz * l->z.y;
-
-        if (is_zero(m[0].dx))
-        {
-            if (!is_zero(m[1].dx))
-                swap_vectors(&m[0], &m[1]);
-            else if (!is_zero(m[2].dx))
-                swap_vectors(&m[0], &m[2]);
-            else
-                return -1.0f;
-        }
-
-        if (!is_zero(m[1].dx))
-        {
-            float k      = m[1].dx / m[0].dx;
-            m[1].dx      = m[1].dx - m[0].dx * k;
-            m[1].dy      = m[1].dy - m[0].dy * k;
-            m[1].dz      = m[1].dz - m[0].dz * k;
-            m[1].dw      = m[1].dw - m[0].dw * k;
-        }
-        if (!is_zero(m[2].dx))
-        {
-            float k      = m[2].dx / m[0].dx;
-            m[2].dx      = m[2].dx - m[0].dx * k;
-            m[2].dy      = m[2].dy - m[0].dy * k;
-            m[2].dz      = m[2].dz - m[0].dz * k;
-            m[2].dw      = m[2].dw - m[0].dw * k;
-        }
-
-        // Solve equations, step 1
-        if (is_zero(m[1].dy))
-        {
-            if (!is_zero(m[2].dy))
-                swap_vectors(&m[1], &m[2]);
-            else if (!is_zero(m[3].dy))
-                swap_vectors(&m[1], &m[3]);
-            else
-                return -1.0f;
-        }
-
-        if (!is_zero(m[2].dy))
-        {
-            float k      = m[2].dy / m[1].dy;
-            m[2].dx      = m[2].dx - m[1].dx * k;
-            m[2].dy      = m[2].dy - m[1].dy * k;
-            m[2].dz      = m[2].dz - m[1].dz * k;
-            m[2].dw      = m[2].dw - m[1].dw * k;
-        }
-        if (!is_zero(m[3].dy))
-        {
-            float k      = m[3].dy / m[1].dy;
-            m[3].dx      = m[3].dx - m[1].dx * k;
-            m[3].dy      = m[3].dy - m[1].dy * k;
-            m[3].dz      = m[3].dz - m[1].dz * k;
-            m[3].dw      = m[3].dw - m[1].dw * k;
-        }
-
-        // Check that matrix form is right
-        if (is_zero(m[2].dz))
-        {
-            if (!is_zero(m[3].dz))
-                swap_vectors(&m[2], &m[3]);
-            else
-                return -1.0f;
-        }
-
-        // Now solve matrix into intersection point
-        ix.z        = - m[2].dw / m[2].dz;
-        ix.y        = - (m[1].dw + m[1].dz * ix.z) / m[1].dy;
-        ix.x        = - (m[0].dw + m[0].dy * ix.y + m[0].dz * ix.z) / m[0].dx;
-        ix.w        = 0.0f;
-
-        //---------------------------------------------------
-        // PART 2: check that point lies on the ray
-        vector3d_t  pv; // Projection vector
-        pv.dx       = ix.x - l->z.x;
-        pv.dy       = ix.y - l->z.y;
-        pv.dz       = ix.z - l->z.z;
-
-        float proj  = pv.dx*l->v.dx + pv.dy*l->v.dy + pv.dz*l->v.dz; // Projection on the ray, can be also interpreted as a distance
-        if (proj < 0.0f)
-            return -1.0f;
-
-        //---------------------------------------------------
-        // PART 3: check that point lies within a triangle
-        if (check_point3d_on_triangle_tp(t, &ix) < 0.0f)
-            return -1.0f;
-
-        // Return point
-        *ip         = ix;
-        return proj;
-    }
-
-    void reflect_ray(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix)
-    {
-        material3d_t    m;  // Compiled material
-        vector3d_t vn, vt, dv; // Tangent and normal vectors
-
-        // Calculate normal of intersecting triangles
-        m.speed         = 0.0f;
-        m.damping       = 0.0f;
-        m.absorption    = 0.0f;
-        m.transparency  = 0.0f;
-        m.refraction    = 0.0f;
-        m.reflection    = 0.0f;
-        m.diffuse       = 0.0f;
-
-        vn              = ix->t[0]->n;
-        ray3d_t *r1     = &rt->r;
-
-        // Compute normal and material
-        for (size_t i=0; i<ix->n; ++i)
-        {
-            const triangle3d_t *pt = ix->t[i];
-            const material3d_t *mt = ix->m[i];
-
-            vn.dx          += pt->n.dx;
-            vn.dy          += pt->n.dy;
-            vn.dz          += pt->n.dz;
-
-    //                float smul      = r1->v.dx*pt->n.dx + r1->v.dy*pt->n.dy + r1->v.dz*pt->n.dz; // TODO
-    //
-    //                if (smul >= 0) // TODO
-    //                {
-                m.speed        += mt->speed;
-                m.damping      += mt->damping;
-                m.absorption   += mt->absorption;
-                m.transparency += mt->transparency;
-                m.refraction   += mt->refraction;
-                m.reflection   += mt->reflection;
-                m.diffuse      += mt->diffuse;
-    //                }
-    //                else // TODO
-    //                {
-    //                    m.speed        += mt->speed;
-    //                    m.damping      += mt->damping;
-    //                    m.absorption   += mt->absorption;
-    //                    m.transparency += (1.0f - mt->transparency);        // !!!
-    //                    m.refraction   += mt->reflection;                   // !!!
-    //                    m.reflection   += mt->refraction;                   // !!!
-    //                    m.diffuse      += mt->diffuse;
-    //                }
-        }
-
-        // Normalize normal
-        float l     = sqrtf(vn.dx * vn.dx + vn.dy * vn.dy + vn.dz * vn.dz);
-        if (l > 0.0f)
-        {
-            vn.dx       /= l;
-            vn.dy       /= l;
-            vn.dz       /= l;
-        }
-
-        // Calculate average material properties
-        l               = 1.0f / ix->n;
-        m.speed        *= l;
-        m.damping      *= l;
-        m.absorption   *= l;
-        m.transparency *= l;
-        m.refraction   *= l;
-        m.reflection   *= l;
-        m.diffuse      *= l;
-
-        // Calculate the length of projected vector to the normal
-        ray3d_t *r2     = &rf->r;
-        float proj      = r1->v.dx*vn.dx + r1->v.dy*vn.dy + r1->v.dz*vn.dz;
-
-        // Calculate the tangent and normal vectors
-        vn.dx          *= proj;
-        vn.dy          *= proj;
-        vn.dz          *= proj;
-
-        vt.dx           = r1->v.dx - vn.dx;
-        vt.dy           = r1->v.dy - vn.dy;
-        vt.dz           = r1->v.dz - vn.dz;
-
-        // Form the reflected and refracted ray parameters
-        r1->v.dx        = vt.dx / m.reflection - vn.dx * m.reflection;
-        r1->v.dy        = vt.dy / m.reflection - vn.dy * m.reflection;
-        r1->v.dz        = vt.dz / m.reflection - vn.dz * m.reflection;
-
-        r2->v.dx        = vt.dx / m.refraction + vn.dx * m.refraction;
-        r2->v.dy        = vt.dy / m.refraction + vn.dy * m.refraction;
-        r2->v.dz        = vt.dz / m.refraction + vn.dz * m.refraction;
-
-        // Update energy parameters
-        dv.dx           = r1->z.x - ix->p.x;
-        dv.dy           = r1->z.y - ix->p.y;
-        dv.dz           = r1->z.z - ix->p.z;
-
-        r1->z           = ix->p;
-        r2->z           = ix->p;
-
-        float dist      = sqrtf(dv.dx*dv.dx + dv.dy*dv.dy + dv.dz*dv.dz);
-        float amplitude = rt->amplitude * (1.0f - m.absorption) * expf(m.damping*dist);
-        float delay     = rt->delay + dist / m.speed;
-
-        rf->amplitude   = amplitude * m.transparency;
-        rt->amplitude   = amplitude * m.transparency - amplitude; // Amplitude will be negated
-        rf->delay       = delay;
-        rt->delay       = delay;
-
-        rf->x           = *ix;
-        rt->x           = *ix;
-    }
-
     float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2)
     {
         float w         =
@@ -1810,7 +1856,7 @@ namespace native
         return wl;
     }
 
-    inline void calc_normal3d_v2(vector3d_t *n, const vector3d_t *v1, const vector3d_t *v2)
+    void calc_normal3d_v2(vector3d_t *n, const vector3d_t *v1, const vector3d_t *v2)
     {
         // Calculate vector multiplication
         n->dx       = v1->dy * v2->dz - v1->dz * v2->dy;
@@ -1827,7 +1873,7 @@ namespace native
         }
     }
 
-    inline void calc_normal3d_vv(vector3d_t *n, const vector3d_t *vv)
+    void calc_normal3d_vv(vector3d_t *n, const vector3d_t *vv)
     {
         // Calculate vector multiplication
         n->dx       = vv[0].dy * vv[1].dz - vv[0].dz * vv[1].dy;
@@ -1874,7 +1920,7 @@ namespace native
         calc_normal3d_vv(n, d);
     }
 
-    inline void vector_mul_v2(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2)
+    void vector_mul_v2(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2)
     {
         vector3d_t x;
         x.dx        = v1->dy * v2->dz - v1->dz * v2->dy;
@@ -1883,7 +1929,7 @@ namespace native
         *r          = x;
     }
 
-    inline void vector_mul_vv(vector3d_t *r, const vector3d_t *vv)
+    void vector_mul_vv(vector3d_t *r, const vector3d_t *vv)
     {
         vector3d_t x;
         x.dx        = vv[0].dy * vv[1].dz - vv[0].dz * vv[1].dy;
@@ -1912,199 +1958,1519 @@ namespace native
         *p          = tp;
     }
 
-    void init_octant3d_v(octant3d_t *o, const point3d_t *t, size_t n)
+    void add_vector_pv1(point3d_t *p, const vector3d_t *dv)
     {
-        if (n == 0)
+        p->x   += dv->dx;
+        p->y   += dv->dy;
+        p->z   += dv->dz;
+        p->w   += dv->dw;
+    }
+
+    void add_vector_pv2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv)
+    {
+        p->x    = sp->x + dv->dx;
+        p->y    = sp->y + dv->dy;
+        p->z    = sp->z + dv->dz;
+        p->w    = sp->w + dv->dw;
+    }
+
+    void add_vector_pvk1(point3d_t *p, const vector3d_t *dv, float k)
+    {
+        p->x   += dv->dx * k;
+        p->y   += dv->dy * k;
+        p->z   += dv->dz * k;
+        p->w   += dv->dw * k;
+    }
+
+    void add_vector_pvk2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k)
+    {
+        p->x    = sp->x + dv->dx * k;
+        p->y    = sp->y + dv->dy * k;
+        p->z    = sp->z + dv->dz * k;
+        p->w    = sp->w + dv->dw * k;
+    }
+
+    void calc_bound_box(bound_box3d_t *b, const point3d_t *p, size_t n)
+    {
+        if (n <= 0)
         {
-            dsp::fill_zero(&o->min.x, sizeof(octant3d_t)/sizeof(float));
+            for (size_t i=0; i<8; ++i)
+            {
+                b->p[i].x = 0.0f;
+                b->p[i].y = 0.0f;
+                b->p[i].z = 0.0f;
+                b->p[i].w = 1.0f;
+            }
             return;
         }
-        o->min  = *t;
-        o->max  = *t;
+
+        for (size_t i=0; i<8; ++i)
+            b->p[i] = *p;
 
         while (--n)
         {
-            ++t;
+            ++p;
 
-            // Find minimum
-            if (o->min.x > t->x)
-                o->min.x    = t->x;
-            if (o->min.y > t->y)
-                o->min.y    = t->y;
-            if (o->min.z > t->z)
-                o->min.z    = t->z;
+            // Left plane
+            if (b->p[0].x > p->x)
+                b->p[0].x = p->x;
+            if (b->p[1].x > p->x)
+                b->p[1].x = p->x;
+            if (b->p[4].x > p->x)
+                b->p[4].x = p->x;
+            if (b->p[5].x > p->x)
+                b->p[5].x = p->x;
 
-            // Find maximum
-            if (o->max.x < t->x)
-                o->max.x    = t->x;
-            if (o->max.y < t->y)
-                o->max.y    = t->y;
-            if (o->max.z < t->z)
-                o->max.z    = t->z;
+            // Right plane
+            if (b->p[2].x < p->x)
+                b->p[2].x = p->x;
+            if (b->p[3].x < p->x)
+                b->p[3].x = p->x;
+            if (b->p[6].x < p->x)
+                b->p[6].x = p->x;
+            if (b->p[7].x < p->x)
+                b->p[7].x = p->x;
+
+            // Near plane
+            if (b->p[1].y > p->y)
+                b->p[1].y = p->y;
+            if (b->p[2].y > p->y)
+                b->p[2].y = p->y;
+            if (b->p[5].y > p->y)
+                b->p[5].y = p->y;
+            if (b->p[6].y > p->y)
+                b->p[6].y = p->y;
+
+            // Far plane
+            if (b->p[0].y < p->y)
+                b->p[0].y = p->y;
+            if (b->p[3].y < p->y)
+                b->p[3].y = p->y;
+            if (b->p[4].y < p->y)
+                b->p[4].y = p->y;
+            if (b->p[7].y < p->y)
+                b->p[7].y = p->y;
+
+            // Top plane
+            if (b->p[0].z < p->z)
+                b->p[0].z = p->z;
+            if (b->p[1].z < p->z)
+                b->p[1].z = p->z;
+            if (b->p[2].z < p->z)
+                b->p[2].z = p->z;
+            if (b->p[3].z < p->z)
+                b->p[3].z = p->z;
+
+            // Bottom plane
+            if (b->p[4].z > p->z)
+                b->p[4].z = p->z;
+            if (b->p[5].z > p->z)
+                b->p[5].z = p->z;
+            if (b->p[6].z > p->z)
+                b->p[6].z = p->z;
+            if (b->p[7].z > p->z)
+                b->p[7].z = p->z;
+        }
+    }
+
+    float calc_plane_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p1->x - p0->x;
+        d[0].dy     = p1->y - p0->y;
+        d[0].dz     = p1->z - p0->z;
+        d[0].dw     = p1->w - p0->w;
+
+        d[1].dx     = p2->x - p1->x;
+        d[1].dy     = p2->y - p1->y;
+        d[1].dz     = p2->z - p1->z;
+        d[1].dw     = p2->w - p1->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            float kw    = 1.0f / w;
+            v->dx      *= kw;
+            v->dy      *= kw;
+            v->dz      *= kw;
         }
 
-        // Complete the octant
-        init_point_xyz(&o->bounds[0x00], o->max.x, o->max.y, o->max.z);
-        init_point_xyz(&o->bounds[0x01], o->min.x, o->max.y, o->max.z);
-        init_point_xyz(&o->bounds[0x02], o->max.x, o->min.y, o->max.z);
-        init_point_xyz(&o->bounds[0x03], o->min.x, o->min.y, o->max.z);
-        init_point_xyz(&o->bounds[0x04], o->max.x, o->max.y, o->min.z);
-        init_point_xyz(&o->bounds[0x05], o->min.x, o->max.y, o->min.z);
-        init_point_xyz(&o->bounds[0x06], o->max.x, o->min.y, o->min.z);
-        init_point_xyz(&o->bounds[0x07], o->min.x, o->min.y, o->min.z);
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+        return w;
     }
 
-    bool check_octant3d_rv(const octant3d_t *o, const ray3d_t *r)
+    float calc_plane_pv(vector3d_t *v, const point3d_t *pv)
     {
-        size_t index    = (r->v.dx < 0.0f) ? 0x01 : 0x00;
-        if (r->v.dy < 0.0f)
-            index          |= 0x02;
-        if (r->v.dz < 0.0f)
-            index          |= 0x04;
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = pv[1].x - pv[0].x;
+        d[0].dy     = pv[1].y - pv[0].y;
+        d[0].dz     = pv[1].z - pv[0].z;
+        d[0].dw     = pv[1].w - pv[0].w;
 
-        const point3d_t *p  = &o->bounds[index];
-        vector3d_t dv;
-        dv.dx               = (p->x - r->z.x) * r->v.dx;
-        dv.dy               = (p->y - r->z.y) * r->v.dy;
-        dv.dz               = (p->z - r->z.z) * r->v.dz;
+        d[1].dx     = pv[2].x - pv[1].x;
+        d[1].dy     = pv[2].y - pv[1].y;
+        d[1].dz     = pv[2].z - pv[1].z;
+        d[1].dw     = pv[2].w - pv[1].w;
 
-        return (dv.dx >= 0.0f) && (dv.dy >= 0.0f) && (dv.dz >= 0.0f);
-    }
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
 
-    inline void calc_tetrahedron_normals(tetra3d_t *t)
-    {
-        calc_normal3d_vv(&t->n[0], &t->r[0]); // Calculate between r[0] and r[1]
-        calc_normal3d_vv(&t->n[1], &t->r[1]); // Calculate between r[1] and r[2]
-        calc_normal3d_v2(&t->n[2], &t->r[2], &t->r[0]); // Calculate between r[2] and r[0]
-
-        // Calculate plane equations
-        t->r[0].dw  = - ( t->n[0].dx * t->s.x + t->n[0].dy * t->s.y + t->n[0].dz * t->s.z);
-        t->r[1].dw  = - ( t->n[1].dx * t->s.x + t->n[1].dy * t->s.y + t->n[1].dz * t->s.z);
-        t->r[2].dw  = - ( t->n[2].dx * t->s.x + t->n[2].dy * t->s.y + t->n[2].dz * t->s.z);
-    }
-
-    void calc_tetra3d_pv(tetra3d_t *t, const point3d_t *p)
-    {
-        t->s        = p[0];
-
-        t->r[0].dx  = p[1].x - p[0].x;
-        t->r[0].dy  = p[1].y - p[0].y;
-        t->r[0].dz  = p[1].z - p[0].z;
-
-        t->r[1].dx  = p[2].x - p[0].x;
-        t->r[1].dy  = p[2].y - p[0].y;
-        t->r[1].dz  = p[2].z - p[0].z;
-
-        t->r[2].dx  = p[3].x - p[0].x;
-        t->r[2].dy  = p[3].y - p[0].y;
-        t->r[2].dz  = p[3].z - p[0].z;
-
-        calc_tetrahedron_normals(t);
-    }
-
-    void calc_tetra3d_pv3(tetra3d_t *t, const point3d_t *p, const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *v3)
-    {
-        t->s        = *p;
-        t->r[0]     = *v1;
-        t->r[1]     = *v2;
-        t->r[2]     = *v3;
-
-        calc_tetrahedron_normals(t);
-    }
-
-    void calc_tetra3d_pvv(tetra3d_t *t, const point3d_t *p, const vector3d_t *v)
-    {
-        t->s        = *p;
-        t->r[0]     = v[0];
-        t->r[1]     = v[1];
-        t->r[2]     = v[2];
-
-        calc_tetrahedron_normals(t);
-    }
-
-    float find_tetra3d_intersections(ray3d_t *r, const tetra3d_t *t, const triangle3d_t *tr)
-    {
-        // Ignore all bad cases
-        float x[3];
-        // 1: all points of triangle lay outside of each side plane of tetrahedron
-        for (size_t i=0; i<3; ++i)
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
         {
-            x[0]        = t->n[i].dx*tr->p[0].x + t->n[i].dy*tr->p[0].y + t->n[i].dz*tr->p[0].z + t->n[0].dw;
-            x[1]        = t->n[i].dx*tr->p[1].x + t->n[i].dy*tr->p[1].y + t->n[i].dz*tr->p[1].z + t->n[0].dw;
-            x[2]        = t->n[i].dx*tr->p[2].x + t->n[i].dy*tr->p[2].y + t->n[i].dz*tr->p[2].z + t->n[0].dw;
-            if ((x[0] > 0.0f) && (x[1] > 0.0f) && (x[2] > 0.0f))
-                return -1.0f;
-        }
-        // 2: All three projections of triangle points on the ray vector are negative
-        vector3d_t dv[3];
-        for (size_t i=0; i<3; ++i)
-        {
-            dv[0].dx    = tr->p[0].x - t->s.x;
-            dv[0].dy    = tr->p[0].y - t->s.y;
-            dv[0].dz    = tr->p[0].z - t->s.z;
-
-            dv[1].dx    = tr->p[1].x - t->s.x;
-            dv[1].dy    = tr->p[1].y - t->s.y;
-            dv[1].dz    = tr->p[1].z - t->s.z;
-
-            dv[2].dx    = tr->p[2].x - t->s.x;
-            dv[2].dy    = tr->p[2].y - t->s.y;
-            dv[2].dz    = tr->p[2].z - t->s.z;
-
-            x[0]        = t->r[i].dx*dv[0].dx + t->r[i].dy*dv[0].dy + t->r[i].dz*dv[0].dz;
-            x[1]        = t->r[i].dx*dv[1].dx + t->r[i].dy*dv[1].dy + t->r[i].dz*dv[1].dz;
-            x[2]        = t->r[i].dx*dv[2].dx + t->r[i].dy*dv[2].dy + t->r[i].dz*dv[2].dz;
-            if ((x[0] < 0.0f) && (x[1] < 0.0f) && (x[2] < 0.0f))
-                return -1.0f;
+            float kw    = 1.0f / w;
+            v->dx      *= kw;
+            v->dy      *= kw;
+            v->dz      *= kw;
         }
 
-        // Calculate the vector that describes intersection between planes
-        vector_mul_v2(&r[0].v, &t->n[0], &tr->n);
-        vector_mul_v2(&r[1].v, &t->n[1], &tr->n);
-        vector_mul_v2(&r[2].v, &t->n[2], &tr->n);
+        v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
 
-        r[0].v.dw   = - (r[0].v.dx * r[0].v.dx + r[0].v.dy*r[0].v.dy + r[0].v.dz * r[0].v.dz);
-        r[1].v.dw   = - (r[1].v.dx * r[1].v.dx + r[1].v.dy*r[1].v.dy + r[1].v.dz * r[1].v.dz);
-        r[2].v.dw   = - (r[2].v.dx * r[2].v.dx + r[2].v.dy*r[2].v.dy + r[2].v.dz * r[2].v.dz);
+        return w;
+    }
 
-        vector3d_t m;
-        m.dx = 0; // TODO: this is returned currently to avoid GCC warnings
+    float calc_plane_v1p2(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1)
+    {
+        vector3d_t d;
 
-        for (size_t i=0; i<3; ++i)
+        d.dx        = p1->x - p0->x;
+        d.dy        = p1->y - p0->y;
+        d.dz        = p1->z - p0->z;
+        d.dw        = p1->w - p0->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d.dy*v0->dz - d.dz*v0->dy;
+        v->dy       = d.dz*v0->dx - d.dx*v0->dz;
+        v->dz       = d.dx*v0->dy - d.dy*v0->dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
         {
-            // Consider there's not exceptional situation
-            if (is_zero(r[0].v.dw))
+            float kw    = 1.0f / w;
+            v->dx      *= kw;
+            v->dy      *= kw;
+            v->dz      *= kw;
+        }
+
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+
+        return w;
+    }
+
+    float calc_oriented_plane_p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p1->x - p0->x;
+        d[0].dy     = p1->y - p0->y;
+        d[0].dz     = p1->z - p0->z;
+        d[0].dw     = p1->w - p0->w;
+
+        d[1].dx     = p2->x - p1->x;
+        d[1].dy     = p2->y - p1->y;
+        d[1].dz     = p2->z - p1->z;
+        d[1].dw     = p2->w - p1->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w == 0.0f)
+            return w;
+
+        w           = 1.0f / w;
+        v->dx      *= w;
+        v->dy      *= w;
+        v->dz      *= w;
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a > 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+
+        return w;
+    }
+
+    float calc_rev_oriented_plane_p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p1->x - p0->x;
+        d[0].dy     = p1->y - p0->y;
+        d[0].dz     = p1->z - p0->z;
+        d[0].dw     = p1->w - p0->w;
+
+        d[1].dx     = p2->x - p1->x;
+        d[1].dy     = p2->y - p1->y;
+        d[1].dz     = p2->z - p1->z;
+        d[1].dw     = p2->w - p1->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w == 0.0f)
+            return w;
+
+        w           = 1.0f / w;
+        v->dx      *= w;
+        v->dy      *= w;
+        v->dz      *= w;
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a < 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+
+        return w;
+    }
+
+    float orient_plane_v1p1(vector3d_t *v, const point3d_t *sp, const vector3d_t *pl)
+    {
+        float a     = (sp->x * pl->dx + sp->y * pl->dy + sp->z * pl->dz + pl->dw);
+        if (a > 0.0f) // Point is above, need to flip plane
+        {
+            v->dx       = - pl->dx;
+            v->dy       = - pl->dy;
+            v->dz       = - pl->dz;
+            v->dw       = - pl->dw;
+            return a;
+        }
+        else // Point is below or on the plane, just copy plane equation
+        {
+            v->dx       = pl->dx;
+            v->dy       = pl->dy;
+            v->dz       = pl->dz;
+            v->dw       = pl->dw;
+            return -a;
+        }
+    }
+
+    float calc_oriented_plane_pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = pv[1].x - pv[0].x;
+        d[0].dy     = pv[1].y - pv[0].y;
+        d[0].dz     = pv[1].z - pv[0].z;
+        d[0].dw     = pv[1].w - pv[0].w;
+
+        d[1].dx     = pv[2].x - pv[1].x;
+        d[1].dy     = pv[2].y - pv[1].y;
+        d[1].dz     = pv[2].z - pv[1].z;
+        d[1].dw     = pv[2].w - pv[1].w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+
+        v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a > 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+
+        return w;
+    }
+
+    float calc_rev_oriented_plane_pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = pv[1].x - pv[0].x;
+        d[0].dy     = pv[1].y - pv[0].y;
+        d[0].dz     = pv[1].z - pv[0].z;
+        d[0].dw     = pv[1].w - pv[0].w;
+
+        d[1].dx     = pv[2].x - pv[1].x;
+        d[1].dy     = pv[2].y - pv[1].y;
+        d[1].dz     = pv[2].z - pv[1].z;
+        d[1].dw     = pv[2].w - pv[1].w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+
+        v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a < 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+
+        return w;
+    }
+
+    float calc_parallel_plane_p2p2(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = sp->x - pp->x;
+        d[0].dy     = sp->y - pp->y;
+        d[0].dz     = sp->z - pp->z;
+        d[0].dw     = 0.0f;
+
+        d[1].dx     = p1->x - p0->x;
+        d[1].dy     = p1->y - p0->y;
+        d[1].dz     = p1->z - p0->z;
+        d[1].dw     = p1->w - p0->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+
+        v->dw       = - ( v->dx * pp->x + v->dy * pp->y + v->dz * pp->z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a > 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+
+        return w;
+    }
+
+    float calc_area_p3(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t v[2], n;
+        v[0].dx     = p1->x - p0->x;
+        v[0].dy     = p1->y - p0->y;
+        v[0].dz     = p1->z - p0->z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = p2->x - p0->x;
+        v[1].dy     = p2->y - p0->y;
+        v[1].dz     = p2->z - p0->z;
+        v[1].dw     = 0.0f;
+
+        // Calculate vector multiplication
+        n.dx        = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
+        n.dy        = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
+        n.dz        = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
+
+        return sqrtf(n.dx*n.dx + n.dy*n.dy + n.dz*n.dz);
+    }
+
+    float calc_area_pv(const point3d_t *pv)
+    {
+        vector3d_t v[2], n;
+        v[0].dx     = pv[1].x - pv[0].x;
+        v[0].dy     = pv[1].y - pv[0].y;
+        v[0].dz     = pv[1].z - pv[0].z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = pv[2].x - pv[0].x;
+        v[1].dy     = pv[2].y - pv[0].y;
+        v[1].dz     = pv[2].z - pv[0].z;
+        v[1].dw     = 0.0f;
+
+        // Calculate vector multiplication
+        n.dx        = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
+        n.dy        = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
+        n.dz        = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
+
+        return sqrtf(n.dx*n.dx + n.dy*n.dy + n.dz*n.dz);
+    }
+
+    float calc_min_distance_p3(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t v[3];
+        float d[3];
+
+        v[0].dx     = sp->x - p0->x;
+        v[0].dy     = sp->y - p0->y;
+        v[0].dz     = sp->z - p0->z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = sp->x - p1->x;
+        v[1].dy     = sp->y - p1->y;
+        v[1].dz     = sp->z - p1->z;
+        v[1].dw     = 0.0f;
+
+        v[2].dx     = sp->x - p2->x;
+        v[2].dy     = sp->y - p2->y;
+        v[2].dz     = sp->z - p2->z;
+        v[2].dw     = 0.0f;
+
+        d[0]        = sqrtf(v[0].dx*v[0].dx + v[0].dy*v[0].dy + v[0].dz * v[0].dz);
+        d[1]        = sqrtf(v[1].dx*v[1].dx + v[1].dy*v[1].dy + v[1].dz * v[1].dz);
+        d[2]        = sqrtf(v[2].dx*v[2].dx + v[2].dy*v[2].dy + v[2].dz * v[2].dz);
+
+        if ((d[0] <= d[1]) && (d[0] <= d[2]))
+            return d[0];
+        return (d[1] <= d[2]) ? d[1] : d[2];
+    }
+
+    float calc_min_distance_pv(const point3d_t *sp, const point3d_t *p)
+    {
+        vector3d_t v[3];
+        float d[3];
+
+        v[0].dx     = sp->x - p[0].x;
+        v[0].dy     = sp->y - p[0].y;
+        v[0].dz     = sp->z - p[0].z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = sp->x - p[1].x;
+        v[1].dy     = sp->y - p[1].y;
+        v[1].dz     = sp->z - p[1].z;
+        v[1].dw     = 0.0f;
+
+        v[2].dx     = sp->x - p[2].x;
+        v[2].dy     = sp->y - p[2].y;
+        v[2].dz     = sp->z - p[2].z;
+        v[2].dw     = 0.0f;
+
+        d[0]        = sqrtf(v[0].dx*v[0].dx + v[0].dy*v[0].dy + v[0].dz * v[0].dz);
+        d[1]        = sqrtf(v[1].dx*v[1].dx + v[1].dy*v[1].dy + v[1].dz * v[1].dz);
+        d[2]        = sqrtf(v[2].dx*v[2].dx + v[2].dy*v[2].dy + v[2].dz * v[2].dz);
+
+        if ((d[0] <= d[1]) && (d[0] <= d[2]))
+            return d[0];
+        return (d[1] <= d[2]) ? d[1] : d[2];
+    }
+
+    float calc_avg_distance_p3(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        point3d_t p;
+        vector3d_t d;
+
+        p.x     = (p0->x + p1->x + p2->x) / 3.0f;
+        p.y     = (p0->y + p1->y + p2->y) / 3.0f;
+        p.z     = (p0->z + p1->z + p2->z) / 3.0f;
+        p.w     = 1.0f;
+
+        d.dx    = sp->x - p.x;
+        d.dy    = sp->y - p.y;
+        d.dz    = sp->z - p.z;
+        d.dw    = 0.0f;
+
+        return sqrtf(d.dx * d.dx + d.dy * d.dy + d.dz * d.dz);
+    }
+
+    void calc_split_point_p2v1(point3d_t *sp, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl)
+    {
+        vector3d_t d;
+        d.dx        = l1->x - l0->x;
+        d.dy        = l1->y - l0->y;
+        d.dz        = l1->z - l0->z;
+        d.dw        = 0.0f;
+
+        float t     = (l0->x*pl->dx + l0->y*pl->dy + l0->z*pl->dz + pl->dw) /
+                      (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+
+        // Compute split point
+        sp->x       = l0->x - d.dx * t;
+        sp->y       = l0->y - d.dy * t;
+        sp->z       = l0->z - d.dz * t;
+        sp->w       = 1.0f;
+    }
+
+    void calc_split_point_pvv1(point3d_t *sp, const point3d_t *lv, const vector3d_t *pl)
+    {
+        vector3d_t d;
+        d.dx        = lv[1].x - lv[0].x;
+        d.dy        = lv[1].y - lv[0].y;
+        d.dz        = lv[1].z - lv[0].z;
+        d.dw        = 0.0f;
+
+        float t     = (lv[0].x*pl->dx + lv[0].y*pl->dy + lv[0].z*pl->dz + pl->dw) /
+                      (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+
+        // Compute split point
+        sp->x       = lv[0].x - d.dx * t;
+        sp->y       = lv[0].y - d.dy * t;
+        sp->z       = lv[0].z - d.dz * t;
+        sp->w       = 1.0f;
+    }
+
+    float calc_distance_p2(const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t d;
+        d.dx        = p2->x - p1->x;
+        d.dy        = p2->y - p1->y;
+        d.dz        = p2->z - p1->z;
+        return sqrtf(d.dx*d.dx + d.dy*d.dy + d.dz*d.dz);
+    }
+
+    float calc_distance_v1(const vector3d_t *v)
+    {
+        return sqrtf(v->dx*v->dx + v->dy*v->dy + v->dz*v->dz);
+    }
+
+    float calc_sqr_distance_p2(const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t d;
+        d.dx        = p2->x - p1->x;
+        d.dy        = p2->y - p1->y;
+        d.dz        = p2->z - p1->z;
+        return d.dx*d.dx + d.dy*d.dy + d.dz*d.dz;
+    }
+
+    float calc_distance_pv(const point3d_t *pv)
+    {
+        vector3d_t d;
+        d.dx        = pv[1].x - pv[0].x;
+        d.dy        = pv[1].y - pv[0].y;
+        d.dz        = pv[1].z - pv[0].z;
+        return sqrtf(d.dx*d.dx + d.dy*d.dy + d.dz*d.dz);
+    }
+
+    float calc_sqr_distance_pv(const point3d_t *pv)
+    {
+        vector3d_t d;
+        d.dx        = pv[1].x - pv[0].x;
+        d.dy        = pv[1].y - pv[0].y;
+        d.dz        = pv[1].z - pv[0].z;
+        return d.dx*d.dx + d.dy*d.dy + d.dz*d.dz;
+    }
+
+    float projection_length_p2(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp)
+    {
+        vector3d_t v[2];
+        float k[2];
+
+        v[0].dx     = p1->x - p0->x;
+        v[0].dy     = p1->y - p0->y;
+        v[0].dz     = p1->z - p0->z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = pp->x - p0->x;
+        v[1].dy     = pp->y - p0->y;
+        v[1].dz     = pp->z - p0->z;
+        v[1].dw     = 0.0f;
+
+        k[0]        = v[0].dx * v[0].dx + v[0].dy * v[0].dy + v[0].dz * v[0].dz;
+        k[1]        = v[1].dx * v[0].dx + v[1].dy * v[0].dy + v[1].dz * v[0].dz;
+        return k[1] / k[0];
+    }
+
+    float projection_length_v2(const vector3d_t *v, const vector3d_t *pv)
+    {
+        float k[2];
+
+        k[0]        = pv->dx * pv->dx + pv->dy * pv->dy + pv->dz * pv->dz;
+        k[1]        = pv->dx * v->dx  + pv->dy * v->dy  + pv->dz * v->dz;
+        return k[1] / k[0];
+    }
+
+    /**
+     * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, points with indexes 1 and 2 are the points that
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
+     *
+     * @param out array of vertexes above plane
+     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
+     * @param in array of vertexes below plane
+     * @param n_in counter of vertexes below plane (multiple of 3), should be initialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+#if 0
+    void split_triangle_raw(
+            raw_triangle_t *out,
+            size_t *n_out,
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        )
+    {
+        point3d_t sp[2];    // Split point
+        vector3d_t d[2];    // Delta vector
+        point3d_t v[3];     // Triangle sources
+        float k[3];         // Co-location of points
+        float t[2];
+
+        in     += *n_in;
+        out    += *n_out;
+
+        v[0]    = pv->v[0];
+        v[1]    = pv->v[1];
+        v[2]    = pv->v[2];
+
+        k[0]    = pl->dx*v[0].x + pl->dy*v[0].y + pl->dz*v[0].z + pl->dw;
+        k[1]    = pl->dx*v[1].x + pl->dy*v[1].y + pl->dz*v[1].z + pl->dw;
+        k[2]    = pl->dx*v[2].x + pl->dy*v[2].y + pl->dz*v[2].z + pl->dw;
+
+        // Check that the whole triangle lies above the plane or below the plane
+        if (k[0] < 0.0f)
+        {
+            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
             {
-                r[0].z.x        = 0.0f;
-                r[0].z.y        = 0.0f;
-                r[0].z.z        = 0.0f;
-
-                r[0].v.dx       = 0.0f;
-                r[0].v.dy       = 0.0f;
-                r[0].v.dz       = 0.0f;
-
-                if (r[0].v.dw == tr->n.dw)
-                {
-                    r[0].z.w        = -1.0f;
-                    r[0].v.dw       = -1.0f;
-                }
-                else
-                {
-                    r[0].z.w        = 0.0f;
-                    r[0].v.dw       = 0.0f;
-                }
-                continue;
+                in->v[0]        = v[0];
+                in->v[1]        = v[1];
+                in->v[2]        = v[2];
+                ++*n_in;
+                return;
             }
-
-            // Calculate minors of the plane equation
-            m.dx        = r[0].v.dy*tr->n.dz - r[0].v.dz*tr->n.dy;
-            m.dy        = r[0].v.dz*tr->n.dx - r[0].v.dx*tr->n.dz;
-            m.dz        = r[0].v.dx*tr->n.dy - r[0].v.dy*tr->n.dx;
-
-            // Analyze minors to solve the equation
+        }
+        else if (k[0] > 0.0f)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->v[0]       = v[0];
+                out->v[1]       = v[1];
+                out->v[2]       = v[2];
+                ++*n_out;
+                return;
+            }
+        }
+        else // (k[0] == 0)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->v[0]       = v[0];
+                out->v[1]       = v[1];
+                out->v[2]       = v[2];
+                ++*n_out;
+                return;
+            }
+            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->v[0]        = v[0];
+                in->v[1]        = v[1];
+                in->v[2]        = v[2];
+                ++*n_in;
+                return;
+            }
         }
 
-        return m.dx; // TODO: this is returned currently to avoid GCC warnings
+        // There is an intersection with plane, we need to analyze it
+        // Rotate triangle until vertex 0 is above the split plane
+        if (k[0] > 0.0f)
+            { /* nothing */ }
+        else if (k[1] > 0.0f)
+        {
+            // Rotate clockwise
+            t[0]    = k[0];
+            sp[0]   = v[0];
+
+            k[0]    = k[1];
+            v[0]    = v[1];
+            k[1]    = k[2];
+            v[1]    = v[2];
+            k[2]    = t[0];
+            v[2]    = sp[0];
+        }
+        else // k[2] > 0.0f
+        {
+            // Rotate counter-clockwise
+            t[0]    = k[0];
+            sp[0]   = v[0];
+
+            k[0]    = k[2];
+            v[0]    = v[2];
+            k[2]    = k[1];
+            v[2]    = v[1];
+            k[1]    = t[0];
+            v[1]    = sp[0];
+        }
+//        while (k[0] <= 0.0f)
+//        {
+//            t[0]    = k[0];
+//            sp[0]   = p[0];
+//
+//            k[0]    = k[1];
+//            p[0]    = p[1];
+//            k[1]    = k[2];
+//            p[1]    = p[2];
+//            k[2]    = t[0];
+//            p[2]    = sp[0];
+//        }
+
+        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
+        if (k[1] < 0.0f) // k[1] < 0
+        {
+            d[0].dx = v[0].x - v[1].x;
+            d[0].dy = v[0].y - v[1].y;
+            d[0].dz = v[0].z - v[1].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = v[0].x + d[0].dx * t[0];
+            sp[0].y = v[0].y + d[0].dy * t[0];
+            sp[0].z = v[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
+            {
+                d[1].dx = v[0].x - v[2].x;
+                d[1].dy = v[0].y - v[2].y;
+                d[1].dz = v[0].z - v[2].z;
+
+                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = v[0].x + d[1].dx * t[1];
+                sp[1].y = v[0].y + d[1].dy * t[1];
+                sp[1].z = v[0].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 1 triangle above plane, 2 below
+                out->v[0]       = v[0];
+                out->v[1]       = sp[0];
+                out->v[2]       = sp[1];
+                ++*n_out;
+                ++out;
+
+                in->v[0]        = v[1];
+                in->v[1]        = sp[1];
+                in->v[2]        = sp[0];
+                ++*n_in;
+                ++in;
+
+                in->v[0]        = v[2];
+                in->v[1]        = sp[1];
+                in->v[2]        = v[1];
+                ++*n_in;
+            }
+            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
+            {
+                d[1].dx = v[2].x - v[1].x;
+                d[1].dy = v[2].y - v[1].y;
+                d[1].dz = v[2].z - v[1].z;
+
+                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = v[2].x + d[1].dx * t[1];
+                sp[1].y = v[2].y + d[1].dy * t[1];
+                sp[1].z = v[2].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->v[0]       = v[2];
+                out->v[1]       = sp[0];
+                out->v[2]       = sp[1];
+                ++*n_out;
+                ++out;
+
+                out->v[0]       = v[0];
+                out->v[1]       = sp[0];
+                out->v[2]       = v[2];
+                ++*n_out;
+
+                in->v[0]        = v[1];
+                in->v[1]        = sp[1];
+                in->v[2]        = sp[0];
+                ++*n_in;
+            }
+            else // (k[1] < 0) && (k[2] == 0)
+            {
+                // 1 triangle above plane, 1 below
+                out->v[0]       = v[0];
+                out->v[1]       = sp[0];
+                out->v[2]       = v[2];
+                ++*n_out;
+
+                in->v[0]        = v[1];
+                in->v[1]        = v[2];
+                in->v[2]        = sp[0];
+                ++*n_in;
+            }
+        }
+        else // (k[1] >= 0) && (k[2] < 0)
+        {
+            d[0].dx = v[0].x - v[2].x;
+            d[0].dy = v[0].y - v[2].y;
+            d[0].dz = v[0].z - v[2].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = v[0].x + d[0].dx * t[0];
+            sp[0].y = v[0].y + d[0].dy * t[0];
+            sp[0].z = v[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
+            {
+                d[1].dx = v[1].x - v[2].x;
+                d[1].dy = v[1].y - v[2].y;
+                d[1].dz = v[1].z - v[2].z;
+
+                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = v[1].x + d[1].dx * t[1];
+                sp[1].y = v[1].y + d[1].dy * t[1];
+                sp[1].z = v[1].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->v[0]       = v[0];
+                out->v[1]       = sp[1];
+                out->v[2]       = sp[0];
+                ++*n_out;
+                ++out;
+
+                out->v[0]       = v[1];
+                out->v[1]       = sp[1];
+                out->v[2]       = v[0];
+                ++*n_out;
+
+                in->v[0]        = v[2];
+                in->v[1]        = sp[0];
+                in->v[2]        = sp[1];
+                ++*n_in;
+            }
+            else // (k[1] == 0) && (k[2] < 0)
+            {
+                // 1 triangle above plane, 1 triangle below plane
+                out->v[0]       = v[0];
+                out->v[1]       = v[1];
+                out->v[2]       = sp[0];
+                ++*n_out;
+
+                in->v[0]        = v[2];
+                in->v[1]        = sp[0];
+                in->v[2]        = v[1];
+                ++*n_in;
+            }
+        }
+    }
+#else
+    void split_triangle_raw(
+            raw_triangle_t *out,
+            size_t *n_out,
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        )
+    {
+        size_t tag;
+        point3d_t sp[2];    // Split point
+        vector3d_t d[2];    // Delta vector
+        float k[3];         // Co-location of points
+        float t[2];
+
+        in     += *n_in;
+        out    += *n_out;
+
+        k[0]    = pl->dx*pv->v[0].x + pl->dy*pv->v[0].y + pl->dz*pv->v[0].z + pl->dw;
+        k[1]    = pl->dx*pv->v[1].x + pl->dy*pv->v[1].y + pl->dz*pv->v[1].z + pl->dw;
+        k[2]    = pl->dx*pv->v[2].x + pl->dy*pv->v[2].y + pl->dz*pv->v[2].z + pl->dw;
+
+        tag     = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag    |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag    |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        #define STR_SPLIT_1P(P0, P1, K) \
+            d[0].dx = P0.x - P1.x; \
+            d[0].dy = P0.y - P1.y; \
+            d[0].dz = P0.z - P1.z; \
+            \
+            t[0]    = K / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz); \
+            \
+            sp[0].x = P0.x - d[0].dx * t[0]; \
+            sp[0].y = P0.y - d[0].dy * t[0]; \
+            sp[0].z = P0.z - d[0].dz * t[0]; \
+            sp[0].w = 1.0f;
+
+        #define STR_SPLIT_2P(P0, P1, P2, K) \
+            d[0].dx = P0.x - P1.x; \
+            d[0].dy = P0.y - P1.y; \
+            d[0].dz = P0.z - P1.z; \
+            d[1].dx = P0.x - P2.x; \
+            d[1].dy = P0.y - P2.y; \
+            d[1].dz = P0.z - P2.z; \
+            \
+            t[0]    = K / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz); \
+            t[1]    = K / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz); \
+            \
+            sp[0].x = P0.x - d[0].dx * t[0]; \
+            sp[0].y = P0.y - d[0].dy * t[0]; \
+            sp[0].z = P0.z - d[0].dz * t[0]; \
+            sp[0].w = 1.0f; \
+            sp[1].x = P0.x - d[1].dx * t[1]; \
+            sp[1].y = P0.y - d[1].dy * t[1]; \
+            sp[1].z = P0.z - d[1].dz * t[1]; \
+            sp[1].w = 1.0f;
+
+        switch (tag)
+        {
+            // 0 intersections, triangle is above
+            case 0x00:  // 0 0 0
+            case 0x01:  // 0 0 1
+            case 0x04:  // 0 1 0
+            case 0x05:  // 0 1 1
+            case 0x10:  // 1 0 0
+            case 0x11:  // 1 0 1
+            case 0x14:  // 1 1 0
+            case 0x15:  // 1 1 1
+                *out    = *pv;
+                ++(*n_out);
+                break;
+
+            // 0 intersections, triangle is below
+            case 0x16:  // 1 1 2
+            case 0x19:  // 1 2 1
+            case 0x1a:  // 1 2 2
+            case 0x25:  // 2 1 1
+            case 0x26:  // 2 1 2
+            case 0x29:  // 2 2 1
+            case 0x2a:  // 2 2 2
+                *in     = *pv;
+                ++(*n_in);
+                break;
+
+            // 1 intersection, 1 triangle above, 1 triangle below, counter-clockwise
+            case 0x06:  // 0 1 2
+                STR_SPLIT_1P(pv->v[0], pv->v[2], k[0]);
+                in->v[0]        = pv->v[0];
+                in->v[1]        = pv->v[1];
+                in->v[2]        = sp[0];
+                out->v[0]       = pv->v[2];
+                out->v[1]       = sp[0];
+                out->v[2]       = pv->v[1];
+                ++(*n_out); ++(*n_in);
+                break;
+            case 0x21:  // 2 0 1
+                STR_SPLIT_1P(pv->v[1], pv->v[2], k[1]);
+                in->v[0]        = pv->v[2];
+                in->v[1]        = pv->v[0];
+                in->v[2]        = sp[0];
+                out->v[0]       = pv->v[1];
+                out->v[1]       = sp[0];
+                out->v[2]       = pv->v[0];
+                ++(*n_out); ++(*n_in);
+                break;
+            case 0x18:  // 1 2 0
+                STR_SPLIT_1P(pv->v[0], pv->v[1], k[0]);
+                in->v[0]        = pv->v[1];
+                in->v[1]        = pv->v[2];
+                in->v[2]        = sp[0];
+                out->v[0]       = pv->v[0];
+                out->v[1]       = sp[0];
+                out->v[2]       = pv->v[2];
+                ++(*n_out); ++(*n_in);
+                break;
+
+            // 1 intersection, 1 triangle above, 1 triangle below, clockwise
+            case 0x24:  // 2 1 0
+                STR_SPLIT_1P(pv->v[0], pv->v[2], k[0]);
+                in->v[0]        = pv->v[2];
+                in->v[1]        = sp[0];
+                in->v[2]        = pv->v[1];
+                out->v[0]       = pv->v[0];
+                out->v[1]       = pv->v[1];
+                out->v[2]       = sp[0];
+                ++(*n_out); ++(*n_in);
+                break;
+            case 0x12:  // 1 0 2
+                STR_SPLIT_1P(pv->v[0], pv->v[1], k[0]);
+                in->v[0]        = pv->v[0];
+                in->v[1]        = sp[0];
+                in->v[2]        = pv->v[2];
+                out->v[0]       = pv->v[1];
+                out->v[1]       = pv->v[2];
+                out->v[2]       = sp[0];
+                ++(*n_out); ++(*n_in);
+                break;
+            case 0x09:  // 0 2 1
+                STR_SPLIT_1P(pv->v[1], pv->v[2], k[1]);
+                in->v[0]        = pv->v[1];
+                in->v[1]        = sp[0];
+                in->v[2]        = pv->v[0];
+                out->v[0]       = pv->v[2];
+                out->v[1]       = pv->v[0];
+                out->v[2]       = sp[0];
+                ++(*n_out); ++(*n_in);
+                break;
+
+            // 2 intersections, 1 triangle below, 2 triangles above
+            case 0x02:  // 0 0 2
+                STR_SPLIT_2P(pv->v[0], pv->v[1], pv->v[2], k[0]);
+                in->v[0]        = pv->v[0];
+                in->v[1]        = sp[0];
+                in->v[2]        = sp[1];
+                out[0].v[0]     = pv->v[1];
+                out[0].v[1]     = sp[1];
+                out[0].v[2]     = sp[0];
+                out[1].v[0]     = pv->v[2];
+                out[1].v[1]     = sp[1];
+                out[1].v[2]     = pv->v[1];
+                (*n_out) += 2; ++(*n_in);
+                break;
+            case 0x08:  // 0 2 0
+                STR_SPLIT_2P(pv->v[1], pv->v[0], pv->v[2], k[1]);
+                in->v[0]        = pv->v[1];
+                in->v[1]        = sp[1];
+                in->v[2]        = sp[0];
+                out[0].v[0]     = pv->v[2];
+                out[0].v[1]     = sp[0];
+                out[0].v[2]     = sp[1];
+                out[1].v[0]     = pv->v[0];
+                out[1].v[1]     = sp[0];
+                out[1].v[2]     = pv->v[2];
+                (*n_out) += 2; ++(*n_in);
+                break;
+            case 0x20:  // 2 0 0
+                STR_SPLIT_2P(pv->v[2], pv->v[0], pv->v[1], k[2]);
+                in->v[0]        = pv->v[2];
+                in->v[1]        = sp[0];
+                in->v[2]        = sp[1];
+                out[0].v[0]     = pv->v[0];
+                out[0].v[1]     = sp[1];
+                out[0].v[2]     = sp[0];
+                out[1].v[0]     = pv->v[1];
+                out[1].v[1]     = sp[1];
+                out[1].v[2]     = pv->v[0];
+                (*n_out) += 2; ++(*n_in);
+                break;
+
+            // 2 intersections, 1 triangle above, 2 triangles below
+            case 0x28:  // 2 2 0
+                STR_SPLIT_2P(pv->v[0], pv->v[1], pv->v[2], k[0]);
+                in[0].v[0]      = pv->v[1];
+                in[0].v[1]      = sp[1];
+                in[0].v[2]      = sp[0];
+                in[1].v[0]      = pv->v[2];
+                in[1].v[1]      = sp[1];
+                in[1].v[2]      = pv->v[1];
+                out->v[0]       = pv->v[0];
+                out->v[1]       = sp[0];
+                out->v[2]       = sp[1];
+                ++(*n_out); (*n_in) += 2;
+                break;
+
+            case 0x22:  // 2 0 2
+                STR_SPLIT_2P(pv->v[1], pv->v[0], pv->v[2], k[1]);
+                in[0].v[0]      = pv->v[2];
+                in[0].v[1]      = sp[0];
+                in[0].v[2]      = sp[1];
+                in[1].v[0]      = pv->v[0];
+                in[1].v[1]      = sp[0];
+                in[1].v[2]      = pv->v[2];
+                out->v[0]       = pv->v[1];
+                out->v[1]       = sp[1];
+                out->v[2]       = sp[0];
+                ++(*n_out); (*n_in) += 2;
+                break;
+
+            case 0x0a:  // 0 2 2
+                STR_SPLIT_2P(pv->v[2], pv->v[0], pv->v[1], k[2]);
+                in[0].v[0]      = pv->v[0];
+                in[0].v[1]      = sp[1];
+                in[0].v[2]      = sp[0];
+                in[1].v[0]      = pv->v[1];
+                in[1].v[1]      = sp[1];
+                in[1].v[2]      = pv->v[0];
+                out->v[0]       = pv->v[2];
+                out->v[1]       = sp[0];
+                out->v[2]       = sp[1];
+                ++(*n_out); (*n_in) += 2;
+                break;
+
+            default:
+                break;
+        }
+
+        #undef STR_SPLIT_1P
+        #undef STR_SPLIT_2P
+    }
+#endif
+
+    void cull_triangle_raw(
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        )
+    {
+        size_t tag;
+        point3d_t sp[2];    // Split point
+        vector3d_t d[2];    // Delta vector
+        float k[3];         // Co-location of points
+        float t[2];
+
+        in     += *n_in;
+
+        k[0]    = pl->dx*pv->v[0].x + pl->dy*pv->v[0].y + pl->dz*pv->v[0].z + pl->dw;
+        k[1]    = pl->dx*pv->v[1].x + pl->dy*pv->v[1].y + pl->dz*pv->v[1].z + pl->dw;
+        k[2]    = pl->dx*pv->v[2].x + pl->dy*pv->v[2].y + pl->dz*pv->v[2].z + pl->dw;
+
+        tag     = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag    |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag    |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        #define STR_SPLIT_1P(P0, P1, K) \
+            d[0].dx = P0.x - P1.x; \
+            d[0].dy = P0.y - P1.y; \
+            d[0].dz = P0.z - P1.z; \
+            \
+            t[0]    = K / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz); \
+            \
+            sp[0].x = P0.x - d[0].dx * t[0]; \
+            sp[0].y = P0.y - d[0].dy * t[0]; \
+            sp[0].z = P0.z - d[0].dz * t[0]; \
+            sp[0].w = 1.0f;
+
+        #define STR_SPLIT_2P(P0, P1, P2, K) \
+            d[0].dx = P0.x - P1.x; \
+            d[0].dy = P0.y - P1.y; \
+            d[0].dz = P0.z - P1.z; \
+            d[1].dx = P0.x - P2.x; \
+            d[1].dy = P0.y - P2.y; \
+            d[1].dz = P0.z - P2.z; \
+            \
+            t[0]    = K / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz); \
+            t[1]    = K / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz); \
+            \
+            sp[0].x = P0.x - d[0].dx * t[0]; \
+            sp[0].y = P0.y - d[0].dy * t[0]; \
+            sp[0].z = P0.z - d[0].dz * t[0]; \
+            sp[0].w = 1.0f; \
+            sp[1].x = P0.x - d[1].dx * t[1]; \
+            sp[1].y = P0.y - d[1].dy * t[1]; \
+            sp[1].z = P0.z - d[1].dz * t[1]; \
+            sp[1].w = 1.0f;
+
+        switch (tag)
+        {
+            // 0 intersections, triangle is above
+            case 0x00:  // 0 0 0
+            case 0x01:  // 0 0 1
+            case 0x04:  // 0 1 0
+            case 0x05:  // 0 1 1
+            case 0x10:  // 1 0 0
+            case 0x11:  // 1 0 1
+            case 0x14:  // 1 1 0
+            case 0x15:  // 1 1 1
+                break;
+
+            // 0 intersections, triangle is below
+            case 0x16:  // 1 1 2
+            case 0x19:  // 1 2 1
+            case 0x1a:  // 1 2 2
+            case 0x25:  // 2 1 1
+            case 0x26:  // 2 1 2
+            case 0x29:  // 2 2 1
+            case 0x2a:  // 2 2 2
+                *in             = *pv;
+                ++(*n_in);
+                break;
+
+            // 1 intersection, 1 triangle above, 1 triangle below, counter-clockwise
+            case 0x06:  // 0 1 2
+                STR_SPLIT_1P(pv->v[0], pv->v[2], k[0]);
+                in->v[0]        = pv->v[0];
+                in->v[1]        = pv->v[1];
+                in->v[2]        = sp[0];
+                ++(*n_in);
+                break;
+            case 0x21:  // 2 0 1
+                STR_SPLIT_1P(pv->v[1], pv->v[2], k[1]);
+                in->v[0]        = pv->v[2];
+                in->v[1]        = pv->v[0];
+                in->v[2]        = sp[0];
+                ++(*n_in);
+                break;
+            case 0x18:  // 1 2 0
+                STR_SPLIT_1P(pv->v[0], pv->v[1], k[0]);
+                in->v[0]        = pv->v[1];
+                in->v[1]        = pv->v[2];
+                in->v[2]        = sp[0];
+                ++(*n_in);
+                break;
+
+            // 1 intersection, 1 triangle above, 1 triangle below, clockwise
+            case 0x24:  // 2 1 0
+                STR_SPLIT_1P(pv->v[0], pv->v[2], k[0]);
+                in->v[0]        = pv->v[2];
+                in->v[1]        = sp[0];
+                in->v[2]        = pv->v[1];
+                ++(*n_in);
+                break;
+            case 0x12:  // 1 0 2
+                STR_SPLIT_1P(pv->v[0], pv->v[1], k[0]);
+                in->v[0]        = pv->v[0];
+                in->v[1]        = sp[0];
+                in->v[2]        = pv->v[2];
+                ++(*n_in);
+                break;
+            case 0x09:  // 0 2 1
+                STR_SPLIT_1P(pv->v[1], pv->v[2], k[1]);
+                in->v[0]        = pv->v[1];
+                in->v[1]        = sp[0];
+                in->v[2]        = pv->v[0];
+                ++(*n_in);
+                break;
+
+            // 2 intersections, 1 triangle below, 2 triangles above
+            case 0x02:  // 0 0 2
+                STR_SPLIT_2P(pv->v[0], pv->v[1], pv->v[2], k[0]);
+                in->v[0]        = pv->v[0];
+                in->v[1]        = sp[0];
+                in->v[2]        = sp[1];
+                ++(*n_in);
+                break;
+            case 0x08:  // 0 2 0
+                STR_SPLIT_2P(pv->v[1], pv->v[0], pv->v[2], k[1]);
+                in->v[0]        = pv->v[1];
+                in->v[1]        = sp[1];
+                in->v[2]        = sp[0];
+                ++(*n_in);
+                break;
+            case 0x20:  // 2 0 0
+                STR_SPLIT_2P(pv->v[2], pv->v[0], pv->v[1], k[2]);
+                in->v[0]        = pv->v[2];
+                in->v[1]        = sp[0];
+                in->v[2]        = sp[1];
+                ++(*n_in);
+                break;
+
+            // 2 intersections, 1 triangle above, 2 triangles below
+            case 0x28:  // 2 2 0
+                STR_SPLIT_2P(pv->v[0], pv->v[1], pv->v[2], k[0]);
+                in[0].v[0]      = pv->v[1];
+                in[0].v[1]      = sp[1];
+                in[0].v[2]      = sp[0];
+                in[1].v[0]      = pv->v[2];
+                in[1].v[1]      = sp[1];
+                in[1].v[2]      = pv->v[1];
+                (*n_in)        += 2;
+                break;
+
+            case 0x22:  // 2 0 2
+                STR_SPLIT_2P(pv->v[1], pv->v[0], pv->v[2], k[1]);
+                in[0].v[0]      = pv->v[2];
+                in[0].v[1]      = sp[0];
+                in[0].v[2]      = sp[1];
+                in[1].v[0]      = pv->v[0];
+                in[1].v[1]      = sp[0];
+                in[1].v[2]      = pv->v[2];
+                (*n_in)        += 2;
+                break;
+
+            case 0x0a:  // 0 2 2
+                STR_SPLIT_2P(pv->v[2], pv->v[0], pv->v[1], k[2]);
+                in[0].v[0]      = pv->v[0];
+                in[0].v[1]      = sp[1];
+                in[0].v[2]      = sp[0];
+                in[1].v[0]      = pv->v[1];
+                in[1].v[1]      = sp[1];
+                in[1].v[2]      = pv->v[0];
+                (*n_in)        += 2;
+                break;
+
+            default:
+                break;
+        }
+
+        #undef STR_SPLIT_1P
+        #undef STR_SPLIT_2P
+    }
+
+    size_t colocation_x3_v1p3(const vector3d_t *pl, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        float k[3];
+
+        k[0]    = p0->x * pl->dx + p0->y * pl->dy + p0->z * pl->dz + p0->w * pl->dw;
+        k[1]    = p1->x * pl->dx + p1->y * pl->dy + p1->z * pl->dz + p1->w * pl->dw;
+        k[2]    = p2->x * pl->dx + p2->y * pl->dy + p2->z * pl->dz + p2->w * pl->dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        return tag;
+    }
+
+    size_t colocation_x3_v1pv(const vector3d_t *pl, const point3d_t *pv)
+    {
+        float k[3];
+
+        k[0]    = pv[0].x * pl->dx + pv[0].y * pl->dy + pv[0].z * pl->dz + pv[0].w * pl->dw;
+        k[1]    = pv[1].x * pl->dx + pv[1].y * pl->dy + pv[1].z * pl->dz + pv[1].w * pl->dw;
+        k[2]    = pv[2].x * pl->dx + pv[2].y * pl->dy + pv[2].z * pl->dz + pv[2].w * pl->dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        return tag;
+    }
+
+    size_t colocation_x2_v1p2(const vector3d_t *pl, const point3d_t *p0, const point3d_t *p1)
+    {
+        float k[2];
+
+        k[0]    = p0->x * pl->dx + p0->y * pl->dy + p0->z * pl->dz + p0->w * pl->dw;
+        k[1]    = p1->x * pl->dx + p1->y * pl->dy + p1->z * pl->dz + p1->w * pl->dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+
+        return tag;
+    }
+
+    size_t colocation_x2_v1pv(const vector3d_t *pl, const point3d_t *pv)
+    {
+        float k[2];
+
+        k[0]    = pv[0].x * pl->dx + pv[0].y * pl->dy + pv[0].z * pl->dz + pv[0].w * pl->dw;
+        k[1]    = pv[1].x * pl->dx + pv[1].y * pl->dy + pv[1].z * pl->dz + pv[1].w * pl->dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+
+        return tag;
+    }
+
+    size_t colocation_x3_v3p1(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p)
+    {
+        float k[3];
+
+        k[0]        = p->x*v0->dx + p->y*v0->dy + p->z*v0->dz + v0->dw;
+        k[1]        = p->x*v1->dx + p->y*v1->dy + p->z*v1->dz + v1->dw;
+        k[2]        = p->x*v2->dx + p->y*v2->dy + p->z*v2->dz + v2->dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        return tag;
+    }
+
+    size_t colocation_x3_vvp1(const vector3d_t *vv, const point3d_t *p)
+    {
+        float k[3];
+
+        k[0]        = p->x*vv[0].dx + p->y*vv[0].dy + p->z*vv[0].dz + vv[0].dw;
+        k[1]        = p->x*vv[1].dx + p->y*vv[1].dy + p->z*vv[1].dz + vv[1].dw;
+        k[2]        = p->x*vv[2].dx + p->y*vv[2].dy + p->z*vv[2].dz + vv[2].dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        return tag;
+    }
+
+    void unit_vector_p1p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        point3d_t p;
+        p.x     = (p0->x + p1->x + p2->x) / 3.0f;
+        p.y     = (p0->y + p1->y + p2->y) / 3.0f;
+        p.z     = (p0->z + p1->z + p2->z) / 3.0f;
+
+        v->dx   = p.x - sp->x;
+        v->dy   = p.y - sp->y;
+        v->dz   = p.z = sp->z;
+        v->dw   = 0.0f;
+
+        float   w = sqrtf(v->dx*v->dx + v->dy*v->dy + v->dz*v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+    }
+
+    void unit_vector_p1pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
+    {
+        point3d_t p;
+        p.x     = (pv[0].x + pv[1].x + pv[2].x) / 3.0f;
+        p.y     = (pv[0].y + pv[1].y + pv[2].y) / 3.0f;
+        p.z     = (pv[0].z + pv[1].z + pv[2].z) / 3.0f;
+
+        v->dx   = p.x - sp->x;
+        v->dy   = p.y - sp->y;
+        v->dz   = p.z = sp->z;
+        v->dw   = 0.0f;
+
+        float   w = sqrtf(v->dx*v->dx + v->dy*v->dy + v->dz*v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
     }
 }
 

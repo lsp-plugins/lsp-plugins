@@ -18,6 +18,9 @@ namespace lsp
 
         class CtlExpression: public CtlPortListener
         {
+            private:
+                CtlExpression & operator = (const CtlExpression &);
+
             protected:
                 enum operation_t
                 {
@@ -201,7 +204,7 @@ namespace lsp
                 inline binding_t  *parse_expression(tokenizer_t *t, size_t flags) { return parse_ternary(t, flags); }
 
             public:
-                CtlExpression();
+                explicit CtlExpression();
                 virtual ~CtlExpression();
 
             public:

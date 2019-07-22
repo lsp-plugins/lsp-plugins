@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Gate
-    static const int gate_classes[] = { C_DYNAMICS, C_GATE, -1 };
+    static const int gate_classes[] = { C_GATE, -1 };
 
     static const char *gate_sc_modes[] =
     {
@@ -229,8 +229,10 @@ namespace lsp
         LSP_GATE_BASE + 0,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         gate_mono_ports,
         "dynamics/gate/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -245,8 +247,10 @@ namespace lsp
         LSP_GATE_BASE + 1,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         gate_stereo_ports,
         "dynamics/gate/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -261,8 +265,10 @@ namespace lsp
         LSP_GATE_BASE + 2,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         gate_lr_ports,
         "dynamics/gate/single/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -277,8 +283,10 @@ namespace lsp
         LSP_GATE_BASE + 3,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         gate_ms_ports,
         "dynamics/gate/single/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -294,8 +302,10 @@ namespace lsp
         LSP_GATE_BASE + 4,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         sc_gate_mono_ports,
         "dynamics/gate/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -310,8 +320,10 @@ namespace lsp
         LSP_GATE_BASE + 5,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         sc_gate_stereo_ports,
         "dynamics/gate/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -326,8 +338,10 @@ namespace lsp
         LSP_GATE_BASE + 6,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         sc_gate_lr_ports,
         "dynamics/gate/single/lr.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -342,8 +356,10 @@ namespace lsp
         LSP_GATE_BASE + 7,
         LSP_VERSION(1, 0, 1),
         gate_classes,
+        E_INLINE_DISPLAY,
         sc_gate_ms_ports,
         "dynamics/gate/single/ms.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

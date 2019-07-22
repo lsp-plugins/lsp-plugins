@@ -8,7 +8,7 @@
 #ifndef DSP_DSP_H_
 #define DSP_DSP_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 #include <core/debug.h>
 
 #include <stddef.h>
@@ -37,6 +37,7 @@
 #include <dsp/common/mix.h>
 #include <dsp/common/misc.h>
 #include <dsp/common/convolution.h>
+#include <dsp/common/coding.h>
 
 #undef __DSP_DSP_DEFS
 

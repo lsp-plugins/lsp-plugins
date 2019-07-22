@@ -10,6 +10,11 @@
 
 namespace lsp
 {
+    enum
+    {
+        LSP_LV2_PRIVATE     = 1 << 0
+    };
+
     typedef struct lv2_path_t: public path_t
     {
         enum flags_t
@@ -20,8 +25,11 @@ namespace lsp
         };
 
         atomic_t    nRequest;
+        atomic_t    nChanges;
         size_t      nState;
+        size_t      nFlags;
         bool        bRequest;
+        size_t      sFlags;
         char        sPath[PATH_MAX];
         char        sRequest[PATH_MAX];
 
@@ -29,7 +37,9 @@ namespace lsp
         {
             atomic_init(nRequest);
             nState      = S_EMPTY;
+            nFlags      = 0;
             bRequest    = false;
+            sFlags      = 0;
             sPath[0]    = '\0';
             sRequest[0] = '\0';
         }
@@ -39,10 +49,16 @@ namespace lsp
             return sPath;
         }
 
+        virtual size_t get_flags()
+        {
+            return nFlags;
+        }
+
         virtual void accept()
         {
             if (nState != S_PENDING)
                 return;
+            atomic_add(&nChanges, 1);
             nState  = S_ACCEPTED;
         }
 
@@ -66,9 +82,11 @@ namespace lsp
             if (atomic_trylock(nRequest))
             {
                 // Copy the data
-                strcpy(sPath, sRequest);
+                ::strncpy(sPath, sRequest, PATH_MAX);
                 sPath[PATH_MAX-1]   = '\0';
                 sRequest[0]         = '\0';
+                nFlags              = sFlags;
+                sFlags              = 0;
                 bRequest            = false;
                 nState              = S_PENDING;
 
@@ -83,32 +101,36 @@ namespace lsp
             return (nState == S_ACCEPTED);
         }
 
-        void submit(const char *path, size_t len)
+        /**
+         * This is non-RT-safe method to submit new path value to the RT thread
+         * @param path path string to submit
+         * @param len length of the path string
+         * @param flags additional flags
+         */
+        void submit(const char *path, size_t len, size_t flags = 0)
         {
             // Determine size of path
             size_t count = (len >= PATH_MAX) ? PATH_MAX - 1 : len;
 
             // Wait until the queue is empty
-            struct timespec spec = { 0, 1 * 1000 * 1000 }; // 1 msec
             while (true)
             {
                 // Try to acquire critical section, this will always be true when using LV2 atom transport
                 if (atomic_trylock(nRequest))
                 {
                     // Copy data to request
-                    memcpy(sRequest, path, count);
+                    ::memcpy(sRequest, path, count);
                     sRequest[count]     = '\0';
+                    sFlags              = flags;
                     bRequest            = true; // Mark request pending
 
-                    // Release critical section
+                    // Release critical section and leave the cycle
                     atomic_unlock(nRequest);
-
-                    // Leave the cycle
                     break;
                 }
 
                 // Wait for a while, this won't happen when lv2
-                nanosleep(&spec, NULL);
+                ipc::Thread::sleep(10);
             }
         }
 

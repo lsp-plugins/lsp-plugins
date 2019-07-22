@@ -6,6 +6,7 @@
 #include <metadata/plugins.h>
 
 #include <plugins/plugins.h>
+#include <utils/common.h>
 
 namespace lsp
 {
@@ -92,13 +93,13 @@ namespace lsp
         fprintf(out, "\t\t\t'description' => '%s',\n", m->description);
         fprintf(out, "\t\t\t'acronym' => '%s',\n", m->acronym);
 
-        #define MOD_PLUGIN(x) \
-            if (&x::metadata == m) \
+        #define MOD_PLUGIN(plugin, ui) \
+            if (&plugin::metadata == m) \
             { \
                 if (m->ladspa_id > 0) \
                     fprintf(out, "\t\t\t'fmt_ladspa' => '%d',\n", m->ladspa_id); \
                 if (m->lv2_uid != NULL) \
-                    fprintf(out, "\t\t\t'fmt_lv2' => '%s',\n", LSP_PLUGIN_URI(lv2, x)); \
+                    fprintf(out, "\t\t\t'fmt_lv2' => '%s',\n", LSP_PLUGIN_URI(lv2, plugin)); \
                 if (m->vst_uid != NULL) \
                     fprintf(out, "\t\t\t'fmt_vst' => '%s',\n", m->vst_uid); \
                 fprintf(out, "\t\t\t'fmt_jack' => true,\n"); \
@@ -134,7 +135,7 @@ namespace lsp
 
         // Output plugins
         size_t id = 0;
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if ((id++) > 0) \
                 fprintf(out, ",\n"); \
             gen_plugin_php_descriptor(out, &plugin::metadata, #plugin);

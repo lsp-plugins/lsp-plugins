@@ -322,7 +322,7 @@ namespace lsp
 //            #endif /* LSP_TRACE */
 
             // Draw background
-            ssize_t pr = sqrtf(sSize.nWidth*sSize.nWidth + sSize.nHeight*sSize.nHeight);
+            ssize_t pr = (nBorder + 1) >> 1;
             s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
                     pr, pr, sSize.nWidth - 2*pr, sSize.nHeight - 2*pr,
                     sBgColor);

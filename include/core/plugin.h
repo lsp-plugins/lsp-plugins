@@ -45,6 +45,8 @@ namespace lsp
             inline bool active() const                  { return bActivated;        };
             inline bool ui_active() const               { return bUIActive;         };
 
+            inline IWrapper *wrapper()                  { return pWrapper;          };
+
             inline void activate_ui()
             {
                 if (!bUIActive)
@@ -132,6 +134,8 @@ namespace lsp
             virtual void process(size_t samples);
 
             /** Draw inline display on canvas
+             * This feature will not work unless E_INLINE_DISPLAY extension is
+             * specified in plugin's metadata
              *
              * @param cv canvas
              * @param width maximum canvas width
@@ -149,6 +153,33 @@ namespace lsp
              *
              */
             virtual void deactivated();
+
+            /**
+             * Lock the KVT storage
+             * @return pointer to KVT storage or NULL
+             */
+            virtual KVTStorage *kvt_lock();
+
+            /**
+             * Try to lock the KVT storage
+             * @return pointer to KVT storage or NULL if not locked/not supported
+             */
+            virtual KVTStorage *kvt_trylock();
+
+            /**
+             * Release the KVT storage
+             */
+            virtual void kvt_release();
+
+            /** Callback for case when plugin's state has been saved
+             *
+             */
+            virtual void state_saved();
+
+            /** Callback for case when plugin's state has been loaded
+             *
+             */
+            virtual void state_loaded();
     };
 
 }

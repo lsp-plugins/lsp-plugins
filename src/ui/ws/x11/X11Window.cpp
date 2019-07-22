@@ -20,12 +20,21 @@ namespace lsp
     {
         namespace x11
         {
-            X11Window::X11Window(X11Display *core, size_t screen, ::Window wnd, IEventHandler *handler): INativeWindow(core, handler)
+            X11Window::X11Window(X11Display *core, size_t screen, ::Window wnd, IEventHandler *handler, bool wrapper): INativeWindow(core, handler)
             {
                 lsp_trace("hwindow = %x", int(wnd));
                 pX11Display             = core;
-                hWindow                 = 0;
-                hParent                 = wnd;
+                bWrapper                = wrapper;
+                if (wrapper)
+                {
+                    hWindow                 = wnd;
+                    hParent                 = None;
+                }
+                else
+                {
+                    hWindow                 = 0;
+                    hParent                 = wnd;
+                }
                 nScreen                 = screen;
                 pSurface                = NULL;
                 enBorderStyle           = BS_SIZABLE;
@@ -59,111 +68,133 @@ namespace lsp
             {
                 Display *dpy = pX11Display->x11display();
 
-                // Try to create window
-                pX11Display->sync();
-
-                // Calculate window constraints
-                calc_constraints(&sSize, &sSize);
-
-                // Create window
-                Window wnd = 0;
-
-                if (hParent > 0)
+                if (bWrapper)
                 {
-                    XWindowAttributes atts;
-                    XGetWindowAttributes(pX11Display->x11display(), hParent, &atts);
-                    nScreen = pX11Display->get_screen(atts.root);
+                    if (!pX11Display->addWindow(this))
+                        return STATUS_NO_MEM;
 
-                    wnd = XCreateWindow(
-                        dpy, hParent,
-                        sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
-                        0, 0, CopyFromParent, CopyFromParent, 0, NULL);
+                    // Now select input for the handle
+                    lsp_trace("Issuing XSelectInput");
+                    XSelectInput(dpy, hWindow,
+                        KeyPressMask |
+                        KeyReleaseMask |
+                        ButtonPressMask |
+                        ButtonReleaseMask |
+                        EnterWindowMask |
+                        LeaveWindowMask |
+                        PointerMotionMask |
+        //                PointerMotionHintMask |
+                        Button1MotionMask |
+                        Button2MotionMask |
+                        Button3MotionMask |
+                        Button4MotionMask |
+                        Button5MotionMask |
+                        ButtonMotionMask |
+                        KeymapStateMask |
+                        ExposureMask |
+                        StructureNotifyMask |
+                        FocusChangeMask |
+                        PropertyChangeMask
+                    );
+                    pX11Display->flush();
                 }
                 else
                 {
-                    size_t n = pX11Display->screens();
-                    wnd = (nScreen < n) ? RootWindow(dpy, nScreen) : pX11Display->x11root();
-                    nScreen = pX11Display->get_screen(wnd);
+                    // Try to create window
+                    pX11Display->sync();
 
-                    wnd = XCreateWindow(
-                        dpy, wnd,
-                        sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
-                        0, 0, CopyFromParent, CopyFromParent, 0, NULL);
-                }
+                    // Calculate window constraints
+                    calc_constraints(&sSize, &sSize);
 
-                lsp_trace("wnd=%x, external=%d, external_id=%x", int(wnd), int(hParent > 0), int(hParent));
-                if (wnd <= 0)
-                    return STATUS_UNKNOWN_ERR;
-                pX11Display->flush();
+                    // Create window
+                    Window wnd = 0;
 
-//                // Reparent window
-//                if (hParent > 0)
-//                {
-//                    lsp_trace("Performing reparent...");
-//                    XResizeWindow(dpy, hParent, sSize.nWidth, sSize.nHeight);
-//                    XReparentWindow(dpy, wnd, hParent, 0, 0);
-//                    pX11Display->sync();
-//                }
+                    if (hParent > 0)
+                    {
+                        XWindowAttributes atts;
+                        XGetWindowAttributes(pX11Display->x11display(), hParent, &atts);
+                        nScreen = pX11Display->get_screen(atts.root);
 
-                // Get protocols
-                lsp_trace("Issuing XSetWMProtocols");
-                Atom atom_close = pX11Display->atoms().X11_WM_DELETE_WINDOW;
-                XSetWMProtocols(dpy, wnd, &atom_close, 1);
-                pX11Display->flush();
+                        wnd = XCreateWindow(
+                            dpy, hParent,
+                            sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                            0, 0, CopyFromParent, CopyFromParent, 0, NULL);
+                    }
+                    else
+                    {
+                        size_t n = pX11Display->screens();
+                        wnd = (nScreen < n) ? RootWindow(dpy, nScreen) : pX11Display->x11root();
+                        nScreen = pX11Display->get_screen(wnd);
 
-                // Now create X11Window instance
-                if (!pX11Display->addWindow(this))
-                {
-                    XDestroyWindow(dpy, wnd);
+                        wnd = XCreateWindow(
+                            dpy, wnd,
+                            sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                            0, 0, CopyFromParent, CopyFromParent, 0, NULL);
+                    }
+
+                    lsp_trace("wnd=%x, external=%d, external_id=%x", int(wnd), int(hParent > 0), int(hParent));
+                    if (wnd <= 0)
+                        return STATUS_UNKNOWN_ERR;
                     pX11Display->flush();
-                    return STATUS_NO_MEM;
+
+                    // Get protocols
+                    lsp_trace("Issuing XSetWMProtocols");
+                    Atom atom_close = pX11Display->atoms().X11_WM_DELETE_WINDOW;
+                    XSetWMProtocols(dpy, wnd, &atom_close, 1);
+                    pX11Display->flush();
+
+                    // Now create X11Window instance
+                    if (!pX11Display->addWindow(this))
+                    {
+                        XDestroyWindow(dpy, wnd);
+                        pX11Display->flush();
+                        return STATUS_NO_MEM;
+                    }
+
+                    // Now select input for new handle
+                    lsp_trace("Issuing XSelectInput");
+                    XSelectInput(dpy, wnd,
+                        KeyPressMask |
+                        KeyReleaseMask |
+                        ButtonPressMask |
+                        ButtonReleaseMask |
+                        EnterWindowMask |
+                        LeaveWindowMask |
+                        PointerMotionMask |
+        //                PointerMotionHintMask |
+                        Button1MotionMask |
+                        Button2MotionMask |
+                        Button3MotionMask |
+                        Button4MotionMask |
+                        Button5MotionMask |
+                        ButtonMotionMask |
+                        KeymapStateMask |
+                        ExposureMask |
+        //                VisibilityChangeMask |
+                        StructureNotifyMask |
+        //                ResizeRedirectMask |
+                        SubstructureNotifyMask |
+                        SubstructureRedirectMask |
+                        FocusChangeMask |
+                        PropertyChangeMask |
+                        ColormapChangeMask |
+                        OwnerGrabButtonMask
+                    );
+                    pX11Display->flush();
+
+                    sMotif.flags        = MWM_HINTS_FUNCTIONS | MWM_HINTS_DECORATIONS | MWM_HINTS_INPUT_MODE | MWM_HINTS_STATUS;
+                    sMotif.functions    = MWM_FUNC_ALL;
+                    sMotif.decorations  = MWM_DECOR_ALL;
+                    sMotif.input_mode   = MWM_INPUT_MODELESS;
+                    sMotif.status       = 0;
+
+                    hWindow = wnd;
+
+                    // Initialize window border style and actions
+                    set_border_style(BS_SIZABLE);
+                    set_window_actions(WA_ALL);
+                    set_mouse_pointer(MP_DEFAULT);
                 }
-
-                // Now select input for new handle
-                lsp_trace("Issuing XSelectInput");
-                XSelectInput(dpy, wnd,
-                    KeyPressMask |
-                    KeyReleaseMask |
-                    ButtonPressMask |
-                    ButtonReleaseMask |
-                    EnterWindowMask |
-                    LeaveWindowMask |
-                    PointerMotionMask |
-    //                PointerMotionHintMask |
-                    Button1MotionMask |
-                    Button2MotionMask |
-                    Button3MotionMask |
-                    Button4MotionMask |
-                    Button5MotionMask |
-                    ButtonMotionMask |
-                    KeymapStateMask |
-                    ExposureMask |
-    //                VisibilityChangeMask |
-                    StructureNotifyMask |
-    //                ResizeRedirectMask |
-                    SubstructureNotifyMask |
-                    SubstructureRedirectMask |
-                    FocusChangeMask |
-                    PropertyChangeMask |
-                    ColormapChangeMask |
-                    OwnerGrabButtonMask
-                );
-                pX11Display->flush();
-
-                sMotif.flags        = MWM_HINTS_FUNCTIONS | MWM_HINTS_DECORATIONS | MWM_HINTS_INPUT_MODE | MWM_HINTS_STATUS;
-                sMotif.functions    = MWM_FUNC_ALL;
-                sMotif.decorations  = MWM_DECOR_ALL;
-                sMotif.input_mode   = MWM_INPUT_MODELESS;
-                sMotif.status       = 0;
-
-//                XKeysymToKeycode(dpy, XK_F1); // To receive MappingNotify event
-
-                hWindow = wnd;
-
-                // Initialize window border style and actions
-                set_border_style(BS_SIZABLE);
-                set_window_actions(WA_ALL);
-                set_mouse_pointer(MP_DEFAULT);
 
                 lsp_trace("init ok");
 
@@ -182,20 +213,28 @@ namespace lsp
 
             void X11Window::destroy()
             {
-                // Drop surface
-                drop_surface();
-
-                // Remove window from registry
-                if (pX11Display != NULL)
-                    pX11Display->remove_window(this);
-
-                // Destroy window
-                if (hWindow > 0)
+                if (!bWrapper)
                 {
-                    XDestroyWindow(pX11Display->x11display(), hWindow);
-                    hWindow = 0;
+                    // Drop surface
+                    drop_surface();
+
+                    // Remove window from registry
+                    if (pX11Display != NULL)
+                        pX11Display->remove_window(this);
+
+                    // Destroy window
+                    if (hWindow > 0)
+                    {
+                        XDestroyWindow(pX11Display->x11display(), hWindow);
+                        hWindow = 0;
+                    }
+                    pX11Display->sync();
                 }
-                pX11Display->sync();
+                else
+                {
+                    hWindow = None;
+                    hParent = None;
+                }
             }
 
             void X11Window::calc_constraints(realize_t *dst, const realize_t *req)
@@ -214,6 +253,8 @@ namespace lsp
 
             ISurface *X11Window::get_surface()
             {
+                if (bWrapper)
+                    return NULL;
                 return pSurface;
             }
 
@@ -272,6 +313,9 @@ namespace lsp
                 {
                     case UIE_SHOW:
                     {
+                        if (bWrapper)
+                            break;
+
                         // Drop previously existed drawing surface
                         drop_surface();
 
@@ -284,6 +328,9 @@ namespace lsp
 
                     case UIE_HIDE:
                     {
+                        if (bWrapper)
+                            break;
+
                         // Drop previously existed drawing surface
                         drop_surface();
                         break;
@@ -307,6 +354,9 @@ namespace lsp
 
                     case UIE_RESIZE:
                     {
+                        if (bWrapper)
+                            break;
+
                         lsp_trace("new window location = %d x %d, size = %d x %d",
                                 int(ev->nLeft), int(ev->nTop),
                                 int(ev->nWidth), int(ev->nHeight));
@@ -688,6 +738,16 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            status_t X11Window::grab_events()
+            {
+                if (!(nFlags & F_GRABBING))
+                {
+                    pX11Display->grab_events(this);
+                    nFlags |= F_GRABBING;
+                }
+                return STATUS_OK;
+            }
+
             status_t X11Window::show(INativeWindow *over)
             {
                 if (hWindow == 0)
@@ -720,8 +780,8 @@ namespace lsp
                 {
                     case BS_POPUP:
                     case BS_COMBO:
-                        pX11Display->grab_events(this);
-                        nFlags |= F_GRABBING;
+//                        pX11Display->grab_events(this);
+//                        nFlags |= F_GRABBING;
                         break;
                     case BS_DIALOG:
                         if (wnd != NULL)

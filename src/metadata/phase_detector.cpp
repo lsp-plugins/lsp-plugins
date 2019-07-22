@@ -61,7 +61,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int phase_detector_classes[] = { C_ANALYSER, C_UTILITY, -1 };
+    static const int phase_detector_classes[] = { C_ANALYSER, -1 };
 
     const plugin_metadata_t  phase_detector_metadata::metadata =
     {
@@ -74,8 +74,10 @@ namespace lsp
         LSP_PHASE_DETECTOR_BASE,
         LSP_VERSION(1, 0, 0),
         phase_detector_classes,
+        E_INLINE_DISPLAY,
         phase_detector_ports,
         "util/phase_detector.xml",
+        NULL,
         NULL
     };
 

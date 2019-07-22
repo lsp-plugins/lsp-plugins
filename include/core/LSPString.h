@@ -39,14 +39,14 @@ namespace lsp
             bool resize_temp(size_t n) const;
             bool grow_temp(size_t n) const;
 
-            static inline lsp_wchar_t *xmalloc(size_t size) { return reinterpret_cast<lsp_wchar_t *>(malloc(size * sizeof(lsp_wchar_t))); }
-            static inline lsp_wchar_t *xrealloc(lsp_wchar_t * ptr, size_t size) { return reinterpret_cast<lsp_wchar_t *>(realloc(ptr, size * sizeof(lsp_wchar_t))); };
-            static inline void xfree(lsp_wchar_t *ptr) { free(ptr); }
-            static inline void xmove(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { memmove(dst, src, n * sizeof(lsp_wchar_t)); }
-            static inline void xcopy(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { memcpy(dst, src, n * sizeof(lsp_wchar_t)); }
+            static inline lsp_wchar_t *xmalloc(size_t size) { return reinterpret_cast<lsp_wchar_t *>(::malloc(size * sizeof(lsp_wchar_t))); }
+            static inline lsp_wchar_t *xrealloc(lsp_wchar_t * ptr, size_t size) { return reinterpret_cast<lsp_wchar_t *>(::realloc(ptr, size * sizeof(lsp_wchar_t))); };
+            static inline void xfree(lsp_wchar_t *ptr) { ::free(ptr); }
+            static inline void xmove(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { ::memmove(dst, src, n * sizeof(lsp_wchar_t)); }
+            static inline void xcopy(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { ::memcpy(dst, src, n * sizeof(lsp_wchar_t)); }
 
 #ifdef ARCH_LE
-            static inline int xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n) { return memcmp(a, b, n * sizeof(lsp_wchar_t)); }
+            static inline int xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n) { return ::memcmp(a, b, n * sizeof(lsp_wchar_t)); }
 #else
             static int xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n);
 #endif /* ARCH_LE */
@@ -178,8 +178,8 @@ namespace lsp
             bool append(const LSPString *src);
             bool append(const LSPString *src, ssize_t first);
             bool append(const LSPString *src, ssize_t first, ssize_t last);
-            inline bool append_ascii(const char *arr) { return append_ascii(arr, strlen(arr)); };
-            inline bool append_utf8(const char *arr) { return append_utf8(arr, strlen(arr)); };
+            inline bool append_ascii(const char *arr) { return append_ascii(arr, ::strlen(arr)); };
+            inline bool append_utf8(const char *arr) { return append_utf8(arr, ::strlen(arr)); };
 
             bool prepend(lsp_wchar_t ch);
             bool prepend(const lsp_wchar_t *arr, size_t n);
@@ -188,8 +188,8 @@ namespace lsp
             bool prepend(const LSPString *src);
             bool prepend(const LSPString *src, ssize_t first);
             bool prepend(const LSPString *src, ssize_t first, ssize_t last);
-            inline bool prepend_ascii(const char *arr) { return prepend_ascii(arr, strlen(arr)); };
-            inline bool prepend_utf8(const char *arr) { return prepend_ascii(arr, strlen(arr)); };
+            inline bool prepend_ascii(const char *arr) { return prepend_ascii(arr, ::strlen(arr)); };
+            inline bool prepend_utf8(const char *arr) { return prepend_ascii(arr, ::strlen(arr)); };
 
             /** Get unicode character at the specified position
              *
@@ -227,6 +227,7 @@ namespace lsp
             bool set(lsp_wchar_t ch);
             inline bool set(char ch)        { return set(lsp_wchar_t(uint8_t(ch))); };
             bool set(ssize_t pos, lsp_wchar_t ch);
+            inline bool set_at(ssize_t pos, lsp_wchar_t ch) { return set(pos, ch); }
             bool set(const lsp_wchar_t *arr, size_t n);
             bool set(const LSPString *src);
             bool set(const LSPString *src, ssize_t first);
@@ -243,10 +244,10 @@ namespace lsp
             bool set_utf16(const lsp_utf16_t *s, size_t n);
             bool set_ascii(const char *s, size_t n);
             bool set_native(const char *s, size_t n, const char *charset = NULL);
-            inline bool set_utf8(const char *s) { return set_utf8(s, strlen(s)); };
-            inline bool set_ascii(const char *s) { return set_ascii(s, strlen(s)); };
-            inline bool set_native(const char *s, const char *charset) { return set_native(s, strlen(s), charset); };
-            inline bool set_native(const char *s) { return set_native(s, strlen(s), NULL); };
+            inline bool set_utf8(const char *s) { return set_utf8(s, ::strlen(s)); };
+            inline bool set_ascii(const char *s) { return set_ascii(s, ::strlen(s)); };
+            inline bool set_native(const char *s, const char *charset) { return set_native(s, ::strlen(s), charset); };
+            inline bool set_native(const char *s) { return set_native(s, ::strlen(s), NULL); };
 
             const char *get_utf8(ssize_t first, ssize_t last) const;
             inline const char *get_utf8(ssize_t first) const { return get_utf8(first, nLength); };
@@ -303,6 +304,7 @@ namespace lsp
             bool starts_with(lsp_wchar_t ch) const;
             inline bool starts_with(char ch) const { return starts_with(lsp_wchar_t(uint8_t(ch))); };
             bool starts_with(const LSPString *src) const;
+            bool starts_with_ascii(const char *src) const;
             bool starts_with_nocase(lsp_wchar_t ch) const;
             inline bool starts_with_nocase(char ch) const { return starts_with_nocase(lsp_wchar_t(uint8_t(ch))); };
             bool starts_with_nocase(const LSPString *src) const;

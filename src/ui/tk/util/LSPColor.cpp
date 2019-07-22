@@ -13,6 +13,12 @@ namespace lsp
     {
         LSPColor::LSPColor()
         {
+            pWidget     = NULL;
+        }
+
+        LSPColor::LSPColor(LSPWidget *widget)
+        {
+            pWidget     = widget;
         }
         
         LSPColor::~LSPColor()
@@ -21,6 +27,8 @@ namespace lsp
 
         void LSPColor::color_changed()
         {
+            if (pWidget != NULL)
+                pWidget->query_draw();
         }
     
     } /* namespace tk */

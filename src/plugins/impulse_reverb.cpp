@@ -21,7 +21,7 @@
 
 namespace lsp
 {
-    static float band_freqs[] =
+    static const float band_freqs[] =
     {
         73.0f,
         156.0f,
@@ -1005,6 +1005,8 @@ namespace lsp
             ssize_t fsamples    = flen - head_cut - tail_cut;
             if (fsamples <= 0)
             {
+                for (size_t j=0; j<channels; ++j)
+                    dsp::fill_zero(f->vThumbs[j], impulse_reverb_base_metadata::MESH_SIZE);
                 s->setLength(0);
                 continue;
             }

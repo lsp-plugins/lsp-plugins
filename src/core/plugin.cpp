@@ -75,5 +75,28 @@ namespace lsp
         return false;
     }
 
+    KVTStorage *plugin_t::kvt_lock()
+    {
+        return (pWrapper != NULL) ? pWrapper->kvt_lock() : NULL;
+    }
+
+    KVTStorage *plugin_t::kvt_trylock()
+    {
+        return (pWrapper != NULL) ? pWrapper->kvt_trylock() : NULL;
+    }
+
+    void plugin_t::kvt_release()
+    {
+        if (pWrapper != NULL)
+            pWrapper->kvt_release();
+    }
+
+    void plugin_t::state_saved()
+    {
+    }
+
+    void plugin_t::state_loaded()
+    {
+    }
 }
 

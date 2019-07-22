@@ -21,6 +21,7 @@
     #include <errno.h>
 #else
     #include <pthread.h>
+    #include <sched.h>
     #include <errno.h>
 #endif
 
@@ -70,7 +71,6 @@ namespace lsp
         {
             private:
                 mutable volatile atomic_t       nLock;      // 1 = locked, 0 = locked
-                mutable volatile atomic_t       nWaiters;   // Number of waiters
                 mutable pthread_t               nThreadId;  // Locked thread identifier
                 mutable atomic_t                nLocks;     // Number of locks by current thread
 
@@ -81,7 +81,6 @@ namespace lsp
                 explicit Mutex()
                 {
                     nLock       = 1;
-                    nWaiters    = 0;
                     nThreadId   = -1;
                     nLocks      = 0;
                 }
@@ -100,19 +99,7 @@ namespace lsp
                 /** Unlock mutex
                  *
                  */
-                inline bool unlock() const
-                {
-                    if (nThreadId != pthread_self())
-                        return false;
-                    if (!(--nLocks))
-                    {
-                        nThreadId       = -1;
-                        nLock           = 1;
-                        if (nWaiters > 0)
-                            syscall(SYS_futex, &nLock, FUTEX_WAKE, 1, NULL, 0, 0);
-                    }
-                    return true;
-                }
+                bool unlock() const;
         };
 #else
         /**
@@ -140,7 +127,13 @@ namespace lsp
                         switch (pthread_mutex_lock(&sMutex))
                         {
                             case 0: return true;
-                            case EBUSY: pthread_yield(); break;
+                            case EBUSY:
+                                #ifdef PLATFORM_SOLARIS
+                                    sched_yield();
+                                #else
+                                    pthread_yield();
+                                #endif /* PLATFORM_SOLARIS */
+                                break;
                             default: return false;
                         }
                     }

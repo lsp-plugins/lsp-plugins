@@ -1,0 +1,8 @@
+# Triangle test
+# (C) Linux Studio Plugins Project
+o Triangle 1
+v -2 -1 -1
+v 2 -1 -1
+v 0 2 -1
+vn 0 0 1
+f 1//1 2//1 3//1

@@ -28,13 +28,15 @@ namespace lsp
 
         enum widget_ctl_t
         {
-            WC_UNKNOWN = -1,//!< W_UNKNOWN
+            WC_UNKNOWN = -1,
+
             WC_ALIGN,
             WC_AXIS,
             WC_BASIS,
             WC_BODY,
             WC_BOX,
             WC_BUTTON,
+            WC_CAPTURE3D,
             WC_CELL,
             WC_CENTER,
             WC_CGROUP,
@@ -58,6 +60,7 @@ namespace lsp
             WC_LABEL,
             WC_LED,
             WC_LISTBOX,
+            WC_LOAD,
             WC_MARKER,
             WC_MESH,
             WC_METER,
@@ -65,15 +68,21 @@ namespace lsp
             WC_PARAM,
             WC_PLUGIN,
             WC_PORT,
+            WC_PROGRESS,
+            WC_SAMPLE,
             WC_SAVE,
             WC_SBAR,
             WC_SEP,
+            WC_SOURCE3D,
+            WC_STATUS,
             WC_SWITCH,
             WC_TEXT,
+            WC_THREADCOMBO,
             WC_TTAP,
             WC_VALUE,
             WC_VBOX,
             WC_VGRID,
+            WC_VIEWER3D,
             WC_VSBAR,
             WC_VSEP,
             WC_WINDOW
@@ -83,112 +92,138 @@ namespace lsp
         enum widget_attribute_t
         {
             A_UNKNOWN = -1,
-            A_WIDTH,
-            A_HEIGHT,
-            A_SIZE,
-            A_TEXT,
-            A_ROWS,
-            A_COLS,
-            A_COLOR,
-            A_BG_COLOR,
-            A_SCALE_COLOR,
-            A_SCALE_HUE_ID,
-            A_SCALE_SAT_ID,
-            A_SCALE_LIGHT_ID,
-            A_BORDER_COLOR,
-            A_TEXT_COLOR,
-            A_FORMAT,
-            A_ID,
-            A_BALANCE,
-            A_INVERT,
-            A_TOGGLE,
-            A_BORDER,
-            A_PADDING,
-            A_PAD_LEFT,
-            A_PAD_TOP,
-            A_PAD_RIGHT,
-            A_PAD_BOTTOM,
-            A_VPOS,
-            A_HPOS,
-            A_VSCALE,
-            A_HSCALE,
-            A_VSPACING,
-            A_HSPACING,
-            A_SPACING,
-            A_ANGLE,
-            A_ASPECT,
-            A_UNITS,
-            A_VALIGN,
-            A_HALIGN,
-            A_RESIZABLE,
-            A_MIN,
-            A_MAX,
-            A_BASIS,
-            A_PARALLEL,
-            A_VALUE,
-            A_VISIBLE,
-            A_VISIBILITY_ID,
-            A_VISIBILITY_KEY,
-            A_PROPORTIONAL,
-            A_EXPAND,
-            A_FILL,
-            A_KEY,
-            A_CENTER,
-            A_LOGARITHMIC,
-            A_HUE_ID,
-            A_SAT_ID,
-            A_LIGHT_ID,
-            A_COORD,
-            A_HEAD_ID,
-            A_TAIL_ID,
-            A_FADEIN_ID,
-            A_FADEOUT_ID,
-            A_LENGTH_ID,
-            A_STATUS_ID,
-            A_MESH_ID,
-            A_DETAILED,
-            A_TRANSPOSE,
-            A_LED,
-            A_REVERSIVE,
-            A_TYPE,
-            A_FONT_SIZE,
-            A_ACTIVITY_ID,
-            A_SCROLL_ID,
-            A_VPOS_ID,
-            A_HPOS_ID,
-            A_SMOOTH,
-            A_PRECISION,
-            A_EDITABLE,
-            A_SAME_LINE,
-            A_OFFSET,
-            A_VISIBILITY,
-            A_STEREO,
-            A_ID2,
-            A_COLOR2,
-            A_HUE2_ID,
-            A_SAT2_ID,
-            A_LIGHT2_ID,
-            A_ACTIVITY2_ID,
-            A_HORIZONTAL,
-            A_VERTICAL,
+
             A_ACTIVITY,
             A_ACTIVITY2,
-            A_STEP,
-            A_TINY_STEP,
-            A_DEFAULT,
-            A_RADIUS,
-            A_URL,
-            A_COMMAND_ID,
-            A_PROGRESS_ID,
-            A_PATH_ID,
-            A_HFILL,
-            A_VFILL,
-            A_FORMAT_ID,
+            A_ACTIVITY2_ID,
+            A_ACTIVITY_ID,
+            A_ANGLE,
+            A_ANGLE_ID,
+            A_ASPECT,
+            A_BALANCE,
+            A_BASIS,
+            A_BG_COLOR,
             A_BIND,
-            A_OPACITY,
-            A_TRANSPARENCY,
+            A_BORDER,
+            A_BORDER_COLOR,
+            A_CENTER,
+            A_COLOR,
+            A_COLOR2,
+            A_COLS,
+            A_COMMAND_ID,
+            A_COORD,
+            A_CURVATURE_ID,
+            A_CYCLE,
+            A_DEFAULT,
+            A_DETAILED,
+            A_DISTANCE_ID,
+            A_DURATION_ID,
+            A_EDITABLE,
+            A_EXPAND,
+            A_FADEIN_ID,
+            A_FADEOUT_ID,
+            A_FILL,
+            A_FONT_SIZE,
+            A_FORMAT,
+            A_FORMAT_ID,
+            A_FOV,
+            A_HALIGN,
+            A_HEAD_ID,
+            A_HEIGHT,
+            A_HEIGHT_ID,
+            A_HFILL,
+            A_HORIZONTAL,
+            A_HPOS,
+            A_HPOS_ID,
+            A_HSCALE,
+            A_HSPACING,
+            A_HUE2_ID,
+            A_HUE_ID,
+            A_HUE_SHIFT,
+            A_ID,
+            A_ID2,
+            A_INVERT,
+            A_KEY,
+            A_KVT_ROOT,
+            A_LED,
+            A_LENGTH,
+            A_LENGTH_ID,
+            A_LIGHT2_ID,
+            A_LIGHT_ID,
+            A_LOGARITHMIC,
+            A_MAX,
+            A_MAX_DURATION_ID,
+            A_MESH_ID,
+            A_MIN,
             A_MODE,
-            A_LENGTH
+            A_MODE_ID,
+            A_OFFSET,
+            A_OPACITY,
+            A_ORIENTATION_ID,
+            A_PAD_BOTTOM,
+            A_PAD_LEFT,
+            A_PAD_RIGHT,
+            A_PAD_TOP,
+            A_PADDING,
+            A_PARALLEL,
+            A_PATH_ID,
+            A_PITCH_ID,
+            A_PRECISION,
+            A_PROGRESS_ID,
+            A_PROPORTIONAL,
+            A_RADIUS,
+            A_RADIUS_ID,
+            A_RESIZABLE,
+            A_REVERSIVE,
+            A_ROLL_ID,
+            A_ROWS,
+            A_SAME_LINE,
+            A_SAT2_ID,
+            A_SAT_ID,
+            A_SCALE_COLOR,
+            A_SCALE_HUE,
+            A_SCALE_HUE_ID,
+            A_SCALE_LIGHT_ID,
+            A_SCALE_SAT_ID,
+            A_SCROLL_ID,
+            A_SIZE,
+            A_SIZE_ID,
+            A_SMOOTH,
+            A_SPACING,
+            A_STATUS_ID,
+            A_STEP,
+            A_STEREO,
+            A_TAIL_ID,
+            A_TEXT,
+            A_TEXT_COLOR,
+            A_TINY_STEP,
+            A_TOGGLE,
+            A_TRANSPARENCY,
+            A_TRANSPOSE,
+            A_TYPE,
+            A_WUID,
+            A_UNITS,
+            A_URL,
+            A_VALIGN,
+            A_VALUE,
+            A_VERTICAL,
+            A_VFILL,
+            A_VISIBILITY,
+            A_VISIBILITY_ID,
+            A_VISIBILITY_KEY,
+            A_VISIBLE,
+            A_VPOS,
+            A_VPOS_ID,
+            A_VSCALE,
+            A_VSPACING,
+            A_WIDTH,
+            A_XPOS_ID,
+            A_XSCALE_ID,
+            A_YAW_ID,
+            A_YPOS_ID,
+            A_YSCALE_ID,
+            A_ZPOS_ID,
+            A_ZSCALE_ID
         };
 
         // Helper functions
@@ -199,10 +234,10 @@ namespace lsp
          */
         widget_ctl_t widget_ctl(const char *name);
 
-        /** Get widget tag
+        /** Get widget tag name
          *
          * @param type widget type
-         * @return widget tag
+         * @return widget tag or NULL if not found
          */
         const char *widget_ctl(widget_ctl_t type);
 
@@ -212,6 +247,13 @@ namespace lsp
          * @return widget attribute
          */
         widget_attribute_t widget_attribute(const char *name);
+
+        /**
+         * Get widget attribute name
+         * @param type attribute type
+         * @return attribute name or NULL if not found
+         */
+        const char *widget_attribute(widget_attribute_t type);
     }
 }
 
@@ -222,6 +264,7 @@ namespace lsp
 #include <ui/ctl/CtlExpression.h>
 #include <ui/ctl/CtlColor.h>
 #include <ui/ctl/CtlPadding.h>
+#include <ui/ctl/CtlKvtListener.h>
 
 // Parsing header
 #include <ui/ctl/parse.h>
@@ -250,7 +293,10 @@ namespace lsp
 #include <ui/ctl/CtlEdit.h>
 #include <ui/ctl/CtlAudioFile.h>
 #include <ui/ctl/CtlSaveFile.h>
+#include <ui/ctl/CtlLoadFile.h>
 #include <ui/ctl/CtlComboGroup.h>
+#include <ui/ctl/CtlProgressBar.h>
+#include <ui/ctl/CtlAudioSample.h>
 
 #include <ui/ctl/CtlGraph.h>
 #include <ui/ctl/CtlAxis.h>
@@ -265,6 +311,10 @@ namespace lsp
 #include <ui/ctl/CtlFraction.h>
 #include <ui/ctl/CtlTempoTap.h>
 
+#include <ui/ctl/CtlViewer3D.h>
+#include <ui/ctl/CtlCapture3D.h>
+#include <ui/ctl/CtlSource3D.h>
+
 // Specials
 #include <ui/ctl/CtlPortAlias.h>
 #include <ui/ctl/CtlSwitchedPort.h>
@@ -274,5 +324,6 @@ namespace lsp
 #include <ui/ctl/CtlPortHandler.h>
 #include <ui/ctl/CtlConfigSource.h>
 #include <ui/ctl/CtlConfigHandler.h>
+#include <ui/ctl/CtlThreadComboBox.h>
 
 #endif /* UI_CTL_CTL_H_ */

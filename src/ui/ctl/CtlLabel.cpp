@@ -191,6 +191,23 @@ namespace lsp
                     lbl->set_text(a_text);
                     break;
                 }
+
+                case CTL_STATUS_CODE:
+                {
+                    status_t code = fValue;
+                    const char *text = get_status(code);
+                    if (status_is_success(code))
+                        init_color(C_STATUS_OK, lbl->font()->color());
+                    else if (status_is_preliminary(code))
+                        init_color(C_STATUS_WARN, lbl->font()->color());
+                    else
+                        init_color(C_STATUS_ERROR, lbl->font()->color());
+                    lbl->set_text(text);
+                    break;
+                }
+
+                default:
+                    break;
             }
         }
 
