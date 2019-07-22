@@ -480,7 +480,7 @@ namespace lsp
 
     const plugin_metadata_t  room_builder_mono_metadata::metadata =
     {
-        "Raumbauer Mono",
+        "Raumbaumeister Mono",
         "Room Builder Mono",
         "RB1M",
         &developers::v_sadovnikov,
@@ -498,7 +498,7 @@ namespace lsp
 
     const plugin_metadata_t  room_builder_stereo_metadata::metadata =
     {
-        "Raumbauer Stereo",
+        "Raumbaumeister Stereo",
         "Room Builder Stereo",
         "RB1S",
         &developers::v_sadovnikov,
