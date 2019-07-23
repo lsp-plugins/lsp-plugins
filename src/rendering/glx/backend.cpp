@@ -304,13 +304,14 @@ namespace lsp
         // Setup current GLX context
         if (_this->bPBuffer)
         {
+            ::glXWaitX();
             ::glXMakeContextCurrent(_this->pDisplay, _this->hPBuffer, _this->hPBuffer, _this->hContext);
             ::glDrawBuffer(GL_FRONT);
         }
         else
         {
+            ::glXWaitX();
             ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
-            TRACK_GL_ERRORS
             ::glDrawBuffer(GL_BACK);
         }
 
@@ -588,9 +589,7 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        ::glFinish();
-        TRACK_GL_ERRORS
-        ::glFlush();
+        ::glXWaitGL();
         TRACK_GL_ERRORS
 
         return STATUS_OK;
@@ -630,9 +629,7 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        ::glFinish();
-        TRACK_GL_ERRORS
-        ::glFlush();
+        ::glXWaitGL();
         TRACK_GL_ERRORS
 
         if (!_this->bPBuffer)
