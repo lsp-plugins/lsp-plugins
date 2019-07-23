@@ -629,12 +629,10 @@ namespace lsp
         if ((_this->pDisplay == NULL) || (!_this->bDrawing))
             return STATUS_BAD_STATE;
 
-        ::glXWaitGL();
-        TRACK_GL_ERRORS
-
         if (!_this->bPBuffer)
             ::glXSwapBuffers(_this->pDisplay, _this->hWnd);
 
+        ::glXWaitGL();
         _this->bDrawing    = false;
 
         return STATUS_OK;
