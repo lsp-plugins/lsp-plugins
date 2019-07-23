@@ -304,14 +304,14 @@ namespace lsp
         // Setup current GLX context
         if (_this->bPBuffer)
         {
-            ::glXWaitX();
             ::glXMakeContextCurrent(_this->pDisplay, _this->hPBuffer, _this->hPBuffer, _this->hContext);
+            ::glXWaitX();
             ::glDrawBuffer(GL_FRONT);
         }
         else
         {
-            ::glXWaitX();
             ::glXMakeCurrent(_this->pDisplay, _this->hWnd, _this->hContext);
+            ::glXWaitX();
             ::glDrawBuffer(GL_BACK);
         }
 
