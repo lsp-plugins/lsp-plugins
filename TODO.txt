@@ -12,6 +12,7 @@
 
 === 1.1.11 ===
 
+* Fixed GLX context synchronization that could lead to crashes on several systems.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
