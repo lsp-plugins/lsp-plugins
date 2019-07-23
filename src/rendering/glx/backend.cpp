@@ -16,25 +16,43 @@
 #include <rendering/glx/backend.h>
 #include <metadata/metadata.h>
 
-static GLint rgba24[]       = { GLX_RGBA, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+static GLint rgba24x32[]    = { GLX_RGBA, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 32, GLX_DOUBLEBUFFER, None };
+static GLint rgba24x24[]    = { GLX_RGBA, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+static GLint rgba16x24[]    = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+static GLint rgba15x24[]    = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 5, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 static GLint rgba16[]       = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None };
 static GLint rgba15[]       = { GLX_RGBA, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 5, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None };
-static GLint rgba[]         = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+static GLint rgbax32[]      = { GLX_RGBA, GLX_DEPTH_SIZE, 32, GLX_DOUBLEBUFFER, None };
+static GLint rgbax24[]      = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+static GLint rgbax16[]      = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None };
+static GLint rgba[]         = { GLX_RGBA, GLX_DOUBLEBUFFER, None };
 
-static int pb_rgba24[]      = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, None };
+static int pb_rgba24x32[]   = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 32, None };
+static int pb_rgba24x24[]   = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8, GLX_ALPHA_SIZE, 8, GLX_DEPTH_SIZE, 24, None };
+static int pb_rgba16x24[]   = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 24, None };
+static int pb_rgba15x24[]   = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 5, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 24, None };
 static int pb_rgba16[]      = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 6, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, None };
 static int pb_rgba15[]      = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_RED_SIZE, 5, GLX_GREEN_SIZE, 5, GLX_BLUE_SIZE, 5, GLX_DEPTH_SIZE, 16, None };
-static int pb_rgba[]        = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_DEPTH_SIZE, 24, None };
+static int pb_rgbax32[]     = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_DEPTH_SIZE, 32, None };
+static int pb_rgbax24[]     = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_DEPTH_SIZE, 24, None };
+static int pb_rgbax16[]     = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, GLX_DEPTH_SIZE, 16, None };
+static int pb_rgba[]        = { GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT, None };
 
 static GLint *glx_visuals[] =
 {
-    rgba24, rgba16, rgba15, rgba,
+    rgba24x32, rgba24x24,
+    rgba16x24, rgba16,
+    rgba15x24, rgba15,
+    rgbax32, rgbax24, rgbax16, rgba,
     NULL
 };
 
 static const int *glx_pb_config[] =
 {
-    pb_rgba24, pb_rgba16, pb_rgba15, pb_rgba,
+    pb_rgba24x32, pb_rgba24x24,
+    pb_rgba16x24, pb_rgba16,
+    pb_rgba15x24, pb_rgba15,
+    pb_rgbax32, pb_rgbax24, pb_rgbax16, pb_rgba,
     NULL
 };
 
@@ -187,6 +205,17 @@ namespace lsp
             _this->pDisplay    = NULL;
             return STATUS_UNSUPPORTED_DEVICE;
         }
+
+#ifdef LSP_TRACE
+        int r, g, b, a, depth;
+        glXGetFBConfigAttrib(_this->pDisplay, fbc[0], GLX_RED_SIZE, &r);
+        glXGetFBConfigAttrib(_this->pDisplay, fbc[0], GLX_GREEN_SIZE, &g);
+        glXGetFBConfigAttrib(_this->pDisplay, fbc[0], GLX_BLUE_SIZE, &b);
+        glXGetFBConfigAttrib(_this->pDisplay, fbc[0], GLX_ALPHA_SIZE, &a);
+        glXGetFBConfigAttrib(_this->pDisplay, fbc[0], GLX_DEPTH_SIZE, &depth);
+        lsp_trace("Choosed FB config: r=%d, g=%d, b=%d, a=%d, depth=%d",
+                r, g, b, a, depth);
+#endif
 
         // Create context
         _this->hContext = ::glXCreateNewContext(_this->pDisplay, fbc[0], GLX_RGBA_TYPE, NULL, GL_TRUE);
