@@ -105,6 +105,9 @@ namespace lsp
                 break;
         }
 
+        lsp_trace("Choosed visual: 0x%lx, red=0x%lx, green=0x%lx, blue=0x%lx",
+                long(vi->visualid), vi->red_mask, vi->green_mask, vi->blue_mask);
+
         if (vi == NULL)
         {
             ::XCloseDisplay(_this->pDisplay);
