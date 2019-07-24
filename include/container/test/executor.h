@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CONTAINER_TEST_EXECUTOR_H_
-#define INCLUDE_CONTAINER_TEST_EXECUTOR_H_
+#ifndef CONTAINER_TEST_EXECUTOR_H_
+#define CONTAINER_TEST_EXECUTOR_H_
 
 #include <container/test/types.h>
 #include <container/test/config.h>
@@ -758,4 +758,4 @@ namespace lsp
 }
 
 
-#endif /* INCLUDE_CONTAINER_TEST_EXECUTOR_H_ */
+#endif /* CONTAINER_TEST_EXECUTOR_H_ */
