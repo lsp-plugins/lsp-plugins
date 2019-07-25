@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <core/LSPString.h>
 #include <data/cvector.h>
-#include <data/cstorage.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
@@ -37,31 +36,26 @@ namespace lsp
                     PSTATUS_EXITED
                 };
 
-#ifdef PLATFORM_WINDOWS
                 typedef struct envvar_t {
-                    WCHAR      *name;
-                    WCHAR      *value;
+                    LSPString   name;
+                    LSPString   value;
                 } envvar_t;
-#else
-                typedef struct envvar_t {
-                    char       *name;
-                    char       *value;
-                };
-#endif
+
             private:
-#ifdef PLATFORM_WINDOWS
-                WCHAR                  *sCommand;
-                cvector<WCHAR>          vArgs;
-                cstorage<envvar_t>      vEnv;
-                PROCESS_INFORMATION     sPI;
-#else
-                char                   *sCommand;
-                cvector<char>           vArgs;
-                cstorage<envvar_t>      vEnv;
-                pid_t                   nPID;
-#endif
+                LSPString               sCommand;
+                cvector<LSPString>      vArgs;
+                cvector<envvar_t>       vEnv;
                 pstatus_t               nStatus;
                 int                     nExitCode;
+
+#ifdef PLATFORM_WINDOWS
+                PROCESS_INFORMATION     sPI;
+#else
+                pid_t                   nPID;
+#endif
+            protected:
+                static void     do_clear_args(cvector<LSPString> *args);
+                static void     do_clear_env(cvector<envvar_t> *env);
 
             public:
                 explicit Process();
@@ -87,56 +81,56 @@ namespace lsp
                  * Get overall number of additional command-line arguments
                  * @return number of additional command-line arguments
                  */
-                size_t      arguments() const;
+                size_t      args() const;
 
                 /**
                  * Add argument at the end of command line
                  * @param value argument value
                  * @return status of operation
                  */
-                status_t    add_argument(const LSPString *value);
+                status_t    add_arg(const LSPString *value);
 
                 /**
                  * Add argument at the end of command line
                  * @param value argument value in UTF-8 encoding
                  * @return status of operation
                  */
-                status_t    add_argument(const char *value);
+                status_t    add_arg(const char *value);
 
                 /**
                  * Set value of argument at the specified place
                  * @param value argument value
                  * @return status of operation
                  */
-                status_t    set_argument(size_t index, const LSPString *value);
+                status_t    set_arg(size_t index, const LSPString *value);
 
                 /**
                  * Set value of argument at the specified place
                  * @param value argument value in UTF-8 encoding
                  * @return status of operation
                  */
-                status_t    set_argument(size_t index, const char *value);
+                status_t    set_arg(size_t index, const char *value);
 
                 /**
                  * Get value of argument at the specified place
                  * @param value pointer to store argument value
                  * @return status of operation
                  */
-                status_t    get_argument(size_t index, LSPString *value);
+                status_t    get_arg(size_t index, LSPString *value);
 
                 /**
                  * Get value of argument at the specified place
                  * @param value pointer to store argument value
                  * @return status of operation
                  */
-                status_t    get_argument(size_t index, char **value);
+                status_t    get_arg(size_t index, char **value);
 
                 /**
                  * Remove the argument at the specified place
                  * @param value pointer to store value of removed argument
                  * @return status of operation
                  */
-                status_t    remove_argument(size_t index, LSPString *value = NULL);
+                status_t    remove_arg(size_t index, LSPString *value = NULL);
 
                 /**
                  * Remove the argument at the specified place
@@ -144,28 +138,34 @@ namespace lsp
                  *        The pointer should be free()'d after use
                  * @return status of operation
                  */
-                status_t    remove_argument(size_t index, char **value = NULL);
+                status_t    remove_arg(size_t index, char **value = NULL);
 
                 /**
                  * Insert argument at the specified position
                  * @param value argument value
                  * @return status of operation
                  */
-                status_t    insert_argument(size_t index, const LSPString *value);
+                status_t    insert_arg(size_t index, const LSPString *value);
 
                 /**
                  * Insert argument at the specified position
                  * @param value argument value in UTF-8 encoding
                  * @return status of operation
                  */
-                status_t    insert_argument(size_t index, const char *value);
+                status_t    insert_arg(size_t index, const char *value);
+
+                /**
+                 * Clear arguments;
+                 * @return status of operation
+                 */
+                status_t    clear_args();
 
             public:
                 /**
-                 * Copy environment variables of the current process
-                 * @return status of operation
+                 * Return number of environment variables
+                 * @return number of environment variables
                  */
-                status_t    copy_env();
+                status_t    envs() const;
 
                 /**
                  * Set value of the specific environment variable
@@ -217,7 +217,39 @@ namespace lsp
                  */
                 status_t    get_env(const char *key, char **value = NULL);
 
+                /**
+                 * Obtain the key and value of environment variable by index
+                 * @param idx the environment variable index
+                 * @param key environment variable key
+                 * @param value environment variable value
+                 * @return status of operation
+                 */
+                status_t    read_env(size_t idx, LSPString *key = NULL, LSPString *value = NULL);
+
+                /**
+                 * Obtain the value of the specific environment variable
+                 * @param idx the environment variable index
+                 * @param key the name of environment variable in UTF-8 encoding
+                 *        The obtained pointer should be free()'d after use
+                 * @param pointer to store value of the environment variable in UTF-8 encoding.
+                 *        The obtained pointer should be free()'d after use
+                 * @return status of operation
+                 */
+                status_t    read_env(size_t idx, char **key = NULL, char **value = NULL);
+
+                /**
+                 * Clear all environment variables
+                 * @return status of operation
+                 */
+                status_t    clear_env();
+
             public:
+                /**
+                 * Copy environment variables of the current process
+                 * @return status of operation
+                 */
+                status_t    copy_env();
+
                 /**
                  * Launch the process
                  * @return status of operation
@@ -238,17 +270,17 @@ namespace lsp
 
                 /**
                  * Wait for the process termination
-                 * @param millis number of milliseconds to wait
+                 * @param millis number of milliseconds to wait, negative value means infinite wait
                  * @return status of operation
                  */
-                status_t    wait(size_t millis);
+                status_t    wait(wsize_t millis);
 
                 /**
                  * Get process exit status
                  * @param code pointer to save exit status
                  * @return status of operation
                  */
-                status_t    exit_code(int *code) const;
+                status_t    exit_code(int *code);
         };
     
     } /* namespace ipc */
