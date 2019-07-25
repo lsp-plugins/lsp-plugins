@@ -704,7 +704,8 @@ namespace lsp
                 XWindowAttributes xwa;
                 Display *dpy = pX11Display->x11display();
                 XGetWindowAttributes(dpy, hWindow, &xwa);
-                XTranslateCoordinates(dpy, hWindow, xwa.root, 0, 0, &x, &y, &child);
+                XTranslateCoordinates(dpy, hWindow, pX11Display->hRootWnd, 0, 0, &x, &y, &child);
+                lsp_trace("xwa = {%d, %d}, xy = {%d, %d}", int(xwa.x), int(xwa.y), int(x), int(y));
 
                 realize->nLeft      = x - xwa.x;
                 realize->nTop       = y - xwa.y;
