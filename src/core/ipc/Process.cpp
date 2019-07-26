@@ -638,14 +638,44 @@ namespace lsp
             return STATUS_OK;
         }
 
+        static void drop_data(cvector<char> *v)
+        {
+            for (size_t i=0, n=v->size(); i<n; ++i)
+            {
+                char *ptr = v->at(i);
+                if (ptr != NULL)
+                    ::free(ptr);
+            }
+            v->flush();
+        }
+
         status_t Process::launch()
         {
             if (nStatus != PSTATUS_CREATED)
                 return STATUS_BAD_STATE;
 
-            cstorage<char> argv;
-            cstorage<char> envp;
+            cvector<char> argv;
+            cvector<char> envp;
+            char *s;
 
+            for (size_t i=0, n=vArgs.size(); i<n; ++i)
+            {
+                LSPString *arg = vArgs.at(i);
+                if (arg == NULL)
+                    continue;
+
+                if ((s = arg->clone_native()) == NULL)
+                {
+                    drop_data(&argv);
+                    return STATUS_NO_MEM;
+                }
+                if (!argv.add(s))
+                {
+                    ::free(s);
+                    drop_data(&argv);
+                    return STATUS_NO_MEM;
+                }
+            }
 
             // TODO: platform-specific stuff
             return STATUS_OK;
