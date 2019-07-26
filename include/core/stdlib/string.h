@@ -16,7 +16,7 @@
 #if defined(PLATFORM_WINDOWS)
     inline char *stpcpy(char *dst, const char *src)
     {
-        size_t len = strlen(src);
+        size_t len = ::strlen(src);
         ::memcpy(dst, src, len + 1);
         return &dst[len];
     }
@@ -26,5 +26,13 @@
         ::memset(dst, 0, count);
     }
 #endif /* PLATFORM_WINDOWS */
+
+    inline void *lsp_memdup(const void *src, size_t count)
+    {
+        void *dst = ::malloc(count);
+        if (count > 0)
+            ::memcpy(dst, src, count);
+        return dst;
+    }
 
 #endif /* INCLUDE_CORE_STDLIB_STRING_H_ */

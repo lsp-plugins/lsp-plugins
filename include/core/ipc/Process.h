@@ -22,15 +22,16 @@ namespace lsp
          */
         class Process
         {
-            private:
-                Process & operator = (const Process &);
-
-            private:
+            public:
                 enum pstatus_t {
                     PSTATUS_CREATED,
                     PSTATUS_RUNNING,
-                    PSTATUS_EXITED
+                    PSTATUS_EXITED,
+                    PSTATUS_ERROR
                 };
+
+            private:
+                Process & operator = (const Process &);
 
                 typedef struct envvar_t {
                     LSPString   name;
@@ -241,6 +242,8 @@ namespace lsp
                 status_t    clear_env();
 
             public:
+                size_t      status();
+
                 /**
                  * Copy environment variables of the current process
                  * @return status of operation
@@ -252,6 +255,12 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    launch();
+
+                /**
+                 * Chech that the object is not in error state
+                 * @return true if object is in not error state
+                 */
+                bool        valid();
 
                 /**
                  * Check that process is in running state

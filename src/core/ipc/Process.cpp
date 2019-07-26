@@ -8,6 +8,8 @@
 #include <core/ipc/Process.h>
 #include <unistd.h>
 #include <string.h>
+#include <spawn.h>
+#include <data/cstorage.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
@@ -29,6 +31,8 @@ namespace lsp
 #endif
             nPID                = 0;
 
+            if (copy_env() != STATUS_OK)
+                nStatus             = PSTATUS_ERROR;
         }
         
         Process::~Process()
@@ -184,10 +188,7 @@ namespace lsp
             if (value == NULL)
                 return STATUS_OK;
 
-            const char *p = ptr->get_utf8();
-            if (p == NULL)
-                return STATUS_NO_MEM;
-            char *dup   = ::strdup(p);
+            char *dup = ptr->clone_utf8();
             if (dup == NULL)
                 return STATUS_NO_MEM;
 
@@ -221,10 +222,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
             if (value != NULL)
             {
-                const char *p = ptr->get_utf8();
-                if (p == NULL)
-                    return STATUS_NO_MEM;
-                char *dup   = ::strdup(p);
+                char *dup = ptr->clone_utf8();
                 if (dup == NULL)
                     return STATUS_NO_MEM;
 
@@ -388,10 +386,7 @@ namespace lsp
                 {
                     if (value != NULL)
                     {
-                        const char *v   = var->value.get_utf8();
-                        if (v == NULL)
-                            return STATUS_NO_MEM;
-                        char *dup       = ::strdup(v);
+                        char *dup       = var->value.clone_utf8();
                         if (dup == NULL)
                             return STATUS_NO_MEM;
                         *value          = dup;
@@ -448,10 +443,7 @@ namespace lsp
                 {
                     if (value != NULL)
                     {
-                        const char *v   = var->value.get_utf8();
-                        if (v == NULL)
-                            return STATUS_NO_MEM;
-                        char *dup       = ::strdup(v);
+                        char *dup       = var->value.clone_utf8();
                         if (dup == NULL)
                             return STATUS_NO_MEM;
                         *value          = dup;
@@ -505,20 +497,15 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             char *tk, *tv;
-            const char *s;
 
             if (key != NULL)
             {
-                s = var->name.get_utf8();
-                tk = (s != NULL) ? ::strdup(s) : NULL;
-                if (tk == NULL)
+                if ((tk = var->name.clone_utf8()) == NULL)
                     return STATUS_NO_MEM;
 
                 if (value != NULL)
                 {
-                    s = var->value.get_utf8();
-                    tv = (s != NULL) ? ::strdup(s) : NULL;
-                    if (tv == NULL)
+                    if ((tv = var->value.clone_utf8()) == NULL)
                     {
                         ::free(tk);
                         return STATUS_NO_MEM;
@@ -531,9 +518,7 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            s = var->value.get_utf8();
-            tv = (s != NULL) ? ::strdup(s) : NULL;
-            if (tv == NULL)
+            if ((tv = var->value.clone_utf8()) == NULL)
                 return STATUS_NO_MEM;
 
             *value = tv;
@@ -548,26 +533,26 @@ namespace lsp
             return STATUS_OK;
         }
 
+        size_t Process::status()
+        {
+            if (nStatus == PSTATUS_RUNNING)
+                wait(0); // Try to update status
+            return nStatus;
+        }
+
         bool Process::exited()
         {
-            if (nStatus == PSTATUS_EXITED)
-                return true;
-            else if (nStatus == PSTATUS_CREATED)
-                return false;
-            status_t res = wait(0);
-            if (res != STATUS_OK)
-                return false;
-            return nStatus == PSTATUS_EXITED;
+            return status() == PSTATUS_EXITED;
         }
 
         bool Process::running()
         {
-            if (nStatus != PSTATUS_RUNNING)
-                return false;
-            status_t res = wait(0);
-            if (res != STATUS_OK)
-                return true;
-            return nStatus == PSTATUS_RUNNING;
+            return status() == PSTATUS_RUNNING;
+        }
+
+        bool Process::valid()
+        {
+            return status() != PSTATUS_ERROR;
         }
 
         status_t Process::exit_code(int *code)
@@ -657,6 +642,10 @@ namespace lsp
         {
             if (nStatus != PSTATUS_CREATED)
                 return STATUS_BAD_STATE;
+
+            cstorage<char> argv;
+            cstorage<char> envp;
+
 
             // TODO: platform-specific stuff
             return STATUS_OK;
