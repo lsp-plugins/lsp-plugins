@@ -131,28 +131,29 @@ namespace lsp
         pData = NULL;
     }
 
-    void LSPString::truncate(size_t size)
+    bool LSPString::truncate(size_t size)
     {
         drop_temp();
         if (size > nCapacity)
-            return;
+            return true;
         if (nLength > size)
             nLength = size;
         if (size > 0)
         {
             lsp_wchar_t *v = xrealloc(pData, size);
             if (v == NULL)
-                return;
+                return false;
             pData       = v;
             nCapacity   = size;
         }
         else
         {
-            free(pData);
+            ::free(pData);
             pData       = NULL;
             nLength     = 0;
             nCapacity   = 0;
         }
+        return true;
     }
 
     bool LSPString::reserve(size_t size)

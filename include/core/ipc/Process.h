@@ -13,10 +13,6 @@
 #include <core/LSPString.h>
 #include <data/cvector.h>
 
-#ifdef PLATFORM_WINDOWS
-    #include <processthreadsapi.h>
-#endif /* PLATFORM_WINDOWS */
-
 namespace lsp
 {
     namespace ipc
@@ -49,13 +45,14 @@ namespace lsp
                 int                     nExitCode;
 
 #ifdef PLATFORM_WINDOWS
-                PROCESS_INFORMATION     sPI;
+                HANDLE                  hProcess;
+                WORD                    nPID;
 #else
                 pid_t                   nPID;
 #endif
             protected:
-                static void     do_clear_args(cvector<LSPString> *args);
-                static void     do_clear_env(cvector<envvar_t> *env);
+                static void     destroy_args(cvector<LSPString> *args);
+                static void     destroy_env(cvector<envvar_t> *env);
 
             public:
                 explicit Process();

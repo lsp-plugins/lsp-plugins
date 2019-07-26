@@ -6,6 +6,13 @@
  */
 
 #include <core/ipc/Process.h>
+#include <unistd.h>
+#include <string.h>
+
+#ifdef PLATFORM_WINDOWS
+    #include <processthreadsapi.h>
+    #include <processenv.h>
+#endif /* PLATFORM_WINDOWS */
 
 namespace lsp
 {
@@ -18,22 +25,19 @@ namespace lsp
             nExitCode           = 0;
 
 #ifdef PLATFORM_WINDOWS
-            sPI.hProcess        = 0;
-            sPI.hThread         = 0;
-            sPI.dwProcessId     = 0;
-            sPI.dwThreadId      = 0;
-#else
-            nPID                = 0;
+            hProcess            = INVALID_HANDLE;
 #endif
+            nPID                = 0;
+
         }
         
         Process::~Process()
         {
-            do_clear_args(&vArgs);
-            do_clear_env(&vEnv);
+            destroy_args(&vArgs);
+            destroy_env(&vEnv);
         }
     
-        void Process::do_clear_args(cvector<LSPString> *args)
+        void Process::destroy_args(cvector<LSPString> *args)
         {
             for (size_t i=0, n=args->size(); i<n; ++i)
             {
@@ -43,7 +47,7 @@ namespace lsp
             args->flush();
         }
 
-        void Process::do_clear_env(cvector<envvar_t> *env)
+        void Process::destroy_env(cvector<envvar_t> *env)
         {
             for (size_t i=0, n=env->size(); i<n; ++i)
             {
@@ -286,7 +290,7 @@ namespace lsp
         {
             if (nStatus != PSTATUS_CREATED)
                 return STATUS_BAD_STATE;
-            do_clear_args(&vArgs);
+            destroy_args(&vArgs);
             return STATUS_OK;
         }
 
@@ -301,6 +305,8 @@ namespace lsp
                 return STATUS_BAD_STATE;
             if ((key == NULL) || (value == NULL))
                 return STATUS_BAD_ARGUMENTS;
+            if (key->index_of('=') >= 0)
+                return STATUS_BAD_FORMAT;
 
             envvar_t *var;
             for (size_t i=0, n=vEnv.size(); i<n; ++i)
@@ -332,6 +338,9 @@ namespace lsp
                 return STATUS_BAD_STATE;
             if ((key == NULL) || (value == NULL))
                 return STATUS_BAD_ARGUMENTS;
+            if (strchr(key, '=') != NULL)
+                return STATUS_BAD_FORMAT;
+
             LSPString k, v;
             if ((!k.set_utf8(key)) || (!v.set_utf8(value)))
                 return STATUS_NO_MEM;
@@ -535,7 +544,7 @@ namespace lsp
         {
             if (nStatus != PSTATUS_CREATED)
                 return STATUS_BAD_STATE;
-            do_clear_env(&vEnv);
+            destroy_env(&vEnv);
             return STATUS_OK;
         }
 
@@ -581,7 +590,66 @@ namespace lsp
 
         status_t Process::copy_env()
         {
-            // TODO: platform-specific stuff
+            cvector<envvar_t> env;
+            LSPString k, v;
+
+        #ifdef PLATFORM_WINDOWS
+            for (WCHAR *item = GetEnvironmentStringsW(); (*item) != 0; )
+            {
+                size_t len  = wcslen(item);
+
+                // Fetch environment variable
+                if (!k.set_utf16(item, len))
+                {
+                    destroy_env(&env);
+                    return STATUS_NO_MEM;
+                }
+                item    += (len + 1); // length + terminating character
+        #else
+            for (char **item=environ; *item != NULL; ++item)
+            {
+                // Fetch environment variable
+                if (!k.set_native(*item))
+                {
+                    destroy_env(&env);
+                    return STATUS_NO_MEM;
+                }
+        #endif /* PLATFORM_WINDOWS */
+
+                // Parse record
+                ssize_t idx = k.index_of('=');
+                if (idx >= 0)
+                {
+                    if (!v.set(&k, idx+1))
+                    {
+                        destroy_env(&env);
+                        return STATUS_NO_MEM;
+                    }
+                    if (!k.truncate(idx))
+                    {
+                        destroy_env(&env);
+                        return STATUS_NO_MEM;
+                    }
+                }
+
+                // Allocate && add env var
+                envvar_t *var = new envvar_t();
+                if ((var == NULL) || (!env.add(var)))
+                {
+                    destroy_env(&env);
+                    return STATUS_NO_MEM;
+                }
+
+                // Store value to env
+                var->name.swap(&k);
+                var->value.swap(&v);
+
+            } // for
+
+            // Commit result
+            vEnv.swap_data(&env);
+            destroy_env(&env);
+
             return STATUS_OK;
         }
 

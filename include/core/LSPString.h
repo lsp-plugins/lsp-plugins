@@ -107,7 +107,7 @@ namespace lsp
              *
              */
             void truncate();
-            void truncate(size_t size);
+            bool truncate(size_t size);
 
             /** Try to reduce memory allocated by the string (remove extra capacity)
              *
