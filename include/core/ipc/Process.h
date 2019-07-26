@@ -50,10 +50,18 @@ namespace lsp
                 WORD                    nPID;
 #else
                 pid_t                   nPID;
-#endif
+#endif /* PLATFORM_WINDOWS */
+
             protected:
                 static void     destroy_args(cvector<LSPString> *args);
                 static void     destroy_env(cvector<envvar_t> *env);
+
+#ifdef PLATFORM_WINDOWS
+#else
+                status_t        build_argv(cvector<char> *dst);
+                status_t        build_envp(cvector<char> *dst);
+                status_t        spawn_process(const char *cmd, char * const *argv, char * const *envp);
+#endif /* PLATFORM_WINDOWS */
 
             public:
                 explicit Process();
@@ -279,7 +287,7 @@ namespace lsp
                  * @param millis number of milliseconds to wait, negative value means infinite wait
                  * @return status of operation
                  */
-                status_t    wait(wsize_t millis);
+                status_t    wait(wssize_t millis);
 
                 /**
                  * Get process exit status

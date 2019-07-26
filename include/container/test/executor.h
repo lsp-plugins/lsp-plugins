@@ -10,7 +10,6 @@
 
 #include <container/test/types.h>
 #include <container/test/config.h>
-#include <data/cstorage.h>
 #include <core/io/charset.h>
 #include <errno.h>
 

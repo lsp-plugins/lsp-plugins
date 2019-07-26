@@ -9,11 +9,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <spawn.h>
+#include <errno.h>
 #include <data/cstorage.h>
+#include <time.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
     #include <processenv.h>
+#else
+    #include <sys/wait.h>
 #endif /* PLATFORM_WINDOWS */
 
 namespace lsp
@@ -535,8 +539,7 @@ namespace lsp
 
         size_t Process::status()
         {
-            if (nStatus == PSTATUS_RUNNING)
-                wait(0); // Try to update status
+            wait(0); // Try to update status
             return nStatus;
         }
 
@@ -572,6 +575,241 @@ namespace lsp
             *code   = nExitCode;
             return STATUS_OK;
         }
+
+        static void drop_data(cvector<char> *v)
+        {
+            for (size_t i=0, n=v->size(); i<n; ++i)
+            {
+                char *ptr = v->at(i);
+                if (ptr != NULL)
+                    ::free(ptr);
+            }
+            v->flush();
+        }
+
+#ifdef PLATFORM_WINDOWS
+#else
+        status_t Process::build_argv(cvector<char> *dst)
+        {
+            char *s;
+
+            for (size_t i=0, n=vArgs.size(); i<n; ++i)
+            {
+                LSPString *arg = vArgs.at(i);
+                if (arg == NULL)
+                    continue;
+
+                if ((s = arg->clone_native()) == NULL)
+                    return STATUS_NO_MEM;
+                if (!dst->add(s))
+                {
+                    ::free(s);
+                    return STATUS_NO_MEM;
+                }
+            }
+
+            return (dst->add(NULL)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t Process::build_envp(cvector<char> *dst)
+        {
+            char *s;
+
+            LSPString tmp;
+            for (size_t i=0, n=vEnv.size(); i<n; ++i)
+            {
+                envvar_t *var = vEnv.at(i);
+                if (var == NULL)
+                    continue;
+                if (!tmp.set(&var->name))
+                    return STATUS_NO_MEM;
+                if (!tmp.append('='))
+                    return STATUS_NO_MEM;
+                if (!tmp.append(&var->value))
+                    return STATUS_NO_MEM;
+
+                if ((s = tmp.clone_native()) == NULL)
+                    return STATUS_NO_MEM;
+
+                if (!dst->add(s))
+                {
+                    ::free(s);
+                    return STATUS_NO_MEM;
+                }
+            }
+            return (dst->add(NULL)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t Process::spawn_process(const char *cmd, char * const *argv, char * const *envp)
+        {
+            // Initialize spawn routines
+            posix_spawnattr_t attr;
+            if (::posix_spawnattr_init(&attr))
+                return STATUS_UNKNOWN_ERR;
+
+            #ifdef __USE_GNU
+                // Prever vfork() over fork()
+                if (::posix_spawnattr_setflags(&attr, POSIX_SPAWN_USEVFORK))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+            #endif /* __USE_GNU */
+
+            posix_spawn_file_actions_t actions;
+            if (::posix_spawn_file_actions_init(&actions))
+            {
+                ::posix_spawnattr_destroy(&attr);
+                return STATUS_UNKNOWN_ERR;
+            }
+
+            // Perform posix_spawn()
+            pid_t pid;
+            status_t res;
+            while (true)
+            {
+                int x = ::posix_spawnp(&pid, cmd, &actions, &attr, argv, envp);
+                switch (x)
+                {
+                    case 0: break;
+                    case EAGAIN: continue;
+                    case ENOMEM: res = STATUS_NO_MEM; break;
+                    default: res = STATUS_UNKNOWN_ERR; break;
+                }
+                break;
+            }
+
+            // Success execution?
+            if (res == STATUS_OK)
+            {
+                nPID        = pid;
+                nStatus     = PSTATUS_RUNNING;
+            }
+
+            ::posix_spawn_file_actions_destroy(&actions);
+            ::posix_spawnattr_destroy(&attr);
+
+            return res;
+        }
+
+        status_t Process::launch()
+        {
+            if (nStatus != PSTATUS_CREATED)
+                return STATUS_BAD_STATE;
+            if (sCommand.is_empty())
+                return STATUS_BAD_STATE;
+
+            // Copy command
+            char *cmd = sCommand.clone_native();
+            if (cmd == NULL)
+                return STATUS_NO_MEM;
+
+            // Form argv
+            cvector<char> argv;
+            status_t res = build_argv(&argv);
+            if (res != STATUS_OK)
+            {
+                ::free(cmd);
+                drop_data(&argv);
+                return res;
+            }
+
+            // Form envp
+            cvector<char> envp;
+            res = build_envp(&envp);
+            if (res == STATUS_OK)
+                res    = spawn_process(cmd, argv.get_array(), envp.get_array());
+
+            // Free temporary data and return result
+            ::free(cmd);
+            drop_data(&argv);
+            drop_data(&envp);
+            return res;
+        }
+
+        status_t Process::wait(wssize_t millis)
+        {
+            if (nStatus != PSTATUS_RUNNING)
+                return STATUS_BAD_STATE;
+
+            int status;
+
+            if (millis < 0)
+            {
+                do
+                {
+                    // Wait for child process
+                    pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED);
+                    if (pid < 0)
+                    {
+                        status = errno;
+                        if (status == EINTR)
+                            continue;
+                        return STATUS_UNKNOWN_ERR;
+                    }
+                } while ((!WIFEXITED(status)) && (!WIFSIGNALED(status)));
+
+                nStatus     = PSTATUS_EXITED;
+                nExitCode   = WEXITSTATUS(status);
+            }
+            else if (millis == 0)
+            {
+                // Wait for child process
+                pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED);
+                if (pid < 0)
+                {
+                    status = errno;
+                    return (status == EINTR) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+                }
+
+                if ((WIFEXITED(status)) || (WIFSIGNALED(status)))
+                {
+                    nStatus     = PSTATUS_EXITED;
+                    nExitCode   = WEXITSTATUS(status);
+                }
+            }
+            else
+            {
+                struct timespec ts;
+                wssize_t deadline, left;
+                ::clock_gettime(CLOCK_REALTIME, &ts);
+                deadline    = millis + (ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+
+                while (true)
+                {
+                    // Wait for child process
+                    pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED);
+                    if (pid < 0)
+                    {
+                        status = errno;
+                        if (status == EINTR)
+                            continue;
+                        return STATUS_UNKNOWN_ERR;
+                    }
+
+                    // Process has exited?
+                    if ((WIFEXITED(status)) || (WIFSIGNALED(status)))
+                        break;
+
+                    // Get time
+                    ::clock_gettime(CLOCK_REALTIME, &ts);
+                    left    = deadline - (ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+                    if (left <= 0)
+                        return STATUS_OK; // Just leave, no changes
+
+                    // Perform short sleep
+                    ts.tv_sec     = 0;
+                    ts.tv_nsec    = (left > 100) ? 100000000 : left * 1000000;
+                    ::nanosleep(&ts, NULL);
+                }
+
+                nStatus     = PSTATUS_EXITED;
+                nExitCode   = WEXITSTATUS(status);
+            }
+
+            return STATUS_OK;
+        }
+#endif /* PLATFORM_WINDOWS */
 
         status_t Process::copy_env()
         {
@@ -637,55 +875,5 @@ namespace lsp
 
             return STATUS_OK;
         }
-
-        static void drop_data(cvector<char> *v)
-        {
-            for (size_t i=0, n=v->size(); i<n; ++i)
-            {
-                char *ptr = v->at(i);
-                if (ptr != NULL)
-                    ::free(ptr);
-            }
-            v->flush();
-        }
-
-        status_t Process::launch()
-        {
-            if (nStatus != PSTATUS_CREATED)
-                return STATUS_BAD_STATE;
-
-            cvector<char> argv;
-            cvector<char> envp;
-            char *s;
-
-            for (size_t i=0, n=vArgs.size(); i<n; ++i)
-            {
-                LSPString *arg = vArgs.at(i);
-                if (arg == NULL)
-                    continue;
-
-                if ((s = arg->clone_native()) == NULL)
-                {
-                    drop_data(&argv);
-                    return STATUS_NO_MEM;
-                }
-                if (!argv.add(s))
-                {
-                    ::free(s);
-                    drop_data(&argv);
-                    return STATUS_NO_MEM;
-                }
-            }
-
-            // TODO: platform-specific stuff
-            return STATUS_OK;
-        }
-
-        status_t Process::wait(wsize_t millis)
-        {
-            // TODO: platform-specific stuff
-            return STATUS_OK;
-        }
-
     } /* namespace ipc */
 } /* namespace lsp */
