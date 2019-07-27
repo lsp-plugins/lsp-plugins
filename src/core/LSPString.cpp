@@ -7,6 +7,7 @@
 
 #include <core/types.h>
 #include <core/stdlib/stdio.h>
+#include <core/stdlib/string.h>
 
 #include <stdlib.h>
 #include <errno.h>
@@ -131,28 +132,29 @@ namespace lsp
         pData = NULL;
     }
 
-    void LSPString::truncate(size_t size)
+    bool LSPString::truncate(size_t size)
     {
         drop_temp();
         if (size > nCapacity)
-            return;
+            return true;
         if (nLength > size)
             nLength = size;
         if (size > 0)
         {
             lsp_wchar_t *v = xrealloc(pData, size);
             if (v == NULL)
-                return;
+                return false;
             pData       = v;
             nCapacity   = size;
         }
         else
         {
-            free(pData);
+            ::free(pData);
             pData       = NULL;
             nLength     = 0;
             nCapacity   = 0;
         }
+        return true;
     }
 
     bool LSPString::reserve(size_t size)
@@ -1719,6 +1721,30 @@ namespace lsp
         return pTemp->pData;
     }
 #endif /* PLATFORM_WINDOWS */
+
+    char *LSPString::clone_utf8(ssize_t first, ssize_t last) const
+    {
+        const char *utf8 = get_utf8(first, last);
+        return (utf8 != NULL) ? ::strdup(utf8) : NULL;
+    }
+
+    lsp_utf16_t *LSPString::clone_utf16(ssize_t first, ssize_t last) const
+    {
+        const lsp_utf16_t *utf16 = get_utf16(first, last);
+        return reinterpret_cast<lsp_utf16_t *>(lsp_memdup(utf16, pTemp->nOffset));
+    }
+
+    char *LSPString::clone_ascii() const
+    {
+        const char *ascii = get_ascii();
+        return (ascii != NULL) ? ::strdup(ascii) : NULL;
+    }
+
+    char *LSPString::clone_native(ssize_t first, ssize_t last, const char *charset) const
+    {
+        const char *native = get_native(first, last, charset);
+        return reinterpret_cast<char *>(lsp_memdup(native, pTemp->nOffset));
+    }
 
     bool LSPString::append_temp(const char *p, size_t n) const
     {

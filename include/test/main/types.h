@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CONTAINER_TEST_TYPES_H_
-#define INCLUDE_CONTAINER_TEST_TYPES_H_
+#ifndef TEST_MAIN_TYPES_H_
+#define TEST_MAIN_TYPES_H_
 
 #include <core/types.h>
 #include <data/cvector.h>
@@ -84,4 +84,4 @@ namespace lsp
 #endif /* PLATFORM_WINDOWS */
 }
 
-#endif /* INCLUDE_CONTAINER_TEST_TYPES_H_ */
+#endif /* TEST_MAIN_TYPES_H_ */

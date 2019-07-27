@@ -107,7 +107,7 @@ namespace lsp
              *
              */
             void truncate();
-            void truncate(size_t size);
+            bool truncate(size_t size);
 
             /** Try to reduce memory allocated by the string (remove extra capacity)
              *
@@ -264,6 +264,22 @@ namespace lsp
 
             inline size_t temporal_size() const     { return (pTemp != NULL) ? pTemp->nOffset : 0; };
             inline size_t temporal_capacity() const { return (pTemp != NULL) ? pTemp->nLength : 0; };
+
+            /**
+             * Clone string
+             */
+            char *clone_utf8(ssize_t first, ssize_t last) const;
+            inline char *clone_utf8(ssize_t first) const { return clone_utf8(first, nLength); };
+            char *clone_utf8() const { return clone_utf8(0, nLength); };
+
+            lsp_utf16_t *clone_utf16(ssize_t first, ssize_t last) const;
+            inline lsp_utf16_t *clone_utf16(ssize_t first) const { return clone_utf16(first, nLength); };
+            lsp_utf16_t *clone_utf16() const { return clone_utf16(0, nLength); };
+
+            char *clone_ascii() const;
+            char *clone_native(ssize_t first, ssize_t last, const char *charset =  NULL) const;
+            inline char *clone_native(const char *charset = NULL) const { return clone_native(0, nLength, charset); }
+            inline char *clone_native(ssize_t first, const char *charset =  NULL) const { return clone_native(first, nLength, charset); }
 
             /** Replace the contents of the string
              *
