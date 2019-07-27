@@ -665,7 +665,7 @@ namespace lsp
 
             // Perform posix_spawn()
             pid_t pid;
-            status_t res;
+            status_t res = STATUS_OK;
             while (true)
             {
                 int x = ::posix_spawnp(&pid, cmd, &actions, &attr, argv, envp);

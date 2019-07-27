@@ -5,13 +5,13 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CONTAINER_TEST_CONFIG_H_
-#define INCLUDE_CONTAINER_TEST_CONFIG_H_
+#ifndef TEST_MAIN_CONFIG_H_
+#define TEST_MAIN_CONFIG_H_
 
 #include <core/types.h>
 #include <core/stdlib/stdio.h>
 #include <core/io/charset.h>
-#include <container/test/types.h>
+#include <test/main/types.h>
 #include <data/cvector.h>
 #include <unistd.h>
 #include <errno.h>
@@ -289,4 +289,4 @@ namespace lsp
     }
 }
 
-#endif /* INCLUDE_CONTAINER_TEST_CONFIG_H_ */
+#endif /* TEST_MAIN_CONFIG_H_ */

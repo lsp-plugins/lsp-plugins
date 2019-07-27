@@ -5,11 +5,11 @@
  *      Author: sadko
  */
 
-#ifndef CONTAINER_TEST_EXECUTOR_H_
-#define CONTAINER_TEST_EXECUTOR_H_
+#ifndef TEST_MAIN_EXECUTOR_H_
+#define TEST_MAIN_EXECUTOR_H_
 
-#include <container/test/types.h>
-#include <container/test/config.h>
+#include <test/main/types.h>
+#include <test/main/config.h>
 #include <core/io/charset.h>
 #include <errno.h>
 
@@ -757,4 +757,4 @@ namespace lsp
 }
 
 
-#endif /* CONTAINER_TEST_EXECUTOR_H_ */
+#endif /* TEST_MAIN_EXECUTOR_H_ */
