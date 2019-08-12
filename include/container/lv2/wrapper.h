@@ -1378,7 +1378,14 @@ namespace lsp
 
         // Transmit latency (if possible)
         if (pLatency != NULL)
+        {
+            lsp_trace("Reporting latency: %d", int(pPlugin->get_latency()));
             *pLatency   = pPlugin->get_latency();
+        }
+        else
+        {
+            lsp_trace("Could not report latency, pLatency is NULL");
+        }
     }
 
     ipc::IExecutor *LV2Wrapper::get_executor()
