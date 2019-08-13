@@ -235,6 +235,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         expander_mono_ports,
         "dynamics/expander/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -252,6 +253,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         expander_stereo_ports,
         "dynamics/expander/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -269,6 +271,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         expander_lr_ports,
         "dynamics/expander/single/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -286,6 +289,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         expander_ms_ports,
         "dynamics/expander/single/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -304,6 +308,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_expander_mono_ports,
         "dynamics/expander/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -321,6 +326,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_expander_stereo_ports,
         "dynamics/expander/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -338,6 +344,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_expander_lr_ports,
         "dynamics/expander/single/lr.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -355,6 +362,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_expander_ms_ports,
         "dynamics/expander/single/ms.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

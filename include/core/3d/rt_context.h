@@ -124,10 +124,10 @@ namespace lsp
              * Fetch data for all objects identified by specified identifiers
              * @param src source context to perform fetch
              * @param n number of object identifiers in array
-             * @param ids pointer to array that contains object identifiers
+             * @param mask pointer to array that contains mask for object identifiers
              * @return status of operation
              */
-            status_t        fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids);
+            status_t        fetch_objects(rt_mesh_t *src, size_t n, const size_t *mask);
 
             /**
              * Cull view with the view planes

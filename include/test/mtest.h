@@ -12,7 +12,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <time.h>
 #include <test/test.h>
 
 #define MTEST_BEGIN(group, name) \

@@ -13,6 +13,7 @@
 #include <data/cstorage.h>
 #include <core/sampling/Sample.h>
 #include <core/3d/common.h>
+#include <core/3d/raytrace.h>
 #include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
 #include <core/3d/RTObjectFactory.h>
@@ -21,36 +22,12 @@
 
 namespace lsp
 {
-    enum rt_audio_source_t
-    {
-        RT_AS_SPOT,
-        RT_AS_SPEAKER,
-        RT_AS_OMNI,
-        RT_AS_TRIANGLE
-    };
-
-    enum rt_audio_capture_t
-    {
-        RT_AC_CARDIO,
-        RT_AC_SCARDIO,
-        RT_AC_HCARDIO,
-        RT_AC_BIDIR,
-        RT_AC_EIGHT,
-        RT_AC_OMNI
-    };
-
     /** Ray tracing storage implemented as a stack
      *
      */
     class RayTrace3D
     {
         protected:
-            typedef struct source_t
-            {
-                ray3d_t             position;
-                rt_audio_source_t   type;
-            } source_t;
-
             typedef struct sample_t
             {
                 Sample             *sample;
@@ -59,12 +36,10 @@ namespace lsp
                 ssize_t             r_max;
             } sample_t;
 
-            typedef struct capture_t
+            typedef struct capture_t: public rt_capture_settings_t
             {
-                matrix3d_t          matrix;
-                ray3d_t             position;
                 rt_material_t       material;
-                rt_audio_capture_t  type;
+                vector3d_t          direction;
                 cstorage<sample_t>  bindings;
             } capture_t;
 
@@ -131,7 +106,7 @@ namespace lsp
 
         private:
             cstorage<rt_material_t>     vMaterials;
-            cstorage<source_t>          vSources;
+            cstorage<rt_source_settings_t>    vSources;
             cvector<capture_t>          vCaptures;
             Scene3D                    *pScene;
             rt_progress_t               pProgress;
@@ -151,7 +126,6 @@ namespace lsp
             size_t                      nProgressPoints;
             size_t                      nProgressMax;
             ipc::Mutex                  lkTasks;
-//            ipc::Mutex                  lkCapture;
 
         protected:
             static void destroy_tasks(cvector<rt_context_t> *tasks);
@@ -168,6 +142,8 @@ namespace lsp
             // Main ray-tracing routines
             void        normalize_output();
             bool        is_already_passed(const sample_t *bind);
+
+            status_t    do_process(size_t threads, float initial);
 
         public:
             /** Default constructor
@@ -214,11 +190,19 @@ namespace lsp
             status_t clear_progress_callback();
 
             /**
+             * Set the material for the corresponding object
+             * @param idx the index of the material
+             * @return status of operation
+             */
+            status_t    set_material(size_t idx, const rt_material_t *material);
+
+            /**
              * Get the material for the corresponding object
+             * @param material
              * @param idx the index of the corresponding object
              * @return pointer to material or NULL
              */
-            inline rt_material_t *material(size_t idx)  { return vMaterials.get(idx); }
+            status_t    get_material(rt_material_t *material, size_t idx);
 
             /**
              * Get the scene object
@@ -241,22 +225,17 @@ namespace lsp
 
             /**
              * Add audio source
-             * @param type audio source type
-             * @param position audio source position, direction and size
-             * @param volume audio source volume
+             * @param settings source settings
              * @return status of operation
              */
-            status_t add_source(const ray3d_t *position, rt_audio_source_t type);
+            status_t add_source(const rt_source_settings_t *settings);
 
             /**
              * Add audio capture
-             * @param type audio capture type
-             * @param position audio capture position, direction and size
-             * @param sample sample object to store captured data
-             * @param channel the sample channel to store captured data
+             * @param settings capture settings
              * @return non-negative capture identifier or negative error status code
              */
-            ssize_t add_capture(const ray3d_t *position, rt_audio_capture_t type);
+            ssize_t add_capture(const rt_capture_settings_t *settings);
 
             /**
              * Bind audio sample to capture

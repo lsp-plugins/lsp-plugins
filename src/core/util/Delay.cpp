@@ -33,9 +33,10 @@ namespace lsp
 
         lsp_trace("max_size = %d, size = %d", int(max_size), int(size));
 
-        pBuffer     = new float[size];
-        if (pBuffer == NULL)
+        float *ptr      = reinterpret_cast<float *>(::realloc(pBuffer, size * sizeof(float)));
+        if (ptr == NULL)
             return false;
+        pBuffer         = ptr;
 
         dsp::fill_zero(pBuffer, size);
         nHead           = 0;
@@ -50,7 +51,7 @@ namespace lsp
     {
         if (pBuffer != NULL)
         {
-            delete [] pBuffer;
+            ::free(pBuffer);
             pBuffer     = NULL;
         }
     }

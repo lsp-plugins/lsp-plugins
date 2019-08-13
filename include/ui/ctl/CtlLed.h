@@ -29,7 +29,7 @@ namespace lsp
                 void        update_value();
 
             public:
-                CtlLed(CtlRegistry *src, LSPLed *widget);
+                explicit CtlLed(CtlRegistry *src, LSPLed *widget);
                 virtual ~CtlLed();
 
             public:

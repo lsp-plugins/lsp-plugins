@@ -26,7 +26,7 @@ namespace lsp
                 status_t            on_ok();
 
             public:
-                CtlListBox(CtlRegistry *src, LSPListBox *widget);
+                explicit CtlListBox(CtlRegistry *src, LSPListBox *widget);
                 virtual ~CtlListBox();
         };
     }

@@ -341,5 +341,6 @@ namespace lsp
 #include <ui/ws/IClipboard.h>
 #include <ui/ws/IDisplay.h>
 #include <ui/ws/INativeWindow.h>
+#include <ui/ws/IR3DBackend.h>
 
 #endif /* INCLUDE_UI_WS_WS_H_ */

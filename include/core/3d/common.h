@@ -13,7 +13,7 @@
 #include <core/debug.h>
 
 #if defined(LSP_DEBUG)
-    #define LSP_RT_TRACE
+    //#define LSP_RT_TRACE
 #endif /* LSP_DEBUG */
 
 #if defined(LSP_RT_TRACE)
@@ -155,17 +155,21 @@ namespace lsp
     typedef struct rt_material_t
     {
         float           absorption[2];      // The amount of energy that will be absorpted
-        float           dispersion[2];      // The dispersion coefficients for reflected signal
-        float           dissipation[2];     // The dissipation coefficients for refracted signal
+        float           diffusion[2];       // The diffusion coefficients for reflected signal
+        float           dispersion[2];      // The dispersion coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
         float           __pad[3];           // Padding
     } rt_material_t;
 
-    typedef struct rt_view_t
+    typedef struct rt_group_t
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
+    } rt_group_t;
+
+    typedef struct rt_view_t: public rt_group_t
+    {
         vector3d_t          pl[4];      // Culling planes
         float               time[3];    // The corresponding start time for each source point
         float               amplitude;  // The amplitude of the signal
@@ -271,15 +275,15 @@ namespace lsp
 #pragma pack(pop)
 
 #ifdef LSP_DEBUG
-    extern const color3d_t C_RED;
-    extern const color3d_t C_GREEN;
-    extern const color3d_t C_DARKGREEN;
-    extern const color3d_t C_BLUE;
-    extern const color3d_t C_CYAN;
-    extern const color3d_t C_MAGENTA;
-    extern const color3d_t C_YELLOW;
-    extern const color3d_t C_ORANGE;
-    extern const color3d_t C_GRAY;
+    extern const color3d_t C3D_RED;
+    extern const color3d_t C3D_GREEN;
+    extern const color3d_t C3D_DARKGREEN;
+    extern const color3d_t C3D_BLUE;
+    extern const color3d_t C3D_CYAN;
+    extern const color3d_t C3D_MAGENTA;
+    extern const color3d_t C3D_YELLOW;
+    extern const color3d_t C3D_ORANGE;
+    extern const color3d_t C3D_GRAY;
 #endif /* LSP_DEBUG */
 
 }

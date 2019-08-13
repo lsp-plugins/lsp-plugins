@@ -6,7 +6,7 @@
 
 // Core include
 #include <core/types.h>
-#include <core/midi.h>
+#include <core/protocol/midi.h>
 #include <core/lib.h>
 #include <dsp/atomic.h>
 #include <dsp/endian.h>

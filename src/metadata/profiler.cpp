@@ -128,6 +128,7 @@ namespace lsp
         E_NONE,
         profiler_mono_ports,
         "util/profiler/profiler_mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -145,6 +146,7 @@ namespace lsp
         E_NONE,
         profiler_stereo_ports,
         "util/profiler/profiler_stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 }

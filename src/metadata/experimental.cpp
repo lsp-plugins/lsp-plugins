@@ -129,6 +129,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         test_ports,
         "experimental/test_plugin.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 #endif /* LSP_NO_EXPERMIENTAL */

@@ -41,6 +41,9 @@ namespace test
             bool            __verbose;
 
         public:
+            int             printf(const char *fmt, ...);
+
+        public:
             inline const char *name() const     { return __test_name; }
             inline const char *group() const    { return __test_group; }
             const char *full_name() const;
@@ -54,7 +57,11 @@ namespace test
 
             virtual void execute(int argc, const char **argv) = 0;
 
+            virtual void init();
+
             virtual bool ignore() const;
+
+            virtual void destroy();
 
             virtual Test *next_test() const = 0;
 

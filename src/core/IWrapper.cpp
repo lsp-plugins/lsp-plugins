@@ -37,4 +37,19 @@ namespace lsp
         return NULL;
     }
 
+    KVTStorage *IWrapper::kvt_lock()
+    {
+        return NULL;
+    }
+
+    KVTStorage *IWrapper::kvt_trylock()
+    {
+        return NULL;
+    }
+
+    bool IWrapper::kvt_release()
+    {
+        return false;
+    }
+
 } /* namespace lsp */

@@ -431,6 +431,74 @@ namespace sse
         );
     }
 
+    void add_vector_pv1(point3d_t *p, const vector3d_t *dv)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[p]), %[x0]")
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1)
+            : [p] "r" (p), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
+    void add_vector_pv2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sp]), %[x0]")
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1)
+            : [p] "r" (p), [sp] "r" (sp), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
+    void add_vector_pvk1(point3d_t *p, const vector3d_t *dv, float k)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")
+            __ASM_EMIT("movups      (%[p]), %[x0]")
+            __ASM_EMIT("mulps       %[x2], %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "+x" (k)
+            : [p] "r" (p), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
+    void add_vector_pvk2(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k)
+    {
+        float x0, x1;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[dv]), %[x1]")
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")
+            __ASM_EMIT("movups      (%[sp]), %[x0]")
+            __ASM_EMIT("mulps       %[x2], %[x1]")
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("movups      %[x0], (%[p])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "+x" (k)
+            : [p] "r" (p), [sp] "r" (sp), [dv] "r" (dv)
+            : "memory"
+        );
+    }
+
     void normalize_vector(vector3d_t *v)
     {
         float x0, x1, x2;
@@ -444,6 +512,52 @@ namespace sse
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
             : [v] "r" (v)
             : "cc", "memory"
+        );
+    }
+
+    void normalize_vector2(vector3d_t *v, const vector3d_t *sv)
+    {
+        float x0, x1, x2;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sv]), %[x0]")    // xmm0 = dx dy dz dw
+            NORMALIZE("[x0]", "[x1]", "[x2]")
+            __ASM_EMIT("movups      %[x0], (%[v])")
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
+            : [v] "r" (v), [sv] "r" (sv)
+            : "cc", "memory"
+        );
+    }
+
+    void flip_vector_v1(vector3d_t *v)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[v]), %%xmm0")    // xmm0 = dx dy dz dw
+            __ASM_EMIT("xorps       %[mask], %%xmm0")
+            __ASM_EMIT("movups      %%xmm0, (%[v])")
+            :
+            : [v] "r" (v),
+              [mask] "m" (X_SMASK0111)
+            : "memory",
+              "xmm0"
+        );
+    }
+
+    void flip_vector_v2(vector3d_t *v, const vector3d_t *sv)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sv]), %%xmm0")   // xmm0 = dx dy dz dw
+            __ASM_EMIT("xorps       %[mask], %%xmm0")
+            __ASM_EMIT("movups      %%xmm0, (%[v])")
+            :
+            : [v] "r" (v), [sv] "r" (sv),
+              [mask] "m" (X_SMASK0111)
+            : "memory",
+              "xmm0"
         );
     }
 
@@ -2665,8 +2779,7 @@ namespace sse
     {
         float    x0, x1, x2, x3, x4, x5, x6, x7;
         float    k[4] __lsp_aligned16;
-        uint32_t t[4] __lsp_aligned16;
-        size_t   t0, t1, t2;
+        size_t   t0;
 
         in     += *n_in;
         out    += *n_out;
@@ -2691,27 +2804,25 @@ namespace sse
             __ASM_EMIT("movaps      %[x0], %[k]")           /* *k   = xmm0 */
             __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
             __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
-            __ASM_EMIT("andps       %[IONE], %[x0]")        /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
-            __ASM_EMIT("andps       %[IONE], %[x1]")        /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
-            __ASM_EMIT("paddd       %[x1], %[x0]")
-            __ASM_EMIT("movdqa      %[x0], %[t]")
-            __ASM_EMIT32("movl      0x00 + %[t], %[t0]")
-            __ASM_EMIT32("movl      0x04 + %[t], %[t1]")
-            __ASM_EMIT32("movl      0x08 + %[t], %[t2]")
-            __ASM_EMIT64("movl      0x00 + %[t], %k[t0]")
-            __ASM_EMIT64("movl      0x04 + %[t], %k[t1]")
-            __ASM_EMIT64("movl      0x08 + %[t], %k[t2]")
-            __ASM_EMIT("lea         (%[t1], %[t2], 4), %[t1]")
-            __ASM_EMIT("lea         (%[t0], %[t1], 4), %[t0]")
-            : [t0] "=&r" (t0), [t1] "=&r" (t1), [t2] "=&r" (t2),
+            __ASM_EMIT("pand        %[ICULL3], %[x0]")      /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
+            __ASM_EMIT("pand        %[ICULL3], %[x1]")      /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("paddd       %[x1], %[x0]")          /* xmm0 = x0 x1 x2 0 */
+            __ASM_EMIT("movdqa      %[x0], %[x2]")          /* xmm2 = x0 x1 x2 0 */
+            __ASM_EMIT("movdqa      %[x0], %[x1]")          /* xmm1 = x0 x1 x2 0 */
+            __ASM_EMIT("psrldq      $8, %[x2]")             /* xmm2 = x2 0 0 0 */
+            __ASM_EMIT("psrldq      $4, %[x1]")             /* xmm1 = x1 x2 0 0 */
+            __ASM_EMIT("por         %[x2], %[x0]")
+            __ASM_EMIT("por         %[x1], %[x0]")
+            __ASM_EMIT32("movd      %[x0], %[t0]")
+            __ASM_EMIT64("movd      %[x0], %k[t0]")
+            : [t0] "=&r" (t0),
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4)
             : [pl] "r" (pl), [pv] "r" (pv),
-              [t] "o" (t),
               [k] "o" (k),
               [PTOL] "m" (X_3D_TOLERANCE),
               [MTOL] "m" (X_3D_MTOLERANCE),
-              [IONE] "m" (IONE)
+              [ICULL3] "m" (ICULL3)
             : "cc"
         );
 
@@ -3041,8 +3152,7 @@ namespace sse
     {
         float    x0, x1, x2, x3, x4, x5, x6, x7;
         float    k[4] __lsp_aligned16;
-        uint32_t t[4] __lsp_aligned16;
-        size_t   t0, t1, t2;
+        size_t   t0;
 
         in     += *n_in;
 
@@ -3066,27 +3176,25 @@ namespace sse
             __ASM_EMIT("movaps      %[x0], %[k]")           /* *k   = xmm0 */
             __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
             __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
-            __ASM_EMIT("andps       %[IONE], %[x0]")        /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
-            __ASM_EMIT("andps       %[IONE], %[x1]")        /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
-            __ASM_EMIT("paddd       %[x1], %[x0]")
-            __ASM_EMIT("movdqa      %[x0], %[t]")
-            __ASM_EMIT32("movl      0x00 + %[t], %[t0]")
-            __ASM_EMIT32("movl      0x04 + %[t], %[t1]")
-            __ASM_EMIT32("movl      0x08 + %[t], %[t2]")
-            __ASM_EMIT64("movl      0x00 + %[t], %k[t0]")
-            __ASM_EMIT64("movl      0x04 + %[t], %k[t1]")
-            __ASM_EMIT64("movl      0x08 + %[t], %k[t2]")
-            __ASM_EMIT("lea         (%[t1], %[t2], 4), %[t1]")
-            __ASM_EMIT("lea         (%[t0], %[t1], 4), %[t0]")
-            : [t0] "=&r" (t0), [t1] "=&r" (t1), [t2] "=&r" (t2),
+            __ASM_EMIT("pand        %[ICULL3], %[x0]")      /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
+            __ASM_EMIT("pand        %[ICULL3], %[x1]")      /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("paddd       %[x1], %[x0]")          /* xmm0 = x0 x1 x2 0 */
+            __ASM_EMIT("movdqa      %[x0], %[x2]")          /* xmm2 = x0 x1 x2 0 */
+            __ASM_EMIT("movdqa      %[x0], %[x1]")          /* xmm1 = x0 x1 x2 0 */
+            __ASM_EMIT("psrldq      $8, %[x2]")             /* xmm2 = x2 0 0 0 */
+            __ASM_EMIT("psrldq      $4, %[x1]")             /* xmm1 = x1 x2 0 0 */
+            __ASM_EMIT("por         %[x2], %[x0]")
+            __ASM_EMIT("por         %[x1], %[x0]")
+            __ASM_EMIT32("movd      %[x0], %[t0]")
+            __ASM_EMIT64("movd      %[x0], %k[t0]")
+            : [t0] "=&r" (t0),
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4)
             : [pl] "r" (pl), [pv] "r" (pv),
-              [t] "o" (t),
               [k] "o" (k),
               [PTOL] "m" (X_3D_TOLERANCE),
               [MTOL] "m" (X_3D_MTOLERANCE),
-              [IONE] "m" (IONE)
+              [ICULL3] "m" (ICULL3)
             : "cc"
         );
 

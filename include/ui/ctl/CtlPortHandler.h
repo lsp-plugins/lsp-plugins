@@ -25,7 +25,7 @@ namespace lsp
                 size_t              nPortID;
 
             public:
-                CtlPortHandler();
+                explicit CtlPortHandler();
                 virtual ~CtlPortHandler();
 
             public:

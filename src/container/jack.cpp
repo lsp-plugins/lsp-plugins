@@ -168,7 +168,7 @@ namespace lsp
         // Load configuration (if specified in parameters)
         if ((status == STATUS_OK) && (cfg.cfg_file != NULL))
         {
-            status = pui->import_settings(cfg.cfg_file);
+            status = pui->import_settings(cfg.cfg_file, false);
             if (status != STATUS_OK)
                 fprintf(stderr, "Error loading configuration file: %s\n", get_status(status));
         }
@@ -207,6 +207,11 @@ namespace lsp
 
         // Destroy objects
         w.disconnect();
+        if (pui != NULL)
+        {
+            pui->destroy();
+            delete pui;
+        }
         w.destroy();
 
         return status;
@@ -239,7 +244,7 @@ extern "C"
             lsp_trace("test plugin uid=%s", plugin::metadata.lv2_uid); \
             if ((!p) && (!pui) && (!strcmp(plugin::metadata.lv2_uid, plugin_id))) \
             { \
-                p = new plugin_t(plugin::metadata); \
+                p = new plugin(); \
                 if (plugin::metadata.ui_resource != NULL) \
                     pui = new ui(&plugin::metadata, NULL); \
             }
@@ -258,7 +263,10 @@ extern "C"
             res = STATUS_BAD_STATE;
         }
         else
+        {
             res = jack_plugin_main(p, pui, argc, argv);
+            pui = NULL; // Already destroyed by jack_plugin_main
+        }
 
         // Destroy objects
         if (pui != NULL)

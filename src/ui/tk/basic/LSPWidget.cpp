@@ -16,6 +16,7 @@ namespace lsp
         LSPWidget::LSPWidget(LSPDisplay *dpy):
             sPadding(this)
         {
+            pUID            = NULL;
             pDisplay        = dpy;
             pSurface        = NULL;
             pParent         = NULL;
@@ -87,6 +88,11 @@ namespace lsp
             // Execute slots and unbind all to prevent duplicate on_destroy calls
             sSlots.execute(LSPSLOT_DESTROY, this);
             sSlots.destroy();
+
+            // Destroy widget identifier
+            if (pUID != NULL)
+                ::free(pUID);
+            pUID = NULL;
         }
 
         void LSPWidget::unlink_widget(LSPWidget *w)
@@ -478,11 +484,25 @@ namespace lsp
             s->draw(src, sSize.nLeft, sSize.nTop);
         }
 
+        status_t LSPWidget::set_unique_id(const char *uid)
+        {
+            char *rep = NULL;
+            if (uid != NULL)
+            {
+                if ((rep = strdup(uid)) == NULL)
+                    return STATUS_NO_MEM;
+            }
+
+            if (pUID != NULL)
+                free(pUID);
+            pUID = rep;
+            return STATUS_OK;
+        }
+
         ISurface *LSPWidget::get_surface(ISurface *s)
         {
             return get_surface(s, sSize.nWidth, sSize.nHeight);
         }
-
 
         ISurface *LSPWidget::get_surface(ISurface *s, ssize_t width, ssize_t height)
         {

@@ -28,6 +28,8 @@ namespace lsp
                 virtual void destroy();
 
             public:
+                inline LSPWidget    *unwrap() { return pWidget; }
+
                 virtual void    query_draw(size_t flags);
 
                 virtual void    commit_redraw();

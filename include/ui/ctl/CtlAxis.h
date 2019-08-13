@@ -34,7 +34,7 @@ namespace lsp
                 void            update_axis();
 
             public:
-                CtlAxis(CtlRegistry *src, LSPAxis *axis);
+                explicit CtlAxis(CtlRegistry *src, LSPAxis *axis);
                 virtual ~CtlAxis();
 
             public:

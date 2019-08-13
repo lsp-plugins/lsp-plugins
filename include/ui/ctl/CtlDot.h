@@ -31,7 +31,7 @@ namespace lsp
                 void                commit_value(float value);
 
             public:
-                CtlDot(CtlRegistry *src, LSPDot *dot);
+                explicit CtlDot(CtlRegistry *src, LSPDot *dot);
                 virtual ~CtlDot();
 
             public:

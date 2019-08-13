@@ -15,7 +15,8 @@ $YOUTUBE = array(
 	'D8evQrkY8nQ' => 'Oszillator',
 	'JFXTcJb4DLs' => 'Latenzmessgerät',
 	'RCdk94Hta3o' => 'Multi-band Kompressor',
-    'kXCBRnJL_qo' => 'Profiler Mono'
+    'kXCBRnJL_qo' => 'Profiler Mono',
+    'J-ruYw9TwCE' => 'Room Builder'
 );
 
 ?>

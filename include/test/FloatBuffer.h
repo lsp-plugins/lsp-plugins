@@ -8,9 +8,8 @@
 #ifndef TEST_FLOATBUFFER_H_
 #define TEST_FLOATBUFFER_H_
 
-#include <dsp/types.h>
-#include <sys/types.h>
-#include <stdint.h>
+#include <common/types.h>
+#include <test/helpers.h>
 
 namespace test
 {
@@ -33,12 +32,12 @@ namespace test
             ~FloatBuffer();
 
         public:
-            void randomize_positive();
-            void randomize_negative();
-            void randomize_sign();
-            void randomize_0to1();
-            void randomize(float min, float max);
-            void randomize();
+            inline void randomize_positive()            { test::randomize_positive(pBuffer, nLength); };
+            inline void randomize_negative()            { test::randomize_negative(pBuffer, nLength); };
+            inline void randomize_sign()                { test::randomize_sign(pBuffer, nLength); };
+            inline void randomize_0to1()                { test::randomize_0to1(pBuffer, nLength); };
+            inline void randomize(float min, float max) { test::randomize(pBuffer, nLength, min, max); }
+            void randomize()                            { test::randomize_positive(pBuffer, nLength); };
             void fill_zero();
             void copy(const FloatBuffer &buf);
             void copy(const float *buf, size_t count);

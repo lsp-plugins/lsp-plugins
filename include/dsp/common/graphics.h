@@ -72,6 +72,22 @@ namespace dsp
      */
     extern void (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
 
+    /** Convert ABGR32 -> BGRA32 color
+     *
+     * @param dst target buffer
+     * @param src source buffer
+     * @param count number of samples to process
+     */
+    extern void (* abgr32_to_bgra32)(void *dst, const void *src, size_t count);
+
+    /** Convert ABGR32 -> BGR32 color with Alpha=0xff
+     *
+     * @param dst target buffer
+     * @param src source buffer
+     * @param count number of samples to process
+     */
+    extern void (* abgr32_to_bgrff32)(void *dst, const void *src, size_t count);
+
     /**
      * Fill array with RGBA colors
      * @param dst array to store RGBA
@@ -122,6 +138,19 @@ namespace dsp
      * @param count number of samples to process
      */
     extern void (* rgba_to_bgra32)(void *dst, const float *src, size_t count);
+
+    /** Convert RGBA32 (4 bytes) -> BGRA32 (4 bytes) color with reversed alpha channel
+     * Alpha color is applied to result by formula:
+     *   A' = (1 - A)
+     *   R' = R * (1 - A) / 255
+     *   G' = G * (1 - A) / 255
+     *   B' = B * (1 - A) / 255
+     *
+     * @param dst target buffer (4 bytes per pixel)
+     * @param src source buffer (4 bytes per pixel)
+     * @param count number of samples to process
+     */
+    extern void (* rgba32_to_bgra32_ra)(void *dst, const void *src, size_t count);
 
     /**
      * Generate set of pixels with applied hue shift effect

@@ -8,7 +8,7 @@
 #ifndef DSP_ENDIAN_H_
 #define DSP_ENDIAN_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 // Include unsigned functions definition
 #if defined(ARCH_X86)

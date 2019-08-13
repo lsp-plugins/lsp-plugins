@@ -41,6 +41,8 @@
 #include <dsp/arch/native/mix.h>
 #include <dsp/arch/native/3dmath.h>
 
+#include <dsp/arch/native/coding.h>
+
 #undef __DSP_NATIVE_IMPL
 
 namespace native
@@ -231,6 +233,9 @@ namespace native
         EXPORT1(axis_apply_log1);
         EXPORT1(axis_apply_log2);
         EXPORT1(rgba32_to_bgra32);
+        EXPORT1(abgr32_to_bgra32);
+        EXPORT1(abgr32_to_bgrff32);
+        EXPORT1(rgba32_to_bgra32_ra);
         EXPORT1(fill_rgba);
         EXPORT1(fill_hsla);
         EXPORT1(rgba_to_hsla);
@@ -275,8 +280,15 @@ namespace native
         EXPORT1(init_vector_pv);
         EXPORT1(normalize_vector);
         EXPORT1(normalize_vector2);
+        EXPORT1(flip_vector_v1);
+        EXPORT1(flip_vector_v2);
         EXPORT1(scale_vector1);
         EXPORT1(scale_vector2);
+
+        EXPORT1(add_vector_pv1);
+        EXPORT1(add_vector_pv2);
+        EXPORT1(add_vector_pvk1);
+        EXPORT1(add_vector_pvk2);
 
         EXPORT1(vector_mul_v2);
         EXPORT1(vector_mul_vv);
@@ -304,6 +316,7 @@ namespace native
         EXPORT1(init_matrix3d_frustum);
         EXPORT1(init_matrix3d_lookat_p1v2);
         EXPORT1(init_matrix3d_lookat_p2v1);
+        EXPORT1(init_matrix3d_orientation);
         EXPORT1(calc_matrix3d_transform_r1);
         EXPORT1(calc_matrix3d_transform_p1v1);
         EXPORT1(apply_matrix3d_mv2);
@@ -405,6 +418,9 @@ namespace native
         EXPORT1(unit_vector_p1pv);
 
         EXPORT1(convolve);
+
+        EXPORT1(base64_enc);
+        EXPORT1(base64_dec);
     }
 
     #undef EXPORT1

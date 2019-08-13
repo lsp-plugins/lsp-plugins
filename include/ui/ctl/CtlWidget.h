@@ -30,9 +30,10 @@ namespace lsp
 
             protected:
                 void            init_color(color_t value, Color *color);
+                void            init_color(color_t value, LSPColor *color);
 
             public:
-                CtlWidget(CtlRegistry *src, LSPWidget *widget);
+                explicit CtlWidget(CtlRegistry *src, LSPWidget *widget);
                 virtual ~CtlWidget();
 
                 /** Destroy widget controller
@@ -88,6 +89,13 @@ namespace lsp
                  * @param port port triggered change
                  */
                 virtual void notify(CtlPort *port);
+
+                /**
+                 * Resolve widget by it's unique identifier
+                 * @param uid unique widget identifier
+                 * @return pointer to resolved widget or NULL
+                 */
+                virtual LSPWidget *resolve(const char *uid);
         };
 
     }

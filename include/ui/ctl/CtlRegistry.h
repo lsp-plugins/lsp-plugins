@@ -8,20 +8,26 @@
 #ifndef UI_CTL_CTLREGISTRY_H_
 #define UI_CTL_CTLREGISTRY_H_
 
+#include <core/KVTStorage.h>
+
 namespace lsp
 {
     namespace ctl
     {
         class CtlWidget;
         class CtlPort;
+        class CtlKvtListener;
 
         class CtlRegistry
         {
             protected:
                 cvector<CtlWidget>      vControls;
 
+            private:
+                CtlRegistry & operator = (const CtlRegistry &);
+
             public:
-                CtlRegistry();
+                explicit CtlRegistry();
                 virtual ~CtlRegistry();
 
                 virtual void destroy();
@@ -45,6 +51,45 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t remove_widget(CtlWidget *widget);
+
+                /**
+                 * Resolve widget by it's unique identifier
+                 * @param uid unique widget identifier
+                 * @return pointer to widget or NULL
+                 */
+                virtual LSPWidget *resolve(const char *uid);
+
+                /**
+                 * Lock the KVT storage
+                 * @return pointer to KVT storage or NULL
+                 */
+                virtual KVTStorage *kvt_lock();
+
+                /**
+                 * Try to lock the KVT storage
+                 * @return pointer to KVT storage or NULL if not locked/not supported
+                 */
+                virtual KVTStorage *kvt_trylock();
+
+                /**
+                 * Release the KVT storage
+                 */
+                virtual void kvt_release();
+
+                /**
+                 * Signal write to the KVT storage
+                 * @param storage KVT storage
+                 * @param id parameter identifier
+                 * @param value parameter value
+                 */
+                virtual void kvt_write(KVTStorage *storage, const char *id, const kvt_param_t *value);
+
+                /**
+                 * Add KVT listener
+                 * @param listener listener to add
+                 * @return status of operation
+                 */
+                virtual status_t add_kvt_listener(CtlKvtListener *listener);
         };
     
     } /* namespace tk */

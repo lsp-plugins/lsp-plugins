@@ -70,6 +70,105 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t Path::set(const char *path, const char *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const char *path, const LSPString *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const char *path, const Path *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const LSPString *path, const char *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const LSPString *path, const LSPString *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const LSPString *path, const Path *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const Path *path, const char *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const Path *path, const LSPString *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
+        status_t Path::set(const Path *path, const Path *child)
+        {
+            Path tmp;
+            status_t res = tmp.set(path);
+            if (res == STATUS_OK)
+                res = tmp.append_child(child);
+            if (res == STATUS_OK)
+                swap(&tmp);
+            return res;
+        }
+
         status_t Path::get(char *path, size_t maxlen) const
         {
             if (path == NULL)

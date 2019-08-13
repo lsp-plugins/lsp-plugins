@@ -395,6 +395,20 @@ namespace lsp
         return 0;
     }
 
+    void limiter_base::sync_latency()
+    {
+        channel_t *c = &vChannels[0];
+        size_t latency =
+                c->sLimit.get_latency() / c->sOver.get_oversampling()
+                + c->sOver.latency();
+//        lsp_trace("lim=%d, over=%d, o/s=%d, latency=%d",
+//                int(c->sLimit.get_latency()),
+//                int(c->sOver.latency()),
+//                int(c->sOver.get_oversampling()),
+//                int(latency));
+        set_latency(latency);
+    }
+
     void limiter_base::update_settings()
     {
         bPause                      = pPause->getValue() >= 0.5f;
@@ -454,9 +468,6 @@ namespace lsp
                 c->sGraph[j].set_period(real_samples_per_dot);
                 c->bVisible[j]  = c->pVisible[j]->getValue() >= 0.5f;
             }
-
-            if (i == 0)
-                set_latency(c->sLimit.get_latency() / c->sOver.get_oversampling());
         }
     }
 
@@ -624,7 +635,7 @@ namespace lsp
             pWrapper->query_display_draw();
 
         // Report latency
-        set_latency(vChannels[0].sOver.latency());
+        sync_latency();
     }
     
     void limiter_base::ui_activated()

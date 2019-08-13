@@ -124,6 +124,12 @@ namespace lsp
             return (pDisplay != NULL) ? pDisplay->createSurface(width, height) : NULL;
         }
 
+        void LSPDisplay::sync()
+        {
+            if (pDisplay != NULL)
+                pDisplay->sync();
+        }
+
         status_t LSPDisplay::add(LSPWidget *widget, const char *id)
         {
             if (id != NULL)

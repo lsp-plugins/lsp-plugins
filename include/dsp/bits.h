@@ -8,7 +8,7 @@
 #ifndef DSP_BITS_H_
 #define DSP_BITS_H_
 
-#include <dsp/types.h>
+#include <common/types.h>
 
 // Declare array only for specific architectures
 #if (!defined(ARCH_ARM)) && (!defined(ARCH_AARCH64))

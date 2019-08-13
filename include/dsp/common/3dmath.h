@@ -127,6 +127,19 @@ namespace dsp
      */
     extern void (* normalize_vector2)(vector3d_t *v, const vector3d_t *src);
 
+    /**
+     * Flip vector coordinates
+     * @param v vector to flip
+     */
+    extern void (* flip_vector_v1)(vector3d_t *v);
+
+    /**
+     * Flip vector coordinates
+     * @param v vector to store result
+     * @param sv source vector
+     */
+    extern void (* flip_vector_v2)(vector3d_t *v, const vector3d_t *sv);
+
     /** Scale vector coordinates to match specified radius-vector length
      *
      * @param v vector to scale
@@ -304,6 +317,13 @@ namespace dsp
      * @param up the up vector
      */
     extern void (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up);
+
+    /**
+     * Initialize matrix that changes ortogonal orientation
+     * @param m matrix to initialize
+     * @param orientation axis orientation
+     */
+    extern void (* init_matrix3d_orientation)(matrix3d_t *m, axis_orientation_t orientation);
 
     /**
      * Compute tranfromation matrix from point and vector data which provides:
@@ -788,6 +808,37 @@ namespace dsp
      * @param k movement
      */
     extern void (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k);
+
+    /**
+     * Add vector to point
+     * @param p point
+     * @param dv vector to add
+     */
+    extern void (* add_vector_pv1)(point3d_t *p, const vector3d_t *dv);
+
+    /**
+     * Add vector to point
+     * @param p point
+     * @param dv vector to add
+     */
+    extern void (* add_vector_pv2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv);
+
+    /**
+     * Add scaled vector to point: p = p + dv * k
+     * @param p target point
+     * @param dv vector to add
+     * @param k scale factor
+     */
+    extern void (* add_vector_pvk1)(point3d_t *p, const vector3d_t *dv, float k);
+
+    /**
+     * Add scaled vector to point: p = sp + dv * k
+     * @param p point
+     * @param sp source point
+     * @param dv vector to add
+     * @param k scale factor
+     */
+    extern void (* add_vector_pvk2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k);
 
     /**
      * Compute bounding box around object

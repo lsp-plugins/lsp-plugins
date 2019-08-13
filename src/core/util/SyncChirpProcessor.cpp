@@ -10,6 +10,7 @@
 #include <core/debug.h>
 #include <core/util/SyncChirpProcessor.h>
 #include <math.h>
+#include <stdlib.h>
 #include <core/files/LSPCFile.h>
 #include <core/files/lspc/LSPCAudioWriter.h>
 #include <core/files/lspc/LSPCAudioReader.h>
@@ -488,8 +489,7 @@ namespace lsp
                 dsp::fill(sCRPostProc.vTemprow2Im, sCRPostProc.mCoeffsIm[coeffIdx], negStart - 1);
                 dsp::fill(&sCRPostProc.vTemprow2Im[negStart], -sCRPostProc.mCoeffsIm[coeffIdx], sCRPostProc.nHwinSize - negStart);
 
-                dsp::complex_mul3(
-                        sCRPostProc.vTemprow2Re, sCRPostProc.vTemprow2Im,
+                dsp::complex_mul2(
                         sCRPostProc.vTemprow2Re, sCRPostProc.vTemprow2Im,
                         &sCRPostProc.mKernelsRe[kRowSelect], &sCRPostProc.mKernelsIm[kRowSelect],
                         sCRPostProc.nHwinSize

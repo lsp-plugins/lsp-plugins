@@ -20,7 +20,7 @@ namespace lsp
                 char       *sAlias;
 
             public:
-                CtlPortAlias(CtlRegistry *src);
+                explicit CtlPortAlias(CtlRegistry *src);
                 virtual ~CtlPortAlias();
 
             public:

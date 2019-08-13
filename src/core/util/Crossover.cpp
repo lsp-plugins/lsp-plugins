@@ -396,10 +396,10 @@ namespace lsp
 
                 // Calculate frequency charts
                 sp->sLoPass.freq_chart(left->vBuffer, &left->vBuffer[max_items], f, to_process);
-                dsp::complex_mul3(left->vBuffer, &left->vBuffer[max_items], left->vBuffer, &left->vBuffer[max_items], tmp_re, tmp_im, to_process);
+                dsp::complex_mul2(left->vBuffer, &left->vBuffer[max_items], tmp_re, tmp_im, to_process);
 
                 sp->sHiPass.freq_chart(right->vBuffer, &right->vBuffer[max_items], f, to_process);
-                dsp::complex_mul3(right->vBuffer, &right->vBuffer[max_items], right->vBuffer, &right->vBuffer[max_items], tmp_re, tmp_im, to_process);
+                dsp::complex_mul2(right->vBuffer, &right->vBuffer[max_items], tmp_re, tmp_im, to_process);
 
                 dsp::copy(tmp_re, right->vBuffer, to_process);
                 dsp::copy(tmp_im, &right->vBuffer[max_items], to_process);

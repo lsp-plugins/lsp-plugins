@@ -8,10 +8,11 @@
 #include <core/alloc.h>
 #include <core/3d/common.h>
 #include <core/3d/RayTrace3D.h>
+#include <stdlib.h>
 
 #define SAMPLE_QUANTITY     512
-#define TASK_LO_THRESH      1024
-#define TASK_HI_THRESH      8192
+#define TASK_LO_THRESH      0x2000
+#define TASK_HI_THRESH      0x4000
 
 namespace lsp
 {
@@ -70,13 +71,15 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::run()
     {
+        // Initialize DSP context
         dsp::context_t ctx;
         dsp::start(&ctx);
 
-        clear_stats(&stats);
+        // Enter the main loop
         status_t res = main_loop();
         destroy_tasks(&tasks);
 
+        // Finalize DSP context and return result
         dsp::finish(&ctx);
         return res;
     }
@@ -212,64 +215,39 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::generate_tasks(cvector<rt_context_t> *tasks, float initial)
     {
+        status_t res;
+
         for (size_t i=0,n=trace->vSources.size(); i<n; ++i)
         {
-            source_t *src = trace->vSources.get(i);
+            rt_source_settings_t *src = trace->vSources.get(i);
             if (src == NULL)
                 return STATUS_CORRUPTED;
 
-            // Generate/fetch object
-            Object3D *obj = NULL;
-            switch (src->type)
-            {
-                case RT_AS_SPOT:        // TODO
-                case RT_AS_SPEAKER:     // TODO
-                case RT_AS_TRIANGLE:
-                    obj     = factory.buildTriangle();
-                    break;
-                case RT_AS_OMNI:
-                    obj     = factory.buildIcosphere(0);
-                    break;
-            }
-
-            if (obj == NULL)
-                return STATUS_NO_MEM;
-
-            // Prepare transformation matrix
-            matrix3d_t tm;
-            dsp::calc_matrix3d_transform_r1(&tm, &src->position);
-
-            // Estimate area of the source surface and apply it as a denominator of initial energy
-            point3d_t p[3];
-            float area = 0.0f;
-
-            for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
-            {
-                obj_triangle_t *t   = obj->triangle(ti);
-                dsp::apply_matrix3d_mp2(&p[0], t->v[0], &tm);
-                dsp::apply_matrix3d_mp2(&p[1], t->v[1], &tm);
-                dsp::apply_matrix3d_mp2(&p[2], t->v[2], &tm);
-                area               += dsp::calc_area_pv(p);
-            }
-//            float e_norming     = initial * src->volume / sqrtf(area);
+            // Generate source mesh
+            cstorage<rt_group_t> groups;
+            res = rt_gen_source_mesh(groups, src);
+            if (res != STATUS_OK)
+                return res;
 
             // Generate sources
-            for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
-            {
-//                if (ti != 6) // TODO: DEBUG
-//                    continue;
+            matrix3d_t tm = src->pos;
 
-                obj_triangle_t *t   = obj->triangle(ti);
+            for (size_t ti=0, n=groups.size(); ti<n; ++ti)
+            {
+                rt_group_t *grp = groups.at(ti);
+                if (grp == NULL)
+                    continue;
+
                 rt_context_t *ctx   = new rt_context_t();
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
 
                 RT_TRACE(trace->pDebug, ctx->set_debug_context(trace->pDebug); )
 
-                ctx->view.s         = src->position.z;
-                dsp::apply_matrix3d_mp2(&ctx->view.p[0], t->v[0], &tm);
-                dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[2], &tm);
-                dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[1], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.s, &grp->s, &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[0], &grp->p[0], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[1], &grp->p[1], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[2], &grp->p[2], &tm);
 
                 ctx->state          = S_SCAN_OBJECTS;
                 ctx->view.location  = 1.0f;
@@ -277,8 +255,7 @@ namespace lsp
                 ctx->view.face      = -1;
                 ctx->view.speed     = SOUND_SPEED_M_S;
 
-                ctx->view.amplitude = 1.0f; //sqrtf(dsp::calc_area_pv(ctx->view.p)) * e_norming;
-//                ctx->view.energy    = dsp::calc_area_pv(ctx->view.p) * e_norming;
+                ctx->view.amplitude = src->amplitude;
                 ctx->view.time[0]   = 0.0f;
                 ctx->view.time[1]   = 0.0f;
                 ctx->view.time[2]   = 0.0f;
@@ -288,16 +265,16 @@ namespace lsp
                     delete ctx;
                     return STATUS_NO_MEM;
                 }
-            }
 
-            RT_TRACE_BREAK(trace->pDebug,
-                lsp_trace("Generated %d raytrace contexts for source %d", int(obj->num_triangles()), int(i));
-                for (size_t i=0, n=tasks->size(); i<n; ++i)
-                {
-                    rt_context_t *ctx = tasks->at(i);
-                    trace->pDebug->trace.add_view_1c(&ctx->view, &C_MAGENTA);
-                }
-            );
+                RT_TRACE_BREAK(trace->pDebug,
+                    lsp_trace("Generated %d raytrace contexts for source %d", int(groups.size()), int(i));
+                    for (size_t i=0, n=tasks->size(); i<n; ++i)
+                    {
+                        rt_context_t *ctx = tasks->at(i);
+                        trace->pDebug->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
+                    }
+                );
+            }
         }
 
         return STATUS_OK;
@@ -317,16 +294,16 @@ namespace lsp
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Testing bound box");
 
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             v_vertex3d_t v[3];
             for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
             {
                 v[0].p      = box.p[bbox_map[j++]];
-                v[0].c      = C_YELLOW;
+                v[0].c      = C3D_YELLOW;
                 v[1].p      = box.p[bbox_map[j++]];
-                v[1].c      = C_YELLOW;
+                v[1].c      = C3D_YELLOW;
                 v[2].p      = box.p[bbox_map[j++]];
-                v[2].c      = C_YELLOW;
+                v[2].c      = C3D_YELLOW;
 
                 dsp::calc_normal3d_p3(&v[0].n, &v[0].p, &v[1].p, &v[2].p);
                 v[1].n      = v[0].n;
@@ -384,7 +361,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Add capture object to context
-            res     = root.add_object(obj, obj_id, &cap->matrix, &cap->material);
+            res     = root.add_object(obj, obj_id, &cap->pos, &cap->material);
             if (res != STATUS_OK)
                 return res;
         }
@@ -404,7 +381,8 @@ namespace lsp
             if (m == NULL)
                 return STATUS_BAD_STATE;
 
-            // Add object to context
+            // Compute bounding box and add object to context
+            obj->calc_bound_box();
             res         = root.add_object(obj, obj_id, obj->matrix(), m);
             if (res != STATUS_OK)
                 return res;
@@ -413,22 +391,8 @@ namespace lsp
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Prepared scene (%d triangles)", int(root.triangle.size()));
             for (size_t i=0,n=root.triangle.size(); i<n; ++i)
-                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
-
-        // Normalize capture volume
-//        for (size_t i=0, n=vCaptures.size(); i<n; ++i, ++obj_id)
-//        {
-//            capture_t *cap      = vCaptures.get(i);
-//            cap->volume        /= max_volume;
-//        }
-
-        // Update source energy (add extra volume)
-//        for (size_t i=0,n=vTasks.size();i<n; ++i)
-//        {
-//            rt_context_t *ct    = vTasks.get(i);
-//            ct->view.energy    *= max_volume;
-//        }
 
         // Solve conflicts between all objects
         res = root.solve_conflicts();
@@ -446,7 +410,7 @@ namespace lsp
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Added capture objects (%d triangles)", int(root.triangle.size()));
             for (size_t i=0,n=root.triangle.size(); i<n; ++i)
-                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
 
         return res;
@@ -459,7 +423,7 @@ namespace lsp
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Scanning objects...");
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
         )
 
         // Initialize context's view
@@ -467,7 +431,11 @@ namespace lsp
 
         // Initialize scan variables
         size_t max_objs     = trace->pScene->num_objects() + trace->vCaptures.size();
-        size_t *objs        = reinterpret_cast<size_t *>(alloca(sizeof(size_t) * max_objs));
+        size_t segs         = (max_objs + (sizeof(size_t) * 8) - 1) / (sizeof(size_t) * 8);
+        size_t *objs        = reinterpret_cast<size_t *>(alloca(sizeof(size_t) * segs));
+        for (size_t i=0; i<segs; ++i)
+            objs[i]             = 0;
+
         size_t n_objs       = 0;
         size_t obj_id       = 0;
 
@@ -483,11 +451,16 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Add capture identifier to list of visible objects
-            res     =  check_object(ctx, obj, &cap->matrix);
+            res     =  check_object(ctx, obj, &cap->pos);
             if (res == STATUS_OK)
-                objs[n_objs++]      = obj_id;
+            {
+                size_t part = obj_id / (sizeof(size_t) * 8);
+                size_t off  = obj_id % (sizeof(size_t) * 8);
+                objs[part] |= size_t(1) << off;
+                ++n_objs;
+            }
             else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
+                res     = STATUS_OK;
             else
                 return res;
         }
@@ -510,27 +483,38 @@ namespace lsp
             // Add object identifier to list of visible objects
             res     =  check_object(ctx, obj, obj->matrix());
             if (res == STATUS_OK)
-                objs[n_objs++]      = obj_id;
+            {
+                size_t part = obj_id / (sizeof(size_t) * 8);
+                size_t off  = obj_id % (sizeof(size_t) * 8);
+                objs[part] |= size_t(1) << off;
+                ++n_objs;
+            }
             else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
+                res     = STATUS_OK;
             else
                 return res;
         }
 
         // Fetch visible objects from root context into current context
 //        lsp_trace("Fetch %d objects", int(n_objs));
-        res     = ctx->fetch_objects(&root, n_objs, objs);
+        if (n_objs <= 0)
+        {
+            delete ctx;
+            return STATUS_OK;
+        }
+
+        res     = ctx->fetch_objects(&root, segs, objs);
         if (res != STATUS_OK) // Some error occurred
             return res;
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Fetched %d objects", int(n_objs));
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
 
             for (size_t i=0, n=ctx->plan.items.size(); i<n; ++i)
-                ctx->trace.add_segment(ctx->plan.items.get(i), &C_YELLOW);
+                ctx->trace.add_segment(ctx->plan.items.get(i), &C3D_YELLOW);
         )
 
         // Update state
@@ -642,9 +626,9 @@ namespace lsp
     {
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Performing depth test...");
-            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C_RED);
+                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C3D_RED);
         )
 
         // Perform cullback
@@ -654,9 +638,9 @@ namespace lsp
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("After depth test %d triangles", int(ctx->triangle.size()));
-        ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+        ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C_GREEN);
+                ctx->trace.add_triangle_1c(ctx->triangle.get(i), &C3D_GREEN);
         );
 
         if (ctx->triangle.size() <= 0)
@@ -669,10 +653,12 @@ namespace lsp
         return submit_task(ctx);
     }
 
+#ifdef LSP_TRACE
     void invalid_state_hook()
     {
         lsp_error("Invalid state");
     }
+#endif
 
     status_t RayTrace3D::TaskThread::reflect_view(rt_context_t *ctx)
     {
@@ -740,7 +726,7 @@ namespace lsp
                 a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
 
                 float dA    = A - (a[0] + a[1] + a[2]); // Point should lay within the view
-                if ((dA <= -DSP_3D_TOLERANCE) || (dA >= DSP_3D_TOLERANCE))
+                if ((dA <= -trace->fTolerance) || (dA >= trace->fTolerance))
                 {
                     valid = false;
                     break;
@@ -748,8 +734,10 @@ namespace lsp
 
                 t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
                 v.time[j]   = t[j] + (d[j] / sv.speed);
-                if (v.time[j] > 1.0f)
-                    invalid_state_hook();
+                #ifdef LSP_TRACE
+                    if (v.time[j] > 30.0f)
+                        invalid_state_hook();
+                #endif
             }
 
             if (!valid)
@@ -781,12 +769,12 @@ namespace lsp
                 lsp_trace("Distance between source point and triangle: %f", distance);
                 lsp_trace("oid = %d, caprues.size=%d", int(ct->oid), int(trace->vCaptures.size()));
 
-                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
-                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C_GREEN);
-                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-                ctx->trace.add_segment(&p[0], &ct->v[0], &C_RED);
-                ctx->trace.add_segment(&p[1], &ct->v[1], &C_GREEN);
-                ctx->trace.add_segment(&p[2], &ct->v[2], &C_BLUE);
+                ctx->trace.add_triangle_1c(ct, &C3D_YELLOW);
+                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C3D_GREEN);
+                ctx->trace.add_view_1c(&sv, &C3D_MAGENTA);
+                ctx->trace.add_segment(&p[0], &ct->v[0], &C3D_RED);
+                ctx->trace.add_segment(&p[1], &ct->v[1], &C3D_GREEN);
+                ctx->trace.add_segment(&p[2], &ct->v[2], &C3D_BLUE);
             )
 
             cv          = v;
@@ -798,14 +786,14 @@ namespace lsp
                 cv.amplitude    = v.amplitude * m->absorption[0];
                 v.amplitude    *= (1.0f - m->absorption[0]);
 
-                kd              = (1.0f + 1.0f / m->dispersion[0]) * distance;
+                kd              = (1.0f + 1.0f / m->diffusion[0]) * distance;
                 rv.amplitude    = v.amplitude * (m->transparency[0] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
                 rv.rnum         = v.rnum + 1;       // Increment reflection number
 
-                kd              = (m->permeability/m->dissipation[0] - 1.0f) * distance;
+                kd              = (m->permeability/m->dispersion[0] - 1.0f) * distance;
                 tv.amplitude    = v.amplitude * m->transparency[0];
                 tv.speed       *= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
@@ -813,20 +801,22 @@ namespace lsp
                 tv.s.z         += kd * ct->n.dz;
                 tv.location     = - v.location;     // Invert location of transparent trace
 
-                if (tv.speed > 5000.0f)
-                    invalid_state_hook();
-                else if (tv.speed < 300.0f)
-                    invalid_state_hook();
+                #ifdef LSP_TRACE
+                    if (tv.speed > 10000.0f)
+                        invalid_state_hook();
+                    else if (tv.speed < 10.0f)
+                        invalid_state_hook();
+                #endif
 
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Outside->inside reflect_view");
                     lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
-                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
-                            m->absorption[0], m->transparency[0], m->permeability, m->dispersion[0], m->dissipation[0]);
+                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, diffusion=%f, dispersion=%f",
+                            m->absorption[0], m->transparency[0], m->permeability, m->diffusion[0], m->dispersion[0]);
 
-                    ctx->trace.add_view_1c(&sv, &C_RED);
-                    ctx->trace.add_view_1c(&rv, &C_GREEN);
-                    ctx->trace.add_view_1c(&tv, &C_CYAN);
+                    ctx->trace.add_view_1c(&sv, &C3D_RED);
+                    ctx->trace.add_view_1c(&rv, &C3D_GREEN);
+                    ctx->trace.add_view_1c(&tv, &C3D_CYAN);
                 )
             }
             else
@@ -834,14 +824,14 @@ namespace lsp
                 cv.amplitude    = v.amplitude * m->absorption[1];
                 v.amplitude    *= (1.0f - m->absorption[1]);
 
-                kd              = (1.0f + 1.0f / m->dispersion[1]) * distance;
+                kd              = (1.0f + 1.0f / m->diffusion[1]) * distance;
                 rv.amplitude    = v.amplitude * (m->transparency[1] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
                 rv.rnum         = v.rnum + 1;       // Increment reflection number
 
-                kd              = (1.0f/(m->dissipation[1]*m->permeability) - 1.0f) * distance;
+                kd              = (1.0f/(m->dispersion[1]*m->permeability) - 1.0f) * distance;
                 tv.amplitude    = v.amplitude * m->transparency[1];
                 tv.speed       /= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
@@ -849,20 +839,22 @@ namespace lsp
                 tv.s.z         += kd * ct->n.dz;
                 tv.location     = - v.location;     // Invert location of transparent trace
 
-                if (tv.speed > 5000.0f)
-                    invalid_state_hook();
-                else if (tv.speed < 300.0f)
-                    invalid_state_hook();
+                #ifdef LSP_TRACE
+                    if (tv.speed > 10000.0f)
+                        invalid_state_hook();
+                    else if (tv.speed < 10.0f)
+                        invalid_state_hook();
+                #endif
 
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Inside->outside reflect_view");
                     lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
-                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
-                            m->absorption[1], m->transparency[1], m->permeability, m->dispersion[1], m->dissipation[1]);
+                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, diffusion=%f, dispersion=%f",
+                            m->absorption[1], m->transparency[1], m->permeability, m->diffusion[1], m->dispersion[1]);
 
-                    ctx->trace.add_view_1c(&sv, &C_RED);
-                    ctx->trace.add_view_1c(&rv, &C_GREEN);
-                    ctx->trace.add_view_1c(&tv, &C_CYAN);
+                    ctx->trace.add_view_1c(&sv, &C3D_RED);
+                    ctx->trace.add_view_1c(&rv, &C3D_GREEN);
+                    ctx->trace.add_view_1c(&tv, &C3D_CYAN);
                 )
             }
 
@@ -963,8 +955,8 @@ namespace lsp
         vector3d_t cv, pv;
         float afactor       = v->amplitude / sqrtf(v_area); // The norming energy factor
         dsp::unit_vector_p1pv(&cv, &v->s, v->p);
-        dsp::normalize_vector2(&pv, &capture->position.v);
-        float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // -cos(a)
+        pv                  = capture->direction;
+        float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // cos(a)
 
         // Analyze capture type
         switch (capture->type)
@@ -989,7 +981,7 @@ namespace lsp
                 afactor    *= kcos*kcos;  // factor = factor * cos(a)^2
                 break;
 
-            case RT_AC_OMNI: // fatctor = factor * 1
+            case RT_AC_OMNI: // factor = factor * 1
             default:
                 break;
         }
@@ -1016,7 +1008,7 @@ namespace lsp
         else
             csn     = (tsn[1] < tsn[2]) ? tsn[1] : tsn[2];
 #ifdef LSP_TRACE
-        ssize_t ssn = csn;                                      // Start culling sample number
+//        ssize_t ssn = csn;                                      // Start culling sample number
 #endif
         ++csn;
 
@@ -1044,9 +1036,9 @@ namespace lsp
 
             RT_TRACE_BREAK(trace->pDebug,
                 lsp_trace("Integrating triangle...");
-                view->add_view_1c(v, &C_MAGENTA);
-                view->add_triangle_pv1c(src.v, &C_ORANGE);
-                view->add_plane_pvn1c(p, &spl, &C_YELLOW);
+                view->add_view_1c(v, &C3D_MAGENTA);
+                view->add_triangle_pv1c(src.v, &C3D_ORANGE);
+                view->add_plane_pvn1c(p, &spl, &C3D_YELLOW);
             )
 
             // Perform split
@@ -1068,12 +1060,12 @@ namespace lsp
                             int(n_in), int(n_out),
                             int(csn-1), amplitude
                         );
-                    view->add_view_1c(v, &C_MAGENTA);
-                    view->add_plane_pvn1c(p, &spl, &C_YELLOW);
+                    view->add_view_1c(v, &C3D_MAGENTA);
+                    view->add_plane_pvn1c(p, &spl, &C3D_YELLOW);
                     for (size_t i=0; i<n_in; ++i)
-                        view->add_triangle_pv1c(in[i].v, &C_GREEN);
+                        view->add_triangle_pv1c(in[i].v, &C3D_GREEN);
                     for (size_t i=0; i<n_out; ++i)
-                        view->add_triangle_pv1c(out[i].v, &C_RED);
+                        view->add_triangle_pv1c(out[i].v, &C3D_RED);
                 )
 
                 // Deploy energy value to the sample
@@ -1110,11 +1102,15 @@ namespace lsp
                                 lsp_trace("Requesting sample resize: csn=0x%llx, len=0x%llx, channels=%d",
                                     (long long)csn, (long long)len, int(s->sample->channels())
                                     );
-                                if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
-                                    invalid_state_hook();
+                                #ifdef LSP_TRACE
+                                    if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
+                                        invalid_state_hook();
+                                #endif
                                 if (!s->sample->resize(s->sample->channels(), len, len))
                                 {
-                                    invalid_state_hook();
+                                    #ifdef LSP_TRACE
+                                        invalid_state_hook();
+                                    #endif
                                     return STATUS_NO_MEM;
                                 }
                             }
@@ -1136,14 +1132,17 @@ namespace lsp
             ++csn; // Increment culling sample number for next iteration
         } while (n_out > 0);
 
-        lsp_trace("Samples %d-%d -> area=%e amplitude=%e kcos=%f rnum=%d",
-                int(ssn), int(csn-1), v_area, v->amplitude, kcos, int(v->rnum));
+//        lsp_trace("Samples %d-%d -> area=%e amplitude=%e kcos=%f rnum=%d",
+//                int(ssn), int(csn-1), v_area, v->amplitude, kcos, int(v->rnum));
 
         return STATUS_OK;
     }
 
     status_t RayTrace3D::TaskThread::prepare_main_loop(float initial)
     {
+        // Cleanup stats
+        clear_stats(&stats);
+
         // Report progress as 0%
         status_t res    = trace->report_progress(0.0f);
         if (res != STATUS_OK)
@@ -1158,7 +1157,7 @@ namespace lsp
                 if (!obj->is_visible())
                     continue;
                 for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
-                    trace->pDebug->trace.add_triangle(obj->triangle(j), &C_RED, &C_GREEN, &C_BLUE);
+                    trace->pDebug->trace.add_triangle(obj->triangle(j), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
             }
         );
 
@@ -1184,6 +1183,14 @@ namespace lsp
             return STATUS_CANCELLED;
         }
 
+        // Prepare captures
+        res = prepare_captures();
+        if (res != STATUS_OK)
+        {
+            destroy_tasks(&estimate);
+            return res;
+        }
+
         // Estimate the progress by doing set of steps
         heavy_state = -1; // This guarantees that all tasks will be submitted to local task queue
         do
@@ -1207,6 +1214,7 @@ namespace lsp
                 }
 
                 // Process new task but store into
+                ++stats.root_tasks;
                 res     = process_context(ctx);
                 if (res != STATUS_OK)
                 {
@@ -1241,7 +1249,7 @@ namespace lsp
             return STATUS_CANCELLED;
         }
 
-        return prepare_captures();
+        return STATUS_OK;
     }
 
     status_t RayTrace3D::TaskThread::prepare_captures()
@@ -1260,10 +1268,11 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
 
-            dcap->matrix    = scap->matrix;
-            dcap->position  = scap->position;
-            dcap->material  = scap->material;
+            dcap->pos       = scap->pos;
+            dcap->radius    = scap->radius;
             dcap->type      = scap->type;
+            dcap->material  = scap->material;
+            dcap->direction = scap->direction;
 
             // Copy bindings
             for (size_t j=0; j<scap->bindings.size(); ++j)
@@ -1301,9 +1310,14 @@ namespace lsp
     {
         // Cleanup statistics
         clear_stats(&stats);
+
+        // Copy context
         status_t res = root.copy(&t->root);
+
+        // Prepare captures
         if (res == STATUS_OK)
             res = prepare_captures();
+
         return res;
     }
 
@@ -1497,13 +1511,13 @@ namespace lsp
 
                 // By default, we set the material to 'Concrete'
                 m->absorption[0]    = 0.02f;
+                m->diffusion[0]     = 1.0f;
                 m->dispersion[0]    = 1.0f;
-                m->dissipation[0]   = 1.0f;
                 m->transparency[0]  = 0.48f;
 
                 m->absorption[1]    = 0.0f;
+                m->diffusion[1]     = 1.0f;
                 m->dispersion[1]    = 1.0f;
-                m->dissipation[1]   = 1.0f;
                 m->transparency[1]  = 0.52f;
 
                 m->permeability     = 12.88f;
@@ -1540,23 +1554,25 @@ namespace lsp
         vCaptures.flush();
     }
 
-    status_t RayTrace3D::add_source(const ray3d_t *position, rt_audio_source_t type)
+    status_t RayTrace3D::add_source(const rt_source_settings_t *settings)
     {
-        if (position == NULL)
-            return STATUS_NO_MEM;
+        if (settings == NULL)
+            return STATUS_BAD_ARGUMENTS;
 
-        source_t *src       = vSources.add();
+        rt_source_settings_t *src = vSources.add();
         if (src == NULL)
             return STATUS_NO_MEM;
 
-        src->position       = *position;
-        src->type           = type;
+        *src        = *settings;
 
         return STATUS_OK;
     }
 
-    ssize_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type)
+    ssize_t RayTrace3D::add_capture(const rt_capture_settings_t *settings)
     {
+        if (settings == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         capture_t *cap      = new capture_t();
         if (cap == NULL)
             return -STATUS_NO_MEM;
@@ -1568,21 +1584,26 @@ namespace lsp
             return -STATUS_NO_MEM;
         }
 
-        cap->position       = *position;
-        cap->type           = type;
+        matrix3d_t delta;
+        dsp::init_matrix3d_scale(&delta, settings->radius, settings->radius, settings->radius);
+        dsp::apply_matrix3d_mm2(&cap->pos, &settings->pos, &delta);
+        dsp::init_vector_dxyz(&cap->direction, 1.0f, 0.0f, 0.0f);
+        cap->radius         = settings->radius;
+        cap->type           = settings->type;
 
-        dsp::calc_matrix3d_transform_r1(&cap->matrix, position);
+        dsp::apply_matrix3d_mv1(&cap->direction, &cap->pos);
+        dsp::normalize_vector(&cap->direction);
 
         // "Black hole"
         rt_material_t *m    = &cap->material;
         m->absorption[0]    = 1.0f;
+        m->diffusion[0]     = 1.0f;
         m->dispersion[0]    = 1.0f;
-        m->dissipation[0]   = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->absorption[0]    = 1.0f;
+        m->diffusion[0]     = 1.0f;
         m->dispersion[0]    = 1.0f;
-        m->dissipation[0]   = 1.0f;
         m->transparency[0]  = 0.0f;
 
         m->permeability     = 1.0f;
@@ -1620,6 +1641,27 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t RayTrace3D::set_material(size_t idx, const rt_material_t *material)
+    {
+        rt_material_t *m = vMaterials.get(idx);
+        if (m == NULL)
+            return STATUS_INVALID_VALUE;
+        *m = *material;
+        return STATUS_OK;
+    }
+
+    status_t RayTrace3D::get_material(rt_material_t *material, size_t idx)
+    {
+        if (material == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        rt_material_t *m = vMaterials.get(idx);
+        if (m == NULL)
+            return STATUS_INVALID_VALUE;
+
+        *material = *m;
+        return STATUS_OK;
+    }
+
     status_t RayTrace3D::set_progress_callback(rt_progress_t callback, void *data)
     {
         if (callback == NULL)
@@ -1644,11 +1686,17 @@ namespace lsp
         return pProgress(progress, pProgressData);
     }
 
-    status_t RayTrace3D::process(size_t threads, float initial)
+    status_t RayTrace3D::do_process(size_t threads, float initial)
     {
         status_t res = STATUS_OK;
         bCancelled   = false;
         bFailed      = false;
+
+        // Get time of execution start
+#ifdef LSP_TRACE
+        struct timespec tstart;
+        clock_gettime(CLOCK_REALTIME, &tstart);
+#endif
 
         // Create main thread
         TaskThread *root = new TaskThread(this);
@@ -1665,27 +1713,30 @@ namespace lsp
 
         // Launch supplementary threads
         cvector<TaskThread> workers;
-        for (size_t i=1; i<threads; ++i)
+        if (vTasks.size() > 0)
         {
-            // Create thread object
-            TaskThread *t   = new TaskThread(this);
-            if ((t == NULL) || (!workers.add(t)))
+            for (size_t i=1; i<threads; ++i)
             {
-                if (t != NULL)
-                    delete t;
-                res = STATUS_NO_MEM;
-                break;
+                // Create thread object
+                TaskThread *t   = new TaskThread(this);
+                if ((t == NULL) || (!workers.add(t)))
+                {
+                    if (t != NULL)
+                        delete t;
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+
+                // Sync thread data
+                res = t->prepare_supplementary_loop(root);
+                if (res != STATUS_OK)
+                    break;
+
+                // Launch thread
+                res = t->start();
+                if (res != STATUS_OK)
+                    break;
             }
-
-            // Sync thread data
-            res = t->prepare_supplementary_loop(root);
-            if (res != STATUS_OK)
-                break;
-
-            // Launch thread
-            res = t->start();
-            if (res != STATUS_OK)
-                break;
         }
 
         // If successful status, perform main loop
@@ -1734,7 +1785,17 @@ namespace lsp
 
         // Dump overall statistics
         if (res != STATUS_BREAKPOINT)
+        {
+            // Get time of execution end
+#ifdef LSP_TRACE
+            struct timespec tend;
+            clock_gettime(CLOCK_REALTIME, &tend);
+            double etime = double(tend.tv_sec - tstart.tv_sec) + double(tend.tv_nsec - tend.tv_nsec) * 1e-6;
+#endif
+
             dump_stats("Overall statistics", &overall);
+            lsp_trace("Overall execution time:      %f s", etime);
+        }
 
         // Destroy all tasks
         destroy_tasks(&vTasks);
@@ -1750,6 +1811,20 @@ namespace lsp
         ++nProgressPoints;
 
         return report_progress(prg);
+    }
+
+    status_t RayTrace3D::process(size_t threads, float initial)
+    {
+        // We need to initialize DSP context for processing
+        dsp::context_t ctx;
+        dsp::start(&ctx);
+
+        // Call processing routine
+        status_t res = do_process(threads, initial);
+
+        // Finalize DSP context and exit
+        dsp::finish(&ctx);
+        return res;
     }
 
     bool RayTrace3D::is_already_passed(const sample_t *bind)

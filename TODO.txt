@@ -7,17 +7,15 @@
   plugin series
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
+- Review implementation of multiband compressor according to the article:
+  https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
-=== 1.1.10 ===
+=== 1.1.11 ===
 
-* Fixed improper InlineDisplay feature support in LV2 TTL files.
-* Plugin names now have 'LSP' prefix for the LV2 format.
-* Added command-line option to pass configuration file name for standalone JACK plugins.
-  The settings stored in configuration file will be automatically loaded at startup.
-* Updated function signatures for libraries which now support '-fvisibility=hidden'
-  compilation flag.
-- Implemented 3D reverb simulator.
-- Added 3D scene rendeding support in the UI.
+* Fixed GLX context synchronization that could lead to crashes on several systems.
+* Fixed bug with improper mouse pointer coordinates for nested menus.
+* Fixed bug with improper latency value reported by Limiter plugin series.
+- Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
 - Implemented sampler plugin series with stereo outputs.
@@ -39,7 +37,7 @@
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
 * Run make clean && make test to build testing system
-* Run .build/lsp-plugins-test utest for running all unit tests and
+* Run .test/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
 * Run make clean && make uninstall && make install && make clean to
   build and install binaries
@@ -179,6 +177,23 @@ Tobbe:
     - Make all grid lines more 'darken' in the UI.
     - Add possibility to activate bands not only by switching dropdown menu in the Combo Group.
     - Implement tabs instead of combo group.
+
+==== Reference Looper ====
+  lordbullingdon
+	Hey. Does anyone know of a native Linux tool for easy mix referencing in the likes of
+	https://www.producerspot.com/magic-ab-2-utility-plugin-by-sample-magic
+	
+	Sample Magic intros Magic AB 2, the second version of their plugin utility that can be used to
+	switch between the audio you are working on in your music software, and up to nine reference tracks.
+	Magic AB v2 is an entirely new plugin, rebuilt from the ground up into a new framework.
+
+	Magic AB 2 is an indispensable mixing tool and a workflow improver that allow you to compare multiple
+	audio streams, like your track you are working on, with any commercially produced reference track in a
+	variety of audio formats (mp3, Aiff, Wav, m4a, AAC). Flick between them and your mix with a single mouse click.
+
+	Magic AB 2 new version comes with new features and powerful workflow improvements including two new referencing
+	modes, RAM-bypass mode, drag and drop files, Mono/Stereo switching – Compare stereo mixes or flip to mono
+	to check mono compatibility, also it features up to four programmable Cue and Loop point per track and many more.
 
 ==== Equalizer tuning ====
   Jan Lentfer

@@ -356,5 +356,10 @@ namespace lsp
         {
             return NULL;
         }
+
+        status_t INativeWindow::grab_events()
+        {
+            return STATUS_OK;
+        }
     } /* namespace ws */
 } /* namespace lsp */

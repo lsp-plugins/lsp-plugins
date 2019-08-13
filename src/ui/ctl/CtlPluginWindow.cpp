@@ -32,6 +32,7 @@ namespace lsp
             pPVersion   = NULL;
             pPBypass    = NULL;
             pPath       = NULL;
+            pR3DBackend = NULL;
         }
         
         CtlPluginWindow::~CtlPluginWindow()
@@ -46,6 +47,7 @@ namespace lsp
                 delete w;
             }
             vWidgets.flush();
+            vBackendSel.flush();
         }
 
         status_t CtlPluginWindow::slot_window_close(LSPWidget *sender, void *ptr, void *data)
@@ -84,6 +86,7 @@ namespace lsp
             BIND_PORT(pRegistry, pPVersion, VERSION_PORT);
             BIND_PORT(pRegistry, pPath, CONFIG_PATH_PORT);
             BIND_PORT(pRegistry, pPBypass, PORT_NAME_BYPASS);
+            BIND_PORT(pRegistry, pR3DBackend, R3D_BACKEND_PORT);
 
             const plugin_metadata_t *meta   = pUI->metadata();
 
@@ -98,6 +101,7 @@ namespace lsp
             {
                 // Initialize menu
                 pMenu = new LSPMenu(dpy);
+                pMenu->set_unique_id(WUID_MAIN_MENU);
                 vWidgets.add(pMenu);
                 pMenu->init();
 
@@ -122,6 +126,10 @@ namespace lsp
                     itm->set_text("Toggle rack mount");
                     itm->slots()->bind(LSPSLOT_SUBMIT, slot_toggle_rack_mount, this);
                     pMenu->add(itm);
+
+                    // Add support of 3D rendering backend switch
+                    if (meta->extensions & E_3D_BACKEND)
+                        init_r3d_support(pMenu);
 
                 // Initialize main grid
                 LSPGrid *grd = new LSPGrid(dpy);
@@ -223,6 +231,142 @@ namespace lsp
             pWnd->slots()->bind(LSPSLOT_SHOW, slot_window_show, this);
         }
 
+        status_t CtlPluginWindow::init_r3d_support(LSPMenu *menu)
+        {
+            if (menu == NULL)
+                return STATUS_OK;
+
+            IDisplay *dpy   = menu->display()->display();
+            if (dpy == NULL)
+                return STATUS_OK;
+
+            status_t res;
+
+            // Create submenu item
+            LSPMenuItem *item       = new LSPMenuItem(menu->display());
+            if (item == NULL)
+                return STATUS_NO_MEM;
+            if ((res = item->init()) != STATUS_OK)
+            {
+                delete item;
+                return res;
+            }
+            if (!vWidgets.add(item))
+            {
+                item->destroy();
+                delete item;
+                return STATUS_NO_MEM;
+            }
+
+            // Add item to the main menu
+            item->set_text("3D Rendering");
+            menu->add(item);
+
+            // Get backend port
+            const char *backend = (pR3DBackend != NULL) ? pR3DBackend->get_buffer<char>() : NULL;
+
+            // Create submenu
+            menu                = new LSPMenu(menu->display());
+            if (menu == NULL)
+                return STATUS_NO_MEM;
+            if ((res = menu->init()) != STATUS_OK)
+            {
+                menu->destroy();
+                delete menu;
+                return res;
+            }
+            if (!vWidgets.add(menu))
+            {
+                menu->destroy();
+                delete menu;
+                return STATUS_NO_MEM;
+            }
+            item->set_submenu(menu);
+
+            for (size_t id=0; ; ++id)
+            {
+                // Enumerate next backend information
+                const R3DBackendInfo *info = dpy->enumBackend(id);
+                if (info == NULL)
+                    break;
+
+                // Create menu item
+                LSPMenuItem *item       = new LSPMenuItem(menu->display());
+                if (item == NULL)
+                    continue;
+                if ((res = item->init()) != STATUS_OK)
+                {
+                    item->destroy();
+                    delete item;
+                    continue;
+                }
+                if (!vWidgets.add(item))
+                {
+                    item->destroy();
+                    delete item;
+                    continue;
+                }
+
+                item->set_text(&info->display);
+                menu->add(item);
+
+                // Create closure and bind
+                backend_sel_t *sel = vBackendSel.add();
+                if (sel != NULL)
+                {
+                    sel->ctl    = this;
+                    sel->item   = item;
+                    sel->id     = id;
+                    item->slots()->bind(LSPSLOT_SUBMIT, slot_select_backend, sel);
+                }
+
+                // Backend identifier matches?
+                if ((backend == NULL) || (!info->uid.equals_ascii(backend)))
+                {
+                    slot_select_backend(item, sel, NULL);
+                    if (backend == NULL)
+                        backend     = info->uid.get_ascii();
+                }
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_select_backend(LSPWidget *sender, void *ptr, void *data)
+        {
+            backend_sel_t *sel = reinterpret_cast<backend_sel_t *>(ptr);
+            if ((sender == NULL) || (sel == NULL) || (sel->ctl == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            IDisplay *dpy = sender->display()->display();
+            if (dpy == NULL)
+                return STATUS_BAD_STATE;
+
+            const R3DBackendInfo *info = dpy->enumBackend(sel->id);
+            if (info == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            // Mark backend as selected
+            dpy->selectBackendId(sel->id);
+
+            // Need to commit backend identifier to config file?
+            const char *value = info->uid.get_ascii();
+            if (value == NULL)
+                return STATUS_NO_MEM;
+
+            if (sel->ctl->pR3DBackend != NULL)
+            {
+                const char *backend = sel->ctl->pR3DBackend->get_buffer<char>();
+                if ((backend == NULL) || (strcmp(backend, value)))
+                {
+                    sel->ctl->pR3DBackend->write(value, strlen(value));
+                    sel->ctl->pR3DBackend->notify_all();
+                }
+            }
+
+            return STATUS_OK;
+        }
+
         void CtlPluginWindow::end()
         {
             // Check widget pointer
@@ -271,6 +415,21 @@ namespace lsp
                 vMStud[1]->set_visible(!top);
                 vMStud[2]->set_visible(!top);
             }
+        }
+
+        LSPWidget *CtlPluginWindow::resolve(const char *uid)
+        {
+            for (size_t i=0,n=vWidgets.size(); i<n; ++i)
+            {
+                LSPWidget *widget = vWidgets.get(i);
+                if (widget == NULL)
+                    continue;
+                const char *wuid = widget->unique_id();
+                if ((wuid != NULL) && (!strcmp(wuid, uid)))
+                    return widget;
+            }
+
+            return CtlWidget::resolve(uid);
         }
 
         status_t CtlPluginWindow::add(LSPWidget *child)
@@ -389,7 +548,7 @@ namespace lsp
         status_t CtlPluginWindow::slot_call_import_settings(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
-            __this->pUI->import_settings(__this->pImport->selected_file());
+            __this->pUI->import_settings(__this->pImport->selected_file(), false);
             return STATUS_OK;
         }
 

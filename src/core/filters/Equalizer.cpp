@@ -316,7 +316,7 @@ namespace lsp
                         dsp::direct_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
 
                         // Perform convolution
-                        dsp::complex_mul3(vFftRe, vFftIm, vFftRe, vFftIm, vConvRe, vConvIm, conv_len);
+                        dsp::complex_mul2(vFftRe, vFftIm, vConvRe, vConvIm, conv_len);
 
                         // Perform the reverse FFT
                         dsp::reverse_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
