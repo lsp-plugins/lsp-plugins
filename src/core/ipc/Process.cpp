@@ -12,6 +12,8 @@
 #include <errno.h>
 #include <data/cstorage.h>
 #include <time.h>
+#include <core/io/OutFileStream.h>
+#include <core/io/InFileStream.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
@@ -32,8 +34,20 @@ namespace lsp
 
 #ifdef PLATFORM_WINDOWS
             hProcess            = INVALID_HANDLE;
-#endif
             nPID                = 0;
+            hStdIn              = INVALID_HANDLE;
+            hStdOut             = INVALID_HANDLE;
+            hStdErr             = INVALID_HANDLE;
+#else
+            nPID                = 0;
+            hStdIn              = -1;
+            hStdOut             = -1;
+            hStdErr             = -1;
+#endif
+
+            pStdIn              = NULL;
+            pStdOut             = NULL;
+            pStdErr             = NULL;
 
             if (copy_env() != STATUS_OK)
                 nStatus             = PSTATUS_ERROR;
@@ -43,6 +57,28 @@ namespace lsp
         {
             destroy_args(&vArgs);
             destroy_env(&vEnv);
+            close_handles();
+
+            if (pStdIn != NULL)
+            {
+                pStdIn->close();
+                delete pStdIn;
+                pStdIn  = NULL;
+            }
+
+            if (pStdOut != NULL)
+            {
+                pStdOut->close();
+                delete pStdOut;
+                pStdOut  = NULL;
+            }
+
+            if (pStdErr != NULL)
+            {
+                pStdErr->close();
+                delete pStdErr;
+                pStdErr  = NULL;
+            }
         }
     
         void Process::destroy_args(cvector<LSPString> *args)
@@ -641,7 +677,44 @@ namespace lsp
         }
 
 #ifdef PLATFORM_WINDOWS
+        void Process::close_handles()
+        {
+            if (hStdIn != INVALID_HANDLE)
+            {
+                ::CloseHandle(hStdIn);
+                hStdIn          = INVALID_HANDLE;
+            }
+            if (hStdOut != INVALID_HANDLE)
+            {
+                ::CloseHandle(hStdOut);
+                hStdOut         = INVALID_HANDLE;
+            }
+            if (hStdErr != INVALID_HANDLE)
+            {
+                ::CloseHandle(hStdErr);
+                hStdErr         = INVALID_HANDLE;
+            }
+        }
 #else
+        void Process::close_handles()
+        {
+            if (hStdIn >= 0)
+            {
+                ::close(hStdIn);
+                hStdIn          = -1;
+            }
+            if (hStdOut >= 0)
+            {
+                ::close(hStdOut);
+                hStdOut         = -1;
+            }
+            if (hStdErr >= 0)
+            {
+                ::close(hStdErr);
+                hStdErr         = -1;
+            }
+        }
+
         status_t Process::build_argv(cvector<char> *dst)
         {
             char *s;
@@ -851,6 +924,10 @@ namespace lsp
                     res    = fork_process(cmd, argv.get_array(), envp.get_array());
             }
 
+            // Close redirected file handles
+            if (res == STATUS_OK)
+                close_handles();
+
             // Free temporary data and return result
             ::free(cmd);
             drop_data(&argv);
@@ -941,6 +1018,83 @@ namespace lsp
 
             return STATUS_OK;
         }
+
+        io::IOutStream *Process::stdin()
+        {
+            if ((nStatus != PSTATUS_CREATED) || (pStdIn != NULL))
+                return pStdIn;
+
+            int fd[2]; // rw
+            if (::pipe(fd) != 0)
+                return NULL;
+
+            // Create stream and wrap
+            io::OutFileStream *strm = new io::OutFileStream();
+            if ((strm == NULL) || (strm->wrap_native(fd[1], true) != STATUS_OK))
+            {
+                ::close(fd[0]);
+                ::close(fd[1]);
+                return NULL;
+            }
+
+            // All is OK
+            pStdIn  = strm;
+            hStdIn  = fd[0];
+
+            return pStdIn;
+        }
+
+        io::IInStream *Process::stdout()
+        {
+            if ((nStatus != PSTATUS_CREATED) || (pStdOut != NULL))
+                return pStdOut;
+
+            int fd[2]; // rw
+            if (::pipe(fd) != 0)
+                return NULL;
+
+            // Create stream and wrap
+            io::InFileStream *strm = new io::InFileStream();
+            if ((strm == NULL) || (strm->wrap_native(fd[0], true) != STATUS_OK))
+            {
+                ::close(fd[0]);
+                ::close(fd[1]);
+                return NULL;
+            }
+
+            // All is OK
+            pStdOut = strm;
+            hStdOut = fd[1];
+
+            return pStdOut;
+        }
+
+        io::IInStream *Process::stderr()
+        {
+            if ((nStatus != PSTATUS_CREATED) || (pStdErr != NULL))
+                return pStdErr;
+
+            int fd[2]; // rw
+            if (::pipe(fd) != 0)
+                return NULL;
+
+            // Create stream and wrap
+            io::InFileStream *strm = new io::InFileStream();
+            if ((strm == NULL) || (strm->wrap_native(fd[0], true) != STATUS_OK))
+            {
+                ::close(fd[0]);
+                ::close(fd[1]);
+                return NULL;
+            }
+
+            // All is OK
+            pStdErr = strm;
+            hStdErr = fd[1];
+
+            return pStdErr;
+        }
+
+
 #endif /* PLATFORM_WINDOWS */
 
         status_t Process::copy_env()

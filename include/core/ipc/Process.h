@@ -10,8 +10,10 @@
 
 #include <core/types.h>
 #include <unistd.h>
-#include <core/LSPString.h>
 #include <data/cvector.h>
+#include <core/LSPString.h>
+#include <core/io/IInStream.h>
+#include <core/io/IOutStream.h>
 
 namespace lsp
 {
@@ -48,13 +50,24 @@ namespace lsp
 #ifdef PLATFORM_WINDOWS
                 HANDLE                  hProcess;
                 WORD                    nPID;
+                HANDLE                  hStdIn;
+                HANDLE                  hStdOut;
+                HANDLE                  hStdErr;
 #else
                 pid_t                   nPID;
+                int                     hStdIn;
+                int                     hStdOut;
+                int                     hStdErr;
 #endif /* PLATFORM_WINDOWS */
+
+                io::IOutStream         *pStdIn;
+                io::IInStream          *pStdOut;
+                io::IInStream          *pStdErr;
 
             protected:
                 static void     destroy_args(cvector<LSPString> *args);
                 static void     destroy_env(cvector<envvar_t> *env);
+                void            close_handles();
 
 #ifdef PLATFORM_WINDOWS
 #else
@@ -268,6 +281,34 @@ namespace lsp
                 status_t    clear_env();
 
             public:
+                /**
+                 * Return redirected standard input stream of the process.
+                 * The redirection is allowed before successful launch() has been issued.
+                 *
+                 * @return pointer to standard input stream
+                 */
+                io::IOutStream *stdin();
+
+                /**
+                 * Return redirected standard output stream of the process.
+                 * The redirection is allowed before successful launch() has been issued.
+                 *
+                 * @return pointer to standard output stream
+                 */
+                io::IInStream *stdout();
+
+                /**
+                 * Return redirected standard error stream of the process.
+                 * The redirection is allowed before successful launch() has been issued.
+                 *
+                 * @return pointer to standard error stream
+                 */
+                io::IInStream *stderr();
+
+                /**
+                 * Get process status
+                 * @return process status
+                 */
                 size_t      status();
 
                 /**
