@@ -17,6 +17,7 @@
 
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
+    #include <namedpipeapi.h>
     #include <processenv.h>
 #else
     #include <sys/wait.h>
@@ -694,6 +695,81 @@ namespace lsp
                 ::CloseHandle(hStdErr);
                 hStdErr         = INVALID_HANDLE;
             }
+        }
+
+        io::IOutStream *Process::stdin()
+        {
+            if ((nStatus != PSTATUS_CREATED) || (pStdIn != NULL))
+                return pStdIn;
+
+            HANDLE hRead = INVALID_HANDLE, hWrite = INVALID_HANDLE;
+            if (!::CreatePipe(&hRead, &hWrite, NULL, 0))
+                return NULL;
+
+            // Create stream and wrap
+            io::OutFileStream *strm = new io::OutFileStream();
+            if ((strm == NULL) || (strm->wrap_native(hWrite, true) != STATUS_OK))
+            {
+                ::CloseHandle(hRead);
+                ::CloseHandle(hWrite);
+                return NULL;
+            }
+
+            // All is OK
+            pStdIn  = strm;
+            hStdIn  = hRead;
+
+            return pStdIn;
+        }
+
+        io::IInStream *Process::stdout()
+        {
+            if ((nStatus != PSTATUS_CREATED) || (pStdOut != NULL))
+                return pStdOut;
+
+            HANDLE hRead = INVALID_HANDLE, hWrite = INVALID_HANDLE;
+            if (!::CreatePipe(&hRead, &hWrite, NULL, 0))
+                return NULL;
+
+            // Create stream and wrap
+            io::InFileStream *strm = new io::InFileStream();
+            if ((strm == NULL) || (strm->wrap_native(hRead, true) != STATUS_OK))
+            {
+                ::CloseHandle(hRead);
+                ::CloseHandle(hWrite);
+                return NULL;
+            }
+
+            // All is OK
+            pStdOut = strm;
+            hStdOut = hWrite;
+
+            return pStdOut;
+        }
+
+        io::IInStream *Process::stderr()
+        {
+            if ((nStatus != PSTATUS_CREATED) || (pStdErr != NULL))
+                return pStdErr;
+
+            HANDLE hRead = INVALID_HANDLE, hWrite = INVALID_HANDLE;
+            if (!::CreatePipe(&hRead, &hWrite, NULL, 0))
+                return NULL;
+
+            // Create stream and wrap
+            io::InFileStream *strm = new io::InFileStream();
+            if ((strm == NULL) || (strm->wrap_native(hRead, true) != STATUS_OK))
+            {
+                ::CloseHandle(hRead);
+                ::CloseHandle(hWrite);
+                return NULL;
+            }
+
+            // All is OK
+            pStdErr = strm;
+            hStdErr = hWrite;
+
+            return pStdErr;
         }
 #else
         void Process::close_handles()
