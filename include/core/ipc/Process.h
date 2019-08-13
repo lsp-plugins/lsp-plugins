@@ -61,6 +61,8 @@ namespace lsp
                 status_t        build_argv(cvector<char> *dst);
                 status_t        build_envp(cvector<char> *dst);
                 status_t        spawn_process(const char *cmd, char * const *argv, char * const *envp);
+                status_t        vfork_process(const char *cmd, char * const *argv, char * const *envp);
+                status_t        fork_process(const char *cmd, char * const *argv, char * const *envp);
 #endif /* PLATFORM_WINDOWS */
 
             public:
@@ -171,7 +173,7 @@ namespace lsp
                  * Return number of environment variables
                  * @return number of environment variables
                  */
-                status_t    envs() const;
+                size_t      envs() const;
 
                 /**
                  * Set value of the specific environment variable
@@ -199,6 +201,14 @@ namespace lsp
 
                 /**
                  * Remove the specific environment variable
+                 * @param key the name of environment variable
+                 * @param pointer to store value of the removed environment variable
+                 * @return status of operation
+                 */
+                status_t    remove_env(const char *key, LSPString *value = NULL);
+
+                /**
+                 * Remove the specific environment variable
                  * @param key the name of environment variable in UTF-8 encoding
                  * @param pointer to store value of the removed environment variable in UTF-8 encoding.
                  *        The obtained pointer should be free()'d after use
@@ -213,6 +223,14 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    get_env(const LSPString *key, LSPString *value = NULL);
+
+                /**
+                 * Obtain the value of the specific environment variable
+                 * @param key the name of environment variable
+                 * @param pointer to store value of the environment variable
+                 * @return status of operation
+                 */
+                status_t    get_env(const char *key, LSPString *value = NULL);
 
                 /**
                  * Obtain the value of the specific environment variable
@@ -287,7 +305,7 @@ namespace lsp
                  * @param millis number of milliseconds to wait, negative value means infinite wait
                  * @return status of operation
                  */
-                status_t    wait(wssize_t millis);
+                status_t    wait(wssize_t millis = -1);
 
                 /**
                  * Get process exit status

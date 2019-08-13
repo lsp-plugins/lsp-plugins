@@ -296,7 +296,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Process::envs() const
+        size_t Process::envs() const
         {
             return vEnv.size();
         }
@@ -321,7 +321,7 @@ namespace lsp
             if ((var = new envvar_t) == NULL)
                 return STATUS_NO_MEM;
 
-            if ((!var->name.set(key)) || (!var->value.set(key)))
+            if ((!var->name.set(key)) || (!var->value.set(value)))
             {
                 delete var;
                 return STATUS_NO_MEM;
@@ -404,6 +404,33 @@ namespace lsp
             return STATUS_NOT_FOUND;
         }
 
+        status_t Process::remove_env(const char *key, LSPString *value)
+        {
+            if (nStatus != PSTATUS_CREATED)
+                return STATUS_BAD_STATE;
+            if (key == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString k;
+            if (!k.set_utf8(key))
+                return STATUS_NO_MEM;
+
+            for (size_t i=0, n=vEnv.size(); i<n; ++i)
+            {
+                envvar_t *var = vEnv.at(i);
+                if (var->name.equals(&k))
+                {
+                    if (value != NULL)
+                        value->swap(&var->value);
+                    delete var;
+                    vEnv.remove(i, true);
+                    return STATUS_OK;
+                }
+            }
+
+            return STATUS_NOT_FOUND;
+        }
+
         status_t Process::get_env(const LSPString *key, LSPString *value)
         {
             if (key == NULL)
@@ -418,6 +445,32 @@ namespace lsp
             {
                 envvar_t *var = vEnv.at(i);
                 if (var->name.equals(key))
+                {
+                    if (value != NULL)
+                    {
+                        if (!value->set(&var->value))
+                            return STATUS_NO_MEM;
+                    }
+                    return STATUS_OK;
+                }
+            }
+
+            return STATUS_NOT_FOUND;
+        }
+
+        status_t Process::get_env(const char *key, LSPString *value)
+        {
+            if (key == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString k;
+            if (!k.set_utf8(key))
+                return STATUS_NO_MEM;
+
+            for (size_t i=0, n=vEnv.size(); i<n; ++i)
+            {
+                envvar_t *var = vEnv.at(i);
+                if (var->name.equals(&k))
                 {
                     if (value != NULL)
                     {
@@ -593,6 +646,13 @@ namespace lsp
         {
             char *s;
 
+            // Add command as argv[0]
+            if ((s = sCommand.clone_native()) == NULL)
+                return STATUS_NO_MEM;
+            if (!dst->add(s))
+                return STATUS_NO_MEM;
+
+            // Add all other arguments
             for (size_t i=0, n=vArgs.size(); i<n; ++i)
             {
                 LSPString *arg = vArgs.at(i);
@@ -608,6 +668,7 @@ namespace lsp
                 }
             }
 
+            // Add terminator
             return (dst->add(NULL)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -692,6 +753,70 @@ namespace lsp
             return res;
         }
 
+        status_t Process::vfork_process(const char *cmd, char * const *argv, char * const *envp)
+        {
+            errno           = 0;
+            pid_t pid       = ::vfork();
+
+            // Failed to fork()?
+            if (pid < 0)
+            {
+                int code        = errno;
+                switch (code)
+                {
+                    case ENOMEM: return STATUS_NO_MEM;
+                    case EAGAIN: return STATUS_NO_MEM;
+                    default: return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            // The child process stuff
+            if (pid == 0)
+            {
+                ::execvpe(cmd, argv, envp);
+                // Return error only if ::execvpe failed
+                ::exit(STATUS_UNKNOWN_ERR);
+            }
+
+            // The parent process stuff
+            nPID        = pid;
+            nStatus     = PSTATUS_RUNNING;
+
+            return STATUS_OK;
+        }
+
+        status_t Process::fork_process(const char *cmd, char * const *argv, char * const *envp)
+        {
+            errno           = 0;
+            pid_t pid       = ::fork();
+
+            // Failed to fork()?
+            if (pid < 0)
+            {
+                int code        = errno;
+                switch (code)
+                {
+                    case ENOMEM: return STATUS_NO_MEM;
+                    case EAGAIN: return STATUS_NO_MEM;
+                    default: return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            // The child process stuff
+            if (pid == 0)
+            {
+                ::execvpe(cmd, argv, envp);
+                // Return error only if ::execvpe failed
+                ::exit(STATUS_UNKNOWN_ERR);
+            }
+
+            // The parent process stuff
+            nPID        = pid;
+            nStatus     = PSTATUS_RUNNING;
+
+            return STATUS_OK;
+        }
+
         status_t Process::launch()
         {
             if (nStatus != PSTATUS_CREATED)
@@ -718,7 +843,13 @@ namespace lsp
             cvector<char> envp;
             res = build_envp(&envp);
             if (res == STATUS_OK)
+            {
                 res    = spawn_process(cmd, argv.get_array(), envp.get_array());
+                if (res != STATUS_OK)
+                    res    = vfork_process(cmd, argv.get_array(), envp.get_array());
+                if (res != STATUS_OK)
+                    res    = fork_process(cmd, argv.get_array(), envp.get_array());
+            }
 
             // Free temporary data and return result
             ::free(cmd);
@@ -755,14 +886,15 @@ namespace lsp
             else if (millis == 0)
             {
                 // Wait for child process
-                pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED);
+                pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED | WNOHANG);
                 if (pid < 0)
                 {
                     status = errno;
                     return (status == EINTR) ? STATUS_OK : STATUS_UNKNOWN_ERR;
                 }
 
-                if ((WIFEXITED(status)) || (WIFSIGNALED(status)))
+                // Child has exited?
+                if ((pid == nPID) && ((WIFEXITED(status)) || (WIFSIGNALED(status))))
                 {
                     nStatus     = PSTATUS_EXITED;
                     nExitCode   = WEXITSTATUS(status);
@@ -778,7 +910,7 @@ namespace lsp
                 while (true)
                 {
                     // Wait for child process
-                    pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED);
+                    pid_t pid = ::waitpid(nPID, &status, WUNTRACED | WCONTINUED | WNOHANG);
                     if (pid < 0)
                     {
                         status = errno;
@@ -787,8 +919,8 @@ namespace lsp
                         return STATUS_UNKNOWN_ERR;
                     }
 
-                    // Process has exited?
-                    if ((WIFEXITED(status)) || (WIFSIGNALED(status)))
+                    // Child process has exited?
+                    if ((pid == nPID) && ((WIFEXITED(status)) || (WIFSIGNALED(status))))
                         break;
 
                     // Get time
@@ -799,7 +931,7 @@ namespace lsp
 
                     // Perform short sleep
                     ts.tv_sec     = 0;
-                    ts.tv_nsec    = (left > 100) ? 100000000 : left * 1000000;
+                    ts.tv_nsec    = ((left > 50) ? 50 : left) * 1000000;
                     ::nanosleep(&ts, NULL);
                 }
 

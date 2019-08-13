@@ -251,6 +251,7 @@ namespace lsp
         {
             config_t *cfg = const_cast<config_t *>(pCfg);
 
+            test->set_executable(pCfg->executable);
             test->set_verbose(pCfg->verbose);
             start_memcheck(test);
             test->init();
@@ -276,6 +277,7 @@ namespace lsp
         config_t *cfg = const_cast<config_t *>(pCfg);
 
         // Execute performance test
+        test->set_executable(pCfg->executable);
         test->set_verbose(pCfg->verbose);
         start_memcheck(test);
         test->init();
@@ -311,6 +313,7 @@ namespace lsp
     {
         config_t *cfg = const_cast<config_t *>(pCfg);
         // Execute performance test
+        test->set_executable(pCfg->executable);
         test->set_verbose(pCfg->verbose);
         start_memcheck(test);
         test->init();
