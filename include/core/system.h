@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_SYSTEM_H_
-#define INCLUDE_CORE_SYSTEM_H_
+#ifndef CORE_SYSTEM_H_
+#define CORE_SYSTEM_H_
 
 #include <core/status.h>
 #include <core/LSPString.h>
@@ -87,4 +87,4 @@ namespace lsp
 }
 
 
-#endif /* INCLUDE_CORE_SYSTEM_H_ */
+#endif /* CORE_SYSTEM_H_ */

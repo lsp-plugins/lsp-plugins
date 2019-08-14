@@ -10,8 +10,10 @@
 
 #include <core/types.h>
 #include <unistd.h>
-#include <core/LSPString.h>
 #include <data/cvector.h>
+#include <core/LSPString.h>
+#include <core/io/IInStream.h>
+#include <core/io/IOutStream.h>
 
 namespace lsp
 {
@@ -48,19 +50,36 @@ namespace lsp
 #ifdef PLATFORM_WINDOWS
                 HANDLE                  hProcess;
                 WORD                    nPID;
+                HANDLE                  hStdIn;
+                HANDLE                  hStdOut;
+                HANDLE                  hStdErr;
 #else
                 pid_t                   nPID;
+                int                     hStdIn;
+                int                     hStdOut;
+                int                     hStdErr;
 #endif /* PLATFORM_WINDOWS */
+
+                io::IOutStream         *pStdIn;
+                io::IInStream          *pStdOut;
+                io::IInStream          *pStdErr;
 
             protected:
                 static void     destroy_args(cvector<LSPString> *args);
                 static void     destroy_env(cvector<envvar_t> *env);
+                void            close_handles();
 
 #ifdef PLATFORM_WINDOWS
+                static status_t append_arg_escaped(LSPString *dst, const LSPString *value);
+                status_t        build_argv(LSPString *dst);
+                status_t        build_envp(LSPString *dst);
 #else
                 status_t        build_argv(cvector<char> *dst);
                 status_t        build_envp(cvector<char> *dst);
                 status_t        spawn_process(const char *cmd, char * const *argv, char * const *envp);
+                status_t        vfork_process(const char *cmd, char * const *argv, char * const *envp);
+                status_t        fork_process(const char *cmd, char * const *argv, char * const *envp);
+                void            execvpe_process(const char *cmd, char * const *argv, char * const *envp);
 #endif /* PLATFORM_WINDOWS */
 
             public:
@@ -171,7 +190,7 @@ namespace lsp
                  * Return number of environment variables
                  * @return number of environment variables
                  */
-                status_t    envs() const;
+                size_t      envs() const;
 
                 /**
                  * Set value of the specific environment variable
@@ -199,6 +218,14 @@ namespace lsp
 
                 /**
                  * Remove the specific environment variable
+                 * @param key the name of environment variable
+                 * @param pointer to store value of the removed environment variable
+                 * @return status of operation
+                 */
+                status_t    remove_env(const char *key, LSPString *value = NULL);
+
+                /**
+                 * Remove the specific environment variable
                  * @param key the name of environment variable in UTF-8 encoding
                  * @param pointer to store value of the removed environment variable in UTF-8 encoding.
                  *        The obtained pointer should be free()'d after use
@@ -213,6 +240,14 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    get_env(const LSPString *key, LSPString *value = NULL);
+
+                /**
+                 * Obtain the value of the specific environment variable
+                 * @param key the name of environment variable
+                 * @param pointer to store value of the environment variable
+                 * @return status of operation
+                 */
+                status_t    get_env(const char *key, LSPString *value = NULL);
 
                 /**
                  * Obtain the value of the specific environment variable
@@ -250,6 +285,34 @@ namespace lsp
                 status_t    clear_env();
 
             public:
+                /**
+                 * Return redirected standard input stream of the process.
+                 * The redirection is allowed before successful launch() has been issued.
+                 *
+                 * @return pointer to standard input stream
+                 */
+                io::IOutStream *stdin();
+
+                /**
+                 * Return redirected standard output stream of the process.
+                 * The redirection is allowed before successful launch() has been issued.
+                 *
+                 * @return pointer to standard output stream
+                 */
+                io::IInStream *stdout();
+
+                /**
+                 * Return redirected standard error stream of the process.
+                 * The redirection is allowed before successful launch() has been issued.
+                 *
+                 * @return pointer to standard error stream
+                 */
+                io::IInStream *stderr();
+
+                /**
+                 * Get process status
+                 * @return process status
+                 */
                 size_t      status();
 
                 /**
@@ -287,7 +350,7 @@ namespace lsp
                  * @param millis number of milliseconds to wait, negative value means infinite wait
                  * @return status of operation
                  */
-                status_t    wait(wssize_t millis);
+                status_t    wait(wssize_t millis = -1);
 
                 /**
                  * Get process exit status

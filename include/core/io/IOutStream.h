@@ -27,7 +27,7 @@ namespace lsp
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             public:
-                IOutStream();
+                explicit IOutStream();
                 virtual ~IOutStream();
 
             public:
