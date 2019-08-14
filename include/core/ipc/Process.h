@@ -70,6 +70,9 @@ namespace lsp
                 void            close_handles();
 
 #ifdef PLATFORM_WINDOWS
+                static status_t append_arg_escaped(LSPString *dst, const LSPString *value);
+                status_t        build_argv(LSPString *dst);
+                status_t        build_envp(LSPString *dst);
 #else
                 status_t        build_argv(cvector<char> *dst);
                 status_t        build_envp(cvector<char> *dst);

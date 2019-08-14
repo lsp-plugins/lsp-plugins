@@ -18,6 +18,7 @@
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
     #include <namedpipeapi.h>
+    #include <synchapi.h>
     #include <processenv.h>
 #else
     #include <sys/wait.h>
@@ -80,6 +81,14 @@ namespace lsp
                 delete pStdErr;
                 pStdErr  = NULL;
             }
+
+#ifdef PLATFORM_WINDOWS
+            if (hProcess != INVALID_HANDLE)
+            {
+                ::CloseHandle(hProcess);
+                hProcess    = INVALID_HANDLE;
+            }
+#endif /* PLATFORM_WINDOWS */
         }
     
         void Process::destroy_args(cvector<LSPString> *args)
@@ -678,6 +687,181 @@ namespace lsp
         }
 
 #ifdef PLATFORM_WINDOWS
+        status_t Process::append_arg_escaped(LSPString *dst, const LSPString *value)
+        {
+            if (value->is_empty())
+                return (dst->append_ascii("\"\"")) ? STATUS_OK : STATUS_NO_MEM;
+
+            for (size_t i=0, n=value->length(); i<n; ++i)
+            {
+                lsp_wchar_t ch = value->char_at(i);
+                switch (ch)
+                {
+                    case ' ':
+                        if (!dst->append_ascii("\" \"", 3))
+                            return STATUS_NO_MEM;
+                        break;
+                    case '"':
+                        if (!dst->append_ascii("\\\"", 2))
+                            return STATUS_NO_MEM;
+                        break;
+                    default:
+                        if (!dst->append(ch))
+                            return STATUS_NO_MEM;
+                        break;
+                }
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t Process::build_argv(LSPString *dst)
+        {
+            status_t res = append_arg_escaped(dst, &sCommand);
+            if (res != STATUS_OK)
+                return res;
+
+            for (size_t i=0, n=vArgs.size(); i<n; ++i)
+            {
+                LSPString *arg = vArgs.at(i);
+                if (!dst->append_ascii(' '))
+                    return STATUS_NO_MEM;
+                res = append_arg_escaped(dst, arg);
+                if (res != STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t Process::build_envp(LSPString *dst)
+        {
+            for (size_t i=0, n=vEnv.size(); i<n; ++i)
+            {
+                envvar_t *env = vEnv.at(i);
+                if (!dst->append(&env->name))
+                    return STATUS_NO_MEM;
+                if (!dst->append_ascii('='))
+                    return STATUS_NO_MEM;
+                if (!dst->append(&env->value))
+                    return STATUS_NO_MEM;
+                if (!dst->append_ascii('\0'))
+                    return STATUS_NO_MEM;
+            }
+
+            // Note that an ANSI environment block is terminated by two zero bytes:
+            // one for the last string, one more to terminate the block. A Unicode
+            // environment block is terminated by four zero bytes: two for the last
+            // string, two more to terminate the block.
+            return (dst->append_ascii('\0')) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t Process::launch()
+        {
+            if (nStatus != PSTATUS_CREATED)
+                return STATUS_BAD_STATE;
+            if (sCommand.is_empty())
+                return STATUS_BAD_STATE;
+
+            // Form argv
+            LSPString argv;
+            status_t res = build_argv(&argv);
+            if (res != STATUS_OK)
+                return res;
+
+            // Form envp
+            LSPString envp;
+            res = build_envp(&envp);
+            if (res != STATUS_OK)
+                return res;
+
+            // Launch child process
+            STARTUPINFOW si;
+            PROCESS_INFORMATION pi;
+
+            ZeroMemory( &si, sizeof(STARTUPINFOW) );
+            ZeroMemory( &pi, sizeof(PROCESS_INFORMATION) );
+            si.cb       = sizeof(si);
+
+            // Override STDIN, STDOUT, STDERR
+            if (hStdIn != INVALID_HANDLE)
+            {
+                si.dwFlags     |= STARTF_USESTDHANDLES;
+                si.hStdInput    = hStdIn;
+            }
+            if (hStdOut != INVALID_HANDLE)
+            {
+                si.dwFlags     |= STARTF_USESTDHANDLES;
+                si.hStdOutput   = hStdOut;
+            }
+            if (hStdErr != INVALID_HANDLE)
+            {
+                si.dwFlags     |= STARTF_USESTDHANDLES;
+                si.hStdError    = hStdErr;
+            }
+
+            // Start the child process.
+            if( !::CreateProcessW(
+                NULL,               // No module name (use command line)
+                argv.get_utf16(),   // Command line
+                NULL,               // Process handle not inheritable
+                NULL,               // Thread handle not inheritable
+                FALSE,              // Set handle inheritance to FALSE
+                0,                  // No creation flags
+                env.get_utf16(),    // Set-up environment block
+                NULL,               // Use parent's starting directory
+                &si,                // Pointer to STARTUPINFO structure
+                &pi                 // Pointer to PROCESS_INFORMATION structure
+            ))
+            {
+                fprintf(stderr, "Failed to create child process (%d)\n", int(GetLastError()));
+                fflush(stderr);
+                return STATUS_UNKNOWN_ERR;
+            }
+
+            // Close redirected file handles
+            close_handles();
+
+            // Update state
+            hProcess    = pi.hProcess;
+            nPID        = pi.dwProcessId;
+            nStatus     = PSTATUS_RUNNING;
+
+            return res;
+        }
+
+        status_t Process::wait(wssize_t millis)
+        {
+            if (nStatus != PSTATUS_RUNNING)
+                return STATUS_BAD_STATE;
+
+            DWORD res = ::WaitForSingleObject(hProcess, (millis < 0) ? INFINITE : millis);
+            switch (res)
+            {
+                case WAIT_OBJECT_0:
+                {
+                    // Obtain exit status of process
+                    DWORD code  = 0;
+                    ::GetExitCodeProcess(hProcess, &code);
+                    ::CloseHandle(hProcess);
+                    hProcess    = INVALID_HANDLE;
+
+                    // Update state
+                    nStatus     = PSTATUS_EXITED;
+                    nExitCode   = code;
+                    break;
+                }
+
+                case WAIT_TIMEOUT:
+                    return STATUS_OK;
+
+                default:
+                    break;
+            }
+
+            return STATUS_UNKNOWN_ERR;
+        }
+
         void Process::close_handles()
         {
             if (hStdIn != INVALID_HANDLE)
