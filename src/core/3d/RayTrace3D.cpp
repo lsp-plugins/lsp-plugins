@@ -9,6 +9,7 @@
 #include <core/3d/common.h>
 #include <core/3d/RayTrace3D.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #define SAMPLE_QUANTITY     512
 #define TASK_LO_THRESH      0x2000
@@ -199,7 +200,7 @@ namespace lsp
 
         // Analyze status
         RT_TRACE(trace->pDebug,
-            if (res == STATUS_BREAKPOINT)
+            if (res == STATUS_BREAK_POINT)
             {
                 trace->pDebug->ignored.swap(&ctx->ignored);
                 trace->pDebug->trace.swap(&ctx->trace);
@@ -1760,7 +1761,7 @@ namespace lsp
         clear_stats(&overall);
         merge_stats(&overall, root->get_stats());
         root->merge_result();
-        if (res != STATUS_BREAKPOINT)
+        if (res != STATUS_BREAK_POINT)
             dump_stats("Main thread statistics", root->get_stats());
 
         // Output thread stats and destroy threads
@@ -1774,7 +1775,7 @@ namespace lsp
             LSPString s;
             s.fmt_utf8("Supplementary thread %d statistics", int(i));
             merge_stats(&overall, t->get_stats());
-            if (res != STATUS_BREAKPOINT)
+            if (res != STATUS_BREAK_POINT)
                 dump_stats(s.get_utf8(), t->get_stats());
 
             // Detroy thread object
@@ -1784,7 +1785,7 @@ namespace lsp
         workers.flush();
 
         // Dump overall statistics
-        if (res != STATUS_BREAKPOINT)
+        if (res != STATUS_BREAK_POINT)
         {
             // Get time of execution end
 #ifdef LSP_TRACE

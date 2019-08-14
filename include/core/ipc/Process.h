@@ -8,7 +8,7 @@
 #ifndef CORE_IPC_PROCESS_H_
 #define CORE_IPC_PROCESS_H_
 
-#include <core/types.h>
+#include <common/types.h>
 #include <unistd.h>
 #include <data/cvector.h>
 #include <core/LSPString.h>
@@ -291,7 +291,7 @@ namespace lsp
                  *
                  * @return pointer to standard input stream
                  */
-                io::IOutStream *stdin();
+                io::IOutStream *get_stdin();
 
                 /**
                  * Return redirected standard output stream of the process.
@@ -299,7 +299,7 @@ namespace lsp
                  *
                  * @return pointer to standard output stream
                  */
-                io::IInStream *stdout();
+                io::IInStream *get_stdout();
 
                 /**
                  * Return redirected standard error stream of the process.
@@ -307,7 +307,7 @@ namespace lsp
                  *
                  * @return pointer to standard error stream
                  */
-                io::IInStream *stderr();
+                io::IInStream *get_stderr();
 
                 /**
                  * Get process status

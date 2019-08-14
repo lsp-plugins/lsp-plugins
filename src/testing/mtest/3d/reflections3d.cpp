@@ -318,7 +318,7 @@ MTEST_BEGIN("3d", reflections)
                 // Perform raytrace
                 RayTrace3D trace;
                 res     = perform_trace(&trace, &global);
-                if (res == STATUS_BREAKPOINT)
+                if (res == STATUS_BREAK_POINT)
                 {
                     pView->swap(&global.trace);
                     res         = STATUS_OK;

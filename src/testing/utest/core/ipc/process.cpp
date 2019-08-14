@@ -109,9 +109,9 @@ UTEST_BEGIN("core.ipc", process)
             p.set_env(ENV_VAR_NAME, "test_value");
 
             // Redirect stdout and stderr
-            io::IInStream *xstdout = p.stdout();
+            io::IInStream *xstdout = p.get_stdout();
             UTEST_ASSERT(xstdout != NULL);
-            io::IInStream *xstderr = p.stderr();
+            io::IInStream *xstderr = p.get_stderr();
             UTEST_ASSERT(xstderr != NULL);
 
             // Launch the process

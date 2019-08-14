@@ -8,20 +8,24 @@
 #include <core/ipc/Process.h>
 #include <unistd.h>
 #include <string.h>
-#include <spawn.h>
 #include <errno.h>
 #include <data/cstorage.h>
 #include <time.h>
 #include <core/io/OutFileStream.h>
 #include <core/io/InFileStream.h>
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     #include <processthreadsapi.h>
     #include <namedpipeapi.h>
     #include <synchapi.h>
     #include <processenv.h>
 #else
+    #include <spawn.h>
     #include <sys/wait.h>
+    
+    #ifndef _GNU_SOURCE
+        extern char **environ;    // Define environment variables
+    #endif /* _GNU_SOURCE */
 #endif /* PLATFORM_WINDOWS */
 
 namespace lsp
@@ -35,11 +39,11 @@ namespace lsp
             nExitCode           = 0;
 
 #ifdef PLATFORM_WINDOWS
-            hProcess            = INVALID_HANDLE;
+            hProcess            = NULL;
             nPID                = 0;
-            hStdIn              = INVALID_HANDLE;
-            hStdOut             = INVALID_HANDLE;
-            hStdErr             = INVALID_HANDLE;
+            hStdIn              = NULL;
+            hStdOut             = NULL;
+            hStdErr             = NULL;
 #else
             nPID                = 0;
             hStdIn              = -1;
@@ -83,10 +87,10 @@ namespace lsp
             }
 
 #ifdef PLATFORM_WINDOWS
-            if (hProcess != INVALID_HANDLE)
+            if (hProcess != NULL)
             {
                 ::CloseHandle(hProcess);
-                hProcess    = INVALID_HANDLE;
+                hProcess    = NULL;
             }
 #endif /* PLATFORM_WINDOWS */
         }
@@ -675,17 +679,6 @@ namespace lsp
             return STATUS_OK;
         }
 
-        static void drop_data(cvector<char> *v)
-        {
-            for (size_t i=0, n=v->size(); i<n; ++i)
-            {
-                char *ptr = v->at(i);
-                if (ptr != NULL)
-                    ::free(ptr);
-            }
-            v->flush();
-        }
-
 #ifdef PLATFORM_WINDOWS
         status_t Process::append_arg_escaped(LSPString *dst, const LSPString *value)
         {
@@ -724,7 +717,7 @@ namespace lsp
             for (size_t i=0, n=vArgs.size(); i<n; ++i)
             {
                 LSPString *arg = vArgs.at(i);
-                if (!dst->append_ascii(' '))
+                if (!dst->append(' '))
                     return STATUS_NO_MEM;
                 res = append_arg_escaped(dst, arg);
                 if (res != STATUS_OK)
@@ -741,11 +734,11 @@ namespace lsp
                 envvar_t *env = vEnv.at(i);
                 if (!dst->append(&env->name))
                     return STATUS_NO_MEM;
-                if (!dst->append_ascii('='))
+                if (!dst->append('='))
                     return STATUS_NO_MEM;
                 if (!dst->append(&env->value))
                     return STATUS_NO_MEM;
-                if (!dst->append_ascii('\0'))
+                if (!dst->append('\0'))
                     return STATUS_NO_MEM;
             }
 
@@ -753,7 +746,7 @@ namespace lsp
             // one for the last string, one more to terminate the block. A Unicode
             // environment block is terminated by four zero bytes: two for the last
             // string, two more to terminate the block.
-            return (dst->append_ascii('\0')) ? STATUS_OK : STATUS_NO_MEM;
+            return (dst->append('\0')) ? STATUS_OK : STATUS_NO_MEM;
         }
 
         status_t Process::launch()
@@ -784,42 +777,61 @@ namespace lsp
             si.cb       = sizeof(si);
 
             // Override STDIN, STDOUT, STDERR
-            if (hStdIn != INVALID_HANDLE)
+            if (hStdIn != NULL)
             {
                 si.dwFlags     |= STARTF_USESTDHANDLES;
                 si.hStdInput    = hStdIn;
             }
-            if (hStdOut != INVALID_HANDLE)
+            if (hStdOut != NULL)
             {
                 si.dwFlags     |= STARTF_USESTDHANDLES;
                 si.hStdOutput   = hStdOut;
             }
-            if (hStdErr != INVALID_HANDLE)
+            if (hStdErr != NULL)
             {
                 si.dwFlags     |= STARTF_USESTDHANDLES;
                 si.hStdError    = hStdErr;
             }
 
+            // Prepare buffers
+            WCHAR *wargv        = argv.clone_utf16();
+            if (wargv == NULL)
+                return STATUS_NO_MEM;
+
+            WCHAR *wenvp        = envp.clone_utf16();
+            if (wenvp == NULL)
+            {
+                ::free(wargv);
+                return STATUS_NO_MEM;
+            }
+
             // Start the child process.
             if( !::CreateProcessW(
-                NULL,               // No module name (use command line)
-                argv.get_utf16(),   // Command line
-                NULL,               // Process handle not inheritable
-                NULL,               // Thread handle not inheritable
-                FALSE,              // Set handle inheritance to FALSE
-                0,                  // No creation flags
-                env.get_utf16(),    // Set-up environment block
-                NULL,               // Use parent's starting directory
-                &si,                // Pointer to STARTUPINFO structure
-                &pi                 // Pointer to PROCESS_INFORMATION structure
+                sCommand.get_utf16(),   // Module name (use command line)
+                wargv,                  // Command line
+                NULL,                   // Process handle not inheritable
+                NULL,                   // Thread handle not inheritable
+                FALSE,                  // Set handle inheritance to FALSE
+                CREATE_UNICODE_ENVIRONMENT, // Use unicode environment
+                wenvp,                  // Set-up environment block
+                NULL,                   // Use parent's starting directory
+                &si,                    // Pointer to STARTUPINFO structure
+                &pi                     // Pointer to PROCESS_INFORMATION structure
             ))
             {
-                fprintf(stderr, "Failed to create child process (%d)\n", int(GetLastError()));
-                fflush(stderr);
+                int error = ::GetLastError();
+                ::fprintf(stderr, "Failed to create child process (%d)\n", error);
+                ::fflush(stderr);
+
+                ::free(wenvp);
+                ::free(wargv);
+
                 return STATUS_UNKNOWN_ERR;
             }
 
-            // Close redirected file handles
+            // Free resources and close redirected file handles
+            ::free(wenvp);
+            ::free(wargv);
             close_handles();
 
             // Update state
@@ -844,12 +856,12 @@ namespace lsp
                     DWORD code  = 0;
                     ::GetExitCodeProcess(hProcess, &code);
                     ::CloseHandle(hProcess);
-                    hProcess    = INVALID_HANDLE;
+                    hProcess    = NULL;
 
                     // Update state
                     nStatus     = PSTATUS_EXITED;
                     nExitCode   = code;
-                    break;
+                    return STATUS_OK;
                 }
 
                 case WAIT_TIMEOUT:
@@ -864,29 +876,29 @@ namespace lsp
 
         void Process::close_handles()
         {
-            if (hStdIn != INVALID_HANDLE)
+            if (hStdIn != NULL)
             {
                 ::CloseHandle(hStdIn);
-                hStdIn          = INVALID_HANDLE;
+                hStdIn          = NULL;
             }
-            if (hStdOut != INVALID_HANDLE)
+            if (hStdOut != NULL)
             {
                 ::CloseHandle(hStdOut);
-                hStdOut         = INVALID_HANDLE;
+                hStdOut         = NULL;
             }
-            if (hStdErr != INVALID_HANDLE)
+            if (hStdErr != NULL)
             {
                 ::CloseHandle(hStdErr);
-                hStdErr         = INVALID_HANDLE;
+                hStdErr         = NULL;
             }
         }
 
-        io::IOutStream *Process::stdin()
+        io::IOutStream *Process::get_stdin()
         {
             if ((nStatus != PSTATUS_CREATED) || (pStdIn != NULL))
                 return pStdIn;
 
-            HANDLE hRead = INVALID_HANDLE, hWrite = INVALID_HANDLE;
+            HANDLE hRead = NULL, hWrite = NULL;
             if (!::CreatePipe(&hRead, &hWrite, NULL, 0))
                 return NULL;
 
@@ -906,12 +918,12 @@ namespace lsp
             return pStdIn;
         }
 
-        io::IInStream *Process::stdout()
+        io::IInStream *Process::get_stdout()
         {
             if ((nStatus != PSTATUS_CREATED) || (pStdOut != NULL))
                 return pStdOut;
 
-            HANDLE hRead = INVALID_HANDLE, hWrite = INVALID_HANDLE;
+            HANDLE hRead = NULL, hWrite = NULL;
             if (!::CreatePipe(&hRead, &hWrite, NULL, 0))
                 return NULL;
 
@@ -931,12 +943,12 @@ namespace lsp
             return pStdOut;
         }
 
-        io::IInStream *Process::stderr()
+        io::IInStream *Process::get_stderr()
         {
             if ((nStatus != PSTATUS_CREATED) || (pStdErr != NULL))
                 return pStdErr;
 
-            HANDLE hRead = INVALID_HANDLE, hWrite = INVALID_HANDLE;
+            HANDLE hRead = NULL, hWrite = NULL;
             if (!::CreatePipe(&hRead, &hWrite, NULL, 0))
                 return NULL;
 
@@ -956,6 +968,17 @@ namespace lsp
             return pStdErr;
         }
 #else
+        static void drop_data(cvector<char> *v)
+        {
+            for (size_t i=0, n=v->size(); i<n; ++i)
+            {
+                char *ptr = v->at(i);
+                if (ptr != NULL)
+                    ::free(ptr);
+            }
+            v->flush();
+        }
+
         void Process::close_handles()
         {
             if (hStdIn >= 0)
@@ -1154,7 +1177,11 @@ namespace lsp
             }
 
             // Launch the process
-            ::execvpe(cmd, argv, envp);
+            #if defined(PLATFORM_BSD)
+                ::exect(cmd, argv, envp);
+            #else
+                ::execvpe(cmd, argv, envp);
+            #endif
 
             // Return error only if ::execvpe failed
             ::exit(STATUS_UNKNOWN_ERR);
@@ -1345,7 +1372,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        io::IOutStream *Process::stdin()
+        io::IOutStream *Process::get_stdin()
         {
             if ((nStatus != PSTATUS_CREATED) || (pStdIn != NULL))
                 return pStdIn;
@@ -1370,7 +1397,7 @@ namespace lsp
             return pStdIn;
         }
 
-        io::IInStream *Process::stdout()
+        io::IInStream *Process::get_stdout()
         {
             if ((nStatus != PSTATUS_CREATED) || (pStdOut != NULL))
                 return pStdOut;
@@ -1395,7 +1422,7 @@ namespace lsp
             return pStdOut;
         }
 
-        io::IInStream *Process::stderr()
+        io::IInStream *Process::get_stderr()
         {
             if ((nStatus != PSTATUS_CREATED) || (pStdErr != NULL))
                 return pStdErr;

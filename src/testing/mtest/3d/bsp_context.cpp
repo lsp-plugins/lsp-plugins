@@ -108,7 +108,7 @@ MTEST_BEGIN("3d", bsp_context)
                     res = ctx.build_mesh(pView->vertexes2(), &sPov);
                 }
 
-                if (res == STATUS_BREAKPOINT)
+                if (res == STATUS_BREAK_POINT)
                 {
                     IF_RT_TRACE_Y(
                         global.trace.swap(&ctx.trace);
