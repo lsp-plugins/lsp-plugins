@@ -738,7 +738,7 @@ namespace lsp
                     return STATUS_NO_MEM;
                 if (!dst->append(&env->value))
                     return STATUS_NO_MEM;
-                if (!dst->append_ascii('\0'))
+                if (!dst->append('\0'))
                     return STATUS_NO_MEM;
             }
 
@@ -746,7 +746,7 @@ namespace lsp
             // one for the last string, one more to terminate the block. A Unicode
             // environment block is terminated by four zero bytes: two for the last
             // string, two more to terminate the block.
-            return (dst->append_ascii('\0')) ? STATUS_OK : STATUS_NO_MEM;
+            return (dst->append('\0')) ? STATUS_OK : STATUS_NO_MEM;
         }
 
         status_t Process::launch()
@@ -807,23 +807,24 @@ namespace lsp
 
             // Start the child process.
             if( !::CreateProcessW(
-                NULL,               // No module name (use command line)
-                wargv,              // Command line
-                NULL,               // Process handle not inheritable
-                NULL,               // Thread handle not inheritable
-                FALSE,              // Set handle inheritance to FALSE
-                0,                  // No creation flags
-                wenvp,              // Set-up environment block
-                NULL,               // Use parent's starting directory
-                &si,                // Pointer to STARTUPINFO structure
-                &pi                 // Pointer to PROCESS_INFORMATION structure
+                sCommand.get_utf16(),   // Module name (use command line)
+                wargv,                  // Command line
+                NULL,                   // Process handle not inheritable
+                NULL,                   // Thread handle not inheritable
+                FALSE,                  // Set handle inheritance to FALSE
+                CREATE_UNICODE_ENVIRONMENT, // Use unicode environment
+                wenvp,                  // Set-up environment block
+                NULL,                   // Use parent's starting directory
+                &si,                    // Pointer to STARTUPINFO structure
+                &pi                     // Pointer to PROCESS_INFORMATION structure
             ))
             {
+                int error = ::GetLastError();
+                ::fprintf(stderr, "Failed to create child process (%d)\n", error);
+                ::fflush(stderr);
+
                 ::free(wenvp);
                 ::free(wargv);
-
-                ::fprintf(stderr, "Failed to create child process (%d)\n", int(::GetLastError()));
-                ::fflush(stderr);
 
                 return STATUS_UNKNOWN_ERR;
             }
@@ -860,7 +861,7 @@ namespace lsp
                     // Update state
                     nStatus     = PSTATUS_EXITED;
                     nExitCode   = code;
-                    break;
+                    return STATUS_OK;
                 }
 
                 case WAIT_TIMEOUT:
