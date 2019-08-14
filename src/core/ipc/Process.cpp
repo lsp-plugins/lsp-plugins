@@ -873,6 +873,49 @@ namespace lsp
                 return STATUS_UNKNOWN_ERR;
             }
 
+            // Override STDIN, STDOUT, STDERR
+            if (hStdIn >= 0)
+            {
+                if (::posix_spawn_file_actions_adddup2(&actions, hStdIn, STDIN_FILENO))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+                if (::posix_spawn_file_actions_addclose(&actions, hStdIn))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            if (hStdOut >= 0)
+            {
+                if (::posix_spawn_file_actions_adddup2(&actions, hStdOut, STDOUT_FILENO))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+                if (::posix_spawn_file_actions_addclose(&actions, hStdOut))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            if (hStdErr >= 0)
+            {
+                if (::posix_spawn_file_actions_adddup2(&actions, hStdErr, STDERR_FILENO))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+                if (::posix_spawn_file_actions_addclose(&actions, hStdErr))
+                {
+                    ::posix_spawnattr_destroy(&attr);
+                    return STATUS_UNKNOWN_ERR;
+                }
+            }
+
             // Perform posix_spawn()
             pid_t pid;
             status_t res = STATUS_OK;
@@ -902,6 +945,37 @@ namespace lsp
             return res;
         }
 
+        void Process::execvpe_process(const char *cmd, char * const *argv, char * const *envp)
+        {
+            // Override STDIN, STDOUT, STDERR
+            if (hStdIn >= 0)
+            {
+                ::dup2(hStdIn, STDIN_FILENO);
+                ::close(hStdIn);
+                hStdIn = -1;
+            }
+
+            if (hStdOut >= 0)
+            {
+                ::dup2(hStdOut, STDOUT_FILENO);
+                ::close(hStdOut);
+                hStdOut = -1;
+            }
+
+            if (hStdErr >= 0)
+            {
+                ::dup2(hStdErr, STDERR_FILENO);
+                ::close(hStdErr);
+                hStdErr = -1;
+            }
+
+            // Launch the process
+            ::execvpe(cmd, argv, envp);
+
+            // Return error only if ::execvpe failed
+            ::exit(STATUS_UNKNOWN_ERR);
+        }
+
         status_t Process::vfork_process(const char *cmd, char * const *argv, char * const *envp)
         {
             errno           = 0;
@@ -921,11 +995,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-            {
-                ::execvpe(cmd, argv, envp);
-                // Return error only if ::execvpe failed
-                ::exit(STATUS_UNKNOWN_ERR);
-            }
+                execvpe_process(cmd, argv, envp);
 
             // The parent process stuff
             nPID        = pid;
@@ -953,11 +1023,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-            {
-                ::execvpe(cmd, argv, envp);
-                // Return error only if ::execvpe failed
-                ::exit(STATUS_UNKNOWN_ERR);
-            }
+                execvpe_process(cmd, argv, envp);
 
             // The parent process stuff
             nPID        = pid;

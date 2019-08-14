@@ -108,11 +108,22 @@ UTEST_BEGIN("core.ipc", process)
             // Set environment
             p.set_env(ENV_VAR_NAME, "test_value");
 
+            // Redirect stdout and stderr
+            io::IInStream *xstdout = p.stdout();
+            UTEST_ASSERT(xstdout != NULL);
+            io::IInStream *xstderr = p.stderr();
+            UTEST_ASSERT(xstderr != NULL);
+
             // Launch the process
             UTEST_ASSERT(p.launch() == STATUS_OK);
             UTEST_ASSERT(p.wait(0) == STATUS_OK); // Test process status
             UTEST_ASSERT(p.wait(200) == STATUS_OK); // Wait for a short while
+            UTEST_ASSERT(p.status() == ipc::Process::PSTATUS_RUNNING); // Check status
             UTEST_ASSERT(p.wait() == STATUS_OK); // Wait until termination
+
+            // Close stdout and stderr
+            UTEST_ASSERT(xstdout->close() == STATUS_OK);
+            UTEST_ASSERT(xstderr->close() == STATUS_OK);
 
             // Analyze exit status
             int code = 0;
