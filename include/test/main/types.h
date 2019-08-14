@@ -8,7 +8,7 @@
 #ifndef TEST_MAIN_TYPES_H_
 #define TEST_MAIN_TYPES_H_
 
-#include <core/types.h>
+#include <common/types.h>
 #include <data/cvector.h>
 #include <test/ptest.h>
 #include <test/utest.h>

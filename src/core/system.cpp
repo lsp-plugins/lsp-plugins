@@ -10,9 +10,11 @@
 
 #ifdef PLATFORM_WINDOWS
     #include <winbase.h>
+    #include <sysinfoapi.h>
 #else
     #include <stdlib.h>
     #include <errno.h>
+    #include <sys/time.h>
 #endif /* PLATFORM_WINDOWS */
 
 namespace lsp
@@ -224,6 +226,27 @@ namespace lsp
                 return res;
             return homedir->set(&path);
         }
+
+#ifdef PLATFORM_WINDOWS
+        void get_time(time_t *time)
+        {
+            FILETIME t;
+            ::GetSystemTimeAsFileTime(&t);
+            uint64_t itime  = (uint64_t(t.dwHighDateTime) << 32) | t.dwLowDateTime;
+
+            time->seconds   = itime / 10000000;
+            time->nanos     = (itime % 10000000) * 100;
+        }
+#else
+        void get_time(time_t *time)
+        {
+            struct timespec t;
+            ::clock_gettime(CLOCK_REALTIME, &t);
+
+            time->seconds   = t.tv_sec;
+            time->nanos     = t.tv_nsec;
+        }
+#endif /* PLATFORM_WINDOWS */
     }
 }
 

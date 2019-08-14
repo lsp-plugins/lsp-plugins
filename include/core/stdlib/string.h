@@ -5,13 +5,13 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_STDLIB_STRING_H_
-#define INCLUDE_CORE_STDLIB_STRING_H_
+#ifndef CORE_STDLIB_STRING_H_
+#define CORE_STDLIB_STRING_H_
 
-#include <core/types.h>
+#include <common/types.h>
 #include <string.h>
 #include <strings.h>
-
+#include <malloc.h>
 
 #if defined(PLATFORM_WINDOWS)
     inline char *stpcpy(char *dst, const char *src)
@@ -25,6 +25,19 @@
     {
         ::memset(dst, 0, count);
     }
+
+    inline char *strndup(const char *src, size_t clen)
+    {
+        size_t nlen = ::strnlen(src, clen);
+        char *ptr   = reinterpret_cast<char *>(::malloc(nlen + 1));
+        if (ptr != NULL)
+        {
+            ::memcpy(ptr, src, nlen);
+            ptr[nlen]   = '\0';
+        }
+
+        return ptr;
+    }
 #endif /* PLATFORM_WINDOWS */
 
     inline void *lsp_memdup(const void *src, size_t count)
@@ -35,4 +48,4 @@
         return dst;
     }
 
-#endif /* INCLUDE_CORE_STDLIB_STRING_H_ */
+#endif /* CORE_STDLIB_STRING_H_ */
