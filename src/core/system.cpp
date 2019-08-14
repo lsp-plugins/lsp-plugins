@@ -14,6 +14,7 @@
 #else
     #include <stdlib.h>
     #include <errno.h>
+    #include <time.h>
     #include <sys/time.h>
 #endif /* PLATFORM_WINDOWS */
 
