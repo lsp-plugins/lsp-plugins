@@ -11,7 +11,7 @@
 #include <common/types.h>
 #include <string.h>
 #include <strings.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #if defined(PLATFORM_WINDOWS)
     inline char *stpcpy(char *dst, const char *src)
