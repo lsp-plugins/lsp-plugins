@@ -429,7 +429,7 @@ namespace lsp
         if (*length < *capacity)
             return STATUS_OK;
 
-        *capacity <<= 1;
+        *capacity   = (*capacity > 0) ? ((*capacity) << 1) : 32;
         dst         = reinterpret_cast<char *>(realloc(dst, *capacity + 1)); // Do not count the last '\0' character as capacity
         if (dst == NULL)
             return STATUS_NO_MEM;
@@ -438,15 +438,18 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t cmdline_append_escaped(char **buffer, size_t *length, size_t *capacity, const char *text)
+    status_t cmdline_append_escaped(char **buffer, size_t *length, size_t *capacity, const char *text, bool space=true)
     {
         char ch;
         status_t res    = STATUS_OK;
 
-        // Append space
-        res = cmdline_append_char(buffer, length, capacity, ' ');
-        if (res != STATUS_OK)
-            return res;
+        // Append space if needed
+        if (space)
+        {
+            res = cmdline_append_char(buffer, length, capacity, ' ');
+            if (res != STATUS_OK)
+                return res;
+        }
 
         // Check argument length
         if (*text == '\0')
@@ -496,13 +499,14 @@ namespace lsp
     status_t TestExecutor::submit_task(task_t *task)
     {
         status_t res;
+        char *cmdbuf    = NULL;
+        size_t len      = 0;
+        size_t cap      = 0;
 
-        // Obtain command line arguments
-        char *cmdbuf = strdup(pCfg->executable);
-        if (cmdbuf == NULL)
-            return STATUS_NO_MEM;
-        size_t len=strlen(cmdbuf);
-        size_t cap=len;
+        // Append executable name
+        res     = cmdline_append_escaped(&cmdbuf, &len, &cap, pCfg->executable, false);
+        if (res != STATUS_OK)
+            return res;
 
         // Append parameters
         res     = cmdline_append_escaped(&cmdbuf, &len, &cap,
