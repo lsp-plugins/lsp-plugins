@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <core/ipc/Process.h>
 
 namespace lsp
 {
@@ -101,25 +102,27 @@ namespace lsp
         {
             lsp_trace("hyperlink submitted");
 
-            int status = 0;
-            const char *url = sUrl.get_native();
+#ifdef PLATFORM_WINDOWS
+            ::ShellExecuteW(
+                NULL,               // Not associated with window
+                L"open",            // Open hyperlink
+                sUrl.get_utf16(),   // The file to execute
+                NULL,               // Parameters
+                NULL,               // Directory
+                SW_SHOWNORMAL       // Show command
+            );
+#else
+            status_t res;
+            ipc::Process p;
 
-            pid_t pid = fork();
-            if (pid == 0)
-            {
-                lsp_trace("url is: %s", url);
-                execlp("xdg-open", "xdg-open", url, NULL);
-                exit(1);
-            }
-            else if (pid < 0)
-            {
-                lsp_trace("bad fork");
-            }
-            else
-            {
-                waitpid(pid, &status, WNOHANG);
-                lsp_trace("Child process exted with status %d", status);
-            }
+            if ((res = p.set_command("xdg-open")) != STATUS_OK)
+                return STATUS_OK;
+            if ((res = p.add_arg(&sUrl)) != STATUS_OK)
+                return STATUS_OK;
+            if ((res = p.launch()) != STATUS_OK)
+                return STATUS_OK;
+            p.wait();
+#endif /* PLATFORM_WINDOWS */
 
             return STATUS_OK;
         }
