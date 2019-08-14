@@ -266,7 +266,12 @@ namespace lsp
                 realize_t r1, r2;
                 pWindow->get_absolute_geometry(&r1);
                 pActiveMenu->pWindow->get_absolute_geometry(&r2);
-                lsp_trace("r1={%d, %d}, r2={%d, %d}", int(r1.nLeft), int(r1.nTop), int(r2.nLeft), int(r2.nTop));
+                lsp_trace("wnd=%p, active=%p, ev={%d, %d}, r1={%d, %d}, r2={%d, %d}",
+                        pWindow, pActiveMenu,
+                        int(ev->nLeft), int(ev->nTop),
+                        int(r1.nLeft), int(r1.nTop),
+                        int(r2.nLeft), int(r2.nTop)
+                    );
 
                 ws_event_t xev = *ev;
                 xev.nLeft   = r1.nLeft + ev->nLeft - r2.nLeft;
@@ -282,10 +287,13 @@ namespace lsp
             if ((pWindow != NULL) &&
                 (pWindow->visible()))
             {
-                lsp_trace("check {%d, %d} inside of {%d, %d, %d, %d}",
+                lsp_trace("check ev {%d, %d} inside of wnd %p, {%d, %d, %d, %d} x { %d, %d }",
                         int(ev->nLeft), int(ev->nTop),
+                        pWindow,
                         int(pWindow->left()), int(pWindow->top()),
-                        int(pWindow->right()), int(pWindow->bottom()));
+                        int(pWindow->right()), int(pWindow->bottom()),
+                        int(pWindow->width()), int(pWindow->height())
+                        );
 
                 if ((ev->nLeft >= 0) &&
                     (ev->nTop >= 0) &&

@@ -112,6 +112,7 @@ namespace lsp
             static bool get_filtering(size_t mode);
             static limiter_mode_t get_limiter_mode(size_t mode);
             static size_t get_dithering(size_t mode);
+            void sync_latency();
 
         public:
             limiter_base(const plugin_metadata_t &metadata, bool sc, bool stereo);
