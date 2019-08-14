@@ -14,7 +14,7 @@
 #include <core/io/OutFileStream.h>
 #include <core/io/InFileStream.h>
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     #include <processthreadsapi.h>
     #include <namedpipeapi.h>
     #include <synchapi.h>
@@ -22,6 +22,10 @@
 #else
     #include <spawn.h>
     #include <sys/wait.h>
+    
+    #ifndef _GNU_SOURCE
+        extern char **environ;    // Define environment variables
+    #endif /* _GNU_SOURCE */
 #endif /* PLATFORM_WINDOWS */
 
 namespace lsp
@@ -1172,7 +1176,11 @@ namespace lsp
             }
 
             // Launch the process
-            ::execvpe(cmd, argv, envp);
+            #if defined(PLATFORM_BSD)
+                ::exect(cmd, argv, envp);
+            #else
+                ::execvpe(cmd, argv, envp);
+            #endif
 
             // Return error only if ::execvpe failed
             ::exit(STATUS_UNKNOWN_ERR);
