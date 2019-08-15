@@ -222,11 +222,6 @@ namespace lsp
         state.nLineID       = 0;
         state.nLines        = 0;
 
-        state.nVxID         = 0;
-        state.nParmVxID     = 0;
-        state.nNormID       = 0;
-        state.nTexVxID      = 0;
-
         while (true)
         {
             // Try to read line
@@ -357,7 +352,7 @@ namespace lsp
                 break;
 
             case 'f': // f
-                if (is_space(*s)) // f
+                if (is_space(*s)) // f - face
                 {
                     // Clear previously used lists
                     st->sVxIdx.clear();
@@ -399,27 +394,23 @@ namespace lsp
                         ofp_point3d_t *xp = st->sVx.at(v);
                         if (xp->oid != st->nObjectID)
                         {
-                            result  = st->pHandler->add_vertex(xp);
-                            if (result != STATUS_OK)
-                                return result;
-
                             xp->oid     = st->nObjectID;
-                            xp->idx     = st->nVxID++;
+                            xp->idx     = st->pHandler->add_vertex(xp);
+                            if (xp->idx < 0)
+                                return -xp->idx;
                         }
                         v           = xp->idx;
 
                         // Register texture vertex
                         if (vt >= 0)
                         {
-                            xp = st->sVx.at(vt);
+                            xp = st->sTexVx.at(vt);
                             if (xp->oid != st->nObjectID)
                             {
-                                result      = st->pHandler->add_texture_vertex(xp);
-                                if (result != STATUS_OK)
-                                    return result;
-
                                 xp->oid     = st->nObjectID;
-                                xp->idx     = st->nTexVxID++;
+                                xp->idx     = st->pHandler->add_texture_vertex(xp);
+                                if (xp->idx < 0)
+                                    return -xp->idx;
                             }
                             vt  = xp->idx;
                         }
@@ -428,18 +419,9 @@ namespace lsp
                         if (vn >= 0)
                         {
                             ofp_vector3d_t *xn = st->sNorm.at(vn);
-//                            if (xn->oid != st->nObjectID)
-//                            {
-//                                result      = st->pHandler->add_normal(xn);
-//                                if (result != STATUS_OK)
-//                                    return result;
-//
-//                                xn->oid     = st->nObjectID;
-//                                xn->idx     = st->nNormID++;
-//                            }
                             if (xn == NULL)
                                 return STATUS_BAD_FORMAT;
-//                            vn  = xn->idx;
+                            vn  = xn->idx;
                         }
 
                         // Add items to lists
@@ -474,7 +456,7 @@ namespace lsp
                 break;
 
             case 'l': // l, lod
-                if (is_space(*s)) // l
+                if (is_space(*s)) // l - line
                 {
                     // Clear previously used lists
                     st->sVxIdx.clear();
@@ -507,27 +489,23 @@ namespace lsp
                         ofp_point3d_t *xp   = st->sVx.at(v);
                         if (xp->oid != st->nObjectID)
                         {
-                            result  = st->pHandler->add_vertex(xp);
-                            if (result != STATUS_OK)
-                                return result;
-
                             xp->oid     = st->nObjectID;
-                            xp->idx     = st->nVxID++;
+                            xp->idx     = st->pHandler->add_vertex(xp);
+                            if (xp->idx < 0)
+                                return -xp->idx;
                         }
                         v           = xp->idx;
 
                         // Register texture vertex
                         if (vt >= 0)
                         {
-                            xp = st->sVx.at(vt);
+                            xp = st->sTexVx.at(vt);
                             if (xp->oid != st->nObjectID)
                             {
-                                result      = st->pHandler->add_texture_vertex(xp);
-                                if (result != STATUS_OK)
-                                    return result;
-
                                 xp->oid     = st->nObjectID;
-                                xp->idx     = st->nTexVxID++;
+                                xp->idx     = st->pHandler->add_texture_vertex(xp);
+                                if (xp->idx < 0)
+                                    return -xp->idx;
                             }
                             vt  = xp->idx;
                         }
@@ -542,8 +520,8 @@ namespace lsp
                     if (!end_of_line(s))
                         return result;
 
-                    // Check face parameters
-                    if (st->sVxIdx.size() < 3)
+                    // Check line parameters
+                    if (st->sVxIdx.size() < 2)
                         return STATUS_BAD_FORMAT;
 
                     // Call parser to handle data
@@ -571,10 +549,6 @@ namespace lsp
                             return result;
                     }
                     result = st->pHandler->begin_object(++st->nObjectID, s);
-//                    st->nVxID           = 0;
-//                    st->nParmVxID       = 0;
-//                    st->nNormID         = 0;
-//                    st->nTexVxID        = 0;
                 }
                 break;
 
@@ -594,20 +568,18 @@ namespace lsp
                             break;
 
                         // Ensure that indexes are correct
-                        v   = (v < 0) ? st->nVxID + v : v - 1;
-                        if ((v < 0) || (v > ssize_t(st->nVxID)))
+                        v   = (v < 0) ? st->sVx.size() + v : v - 1;
+                        if ((v < 0) || (v >= ssize_t(st->sVx.size())))
                             return result;
 
                         // Register vertex
                         ofp_point3d_t *xp   = st->sVx.at(v);
                         if (xp->oid != st->nObjectID)
                         {
-                            result  = st->pHandler->add_vertex(xp);
-                            if (result != STATUS_OK)
-                                return result;
-
                             xp->oid     = st->nObjectID;
-                            xp->idx     = st->nVxID++;
+                            xp->idx     = st->pHandler->add_vertex(xp);
+                            if (xp->idx < 0)
+                                return -xp->idx;
                         }
                         v           = xp->idx;
 
@@ -701,11 +673,12 @@ namespace lsp
                         return result;
 
                     v.oid       = -1;
-                    v.idx       = -1;
+                    v.idx       = st->pHandler->add_normal(&v);
+                    if (v.idx < 0)
+                        return -v.idx;
                     if (!st->sNorm.add(&v))
                         return STATUS_NO_MEM;
-                    if ((result = st->pHandler->add_normal(&v)) != STATUS_OK)
-                        return result;
+                    result = STATUS_OK;
                 }
                 else if (prefix_match(s, "p")) // vp
                 {

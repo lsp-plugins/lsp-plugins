@@ -13,7 +13,7 @@
 #include <core/debug.h>
 
 #if defined(LSP_DEBUG)
-    //#define LSP_RT_TRACE
+    #define LSP_RT_TRACE
 #endif /* LSP_DEBUG */
 
 #if defined(LSP_RT_TRACE)
@@ -29,7 +29,7 @@
         if ((debug != NULL) && (debug->breakpoint >= 0) && ((debug->step++) == debug->breakpoint)) { \
             lsp_trace("Triggered breakpoint %d\n", int(debug->breakpoint)); \
             action; \
-            return STATUS_BREAKPOINT; \
+            return STATUS_BREAK_POINT; \
         }
 
     #define RT_CALL_DEBUGGER(debug, xstep, ...) \
