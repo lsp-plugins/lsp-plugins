@@ -965,7 +965,9 @@ namespace lsp
                         break;
 
                     case ClientMessage:
-                        if (ev->xclient.message_type == sAtoms.X11_WM_PROTOCOLS)
+                    {
+                        Atom type = ev->xclient.message_type;
+                        if (type == sAtoms.X11_WM_PROTOCOLS)
                         {
                             if (ev->xclient.data.l[0] == long(sAtoms.X11_WM_DELETE_WINDOW))
                                 ue.nType        = UIE_CLOSE;
@@ -973,10 +975,39 @@ namespace lsp
                                 lsp_trace("received client WM_PROTOCOLS message with argument %s",
                                         XGetAtomName(pDisplay, ev->xclient.data.l[0]));
                         }
+                        else if (type == sAtoms.X11_XdndEnter)
+                        {
+                            lsp_trace("Received XdndEnter: wnd=0x%lx, ext=%s",
+                                    long(ev->xclient.data.l[0]),
+                                    ((ev->xclient.data.l[1] & 1) ? "true" : "false")
+                                );
+
+                            cvector<char> mime_types;
+                            status_t res = read_dnd_mime_types(&ev->xclient, &mime_types);
+                            for (size_t i=0, n=mime_types.size(); i<n; ++i)
+                            {
+                                char *mime = mime_types.at(i);
+                                lsp_trace("Supported MIME type: %s", mime);
+                                free(mime);
+                            }
+                        }
+                        else if (type == sAtoms.X11_XdndLeave)
+                        {
+                            lsp_trace("Received XdndLeave");
+                        }
+                        else if (type == sAtoms.X11_XdndPosition)
+                        {
+                            lsp_trace("Received XdndPosition");
+                        }
+                        else if (type == sAtoms.X11_XdndDrop)
+                        {
+                            lsp_trace("Received XdndDrop");
+                        }
                         else
                             lsp_trace("received client message of type %s",
                                     XGetAtomName(pDisplay, ev->xclient.message_type));
                         break;
+                    }
 
                     default:
                         return;
@@ -1072,6 +1103,79 @@ namespace lsp
                         wnd->handle_event(&se);
                     }
                 }
+            }
+
+            status_t X11Display::read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype)
+            {
+                // Do not need to fetch long list?
+                if (!(ev->data.l[1] & 1))
+                {
+                    return STATUS_OK;
+
+                    for (size_t i=2; i<5; ++i)
+                    {
+                        if (ev->data.l[i] == None)
+                            continue;
+                        char *a_name = XGetAtomName(pDisplay, ev->data.l[i]);
+                        if (a_name == NULL)
+                            continue;
+
+                        // Add atom name to list
+                        if ((a_name = strdup(a_name)) == NULL)
+                            return STATUS_NO_MEM;
+                        if (!ctype->add(a_name))
+                        {
+                            free(a_name);
+                            return STATUS_NO_MEM;
+                        }
+                    }
+                }
+
+                // Fetch long list of supported MIME types
+                Atom p_type = None;
+                int p_fmt = 0;
+                unsigned long p_nitems = 0, p_size = 0, p_offset = 0;
+                unsigned char *p_data = NULL;
+
+                do
+                {
+                    // Read with 64k chunks
+                    XGetWindowProperty(
+                        pDisplay, ev->data.l[0], sAtoms.X11_XdndTypeList,
+                        p_offset, X11IOBUF_SIZE/4, False, sAtoms.X11_XA_ATOM,
+                        &p_type, &p_fmt, &p_nitems, &p_size, &p_data
+                    );
+
+                    // Analyze property type
+                    if ((p_type != sAtoms.X11_XA_ATOM) || (p_fmt != 32))
+                        break;
+
+                    long *ids = reinterpret_cast<long *>(p_data);
+                    for (unsigned long i=0; i<p_nitems; ++i)
+                    {
+                        if (ids == None)
+                            continue;
+                        char *a_name = XGetAtomName(pDisplay, ids[i]);
+                        if (a_name == NULL)
+                            continue;
+
+                        // Add atom name to list
+                        if ((a_name = strdup(a_name)) == NULL)
+                            return STATUS_NO_MEM;
+                        if (!ctype->add(a_name))
+                        {
+                            free(a_name);
+                            return STATUS_NO_MEM;
+                        }
+                    }
+
+                    // Free buffer and update read position
+                    if (p_data != NULL)
+                        XFree(p_data);
+                    p_offset       += p_nitems;
+                } while ((p_size > 0) && (p_nitems > 0));
+
+                return STATUS_OK;
             }
 
             void X11Display::quit_main()

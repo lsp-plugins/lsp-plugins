@@ -80,6 +80,8 @@ namespace lsp
                     status_t        bufid_to_atom(size_t bufid, Atom *atom);
                     status_t        atom_to_bufid(Atom x, size_t *bufid);
 
+                    status_t        read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype);
+
                 public:
                     X11Display();
                     ~X11Display();
