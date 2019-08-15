@@ -1064,7 +1064,7 @@ namespace lsp
             if (::posix_spawnattr_init(&attr))
                 return STATUS_UNKNOWN_ERR;
 
-            #ifdef __USE_GNU
+            #if defined(__USE_GNU) || defined(POSIX_SPAWN_USEVFORK)
                 // Prever vfork() over fork()
                 if (::posix_spawnattr_setflags(&attr, POSIX_SPAWN_USEVFORK))
                 {
@@ -1270,9 +1270,17 @@ namespace lsp
             res = build_envp(&envp);
             if (res == STATUS_OK)
             {
-                res    = spawn_process(cmd, argv.get_array(), envp.get_array());
-                if (res != STATUS_OK)
+                // Different behaviour, depending on POSIX_SPAWN_USEVFORK presence
+                #if defined(__USE_GNU) || defined(POSIX_SPAWN_USEVFORK)
+                    res    = spawn_process(cmd, argv.get_array(), envp.get_array());
+                    if (res != STATUS_OK)
+                        res    = vfork_process(cmd, argv.get_array(), envp.get_array());
+                #else
                     res    = vfork_process(cmd, argv.get_array(), envp.get_array());
+                    if (res != STATUS_OK)
+                        res    = spawn_process(cmd, argv.get_array(), envp.get_array());
+                #endif /* __USE_GNU */
+
                 if (res != STATUS_OK)
                     res    = fork_process(cmd, argv.get_array(), envp.get_array());
             }
