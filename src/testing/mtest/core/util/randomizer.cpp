@@ -12,9 +12,7 @@
 #include <core/alloc.h>
 #include <data/cvector.h>
 
-#include <plugins/plugins.h>
-#include <container/jack/defs.h>
-#include <core/envelope.h>
+#include <core/util/Randomizer.h>
 
 using namespace lsp;
 

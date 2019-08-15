@@ -11,6 +11,7 @@
 #include <core/resource.h>
 #include <core/parse.h>
 #include <stdio.h>
+#include <core/stdlib/string.h>
 #include <locale.h>
 #include <errno.h>
 #include <dsp/dsp.h>

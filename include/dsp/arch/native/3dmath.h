@@ -856,27 +856,27 @@ namespace native
         M[15]       = 0.0f;
     }
 
-    void init_matrix3d_frustum(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far)
+    void init_matrix3d_frustum(matrix3d_t *m, float left, float right, float bottom, float top, float znear, float zfar)
     {
         float *M    = m->m;
-        M[0]        = 2.0f * near / (right - left);
+        M[0]        = 2.0f * znear / (right - left);
         M[1]        = 0.0f;
         M[2]        = 0.0f;
         M[3]        = 0.0f;
 
         M[4]        = 0.0f;
-        M[5]        = 2.0f * near / (top - bottom);
+        M[5]        = 2.0f * znear / (top - bottom);
         M[6]        = 0.0f;
         M[7]        = 0.0f;
 
         M[8]        = (right + left) / (right - left);
         M[9]        = (top + bottom) / (top - bottom);
-        M[10]       = - (far + near) / (far - near);
+        M[10]       = - (zfar + znear) / (zfar - znear);
         M[11]       = -1.0f;
 
         M[12]       = 0.0f;
         M[13]       = 0.0f;
-        M[14]       = -2.0f * far * near / (far - near);
+        M[14]       = -2.0f * zfar * znear / (zfar - znear);
         M[15]       = 0.0f;
     }
 

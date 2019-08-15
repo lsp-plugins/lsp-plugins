@@ -108,10 +108,10 @@ namespace lsp
         // Get number of processors for system
         SYSTEM_INFO     os_sysinfo;
         GetSystemInfo(&os_sysinfo);
-        threads     = os_sysinfo.dwNumberOfProcessors;
+        threads         = os_sysinfo.dwNumberOfProcessors;
 
         // Get command line
-        LPWSTR cmdline = GetCommandLineW();
+        LPWSTR cmdline  = GetCommandLineW();
         int nargs = 0;
         LPWSTR *arglist = CommandLineToArgvW(cmdline, &nargs);
         if ((arglist == NULL) || (nargs < 1))
@@ -122,8 +122,8 @@ namespace lsp
         }
 
         // Convert UTF-16-encoded command line arguments to UTF-8-encoded
-        utf8_argc   = nargs;
-        utf8_argv   = reinterpret_cast<char **>(malloc(nargs * sizeof(char *)));
+        utf8_argc       = nargs;
+        utf8_argv       = reinterpret_cast<char **>(malloc(nargs * sizeof(char *)));
         for (size_t i=0; i<utf8_argc; ++i)
             utf8_argv[i]        = NULL;
         for (size_t i=0; i<utf8_argc; ++i)

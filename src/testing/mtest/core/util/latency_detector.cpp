@@ -12,13 +12,13 @@
 #include <core/alloc.h>
 #include <data/cvector.h>
 
-#include <plugins/plugins.h>
-#include <container/jack/defs.h>
 #include <core/envelope.h>
 #include <math.h>
 #include <core/util/LatencyDetector.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include <dsp/dsp.h>
 
 #define LATENCYDETECTOR_BUFFER_SIZE 1024
 #define LATENCYDETECTOR_SAMPLE_RATE 96000

@@ -5,9 +5,10 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_SYSTEM_H_
-#define INCLUDE_CORE_SYSTEM_H_
+#ifndef CORE_SYSTEM_H_
+#define CORE_SYSTEM_H_
 
+#include <common/types.h>
 #include <core/status.h>
 #include <core/LSPString.h>
 #include <core/io/Path.h>
@@ -16,6 +17,15 @@ namespace lsp
 {
     namespace system
     {
+        /**
+         * Time information
+         */
+        typedef struct time_t
+        {
+            size_t  seconds;    /* The value in seconds */
+            size_t  nanos;      /* The value in nanoseconds between 0 and 10^9-1 */
+        } time_t;
+
         /**
          * Get environment variable
          * @param name environment variable name
@@ -83,8 +93,14 @@ namespace lsp
          * @return status of operation
          */
         status_t get_home_directory(io::Path *homedir);
+
+        /**
+         * Get current high-precision time
+         * @param time pointer to structure to store time value
+         */
+        void get_time(time_t *time);
     }
 }
 
 
-#endif /* INCLUDE_CORE_SYSTEM_H_ */
+#endif /* CORE_SYSTEM_H_ */

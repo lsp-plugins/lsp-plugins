@@ -19,6 +19,7 @@ namespace test
         __test_name         = name;
         __verbose           = false;
         __full_name         = NULL;
+        __executable        = NULL;
     }
 
     Test::~Test()
@@ -57,6 +58,7 @@ namespace test
 
     void Test::destroy()
     {
+        __executable        = NULL;
     }
 
     void Test::__mark_supported(const void *ptr)
