@@ -17,6 +17,7 @@
 * Fixed bug with improper latency value reported by Limiter plugin series.
 * Implemented ipc::Process class that allows to run nested processes with I/O redirection.
   Code now prefers vfork() system call agains fork().
+- Added support of RoomEQ Wizard configuration file format by Parametric Equalizer plugin series.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
