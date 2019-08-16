@@ -98,6 +98,17 @@ namespace lsp
             EVF_GRAB            = 1 << 2    // Grab all further events first
         };
 
+        enum drag_t
+        {
+            DRAG_NONE           = 0,
+            DRAG_COPY           = 1,
+            DRAG_MOVE           = 2,
+            DRAG_LINK           = 3,
+            DRAG_ASK            = 4,
+            DRAG_PRIVATE        = 5,
+            DRAG_DIRECT_SAVE    = 6
+        };
+
         enum mouse_pointer_t
         {
             MP_NONE,
@@ -161,6 +172,11 @@ namespace lsp
             UIE_CLOSE,
             UIE_FOCUS_IN,
             UIE_FOCUS_OUT,
+
+            UIE_DRAG_ENTER,
+            UIE_DRAG_LEAVE,
+            UIE_DRAG_REQUEST,
+            UIE_DRAG_DROP,
 
             UIE_TOTAL,
             UIE_FIRST = UIE_KEY_DOWN,
@@ -336,6 +352,9 @@ namespace lsp
 #include <ui/ws/keycodes.h>
 
 // Common definitions
+#include <ui/ws/IDataFetch.h>
+#include <ui/ws/IDataSink.h>
+#include <ui/ws/IDataSource.h>
 #include <ui/ws/IEventHandler.h>
 #include <ui/ws/ISurface.h>
 #include <ui/ws/IClipboard.h>

@@ -51,7 +51,7 @@ namespace lsp
                  * @param ctype content type
                  * @return pointer to the opened clipboard stream or NULL if content type or character set is not supported
                  */
-                virtual io::IInStream   *read(const char *ctype);
+                virtual io::IInStream      *read(const char *ctype);
 
                 /** Get number of supported converison targets
                  *

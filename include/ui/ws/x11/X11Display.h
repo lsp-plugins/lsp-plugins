@@ -42,10 +42,17 @@ namespace lsp
                         Atom                hSelection;
                         Time                nTime;
                         X11Clipboard       *pCB;
-                        io::IInStream   *pIn;
+                        io::IInStream      *pIn;
                         clipboard_handler_t pHandler;
                         void               *pArgument;
                     } cb_request_t;
+
+                    typedef struct cb_owner_t
+                    {
+                        bool                bPending;       // MIME types not fetched
+                        IDataSource        *pDS;
+                        X11DataSource      *pX11DS;
+                    } cb_owner_t;
 
                 protected:
                     volatile bool   bExit;
@@ -58,13 +65,16 @@ namespace lsp
                     Cursor          vCursors[__MP_COUNT];
                     uint8_t        *pIOBuf;
                     IClipboard     *pClipboard[_CBUF_TOTAL];
+                    cb_owner_t     *pCbOwner[_CBUF_TOTAL];
 
-                    cstorage<dtask_t> sPending;
-                    cvector<X11Window> vWindows;
-                    cvector<X11Window> sGrab;
-                    cvector<X11Window> sTargets;
-                    cstorage<wnd_lock_t> sLocks;
-                    cstorage<cb_request_t> sCbRequests;
+                    cstorage<dtask_t>       sPending;
+                    cvector<X11Window>      vWindows;
+                    cvector<X11Window>      sGrab;
+                    cvector<X11Window>      sTargets;
+                    cstorage<wnd_lock_t>    sLocks;
+                    cstorage<cb_request_t>  sCbRequests;
+                    cvector<char>           vDndMimeTypes;
+                    Window                  hDndSource;
 
                 protected:
                     void            handleEvent(XEvent *ev);
@@ -77,14 +87,16 @@ namespace lsp
                     Atom            gen_selection_id();
                     cb_request_t   *find_request(Window requestor, Atom selection, Time time);
                     X11Window      *find_window(Window wnd);
-                    status_t        bufid_to_atom(size_t bufid, Atom *atom);
-                    status_t        atom_to_bufid(Atom x, size_t *bufid);
+                    status_t        bufid_to_atom(size_t bufid, Atom *atom, Atom *sel_id);
+                    status_t        atom_to_bufid(Atom x, size_t *bufid, Atom *sel_id);
 
                     status_t        read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype);
+                    void            drop_dnd_mime_types(cvector<char> *ctype);
+
 
                 public:
-                    X11Display();
-                    ~X11Display();
+                    explicit X11Display();
+                    virtual ~X11Display();
 
                 public:
                     virtual int init(int argc, const char **argv);
@@ -106,6 +118,9 @@ namespace lsp
 
                     virtual status_t fetchClipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg);
                     virtual status_t writeClipboard(size_t id, IClipboard *c);
+
+                    virtual status_t setClipboard(size_t id, IDataSource *ds);
+                    virtual IDataSource *getClipboard(size_t id);
 
                 public:
                     bool                addWindow(X11Window *wnd);

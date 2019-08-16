@@ -104,9 +104,13 @@ namespace lsp
                 nBlackColor     = 0;
                 nWhiteColor     = 0;
                 pIOBuf          = NULL;
+                hDndSource      = None;
 
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
+                {
                     pClipboard[i]           = NULL;
+                    pCbOwner[i]              = NULL;
+                }
             }
 
             X11Display::~X11Display()
@@ -237,6 +241,7 @@ namespace lsp
                 sPending.flush();
                 sGrab.clear();
                 sTargets.clear();
+                drop_dnd_mime_types(&vDndMimeTypes);
 
                 if (pIOBuf != NULL)
                 {
@@ -456,26 +461,48 @@ namespace lsp
                 return NULL;
             }
 
-            status_t X11Display::bufid_to_atom(size_t bufid, Atom *atom)
+            status_t X11Display::bufid_to_atom(size_t bufid, Atom *atom, Atom *sel_id)
             {
                 switch (bufid)
                 {
-                    case CBUF_PRIMARY:      *atom = sAtoms.X11_XA_PRIMARY; return STATUS_OK;
-                    case CBUF_SECONDARY:    *atom = sAtoms.X11_XA_SECONDARY; return STATUS_OK;
-                    case CBUF_CLIPBOARD:    *atom = sAtoms.X11_CLIPBOARD; return STATUS_OK;
-                    default : break;
+                    case CBUF_PRIMARY:
+                        *atom       = sAtoms.X11_XA_PRIMARY;
+                        *sel_id     = sAtoms.X11_LSP_SELECTION_PRIMARY;
+                        return STATUS_OK;
+
+                    case CBUF_SECONDARY:
+                        *atom       = sAtoms.X11_XA_SECONDARY;
+                        *sel_id     = sAtoms.X11_LSP_SELECTION_SECONDARY;
+                        return STATUS_OK;
+
+                    case CBUF_CLIPBOARD:
+                        *atom       = sAtoms.X11_CLIPBOARD;
+                        *sel_id     = sAtoms.X11_LSP_SELECTION_CLIPBOARD;
+                        return STATUS_OK;
+
+                    default:
+                        break;
                 }
                 return STATUS_BAD_ARGUMENTS;
             }
 
-            status_t X11Display::atom_to_bufid(Atom x, size_t *bufid)
+            status_t X11Display::atom_to_bufid(Atom x, size_t *bufid, Atom *sel_id)
             {
                 if (x == sAtoms.X11_XA_PRIMARY)
+                {
                     *bufid  = CBUF_PRIMARY;
+                    *sel_id = sAtoms.X11_LSP_SELECTION_PRIMARY;
+                }
                 else if (x == sAtoms.X11_XA_SECONDARY)
+                {
                     *bufid  = CBUF_SECONDARY;
+                    *sel_id = sAtoms.X11_LSP_SELECTION_SECONDARY;
+                }
                 else if (x == sAtoms.X11_CLIPBOARD)
+                {
                     *bufid  = CBUF_CLIPBOARD;
+                    *sel_id = sAtoms.X11_LSP_SELECTION_CLIPBOARD;
+                }
                 else
                     return STATUS_BAD_ARGUMENTS;
                 return STATUS_OK;
@@ -497,7 +524,8 @@ namespace lsp
 
                         // Get clipboard buffer identifier
                         size_t bufid;
-                        status_t res        = atom_to_bufid(sc->selection, &bufid);
+                        Atom selid;
+                        status_t res        = atom_to_bufid(sc->selection, &bufid, &selid);
                         if (res != STATUS_OK)
                             return true;
 
@@ -561,7 +589,8 @@ namespace lsp
 
                         // Get buffer identifier
                         size_t bufid;
-                        status_t res        = atom_to_bufid(sr->selection, &bufid);
+                        Atom selid;
+                        status_t res        = atom_to_bufid(sr->selection, &bufid, &selid);
 
                         // Find window
                         IClipboard *cb      = ((res == STATUS_OK) && (sr->owner == hClipWnd)) ? pClipboard[bufid] : NULL;
@@ -833,6 +862,7 @@ namespace lsp
                 }
 
                 ws_event_t ue;
+                Window src_wnd  = ev->xany.window;
                 ue.nType        = UIE_UNKNOWN;
                 ue.nLeft        = 0;
                 ue.nTop         = 0;
@@ -966,42 +996,131 @@ namespace lsp
 
                     case ClientMessage:
                     {
-                        Atom type = ev->xclient.message_type;
+                        XClientMessageEvent *ce = &ev->xclient;
+                        Atom type = ce->message_type;
+
                         if (type == sAtoms.X11_WM_PROTOCOLS)
                         {
-                            if (ev->xclient.data.l[0] == long(sAtoms.X11_WM_DELETE_WINDOW))
+                            if (ce->data.l[0] == long(sAtoms.X11_WM_DELETE_WINDOW))
                                 ue.nType        = UIE_CLOSE;
                             else
                                 lsp_trace("received client WM_PROTOCOLS message with argument %s",
-                                        XGetAtomName(pDisplay, ev->xclient.data.l[0]));
+                                        XGetAtomName(pDisplay, ce->data.l[0]));
                         }
                         else if (type == sAtoms.X11_XdndEnter)
                         {
+                            /**
+                            data.l[0] contains the XID of the source window.
+
+                            data.l[1]:
+
+                               Bit 0 is set if the source supports more than three data types.
+                               The high byte contains the protocol version to use (minimum of the source's
+                               and target's highest supported versions).
+                               The rest of the bits are reserved for future use.
+
+                            data.l[2,3,4] contain the first three types that the source supports.
+                               Unused slots are set to None. The ordering is arbitrary since, in general,
+                               the source cannot know what the target prefers.
+                            */
                             lsp_trace("Received XdndEnter: wnd=0x%lx, ext=%s",
                                     long(ev->xclient.data.l[0]),
                                     ((ev->xclient.data.l[1] & 1) ? "true" : "false")
                                 );
 
+                            // Remember mime types
                             cvector<char> mime_types;
-                            status_t res = read_dnd_mime_types(&ev->xclient, &mime_types);
+                            status_t res = read_dnd_mime_types(ce, &mime_types);
                             for (size_t i=0, n=mime_types.size(); i<n; ++i)
                             {
                                 char *mime = mime_types.at(i);
                                 lsp_trace("Supported MIME type: %s", mime);
-                                free(mime);
                             }
+
+                            drop_dnd_mime_types(&vDndMimeTypes);
+                            if (res == STATUS_OK)
+                            {
+                                vDndMimeTypes.swap_data(&mime_types);
+                                ue.nType        = UIE_DRAG_ENTER;
+                                ue.nState       = vDndMimeTypes.size();
+                                hDndSource      = ce->data.l[0];
+                                src_wnd         = hRootWnd;
+                            }
+                            else
+                                hDndSource      = None;
+                            drop_dnd_mime_types(&mime_types);
                         }
                         else if (type == sAtoms.X11_XdndLeave)
                         {
+                            /**
+                            Sent from source to target to cancel the drop.
+
+                               data.l[0] contains the XID of the source window.
+                               data.l[1] is reserved for future use (flags).
+                            */
                             lsp_trace("Received XdndLeave");
+                            hDndSource          = None;
+                            ue.nType            = UIE_DRAG_LEAVE;
                         }
                         else if (type == sAtoms.X11_XdndPosition)
                         {
-                            lsp_trace("Received XdndPosition");
+                            /**
+                            Sent from source to target to provide mouse location.
+
+                               data.l[0] contains the XID of the source window.
+                               data.l[1] is reserved for future use (flags).
+                               data.l[2] contains the coordinates of the mouse position relative to the root window.
+                                   data.l[2] = (x << 16) | y;
+                               data.l[3] contains the time stamp for retrieving the data. (new in version 1)
+                               data.l[4] contains the action requested by the user. (new in version 2)
+                            */
+
+                            long x = (ce->data.l[2] >> 16), y = (ce->data.l[2] & 0xffff);
+                            lsp_trace("Received XdndPosition: wnd=0x%lx, flags=0x%lx, x=%ld, y=%ld, timestamp=%ld action=%ld (%s)",
+                                    ce->data.l[0], ce->data.l[1], x, y, ce->data.l[3], ce->data.l[4], XGetAtomName(pDisplay, ce->data.l[4])
+                                    );
+
+                            hDndSource          = ev->xclient.data.l[0];
+                            src_wnd             = hRootWnd;
+
+                            // Form the notification event
+                            Atom act            = ce->data.l[4];
+
+                            ue.nType            = UIE_DRAG_REQUEST;
+                            ue.nLeft            = x;
+                            ue.nTop             = y;
+                            ue.nTime            = ce->data.l[3];
+
+                            if (act == sAtoms.X11_XdndActionCopy)
+                                ue.nState           = DRAG_COPY;
+                            else if (act == sAtoms.X11_XdndActionMove)
+                                ue.nState           = DRAG_MOVE;
+                            else if (act == sAtoms.X11_XdndActionLink)
+                                ue.nState           = DRAG_LINK;
+                            else if (act == sAtoms.X11_XdndActionAsk)
+                                ue.nState           = DRAG_ASK;
+                            else if (act == sAtoms.X11_XdndActionPrivate)
+                                ue.nState           = DRAG_PRIVATE;
+                            else if (act == sAtoms.X11_XdndActionDirectSave)
+                                ue.nState           = DRAG_DIRECT_SAVE;
+                            else
+                                ue.nState           = DRAG_NONE;
                         }
                         else if (type == sAtoms.X11_XdndDrop)
                         {
-                            lsp_trace("Received XdndDrop");
+                            /**
+                            Sent from source to target to complete the drop.
+                            data.l[0] contains the XID of the source window.
+                            data.l[1] is reserved for future use (flags).
+                            data.l[2] contains the time stamp for retrieving the data. (new in version 1)
+                            */
+                            lsp_trace("Received XdndDrop wnd=0x%lx, ts=%ld", ce->data.l[0], ce->data.l[2]);
+                            if (ce->data.l[0] == hDndSource)
+                            {
+                                ue.nType            = UIE_DRAG_DROP;
+                                ue.nTime            = ce->data.l[2];
+                                src_wnd             = hRootWnd;
+                            }
                         }
                         else
                             lsp_trace("received client message of type %s",
@@ -1083,7 +1202,7 @@ namespace lsp
                             if (target != NULL)
                                 sTargets.add(target);
                             break;
-                    }
+                    } // switch(se.nType)
 
                     // Deliver the message to target windows
                     for (size_t i=0, nwnd = sTargets.size(); i<nwnd; ++i)
@@ -1093,7 +1212,7 @@ namespace lsp
                         // Translate coordinates if originating and target window differs
                         int x, y;
                         XTranslateCoordinates(pDisplay,
-                            ev->xany.window, wnd->x11handle(),
+                            src_wnd, wnd->x11handle(),
                             ue.nLeft, ue.nTop,
                             &x, &y, &child);
                         se.nLeft    = x;
@@ -1110,8 +1229,6 @@ namespace lsp
                 // Do not need to fetch long list?
                 if (!(ev->data.l[1] & 1))
                 {
-                    return STATUS_OK;
-
                     for (size_t i=2; i<5; ++i)
                     {
                         if (ev->data.l[i] == None)
@@ -1129,6 +1246,8 @@ namespace lsp
                             return STATUS_NO_MEM;
                         }
                     }
+
+                    return STATUS_OK;
                 }
 
                 // Fetch long list of supported MIME types
@@ -1176,6 +1295,17 @@ namespace lsp
                 } while ((p_size > 0) && (p_nitems > 0));
 
                 return STATUS_OK;
+            }
+
+            void X11Display::drop_dnd_mime_types(cvector<char> *ctype)
+            {
+                for (size_t i=0, n=ctype->size(); i<n; ++i)
+                {
+                    char *mime = ctype->at(i);
+                    if (mime != NULL)
+                        ::free(mime);
+                }
+                ctype->flush();
             }
 
             void X11Display::quit_main()
@@ -1467,8 +1597,8 @@ namespace lsp
                 if (ctype == NULL)
                     return STATUS_BAD_ARGUMENTS;
 
-                Atom aid;
-                status_t result = bufid_to_atom(id, &aid);
+                Atom aid, selid;
+                status_t result = bufid_to_atom(id, &aid, &selid);
                 if (result != STATUS_OK)
                     return result;
 
@@ -1550,8 +1680,8 @@ namespace lsp
                 }
 
                 // Try to set clipboard owner
-                Atom aid;
-                status_t result = bufid_to_atom(id, &aid);
+                Atom aid, selid;
+                status_t result = bufid_to_atom(id, &aid, &selid);
                 if (result != STATUS_OK)
                     return result;
 
@@ -1559,6 +1689,90 @@ namespace lsp
                 pClipboard[id]  = c;
                 XSetSelectionOwner(pDisplay, aid, hClipWnd, CurrentTime);
                 XFlush(pDisplay);
+
+                return STATUS_OK;
+            }
+
+            status_t X11Display::setClipboard(size_t id, IDataSource *ds)
+            {
+                // Acquire reference
+                if (ds != NULL)
+                    ds->acquire();
+
+                // Check arguments
+                if ((id < 0) || (id >= _CBUF_TOTAL))
+                    return STATUS_BAD_ARGUMENTS;
+
+                // Try to set clipboard owner
+                Atom aid, selid;
+                status_t res        = bufid_to_atom(id, &aid, &selid);
+                if (res != STATUS_OK)
+                {
+                    if (ds != NULL)
+                        ds->release();
+                    return res;
+                }
+
+                // Release previous placeholder
+                if (pCbOwner[id] != NULL)
+                {
+                    if ((res = pCbOwner[id]->pDS->abort()) != STATUS_OK)
+                    {
+                        if (ds != NULL)
+                            ds->release();
+                        return res;
+                    }
+                    pCbOwner[id]->pDS->release();
+                    pCbOwner[id]    = NULL;
+                }
+
+                // There is no selection owner?
+                if (ds == NULL)
+                {
+                    ::XSetSelectionOwner(pDisplay, aid, None, CurrentTime);
+                    ::XFlush(pDisplay);
+                    return STATUS_OK;
+                }
+
+                // Notify that our window is owning a selection
+                pCbOwner[id]    = ds;
+                ::XSetSelectionOwner(pDisplay, aid, hClipWnd, CurrentTime);
+                ::XFlush(pDisplay);
+
+                return STATUS_OK;
+            }
+
+            IDataSource *X11Display::getClipboard(size_t id)
+            {
+                // Convert clipboard type to atom
+                Atom aid, selid;
+                status_t result = bufid_to_atom(id, &aid, &selid);
+                if (result != STATUS_OK)
+                    return NULL;
+
+                // First, check that it's our window to avoid X11 transfers
+                Window wnd  = ::XGetSelectionOwner(pDisplay, aid);
+                if (wnd == hClipWnd)
+                {
+                    IDataSource *ds = pCbOwner[id];
+                    if (ds != NULL)
+                        ds->acquire();
+                    return ds;
+                }
+
+                // Release previously used placeholder
+                if (pCbOwner[id] != NULL)
+                {
+                    pCbOwner[id]->pDS->abort();
+                    pCbOwner[id]->pDS->release();
+                    pCbOwner[id]    = NULL;
+                }
+
+                // Create new remote selection owner
+                X11DataSource *ds   = new X11DataSource(this, hClipWnd, selid);
+                ds->acquire();
+                pCbOwner[id]        = ds;
+                pCbOwner[id]
 
                 return STATUS_OK;
             }

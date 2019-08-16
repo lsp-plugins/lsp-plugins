@@ -226,7 +226,6 @@ namespace lsp
                  *
                  * @param id clipboard identifier
                  * @param ctype requested content type
-                 * @param charset requested character set
                  * @param handler callback handler when clipboard data is ready
                  * @param arg argument to pass to the callback handler
                  * @return pointer to clipboard data object or NULL if not present
@@ -235,13 +234,27 @@ namespace lsp
 
                 /** Get clipboard by it's identifier
                  *
-                 * @param wnd the window that is owner of the clipboard
                  * @param id clipboard identifier
                  * @param c the clipboard data holder object
-                 * @return pointer to clipboard or NULL if not present
                  */
-//                virtual status_t writeClipboard(INativeWindow *wnd, size_t id, IClipboard *c);
                 virtual status_t writeClipboard(size_t id, IClipboard *c);
+
+                /**
+                 * Associate data source with the specified clipboard
+                 * @param id clipboard identifier
+                 * @param ds data source
+                 * @return status of operation
+                 */
+                virtual status_t setClipboard(size_t id, IDataSource *ds);
+
+                /**
+                 * Get clipboard data source by the specified identifier.
+                 * After the data source has been processed, release() should
+                 * be called on data source
+                 * @param id clipboard identifier
+                 * @return pointer to data source or NULL
+                 */
+                virtual IDataSource *getClipboard(size_t id);
         };
 
     } /* namespace ws */
