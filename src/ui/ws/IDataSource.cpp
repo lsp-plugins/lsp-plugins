@@ -12,38 +12,40 @@ namespace lsp
     namespace ws
     {
         
-        IDataSource::IDataSource()
+        IDataSource::IDataSource(char *const *mimes)
         {
             nReferences     = 0;
+            size_t n        = 1;
+
+            for (char *const *m=mimes; *m != NULL; ++m)
+                ++n;
+
+            vMimes          = reinterpret_cast<char **>(::malloc(sizeof(char *) * n));
+            for (size_t i=0; i<n; ++i)
+                vMimes[i]       = NULL;
+
+            for (size_t i=0, j=0; i<n; ++i)
+            {
+                vMimes[j]   = ::strdup(mimes[i]);
+                if (vMimes[j])
+                    ++j;
+            }
         }
         
         IDataSource::~IDataSource()
         {
+            if (vMimes != NULL)
+            {
+                for (char **p = vMimes; *p != NULL; ++p)
+                    ::free(*p);
+                ::free(vMimes);
+                vMimes = NULL;
+            }
         }
 
-        size_t IDataSource::mime_types()
-        {
-            return 0;
-        }
-
-        const char *IDataSource::mime_type(size_t id)
+        io::IInStream *IDataSource::open(const char *mime)
         {
             return NULL;
-        }
-
-        status_t IDataSource::sink(const char *mime, IDataSink *sink)
-        {
-            return STATUS_NOT_IMPLEMENTED;
-        }
-
-//        status_t IDataSource::fetch(const char *mime, IDataFetch **fetch)
-//        {
-//            return STATUS_NOT_IMPLEMENTED;
-//        }
-
-        status_t IDataSource::abort()
-        {
-            return STATUS_OK;
         }
 
         size_t IDataSource::acquire()

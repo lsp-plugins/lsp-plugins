@@ -13,15 +13,16 @@ namespace lsp
     {
         IDataSink::IDataSink()
         {
+            nReferences     = 0;
         }
         
         IDataSink::~IDataSink()
         {
         }
 
-        status_t IDataSink::open(const char *mime_type)
+        ssize_t IDataSink::open(const char *const *mime_type)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            return -STATUS_NOT_IMPLEMENTED;
         }
 
         status_t IDataSink::write(const void *buf, size_t count)
@@ -29,14 +30,23 @@ namespace lsp
             return -STATUS_NOT_IMPLEMENTED;
         }
 
-        status_t IDataSink::commit()
+        status_t IDataSink::close(status_t code)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            return STATUS_OK;
         }
 
-        status_t IDataSink::abort(status_t code)
+        size_t IDataSink::acquire()
         {
-            return STATUS_NOT_IMPLEMENTED;
+            return ++nReferences;
+        }
+
+        size_t IDataSink::release()
+        {
+            ssize_t refs    = --nReferences;
+            if (refs <= 0)
+                delete this;
+
+            return refs;
         }
     
     } /* namespace ws */

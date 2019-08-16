@@ -17,6 +17,9 @@ namespace lsp
          */
         class IDataSink
         {
+            protected:
+                ssize_t     nReferences;
+
             public:
                 /**
                  * Create data sink with specified MIME type
@@ -32,28 +35,41 @@ namespace lsp
             public:
                 /**
                  * Open sink for writing
-                 * @param mime_type MIME type of the data
-                 * @return status of operation
+                 * @param mime_types NULL-terminated list of available MIME type of the data
+                 * @return index of selected MIME type or negative error code
                  */
-                virtual status_t open(const char *mime_type);
+                virtual ssize_t     open(const char * const *mime_types);
 
                 /**
                  * Write amount of bytes to the sink
                  * @param buf buffer to write
                  * @param count number of bytes to write
                  */
-                virtual status_t write(const void *buf, size_t count);
+                virtual status_t    write(const void *buf, size_t count);
 
                 /**
-                 * Commit: the data has been successfully committed
+                 * Close sink
+                 * @param code the data transfer completion code
                  */
-                virtual status_t commit();
+                virtual status_t    close(status_t code);
 
                 /**
-                 * Abort: there was an error while data has been transferred
-                 * @param code the error code
+                 * Acquire data sink for usage
+                 * @return number of references
                  */
-                virtual status_t abort(status_t code);
+                size_t              acquire();
+
+                /**
+                 * Get number of references to the data sink
+                 * @return number of references to the data sink
+                 */
+                inline size_t       references() const { return nReferences; };
+
+                /**
+                 * Release data source
+                 * @return number of references to the data source
+                 */
+                size_t              release();
         };
     
     } /* namespace ws */

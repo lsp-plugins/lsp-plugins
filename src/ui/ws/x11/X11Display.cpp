@@ -1716,13 +1716,7 @@ namespace lsp
                 // Release previous placeholder
                 if (pCbOwner[id] != NULL)
                 {
-                    if ((res = pCbOwner[id]->pDS->abort()) != STATUS_OK)
-                    {
-                        if (ds != NULL)
-                            ds->release();
-                        return res;
-                    }
-                    pCbOwner[id]->pDS->release();
+                    pCbOwner[id]->release();
                     pCbOwner[id]    = NULL;
                 }
 
@@ -1742,37 +1736,101 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            IDataSource *X11Display::getClipboard(size_t id)
+            status_t X11Display::sink_data_source(IDataSink *dst, IDataSource *src)
             {
+                status_t result = STATUS_OK;
+
+                // Fetch list of MIME types
+                src->acquire();
+
+                const char *const *mimes = src->mime_types();
+                if (mimes != NULL)
+                {
+                    // Open sink
+                    ssize_t idx = dst->open(mimes);
+                    if (idx >= 0)
+                    {
+                        // Open source
+                        io::IInStream *s = src->open(mimes[idx]);
+                        if (s != NULL)
+                        {
+                            // Perform data copy
+                            uint8_t buf[1024];
+                            while (true)
+                            {
+                                // Read the buffer from the stream
+                                ssize_t nread = s->read(buf, sizeof(buf));
+                                if (nread < 0)
+                                {
+                                    if (nread != -STATUS_EOF)
+                                        result = -nread;
+                                    break;
+                                }
+
+                                // Write the buffer to the sink
+                                result = dst->write(buf, nread);
+                                if (result != STATUS_OK)
+                                    break;
+                            }
+
+                            // Close the stream
+                            if (result == STATUS_OK)
+                                result = s->close();
+                            else
+                                s->close();
+                        }
+                        else
+                            result = STATUS_UNKNOWN_ERR;
+
+                        // Close sink
+                        dst->close(result);
+                    }
+                    else
+                        result  = -idx;
+                }
+                else
+                    result = STATUS_NO_DATA;
+
+                src->release();
+
+                return result;
+            }
+
+            status_t X11Display::getClipboard(size_t id, IDataSink *dst)
+            {
+                // Acquire data sink
+                if (dst == NULL)
+                    return STATUS_BAD_ARGUMENTS;
+                dst->acquire();
+
                 // Convert clipboard type to atom
                 Atom aid, selid;
                 status_t result = bufid_to_atom(id, &aid, &selid);
                 if (result != STATUS_OK)
-                    return NULL;
+                {
+                    dst->release();
+                    return STATUS_BAD_ARGUMENTS;
+                }
 
                 // First, check that it's our window to avoid X11 transfers
                 Window wnd  = ::XGetSelectionOwner(pDisplay, aid);
                 if (wnd == hClipWnd)
                 {
-                    IDataSource *ds = pCbOwner[id];
-                    if (ds != NULL)
-                        ds->acquire();
-                    return ds;
+                    // Perform direct data transfer because we're owner of the selection
+                    result = (pCbOwner[id] != NULL) ?
+                            sink_data_source(dst, pCbOwner[id]) : STATUS_NO_DATA;
+                    dst->release();
+                    return result;
                 }
 
                 // Release previously used placeholder
                 if (pCbOwner[id] != NULL)
                 {
-                    pCbOwner[id]->pDS->abort();
-                    pCbOwner[id]->pDS->release();
+                    pCbOwner[id]->release();
                     pCbOwner[id]    = NULL;
                 }
 
-                // Create new remote selection owner
-                X11DataSource *ds   = new X11DataSource(this, hClipWnd, selid);
-                ds->acquire();
-                pCbOwner[id]        = ds;
-                pCbOwner[id]
+                // TODO: create transfer primitive
 
                 return STATUS_OK;
             }

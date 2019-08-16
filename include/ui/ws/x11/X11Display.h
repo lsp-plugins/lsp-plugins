@@ -47,13 +47,6 @@ namespace lsp
                         void               *pArgument;
                     } cb_request_t;
 
-                    typedef struct cb_owner_t
-                    {
-                        bool                bPending;       // MIME types not fetched
-                        IDataSource        *pDS;
-                        X11DataSource      *pX11DS;
-                    } cb_owner_t;
-
                 protected:
                     volatile bool   bExit;
                     Display        *pDisplay;
@@ -65,7 +58,7 @@ namespace lsp
                     Cursor          vCursors[__MP_COUNT];
                     uint8_t        *pIOBuf;
                     IClipboard     *pClipboard[_CBUF_TOTAL];
-                    cb_owner_t     *pCbOwner[_CBUF_TOTAL];
+                    IDataSource    *pCbOwner[_CBUF_TOTAL];
 
                     cstorage<dtask_t>       sPending;
                     cvector<X11Window>      vWindows;
@@ -92,6 +85,7 @@ namespace lsp
 
                     status_t        read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype);
                     void            drop_dnd_mime_types(cvector<char> *ctype);
+                    static status_t sink_data_source(IDataSink *dst, IDataSource *src);
 
 
                 public:
@@ -120,7 +114,7 @@ namespace lsp
                     virtual status_t writeClipboard(size_t id, IClipboard *c);
 
                     virtual status_t setClipboard(size_t id, IDataSource *ds);
-                    virtual IDataSource *getClipboard(size_t id);
+                    virtual status_t getClipboard(size_t id, IDataSink *dst);
 
                 public:
                     bool                addWindow(X11Window *wnd);

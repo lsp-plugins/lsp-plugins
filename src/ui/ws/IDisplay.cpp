@@ -591,9 +591,13 @@ namespace lsp
             return STATUS_NOT_IMPLEMENTED;
         }
 
-        IDataSource *IDisplay::getClipboard(size_t id)
+        status_t IDisplay::getClipboard(size_t id, IDataSink *dst)
         {
-            return NULL;
+            if (dst == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            dst->acquire();
+            dst->release();
+            return STATUS_NOT_IMPLEMENTED;
         }
     }
 

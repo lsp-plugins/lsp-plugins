@@ -41,7 +41,6 @@
         #include <ui/ws/x11/X11Atoms.h>
         #include <ui/ws/x11/X11CairoGradient.h>
         #include <ui/ws/x11/X11CairoSurface.h>
-        #include <ui/ws/x11/X11DataSource.h>
         #include <ui/ws/x11/X11Display.h>
         #include <ui/ws/x11/X11Window.h>
         #include <ui/ws/x11/X11Clipboard.h>

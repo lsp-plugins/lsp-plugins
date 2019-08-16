@@ -242,19 +242,19 @@ namespace lsp
                 /**
                  * Associate data source with the specified clipboard
                  * @param id clipboard identifier
-                 * @param ds data source
+                 * @param src data source to use
                  * @return status of operation
                  */
-                virtual status_t setClipboard(size_t id, IDataSource *ds);
+                virtual status_t setClipboard(size_t id, IDataSource *src);
 
                 /**
-                 * Get clipboard data source by the specified identifier.
+                 * Sink clipboard data source to the specified handler.
                  * After the data source has been processed, release() should
                  * be called on data source
                  * @param id clipboard identifier
                  * @return pointer to data source or NULL
                  */
-                virtual IDataSource *getClipboard(size_t id);
+                virtual status_t getClipboard(size_t id, IDataSink *dst);
         };
 
     } /* namespace ws */
