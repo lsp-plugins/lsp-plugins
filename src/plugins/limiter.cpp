@@ -77,10 +77,10 @@ namespace lsp
         size_t c_data   = LIMIT_BUFSIZE * sizeof(float);
         size_t h_data   = limiter_base_metadata::HISTORY_MESH_SIZE * sizeof(float);
         size_t allocate = c_data * 4 * nChannels + h_data;
-        pData           = new uint8_t[allocate + DEFAULT_ALIGN];
-        if (pData == NULL)
+
+        uint8_t *ptr    = alloc_aligned<uint8_t>(pData, allocate, DEFAULT_ALIGN);
+        if (ptr == NULL)
             return;
-        uint8_t *ptr    = ALIGN_PTR(pData, DEFAULT_ALIGN);
 
         vTime           = reinterpret_cast<float *>(ptr);
         ptr            += h_data;
@@ -237,7 +237,7 @@ namespace lsp
     {
         if (pData != NULL)
         {
-            delete [] pData;
+            free_aligned(pData);
             pData = NULL;
         }
         if (vChannels != NULL)
