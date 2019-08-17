@@ -124,6 +124,8 @@ namespace lsp
             // Initialize oversampler
             if (!c->sOver.init())
                 return;
+            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, limiter_base_metadata::LOOKAHEAD_MAX))
+                return;
         }
 
         lsp_assert(ptr <= &pData[allocate + DEFAULT_ALIGN]);
@@ -272,7 +274,6 @@ namespace lsp
 
             c->sBypass.init(sr);
             c->sOver.set_sample_rate(sr);
-            c->sLimit.init(max_sample_rate, limiter_base_metadata::LOOKAHEAD_MAX);
             c->sLimit.set_mode(LM_HERM_THIN);
             c->sLimit.set_sample_rate(real_sample_rate);
             c->sBlink.init(sr);

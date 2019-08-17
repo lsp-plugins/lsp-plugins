@@ -43,10 +43,9 @@ namespace lsp
     {
         nMaxLookahead       = millis_to_samples(max_sr, max_lookahead);
         size_t alloc        = nMaxLookahead*4 + BUF_GRANULARITY*2;
-        vData               = new uint8_t[alloc*sizeof(float) + DEFAULT_ALIGN];
-        if (vData == NULL)
+        float *ptr          = alloc_aligned<float>(vData, alloc*sizeof(float), DEFAULT_ALIGN);
+        if (ptr == NULL)
             return false;
-        float *ptr          = reinterpret_cast<float *>(ALIGN_PTR(vData, DEFAULT_ALIGN));
 
         vGainBuf            = ptr;
         ptr                += nMaxLookahead*4 + BUF_GRANULARITY;
@@ -54,6 +53,9 @@ namespace lsp
         ptr                += BUF_GRANULARITY;
 
         lsp_assert(reinterpret_cast<uint8_t *>(ptr) <= &vData[alloc*sizeof(float) + DEFAULT_ALIGN]);
+
+        dsp::fill_one(vGainBuf, nMaxLookahead*4 + BUF_GRANULARITY);
+        dsp::fill_zero(vTmpBuf, BUF_GRANULARITY);
 
         if (!sDelay.init(nMaxLookahead + BUF_GRANULARITY))
             return false;
@@ -69,7 +71,7 @@ namespace lsp
 
         if (vData != NULL)
         {
-            delete [] vData;
+            free_aligned(vData);
             vData = NULL;
         }
 
