@@ -43,7 +43,7 @@ namespace lsp
     {
         nMaxLookahead       = millis_to_samples(max_sr, max_lookahead);
         size_t alloc        = nMaxLookahead*4 + BUF_GRANULARITY*2;
-        float *ptr          = alloc_aligned<float>(vData, alloc*sizeof(float), DEFAULT_ALIGN);
+        float *ptr          = alloc_aligned<float>(vData, alloc, DEFAULT_ALIGN);
         if (ptr == NULL)
             return false;
 
