@@ -461,23 +461,20 @@ namespace lsp
                 return NULL;
             }
 
-            status_t X11Display::bufid_to_atom(size_t bufid, Atom *atom, Atom *sel_id)
+            status_t X11Display::bufid_to_atom(size_t bufid, Atom *atom)
             {
                 switch (bufid)
                 {
                     case CBUF_PRIMARY:
                         *atom       = sAtoms.X11_XA_PRIMARY;
-                        *sel_id     = sAtoms.X11_LSP_SELECTION_PRIMARY;
                         return STATUS_OK;
 
                     case CBUF_SECONDARY:
                         *atom       = sAtoms.X11_XA_SECONDARY;
-                        *sel_id     = sAtoms.X11_LSP_SELECTION_SECONDARY;
                         return STATUS_OK;
 
                     case CBUF_CLIPBOARD:
                         *atom       = sAtoms.X11_CLIPBOARD;
-                        *sel_id     = sAtoms.X11_LSP_SELECTION_CLIPBOARD;
                         return STATUS_OK;
 
                     default:
@@ -486,23 +483,14 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
             }
 
-            status_t X11Display::atom_to_bufid(Atom x, size_t *bufid, Atom *sel_id)
+            status_t X11Display::atom_to_bufid(Atom x, size_t *bufid)
             {
                 if (x == sAtoms.X11_XA_PRIMARY)
-                {
                     *bufid  = CBUF_PRIMARY;
-                    *sel_id = sAtoms.X11_LSP_SELECTION_PRIMARY;
-                }
                 else if (x == sAtoms.X11_XA_SECONDARY)
-                {
                     *bufid  = CBUF_SECONDARY;
-                    *sel_id = sAtoms.X11_LSP_SELECTION_SECONDARY;
-                }
                 else if (x == sAtoms.X11_CLIPBOARD)
-                {
                     *bufid  = CBUF_CLIPBOARD;
-                    *sel_id = sAtoms.X11_LSP_SELECTION_CLIPBOARD;
-                }
                 else
                     return STATUS_BAD_ARGUMENTS;
                 return STATUS_OK;
@@ -524,8 +512,7 @@ namespace lsp
 
                         // Get clipboard buffer identifier
                         size_t bufid;
-                        Atom selid;
-                        status_t res        = atom_to_bufid(sc->selection, &bufid, &selid);
+                        status_t res        = atom_to_bufid(sc->selection, &bufid);
                         if (res != STATUS_OK)
                             return true;
 
@@ -589,8 +576,7 @@ namespace lsp
 
                         // Get buffer identifier
                         size_t bufid;
-                        Atom selid;
-                        status_t res        = atom_to_bufid(sr->selection, &bufid, &selid);
+                        status_t res        = atom_to_bufid(sr->selection, &bufid);
 
                         // Find window
                         IClipboard *cb      = ((res == STATUS_OK) && (sr->owner == hClipWnd)) ? pClipboard[bufid] : NULL;
@@ -1575,8 +1561,8 @@ namespace lsp
                     sprintf(prop_id, "LSP_SELECTION_%d", int(id));
                     Atom atom = XInternAtom(pDisplay, prop_id, False);
 
-                    size_t n = sCbRequests.size();
-                    for (size_t i=0; i<n; ++i)
+                    // Check legacy clipboard requests
+                    for (size_t i=0, n=sCbRequests.size(); i<n; ++i)
                     {
                         cb_request_t *req = sCbRequests.at(i);
                         if (req->hProperty == atom)
@@ -1584,6 +1570,22 @@ namespace lsp
                             atom = None;
                             break;
                         }
+                    }
+                    if (atom == None)
+                        continue;
+
+                    // Check pending async tasks
+                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    {
+                        x11_async_t *task   = sAsync.at(i);
+                        if ((task->type == X11ASYNC_CB_RECV) && (task->cb_recv.hProperty == atom))
+                            atom = None;
+                        else if ((task->type == X11ASYNC_CB_SEND) && (task->cb_send.hProperty == atom))
+                            atom = None;
+                        else if ((task->type == X11ASYNC_DND_RECV) && (task->dnd_recv.hProperty == atom))
+                            atom = None;
+                        if (atom == None)
+                            break;
                     }
 
                     if (atom != None)
@@ -1597,8 +1599,8 @@ namespace lsp
                 if (ctype == NULL)
                     return STATUS_BAD_ARGUMENTS;
 
-                Atom aid, selid;
-                status_t result = bufid_to_atom(id, &aid, &selid);
+                Atom aid;
+                status_t result = bufid_to_atom(id, &aid);
                 if (result != STATUS_OK)
                     return result;
 
@@ -1680,8 +1682,8 @@ namespace lsp
                 }
 
                 // Try to set clipboard owner
-                Atom aid, selid;
-                status_t result = bufid_to_atom(id, &aid, &selid);
+                Atom aid;
+                status_t result = bufid_to_atom(id, &aid);
                 if (result != STATUS_OK)
                     return result;
 
@@ -1704,8 +1706,8 @@ namespace lsp
                     return STATUS_BAD_ARGUMENTS;
 
                 // Try to set clipboard owner
-                Atom aid, selid;
-                status_t res        = bufid_to_atom(id, &aid, &selid);
+                Atom aid;
+                status_t res        = bufid_to_atom(id, &aid);
                 if (res != STATUS_OK)
                 {
                     if (ds != NULL)
@@ -1804,8 +1806,8 @@ namespace lsp
                 dst->acquire();
 
                 // Convert clipboard type to atom
-                Atom aid, selid;
-                status_t result = bufid_to_atom(id, &aid, &selid);
+                Atom sel_id;
+                status_t result = bufid_to_atom(id, &sel_id);
                 if (result != STATUS_OK)
                 {
                     dst->release();
@@ -1813,7 +1815,7 @@ namespace lsp
                 }
 
                 // First, check that it's our window to avoid X11 transfers
-                Window wnd  = ::XGetSelectionOwner(pDisplay, aid);
+                Window wnd  = ::XGetSelectionOwner(pDisplay, sel_id);
                 if (wnd == hClipWnd)
                 {
                     // Perform direct data transfer because we're owner of the selection
@@ -1830,7 +1832,26 @@ namespace lsp
                     pCbOwner[id]    = NULL;
                 }
 
-                // TODO: create transfer primitive
+                // Generate property identifier
+                Atom prop_id = gen_selection_id();
+                if (prop_id == None)
+                    return STATUS_UNKNOWN_ERR;
+
+                // Create async task
+                struct timespec ts;
+                ::clock_gettime(CLOCK_REALTIME, &ts);
+
+                x11_async_t *task   = sAsync.add();
+                task->type          = X11ASYNC_CB_RECV;
+                cb_recv_t *param    = &task->cb_recv;
+                param->hProperty    = prop_id;
+                param->hSelection   = sel_id;
+                param->nTime        = ts.tv_sec;
+                param->bOpened      = false;
+                param->pSink        = dst;
+
+                // Request conversion
+                ::XConvertSelection(pDisplay, sel_id, sAtoms.X11_TARGETS, prop_id, hClipWnd, ts.tv_sec);
 
                 return STATUS_OK;
             }
