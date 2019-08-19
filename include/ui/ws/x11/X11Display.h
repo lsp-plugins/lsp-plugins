@@ -36,6 +36,13 @@ namespace lsp
                         X11ASYNC_DND_RECV
                     };
 
+                    enum x11_cb_recv_states
+                    {
+                        CB_RECV_CTYPE,
+                        CB_RECV_SIMPLE,
+                        CB_RECV_INCR
+                    };
+
                     typedef struct wnd_lock_t
                     {
                         X11Window      *pOwner;
@@ -54,22 +61,27 @@ namespace lsp
                         void               *pArgument;
                     } cb_request_t;
 
+                    struct x11_async_t;
+
                     typedef struct cb_recv_t
                     {
+                        x11_async_t        *pTask;
                         Atom                hProperty;
                         Atom                hSelection;
                         Time                nTime;
-                        bool                bOpened;
+                        x11_cb_recv_states  enState;
                         IDataSink          *pSink;
                     } cb_recv_t;
 
                     typedef struct cb_send_t
                     {
+                        x11_async_t        *pTask;
                         Atom                hProperty;
                     } cb_send_t;
 
                     typedef struct dnd_recv_t
                     {
+                        x11_async_t        *pTask;
                         Atom                hProperty;
                     } dnd_recv_t;
 
@@ -122,9 +134,13 @@ namespace lsp
                     status_t        atom_to_bufid(Atom x, size_t *bufid);
 
                     status_t        read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype);
-                    void            drop_dnd_mime_types(cvector<char> *ctype);
+                    void            drop_mime_types(cvector<char> *ctype);
                     static status_t sink_data_source(IDataSink *dst, IDataSource *src);
-
+                    void            handle_selection_notify(XSelectionEvent *ev);
+                    status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev);
+                    status_t        read_property(Window wnd, Atom property, uint8_t **data, size_t *size, Atom *type);
+                    status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
+                    void            complete_task(x11_async_t *task, status_t code);
 
                 public:
                     explicit X11Display();

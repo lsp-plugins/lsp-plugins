@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#define X11IOBUF_SIZE       0x10000
+#define X11IOBUF_SIZE       0x1000
 
 namespace lsp
 {
@@ -241,7 +241,7 @@ namespace lsp
                 sPending.flush();
                 sGrab.clear();
                 sTargets.clear();
-                drop_dnd_mime_types(&vDndMimeTypes);
+                drop_mime_types(&vDndMimeTypes);
 
                 if (pIOBuf != NULL)
                 {
@@ -719,10 +719,11 @@ namespace lsp
                     case SelectionNotify:
                     {
                         // Check that it's proper selection event
-                        XSelectionEvent *se = &ev->xselection;
                         lsp_trace("SelectionNotify");
+                        handle_selection_notify(&ev->xselection);
 
-                        // Find the request
+                        // Find the request (legacy code)
+                        XSelectionEvent *se = &ev->xselection;
                         cb_request_t *req   = find_request(se->requestor, se->selection, se->time);
                         if (req == NULL)
                             return true;
@@ -819,6 +820,156 @@ namespace lsp
                 }
 
                 return false;
+            }
+
+            status_t X11Display::read_property(Window wnd, Atom property, uint8_t **data, size_t *size, Atom *type)
+            {
+                int p_fmt = 0;
+                unsigned long p_nitems = 0, p_size = 0, p_offset = 0;
+                unsigned char *p_data = NULL;
+                uint8_t *ptr        = NULL;
+                size_t capacity     = 0;
+
+                while (true)
+                {
+                    // Get window property
+                    ::XGetWindowProperty(
+                        pDisplay, hClipWnd, property,
+                        p_offset, X11IOBUF_SIZE/4, False, AnyPropertyType,
+                        type, &p_fmt, &p_nitems, &p_size, &p_data
+                    );
+
+                    // Compress data if format is 32
+                    if ((p_fmt == 32) && (sizeof(long) != 4))
+                        compress_long_data(p_data, p_nitems);
+
+                    // No more data?
+                    if ((p_size <= 0) || (p_nitems <= 0) || (p_data == NULL))
+                    {
+                        if (p_data != NULL)
+                            ::XFree(p_data);
+                        break;
+                    }
+
+                    // Append data to the memory buffer
+                    size_t multiplier   = p_fmt / 8;
+                    size_t ncap         = capacity + p_nitems * multiplier;
+                    uint8_t *nptr       = reinterpret_cast<uint8_t *>(::realloc(ptr, ncap));
+                    if (nptr == NULL)
+                    {
+                        ::XFree(p_data);
+                        if (ptr != NULL)
+                            ::free(ptr);
+
+                        return STATUS_NO_MEM;
+                    }
+                    ::memcpy(&nptr[capacity], p_data, p_nitems * multiplier);
+                    ::XFree(p_data);
+                    p_offset           += p_nitems;
+
+                    // Update buffer pointer and capacity
+                    capacity            = ncap;
+                    ptr                 = nptr;
+                };
+
+                // Return successful result
+                *size       = capacity;
+                *data       = ptr;
+
+                return STATUS_OK;
+            }
+
+            status_t X11Display::decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size)
+            {
+                // Fetch long list of supported MIME types
+                const uint32_t *list = reinterpret_cast<const uint32_t *>(data);
+                for (size_t i=0, n=size/sizeof(uint32_t); i<n; ++i)
+                {
+                    // Get atom name
+                    char *a_name = ::XGetAtomName(pDisplay, list[i]);
+                    if (a_name == NULL)
+                        continue;
+                    char *a_dup = ::strdup(a_name);
+                    if (a_dup == NULL)
+                    {
+                        ::XFree(a_name);
+                        return STATUS_NO_MEM;
+                    }
+
+                    if (!ctype->add(a_dup))
+                    {
+                        ::free(a_name);
+                        ::free(a_dup);
+                        return STATUS_NO_MEM;
+                    }
+                }
+
+                return STATUS_OK;
+            }
+
+            void X11Display::handle_selection_notify(XSelectionEvent *ev)
+            {
+                for (size_t i=0; i<sAsync.size(); ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+
+                    // Notify all possible tasks about the event
+                    status_t res = STATUS_OK;
+                    switch (task->type)
+                    {
+                        case X11ASYNC_CB_RECV:
+                            if (task->cb_recv.hProperty == ev->property)
+                                res = handle_selection_notify(&task->cb_recv, ev);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (res != STATUS_OK)
+                        complete_task(task, res);
+                }
+            }
+
+            void X11Display::complete_task(x11_async_t *task, status_t code)
+            {
+                // TODO: properly complete a task
+            }
+
+            status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev)
+            {
+                uint8_t *data = NULL;
+                size_t bytes = 0;
+                Atom type = None;
+
+                // Analyze state
+                switch (task->enState)
+                {
+                    case CB_RECV_CTYPE:
+                    {
+                        // Here we expect list of content types, of type XA_ATOM
+                        status_t res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        if ((res == STATUS_OK) && (type == sAtoms.X11_XA_ATOM) && (data != NULL))
+                        {
+                            // Decode list of mime types and pass to sink
+                            cvector<char> mimes;
+                            res = decode_mime_types(&mimes, data, bytes);
+                            if (res == STATUS_OK)
+                                res = task->pSink->open(mimes.get_array());
+                            drop_mime_types(&mimes);
+                        }
+                        else
+                            res = STATUS_BAD_FORMAT;
+
+                        // Free allocated data
+                        if (data != NULL)
+                            ::free(data);
+                        return res;
+                    }
+                    default:
+                        break;
+                }
+
+                return STATUS_OK;
             }
 
             void X11Display::handleEvent(XEvent *ev)
@@ -1023,7 +1174,7 @@ namespace lsp
                                 lsp_trace("Supported MIME type: %s", mime);
                             }
 
-                            drop_dnd_mime_types(&vDndMimeTypes);
+                            drop_mime_types(&vDndMimeTypes);
                             if (res == STATUS_OK)
                             {
                                 vDndMimeTypes.swap_data(&mime_types);
@@ -1034,7 +1185,7 @@ namespace lsp
                             }
                             else
                                 hDndSource      = None;
-                            drop_dnd_mime_types(&mime_types);
+                            drop_mime_types(&mime_types);
                         }
                         else if (type == sAtoms.X11_XdndLeave)
                         {
@@ -1283,7 +1434,7 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            void X11Display::drop_dnd_mime_types(cvector<char> *ctype)
+            void X11Display::drop_mime_types(cvector<char> *ctype)
             {
                 for (size_t i=0, n=ctype->size(); i<n; ++i)
                 {
@@ -1847,7 +1998,7 @@ namespace lsp
                 param->hProperty    = prop_id;
                 param->hSelection   = sel_id;
                 param->nTime        = ts.tv_sec;
-                param->bOpened      = false;
+                param->enState      = CB_RECV_CTYPE;
                 param->pSink        = dst;
 
                 // Request conversion
