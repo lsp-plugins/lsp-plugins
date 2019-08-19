@@ -912,6 +912,7 @@ namespace lsp
                 for (size_t i=0; i<sAsync.size(); ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
+                    bool complete = false;
 
                     // Notify all possible tasks about the event
                     status_t res = STATUS_OK;
@@ -919,13 +920,14 @@ namespace lsp
                     {
                         case X11ASYNC_CB_RECV:
                             if (task->cb_recv.hProperty == ev->property)
-                                res = handle_selection_notify(&task->cb_recv, ev);
+                                res = handle_selection_notify(&task->cb_recv, ev, &complete);
                             break;
                         default:
                             break;
                     }
 
-                    if (res != STATUS_OK)
+                    // Alarm task completion
+                    if ((res != STATUS_OK) || (complete))
                         complete_task(task, res);
                 }
             }
@@ -935,11 +937,12 @@ namespace lsp
                 // TODO: properly complete a task
             }
 
-            status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev)
+            status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete)
             {
-                uint8_t *data = NULL;
-                size_t bytes = 0;
-                Atom type = None;
+                uint8_t *data   = NULL;
+                size_t bytes    = 0;
+                Atom type       = None;
+                status_t res    = STATUS_OK;
 
                 // Analyze state
                 switch (task->enState)
@@ -947,29 +950,103 @@ namespace lsp
                     case CB_RECV_CTYPE:
                     {
                         // Here we expect list of content types, of type XA_ATOM
-                        status_t res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
                         if ((res == STATUS_OK) && (type == sAtoms.X11_XA_ATOM) && (data != NULL))
                         {
                             // Decode list of mime types and pass to sink
                             cvector<char> mimes;
                             res = decode_mime_types(&mimes, data, bytes);
                             if (res == STATUS_OK)
-                                res = task->pSink->open(mimes.get_array());
+                            {
+                                ssize_t idx = task->pSink->open(mimes.get_array());
+                                if ((idx >= 0) && (idx < mimes.size()))
+                                {
+                                    // Submit next XConvertSelection request
+                                    task->enState   = CB_RECV_SIMPLE;
+                                    task->hType     = ::XInternAtom(pDisplay, mimes.get(idx), True);
+                                    if (task->hType != None)
+                                    {
+                                        // Request selection data of selected type
+                                        ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty);
+                                        ::XConvertSelection(pDisplay, task->hSelection, task->hType, task->hProperty, hClipWnd, CurrentTime);
+                                    }
+                                    else
+                                        res         = STATUS_INVALID_VALUE;
+                                }
+                                else
+                                    res = -idx;
+                            }
                             drop_mime_types(&mimes);
                         }
                         else
                             res = STATUS_BAD_FORMAT;
 
-                        // Free allocated data
-                        if (data != NULL)
-                            ::free(data);
-                        return res;
+                        break;
                     }
+
+                    case CB_RECV_SIMPLE:
+                    {
+                        // We expect property of type INCR or of type task->hType
+                        res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        if (res == STATUS_OK)
+                        {
+                            if (type == sAtoms.X11_INCR)
+                            {
+                                // Initiate INCR mode transfer
+                                ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty);
+                                task->enState       = CB_RECV_INCR;
+                            }
+                            else if (type == task->hType)
+                            {
+                                if (bytes > 0)
+                                    res = task->pSink->write(data, bytes);
+
+                                task->pSink->close(res);
+                                task->pSink     = NULL;
+                                complete        = true;
+                            }
+                            else
+                                res     = STATUS_UNSUPPORTED_FORMAT;
+                        }
+
+                        break;
+                    }
+
+                    case CB_RECV_INCR:
+                    {
+                        // Read incrementally property contents
+                        res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        if (res == STATUS_OK)
+                        {
+                            // Check property type
+                            if (bytes <= 0) // End of transfer?
+                            {
+                                // Complete the INCR transfer
+                                task->pSink->close(res);
+                                task->pSink     = NULL;
+                                complete        = true;
+                            }
+                            else if (type == task->hType)
+                            {
+                                res = task->pSink->write(data, bytes); // Append data to the sink
+                                ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                            }
+                            else
+                                res     = STATUS_UNSUPPORTED_FORMAT;
+                        }
+
+                        break;
+                    }
+
                     default:
                         break;
                 }
 
-                return STATUS_OK;
+                // Free allocated data
+                if (data != NULL)
+                    ::free(data);
+
+                return res;
             }
 
             void X11Display::handleEvent(XEvent *ev)
@@ -1989,20 +2066,17 @@ namespace lsp
                     return STATUS_UNKNOWN_ERR;
 
                 // Create async task
-                struct timespec ts;
-                ::clock_gettime(CLOCK_REALTIME, &ts);
-
                 x11_async_t *task   = sAsync.add();
                 task->type          = X11ASYNC_CB_RECV;
                 cb_recv_t *param    = &task->cb_recv;
                 param->hProperty    = prop_id;
                 param->hSelection   = sel_id;
-                param->nTime        = ts.tv_sec;
+                param->hType        = None;
                 param->enState      = CB_RECV_CTYPE;
                 param->pSink        = dst;
 
                 // Request conversion
-                ::XConvertSelection(pDisplay, sel_id, sAtoms.X11_TARGETS, prop_id, hClipWnd, ts.tv_sec);
+                ::XConvertSelection(pDisplay, sel_id, sAtoms.X11_TARGETS, prop_id, hClipWnd, CurrentTime);
 
                 return STATUS_OK;
             }

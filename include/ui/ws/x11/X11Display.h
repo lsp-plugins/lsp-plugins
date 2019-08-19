@@ -65,23 +65,20 @@ namespace lsp
 
                     typedef struct cb_recv_t
                     {
-                        x11_async_t        *pTask;
                         Atom                hProperty;
                         Atom                hSelection;
-                        Time                nTime;
+                        Atom                hType;
                         x11_cb_recv_states  enState;
                         IDataSink          *pSink;
                     } cb_recv_t;
 
                     typedef struct cb_send_t
                     {
-                        x11_async_t        *pTask;
                         Atom                hProperty;
                     } cb_send_t;
 
                     typedef struct dnd_recv_t
                     {
-                        x11_async_t        *pTask;
                         Atom                hProperty;
                     } dnd_recv_t;
 
@@ -137,7 +134,7 @@ namespace lsp
                     void            drop_mime_types(cvector<char> *ctype);
                     static status_t sink_data_source(IDataSink *dst, IDataSource *src);
                     void            handle_selection_notify(XSelectionEvent *ev);
-                    status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev);
+                    status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete);
                     status_t        read_property(Window wnd, Atom property, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
                     void            complete_task(x11_async_t *task, status_t code);
