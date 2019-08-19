@@ -503,7 +503,9 @@ namespace lsp
                     case PropertyNotify:
                     {
                         XPropertyEvent *sc          = &ev->xproperty;
-                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld", long(sc->window), long(sc->atom));
+                        char *name                  = ::XGetAtomName(pDisplay, sc->atom);
+                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld (%s)", long(sc->window), long(sc->atom), name);
+                        ::XFree(name);
                         handle_property_notify(sc);
                         return true;
                     }

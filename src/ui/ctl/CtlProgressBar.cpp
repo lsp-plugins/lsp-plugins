@@ -109,6 +109,12 @@ namespace lsp
             }
             else if ((port == pPort) && (pPort != NULL))
             {
+                const port_t *meta = pPort->metadata();
+                if ((!(nXFlags & XF_MIN)) && (meta->flags & F_LOWER))
+                    bar->set_min_value(meta->min);
+                if ((!(nXFlags & XF_MAX)) && (meta->flags & F_UPPER))
+                    bar->set_max_value(meta->max);
+
                 if (bar->set_value(pPort->get_value()))
                     force   = true;
             }
