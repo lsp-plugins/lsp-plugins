@@ -8,6 +8,8 @@
 #ifndef UI_TK_WIDGETS_LSPEDIT_H_
 #define UI_TK_WIDGETS_LSPEDIT_H_
 
+#include <core/io/OutMemoryStream.h>
+
 namespace lsp
 {
     namespace tk
@@ -60,6 +62,26 @@ namespace lsp
                         virtual status_t on_key_press(const ws_event_t *e);
                 };
 
+                class DataSink: public IDataSink
+                {
+                    protected:
+                        LSPEdit            *pEdit;
+                        io::OutMemoryStream sOS;
+                        char               *pMime;
+
+                    public:
+                        DataSink(LSPEdit *widget);
+                        virtual ~DataSink();
+
+                    public:
+                        void unbind();
+
+                    public:
+                        virtual ssize_t     open(const char * const *mime_types);
+                        virtual status_t    write(const void *buf, size_t count);
+                        virtual status_t    close(status_t code);
+                };
+
             protected:
                 LSPString       sText;
                 TextSelection   sSelection;
@@ -77,6 +99,7 @@ namespace lsp
                 LSPMenu         sStdPopup;
                 LSPMenuItem    *vStdItems[3];
                 LSPMenu        *pPopup;
+                DataSink       *pDataSink;
 
             protected:
                 static status_t timer_handler(timestamp_t time, void *arg);
@@ -90,6 +113,7 @@ namespace lsp
                 status_t        cut_data(size_t bufid);
                 status_t        copy_data(size_t bufid);
                 status_t        paste_data(size_t bufid);
+                void            paste_clipboard(const LSPString *data);
 
                 static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_popup_cut_action(LSPWidget *sender, void *ptr, void *data);

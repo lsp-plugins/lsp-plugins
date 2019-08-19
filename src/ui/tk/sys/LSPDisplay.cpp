@@ -263,6 +263,11 @@ namespace lsp
         {
             return pDisplay->writeClipboard(id, c);
         }
+
+        status_t LSPDisplay::get_clipboard(size_t id, IDataSink *sink)
+        {
+            return pDisplay->getClipboard(id, sink);
+        }
     }
 
 } /* namespace lsp */
