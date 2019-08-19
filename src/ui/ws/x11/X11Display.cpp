@@ -500,6 +500,14 @@ namespace lsp
             {
                 switch (ev->type)
                 {
+                    case PropertyNotify:
+                    {
+                        XPropertyEvent *sc          = &ev->xproperty;
+                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld", long(sc->window), long(sc->atom));
+                        handle_property_notify(sc);
+                        return true;
+                    }
+
                     case SelectionClear:
                     {
                         // Free the corresponding data
@@ -932,9 +940,97 @@ namespace lsp
                 }
             }
 
+            void X11Display::handle_property_notify(XPropertyEvent *ev)
+            {
+                for (size_t i=0; i<sAsync.size(); ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+                    bool complete = false;
+
+                    // Notify all possible tasks about the event
+                    status_t res = STATUS_OK;
+                    switch (task->type)
+                    {
+                        case X11ASYNC_CB_RECV:
+                            if (task->cb_recv.hProperty == ev->atom)
+                                res = handle_property_notify(&task->cb_recv, ev, &complete);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // Alarm task completion
+                    if ((res != STATUS_OK) || (complete))
+                        complete_task(task, res);
+                }
+            }
+
             void X11Display::complete_task(x11_async_t *task, status_t code)
             {
-                // TODO: properly complete a task
+                // Analyze how to finalize the task
+                switch (task->type)
+                {
+                    case X11ASYNC_CB_RECV:
+                        // Close and release data sink
+                        task->cb_recv.pSink->close(code);
+                        task->cb_recv.pSink->release();
+                        break;
+                    default:
+                        break;
+                }
+
+                // Remove the async task from the queue
+                sAsync.remove(task);
+            }
+
+            status_t X11Display::handle_property_notify(cb_recv_t *task, XPropertyEvent *ev, bool *complete)
+            {
+                status_t res    = STATUS_OK;
+                uint8_t *data   = NULL;
+                size_t bytes    = 0;
+                Atom type       = None;
+
+                switch (task->enState)
+                {
+                    case CB_RECV_INCR:
+                    {
+                        // Read incrementally property contents
+                        if (ev->type == PropertyNewValue)
+                        {
+                            res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                            if (res == STATUS_OK)
+                            {
+                                // Check property type
+                                if (bytes <= 0) // End of transfer?
+                                {
+                                    // Complete the INCR transfer
+                                    task->pSink->close(res);
+                                    *complete       = true;
+                                }
+                                else if (type == task->hType)
+                                {
+                                    res = task->pSink->write(data, bytes); // Append data to the sink
+                                    ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                                }
+                                else
+                                    res     = STATUS_UNSUPPORTED_FORMAT;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    default:
+                        // Invalid state, report as error
+                        res         = STATUS_IO_ERROR;
+                        break;
+                }
+
+                // Free allocated data
+                if (data != NULL)
+                    ::free(data);
+
+                return res;
             }
 
             status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete)
@@ -959,7 +1055,7 @@ namespace lsp
                             if (res == STATUS_OK)
                             {
                                 ssize_t idx = task->pSink->open(mimes.get_array());
-                                if ((idx >= 0) && (idx < mimes.size()))
+                                if ((idx >= 0) && (idx < ssize_t(mimes.size())))
                                 {
                                     // Submit next XConvertSelection request
                                     task->enState   = CB_RECV_SIMPLE;
@@ -1001,9 +1097,8 @@ namespace lsp
                                 if (bytes > 0)
                                     res = task->pSink->write(data, bytes);
 
-                                task->pSink->close(res);
                                 task->pSink     = NULL;
-                                complete        = true;
+                                *complete       = true;
                             }
                             else
                                 res     = STATUS_UNSUPPORTED_FORMAT;
@@ -1022,14 +1117,13 @@ namespace lsp
                             if (bytes <= 0) // End of transfer?
                             {
                                 // Complete the INCR transfer
-                                task->pSink->close(res);
-                                task->pSink     = NULL;
-                                complete        = true;
+                                ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Delete the property
+                                *complete       = true;
                             }
                             else if (type == task->hType)
                             {
-                                res = task->pSink->write(data, bytes); // Append data to the sink
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                                res = task->pSink->write(data, bytes); // Append data to the sink
                             }
                             else
                                 res     = STATUS_UNSUPPORTED_FORMAT;
@@ -1039,6 +1133,8 @@ namespace lsp
                     }
 
                     default:
+                        // Invalid state, report as error
+                        res         = STATUS_IO_ERROR;
                         break;
                 }
 
