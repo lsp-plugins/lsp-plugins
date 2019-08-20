@@ -832,7 +832,7 @@ namespace lsp
                 return false;
             }
 
-            status_t X11Display::read_property(Window wnd, Atom property, uint8_t **data, size_t *size, Atom *type)
+            status_t X11Display::read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type)
             {
                 int p_fmt = 0;
                 unsigned long p_nitems = 0, p_size = 0, p_offset = 0;
@@ -845,7 +845,7 @@ namespace lsp
                     // Get window property
                     ::XGetWindowProperty(
                         pDisplay, hClipWnd, property,
-                        p_offset, X11IOBUF_SIZE/4, False, AnyPropertyType,
+                        p_offset / 4, X11IOBUF_SIZE/4, False, ptype,
                         type, &p_fmt, &p_nitems, &p_size, &p_data
                     );
 
@@ -854,7 +854,7 @@ namespace lsp
                         compress_long_data(p_data, p_nitems);
 
                     // No more data?
-                    if ((p_size <= 0) || (p_nitems <= 0) || (p_data == NULL))
+                    if ((p_nitems <= 0) || (p_data == NULL))
                     {
                         if (p_data != NULL)
                             ::XFree(p_data);
@@ -880,6 +880,10 @@ namespace lsp
                     // Update buffer pointer and capacity
                     capacity            = ncap;
                     ptr                 = nptr;
+
+                    // There are no remaining bytes?
+                    if (p_size <= 0)
+                        break;
                 };
 
                 // Return successful result
@@ -999,7 +1003,7 @@ namespace lsp
                         // Read incrementally property contents
                         if (ev->type == PropertyNewValue)
                         {
-                            res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                            res = read_property(hClipWnd, task->hProperty, task->hType, &data, &bytes, &type);
                             if (res == STATUS_OK)
                             {
                                 // Check property type
@@ -1048,7 +1052,7 @@ namespace lsp
                     case CB_RECV_CTYPE:
                     {
                         // Here we expect list of content types, of type XA_ATOM
-                        res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        res = read_property(hClipWnd, task->hProperty, sAtoms.X11_XA_ATOM, &data, &bytes, &type);
                         if ((res == STATUS_OK) && (type == sAtoms.X11_XA_ATOM) && (data != NULL))
                         {
                             // Decode list of mime types and pass to sink
@@ -1059,6 +1063,8 @@ namespace lsp
                                 ssize_t idx = task->pSink->open(mimes.get_array());
                                 if ((idx >= 0) && (idx < ssize_t(mimes.size())))
                                 {
+                                    lsp_trace("Requesting data of mime type %s", mimes.get(idx));
+
                                     // Submit next XConvertSelection request
                                     task->enState   = CB_RECV_SIMPLE;
                                     task->hType     = ::XInternAtom(pDisplay, mimes.get(idx), True);
@@ -1085,7 +1091,7 @@ namespace lsp
                     case CB_RECV_SIMPLE:
                     {
                         // We expect property of type INCR or of type task->hType
-                        res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        res = read_property(hClipWnd, task->hProperty, task->hType, &data, &bytes, &type);
                         if (res == STATUS_OK)
                         {
                             if (type == sAtoms.X11_INCR)
@@ -1096,10 +1102,10 @@ namespace lsp
                             }
                             else if (type == task->hType)
                             {
+                                ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Remove property
+
                                 if (bytes > 0)
                                     res = task->pSink->write(data, bytes);
-
-                                task->pSink     = NULL;
                                 *complete       = true;
                             }
                             else
@@ -1112,7 +1118,7 @@ namespace lsp
                     case CB_RECV_INCR:
                     {
                         // Read incrementally property contents
-                        res = read_property(hClipWnd, task->hProperty, &data, &bytes, &type);
+                        res = read_property(hClipWnd, task->hProperty, task->hType, &data, &bytes, &type);
                         if (res == STATUS_OK)
                         {
                             // Check property type

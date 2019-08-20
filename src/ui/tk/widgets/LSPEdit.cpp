@@ -100,7 +100,11 @@ namespace lsp
         void LSPEdit::DataSink::unbind()
         {
             if (pEdit != NULL)
+            {
+                if (pEdit->pDataSink == this)
+                    pEdit->pDataSink = NULL;
                 pEdit       = NULL;
+            }
 
             sOS.drop();
 
@@ -114,20 +118,27 @@ namespace lsp
         ssize_t LSPEdit::DataSink::open(const char * const *mime_types)
         {
             const char *mime = NULL;
-            for (const char * const *p = mime_types; *p != NULL; ++p)
+            size_t i=0, idx = 0;
+            for (const char * const *p = mime_types; *p != NULL; ++p, ++i)
             {
+                lsp_trace("available mime type: %s", *p);
                 if (!::strcasecmp(*p, "text/plain"))
+                {
                     mime    = *p;
+                    idx     = i;
+                }
                 else if (!::strcasecmp(*p, "utf8_string"))
                 {
                     mime    = *p;
+                    idx     = i;
                     break;
                 }
             }
             if (mime == NULL)
                 return -STATUS_UNSUPPORTED_FORMAT;
             pMime   = ::strdup(mime);
-            return (pMime != NULL) ? STATUS_OK : STATUS_NO_MEM;
+            lsp_trace("selected mime type: %s, index=%d", pMime, int(idx));
+            return (pMime != NULL) ? idx : -STATUS_NO_MEM;
         }
 
         status_t LSPEdit::DataSink::write(const void *buf, size_t count)

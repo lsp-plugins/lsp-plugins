@@ -140,7 +140,7 @@ namespace lsp
                     void            handle_selection_notify(XSelectionEvent *ev);
                     status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete);
 
-                    status_t        read_property(Window wnd, Atom property, uint8_t **data, size_t *size, Atom *type);
+                    status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
                     void            complete_task(x11_async_t *task, status_t code);
 
