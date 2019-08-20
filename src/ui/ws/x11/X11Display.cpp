@@ -1271,8 +1271,8 @@ namespace lsp
                 }
                 else
                 {
-                    char *mime  = ::XGetAtomName(pDisplay, ev->type);
-                    lsp_trace("Requested MIME type is 0x%lx (%s)", ev->type, mime);
+                    char *mime  = ::XGetAtomName(pDisplay, ev->target);
+                    lsp_trace("Requested MIME type is 0x%lx (%s)", long(ev->target), mime);
 
                     if (mime != NULL)
                     {
@@ -1282,7 +1282,7 @@ namespace lsp
                         {
                             // Store stream and data type
                             task->pStream   = in;
-                            task->hType     = ev->type;
+                            task->hType     = ev->target;
 
                             // Determine the used method for transfer
                             wssize_t avail  = in->avail();
