@@ -75,6 +75,11 @@ namespace lsp
                     typedef struct cb_send_t
                     {
                         Atom                hProperty;
+                        Atom                hSelection;
+                        Atom                hType;
+                        Window              hRequestor;
+                        IDataSource        *pSource;
+                        io::IInStream      *pStream;
                     } cb_send_t;
 
                     typedef struct dnd_recv_t
@@ -139,6 +144,9 @@ namespace lsp
 
                     void            handle_selection_notify(XSelectionEvent *ev);
                     status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete);
+
+                    void            handle_selection_request(XSelectionRequestEvent *ev);
+                    status_t        handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev, bool *complete);
 
                     status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);

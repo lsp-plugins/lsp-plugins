@@ -61,6 +61,14 @@ namespace lsp
                  */
                 virtual ssize_t     read(void *dst, size_t count);
 
+                /** Read maximum possible amount of data
+                 *
+                 * @param dst target buffer to read data
+                 * @param count number of bytes to read
+                 * @return number of bytes actually read
+                 */
+                virtual ssize_t     read_fully(void *dst, size_t count);
+
                 /** Seek the stream to the specified position from the beginning
                  *
                  * @param position the specified position

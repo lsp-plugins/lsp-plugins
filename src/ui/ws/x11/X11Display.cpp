@@ -574,6 +574,8 @@ namespace lsp
                                      int(sr->property), XGetAtomName(pDisplay, sr->property),
                                      long(sr->time));
 
+                        handle_selection_request(sr);
+
                         XEvent response;
                         XSelectionEvent *se = &response.xselection;
 
@@ -1161,6 +1163,170 @@ namespace lsp
                 // Free allocated data
                 if (data != NULL)
                     ::free(data);
+
+                return res;
+            }
+
+            void X11Display::handle_selection_request(XSelectionRequestEvent *ev)
+            {
+                // Get the selection identifier
+                size_t bufid = 0;
+                status_t res = atom_to_bufid(ev->selection, &bufid);
+                if (res != STATUS_OK)
+                    return;
+
+                // Now check that selection is present
+                bool found = false;
+                bool complete = false;
+
+                for (size_t i=0; i<sAsync.size(); ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+
+                    // Notify all possible tasks about the event
+                    status_t res = STATUS_OK;
+                    switch (task->type)
+                    {
+                        case X11ASYNC_CB_SEND:
+                            if ((task->cb_send.hProperty == ev->property) &&
+                                (task->cb_send.hSelection == ev->selection) &&
+                                (task->cb_send.hRequestor == ev->requestor))
+                            {
+                                found   = true;
+                                res     = handle_selection_request(&task->cb_send, ev, &complete);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    // Alarm task completion
+                    if ((res != STATUS_OK) || (complete))
+                        complete_task(task, res);
+                }
+
+                // The transfer has not been found?
+                if (!found)
+                {
+                    // Do we have a data source?
+                    IDataSource *ds = pCbOwner[bufid];
+                    if (ds == NULL)
+                        return;
+
+                    // Create async task if possible
+                    x11_async_t *task   = sAsync.add();
+                    if (task == NULL)
+                        return;
+
+                    task->type          = X11ASYNC_CB_SEND;
+                    cb_send_t *param    = &task->cb_send;
+                    param->hProperty    = ev->property;
+                    param->hSelection   = ev->selection;
+                    param->hRequestor   = ev->requestor;
+                    param->pSource      = ds;
+                    param->pStream      = NULL;
+                    ds->acquire();
+
+                    // Call for processing
+                    res         = handle_selection_request(&task->cb_send, ev, &complete);
+
+                    // Alarm task completion
+                    if ((res != STATUS_OK) || (complete))
+                        complete_task(task, res);
+                }
+            }
+
+            status_t X11Display::handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev, bool *complete)
+            {
+                status_t res    = STATUS_OK;
+
+                if (ev->target == sAtoms.X11_TARGETS)
+                {
+                    // Special case: send all supported targets
+                    const char *const *mime = task->pSource->mime_types();
+
+                    // Estimate number of mime types
+                    size_t n = 1; // also return X11_TARGETS
+                    for (const char *const *p = mime; *p != NULL; ++p, ++n) { /* nothing */ }
+
+                    // Allocate memory and initialize MIME types
+                    Atom *data  = reinterpret_cast<Atom *>(::malloc(sizeof(Atom) * n));
+                    if (data != NULL)
+                    {
+                        Atom *dst   = data;
+                        *(dst++)    = sAtoms.X11_TARGETS;
+                        for (const char *const *p = mime; *p != NULL; ++p, ++n)
+                            *(dst++)    = ::XInternAtom(pDisplay, *p, False);
+
+                        // Write property to the target window
+                        ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
+                                sAtoms.X11_XA_ATOM, 32, PropModeReplace,
+                                reinterpret_cast<unsigned char *>(data), n);
+
+                        // Free allocated buffer
+                        ::free(data);
+                    }
+                    else
+                        res = STATUS_NO_MEM;
+                }
+                else
+                {
+                    char *mime  = ::XGetAtomName(pDisplay, ev->type);
+                    lsp_trace("Requested MIME type is 0x%lx (%s)", ev->type, mime);
+
+                    if (mime != NULL)
+                    {
+                        // Open the input stream
+                        io::IInStream *in   = task->pSource->open(mime);
+                        if (in != NULL)
+                        {
+                            // Store stream and data type
+                            task->pStream   = in;
+                            task->hType     = ev->type;
+
+                            // Determine the used method for transfer
+                            wssize_t avail  = in->avail();
+                            if ((avail < 0) || (avail > X11IOBUF_SIZE))
+                            {
+                                // Do incremental transfer
+                                ::XSelectInput(pDisplay, task->hRequestor, PropertyChangeMask);
+                                ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
+                                        sAtoms.X11_INCR, 32, PropModeReplace, NULL, 0);
+                                ::XFlush(pDisplay);
+                            }
+                            else
+                            {
+                                // One-time write()
+                                uint8_t *ptr    = reinterpret_cast<uint8_t *>(::malloc(avail));
+                                if (ptr != NULL)
+                                {
+                                    // Fetch data from stream
+                                    avail   = in->read(ptr, avail);
+                                    if (avail >= 0)
+                                    {
+                                        // All is OK, set the property and complete transfer
+                                        ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
+                                                task->hType, 8, PropModeReplace,
+                                                reinterpret_cast<unsigned char *>(ptr), avail);
+                                        ::XFlush(pDisplay);
+                                        *complete = true;
+                                    }
+                                    else
+                                        res     = -avail;
+                                    ::free(ptr);
+                                }
+                                else
+                                    res = STATUS_NO_MEM;
+                            }
+                        }
+                        else
+                            res = STATUS_UNSUPPORTED_FORMAT;
+
+                        ::XFree(mime);
+                    }
+                    else
+                        res = STATUS_UNSUPPORTED_FORMAT;
+                }
 
                 return res;
             }
