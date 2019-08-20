@@ -140,9 +140,11 @@ namespace lsp
                 pIOBuf          = new uint8_t[X11IOBUF_SIZE];
 
                 // Create invisible clipboard window
-                hClipWnd        = XCreateWindow(pDisplay, hRootWnd, 0, 0, 1, 1, 0, 0, CopyFromParent, CopyFromParent, 0, NULL);
+                hClipWnd        = ::XCreateWindow(pDisplay, hRootWnd, 0, 0, 1, 1, 0, 0, CopyFromParent, CopyFromParent, 0, NULL);
                 if (hClipWnd == None)
                     return STATUS_UNKNOWN_ERR;
+                ::XSelectInput(pDisplay, hClipWnd, PropertyChangeMask);
+                ::XFlush(pDisplay);
 
                 // Initialize atoms
                 int result = init_atoms(pDisplay, &sAtoms);
@@ -729,11 +731,16 @@ namespace lsp
                     case SelectionNotify:
                     {
                         // Check that it's proper selection event
-                        lsp_trace("SelectionNotify");
-                        handle_selection_notify(&ev->xselection);
+                        XSelectionEvent *se = &ev->xselection;
+                        char *aname = ::XGetAtomName(pDisplay, se->property);
+                        lsp_trace("SelectionNotify for window=0x%lx, selection=%ld, property=%ld (%s)",
+                                long(se->requestor), long(se->selection), long(se->property), aname);
+                        if (aname != NULL)
+                            ::XFree(aname);
+                        handle_selection_notify(se);
 
                         // Find the request (legacy code)
-                        XSelectionEvent *se = &ev->xselection;
+
                         cb_request_t *req   = find_request(se->requestor, se->selection, se->time);
                         if (req == NULL)
                             return true;
@@ -799,7 +806,8 @@ namespace lsp
                         } while ((p_size > 0) && (p_nitems > 0));
 
                         // Remove the property
-                        XDeleteProperty(pDisplay, hClipWnd, req->hProperty);
+                        ::XDeleteProperty(pDisplay, hClipWnd, req->hProperty);
+                        ::XFlush(pDisplay);
 
                         // Check status
                         if (status == STATUS_OK)
@@ -1001,7 +1009,7 @@ namespace lsp
                     case CB_RECV_INCR:
                     {
                         // Read incrementally property contents
-                        if (ev->type == PropertyNewValue)
+                        if (ev->state == PropertyNewValue)
                         {
                             res = read_property(hClipWnd, task->hProperty, task->hType, &data, &bytes, &type);
                             if (res == STATUS_OK)
@@ -1017,6 +1025,7 @@ namespace lsp
                                 {
                                     res = task->pSink->write(data, bytes); // Append data to the sink
                                     ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                                    ::XFlush(pDisplay);
                                 }
                                 else
                                     res     = STATUS_UNSUPPORTED_FORMAT;
@@ -1027,8 +1036,6 @@ namespace lsp
                     }
 
                     default:
-                        // Invalid state, report as error
-                        res         = STATUS_IO_ERROR;
                         break;
                 }
 
@@ -1073,6 +1080,7 @@ namespace lsp
                                         // Request selection data of selected type
                                         ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty);
                                         ::XConvertSelection(pDisplay, task->hSelection, task->hType, task->hProperty, hClipWnd, CurrentTime);
+                                        ::XFlush(pDisplay);
                                     }
                                     else
                                         res         = STATUS_INVALID_VALUE;
@@ -1098,11 +1106,13 @@ namespace lsp
                             {
                                 // Initiate INCR mode transfer
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty);
+                                ::XFlush(pDisplay);
                                 task->enState       = CB_RECV_INCR;
                             }
                             else if (type == task->hType)
                             {
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Remove property
+                                ::XFlush(pDisplay);
 
                                 if (bytes > 0)
                                     res = task->pSink->write(data, bytes);
@@ -1126,11 +1136,13 @@ namespace lsp
                             {
                                 // Complete the INCR transfer
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Delete the property
+                                ::XFlush(pDisplay);
                                 *complete       = true;
                             }
                             else if (type == task->hType)
                             {
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                                ::XFlush(pDisplay);
                                 res = task->pSink->write(data, bytes); // Append data to the sink
                             }
                             else
@@ -2181,6 +2193,7 @@ namespace lsp
 
                 // Request conversion
                 ::XConvertSelection(pDisplay, sel_id, sAtoms.X11_TARGETS, prop_id, hClipWnd, CurrentTime);
+                ::XFlush(pDisplay);
 
                 return STATUS_OK;
             }
