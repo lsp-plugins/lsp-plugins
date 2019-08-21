@@ -1577,16 +1577,20 @@ namespace lsp
         return reinterpret_cast<lsp_utf16_t *>(pTemp->pData);
     }
 
-    const char *LSPString::get_ascii() const
+    const char *LSPString::get_ascii(ssize_t first, ssize_t last) const
     {
-        if (!resize_temp(nLength + 1))
+        XSAFE_TRANS(first, nLength, NULL);
+        XSAFE_TRANS(last, nLength, NULL);
+        if (first >= last)
+            return (last == first) ? "" : NULL;
+
+        if (!resize_temp(last - first + 1))
             return NULL;
 
-        lsp_wchar_t *p  = pData;
-        size_t n        = nLength;
+        lsp_wchar_t *p  = &pData[first];
         char *dst       = pTemp->pData;
 
-        while (n--)
+        for (; first < last; ++first)
         {
             lsp_wchar_t c   = *(p++);
             *(dst++)        = (c <= 0x7f) ? c : 0xff;
@@ -1722,28 +1726,40 @@ namespace lsp
     }
 #endif /* PLATFORM_WINDOWS */
 
-    char *LSPString::clone_utf8(ssize_t first, ssize_t last) const
+    char *LSPString::clone_utf8(size_t *bytes, ssize_t first, ssize_t last) const
     {
         const char *utf8 = get_utf8(first, last);
-        return (utf8 != NULL) ? ::strdup(utf8) : NULL;
+        char *ptr = (utf8 != NULL) ? reinterpret_cast<char *>(lsp_memdup(utf8, pTemp->nOffset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? pTemp->nOffset : 0;
+        return ptr;
     }
 
-    lsp_utf16_t *LSPString::clone_utf16(ssize_t first, ssize_t last) const
+    lsp_utf16_t *LSPString::clone_utf16(size_t *bytes, ssize_t first, ssize_t last) const
     {
         const lsp_utf16_t *utf16 = get_utf16(first, last);
-        return reinterpret_cast<lsp_utf16_t *>(lsp_memdup(utf16, pTemp->nOffset));
+        lsp_utf16_t *ptr = (utf16 != NULL) ? reinterpret_cast<lsp_utf16_t *>(lsp_memdup(utf16, pTemp->nOffset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? pTemp->nOffset : 0;
+        return ptr;
     }
 
-    char *LSPString::clone_ascii() const
+    char *LSPString::clone_ascii(size_t *bytes, ssize_t first, ssize_t last) const
     {
-        const char *ascii = get_ascii();
-        return (ascii != NULL) ? ::strdup(ascii) : NULL;
+        const char *ascii = get_ascii(first, last);
+        char *ptr = (ascii != NULL) ? reinterpret_cast<char *>(lsp_memdup(ascii, pTemp->nOffset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? pTemp->nOffset : 0;
+        return ptr;
     }
 
-    char *LSPString::clone_native(ssize_t first, ssize_t last, const char *charset) const
+    char *LSPString::clone_native(size_t *bytes, ssize_t first, ssize_t last, const char *charset) const
     {
         const char *native = get_native(first, last, charset);
-        return reinterpret_cast<char *>(lsp_memdup(native, pTemp->nOffset));
+        char *ptr = (native != NULL) ? reinterpret_cast<char *>(lsp_memdup(native, pTemp->nOffset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? pTemp->nOffset : 0;
+        return ptr;
     }
 
     bool LSPString::append_temp(const char *p, size_t n) const

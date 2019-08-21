@@ -31,7 +31,7 @@ namespace lsp
                 char      **vMimes;
 
             public:
-                explicit IDataSource(char *const *mimes);
+                explicit IDataSource(const char *const *mimes);
                 virtual ~IDataSource();
 
             public:

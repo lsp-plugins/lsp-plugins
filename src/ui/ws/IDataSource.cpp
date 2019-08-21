@@ -12,12 +12,12 @@ namespace lsp
     namespace ws
     {
         
-        IDataSource::IDataSource(char *const *mimes)
+        IDataSource::IDataSource(const char *const *mimes)
         {
             nReferences     = 0;
             size_t n        = 1;
 
-            for (char *const *m=mimes; *m != NULL; ++m)
+            for (const char *const *m=mimes; *m != NULL; ++m)
                 ++n;
 
             vMimes          = reinterpret_cast<char **>(::malloc(sizeof(char *) * n));
