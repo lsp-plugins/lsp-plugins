@@ -19,7 +19,8 @@ namespace lsp
             "text/plain;charset=UTF-16LE",
             "text/plain;charset=UTF-16BE",
             "text/plain;charset=US-ASCII",
-            "text/plain"
+            "text/plain",
+            NULL
         };
         
         LSPTextDataSource::LSPTextDataSource(): IDataSource(mimes)
@@ -51,25 +52,30 @@ namespace lsp
             {
                 case 0: // UTF8_STRING
                 case 1: // text/plain;charset=utf-8
-                    data = sText.clone_utf8(&bytes);
+                    data    = sText.clone_utf8(&bytes);
+                    bytes  -= sizeof(char);             // 1 extra byte for zero character
                     break;
                 case 2: // text/plain;charset=UTF-16LE
                     data = __IF_LEBE(
                             sText.clone_utf16(&bytes),
                             sText.clone_native(&bytes, "UTF16-LE")
                         );
+                    bytes  -= sizeof(lsp_utf16_t);      // 2 extra bytes for zero character
                     break;
                 case 3: // text/plain;charset=UTF-16BE
                     data = __IF_LEBE(
                             sText.clone_native(&bytes, "UTF16-BE"),
                             sText.clone_utf16(&bytes)
                         );
+                    bytes  -= sizeof(lsp_utf16_t);      // 2 extra bytes for zero character
                     break;
                 case 4:
                     data = sText.clone_ascii(&bytes);
+                    bytes  -= sizeof(char);             // 1 extra byte for zero character
                     break;
                 case 5:
                     data = sText.clone_native(&bytes);
+                    bytes  -= sizeof(char)*4;           // 4 extra byte for zero character
                     break;
                 default:
                     break;

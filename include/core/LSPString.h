@@ -269,7 +269,7 @@ namespace lsp
             inline size_t temporal_capacity() const { return (pTemp != NULL) ? pTemp->nLength : 0; };
 
             /**
-             * Clone string
+             * Clone string as set of UTF-8 characters. 1 character at the tail will contain additional end-of-line.
              */
             char *clone_utf8(size_t *bytes, ssize_t first, ssize_t last) const;
             inline char *clone_utf8(size_t *bytes, ssize_t first) const { return clone_utf8(bytes, first, nLength); };
@@ -278,6 +278,9 @@ namespace lsp
             inline char *clone_utf8(ssize_t first) const { return clone_utf8(NULL, first, nLength); };
             inline char *clone_utf8() const { return clone_utf8(NULL, 0, nLength); };
 
+            /**
+             * Clone string as set of UTF-16 characters. 1 UTF-16 character at the tail will contain additional end-of-line.
+             */
             lsp_utf16_t *clone_utf16(size_t *bytes, ssize_t first, ssize_t last) const;
             inline lsp_utf16_t *clone_utf16(size_t *bytes, ssize_t first) const { return clone_utf16(bytes, first, nLength); };
             inline lsp_utf16_t *clone_utf16(size_t *bytes) const { return clone_utf16(bytes, 0, nLength); };
@@ -285,6 +288,9 @@ namespace lsp
             inline lsp_utf16_t *clone_utf16(ssize_t first) const { return clone_utf16(NULL, first, nLength); };
             inline lsp_utf16_t *clone_utf16() const { return clone_utf16(NULL, 0, nLength); };
 
+            /**
+             * Clone string as set of UTF-16 characters. 1 ascii character at the tail will contain additional end-of-line.
+             */
             char *clone_ascii(size_t *bytes, ssize_t first, ssize_t last) const;
             inline char *clone_ascii(size_t *bytes, ssize_t first) const { return clone_ascii(bytes, first, nLength); };
             inline char *clone_ascii(size_t *bytes) const { return clone_ascii(bytes, 0, nLength); };
@@ -292,6 +298,9 @@ namespace lsp
             inline char *clone_ascii(ssize_t first) const { return clone_ascii(NULL, first, nLength); };
             inline char *clone_ascii() const { return clone_ascii(NULL, 0, nLength); };
 
+            /**
+             * Clone string as set of UTF-16 characters. 4 ascii characters at the tail will contain additional end-of-line.
+             */
             char *clone_native(size_t *bytes, ssize_t first, ssize_t last, const char *charset = NULL) const;
             inline char *clone_native(size_t *bytes, ssize_t first, const char *charset =  NULL) const { return clone_native(bytes, first, nLength, charset); }
             inline char *clone_native(size_t *bytes, const char *charset = NULL) const { return clone_native(bytes, 0, nLength, charset); }

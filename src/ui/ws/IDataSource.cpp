@@ -15,13 +15,13 @@ namespace lsp
         IDataSource::IDataSource(const char *const *mimes)
         {
             nReferences     = 0;
-            size_t n        = 1;
+            size_t n        = 0;
 
             for (const char *const *m=mimes; *m != NULL; ++m)
                 ++n;
 
-            vMimes          = reinterpret_cast<char **>(::malloc(sizeof(char *) * n));
-            for (size_t i=0; i<n; ++i)
+            vMimes          = reinterpret_cast<char **>(::malloc(sizeof(char *) * (n+1)));
+            for (size_t i=0; i<(n+1); ++i)
                 vMimes[i]       = NULL;
 
             for (size_t i=0, j=0; i<n; ++i)

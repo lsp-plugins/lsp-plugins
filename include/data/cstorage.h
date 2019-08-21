@@ -176,7 +176,7 @@ namespace lsp
                 ssize_t off = reinterpret_cast<const uint8_t *>(ptr) - vItems;
                 if ((off < 0) || ((off % nSizeOf) != 0))
                     return false;
-                return remove(off);
+                return remove(off / nSizeOf);
             }
 
             inline bool remove_n(size_t idx, size_t n)

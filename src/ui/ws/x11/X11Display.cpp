@@ -567,7 +567,7 @@ namespace lsp
                     case SelectionRequest:
                     {
                         XSelectionRequestEvent *sr   = &ev->xselectionrequest;
-                        lsp_trace("SelectionRequest requestor = %x, selection=%d (%s), target=%d (%s), property=%d (%s), time=%ld",
+                        lsp_trace("SelectionRequest requestor = 0x%x, selection=%d (%s), target=%d (%s), property=%d (%s), time=%ld",
                                      int(sr->requestor),
                                      int(sr->selection), XGetAtomName(pDisplay, sr->selection),
                                      int(sr->target), XGetAtomName(pDisplay, sr->target),
@@ -933,96 +933,99 @@ namespace lsp
 
             void X11Display::handle_selection_notify(XSelectionEvent *ev)
             {
-                for (size_t i=0; i<sAsync.size(); ++i)
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
-                    bool complete = false;
 
                     // Notify all possible tasks about the event
-                    status_t res = STATUS_OK;
                     switch (task->type)
                     {
                         case X11ASYNC_CB_RECV:
                             if (task->cb_recv.hProperty == ev->property)
-                                res = handle_selection_notify(&task->cb_recv, ev, &complete);
+                                task->result = handle_selection_notify(&task->cb_recv, ev);
                             break;
                         default:
                             break;
                     }
-
-                    // Alarm task completion
-                    if ((res != STATUS_OK) || (complete))
-                        complete_task(task, res);
                 }
+
+                complete_tasks();
             }
 
             void X11Display::handle_property_notify(XPropertyEvent *ev)
             {
-                for (size_t i=0; i<sAsync.size(); ++i)
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
-                    bool complete = false;
 
                     // Notify all possible tasks about the event
-                    status_t res = STATUS_OK;
                     switch (task->type)
                     {
                         case X11ASYNC_CB_RECV:
                             if (task->cb_recv.hProperty == ev->atom)
-                                res = handle_property_notify(&task->cb_recv, ev, &complete);
+                                task->result = handle_property_notify(&task->cb_recv, ev);
                             break;
                         case X11ASYNC_CB_SEND:
                             if ((task->cb_send.hProperty == ev->atom) &&
                                 (task->cb_send.hRequestor == ev->window))
-                                res = handle_property_notify(&task->cb_send, ev, &complete);
+                                task->result = handle_property_notify(&task->cb_send, ev);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                complete_tasks();
+            }
+
+            void X11Display::complete_tasks()
+            {
+                for (size_t i=0; i<sAsync.size(); )
+                {
+                    // Skip non-complete tasks
+                    x11_async_t *task = sAsync.get(i);
+                    if (!task->cb_common.bComplete)
+                    {
+                        ++i;
+                        continue;
+                    }
+
+                    // Analyze how to finalize the task
+                    switch (task->type)
+                    {
+                        case X11ASYNC_CB_RECV:
+                            // Close and release data sink
+                            if (task->cb_recv.pSink != NULL)
+                            {
+                                task->cb_recv.pSink->close(task->result);
+                                task->cb_recv.pSink->release();
+                                task->cb_recv.pSink = NULL;
+                            }
+                            break;
+                        case X11ASYNC_CB_SEND:
+                            // Close associated stream
+                            if (task->cb_send.pStream != NULL)
+                            {
+                                task->cb_send.pStream->close();
+                                task->cb_send.pStream = NULL;
+                            }
+                            // Release data source
+                            if (task->cb_send.pSource != NULL)
+                            {
+                                task->cb_send.pSource->release();
+                                task->cb_send.pSource = NULL;
+                            }
                             break;
                         default:
                             break;
                     }
 
-                    // Alarm task completion
-                    if ((res != STATUS_OK) || (complete))
-                        complete_task(task, res);
+                    // Remove the async task from the queue
+                    sAsync.remove(task);
                 }
             }
 
-            void X11Display::complete_task(x11_async_t *task, status_t code)
-            {
-                // Analyze how to finalize the task
-                switch (task->type)
-                {
-                    case X11ASYNC_CB_RECV:
-                        // Close and release data sink
-                        if (task->cb_recv.pSink != NULL)
-                        {
-                            task->cb_recv.pSink->close(code);
-                            task->cb_recv.pSink->release();
-                            task->cb_recv.pSink = NULL;
-                        }
-                        break;
-                    case X11ASYNC_CB_SEND:
-                        // Close associated stream
-                        if (task->cb_send.pStream != NULL)
-                        {
-                            task->cb_send.pStream->close();
-                            task->cb_send.pStream = NULL;
-                        }
-                        // Release data source
-                        if (task->cb_send.pSource != NULL)
-                        {
-                            task->cb_send.pSource->release();
-                            task->cb_send.pSource = NULL;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-                // Remove the async task from the queue
-                sAsync.remove(task);
-            }
-
-            status_t X11Display::handle_property_notify(cb_recv_t *task, XPropertyEvent *ev, bool *complete)
+            status_t X11Display::handle_property_notify(cb_recv_t *task, XPropertyEvent *ev)
             {
                 status_t res    = STATUS_OK;
                 uint8_t *data   = NULL;
@@ -1044,7 +1047,7 @@ namespace lsp
                                 {
                                     // Complete the INCR transfer
                                     task->pSink->close(res);
-                                    *complete       = true;
+                                    task->bComplete = true;
                                 }
                                 else if (type == task->hType)
                                 {
@@ -1071,7 +1074,7 @@ namespace lsp
                 return res;
             }
 
-            status_t X11Display::handle_property_notify(cb_send_t *task, XPropertyEvent *ev, bool *complete)
+            status_t X11Display::handle_property_notify(cb_send_t *task, XPropertyEvent *ev)
             {
                 // Look only at PropertyDelete events
                 if ((ev->state != PropertyDelete) || (task->pStream == NULL))
@@ -1097,7 +1100,7 @@ namespace lsp
                         task->hType, 8, PropModeReplace, NULL, 0
                     );
                     ::XFlush(pDisplay);
-                    *complete   = true;
+                    task->bComplete = true;
                     return STATUS_OK;
                 }
 
@@ -1129,7 +1132,7 @@ namespace lsp
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace, NULL, 0
                     );
-                    *complete   = true;
+                    task->bComplete = true;
                 }
                 else
                 {
@@ -1144,7 +1147,7 @@ namespace lsp
                 return res;
             }
 
-            status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete)
+            status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev)
             {
                 uint8_t *data   = NULL;
                 size_t bytes    = 0;
@@ -1217,7 +1220,7 @@ namespace lsp
 
                                 if (bytes > 0)
                                     res = task->pSink->write(data, bytes);
-                                *complete       = true;
+                                task->bComplete = true;
                             }
                             else
                                 res     = STATUS_UNSUPPORTED_FORMAT;
@@ -1238,13 +1241,13 @@ namespace lsp
                                 // Complete the INCR transfer
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Delete the property
                                 ::XFlush(pDisplay);
-                                *complete       = true;
+                                task->bComplete = true;
                             }
                             else if (type == task->hType)
                             {
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
                                 ::XFlush(pDisplay);
-                                res = task->pSink->write(data, bytes); // Append data to the sink
+                                res     = task->pSink->write(data, bytes); // Append data to the sink
                             }
                             else
                                 res     = STATUS_UNSUPPORTED_FORMAT;
@@ -1276,14 +1279,12 @@ namespace lsp
 
                 // Now check that selection is present
                 bool found = false;
-                bool complete = false;
 
-                for (size_t i=0; i<sAsync.size(); ++i)
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
 
                     // Notify all possible tasks about the event
-                    status_t res = STATUS_OK;
                     switch (task->type)
                     {
                         case X11ASYNC_CB_SEND:
@@ -1291,17 +1292,13 @@ namespace lsp
                                 (task->cb_send.hSelection == ev->selection) &&
                                 (task->cb_send.hRequestor == ev->requestor))
                             {
-                                found   = true;
-                                res     = handle_selection_request(&task->cb_send, ev, &complete);
+                                task->result    = handle_selection_request(&task->cb_send, ev);
+                                found           = true;
                             }
                             break;
                         default:
                             break;
                     }
-
-                    // Alarm task completion
-                    if ((res != STATUS_OK) || (complete))
-                        complete_task(task, res);
                 }
 
                 // The transfer has not been found?
@@ -1318,7 +1315,10 @@ namespace lsp
                         return;
 
                     task->type          = X11ASYNC_CB_SEND;
+                    task->result        = STATUS_OK;
+
                     cb_send_t *param    = &task->cb_send;
+                    param->bComplete    = false;
                     param->hProperty    = ev->property;
                     param->hSelection   = ev->selection;
                     param->hRequestor   = ev->requestor;
@@ -1327,21 +1327,33 @@ namespace lsp
                     ds->acquire();
 
                     // Call for processing
-                    res         = handle_selection_request(&task->cb_send, ev, &complete);
-
-                    // Alarm task completion
-                    if ((res != STATUS_OK) || (complete))
-                        complete_task(task, res);
+                    task->result        = handle_selection_request(&task->cb_send, ev);
                 }
+
+                complete_tasks();
             }
 
-            status_t X11Display::handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev, bool *complete)
+            status_t X11Display::handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev)
             {
                 status_t res    = STATUS_OK;
+
+                // Prepare SelectionNotify event
+                XEvent response;
+                XSelectionEvent *se = &response.xselection;
+
+                se->type        = SelectionNotify;
+                se->send_event  = True;
+                se->display     = pDisplay;
+                se->requestor   = ev->requestor;
+                se->selection   = ev->selection;
+                se->target      = ev->target;
+                se->property    = ev->property;
+                se->time        = ev->time;
 
                 if (ev->target == sAtoms.X11_TARGETS)
                 {
                     // Special case: send all supported targets
+                    lsp_trace("Requested TARGETS for selection");
                     const char *const *mime = task->pSource->mime_types();
 
                     // Estimate number of mime types
@@ -1353,14 +1365,21 @@ namespace lsp
                     if (data != NULL)
                     {
                         Atom *dst   = data;
-                        *(dst++)    = sAtoms.X11_TARGETS;
-                        for (const char *const *p = mime; *p != NULL; ++p, ++n)
-                            *(dst++)    = ::XInternAtom(pDisplay, *p, False);
+                        *dst        = sAtoms.X11_TARGETS;
+                        lsp_trace("  supported target: TARGETS (%ld)", long(*dst));
 
-                        // Write property to the target window
+                        for (const char *const *p = mime; *p != NULL; ++p, ++dst)
+                        {
+                            *dst    = ::XInternAtom(pDisplay, *p, False);
+                            lsp_trace("  supported target: %s (%ld)", *p, long(*dst));
+                        }
+
+                        // Write property to the target window and send SelectionNotify event
                         ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
                                 sAtoms.X11_XA_ATOM, 32, PropModeReplace,
                                 reinterpret_cast<unsigned char *>(data), n);
+                        ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
+                        ::XFlush(pDisplay);
 
                         // Free allocated buffer
                         ::free(data);
@@ -1396,6 +1415,7 @@ namespace lsp
                                     pDisplay, task->hRequestor, task->hProperty,
                                     sAtoms.X11_INCR, 32, PropModeReplace, NULL, 0
                                 );
+                                ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
                                 ::XFlush(pDisplay);
                             }
                             else if (avail > 0)
@@ -1417,8 +1437,9 @@ namespace lsp
                                             task->hType, 8, PropModeReplace,
                                             reinterpret_cast<unsigned char *>(ptr), avail
                                         );
+                                        ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
                                         ::XFlush(pDisplay);
-                                        *complete = true;
+                                        task->bComplete = true;
                                     }
                                     else
                                         res     = -avail;
@@ -2465,7 +2486,10 @@ namespace lsp
                 // Create async task
                 x11_async_t *task   = sAsync.add();
                 task->type          = X11ASYNC_CB_RECV;
+                task->result        = STATUS_OK;
+
                 cb_recv_t *param    = &task->cb_recv;
+                param->bComplete    = false;
                 param->hProperty    = prop_id;
                 param->hSelection   = sel_id;
                 param->hType        = None;

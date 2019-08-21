@@ -63,18 +63,22 @@ namespace lsp
 
                     struct x11_async_t;
 
-                    typedef struct cb_recv_t
+                    typedef struct cb_common_t
                     {
+                        bool                bComplete;
                         Atom                hProperty;
+                    } cb_common_t;
+
+                    typedef struct cb_recv_t: public cb_common_t
+                    {
                         Atom                hSelection;
                         Atom                hType;
                         x11_cb_recv_states  enState;
                         IDataSink          *pSink;
                     } cb_recv_t;
 
-                    typedef struct cb_send_t
+                    typedef struct cb_send_t: public cb_common_t
                     {
-                        Atom                hProperty;
                         Atom                hSelection;
                         Atom                hType;
                         Window              hRequestor;
@@ -82,16 +86,17 @@ namespace lsp
                         io::IInStream      *pStream;
                     } cb_send_t;
 
-                    typedef struct dnd_recv_t
+                    typedef struct dnd_recv_t: public cb_common_t
                     {
-                        Atom                hProperty;
                     } dnd_recv_t;
 
                     typedef struct x11_async_t
                     {
                         x11_async_types     type;
+                        status_t            result;
                         union
                         {
+                            cb_common_t         cb_common;
                             cb_recv_t           cb_recv;
                             cb_send_t           cb_send;
                             dnd_recv_t          dnd_recv;
@@ -140,18 +145,18 @@ namespace lsp
                     static status_t sink_data_source(IDataSink *dst, IDataSource *src);
 
                     void            handle_property_notify(XPropertyEvent *ev);
-                    status_t        handle_property_notify(cb_recv_t *task, XPropertyEvent *ev, bool *complete);
-                    status_t        handle_property_notify(cb_send_t *task, XPropertyEvent *ev, bool *complete);
+                    status_t        handle_property_notify(cb_recv_t *task, XPropertyEvent *ev);
+                    status_t        handle_property_notify(cb_send_t *task, XPropertyEvent *ev);
 
                     void            handle_selection_notify(XSelectionEvent *ev);
-                    status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete);
+                    status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev);
 
                     void            handle_selection_request(XSelectionRequestEvent *ev);
-                    status_t        handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev, bool *complete);
+                    status_t        handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev);
 
                     status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
-                    void            complete_task(x11_async_t *task, status_t code);
+                    void            complete_tasks();
 
                 public:
                     explicit X11Display();
