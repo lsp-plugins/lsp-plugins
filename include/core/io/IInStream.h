@@ -57,7 +57,8 @@ namespace lsp
                  *
                  * @param dst target buffer to read data
                  * @param count number of bytes to read
-                 * @return number of bytes actually read
+                 * @return number of bytes actually read or negative error code,
+                 *   for end of file, -STATUS_EOF should be returned
                  */
                 virtual ssize_t     read(void *dst, size_t count);
 

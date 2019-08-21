@@ -1080,7 +1080,12 @@ namespace lsp
                 // How many bytes are available?
                 wssize_t avail  = task->pStream->avail();
                 if (avail < 0)
-                    return status_t(-avail);
+                {
+                    if (avail == -STATUS_NOT_IMPLEMENTED)
+                        avail = X11IOBUF_SIZE;
+                    else
+                        return status_t(-avail);
+                }
                 else if (avail > X11IOBUF_SIZE)
                     avail = X11IOBUF_SIZE;
                 else if (avail == 0)
@@ -1117,7 +1122,7 @@ namespace lsp
                         reinterpret_cast<unsigned char *>(data), nread
                     );
                 }
-                else if (nread == 0)
+                else if ((nread == 0) || (nread == -STATUS_EOF))
                 {
                     ::XSelectInput(pDisplay, task->hRequestor, None);
                     ::XChangeProperty(
@@ -1379,7 +1384,10 @@ namespace lsp
 
                             // Determine the used method for transfer
                             wssize_t avail  = in->avail();
-                            if ((avail < 0) || (avail > X11IOBUF_SIZE))
+                            if (avail == -STATUS_NOT_IMPLEMENTED)
+                                avail = 2 * X11IOBUF_SIZE;
+
+                            if (avail > X11IOBUF_SIZE)
                             {
                                 // Do incremental transfer
                                 task->pStream   = in;   // Save the stream
@@ -1390,7 +1398,7 @@ namespace lsp
                                 );
                                 ::XFlush(pDisplay);
                             }
-                            else
+                            else if (avail > 0)
                             {
                                 // One-time write()
                                 uint8_t *ptr    = reinterpret_cast<uint8_t *>(::malloc(avail));
@@ -1398,6 +1406,9 @@ namespace lsp
                                 {
                                     // Fetch data from stream
                                     avail   = in->read_fully(ptr, avail);
+                                    if (avail == -STATUS_EOF)
+                                        avail   = 0;
+
                                     if (avail >= 0)
                                     {
                                         // All is OK, set the property and complete transfer
@@ -1420,6 +1431,8 @@ namespace lsp
                                 in->close();
                                 delete in;
                             }
+                            else
+                                res = status_t(-avail);
                         }
                         else
                             res = STATUS_UNSUPPORTED_FORMAT;

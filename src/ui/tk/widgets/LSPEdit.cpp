@@ -329,17 +329,22 @@ namespace lsp
         {
             if (sSelection.valid() && sSelection.non_empty())
             {
-                LSPTextClipboard *cb = new LSPTextClipboard();
+/*                LSPTextClipboard *cb = new LSPTextClipboard();
                 if (cb == NULL)
+                    return;*/
+                LSPTextDataSource *src = new LSPTextDataSource();
+                if (src == NULL)
                     return;
+                src->acquire();
 
+                // Set the selection
                 ssize_t first, last;
                 sSelection.read_range(&first, &last);
-
-                status_t result = cb->update_text(&sText, first, last);
+                status_t result = src->set_text(&sText, first, last);
                 if (result == STATUS_OK)
-                    pDisplay->write_clipboard(bufid, cb);
-                cb->close();
+                    pDisplay->set_clipboard(bufid, src);
+
+                src->release();
             }
         }
 

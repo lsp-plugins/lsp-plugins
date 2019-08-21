@@ -193,6 +193,14 @@ namespace lsp
                  */
                 virtual status_t get_clipboard(size_t id, IDataSink *sink);
 
+                /**
+                 * Set clipboard data
+                 * @param id clipboard identifier
+                 * @param src data source
+                 * @return status of operation
+                 */
+                virtual status_t set_clipboard(size_t id, IDataSource *src);
+
                 /** Get screen size
                  *
                  * @param screen screen identifier

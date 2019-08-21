@@ -6,6 +6,7 @@
  */
 
 #include <ui/tk/tk.h>
+#include <core/io/InMemoryStream.h>
 
 namespace lsp
 {
@@ -78,8 +79,35 @@ namespace lsp
             if (data == NULL)
                 return NULL;
 
-            // TODO: Create input stream and return pointer to the stream
-            return NULL;
+            // Allocate memory stream;
+            io::InMemoryStream *stream = new io::InMemoryStream(data, bytes, io::InMemoryStream::DROP_FREE);
+            if (stream == NULL)
+            {
+                ::free(data);
+                return NULL;
+            }
+
+            return stream;
+        }
+
+        status_t LSPTextDataSource::set_text(const char *text)
+        {
+            return sText.set_utf8(text) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t LSPTextDataSource::set_text(const LSPString *text)
+        {
+            return sText.set(text) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t LSPTextDataSource::set_text(const LSPString *text, ssize_t first)
+        {
+            return sText.set(text, first) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t LSPTextDataSource::set_text(const LSPString *text, ssize_t first, ssize_t last)
+        {
+            return sText.set(text, first, last) ? STATUS_OK : STATUS_NO_MEM;
         }
     
     } /* namespace tk */
