@@ -516,8 +516,11 @@ namespace lsp
                     {
                         // Free the corresponding data
                         XSelectionClearEvent *sc    = &ev->xselectionclear;
-                        lsp_trace("XSelectionClearEvent for window %x, selection %d", int(sc->window), int(sc->selection));
+                        lsp_trace("XSelectionClearEvent for window 0x%lx, selection %ld", long(sc->window), long(sc->selection));
 
+                        handle_selection_clear(sc);
+
+#if 0
                         // Find the owner window
                         if (sc->window != hClipWnd)
                             return true;
@@ -562,6 +565,7 @@ namespace lsp
 
                         // Close the clipboard object
                         cb->close();
+#endif
                         return true;
                     }
                     case SelectionRequest:
@@ -950,6 +954,44 @@ namespace lsp
                 }
 
                 complete_tasks();
+            }
+
+            void X11Display::handle_selection_clear(XSelectionClearEvent *ev)
+            {
+                // Get the selection identifier
+                size_t bufid = 0;
+                status_t res = atom_to_bufid(ev->selection, &bufid);
+                if (res != STATUS_OK)
+                    return;
+
+                // Cleanup tasks
+//                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+//                {
+//                    x11_async_t *task = sAsync.at(i);
+//
+//                    // Notify all possible tasks about the event
+//                    switch (task->type)
+//                    {
+//                        case X11ASYNC_CB_SEND:
+//                            if (task->cb_send.hSelection == ev->selection)
+//                            {
+//                                task->result    = STATUS_CANCELLED;
+//                                task->cb_common.bComplete = true;
+//                            }
+//                            break;
+//                        default:
+//                            break;
+//                    }
+//                }
+//
+//                complete_tasks();
+
+                // Unbind data source
+                if (pCbOwner[bufid] != NULL)
+                {
+                    pCbOwner[bufid]->release();
+                    pCbOwner[bufid] = NULL;
+                }
             }
 
             void X11Display::handle_property_notify(XPropertyEvent *ev)

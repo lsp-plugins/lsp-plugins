@@ -154,6 +154,8 @@ namespace lsp
                     void            handle_selection_request(XSelectionRequestEvent *ev);
                     status_t        handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev);
 
+                    void            handle_selection_clear(XSelectionClearEvent *ev);
+
                     status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
                     void            complete_tasks();
