@@ -575,7 +575,7 @@ namespace lsp
                                      long(sr->time));
 
                         handle_selection_request(sr);
-
+#if 0
                         XEvent response;
                         XSelectionEvent *se = &response.xselection;
 
@@ -716,7 +716,7 @@ namespace lsp
                             pDisplay, // display
                             sr->requestor, // window
                             sr->property, // property
-                            sr->type, // type
+                            sr->target, // type
                             8, // format
                             PropModeReplace, // mode
                             reinterpret_cast<unsigned char *>(pIOBuf), // data
@@ -727,7 +727,7 @@ namespace lsp
                         XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
                         XFlush(pDisplay);
                         cb->close();
-
+#endif
                         return true;
                     }
                     case SelectionNotify:
@@ -1378,6 +1378,7 @@ namespace lsp
                         ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
                                 sAtoms.X11_XA_ATOM, 32, PropModeReplace,
                                 reinterpret_cast<unsigned char *>(data), n);
+                        ::XFlush(pDisplay);
                         ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
                         ::XFlush(pDisplay);
 
@@ -1415,6 +1416,7 @@ namespace lsp
                                     pDisplay, task->hRequestor, task->hProperty,
                                     sAtoms.X11_INCR, 32, PropModeReplace, NULL, 0
                                 );
+                                ::XFlush(pDisplay);
                                 ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
                                 ::XFlush(pDisplay);
                             }
@@ -1437,6 +1439,7 @@ namespace lsp
                                             task->hType, 8, PropModeReplace,
                                             reinterpret_cast<unsigned char *>(ptr), avail
                                         );
+                                        ::XFlush(pDisplay);
                                         ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
                                         ::XFlush(pDisplay);
                                         task->bComplete = true;
