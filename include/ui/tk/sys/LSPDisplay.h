@@ -166,25 +166,6 @@ namespace lsp
                  */
                 inline LSPTheme *theme()                    { return &sTheme; }
 
-                /** Fetch clipboard object
-                 *
-                 * @param id clipboard identifier
-                 * @param ctype content type
-                 * @param handler callback handler
-                 * @param arg argument for callback handler
-                 * @return
-                 */
-                virtual status_t fetch_clipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg = NULL);
-
-                /** Get clipboard by it's identifier
-                 *
-                 * @param wnd the window that is owner of the clipboard
-                 * @param id clipboard identifier
-                 * @param c the clipboard data holder object
-                 * @return pointer to clipboard or NULL if not present
-                 */
-                virtual status_t write_clipboard(size_t id, IClipboard *c);
-
                 /**
                  * Get clipboard data
                  * @param id clipboard identifier

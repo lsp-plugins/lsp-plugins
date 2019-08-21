@@ -384,16 +384,17 @@ namespace lsp
             lsp_trace("Serialized config: \n%s", str.get_native());
 
             // Copy data to clipboard
-            LSPTextClipboard *cb = new LSPTextClipboard();
-            if (cb == NULL)
+            LSPTextDataSource *ds = new LSPTextDataSource();
+            if (ds == NULL)
                 return STATUS_NO_MEM;
+            ds->acquire();
 
-            status_t result = cb->update_text(&str);
+            status_t result = ds->set_text(&str);
             if (result == STATUS_OK)
-                af->display()->write_clipboard(CBUF_CLIPBOARD, cb);
-            cb->close();
+                af->display()->set_clipboard(CBUF_CLIPBOARD, ds);
+            ds->release();
 
-            return STATUS_OK;
+            return result;
         }
 
         status_t CtlAudioFile::slot_popup_paste_action(LSPWidget *sender, void *ptr, void *data)

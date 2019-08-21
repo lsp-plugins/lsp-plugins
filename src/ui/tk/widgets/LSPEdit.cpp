@@ -329,9 +329,6 @@ namespace lsp
         {
             if (sSelection.valid() && sSelection.non_empty())
             {
-/*                LSPTextClipboard *cb = new LSPTextClipboard();
-                if (cb == NULL)
-                    return;*/
                 LSPTextDataSource *src = new LSPTextDataSource();
                 if (src == NULL)
                     return;

@@ -572,16 +572,6 @@ namespace lsp
             return STATUS_NOT_FOUND;
         }
 
-        status_t IDisplay::fetchClipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg)
-        {
-            return STATUS_NOT_IMPLEMENTED;
-        }
-
-        status_t IDisplay::writeClipboard(size_t id, IClipboard *c)
-        {
-            return STATUS_NOT_IMPLEMENTED;
-        }
-
         status_t IDisplay::setClipboard(size_t id, IDataSource *c)
         {
             if (c == NULL)

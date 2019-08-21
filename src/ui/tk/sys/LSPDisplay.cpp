@@ -254,16 +254,6 @@ namespace lsp
             return false;
         }
 
-        status_t LSPDisplay::fetch_clipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg)
-        {
-            return pDisplay->fetchClipboard(id, ctype, handler, arg);
-        }
-
-        status_t LSPDisplay::write_clipboard(size_t id, IClipboard *c)
-        {
-            return pDisplay->writeClipboard(id, c);
-        }
-
         status_t LSPDisplay::get_clipboard(size_t id, IDataSink *sink)
         {
             return pDisplay->getClipboard(id, sink);

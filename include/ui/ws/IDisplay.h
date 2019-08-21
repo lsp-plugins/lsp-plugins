@@ -222,23 +222,6 @@ namespace lsp
                  */
                 virtual status_t cancelTask(taskid_t id);
 
-                /** Request clipboard data by it's identifier
-                 *
-                 * @param id clipboard identifier
-                 * @param ctype requested content type
-                 * @param handler callback handler when clipboard data is ready
-                 * @param arg argument to pass to the callback handler
-                 * @return pointer to clipboard data object or NULL if not present
-                 */
-                virtual status_t fetchClipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg = NULL);
-
-                /** Get clipboard by it's identifier
-                 *
-                 * @param id clipboard identifier
-                 * @param c the clipboard data holder object
-                 */
-                virtual status_t writeClipboard(size_t id, IClipboard *c);
-
                 /**
                  * Associate data source with the specified clipboard
                  * @param id clipboard identifier

@@ -182,9 +182,6 @@ namespace lsp
                     virtual size_t default_screen();
                     virtual status_t screen_size(size_t screen, ssize_t *w, ssize_t *h);
 
-                    virtual status_t fetchClipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg);
-                    virtual status_t writeClipboard(size_t id, IClipboard *c);
-
                     virtual status_t setClipboard(size_t id, IDataSource *ds);
                     virtual status_t getClipboard(size_t id, IDataSink *dst);
 
