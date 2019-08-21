@@ -141,6 +141,7 @@ namespace lsp
 
                     void            handle_property_notify(XPropertyEvent *ev);
                     status_t        handle_property_notify(cb_recv_t *task, XPropertyEvent *ev, bool *complete);
+                    status_t        handle_property_notify(cb_send_t *task, XPropertyEvent *ev, bool *complete);
 
                     void            handle_selection_notify(XSelectionEvent *ev);
                     status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete);

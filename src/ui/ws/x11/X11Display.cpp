@@ -971,6 +971,11 @@ namespace lsp
                             if (task->cb_recv.hProperty == ev->atom)
                                 res = handle_property_notify(&task->cb_recv, ev, &complete);
                             break;
+                        case X11ASYNC_CB_SEND:
+                            if ((task->cb_send.hProperty == ev->atom) &&
+                                (task->cb_send.hRequestor == ev->window))
+                                res = handle_property_notify(&task->cb_send, ev, &complete);
+                            break;
                         default:
                             break;
                     }
@@ -988,8 +993,26 @@ namespace lsp
                 {
                     case X11ASYNC_CB_RECV:
                         // Close and release data sink
-                        task->cb_recv.pSink->close(code);
-                        task->cb_recv.pSink->release();
+                        if (task->cb_recv.pSink != NULL)
+                        {
+                            task->cb_recv.pSink->close(code);
+                            task->cb_recv.pSink->release();
+                            task->cb_recv.pSink = NULL;
+                        }
+                        break;
+                    case X11ASYNC_CB_SEND:
+                        // Close associated stream
+                        if (task->cb_send.pStream != NULL)
+                        {
+                            task->cb_send.pStream->close();
+                            task->cb_send.pStream = NULL;
+                        }
+                        // Release data source
+                        if (task->cb_send.pSource != NULL)
+                        {
+                            task->cb_send.pSource->release();
+                            task->cb_send.pSource = NULL;
+                        }
                         break;
                     default:
                         break;
@@ -1048,6 +1071,74 @@ namespace lsp
                 return res;
             }
 
+            status_t X11Display::handle_property_notify(cb_send_t *task, XPropertyEvent *ev, bool *complete)
+            {
+                // Look only at PropertyDelete events
+                if ((ev->state != PropertyDelete) || (task->pStream == NULL))
+                    return STATUS_OK;
+
+                // How many bytes are available?
+                wssize_t avail  = task->pStream->avail();
+                if (avail < 0)
+                    return status_t(-avail);
+                else if (avail > X11IOBUF_SIZE)
+                    avail = X11IOBUF_SIZE;
+                else if (avail == 0)
+                {
+                    // Complete the transfer
+                    ::XSelectInput(pDisplay, task->hRequestor, None);
+                    ::XChangeProperty(
+                        pDisplay, task->hRequestor, task->hProperty,
+                        task->hType, 8, PropModeReplace, NULL, 0
+                    );
+                    ::XFlush(pDisplay);
+                    *complete   = true;
+                    return STATUS_OK;
+                }
+
+                // Allocate buffer and perform transfer
+                uint8_t *data   = reinterpret_cast<uint8_t *>(::malloc(avail));
+                if (data == NULL)
+                {
+                    ::XSelectInput(pDisplay, task->hRequestor, None);
+                    ::XFlush(pDisplay);
+                    return STATUS_NO_MEM;
+                }
+
+                // Read data from the stream
+                ssize_t nread   = task->pStream->read_fully(data, avail);
+                status_t res    = STATUS_OK;
+                if (nread > 0)
+                {
+                    // Write the property to re requestor
+                    ::XChangeProperty(
+                        pDisplay, task->hRequestor, task->hProperty,
+                        task->hType, 8, PropModeReplace,
+                        reinterpret_cast<unsigned char *>(data), nread
+                    );
+                }
+                else if (nread == 0)
+                {
+                    ::XSelectInput(pDisplay, task->hRequestor, None);
+                    ::XChangeProperty(
+                        pDisplay, task->hRequestor, task->hProperty,
+                        task->hType, 8, PropModeReplace, NULL, 0
+                    );
+                    *complete   = true;
+                }
+                else
+                {
+                    ::XSelectInput(pDisplay, task->hRequestor, None);
+                    res = status_t(-nread);
+                }
+                ::XFlush(pDisplay);
+
+                // Release the data and return
+                ::free(data);
+
+                return res;
+            }
+
             status_t X11Display::handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev, bool *complete)
             {
                 uint8_t *data   = NULL;
@@ -1081,7 +1172,10 @@ namespace lsp
                                     {
                                         // Request selection data of selected type
                                         ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty);
-                                        ::XConvertSelection(pDisplay, task->hSelection, task->hType, task->hProperty, hClipWnd, CurrentTime);
+                                        ::XConvertSelection(
+                                            pDisplay, task->hSelection, task->hType, task->hProperty,
+                                            hClipWnd, CurrentTime
+                                        );
                                         ::XFlush(pDisplay);
                                     }
                                     else
@@ -1281,7 +1375,6 @@ namespace lsp
                         if (in != NULL)
                         {
                             // Store stream and data type
-                            task->pStream   = in;
                             task->hType     = ev->target;
 
                             // Determine the used method for transfer
@@ -1289,9 +1382,12 @@ namespace lsp
                             if ((avail < 0) || (avail > X11IOBUF_SIZE))
                             {
                                 // Do incremental transfer
+                                task->pStream   = in;   // Save the stream
                                 ::XSelectInput(pDisplay, task->hRequestor, PropertyChangeMask);
-                                ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
-                                        sAtoms.X11_INCR, 32, PropModeReplace, NULL, 0);
+                                ::XChangeProperty(
+                                    pDisplay, task->hRequestor, task->hProperty,
+                                    sAtoms.X11_INCR, 32, PropModeReplace, NULL, 0
+                                );
                                 ::XFlush(pDisplay);
                             }
                             else
@@ -1301,13 +1397,15 @@ namespace lsp
                                 if (ptr != NULL)
                                 {
                                     // Fetch data from stream
-                                    avail   = in->read(ptr, avail);
+                                    avail   = in->read_fully(ptr, avail);
                                     if (avail >= 0)
                                     {
                                         // All is OK, set the property and complete transfer
-                                        ::XChangeProperty(pDisplay, task->hRequestor, task->hProperty,
-                                                task->hType, 8, PropModeReplace,
-                                                reinterpret_cast<unsigned char *>(ptr), avail);
+                                        ::XChangeProperty(
+                                            pDisplay, task->hRequestor, task->hProperty,
+                                            task->hType, 8, PropModeReplace,
+                                            reinterpret_cast<unsigned char *>(ptr), avail
+                                        );
                                         ::XFlush(pDisplay);
                                         *complete = true;
                                     }
@@ -1317,6 +1415,10 @@ namespace lsp
                                 }
                                 else
                                     res = STATUS_NO_MEM;
+
+                                // Close the stream
+                                in->close();
+                                delete in;
                             }
                         }
                         else
