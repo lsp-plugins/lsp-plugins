@@ -180,7 +180,6 @@ namespace lsp
 #include <ui/tk/sys/LSPTimer.h>
 #include <ui/tk/sys/LSPSlotSet.h>
 #include <ui/tk/sys/LSPTheme.h>
-#include <ui/tk/sys/LSPClipboard.h>
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
@@ -198,7 +197,6 @@ namespace lsp
 #include <ui/tk/util/LSPSizeConstraints.h>
 #include <ui/tk/util/LSPWindowActions.h>
 #include <ui/tk/util/LSPColor.h>
-#include <ui/tk/util/LSPTextClipboard.h>
 #include <ui/tk/util/LSPTextDataSource.h>
 #include <ui/tk/util/LSPTextDataSink.h>
 #include <ui/tk/util/LSPFileFilter.h>

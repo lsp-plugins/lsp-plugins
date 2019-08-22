@@ -352,12 +352,10 @@ namespace lsp
 #include <ui/ws/keycodes.h>
 
 // Common definitions
-#include <ui/ws/IDataFetch.h>
 #include <ui/ws/IDataSink.h>
 #include <ui/ws/IDataSource.h>
 #include <ui/ws/IEventHandler.h>
 #include <ui/ws/ISurface.h>
-#include <ui/ws/IClipboard.h>
 #include <ui/ws/IDisplay.h>
 #include <ui/ws/INativeWindow.h>
 #include <ui/ws/IR3DBackend.h>

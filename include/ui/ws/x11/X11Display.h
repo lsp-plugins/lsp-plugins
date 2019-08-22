@@ -50,17 +50,6 @@ namespace lsp
                         ssize_t         nCounter;
                     } wnd_lock_t;
 
-                    typedef struct cb_request_t
-                    {
-                        Atom                hProperty;
-                        Atom                hSelection;
-                        Time                nTime;
-                        X11Clipboard       *pCB;
-                        io::IInStream      *pIn;
-                        clipboard_handler_t pHandler;
-                        void               *pArgument;
-                    } cb_request_t;
-
                     struct x11_async_t;
 
                     typedef struct cb_common_t
@@ -113,7 +102,6 @@ namespace lsp
                     x11_atoms_t     sAtoms;
                     Cursor          vCursors[__MP_COUNT];
                     uint8_t        *pIOBuf;
-                    IClipboard     *pClipboard[_CBUF_TOTAL];
                     IDataSource    *pCbOwner[_CBUF_TOTAL];
 
                     cstorage<dtask_t>       sPending;
@@ -121,7 +109,6 @@ namespace lsp
                     cvector<X11Window>      sGrab;
                     cvector<X11Window>      sTargets;
                     cstorage<wnd_lock_t>    sLocks;
-                    cstorage<cb_request_t>  sCbRequests;
                     cstorage<x11_async_t>   sAsync;
                     cvector<char>           vDndMimeTypes;
                     Window                  hDndSource;
@@ -135,7 +122,6 @@ namespace lsp
                     X11Window      *get_redirect(X11Window *wnd);
                     static void     compress_long_data(void *data, size_t nitems);
                     Atom            gen_selection_id();
-                    cb_request_t   *find_request(Window requestor, Atom selection, Time time);
                     X11Window      *find_window(Window wnd);
                     status_t        bufid_to_atom(size_t bufid, Atom *atom);
                     status_t        atom_to_bufid(Atom x, size_t *bufid);
@@ -158,7 +144,7 @@ namespace lsp
 
                     status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
-                    void            complete_tasks();
+                    void            complete_async_tasks();
 
                 public:
                     explicit X11Display();

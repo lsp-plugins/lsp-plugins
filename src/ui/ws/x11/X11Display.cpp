@@ -107,10 +107,7 @@ namespace lsp
                 hDndSource      = None;
 
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
-                {
-                    pClipboard[i]           = NULL;
-                    pCbOwner[i]              = NULL;
-                }
+                    pCbOwner[i]             = NULL;
             }
 
             X11Display::~X11Display()
@@ -203,6 +200,28 @@ namespace lsp
 
             void X11Display::do_destroy()
             {
+                // Cancel async tasks
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                {
+                    x11_async_t *task           = sAsync.get(i);
+                    if (!task->cb_common.bComplete)
+                    {
+                        task->result                = STATUS_CANCELLED;
+                        task->cb_common.bComplete   = true;
+                    }
+                }
+                complete_async_tasks();
+
+                // Drop clipboard data sources
+                for (size_t i=0; i<_CBUF_TOTAL; ++i)
+                {
+                    if (pCbOwner[i] != NULL)
+                    {
+                        pCbOwner[i]->release();
+                        pCbOwner[i] = NULL;
+                    }
+                }
+
                 // Perform resource release
                 for (size_t i=0; i< vWindows.size(); )
                 {
@@ -222,23 +241,6 @@ namespace lsp
                     hClipWnd = None;
                 }
 
-                size_t n            = sCbRequests.size();
-                for (size_t i=0; i < n; ++i)
-                {
-                    cb_request_t *req   = sCbRequests.at(i);
-
-                    // Remove the request
-                    if (req->pIn != NULL)
-                    {
-                        req->pIn->close();
-                        delete req->pIn;
-                        req->pIn = NULL;
-                    }
-                    if (req->pCB != NULL)
-                        req->pCB->close();
-                }
-
-                sCbRequests.flush();
                 vWindows.flush();
                 sPending.flush();
                 sGrab.clear();
@@ -428,25 +430,6 @@ namespace lsp
                     *(dst++)    = *(src++);
             }
 
-            X11Display::cb_request_t *X11Display::find_request(Window requestor, Atom selection, Time time)
-            {
-                size_t n    = sCbRequests.size();
-
-                for (size_t i=0; i<n; ++i)
-                {
-                    cb_request_t *r = sCbRequests.at(i);
-                    if (requestor != hClipWnd)
-                        continue;
-                    if (selection != r->hSelection)
-                        continue;
-                    if (time != r->nTime)
-                        continue;
-                    return r;
-                }
-
-                return NULL;
-            }
-
             X11Window *X11Display::find_window(Window wnd)
             {
                 size_t n    = vWindows.size();
@@ -511,7 +494,6 @@ namespace lsp
                         handle_property_notify(sc);
                         return true;
                     }
-
                     case SelectionClear:
                     {
                         // Free the corresponding data
@@ -519,53 +501,6 @@ namespace lsp
                         lsp_trace("XSelectionClearEvent for window 0x%lx, selection %ld", long(sc->window), long(sc->selection));
 
                         handle_selection_clear(sc);
-
-#if 0
-                        // Find the owner window
-                        if (sc->window != hClipWnd)
-                            return true;
-
-                        // Get clipboard buffer identifier
-                        size_t bufid;
-                        status_t res        = atom_to_bufid(sc->selection, &bufid);
-                        if (res != STATUS_OK)
-                            return true;
-
-                        // Clear the garbage
-                        IClipboard *cb      = pClipboard[bufid];
-                        if (cb == NULL)
-                            return true;
-                        else
-                            pClipboard[bufid]   = NULL;
-
-                        // Remove all requests related to this cb
-                        size_t n            = sCbRequests.size();
-                        for (size_t i=0; i < n; )
-                        {
-                            cb_request_t *req   = sCbRequests.at(i);
-                            if (req->pCB != cb)
-                            {
-                                ++i;
-                                continue;
-                            }
-
-                            // Remove the request
-                            if (req->pIn != NULL)
-                            {
-                                req->pIn->close();
-                                delete req->pIn;
-                                req->pIn = NULL;
-                            }
-                            if (req->pCB != NULL)
-                                req->pCB->close();
-
-                            sCbRequests.remove(i);
-                            --n;
-                        }
-
-                        // Close the clipboard object
-                        cb->close();
-#endif
                         return true;
                     }
                     case SelectionRequest:
@@ -579,159 +514,6 @@ namespace lsp
                                      long(sr->time));
 
                         handle_selection_request(sr);
-#if 0
-                        XEvent response;
-                        XSelectionEvent *se = &response.xselection;
-
-                        se->type        = SelectionNotify;
-                        se->send_event  = True;
-                        se->display     = pDisplay;
-                        se->requestor   = sr->requestor;
-                        se->selection   = sr->selection;
-                        se->target      = sr->target;
-                        se->property    = sr->property;
-                        se->time        = sr->time;
-
-                        // Get buffer identifier
-                        size_t bufid;
-                        status_t res        = atom_to_bufid(sr->selection, &bufid);
-
-                        // Find window
-                        IClipboard *cb      = ((res == STATUS_OK) && (sr->owner == hClipWnd)) ? pClipboard[bufid] : NULL;
-                        if (cb == NULL)
-                        {
-                            se->property        = None;
-                            XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
-                            XFlush(pDisplay);
-                            return true;
-                        }
-                        else
-                            cb->acquire();
-
-                        // Special case ?
-                        if (sr->target == sAtoms.X11_TARGETS)
-                        {
-                            size_t n_targets    = cb->targets();
-                            Atom *atoms         = reinterpret_cast<Atom *>(alloca(sizeof(Atom) * (n_targets + 1)));
-                            if (atoms == NULL)
-                            {
-                                se->property        = None;
-                                cb->close();
-                                XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
-                                XFlush(pDisplay);
-                                return true;
-                            }
-
-                            atoms[0]    = sAtoms.X11_TARGETS;
-                            for (size_t i=0; i<n_targets; ++i)
-                            {
-                                const char *target  = cb->target(i);
-                                atoms[i+1]  = XInternAtom(pDisplay, target, False);
-                                lsp_trace("Supported format: %s", XGetAtomName(pDisplay, atoms[i+1]));
-                            }
-
-                            // Update property and return
-                            XChangeProperty(
-                                pDisplay, // display
-                                sr->requestor, // window
-                                sr->property, // property
-                                sAtoms.X11_XA_ATOM, // type
-                                32, // format
-                                PropModeReplace, // mode
-                                reinterpret_cast<unsigned char *>(atoms), // data
-                                n_targets+1 // nelements
-                            );
-
-                            XFlush(pDisplay);
-
-                            // DEBUG start
-//                            {
-//                                Atom type, *targets;
-//                                int di;
-//                                unsigned long i, nitems, dul;
-//                                unsigned char *prop_ret = NULL;
-//                                char *an = NULL;
-//
-//                                XGetWindowProperty(pDisplay, sr->requestor, sr->property, 0, 1024 * sizeof (Atom), False, XA_ATOM,
-//                                                   &type, &di, &nitems, &dul, &prop_ret);
-//
-//                                lsp_trace("Targets (actual type = %d %s):", int(type), XGetAtomName(pDisplay, type));
-//                                targets = (Atom *)prop_ret;
-//                                for (i = 0; i < nitems; i++)
-//                                {
-//                                    lsp_trace("    id = %d", int(targets[i]));
-//                                    an = XGetAtomName(pDisplay, targets[i]);
-//                                    lsp_trace("    name '%s'", an);
-//                                    if (an)
-//                                        XFree(an);
-//                                }
-//                                XFree(prop_ret);
-//                            }
-                            // DEBUG end
-
-                            XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
-                            XFlush(pDisplay);
-
-                            cb->close();
-                            return true;
-                        }
-
-                        // Now get content type
-                        char *ctype             = XGetAtomName(pDisplay, sr->target);
-                        io::IInStream *is    = (ctype != NULL) ? cb->read(ctype) : NULL;
-                        lsp_trace("requested content type: %s", (ctype != NULL) ? ctype : "(null)");
-                        if (ctype != NULL)
-                            XFree(ctype);
-
-                        if (is == NULL)
-                        {
-                            lsp_trace("returned NULL input stream");
-                            cb->close();
-                            se->property        = None;
-                            XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
-                            XFlush(pDisplay);
-                            return true;
-                        }
-
-                        // The description of INCR protocol is here:
-                        // https://tronche.com/gui/x/icccm/sec-2.html#s-2.7.2
-                        if (is->avail() > 0x10000)
-                        {
-                            lsp_trace("Too large data, need INCR protocol implementation");
-
-                            se->property        = None;
-                            XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
-                            XFlush(pDisplay);
-
-                            is->close();
-                            cb->close();
-                            return true;
-                        }
-
-                        // Change property
-                        se->property    = sr->property;
-                        size_t count    = is->read(pIOBuf, X11IOBUF_SIZE);
-
-                        if (se->property == None)
-                            se->property        = XInternAtom(pDisplay, "LSP_SELECTION_DATA", False);
-                        lsp_trace("target property: %s, bytes=%d", XGetAtomName(pDisplay, se->property), int(count));
-
-                        XChangeProperty(
-                            pDisplay, // display
-                            sr->requestor, // window
-                            sr->property, // property
-                            sr->target, // type
-                            8, // format
-                            PropModeReplace, // mode
-                            reinterpret_cast<unsigned char *>(pIOBuf), // data
-                            count // nelements
-                        );
-
-                        XFlush(pDisplay);
-                        XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
-                        XFlush(pDisplay);
-                        cb->close();
-#endif
                         return true;
                     }
                     case SelectionNotify:
@@ -744,98 +526,6 @@ namespace lsp
                         if (aname != NULL)
                             ::XFree(aname);
                         handle_selection_notify(se);
-
-                        // Find the request (legacy code)
-
-                        cb_request_t *req   = find_request(se->requestor, se->selection, se->time);
-                        if (req == NULL)
-                            return true;
-
-                        if (se->property != req->hProperty)
-                        {
-                            // Close clipboard objects
-                            if (req->pCB != NULL)
-                                req->pCB->close();
-
-                            // Call handler and remove request
-                            req->pHandler(req->pArgument, STATUS_IO_ERROR, NULL);
-                            sCbRequests.remove(req);
-                            return true;
-                        }
-
-                        // Now we can append data of the event to the output stream
-                        Atom p_type = None;
-                        int p_fmt = 0;
-                        unsigned long p_nitems = 0, p_size = 0, p_offset = 0;
-                        unsigned char *p_data = NULL;
-                        status_t status = STATUS_OK;
-
-                        // Read with 64k chunks
-                        XGetWindowProperty(
-                            pDisplay, hClipWnd, req->hProperty,
-                            p_offset, X11IOBUF_SIZE/4, False, AnyPropertyType,
-                            &p_type, &p_fmt, &p_nitems, &p_size, &p_data
-                        );
-                        size_t multiplier = p_fmt / 8;
-
-                        do
-                        {
-                            // Analyze property type
-                            if (p_type == sAtoms.X11_INCR)
-                            {
-                                // Incremental change?
-                                lsp_error("Incremental mechanism not implemented currently");
-                                if (p_data != NULL)
-                                    XFree(p_data);
-                                status = STATUS_NOT_SUPPORTED;
-                                break;
-                            }
-                            else
-                            {
-                                // Compress data if format is 32
-                                if ((p_fmt == 32) && (sizeof(long) != 4))
-                                    compress_long_data(p_data, p_nitems);
-
-                                // Simply write contents
-                                size_t count = req->pCB->append(p_data, p_nitems * multiplier);
-                                if (count < (p_nitems * multiplier))
-                                {
-                                    status      = req->pCB->error_code();
-                                    break;
-                                }
-                            }
-
-                            // Free buffer and update read position
-                            if (p_data != NULL)
-                                XFree(p_data);
-                            p_offset       += p_nitems;
-                        } while ((p_size > 0) && (p_nitems > 0));
-
-                        // Remove the property
-                        ::XDeleteProperty(pDisplay, hClipWnd, req->hProperty);
-                        ::XFlush(pDisplay);
-
-                        // Check status
-                        if (status == STATUS_OK)
-                        {
-                            io::IInStream *is = req->pCB->read(NULL);
-                            if (is == NULL)
-                                req->pHandler(req->pArgument, req->pCB->error_code(), NULL);
-                            else
-                                req->pHandler(req->pArgument, STATUS_OK, is);
-
-                            // Close stream
-                            if (is != NULL)
-                                is->close();
-                        }
-                        else
-                            req->pHandler(req->pArgument, status, NULL);
-
-                        // Close clipboard storage object (will automatically delete self if there are no references)
-                        // Also deregister request
-                        if (req->pCB != NULL)
-                            req->pCB->close();
-                        sCbRequests.remove(req);
 
                         return true;
                     }
@@ -953,7 +643,7 @@ namespace lsp
                     }
                 }
 
-                complete_tasks();
+                complete_async_tasks();
             }
 
             void X11Display::handle_selection_clear(XSelectionClearEvent *ev)
@@ -1017,10 +707,10 @@ namespace lsp
                     }
                 }
 
-                complete_tasks();
+                complete_async_tasks();
             }
 
-            void X11Display::complete_tasks()
+            void X11Display::complete_async_tasks()
             {
                 for (size_t i=0; i<sAsync.size(); )
                 {
@@ -1372,7 +1062,7 @@ namespace lsp
                     task->result        = handle_selection_request(&task->cb_send, ev);
                 }
 
-                complete_tasks();
+                complete_async_tasks();
             }
 
             status_t X11Display::handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev)
@@ -2251,19 +1941,6 @@ namespace lsp
                 {
                     sprintf(prop_id, "LSP_SELECTION_%d", int(id));
                     Atom atom = XInternAtom(pDisplay, prop_id, False);
-
-                    // Check legacy clipboard requests
-                    for (size_t i=0, n=sCbRequests.size(); i<n; ++i)
-                    {
-                        cb_request_t *req = sCbRequests.at(i);
-                        if (req->hProperty == atom)
-                        {
-                            atom = None;
-                            break;
-                        }
-                    }
-                    if (atom == None)
-                        continue;
 
                     // Check pending async tasks
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
