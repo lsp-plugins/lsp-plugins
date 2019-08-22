@@ -15,6 +15,36 @@ namespace lsp
     namespace ctl
     {
         
+        CtlAudioFile::DataSink::DataSink(CtlAudioFile *file)
+        {
+            pFile       = file;
+        }
+
+        CtlAudioFile::DataSink::~DataSink()
+        {
+            unbind();
+        }
+
+        status_t CtlAudioFile::DataSink::on_complete(status_t code, const LSPString *data)
+        {
+            if ((code != STATUS_OK) || (pFile == NULL))
+                return STATUS_OK;
+
+            // Apply configuration
+            CtlConfigHandler dst;
+            LSP_STATUS_ASSERT(pFile->bind_ports(&dst));
+            LSP_STATUS_ASSERT(config::deserialize(data, &dst));
+
+            return STATUS_OK;
+        }
+
+        void CtlAudioFile::DataSink::unbind()
+        {
+            if (pFile != NULL)
+                pFile->pDataSink    = NULL;
+            pFile   = NULL;
+        }
+
         CtlAudioFile::CtlAudioFile(CtlRegistry *src, LSPAudioFile *af):
             CtlWidget(src, af),
             sMenu(af->display())
@@ -30,6 +60,7 @@ namespace lsp
             pFadeIn         = NULL;
             pFadeOut        = NULL;
             pPath           = NULL;
+            pDataSink       = NULL;
 
             for (size_t i=0; i<N_MENU_ITEMS; ++i)
                 vMenuItems[i]   = NULL;
@@ -406,30 +437,18 @@ namespace lsp
             if (af == NULL)
                 return STATUS_BAD_STATE;
 
-            return af->display()->fetch_clipboard(CBUF_CLIPBOARD, "UTF8_STRING", clipboard_handler, ctl);
-        }
+            // Fetch data from clipboard
+            DataSink *ds = new DataSink(ctl);
+            if (ds == NULL)
+                return STATUS_NO_MEM;
+            if (ctl->pDataSink != NULL)
+                ctl->pDataSink->unbind();
+            ctl->pDataSink = ds;
 
-        status_t CtlAudioFile::clipboard_handler(void *arg, status_t s, io::IInStream *is)
-        {
-            if (s != STATUS_OK)
-                return s;
-            else if (is == NULL)
-                return STATUS_BAD_STATE;
-
-            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(arg);
-            if (ctl == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
-            if (af == NULL)
-                return STATUS_BAD_STATE;
-
-            LSPString str;
-            CtlConfigHandler dst;
-
-            LSP_STATUS_ASSERT(ctl->bind_ports(&dst));
-            LSP_STATUS_ASSERT(config::load(is, &dst));
-
-            return STATUS_OK;
+            ds->acquire();
+            status_t res = af->display()->get_clipboard(CBUF_CLIPBOARD, ds);
+            ds->release();
+            return res;
         }
 
         status_t CtlAudioFile::bind_ports(CtlPortHandler *h)

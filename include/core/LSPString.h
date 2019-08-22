@@ -359,6 +359,8 @@ namespace lsp
             bool remove(ssize_t first);
             bool remove(ssize_t first, ssize_t last);
 
+            bool remove_last();
+
             /** Try to find substring in a string
              *
              * @param start start location to begin search

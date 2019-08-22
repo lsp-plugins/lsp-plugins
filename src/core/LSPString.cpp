@@ -787,6 +787,14 @@ namespace lsp
         return true;
     }
 
+    bool LSPString::remove_last()
+    {
+        if (nLength <= 0)
+            return false;
+        --nLength;
+        return true;
+    }
+
     void LSPString::reverse()
     {
         drop_temp();

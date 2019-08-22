@@ -200,6 +200,7 @@ namespace lsp
 #include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPTextClipboard.h>
 #include <ui/tk/util/LSPTextDataSource.h>
+#include <ui/tk/util/LSPTextDataSink.h>
 #include <ui/tk/util/LSPFileFilter.h>
 
 // Utilitary objects bound to widgets

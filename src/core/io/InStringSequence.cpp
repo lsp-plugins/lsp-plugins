@@ -81,19 +81,27 @@ namespace lsp
             if (pString == NULL)
                 return set_error(STATUS_CLOSED);
 
-            ssize_t idx = pString->index_of(nOffset, '\n');
-            if ((idx < 0) && (!force))
-                return set_error(STATUS_EOF);
+            ssize_t new_pos;
+            ssize_t idx     = pString->index_of(nOffset, '\n');
+
+            if (idx < 0)
+            {
+                if ((!force) || (nOffset >= pString->length()))
+                    return set_error(STATUS_EOF);
+                idx     = pString->length();
+                new_pos = idx;
+            }
+            else
+                new_pos = idx + 1;
 
             if (!s->set(pString, nOffset, idx))
                 return set_error(STATUS_NO_MEM);
 
-            ssize_t len = s->length();
-            if ((len--) > 0)
-            {
-                if (s->char_at(len) == '\r')
-                    s->set_length(len);
-            }
+            // Trim all '\r' symbols
+            if (s->last() == '\r')
+                s->remove_last();
+
+            nOffset     = new_pos;
 
             return set_error(STATUS_OK);
         }
