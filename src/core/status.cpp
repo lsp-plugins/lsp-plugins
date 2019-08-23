@@ -66,6 +66,7 @@ namespace lsp
         "No valid captures",
         "No valid sources",
         "Bad path",
+        "Protocol error",
 
         NULL
     };

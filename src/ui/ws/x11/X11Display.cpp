@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#define X11IOBUF_SIZE               0x1000
+#define X11IOBUF_SIZE               0x100000
 #define X11ERROR_HANDLER_HEADER     0x40
 
 namespace lsp
@@ -94,18 +94,21 @@ namespace lsp
 //XC_ul_angle,
 //XC_ur_angle,
 
+            volatile atomic_t X11Display::hLock     = 0;
+            X11Display  *X11Display::pHandlers      = NULL;
+
             X11Display::X11Display()
             {
+                pNextHandler    = NULL;
                 bExit           = false;
                 pDisplay        = NULL;
                 hRootWnd        = -1;
                 hClipWnd        = None;
                 nBlackColor     = 0;
                 nWhiteColor     = 0;
+                nIOBufSize      = X11IOBUF_SIZE;
                 pIOBuf          = NULL;
                 hDndSource      = None;
-                pCurrHandler    = NULL;
-                pOldHandler     = NULL;
 
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
                     pCbOwner[i]             = NULL;
@@ -119,7 +122,19 @@ namespace lsp
             int X11Display::init(int argc, const char **argv)
             {
                 // Enable multi-threading
-                XInitThreads();
+                ::XInitThreads();
+
+                // Set-up custom handler
+                while (true)
+                {
+                    if (atomic_cas(&hLock, 0, 1))
+                    {
+                        pNextHandler    = pHandlers;
+                        pHandlers       = this;
+                        hLock           = 0;
+                        break;
+                    }
+                }
 
                 // Open the display
                 pDisplay        = XOpenDisplay(NULL);
@@ -135,7 +150,17 @@ namespace lsp
                 nBlackColor     = BlackPixel(pDisplay, dfl);
                 nWhiteColor     = WhitePixel(pDisplay, dfl);
 
-                pIOBuf          = new uint8_t[X11IOBUF_SIZE];
+                // Allocate I/O buffer
+                nIOBufSize      = ::XExtendedMaxRequestSize(pDisplay) / 4;
+                if (nIOBufSize == 0)
+                    nIOBufSize      = ::XMaxRequestSize(pDisplay) / 4;
+                if (nIOBufSize == 0)
+                    nIOBufSize      = 0x1000; // Guaranteed IO buf size
+                if (nIOBufSize > X11IOBUF_SIZE)
+                    nIOBufSize      = X11IOBUF_SIZE;
+                pIOBuf          = reinterpret_cast<uint8_t *>(::malloc(nIOBufSize));
+                if (pIOBuf == NULL)
+                    return STATUS_NO_MEM;
 
                 // Create invisible clipboard window
                 hClipWnd        = ::XCreateWindow(pDisplay, hRootWnd, 0, 0, 1, 1, 0, 0, CopyFromParent, CopyFromParent, 0, NULL);
@@ -173,14 +198,17 @@ namespace lsp
                 return IDisplay::init(argc, argv);
             }
 
-            void X11Display::setup_handler()
+            int X11Display::x11_error_handler(Display *dpy, XErrorEvent *ev)
             {
+                while (!atomic_cas(&hLock, 0, 1)) { /* Wait */ }
 
-            }
+                // Dispatch errors between Displays
+                for (X11Display *dp = pHandlers; dp != NULL; ++dp)
+                    if (dp->pDisplay == dpy)
+                        dp->handle_error(ev);
 
-            void X11Display::remove_handler()
-            {
-                // TODO
+                hLock   = 0;
+                return 0;
             }
 
             INativeWindow *X11Display::createWindow()
@@ -260,15 +288,34 @@ namespace lsp
 
                 if (pIOBuf != NULL)
                 {
-                    delete [] pIOBuf;
+                    ::free(pIOBuf);
                     pIOBuf = NULL;
                 }
 
-                if (pDisplay != NULL)
+                Display *dpy = pDisplay;
+                if (dpy != NULL)
                 {
-                    XFlush(pDisplay);
-                    XCloseDisplay(pDisplay);
-                    pDisplay = NULL;
+                    pDisplay        = NULL;
+                    ::XFlush(dpy);
+                    ::XCloseDisplay(dpy);
+                }
+
+                // Remove custom handler
+                while (true)
+                {
+                    if (atomic_cas(&hLock, 0, 1))
+                    {
+                        X11Display **pd = &pHandlers;
+                        while (*pd != NULL)
+                        {
+                            if (*pd == this)
+                                *pd = (*pd)->pNextHandler;
+                            else
+                                pd  = &((*pd)->pNextHandler);
+                        }
+                        hLock   = 0;
+                        break;
+                    }
                 }
             }
 
@@ -560,7 +607,7 @@ namespace lsp
                     // Get window property
                     ::XGetWindowProperty(
                         pDisplay, hClipWnd, property,
-                        p_offset / 4, X11IOBUF_SIZE/4, False, ptype,
+                        p_offset / 4, nIOBufSize / 4, False, ptype,
                         type, &p_fmt, &p_nitems, &p_size, &p_data
                     );
 
@@ -711,7 +758,11 @@ namespace lsp
                         case X11ASYNC_CB_SEND:
                             if ((task->cb_send.hProperty == ev->atom) &&
                                 (task->cb_send.hRequestor == ev->window))
-                                task->result = handle_property_notify(&task->cb_send, ev);
+                            {
+                                status_t result = handle_property_notify(&task->cb_send, ev);
+                                if (task->result == STATUS_OK)
+                                    task->result    = result;
+                            }
                             break;
                         default:
                             break;
@@ -828,37 +879,33 @@ namespace lsp
                 if (avail < 0)
                 {
                     if (avail == -STATUS_NOT_IMPLEMENTED)
-                        avail = X11IOBUF_SIZE;
+                        avail = nIOBufSize;
                     else
                         return status_t(-avail);
                 }
-                else if (avail > 10) //X11IOBUF_SIZE)
-                    avail = 10; //X11IOBUF_SIZE;
-                else if (avail == 0)
+                else if (avail > nIOBufSize)
+                    avail = nIOBufSize;
+
+                // Override error handler
+                ::XSync(pDisplay, False);
+                XErrorHandler old = ::XSetErrorHandler(x11_error_handler);
+
+                if (avail == 0)
                 {
                     // Complete the transfer
                     ::XSelectInput(pDisplay, task->hRequestor, None);
-                    ::XFlush(pDisplay);
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace, NULL, 0
                     );
-                    ::XFlush(pDisplay);
+                    ::XSync(pDisplay, False);
+                    ::XSetErrorHandler(old);
                     task->bComplete = true;
                     return STATUS_OK;
                 }
 
-                // Allocate buffer and perform transfer
-                uint8_t *data   = reinterpret_cast<uint8_t *>(::malloc(avail));
-                if (data == NULL)
-                {
-                    ::XSelectInput(pDisplay, task->hRequestor, None);
-                    ::XFlush(pDisplay);
-                    return STATUS_NO_MEM;
-                }
-
                 // Read data from the stream
-                ssize_t nread   = task->pStream->read_fully(data, avail);
+                ssize_t nread   = task->pStream->read_fully(pIOBuf, avail);
                 status_t res    = STATUS_OK;
                 if (nread > 0)
                 {
@@ -866,13 +913,12 @@ namespace lsp
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace,
-                        reinterpret_cast<unsigned char *>(data), nread
+                        reinterpret_cast<unsigned char *>(pIOBuf), nread
                     );
                 }
                 else if ((nread == 0) || (nread == -STATUS_EOF))
                 {
                     ::XSelectInput(pDisplay, task->hRequestor, None);
-                    ::XFlush(pDisplay);
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace, NULL, 0
@@ -884,10 +930,8 @@ namespace lsp
                     ::XSelectInput(pDisplay, task->hRequestor, None);
                     res = status_t(-nread);
                 }
-                ::XFlush(pDisplay);
-
-                // Release the data and return
-                ::free(data);
+                ::XSync(pDisplay, False);
+                ::XSetErrorHandler(old);
 
                 return res;
             }
@@ -1150,9 +1194,9 @@ namespace lsp
                             // Determine the used method for transfer
                             wssize_t avail  = in->avail();
                             if (avail == -STATUS_NOT_IMPLEMENTED)
-                                avail = 2 * X11IOBUF_SIZE;
+                                avail = nIOBufSize << 1;
 
-                            if (avail > 10) //X11IOBUF_SIZE)
+                            if (avail > nIOBufSize)
                             {
                                 // Do incremental transfer
                                 task->pStream   = in;   // Save the stream
@@ -1167,34 +1211,26 @@ namespace lsp
                             }
                             else if (avail > 0)
                             {
-                                // One-time write()
-                                uint8_t *ptr    = reinterpret_cast<uint8_t *>(::malloc(avail));
-                                if (ptr != NULL)
-                                {
-                                    // Fetch data from stream
-                                    avail   = in->read_fully(ptr, avail);
-                                    if (avail == -STATUS_EOF)
-                                        avail   = 0;
+                                // Fetch data from stream
+                                avail   = in->read_fully(pIOBuf, avail);
+                                if (avail == -STATUS_EOF)
+                                    avail   = 0;
 
-                                    if (avail >= 0)
-                                    {
-                                        // All is OK, set the property and complete transfer
-                                        ::XChangeProperty(
-                                            pDisplay, task->hRequestor, task->hProperty,
-                                            task->hType, 8, PropModeReplace,
-                                            reinterpret_cast<unsigned char *>(ptr), avail
-                                        );
-                                        ::XFlush(pDisplay);
-                                        ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
-                                        ::XFlush(pDisplay);
-                                        task->bComplete = true;
-                                    }
-                                    else
-                                        res     = -avail;
-                                    ::free(ptr);
+                                if (avail >= 0)
+                                {
+                                    // All is OK, set the property and complete transfer
+                                    ::XChangeProperty(
+                                        pDisplay, task->hRequestor, task->hProperty,
+                                        task->hType, 8, PropModeReplace,
+                                        reinterpret_cast<unsigned char *>(pIOBuf), avail
+                                    );
+                                    ::XFlush(pDisplay);
+                                    ::XSendEvent(pDisplay, ev->requestor, True, NoEventMask, &response);
+                                    ::XFlush(pDisplay);
+                                    task->bComplete = true;
                                 }
                                 else
-                                    res = STATUS_NO_MEM;
+                                    res     = -avail;
 
                                 // Close the stream
                                 in->close();
@@ -1638,10 +1674,10 @@ namespace lsp
 
                 do
                 {
-                    // Read with 64k chunks
-                    XGetWindowProperty(
+                    // Read with chunks
+                    ::XGetWindowProperty(
                         pDisplay, ev->data.l[0], sAtoms.X11_XdndTypeList,
-                        p_offset, X11IOBUF_SIZE/4, False, sAtoms.X11_XA_ATOM,
+                        p_offset, nIOBufSize / 4, False, sAtoms.X11_XA_ATOM,
                         &p_type, &p_fmt, &p_nitems, &p_size, &p_data
                     );
 
@@ -2137,9 +2173,32 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            bool X11Display::handle_error(Display *dpy, XErrorEvent *ev)
+            void X11Display::handle_error(XErrorEvent *ev)
             {
-                return false;
+                if (ev->error_code == BadWindow)
+                {
+                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    {
+                        // Skip completed tasks
+                        x11_async_t *task   = sAsync.at(i);
+                        if (task->cb_common.bComplete)
+                            continue;
+
+                        switch (task->type)
+                        {
+                            case X11ASYNC_CB_SEND:
+                                if (task->cb_send.hRequestor == ev->resourceid)
+                                {
+                                    task->cb_send.bComplete = true;
+                                    task->result            = STATUS_PROTOCOL_ERROR;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+
             }
 
         } /* namespace x11 */

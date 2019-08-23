@@ -13,6 +13,7 @@
 #endif /* UI_X11_WS_H_INCL_ */
 
 #include <time.h>
+#include <dsp/atomic.h>
 #include <data/cvector.h>
 
 namespace lsp
@@ -92,6 +93,13 @@ namespace lsp
                         };
                     } x11_async_t;
 
+                private:
+                    static volatile atomic_t    hLock;
+                    static X11Display          *pHandlers;
+                    X11Display                 *pNextHandler;
+
+                    static int x11_error_handler(Display *dpy, XErrorEvent *ev);
+
                 protected:
                     volatile bool   bExit;
                     Display        *pDisplay;
@@ -101,11 +109,9 @@ namespace lsp
                     int             nWhiteColor;
                     x11_atoms_t     sAtoms;
                     Cursor          vCursors[__MP_COUNT];
+                    size_t          nIOBufSize;
                     uint8_t        *pIOBuf;
                     IDataSource    *pCbOwner[_CBUF_TOTAL];
-
-                    XErrorHandler           pCurrHandler;
-                    XErrorHandler           pOldHandler;
 
                     cstorage<dtask_t>       sPending;
                     cvector<X11Window>      vWindows;
@@ -148,8 +154,6 @@ namespace lsp
                     status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
                     void            complete_async_tasks();
-                    void            setup_handler();
-                    void            remove_handler();
 
                 public:
                     explicit X11Display();
@@ -176,7 +180,7 @@ namespace lsp
                     virtual status_t setClipboard(size_t id, IDataSource *ds);
                     virtual status_t getClipboard(size_t id, IDataSink *dst);
 
-                    bool    handle_error(Display *dpy, XErrorEvent *ev);
+                    void                handle_error(XErrorEvent *ev);
 
                 public:
                     bool                addWindow(X11Window *wnd);
