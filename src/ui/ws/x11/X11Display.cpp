@@ -14,7 +14,6 @@
 #include <stdlib.h>
 
 #define X11IOBUF_SIZE               0x100000
-#define X11ERROR_HANDLER_HEADER     0x40
 
 namespace lsp
 {
@@ -883,7 +882,7 @@ namespace lsp
                     else
                         return status_t(-avail);
                 }
-                else if (avail > nIOBufSize)
+                else if (avail > ssize_t(nIOBufSize))
                     avail = nIOBufSize;
 
                 // Override error handler
@@ -1196,7 +1195,7 @@ namespace lsp
                             if (avail == -STATUS_NOT_IMPLEMENTED)
                                 avail = nIOBufSize << 1;
 
-                            if (avail > nIOBufSize)
+                            if (avail > ssize_t(nIOBufSize))
                             {
                                 // Do incremental transfer
                                 task->pStream   = in;   // Save the stream
