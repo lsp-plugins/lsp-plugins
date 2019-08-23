@@ -54,7 +54,7 @@ namespace lsp
                 }
 
                 left   -= act_read;
-                dst    += act_read;
+                ptr    += act_read;
             }
 
             return count - left;

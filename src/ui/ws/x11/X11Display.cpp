@@ -13,7 +13,8 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#define X11IOBUF_SIZE       0x1000
+#define X11IOBUF_SIZE               0x1000
+#define X11ERROR_HANDLER_HEADER     0x40
 
 namespace lsp
 {
@@ -93,8 +94,6 @@ namespace lsp
 //XC_ul_angle,
 //XC_ur_angle,
 
-
-
             X11Display::X11Display()
             {
                 bExit           = false;
@@ -105,6 +104,8 @@ namespace lsp
                 nWhiteColor     = 0;
                 pIOBuf          = NULL;
                 hDndSource      = None;
+                pCurrHandler    = NULL;
+                pOldHandler     = NULL;
 
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
                     pCbOwner[i]             = NULL;
@@ -170,6 +171,16 @@ namespace lsp
                 }
 
                 return IDisplay::init(argc, argv);
+            }
+
+            void X11Display::setup_handler()
+            {
+
+            }
+
+            void X11Display::remove_handler()
+            {
+                // TODO
             }
 
             INativeWindow *X11Display::createWindow()
@@ -489,7 +500,7 @@ namespace lsp
                     {
                         XPropertyEvent *sc          = &ev->xproperty;
                         char *name                  = ::XGetAtomName(pDisplay, sc->atom);
-                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld (%s)", long(sc->window), long(sc->atom), name);
+                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld (%s), state=%d", long(sc->window), long(sc->atom), name, int(sc->state));
                         ::XFree(name);
                         handle_property_notify(sc);
                         return true;
@@ -821,12 +832,13 @@ namespace lsp
                     else
                         return status_t(-avail);
                 }
-                else if (avail > X11IOBUF_SIZE)
-                    avail = X11IOBUF_SIZE;
+                else if (avail > 10) //X11IOBUF_SIZE)
+                    avail = 10; //X11IOBUF_SIZE;
                 else if (avail == 0)
                 {
                     // Complete the transfer
                     ::XSelectInput(pDisplay, task->hRequestor, None);
+                    ::XFlush(pDisplay);
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace, NULL, 0
@@ -860,6 +872,7 @@ namespace lsp
                 else if ((nread == 0) || (nread == -STATUS_EOF))
                 {
                     ::XSelectInput(pDisplay, task->hRequestor, None);
+                    ::XFlush(pDisplay);
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace, NULL, 0
@@ -1139,7 +1152,7 @@ namespace lsp
                             if (avail == -STATUS_NOT_IMPLEMENTED)
                                 avail = 2 * X11IOBUF_SIZE;
 
-                            if (avail > X11IOBUF_SIZE)
+                            if (avail > 10) //X11IOBUF_SIZE)
                             {
                                 // Do incremental transfer
                                 task->pStream   = in;   // Save the stream
@@ -2122,6 +2135,11 @@ namespace lsp
                 ::XFlush(pDisplay);
 
                 return STATUS_OK;
+            }
+
+            bool X11Display::handle_error(Display *dpy, XErrorEvent *ev)
+            {
+                return false;
             }
 
         } /* namespace x11 */

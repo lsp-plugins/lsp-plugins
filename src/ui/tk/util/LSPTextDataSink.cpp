@@ -1,5 +1,5 @@
 /*
- * LSPDataSink.cpp
+ * LSPTextDataSink.cpp
  *
  *  Created on: 22 авг. 2019 г.
  *      Author: sadko

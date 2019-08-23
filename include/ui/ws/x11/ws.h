@@ -38,6 +38,7 @@
     // Include specific libraries
     #define UI_X11_WS_H_INCL_
         #include <ui/ws/x11/decode.h>
+        #include <ui/ws/x11/handler.h>
         #include <ui/ws/x11/X11Atoms.h>
         #include <ui/ws/x11/X11CairoGradient.h>
         #include <ui/ws/x11/X11CairoSurface.h>

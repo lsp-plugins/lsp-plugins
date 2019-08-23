@@ -104,6 +104,9 @@ namespace lsp
                     uint8_t        *pIOBuf;
                     IDataSource    *pCbOwner[_CBUF_TOTAL];
 
+                    XErrorHandler           pCurrHandler;
+                    XErrorHandler           pOldHandler;
+
                     cstorage<dtask_t>       sPending;
                     cvector<X11Window>      vWindows;
                     cvector<X11Window>      sGrab;
@@ -145,6 +148,8 @@ namespace lsp
                     status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
                     status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
                     void            complete_async_tasks();
+                    void            setup_handler();
+                    void            remove_handler();
 
                 public:
                     explicit X11Display();
@@ -170,6 +175,8 @@ namespace lsp
 
                     virtual status_t setClipboard(size_t id, IDataSource *ds);
                     virtual status_t getClipboard(size_t id, IDataSink *dst);
+
+                    bool    handle_error(Display *dpy, XErrorEvent *ev);
 
                 public:
                     bool                addWindow(X11Window *wnd);
