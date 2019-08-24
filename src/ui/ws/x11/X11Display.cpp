@@ -546,7 +546,7 @@ namespace lsp
                     {
                         XPropertyEvent *sc          = &ev->xproperty;
                         char *name                  = ::XGetAtomName(pDisplay, sc->atom);
-                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld (%s), state=%d", long(sc->window), long(sc->atom), name, int(sc->state));
+//                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld (%s), state=%d", long(sc->window), long(sc->atom), name, int(sc->state));
                         ::XFree(name);
                         handle_property_notify(sc);
                         return true;
@@ -873,62 +873,37 @@ namespace lsp
                 if ((ev->state != PropertyDelete) || (task->pStream == NULL))
                     return STATUS_OK;
 
-                // How many bytes are available?
-                wssize_t avail  = task->pStream->avail();
-                if (avail < 0)
-                {
-                    if (avail == -STATUS_NOT_IMPLEMENTED)
-                        avail = nIOBufSize;
-                    else
-                        return status_t(-avail);
-                }
-                else if (avail > ssize_t(nIOBufSize))
-                    avail = nIOBufSize;
-
                 // Override error handler
                 ::XSync(pDisplay, False);
                 XErrorHandler old = ::XSetErrorHandler(x11_error_handler);
 
-                if (avail == 0)
-                {
-                    // Complete the transfer
-                    ::XSelectInput(pDisplay, task->hRequestor, None);
-                    ::XChangeProperty(
-                        pDisplay, task->hRequestor, task->hProperty,
-                        task->hType, 8, PropModeReplace, NULL, 0
-                    );
-                    ::XSync(pDisplay, False);
-                    ::XSetErrorHandler(old);
-                    task->bComplete = true;
-                    return STATUS_OK;
-                }
-
                 // Read data from the stream
-                ssize_t nread   = task->pStream->read_fully(pIOBuf, avail);
+                ssize_t nread   = task->pStream->read_fully(pIOBuf, nIOBufSize);
                 status_t res    = STATUS_OK;
                 if (nread > 0)
                 {
                     // Write the property to re requestor
+                    lsp_trace("Sending %d bytes as incremental chunk to consumer", int(nread));
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace,
                         reinterpret_cast<unsigned char *>(pIOBuf), nread
                     );
                 }
-                else if ((nread == 0) || (nread == -STATUS_EOF))
+                else
                 {
+                    if ((nread < 0) && (nread != -STATUS_EOF))
+                        res = -nread;
+                    task->bComplete = true;
+
+                    lsp_trace("Completing INCR transfer, result is %d", int(res));
                     ::XSelectInput(pDisplay, task->hRequestor, None);
                     ::XChangeProperty(
                         pDisplay, task->hRequestor, task->hProperty,
                         task->hType, 8, PropModeReplace, NULL, 0
                     );
-                    task->bComplete = true;
                 }
-                else
-                {
-                    ::XSelectInput(pDisplay, task->hRequestor, None);
-                    res = status_t(-nread);
-                }
+
                 ::XSync(pDisplay, False);
                 ::XSetErrorHandler(old);
 
@@ -1198,6 +1173,7 @@ namespace lsp
                             if (avail > ssize_t(nIOBufSize))
                             {
                                 // Do incremental transfer
+                                lsp_trace("Initiating incremental transfer");
                                 task->pStream   = in;   // Save the stream
                                 ::XSelectInput(pDisplay, task->hRequestor, PropertyChangeMask);
                                 ::XChangeProperty(
@@ -1217,6 +1193,8 @@ namespace lsp
 
                                 if (avail >= 0)
                                 {
+                                    lsp_trace("Read %ld bytes, transmitting directly to consumer", long(avail));
+
                                     // All is OK, set the property and complete transfer
                                     ::XChangeProperty(
                                         pDisplay, task->hRequestor, task->hProperty,
@@ -2174,6 +2152,34 @@ namespace lsp
 
             void X11Display::handle_error(XErrorEvent *ev)
             {
+#ifdef LSP_TRACE
+                const char *error = "Unknown";
+
+                switch (ev->error_code)
+                {
+                #define DE(name) case name: error = #name; break;
+                    DE(BadRequest)
+                    DE(BadValue)
+                    DE(BadWindow)
+                    DE(BadPixmap)
+                    DE(BadAtom)
+                    DE(BadCursor)
+                    DE(BadFont)
+                    DE(BadDrawable)
+                    DE(BadAccess)
+                    DE(BadAlloc)
+                    DE(BadColor)
+                    DE(BadGC)
+                    DE(BadIDChoice)
+                    DE(BadName)
+                    DE(BadLength)
+                    DE(BadImplementation)
+                    default: break;
+                #undef DE
+                }
+                lsp_trace("error: code=%d (%s), serial=%ld, request=%d, minor=%d",
+                        int(ev->error_code), error, ev->serial, int(ev->request_code), int(ev->minor_code));
+#endif
                 if (ev->error_code == BadWindow)
                 {
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
