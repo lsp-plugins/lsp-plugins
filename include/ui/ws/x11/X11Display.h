@@ -44,12 +44,19 @@ namespace lsp
                         CB_RECV_INCR
                     };
 
+                    enum x11_dnd_recv_states
+                    {
+                        DND_RECV_PENDING,
+                        DND_RECV_ACCEPT,
+                        DND_RECV_SIMPLE,
+                        DND_RECV_INCR
+                    };
+
                     enum x11_drag_states
                     {
                         X11DRAG_IDLE,
                         X11DRAG_ACTIVE,
-                        X11DRAG_POSITION,
-                        X11DRAG_DROP
+                        X11DRAG_POSITION
                     };
 
                     typedef struct wnd_lock_t
@@ -86,6 +93,13 @@ namespace lsp
 
                     typedef struct dnd_recv_t: public cb_common_t
                     {
+                        Window              hTarget;
+                        Window              hSource;
+                        Atom                hSelection;
+                        Atom                hType;
+                        x11_dnd_recv_states enState;
+                        IDataSink          *pSink;
+                        Atom                hAction;
                     } dnd_recv_t;
 
                     typedef struct x11_async_t
@@ -132,6 +146,7 @@ namespace lsp
                     Window                  hDndSource;
                     Window                  hDndTarget;
                     Atom                    hDndAction;
+                    IDataSink              *pDndSink;
                     cvector<char>           vDndMimeTypes;
 
                 protected:
@@ -157,6 +172,7 @@ namespace lsp
                     void            handle_property_notify(XPropertyEvent *ev);
                     status_t        handle_property_notify(cb_recv_t *task, XPropertyEvent *ev);
                     status_t        handle_property_notify(cb_send_t *task, XPropertyEvent *ev);
+                    status_t        handle_property_notify(dnd_recv_t *task, XPropertyEvent *ev);
 
                     void            handle_selection_notify(XSelectionEvent *ev);
                     status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev);
@@ -200,7 +216,7 @@ namespace lsp
                     virtual const char * const *getDragContentTypes();
 
                     virtual status_t    denyDrag();
-                    virtual status_t    acceptDrag(drag_t action, bool internal, const realize_t *r);
+                    virtual status_t    acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
 
                     void                handle_error(XErrorEvent *ev);
 

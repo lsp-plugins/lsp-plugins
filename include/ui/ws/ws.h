@@ -175,7 +175,6 @@ namespace lsp
             UIE_DRAG_ENTER,
             UIE_DRAG_LEAVE,
             UIE_DRAG_REQUEST,
-            UIE_DRAG_DROP,
 
             UIE_TOTAL,
             UIE_FIRST = UIE_KEY_DOWN,

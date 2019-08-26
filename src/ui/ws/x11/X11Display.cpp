@@ -112,6 +112,7 @@ namespace lsp
                 hDndSource      = None;
                 hDndTarget      = None;
                 hDndAction      = None;
+                pDndSink        = NULL;
 
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
                     pCbOwner[i]             = NULL;
@@ -703,8 +704,6 @@ namespace lsp
                             break;
                     }
                 }
-
-                complete_async_tasks();
             }
 
             void X11Display::handle_selection_clear(XSelectionClearEvent *ev)
@@ -758,6 +757,10 @@ namespace lsp
                             if (task->cb_recv.hProperty == ev->atom)
                                 task->result = handle_property_notify(&task->cb_recv, ev);
                             break;
+                        case X11ASYNC_DND_RECV:
+                            if (task->dnd_recv.hProperty == ev->atom)
+                                task->result = handle_property_notify(&task->dnd_recv, ev);
+                            break;
                         case X11ASYNC_CB_SEND:
                             if ((task->cb_send.hProperty == ev->atom) &&
                                 (task->cb_send.hRequestor == ev->window))
@@ -771,8 +774,6 @@ namespace lsp
                             break;
                     }
                 }
-
-                complete_async_tasks();
             }
 
             void X11Display::complete_async_tasks()
@@ -837,6 +838,55 @@ namespace lsp
                         if (ev->state == PropertyNewValue)
                         {
                             res = read_property(hClipWnd, task->hProperty, task->hType, &data, &bytes, &type);
+                            if (res == STATUS_OK)
+                            {
+                                // Check property type
+                                if (bytes <= 0) // End of transfer?
+                                {
+                                    // Complete the INCR transfer
+                                    task->pSink->close(res);
+                                    task->bComplete = true;
+                                }
+                                else if (type == task->hType)
+                                {
+                                    res = task->pSink->write(data, bytes); // Append data to the sink
+                                    ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                                    ::XFlush(pDisplay);
+                                }
+                                else
+                                    res     = STATUS_UNSUPPORTED_FORMAT;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+
+                // Free allocated data
+                if (data != NULL)
+                    ::free(data);
+
+                return res;
+            }
+
+            status_t X11Display::handle_property_notify(dnd_recv_t *task, XPropertyEvent *ev)
+            {
+                status_t res    = STATUS_OK;
+                uint8_t *data   = NULL;
+                size_t bytes    = 0;
+                Atom type       = None;
+
+                switch (task->enState)
+                {
+                    case CB_RECV_INCR:
+                    {
+                        // Read incrementally property contents
+                        if (ev->state == PropertyNewValue)
+                        {
+                            res = read_property(task->hTarget, task->hProperty, task->hType, &data, &bytes, &type);
                             if (res == STATUS_OK)
                             {
                                 // Check property type
@@ -1096,8 +1146,6 @@ namespace lsp
                     // Call for processing
                     task->result        = handle_selection_request(&task->cb_send, ev);
                 }
-
-                complete_async_tasks();
             }
 
             status_t X11Display::handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev)
@@ -1239,10 +1287,16 @@ namespace lsp
 
                 // Special case for buffers
                 if (handle_clipboard_event(ev))
+                {
+                    complete_async_tasks();
                     return;
+                }
 
                 if (handle_drag_event(ev))
+                {
+                    complete_async_tasks();
                     return;
+                }
 
 //                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
 //                    int(ev->type), event_name(ev->type), long(ev->xany.serial), int(ev->xany.window));
@@ -1694,6 +1748,15 @@ namespace lsp
                 lsp_trace("Received XdndLeave");
                 enDndState          = X11DRAG_IDLE;
                 hDndSource          = None;
+                hDndTarget          = None;
+                hDndAction          = None;
+                drop_mime_types(&vDndMimeTypes);
+
+                if (pDndSink != NULL)
+                {
+                    pDndSink->release();
+                    pDndSink        = NULL;
+                }
 
                 // Find target window
                 X11Window *tgt  = find_window(ev->window);
@@ -1726,8 +1789,8 @@ namespace lsp
                    data.l[4] contains the action requested by the user. (new in version 2)
                 */
 
-                int x = (ev->data.l[2] >> 16), y = (ev->data.l[2] & 0xffff);
-                Window wnd = ev->data.l[0], child = None;
+                int x               = (ev->data.l[2] >> 16), y = (ev->data.l[2] & 0xffff);
+                Window wnd          = ev->data.l[0], child = None;
                 Atom act            = ev->data.l[4];
 
                 #ifdef LSP_TRACE
@@ -1743,7 +1806,9 @@ namespace lsp
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
 
+                ::XSync(pDisplay, False);
                 ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
+                ::XSync(pDisplay, False);
                 enDndState          = X11DRAG_POSITION;
                 hDndSource          = wnd;
                 hDndTarget          = ev->window;
@@ -1799,18 +1864,105 @@ namespace lsp
                     return STATUS_NOT_FOUND;
 
                 hDndTarget          = ev->window;
-                enDndState          = X11DRAG_DROP;
+                status_t res        = STATUS_OK;
 
-                ws_event_t ue;
-                ue.nType            = UIE_DRAG_DROP;
-                ue.nLeft            = 0;
-                ue.nTop             = 0;
-                ue.nWidth           = 0;
-                ue.nHeight          = 0;
-                ue.nCode            = 0;
-                ue.nTime            = ev->data.l[2];
+                if (pDndSink != NULL)
+                {
+                    pDndSink->acquire();
 
-                return tgt->handle_event(&ue);
+                    ssize_t index = pDndSink->open(vDndMimeTypes.get_array());
+                    if (index >= 0)
+                    {
+                        const char *mime = vDndMimeTypes.get(index);
+                        if (mime != NULL)
+                        {
+                            // Generate property identifier
+                            Atom prop_id = gen_selection_id();
+                            if (prop_id != None)
+                            {
+                                // Create async task
+                                x11_async_t *task   = sAsync.add();
+                                if (task != NULL)
+                                {
+                                    task->type          = X11ASYNC_DND_RECV;
+                                    task->result        = STATUS_OK;
+
+                                    dnd_recv_t *param   = &task->dnd_recv;
+                                    param->bComplete    = false;
+                                    param->hProperty    = prop_id;
+                                    param->hSelection   = sAtoms.X11_XdndSelection;
+                                    param->hType        = None;
+                                    param->enState      = DND_RECV_SIMPLE;
+                                    param->pSink        = pDndSink;
+                                    param->hAction      = hDndAction;
+
+                                    // Request selection conversion and return
+                                    ::XConvertSelection(pDisplay, sAtoms.X11_XdndSelection,
+                                            sAtoms.X11_TARGETS, prop_id, hClipWnd, CurrentTime);
+                                    ::XFlush(pDisplay);
+
+                                    return STATUS_OK;
+                                }
+                                else
+                                    res = STATUS_NO_MEM;
+                            }
+                            else
+                                res = STATUS_UNKNOWN_ERR;
+                        }
+                        else
+                            res = STATUS_BAD_TYPE;
+                        pDndSink->close(res);
+                    }
+                    else
+                        res = -index;
+
+                    pDndSink->release();
+                }
+
+                /**
+                XdndFinished (new in version 2)
+
+                Sent from target to source to indicate that the source can toss the data
+                because the target no longer needs access to it.
+
+                    data.l[0] contains the XID of the target window.
+                    data.l[1]:
+                        Bit 0 is set if the current target accepted the drop and successfully
+                        performed the accepted drop action. (new in version 5)
+                        (If the version being used by the source is less than 5, then the program
+                        should proceed as if the bit were set, regardless of its actual value.)
+                        The rest of the bits are reserved for future use.
+                    data.l[2] contains the action performed by the target. None should be sent if the
+                        current target rejected the drop, i.e., when bit 0 of data.l[1]
+                        is zero. (new in version 5) (Note: Performing an action other than the
+                        one that was accepted with the last XdndStatus message is strongly discouraged
+                        because the user expects the action to match the visual feedback that
+                        was given based on the XdndStatus messages!)
+                */
+
+                // Send end of transfer if status is bad
+                lsp_trace("Sending XdndFinished");
+
+                XEvent xev;
+                XClientMessageEvent *xe = &xev.xclient;
+                xe->type            = ClientMessage;
+                xe->serial          = 0;
+                xe->send_event      = True;
+                xe->display         = pDisplay;
+                xe->window          = hDndSource;
+                xe->message_type    = sAtoms.X11_XdndFinished;
+                xe->format          = 32;
+                xe->data.l[0]       = hDndTarget;
+                xe->data.l[1]       = 0;
+                xe->data.l[2]       = None;
+                xe->data.l[3]       = 0;
+                xe->data.l[4]       = 0;
+
+                // Send the notification event
+                ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
+                ::XFlush(pDisplay);
+
+                return res;
             }
 
             void X11Display::drop_mime_types(cvector<char> *ctype)
@@ -2154,6 +2306,74 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            status_t X11Display::getClipboard(size_t id, IDataSink *dst)
+            {
+                // Acquire data sink
+                if (dst == NULL)
+                    return STATUS_BAD_ARGUMENTS;
+                dst->acquire();
+
+                // Convert clipboard type to atom
+                Atom sel_id;
+                status_t result = bufid_to_atom(id, &sel_id);
+                if (result != STATUS_OK)
+                {
+                    dst->release();
+                    return STATUS_BAD_ARGUMENTS;
+                }
+
+                // First, check that it's our window to avoid X11 transfers
+                Window wnd  = ::XGetSelectionOwner(pDisplay, sel_id);
+                if (wnd == hClipWnd)
+                {
+                    // Perform direct data transfer because we're owner of the selection
+                    result = (pCbOwner[id] != NULL) ?
+                            sink_data_source(dst, pCbOwner[id]) : STATUS_NO_DATA;
+                    dst->release();
+                    return result;
+                }
+
+                // Release previously used placeholder
+                if (pCbOwner[id] != NULL)
+                {
+                    pCbOwner[id]->release();
+                    pCbOwner[id]    = NULL;
+                }
+
+                // Generate property identifier
+                Atom prop_id = gen_selection_id();
+                if (prop_id == None)
+                {
+                    dst->release();
+                    return STATUS_UNKNOWN_ERR;
+                }
+
+                // Create async task
+                x11_async_t *task   = sAsync.add();
+                if (task == NULL)
+                {
+                    dst->release();
+                    return STATUS_NO_MEM;
+                }
+
+                task->type          = X11ASYNC_CB_RECV;
+                task->result        = STATUS_OK;
+
+                cb_recv_t *param    = &task->cb_recv;
+                param->bComplete    = false;
+                param->hProperty    = prop_id;
+                param->hSelection   = sel_id;
+                param->hType        = None;
+                param->enState      = CB_RECV_CTYPE;
+                param->pSink        = dst;
+
+                // Request conversion
+                ::XConvertSelection(pDisplay, sel_id, sAtoms.X11_TARGETS, prop_id, hClipWnd, CurrentTime);
+                ::XFlush(pDisplay);
+
+                return STATUS_OK;
+            }
+
             status_t X11Display::sink_data_source(IDataSink *dst, IDataSource *src)
             {
                 status_t result = STATUS_OK;
@@ -2212,65 +2432,6 @@ namespace lsp
                 src->release();
 
                 return result;
-            }
-
-            status_t X11Display::getClipboard(size_t id, IDataSink *dst)
-            {
-                // Acquire data sink
-                if (dst == NULL)
-                    return STATUS_BAD_ARGUMENTS;
-                dst->acquire();
-
-                // Convert clipboard type to atom
-                Atom sel_id;
-                status_t result = bufid_to_atom(id, &sel_id);
-                if (result != STATUS_OK)
-                {
-                    dst->release();
-                    return STATUS_BAD_ARGUMENTS;
-                }
-
-                // First, check that it's our window to avoid X11 transfers
-                Window wnd  = ::XGetSelectionOwner(pDisplay, sel_id);
-                if (wnd == hClipWnd)
-                {
-                    // Perform direct data transfer because we're owner of the selection
-                    result = (pCbOwner[id] != NULL) ?
-                            sink_data_source(dst, pCbOwner[id]) : STATUS_NO_DATA;
-                    dst->release();
-                    return result;
-                }
-
-                // Release previously used placeholder
-                if (pCbOwner[id] != NULL)
-                {
-                    pCbOwner[id]->release();
-                    pCbOwner[id]    = NULL;
-                }
-
-                // Generate property identifier
-                Atom prop_id = gen_selection_id();
-                if (prop_id == None)
-                    return STATUS_UNKNOWN_ERR;
-
-                // Create async task
-                x11_async_t *task   = sAsync.add();
-                task->type          = X11ASYNC_CB_RECV;
-                task->result        = STATUS_OK;
-
-                cb_recv_t *param    = &task->cb_recv;
-                param->bComplete    = false;
-                param->hProperty    = prop_id;
-                param->hSelection   = sel_id;
-                param->hType        = None;
-                param->enState      = CB_RECV_CTYPE;
-                param->pSink        = dst;
-
-                // Request conversion
-                ::XConvertSelection(pDisplay, sel_id, sAtoms.X11_TARGETS, prop_id, hClipWnd, CurrentTime);
-                ::XFlush(pDisplay);
-
-                return STATUS_OK;
             }
 
             void X11Display::handle_error(XErrorEvent *ev)
@@ -2385,7 +2546,7 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            status_t X11Display::acceptDrag(drag_t action, bool internal, const realize_t *r)
+            status_t X11Display::acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
             {
                 /**
                 XdndStatus
@@ -2443,6 +2604,20 @@ namespace lsp
                 if (r == NULL)
                     internal            = false;
 
+                // Translate window coordinates
+                int x, y;
+                if (r != NULL)
+                {
+                    Window child = None;
+                    if ((r->nWidth < 0) || (r->nWidth >= 0x10000) || (r->nHeight < 0) || (r->nHeight > 0x10000))
+                        return STATUS_INVALID_VALUE;
+                    ::XTranslateCoordinates(pDisplay, hDndTarget, hRootWnd, r->nLeft, r->nTop, &x, &y, &child);
+                    ::XSync(pDisplay, False);
+                    if ((x < 0) || (x >= 0x10000) || (y < 0) || (y >= 0x10000))
+                        return STATUS_INVALID_VALUE;
+                }
+
+                // Form the message
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
                 ev->type            = ClientMessage;
@@ -2456,8 +2631,8 @@ namespace lsp
                 ev->data.l[1]       = 1 | ((internal) ? (1 << 1) : 0);
                 if (r != NULL)
                 {
-                    ev->data.l[2]       = ((r->nLeft  & 0xffff) << 16) | (r->nTop    & 0xffff);
-                    ev->data.l[3]       = ((r->nWidth & 0xffff) << 16) | (r->nHeight & 0xffff);
+                    ev->data.l[2]       = (x << 16) | y;
+                    ev->data.l[3]       = (r->nWidth << 16) | r->nHeight;
                 }
                 else
                 {
@@ -2465,6 +2640,13 @@ namespace lsp
                     ev->data.l[3]       = 0;
                 }
                 ev->data.l[4]       = act;
+
+                // Rewrite sink
+                if (sink != NULL)
+                    sink->acquire();
+                if (pDndSink != NULL)
+                    pDndSink->release();
+                pDndSink    = sink;
 
                 // Send the response
                 ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
