@@ -136,7 +136,7 @@ namespace lsp
                 }
 
                 // Open the display
-                pDisplay        = XOpenDisplay(NULL);
+                pDisplay        = ::XOpenDisplay(NULL);
                 if (pDisplay == NULL)
                 {
                     lsp_error("Can not open display");
@@ -184,14 +184,14 @@ namespace lsp
                         char data[1] = {0};
 
                         /* make a blank cursor */
-                        blank = XCreateBitmapFromData (pDisplay, hRootWnd, data, 1, 1);
+                        blank = ::XCreateBitmapFromData (pDisplay, hRootWnd, data, 1, 1);
                         if (blank == None)
                             return STATUS_NO_MEM;
-                        vCursors[i] = XCreatePixmapCursor(pDisplay, blank, blank, &dummy, &dummy, 0, 0);
-                        XFreePixmap(pDisplay, blank);
+                        vCursors[i] = ::XCreatePixmapCursor(pDisplay, blank, blank, &dummy, &dummy, 0, 0);
+                        ::XFreePixmap(pDisplay, blank);
                     }
                     else
-                        vCursors[i] = XCreateFontCursor(pDisplay, id);
+                        vCursors[i] = ::XCreateFontCursor(pDisplay, id);
                 }
 
                 return IDisplay::init(argc, argv);
@@ -605,7 +605,7 @@ namespace lsp
                 {
                     // Get window property
                     ::XGetWindowProperty(
-                        pDisplay, hClipWnd, property,
+                        pDisplay, wnd, property,
                         p_offset / 4, nIOBufSize / 4, False, ptype,
                         type, &p_fmt, &p_nitems, &p_size, &p_data
                     );
@@ -1397,8 +1397,13 @@ namespace lsp
                             if (ce->data.l[0] == long(sAtoms.X11_WM_DELETE_WINDOW))
                                 ue.nType        = UIE_CLOSE;
                             else
-                                lsp_trace("received client WM_PROTOCOLS message with argument %s",
-                                        XGetAtomName(pDisplay, ce->data.l[0]));
+                            {
+                                #ifdef LSP_TRACE
+                                char *name = ::XGetAtomName(pDisplay, ce->data.l[0]);
+                                lsp_trace("received client WM_PROTOCOLS message with argument %s", name);
+                                ::XFree(name);
+                                #endif /* LSP_TRACE */
+                            }
                         }
                         else if (type == sAtoms.X11_XdndEnter)
                         {
@@ -1619,74 +1624,65 @@ namespace lsp
 
             status_t X11Display::read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype)
             {
-                // Do not need to fetch long list?
-                if (!(ev->data.l[1] & 1))
+                Atom type;
+                size_t bytes;
+                uint8_t *data = NULL;
+
+                // There are more than 3 mime types?
+                if (ev->data.l[1] & 1)
                 {
+                    // Fetch all MIME types as additional property
+                    status_t res = read_property(ev->data.l[0],
+                            sAtoms.X11_XdndTypeList, sAtoms.X11_XA_ATOM,
+                            &data, &bytes, &type);
+                    if (res != STATUS_OK)
+                        return res;
+                    else if (type != sAtoms.X11_XA_ATOM)
+                        return STATUS_BAD_TYPE;
+
+                    // Decode MIME types
+                    uint32_t *atoms = reinterpret_cast<uint32_t *>(data);
+                    for (size_t i=0; i<bytes; i += sizeof(uint32_t), ++atoms)
+                    {
+                        char *a_name = ::XGetAtomName(pDisplay, *atoms);
+                        if (a_name == NULL)
+                            continue;
+
+                        // Add atom name to list
+                        char *xctype = ::strdup(a_name);
+                        ::XFree(a_name);
+                        if (xctype == NULL)
+                            return STATUS_NO_MEM;
+                        if (!ctype->add(xctype))
+                        {
+                            ::free(xctype);
+                            return STATUS_NO_MEM;
+                        }
+                    }
+                }
+                else
+                {
+                    // Read MIME types from client message
                     for (size_t i=2; i<5; ++i)
                     {
                         if (ev->data.l[i] == None)
                             continue;
-                        char *a_name = XGetAtomName(pDisplay, ev->data.l[i]);
+                        char *a_name = ::XGetAtomName(pDisplay, ev->data.l[i]);
                         if (a_name == NULL)
                             continue;
 
                         // Add atom name to list
-                        if ((a_name = strdup(a_name)) == NULL)
+                        char *xctype = ::strdup(a_name);
+                        ::XFree(a_name);
+                        if (xctype == NULL)
                             return STATUS_NO_MEM;
-                        if (!ctype->add(a_name))
+                        if (!ctype->add(xctype))
                         {
-                            free(a_name);
+                            ::free(xctype);
                             return STATUS_NO_MEM;
                         }
                     }
-
-                    return STATUS_OK;
                 }
-
-                // Fetch long list of supported MIME types
-                Atom p_type = None;
-                int p_fmt = 0;
-                unsigned long p_nitems = 0, p_size = 0, p_offset = 0;
-                unsigned char *p_data = NULL;
-
-                do
-                {
-                    // Read with chunks
-                    ::XGetWindowProperty(
-                        pDisplay, ev->data.l[0], sAtoms.X11_XdndTypeList,
-                        p_offset, nIOBufSize / 4, False, sAtoms.X11_XA_ATOM,
-                        &p_type, &p_fmt, &p_nitems, &p_size, &p_data
-                    );
-
-                    // Analyze property type
-                    if ((p_type != sAtoms.X11_XA_ATOM) || (p_fmt != 32))
-                        break;
-
-                    long *ids = reinterpret_cast<long *>(p_data);
-                    for (unsigned long i=0; i<p_nitems; ++i)
-                    {
-                        if (ids == None)
-                            continue;
-                        char *a_name = XGetAtomName(pDisplay, ids[i]);
-                        if (a_name == NULL)
-                            continue;
-
-                        // Add atom name to list
-                        if ((a_name = strdup(a_name)) == NULL)
-                            return STATUS_NO_MEM;
-                        if (!ctype->add(a_name))
-                        {
-                            free(a_name);
-                            return STATUS_NO_MEM;
-                        }
-                    }
-
-                    // Free buffer and update read position
-                    if (p_data != NULL)
-                        XFree(p_data);
-                    p_offset       += p_nitems;
-                } while ((p_size > 0) && (p_nitems > 0));
-
                 return STATUS_OK;
             }
 
