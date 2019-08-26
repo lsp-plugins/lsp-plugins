@@ -590,6 +590,16 @@ namespace lsp
             return STATUS_NOT_IMPLEMENTED;
         }
 
+        status_t IDisplay::denyDrag()
+        {
+            return STATUS_NOT_IMPLEMENTED;
+        }
+
+        status_t IDisplay::acceptDrag(drag_t action, bool internal, const realize_t *r)
+        {
+            return STATUS_NOT_IMPLEMENTED;
+        }
+
         const char * const *IDisplay::getDragContentTypes()
         {
             return NULL;

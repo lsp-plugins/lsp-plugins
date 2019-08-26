@@ -100,13 +100,12 @@ namespace lsp
 
         enum drag_t
         {
-            DRAG_NONE           = 0,
-            DRAG_COPY           = 1,
-            DRAG_MOVE           = 2,
-            DRAG_LINK           = 3,
-            DRAG_ASK            = 4,
-            DRAG_PRIVATE        = 5,
-            DRAG_DIRECT_SAVE    = 6
+            DRAG_COPY           = 0,
+            DRAG_MOVE           = 1,
+            DRAG_LINK           = 2,
+            DRAG_ASK            = 3,
+            DRAG_PRIVATE        = 4,
+            DRAG_DIRECT_SAVE    = 5
         };
 
         enum mouse_pointer_t

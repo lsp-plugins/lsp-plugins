@@ -44,6 +44,14 @@ namespace lsp
                         CB_RECV_INCR
                     };
 
+                    enum x11_drag_states
+                    {
+                        X11DRAG_IDLE,
+                        X11DRAG_ACTIVE,
+                        X11DRAG_POSITION,
+                        X11DRAG_DROP
+                    };
+
                     typedef struct wnd_lock_t
                     {
                         X11Window      *pOwner;
@@ -119,8 +127,12 @@ namespace lsp
                     cvector<X11Window>      sTargets;
                     cstorage<wnd_lock_t>    sLocks;
                     cstorage<x11_async_t>   sAsync;
-                    cvector<char>           vDndMimeTypes;
+
+                    x11_drag_states         enDndState;
                     Window                  hDndSource;
+                    Window                  hDndTarget;
+                    Atom                    hDndAction;
+                    cvector<char>           vDndMimeTypes;
 
                 protected:
                     void            handleEvent(XEvent *ev);
@@ -186,6 +198,9 @@ namespace lsp
                     virtual status_t setClipboard(size_t id, IDataSource *ds);
                     virtual status_t getClipboard(size_t id, IDataSink *dst);
                     virtual const char * const *getDragContentTypes();
+
+                    virtual status_t    denyDrag();
+                    virtual status_t    acceptDrag(drag_t action, bool internal, const realize_t *r);
 
                     void                handle_error(XErrorEvent *ev);
 

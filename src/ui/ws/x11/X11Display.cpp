@@ -107,7 +107,11 @@ namespace lsp
                 nWhiteColor     = 0;
                 nIOBufSize      = X11IOBUF_SIZE;
                 pIOBuf          = NULL;
+
+                enDndState      = X11DRAG_IDLE;
                 hDndSource      = None;
+                hDndTarget      = None;
+                hDndAction      = None;
 
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
                     pCbOwner[i]             = NULL;
@@ -1576,7 +1580,7 @@ namespace lsp
                 drop_mime_types(&vDndMimeTypes);
 
                 // Find target window
-                X11Window *tgt  = find_window(ev->data.l[0]);
+                X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
 
@@ -1660,7 +1664,9 @@ namespace lsp
                 }
                 #endif
 
+                enDndState      = X11DRAG_ACTIVE;
                 hDndSource      = ev->data.l[0];
+                hDndTarget      = ev->window;
 
                 // Create DRAG_ENTER event
                 ws_event_t ue;
@@ -1686,10 +1692,11 @@ namespace lsp
                    data.l[1] is reserved for future use (flags).
                 */
                 lsp_trace("Received XdndLeave");
+                enDndState          = X11DRAG_IDLE;
                 hDndSource          = None;
 
                 // Find target window
-                X11Window *tgt  = find_window(ev->data.l[0]);
+                X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
 
@@ -1721,6 +1728,7 @@ namespace lsp
 
                 int x = (ev->data.l[2] >> 16), y = (ev->data.l[2] & 0xffff);
                 Window wnd = ev->data.l[0], child = None;
+                Atom act            = ev->data.l[4];
 
                 #ifdef LSP_TRACE
                 char *a_name = ::XGetAtomName(pDisplay, ev->data.l[4]);
@@ -1731,12 +1739,15 @@ namespace lsp
                 #endif
 
                 // Find target window
-                X11Window *tgt  = find_window(wnd);
+                X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
 
                 ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
+                enDndState          = X11DRAG_POSITION;
                 hDndSource          = wnd;
+                hDndTarget          = ev->window;
+                hDndAction          = act;
 
                 // Form the notification event
                 ws_event_t ue;
@@ -1746,10 +1757,9 @@ namespace lsp
                 ue.nWidth           = 0;
                 ue.nHeight          = 0;
                 ue.nCode            = 0;
-                ue.nState           = DRAG_NONE;
+                ue.nState           = DRAG_COPY;
 
                 // Decode action
-                Atom act            = ev->data.l[4];
                 if (act == sAtoms.X11_XdndActionCopy)
                     ue.nState           = DRAG_COPY;
                 else if (act == sAtoms.X11_XdndActionMove)
@@ -1762,6 +1772,8 @@ namespace lsp
                     ue.nState           = DRAG_PRIVATE;
                 else if (act == sAtoms.X11_XdndActionDirectSave)
                     ue.nState           = DRAG_DIRECT_SAVE;
+                else
+                    hDndAction          = None;
 
                 ue.nTime            = ev->data.l[3];
 
@@ -1782,9 +1794,12 @@ namespace lsp
                     return STATUS_PROTOCOL_ERROR;
 
                 // Find target window
-                X11Window *tgt  = find_window(ev->data.l[0]);
+                X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
+
+                hDndTarget          = ev->window;
+                enDndState          = X11DRAG_DROP;
 
                 ws_event_t ue;
                 ue.nType            = UIE_DRAG_DROP;
@@ -1931,11 +1946,11 @@ namespace lsp
                 {
                     lsp_trace("setting grab for screen=%d", int(screen));
                     Window root     = RootWindow(pDisplay, screen);
-                    XGrabPointer(pDisplay, root, True, PointerMotionMask | ButtonPressMask | ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-                    XGrabKeyboard(pDisplay, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+                    ::XGrabPointer(pDisplay, root, True, PointerMotionMask | ButtonPressMask | ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+                    ::XGrabKeyboard(pDisplay, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
-                    XFlush(pDisplay);
-//                    XSync(pDisplay, False);
+                    ::XFlush(pDisplay);
+//                    ::XSync(pDisplay, False);
                 }
 
                 return STATUS_OK;
@@ -2317,6 +2332,145 @@ namespace lsp
             const char * const *X11Display::getDragContentTypes()
             {
                 return (hDndSource != None) ? vDndMimeTypes.get_array() : NULL;
+            }
+
+            status_t X11Display::denyDrag()
+            {
+                /**
+                XdndStatus
+
+                Sent from target to source to provide feedback on whether or not the drop will be accepted, and, if so, what action will be taken.
+
+                    data.l[0] contains the XID of the target window. (This is required so XdndStatus
+                        messages that arrive after XdndLeave is sent will be ignored.)
+                    data.l[1]:
+                        Bit 0 is set if the current target will accept the drop.
+                        Bit 1 is set if the target wants XdndPosition messages while the mouse moves inside the
+                            rectangle in data.l[2,3].
+                        The rest of the bits are reserved for future use.
+                    data.l[2,3] contains a rectangle in root coordinates that means "don't send another XdndPosition
+                        message until the mouse moves out of here". It is legal to specify an empty rectangle.
+                        This means "send another message when the mouse moves". Even if the rectangle is not empty,
+                        it is legal for the source to send XdndPosition messages while in the rectangle. The rectangle
+                        is stored in the standard Xlib format of (x,y,w,h):
+                            data.l[2] = (x << 16) | y
+                            data.l[3] = (w << 16) | h
+                    data.l[4] contains the action accepted by the target. This is normally only allowed to be either
+                        the action specified in the XdndPosition message, XdndActionCopy, or XdndActionPrivate. None
+                        should be sent if the drop will not be accepted. (new in version 2)
+                 */
+
+                if (hDndSource == None)
+                    return STATUS_BAD_STATE;
+
+                XEvent xev;
+                XClientMessageEvent *ev = &xev.xclient;
+                ev->type            = ClientMessage;
+                ev->serial          = 0;
+                ev->send_event      = True;
+                ev->display         = pDisplay;
+                ev->window          = hDndSource;
+                ev->message_type    = sAtoms.X11_XdndStatus;
+                ev->format          = 32;
+                ev->data.l[0]       = hDndTarget;
+                ev->data.l[1]       = 0;
+                ev->data.l[2]       = 0;
+                ev->data.l[3]       = 0;
+                ev->data.l[4]       = None;
+
+                // Send the response
+                ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
+                ::XFlush(pDisplay);
+
+                return STATUS_OK;
+            }
+
+            status_t X11Display::acceptDrag(drag_t action, bool internal, const realize_t *r)
+            {
+                /**
+                XdndStatus
+
+                Sent from target to source to provide feedback on whether or not the drop will be accepted, and, if so, what action will be taken.
+
+                    data.l[0] contains the XID of the target window. (This is required so XdndStatus
+                        messages that arrive after XdndLeave is sent will be ignored.)
+                    data.l[1]:
+                        Bit 0 is set if the current target will accept the drop.
+                        Bit 1 is set if the target wants XdndPosition messages while the mouse moves inside the
+                            rectangle in data.l[2,3].
+                        The rest of the bits are reserved for future use.
+                    data.l[2,3] contains a rectangle in root coordinates that means "don't send another XdndPosition
+                        message until the mouse moves out of here". It is legal to specify an empty rectangle.
+                        This means "send another message when the mouse moves". Even if the rectangle is not empty,
+                        it is legal for the source to send XdndPosition messages while in the rectangle. The rectangle
+                        is stored in the standard Xlib format of (x,y,w,h):
+                            data.l[2] = (x << 16) | y
+                            data.l[3] = (w << 16) | h
+                    data.l[4] contains the action accepted by the target. This is normally only allowed to be either
+                        the action specified in the XdndPosition message, XdndActionCopy, or XdndActionPrivate. None
+                        should be sent if the drop will not be accepted. (new in version 2)
+                 */
+
+                if (hDndSource == None)
+                    return STATUS_BAD_STATE;
+
+                Atom act            = None;
+                switch (action)
+                {
+                    case DRAG_COPY: act = sAtoms.X11_XdndActionCopy; break;
+                    case DRAG_PRIVATE: act = sAtoms.X11_XdndActionPrivate; break;
+
+                    case DRAG_MOVE:
+                        if ((act = sAtoms.X11_XdndActionMove) != hDndAction)
+                            return STATUS_INVALID_VALUE;
+                        break;
+                    case DRAG_LINK:
+                        if ((act = sAtoms.X11_XdndActionLink) != hDndAction)
+                            return STATUS_INVALID_VALUE;
+                        break;
+                    case DRAG_ASK:
+                        if ((act = sAtoms.X11_XdndActionLink) != hDndAction)
+                            return STATUS_INVALID_VALUE;
+                        break;
+                    case DRAG_DIRECT_SAVE:
+                        if ((act = sAtoms.X11_XdndActionDirectSave) != hDndAction)
+                            return STATUS_INVALID_VALUE;
+                        break;
+                    default:
+                        return STATUS_INVALID_VALUE;
+                }
+
+                if (r == NULL)
+                    internal            = false;
+
+                XEvent xev;
+                XClientMessageEvent *ev = &xev.xclient;
+                ev->type            = ClientMessage;
+                ev->serial          = 0;
+                ev->send_event      = True;
+                ev->display         = pDisplay;
+                ev->window          = hDndSource;
+                ev->message_type    = sAtoms.X11_XdndStatus;
+                ev->format          = 32;
+                ev->data.l[0]       = hDndTarget;
+                ev->data.l[1]       = 1 | ((internal) ? (1 << 1) : 0);
+                if (r != NULL)
+                {
+                    ev->data.l[2]       = ((r->nLeft  & 0xffff) << 16) | (r->nTop    & 0xffff);
+                    ev->data.l[3]       = ((r->nWidth & 0xffff) << 16) | (r->nHeight & 0xffff);
+                }
+                else
+                {
+                    ev->data.l[2]       = 0;
+                    ev->data.l[3]       = 0;
+                }
+                ev->data.l[4]       = act;
+
+                // Send the response
+                ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
+                ::XFlush(pDisplay);
+
+                return STATUS_OK;
             }
 
         } /* namespace x11 */

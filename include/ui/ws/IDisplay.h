@@ -240,6 +240,21 @@ namespace lsp
                 virtual status_t getClipboard(size_t id, IDataSink *dst);
 
                 /**
+                 * Deny drag request
+                 * @return status of operation
+                 */
+                virtual status_t denyDrag();
+
+                /**
+                 * Accept drag request
+                 * @param action drag action
+                 * @param internal true if we want to receive notifications inside of the drag rectangle
+                 * @param r parameters of the drag rectangle, can be NULL
+                 * @return status of operation
+                 */
+                virtual status_t acceptDrag(drag_t action, bool internal, const realize_t *r);
+
+                /**
                  * Get currently pending content type of a drag
                  * @return NULL-terminated list of pending content types,
                  *   may be NULL if there is no currently pending Drag&Drop request
