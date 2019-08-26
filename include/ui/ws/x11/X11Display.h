@@ -47,16 +47,10 @@ namespace lsp
                     enum x11_dnd_recv_states
                     {
                         DND_RECV_PENDING,
+                        DND_RECV_POSITION,
                         DND_RECV_ACCEPT,
                         DND_RECV_SIMPLE,
                         DND_RECV_INCR
-                    };
-
-                    enum x11_drag_states
-                    {
-                        X11DRAG_IDLE,
-                        X11DRAG_ACTIVE,
-                        X11DRAG_POSITION
                     };
 
                     typedef struct wnd_lock_t
@@ -142,11 +136,6 @@ namespace lsp
                     cstorage<wnd_lock_t>    sLocks;
                     cstorage<x11_async_t>   sAsync;
 
-                    x11_drag_states         enDndState;
-                    Window                  hDndSource;
-                    Window                  hDndTarget;
-                    Atom                    hDndAction;
-                    IDataSink              *pDndSink;
                     cvector<char>           vDndMimeTypes;
 
                 protected:
@@ -183,10 +172,11 @@ namespace lsp
                     void            handle_selection_clear(XSelectionClearEvent *ev);
 
                     status_t        handle_drag_enter(XClientMessageEvent *ev);
-                    status_t        handle_drag_leave(XClientMessageEvent *ev);
-                    status_t        handle_drag_position(XClientMessageEvent *ev);
-                    status_t        handle_drag_drop(XClientMessageEvent *ev);
+                    status_t        handle_drag_leave(dnd_recv_t *task, XClientMessageEvent *ev);
+                    status_t        handle_drag_position(dnd_recv_t *task, XClientMessageEvent *ev);
+                    status_t        handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev);
 
+                    dnd_recv_t     *current_drag_task();
                     void            complete_async_tasks();
 
                 public:

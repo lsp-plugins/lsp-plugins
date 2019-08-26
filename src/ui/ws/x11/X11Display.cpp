@@ -108,12 +108,6 @@ namespace lsp
                 nIOBufSize      = X11IOBUF_SIZE;
                 pIOBuf          = NULL;
 
-                enDndState      = X11DRAG_IDLE;
-                hDndSource      = None;
-                hDndTarget      = None;
-                hDndAction      = None;
-                pDndSink        = NULL;
-
                 for (size_t i=0; i<_CBUF_TOTAL; ++i)
                     pCbOwner[i]             = NULL;
             }
@@ -758,7 +752,8 @@ namespace lsp
                                 task->result = handle_property_notify(&task->cb_recv, ev);
                             break;
                         case X11ASYNC_DND_RECV:
-                            if (task->dnd_recv.hProperty == ev->atom)
+                            if ((task->dnd_recv.hProperty == ev->atom) &&
+                                (task->dnd_recv.hTarget == ev->window))
                                 task->result = handle_property_notify(&task->dnd_recv, ev);
                             break;
                         case X11ASYNC_CB_SEND:
@@ -843,8 +838,10 @@ namespace lsp
                                 // Check property type
                                 if (bytes <= 0) // End of transfer?
                                 {
-                                    // Complete the INCR transfer
+                                    // Complete the INCR transfer: close and release the sink
                                     task->pSink->close(res);
+                                    task->pSink->release();
+                                    task->pSink     = NULL;
                                     task->bComplete = true;
                                 }
                                 else if (type == task->hType)
@@ -881,7 +878,7 @@ namespace lsp
 
                 switch (task->enState)
                 {
-                    case CB_RECV_INCR:
+                    case DND_RECV_INCR:
                     {
                         // Read incrementally property contents
                         if (ev->state == PropertyNewValue)
@@ -892,8 +889,10 @@ namespace lsp
                                 // Check property type
                                 if (bytes <= 0) // End of transfer?
                                 {
-                                    // Complete the INCR transfer
+                                    // Complete the INCR transfer: close the sink and release it
                                     task->pSink->close(res);
+                                    task->pSink->release();
+                                    task->pSink     = NULL;
                                     task->bComplete = true;
                                 }
                                 else if (type == task->hType)
@@ -1583,22 +1582,60 @@ namespace lsp
 
                 if (type == sAtoms.X11_XdndEnter)
                 {
+                    // Cancel all previous tasks
+                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    {
+                        x11_async_t *task = sAsync.at(i);
+                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                            continue;
+                        task->result        = STATUS_CANCELLED;
+                        task->cb_common.bComplete = true;
+                    }
+
+                    // Create new task
                     handle_drag_enter(ce);
+
                     return true;
                 }
                 else if (type == sAtoms.X11_XdndLeave)
                 {
-                    handle_drag_leave(ce);
+                    lsp_trace("Received XdndLeave");
+
+                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    {
+                        x11_async_t *task = sAsync.at(i);
+                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                            continue;
+                        task->result        = handle_drag_leave(&task->dnd_recv, ce);
+                        task->cb_common.bComplete = true;
+                    }
+
                     return true;
                 }
                 else if (type == sAtoms.X11_XdndPosition)
                 {
-                    handle_drag_position(ce);
+                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    {
+                        x11_async_t *task = sAsync.at(i);
+                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                            continue;
+                        task->result        = handle_drag_position(&task->dnd_recv, ce);
+                        if (task->result != STATUS_OK)
+                            task->cb_common.bComplete   = true;
+                    }
                     return true;
                 }
                 else if (type == sAtoms.X11_XdndDrop)
                 {
-                    handle_drag_drop(ce);
+                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    {
+                        x11_async_t *task = sAsync.at(i);
+                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                            continue;
+                        task->result        = handle_drag_drop(&task->dnd_recv, ce);
+                        if (task->result != STATUS_OK)
+                            task->cb_common.bComplete   = true;
+                    }
                     return true;
                 }
 
@@ -1709,6 +1746,26 @@ namespace lsp
                     return STATUS_NO_MEM;
                 }
 
+                // Create async task
+                x11_async_t *task   = sAsync.add();
+                if (task == NULL)
+                {
+                    drop_mime_types(&vDndMimeTypes);
+                    return STATUS_NO_MEM;
+                }
+
+                task->type          = X11ASYNC_DND_RECV;
+                task->result        = STATUS_OK;
+                dnd_recv_t *dnd     = &task->dnd_recv;
+
+                dnd->hTarget        = ev->window;
+                dnd->hSource        = ev->data.l[0];
+                dnd->hSelection     = sAtoms.X11_XdndSelection;
+                dnd->hType          = None;
+                dnd->enState        = DND_RECV_PENDING;
+                dnd->pSink          = NULL;
+                dnd->hAction        = None;
+
                 // Log all supported MIME types
                 #ifdef LSP_TRACE
                 for (size_t i=0, n=vDndMimeTypes.size()-1; i<n; ++i)
@@ -1717,10 +1774,6 @@ namespace lsp
                     lsp_trace("Supported MIME type: %s", mime);
                 }
                 #endif
-
-                enDndState      = X11DRAG_ACTIVE;
-                hDndSource      = ev->data.l[0];
-                hDndTarget      = ev->window;
 
                 // Create DRAG_ENTER event
                 ws_event_t ue;
@@ -1737,7 +1790,7 @@ namespace lsp
                 return tgt->handle_event(&ue);
             }
 
-            status_t X11Display::handle_drag_leave(XClientMessageEvent *ev)
+            status_t X11Display::handle_drag_leave(dnd_recv_t *task, XClientMessageEvent *ev)
             {
                 /**
                 Sent from source to target to cancel the drop.
@@ -1745,17 +1798,13 @@ namespace lsp
                    data.l[0] contains the XID of the source window.
                    data.l[1] is reserved for future use (flags).
                 */
-                lsp_trace("Received XdndLeave");
-                enDndState          = X11DRAG_IDLE;
-                hDndSource          = None;
-                hDndTarget          = None;
-                hDndAction          = None;
-                drop_mime_types(&vDndMimeTypes);
+                if ((task->hTarget != ev->window) && (long(task->hSource) != ev->data.l[0]))
+                    return STATUS_PROTOCOL_ERROR;
 
-                if (pDndSink != NULL)
+                if (task->pSink != NULL)
                 {
-                    pDndSink->release();
-                    pDndSink        = NULL;
+                    task->pSink->release();
+                    task->pSink     = NULL;
                 }
 
                 // Find target window
@@ -1776,7 +1825,7 @@ namespace lsp
                 return tgt->handle_event(&ue);
             }
 
-            status_t X11Display::handle_drag_position(XClientMessageEvent *ev)
+            status_t X11Display::handle_drag_position(dnd_recv_t *task, XClientMessageEvent *ev)
             {
                 /**
                 Sent from source to target to provide mouse location.
@@ -1789,7 +1838,10 @@ namespace lsp
                    data.l[4] contains the action requested by the user. (new in version 2)
                 */
 
-                int x               = (ev->data.l[2] >> 16), y = (ev->data.l[2] & 0xffff);
+                if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
+                    return STATUS_PROTOCOL_ERROR;
+
+                int x               = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
                 Window wnd          = ev->data.l[0], child = None;
                 Atom act            = ev->data.l[4];
 
@@ -1809,10 +1861,8 @@ namespace lsp
                 ::XSync(pDisplay, False);
                 ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
                 ::XSync(pDisplay, False);
-                enDndState          = X11DRAG_POSITION;
-                hDndSource          = wnd;
-                hDndTarget          = ev->window;
-                hDndAction          = act;
+                task->enState       = DND_RECV_PENDING;
+                task->hAction       = act;
 
                 // Form the notification event
                 ws_event_t ue;
@@ -1838,14 +1888,14 @@ namespace lsp
                 else if (act == sAtoms.X11_XdndActionDirectSave)
                     ue.nState           = DRAG_DIRECT_SAVE;
                 else
-                    hDndAction          = None;
+                    task->hAction       = None;
 
                 ue.nTime            = ev->data.l[3];
 
                 return tgt->handle_event(&ue);
             }
 
-            status_t X11Display::handle_drag_drop(XClientMessageEvent *ev)
+            status_t X11Display::handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev)
             {
                 /**
                 Sent from source to target to complete the drop.
@@ -1855,22 +1905,19 @@ namespace lsp
                 */
                 lsp_trace("Received XdndDrop wnd=0x%lx, ts=%ld", ev->data.l[0], ev->data.l[2]);
 
-                if (ev->data.l[0] != long(hDndSource))
+                if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
                     return STATUS_PROTOCOL_ERROR;
 
                 // Find target window
-                X11Window *tgt  = find_window(ev->window);
+                X11Window *tgt  = find_window(task->hTarget);
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
 
-                hDndTarget          = ev->window;
                 status_t res        = STATUS_OK;
 
-                if (pDndSink != NULL)
+                if (task->pSink != NULL)
                 {
-                    pDndSink->acquire();
-
-                    ssize_t index = pDndSink->open(vDndMimeTypes.get_array());
+                    ssize_t index = task->pSink->open(vDndMimeTypes.get_array());
                     if (index >= 0)
                     {
                         const char *mime = vDndMimeTypes.get(index);
@@ -1880,44 +1927,28 @@ namespace lsp
                             Atom prop_id = gen_selection_id();
                             if (prop_id != None)
                             {
-                                // Create async task
-                                x11_async_t *task   = sAsync.add();
-                                if (task != NULL)
-                                {
-                                    task->type          = X11ASYNC_DND_RECV;
-                                    task->result        = STATUS_OK;
+                                // Request selection conversion and return
+                                ::XConvertSelection(pDisplay, task->hSelection,
+                                        sAtoms.X11_TARGETS, prop_id, task->hTarget, CurrentTime);
+                                ::XFlush(pDisplay);
 
-                                    dnd_recv_t *param   = &task->dnd_recv;
-                                    param->bComplete    = false;
-                                    param->hProperty    = prop_id;
-                                    param->hSelection   = sAtoms.X11_XdndSelection;
-                                    param->hType        = None;
-                                    param->enState      = DND_RECV_SIMPLE;
-                                    param->pSink        = pDndSink;
-                                    param->hAction      = hDndAction;
-
-                                    // Request selection conversion and return
-                                    ::XConvertSelection(pDisplay, sAtoms.X11_XdndSelection,
-                                            sAtoms.X11_TARGETS, prop_id, hClipWnd, CurrentTime);
-                                    ::XFlush(pDisplay);
-
-                                    return STATUS_OK;
-                                }
-                                else
-                                    res = STATUS_NO_MEM;
+                                return STATUS_OK;
                             }
                             else
                                 res = STATUS_UNKNOWN_ERR;
                         }
                         else
                             res = STATUS_BAD_TYPE;
-                        pDndSink->close(res);
+
+                        task->pSink->close(res);
                     }
                     else
                         res = -index;
-
-                    pDndSink->release();
                 }
+
+                // Release sink
+                task->pSink->release();
+                task->pSink = NULL;
 
                 /**
                 XdndFinished (new in version 2)
@@ -1949,17 +1980,17 @@ namespace lsp
                 xe->serial          = 0;
                 xe->send_event      = True;
                 xe->display         = pDisplay;
-                xe->window          = hDndSource;
+                xe->window          = task->hSource;
                 xe->message_type    = sAtoms.X11_XdndFinished;
                 xe->format          = 32;
-                xe->data.l[0]       = hDndTarget;
+                xe->data.l[0]       = task->hTarget;
                 xe->data.l[1]       = 0;
                 xe->data.l[2]       = None;
                 xe->data.l[3]       = 0;
                 xe->data.l[4]       = 0;
 
                 // Send the notification event
-                ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
+                ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
                 ::XFlush(pDisplay);
 
                 return res;
@@ -2490,9 +2521,22 @@ namespace lsp
 
             }
 
+            X11Display::dnd_recv_t *X11Display::current_drag_task()
+            {
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+                    if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                        continue;
+                    return &task->dnd_recv;
+                }
+                return NULL;
+            }
+
             const char * const *X11Display::getDragContentTypes()
             {
-                return (hDndSource != None) ? vDndMimeTypes.get_array() : NULL;
+                dnd_recv_t *task = current_drag_task();
+                return (task != NULL) ? vDndMimeTypes.get_array() : NULL;
             }
 
             status_t X11Display::denyDrag()
@@ -2520,8 +2564,8 @@ namespace lsp
                         the action specified in the XdndPosition message, XdndActionCopy, or XdndActionPrivate. None
                         should be sent if the drop will not be accepted. (new in version 2)
                  */
-
-                if (hDndSource == None)
+                dnd_recv_t *task = current_drag_task();
+                if ((task == NULL) || (task->enState != DND_RECV_POSITION))
                     return STATUS_BAD_STATE;
 
                 XEvent xev;
@@ -2530,17 +2574,17 @@ namespace lsp
                 ev->serial          = 0;
                 ev->send_event      = True;
                 ev->display         = pDisplay;
-                ev->window          = hDndSource;
+                ev->window          = task->hSource;
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
-                ev->data.l[0]       = hDndTarget;
+                ev->data.l[0]       = task->hTarget;
                 ev->data.l[1]       = 0;
                 ev->data.l[2]       = 0;
                 ev->data.l[3]       = 0;
                 ev->data.l[4]       = None;
 
                 // Send the response
-                ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
+                ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
                 ::XFlush(pDisplay);
 
                 return STATUS_OK;
@@ -2572,7 +2616,8 @@ namespace lsp
                         should be sent if the drop will not be accepted. (new in version 2)
                  */
 
-                if (hDndSource == None)
+                dnd_recv_t *task = current_drag_task();
+                if ((task == NULL) || (task->enState != DND_RECV_POSITION))
                     return STATUS_BAD_STATE;
 
                 Atom act            = None;
@@ -2582,19 +2627,19 @@ namespace lsp
                     case DRAG_PRIVATE: act = sAtoms.X11_XdndActionPrivate; break;
 
                     case DRAG_MOVE:
-                        if ((act = sAtoms.X11_XdndActionMove) != hDndAction)
+                        if ((act = sAtoms.X11_XdndActionMove) != task->hAction)
                             return STATUS_INVALID_VALUE;
                         break;
                     case DRAG_LINK:
-                        if ((act = sAtoms.X11_XdndActionLink) != hDndAction)
+                        if ((act = sAtoms.X11_XdndActionLink) != task->hAction)
                             return STATUS_INVALID_VALUE;
                         break;
                     case DRAG_ASK:
-                        if ((act = sAtoms.X11_XdndActionLink) != hDndAction)
+                        if ((act = sAtoms.X11_XdndActionLink) != task->hAction)
                             return STATUS_INVALID_VALUE;
                         break;
                     case DRAG_DIRECT_SAVE:
-                        if ((act = sAtoms.X11_XdndActionDirectSave) != hDndAction)
+                        if ((act = sAtoms.X11_XdndActionDirectSave) != task->hAction)
                             return STATUS_INVALID_VALUE;
                         break;
                     default:
@@ -2611,7 +2656,7 @@ namespace lsp
                     Window child = None;
                     if ((r->nWidth < 0) || (r->nWidth >= 0x10000) || (r->nHeight < 0) || (r->nHeight > 0x10000))
                         return STATUS_INVALID_VALUE;
-                    ::XTranslateCoordinates(pDisplay, hDndTarget, hRootWnd, r->nLeft, r->nTop, &x, &y, &child);
+                    ::XTranslateCoordinates(pDisplay, task->hTarget, hRootWnd, r->nLeft, r->nTop, &x, &y, &child);
                     ::XSync(pDisplay, False);
                     if ((x < 0) || (x >= 0x10000) || (y < 0) || (y >= 0x10000))
                         return STATUS_INVALID_VALUE;
@@ -2624,10 +2669,10 @@ namespace lsp
                 ev->serial          = 0;
                 ev->send_event      = True;
                 ev->display         = pDisplay;
-                ev->window          = hDndSource;
+                ev->window          = task->hSource;
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
-                ev->data.l[0]       = hDndTarget;
+                ev->data.l[0]       = task->hTarget;
                 ev->data.l[1]       = 1 | ((internal) ? (1 << 1) : 0);
                 if (r != NULL)
                 {
@@ -2644,12 +2689,12 @@ namespace lsp
                 // Rewrite sink
                 if (sink != NULL)
                     sink->acquire();
-                if (pDndSink != NULL)
-                    pDndSink->release();
-                pDndSink    = sink;
+                if (task->pSink != NULL)
+                    task->pSink->release();
+                task->pSink     = sink;
 
                 // Send the response
-                ::XSendEvent(pDisplay, hDndSource, True, NoEventMask, &xev);
+                ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
                 ::XFlush(pDisplay);
 
                 return STATUS_OK;
