@@ -238,6 +238,13 @@ namespace lsp
                  * @return pointer to data source or NULL
                  */
                 virtual status_t getClipboard(size_t id, IDataSink *dst);
+
+                /**
+                 * Get currently pending content type of a drag
+                 * @return NULL-terminated list of pending content types,
+                 *   may be NULL if there is no currently pending Drag&Drop request
+                 */
+                virtual const char * const *getDragContentTypes();
         };
 
     } /* namespace ws */

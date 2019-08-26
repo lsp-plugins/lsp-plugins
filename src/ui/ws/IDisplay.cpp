@@ -589,6 +589,11 @@ namespace lsp
             dst->release();
             return STATUS_NOT_IMPLEMENTED;
         }
+
+        const char * const *IDisplay::getDragContentTypes()
+        {
+            return NULL;
+        }
     }
 
 } /* namespace lsp */

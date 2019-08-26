@@ -538,7 +538,7 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            bool X11Display::handleClipboardEvent(XEvent *ev)
+            bool X11Display::handle_clipboard_event(XEvent *ev)
             {
                 switch (ev->type)
                 {
@@ -1234,7 +1234,10 @@ namespace lsp
                     return;
 
                 // Special case for buffers
-                if (handleClipboardEvent(ev))
+                if (handle_clipboard_event(ev))
+                    return;
+
+                if (handle_drag_event(ev))
                     return;
 
 //                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
@@ -1255,7 +1258,6 @@ namespace lsp
                 }
 
                 ws_event_t ue;
-                Window src_wnd  = ev->xany.window;
                 ue.nType        = UIE_UNKNOWN;
                 ue.nLeft        = 0;
                 ue.nTop         = 0;
@@ -1405,124 +1407,14 @@ namespace lsp
                                 #endif /* LSP_TRACE */
                             }
                         }
-                        else if (type == sAtoms.X11_XdndEnter)
-                        {
-                            /**
-                            data.l[0] contains the XID of the source window.
-
-                            data.l[1]:
-
-                               Bit 0 is set if the source supports more than three data types.
-                               The high byte contains the protocol version to use (minimum of the source's
-                               and target's highest supported versions).
-                               The rest of the bits are reserved for future use.
-
-                            data.l[2,3,4] contain the first three types that the source supports.
-                               Unused slots are set to None. The ordering is arbitrary since, in general,
-                               the source cannot know what the target prefers.
-                            */
-                            lsp_trace("Received XdndEnter: wnd=0x%lx, ext=%s",
-                                    long(ev->xclient.data.l[0]),
-                                    ((ev->xclient.data.l[1] & 1) ? "true" : "false")
-                                );
-
-                            // Remember mime types
-                            cvector<char> mime_types;
-                            status_t res = read_dnd_mime_types(ce, &mime_types);
-                            for (size_t i=0, n=mime_types.size(); i<n; ++i)
-                            {
-                                char *mime = mime_types.at(i);
-                                lsp_trace("Supported MIME type: %s", mime);
-                            }
-
-                            drop_mime_types(&vDndMimeTypes);
-                            if (res == STATUS_OK)
-                            {
-                                vDndMimeTypes.swap_data(&mime_types);
-                                ue.nType        = UIE_DRAG_ENTER;
-                                ue.nState       = vDndMimeTypes.size();
-                                hDndSource      = ce->data.l[0];
-                                src_wnd         = hRootWnd;
-                            }
-                            else
-                                hDndSource      = None;
-                            drop_mime_types(&mime_types);
-                        }
-                        else if (type == sAtoms.X11_XdndLeave)
-                        {
-                            /**
-                            Sent from source to target to cancel the drop.
-
-                               data.l[0] contains the XID of the source window.
-                               data.l[1] is reserved for future use (flags).
-                            */
-                            lsp_trace("Received XdndLeave");
-                            hDndSource          = None;
-                            ue.nType            = UIE_DRAG_LEAVE;
-                        }
-                        else if (type == sAtoms.X11_XdndPosition)
-                        {
-                            /**
-                            Sent from source to target to provide mouse location.
-
-                               data.l[0] contains the XID of the source window.
-                               data.l[1] is reserved for future use (flags).
-                               data.l[2] contains the coordinates of the mouse position relative to the root window.
-                                   data.l[2] = (x << 16) | y;
-                               data.l[3] contains the time stamp for retrieving the data. (new in version 1)
-                               data.l[4] contains the action requested by the user. (new in version 2)
-                            */
-
-                            long x = (ce->data.l[2] >> 16), y = (ce->data.l[2] & 0xffff);
-                            lsp_trace("Received XdndPosition: wnd=0x%lx, flags=0x%lx, x=%ld, y=%ld, timestamp=%ld action=%ld (%s)",
-                                    ce->data.l[0], ce->data.l[1], x, y, ce->data.l[3], ce->data.l[4], XGetAtomName(pDisplay, ce->data.l[4])
-                                    );
-
-                            hDndSource          = ev->xclient.data.l[0];
-                            src_wnd             = hRootWnd;
-
-                            // Form the notification event
-                            Atom act            = ce->data.l[4];
-
-                            ue.nType            = UIE_DRAG_REQUEST;
-                            ue.nLeft            = x;
-                            ue.nTop             = y;
-                            ue.nTime            = ce->data.l[3];
-
-                            if (act == sAtoms.X11_XdndActionCopy)
-                                ue.nState           = DRAG_COPY;
-                            else if (act == sAtoms.X11_XdndActionMove)
-                                ue.nState           = DRAG_MOVE;
-                            else if (act == sAtoms.X11_XdndActionLink)
-                                ue.nState           = DRAG_LINK;
-                            else if (act == sAtoms.X11_XdndActionAsk)
-                                ue.nState           = DRAG_ASK;
-                            else if (act == sAtoms.X11_XdndActionPrivate)
-                                ue.nState           = DRAG_PRIVATE;
-                            else if (act == sAtoms.X11_XdndActionDirectSave)
-                                ue.nState           = DRAG_DIRECT_SAVE;
-                            else
-                                ue.nState           = DRAG_NONE;
-                        }
-                        else if (type == sAtoms.X11_XdndDrop)
-                        {
-                            /**
-                            Sent from source to target to complete the drop.
-                            data.l[0] contains the XID of the source window.
-                            data.l[1] is reserved for future use (flags).
-                            data.l[2] contains the time stamp for retrieving the data. (new in version 1)
-                            */
-                            lsp_trace("Received XdndDrop wnd=0x%lx, ts=%ld", ce->data.l[0], ce->data.l[2]);
-                            if (ce->data.l[0] == hDndSource)
-                            {
-                                ue.nType            = UIE_DRAG_DROP;
-                                ue.nTime            = ce->data.l[2];
-                                src_wnd             = hRootWnd;
-                            }
-                        }
                         else
-                            lsp_trace("received client message of type %s",
-                                    XGetAtomName(pDisplay, ev->xclient.message_type));
+                        {
+                            #ifdef LSP_TRACE
+                            char *a_name = ::XGetAtomName(pDisplay, ev->xclient.message_type);
+                            lsp_trace("received client message of type %s", a_name);
+                            ::XFree(a_name);
+                            #endif
+                        }
                         break;
                     }
 
@@ -1609,8 +1501,8 @@ namespace lsp
 
                         // Translate coordinates if originating and target window differs
                         int x, y;
-                        XTranslateCoordinates(pDisplay,
-                            src_wnd, wnd->x11handle(),
+                        ::XTranslateCoordinates(pDisplay,
+                            ev->xany.window, wnd->x11handle(),
                             ue.nLeft, ue.nTop,
                             &x, &y, &child);
                         se.nLeft    = x;
@@ -1622,11 +1514,71 @@ namespace lsp
                 }
             }
 
-            status_t X11Display::read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype)
+            bool X11Display::handle_drag_event(XEvent *ev)
             {
+                // It SHOULD be a client message
+                if (ev->type != ClientMessage)
+                    return false;
+
+                XClientMessageEvent *ce = &ev->xclient;
+                Atom type = ce->message_type;
+
+                if (type == sAtoms.X11_XdndEnter)
+                {
+                    handle_drag_enter(ce);
+                    return true;
+                }
+                else if (type == sAtoms.X11_XdndLeave)
+                {
+                    handle_drag_leave(ce);
+                    return true;
+                }
+                else if (type == sAtoms.X11_XdndPosition)
+                {
+                    handle_drag_position(ce);
+                    return true;
+                }
+                else if (type == sAtoms.X11_XdndDrop)
+                {
+                    handle_drag_drop(ce);
+                    return true;
+                }
+
+                return false;
+            }
+
+            status_t X11Display::handle_drag_enter(XClientMessageEvent *ev)
+            {
+                /**
+                data.l[0] contains the XID of the source window.
+
+                data.l[1]:
+
+                   Bit 0 is set if the source supports more than three data types.
+                   The high byte contains the protocol version to use (minimum of the source's
+                   and target's highest supported versions).
+                   The rest of the bits are reserved for future use.
+
+                data.l[2,3,4] contain the first three types that the source supports.
+                   Unused slots are set to None. The ordering is arbitrary since, in general,
+                   the source cannot know what the target prefers.
+                */
+
+                lsp_trace("Received XdndEnter: wnd=0x%lx, ext=%s",
+                        long(ev->data.l[0]),
+                        ((ev->data.l[1] & 1) ? "true" : "false")
+                    );
+
                 Atom type;
                 size_t bytes;
                 uint8_t *data = NULL;
+
+                drop_mime_types(&vDndMimeTypes);
+
+                // Find target window
+                X11Window *tgt  = find_window(ev->data.l[0]);
+                if (tgt == NULL)
+                    return STATUS_NOT_FOUND;
 
                 // There are more than 3 mime types?
                 if (ev->data.l[1] & 1)
@@ -1652,9 +1604,13 @@ namespace lsp
                         char *xctype = ::strdup(a_name);
                         ::XFree(a_name);
                         if (xctype == NULL)
-                            return STATUS_NO_MEM;
-                        if (!ctype->add(xctype))
                         {
+                            drop_mime_types(&vDndMimeTypes);
+                            return STATUS_NO_MEM;
+                        }
+                        if (!vDndMimeTypes.add(xctype))
+                        {
+                            drop_mime_types(&vDndMimeTypes);
                             ::free(xctype);
                             return STATUS_NO_MEM;
                         }
@@ -1675,15 +1631,171 @@ namespace lsp
                         char *xctype = ::strdup(a_name);
                         ::XFree(a_name);
                         if (xctype == NULL)
-                            return STATUS_NO_MEM;
-                        if (!ctype->add(xctype))
                         {
+                            drop_mime_types(&vDndMimeTypes);
+                            return STATUS_NO_MEM;
+                        }
+                        if (!vDndMimeTypes.add(xctype))
+                        {
+                            drop_mime_types(&vDndMimeTypes);
                             ::free(xctype);
                             return STATUS_NO_MEM;
                         }
                     }
                 }
-                return STATUS_OK;
+
+                // Add NULL-terminator
+                if (!vDndMimeTypes.add(NULL))
+                {
+                    drop_mime_types(&vDndMimeTypes);
+                    return STATUS_NO_MEM;
+                }
+
+                // Log all supported MIME types
+                #ifdef LSP_TRACE
+                for (size_t i=0, n=vDndMimeTypes.size()-1; i<n; ++i)
+                {
+                    char *mime = vDndMimeTypes.at(i);
+                    lsp_trace("Supported MIME type: %s", mime);
+                }
+                #endif
+
+                hDndSource      = ev->data.l[0];
+
+                // Create DRAG_ENTER event
+                ws_event_t ue;
+                ue.nType        = UIE_DRAG_ENTER;
+                ue.nLeft        = 0;
+                ue.nTop         = 0;
+                ue.nWidth       = 0;
+                ue.nHeight      = 0;
+                ue.nCode        = 0;
+                ue.nState       = 0;
+                ue.nTime        = 0;
+
+                // Pass event to the target window
+                return tgt->handle_event(&ue);
+            }
+
+            status_t X11Display::handle_drag_leave(XClientMessageEvent *ev)
+            {
+                /**
+                Sent from source to target to cancel the drop.
+
+                   data.l[0] contains the XID of the source window.
+                   data.l[1] is reserved for future use (flags).
+                */
+                lsp_trace("Received XdndLeave");
+                hDndSource          = None;
+
+                // Find target window
+                X11Window *tgt  = find_window(ev->data.l[0]);
+                if (tgt == NULL)
+                    return STATUS_NOT_FOUND;
+
+                ws_event_t ue;
+                ue.nType        = UIE_DRAG_LEAVE;
+                ue.nLeft        = 0;
+                ue.nTop         = 0;
+                ue.nWidth       = 0;
+                ue.nHeight      = 0;
+                ue.nCode        = 0;
+                ue.nState       = 0;
+                ue.nTime        = 0;
+
+                return tgt->handle_event(&ue);
+            }
+
+            status_t X11Display::handle_drag_position(XClientMessageEvent *ev)
+            {
+                /**
+                Sent from source to target to provide mouse location.
+
+                   data.l[0] contains the XID of the source window.
+                   data.l[1] is reserved for future use (flags).
+                   data.l[2] contains the coordinates of the mouse position relative to the root window.
+                       data.l[2] = (x << 16) | y;
+                   data.l[3] contains the time stamp for retrieving the data. (new in version 1)
+                   data.l[4] contains the action requested by the user. (new in version 2)
+                */
+
+                int x = (ev->data.l[2] >> 16), y = (ev->data.l[2] & 0xffff);
+                Window wnd = ev->data.l[0], child = None;
+
+                #ifdef LSP_TRACE
+                char *a_name = ::XGetAtomName(pDisplay, ev->data.l[4]);
+                lsp_trace("Received XdndPosition: wnd=0x%lx, flags=0x%lx, x=%d, y=%d, timestamp=%ld action=%ld (%s)",
+                        ev->data.l[0], ev->data.l[1], x, y, ev->data.l[3], ev->data.l[4], a_name
+                        );
+                ::XFree(a_name);
+                #endif
+
+                // Find target window
+                X11Window *tgt  = find_window(wnd);
+                if (tgt == NULL)
+                    return STATUS_NOT_FOUND;
+
+                ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
+                hDndSource          = wnd;
+
+                // Form the notification event
+                ws_event_t ue;
+                ue.nType            = UIE_DRAG_REQUEST;
+                ue.nLeft            = x;
+                ue.nTop             = y;
+                ue.nWidth           = 0;
+                ue.nHeight          = 0;
+                ue.nCode            = 0;
+                ue.nState           = DRAG_NONE;
+
+                // Decode action
+                Atom act            = ev->data.l[4];
+                if (act == sAtoms.X11_XdndActionCopy)
+                    ue.nState           = DRAG_COPY;
+                else if (act == sAtoms.X11_XdndActionMove)
+                    ue.nState           = DRAG_MOVE;
+                else if (act == sAtoms.X11_XdndActionLink)
+                    ue.nState           = DRAG_LINK;
+                else if (act == sAtoms.X11_XdndActionAsk)
+                    ue.nState           = DRAG_ASK;
+                else if (act == sAtoms.X11_XdndActionPrivate)
+                    ue.nState           = DRAG_PRIVATE;
+                else if (act == sAtoms.X11_XdndActionDirectSave)
+                    ue.nState           = DRAG_DIRECT_SAVE;
+
+                ue.nTime            = ev->data.l[3];
+
+                return tgt->handle_event(&ue);
+            }
+
+            status_t X11Display::handle_drag_drop(XClientMessageEvent *ev)
+            {
+                /**
+                Sent from source to target to complete the drop.
+                data.l[0] contains the XID of the source window.
+                data.l[1] is reserved for future use (flags).
+                data.l[2] contains the time stamp for retrieving the data. (new in version 1)
+                */
+                lsp_trace("Received XdndDrop wnd=0x%lx, ts=%ld", ev->data.l[0], ev->data.l[2]);
+
+                if (ev->data.l[0] != long(hDndSource))
+                    return STATUS_PROTOCOL_ERROR;
+
+                // Find target window
+                X11Window *tgt  = find_window(ev->data.l[0]);
+                if (tgt == NULL)
+                    return STATUS_NOT_FOUND;
+
+                ws_event_t ue;
+                ue.nType            = UIE_DRAG_DROP;
+                ue.nLeft            = 0;
+                ue.nTop             = 0;
+                ue.nWidth           = 0;
+                ue.nHeight          = 0;
+                ue.nCode            = 0;
+                ue.nTime            = ev->data.l[2];
+
+                return tgt->handle_event(&ue);
             }
 
             void X11Display::drop_mime_types(cvector<char> *ctype)
@@ -2200,6 +2312,11 @@ namespace lsp
                     }
                 }
 
+            }
+
+            const char * const *X11Display::getDragContentTypes()
+            {
+                return (hDndSource != None) ? vDndMimeTypes.get_array() : NULL;
             }
 
         } /* namespace x11 */

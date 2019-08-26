@@ -124,7 +124,9 @@ namespace lsp
 
                 protected:
                     void            handleEvent(XEvent *ev);
-                    bool            handleClipboardEvent(XEvent *ev);
+                    bool            handle_clipboard_event(XEvent *ev);
+                    bool            handle_drag_event(XEvent *ev);
+
                     status_t        do_main_iteration(timestamp_t ts);
                     void            do_destroy();
                     X11Window      *get_locked(X11Window *wnd);
@@ -135,7 +137,8 @@ namespace lsp
                     status_t        bufid_to_atom(size_t bufid, Atom *atom);
                     status_t        atom_to_bufid(Atom x, size_t *bufid);
 
-                    status_t        read_dnd_mime_types(XClientMessageEvent *ev, cvector<char> *ctype);
+                    status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
+                    status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
                     void            drop_mime_types(cvector<char> *ctype);
                     static status_t sink_data_source(IDataSink *dst, IDataSource *src);
 
@@ -151,8 +154,11 @@ namespace lsp
 
                     void            handle_selection_clear(XSelectionClearEvent *ev);
 
-                    status_t        read_property(Window wnd, Atom property, Atom ptype, uint8_t **data, size_t *size, Atom *type);
-                    status_t        decode_mime_types(cvector<char> *ctype, const uint8_t *data, size_t size);
+                    status_t        handle_drag_enter(XClientMessageEvent *ev);
+                    status_t        handle_drag_leave(XClientMessageEvent *ev);
+                    status_t        handle_drag_position(XClientMessageEvent *ev);
+                    status_t        handle_drag_drop(XClientMessageEvent *ev);
+
                     void            complete_async_tasks();
 
                 public:
@@ -179,6 +185,7 @@ namespace lsp
 
                     virtual status_t setClipboard(size_t id, IDataSource *ds);
                     virtual status_t getClipboard(size_t id, IDataSink *dst);
+                    virtual const char * const *getDragContentTypes();
 
                     void                handle_error(XErrorEvent *ev);
 
