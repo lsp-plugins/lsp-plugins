@@ -694,6 +694,11 @@ namespace lsp
                             if (task->cb_recv.hProperty == ev->property)
                                 task->result = handle_selection_notify(&task->cb_recv, ev);
                             break;
+                        case X11ASYNC_DND_RECV:
+                            if ((task->dnd_recv.hProperty == ev->property) &&
+                                (task->dnd_recv.hTarget == ev->requestor))
+                                task->result = handle_selection_notify(&task->cb_recv, ev);
+                            break;
                         default:
                             break;
                     }
@@ -809,6 +814,15 @@ namespace lsp
                                 task->cb_send.pSource = NULL;
                             }
                             break;
+                        case X11ASYNC_DND_RECV:
+                            // Close and release data sink
+                            if (task->dnd_recv.pSink != NULL)
+                            {
+                                task->dnd_recv.pSink->close(task->result);
+                                task->dnd_recv.pSink->release();
+                                task->dnd_recv.pSink = NULL;
+                            }
+                            break;
                         default:
                             break;
                     }
@@ -893,6 +907,8 @@ namespace lsp
                                     task->pSink->close(res);
                                     task->pSink->release();
                                     task->pSink     = NULL;
+
+                                    complete_dnd_transfer(task);
                                     task->bComplete = true;
                                 }
                                 else if (type == task->hType)
@@ -1062,6 +1078,90 @@ namespace lsp
                             else if (type == task->hType)
                             {
                                 ::XDeleteProperty(pDisplay, hClipWnd, task->hProperty); // Request next chunk
+                                ::XFlush(pDisplay);
+                                res     = task->pSink->write(data, bytes); // Append data to the sink
+                            }
+                            else
+                                res     = STATUS_UNSUPPORTED_FORMAT;
+                        }
+
+                        break;
+                    }
+
+                    default:
+                        // Invalid state, report as error
+                        res         = STATUS_IO_ERROR;
+                        break;
+                }
+
+                // Free allocated data
+                if (data != NULL)
+                    ::free(data);
+
+                return res;
+            }
+
+            status_t X11Display::handle_selection_notify(dnd_recv_t *task, XSelectionEvent *ev)
+            {
+                uint8_t *data   = NULL;
+                size_t bytes    = 0;
+                Atom type       = None;
+                status_t res    = STATUS_OK;
+
+                // Analyze state
+                switch (task->enState)
+                {
+                    case DND_RECV_SIMPLE:
+                    {
+                        // We expect property of type INCR or of type task->hType
+                        res = read_property(task->hTarget, task->hProperty, task->hType, &data, &bytes, &type);
+                        if (res == STATUS_OK)
+                        {
+                            if (type == sAtoms.X11_INCR)
+                            {
+                                // Initiate INCR mode transfer
+                                ::XDeleteProperty(pDisplay, task->hTarget, task->hProperty);
+                                ::XFlush(pDisplay);
+                                task->enState       = DND_RECV_INCR;
+                            }
+                            else if (type == task->hType)
+                            {
+                                ::XDeleteProperty(pDisplay, task->hTarget, task->hProperty); // Remove property
+                                ::XFlush(pDisplay);
+
+                                if (bytes > 0)
+                                    res = task->pSink->write(data, bytes);
+
+                                complete_dnd_transfer(task);
+                                task->bComplete = true;
+                            }
+                            else
+                                res     = STATUS_UNSUPPORTED_FORMAT;
+                        }
+
+                        break;
+                    }
+
+                    case DND_RECV_INCR:
+                    {
+                        // Read incrementally property contents
+                        res = read_property(task->hTarget, task->hProperty, task->hType, &data, &bytes, &type);
+                        if (res == STATUS_OK)
+                        {
+                            // Check property type
+                            if (bytes <= 0) // End of transfer?
+                            {
+                                // Complete the INCR transfer
+                                ::XDeleteProperty(pDisplay, task->hTarget, task->hProperty); // Delete the property
+                                ::XFlush(pDisplay);
+
+                                // Notify source about end of transfer
+                                complete_dnd_transfer(task);
+                                task->bComplete = true;
+                            }
+                            else if (type == task->hType)
+                            {
+                                ::XDeleteProperty(pDisplay, task->hTarget, task->hProperty); // Request next chunk
                                 ::XFlush(pDisplay);
                                 res     = task->pSink->write(data, bytes); // Append data to the sink
                             }
@@ -1838,9 +1938,20 @@ namespace lsp
                    data.l[4] contains the action requested by the user. (new in version 2)
                 */
 
+                // Validate current state
                 if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
                     return STATUS_PROTOCOL_ERROR;
+                switch (task->enState)
+                {
+                    case DND_RECV_PENDING:
+                    case DND_RECV_POSITION:
+                    case DND_RECV_ACCEPT:
+                        break;
+                    default:
+                        return STATUS_PROTOCOL_ERROR;
+                }
 
+                // Decode the event
                 int x               = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
                 Window wnd          = ev->data.l[0], child = None;
                 Atom act            = ev->data.l[4];
@@ -1861,7 +1972,7 @@ namespace lsp
                 ::XSync(pDisplay, False);
                 ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
                 ::XSync(pDisplay, False);
-                task->enState       = DND_RECV_PENDING;
+                task->enState       = DND_RECV_POSITION;
                 task->hAction       = act;
 
                 // Form the notification event
@@ -1905,7 +2016,10 @@ namespace lsp
                 */
                 lsp_trace("Received XdndDrop wnd=0x%lx, ts=%ld", ev->data.l[0], ev->data.l[2]);
 
+                // Validate state
                 if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
+                    return STATUS_PROTOCOL_ERROR;
+                if (task->enState != DND_RECV_ACCEPT)
                     return STATUS_PROTOCOL_ERROR;
 
                 // Find target window
@@ -1949,6 +2063,15 @@ namespace lsp
                 // Release sink
                 task->pSink->release();
                 task->pSink = NULL;
+                complete_dnd_transfer(task);
+
+                return res;
+            }
+
+            void X11Display::complete_dnd_transfer(dnd_recv_t *task)
+            {
+                // Send end of transfer if status is bad
+                lsp_trace("Sending XdndFinished");
 
                 /**
                 XdndFinished (new in version 2)
@@ -1971,9 +2094,6 @@ namespace lsp
                         was given based on the XdndStatus messages!)
                 */
 
-                // Send end of transfer if status is bad
-                lsp_trace("Sending XdndFinished");
-
                 XEvent xev;
                 XClientMessageEvent *xe = &xev.xclient;
                 xe->type            = ClientMessage;
@@ -1992,8 +2112,6 @@ namespace lsp
                 // Send the notification event
                 ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
                 ::XFlush(pDisplay);
-
-                return res;
             }
 
             void X11Display::drop_mime_types(cvector<char> *ctype)
@@ -2692,6 +2810,7 @@ namespace lsp
                 if (task->pSink != NULL)
                     task->pSink->release();
                 task->pSink     = sink;
+                task->enState   = DND_RECV_ACCEPT;
 
                 // Send the response
                 ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);

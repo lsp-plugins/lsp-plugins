@@ -165,6 +165,7 @@ namespace lsp
 
                     void            handle_selection_notify(XSelectionEvent *ev);
                     status_t        handle_selection_notify(cb_recv_t *task, XSelectionEvent *ev);
+                    status_t        handle_selection_notify(dnd_recv_t *task, XSelectionEvent *ev);
 
                     void            handle_selection_request(XSelectionRequestEvent *ev);
                     status_t        handle_selection_request(cb_send_t *task, XSelectionRequestEvent *ev);
@@ -175,6 +176,7 @@ namespace lsp
                     status_t        handle_drag_leave(dnd_recv_t *task, XClientMessageEvent *ev);
                     status_t        handle_drag_position(dnd_recv_t *task, XClientMessageEvent *ev);
                     status_t        handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev);
+                    void            complete_dnd_transfer(dnd_recv_t *task);
 
                     dnd_recv_t     *current_drag_task();
                     void            complete_async_tasks();
