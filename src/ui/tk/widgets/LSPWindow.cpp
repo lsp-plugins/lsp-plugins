@@ -545,7 +545,7 @@ namespace lsp
                 }
 
                 default:
-                    result = LSPWidgetContainer::handle_event(e);
+                    result      = LSPWidgetContainer::handle_event(e);
                     break;
             }
 

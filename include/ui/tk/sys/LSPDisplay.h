@@ -172,7 +172,7 @@ namespace lsp
                  * @param sink data sink
                  * @return status of operation
                  */
-                virtual status_t get_clipboard(size_t id, IDataSink *sink);
+                status_t get_clipboard(size_t id, IDataSink *sink);
 
                 /**
                  * Set clipboard data
@@ -180,7 +180,29 @@ namespace lsp
                  * @param src data source
                  * @return status of operation
                  */
-                virtual status_t set_clipboard(size_t id, IDataSource *src);
+                status_t set_clipboard(size_t id, IDataSource *src);
+
+                /**
+                 * Reject drag event
+                 * @return status of operation
+                 */
+                status_t reject_drag();
+
+                /**
+                 * Accept drag request
+                 * @param sink the sink that will handle data transfer
+                 * @param action drag action
+                 * @param internal true if we want to receive notifications inside of the drag rectangle
+                 * @param r parameters of the drag rectangle, can be NULL
+                 * @return status of operation
+                 */
+                status_t accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
+
+                /**
+                 * Get NULL-terminated list of provided MIME types for a drag
+                 * @return NULL-terminated list of strings
+                 */
+                const char * const *get_drag_mime_types();
 
                 /** Get screen size
                  *

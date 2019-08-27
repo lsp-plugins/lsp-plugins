@@ -39,10 +39,23 @@ namespace lsp
                  * @param size size of buffer
                  * @param drop the method how to drop data on close()
                  */
+                explicit InMemoryStream();
                 explicit InMemoryStream(void *data, size_t size, drop_t drop = DROP_NONE);
                 virtual ~InMemoryStream();
 
             public:
+                /**
+                 * Wrap the memory buffer, drop previous buffer using specified mechanism
+                 * @param data associated buffer
+                 * @param size size of buffer
+                 * @param drop the method how to drop data on close()
+                 */
+                void wrap(void *data, size_t size, drop_t drop = DROP_NONE);
+
+                /**
+                 * Get the memory contents
+                 * @return memory contents
+                 */
                 inline const uint8_t *data() const { return pData; }
 
                 /**

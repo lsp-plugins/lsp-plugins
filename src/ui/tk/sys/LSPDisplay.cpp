@@ -263,6 +263,21 @@ namespace lsp
         {
             return pDisplay->setClipboard(id, src);
         }
+
+        status_t LSPDisplay::reject_drag()
+        {
+            return pDisplay->rejectDrag();
+        }
+
+        status_t LSPDisplay::accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
+        {
+            return pDisplay->acceptDrag(sink, action, internal, r);
+        }
+
+        const char * const *LSPDisplay::get_drag_mime_types()
+        {
+            return pDisplay->getDragContentTypes();
+        }
     }
 
 } /* namespace lsp */

@@ -148,6 +148,7 @@ namespace lsp
             LSPSLOT_VSCROLL,         //!< LSPSLOT_VSCROLL Triggered when the vertical scrolling is applied
             LSPSLOT_ACTIVATE,        //!< LSPSLOT_ACTIVATE Triggered some user-interaction
             LSPSLOT_DRAW3D,          //!< LSPSLOT_DRAW3D Triggered when a 3D-rendering is required
+            LSPSLOT_DRAG_REQUEST,    //!< LSPSLOT_DRAG_REQUEST Triggered when a drag request is pending on the widget
         };
 
         typedef struct w_class_t

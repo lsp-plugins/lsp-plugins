@@ -15,12 +15,12 @@ namespace lsp
     {
         const w_class_t LSPAudioFile::metadata = { "LSPAudioFile", &LSPWidget::metadata };
 
-        const char * const LSPAudioFile::AudioFileSink::acceptMime[] =
+        const char * const LSPAudioFile::acceptMime[] =
         {
-            "text/uri-list",
+//            "text/uri-list",
 //            "text/x-moz-url",
-//            "text/plain",
 //            "application/x-kde4-urilist",
+            "text/plain",
             NULL
         };
 
@@ -42,23 +42,20 @@ namespace lsp
             pWidget     = NULL;
         }
 
-        ssize_t LSPAudioFile::AudioFileSink::select_content_type(const char * const *mime_types)
-        {
-            int idx     = 0;
-            for (const char * const *p = acceptMime; *p != NULL; ++p, ++idx)
-            {
-                for (const char * const *q = mime_types; *q != NULL; ++q)
-                {
-                    if (!::strcasecmp(*p, *q))
-                        return idx;
-                }
-            }
-            return -1;
-        }
-
         void LSPAudioFile::AudioFileSink::unbind()
         {
             pWidget     = NULL;
+        }
+
+        ssize_t LSPAudioFile::AudioFileSink::get_mime_index(const char *mime)
+        {
+            ssize_t idx = 0;
+            for (const char * const *p = acceptMime; *p != NULL; ++p, ++idx)
+            {
+                if (!::strcasecmp(*p, mime))
+                    return idx;
+            }
+            return -1;
         }
 
         ssize_t LSPAudioFile::AudioFileSink::open(const char * const *mime_types)
@@ -66,7 +63,10 @@ namespace lsp
             if (pOS != NULL)
                 return -STATUS_BAD_STATE;
 
-            ssize_t ctype = select_content_type(mime_types);
+            ssize_t idx = select_content_type(mime_types);
+            if (idx < 0)
+                return -STATUS_UNSUPPORTED_FORMAT;
+            ssize_t ctype = get_mime_index(mime_types[idx]);
             if (ctype < 0)
                 return -STATUS_UNSUPPORTED_FORMAT;
 
@@ -75,7 +75,7 @@ namespace lsp
                 return -STATUS_NO_MEM;
 
             nCtype      = ctype;
-            return ctype;
+            return idx; // Return the index from mime_types array
         }
 
         status_t LSPAudioFile::AudioFileSink::write(const void *buf, size_t count)
@@ -91,8 +91,33 @@ namespace lsp
                 return STATUS_OK;
             pOS->close();
 
-            if (pOS->data() != NULL)
-                __lsp_dumpb("Content", pOS->data(), pOS->size());
+            // Commit the content
+            const uint8_t *raw_data = pOS->data();
+            size_t raw_size = pOS->size();
+
+            bool success = false;
+            LSPString data;
+
+            if ((raw_data != NULL) && (raw_size > 0))
+            {
+                switch (nCtype)
+                {
+                    case TEXT_URI_LIST:
+                        success = data.set_native(reinterpret_cast<const char *>(raw_data), raw_size);
+                        if (success)
+                            data.sta
+                        break;
+                    case TEXT_X_MOZ_URL:
+                        success = data.set_utf16(reinterpret_cast<const lsp_utf16_t *>(raw_data), raw_size / 2);
+                        break;
+                    case APPLICATION_X_KDE4_URILIST:
+                        success = data.set_native(reinterpret_cast<const char *>(raw_data), raw_size);
+                        break;
+                    case TEXT_PLAIN:
+                        success = data.set_native(reinterpret_cast<const char *>(raw_data), raw_size);
+                        break;
+                }
+            }
             else
                 lsp_trace("Empty content");
 
@@ -100,6 +125,14 @@ namespace lsp
             pOS->drop();
             delete pOS;
             pOS     = NULL;
+            nCtype  = -1;
+
+            // Need to update file name?
+            if (success)
+            {
+                pWidget->sFileName.swap(&data);
+                pWidget->slots()->execute(LSPSLOT_SUBMIT, pWidget, NULL);
+            }
 
             return STATUS_OK;
         }
@@ -1022,6 +1055,30 @@ namespace lsp
 
         status_t LSPAudioFile::on_activate()
         {
+            return STATUS_OK;
+        }
+
+        ssize_t LSPAudioFile::select_content_type(const char * const *mime_types)
+        {
+            for (const char * const *p = acceptMime; *p != NULL; ++p)
+            {
+                ssize_t idx = 0;
+                for (const char * const *q = mime_types; *q != NULL; ++q, ++idx)
+                {
+                    if (!::strcasecmp(*p, *q))
+                        return idx;
+                }
+            }
+            return -1;
+        }
+
+        status_t LSPAudioFile::on_drag_request(const ws_event_t *e, const char * const *ctype)
+        {
+            ssize_t idx = select_content_type(ctype);
+            if (idx >= 0)
+                pDisplay->accept_drag(pSink, DRAG_COPY, true, &sSize);
+            else
+                pDisplay->reject_drag();
             return STATUS_OK;
         }
 

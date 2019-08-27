@@ -12,7 +12,7 @@ namespace lsp
 {
     namespace tk
     {
-        const w_class_t LSPEdit::metadata = { "LSPEdit", &LSPEdit::metadata };
+        const w_class_t LSPEdit::metadata = { "LSPEdit", &LSPWidget::metadata };
 
         //-----------------------------------------------------------------------------
         // LSPEdit::TextSelection implementation

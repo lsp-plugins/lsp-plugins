@@ -699,7 +699,7 @@ namespace lsp
                         case X11ASYNC_DND_RECV:
                             if ((task->dnd_recv.hProperty == ev->property) &&
                                 (task->dnd_recv.hTarget == ev->requestor))
-                                task->result = handle_selection_notify(&task->cb_recv, ev);
+                                task->result = handle_selection_notify(&task->dnd_recv, ev);
                             break;
                         default:
                             break;
@@ -1968,8 +1968,7 @@ namespace lsp
                     return STATUS_PROTOCOL_ERROR;
 
                 // Decode the event
-                int x               = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
-                Window wnd          = ev->data.l[0], child = None;
+                int x = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
                 Atom act            = ev->data.l[4];
 
                 #ifdef LSP_TRACE
@@ -1985,8 +1984,9 @@ namespace lsp
                 if (tgt == NULL)
                     return STATUS_NOT_FOUND;
 
+                Window child        = None;
                 ::XSync(pDisplay, False);
-                ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
+                ::XTranslateCoordinates(pDisplay, hRootWnd, task->hTarget, x, y, &x, &y, &child);
                 ::XSync(pDisplay, False);
                 task->enState       = DND_RECV_POSITION; // Allow specific state changes
                 task->hAction       = act;
@@ -2022,11 +2022,11 @@ namespace lsp
                 status_t res        = tgt->handle_event(&ue);
 
                 // Did the handler properly process the event?
-                if ((task->enState != DND_RECV_ACCEPT) || (task->enState != DND_RECV_REJECT))
-                {
-                    task->enState   = DND_RECV_PENDING;
+                if ((task->enState != DND_RECV_ACCEPT) && (task->enState != DND_RECV_REJECT))
                     reject_dnd_transfer(task);
-                }
+
+                // Return state back
+                task->enState   = DND_RECV_PENDING;
 
                 return res;
             }
@@ -2044,49 +2044,59 @@ namespace lsp
                 // Validate state
                 if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
                     return STATUS_PROTOCOL_ERROR;
-                if (task->enState != DND_RECV_ACCEPT)
+                if (task->enState != DND_RECV_PENDING)
                     return STATUS_PROTOCOL_ERROR;
+                if (task->pSink == NULL)
+                {
+                    complete_dnd_transfer(task);
+                    return STATUS_UNSUPPORTED_FORMAT;
+                }
 
                 // Find target window
                 X11Window *tgt  = find_window(task->hTarget);
                 if (tgt == NULL)
-                    return STATUS_NOT_FOUND;
-
-                status_t res        = STATUS_OK;
-
-                if (task->pSink != NULL)
                 {
-                    ssize_t index = task->pSink->open(vDndMimeTypes.get_array());
-                    if (index >= 0)
-                    {
-                        const char *mime = vDndMimeTypes.get(index);
-                        if (mime != NULL)
-                        {
-                            // Generate property identifier
-                            Atom prop_id = gen_selection_id();
-                            if (prop_id != None)
-                            {
-                                // Request selection conversion and return
-                                task->hProperty     = prop_id;
-                                ::XConvertSelection(pDisplay, task->hSelection,
-                                        sAtoms.X11_TARGETS, prop_id, task->hTarget, CurrentTime);
-                                ::XFlush(pDisplay);
-
-                                return STATUS_OK;
-                            }
-                            else
-                                res = STATUS_UNKNOWN_ERR;
-                        }
-                        else
-                            res = STATUS_BAD_TYPE;
-
-                        task->pSink->close(res);
-                    }
-                    else
-                        res = -index;
+                    complete_dnd_transfer(task);
+                    return STATUS_NOT_FOUND;
                 }
 
-                // Release sink
+                status_t res        = STATUS_OK;
+                ssize_t index       = task->pSink->open(vDndMimeTypes.get_array());
+                if (index >= 0)
+                {
+                    const char *mime = vDndMimeTypes.get(index);
+                    if (mime != NULL)
+                    {
+                        // Update type of MIME
+                        task->hType     = ::XInternAtom(pDisplay, mime, False);
+                        lsp_trace("Selected MIME type: %s (%ld)", mime, task->hType);
+
+                        // Generate property identifier
+                        Atom prop_id = gen_selection_id();
+                        if (prop_id != None)
+                        {
+                            // Request selection conversion and return
+                            task->hProperty     = prop_id;
+                            task->enState       = DND_RECV_SIMPLE;
+
+                            ::XConvertSelection(pDisplay, task->hSelection,
+                                    task->hType, prop_id, task->hTarget, CurrentTime);
+                            ::XFlush(pDisplay);
+
+                            return STATUS_OK;
+                        }
+                        else
+                            res = STATUS_UNKNOWN_ERR;
+                    }
+                    else
+                        res = STATUS_BAD_TYPE;
+
+                    task->pSink->close(res);
+                }
+                else
+                    res = -index;
+
+                // Release sink and complete transfer
                 task->pSink->release();
                 task->pSink = NULL;
                 complete_dnd_transfer(task);
