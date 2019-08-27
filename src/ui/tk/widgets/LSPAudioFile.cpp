@@ -15,6 +15,95 @@ namespace lsp
     {
         const w_class_t LSPAudioFile::metadata = { "LSPAudioFile", &LSPWidget::metadata };
 
+        const char * const LSPAudioFile::AudioFileSink::acceptMime[] =
+        {
+            "text/uri-list",
+//            "text/x-moz-url",
+//            "text/plain",
+//            "application/x-kde4-urilist",
+            NULL
+        };
+
+        LSPAudioFile::AudioFileSink::AudioFileSink(LSPAudioFile *af)
+        {
+            pWidget     = af;
+            pOS         = NULL;
+            nCtype      = -1;
+        }
+
+        LSPAudioFile::AudioFileSink::~AudioFileSink()
+        {
+            if (pOS != NULL)
+            {
+                pOS->close();
+                delete pOS;
+                pOS     = NULL;
+            }
+            pWidget     = NULL;
+        }
+
+        ssize_t LSPAudioFile::AudioFileSink::select_content_type(const char * const *mime_types)
+        {
+            int idx     = 0;
+            for (const char * const *p = acceptMime; *p != NULL; ++p, ++idx)
+            {
+                for (const char * const *q = mime_types; *q != NULL; ++q)
+                {
+                    if (!::strcasecmp(*p, *q))
+                        return idx;
+                }
+            }
+            return -1;
+        }
+
+        void LSPAudioFile::AudioFileSink::unbind()
+        {
+            pWidget     = NULL;
+        }
+
+        ssize_t LSPAudioFile::AudioFileSink::open(const char * const *mime_types)
+        {
+            if (pOS != NULL)
+                return -STATUS_BAD_STATE;
+
+            ssize_t ctype = select_content_type(mime_types);
+            if (ctype < 0)
+                return -STATUS_UNSUPPORTED_FORMAT;
+
+            pOS         = new io::OutMemoryStream();
+            if (pOS == NULL)
+                return -STATUS_NO_MEM;
+
+            nCtype      = ctype;
+            return ctype;
+        }
+
+        status_t LSPAudioFile::AudioFileSink::write(const void *buf, size_t count)
+        {
+            if (pOS == NULL)
+                return STATUS_CLOSED;
+            return pOS->write(buf, count);
+        }
+
+        status_t LSPAudioFile::AudioFileSink::close(status_t code)
+        {
+            if (pOS == NULL)
+                return STATUS_OK;
+            pOS->close();
+
+            if (pOS->data() != NULL)
+                __lsp_dumpb("Content", pOS->data(), pOS->size());
+            else
+                lsp_trace("Empty content");
+
+            // Drop allocated data
+            pOS->drop();
+            delete pOS;
+            pOS     = NULL;
+
+            return STATUS_OK;
+        }
+
         LSPAudioFile::LSPAudioFile(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(dpy, this),
@@ -37,6 +126,8 @@ namespace lsp
             nDecimSize      = 0;
             vDecimX         = NULL;
             vDecimY         = NULL;
+
+            pSink           = NULL;
         }
         
         LSPAudioFile::~LSPAudioFile()
@@ -49,6 +140,11 @@ namespace lsp
             status_t result = LSPWidget::init();
             if (result != STATUS_OK)
                 return result;
+
+            pSink       = new AudioFileSink(this);
+            if (pSink == NULL)
+                return STATUS_NO_MEM;
+            pSink->acquire();
 
             sFont.init();
             sFont.set_size(10);
@@ -179,6 +275,14 @@ namespace lsp
 
         void LSPAudioFile::destroy_data()
         {
+            // Destroy sink
+            if (pSink != NULL)
+            {
+                pSink->unbind();
+                pSink->release();
+                pSink   = NULL;
+            }
+
             // Destroy surfaces
             drop_glass();
 
