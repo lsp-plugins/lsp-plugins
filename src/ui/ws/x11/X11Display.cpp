@@ -686,6 +686,8 @@ namespace lsp
                 for (size_t i=0, n=sAsync.size(); i<n; ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
+                    if (task->cb_common.bComplete)
+                        continue;
 
                     // Notify all possible tasks about the event
                     switch (task->type)
@@ -702,6 +704,9 @@ namespace lsp
                         default:
                             break;
                     }
+
+                    if (task->result != STATUS_OK)
+                        task->cb_common.bComplete   = true;
                 }
             }
 
@@ -748,6 +753,8 @@ namespace lsp
                 for (size_t i=0, n=sAsync.size(); i<n; ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
+                    if (task->cb_common.bComplete)
+                        continue;
 
                     // Notify all possible tasks about the event
                     switch (task->type)
@@ -773,6 +780,9 @@ namespace lsp
                         default:
                             break;
                     }
+
+                    if (task->result != STATUS_OK)
+                        task->cb_common.bComplete   = true;
                 }
             }
 
@@ -1199,6 +1209,8 @@ namespace lsp
                 for (size_t i=0, n=sAsync.size(); i<n; ++i)
                 {
                     x11_async_t *task = sAsync.at(i);
+                    if (task->cb_common.bComplete)
+                        continue;
 
                     // Notify all possible tasks about the event
                     switch (task->type)
@@ -1215,6 +1227,9 @@ namespace lsp
                         default:
                             break;
                     }
+
+                    if (task->result != STATUS_OK)
+                        task->cb_common.bComplete   = true;
                 }
 
                 // The transfer has not been found?
@@ -1244,6 +1259,8 @@ namespace lsp
 
                     // Call for processing
                     task->result        = handle_selection_request(&task->cb_send, ev);
+                    if (task->result != STATUS_OK)
+                        task->cb_common.bComplete   = true;
                 }
             }
 
@@ -1682,6 +1699,8 @@ namespace lsp
 
                 if (type == sAtoms.X11_XdndEnter)
                 {
+                    lsp_trace("Received XdndEnter");
+
                     // Cancel all previous tasks
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
@@ -1714,6 +1733,7 @@ namespace lsp
                 }
                 else if (type == sAtoms.X11_XdndPosition)
                 {
+                    lsp_trace("Received XdndPosition");
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
@@ -1727,6 +1747,7 @@ namespace lsp
                 }
                 else if (type == sAtoms.X11_XdndDrop)
                 {
+                    lsp_trace("Received XdndDrop");
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
@@ -1858,6 +1879,8 @@ namespace lsp
                 task->result        = STATUS_OK;
                 dnd_recv_t *dnd     = &task->dnd_recv;
 
+                dnd->bComplete      = false;
+                dnd->hProperty      = None;
                 dnd->hTarget        = ev->window;
                 dnd->hSource        = ev->data.l[0];
                 dnd->hSelection     = sAtoms.X11_XdndSelection;
@@ -1941,15 +1964,8 @@ namespace lsp
                 // Validate current state
                 if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
                     return STATUS_PROTOCOL_ERROR;
-                switch (task->enState)
-                {
-                    case DND_RECV_PENDING:
-                    case DND_RECV_POSITION:
-                    case DND_RECV_ACCEPT:
-                        break;
-                    default:
-                        return STATUS_PROTOCOL_ERROR;
-                }
+                if (task->enState != DND_RECV_PENDING)
+                    return STATUS_PROTOCOL_ERROR;
 
                 // Decode the event
                 int x               = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
@@ -1972,7 +1988,7 @@ namespace lsp
                 ::XSync(pDisplay, False);
                 ::XTranslateCoordinates(pDisplay, hRootWnd, wnd, x, y, &x, &y, &child);
                 ::XSync(pDisplay, False);
-                task->enState       = DND_RECV_POSITION;
+                task->enState       = DND_RECV_POSITION; // Allow specific state changes
                 task->hAction       = act;
 
                 // Form the notification event
@@ -2003,7 +2019,16 @@ namespace lsp
 
                 ue.nTime            = ev->data.l[3];
 
-                return tgt->handle_event(&ue);
+                status_t res        = tgt->handle_event(&ue);
+
+                // Did the handler properly process the event?
+                if ((task->enState != DND_RECV_ACCEPT) || (task->enState != DND_RECV_REJECT))
+                {
+                    task->enState   = DND_RECV_PENDING;
+                    reject_dnd_transfer(task);
+                }
+
+                return res;
             }
 
             status_t X11Display::handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev)
@@ -2042,6 +2067,7 @@ namespace lsp
                             if (prop_id != None)
                             {
                                 // Request selection conversion and return
+                                task->hProperty     = prop_id;
                                 ::XConvertSelection(pDisplay, task->hSelection,
                                         sAtoms.X11_TARGETS, prop_id, task->hTarget, CurrentTime);
                                 ::XFlush(pDisplay);
@@ -2657,7 +2683,7 @@ namespace lsp
                 return (task != NULL) ? vDndMimeTypes.get_array() : NULL;
             }
 
-            status_t X11Display::denyDrag()
+            void X11Display::reject_dnd_transfer(dnd_recv_t *task)
             {
                 /**
                 XdndStatus
@@ -2682,9 +2708,14 @@ namespace lsp
                         the action specified in the XdndPosition message, XdndActionCopy, or XdndActionPrivate. None
                         should be sent if the drop will not be accepted. (new in version 2)
                  */
-                dnd_recv_t *task = current_drag_task();
-                if ((task == NULL) || (task->enState != DND_RECV_POSITION))
-                    return STATUS_BAD_STATE;
+                // Send end of transfer if status is bad
+                lsp_trace("Sending XdndStatus (reject)");
+                
+                XWindowAttributes xwa;
+                Window child = None;
+                int x = 0, y = 0;
+                ::XGetWindowAttributes(pDisplay, task->hTarget, &xwa);
+                ::XTranslateCoordinates(pDisplay, task->hTarget, hRootWnd, 0, 0, &x, &y, &child);
 
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
@@ -2699,11 +2730,33 @@ namespace lsp
                 ev->data.l[1]       = 0;
                 ev->data.l[2]       = 0;
                 ev->data.l[3]       = 0;
+//                ev->data.l[1]       = (1 << 1);
+//                ev->data.l[2]       = ((x & 0xffff) << 16) | (y & 0xffff);
+//                ev->data.l[3]       = ((xwa.width & 0xffff) << 16) | (xwa.height & 0xffff);
                 ev->data.l[4]       = None;
 
-                // Send the response
+                // Send the notification event
                 ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
                 ::XFlush(pDisplay);
+            }
+
+            status_t X11Display::rejectDrag()
+            {
+                // Check task state
+                dnd_recv_t *task = current_drag_task();
+                if ((task == NULL) || (task->enState != DND_RECV_POSITION))
+                    return STATUS_BAD_STATE;
+
+                // Release sink if present
+                if (task->pSink != NULL)
+                {
+                    task->pSink->release();
+                    task->pSink     = NULL;
+                }
+                task->enState       = DND_RECV_REJECT;
+
+                // Send reject status to requestor
+                reject_dnd_transfer(task);
 
                 return STATUS_OK;
             }
@@ -2781,6 +2834,7 @@ namespace lsp
                 }
 
                 // Form the message
+                lsp_trace("Sending XdndStatus (accept)");
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
                 ev->type            = ClientMessage;

@@ -240,10 +240,10 @@ namespace lsp
                 virtual status_t getClipboard(size_t id, IDataSink *dst);
 
                 /**
-                 * Deny drag request
+                 * Reject drag request because drag is not supported at the current position
                  * @return status of operation
                  */
-                virtual status_t denyDrag();
+                virtual status_t rejectDrag();
 
                 /**
                  * Accept drag request

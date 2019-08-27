@@ -590,7 +590,7 @@ namespace lsp
             return STATUS_NOT_IMPLEMENTED;
         }
 
-        status_t IDisplay::denyDrag()
+        status_t IDisplay::rejectDrag()
         {
             return STATUS_NOT_IMPLEMENTED;
         }

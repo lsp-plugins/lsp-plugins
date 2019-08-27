@@ -49,6 +49,7 @@ namespace lsp
                         DND_RECV_PENDING,
                         DND_RECV_POSITION,
                         DND_RECV_ACCEPT,
+                        DND_RECV_REJECT,
                         DND_RECV_SIMPLE,
                         DND_RECV_INCR
                     };
@@ -177,6 +178,7 @@ namespace lsp
                     status_t        handle_drag_position(dnd_recv_t *task, XClientMessageEvent *ev);
                     status_t        handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev);
                     void            complete_dnd_transfer(dnd_recv_t *task);
+                    void            reject_dnd_transfer(dnd_recv_t *task);
 
                     dnd_recv_t     *current_drag_task();
                     void            complete_async_tasks();
@@ -207,7 +209,7 @@ namespace lsp
                     virtual status_t getClipboard(size_t id, IDataSink *dst);
                     virtual const char * const *getDragContentTypes();
 
-                    virtual status_t    denyDrag();
+                    virtual status_t    rejectDrag();
                     virtual status_t    acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
 
                     void                handle_error(XErrorEvent *ev);
