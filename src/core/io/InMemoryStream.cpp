@@ -12,6 +12,14 @@ namespace lsp
     namespace io
     {
         
+        InMemoryStream::InMemoryStream()
+        {
+            pData   = NULL;
+            nOffset = 0;
+            nSize   = 0;
+            enDrop  = DROP_NONE;
+        }
+
         InMemoryStream::InMemoryStream(void *data, size_t size, drop_t drop)
         {
             pData   = reinterpret_cast<uint8_t *>(data);
@@ -27,7 +35,7 @@ namespace lsp
 
         void InMemoryStream::wrap(void *data, size_t size, drop_t drop)
         {
-            drop();
+            InMemoryStream::drop();
             pData   = reinterpret_cast<uint8_t *>(data);
             nOffset = 0;
             nSize   = size;

@@ -173,7 +173,7 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint("Click to load");
+                af->set_hint("Click or drag to load");
             }
             else if (status == STATUS_LOADING)
             {

@@ -11,10 +11,17 @@ namespace lsp
 {
     namespace io
     {
-        InStringSequence::InStringSequence(const LSPString *s, bool destroy):
-                pString(s)
+        InStringSequence::InStringSequence()
         {
-            bDelete    = destroy;
+            pString     = NULL;
+            bDelete     = false;
+            nOffset     = 0;
+        }
+
+        InStringSequence::InStringSequence(const LSPString *s, bool destroy)
+        {
+            pString     = s;
+            bDelete     = destroy;
             nOffset     = 0;
         }
 

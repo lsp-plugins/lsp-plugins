@@ -29,6 +29,7 @@ namespace lsp
                 InStringSequence & operator = (const InStringSequence &);
 
             public:
+                explicit InStringSequence();
                 explicit InStringSequence(const LSPString *s, bool del = false);
                 virtual ~InStringSequence();
 

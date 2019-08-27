@@ -13,6 +13,34 @@ namespace lsp
     {
         const w_class_t LSPLoadFile::metadata = { "LSPLoadFile", &LSPWidget::metadata };
 
+        LSPLoadFile::LoadFileSink::LoadFileSink(LSPLoadFile *w): LSPUrlSink("file://")
+        {
+            pWidget     = w;
+        }
+
+        LSPLoadFile::LoadFileSink::~LoadFileSink()
+        {
+            pWidget     = NULL;
+        }
+
+        void LSPLoadFile::LoadFileSink::unbind()
+        {
+            pWidget     = NULL;
+        }
+
+        status_t LSPLoadFile::LoadFileSink::commit_url(const LSPString *url)
+        {
+            if (url->starts_with_ascii("file://"))
+                pWidget->sPath.set(url, 7, url->length());
+            else
+                pWidget->sPath.set(url);
+
+            lsp_trace("Set URL to %s", pWidget->sPath.get_native());
+            pWidget->slots()->execute(LSPSLOT_SUBMIT, pWidget, NULL);
+
+            return STATUS_OK;
+        }
+
         typedef struct state_descr_t
         {
             const char *text;
@@ -31,6 +59,7 @@ namespace lsp
             nBtnState   = 0;
             pDisk       = NULL;
             nSize       = -1;
+            pSink       = NULL;
 
             for (size_t i=0; i<LFS_SELECT; ++i)
                 vStates[i].pColor   = NULL;
@@ -96,6 +125,11 @@ namespace lsp
 
             LSP_STATUS_ASSERT(LSPWidget::init());
 
+            pSink       = new LoadFileSink(this);
+            if (pSink == NULL)
+                return STATUS_NO_MEM;
+            pSink->acquire();
+
             init_color(C_BACKGROUND, &sBgColor);
 
             for (size_t i=0; i<LFS_TOTAL; ++i)
@@ -143,6 +177,14 @@ namespace lsp
                     delete vStates[i].pColor;
                     vStates[i].pColor = NULL;
                 }
+
+            // Destroy sink
+            if (pSink != NULL)
+            {
+                pSink->unbind();
+                pSink->release();
+                pSink   = NULL;
+            }
 
             LSPWidget::destroy();
         }
@@ -520,6 +562,16 @@ namespace lsp
 
         status_t LSPLoadFile::on_close()
         {
+            return STATUS_OK;
+        }
+
+        status_t LSPLoadFile::on_drag_request(const ws_event_t *e, const char * const *ctype)
+        {
+            ssize_t idx = pSink->select_mime_type(ctype);
+            if (idx >= 0)
+                pDisplay->accept_drag(pSink, DRAG_COPY, true, &sSize);
+            else
+                pDisplay->reject_drag();
             return STATUS_OK;
         }
     } /* namespace tk */

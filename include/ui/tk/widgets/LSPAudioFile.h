@@ -44,37 +44,18 @@ namespace lsp
                 };
 
             protected:
-                static const char * const acceptMime[];
 
-                class AudioFileSink: public IDataSink
+                class AudioFileSink: public LSPUrlSink
                 {
                     protected:
-                        enum ctype_t
-                        {
-                            TEXT_URI_LIST,
-                            TEXT_X_MOZ_URL,
-                            APPLICATION_X_KDE4_URILIST,
-                            TEXT_PLAIN
-                        };
-
-                    protected:
                         LSPAudioFile           *pWidget;
-                        io::OutMemoryStream    *pOS;
-                        ssize_t                 nCtype;
-
-                    protected:
-                        ssize_t     get_mime_index(const char *mime);
 
                     public:
                         explicit AudioFileSink(LSPAudioFile *af);
                         virtual ~AudioFileSink();
 
                         void unbind();
-
-                    public:
-                        virtual ssize_t     open(const char * const *mime_types);
-                        virtual status_t    write(const void *buf, size_t count);
-                        virtual status_t    close(status_t code);
+                        virtual status_t    commit_url(const LSPString *url);
                 };
 
             protected:
@@ -115,8 +96,6 @@ namespace lsp
                 ISurface           *render_graph(ISurface *s, ssize_t w, ssize_t h);
                 void                drop_glass();
                 void                render_channel(ISurface *s, channel_t *c, ssize_t y, ssize_t w, ssize_t h);
-
-                static ssize_t      select_content_type(const char * const *mime_types);
 
                 static status_t     slot_on_dialog_submit(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
