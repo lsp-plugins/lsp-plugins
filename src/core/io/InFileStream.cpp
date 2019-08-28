@@ -52,7 +52,7 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t InFileStream::wrap(FILE *fd, bool close, const char *charset)
+        status_t InFileStream::wrap(FILE *fd, bool close)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -70,7 +70,7 @@ namespace lsp
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_DELETE, charset);
+            res = wrap(f, WRAP_DELETE);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -79,7 +79,7 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t InFileStream::wrap_native(lsp_fhandle_t fd, bool close, const char *charset)
+        status_t InFileStream::wrap_native(lsp_fhandle_t fd, bool close)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -95,7 +95,7 @@ namespace lsp
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_DELETE, charset);
+            res = wrap(f, WRAP_DELETE);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -104,7 +104,7 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t InFileStream::wrap(File *fd, size_t flags, const char *charset)
+        status_t InFileStream::wrap(File *fd, size_t flags)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -118,7 +118,7 @@ namespace lsp
             return set_error(STATUS_OK);
         }
 
-        status_t InFileStream::open(const char *path, const char *charset)
+        status_t InFileStream::open(const char *path)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -128,10 +128,10 @@ namespace lsp
             LSPString tmp;
             if (!tmp.set_utf8(path))
                 return set_error(STATUS_NO_MEM);
-            return open(&tmp, charset);
+            return open(&tmp);
         }
 
-        status_t InFileStream::open(const LSPString *path, const char *charset)
+        status_t InFileStream::open(const LSPString *path)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -150,7 +150,7 @@ namespace lsp
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
+            res = wrap(f, WRAP_CLOSE | WRAP_DELETE);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -160,9 +160,9 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t InFileStream::open(const Path *path, const char *charset)
+        status_t InFileStream::open(const Path *path)
         {
-            return open(path->as_string(), charset);
+            return open(path->as_string());
         }
 
         wssize_t InFileStream::avail()

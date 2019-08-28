@@ -37,53 +37,47 @@ namespace lsp
                  *
                  * @param fd file descriptor
                  * @param close close file descriptor on close()
-                 * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t wrap(FILE *fd, bool close, const char *charset = NULL);
+                status_t wrap(FILE *fd, bool close);
 
                 /** Wrap native file descriptor. The Reader should be in closed state.
                  *
                  * @param fd file descriptor
                  * @param close close file descriptor on close()
-                 * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t wrap_native(lsp_fhandle_t fd, bool close, const char *charset = NULL);
+                status_t wrap_native(lsp_fhandle_t fd, bool close);
 
                 /** Wrap file descriptor. The Reader should be in closed state.
                  *
                  * @param fd file descriptor
                  * @param flags wrapping flags
-                 * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t wrap(File *fd, size_t flags, const char *charset = NULL);
+                status_t wrap(File *fd, size_t flags);
 
                 /** Open input stream associated with file. The Reader should be in closed state.
                  *
                  * @param path file location path
-                 * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t open(const char *path, const char *charset = NULL);
+                status_t open(const char *path);
 
                 /** Open input stream associated with file. The Reader should be in closed state.
                  *
                  * @param path file location path
-                 * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t open(const LSPString *path, const char *charset = NULL);
+                status_t open(const LSPString *path);
 
                 /** Open input stream associated with file. Before open currently open stream is closed and it's
                  * state is reset.
                  *
                  * @param path file location path
-                 * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t open(const Path *path, const char *charset = NULL);
+                status_t open(const Path *path);
 
                 virtual wssize_t    avail();
 
