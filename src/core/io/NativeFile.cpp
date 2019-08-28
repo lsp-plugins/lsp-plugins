@@ -478,7 +478,12 @@ namespace lsp
                 }
 
                 if (lseek(hFD, pos, whence) < 0)
+                {
+                    int code = errno;
+                    if (code == ESPIPE)
+                        return set_error(STATUS_NOT_SUPPORTED);
                     return set_error(STATUS_IO_ERROR);
+                }
             #endif /* PLATFORM_WINDOWS */
 
             return set_error(STATUS_OK);

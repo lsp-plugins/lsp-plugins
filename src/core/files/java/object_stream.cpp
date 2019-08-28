@@ -17,6 +17,7 @@ namespace lsp
 {
     namespace java
     {
+        /*
         typedef struct context_t
         {
             io::IInStream          *is;
@@ -341,6 +342,7 @@ namespace lsp
 
             return ctx.handler->close(res);
         }
+        */
     }
 }
 

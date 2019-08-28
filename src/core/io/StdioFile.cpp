@@ -330,8 +330,13 @@ namespace lsp
                     return set_error(STATUS_BAD_ARGUMENTS);
             }
 
-            if (fseeko(pFD, pos, whence) != 0)
+            if (::fseeko(pFD, pos, whence) != 0)
+            {
+                int code = errno;
+                if (code == ESPIPE)
+                    return set_error(STATUS_NOT_SUPPORTED);
                 return set_error(STATUS_IO_ERROR);
+            }
 
             return STATUS_OK;
         }

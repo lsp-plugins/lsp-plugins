@@ -86,7 +86,7 @@ namespace lsp
                 return NULL;
 
             // Allocate memory stream;
-            io::InMemoryStream *stream = new io::InMemoryStream(data, bytes, io::InMemoryStream::DROP_FREE);
+            io::InMemoryStream *stream = new io::InMemoryStream(data, bytes, MEMDROP_FREE);
             if (stream == NULL)
             {
                 ::free(data);

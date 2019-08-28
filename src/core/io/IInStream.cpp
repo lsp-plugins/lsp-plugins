@@ -86,6 +86,26 @@ namespace lsp
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
+        wssize_t IInStream::skip(wsize_t amount)
+        {
+            uint8_t skip_buf[0x1000];
+
+            wsize_t initial = amount;
+            while (amount > 0)
+            {
+                ssize_t n = read(skip_buf, (amount > sizeof(skip_buf)) ? sizeof(skip_buf) : amount);
+                if (n < 0)
+                {
+                    if (initial > amount)
+                        break;
+                    return n;
+                }
+                amount -= n;
+            }
+
+            return initial - amount;
+        }
+
         status_t IInStream::close()
         {
             return set_error(nErrorCode);

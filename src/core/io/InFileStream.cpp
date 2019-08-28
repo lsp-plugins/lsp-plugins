@@ -212,6 +212,25 @@ namespace lsp
             return pos;
         }
 
+        wssize_t InFileStream::skip(wsize_t amount)
+        {
+            if (pFD == NULL)
+                return set_error(STATUS_CLOSED);
+            wssize_t before = pFD->position();
+            if (before < 0)
+                return IInStream::skip(amount);
+            status_t res = pFD->seek(amount, File::FSK_CUR);
+            if (res != STATUS_OK)
+                return (res == STATUS_NOT_SUPPORTED) ?
+                    IInStream::skip(amount) : set_error(res);
+
+            wssize_t after = pFD->position();
+            if (after < 0)
+                return set_error(after);
+
+            return after - before;
+        }
+
 
     
     } /* namespace io */

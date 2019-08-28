@@ -87,6 +87,8 @@ namespace lsp
 
                 virtual wssize_t    seek(wsize_t position);
 
+                virtual wssize_t    skip(wsize_t amount);
+
                 virtual status_t    close();
         };
     

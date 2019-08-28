@@ -58,5 +58,10 @@ namespace lsp
         {
             return STATUS_OK;
         }
+
+        status_t IObjectStreamHandler::handle_reference(size_t ref_num)
+        {
+            return STATUS_OK;
+        }
     }
 } /* namespace lsp */

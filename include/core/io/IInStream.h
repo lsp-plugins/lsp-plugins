@@ -91,6 +91,13 @@ namespace lsp
                  */
                 virtual wssize_t    seek(wsize_t position);
 
+                /**
+                 * Skip amount of data
+                 * @param amount amount of bytes to skip
+                 * @return actual number of bytes skipped or error
+                 */
+                virtual wssize_t    skip(wsize_t amount);
+
                 /** Close the clip data stream
                  *
                  * @return status of operation
