@@ -240,12 +240,15 @@ namespace lsp
              * @return true on success
              */
             bool set_utf8(const char *s, size_t n);
-            bool set_utf16(const lsp_utf16_t *s);
-            bool set_utf16(const lsp_utf16_t *s, size_t n);
-            bool set_ascii(const char *s, size_t n);
-            bool set_native(const char *s, size_t n, const char *charset = NULL);
             inline bool set_utf8(const char *s) { return set_utf8(s, ::strlen(s)); };
+
+            bool set_utf16(const lsp_utf16_t *s, size_t n);
+            bool set_utf16(const lsp_utf16_t *s);
+
+            bool set_ascii(const char *s, size_t n);
             inline bool set_ascii(const char *s) { return set_ascii(s, ::strlen(s)); };
+
+            bool set_native(const char *s, size_t n, const char *charset = NULL);
             inline bool set_native(const char *s, const char *charset) { return set_native(s, ::strlen(s), charset); };
             inline bool set_native(const char *s) { return set_native(s, ::strlen(s), NULL); };
 

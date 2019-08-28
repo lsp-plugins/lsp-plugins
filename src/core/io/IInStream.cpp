@@ -38,6 +38,13 @@ namespace lsp
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
+        ssize_t IInStream::read_byte()
+        {
+            uint8_t byte;
+            ssize_t nread = read(&byte, sizeof(byte));
+            return (nread == STATUS_OK) ? byte : nread;
+        }
+
         ssize_t IInStream::read_fully(void *dst, size_t count)
         {
             uint8_t *ptr    = reinterpret_cast<uint8_t *>(dst);
@@ -58,6 +65,20 @@ namespace lsp
             }
 
             return count - left;
+        }
+
+        status_t IInStream::read_block(void *dst, size_t count)
+        {
+            if (dst == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+            else if (count == 0)
+                return STATUS_OK;
+
+            ssize_t read = read_fully(dst, count);
+            if (read < 0)
+                return -read;
+
+            return set_error((size_t(read) == count) ? STATUS_OK : STATUS_EOF);
         }
 
         wssize_t IInStream::seek(wsize_t position)

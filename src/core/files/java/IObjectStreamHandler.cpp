@@ -13,13 +13,50 @@ namespace lsp
     {
         IObjectStreamHandler::IObjectStreamHandler()
         {
-            // TODO Auto-generated constructor stub
-
         }
         
         IObjectStreamHandler::~IObjectStreamHandler()
         {
-            // TODO Auto-generated destructor stub
+        }
+
+        status_t IObjectStreamHandler::handle_start(size_t version)
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::handle_end()
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::close(status_t res)
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::handle_reset()
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::handle_null()
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::handle_block_data(const void *buf, size_t size)
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::handle_end_block_data()
+        {
+            return STATUS_OK;
+        }
+
+        status_t IObjectStreamHandler::handle_string(const LSPString *str, bool unshared)
+        {
+            return STATUS_OK;
         }
     }
 } /* namespace lsp */

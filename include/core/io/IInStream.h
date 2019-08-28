@@ -53,6 +53,12 @@ namespace lsp
                  */
                 virtual wssize_t    position();
 
+                /** Read single byte from stream
+                 *
+                 * @return byte value or negative error code
+                 */
+                virtual ssize_t     read_byte();
+
                 /** Read amount of data
                  *
                  * @param dst target buffer to read data
@@ -69,6 +75,14 @@ namespace lsp
                  * @return number of bytes actually read
                  */
                 virtual ssize_t     read_fully(void *dst, size_t count);
+
+                /**
+                 * Read entire block of specified size
+                 * @param dst target buffer to read block
+                 * @param count number of bytes in block
+                 * @return status of operation
+                 */
+                virtual status_t    read_block(void *dst, size_t count);
 
                 /** Seek the stream to the specified position from the beginning
                  *
