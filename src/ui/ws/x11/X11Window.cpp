@@ -139,8 +139,12 @@ namespace lsp
 
                     // Get protocols
                     lsp_trace("Issuing XSetWMProtocols");
-                    Atom atom_close = pX11Display->atoms().X11_WM_DELETE_WINDOW;
+                    Atom atom_close     = pX11Display->atoms().X11_WM_DELETE_WINDOW;
+                    Atom dnd_version    = 4;
                     XSetWMProtocols(dpy, wnd, &atom_close, 1);
+                    XChangeProperty(dpy, wnd, pX11Display->atoms().X11_XdndAware, XA_ATOM, 32, PropModeReplace,
+                                    reinterpret_cast<unsigned char *>(&dnd_version), 1);
+
                     pX11Display->flush();
 
                     // Now create X11Window instance
@@ -338,9 +342,9 @@ namespace lsp
 
                     case UIE_REDRAW:
                     {
-                        lsp_trace("redraw location = %d x %d, size = %d x %d",
-                                int(ev->nLeft), int(ev->nTop),
-                                int(ev->nWidth), int(ev->nHeight));
+//                        lsp_trace("redraw location = %d x %d, size = %d x %d",
+//                                int(ev->nLeft), int(ev->nTop),
+//                                int(ev->nWidth), int(ev->nHeight));
                         break;
                     }
 

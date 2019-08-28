@@ -345,18 +345,6 @@ namespace lsp
             return MP_DEFAULT;
         }
 
-        status_t INativeWindow::write_clipboard(size_t id, IClipboard *c)
-        {
-            if (c != NULL)
-                c->close();
-            return STATUS_NOT_IMPLEMENTED;
-        }
-
-        IClipboard *INativeWindow::get_clipboard(size_t id)
-        {
-            return NULL;
-        }
-
         status_t INativeWindow::grab_events()
         {
             return STATUS_OK;

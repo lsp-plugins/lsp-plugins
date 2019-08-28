@@ -20,7 +20,7 @@ namespace lsp
         {
         }
 
-        status_t CtlConfigHandler::handle_parameter(const LSPString *name, const LSPString *value)
+        status_t CtlConfigHandler::handle_parameter(const LSPString *name, const LSPString *value, size_t flags)
         {
             for (size_t i=0, n = vPorts.size(); i<n; ++i)
             {
@@ -33,6 +33,7 @@ namespace lsp
                 if (v == NULL)
                     return STATUS_NO_MEM;
                 LSP_BOOL_ASSERT(set_port_value(ref->pPort, v, 0), STATUS_BAD_ARGUMENTS);
+                ref->pPort->notify_all();
             }
 
             return STATUS_OK;

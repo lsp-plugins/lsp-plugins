@@ -40,12 +40,27 @@ namespace lsp
                 } state_t;
 
             protected:
+                class LoadFileSink: public LSPUrlSink
+                {
+                    protected:
+                        LSPLoadFile         *pWidget;
+
+                    public:
+                        explicit LoadFileSink(LSPLoadFile *w);
+                        virtual ~LoadFileSink();
+
+                        void unbind();
+                        virtual status_t    commit_url(const LSPString *url);
+                };
+
+            protected:
                 load_file_state_t   nState;
                 state_t             vStates[LFS_TOTAL];
                 float               fProgress;
                 size_t              nButtons;
                 size_t              nBtnState;
                 ssize_t             nSize;
+                LoadFileSink       *pSink;
                 LSPWidgetFont       sFont;
                 LSPWidgetColor      sBgColor;
                 LSPFileDialog       sDialog;
@@ -100,6 +115,7 @@ namespace lsp
                 virtual status_t on_activate();
                 virtual status_t on_submit();
                 virtual status_t on_close();
+                virtual status_t on_drag_request(const ws_event_t *e, const char * const *ctype);
         };
     
     } /* namespace tk */

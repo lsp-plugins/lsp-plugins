@@ -68,6 +68,7 @@ namespace lsp
             if (id >= 0) id = sSlots.add(LSPSLOT_SHOW, slot_show, self());
             if (id >= 0) id = sSlots.add(LSPSLOT_DESTROY, slot_destroy, self());
             if (id >= 0) id = sSlots.add(LSPSLOT_RESIZE, slot_resize, self());
+            if (id >= 0) id = sSlots.add(LSPSLOT_DRAG_REQUEST, slot_drag_request, self());
 
             return (id >= 0) ? STATUS_OK : -id;
         }
@@ -276,6 +277,18 @@ namespace lsp
             LSPWidget *_this  = static_cast<LSPWidget *>(ptr);
             ws_event_t *ev  = static_cast<ws_event_t *>(data);
             return _this->on_focus_out(ev);
+        }
+
+        status_t LSPWidget::slot_drag_request(LSPWidget *sender, void *ptr, void *data)
+        {
+            if ((ptr == NULL) || (data == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPWidget *_this  = static_cast<LSPWidget *>(ptr);
+            ws_event_t *ev  = static_cast<ws_event_t *>(data);
+            const char * const *ctype = _this->pDisplay->get_drag_mime_types();
+
+            return _this->on_drag_request(ev, ctype);
         }
 
         ssize_t LSPWidget::relative_left() const
@@ -631,6 +644,7 @@ namespace lsp
                 FWD_EVENT(UIE_MOUSE_TRI_CLICK, LSPSLOT_MOUSE_TRI_CLICK )
                 FWD_EVENT(UIE_FOCUS_IN, LSPSLOT_FOCUS_IN )
                 FWD_EVENT(UIE_FOCUS_OUT, LSPSLOT_FOCUS_OUT )
+                FWD_EVENT(UIE_DRAG_REQUEST, LSPSLOT_DRAG_REQUEST )
 
                 default:
                     break;
@@ -722,6 +736,11 @@ namespace lsp
         }
 
         status_t LSPWidget::on_focus_out(const ws_event_t *e)
+        {
+            return STATUS_OK;
+        }
+
+        status_t LSPWidget::on_drag_request(const ws_event_t *e, const char * const *ctype)
         {
             return STATUS_OK;
         }

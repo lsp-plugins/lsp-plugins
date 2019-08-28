@@ -92,6 +92,8 @@ namespace lsp
         if ((path != NULL) && (path->pending()))
         {
             const char *fname = path->get_path();
+            lsp_trace("Submitted file name: %s", fname);
+
             size_t len = strlen(fname);
             if (len < 4)
                 nStatus     = (len > 0) ? STATUS_BAD_ARGUMENTS : STATUS_UNSPECIFIED;

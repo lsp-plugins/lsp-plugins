@@ -8,6 +8,8 @@
 #ifndef UI_TK_WIDGETS_LSPAUDIOFILE_H_
 #define UI_TK_WIDGETS_LSPAUDIOFILE_H_
 
+#include <core/io/OutMemoryStream.h>
+
 namespace lsp
 {
     namespace tk
@@ -42,6 +44,21 @@ namespace lsp
                 };
 
             protected:
+
+                class AudioFileSink: public LSPUrlSink
+                {
+                    protected:
+                        LSPAudioFile           *pWidget;
+
+                    public:
+                        explicit AudioFileSink(LSPAudioFile *af);
+                        virtual ~AudioFileSink();
+
+                        void unbind();
+                        virtual status_t    commit_url(const LSPString *url);
+                };
+
+            protected:
                 LSPString           sFileName;
                 LSPString           sHint;
                 LSPString           sPath;
@@ -68,6 +85,8 @@ namespace lsp
                 size_t              nBorder;
                 size_t              nRadius;
                 size_t              nStatus;
+
+                AudioFileSink      *pSink;
 
             protected:
                 channel_t          *create_channel(color_t color);
@@ -179,6 +198,8 @@ namespace lsp
                 virtual status_t on_close();
 
                 virtual status_t on_activate();
+
+                virtual status_t on_drag_request(const ws_event_t *e, const char * const *ctype);
         };
     
     } /* namespace tk */

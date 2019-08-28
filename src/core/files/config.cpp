@@ -715,7 +715,7 @@ namespace lsp
                         result = STATUS_OK;
                     break;
                 }
-                //lsp_trace("Config line: %s", line.get_native());
+                lsp_trace("Config line: %s", line.get_native());
 
                 // Parse the line
                 size_t flags = 0;

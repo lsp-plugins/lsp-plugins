@@ -148,6 +148,7 @@ namespace lsp
             LSPSLOT_VSCROLL,         //!< LSPSLOT_VSCROLL Triggered when the vertical scrolling is applied
             LSPSLOT_ACTIVATE,        //!< LSPSLOT_ACTIVATE Triggered some user-interaction
             LSPSLOT_DRAW3D,          //!< LSPSLOT_DRAW3D Triggered when a 3D-rendering is required
+            LSPSLOT_DRAG_REQUEST,    //!< LSPSLOT_DRAG_REQUEST Triggered when a drag request is pending on the widget
         };
 
         typedef struct w_class_t
@@ -180,7 +181,6 @@ namespace lsp
 #include <ui/tk/sys/LSPTimer.h>
 #include <ui/tk/sys/LSPSlotSet.h>
 #include <ui/tk/sys/LSPTheme.h>
-#include <ui/tk/sys/LSPClipboard.h>
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
@@ -198,7 +198,9 @@ namespace lsp
 #include <ui/tk/util/LSPSizeConstraints.h>
 #include <ui/tk/util/LSPWindowActions.h>
 #include <ui/tk/util/LSPColor.h>
-#include <ui/tk/util/LSPTextClipboard.h>
+#include <ui/tk/util/LSPTextDataSource.h>
+#include <ui/tk/util/LSPTextDataSink.h>
+#include <ui/tk/util/LSPUrlSink.h>
 #include <ui/tk/util/LSPFileFilter.h>
 
 // Utilitary objects bound to widgets

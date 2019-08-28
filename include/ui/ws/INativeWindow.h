@@ -355,21 +355,6 @@ namespace lsp
                  */
                 virtual mouse_pointer_t get_mouse_pointer();
 
-                /** Set the clipboard associated with this window
-                 *
-                 * @param id clipboard identifier
-                 * @param c clipboard
-                 * @return status of operation
-                 */
-                virtual status_t write_clipboard(size_t id, IClipboard *c);
-
-                /** Returns the last clipboard associated with THIS window
-                 *
-                 * @param id clipboard identifier
-                 * @return clipboard object or NULL.
-                 */
-                virtual IClipboard *get_clipboard(size_t id);
-
                 /**
                  * Grab mouse and keyboard events
                  * @return status of operation

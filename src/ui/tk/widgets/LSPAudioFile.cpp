@@ -7,6 +7,7 @@
 
 #include <ui/tk/tk.h>
 #include <ui/tk/helpers/draw.h>
+#include <ui/tk/helpers/mime.h>
 #include <dsp/dsp.h>
 
 namespace lsp
@@ -14,6 +15,34 @@ namespace lsp
     namespace tk
     {
         const w_class_t LSPAudioFile::metadata = { "LSPAudioFile", &LSPWidget::metadata };
+
+        LSPAudioFile::AudioFileSink::AudioFileSink(LSPAudioFile *af): LSPUrlSink("file://")
+        {
+            pWidget     = af;
+        }
+
+        LSPAudioFile::AudioFileSink::~AudioFileSink()
+        {
+            pWidget     = NULL;
+        }
+
+        void LSPAudioFile::AudioFileSink::unbind()
+        {
+            pWidget     = NULL;
+        }
+
+        status_t LSPAudioFile::AudioFileSink::commit_url(const LSPString *url)
+        {
+            if (url->starts_with_ascii("file://"))
+                pWidget->sFileName.set(url, 7, url->length());
+            else
+                pWidget->sFileName.set(url);
+
+            lsp_trace("Set URL to %s", pWidget->sFileName.get_native());
+            pWidget->slots()->execute(LSPSLOT_SUBMIT, pWidget, NULL);
+
+            return STATUS_OK;
+        }
 
         LSPAudioFile::LSPAudioFile(LSPDisplay *dpy):
             LSPWidget(dpy),
@@ -37,6 +66,8 @@ namespace lsp
             nDecimSize      = 0;
             vDecimX         = NULL;
             vDecimY         = NULL;
+
+            pSink           = NULL;
         }
         
         LSPAudioFile::~LSPAudioFile()
@@ -49,6 +80,11 @@ namespace lsp
             status_t result = LSPWidget::init();
             if (result != STATUS_OK)
                 return result;
+
+            pSink       = new AudioFileSink(this);
+            if (pSink == NULL)
+                return STATUS_NO_MEM;
+            pSink->acquire();
 
             sFont.init();
             sFont.set_size(10);
@@ -179,6 +215,14 @@ namespace lsp
 
         void LSPAudioFile::destroy_data()
         {
+            // Destroy sink
+            if (pSink != NULL)
+            {
+                pSink->unbind();
+                pSink->release();
+                pSink   = NULL;
+            }
+
             // Destroy surfaces
             drop_glass();
 
@@ -918,6 +962,16 @@ namespace lsp
 
         status_t LSPAudioFile::on_activate()
         {
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::on_drag_request(const ws_event_t *e, const char * const *ctype)
+        {
+            ssize_t idx = pSink->select_mime_type(ctype);
+            if (idx >= 0)
+                pDisplay->accept_drag(pSink, DRAG_COPY, true, &sSize);
+            else
+                pDisplay->reject_drag();
             return STATUS_OK;
         }
 

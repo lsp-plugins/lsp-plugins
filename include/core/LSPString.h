@@ -257,7 +257,10 @@ namespace lsp
             inline const lsp_utf16_t *get_utf16(ssize_t first) const { return get_utf16(first, nLength); };
             const lsp_utf16_t *get_utf16() const { return get_utf16(0, nLength); };
 
-            const char *get_ascii() const;
+            const char *get_ascii(ssize_t first, ssize_t last) const;
+            inline const char *get_ascii(ssize_t first) const { return get_ascii(first, nLength); };
+            inline const char *get_ascii() const { return get_ascii(0, nLength); };
+
             const char *get_native(ssize_t first, ssize_t last, const char *charset =  NULL) const;
             inline const char *get_native(const char *charset = NULL) const { return get_native(0, nLength, charset); }
             inline const char *get_native(ssize_t first, const char *charset =  NULL) const { return get_native(first, nLength, charset); }
@@ -266,20 +269,44 @@ namespace lsp
             inline size_t temporal_capacity() const { return (pTemp != NULL) ? pTemp->nLength : 0; };
 
             /**
-             * Clone string
+             * Clone string as set of UTF-8 characters. 1 character at the tail will contain additional end-of-line.
              */
-            char *clone_utf8(ssize_t first, ssize_t last) const;
-            inline char *clone_utf8(ssize_t first) const { return clone_utf8(first, nLength); };
-            char *clone_utf8() const { return clone_utf8(0, nLength); };
+            char *clone_utf8(size_t *bytes, ssize_t first, ssize_t last) const;
+            inline char *clone_utf8(size_t *bytes, ssize_t first) const { return clone_utf8(bytes, first, nLength); };
+            inline char *clone_utf8(size_t *bytes) const { return clone_utf8(bytes, 0, nLength); };
+            inline char *clone_utf8(ssize_t first, ssize_t last) const { return clone_utf8(NULL, first, last); };
+            inline char *clone_utf8(ssize_t first) const { return clone_utf8(NULL, first, nLength); };
+            inline char *clone_utf8() const { return clone_utf8(NULL, 0, nLength); };
 
-            lsp_utf16_t *clone_utf16(ssize_t first, ssize_t last) const;
-            inline lsp_utf16_t *clone_utf16(ssize_t first) const { return clone_utf16(first, nLength); };
-            lsp_utf16_t *clone_utf16() const { return clone_utf16(0, nLength); };
+            /**
+             * Clone string as set of UTF-16 characters. 1 UTF-16 character at the tail will contain additional end-of-line.
+             */
+            lsp_utf16_t *clone_utf16(size_t *bytes, ssize_t first, ssize_t last) const;
+            inline lsp_utf16_t *clone_utf16(size_t *bytes, ssize_t first) const { return clone_utf16(bytes, first, nLength); };
+            inline lsp_utf16_t *clone_utf16(size_t *bytes) const { return clone_utf16(bytes, 0, nLength); };
+            inline lsp_utf16_t *clone_utf16(ssize_t first, ssize_t last) const { return clone_utf16(NULL, first, last); };
+            inline lsp_utf16_t *clone_utf16(ssize_t first) const { return clone_utf16(NULL, first, nLength); };
+            inline lsp_utf16_t *clone_utf16() const { return clone_utf16(NULL, 0, nLength); };
 
-            char *clone_ascii() const;
-            char *clone_native(ssize_t first, ssize_t last, const char *charset =  NULL) const;
-            inline char *clone_native(const char *charset = NULL) const { return clone_native(0, nLength, charset); }
-            inline char *clone_native(ssize_t first, const char *charset =  NULL) const { return clone_native(first, nLength, charset); }
+            /**
+             * Clone string as set of UTF-16 characters. 1 ascii character at the tail will contain additional end-of-line.
+             */
+            char *clone_ascii(size_t *bytes, ssize_t first, ssize_t last) const;
+            inline char *clone_ascii(size_t *bytes, ssize_t first) const { return clone_ascii(bytes, first, nLength); };
+            inline char *clone_ascii(size_t *bytes) const { return clone_ascii(bytes, 0, nLength); };
+            inline char *clone_ascii(ssize_t first, ssize_t last) const { return clone_ascii(NULL, first, last); };
+            inline char *clone_ascii(ssize_t first) const { return clone_ascii(NULL, first, nLength); };
+            inline char *clone_ascii() const { return clone_ascii(NULL, 0, nLength); };
+
+            /**
+             * Clone string as set of UTF-16 characters. 4 ascii characters at the tail will contain additional end-of-line.
+             */
+            char *clone_native(size_t *bytes, ssize_t first, ssize_t last, const char *charset = NULL) const;
+            inline char *clone_native(size_t *bytes, ssize_t first, const char *charset =  NULL) const { return clone_native(bytes, first, nLength, charset); }
+            inline char *clone_native(size_t *bytes, const char *charset = NULL) const { return clone_native(bytes, 0, nLength, charset); }
+            inline char *clone_native(ssize_t first, ssize_t last, const char *charset = NULL) const { return clone_native(NULL, first, last, charset); }
+            inline char *clone_native(const char *charset = NULL) const { return clone_native(NULL, 0, nLength, charset); }
+            inline char *clone_native(ssize_t first, const char *charset =  NULL) const { return clone_native(NULL, first, nLength, charset); }
 
             /** Replace the contents of the string
              *
@@ -331,6 +358,8 @@ namespace lsp
             bool remove();
             bool remove(ssize_t first);
             bool remove(ssize_t first, ssize_t last);
+
+            bool remove_last();
 
             /** Try to find substring in a string
              *

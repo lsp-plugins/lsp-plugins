@@ -89,13 +89,18 @@ namespace lsp
             if (_this == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
-            LSPTextClipboard *cb = new LSPTextClipboard();
-            if (cb == NULL)
+            // Copy data to clipboard
+            LSPTextDataSource *src = new LSPTextDataSource();
+            if (src == NULL)
                 return STATUS_NO_MEM;
-            status_t result = cb->update_text(&_this->sUrl);
+            src->acquire();
+
+            status_t result = src->set_text(&_this->sUrl);
             if (result == STATUS_OK)
-                _this->pDisplay->write_clipboard(CBUF_CLIPBOARD, cb);
-            return cb->close();
+                _this->pDisplay->set_clipboard(CBUF_CLIPBOARD, src);
+            src->release();
+
+            return result;
         }
 
         status_t LSPHyperlink::on_submit()

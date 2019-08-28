@@ -166,24 +166,43 @@ namespace lsp
                  */
                 inline LSPTheme *theme()                    { return &sTheme; }
 
-                /** Fetch clipboard object
-                 *
+                /**
+                 * Get clipboard data
                  * @param id clipboard identifier
-                 * @param ctype content type
-                 * @param handler callback handler
-                 * @param arg argument for callback handler
-                 * @return
+                 * @param sink data sink
+                 * @return status of operation
                  */
-                virtual status_t fetch_clipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg = NULL);
+                status_t get_clipboard(size_t id, IDataSink *sink);
 
-                /** Get clipboard by it's identifier
-                 *
-                 * @param wnd the window that is owner of the clipboard
+                /**
+                 * Set clipboard data
                  * @param id clipboard identifier
-                 * @param c the clipboard data holder object
-                 * @return pointer to clipboard or NULL if not present
+                 * @param src data source
+                 * @return status of operation
                  */
-                virtual status_t write_clipboard(size_t id, IClipboard *c);
+                status_t set_clipboard(size_t id, IDataSource *src);
+
+                /**
+                 * Reject drag event
+                 * @return status of operation
+                 */
+                status_t reject_drag();
+
+                /**
+                 * Accept drag request
+                 * @param sink the sink that will handle data transfer
+                 * @param action drag action
+                 * @param internal true if we want to receive notifications inside of the drag rectangle
+                 * @param r parameters of the drag rectangle, can be NULL
+                 * @return status of operation
+                 */
+                status_t accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
+
+                /**
+                 * Get NULL-terminated list of provided MIME types for a drag
+                 * @return NULL-terminated list of strings
+                 */
+                const char * const *get_drag_mime_types();
 
                 /** Get screen size
                  *

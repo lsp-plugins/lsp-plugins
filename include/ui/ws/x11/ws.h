@@ -43,7 +43,6 @@
         #include <ui/ws/x11/X11CairoSurface.h>
         #include <ui/ws/x11/X11Display.h>
         #include <ui/ws/x11/X11Window.h>
-        #include <ui/ws/x11/X11Clipboard.h>
     #undef UI_X11_WS_H_INCL_
 
 #endif /* USE_X11_DISPLAY */

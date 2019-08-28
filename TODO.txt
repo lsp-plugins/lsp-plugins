@@ -19,6 +19,8 @@
   Code now prefers vfork() system call agains fork().
 * Fixed bug in loading 3D Wavefont OBJ files that was caused by improper texture coordinate handling.
 * Build fixes for Aarch64 architecture related to CPU feature detection.
+* Implemented drag & drop feature for file loading components.
+* Refactored clipboard mechanism for X11 protocol, addes support of INCR selection transfer.
 - Added support of RoomEQ Wizard configuration file format by Parametric Equalizer plugin series.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
