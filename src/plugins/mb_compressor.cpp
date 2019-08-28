@@ -911,7 +911,7 @@ namespace lsp
                     // Update transfer function for equalizer
                     b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul3(b->vTr, b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mod(b->vTr, b->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
                     // Update filter parameters, depending on operating mode
@@ -1308,7 +1308,7 @@ namespace lsp
                 {
                     comp_band_t *b      = c->vPlan[j];
                     sFilters.freq_chart(b->nFilterID, c->vTr, vFreqs, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul3(vTr, vTr, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(vTr, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
                 }
             }
             else
@@ -1326,7 +1326,7 @@ namespace lsp
                     dsp::scale_add3(vTr, vTr2, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
 
                     b->sRejFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul3(c->vTr, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
                 }
             }
             dsp::pcomplex_mod(c->vTrMem, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);

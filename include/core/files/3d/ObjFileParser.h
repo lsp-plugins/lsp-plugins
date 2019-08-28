@@ -14,6 +14,9 @@
 #include <data/cvector.h>
 
 #include <core/files/3d/IFileHandler3D.h>
+#include <core/io/Path.h>
+#include <core/io/IInSequence.h>
+#include <core/LSPString.h>
 
 namespace lsp
 {
@@ -23,12 +26,12 @@ namespace lsp
         protected:
             typedef struct file_buffer_t
             {
-                FILE       *fd;
-                char       *data;
-                size_t      off;
-                size_t      len;
-                buffer_t    line;
-                bool        skip_wc;
+                io::IInSequence    *in;
+                LSPString           line;
+                lsp_wchar_t        *data;
+                size_t              off;
+                size_t              len;
+                bool                skip_wc;
             } file_buffer_t;
 
             struct ofp_point3d_t: public point3d_t
@@ -52,11 +55,6 @@ namespace lsp
                 ssize_t                     nLineID;
                 size_t                      nLines;
 
-                size_t                      nVxID;
-                size_t                      nParmVxID;
-                size_t                      nNormID;
-                size_t                      nTexVxID;
-
                 cstorage<ofp_point3d_t>     sVx;
                 cstorage<ofp_point3d_t>     sTexVx;
                 cstorage<ofp_point3d_t>     sParVx;
@@ -68,7 +66,7 @@ namespace lsp
             } parse_state_t;
 
         protected:
-            static void eliminate_comments(buffer_t *l);
+            static void eliminate_comments(LSPString *s);
 
             static status_t read_line(file_buffer_t *fb);
 
@@ -92,6 +90,10 @@ namespace lsp
 
         public:
             static status_t parse(const char *path, IFileHandler3D *handler);
+
+            static status_t parse(const LSPString *path, IFileHandler3D *handler);
+
+            static status_t parse(const io::Path *path, IFileHandler3D *handler);
     };
 
 } /* namespace lsp */

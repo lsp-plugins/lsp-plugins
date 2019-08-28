@@ -23,7 +23,7 @@ namespace lsp
                 CtlColor        sTextColor;
 
             public:
-                CtlIndicator(CtlRegistry *src, LSPIndicator *widget);
+                explicit CtlIndicator(CtlRegistry *src, LSPIndicator *widget);
                 virtual ~CtlIndicator();
 
             protected:

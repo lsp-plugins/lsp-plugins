@@ -4,7 +4,7 @@ OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
 OBJFILES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS)
-LIBS                    = $(SNDFILE_LIBS) $(PTHREAD_LIBS) $(MATH_LIBS)
+LIBS                    = $(SNDFILE_LIBS) $(PTHREAD_LIBS) $(MATH_LIBS) $(DL_LIBS)
 
 ifeq ($(BUILD_PLATFORM),BSD)
   LIBS                   += $(ICONV_LIBS)
@@ -12,7 +12,7 @@ endif
 
 # Configure set of modules to build
 ifeq ($(LSP_TESTING),1)
-  OBJFILES               += $(OBJ_TEST_CORE)
+  OBJFILES               += $(OBJ_TEST_CORE) $(OBJ_TESTING_CORE)
   MODULES                 = $(BIN_TEST)
 endif
 ifneq ($(LSP_TESTING),1)

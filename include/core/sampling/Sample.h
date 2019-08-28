@@ -10,8 +10,20 @@
 
 #include <core/types.h>
 
+#define AUDIO_SAMPLE_CONTENT_TYPE       "application/x-lsp-audio-sample"
+
 namespace lsp
 {
+#pragma pack(push, 1)
+    typedef struct sample_header_t
+    {
+        uint16_t    version;        // Version + endianess
+        uint16_t    channels;
+        uint32_t    sample_rate;
+        uint32_t    samples;
+    } sample_header_t;
+#pragma pack(pop)
+
     class Sample
     {
         private:
@@ -20,16 +32,24 @@ namespace lsp
             size_t      nMaxLength;
             size_t      nChannels;
 
+        private:
+            Sample & operator = (const Sample &);
+
         public:
-            Sample();
+            explicit Sample();
             ~Sample();
 
         public:
             inline bool valid() const { return (vBuffer != NULL) && (nChannels > 0) && (nLength > 0) && (nMaxLength > 0); }
             inline size_t length() const { return nLength; }
             inline size_t max_length() const { return nMaxLength; }
+
             inline float *getBuffer(size_t channel) { return &vBuffer[nMaxLength * channel]; }
+            inline const float *getBuffer(size_t channel) const { return &vBuffer[nMaxLength * channel]; }
+
             inline float *getBuffer(size_t channel, size_t offset) { return &vBuffer[nMaxLength * channel + offset]; }
+            inline const float *getBuffer(size_t channel, size_t offset) const { return &vBuffer[nMaxLength * channel + offset]; }
+
             inline size_t channels() const { return nChannels; };
 
             /** Set length of sample
@@ -88,6 +108,12 @@ namespace lsp
              *
              */
             void destroy();
+
+            /**
+             * Swap contents with another sample
+             * @param dst sample to perform swap
+             */
+            void swap(Sample *dst);
     };
 
 } /* namespace lsp */

@@ -111,7 +111,7 @@ namespace lsp
                 inline status_t            get_text(LSPString *dst) const { return dst->set(&sText) ? STATUS_OK : STATUS_NO_MEM; };
                 inline const ssize_t       min_width() const   { return nMinWidth;     }
                 inline Color              *bg_color()          { return &sBgColor;     }
-                inline Color              *sel_color()         { return &sBgColor;     }
+                inline Color              *sel_color()         { return &sSelColor;    }
                 inline Color              *color()             { return &sColor;       }
                 inline LSPMenu            *get_popup()         { return pPopup;        }
 

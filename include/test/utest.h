@@ -26,7 +26,11 @@
                     typedef utest_ ## name test_type_t;\
                 \
                 public: \
+                    \
+                    _Pragma("GCC diagnostic push") \
+                    _Pragma("GCC diagnostic ignored \"-Wuninitialized\"") \
                     explicit utest_ ## name() : UnitTest(group, #name) {} \
+                    _Pragma("GCC diagnostic pop") \
                     \
                     virtual ~utest_ ## name() {}
 
@@ -39,32 +43,38 @@
 #define UTEST_MAIN \
         virtual void execute(int argc, const char **argv)
 
+#define UTEST_INIT \
+        virtual void init()
+
+#define UTEST_DESTROY \
+        virtual void destroy()
+
 #define UTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 
 #define UTEST_FAIL_MSG(message, ...) {  \
-            fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d with message: \n  " message  "\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d with message: \n  " message  "\n", \
                     __test_group, __test_name, __FILE__, __LINE__, ## __VA_ARGS__); \
-            exit(1); \
+            ::exit(1); \
         }
 
 #define UTEST_FAIL() {\
-            fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d\n", \
                     __test_group, __test_name, __FILE__, __LINE__); \
-            exit(1); \
+            ::exit(1); \
         }
 
 #define UTEST_ASSERT(code) \
         if (!(code)) { \
-            fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n", \
                     __test_group, __test_name, __FILE__, __LINE__, # code); \
-            exit(2); \
+            ::exit(2); \
         }
 
 #define UTEST_ASSERT_MSG(code, message, ...) \
         if (!(code)) { \
-            fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n  " message "\n", \
+            ::fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n  " message "\n", \
                     __test_group, __test_name, __FILE__, __LINE__, # code, ## __VA_ARGS__); \
-            exit(2); \
+            ::exit(2); \
         }
 
 #define UTEST_FOREACH(var, ...)    \
@@ -86,9 +96,6 @@ namespace test
         private:
             static UnitTest        *__root;
             UnitTest               *__next;
-
-        protected:
-            int             printf(const char *fmt, ...);
 
         public:
             explicit UnitTest(const char *group, const char *name);

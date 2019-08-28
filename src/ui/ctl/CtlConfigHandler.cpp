@@ -32,7 +32,7 @@ namespace lsp
                 const char *v = value->get_utf8();
                 if (v == NULL)
                     return STATUS_NO_MEM;
-                LSP_BOOL_ASSERT(set_port_value(ref->pPort, v), STATUS_BAD_ARGUMENTS);
+                LSP_BOOL_ASSERT(set_port_value(ref->pPort, v, 0), STATUS_BAD_ARGUMENTS);
             }
 
             return STATUS_OK;

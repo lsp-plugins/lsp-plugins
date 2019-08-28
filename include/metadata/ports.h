@@ -15,6 +15,8 @@
     { id, label, U_NONE, R_AUDIO, F_OUT, 0, 0, 0, 0, NULL, NULL    }
 #define MIDI_CHANNEL(id, direction, label) \
     { id, label, U_NONE, R_MIDI, direction, 0, 0, 0, 0, NULL, NULL    }
+#define OSC_CHANNEL(id, direction, label) \
+    { id, label, U_NONE, R_OSC, direction, 0, 0, 0, 0, NULL, NULL    }
 #define FILE_CHANNEL(id, label) \
     { id, label, U_ENUM, R_CONTROL, F_IN | F_INT, 0, 0, 0, 0, file_channels, NULL }
 #define AMP_GAIN(id, label, dfl, max) \
@@ -22,6 +24,9 @@
 #define AMP_GAIN1(id, label, dfl)  AMP_GAIN(id, label, dfl, 1.0f)
 #define AMP_GAIN10(id, label, dfl)  AMP_GAIN(id, label, dfl, 10.0f)
 #define AMP_GAIN100(id, label, dfl)  AMP_GAIN(id, label, dfl, 100.0f)
+#define AMP_GAIN1000(id, label, dfl)  AMP_GAIN(id, label, dfl, 1000.0f)
+#define AMP_GAIN_RANGE(id, label, dfl, min, max) \
+    { id, label, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, min, max, dfl, GAIN_AMP_S_0_5_DB, NULL, NULL }
 #define STATUS(id, label) \
     { id, label, U_NONE, R_METER, F_OUT | F_INT | F_UPPER | F_LOWER, 0, STATUS_MAX, STATUS_UNSPECIFIED, 0, NULL, NULL }
 #define MESH(id, label, dim, points) \
@@ -44,6 +49,9 @@
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define CONTROL_DFL(id, label, units, limits, dfl) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
+        limits ## _MIN, limits ## _MAX, dfl, limits ## _STEP, NULL, NULL }
 #define INT_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_INT, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
@@ -68,6 +76,8 @@
     { id, label, U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -100.0f, 100.0f, dfl, 0.1, NULL, NULL }
 #define PERCENTS(id, label, dfl, step) \
     { id, label, U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, 0, 100, dfl, step, NULL, NULL }
+#define OUT_PERCENTS(id, label) \
+    { id, label, U_PERCENT, R_METER, F_OUT | F_LOWER | F_UPPER, 0, 100, 0, 0, NULL, NULL }
 #define METER_GAIN(id, label, max) \
     { id, label, U_GAIN_AMP, R_METER, F_OUT | F_LOG | F_UPPER | F_LOWER | F_PEAK, 0, max, 0.0f, 0, NULL, NULL }
 #define METER_GAIN_DFL(id, label, max, dfl) \
@@ -98,6 +108,9 @@
 
 #define MIDI_INPUT          MIDI_CHANNEL(LSP_LV2_MIDI_PORT_IN, F_IN, "Midi input")
 #define MIDI_OUTPUT         MIDI_CHANNEL(LSP_LV2_MIDI_PORT_OUT, F_OUT, "Midi output")
+
+#define OSC_INPUT           OSC_CHANNEL(LSP_LV2_OSC_PORT_IN, F_IN, "OSC input")
+#define OSC_OUTPUT          OSC_CHANNEL(LSP_LV2_OSC_PORT_OUT, F_OUT, "OSC output")
 
 #define IN_GAIN             AMP_GAIN10("g_in", "Input gain", 1.0f)
 #define OUT_GAIN            AMP_GAIN10("g_out", "Output gain", 1.0f)
@@ -130,6 +143,10 @@
 #define PORTS_MIDI_CHANNEL  \
     MIDI_INPUT,             \
     MIDI_OUTPUT
+
+#define PORTS_OSC_CHANNEL   \
+    OSC_INPUT,              \
+    OSC_OUTPUT
 
 // Port groups
 #define STEREO_PORT_GROUP_PORTS(id, a, b) \

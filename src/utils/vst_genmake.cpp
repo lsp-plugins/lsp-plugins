@@ -7,6 +7,7 @@
 
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
+#include <utils/common.h>
 
 #include <container/vst/defs.h>
 
@@ -102,9 +103,9 @@ namespace lsp
         // Generate list of plugins as CPP-files
         int code = 0;
 
-        #define MOD_PLUGIN(x)  \
-            if ((code == 0) && (x::metadata.vst_uid != NULL)) \
-                code = gen_cpp_file(path, &x::metadata, #x, LSP_ARTIFACT_ID "-vst-" #x ".cpp");
+        #define MOD_PLUGIN(plugin, ui)  \
+            if ((code == 0) && (plugin::metadata.vst_uid != NULL)) \
+                code = gen_cpp_file(path, &plugin::metadata, #plugin, LSP_ARTIFACT_ID "-vst-" #plugin ".cpp");
 
         #include <metadata/modules.h>
 

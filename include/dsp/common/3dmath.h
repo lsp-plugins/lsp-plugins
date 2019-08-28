@@ -13,7 +13,6 @@
 #endif /* __DSP_DSP_DEFS */
 
 #include <dsp/common/3dmath/types.h>
-#include <dsp/common/3dmath/tetra3d.h>
 
 //-----------------------------------------------------------------------
 // DSP 3D mathematic functions
@@ -121,6 +120,26 @@ namespace dsp
      */
     extern void (* normalize_vector)(vector3d_t *m);
 
+    /** Normalize vector
+     *
+     * @param v vector to store normalized value
+     * @param src source vector to normalize
+     */
+    extern void (* normalize_vector2)(vector3d_t *v, const vector3d_t *src);
+
+    /**
+     * Flip vector coordinates
+     * @param v vector to flip
+     */
+    extern void (* flip_vector_v1)(vector3d_t *v);
+
+    /**
+     * Flip vector coordinates
+     * @param v vector to store result
+     * @param sv source vector
+     */
+    extern void (* flip_vector_v2)(vector3d_t *v, const vector3d_t *sv);
+
     /** Scale vector coordinates to match specified radius-vector length
      *
      * @param v vector to scale
@@ -215,6 +234,20 @@ namespace dsp
      */
     extern void (* init_matrix3d_translate)(matrix3d_t *m, float dx, float dy, float dz);
 
+    /** Init matrix translation
+     *
+     * @param m matrix
+     * @param p point that defines translation
+     */
+    extern void (* init_matrix3d_translate_p1)(matrix3d_t *m, const point3d_t *p);
+
+    /**
+     * Init matrix translation
+     * @param m matrix
+     * @param v vector that defines translation
+     */
+    extern void (* init_matrix3d_translate_v1)(matrix3d_t *m, const vector3d_t *v);
+
     /** Init matrix scale
      *
      * @param m matrix
@@ -254,6 +287,69 @@ namespace dsp
      * @param angle angle
      */
     extern void (* init_matrix3d_rotate_xyz)(matrix3d_t *m, float x, float y, float z, float angle);
+
+    /**
+     * Initialize projection matrix according to the glFrustum() specification
+     * @param m target matrix to store values
+     * @param left coordinates for the left vertical clipping plane
+     * @param right coordinates for the right vertical clipping plane
+     * @param bottom coordinates for the bottom clipping plane
+     * @param top coordinates for the top clipping plane
+     * @param near distance to the near clipping plane
+     * @param far distance to the far clipping plane
+     */
+    extern void (* init_matrix3d_frustum)(matrix3d_t *m, float left, float right, float bottom, float top, float near, float far);
+
+    /**
+     * Initialize matrix similar to gluPerspective()
+     * @param m target matrix to store values
+     * @param pov point-of view coordinates
+     * @param fwd direction of view (vector)
+     * @param up the up vector
+     */
+    extern void (* init_matrix3d_lookat_p1v2)(matrix3d_t *m, const point3d_t *pov, const vector3d_t *fwd, const vector3d_t *up);
+
+    /**
+     * Initialize matrix similar to gluPerspective()
+     * @param m target matrix to store values
+     * @param pov point-of view coordinates
+     * @param pod point-of-destination coordinates
+     * @param up the up vector
+     */
+    extern void (* init_matrix3d_lookat_p2v1)(matrix3d_t *m, const point3d_t *pov, const point3d_t *pod, const vector3d_t *up);
+
+    /**
+     * Initialize matrix that changes ortogonal orientation
+     * @param m matrix to initialize
+     * @param orientation axis orientation
+     */
+    extern void (* init_matrix3d_orientation)(matrix3d_t *m, axis_orientation_t orientation);
+
+    /**
+     * Compute tranfromation matrix from point and vector data which provides:
+     *   - position of the object (point)
+     *   - direction of the object (vector)
+     *   - scale of the object (length of vector)
+     * After applying this matrix, the point with coordinates (0, 0, 1)
+     * will have coordinates (p.x + v.dx, p.y + v.dy, p.z + v.dz)
+     *
+     * @param m target matrix
+     * @param p point that indicates position of the object
+     * @param v vector that indicates rotation and size of the object
+     */
+    extern void (* calc_matrix3d_transform_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v);
+
+    /**
+     * Compute tranfromation matrix from ray data which provides:
+     *   - position of the object (point)
+     *   - direction of the object (vector)
+     *   - scale of the object (length of vector)
+     * After applying this matrix, the point with coordinates (0, 0, 1)
+     * will have coordinates (r.z.x + r.v.dx, r.z.y + r.v.dy, r.z.z + r.v.dz)
+     * @param m target matrix
+     * @param r ray that indicates position, rotation and size of the object
+     */
+    extern void (* calc_matrix3d_transform_r1)(matrix3d_t *m, const ray3d_t *r);
 
     /** Apply matrix to vector
      *
@@ -533,34 +629,6 @@ namespace dsp
      */
     extern void (* calc_triangle3d)(triangle3d_t *dst, const triangle3d_t *src);
 
-    /** Clear intersection primitive
-     *
-     * @param is pointer to intersection primitive
-     */
-    extern void (* init_intersection3d)(intersection3d_t *is);
-
-    /** Initialize raytrace primitive
-     *
-     * @param rt raytrace primitive
-     * @param r source raytrace
-     */
-    extern void (* init_raytrace3d)(raytrace3d_t *rt, const raytrace3d_t *r);
-
-    /** Initialize raytrace primitive
-     *
-     * @param rt raytrace primitive
-     * @param r ray
-     */
-    extern void (* init_raytrace3d_r)(raytrace3d_t *rt, const ray3d_t *r);
-
-    /** Initialize raytrace primitive
-     *
-     * @param rt raytrace primitive
-     * @param r ray
-     * @param ix last instersection
-     */
-    extern void (* init_raytrace3d_ix)(raytrace3d_t *rt, const ray3d_t *r, const intersection3d_t *ix);
-
     /** Analyze that two vectors and the normal vector organize the left triplet
      *
      * @param p1 start point of the first vector
@@ -651,22 +719,6 @@ namespace dsp
      */
     extern float (* check_point3d_on_triangle_p3p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
 
-    /** Check that point lies on the edge
-     *
-     * @param p1 edge point 1
-     * @param p2 edge point 2
-     * @param p point to check
-     * @return value >= 0 if point lies within edge
-     */
-    extern float (* check_point3d_on_edge_p2p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p);
-
-    /** Check that point lies on the edge
-     *
-     * @param p array of two edges
-     * @param p point to check
-     * @return value >= 0 if point lies within edge
-     */
-    extern float (* check_point3d_on_edge_pvp)(const point3d_t *pv, const point3d_t *p);
 
     /** Return the index of longest edge between three points
      *
@@ -693,14 +745,6 @@ namespace dsp
      *         If value is less than zero, then there is no intersection
      */
     extern float (* find_intersection3d_rt)(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
-
-    /** Reflect the ray from the surface specified by the intersection and update raytrace object
-     *
-     * @param rt raytrace object, will contain the information about reflected raytrace after call
-     * @param rf ray object, will contain the information about refracted raytrace after call
-     * @param ix intersection primitive
-     */
-    extern void (* reflect_ray)(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix);
 
     /** Calculate angle between two vectors
      *
@@ -765,21 +809,400 @@ namespace dsp
      */
     extern void (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k);
 
-    /** Initialize octant
-     *
-     * @param o octant to initialize
-     * @param t list of points to analyze bounds
-     * @param n number of points
+    /**
+     * Add vector to point
+     * @param p point
+     * @param dv vector to add
      */
-    extern void (* init_octant3d_v)(octant3d_t *o, const point3d_t *t, size_t n);
+    extern void (* add_vector_pv1)(point3d_t *p, const vector3d_t *dv);
 
-    /** Check that
-     *
-     * @param o octant to check
-     * @param r ray to check
-     * @return true if intersection of ray with object in octant is possible
+    /**
+     * Add vector to point
+     * @param p point
+     * @param dv vector to add
      */
-    extern bool (* check_octant3d_rv)(const octant3d_t *o, const ray3d_t *r);
+    extern void (* add_vector_pv2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv);
+
+    /**
+     * Add scaled vector to point: p = p + dv * k
+     * @param p target point
+     * @param dv vector to add
+     * @param k scale factor
+     */
+    extern void (* add_vector_pvk1)(point3d_t *p, const vector3d_t *dv, float k);
+
+    /**
+     * Add scaled vector to point: p = sp + dv * k
+     * @param p point
+     * @param sp source point
+     * @param dv vector to add
+     * @param k scale factor
+     */
+    extern void (* add_vector_pvk2)(point3d_t *p, const point3d_t *sp, const vector3d_t *dv, float k);
+
+    /**
+     * Compute bounding box around object
+     * @param b bounding box object
+     * @param p array of object vertexes
+     * @param n number of vertexes in object
+     */
+    extern void (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n);
+
+    /**
+     * Compute plane equation using three points
+     * @param v pointer to store plane equation
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute plane equation using three points
+     * @param v pointer to store plane equation
+     * @param pv array of three points that lay on the plane
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv);
+
+    /**
+     * Compute plane equation using vector and two points
+     * @param v vector to store plane equation
+     * @param v0 vector
+     * @param p0 point 0
+     * @param p1 point 1
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1);
+
+    /**
+     * Orient plane to have source point below the plane
+     * @param v target plane equation vector
+     * @param sp source point
+     * @param pl source plane equation vector
+     * @return distance from point to the plane
+     */
+    extern float (* orient_plane_v1p1)(vector3d_t *v, const point3d_t *sp, const vector3d_t *pl);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param pv array of three points that lay on the plane
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'above'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_rev_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'above'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param pv array of three points that lay on the plane
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_rev_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
+
+    /**
+     * Compute plane equation for parallel plane that contains sp and pp points and is parallel to the line formed from p0 and p1 points
+     * @param v pointer to store plane equation
+     * @param sp source (projection) point
+     * @param pp point that lays on the plane
+     * @param p0 line point 0
+     * @param p1 line point 1
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1);
+
+    /**
+     * Estimate the area of parallelogram formed by three points
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return area of parallelogram
+     */
+    extern float (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Estimate the area of parallelogram formed by three points
+     * @param pv array of three points that form prarallelogram
+     * @return area of parallelogram
+     */
+    extern float (* calc_area_pv)(const point3d_t *pv);
+
+    /**
+     * Return length of the projection of the point on the line
+     * @param p0 projection line point 0
+     * @param p1 projection line point 1
+     * @param pp projected point
+     * @return length of the projection of the point on the line
+     */
+    extern float (* projection_length_p2)(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp);
+
+    /**
+     * Return length of the projection of the vector on another vector
+     * @param v projection vector
+     * @param pv projected vector
+     * @return length of the projection of the vector on another vector
+     */
+    extern float (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv);
+
+    /**
+     * Estimate the shortest distance to triangle
+     * @param sp projection point
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return shortest distance
+     */
+    extern float (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Estimate the shortest distance to triangle
+     * @param sp projection point
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return shortest distance
+     */
+    extern float (* calc_min_distance_pv)(const point3d_t *sp, const point3d_t *pv);
+
+    /**
+     * Estimate the average distance to triangle
+     * @param sp projection point
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return average distance
+     */
+    extern float (* calc_avg_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute distance between two pointes
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return distance
+     */
+    extern float (* calc_distance_p2)(const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute square of distance between two points
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return square value of distance
+     */
+    extern float (* calc_sqr_distance_p2)(const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute distance between two points
+     * @param pv array of two points
+     * @return distance between two points
+     */
+    extern float (* calc_distance_pv)(const point3d_t *pv);
+
+    /**
+     * Compute the distance (actually, the length of the vector)
+     * @param v vector
+     * @return distance (vector length)
+     */
+    extern float (* calc_distance_v1)(const vector3d_t *v);
+
+    /**
+     * Compute square of distance between two points
+     * @param pv array of two points
+     * @return square of distance between two points
+     */
+    extern float (* calc_sqr_distance_pv)(const point3d_t *pv);
+
+    /**
+     * Compute intersection point of line and plane,
+     * the method is safe from providing the same pointer of ip to l0 and/or l1
+     * @param ip target point to store coordinates
+     * @param l0 line point 0
+     * @param l1 line point 1
+     * @param pl vector containing plane equation
+     */
+    extern void  (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl);
+
+    /**
+     * Compute intersection point of line and plane,
+     * the method is safe from providing the same pointer of ip to l0 and/or l1
+     * @param ip target point to store coordinates
+     * @param lv line points (2 elements)
+     * @param pl vector containing plane equation
+     */
+    extern void  (* calc_split_point_pvv1)(point3d_t *ip, const point3d_t *lv, const vector3d_t *pl);
+
+    /**
+     * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
+     *
+     * @param out array of vertexes above plane
+     * @param n_out counter of triangles above plane, should be initialized
+     * @param in array of vertexes below plane
+     * @param n_in counter of triangles below plane, should be initialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    extern void  (* split_triangle_raw)(
+            raw_triangle_t *out,
+            size_t *n_out,
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        );
+
+    /**
+     * Cull raw triangle with plane, generates set of triangles below the split plane.
+     * For every triangle, points 1 and 2 are the points that lay on the split plane,
+     * the first triangle ALWAYS has 2 common points with split plane (1 and 2)
+     *
+     * @param in array of vertexes below plane
+     * @param n_in counter of triangles below plane, should be initialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    extern void  (* cull_triangle_raw)(
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        );
+
+    /**
+     * Check colocation of two points and a plane
+     * @param v vector that contains plane equation
+     * @param p1 point 1
+     * @param p3 point 3
+     * @return bit mask: 2 groups of 2 bits, describing state of each point, proper values are:
+     *   00 - if point is above the plane
+     *   01 - if point is on the plane
+     *   10 - if point is below the plane
+     *   11 - non-permitted value, won't be produced
+     *   The example state:
+     *   1001 - point 0 lays above the plane, point 1 lays on the plane
+     */
+    extern size_t (* colocation_x2_v1p2)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1);
+
+    /**
+     * Check colocation of three points and a plane
+     * @param v vector that contains plane equation
+     * @param pv array of two points
+     * @return bit mask: 2 groups of 2 bits, describing state of each point, proper values are:
+     *   00 - if point is above the plane
+     *   01 - if point is on the plane
+     *   10 - if point is below the plane
+     *   11 - non-permitted value, won't be produced
+     *   The example state:
+     *   1001 - point 0 lays above the plane, point 1 lays on the plane
+     */
+    extern size_t (* colocation_x2_v1pv)(const vector3d_t *v, const point3d_t *pv);
+
+    /**
+     * Check colocation of three points and a plane
+     * @param v vector that contains plane equation
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return bit mask: 3 groups of 2 bits, describing state of each point, proper values are:
+     *   00 - if point is above the plane
+     *   01 - if point is on the plane
+     *   10 - if point is below the plane
+     *   11 - non-permitted value, won't be produced
+     *   The example state:
+     *   100100 - point 0 lays above the plane, point 1 lays on the plane, point 2 lays below the plane
+     */
+    extern size_t (* colocation_x3_v1p3)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Check colocation of three points and a plane
+     * @param v vector that contains plane equation
+     * @param pv array of three points
+     * @return bit mask: 3 groups of 2 bits, describing state of each point, proper values are:
+     *   00 - if point is above the plane
+     *   01 - if point is on the plane
+     *   10 - if point is below the plane
+     *   11 - non-permitted value, won't be produced
+     *   The example state:
+     *   100100 - point 0 lays above the plane, point 1 lays on the plane, point 2 lays below the plane
+     */
+    extern size_t (* colocation_x3_v1pv)(const vector3d_t *v, const point3d_t *pv);
+
+    /**
+     * Check colocation of three planes and a point
+     * @param v0 plane 0
+     * @param v1 plane 1
+     * @param v2 plane 2
+     * @param p point
+     * @return bit mask: 3 groups of 2 bits, describing state of point relative to each plane, proper values are:
+     *   00 - if point is above the plane
+     *   01 - if point is on the plane
+     *   10 - if point is below the plane
+     *   11 - non-permitted value, won't be produced
+     *   The example state:
+     *   100100 - point lays above the plane 0, on the plane 1 and below the plane 2
+     */
+    extern size_t (* colocation_x3_v3p1)(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p);
+
+    /**
+     * Check colocation of three planes and a point
+     * @param vv array of three vectors
+     * @param p point
+     * @return bit mask: 3 groups of 2 bits, describing state of point relative to each plane, proper values are:
+     *   00 - if point is above the plane
+     *   01 - if point is on the plane
+     *   10 - if point is below the plane
+     *   11 - non-permitted value, won't be produced
+     *   The example state:
+     *   100100 - point lays above the plane 0, on the plane 1 and below the plane 2
+     */
+    extern size_t (* colocation_x3_vvp1)(const vector3d_t *vv, const point3d_t *p);
+
+    /**
+     * Compute unit vector from source point to center of triangle
+     * @param v target to store vector
+     * @param sp source point
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     */
+    extern void (* unit_vector_p1p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute unit vector from source point to center of triangle
+     * @param v target to store vector
+     * @param sp source point
+     * @param pv array of three points
+     */
+    extern void (* unit_vector_p1pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */

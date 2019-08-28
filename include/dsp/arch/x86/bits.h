@@ -793,4 +793,179 @@ inline int32_t __lsp_forced_inline    reverse_bits(int32_t v, size_t count)
 
 #endif /* ARCH_I386 */
 
+
+    inline int __lsp_forced_inline int_log2(uint8_t v)
+    {
+        uint32_t res = v, tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (res), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return res;
+    }
+
+    inline int __lsp_forced_inline     int_log2(int8_t v)
+    {
+        uint32_t res = uint8_t(v), tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (res), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return res;
+    }
+
+    inline int __lsp_forced_inline     int_log2(uint16_t v)
+    {
+        uint32_t res = v, tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (res), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return res;
+    }
+
+    inline int __lsp_forced_inline     int_log2(int16_t v)
+    {
+        uint32_t res = uint16_t(v), tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (res), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return res;
+    }
+
+    inline int __lsp_forced_inline     int_log2(uint32_t v)
+    {
+        uint32_t tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (v), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return v;
+    }
+
+    inline int __lsp_forced_inline     int_log2(int32_t v)
+    {
+        uint32_t tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (v), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return v;
+    }
+
+#ifdef ARCH_X86_64
+    inline int __lsp_forced_inline     int_log2(uint64_t v)
+    {
+        uint64_t tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (v), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return int(v);
+    }
+
+    inline int __lsp_forced_inline     int_log2(int64_t v)
+    {
+        uint64_t tmp;
+
+        ARCH_X86_ASM (
+            __ASM_EMIT("xor     %[tmp], %[tmp]")
+            __ASM_EMIT("bsr     %[res], %[res]")
+            __ASM_EMIT("cmovz   %[tmp], %[res]")
+            : [res] "+r" (v), [tmp] "=&r" (tmp)
+            :
+            : "cc"
+        );
+        return int(v);
+    }
+#else
+    inline int __lsp_forced_inline     int_log2(uint64_t v)
+    {
+        ARCH_X86_ASM (
+            __ASM_EMIT("test    %%edx, %%edx")
+            __ASM_EMIT("jz      2f")
+            __ASM_EMIT("mov     %%edx, %%eax")
+            __ASM_EMIT("xor     %%edx, %%edx")
+            __ASM_EMIT("bsr     %%eax, %%eax")
+            __ASM_EMIT("cmovz   %%edx, %%eax")
+            __ASM_EMIT("add     $32, %%eax")
+            __ASM_EMIT("jmp     4f")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("xor     %%edx, %%edx")
+            __ASM_EMIT("bsr     %%eax, %%eax")
+            __ASM_EMIT("cmovz   %%edx, %%eax")
+
+            __ASM_EMIT("4:")
+
+            : [v] "+A" (v)
+            :
+            : "cc"
+        );
+        return int(v);
+    }
+
+    inline int __lsp_forced_inline     int_log2(int64_t v)
+    {
+        ARCH_X86_ASM (
+            __ASM_EMIT("test    %%edx, %%edx")
+            __ASM_EMIT("jz      2f")
+            __ASM_EMIT("mov     %%edx, %%eax")
+            __ASM_EMIT("xor     %%edx, %%edx")
+            __ASM_EMIT("bsr     %%eax, %%eax")
+            __ASM_EMIT("cmovz   %%edx, %%eax")
+            __ASM_EMIT("add     $32, %%eax")
+            __ASM_EMIT("jmp     4f")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("xor     %%edx, %%edx")
+            __ASM_EMIT("bsr     %%eax, %%eax")
+            __ASM_EMIT("cmovz   %%edx, %%eax")
+
+            __ASM_EMIT("4:")
+
+            : [v] "+A" (v)
+            :
+            : "cc"
+        );
+        return int(v);
+    }
+#endif /* ARCH_X86_64 */
+
 #endif /* DSP_ARCH_X86_BITS_H_ */

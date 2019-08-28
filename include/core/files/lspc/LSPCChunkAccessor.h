@@ -30,6 +30,9 @@ namespace lsp
 
     class LSPCChunkAccessor
     {
+        private:
+            LSPCChunkAccessor & operator = (const LSPCChunkAccessor &);
+
         protected:
             friend class LSPCFile;
 
@@ -53,7 +56,7 @@ namespace lsp
             status_t        do_close();
 
         protected:
-            LSPCChunkAccessor(LSPCResource *fd, uint32_t magic);
+            explicit LSPCChunkAccessor(LSPCResource *fd, uint32_t magic);
 
         public:
             virtual ~LSPCChunkAccessor();

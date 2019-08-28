@@ -31,7 +31,7 @@ namespace lsp
                 static uint64_t     time();
 
             public:
-                CtlTempoTap(CtlRegistry *src, LSPButton *widget);
+                explicit CtlTempoTap(CtlRegistry *src, LSPButton *widget);
                 virtual ~CtlTempoTap();
 
             public:

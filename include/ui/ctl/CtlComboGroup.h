@@ -35,7 +35,7 @@ namespace lsp
                 void do_destroy();
 
             public:
-                CtlComboGroup(CtlRegistry *src, LSPComboGroup *widget);
+                explicit CtlComboGroup(CtlRegistry *src, LSPComboGroup *widget);
                 virtual ~CtlComboGroup();
 
             public:

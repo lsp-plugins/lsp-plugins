@@ -254,6 +254,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         spectrum_analyzer_x1_ports,
         "analyzer/spectrum/x1.xml",
+        NULL,
         NULL
     };
 
@@ -271,6 +272,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         spectrum_analyzer_x2_ports,
         "analyzer/spectrum/x2.xml",
+        NULL,
         NULL
     };
 
@@ -288,6 +290,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         spectrum_analyzer_x4_ports,
         "analyzer/spectrum/x4.xml",
+        NULL,
         NULL
     };
 
@@ -305,6 +308,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         spectrum_analyzer_x8_ports,
         "analyzer/spectrum/x8.xml",
+        NULL,
         NULL
     };
 
@@ -322,6 +326,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         spectrum_analyzer_x12_ports,
         "analyzer/spectrum/x12.xml",
+        NULL,
         NULL
     };
 
@@ -339,6 +344,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         spectrum_analyzer_x16_ports,
         "analyzer/spectrum/x16.xml",
+        NULL,
         NULL
     };
 }

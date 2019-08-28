@@ -45,6 +45,7 @@ namespace lsp
                 float               fProgress;
                 size_t              nButtons;
                 size_t              nBtnState;
+                ssize_t             nSize;
                 LSPWidgetFont       sFont;
                 LSPWidgetColor      sBgColor;
                 LSPFileDialog       sDialog;
@@ -79,6 +80,7 @@ namespace lsp
                 inline LSPFileFilter       *filter() { return sDialog.filter(); }
                 inline status_t             get_path(LSPString *dst) const { return (dst->set(&sPath)) ? STATUS_OK : STATUS_NO_MEM; }
                 inline const char          *get_path() const { return sPath.get_native(); }
+                inline ssize_t              size() const { return nSize; }
 
             public:
                 status_t    set_state(save_file_state_t state);
@@ -87,6 +89,7 @@ namespace lsp
                 status_t    set_progress(float value);
                 status_t    set_path(const LSPString *path);
                 status_t    set_path(const char *path);
+                void        set_size(ssize_t size);
 
             public:
                 virtual void draw(ISurface *s);

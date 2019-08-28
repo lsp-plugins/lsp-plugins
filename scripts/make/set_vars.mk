@@ -1,6 +1,7 @@
-PREFIX_FILE            := .install-prefix.txt
-MODULES_FILE           := .install-modules.txt
-BUILD_PROFILE_FILE     := .install-build-profile.txt
+PREFIX_FILE            := install-prefix.txt
+MODULES_FILE           := install-modules.txt
+R3D_BACKENDS_FILE      := install-r3d-backends.txt
+BUILD_PROFILE_FILE     := install-build-profile.txt
 
 # Detect operating system
 ifndef BUILD_SYSTEM
@@ -22,6 +23,9 @@ ifndef BUILD_PLATFORM
   endif
   ifeq ($(findstring Linux,$(BUILD_SYSTEM)),Linux)
     BUILD_PLATFORM          = Linux
+  endif
+  ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
+    BUILD_PLATFORM          = Solaris
   endif
 endif
 
@@ -55,13 +59,16 @@ else # BUILD_PLATFORM != Windows
     ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
       BUILD_PROFILE           = armv8a
     endif
-	ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)), aarch64)
+    ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)), aarch64)
       BUILD_PROFILE           = aarch64
     endif
     ifeq ($(BUILD_ARCH),x86_64)
       BUILD_PROFILE           = x86_64
     endif
     ifeq ($(BUILD_ARCH),amd64)
+      BUILD_PROFILE           = x86_64
+    endif
+    ifeq ($(BUILD_ARCH),i86pc)
       BUILD_PROFILE           = x86_64
     endif
     ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)), i586)
@@ -71,3 +78,4 @@ else # BUILD_PLATFORM != Windows
 endif # BUILD_PLATFORM != Windows
 
 export BUILD_PROFILE
+

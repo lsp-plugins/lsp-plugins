@@ -12,17 +12,12 @@
 #include <core/status.h>
 #include <core/buffer.h>
 #include <core/LSPString.h>
+#include <core/files/config/flags.h>
 
 namespace lsp
 {
     namespace config
     {
-        enum serialize_flags_t
-        {
-            SF_NONE     = 0,
-            SF_QUOTED   = 1 << 0
-        };
-
         class IConfigSource
         {
             private:

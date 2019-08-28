@@ -244,6 +244,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         compressor_mono_ports,
         "dynamics/compressor/single/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -261,6 +262,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         compressor_stereo_ports,
         "dynamics/compressor/single/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -278,6 +280,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         compressor_lr_ports,
         "dynamics/compressor/single/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -295,6 +298,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         compressor_ms_ports,
         "dynamics/compressor/single/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -313,6 +317,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_compressor_mono_ports,
         "dynamics/compressor/single/mono.xml",
+        NULL,
         mono_plugin_sidechain_port_groups
     };
 
@@ -330,6 +335,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_compressor_stereo_ports,
         "dynamics/compressor/single/stereo.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -347,6 +353,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_compressor_lr_ports,
         "dynamics/compressor/single/lr.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 
@@ -364,6 +371,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         sc_compressor_ms_ports,
         "dynamics/compressor/single/ms.xml",
+        NULL,
         stereo_plugin_sidechain_port_groups
     };
 }

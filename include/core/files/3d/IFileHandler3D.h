@@ -38,35 +38,42 @@ namespace lsp
              */
             virtual status_t end_object(size_t id);
 
+            /**
+             * This callback is called when there is no more data at the input
+             * and allows to post-process/finalize loaded data structures
+             * @return status of operation
+             */
+            virtual status_t end_of_data();
+
             /** Add vertex
              *
              * @param idx index
              * @param p vertex to add
-             * @return status of operation
+             * @return number of added vertex or negative error code
              */
-            virtual status_t add_vertex(const point3d_t *p);
+            virtual ssize_t add_vertex(const point3d_t *p);
 
             /** Add parameter vertex
              *
              * @param idx index
              * @param p vertex to add
-             * @return status of operation
+             * @return number of added vertex or negative error code
              */
-            virtual status_t add_parameter_vertex(const point3d_t *p);
+            virtual ssize_t add_parameter_vertex(const point3d_t *p);
 
             /** Add normal
              *
              * @param v normal vector to add
-             * @return status of operation
+             * @return number of added normal or negative error code
              */
-            virtual status_t add_normal(const vector3d_t *v);
+            virtual ssize_t add_normal(const vector3d_t *v);
 
             /** Add texture vertex
              *
              * @param v texture vector to add
-             * @return status of operation
+             * @return number of added texture vertex or negative error code
              */
-            virtual status_t add_texture_vertex(const point3d_t *v);
+            virtual ssize_t add_texture_vertex(const point3d_t *v);
 
             /** Add face
              *

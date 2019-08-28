@@ -9,7 +9,16 @@
 #define CORE_3D_RAYTRACE3D_H_
 
 #include <dsp/dsp.h>
+#include <data/cvector.h>
 #include <data/cstorage.h>
+#include <core/sampling/Sample.h>
+#include <core/3d/common.h>
+#include <core/3d/raytrace.h>
+#include <core/3d/rt_mesh.h>
+#include <core/3d/rt_context.h>
+#include <core/3d/RTObjectFactory.h>
+#include <core/ipc/Thread.h>
+#include <core/ipc/Mutex.h>
 
 namespace lsp
 {
@@ -18,14 +27,129 @@ namespace lsp
      */
     class RayTrace3D
     {
+        protected:
+            typedef struct sample_t
+            {
+                Sample             *sample;
+                size_t              channel;
+                ssize_t             r_min;
+                ssize_t             r_max;
+            } sample_t;
+
+            typedef struct capture_t: public rt_capture_settings_t
+            {
+                rt_material_t       material;
+                vector3d_t          direction;
+                cstorage<sample_t>  bindings;
+            } capture_t;
+
+            typedef struct stats_t
+            {
+                uint64_t            root_tasks;
+                uint64_t            local_tasks;
+                uint64_t            calls_scan;
+                uint64_t            calls_cull;
+                uint64_t            calls_split;
+                uint64_t            calls_cullback;
+                uint64_t            calls_reflect;
+                uint64_t            calls_capture;
+            } stats_t;
+
+        protected:
+            class TaskThread: public ipc::Thread
+            {
+                private:
+                    RayTrace3D             *trace;
+                    stats_t                 stats;
+                    cvector<rt_context_t>   tasks;
+                    cvector<capture_t>      captures;
+                    rt_mesh_t               root;
+                    ssize_t                 heavy_state;
+                    RTObjectFactory         factory;
+
+                protected:
+                    status_t    main_loop();
+                    status_t    process_context(rt_context_t *ctx);
+
+                    status_t    scan_objects(rt_context_t *ctx);
+                    status_t    cull_view(rt_context_t *ctx);
+                    status_t    split_view(rt_context_t *ctx);
+                    status_t    cullback_view(rt_context_t *ctx);
+                    status_t    reflect_view(rt_context_t *ctx);
+                #ifdef LSP_RT_TRACE
+                    status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
+                #else
+                    status_t    capture(capture_t *capture, const rt_view_t *v);
+                #endif
+
+                    status_t    generate_root_mesh();
+                    status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
+                    status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
+
+                    status_t    submit_task(rt_context_t *ctx);
+
+                public:
+                    TaskThread(RayTrace3D *trace);
+                    virtual ~TaskThread();
+
+                public:
+                    status_t    prepare_main_loop(float initial);
+                    status_t    prepare_captures();
+                    status_t    prepare_supplementary_loop(TaskThread *t);
+
+                    virtual status_t run();
+
+                    status_t    merge_result();
+
+                    inline stats_t *get_stats() { return &stats; }
+            };
+
         private:
-            cstorage<raytrace3d_t>  sRays;
+            cstorage<rt_material_t>     vMaterials;
+            cstorage<rt_source_settings_t>    vSources;
+            cvector<capture_t>          vCaptures;
+            Scene3D                    *pScene;
+            rt_progress_t               pProgress;
+            void                       *pProgressData;
+            size_t                      nSampleRate;
+            float                       fEnergyThresh;
+            float                       fTolerance;
+            float                       fDetalization;
+            bool                        bNormalize;
+            volatile bool               bCancelled;
+            volatile bool               bFailed;
+
+            rt_debug_t                 *pDebug;
+
+            cvector<rt_context_t>       vTasks;
+            size_t                      nQueueSize;
+            size_t                      nProgressPoints;
+            size_t                      nProgressMax;
+            ipc::Mutex                  lkTasks;
+
+        protected:
+            static void destroy_tasks(cvector<rt_context_t> *tasks);
+            static void clear_stats(stats_t *stats);
+            static void dump_stats(const char *label, const stats_t *stats);
+            static void merge_stats(stats_t *dst, const stats_t *src);
+            static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view);
+
+            void        remove_scene(bool destroy);
+            status_t    resize_materials(size_t objects);
+
+            status_t    report_progress(float progress);
+
+            // Main ray-tracing routines
+            void        normalize_output();
+            bool        is_already_passed(const sample_t *bind);
+
+            status_t    do_process(size_t threads, float initial);
 
         public:
             /** Default constructor
              *
              */
-            RayTrace3D();
+            explicit RayTrace3D();
 
             /** Destructor
              *
@@ -33,51 +157,146 @@ namespace lsp
             ~RayTrace3D();
 
         public:
-            /** Destroy the raytrace storage
-             *
+            /**
+             * Initialize raytrace object
              */
-            void destroy();
+            status_t init();
 
-            /** Add ray to raytrace storage
-             *
-             * @param r ray to add
-             * @return true if ray was added, false if there is not enough memory
+            /** Destroy the ray tracing processor state
+             * @param recursive destroy the currently used scene object
              */
-            bool push(const ray3d_t *r);
+            void destroy(bool recursive=false);
 
-            /** Add ray to raytrace storage
-             *
-             * @param r ray to add
-             * @param ix last intersection of the ray
-             * @return true if ray was added, false if there is not enough memory
+            /**
+             * Set scene object
+             * @param scene scene object to set
+             * @param destroy destroy previously used scene
+             * @return status of operation
              */
-            bool push(const ray3d_t *r, const intersection3d_t *ix);
+            status_t set_scene(Scene3D *scene, bool destroy=true);
 
-            /** Add raytrace to raytrace storage
-             *
-             * @param r raytrace to add
-             * @return true if ray was added, false if there is not enough memory
+            /**
+             * Set/clear progress callback
+             * @param callback callback routine to report progress
+             * @param data data that will be passed to callback routine
+             * @return status of operation
              */
-            bool push(const raytrace3d_t *r);
+            status_t set_progress_callback(rt_progress_t callback, void *data);
 
-            /** Extract last raytrace from stack
-             *
-             * @param r pointer to store the extracted raytrace copy
-             * @return true if raytrace was extracted from stack
+            /**
+             * Clear progress callback
+             * @return status of operation
              */
-            bool pop(raytrace3d_t *r);
+            status_t clear_progress_callback();
 
-            /** Get number of elements in the raytrace stack
-             *
-             * @return number of elements in the raytrace stack
+            /**
+             * Set the material for the corresponding object
+             * @param idx the index of the material
+             * @return status of operation
              */
-            inline size_t size() const { return sRays.size();  }
+            status_t    set_material(size_t idx, const rt_material_t *material);
 
-            /** Get current capacity of the raytrace stack
-             *
-             * @return current capacity of the raytrace stack
+            /**
+             * Get the material for the corresponding object
+             * @param material
+             * @param idx the index of the corresponding object
+             * @return pointer to material or NULL
              */
-            inline size_t capacity() const { return sRays.capacity();  }
+            status_t    get_material(rt_material_t *material, size_t idx);
+
+            /**
+             * Get the scene object
+             * @param idx scene object
+             * @return object pointer or NULL
+             */
+            inline Object3D *object(size_t idx) { return (pScene != NULL) ? pScene->get_object(idx) : NULL; }
+
+            /**
+             * Set sample rate
+             * @param sr sample rate
+             */
+            inline void set_sample_rate(size_t sr) { nSampleRate = sr; }
+
+            /**
+             * Get sample rate
+             * @return sample rate
+             */
+            inline size_t get_sample_rate() const { return nSampleRate; }
+
+            /**
+             * Add audio source
+             * @param settings source settings
+             * @return status of operation
+             */
+            status_t add_source(const rt_source_settings_t *settings);
+
+            /**
+             * Add audio capture
+             * @param settings capture settings
+             * @return non-negative capture identifier or negative error status code
+             */
+            ssize_t add_capture(const rt_capture_settings_t *settings);
+
+            /**
+             * Bind audio sample to capture
+             * @param id capture identifier
+             * @param sample audio sample to bind
+             * @param channel number of channel of the sample that will be modified by capture
+             * @param r_min the minimum reflection index, negative value for any
+             * @param r_max the maximum reflection index, negative value for any
+             * @return status of operation
+             */
+            status_t    bind_capture(size_t id, Sample *sample, size_t channel, ssize_t r_min, ssize_t r_max);
+
+            /** Remove all audio sources
+             *
+             */
+            inline void         clear_sources()     {   vSources.flush();       };
+
+            /** Remove all audio captures
+             *
+             */
+            inline void         clear_captures()    {   vCaptures.flush();      };
+
+            /**
+             * Set debug context for debugging purposes
+             * @param shared shared context for debugging
+             */
+            inline void         set_debug_context(rt_debug_t *debug) { pDebug  = debug; }
+
+            inline float        get_energy_threshold() const { return fEnergyThresh; }
+
+            void                set_energy_threshold(float thresh) { fEnergyThresh = thresh; }
+
+            inline float        get_tolerance() const { return fTolerance; }
+            inline float        get_detalization() const { return fDetalization; }
+
+            void                set_tolerance(float tolerance) { fTolerance = tolerance; }
+            void                set_detalization(float detail) { fDetalization = detail; }
+
+            inline bool         get_normalize() const { return bNormalize; };
+            inline void         set_normalize(bool normalize) { bNormalize = normalize; };
+
+            /**
+             * This method indicates that the cancel request was sent to
+             * the processor, RT-safe method
+             * @return true if cancel request was sent to processor
+             */
+            inline bool         cancelled() const { return bCancelled; }
+
+            /**
+             * This method allows to cancel the execution of process() method by
+             * another thread, RT-safe method
+             */
+            void                cancel() { if (!bCancelled) bCancelled = true; }
+
+            /**
+             * Perform processing, non-RT-safe, should be launched in a thread
+             * @param threads number of threads used for processing
+             * @param initial initial energy of the signal
+             * @return status of operation
+             */
+            status_t            process(size_t threads, float initial);
     };
 
 } /* namespace lsp */

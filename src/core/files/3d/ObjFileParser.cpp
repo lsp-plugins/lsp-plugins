@@ -14,6 +14,7 @@
 
 #include <core/debug.h>
 #include <core/files/3d/ObjFileParser.h>
+#include <core/io/InSequence.h>
 
 #define IO_BUF_SIZE             8192
 
@@ -51,7 +52,7 @@ namespace lsp
 
     bool ObjFileParser::parse_int(ssize_t *dst, const char **s)
     {
-        if (*s == NULL)
+        if ((*s == NULL) || (**s == '\0') || (**s == ' '))
             return false;
 
         errno = 0;
@@ -94,93 +95,118 @@ namespace lsp
         }
     }
 
-    void ObjFileParser::eliminate_comments(buffer_t *l)
+    void ObjFileParser::eliminate_comments(LSPString *s)
     {
-        char *p = l->pString;
+        size_t len = s->length(), r=0, w=0;
+        bool slash = false;
 
-        while (true)
+        while (r < len)
         {
-            char c = *p;
-            if (c == '\0')
-                return;
-            else if (c == '#')
+            lsp_wchar_t ch = s->char_at(r);
+            if (slash)
             {
-                // Check that the comment is not back-slashed
-                if ((p == l->pString) || (p[-1] != '\\'))
-                {
-                    while ((p > l->pString) && (is_space(p[-1])))
-                        --p;
-
-                    *p = '\0';
-                    l->nLength  = p - l->pString;
-                    return;
-                }
-                // move data
-                memmove(p, p+1, (l->nLength--) - (p - l->pString));
+                ++r;
+                if ((ch != '#') && (ch != '\\'))
+                    s->set_at(w++, '\\');
+                s->set_at(w++, ch);
+                slash   = false;
+                continue;
+            }
+            else if (ch == '#')
+            {
+                s->set_length(r);
+                return;
+            }
+            else if (ch == '\\')
+            {
+                slash = true;
+                ++r;
+                continue;
             }
 
-            p++;
+            if (r != w)
+                s->set_at(w, ch);
+            ++r, ++w;
         }
+
+        if (slash)
+            s->set_at(w++, '\\');
+        s->set_length(w);
     }
 
     status_t ObjFileParser::read_line(file_buffer_t *fb)
     {
-        clear_buf(&fb->line);
+        // Clear previous line contents
+        fb->line.clear();
 
         while (true)
         {
             // Ensure that there is data in buffer
             if (fb->off >= fb->len)
             {
-                fb->len = fread(fb->data, 1, IO_BUF_SIZE, fb->fd);
-                if (fb->len <= 0)
-                    return (feof(fb->fd)) ? STATUS_EOF : STATUS_IO_ERROR;
+                // No data in the buffer, read from input stream
+                ssize_t n = fb->in->read(fb->data, IO_BUF_SIZE);
+                if (n <= 0)
+                {
+                    if (n != -STATUS_EOF)
+                        return -n;
+                    return (fb->line.length() > 0) ? STATUS_OK : STATUS_EOF;
+                }
+                fb->len     = n;
                 fb->off     = 0;
             }
 
-            // Skip windows '\r' character
-            char *head  = &fb->data[fb->off];
-
+            // Scan for line ending
             if (fb->skip_wc)
             {
-                fb->skip_wc     = false;
-                if (*head == '\r')
+                fb->skip_wc = false;
+                if (fb->data[fb->off] == '\r')
                 {
-                    fb->off++;
+                    ++fb->off;
                     continue;
                 }
             }
 
-            // Scan for end-of-line
-            char *eol   = reinterpret_cast<char *>(memchr(head, '\n', fb->len - fb->off));
-
-            // Check that end-of-line was found
-            if (eol != NULL)
+            // Scan for line ending character
+            size_t tail = fb->off;
+            while (tail < fb->len)
             {
-                fb->off    += eol - head + 1;
-                if ((eol > head) && (eol[-1] == '\r'))
-                    eol--;
-
-                if (!append_buf(&fb->line, head, eol - head))
-                    return STATUS_NO_MEM;
-
-                // Check for special case
-                if ((fb->line.nLength > 0) && (fb->line.pString[fb->line.nLength - 1] == '\\'))
-                    fb->line.pString[--fb->line.nLength]    = '\0';
-                else
+                lsp_wchar_t ch = fb->data[tail++];
+                if (ch == '\n') // Found!
                 {
-                    // Eliminate comments
-                    eliminate_comments(&fb->line);
-                    fb->skip_wc     = true;
-                    return STATUS_OK;
+                    fb->skip_wc = true;
+                    break;
                 }
             }
-            else
+
+            // Append data to string and update buffer state
+            fb->line.append(&fb->data[fb->off], tail - fb->off);
+            fb->off = tail;
+
+            // Now analyze last string character
+            size_t len = fb->line.length();
+            if (fb->line.last() != '\n') // Not end of line?
+                continue;
+            fb->line.set_length(--len);
+
+            // Compute number of terminating '\\' characters
+            ssize_t slashes = 0, xoff = len-1;
+            while ((xoff >= 0) && (fb->line.char_at(xoff) == '\\'))
             {
-                if (!append_buf(&fb->line, head, fb->len - fb->off))
-                    return STATUS_NO_MEM;
-                fb->off     = fb->len;
+                ++slashes;
+                --xoff;
             }
+
+            // Line has been split into multiple lines?
+            if (slashes & 1)
+            {
+                fb->line.set_length(--len);
+                continue;
+            }
+
+            // Alright, now we have complete line and can return it
+            eliminate_comments(&fb->line);
+            return STATUS_OK;
         }
     }
 
@@ -196,11 +222,6 @@ namespace lsp
         state.nLineID       = 0;
         state.nLines        = 0;
 
-        state.nVxID         = 0;
-        state.nParmVxID     = 0;
-        state.nNormID       = 0;
-        state.nTexVxID      = 0;
-
         while (true)
         {
             // Try to read line
@@ -213,12 +234,12 @@ namespace lsp
             }
 
             // Check that line is not empty
-            const char *l = skip_spaces(fb->line.pString);
-            if (*l == '\0')
+            const char *l = skip_spaces(fb->line.get_utf8());
+            if ((l == NULL) || (*l == '\0'))
                 continue;
 
             // Parse line
-            result = parse_line(&state, fb->line.pString);
+            result = parse_line(&state, l);
             if (result != STATUS_OK)
                 break;
         }
@@ -238,47 +259,60 @@ namespace lsp
 
     status_t ObjFileParser::parse(const char *path, IFileHandler3D *handler)
     {
-        // Try to open file
-        errno       = 0;
-        FILE *fd    = fopen(path, "rb");
-        if (fd == NULL)
-        {
-            if (errno == EPERM)
-                return STATUS_PERMISSION_DENIED;
-            else if (errno == ENOENT)
-                return STATUS_NOT_FOUND;
-            return STATUS_IO_ERROR;
-        }
+        if ((path == NULL) || (handler == NULL))
+            return STATUS_BAD_ARGUMENTS;
+
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+
+        return parse(&spath, handler);
+    }
+
+    status_t ObjFileParser::parse(const LSPString *path, IFileHandler3D *handler)
+    {
+        if ((path == NULL) || (handler == NULL))
+            return STATUS_BAD_ARGUMENTS;
+
+        io::InSequence in;
+        status_t res = in.open(path, "UTF-8");
+        if (res != STATUS_OK)
+            return res;
 
         // Initialize file buffer
         file_buffer_t fb;
-        fb.fd       = fd;
-        fb.data     = new char[IO_BUF_SIZE];
-        if (fb.data == NULL)
-        {
-            fclose(fd);
-            return STATUS_NO_MEM;
-        }
-        init_buf(&fb.line); // Initialize line buffer
+        fb.in       = &in;
         fb.len      = 0;
         fb.off      = 0;
         fb.skip_wc  = false;
+        fb.data     = reinterpret_cast<lsp_wchar_t *>(::malloc(IO_BUF_SIZE * sizeof(lsp_wchar_t)));
+        if (fb.data == NULL)
+        {
+            in.close();
+            return STATUS_NO_MEM;
+        }
 
         char *saved_locale = setlocale(LC_NUMERIC, "C");
         status_t result     = parse_lines(&fb, handler);
         setlocale(LC_NUMERIC, saved_locale);
 
-        // Delete all allocated data
-        destroy_buf(&fb.line);
-        delete [] fb.data;
-        fclose(fd);
+        // Destroy buffer data
+        ::free(fb.data);
+        in.close();
 
         return result;
     }
 
+    status_t ObjFileParser::parse(const io::Path *path, IFileHandler3D *handler)
+    {
+        if ((path == NULL) || (handler == NULL))
+            return STATUS_BAD_ARGUMENTS;
+        return parse(path->as_string(), handler);
+    }
+
     status_t ObjFileParser::parse_line(parse_state_t *st, const char *s)
     {
-        lsp_trace("%s", s);
+//        lsp_trace("%s", s);
         status_t result = ((st->nLines++) > 0) ? STATUS_CORRUPTED_FILE : STATUS_BAD_FORMAT;
 
         switch (*(s++))
@@ -318,7 +352,7 @@ namespace lsp
                 break;
 
             case 'f': // f
-                if (is_space(*s)) // f
+                if (is_space(*s)) // f - face
                 {
                     // Clear previously used lists
                     st->sVxIdx.clear();
@@ -360,27 +394,23 @@ namespace lsp
                         ofp_point3d_t *xp = st->sVx.at(v);
                         if (xp->oid != st->nObjectID)
                         {
-                            result  = st->pHandler->add_vertex(xp);
-                            if (result != STATUS_OK)
-                                return result;
-
                             xp->oid     = st->nObjectID;
-                            xp->idx     = st->nVxID++;
+                            xp->idx     = st->pHandler->add_vertex(xp);
+                            if (xp->idx < 0)
+                                return -xp->idx;
                         }
                         v           = xp->idx;
 
                         // Register texture vertex
                         if (vt >= 0)
                         {
-                            xp = st->sVx.at(vt);
+                            xp = st->sTexVx.at(vt);
                             if (xp->oid != st->nObjectID)
                             {
-                                result      = st->pHandler->add_texture_vertex(xp);
-                                if (result != STATUS_OK)
-                                    return result;
-
                                 xp->oid     = st->nObjectID;
-                                xp->idx     = st->nTexVxID++;
+                                xp->idx     = st->pHandler->add_texture_vertex(xp);
+                                if (xp->idx < 0)
+                                    return -xp->idx;
                             }
                             vt  = xp->idx;
                         }
@@ -389,15 +419,8 @@ namespace lsp
                         if (vn >= 0)
                         {
                             ofp_vector3d_t *xn = st->sNorm.at(vn);
-                            if (xn->oid != st->nObjectID)
-                            {
-                                result      = st->pHandler->add_normal(xn);
-                                if (result != STATUS_OK)
-                                    return result;
-
-                                xn->oid     = st->nObjectID;
-                                xn->idx     = st->nNormID++;
-                            }
+                            if (xn == NULL)
+                                return STATUS_BAD_FORMAT;
                             vn  = xn->idx;
                         }
 
@@ -433,7 +456,7 @@ namespace lsp
                 break;
 
             case 'l': // l, lod
-                if (is_space(*s)) // l
+                if (is_space(*s)) // l - line
                 {
                     // Clear previously used lists
                     st->sVxIdx.clear();
@@ -466,27 +489,23 @@ namespace lsp
                         ofp_point3d_t *xp   = st->sVx.at(v);
                         if (xp->oid != st->nObjectID)
                         {
-                            result  = st->pHandler->add_vertex(xp);
-                            if (result != STATUS_OK)
-                                return result;
-
                             xp->oid     = st->nObjectID;
-                            xp->idx     = st->nVxID++;
+                            xp->idx     = st->pHandler->add_vertex(xp);
+                            if (xp->idx < 0)
+                                return -xp->idx;
                         }
                         v           = xp->idx;
 
                         // Register texture vertex
                         if (vt >= 0)
                         {
-                            xp = st->sVx.at(vt);
+                            xp = st->sTexVx.at(vt);
                             if (xp->oid != st->nObjectID)
                             {
-                                result      = st->pHandler->add_texture_vertex(xp);
-                                if (result != STATUS_OK)
-                                    return result;
-
                                 xp->oid     = st->nObjectID;
-                                xp->idx     = st->nTexVxID++;
+                                xp->idx     = st->pHandler->add_texture_vertex(xp);
+                                if (xp->idx < 0)
+                                    return -xp->idx;
                             }
                             vt  = xp->idx;
                         }
@@ -501,8 +520,8 @@ namespace lsp
                     if (!end_of_line(s))
                         return result;
 
-                    // Check face parameters
-                    if (st->sVxIdx.size() < 3)
+                    // Check line parameters
+                    if (st->sVxIdx.size() < 2)
                         return STATUS_BAD_FORMAT;
 
                     // Call parser to handle data
@@ -530,10 +549,6 @@ namespace lsp
                             return result;
                     }
                     result = st->pHandler->begin_object(++st->nObjectID, s);
-                    st->nVxID           = 0;
-                    st->nParmVxID       = 0;
-                    st->nNormID         = 0;
-                    st->nTexVxID        = 0;
                 }
                 break;
 
@@ -553,20 +568,18 @@ namespace lsp
                             break;
 
                         // Ensure that indexes are correct
-                        v   = (v < 0) ? st->nVxID + v : v - 1;
-                        if ((v < 0) || (v > ssize_t(st->nVxID)))
+                        v   = (v < 0) ? st->sVx.size() + v : v - 1;
+                        if ((v < 0) || (v >= ssize_t(st->sVx.size())))
                             return result;
 
                         // Register vertex
                         ofp_point3d_t *xp   = st->sVx.at(v);
                         if (xp->oid != st->nObjectID)
                         {
-                            result  = st->pHandler->add_vertex(xp);
-                            if (result != STATUS_OK)
-                                return result;
-
                             xp->oid     = st->nObjectID;
-                            xp->idx     = st->nVxID++;
+                            xp->idx     = st->pHandler->add_vertex(xp);
+                            if (xp->idx < 0)
+                                return -xp->idx;
                         }
                         v           = xp->idx;
 
@@ -660,7 +673,9 @@ namespace lsp
                         return result;
 
                     v.oid       = -1;
-                    v.idx       = -1;
+                    v.idx       = st->pHandler->add_normal(&v);
+                    if (v.idx < 0)
+                        return -v.idx;
                     if (!st->sNorm.add(&v))
                         return STATUS_NO_MEM;
                     result = STATUS_OK;
@@ -729,6 +744,9 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
         }
+
+        if (result == STATUS_OK)
+            result = st->pHandler->end_of_data();
 
         return result;
     }

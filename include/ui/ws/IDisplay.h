@@ -9,12 +9,24 @@
 #define UI_WS_IDISPLAY_H_
 
 #include <data/cstorage.h>
+#include <data/cvector.h>
+#include <rendering/backend.h>
+#include <rendering/factory.h>
+#include <core/ipc/Library.h>
 
 namespace lsp
 {
     namespace ws
     {
         class INativeWindow;
+        class IR3DBackend;
+
+        typedef struct R3DBackendInfo
+        {
+            LSPString   library;
+            LSPString   uid;
+            LSPString   display;
+        } R3DBackendInfo;
 
         /** Display
          *
@@ -30,12 +42,30 @@ namespace lsp
                     void           *pArg;
                 } dtask_t;
 
-            protected:
-                taskid_t            nTaskID;
-                cstorage<dtask_t>   sTasks;
+                typedef struct r3d_library_t: public R3DBackendInfo
+                {
+                    r3d_factory_t  *builtin;        // Built-in factory
+                    size_t          local_id;       // Local identifier
+                } r3d_library_t;
 
             protected:
+                taskid_t                nTaskID;
+                cstorage<dtask_t>       sTasks;
+                cvector<r3d_library_t>  s3DLibs;            // List of libraries that provide 3D backends
+                cvector<IR3DBackend>    s3DBackends;        // List of all 3D backend instances
+                ipc::Library            s3DLibrary;         // Current backend library used
+                r3d_factory_t          *s3DFactory;         // Pointer to the factory object
+                ssize_t                 nCurrent3D;         // Current 3D backend
+                ssize_t                 nPending3D;         // Pending 3D backend
+
+            protected:
+                friend class IR3DBackend;
+
                 bool                taskid_exists(taskid_t id);
+                void                deregister_backend(IR3DBackend *lib);
+                status_t            switch_r3d_backend(r3d_library_t *backend);
+                status_t            commit_r3d_factory(const LSPString *path, r3d_factory_t *factory);
+                void                detach_r3d_backends();
 
             public:
                 IDisplay();
@@ -46,15 +76,96 @@ namespace lsp
                 virtual void destroy();
 
                 virtual int main();
-                virtual int main_iteration();
+                virtual status_t main_iteration();
                 virtual void quit_main();
 
                 virtual size_t screens();
                 virtual size_t default_screen();
 
+                virtual void sync();
+
                 virtual status_t screen_size(size_t screen, ssize_t *w, ssize_t *h);
 
             public:
+                /**
+                 * Enumerate backends
+                 * @param id backend number starting with 0
+                 * @return backend descriptor or NULL if backend with such identifier does not exist
+                 */
+                const R3DBackendInfo *enumBackend(size_t id) const;
+
+                /**
+                 * Get currently used backend for 3D rendering
+                 * @return selected backend descriptor
+                 */
+                const R3DBackendInfo *getCurrentBackend() const;
+
+                /**
+                 * Get currently used backend identifier for 3D rendering
+                 * @return selected backend identifier
+                 */
+                ssize_t getCurrentBackendId() const;
+
+                /**
+                 * Select backend for rendering by specifying it's descriptor
+                 * This function does not chnage the backend immediately,
+                 * instead of this the backend switch operation is performed in the
+                 * main loop
+                 * @param backend backend for rendering
+                 * @return status of operation
+                 */
+                status_t selectBackend(const R3DBackendInfo *backend);
+
+                /**
+                 * Select backend for rendering by specifying it's descriptor identifier
+                 * This function does not chnage the backend immediately,
+                 * instead of this the backend switch operation is performed in the
+                 * main loop
+                 * @param id backend's descriptor identifier
+                 * @return status of operation
+                 */
+                status_t selectBackendId(size_t id);
+
+                /**
+                 * Lookup the specified directory for existing 3D backends
+                 * @param path the directory to perform lookup
+                 */
+                void lookup3DBackends(const io::Path *path);
+
+                /**
+                 * Lookup the specified directory for existing 3D backends
+                 * @param path the directory to perform lookup
+                 */
+                void lookup3DBackends(const char *path);
+
+                /**
+                 * Lookup the specified directory for existing 3D backends
+                 * @param path the directory to perform lookup
+                 */
+                void lookup3DBackends(const LSPString *path);
+
+                /**
+                 * Try to register the library as a 3D backend
+                 * @param path the path to the library
+                 * @return status of operation
+                 */
+                status_t register3DBackend(const io::Path *path);
+
+                /**
+                 * Try to register the library as a 3D backend
+                 * @param path the path to the library
+                 * @return status of operation
+                 */
+                status_t register3DBackend(const char *path);
+
+                /**
+                 * Try to register the library as a 3D backend
+                 * @param path the path to the library
+                 * @return status of operation
+                 */
+                status_t register3DBackend(const LSPString *path);
+
+
                 /** Create native window
                  *
                  * @return native window
@@ -68,11 +179,24 @@ namespace lsp
                  */
                 virtual INativeWindow *createWindow(size_t screen);
 
-                /** Create native window from specified window handle
+                /** Create native window as child of specified window handle
                  *
-                 * @return native window from specified window handle
+                 * @return native window as child of specified window handle
                  */
                 virtual INativeWindow *createWindow(void *handle);
+
+                /**
+                 * Wrap window handle
+                 * @param handle handle to wrap
+                 * @return native window as wrapper of the handle
+                 */
+                virtual INativeWindow *wrapWindow(void *handle);
+
+                /**
+                 * Create 3D backend for graphics
+                 * @return pointer to created backend
+                 */
+                virtual IR3DBackend *create3DBackend(INativeWindow *parent);
 
                 /** Create surface for drawing
                  *

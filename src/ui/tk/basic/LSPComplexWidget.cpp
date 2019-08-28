@@ -170,6 +170,7 @@ namespace lsp
                         pMouse->handle_event(&ev);
                         pMouse      = NULL;
                     }
+                    break;
                 }
 
                 default:

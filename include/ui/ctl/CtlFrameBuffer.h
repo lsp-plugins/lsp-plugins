@@ -16,7 +16,7 @@ namespace lsp
         class CtlFrameBuffer: public CtlWidget
         {
             public:
-                CtlFrameBuffer(CtlRegistry *src, LSPFrameBuffer *fb);
+                explicit CtlFrameBuffer(CtlRegistry *src, LSPFrameBuffer *fb);
                 virtual ~CtlFrameBuffer();
 
             protected:

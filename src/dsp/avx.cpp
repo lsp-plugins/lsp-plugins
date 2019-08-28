@@ -25,6 +25,7 @@
 
 #include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>
+#include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
 #include <dsp/arch/x86/avx/filters/transform.h>

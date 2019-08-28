@@ -19,7 +19,7 @@ namespace lsp
                 float   fPending;
 
             public:
-                CtlValuePort(const port_t *meta);
+                explicit CtlValuePort(const port_t *meta);
                 virtual ~CtlValuePort();
 
             public:

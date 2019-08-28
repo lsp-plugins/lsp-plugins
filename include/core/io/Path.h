@@ -56,6 +56,18 @@ namespace lsp
                 status_t    set(const LSPString *path);
                 status_t    set(const Path *path);
 
+                status_t    set(const char *path, const char *child);
+                status_t    set(const char *path, const LSPString *child);
+                status_t    set(const char *path, const Path *child);
+
+                status_t    set(const LSPString *path, const char *child);
+                status_t    set(const LSPString *path, const LSPString *child);
+                status_t    set(const LSPString *path, const Path *child);
+
+                status_t    set(const Path *path, const char *child);
+                status_t    set(const Path *path, const LSPString *child);
+                status_t    set(const Path *path, const Path *child);
+
                 inline const char *get() const                          { return sPath.get_utf8();  }
                 status_t    get(char *path, size_t maxlen) const;
                 status_t    get(LSPString *path) const;

@@ -54,7 +54,7 @@ namespace lsp
         // Instantiate plugin
         plugin_t *p         = NULL;
 
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if ((!p) && (plugin::metadata.ladspa_id > 0) && (Descriptor->UniqueID == plugin::metadata.ladspa_id) && (!strcmp(Descriptor->Label, LSP_PLUGIN_URI(ladspa, plugin)))) \
                 p = new plugin();
         #include <metadata/modules.h>
@@ -291,7 +291,7 @@ namespace lsp
 
         // Calculate number of plugins
         ladspa_descriptors_count    = 0;
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if (plugin::metadata.ladspa_id > 0) \
                 ladspa_descriptors_count++;
         #include <metadata/modules.h>
@@ -301,7 +301,7 @@ namespace lsp
         LADSPA_Descriptor *d        = ladspa_descriptors;
         size_t id                   = 0;
 
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if (plugin::metadata.ladspa_id > 0) \
             { \
                 ladspa_make_descriptor(&d[id], plugin::metadata.ladspa_id, LSP_PLUGIN_URI(ladspa, plugin), plugin::metadata); \

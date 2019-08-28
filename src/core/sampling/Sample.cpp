@@ -7,6 +7,8 @@
 
 #include <dsp/dsp.h>
 #include <core/sampling/Sample.h>
+#include <core/sugar.h>
+#include <stdlib.h>
 
 namespace lsp
 {
@@ -33,7 +35,7 @@ namespace lsp
 
         // Allocate new data
         max_length      = ALIGN_SIZE(max_length, DEFAULT_ALIGN);    // Make multiple of 4
-        float *buf      = new float[max_length * channels];
+        float *buf      = reinterpret_cast<float *>(::malloc(max_length * channels * sizeof(float)));
         if (buf == NULL)
             return false;
         dsp::fill_zero(buf, max_length * channels);
@@ -50,9 +52,11 @@ namespace lsp
         if (channels <= 0)
             return false;
 
+        lsp_trace("Requested resize: channels=%d, max_length=%d, length=%d", int(channels), int(max_length), int(length));
+
         // Allocate new data
         max_length      = ALIGN_SIZE(max_length, DEFAULT_ALIGN);    // Make multiple of 4
-        float *buf      = new float[max_length * channels];
+        float *buf      = reinterpret_cast<float *>(::malloc(max_length * channels * sizeof(float)));
         if (buf == NULL)
             return false;
         lsp_trace("Allocated buffer=%p of %d floats", buf, int(max_length * channels));
@@ -67,20 +71,17 @@ namespace lsp
             // Copy channels
             for (size_t ch=0; ch < channels; ++ch)
             {
-                if (ch >= nChannels)
+                if (ch < nChannels)
                 {
-                    dsp::fill_zero(dptr, max_length);
-                    dptr           += max_length;
-                    continue;
+                    // Copy data and clear data
+                    dsp::copy(dptr, sptr, to_copy);
+                    dsp::fill_zero(&dptr[to_copy], max_length - to_copy);
+                    sptr           += nMaxLength;
                 }
+                else
+                    dsp::fill_zero(dptr, max_length);
 
-                // Copy data and clear data
-                dsp::copy(dptr, sptr, to_copy);
-                dsp::fill_zero(&dptr[to_copy], max_length - to_copy);
-
-                // Update pointers
                 dptr           += max_length;
-                sptr           += nMaxLength;
             }
 
             // Destroy previously allocated data
@@ -101,13 +102,21 @@ namespace lsp
 //        lsp_trace("Sample::destroy this=%p", this);
         if (vBuffer != NULL)
         {
-//            lsp_trace("delete [] vBuffer=%p", vBuffer);
-            delete [] vBuffer;
+//            lsp_trace("free vBuffer=%p", vBuffer);
+            free(vBuffer);
             vBuffer     = NULL;
         }
         nMaxLength      = 0;
         nLength         = 0;
         nChannels       = 0;
+    }
+
+    void Sample::swap(Sample *dst)
+    {
+        ::swap(vBuffer, dst->vBuffer);
+        ::swap(nMaxLength, dst->nMaxLength);
+        ::swap(nLength, dst->nLength);
+        ::swap(nChannels, dst->nChannels);
     }
 
 } /* namespace lsp */

@@ -289,8 +289,16 @@ namespace sse
         EXPORT1(init_vector_dxyz);
         EXPORT1(init_vector);
         EXPORT1(normalize_vector);
+        EXPORT1(normalize_vector2);
+        EXPORT1(flip_vector_v1);
+        EXPORT1(flip_vector_v2);
         EXPORT1(scale_vector1);
         EXPORT1(scale_vector2);
+
+        EXPORT1(add_vector_pv1);
+        EXPORT1(add_vector_pv2);
+        EXPORT1(add_vector_pvk1);
+        EXPORT1(add_vector_pvk2);
 
         EXPORT1(init_ray_xyz);
         EXPORT1(init_ray_dxyz);
@@ -327,17 +335,10 @@ namespace sse
         EXPORT1(apply_matrix3d_mm1);
         EXPORT1(transpose_matrix3d1);
         EXPORT1(transpose_matrix3d2);
-
-//            EXPORT1(check_point3d_location_tp);
-//            EXPORT1(check_point3d_location_pvp);
-//            EXPORT1(check_point3d_location_p3p);
-
+        
         EXPORT1(check_point3d_on_triangle_p3p);
         EXPORT1(check_point3d_on_triangle_pvp);
         EXPORT1(check_point3d_on_triangle_tp);
-
-        EXPORT1(check_point3d_on_edge_p2p);
-        EXPORT1(check_point3d_on_edge_pvp);
 
         EXPORT1(longest_edge3d_p3);
         EXPORT1(longest_edge3d_pv);
@@ -350,7 +351,6 @@ namespace sse
         EXPORT1(check_triplet3d_t);
         EXPORT1(check_triplet3d_tn);
 
-        EXPORT1(find_intersection3d_rt);
 //            EXPORT1(reflect_ray);
 
         EXPORT1(calc_angle3d_v2);
@@ -363,8 +363,27 @@ namespace sse
 
         EXPORT1(move_point3d_p2);
         EXPORT1(move_point3d_pv);
+        EXPORT1(calc_split_point_p2v1);
+        EXPORT1(calc_split_point_pvv1);
 
-        EXPORT1(check_octant3d_rv);
+        EXPORT1(colocation_x2_v1p2);
+        EXPORT1(colocation_x2_v1pv);
+        EXPORT1(colocation_x3_v1p3);
+        EXPORT1(colocation_x3_v1pv);
+        EXPORT1(colocation_x3_v3p1);
+        EXPORT1(colocation_x3_vvp1);
+
+        EXPORT1(calc_plane_p3);
+        EXPORT1(calc_plane_pv);
+        EXPORT1(calc_plane_v1p2);
+
+        EXPORT1(calc_area_p3);
+        EXPORT1(calc_area_pv);
+        EXPORT1(calc_min_distance_p3);
+        EXPORT1(calc_min_distance_pv);
+
+        EXPORT1(split_triangle_raw);
+        EXPORT1(cull_triangle_raw);
 
         EXPORT1(convolve);
     }

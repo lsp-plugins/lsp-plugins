@@ -54,6 +54,7 @@ namespace sse3
 #include <dsp/arch/x86/sse3/filters/dynamic.h>
 #include <dsp/arch/x86/sse3/filters/transform.h>
 #include <dsp/arch/x86/sse3/complex.h>
+#include <dsp/arch/x86/sse3/3dmath.h>
 
 #undef DSP_ARCH_X86_SSE3_IMPL
 
@@ -74,7 +75,9 @@ namespace sse3
         lsp_trace("Optimizing DSP for SSE3 instruction set");
 
         // Additional xmm registers are available only in 64-bit mode
+        EXPORT1(pcomplex_mul2);
         EXPORT1(pcomplex_mul3);
+
         if (!feature_check(f, FEAT_FAST_MOVS))
         {
             EXPORT2(copy, copy);
@@ -93,9 +96,26 @@ namespace sse3
         EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         EXPORT2_X64(axis_apply_log1, x64_axis_apply_log1);
         EXPORT2_X64(axis_apply_log2, x64_axis_apply_log2);
+        EXPORT2_X64(pcomplex_mul2, x64_pcomplex_mul2);
         EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
 
         EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);
+
+        EXPORT1(calc_split_point_p2v1);
+        EXPORT1(calc_split_point_pvv1);
+
+        EXPORT1(colocation_x2_v1p2);
+        EXPORT1(colocation_x2_v1pv);
+        EXPORT1(colocation_x3_v1p3);
+        EXPORT1(colocation_x3_v1pv);
+        EXPORT1(colocation_x3_v3p1);
+        EXPORT1(colocation_x3_vvp1);
+
+        EXPORT1(calc_min_distance_p3);
+        EXPORT1(calc_min_distance_pv);
+
+        EXPORT1(split_triangle_raw);
+        EXPORT1(cull_triangle_raw);
     }
 
     #undef EXPORT2

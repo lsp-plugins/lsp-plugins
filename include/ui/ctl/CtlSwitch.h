@@ -32,7 +32,7 @@ namespace lsp
                 void        submit_value();
 
             public:
-                CtlSwitch(CtlRegistry *src, LSPSwitch *widget);
+                explicit CtlSwitch(CtlRegistry *src, LSPSwitch *widget);
                 virtual ~CtlSwitch();
 
             public:

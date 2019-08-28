@@ -28,6 +28,8 @@ namespace lsp
                     protected:
                         virtual LSPWidget    *find_widget(ssize_t x, ssize_t y);
 
+                        LSPMenu             *get_handler(ws_event_t *e);
+
                     public:
                         MenuWindow(LSPDisplay *dpy, LSPMenu *menu, size_t screen);
                         virtual ~MenuWindow();
@@ -57,7 +59,8 @@ namespace lsp
                 cvector<LSPMenuItem>    vItems;
                 LSPWidgetFont           sFont;
                 MenuWindow             *pWindow;
-                LSPMenu                *pActive;
+                LSPMenu                *pParentMenu;
+                LSPMenu                *pActiveMenu;
                 LSPTimer                sScroll;
                 ssize_t                 nPopupLeft;
                 ssize_t                 nPopupTop;
@@ -72,9 +75,11 @@ namespace lsp
                 size_t                  nSpacing;
 
             protected:
-                ssize_t                 find_item(ssize_t x, ssize_t y);
+                ssize_t                 find_item(ssize_t x, ssize_t y, ssize_t *ry);
                 static status_t         timer_handler(timestamp_t time, void *arg);
                 void                    update_scroll();
+                void                    selection_changed(ssize_t sel, ssize_t ry);
+                LSPMenu                *check_inside_submenu(ws_event_t *e);
 
                 void                    do_destroy();
 
@@ -121,6 +126,8 @@ namespace lsp
                 virtual bool show(size_t screen);
 
                 virtual bool show(size_t screen, ssize_t left, ssize_t top);
+
+                virtual bool show(LSPWidget *w, size_t screen, ssize_t left, ssize_t top);
 
                 virtual bool show(LSPWidget *w);
 

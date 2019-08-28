@@ -111,6 +111,7 @@ namespace lsp
             }
 
             path->accept();
+            path->commit();
         }
     }
 

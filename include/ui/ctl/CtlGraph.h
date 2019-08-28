@@ -20,7 +20,7 @@ namespace lsp
                 CtlPadding      sPadding;
 
             public:
-                CtlGraph(CtlRegistry *src, LSPGraph *graph);
+                explicit CtlGraph(CtlRegistry *src, LSPGraph *graph);
                 virtual ~CtlGraph();
 
             public:

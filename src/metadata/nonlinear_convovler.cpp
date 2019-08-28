@@ -65,6 +65,7 @@ namespace lsp
         E_NONE,
         nonlinear_convolver_ports,
         "convolution/nonlinear_convolver.xml",
+        NULL,
         mono_plugin_port_groups
     };
 }

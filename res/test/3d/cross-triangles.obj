@@ -1,0 +1,14 @@
+# Triangulation test
+# (C) Linux Studio Plugins Project
+o Triangle 1
+v -2 2 -0.75
+v -1.5 -2.5 -2.5
+v 3.5 1.5 -0.5
+f 1// 2// 3//
+
+o Triangle 2
+v -0.5 2.5 -2.5
+v -2.5 -1.5 0
+v 2.5 -2 -1.25
+f 4// 5// 6//
+

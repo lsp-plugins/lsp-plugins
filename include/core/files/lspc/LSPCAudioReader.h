@@ -19,6 +19,9 @@ namespace lsp
     class LSPCAudioReader
     {
         private:
+            LSPCAudioReader & operator = (const LSPCAudioReader &);
+
+        private:
             enum flags_t
             {
                 F_OPENED        = 1 << 0,
@@ -69,7 +72,7 @@ namespace lsp
             status_t    fill_buffer();
 
         public:
-            LSPCAudioReader();
+            explicit LSPCAudioReader();
             ~LSPCAudioReader();
 
         public:

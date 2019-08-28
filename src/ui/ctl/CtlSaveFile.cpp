@@ -129,6 +129,10 @@ namespace lsp
                 case A_FORMAT_ID:
                     BIND_EXPR(sFormat, value);
                     break;
+                case A_SIZE:
+                    if (save != NULL)
+                        PARSE_INT(value, save->set_size(__) );
+                    break;
                 default:
                 {
                     CtlWidget::set(att, value);

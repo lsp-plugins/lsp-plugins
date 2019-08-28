@@ -1,0 +1,689 @@
+<plugin resizable="false">
+	<vbox spacing="4">
+		<!-- Main settings -->
+		<align hpos="-1">
+			<hbox spacing="4">
+				<label text="FFT frame" />
+				<combo id="fft" />
+				<vsep />
+				<button id="wpp" size="16" color="green" led="true" />
+				<label text="IR Equalizer" />
+			</hbox>
+		</align>
+		
+		<hbox spacing="4">
+			<!-- IR editor -->
+			<cgroup id="view">
+				<vbox spacing="2">
+					<align hpos="-1">
+						<hbox spacing="4">
+							<vbox>
+								<align hpos="-1"><label text="Room orientation:" /></align>
+								<align hpos="-1"><combo id="ifo" /></align>
+							</vbox>
+							<vsep />
+							
+							<knob id="xscale" scale_color="red" size="16" />
+							<vbox>
+								<align hpos="-1"><label text="Sz X:" /></align>
+								<align hpos="-1"><value id="xscale" same_line="true" /></align>
+							</vbox>
+							
+							<knob id="yscale" scale_color="green"  size="16" />
+							<vbox>
+								<align hpos="-1"><label text="Sz Y:" /></align>
+								<align hpos="-1"><value id="yscale" same_line="true" /></align>
+							</vbox>
+							
+							<knob id="zscale" scale_color="blue" size="16" />
+							<vbox>
+								<align hpos="-1"><label text="Sz Z:" /></align>
+								<align hpos="-1"><value id="zscale" same_line="true" /></align>
+							</vbox>
+						</hbox>
+					</align>
+				
+					<viewer3d
+						id="ifn"
+						width="340" height="210" fov="70"
+						orientation_id="ifo" status_id="ifs"
+						xscale_id="xscale" yscale_id="yscale" zscale_id="zscale"
+						xpos_id="cposx" ypos_id="cposy" zpos_id="cposz"
+						yaw_id="cyaw" pitch_id="cpitch"
+						kvt_root="/scene/object/"
+					>
+						<ui:for id="i" first="0" last="7" >
+							<source3d
+								visibility=":sse_${i}" 
+								mode_id="sscf_${i}"
+								hue_id="ssh_${i}" hue_shift="0.1"
+								xpos_id="sspx_${i}" ypos_id="sspy_${i}" zpos_id="sspz_${i}"
+								yaw_id="ssay_${i}" pitch_id="ssap_${i}" roll_id="ssar_${i}"
+								size_id="sss_${i}" angle_id="ssa_${i}" height_id="shh_${i}" curvature_id="sscv_${i}"
+							/>
+						</ui:for>
+						
+						<ui:for id="i" first="0" last="7" >
+							<capture3d
+								visibility=":sce_${i}" 
+								mode_id="sccf_${i}"
+								hue_id="sch_${i}" hue_shift="0.1"
+								xpos_id="scpx_${i}" ypos_id="scpy_${i}" zpos_id="scpz_${i}"
+								yaw_id="scay_${i}" pitch_id="scap_${i}" roll_id="scar_${i}"
+								size_id="sccs_${i}" angle_id="sca_${i}" distance_id="scab_${i}"
+							/>
+						</ui:for>
+					</viewer3d>
+					<!--  yaw_id="cyaw" pitch_id="cpitch" -->
+					<grid rows="4" cols="7">
+						<label text="3D model" />
+						<cell rows="4"><vsep /></cell>
+						<cell cols="5"><label text="Camera" /></cell>
+						
+						<cell rows="3">
+							<load size="64" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
+						</cell>
+						
+						<label text="X Axis" />
+						<label text="Y Axis" />
+						<label text="Z Axis" />
+						<label text="Yaw" />
+						<label text="Pitch" />
+						
+						<knob id="cposx" size="24" scale_color="red" />
+						<knob id="cposy" size="24" scale_color="green" />
+						<knob id="cposz" size="24" scale_color="blue" />
+						<knob id="cyaw" size="24" />
+						<knob id="cpitch" size="24" />
+						
+						<value id="cposx" same_line="true" />
+						<value id="cposy" same_line="true" />
+						<value id="cposz" same_line="true" />
+						<value id="cyaw" same_line="true" />
+						<value id="cpitch" same_line="true" />
+					</grid>
+				</vbox>
+				
+				<!-- Sample editors -->
+				<ui:for id="i" first="0" last="7">
+					<vbox spacing="2">
+						<hbox border="2">
+							<sample
+								head_id="ihc_${i}" tail_id="itc_${i}"
+								fadein_id="ifi_${i}" fadeout_id="ifo_${i}" length_id="ifl_${i}"
+								duration_id="sdur_${i}" max_duration_id="smdur_${i}"
+								status_id="ifs_${i}" mesh_id="ifd_${i}"
+								width="340" height="210"
+							/>
+						</hbox>
+						
+						<grid rows="4" cols="8" hspacing="4">
+							<label text="Export" />
+							<cell rows="4"><vsep /></cell>
+							<label text="Reverse" />
+							<label text="Head cut" />
+							<label text="Tail cut" />
+							<label text="Fade in" />
+							<label text="Fade out" />
+							<label text="Listen" />
+							
+							<cell rows="3">
+								<save size="64" id="ofn_${i}"
+									format="wav,lspc,all" command_id="ofc_${i}"
+									status_id="ofs_${i}" progress_id="ofp_${i}"
+								/>
+							</cell>
+							<button id="irv_${i}" size="32" toggle="false" />
+							<knob id="ihc_${i}" size="20" />
+							<knob id="itc_${i}" size="20" />
+							<knob id="ifi_${i}" size="20" scale_color="yellow" />
+							<knob id="ifo_${i}" size="20" scale_color="yellow" />
+							<button id="ils_${i}" size="32" toggle="false" />
+
+							<led id="irv_${i}" />
+							<value id="ihc_${i}" />
+							<value id="itc_${i}" />
+							<value id="ifi_${i}" />
+							<value id="ifo_${i}" />
+							<led id="ils_${i}" />
+							
+							<label text="Makeup" />
+							<cell cols="3">
+								<fader id="imkp_${i}" size="20" />
+							</cell>
+							<cell cols="2">
+								<value id="imkp_${i}" same_line="true" />
+							</cell>
+						</grid>
+					</vbox>
+				</ui:for>
+			</cgroup>
+			<cgroup id="editor">
+				<!-- Source editor -->
+				<align vpos="-1">
+					<vbox spacing="2">
+						<!-- Source selector -->
+						<align hpos="-1" vpos="-1">
+							<hbox spacing="8">
+								<label text="Source:" />
+								<combo id="ssel" width="20" />
+								<button id="sse[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
+								<label text="Enabled" />
+							</hbox>
+						</align>
+						<hsep pad_bottom="8" />
+						
+						<!-- Sources -->
+						<grid rows="2" cols="2" transpose="true" vspacing="2" hspacing="4" fill="true">
+							<align pad_left="8" hpos="-1"><label text="Shape" /></align>
+							<align pad_left="8" hpos="-1"><label text="Phase" /></align>
+						
+							<combo id="sscf[ssel]" />
+							<align hpos="-1">
+								<hbox spacing="2">
+									<button id="ssph[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
+									<label text="invert" />
+								</hbox>
+							</align>
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="X Axis" />
+							<label text="Y Axis" />
+							<label text="Z Axis" />
+							
+							<knob id="sspx[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							<knob id="sspy[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							<knob id="sspz[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							
+							<value id="sspx[ssel]" same_line="true" />
+							<value id="sspy[ssel]" same_line="true" />
+							<value id="sspz[ssel]" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="Yaw" />
+							<label text="Pitch" />
+							<label text="Roll" />
+							
+							<knob id="ssay[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							<knob id="ssap[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							<knob id="ssar[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							
+							<value id="ssay[ssel]" same_line="true" />
+							<value id="ssap[ssel]" same_line="true" />
+							<value id="ssar[ssel]" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="Hue" />
+							<label text="Angle" />
+							<label text="Size" />
+							
+							<knob id="ssh[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							<knob id="ssa[ssel]" size="16" scale_hue_id="ssh[ssel]" balance="50" />
+							<knob id="sss[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+							
+							<value id="ssh[ssel]" same_line="true" />
+							<value id="ssa[ssel]" same_line="true"/>
+							<value id="sss[ssel]" same_line="true"/>
+						</grid>
+						<hbox spacing="2">
+							<vbox visibility="(:sscf[ssel] ieq 5) or (:sscf[ssel] ieq 6) or (:sscf[ssel] ieq 10)">
+								<label text="Height" />
+								<knob id="shh[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+								<value id="shh[ssel]" same_line="true"/>
+							</vbox>
+							<vbox visibility="(:sscf[ssel] ieq 10) or (:sscf[ssel] ieq 11)">
+								<label text="Curvature" />
+								<knob id="sscv[ssel]" size="16" scale_hue_id="ssh[ssel]" />
+								<value id="sscv[ssel]" same_line="true"/>
+							</vbox>
+						</hbox>
+					</vbox>
+				</align>
+				<!-- Capture editor -->
+				<align vpos="-1">
+					<vbox>
+						<!-- Capture selector -->
+						<align hpos="-1" vpos="-1">
+							<hbox spacing="8">
+								<label text="Capture:" />
+								<combo id="csel" width="20" />
+								<button id="sce[csel]" size="16" led="true" color="red" hue_id="sch[csel]" />
+								<label text="Enabled" />
+							</hbox>
+						</align>
+						<hsep pad_bottom="8" />
+						
+						<!-- Captures -->
+						<align vpos="-1">
+							<grid rows="4" cols="2" transpose="true" vspacing="2" hspacing="4" >
+								<align pad_left="8" hpos="-1"><label text="Mode" /></align>
+								<align pad_left="8" hpos="-1"><label text="Reflections" /></align>
+								<align pad_left="8" hpos="-1"><label text="Mic. direction" /></align>
+								<align pad_left="8" hpos="-1" visibility="(:sccf[csel] ieq 4)" ><label text="Side direction" /></align>
+								
+								<combo id="sccf[csel]" />
+								<hbox spacing="2">
+									<combo id="scf[csel]" />
+									<label text=" - " />
+									<combo id="scl[csel]" />
+								</hbox>
+								<combo id="scmd[csel]" />
+								<combo id="scsd[csel]" visibility="(:sccf[csel] ieq 4)" />
+							</grid>
+						</align>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="X Axis" />
+							<label text="Y Axis" />
+							<label text="Z Axis" />
+							
+							<knob id="scpx[csel]" size="16" scale_hue_id="sch[csel]" />
+							<knob id="scpy[csel]" size="16" scale_hue_id="sch[csel]" />
+							<knob id="scpz[csel]" size="16" scale_hue_id="sch[csel]" />
+							
+							<value id="scpx[csel]" same_line="true" />
+							<value id="scpy[csel]" same_line="true" />
+							<value id="scpz[csel]" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="Yaw" />
+							<label text="Pitch" />
+							<label text="Roll" />
+							
+							<knob id="scay[csel]" size="16" scale_hue_id="sch[csel]" />
+							<knob id="scap[csel]" size="16" scale_hue_id="sch[csel]" />
+							<knob id="scar[csel]" size="16" scale_hue_id="sch[csel]" />
+							
+							<value id="scay[csel]" same_line="true" />
+							<value id="scap[csel]" same_line="true" />
+							<value id="scar[csel]" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<hbox spacing="2">
+							<vbox>
+								<label text="Hue" />
+								<knob id="sch[csel]" size="16" scale_hue_id="sch[csel]" />
+								<value id="sch[csel]" same_line="true" />
+							</vbox>
+							<vbox>
+								<label text="Capsule" />
+								<knob id="sccs[csel]" size="16" scale_hue_id="sch[csel]" />
+								<value id="sccs[csel]" same_line="true" />
+							</vbox>
+							<vbox visibility="(:sccf[csel] ieq 1) or (:sccf[csel] ieq 3)" >
+								<label text="Angle" />
+								<knob id="sca[csel]" size="16" scale_hue_id="sch[csel]" balance="90" />
+								<value id="sca[csel]" same_line="true"/>
+							</vbox>
+							<vbox visibility="(:sccf[csel] ieq 2)" >
+								<label text="Distance" />
+								<knob id="scab[csel]" size="16" scale_hue_id="sch[csel]" />
+								<value id="scab[csel]" same_line="true" />
+							</vbox>
+						</hbox>
+					</vbox>
+				</align>
+				
+				<!--  Object editor -->
+				<align vpos="-1">
+					<vbox>
+						<!-- Object selector -->
+						<align hpos="-1" vpos="-1">
+							<hbox spacing="8">
+								<label text="Object:" />
+								<button id="kvt:enabled" size="16" led="true" color="red" hue_id="kvt:hue" />
+								<label text="Enabled" />
+							</hbox>
+						</align>
+						<combo id="kvt:oid" width="192" />
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="X Move" />
+							<label text="Y Move" />
+							<label text="Z Move" />
+							
+							<knob id="kvt:xpos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<knob id="kvt:ypos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<knob id="kvt:zpos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<value id="kvt:xpos" same_line="true" />
+							<value id="kvt:ypos" same_line="true" />
+							<value id="kvt:zpos" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="Yaw" />
+							<label text="Pitch" />
+							<label text="Roll" />
+							
+							<knob id="kvt:yaw" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<knob id="kvt:pitch" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<knob id="kvt:roll" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<value id="kvt:yaw" same_line="true" />
+							<value id="kvt:pitch" same_line="true" />
+							<value id="kvt:roll" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="3">
+							<label text="X Scale" />
+							<label text="Y Scale" />
+							<label text="Z Scale" />
+							
+							<knob id="kvt:xscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<knob id="kvt:yscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<knob id="kvt:zscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<value id="kvt:xscale" same_line="true" />
+							<value id="kvt:yscale" same_line="true" />
+							<value id="kvt:zscale" same_line="true" />
+						</grid>
+						
+						<hsep />
+						<grid rows="3" cols="1">
+							<label text="Hue" />
+							<knob id="kvt:hue" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<value id="kvt:hue" same_line="true" />
+						</grid>
+	
+					</vbox>
+				</align>
+				
+				<!-- Material editor -->
+				<align vpos="-1">
+					<vbox>
+						<!-- Object selector -->
+						<align hpos="-1" vpos="-1">
+							<hbox spacing="8">
+								<label text="Object:" />
+								<button id="kvt:enabled" size="16" led="true" color="red" hue_id="kvt:hue" />
+								<label text="Enabled" />
+							</hbox>
+						</align>
+						<combo id="kvt:oid" width="192" />
+						<align hpos="-1" vpos="-1">
+							<label text="Material preset:" />
+						</align>
+						<combo ui:id="mpreset" width="192" />
+						
+						<hsep />
+						<hbox>
+							<label text="Sound speed" />
+							<knob id="kvt:speed" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<value id="kvt:speed" same_line="true" />
+						</hbox>
+						<hsep />
+						<align hpos="-1" vpos="-1">
+							<label text="Physical properties:" />
+						</align>
+						<grid rows="9" cols="4">
+							<label />
+							<label text="Out -> In" />
+							<label />
+							<label text="In -> Out" />
+							
+							<!-- Absorption -->
+							<label text="Absorption" />
+							<knob id="kvt:oabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<cell rows="2">
+								<vbox>
+									<button id="kvt:labs" size="12" led="true" color="red" hue_id="kvt:hue" />
+									<label font_size="9" text="Link" />
+								</vbox>
+							</cell>
+							<knob id="kvt:iabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<label text="(%)" />
+							<value id="kvt:oabs" detailed="false" />
+							<value id="kvt:iabs" detailed="false" />
+							
+							<!-- Transparency -->
+							<label text="Transparency" />
+							<knob id="kvt:otransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<cell rows="2">
+								<vbox>
+									<button id="kvt:ltransp" size="12" led="true" color="red" hue_id="kvt:hue" />
+									<label font_size="9" text="Link" />
+								</vbox>
+							</cell>
+							<knob id="kvt:itransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<label text="(%)" />
+							<value id="kvt:otransp" detailed="false" />
+							<value id="kvt:itransp" detailed="false" />
+							
+							<!-- Dispersion -->
+							<label text="Dispersion" />
+							<knob id="kvt:odisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<cell rows="2">
+								<vbox>
+									<button id="kvt:ldisp" size="12" led="true" color="red" hue_id="kvt:hue" />
+									<label font_size="9" text="Link" />
+								</vbox>
+							</cell>
+							<knob id="kvt:idisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<label />
+							<value id="kvt:odisp" detailed="false" />
+							<value id="kvt:idisp" detailed="false" />
+							
+							<!-- Diffusion -->
+							<label text="Diffusion" />
+							<knob id="kvt:odiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							<cell rows="2">
+								<vbox>
+									<button id="kvt:ldiff" size="12" led="true" color="red" hue_id="kvt:hue" />
+									<label font_size="9" text="Link" />
+								</vbox>
+							</cell>
+							<knob id="kvt:idiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
+							
+							<label />
+							<value id="kvt:odiff" detailed="false" />
+							<value id="kvt:idiff" detailed="false" />
+						</grid>
+					</vbox>
+				</align>			
+			</cgroup>
+		</hbox>
+		
+		<hbox spacing="4">
+			<!-- Rendering -->
+			<group text="Rendering">
+				<grid rows="4" cols="3" transpose="true" vspacing="4" hspacing="4">
+					<align hpos="-1"><label text="Status" /></align>
+					<align hpos="-1"><label text="Threads" /></align>
+					<align hpos="-1"><label text="Quality" /></align>
+					<align hpos="-1"><label text="Progress" /></align>
+	
+					<align hpos="-1" expand="true"><status id="status" /></align>
+					<align hpos="-1">
+						<hbox spacing="4">
+							<threadcombo id="threads" width="32" />
+							<button id="normal" led="true" color="yellow" size="16" />
+							<label text="Normalize" />
+						</hbox>
+					</align>
+					<align hpos="-1">
+						<hbox spacing="4">
+							<fader id="quality" angle="0" size="64" />
+							<value id="quality" same_line="true" />
+						</hbox>
+					</align>
+					<cell cols="2"><progress id="prog" /></cell>
+					
+					<cell rows="3">
+						<vbox>
+							<label text="Launch" visibility=":status ine 3" />
+							<button id="render" led="true" color="green" size="32" visibility=":status ine 3" />
+							<label text="Stop" visibility=":status eq 3" />
+							<button id="render" led="true" color="red" size="32" visibility=":status ieq 3" />
+						</vbox>
+					</cell>
+				</grid>
+			</group>
+			
+			<!-- Output -->
+			<group text="Output" expand="false">
+				<hbox>
+					<grid rows="4" cols="3" expand="true" fill="true">
+						<cell cols="2"><label text="Dry Pan" /></cell>
+						<cell rows="2"><label text="Pre-delay" /></cell>
+						<label text="L" />
+						<label text="R" />
+						
+						<knob id="pl" scale_color="left_channel" size="16" />
+						<knob id="pr" scale_color="right_channel" size="16" />
+						<knob id="pd" />
+						
+						<value id="pl" />
+						<value id="pr" />
+						<value id="pd" />
+					</grid>
+					<vsep />
+					
+					<grid hspacing="4" rows="3" cols="3" expand="true" fill="true">	
+						<label text="Dry" />
+						<label text="Wet" />
+						<label text="Output" />
+						
+						<knob id="dry" scale_color="yellow" />
+						<knob id="wet" scale_color="yellow" />
+						<knob id="g_out" />
+						
+						<value id="dry" />
+						<value id="wet" />
+						<value id="g_out" />
+					</grid>
+				</hbox>
+			</group>
+		</hbox>
+			
+		<!-- IR routing -->
+		<cgroup id="signal" expand="true">
+			<!-- Processors -->
+			<hbox>
+				<grid rows="5" cols="6" expand="true">
+					<label text="#" />
+					<label text="In L/R" />
+					<label text="Pre-delay" />
+					<label text="Source" />
+					<label text="Makeup" />
+					<label text="Out L/R" />
+					
+					<ui:for id="i" first="0" last="1">
+						<label text="${i}" />
+						<knob id="cim${i}" size="20" />
+						<knob id="pd${i}" size="20" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
+						<knob id="mk${i}" size="20" />
+						<knob id="com${i}" size="20" />
+						
+						<label />
+						<value id="cim${i}" same_line="true" />
+						<value id="pd${i}" same_line="true" />
+						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
+							<led id="ca${i}" />
+							<label text="Active" />
+						</hbox>
+						<value id="mk${i}" same_line="true" />
+						<value id="com${i}" same_line="true" />
+					</ui:for>
+				</grid>
+				<vsep />
+				<grid rows="5" cols="6" expand="true">
+					<label text="#" />
+					<label text="In L/R" />
+					<label text="Pre-delay" />
+					<label text="Source" />
+					<label text="Makeup" />
+					<label text="Out L/R" />
+					
+					<ui:for id="i" first="2" last="3">
+						<label text="${i}" />
+						<knob id="cim${i}" size="20" />
+						<knob id="pd${i}" size="20" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
+						<knob id="mk${i}" size="20" />
+						<knob id="com${i}" size="20" />
+						
+						<label />
+						<value id="cim${i}" same_line="true" />
+						<value id="pd${i}" same_line="true" />
+						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
+							<led id="ca${i}" />
+							<label text="Active" font_size="9" />
+						</hbox>
+						<value id="mk${i}" same_line="true" />
+						<value id="com${i}" same_line="true" />
+					</ui:for>
+				</grid>
+			</hbox>
+			
+			<!-- Equalizer -->
+			<grid rows="5" cols="10">
+				<label text="Low-cut" />
+				<label text="50" />
+				<label text="107" />
+				<label text="227" />
+				<label text="484" />
+				<label text="1k" />
+				<label text="2.2k" />
+				<label text="4.7k" />
+				<label text="10k" />
+				<label text="High-cut" />
+				
+				<combo id="lcm" />
+				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_1" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_2" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_3" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_4" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_5" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_6" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
+				<combo id="hcm" />
+				
+				<label text="Freq" />
+				<label text="Freq" />
+				
+				<knob id="lcf" logarithmic="true" />
+				<knob id="hcf" logarithmic="true" />
+				
+				<value id="lcf" />
+				<value id="eq_0" />
+				<value id="eq_1" />
+				<value id="eq_2" />
+				<value id="eq_3" />
+				<value id="eq_4" />
+				<value id="eq_5" />
+				<value id="eq_6" />
+				<value id="eq_7" />
+				<value id="hcf" />
+			</grid>
+		</cgroup>
+	</vbox>
+</plugin>

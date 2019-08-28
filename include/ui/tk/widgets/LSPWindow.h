@@ -86,6 +86,16 @@ namespace lsp
                  */
                 inline void *handle() { return (pWindow != NULL) ? pWindow->handle() : NULL; };
 
+                /**
+                 * Get native window
+                 * @return native window
+                 */
+                inline INativeWindow *native() { return pWindow; };
+
+                /**
+                 * Return true if window is a sub-window of another window
+                 * @return true if window is a sub-window of another window
+                 */
                 inline bool nested() { return pNativeHandle != NULL; }
 
                 /** Get border style of the window
@@ -230,6 +240,8 @@ namespace lsp
                 status_t toggle_child_focus(LSPWidget *focus);
 
                 status_t point_child(LSPWidget *focus);
+
+                status_t grab_events();
 
                 void set_policy(window_poilicy_t policy);
 

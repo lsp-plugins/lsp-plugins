@@ -481,6 +481,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x16_mono_ports,
         "equalizer/parametric/x16/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -498,6 +499,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x32_mono_ports,
         "equalizer/parametric/x32/mono.xml",
+        NULL,
         mono_plugin_port_groups
     };
 
@@ -515,6 +517,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x16_stereo_ports,
         "equalizer/parametric/x16/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -532,6 +535,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x32_stereo_ports,
         "equalizer/parametric/x32/stereo.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -549,6 +553,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x16_lr_ports,
         "equalizer/parametric/x16/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -566,6 +571,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x32_lr_ports,
         "equalizer/parametric/x32/lr.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -583,6 +589,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x16_ms_ports,
         "equalizer/parametric/x16/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 
@@ -600,6 +607,7 @@ namespace lsp
         E_INLINE_DISPLAY,
         para_equalizer_x32_ms_ports,
         "equalizer/parametric/x32/ms.xml",
+        NULL,
         stereo_plugin_port_groups
     };
 }

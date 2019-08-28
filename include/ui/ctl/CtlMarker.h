@@ -24,7 +24,7 @@ namespace lsp
                 void                submit_values();
 
             public:
-                CtlMarker(CtlRegistry *src, LSPMarker *mark);
+                explicit CtlMarker(CtlRegistry *src, LSPMarker *mark);
                 virtual ~CtlMarker();
 
             public:

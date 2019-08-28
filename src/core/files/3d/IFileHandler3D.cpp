@@ -23,24 +23,29 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t IFileHandler3D::add_vertex(const point3d_t *p)
+    status_t IFileHandler3D::end_of_data()
     {
         return STATUS_OK;
     }
 
-    status_t IFileHandler3D::add_parameter_vertex(const point3d_t *p)
+    ssize_t IFileHandler3D::add_vertex(const point3d_t *p)
     {
-        return STATUS_OK;
+        return 0;
     }
 
-    status_t IFileHandler3D::add_normal(const vector3d_t *v)
+    ssize_t IFileHandler3D::add_parameter_vertex(const point3d_t *p)
     {
-        return STATUS_OK;
+        return 0;
     }
 
-    status_t IFileHandler3D::add_texture_vertex(const point3d_t *v)
+    ssize_t IFileHandler3D::add_normal(const vector3d_t *v)
     {
-        return STATUS_OK;
+        return 0;
+    }
+
+    ssize_t IFileHandler3D::add_texture_vertex(const point3d_t *v)
+    {
+        return 0;
     }
 
     status_t IFileHandler3D::add_face(const ssize_t *vv, const ssize_t *vn, const ssize_t *vt, size_t n)

@@ -6,7 +6,7 @@
 
 // Core include
 #include <core/types.h>
-#include <core/midi.h>
+#include <core/protocol/midi.h>
 #include <core/lib.h>
 #include <dsp/atomic.h>
 #include <dsp/endian.h>
@@ -683,7 +683,7 @@ namespace lsp
         const char *plugin_name     = NULL;
         plugin_t *p                 = NULL;
 
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if ((!p) && (plugin::metadata.vst_uid != NULL) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
             { \
                 p   = new plugin(); \

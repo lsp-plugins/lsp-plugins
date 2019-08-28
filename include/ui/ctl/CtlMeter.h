@@ -64,7 +64,7 @@ namespace lsp
                 status_t        slot_hide(void *ptr, void *data);
 
             public:
-                CtlMeter(CtlRegistry *src, LSPMeter *widget);
+                explicit CtlMeter(CtlRegistry *src, LSPMeter *widget);
                 virtual ~CtlMeter();
 
                 virtual void destroy();

@@ -83,6 +83,11 @@ namespace lsp
                  */
                 void quit_main();
 
+                /**
+                 * Synchronize display
+                 */
+                void sync();
+
                 /** Register widget, it will be automatically destroyed
                  *
                  * @param widget widget to queue
