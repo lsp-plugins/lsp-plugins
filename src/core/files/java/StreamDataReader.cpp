@@ -25,6 +25,7 @@ namespace lsp
             nToken      = -1;
             enToken     = -STATUS_CLOSED;
             nVersion    = -STATUS_CLOSED;
+            nHandle     = 0;
         }
         
         StreamDataReader::~StreamDataReader()
@@ -266,7 +267,7 @@ namespace lsp
             return res;
         }
 
-        status_t StreamDataReader::read_string(LSPString *dst)
+        status_t StreamDataReader::read_string(size_t *handle, LSPString *dst)
         {
             status_t res = lookup_token();
             if (res != STATUS_OK)
@@ -296,12 +297,16 @@ namespace lsp
                     return STATUS_BAD_TYPE;
             }
 
+            size_t href     = (nHandle++) - JAVA_BASE_WIRE_HANDLE;
+
             // Need just skip?
             if (dst == NULL)
             {
                 wssize_t skipped = pIS->skip(bytes);
                 if (skipped < 0)
                     return status_t(-skipped);
+                if (handle != NULL)
+                    *handle     = href;
 
                 return (skipped == wssize_t(bytes)) ? STATUS_OK : STATUS_CORRUPTED;
             }
@@ -317,7 +322,11 @@ namespace lsp
                 // Prepare string for read
                 LSPString str;
                 if (str.set_utf8(buf, bytes))
+                {
                     dst->swap(&str);
+                    if (handle != NULL)
+                        *handle     = href;
+                }
                 else
                     res = STATUS_CORRUPTED;
             }
@@ -394,8 +403,9 @@ namespace lsp
             if (nToken != TC_RESET)
                 return STATUS_BAD_TYPE;
 
-            nToken  = -STATUS_UNSPECIFIED;
-            enToken = -STATUS_UNSPECIFIED;
+            nToken      = -STATUS_UNSPECIFIED;
+            enToken     = -STATUS_UNSPECIFIED;
+            nHandle     = JAVA_BASE_WIRE_HANDLE;
 
             return STATUS_OK;
         }

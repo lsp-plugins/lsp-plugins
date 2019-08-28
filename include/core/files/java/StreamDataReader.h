@@ -42,6 +42,7 @@ namespace lsp
                 ssize_t             nToken;
                 ssize_t             enToken;
                 ssize_t             nVersion;
+                size_t              nHandle;
 
             private:
                 status_t            set_error(status_t res);
@@ -134,10 +135,11 @@ namespace lsp
 
                 /**
                  * Read string object, may be null for skipping
+                 * @param handle current handle number
                  * @param dst pointer to string to store result, can be NULL for skipping
                  * @return status of operation
                  */
-                status_t read_string(LSPString *dst);
+                status_t read_string(size_t *handle, LSPString *dst);
 
                 /**
                  * Read block data
