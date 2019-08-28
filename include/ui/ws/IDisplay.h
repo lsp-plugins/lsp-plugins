@@ -222,26 +222,45 @@ namespace lsp
                  */
                 virtual status_t cancelTask(taskid_t id);
 
-                /** Request clipboard data by it's identifier
-                 *
+                /**
+                 * Associate data source with the specified clipboard
                  * @param id clipboard identifier
-                 * @param ctype requested content type
-                 * @param charset requested character set
-                 * @param handler callback handler when clipboard data is ready
-                 * @param arg argument to pass to the callback handler
-                 * @return pointer to clipboard data object or NULL if not present
+                 * @param src data source to use
+                 * @return status of operation
                  */
-                virtual status_t fetchClipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg = NULL);
+                virtual status_t setClipboard(size_t id, IDataSource *src);
 
-                /** Get clipboard by it's identifier
-                 *
-                 * @param wnd the window that is owner of the clipboard
+                /**
+                 * Sink clipboard data source to the specified handler.
+                 * After the data source has been processed, release() should
+                 * be called on data source
                  * @param id clipboard identifier
-                 * @param c the clipboard data holder object
-                 * @return pointer to clipboard or NULL if not present
+                 * @return pointer to data source or NULL
                  */
-//                virtual status_t writeClipboard(INativeWindow *wnd, size_t id, IClipboard *c);
-                virtual status_t writeClipboard(size_t id, IClipboard *c);
+                virtual status_t getClipboard(size_t id, IDataSink *dst);
+
+                /**
+                 * Reject drag request because drag is not supported at the current position
+                 * @return status of operation
+                 */
+                virtual status_t rejectDrag();
+
+                /**
+                 * Accept drag request
+                 * @param sink the sink that will handle data transfer
+                 * @param action drag action
+                 * @param internal true if we want to receive notifications inside of the drag rectangle
+                 * @param r parameters of the drag rectangle, can be NULL
+                 * @return status of operation
+                 */
+                virtual status_t acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
+
+                /**
+                 * Get currently pending content type of a drag
+                 * @return NULL-terminated list of pending content types,
+                 *   may be NULL if there is no currently pending Drag&Drop request
+                 */
+                virtual const char * const *getDragContentTypes();
         };
 
     } /* namespace ws */

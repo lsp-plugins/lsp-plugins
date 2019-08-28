@@ -69,6 +69,7 @@ namespace lsp
                 static status_t slot_resize(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_focus_in(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_focus_out(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_drag_request(LSPWidget *sender, void *ptr, void *data);
 
             //---------------------------------------------------------------------------------
             // Interface for nested classes
@@ -612,6 +613,14 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t on_destroy();
+
+                /**
+                 * Process the drag request event
+                 * @param e drag request event
+                 * @param ctype NULL-terminated list of provided content types
+                 * @return status of operation
+                 */
+                virtual status_t on_drag_request(const ws_event_t *e, const char * const *ctype);
         };
 
         template <class LSPTarget>

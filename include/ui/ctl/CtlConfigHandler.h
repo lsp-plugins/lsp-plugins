@@ -22,7 +22,7 @@ namespace lsp
                 virtual ~CtlConfigHandler();
 
             public:
-                virtual status_t handle_parameter(const LSPString *name, const LSPString *value);
+                virtual status_t handle_parameter(const LSPString *name, const LSPString *value, size_t flags);
         };
     
     } /* namespace ctl */

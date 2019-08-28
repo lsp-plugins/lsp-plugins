@@ -234,9 +234,9 @@ namespace lsp
                 for (size_t i=0; i<elements; ++i)
                 {
                     *(dst++)    = resource_fetch_dstring(&data);
-                    lsp_trace("  att = %s", dst[-1]);
+//                    lsp_trace("  att = %s", dst[-1]);
                     *(dst++)    = resource_fetch_dstring(&data);
-                    lsp_trace("  value = %s", dst[-2]);
+//                    lsp_trace("  value = %s", dst[-2]);
                 }
                 *(dst++)     = NULL;
                 *(dst++)     = NULL;

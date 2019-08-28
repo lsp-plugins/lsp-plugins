@@ -173,6 +173,19 @@ namespace lsp
                     break;
                 }
 
+                case UIE_DRAG_REQUEST:
+                {
+                    LSPWidget *child = find_widget(e->nLeft, e->nTop);
+                    if (child != NULL) // Pass event to the child
+                        child->handle_event(e);
+                    else
+                    {
+                        ws_event_t tmp = *e;
+                        sSlots.execute(LSPSLOT_DRAG_REQUEST, this, &tmp);
+                    }
+                    break;
+                }
+
                 default:
                     return LSPWidget::handle_event(e);
             }

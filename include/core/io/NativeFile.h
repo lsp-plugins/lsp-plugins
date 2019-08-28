@@ -90,7 +90,8 @@ namespace lsp
                  * Read binary file
                  * @param dst target buffer to perform read
                  * @param count amount of bytes to read
-                 * @return number of bytes read or negative status of operation
+                 * @return number of bytes read or negative status of operation,
+                 *   on end of file -STATUS_EOF is returned
                  */
                 virtual ssize_t read(void *dst, size_t count);
 

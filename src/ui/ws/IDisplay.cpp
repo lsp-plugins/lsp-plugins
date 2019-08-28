@@ -572,14 +572,37 @@ namespace lsp
             return STATUS_NOT_FOUND;
         }
 
-        status_t IDisplay::fetchClipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg)
+        status_t IDisplay::setClipboard(size_t id, IDataSource *c)
+        {
+            if (c == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            c->acquire();
+            c->release();
+            return STATUS_NOT_IMPLEMENTED;
+        }
+
+        status_t IDisplay::getClipboard(size_t id, IDataSink *dst)
+        {
+            if (dst == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            dst->acquire();
+            dst->release();
+            return STATUS_NOT_IMPLEMENTED;
+        }
+
+        status_t IDisplay::rejectDrag()
         {
             return STATUS_NOT_IMPLEMENTED;
         }
 
-        status_t IDisplay::writeClipboard(size_t id, IClipboard *c)
+        status_t IDisplay::acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
         {
             return STATUS_NOT_IMPLEMENTED;
+        }
+
+        const char * const *IDisplay::getDragContentTypes()
+        {
+            return NULL;
         }
     }
 

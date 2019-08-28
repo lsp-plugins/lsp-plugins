@@ -24,6 +24,22 @@ namespace lsp
                 };
 
             protected:
+                class DataSink: public LSPTextDataSink
+                {
+                    private:
+                        CtlAudioFile *pFile;
+
+                    public:
+                        explicit DataSink(CtlAudioFile *file);
+                        virtual ~DataSink();
+
+                    public:
+                        virtual status_t    on_complete(status_t code, const LSPString *data);
+
+                        void unbind();
+                };
+
+            protected:
                 CtlColor        sColor;
                 CtlColor        sBgColor;
                 CtlPadding      sPadding;
@@ -42,6 +58,7 @@ namespace lsp
                 CtlPort        *pFadeIn;
                 CtlPort        *pFadeOut;
                 CtlPort        *pPath;
+                DataSink       *pDataSink;
 
             protected:
                 void            sync_status();

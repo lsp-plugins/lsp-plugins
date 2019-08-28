@@ -254,14 +254,29 @@ namespace lsp
             return false;
         }
 
-        status_t LSPDisplay::fetch_clipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg)
+        status_t LSPDisplay::get_clipboard(size_t id, IDataSink *sink)
         {
-            return pDisplay->fetchClipboard(id, ctype, handler, arg);
+            return pDisplay->getClipboard(id, sink);
         }
 
-        status_t LSPDisplay::write_clipboard(size_t id, IClipboard *c)
+        status_t LSPDisplay::set_clipboard(size_t id, IDataSource *src)
         {
-            return pDisplay->writeClipboard(id, c);
+            return pDisplay->setClipboard(id, src);
+        }
+
+        status_t LSPDisplay::reject_drag()
+        {
+            return pDisplay->rejectDrag();
+        }
+
+        status_t LSPDisplay::accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
+        {
+            return pDisplay->acceptDrag(sink, action, internal, r);
+        }
+
+        const char * const *LSPDisplay::get_drag_mime_types()
+        {
+            return pDisplay->getDragContentTypes();
         }
     }
 
