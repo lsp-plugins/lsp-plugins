@@ -134,18 +134,30 @@ namespace lsp
 
                 /**
                  * Read string object, may be null for skipping
-                 * @param dst pointer to string to store result
+                 * @param dst pointer to string to store result, can be NULL for skipping
                  * @return status of operation
                  */
                 status_t read_string(LSPString *dst);
 
                 /**
                  * Read block data
-                 * @param dst pointer to store block data, should be free()'d after use
-                 * @param size block size in bytes
+                 * @param dst pointer to store block data, should be free()'d after use, can be NULL for skipping
+                 * @param size block size in bytes, can be NULL
                  * @return status of operation
                  */
                 status_t read_block(void **dst, size_t *size);
+
+                /**
+                 * Read reset primitive
+                 * @return status of operation
+                 */
+                status_t read_reset();
+
+                /**
+                 * Read null primitive
+                 * @return status of operation
+                 */
+                status_t read_null();
         };
     
     } /* namespace java */

@@ -228,12 +228,10 @@ namespace lsp
         status_t StreamDataReader::read_simple(type_t *dst) \
         { \
             type_t tmp; \
-            if (dst == NULL) \
-                return STATUS_BAD_ARGUMENTS; \
             if (pIS == NULL) \
                 return STATUS_CLOSED; \
             status_t res = pIS->read_block(&tmp, sizeof(tmp)); \
-            if (res == STATUS_OK) \
+            if ((res == STATUS_OK) && (dst != NULL)) \
                 *dst    = BE_TO_CPU(tmp); \
             nToken      = -STATUS_UNSPECIFIED; \
             enToken     = -STATUS_UNSPECIFIED; \
@@ -387,5 +385,34 @@ namespace lsp
             return res;
         }
 
+        status_t StreamDataReader::read_reset()
+        {
+            status_t res = lookup_token();
+            if (res != STATUS_OK)
+                return res;
+
+            if (nToken != TC_RESET)
+                return STATUS_BAD_TYPE;
+
+            nToken  = -STATUS_UNSPECIFIED;
+            enToken = -STATUS_UNSPECIFIED;
+
+            return STATUS_OK;
+        }
+
+        status_t StreamDataReader::read_null()
+        {
+            status_t res = lookup_token();
+            if (res != STATUS_OK)
+                return res;
+
+            if (nToken != TC_NULL)
+                return STATUS_BAD_TYPE;
+
+            nToken  = -STATUS_UNSPECIFIED;
+            enToken = -STATUS_UNSPECIFIED;
+
+            return STATUS_OK;
+        }
     } /* namespace java */
 } /* namespace lsp */
