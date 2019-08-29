@@ -12,6 +12,7 @@
 
 #define JAVA_STREAM_MAGIC               0xACED
 #define JAVA_BASE_WIRE_HANDLE           0x7e0000
+#define JAVA_MAX_BLOCK_SIZE             1024
 
 namespace lsp
 {
@@ -38,6 +39,8 @@ namespace lsp
             TC_BASE             = TC_NULL, ///< First tag value
             TC_MAX              = TC_ENUM ///< Last tag value.
         };
+
+        extern const char *CLASSNAME_STRING;
 
         #pragma pack(push, 1)
             typedef struct obj_stream_hdr_t

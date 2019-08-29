@@ -1,18 +1,23 @@
 /*
- * StreamDataReader.h
+ * ObjectStream.h
  *
  *  Created on: 28 авг. 2019 г.
  *      Author: sadko
  */
 
-#ifndef CORE_FILES_JAVA_STREAMDATAREADER_H_
-#define CORE_FILES_JAVA_STREAMDATAREADER_H_
+#ifndef CORE_FILES_JAVA_OBJECTSTREAM_H_
+#define CORE_FILES_JAVA_OBJECTSTREAM_H_
 
 #include <common/types.h>
 #include <core/status.h>
 #include <core/LSPString.h>
 #include <core/io/Path.h>
 #include <core/io/IInStream.h>
+
+#include <core/files/java/Object.h>
+#include <core/files/java/String.h>
+#include <core/files/java/ClassDescriptor.h>
+#include <core/files/java/Handles.h>
 
 namespace lsp
 {
@@ -34,26 +39,50 @@ namespace lsp
             JST_ENUM,               ///< new Enum constant, since java 1.5
         };
 
-        class StreamDataReader
+        class ObjectStream
         {
+            protected:
+                typedef struct block_t
+                {
+                    uint8_t            *data;
+                    size_t              size;
+                    size_t              offset;
+                    size_t              unread;
+                    bool                enabled;
+                } block_t;
+
             protected:
                 io::IInStream      *pIS;
                 size_t              nFlags;
                 ssize_t             nToken;
                 ssize_t             enToken;
+                size_t              nDepth;
                 ssize_t             nVersion;
-                size_t              nHandle;
+                Handles            *pHandles;
+                block_t             sBlock;
 
             private:
                 status_t            set_error(status_t res);
+                status_t            set_block_mode(bool enabled, bool *old = NULL);
 
             protected:
                 status_t    initial_read(io::IInStream *is);
+                ssize_t     get_token(bool force = true);
                 status_t    lookup_token();
 
+                status_t    fill_block();
+                status_t    read_fully(void *dst, size_t count);
+
+                status_t    read_handle(Object **dst);
+                status_t    read_string_internal(String **dst);
+                status_t    handle_reset();
+                status_t    read_null();
+                status_t    read_class_descriptor(ClassDescriptor **dst);
+                status_t    read_utf(LSPString *dst, size_t len);
+
             public:
-                explicit StreamDataReader();
-                virtual ~StreamDataReader();
+                explicit ObjectStream(Handles *handles);
+                virtual ~ObjectStream();
 
             public:
                 /**
@@ -109,60 +138,29 @@ namespace lsp
                 status_t    close();
 
                 /**
-                 * Get current token
-                 * @param force force token signature read from underlying data stream
-                 * @return token type or negative error code, may be:
-                 *   STATUS_UNSPECIFIED - if token was not read
-                 */
-                ssize_t get_token(bool force = true);
-
-                /**
                  * Get current object stream version
                  * @return current object stream version
                  */
                 inline ssize_t version() const { return nVersion; }
 
-                status_t read_simple(uint8_t *dst);
-                status_t read_simple(int8_t *dst);
-                status_t read_simple(uint16_t *dst);
-                status_t read_simple(int16_t *dst);
-                status_t read_simple(uint32_t *dst);
-                status_t read_simple(int32_t *dst);
-                status_t read_simple(uint64_t *dst);
-                status_t read_simple(int64_t *dst);
-                status_t read_simple(float *dst);
-                status_t read_simple(double *dst);
+                status_t    read_byte(uint8_t *dst);
+                status_t    read_byte(int8_t *dst);
+                status_t    read_short(uint16_t *dst);
+                status_t    read_short(int16_t *dst);
+                status_t    read_int(uint32_t *dst);
+                status_t    read_int(int32_t *dst);
+                status_t    read_long(uint64_t *dst);
+                status_t    read_long(int64_t *dst);
+                status_t    read_float(float *dst);
+                status_t    read_double(double *dst);
 
-                /**
-                 * Read string object, may be null for skipping
-                 * @param handle current handle number
-                 * @param dst pointer to string to store result, can be NULL for skipping
-                 * @return status of operation
-                 */
-                status_t read_string(size_t *handle, LSPString *dst);
+                status_t    read_utf(LSPString *dst);
 
-                /**
-                 * Read block data
-                 * @param dst pointer to store block data, should be free()'d after use, can be NULL for skipping
-                 * @param size block size in bytes, can be NULL
-                 * @return status of operation
-                 */
-                status_t read_block(void **dst, size_t *size);
-
-                /**
-                 * Read reset primitive
-                 * @return status of operation
-                 */
-                status_t read_reset();
-
-                /**
-                 * Read null primitive
-                 * @return status of operation
-                 */
-                status_t read_null();
+                status_t    read_string(String **dst);
+                status_t    read_object(Object **dst);
         };
     
     } /* namespace java */
 } /* namespace lsp */
 
-#endif /* CORE_FILES_JAVA_STREAMDATAREADER_H_ */
+#endif /* CORE_FILES_JAVA_OBJECTSTREAM_H_ */
