@@ -10,6 +10,7 @@
 
 #include <common/types.h>
 #include <core/LSPString.h>
+#include <core/files/java/const.h>
 #include <core/files/java/Object.h>
 #include <core/files/java/ObjectStreamField.h>
 
@@ -17,16 +18,6 @@ namespace lsp
 {
     namespace java
     {
-        enum cflags_t
-        {
-            JCF_PROXY           = 1 << 0,
-            JCF_WRITE_METHOD    = 1 << 1,
-            JCF_BLOCK_DATA      = 1 << 2,
-            JCF_EXTERNALIZABLE  = 1 << 3,
-            JCF_SERIALIZABLE    = 1 << 4,
-            JCF_ENUM            = 1 << 5
-        };
-
         class ObjectStreamClass: public Object
         {
             public:
@@ -37,7 +28,9 @@ namespace lsp
                 ObjectStreamClass & operator = (const ObjectStreamClass &);
 
             protected:
+                ObjectStreamClass  *pParent;
                 LSPString           sName;
+                char               *pRawName;
                 uint64_t            nSuid;
                 size_t              nFlags;
                 size_t              nFields;
@@ -48,7 +41,9 @@ namespace lsp
                 virtual ~ObjectStreamClass();
 
             public:
+                inline ObjectStreamClass *parent()          { return pParent; }
                 inline const LSPString *name() const        { return &this->sName; }
+                inline const char *raw_name() const         { return pRawName; }
                 inline uint64_t suid() const                { return this->nSuid;  }
                 inline bool is_proxy() const                { return nFlags & JCF_PROXY; }
                 inline bool has_write_method() const        { return nFlags & JCF_WRITE_METHOD; }

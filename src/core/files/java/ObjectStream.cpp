@@ -409,10 +409,37 @@ namespace lsp
         STREAM_READ_IMPL(int, int32_t)
         STREAM_READ_IMPL(long, uint64_t)
         STREAM_READ_IMPL(long, int64_t)
-        STREAM_READ_IMPL(float, float)
-        STREAM_READ_IMPL(double, double)
+        STREAM_READ_IMPL(float, float_t)
+        STREAM_READ_IMPL(double, double_t)
+        STREAM_READ_IMPL(char, lsp_utf16_t)
+        STREAM_READ_IMPL(bool, bool_t)
 
 #undef STREAM_READ_IMPL
+
+#define STREAM_READS_IMPL(name, type_t) \
+        status_t ObjectStream::read_ ## name(type_t *dst, size_t count) \
+        { \
+            if (dst == NULL) return STATUS_BAD_ARGUMENTS; \
+            status_t res =  read_fully(dst, sizeof(type_t) * count); \
+            __IF_LE(if (res == STATUS_OK) byte_swap(dst, count)); \
+            clear_token(); \
+            return res; \
+        }
+
+        STREAM_READS_IMPL(bytes, uint8_t)
+        STREAM_READS_IMPL(bytes, int8_t)
+        STREAM_READS_IMPL(shorts, uint16_t)
+        STREAM_READS_IMPL(shorts, int16_t)
+        STREAM_READS_IMPL(ints, uint32_t)
+        STREAM_READS_IMPL(ints, int32_t)
+        STREAM_READS_IMPL(longs, uint64_t)
+        STREAM_READS_IMPL(longs, int64_t)
+        STREAM_READS_IMPL(floats, float_t)
+        STREAM_READS_IMPL(doubles, double_t)
+        STREAM_READS_IMPL(chars, lsp_utf16_t)
+        STREAM_READS_IMPL(bools, bool_t)
+
+#undef STREAM_READS_IMPL
 
         status_t ObjectStream::set_block_mode(bool enabled, bool *old)
         {
@@ -624,24 +651,9 @@ namespace lsp
             res = read_byte(&tcode);
             if (res == STATUS_OK)
             {
-                switch (tcode)
-                {
-                    #define XDEC(a, b) case a: f->enType = b; break;
-                    XDEC(PTC_BYTE, JFT_BYTE)
-                    XDEC(PTC_CHAR, JFT_CHAR)
-                    XDEC(PTC_DOUBLE, JFT_DOUBLE)
-                    XDEC(PTC_FLOAT, JFT_FLOAT)
-                    XDEC(PTC_INTEGER, JFT_INTEGER)
-                    XDEC(PTC_LONG, JFT_LONG)
-                    XDEC(PTC_SHORT, JFT_SHORT)
-                    XDEC(PTC_BOOL, JFT_BOOL)
-                    XDEC(PTC_ARRAY, JFT_ARRAY)
-                    XDEC(PTC_OBJECT, JFT_OBJECT)
-                    #undef XDEC
-                    default:
-                        res     = STATUS_CORRUPTED;
-                        break;
-                }
+                f->enType   = decode_primitive_type(tcode);
+                if (f->enType == JFT_UNKNOWN)
+                    res         = STATUS_CORRUPTED;
             }
 
             // Name
@@ -718,7 +730,7 @@ namespace lsp
 
                     case TC_ENDBLOCKDATA:
                         clear_token();
-                        return res;
+                        return STATUS_OK;
 
                     default:
                         res = read_object(NULL);
@@ -743,6 +755,11 @@ namespace lsp
 
             // Class name, will do reset_token()
             res = read_utf(&desc->sName);
+            if (res == STATUS_OK)
+            {
+                desc->pRawName = desc->sName.clone_utf8();
+                res = ((desc->pRawName) != NULL) ? STATUS_OK : STATUS_NO_MEM;
+            }
             lsp_trace("Class name: %s", desc->sName.get_native());
 
             // Serial version UID
@@ -839,7 +856,16 @@ namespace lsp
             if (res == STATUS_OK)
                 res     = skip_custom_data();
 
+            // Read parent class
+            if (res == STATUS_OK)
+            {
+                desc->pParent   = NULL;
+                res             = read_class_descriptor(&desc->pParent);
+                if ((res == STATUS_OK) && (desc->pParent != NULL))
+                    desc->pParent->release();
+            }
 
+            // Analyze result
             if ((res == STATUS_OK) && (dst != NULL))
             {
                 desc->acquire();
@@ -856,7 +882,7 @@ namespace lsp
             return STATUS_NOT_SUPPORTED;
         }
 
-        status_t ObjectStream::parse_array(Object **dst)
+        status_t ObjectStream::parse_array(RawArray **dst)
         {
             // Fetch token
             ssize_t token   = lookup_token();
@@ -865,12 +891,66 @@ namespace lsp
             clear_token();
 
             // Read class descriptor
-            ObjectStreamClass *desc;
+            ObjectStreamClass *desc = NULL;
             status_t res    = read_class_descriptor(&desc);
             if (res != STATUS_OK)
                 return res;
 
-            return STATUS_OK;
+            // Create array object
+            RawArray *arr   = new RawArray(desc->raw_name());
+            if (arr == NULL)
+            {
+                desc->release();
+                return STATUS_NO_MEM;
+            }
+
+            // Register array and allocate data
+            res = pHandles->assign(arr);
+
+            // Read length
+            uint32_t len = 0;
+            if (res == STATUS_OK)
+                res     = read_int(&len);
+
+            // Create array instance
+            if (res == STATUS_OK)
+                res     = arr->allocate(len);
+
+            // Read elements
+            if (res == STATUS_OK)
+            {
+                switch (arr->item_type())
+                {
+                    case JFT_BYTE:      res = read_bytes(arr->get<uint8_t>(), len); break;
+                    case JFT_CHAR:      res = read_chars(arr->get<lsp_utf16_t>(), len); break;
+                    case JFT_DOUBLE:    res = read_doubles(arr->get<double_t>(), len); break;
+                    case JFT_FLOAT:     res = read_floats(arr->get<float_t>(), len); break;
+                    case JFT_INTEGER:   res = read_ints(arr->get<uint32_t>(), len); break;
+                    case JFT_LONG:      res = read_longs(arr->get<uint64_t>(), len); break;
+                    case JFT_SHORT:     res = read_shorts(arr->get<uint16_t>(), len); break;
+                    case JFT_BOOL:      res = read_bools(arr->get<bool_t>(), len); break;
+                    case JFT_ARRAY:
+                    case JFT_OBJECT:
+                    {
+                        Object **data       = arr->get<Object *>();
+                        for (size_t i=0; i<len; ++i)
+                            if ((res = read_object(&data[i])) != STATUS_OK)
+                                break;
+                        break;
+                    }
+                    default:            res = STATUS_BAD_TYPE;
+                }
+            }
+
+            // Store result
+            if ((res == STATUS_OK) && (dst != NULL))
+            {
+                arr->acquire();
+                *dst    = arr;
+            }
+
+            arr->release();
+            return res;
         }
 
 

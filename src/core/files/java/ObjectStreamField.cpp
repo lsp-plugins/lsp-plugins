@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/files/java/Object.h>
 #include <core/files/java/ObjectStreamField.h>
 
 namespace lsp
@@ -17,6 +18,7 @@ namespace lsp
         {
             enType      = JFT_UNKNOWN;
             pSignature  = NULL;
+            nOffset     = 0;
         }
         
         ObjectStreamField::~ObjectStreamField()
@@ -28,24 +30,5 @@ namespace lsp
             }
         }
 
-        size_t ObjectStreamField::size_of() const
-        {
-            switch (enType)
-            {
-                case JFT_BYTE: return sizeof(uint8_t);
-                case JFT_CHAR: return sizeof(lsp_utf16_t);
-                case JFT_DOUBLE: return sizeof(double);
-                case JFT_FLOAT: return sizeof(float);
-                case JFT_INTEGER: return sizeof(uint32_t);
-                case JFT_LONG: return sizeof(uint64_t);
-                case JFT_SHORT: return sizeof(uint16_t);
-                case JFT_BOOL: return sizeof(uint8_t);
-                case JFT_ARRAY:
-                case JFT_OBJECT:
-                    return 0;
-            }
-            return -1;
-        }
-    
     } /* namespace java */
 } /* namespace lsp */

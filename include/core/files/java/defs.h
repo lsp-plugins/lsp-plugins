@@ -9,6 +9,7 @@
 #define CORE_FILES_JAVA_HEADERS_H_
 
 #include <common/types.h>
+#include <core/files/java/const.h>
 
 #define JAVA_STREAM_MAGIC               0xACED
 #define JAVA_BASE_WIRE_HANDLE           0x7e0000
@@ -133,6 +134,13 @@ namespace lsp
                         return x.t;
                     }
         };
+
+        /**
+         * Decode primitive type
+         * @param primitive type
+         * @return decoded result
+         */
+        ftype_t     decode_primitive_type(size_t tcode);
     }
 }
 

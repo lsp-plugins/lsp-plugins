@@ -14,8 +14,10 @@
 #include <core/io/Path.h>
 #include <core/io/IInStream.h>
 
+#include <core/files/java/const.h>
 #include <core/files/java/Object.h>
 #include <core/files/java/String.h>
+#include <core/files/java/RawArray.h>
 #include <core/files/java/Handles.h>
 #include <core/files/java/ObjectStreamField.h>
 #include <core/files/java/ObjectStreamClass.h>
@@ -24,25 +26,6 @@ namespace lsp
 {
     namespace java
     {
-        enum stream_token_t
-        {
-            JST_NULL,               ///< Null object reference.
-            JST_REFERENCE,          ///< Reference to an object already written into the stream.
-            JST_CLASS_DESC,         ///< new Class Descriptor.
-            JST_OBJECT,             ///< Object.
-            JST_STRING,             ///< String.
-            JST_ARRAY,              ///< Array.
-            JST_CLASS,              ///< Reference to Class.
-            JST_BLOCK_DATA,         ///< Block of optional data. Byte following tag indicates number of bytes in this block data.
-            JST_END_BLOCK_DATA,     ///< End of block of optional data.
-            JST_RESET,              ///< Reset stream context. All handles written into stream are reset.
-            JST_EXCEPTION,          ///< Exception during write.
-            JST_PROXY_CLASS_DESC,   ///< new Proxy Class Descriptor.
-            JST_ENUM,               ///< new Enum constant, since java 1.5
-
-            JST_UNDEFINED  = -1
-        };
-
         class ObjectStream
         {
             protected:
@@ -82,7 +65,7 @@ namespace lsp
 
                 status_t    skip_block_data();
                 status_t    skip_custom_data();
-                status_t    parse_array(Object **dst);
+                status_t    parse_array(RawArray **dst);
                 status_t    parse_reset();
                 status_t    parse_null(Object **dst);
                 status_t    parse_class_field(ObjectStreamField **dst);
@@ -169,8 +152,23 @@ namespace lsp
                 status_t    read_int(int32_t *dst);
                 status_t    read_long(uint64_t *dst);
                 status_t    read_long(int64_t *dst);
-                status_t    read_float(float *dst);
-                status_t    read_double(double *dst);
+                status_t    read_float(float_t *dst);
+                status_t    read_double(double_t *dst);
+                status_t    read_char(lsp_utf16_t *dst);
+                status_t    read_bool(bool_t *dst);
+
+                status_t    read_bytes(uint8_t *dst, size_t count);
+                status_t    read_bytes(int8_t *dst, size_t count);
+                status_t    read_shorts(uint16_t *dst, size_t count);
+                status_t    read_shorts(int16_t *dst, size_t count);
+                status_t    read_ints(uint32_t *dst, size_t count);
+                status_t    read_ints(int32_t *dst, size_t count);
+                status_t    read_longs(uint64_t *dst, size_t count);
+                status_t    read_longs(int64_t *dst, size_t count);
+                status_t    read_floats(float_t *dst, size_t count);
+                status_t    read_doubles(double_t *dst, size_t count);
+                status_t    read_chars(lsp_utf16_t *dst, size_t count);
+                status_t    read_bools(bool_t *dst, size_t count);
 
                 status_t    read_utf(LSPString *dst);
 

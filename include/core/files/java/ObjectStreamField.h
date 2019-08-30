@@ -9,6 +9,7 @@
 #define CORE_FILES_JAVA_OBJECTSTREAMFIELD_H_
 
 #include <core/LSPString.h>
+#include <core/files/java/const.h>
 #include <core/files/java/Object.h>
 #include <core/files/java/String.h>
 
@@ -16,23 +17,6 @@ namespace lsp
 {
     namespace java
     {
-        enum ftype_t
-        {
-            JFT_BYTE,
-            JFT_CHAR,
-            JFT_DOUBLE,
-            JFT_FLOAT,
-            JFT_INTEGER,
-            JFT_LONG,
-            JFT_SHORT,
-            JFT_BOOL,
-            JFT_ARRAY,
-            JFT_OBJECT,
-
-            JFT_TOTAL,
-            JFT_UNKNOWN = -1
-        };
-        
         class ObjectStreamField: public Object
         {
             public:
@@ -57,8 +41,9 @@ namespace lsp
                 inline const LSPString     *name() const { return &sName; }
                 inline const LSPString     *signature() const { return (pSignature != NULL) ? pSignature->string() : NULL; }
                 inline const String        *java_signature() const { return pSignature; }
-                size_t                      size_of() const;
-                inline bool                 is_reference() const { return (enType == JFT_ARRAY) || (enType == JFT_OBJECT); }
+                inline size_t               size_of() const { return java::size_of(enType); };
+                inline bool                 is_reference() const { return java::is_reference(enType); }
+                inline bool                 is_primitive() const { return java::is_primitive(enType); }
         };
     
     } /* namespace java */

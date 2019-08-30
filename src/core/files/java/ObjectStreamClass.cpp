@@ -16,6 +16,8 @@ namespace lsp
         
         ObjectStreamClass::ObjectStreamClass(): Object(CLASS_NAME)
         {
+            pParent     = NULL;
+            pRawName     = NULL;
             nSuid       = 0;
             nFlags      = 0;
             nFields     = 0;
@@ -34,6 +36,11 @@ namespace lsp
                     }
                 ::free(vFields);
                 vFields = NULL;
+            }
+            if (pRawName != NULL)
+            {
+                ::free(pRawName);
+                pRawName = NULL;
             }
         }
     
