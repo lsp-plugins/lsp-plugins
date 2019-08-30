@@ -79,6 +79,8 @@ namespace lsp
                 status_t    fill_block();
                 status_t    read_fully(void *dst, size_t count);
 
+                status_t    skip_block_data();
+                status_t    skip_custom_data();
                 status_t    parse_array(Object **dst);
                 status_t    parse_reset();
                 status_t    parse_null(Object **dst);

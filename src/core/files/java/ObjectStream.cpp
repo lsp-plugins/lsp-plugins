@@ -666,6 +666,70 @@ namespace lsp
             return res;
         }
 
+        status_t ObjectStream::skip_block_data()
+        {
+            if (!sBlock.enabled)
+                return STATUS_OK;
+
+            do
+            {
+                sBlock.offset   = sBlock.size;
+                status_t res    = fill_block();
+                if (res != STATUS_OK)
+                    return res;
+            } while (sBlock.unread > 0);
+
+            return STATUS_OK;
+        }
+
+        status_t ObjectStream::skip_custom_data()
+        {
+            status_t res;
+
+            while (true)
+            {
+                // Complete data block
+                if (sBlock.enabled)
+                {
+                    res = skip_block_data();
+                    if (res == STATUS_OK)
+                        res = set_block_mode(false, NULL);
+                    if (res != STATUS_OK)
+                        return res;
+                }
+
+                // Read token
+                res     = lookup_token();
+                if (res < 0)
+                    return -res;
+
+                // Analyze token
+                switch (res)
+                {
+                    case TC_BLOCKDATA:
+                    case TC_BLOCKDATALONG:
+                        res = set_block_mode(true, NULL);
+                        if (res == STATUS_OK)
+                            res = set_block_mode(true);
+                        if (res == STATUS_OK)
+                            res = fill_block();
+                        break;
+
+                    case TC_ENDBLOCKDATA:
+                        clear_token();
+                        return res;
+
+                    default:
+                        res = read_object(NULL);
+                        break;
+                }
+
+                // Analyze result
+                if (res != STATUS_OK)
+                    return res;
+            }
+        }
+
         status_t ObjectStream::parse_class_descriptor(ObjectStreamClass **dst)
         {
             status_t res = lookup_token();
@@ -686,6 +750,10 @@ namespace lsp
                 res = read_long(&desc->nSuid);
                 lsp_trace("Class suid: %lld", (long long)(desc->nSuid));
             }
+
+            // Register handle
+            if (res == STATUS_OK)
+                pHandles->assign(desc);
 
             // Read & decode flags
             uint8_t flags = 0;
@@ -765,6 +833,11 @@ namespace lsp
                 else
                     res     = STATUS_NO_MEM;
             }
+
+            // Skip class annotations
+            if (res == STATUS_OK)
+                res     = skip_custom_data();
+
 
             if ((res == STATUS_OK) && (dst != NULL))
             {
