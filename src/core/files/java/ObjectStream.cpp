@@ -337,23 +337,37 @@ namespace lsp
 
         status_t ObjectStream::lookup_token()
         {
+            // Check state
             if (pIS == NULL)
-                return - STATUS_CLOSED;
+                return -STATUS_CLOSED;
 
-            // Try to get token
-            if (enToken == JST_UNDEFINED)
+            // Return valid token immediately if it is
+            if (enToken != JST_UNDEFINED)
+                return nToken;
+
+            // Protect from reading token from inside of the TC_BLOCKDATA
+            if (sBlock.enabled)
             {
-                // Protect from reading token from inside of the TC_BLOCKDATA
-                if (sBlock.enabled)
-                {
-                    if ((sBlock.unread > 0) || (sBlock.offset < sBlock.size))
-                        return STATUS_BAD_STATE;
-                }
-                get_token();
+                if ((sBlock.unread > 0) || (sBlock.offset < sBlock.size))
+                    return STATUS_BAD_STATE;
             }
 
-            // Return valid token or error code stored in nToken
-            return nToken;
+            // Loop and process TC_RESET tokens
+            while (true)
+            {
+                // Get token
+                status_t res = get_token();
+                if ((res < 0) || (res != TC_RESET))
+                    return res;
+
+                // Handle TC_RESET
+                if (nDepth > 0)
+                    return -STATUS_CORRUPTED;
+
+                pHandles->clear();
+                nToken      = -STATUS_UNSPECIFIED;
+                enToken     = JST_UNDEFINED;
+            }
         }
 
 #define STREAM_READ_IMPL(name, type_t) \
@@ -400,24 +414,43 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t ObjectStream::read_handle(Object **dst)
+        status_t ObjectStream::start_object(bool &mode)
+        {
+            status_t res = set_block_mode(false, &mode);
+            if (res == STATUS_OK)
+                ++nDepth;
+            return res;
+        }
+
+        status_t ObjectStream::end_object(bool &mode, status_t res)
+        {
+            --nDepth;
+            set_block_mode(mode, NULL);
+            return res;
+        }
+
+        status_t ObjectStream::parse_reference(Object **dst, const char *type)
         {
             status_t res = lookup_token();
-            if (res != STATUS_OK)
-                return res;
-            else if (nToken != TC_REFERENCE)
-                return STATUS_BAD_TYPE;
+            if (res != TC_REFERENCE)
+                return (res >= 0) ? STATUS_BAD_TYPE : -res;
 
+            // Read handle number and validate
             uint32_t handle = 0;
             res = read_int(&handle);
             if (res != STATUS_OK)
                 return res;
             else if (handle < JAVA_BASE_WIRE_HANDLE)
                 return STATUS_CORRUPTED;
+
+            // Dereference handle
             Object *obj = pHandles->get(handle - JAVA_BASE_WIRE_HANDLE);
             if (obj == NULL)
                 return STATUS_CORRUPTED;
+            if ((type != NULL) && (!obj->instanceof(type)))
+                return STATUS_BAD_TYPE;
 
+            // Store handle
             if (dst != NULL)
                 *dst    = obj;
             else
@@ -426,7 +459,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t ObjectStream::read_utf(LSPString *dst, size_t bytes)
+        status_t ObjectStream::parse_utf(LSPString *dst, size_t bytes)
         {
             // Allocate temporary buffer for string data
             char *buf = reinterpret_cast<char *>(::malloc(bytes));
@@ -455,18 +488,18 @@ namespace lsp
             // Read length
             uint16_t bytes  = 0;
             status_t res    = read_short(&bytes);
-            return (res == STATUS_OK) ? read_utf(dst, bytes) : STATUS_CORRUPTED;
+            return (res == STATUS_OK) ? parse_utf(dst, bytes) : STATUS_CORRUPTED;
         }
 
-        status_t ObjectStream::read_string_internal(String **dst)
+        status_t ObjectStream::parse_string(String **dst)
         {
             status_t res = lookup_token();
-            if (res != STATUS_OK)
-                return res;
+            if (res < 0)
+                return -res;
 
             // Fetch size of string
             size_t bytes;
-            switch (nToken)
+            switch (res)
             {
                 case TC_STRING:
                 {
@@ -493,16 +526,23 @@ namespace lsp
             if (str == NULL)
                 return STATUS_NO_MEM;
 
-            // Read string
-            res = read_utf(str->string(), bytes);
+            // Read string contents
+            res = parse_utf(str->string(), bytes);
             if (res == STATUS_OK)
                 pHandles->put(str);
+
+            // Need to return string?
+            if (dst != NULL)
+            {
+                str->acquire();
+                *dst    = str;
+            }
 
             str->release();
             return res;
         }
 
-        status_t ObjectStream::handle_reset()
+        status_t ObjectStream::parse_reset()
         {
             if (nDepth > 0)
                 return STATUS_CORRUPTED;
@@ -513,22 +553,22 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t ObjectStream::read_null()
+        status_t ObjectStream::parse_null(Object **dst)
         {
-            status_t res = lookup_token();
-            if (res != STATUS_OK)
-                return res;
-
-            if (nToken != TC_NULL)
-                return STATUS_BAD_TYPE;
+            status_t token = lookup_token();
+            if (token != TC_NULL)
+                return (token >= 0) ? STATUS_CORRUPTED : -token;
 
             nToken  = -STATUS_UNSPECIFIED;
             enToken = JST_UNDEFINED;
 
+            if (dst != NULL)
+                *dst        = NULL;
+
             return STATUS_OK;
         }
 
-        status_t ObjectStream::read_class_descriptor(ClassDescriptor **dst)
+        status_t ObjectStream::pares_class_descriptor(Object **dst)
         {
             status_t res = lookup_token();
             if (res != STATUS_OK)
@@ -551,99 +591,95 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t ObjectStream::read_string(String **dst)
+        status_t ObjectStream::parse_array(Object **dst)
         {
-            size_t bytes;
-            bool old_mode = false;
+            // Fetch token
+            ssize_t token   = lookup_token();
+            if (token != TC_ARRAY)
+                return (token >= 0) ? STATUS_CORRUPTED : -token;
 
-            status_t res = set_block_mode(false, &old_mode);
+            Object *desc    = NULL;
+            status_t res    = pares_class_descriptor(&desc);
             if (res != STATUS_OK)
                 return res;
 
-            while (true)
-            {
-                ssize_t token = lookup_token();
-                if (token < 0)
-                    return -token;
-
-                switch (token)
-                {
-                    case TC_RESET: // Stream reset
-                    {
-                        if ((res = handle_reset()) != STATUS_OK)
-                            return res;
-                        continue;
-                    }
-                    case TC_NULL: // Null reference, valid to be string
-                    {
-                        nToken      = -STATUS_UNSPECIFIED;
-                        enToken     = JST_UNDEFINED;
-
-                        if (dst != NULL)
-                            *dst        = NULL;
-                        set_block_mode(old_mode, NULL);
-                        return STATUS_OK;
-                    }
-                    case TC_REFERENCE: // Some reference to object, required to be string
-                    {
-                        Object *obj     = NULL;
-                        status_t res    = read_handle(&obj);
-                        if (res != STATUS_OK)
-                            return res;
-                        else if (!obj->instanceof(CLASSNAME_STRING))
-                            return STATUS_BAD_TYPE;
-
-                        if (dst != NULL)
-                            *dst    = static_cast<String *>(obj);
-                        else
-                            obj->release();
-                        set_block_mode(old_mode, NULL);
-                        return STATUS_OK;
-                    }
-                    case TC_STRING: // String with 16-bit length
-                    {
-                        uint16_t slen = 0;
-                        if ((res = read_short(&slen)) != STATUS_OK)
-                            return STATUS_CORRUPTED;
-                        bytes       = slen;
-                        break;
-                    }
-                    case TC_LONGSTRING: // String with 32-bit length
-                    {
-                        uint32_t slen = 0;
-                        if ((res = read_int(&slen)) != STATUS_OK)
-                            return STATUS_CORRUPTED;
-                        bytes       = slen;
-                        break;
-                    }
-                    default:
-                        return STATUS_BAD_STATE;
-                }
-
-                // Allocate handle reference
-                String *str = new String(pHandles->new_handle());
-                if (str == NULL)
-                    return STATUS_NO_MEM;
-
-                // Read string
-                res = read_utf(str->string(), bytes);
-                if (res == STATUS_OK)
-                    res = pHandles->put(str);
-
-                if ((res == STATUS_OK) && (dst != NULL))
-                {
-                    str->acquire();
-                    *dst        = str;
-                }
-
-                // Reset current token
-                nToken      = -STATUS_UNSPECIFIED;
-                enToken     = JST_UNDEFINED;
-
-                set_block_mode(old_mode, NULL);
-                str->release();
-                return res;
-            }
+            return STATUS_OK;
         }
+
+
+        status_t ObjectStream::parse_object(Object **dst)
+        {
+            // Fetch token
+            ssize_t token = lookup_token();
+            if (token < 0)
+                return token;
+
+            // Start object mode
+            bool mode = false;
+            status_t res = start_object(mode);
+            if (res != STATUS_OK)
+                return res;
+
+            obj_ptr_t ret(dst);
+            switch (token)
+            {
+                case TC_NULL: // Null reference, valid to be string
+                    return end_object(mode, parse_null(ret));
+
+                case TC_REFERENCE: // Some reference to object, required to be string
+                    return end_object(mode, parse_reference(ret, NULL));
+
+                case TC_STRING: // String with 16-bit length
+                case TC_LONGSTRING: // String with 32-bit length
+                    return end_object(mode, parse_string(ret));
+
+                case TC_ARRAY: // Array
+                    return end_object(mode, parse_array(ret));
+
+                default:
+                    break;
+            }
+
+            return end_object(mode, STATUS_BAD_STATE);
+        }
+
+        status_t ObjectStream::read_object(Object **dst)
+        {
+            return parse_object(dst);
+        }
+
+        status_t ObjectStream::read_string(String **dst)
+        {
+            // Fetch token
+            ssize_t token = lookup_token();
+            if (token < 0)
+                return token;
+
+            // Start object mode
+            bool mode = false;
+            status_t res = start_object(mode);
+            if (res != STATUS_OK)
+                return res;
+
+            obj_ptr_t ret(dst);
+            switch (token)
+            {
+                case TC_NULL: // Null reference, valid to be string
+                    return end_object(mode, parse_null(ret));
+
+                case TC_REFERENCE: // Some reference to object, required to be string
+                    return end_object(mode, parse_reference(ret, NULL));
+
+                case TC_STRING: // String with 16-bit length
+                case TC_LONGSTRING: // String with 32-bit length
+                    return end_object(mode, parse_string(ret));
+
+                default:
+                    break;
+            }
+
+            return end_object(mode, STATUS_BAD_STATE);
+        }
+
     } /* namespace java */
 } /* namespace lsp */

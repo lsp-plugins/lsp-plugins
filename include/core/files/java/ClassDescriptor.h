@@ -10,22 +10,19 @@
 
 #include <common/types.h>
 
+#include <core/files/java/Object.h>
+
 namespace lsp
 {
     namespace java
     {
-        class ClassDescriptor
+        class ClassDescriptor: public Object
         {
-            private:
-                size_t      nHandle;
-
             public:
                 explicit ClassDescriptor(size_t handle);
                 virtual ~ClassDescriptor();
 
             public:
-                inline uint32_t     handle() const { return nHandle; }
-
 
         };
     

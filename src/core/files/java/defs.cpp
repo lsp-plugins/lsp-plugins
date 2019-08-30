@@ -11,7 +11,8 @@ namespace lsp
 {
     namespace java
     {
-        const char *CLASSNAME_STRING        = "java.lang.String";
+        const char *CLASSNAME_STRING                = "java.lang.String";
+        const char *CLASSNAME_OBJECTSTREAMCLASS     = "java.io.ObjectStreamClass";
     }
 }
 

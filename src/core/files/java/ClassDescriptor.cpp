@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/files/java/defs.h>
 #include <core/files/java/ClassDescriptor.h>
 
 namespace lsp
@@ -12,9 +13,8 @@ namespace lsp
     namespace java
     {
         
-        ClassDescriptor::ClassDescriptor(size_t handle)
+        ClassDescriptor::ClassDescriptor(size_t handle): Object(handle, CLASSNAME_OBJECTSTREAMCLASS)
         {
-            nHandle     = handle;
         }
         
         ClassDescriptor::~ClassDescriptor()

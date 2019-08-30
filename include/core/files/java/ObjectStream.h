@@ -66,6 +66,7 @@ namespace lsp
             private:
                 status_t            do_close();
                 status_t            set_block_mode(bool enabled, bool *old = NULL);
+                status_t            handle_resets();
 
             protected:
                 status_t    initial_read(io::IInStream *is);
@@ -75,12 +76,17 @@ namespace lsp
                 status_t    fill_block();
                 status_t    read_fully(void *dst, size_t count);
 
-                status_t    read_handle(Object **dst);
-                status_t    read_string_internal(String **dst);
-                status_t    handle_reset();
-                status_t    read_null();
-                status_t    read_class_descriptor(ClassDescriptor **dst);
-                status_t    read_utf(LSPString *dst, size_t len);
+                status_t    parse_array(Object **dst);
+                status_t    parse_reset();
+                status_t    parse_null(Object **dst);
+                status_t    pares_class_descriptor(Object **dst);
+                status_t    parse_utf(LSPString *dst, size_t len);
+                status_t    parse_reference(Object **dst, const char *type = NULL);
+                status_t    parse_string(String **dst);
+                status_t    parse_object(Object **dst);
+
+                inline status_t    start_object(bool &mode);
+                inline status_t    end_object(bool &mode, status_t res);
 
             public:
                 explicit ObjectStream(Handles *handles);
@@ -160,8 +166,8 @@ namespace lsp
 
                 status_t    read_utf(LSPString *dst);
 
-                status_t    read_string(String **dst);
                 status_t    read_object(Object **dst);
+                status_t    read_string(String **dst);
         };
     
     } /* namespace java */

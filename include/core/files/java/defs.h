@@ -41,6 +41,7 @@ namespace lsp
         };
 
         extern const char *CLASSNAME_STRING;
+        extern const char *CLASSNAME_OBJECTSTREAMCLASS;
 
         #pragma pack(push, 1)
             typedef struct obj_stream_hdr_t
@@ -49,6 +50,45 @@ namespace lsp
                 uint16_t    version;
             } obj_stream_hdr_t;
         #pragma pack(pop)
+
+        class Object;
+
+        struct obj_ptr_t
+        {
+            private:
+                Object    **obj;
+
+            public:
+                inline obj_ptr_t(Object **p) { obj   = p; }
+                inline obj_ptr_t & operator = (Object **p)  { obj   = p; return *this; }
+                inline operator Object **()     { return obj; }
+
+
+                template <typename type_t>
+                    inline obj_ptr_t(type_t **p)
+                {
+                    union { Object **o; type_t **t; } x;
+                    x.t     = p;
+                    obj     = x.o;
+                }
+
+                template <typename type_t>
+                    inline obj_ptr_t & operator = (type_t **p)
+                    {
+                        union { Object **o; type_t **t; } x;
+                        x.t     = p;
+                        obj     = x.o;
+                        return *this;
+                    }
+
+                template <typename type_t>
+                    inline operator type_t **()
+                    {
+                        union { Object **o; type_t **t; } x;
+                        x.o     = obj;
+                        return x.t;
+                    }
+        };
     }
 }
 
