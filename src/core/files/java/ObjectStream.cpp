@@ -307,18 +307,19 @@ namespace lsp
                 #define JDEC(a, b) case a: nToken = a; enToken = b; break;
                 JDEC(TC_NULL, JST_NULL)
                 JDEC(TC_REFERENCE, JST_REFERENCE)
-                JDEC(TC_CLASS, JST_CLASS)
                 JDEC(TC_CLASSDESC, JST_CLASS_DESC)
-                JDEC(TC_PROXYCLASSDESC, JST_PROXY_CLASS_DESC)
-                JDEC(TC_STRING, JST_STRING)
-                JDEC(TC_LONGSTRING, JST_STRING)
-                JDEC(TC_ARRAY, JST_ARRAY)
-                JDEC(TC_ENUM, JST_ENUM)
                 JDEC(TC_OBJECT, JST_OBJECT)
-                JDEC(TC_EXCEPTION, JST_EXCEPTION)
+                JDEC(TC_STRING, JST_STRING)
+                JDEC(TC_ARRAY, JST_ARRAY)
+                JDEC(TC_CLASS, JST_CLASS)
                 JDEC(TC_BLOCKDATA, JST_BLOCK_DATA)
-                JDEC(TC_BLOCKDATALONG, JST_BLOCK_DATA)
+                JDEC(TC_ENDBLOCKDATA, JST_END_BLOCK_DATA)
                 JDEC(TC_RESET, JST_RESET)
+                JDEC(TC_BLOCKDATALONG, JST_BLOCK_DATA)
+                JDEC(TC_EXCEPTION, JST_EXCEPTION)
+                JDEC(TC_LONGSTRING, JST_STRING)
+                JDEC(TC_PROXYCLASSDESC, JST_PROXY_CLASS_DESC)
+                JDEC(TC_ENUM, JST_ENUM)
                 #undef JDEC
                 default:
                     nToken      = (token < 0) ? token : -STATUS_CORRUPTED;

@@ -34,6 +34,7 @@ namespace lsp
             JST_ARRAY,              ///< Array.
             JST_CLASS,              ///< Reference to Class.
             JST_BLOCK_DATA,         ///< Block of optional data. Byte following tag indicates number of bytes in this block data.
+            JST_END_BLOCK_DATA,     ///< End of block of optional data.
             JST_RESET,              ///< Reset stream context. All handles written into stream are reset.
             JST_EXCEPTION,          ///< Exception during write.
             JST_PROXY_CLASS_DESC,   ///< new Proxy Class Descriptor.
