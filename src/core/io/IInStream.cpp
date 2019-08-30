@@ -42,7 +42,9 @@ namespace lsp
         {
             uint8_t byte;
             ssize_t nread = read(&byte, sizeof(byte));
-            return (nread == STATUS_OK) ? byte : nread;
+            if (nread > 0)
+                return byte;
+            return (nread != 0) ? nread : -STATUS_EOF;
         }
 
         ssize_t IInStream::read_fully(void *dst, size_t count)

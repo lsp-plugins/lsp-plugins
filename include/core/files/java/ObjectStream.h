@@ -37,6 +37,8 @@ namespace lsp
             JST_EXCEPTION,          ///< Exception during write.
             JST_PROXY_CLASS_DESC,   ///< new Proxy Class Descriptor.
             JST_ENUM,               ///< new Enum constant, since java 1.5
+
+            JST_UNDEFINED  = -1
         };
 
         class ObjectStream
@@ -55,19 +57,19 @@ namespace lsp
                 io::IInStream      *pIS;
                 size_t              nFlags;
                 ssize_t             nToken;
-                ssize_t             enToken;
+                stream_token_t      enToken;
                 size_t              nDepth;
                 ssize_t             nVersion;
                 Handles            *pHandles;
                 block_t             sBlock;
 
             private:
-                status_t            set_error(status_t res);
+                status_t            do_close();
                 status_t            set_block_mode(bool enabled, bool *old = NULL);
 
             protected:
                 status_t    initial_read(io::IInStream *is);
-                ssize_t     get_token(bool force = true);
+                ssize_t     get_token();
                 status_t    lookup_token();
 
                 status_t    fill_block();
@@ -142,6 +144,8 @@ namespace lsp
                  * @return current object stream version
                  */
                 inline ssize_t version() const { return nVersion; }
+
+                status_t    current_token();
 
                 status_t    read_byte(uint8_t *dst);
                 status_t    read_byte(int8_t *dst);

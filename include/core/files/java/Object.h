@@ -47,7 +47,7 @@ namespace lsp
 
                 ssize_t release();
         };
-    
+
     } /* namespace java */
 } /* namespace lsp */
 

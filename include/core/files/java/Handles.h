@@ -64,12 +64,12 @@ namespace lsp
                 /**
                  * Clear handle registry and free handle table
                  */
-                void clear();
+                void    clear();
 
                 /**
                  * Flush handle registry and free handle table
                  */
-                void flush();
+                void    flush();
         };
     
     } /* namespace java */

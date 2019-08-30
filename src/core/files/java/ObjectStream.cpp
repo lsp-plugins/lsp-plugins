@@ -22,8 +22,9 @@ namespace lsp
         {
             pIS             = NULL;
             nFlags          = 0;
-            nToken          = -1;
-            enToken         = -STATUS_CLOSED;
+            nToken          = -STATUS_CLOSED;
+            enToken         = JST_UNDEFINED;
+            nDepth          = 0;
             nVersion        = -STATUS_CLOSED;
             pHandles        = handles;
 
@@ -36,10 +37,16 @@ namespace lsp
         
         ObjectStream::~ObjectStream()
         {
+            do_close();
+        }
+
+        status_t ObjectStream::do_close()
+        {
+            status_t res = STATUS_OK;
             if (pIS != NULL)
             {
                 if (nFlags & WRAP_CLOSE)
-                    pIS->close();
+                    res = pIS->close();
                 if (nFlags & WRAP_DELETE)
                     delete pIS;
                 pIS     = NULL;
@@ -54,9 +61,11 @@ namespace lsp
             sBlock.enabled  = true;
 
             nFlags          = 0;
-            nToken          = -1;
-            enToken         = -STATUS_CLOSED;
-            nVersion        = -STATUS_CLOSED;
+            nToken          = -STATUS_UNSPECIFIED;
+            enToken         = JST_UNDEFINED;
+            nVersion        = -STATUS_UNSPECIFIED;
+
+            return res;
         }
 
         status_t ObjectStream::open(const char *file)
@@ -70,6 +79,7 @@ namespace lsp
                 {
                     pIS     = is;
                     nFlags  = WRAP_CLOSE | WRAP_DELETE;
+                    return res;
                 }
                 is->close();
             }
@@ -158,39 +168,25 @@ namespace lsp
 
         status_t ObjectStream::close()
         {
-            status_t res = STATUS_OK;
-            if (pIS != NULL)
-            {
-                if (nFlags & WRAP_CLOSE)
-                    res = pIS->close();
-                if (nFlags & WRAP_DELETE)
-                    delete pIS;
-                pIS     = NULL;
-            }
-
-            nFlags      = 0;
-            nToken      = -1;
-            enToken     = -STATUS_CLOSED;
-            nVersion    = -STATUS_CLOSED;
-
-            return res;
+            return do_close();
         }
 
         status_t ObjectStream::initial_read(io::IInStream *is)
         {
             // Read stream header
             obj_stream_hdr_t hdr;
-            status_t res = is->read_block(&hdr, sizeof(hdr));
-            if (res != STATUS_OK)
-                return (res == STATUS_EOF) ? STATUS_BAD_FORMAT : res;
+            status_t res = is->read_fully(&hdr, sizeof(hdr));
+            if (res != sizeof(hdr))
+                return ((res >= 0) || (res == STATUS_EOF)) ? STATUS_CORRUPTED : res;
             if (BE_TO_CPU(hdr.magic) != JAVA_STREAM_MAGIC)
-                return STATUS_BAD_FORMAT;
+                return STATUS_CORRUPTED;
             uint8_t *block  = reinterpret_cast<uint8_t *>(::malloc(JAVA_MAX_BLOCK_SIZE));
-            if (sBlock.data == NULL)
+            if (block == NULL)
                 return STATUS_NO_MEM;
 
             nVersion    = BE_TO_CPU(hdr.version);
             nToken      = -STATUS_UNSPECIFIED;
+            enToken     = JST_UNDEFINED;
             sBlock.data = block;
 
             return STATUS_OK;
@@ -203,28 +199,28 @@ namespace lsp
                 // Is there unread data in a block?
                 if (sBlock.unread > 0)
                 {
-                    size_t amount   = (sBlock.unread <= JAVA_MAX_BLOCK_SIZE) ? sBlock.unread : JAVA_MAX_BLOCK_SIZE;
+                    ssize_t amount  = (sBlock.unread <= JAVA_MAX_BLOCK_SIZE) ? sBlock.unread : JAVA_MAX_BLOCK_SIZE;
                     ssize_t read    = pIS->read_fully(sBlock.data, amount);
-                    if (read < 0)
-                        return -read;
+                    if (read != amount)
+                        return (read >= 0) ? STATUS_CORRUPTED : -read;
 
                     sBlock.size     = read;
                     sBlock.offset   = 0;
                     sBlock.unread  -= amount;
 
-                    continue;
+                    return STATUS_OK;
                 }
 
                 // Fetch next token
                 status_t res = lookup_token();
-                if (res != STATUS_OK)
+                if (res <= 0)
                     return res;
 
-                switch (nToken)
+                switch (res)
                 {
                     case TC_RESET: // Handle stream reset
                         nToken      = -STATUS_UNSPECIFIED;
-                        enToken     = -STATUS_UNSPECIFIED;
+                        enToken     = JST_UNDEFINED;
                         pHandles->clear();
                         break;
 
@@ -232,8 +228,8 @@ namespace lsp
                     {
                         uint8_t blen;
                         res             = pIS->read_fully(&blen, sizeof(blen));
-                        if (res != STATUS_OK)
-                            return res;
+                        if (res != sizeof(blen))
+                            return (res < 0) ? res : -STATUS_CORRUPTED;
                         sBlock.unread   = blen;
                         break;
                     }
@@ -241,10 +237,8 @@ namespace lsp
                     {
                         int32_t blen;
                         res             = pIS->read_fully(&blen, sizeof(blen));
-                        if (res != STATUS_OK)
-                            return res;
-                        else if (blen < 0)
-                            return STATUS_CORRUPTED;
+                        if (res != sizeof(blen))
+                            return (res < 0) ? res : -STATUS_CORRUPTED;
                         sBlock.unread   = blen;
                         break;
                     }
@@ -290,54 +284,76 @@ namespace lsp
             return STATUS_OK;
         }
 
-        ssize_t ObjectStream::get_token(bool force)
+        ssize_t ObjectStream::get_token()
         {
-            if (pIS == NULL)
-                return - STATUS_CLOSED;
-            else if (sBlock.enabled)
-                return - STATUS_BAD_STATE;
-
-            if (force)
+            // Read and parse token
+            ssize_t token   = pIS->read_byte();
+            switch (token)
             {
-                ssize_t token   = pIS->read_byte();
-                switch (token)
-                {
-                    #define JDEC(a, b) case a: enToken = b; break;
-                    JDEC(TC_NULL, JST_NULL)
-                    JDEC(TC_REFERENCE, JST_REFERENCE)
-                    JDEC(TC_CLASS, JST_CLASS)
-                    JDEC(TC_CLASSDESC, JST_CLASS_DESC)
-                    JDEC(TC_PROXYCLASSDESC, JST_PROXY_CLASS_DESC)
-                    JDEC(TC_STRING, JST_STRING)
-                    JDEC(TC_LONGSTRING, JST_STRING)
-                    JDEC(TC_ARRAY, JST_ARRAY)
-                    JDEC(TC_ENUM, JST_ENUM)
-                    JDEC(TC_OBJECT, JST_OBJECT)
-                    JDEC(TC_EXCEPTION, JST_EXCEPTION)
-                    JDEC(TC_BLOCKDATA, JST_BLOCK_DATA)
-                    JDEC(TC_BLOCKDATALONG, JST_BLOCK_DATA)
-                    JDEC(TC_RESET, JST_RESET)
-                    #undef JDEC
-                    default:
-                        if (token >= 0)
-                            token       = -STATUS_CORRUPTED;
-                        enToken     = nToken;
-                        break;
-                }
-                nToken      = token;
+                #define JDEC(a, b) case a: nToken = a; enToken = b; break;
+                JDEC(TC_NULL, JST_NULL)
+                JDEC(TC_REFERENCE, JST_REFERENCE)
+                JDEC(TC_CLASS, JST_CLASS)
+                JDEC(TC_CLASSDESC, JST_CLASS_DESC)
+                JDEC(TC_PROXYCLASSDESC, JST_PROXY_CLASS_DESC)
+                JDEC(TC_STRING, JST_STRING)
+                JDEC(TC_LONGSTRING, JST_STRING)
+                JDEC(TC_ARRAY, JST_ARRAY)
+                JDEC(TC_ENUM, JST_ENUM)
+                JDEC(TC_OBJECT, JST_OBJECT)
+                JDEC(TC_EXCEPTION, JST_EXCEPTION)
+                JDEC(TC_BLOCKDATA, JST_BLOCK_DATA)
+                JDEC(TC_BLOCKDATALONG, JST_BLOCK_DATA)
+                JDEC(TC_RESET, JST_RESET)
+                #undef JDEC
+                default:
+                    nToken      = (token < 0) ? token : -STATUS_CORRUPTED;
+                    enToken     = JST_UNDEFINED;
+                    break;
             }
 
             return nToken;
         }
 
+        status_t ObjectStream::current_token()
+        {
+            if (pIS == NULL)
+                return - STATUS_CLOSED;
+
+            // Try to get token
+            if (enToken == JST_UNDEFINED)
+            {
+                if (sBlock.enabled)
+                {
+                    if ((sBlock.unread > 0) || (sBlock.offset < sBlock.size))
+                        return JST_BLOCK_DATA;
+                }
+                get_token();
+            }
+
+            // Return valid token or error code stored in nToken
+            return (enToken != JST_UNDEFINED) ? enToken : nToken;
+        }
+
         status_t ObjectStream::lookup_token()
         {
-            if (enToken >= 0)
-                return STATUS_OK;
             if (pIS == NULL)
-                return STATUS_CLOSED;
-            ssize_t res = get_token(true);
-            return (res >= 0) ? STATUS_OK : -res;
+                return - STATUS_CLOSED;
+
+            // Try to get token
+            if (enToken == JST_UNDEFINED)
+            {
+                // Protect from reading token from inside of the TC_BLOCKDATA
+                if (sBlock.enabled)
+                {
+                    if ((sBlock.unread > 0) || (sBlock.offset < sBlock.size))
+                        return STATUS_BAD_STATE;
+                }
+                get_token();
+            }
+
+            // Return valid token or error code stored in nToken
+            return nToken;
         }
 
 #define STREAM_READ_IMPL(name, type_t) \
@@ -348,7 +364,7 @@ namespace lsp
             if ((res == STATUS_OK) && (dst != NULL)) \
                 *dst    = BE_TO_CPU(tmp); \
             nToken      = -STATUS_UNSPECIFIED; \
-            enToken     = -STATUS_UNSPECIFIED; \
+            enToken     = JST_UNDEFINED; \
             return res; \
         }
 
@@ -365,21 +381,6 @@ namespace lsp
 
 #undef STREAM_READ_IMPL
 
-        status_t ObjectStream::set_error(status_t res)
-        {
-            if (res == STATUS_EOF)
-            {
-                nToken      = -STATUS_EOF;
-                enToken     = -STATUS_EOF;
-            }
-            else
-            {
-                nToken      = -STATUS_UNSPECIFIED;
-                enToken     = -STATUS_UNSPECIFIED;
-            }
-            return res;
-        }
-
         status_t ObjectStream::set_block_mode(bool enabled, bool *old)
         {
             if (sBlock.enabled == enabled)
@@ -388,13 +389,14 @@ namespace lsp
             {
                 sBlock.offset   = 0;
                 sBlock.size     = 0;
+                sBlock.unread   = 0;
             }
-            else if (sBlock.offset < sBlock.size)
+            else if ((sBlock.offset < sBlock.size) || (sBlock.unread > 0))
                 return STATUS_BAD_STATE;
 
             if (old != NULL)
                 *old            = sBlock.enabled;
-            sBlock.enabled  = true;
+            sBlock.enabled  = enabled;
             return STATUS_OK;
         }
 
@@ -506,7 +508,7 @@ namespace lsp
                 return STATUS_CORRUPTED;
 
             nToken      = -STATUS_UNSPECIFIED;
-            enToken     = -STATUS_UNSPECIFIED;
+            enToken     = JST_UNDEFINED;
             pHandles->clear();
             return STATUS_OK;
         }
@@ -521,7 +523,7 @@ namespace lsp
                 return STATUS_BAD_TYPE;
 
             nToken  = -STATUS_UNSPECIFIED;
-            enToken = -STATUS_UNSPECIFIED;
+            enToken = JST_UNDEFINED;
 
             return STATUS_OK;
         }
@@ -538,7 +540,7 @@ namespace lsp
                     if (dst != NULL)
                         *dst        = NULL;
                     nToken      = -STATUS_UNSPECIFIED;
-                    enToken     = -STATUS_UNSPECIFIED;
+                    enToken     = JST_UNDEFINED;
                     return STATUS_OK;
                 case TC_REFERENCE:
                     // TODO
@@ -551,20 +553,20 @@ namespace lsp
 
         status_t ObjectStream::read_string(String **dst)
         {
-            bool old_mode;
             size_t bytes;
+            bool old_mode = false;
 
-            status_t res = set_block_mode(false);
+            status_t res = set_block_mode(false, &old_mode);
             if (res != STATUS_OK)
                 return res;
 
             while (true)
             {
-                status_t res = lookup_token();
-                if (res != STATUS_OK)
-                    return res;
+                ssize_t token = lookup_token();
+                if (token < 0)
+                    return -token;
 
-                switch (nToken)
+                switch (token)
                 {
                     case TC_RESET: // Stream reset
                     {
@@ -575,7 +577,7 @@ namespace lsp
                     case TC_NULL: // Null reference, valid to be string
                     {
                         nToken      = -STATUS_UNSPECIFIED;
-                        enToken     = -STATUS_UNSPECIFIED;
+                        enToken     = JST_UNDEFINED;
 
                         if (dst != NULL)
                             *dst        = NULL;
@@ -626,11 +628,20 @@ namespace lsp
                 // Read string
                 res = read_utf(str->string(), bytes);
                 if (res == STATUS_OK)
-                    pHandles->put(str);
+                    res = pHandles->put(str);
 
-                str->release();
+                if ((res == STATUS_OK) && (dst != NULL))
+                {
+                    str->acquire();
+                    *dst        = str;
+                }
+
+                // Reset current token
+                nToken      = -STATUS_UNSPECIFIED;
+                enToken     = JST_UNDEFINED;
 
                 set_block_mode(old_mode, NULL);
+                str->release();
                 return res;
             }
         }

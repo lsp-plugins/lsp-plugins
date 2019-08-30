@@ -68,7 +68,8 @@ namespace lsp
             {
                 if (vItems[i] == NULL)
                     continue;
-                vItems[i]->release();
+                if (vItems[i]->release() > 0)
+                    delete vItems[i];
                 vItems[i] = NULL;
             }
 
@@ -83,7 +84,8 @@ namespace lsp
             {
                 if (vItems[i] == NULL)
                     continue;
-                vItems[i]->release();
+                if (vItems[i]->release() > 0)
+                    delete vItems[i];
             }
             ::free(vItems);
             vItems      = NULL;
