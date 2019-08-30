@@ -16,8 +16,9 @@
 
 #include <core/files/java/Object.h>
 #include <core/files/java/String.h>
-#include <core/files/java/ClassDescriptor.h>
 #include <core/files/java/Handles.h>
+#include <core/files/java/ObjectStreamField.h>
+#include <core/files/java/ObjectStreamClass.h>
 
 namespace lsp
 {
@@ -62,16 +63,18 @@ namespace lsp
                 ssize_t             nVersion;
                 Handles            *pHandles;
                 block_t             sBlock;
+                String             *vTypeStrings[JFT_TOTAL];
 
             private:
                 status_t            do_close();
                 status_t            set_block_mode(bool enabled, bool *old = NULL);
-                status_t            handle_resets();
+                status_t            intern_type_string(String **dst, ftype_t type, char ptype);
 
             protected:
                 status_t    initial_read(io::IInStream *is);
                 ssize_t     get_token();
                 status_t    lookup_token();
+                inline void clear_token();
 
                 status_t    fill_block();
                 status_t    read_fully(void *dst, size_t count);
@@ -79,7 +82,9 @@ namespace lsp
                 status_t    parse_array(Object **dst);
                 status_t    parse_reset();
                 status_t    parse_null(Object **dst);
-                status_t    pares_class_descriptor(Object **dst);
+                status_t    parse_class_field(ObjectStreamField **dst);
+                status_t    parse_class_descriptor(ObjectStreamClass **dst);
+                status_t    parse_proxy_class_descriptor(ObjectStreamClass **dst);
                 status_t    parse_utf(LSPString *dst, size_t len);
                 status_t    parse_reference(Object **dst, const char *type = NULL);
                 status_t    parse_string(String **dst);
@@ -168,6 +173,7 @@ namespace lsp
 
                 status_t    read_object(Object **dst);
                 status_t    read_string(String **dst);
+                status_t    read_class_descriptor(ObjectStreamClass **dst);
         };
     
     } /* namespace java */

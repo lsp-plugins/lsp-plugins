@@ -11,18 +11,17 @@ namespace lsp
 {
     namespace java
     {
+        const char *Object::CLASS_NAME       = "java.lang.Object";
         
-        Object::Object(handle_t handle, const char *class_name)
+        Object::Object(const char *class_name)
         {
             nReferences = 1;
-            nHandle     = handle;
             pClass      = class_name;
         }
         
         Object::~Object()
         {
             nReferences = 0;
-            nHandle     = -1;
             pClass      = NULL;
         }
 

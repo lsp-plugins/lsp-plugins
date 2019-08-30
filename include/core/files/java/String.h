@@ -20,6 +20,9 @@ namespace lsp
          */
         class String: public Object
         {
+            public:
+                static const char *CLASS_NAME;
+
             private:
                 String & operator = (const String &);
 
@@ -27,11 +30,12 @@ namespace lsp
                 LSPString   sString;
 
             public:
-                explicit String(handle_t handle);
+                explicit String();
                 virtual ~String();
 
             public:
                 inline LSPString *string() { return &sString; }
+                inline const LSPString *string() const { return &sString; }
 
                 inline operator LSPString &() { return sString; }
                 inline operator LSPString *() { return &sString; }

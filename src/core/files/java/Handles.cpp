@@ -35,13 +35,12 @@ namespace lsp
             return item;
         }
 
-        status_t Handles::put(Object *obj)
+        status_t Handles::assign(Object *obj)
         {
             if (obj == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
-            handle_t handle = obj->handle();
-            size_t cap = ((handle + CAP_GRANULARITY) / CAP_GRANULARITY) * CAP_GRANULARITY;
+            size_t cap = ((nHandle + CAP_GRANULARITY) / CAP_GRANULARITY) * CAP_GRANULARITY;
             if (nCapacity < cap)
             {
                 Object **x = reinterpret_cast<Object **>(::realloc(vItems, sizeof(Object *) * cap));
@@ -53,10 +52,8 @@ namespace lsp
                 nCapacity   = cap;
             }
 
-            if (vItems[handle] != NULL)
-                return STATUS_ALREADY_EXISTS;
             obj->acquire();
-            vItems[handle]      = obj;
+            vItems[nHandle++]   = obj;
             return STATUS_OK;
         }
 

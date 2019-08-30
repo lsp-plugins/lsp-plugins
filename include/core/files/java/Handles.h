@@ -59,7 +59,7 @@ namespace lsp
                  * @param obj java object
                  * @return status of operation
                  */
-                status_t put(Object *obj);
+                status_t assign(Object *obj);
 
                 /**
                  * Clear handle registry and free handle table

@@ -40,8 +40,52 @@ namespace lsp
             TC_MAX              = TC_ENUM ///< Last tag value.
         };
 
-        extern const char *CLASSNAME_STRING;
-        extern const char *CLASSNAME_OBJECTSTREAMCLASS;
+        enum obj_stream_const_t
+        {
+            /**
+             * Bit mask for ObjectStreamClass flag. Indicates a Serializable class
+             * defines its own writeObject method.
+             */
+            SC_WRITE_METHOD = 0x01,
+
+            /**
+             * Bit mask for ObjectStreamClass flag. Indicates class is Serializable.
+             */
+            SC_SERIALIZABLE = 0x02,
+
+            /**
+             * Bit mask for ObjectStreamClass flag. Indicates class is Externalizable.
+             */
+            SC_EXTERNALIZABLE = 0x04,
+
+            /**
+             * Bit mask for ObjectStreamClass flag. Indicates Externalizable data
+             * written in Block Data mode.
+             * Added for PROTOCOL_VERSION_2.
+             */
+            SC_BLOCK_DATA = 0x08,
+
+            /**
+             * Bit mask for ObjectStreamClass flag. Indicates class is an enum type.
+             * @since 1.5
+             */
+            SC_ENUM = 0x10
+        };
+
+        enum prim_type_t
+        {
+            PTC_BYTE    = 'B',      ///< byte
+            PTC_CHAR    = 'C',      ///< char
+            PTC_DOUBLE  = 'D',      ///< double
+            PTC_FLOAT   = 'F',      ///< float
+            PTC_INTEGER = 'I',      ///< integer
+            PTC_LONG    = 'J',      ///< long
+            PTC_SHORT   = 'S',      ///< short
+            PTC_BOOL    = 'Z',      ///< boolean
+            PTC_ARRAY   = '[',      ///< array
+            PTC_OBJECT  = 'L'       ///< object
+        };
+
 
         #pragma pack(push, 1)
             typedef struct obj_stream_hdr_t

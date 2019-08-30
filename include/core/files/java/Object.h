@@ -22,24 +22,24 @@ namespace lsp
          */
         class Object
         {
+            public:
+                static const char *CLASS_NAME;
+
             private:
                 Object & operator = (const Object &);
 
             private:
                 ssize_t         nReferences;
-                handle_t        nHandle;
                 const char     *pClass;
 
             public:
-                explicit Object(handle_t handle, const char *class_name);
+                explicit Object(const char *class_name);
                 virtual ~Object();
 
             public:
                 inline size_t references() const    { return nReferences; }
 
                 inline const char *class_name() const { return pClass; }
-
-                inline handle_t handle() const       { return nHandle; }
 
                 bool instanceof(const char *name);
 

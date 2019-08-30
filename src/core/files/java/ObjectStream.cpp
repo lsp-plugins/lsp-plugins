@@ -5,13 +5,15 @@
  *      Author: sadko
  */
 
-#include <dsp/endian.h>
+#include <core/debug.h>
 #include <core/stdlib/string.h>
 #include <core/io/InFileStream.h>
 #include <core/io/InMemoryStream.h>
 
 #include <core/files/java/defs.h>
 #include <core/files/java/ObjectStream.h>
+
+#include <dsp/endian.h>
 
 namespace lsp
 {
@@ -33,6 +35,9 @@ namespace lsp
             sBlock.offset   = 0;
             sBlock.unread   = 0;
             sBlock.enabled  = true;
+
+            for (size_t i=0; i<JFT_TOTAL; ++i)
+                vTypeStrings[i]     = NULL;
         }
         
         ObjectStream::~ObjectStream()
@@ -54,6 +59,16 @@ namespace lsp
 
             if (sBlock.data != NULL)
                 ::free(sBlock.data);
+
+            for (size_t i=0; i<JFT_TOTAL; ++i)
+            {
+                if (vTypeStrings[i] != NULL)
+                {
+                    delete vTypeStrings[i];
+                    vTypeStrings[i] = NULL;
+                }
+            }
+
             sBlock.data     = NULL;
             sBlock.size     = 0;
             sBlock.offset   = 0;
@@ -185,8 +200,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             nVersion    = BE_TO_CPU(hdr.version);
-            nToken      = -STATUS_UNSPECIFIED;
-            enToken     = JST_UNDEFINED;
+            clear_token();
             sBlock.data = block;
 
             return STATUS_OK;
@@ -219,9 +233,9 @@ namespace lsp
                 switch (res)
                 {
                     case TC_RESET: // Handle stream reset
-                        nToken      = -STATUS_UNSPECIFIED;
-                        enToken     = JST_UNDEFINED;
-                        pHandles->clear();
+                        res     = parse_reset();
+                        if (res != STATUS_OK)
+                            return res;
                         break;
 
                     case TC_BLOCKDATA:
@@ -335,6 +349,12 @@ namespace lsp
             return (enToken != JST_UNDEFINED) ? enToken : nToken;
         }
 
+        inline void ObjectStream::clear_token()
+        {
+            nToken      = -STATUS_UNSPECIFIED;
+            enToken     = JST_UNDEFINED;
+        }
+
         status_t ObjectStream::lookup_token()
         {
             // Check state
@@ -365,8 +385,7 @@ namespace lsp
                     return -STATUS_CORRUPTED;
 
                 pHandles->clear();
-                nToken      = -STATUS_UNSPECIFIED;
-                enToken     = JST_UNDEFINED;
+                clear_token();
             }
         }
 
@@ -377,8 +396,7 @@ namespace lsp
             status_t res =  read_fully(&tmp, sizeof(tmp)); \
             if ((res == STATUS_OK) && (dst != NULL)) \
                 *dst    = BE_TO_CPU(tmp); \
-            nToken      = -STATUS_UNSPECIFIED; \
-            enToken     = JST_UNDEFINED; \
+            clear_token(); \
             return res; \
         }
 
@@ -429,11 +447,37 @@ namespace lsp
             return res;
         }
 
+        status_t ObjectStream::intern_type_string(String **dst, ftype_t type, char ptype)
+        {
+            if ((type < 0) || (type >= JFT_TOTAL))
+                return STATUS_CORRUPTED;
+
+            String *p = vTypeStrings[type];
+            if (p == NULL)
+            {
+                p = new String();
+                if (p == NULL)
+                    return STATUS_NO_MEM;
+                if (!p->string()->set(ptype))
+                {
+                    p->release();
+                    return STATUS_NO_MEM;
+                }
+                vTypeStrings[type] = p;
+            }
+
+            if (dst != NULL)
+                *dst = p;
+            return STATUS_OK;
+        }
+
         status_t ObjectStream::parse_reference(Object **dst, const char *type)
         {
+            // Analyze token
             status_t res = lookup_token();
             if (res != TC_REFERENCE)
                 return (res >= 0) ? STATUS_BAD_TYPE : -res;
+            clear_token();
 
             // Read handle number and validate
             uint32_t handle = 0;
@@ -504,7 +548,7 @@ namespace lsp
                 case TC_STRING:
                 {
                     uint16_t slen = 0;
-                    if ((res = read_short(&slen)) != STATUS_OK)
+                    if ((res = read_short(&slen)) != STATUS_OK) // This will clear token
                         return STATUS_CORRUPTED;
                     bytes       = slen;
                     break;
@@ -512,7 +556,7 @@ namespace lsp
                 case TC_LONGSTRING:
                 {
                     uint32_t slen = 0;
-                    if ((res = read_int(&slen)) != STATUS_OK)
+                    if ((res = read_int(&slen)) != STATUS_OK) // This will clear token
                         return STATUS_CORRUPTED;
                     bytes       = slen;
                     break;
@@ -522,14 +566,14 @@ namespace lsp
             }
 
             // Allocate handle reference
-            String *str = new String(pHandles->new_handle());
+            String *str = new String();
             if (str == NULL)
                 return STATUS_NO_MEM;
 
             // Read string contents
             res = parse_utf(str->string(), bytes);
             if (res == STATUS_OK)
-                pHandles->put(str);
+                pHandles->assign(str);
 
             // Need to return string?
             if (dst != NULL)
@@ -547,9 +591,8 @@ namespace lsp
             if (nDepth > 0)
                 return STATUS_CORRUPTED;
 
-            nToken      = -STATUS_UNSPECIFIED;
-            enToken     = JST_UNDEFINED;
             pHandles->clear();
+            clear_token();
             return STATUS_OK;
         }
 
@@ -558,9 +601,7 @@ namespace lsp
             status_t token = lookup_token();
             if (token != TC_NULL)
                 return (token >= 0) ? STATUS_CORRUPTED : -token;
-
-            nToken  = -STATUS_UNSPECIFIED;
-            enToken = JST_UNDEFINED;
+            clear_token();
 
             if (dst != NULL)
                 *dst        = NULL;
@@ -568,27 +609,177 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t ObjectStream::pares_class_descriptor(Object **dst)
+        status_t ObjectStream::parse_class_field(ObjectStreamField **dst)
         {
-            status_t res = lookup_token();
-            if (res != STATUS_OK)
-                return res;
+            // Allocate object
+            ObjectStreamField *f = new ObjectStreamField();
+            if (f == NULL)
+                return STATUS_NO_MEM;
 
-            switch (nToken)
+            status_t res;
+            uint8_t tcode = 0;
+
+            // Type code
+            res = read_byte(&tcode);
+            if (res == STATUS_OK)
             {
-                case TC_NULL:
-                    if (dst != NULL)
-                        *dst        = NULL;
-                    nToken      = -STATUS_UNSPECIFIED;
-                    enToken     = JST_UNDEFINED;
-                    return STATUS_OK;
-                case TC_REFERENCE:
-                    // TODO
-                    return STATUS_CORRUPTED;
-
+                switch (tcode)
+                {
+                    #define XDEC(a, b) case a: f->enType = b; break;
+                    XDEC(PTC_BYTE, JFT_BYTE)
+                    XDEC(PTC_CHAR, JFT_CHAR)
+                    XDEC(PTC_DOUBLE, JFT_DOUBLE)
+                    XDEC(PTC_FLOAT, JFT_FLOAT)
+                    XDEC(PTC_INTEGER, JFT_INTEGER)
+                    XDEC(PTC_LONG, JFT_LONG)
+                    XDEC(PTC_SHORT, JFT_SHORT)
+                    XDEC(PTC_BOOL, JFT_BOOL)
+                    XDEC(PTC_ARRAY, JFT_ARRAY)
+                    XDEC(PTC_OBJECT, JFT_OBJECT)
+                    #undef XDEC
+                    default:
+                        res     = STATUS_CORRUPTED;
+                        break;
+                }
             }
 
-            return STATUS_OK;
+            // Name
+            if (res == STATUS_OK)
+                res     = read_utf(&f->sName);
+
+            // Signature
+            if (res == STATUS_OK)
+            {
+                res = (f->is_reference()) ?
+                    read_string(&f->pSignature) :
+                    intern_type_string(&f->pSignature, f->enType, tcode);
+            }
+
+            // Return result
+            if ((res == STATUS_OK) && (dst != NULL))
+            {
+                f->acquire();
+                *dst    = f;
+            }
+
+            f->release();
+            return res;
+        }
+
+        status_t ObjectStream::parse_class_descriptor(ObjectStreamClass **dst)
+        {
+            status_t res = lookup_token();
+            if (res != TC_CLASSDESC)
+                return (res >= 0) ? STATUS_CORRUPTED : -res;
+
+            ObjectStreamClass *desc = new ObjectStreamClass();
+            if (desc == NULL)
+                return STATUS_CORRUPTED;
+
+            // Class name, will do reset_token()
+            res = read_utf(&desc->sName);
+            lsp_trace("Class name: %s", desc->sName.get_native());
+
+            // Serial version UID
+            if (res == STATUS_OK)
+            {
+                res = read_long(&desc->nSuid);
+                lsp_trace("Class suid: %lld", (long long)(desc->nSuid));
+            }
+
+            // Read & decode flags
+            uint8_t flags = 0;
+            if (res == STATUS_OK)
+                res     = read_byte(&flags);
+            if (res == STATUS_OK)
+            {
+                lsp_trace("Class flags: 0x%x", int(flags));
+
+                // Validate flags
+                if ((flags & (SC_SERIALIZABLE | SC_EXTERNALIZABLE)) == (SC_SERIALIZABLE | SC_EXTERNALIZABLE))
+                    res = STATUS_CORRUPTED;
+                else if ((flags & SC_ENUM) && (desc->nSuid != 0))
+                    res = STATUS_CORRUPTED;
+            }
+            if (res == STATUS_OK)
+            {
+                // Decode flags
+                if (flags & SC_WRITE_METHOD)
+                    desc->nFlags    |= JCF_WRITE_METHOD;
+                if (flags & SC_BLOCK_DATA)
+                    desc->nFlags    |= JCF_BLOCK_DATA;
+                if (flags & SC_EXTERNALIZABLE)
+                    desc->nFlags    |= JCF_EXTERNALIZABLE;
+                if (flags & SC_SERIALIZABLE)
+                    desc->nFlags    |= JCF_SERIALIZABLE;
+                if (flags & SC_ENUM)
+                    desc->nFlags    |= JCF_ENUM;
+            }
+
+            // Read fields
+            uint16_t fields = 0;
+            if (res == STATUS_OK)
+                res     = read_short(&fields);
+            if ((res == STATUS_OK) && (fields > 0))
+            {
+                desc->vFields = reinterpret_cast<ObjectStreamField **>(::malloc(fields * sizeof(ObjectStreamField *)));
+                if (desc->vFields != NULL)
+                {
+                    // Clear the list
+                    ObjectStreamField **fl = desc->vFields;
+                    for (size_t i=0; i<fields; ++i)
+                        fl[i]    = NULL;
+
+                    // Read, parse and validate each field
+                    size_t prim_data_size = 0;
+                    size_t num_obj_fields = 0;
+                    ssize_t first_obj_idx = -1;
+
+                    for (size_t i=0; i<fields; ++i)
+                    {
+                        ObjectStreamField *f = NULL;
+                        if ((res = parse_class_field(&f)) != STATUS_OK)
+                            break;
+                        lsp_trace("Class Field: %s, signature: %s, size=%d",
+                                f->name()->get_native(), f->signature()->get_native(), int(f->size_of()));
+
+                        // Determine field location
+                        desc->vFields[i]    = f;
+                        if (f->is_reference())
+                        {
+                            f->nOffset      = num_obj_fields++;
+                            if (first_obj_idx < 0)
+                                first_obj_idx   = i;
+                        }
+                        else
+                        {
+                            f->nOffset      = prim_data_size;
+                            prim_data_size += f->size_of();
+                        }
+                    }
+
+                    // Validate the final state
+                    if ((first_obj_idx >= 0) && ((first_obj_idx + num_obj_fields) != fields))
+                        res     = STATUS_CORRUPTED;
+                }
+                else
+                    res     = STATUS_NO_MEM;
+            }
+
+            if ((res == STATUS_OK) && (dst != NULL))
+            {
+                desc->acquire();
+                *dst    = desc;
+            }
+
+            desc->release();
+            return res;
+        }
+
+        status_t ObjectStream::parse_proxy_class_descriptor(ObjectStreamClass **dst)
+        {
+            //TODO
+            return STATUS_NOT_SUPPORTED;
         }
 
         status_t ObjectStream::parse_array(Object **dst)
@@ -597,9 +788,11 @@ namespace lsp
             ssize_t token   = lookup_token();
             if (token != TC_ARRAY)
                 return (token >= 0) ? STATUS_CORRUPTED : -token;
+            clear_token();
 
-            Object *desc    = NULL;
-            status_t res    = pares_class_descriptor(&desc);
+            // Read class descriptor
+            ObjectStreamClass *desc;
+            status_t res    = read_class_descriptor(&desc);
             if (res != STATUS_OK)
                 return res;
 
@@ -636,6 +829,10 @@ namespace lsp
                 case TC_ARRAY: // Array
                     return end_object(mode, parse_array(ret));
 
+                case TC_CLASSDESC:
+                case TC_PROXYCLASSDESC:
+                    return end_object(mode, parse_class_descriptor(ret));
+
                 default:
                     break;
             }
@@ -668,11 +865,46 @@ namespace lsp
                     return end_object(mode, parse_null(ret));
 
                 case TC_REFERENCE: // Some reference to object, required to be string
-                    return end_object(mode, parse_reference(ret, NULL));
+                    return end_object(mode, parse_reference(ret, String::CLASS_NAME));
 
-                case TC_STRING: // String with 16-bit length
-                case TC_LONGSTRING: // String with 32-bit length
+                case TC_STRING:
+                case TC_LONGSTRING:
                     return end_object(mode, parse_string(ret));
+
+                default:
+                    break;
+            }
+
+            return end_object(mode, STATUS_BAD_STATE);
+        }
+
+        status_t ObjectStream::read_class_descriptor(ObjectStreamClass **dst)
+        {
+            // Fetch token
+            ssize_t token = lookup_token();
+            if (token < 0)
+                return token;
+
+            // Start object mode
+            bool mode = false;
+            status_t res = start_object(mode);
+            if (res != STATUS_OK)
+                return res;
+
+            obj_ptr_t ret(dst);
+            switch (token)
+            {
+                case TC_NULL: // Null reference, valid to be string
+                    return end_object(mode, parse_null(ret));
+
+                case TC_REFERENCE: // Some reference to object, required to be string
+                    return end_object(mode, parse_reference(ret, ObjectStreamClass::CLASS_NAME));
+
+                case TC_CLASSDESC:
+                    return end_object(mode, parse_class_descriptor(ret));
+
+                case TC_PROXYCLASSDESC:
+                    return end_object(mode, parse_proxy_class_descriptor(ret));
 
                 default:
                     break;

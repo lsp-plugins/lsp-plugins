@@ -12,7 +12,9 @@ namespace lsp
 {
     namespace java
     {
-        String::String(handle_t handle): Object(handle, CLASSNAME_STRING)
+        const char *String::CLASS_NAME  = "java.lang.String";
+
+        String::String(): Object(CLASS_NAME)
         {
         }
         
