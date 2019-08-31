@@ -21,6 +21,8 @@
 * Build fixes for Aarch64 architecture related to CPU feature detection.
 * Implemented drag & drop feature for file loading components.
 * Refactored clipboard mechanism for X11 protocol, addes support of INCR selection transfer.
+* Updated VST state serialization mechanism to version 3: now plugin properly handle state if there
+  is no chunk header in the chunk data passed from the host.
 - Added support of RoomEQ Wizard configuration file format by Parametric Equalizer plugin series.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
