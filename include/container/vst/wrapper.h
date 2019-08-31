@@ -54,7 +54,7 @@ namespace lsp
 
         protected:
             static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
-            status_t check_vst_header(const fxBank *bank);
+            status_t check_vst_header(const fxBank *bank, size_t size);
             void deserialize_v1(const fxBank *bank);
             void deserialize_v2_v3(const uint8_t *data, size_t bytes);
             void deserialize_new_chunk_format(const uint8_t *data, size_t bytes);
@@ -150,7 +150,7 @@ namespace lsp
             virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
 
             size_t serialize_state(const void **dst);
-            void deserialize_state(const void *data);
+            void deserialize_state(const void *data, size_t size);
 
             /**
              * Lock KVT storage
@@ -1082,8 +1082,15 @@ namespace lsp
         return sChunk.offset;
     }
 
-    status_t VSTWrapper::check_vst_header(const fxBank *bank)
+    status_t VSTWrapper::check_vst_header(const fxBank *bank, size_t size)
     {
+        // Validate size
+        if (size < size_t(offsetof(fxBank, content.data.chunk)))
+        {
+            lsp_warn("block size too small (0x%08x bytes)", int(size));
+            return STATUS_NOT_FOUND;
+        }
+
         // Validate chunkMagic
         if (bank->chunkMagic != BE_TO_CPU(cMagic))
         {
@@ -1123,12 +1130,12 @@ namespace lsp
         return STATUS_OK;
     }
 
-    void VSTWrapper::deserialize_state(const void *data)
+    void VSTWrapper::deserialize_state(const void *data, size_t size)
     {
         const fxBank *bank          = reinterpret_cast<const fxBank *>(data);
         const uint8_t *head         = reinterpret_cast<const uint8_t *>(data);
 
-        status_t res                = check_vst_header(bank);
+        status_t res                = check_vst_header(bank, size);
 
         if (res == STATUS_OK)
         {
@@ -1166,7 +1173,8 @@ namespace lsp
         {
             // Do stuff considering that there is NO chunk headers, just raw data
             lsp_warn("No VST 2.x chunk header found, assuming the body is in valid state");
-            deserialize_new_chunk_format(head, 0xffffffff);
+            dump_vst_bank(head, size);
+            deserialize_new_chunk_format(head, size);
         }
         else
             return;
@@ -1195,14 +1203,11 @@ namespace lsp
         {
             lsp_debug("Performing V2 parameter deserialization (0x%x bytes)", int(bytes));
             deserialize_v2_v3(data, bytes);
-
         }
         else if (hdr.nVersion >= VST_FX_VERSION_JUCE_FIX)
         {
             lsp_debug("Performing V3 parameter deserialization");
-            dump_vst_bank(data, hdr.nSize + sizeof(hdr));
-            data           += sizeof(hdr);
-            deserialize_v2_v3(data, hdr.nSize);
+            deserialize_v2_v3(&data[sizeof(hdr)], hdr.nSize);
         }
         else
             lsp_warn("Unsupported format, don't know how to deserialize chunk");
