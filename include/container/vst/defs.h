@@ -40,6 +40,14 @@ typedef struct vst_state_buffer
     vst_state       sState;             // VST state
 } vst_state_buffer;
 
+typedef struct vst_state_header
+{
+    VstInt32        nMagic1;            // LSP_VST_USER_MAGIC
+    VstInt32        nSize;              // Size of contents, again...
+    VstInt32        nVersion;           // Current format version
+    VstInt32        nMagic2;            // LSP_VST_USER_MAGIC
+} vst_state_header;
+
 #pragma pack(pop)
 
 #define VST_CREATE_INSTANCE_NAME        vst_create_instance
@@ -71,6 +79,7 @@ enum
 };
 
 #define VST_FX_VERSION_KVT_SUPPORT      2000
+#define VST_FX_VERSION_JUCE_FIX         3000
 
 namespace lsp
 {

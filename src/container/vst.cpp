@@ -500,7 +500,7 @@ namespace lsp
             {
                 if (e->flags & effFlagsProgramChunks)
                 {
-                    w->deserialize_state(ptr);
+                    w->deserialize_state(ptr, value);
                     v = 1;
                 }
                 break;

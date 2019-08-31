@@ -117,7 +117,7 @@ namespace lsp
 
             if ((raw_data != NULL) && (raw_size > 0))
             {
-                __lsp_dumpb("Content dump", raw_data, raw_size);
+                lsp_dumpb("Content dump", raw_data, raw_size);
 
                 switch (nCtype)
                 {
