@@ -66,6 +66,7 @@ namespace lsp
                 status_t    skip_block_data();
                 status_t    skip_custom_data();
                 status_t    parse_array(RawArray **dst);
+                status_t    parse_ordinary_object(Object **dst);
                 status_t    parse_reset();
                 status_t    parse_null(Object **dst);
                 status_t    parse_class_field(ObjectStreamField **dst);
@@ -75,6 +76,8 @@ namespace lsp
                 status_t    parse_reference(Object **dst, const char *type = NULL);
                 status_t    parse_string(String **dst);
                 status_t    parse_object(Object **dst);
+                status_t    parse_serial_data(Object *dst, ObjectStreamClass *desc);
+                status_t    parse_external_data(Object *dst, ObjectStreamClass *desc);
 
                 inline status_t    start_object(bool &mode);
                 inline status_t    end_object(bool &mode, status_t res);

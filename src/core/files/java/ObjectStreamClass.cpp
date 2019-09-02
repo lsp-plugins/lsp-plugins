@@ -17,11 +17,14 @@ namespace lsp
         ObjectStreamClass::ObjectStreamClass(): Object(CLASS_NAME)
         {
             pParent     = NULL;
-            pRawName     = NULL;
+            pRawName    = NULL;
             nSuid       = 0;
             nFlags      = 0;
             nFields     = 0;
+            nSlots      = 0;
+            nSizeOf     = 0;
             vFields     = NULL;
+            vSlots      = NULL;
         }
         
         ObjectStreamClass::~ObjectStreamClass()
@@ -36,6 +39,17 @@ namespace lsp
                     }
                 ::free(vFields);
                 vFields = NULL;
+            }
+            if (vSlots != NULL)
+            {
+                for (size_t i=0; i<nSlots; ++i)
+                    if (vSlots[i] != NULL)
+                    {
+                        vSlots[i]->release();
+                        vSlots[i] = NULL;
+                    }
+                ::free(vSlots);
+                vSlots = NULL;
             }
             if (pRawName != NULL)
             {

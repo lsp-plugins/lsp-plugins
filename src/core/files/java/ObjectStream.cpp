@@ -819,6 +819,7 @@ namespace lsp
                     // Read, parse and validate each field
                     size_t prim_data_size = 0;
                     size_t num_obj_fields = 0;
+                    size_t size_of        = 0;
                     ssize_t first_obj_idx = -1;
 
                     for (size_t i=0; i<fields; ++i)
@@ -842,6 +843,7 @@ namespace lsp
                             f->nOffset      = prim_data_size;
                             prim_data_size += f->size_of();
                         }
+                        size_of        += f->size_of();
                     }
 
                     // Validate the final state
@@ -863,6 +865,21 @@ namespace lsp
                 res             = read_class_descriptor(&desc->pParent);
                 if ((res == STATUS_OK) && (desc->pParent != NULL))
                     desc->pParent->release();
+            }
+
+            // Generate slots
+            if (res == STATUS_OK)
+            {
+                // Store slots in reverse order to the class hierarchy
+                size_t slots = 0;
+                for (ObjectStreamClass *curr = desc; curr != NULL; curr = curr->pParent)
+                    ++slots;
+                desc->vSlots    = reinterpret_cast<ObjectStreamClass **>(::malloc(slots * sizeof(ObjectStreamClass *)));
+                if (desc->vSlots != NULL)
+                {
+                    for (ObjectStreamClass *curr = desc; curr != NULL; curr = curr->pParent)
+                        desc->vSlots[--slots]   = curr;
+                }
             }
 
             // Analyze result
@@ -953,6 +970,54 @@ namespace lsp
             return res;
         }
 
+        status_t ObjectStream::parse_serial_data(Object *dst, ObjectStreamClass *desc)
+        {
+            // TODO: read object slots
+            return STATUS_OK;
+        }
+
+        status_t ObjectStream::parse_external_data(Object *dst, ObjectStreamClass *desc)
+        {
+            // TODO
+            return STATUS_OK;
+        }
+
+        status_t ObjectStream::parse_ordinary_object(Object **dst)
+        {
+            // Fetch token
+            ssize_t token   = lookup_token();
+            if (token != TC_OBJECT)
+                return (token >= 0) ? STATUS_CORRUPTED : -token;
+            clear_token();
+
+            // Read class descriptor
+            ObjectStreamClass *desc = NULL;
+            status_t res    = read_class_descriptor(&desc);
+            if (res != STATUS_OK)
+                return res;
+
+            // Create object
+            Object *obj     = new Object(desc->raw_name());
+            if (obj == NULL)
+            {
+                desc->release();
+                return STATUS_NO_MEM;
+            }
+
+            // Register object and allocate data
+            res = pHandles->assign(obj);
+
+            if (res == STATUS_OK)
+            {
+                res = (desc->is_externalizable()) ?
+                        parse_external_data(obj, desc) :
+                        parse_serial_data(obj, desc);
+            }
+
+            obj->release();
+            return res;
+        }
+
 
         status_t ObjectStream::parse_object(Object **dst)
         {
@@ -982,6 +1047,10 @@ namespace lsp
 
                 case TC_ARRAY: // Array
                     return end_object(mode, parse_array(ret));
+
+                case TC_OBJECT: // Object
+                    return end_object(mode, parse_ordinary_object(ret));
+
 
                 case TC_CLASSDESC:
                 case TC_PROXYCLASSDESC:
