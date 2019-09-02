@@ -71,7 +71,7 @@ namespace lsp
 
     bool Counter::submit(size_t samples)
     {
-        ssize_t left    = ssize_t(nCurrent) - samples;
+        ssize_t left    = ssize_t(nCurrent) - ssize_t(samples);
         if (left <= 0)
         {
             nCurrent        = nInitial + (left % ssize_t(nInitial));

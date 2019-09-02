@@ -23,6 +23,9 @@
 * Refactored clipboard mechanism for X11 protocol, addes support of INCR selection transfer.
 * Updated VST state serialization mechanism to version 3: now plugin properly handle state if there
   is no chunk header in the chunk data passed from the host.
+* Fixed memory corruption bug in Analyzer core module that could crash the system on
+  non-power-of-two buffer sizes. Affected plugins: Parametric Equalizer, Graphic Equalizer,
+  Spectrum Analyzer, Multiband Compressor.
 - Added support of RoomEQ Wizard configuration file format by Parametric Equalizer plugin series.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.

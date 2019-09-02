@@ -1140,8 +1140,7 @@ namespace lsp
         if (res == STATUS_OK)
         {
             lsp_warn("Found standard VST 2.x chunk header");
-            size_t ck_size              = BE_TO_CPU(bank->byteSize) + 2 * sizeof(VstInt32);
-            dump_vst_bank(bank, ck_size);
+            dump_vst_bank(bank, (BE_TO_CPU(bank->byteSize) + 2 * sizeof(VstInt32)));
 
             // Check the version
             VstInt32 fxVersion = BE_TO_CPU(bank->fxVersion);
