@@ -16,6 +16,16 @@ namespace lsp
     {
         typedef uint32_t            handle_t;
 
+        class ObjectStreamClass;
+
+        typedef struct object_slot_t
+        {
+            ObjectStreamClass      *desc;   // Slot descriptor
+            size_t                  flags;  // Flags
+            size_t                  offset; // Offset from data beginning
+            size_t                  size;   // Size in bytes
+        } object_slot_t;
+
         /**
          * This is common Java object implementation,
          * should be always allocated with new() operator
@@ -26,26 +36,23 @@ namespace lsp
                 static const char *CLASS_NAME;
 
             private:
+                friend class ObjectStream;
                 Object & operator = (const Object &);
 
             private:
-                ssize_t         nReferences;
                 const char     *pClass;
+                object_slot_t  *vSlots;
+                size_t          nSlots;
+                uint8_t        *vData;
 
             public:
                 explicit Object(const char *class_name);
                 virtual ~Object();
 
             public:
-                inline size_t references() const    { return nReferences; }
-
                 inline const char *class_name() const { return pClass; }
 
                 bool instanceof(const char *name);
-
-                ssize_t acquire();
-
-                ssize_t release();
         };
 
     } /* namespace java */

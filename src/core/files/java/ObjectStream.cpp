@@ -370,7 +370,7 @@ namespace lsp
             if (sBlock.enabled)
             {
                 if ((sBlock.unread > 0) || (sBlock.offset < sBlock.size))
-                    return STATUS_BAD_STATE;
+                    return -STATUS_BAD_STATE;
             }
 
             // Loop and process TC_RESET tokens
@@ -488,7 +488,7 @@ namespace lsp
                     return STATUS_NO_MEM;
                 if (!p->string()->set(ptype))
                 {
-                    p->release();
+                    delete p;
                     return STATUS_NO_MEM;
                 }
                 vTypeStrings[type] = p;
@@ -525,8 +525,6 @@ namespace lsp
             // Store handle
             if (dst != NULL)
                 *dst    = obj;
-            else
-                obj->release();
 
             return STATUS_OK;
         }
@@ -605,12 +603,8 @@ namespace lsp
 
             // Need to return string?
             if (dst != NULL)
-            {
-                str->acquire();
                 *dst    = str;
-            }
 
-            str->release();
             return res;
         }
 
@@ -670,12 +664,8 @@ namespace lsp
 
             // Return result
             if ((res == STATUS_OK) && (dst != NULL))
-            {
-                f->acquire();
                 *dst    = f;
-            }
 
-            f->release();
             return res;
         }
 
@@ -723,8 +713,6 @@ namespace lsp
                     case TC_BLOCKDATALONG:
                         res = set_block_mode(true, NULL);
                         if (res == STATUS_OK)
-                            res = set_block_mode(true);
-                        if (res == STATUS_OK)
                             res = fill_block();
                         break;
 
@@ -741,6 +729,121 @@ namespace lsp
                 if (res != STATUS_OK)
                     return res;
             }
+        }
+
+        status_t ObjectStream::read_custom_data(void **dst, size_t *size)
+        {
+            status_t res = STATUS_OK;
+            size_t capacity = 0;
+            uint8_t *ptr = NULL;
+            bool endblockdata = false;
+
+            do
+            {
+                // Complete data block
+                if (sBlock.enabled)
+                {
+                    // Read the block
+                    size_t extra = sBlock.unread + sBlock.size - sBlock.offset;
+                    uint8_t *xptr = reinterpret_cast<uint8_t *>(::realloc(ptr, capacity + extra));
+                    if (xptr == NULL)
+                        res     = STATUS_NO_MEM;
+                    if (res == STATUS_OK)
+                    {
+                        // Copy data from block
+                        size_t gap      = sBlock.size - sBlock.offset;
+                        if (gap > 0)
+                        {
+                            ::memcpy(&xptr[capacity], &sBlock.data[sBlock.size], gap);
+                            capacity       += gap;
+                            sBlock.size     = sBlock.offset;
+                        }
+
+                        // Read the left data
+                        if (sBlock.unread > 0)
+                        {
+                            res             = pIS->read_fully(&xptr[capacity], sBlock.unread);
+                            if (res == ssize_t(sBlock.unread))
+                            {
+                                capacity       += res;
+                                sBlock.unread   = 0;
+                            }
+                            else
+                                res = STATUS_CORRUPTED;
+                        }
+                    }
+                    if (res == STATUS_OK)
+                        res = set_block_mode(false, NULL);
+                }
+                if (res != STATUS_OK)
+                    break;
+
+                // Read token
+                if ((res = lookup_token()) < 0)
+                {
+                    res     = -res;
+                    break;
+                }
+
+                // Analyze token
+                switch (res)
+                {
+                    case TC_BLOCKDATA:
+                    {
+                        uint8_t blen;
+                        res             = pIS->read_fully(&blen, sizeof(blen));
+                        if (res != sizeof(blen))
+                            res = (res < 0) ? -res : STATUS_CORRUPTED;
+                        sBlock.enabled  = true;
+                        sBlock.offset   = 0;
+                        sBlock.size     = 0;
+                        sBlock.unread   = blen;
+                        res             = STATUS_OK;
+                        break;
+                    }
+
+                    case TC_BLOCKDATALONG:
+                    {
+                        int32_t blen;
+                        res             = pIS->read_fully(&blen, sizeof(blen));
+                        if (res != sizeof(blen))
+                            res = (res < 0) ? -res : STATUS_CORRUPTED;
+                        sBlock.enabled  = true;
+                        sBlock.offset   = 0;
+                        sBlock.size     = 0;
+                        sBlock.unread   = blen;
+                        res             = STATUS_OK;
+                        break;
+                    }
+                    case TC_ENDBLOCKDATA:
+                        clear_token();
+                        endblockdata    = true;
+                        break;
+
+                    default:
+                        res             = STATUS_CORRUPTED;
+                        break;
+                }
+
+                // Analyze result
+                if (res != STATUS_OK)
+                    break;
+            } while (!endblockdata);
+
+            // Return result
+            if (res == STATUS_OK)
+            {
+                if (dst != NULL)
+                    *dst    = ptr;
+                else
+                    ::free(ptr);
+                if (size != NULL)
+                    *size   = capacity;
+            }
+            else if (ptr != NULL)
+                ::free(ptr);
+
+            return res;
         }
 
         status_t ObjectStream::parse_class_descriptor(ObjectStreamClass **dst)
@@ -849,6 +952,9 @@ namespace lsp
                     // Validate the final state
                     if ((first_obj_idx >= 0) && ((first_obj_idx + num_obj_fields) != fields))
                         res     = STATUS_CORRUPTED;
+
+                    // Update object statistics
+                    desc->nSizeOf   = size_of;
                 }
                 else
                     res     = STATUS_NO_MEM;
@@ -863,8 +969,6 @@ namespace lsp
             {
                 desc->pParent   = NULL;
                 res             = read_class_descriptor(&desc->pParent);
-                if ((res == STATUS_OK) && (desc->pParent != NULL))
-                    desc->pParent->release();
             }
 
             // Generate slots
@@ -884,12 +988,8 @@ namespace lsp
 
             // Analyze result
             if ((res == STATUS_OK) && (dst != NULL))
-            {
-                desc->acquire();
                 *dst    = desc;
-            }
 
-            desc->release();
             return res;
         }
 
@@ -916,10 +1016,7 @@ namespace lsp
             // Create array object
             RawArray *arr   = new RawArray(desc->raw_name());
             if (arr == NULL)
-            {
-                desc->release();
                 return STATUS_NO_MEM;
-            }
 
             // Register array and allocate data
             res = pHandles->assign(arr);
@@ -961,19 +1058,81 @@ namespace lsp
 
             // Store result
             if ((res == STATUS_OK) && (dst != NULL))
-            {
-                arr->acquire();
                 *dst    = arr;
-            }
 
-            arr->release();
             return res;
         }
 
         status_t ObjectStream::parse_serial_data(Object *dst, ObjectStreamClass *desc)
         {
-            // TODO: read object slots
-            return STATUS_OK;
+            // Initialize slots
+            dst->vSlots     = reinterpret_cast<object_slot_t *>(::malloc(desc->nSlots * sizeof(object_slot_t)));
+            if (dst->vSlots == NULL)
+                return STATUS_NO_MEM;
+
+            // Estimate number of initial data for allocation
+            size_t allocated = 0, offset = 0;
+            for (size_t i=0, n=desc->nSlots; i<n; ++i)
+            {
+                ObjectStreamClass *cl = desc->vSlots[i];
+                if (cl->is_serializable()) // Skip serializable objects
+                    continue;
+                allocated += desc->vSlots[i]->nSizeOf;
+            }
+
+            // Allocate memory
+            dst->vData      = reinterpret_cast<uint8_t *>(::malloc(allocated));
+            if (dst->vData == NULL)
+                return STATUS_NO_MEM;
+
+            // Perform read of the object
+            status_t res;
+            for (size_t i=0, n=desc->nSlots; i<n; ++i)
+            {
+                ObjectStreamClass *cl   = desc->vSlots[i];
+                object_slot_t *sl       = &dst->vSlots[i];
+
+                sl->desc            = cl;
+                sl->flags           = cl->nFlags;
+                sl->offset          = offset;
+                sl->size            = 0;
+
+                if (cl->has_write_method())
+                {
+                    void *tmp = NULL;
+                    size_t tail;
+
+                    // Read object's serial data from underlying stream
+                    res = read_custom_data(&tmp, &tail);
+                    if (res != STATUS_OK)
+                        break;
+                    else if (tail <= 0)
+                        continue;
+
+                    // Align the object's data to the boundary
+                    size_t space    = ALIGN_SIZE(tail, sizeof(size_t));
+                    allocated      += space;
+                    uint8_t *xdata  = reinterpret_cast<uint8_t *>(::realloc(dst->vData, space));
+                    if (xdata == NULL)
+                    {
+                        res = STATUS_NO_MEM;
+                        break;
+                    }
+
+                    // Copy data to the class structure
+                    ::memcpy(&xdata[offset], tmp, tail);
+                    ::free(tmp);
+                    sl->size        = tail;
+                    offset         += space;
+                }
+                else
+                {
+                    // Read serial data
+                }
+
+            }
+
+            return res;
         }
 
         status_t ObjectStream::parse_external_data(Object *dst, ObjectStreamClass *desc)
@@ -999,10 +1158,7 @@ namespace lsp
             // Create object
             Object *obj     = new Object(desc->raw_name());
             if (obj == NULL)
-            {
-                desc->release();
                 return STATUS_NO_MEM;
-            }
 
             // Register object and allocate data
             res = pHandles->assign(obj);
@@ -1014,7 +1170,6 @@ namespace lsp
                         parse_serial_data(obj, desc);
             }
 
-            obj->release();
             return res;
         }
 

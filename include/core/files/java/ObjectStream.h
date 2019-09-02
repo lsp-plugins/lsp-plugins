@@ -65,6 +65,7 @@ namespace lsp
 
                 status_t    skip_block_data();
                 status_t    skip_custom_data();
+                status_t    read_custom_data(void **dst, size_t *size);
                 status_t    parse_array(RawArray **dst);
                 status_t    parse_ordinary_object(Object **dst);
                 status_t    parse_reset();

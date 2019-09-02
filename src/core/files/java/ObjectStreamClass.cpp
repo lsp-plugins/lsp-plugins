@@ -32,11 +32,7 @@ namespace lsp
             if (vFields != NULL)
             {
                 for (size_t i=0; i<nFields; ++i)
-                    if (vFields[i] != NULL)
-                    {
-                        vFields[i]->release();
-                        vFields[i] = NULL;
-                    }
+                    vFields[i] = NULL;
                 ::free(vFields);
                 vFields = NULL;
             }
@@ -44,10 +40,7 @@ namespace lsp
             {
                 for (size_t i=0; i<nSlots; ++i)
                     if (vSlots[i] != NULL)
-                    {
-                        vSlots[i]->release();
                         vSlots[i] = NULL;
-                    }
                 ::free(vSlots);
                 vSlots = NULL;
             }

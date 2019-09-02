@@ -40,7 +40,6 @@ UTEST_BEGIN("core.files", java)
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
         UTEST_ASSERT(os.read_string(&jstr) == STATUS_OK);
         UTEST_ASSERT(jstr->string()->equals_ascii("writeObject string"));
-        jstr->release();
         jstr = NULL;
 
         // Read array
@@ -69,8 +68,6 @@ UTEST_BEGIN("core.files", java)
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
         UTEST_ASSERT(os.read_string(&str) == STATUS_OK);
         UTEST_ASSERT(str->string()->equals_ascii("TMreq Filters File:Equaliser:Generic"));
-        UTEST_ASSERT(str->references() == 2);
-        str->release();
         str = NULL;
 
         UTEST_ASSERT(os.current_token() == java::JST_BLOCK_DATA);
@@ -84,8 +81,6 @@ UTEST_BEGIN("core.files", java)
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
         UTEST_ASSERT(os.read_string(&str) == STATUS_OK);
         UTEST_ASSERT(str->string()->equals_ascii("Notes:"));
-        UTEST_ASSERT(str->references() == 2);
-        str->release();
         str = NULL;
 
         UTEST_ASSERT(os.current_token() == java::JST_BLOCK_DATA);

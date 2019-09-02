@@ -6,6 +6,7 @@
  */
 
 #include <core/files/java/Object.h>
+#include <core/files/java/ObjectStreamClass.h>
 
 namespace lsp
 {
@@ -15,13 +16,19 @@ namespace lsp
         
         Object::Object(const char *class_name)
         {
-            nReferences = 1;
             pClass      = class_name;
+            vSlots      = NULL;
+            nSlots      = 0;
+            vData       = NULL;
         }
         
         Object::~Object()
         {
-            nReferences = 0;
+            if (vSlots != NULL)
+                ::free(vSlots);
+            if (vData != NULL)
+                ::free(vData);
+
             pClass      = NULL;
         }
 
@@ -30,18 +37,5 @@ namespace lsp
             return ::strcmp(name, pClass) == 0;
         }
 
-        ssize_t Object::acquire()
-        {
-            return ++nReferences;
-        }
-
-        ssize_t Object::release()
-        {
-            ssize_t refs = --nReferences;
-            if (refs <= 0)
-                delete this;
-            return refs;
-        }
-    
     } /* namespace java */
 } /* namespace lsp */
