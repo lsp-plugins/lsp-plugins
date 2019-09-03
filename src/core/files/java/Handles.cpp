@@ -29,10 +29,7 @@ namespace lsp
 
         Object *Handles::get(size_t handle)
         {
-            Object *item = (handle < nHandle) ? vItems[handle] : NULL;
-            if (item != NULL)
-                item->acquire();
-            return item;
+            return (handle < nHandle) ? vItems[handle] : NULL;
         }
 
         status_t Handles::assign(Object *obj)
@@ -52,7 +49,6 @@ namespace lsp
                 nCapacity   = cap;
             }
 
-            obj->acquire();
             vItems[nHandle++]   = obj;
             return STATUS_OK;
         }
@@ -65,8 +61,7 @@ namespace lsp
             {
                 if (vItems[i] == NULL)
                     continue;
-                if (vItems[i]->release() > 0)
-                    delete vItems[i];
+                delete vItems[i];
                 vItems[i] = NULL;
             }
 
@@ -81,8 +76,7 @@ namespace lsp
             {
                 if (vItems[i] == NULL)
                     continue;
-                if (vItems[i]->release() > 0)
-                    delete vItems[i];
+                delete vItems[i];
             }
             ::free(vItems);
             vItems      = NULL;

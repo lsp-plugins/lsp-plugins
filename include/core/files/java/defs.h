@@ -111,7 +111,7 @@ namespace lsp
                 double_t       *p_double;
                 float_t        *p_float;
                 bool_t         *p_bool;
-                Object         *p_object;
+                Object        **p_object;
                 void           *p_void;
             } prim_ptr_t;
         #pragma pack(pop)

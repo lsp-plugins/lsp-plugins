@@ -918,6 +918,7 @@ namespace lsp
                     ObjectStreamField **fl = desc->vFields;
                     for (size_t i=0; i<fields; ++i)
                         fl[i]    = NULL;
+                    desc->nFields = fields;
 
                     // Read, parse and validate each field
                     size_t prim_data_size = 0;
@@ -979,6 +980,7 @@ namespace lsp
                 for (ObjectStreamClass *curr = desc; curr != NULL; curr = curr->pParent)
                     ++slots;
                 desc->vSlots    = reinterpret_cast<ObjectStreamClass **>(::malloc(slots * sizeof(ObjectStreamClass *)));
+                desc->nSlots    = slots;
                 if (desc->vSlots != NULL)
                 {
                     for (ObjectStreamClass *curr = desc; curr != NULL; curr = curr->pParent)
@@ -1075,9 +1077,9 @@ namespace lsp
             for (size_t i=0, n=desc->nSlots; i<n; ++i)
             {
                 ObjectStreamClass *cl = desc->vSlots[i];
-                if (cl->is_serializable()) // Skip serializable objects
-                    continue;
-                allocated += ALIGN_SIZE(desc->vSlots[i]->nSizeOf, sizeof(size_t));
+//                if (cl->is_serializable()) // Skip serializable objects
+//                    continue;
+                allocated += ALIGN_SIZE(cl->nSizeOf, sizeof(size_t));
             }
 
             // Allocate memory
@@ -1136,7 +1138,8 @@ namespace lsp
                     // Operate each field
                     for (size_t j=0, m=cl->nFields; j<m; ++j)
                     {
-                        ObjectStreamField *f    = cl->vFields[i];
+                        ObjectStreamField *f    = cl->vFields[j];
+                        lsp_trace("  reading field: %s", f->sName.get_native());
                         switch (f->type())
                         {
                             case JFT_BYTE:      res = read_byte(xdata.p_ubyte++); break;
@@ -1148,19 +1151,12 @@ namespace lsp
                             case JFT_SHORT:     res = read_short(xdata.p_ushort++); break;
                             case JFT_BOOL:      res = read_bool(xdata.p_bool++); break;
                             case JFT_ARRAY:
-                            {
-                                RawArray *arr = NULL;
-                                res     = parse_array(&arr);
-                                if (res == STATUS_OK)
-                                    xdata.p_object  = arr;
-                                break;
-                            }
                             case JFT_OBJECT:
                             {
                                 Object *obj = NULL;
                                 res     = read_object(&obj);
                                 if (res == STATUS_OK)
-                                    xdata.p_object  = obj;
+                                    *(xdata.p_object++)     = obj;
                                 break;
                             }
                             default:

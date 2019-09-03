@@ -23,11 +23,7 @@ namespace lsp
         
         ObjectStreamField::~ObjectStreamField()
         {
-            if (pSignature != NULL)
-            {
-                pSignature->release();
-                pSignature   = NULL;
-            }
+            pSignature   = NULL;
         }
 
     } /* namespace java */
