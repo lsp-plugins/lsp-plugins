@@ -88,15 +88,33 @@ namespace lsp
         };
 
 
+        class Object;
+
         #pragma pack(push, 1)
             typedef struct obj_stream_hdr_t
             {
                 uint16_t    magic;
                 uint16_t    version;
             } obj_stream_hdr_t;
-        #pragma pack(pop)
 
-        class Object;
+            typedef union prim_ptr_t
+            {
+                int8_t         *p_byte;
+                uint8_t        *p_ubyte;
+                int16_t        *p_short;
+                uint16_t       *p_ushort;
+                int32_t        *p_int;
+                uint32_t       *p_uint;
+                int64_t        *p_long;
+                uint64_t       *p_ulong;
+                lsp_utf16_t    *p_char;
+                double_t       *p_double;
+                float_t        *p_float;
+                bool_t         *p_bool;
+                Object         *p_object;
+                void           *p_void;
+            } prim_ptr_t;
+        #pragma pack(pop)
 
         struct obj_ptr_t
         {

@@ -1077,7 +1077,7 @@ namespace lsp
                 ObjectStreamClass *cl = desc->vSlots[i];
                 if (cl->is_serializable()) // Skip serializable objects
                     continue;
-                allocated += desc->vSlots[i]->nSizeOf;
+                allocated += ALIGN_SIZE(desc->vSlots[i]->nSizeOf, sizeof(size_t));
             }
 
             // Allocate memory
@@ -1093,9 +1093,9 @@ namespace lsp
                 object_slot_t *sl       = &dst->vSlots[i];
 
                 sl->desc            = cl;
-                sl->flags           = cl->nFlags;
                 sl->offset          = offset;
                 sl->size            = 0;
+                sl->__pad           = 0;
 
                 if (cl->has_write_method())
                 {
@@ -1109,7 +1109,7 @@ namespace lsp
                     else if (tail <= 0)
                         continue;
 
-                    // Align the object's data to the boundary
+                    // Align the object's data to the boundary and re-allocate segment
                     size_t space    = ALIGN_SIZE(tail, sizeof(size_t));
                     allocated      += space;
                     uint8_t *xdata  = reinterpret_cast<uint8_t *>(::realloc(dst->vData, space));
@@ -1128,8 +1128,55 @@ namespace lsp
                 else
                 {
                     // Read serial data
+                    prim_ptr_t xdata;
+                    size_t space    = ALIGN_SIZE(cl->nSizeOf, sizeof(size_t));
+                    sl->size        = cl->nSizeOf;
+                    xdata.p_ubyte   = &dst->vData[offset];
+
+                    // Operate each field
+                    for (size_t j=0, m=cl->nFields; j<m; ++j)
+                    {
+                        ObjectStreamField *f    = cl->vFields[i];
+                        switch (f->type())
+                        {
+                            case JFT_BYTE:      res = read_byte(xdata.p_ubyte++); break;
+                            case JFT_CHAR:      res = read_char(xdata.p_char++); break;
+                            case JFT_DOUBLE:    res = read_double(xdata.p_double++); break;
+                            case JFT_FLOAT:     res = read_float(xdata.p_float++); break;
+                            case JFT_INTEGER:   res = read_int(xdata.p_uint++); break;
+                            case JFT_LONG:      res = read_long(xdata.p_ulong++); break;
+                            case JFT_SHORT:     res = read_short(xdata.p_ushort++); break;
+                            case JFT_BOOL:      res = read_bool(xdata.p_bool++); break;
+                            case JFT_ARRAY:
+                            {
+                                RawArray *arr = NULL;
+                                res     = parse_array(&arr);
+                                if (res == STATUS_OK)
+                                    xdata.p_object  = arr;
+                                break;
+                            }
+                            case JFT_OBJECT:
+                            {
+                                Object *obj = NULL;
+                                res     = read_object(&obj);
+                                if (res == STATUS_OK)
+                                    xdata.p_object  = obj;
+                                break;
+                            }
+                            default:
+                                res     = STATUS_CORRUPTED;
+                                break;
+                        }
+
+                        if (res != STATUS_OK)
+                            break;
+                    }
+
+                    offset         += space;
                 }
 
+                if (res != STATUS_OK)
+                    break;
             }
 
             return res;

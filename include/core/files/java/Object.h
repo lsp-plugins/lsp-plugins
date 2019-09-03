@@ -21,9 +21,9 @@ namespace lsp
         typedef struct object_slot_t
         {
             ObjectStreamClass      *desc;   // Slot descriptor
-            size_t                  flags;  // Flags
             size_t                  offset; // Offset from data beginning
             size_t                  size;   // Size in bytes
+            size_t                  __pad;
         } object_slot_t;
 
         /**
