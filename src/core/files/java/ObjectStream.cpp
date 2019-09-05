@@ -1220,7 +1220,7 @@ namespace lsp
         status_t ObjectStream::parse_external_data(Object *dst, ObjectStreamClass *desc)
         {
             // TODO
-            return STATUS_OK;
+            return STATUS_NOT_IMPLEMENTED;
         }
 
         status_t ObjectStream::parse_ordinary_object(Object **dst)

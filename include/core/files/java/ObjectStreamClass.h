@@ -56,6 +56,7 @@ namespace lsp
                 inline bool is_serializable() const         { return nFlags & (JCF_EXTERNALIZABLE | JCF_SERIALIZABLE); }
                 inline const ObjectStreamField *field(size_t idx) const { return (idx < nFields) ? vFields[idx] : NULL; }
                 inline const ObjectStreamClass *slot(size_t idx) const { return (idx < nSlots) ? vSlots[idx] : NULL; }
+                inline size_t fields() const                { return nFields; };
         };
     
     } /* namespace java */

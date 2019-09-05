@@ -9,6 +9,7 @@
 #define CORE_FILES_JAVA_OBJECT_H_
 
 #include <common/types.h>
+#include <core/LSPString.h>
 
 namespace lsp
 {
@@ -37,6 +38,7 @@ namespace lsp
 
             private:
                 friend class ObjectStream;
+                friend class RawArray;
                 Object & operator = (const Object &);
 
             private:
@@ -44,6 +46,10 @@ namespace lsp
                 object_slot_t  *vSlots;
                 size_t          nSlots;
                 uint8_t        *vData;
+
+            protected:
+                virtual status_t to_string_padded(LSPString *dst, size_t pad);
+                static bool pad_string(LSPString *dst, size_t pad);
 
             public:
                 explicit Object(const char *class_name);
@@ -57,6 +63,8 @@ namespace lsp
             public:
                 template <class T>
                     inline T *cast() { return (instanceof(T::CLASS_NAME)) ? static_cast<T *>(this) : NULL; }
+
+                virtual status_t to_string(LSPString *dst);
         };
 
     } /* namespace java */

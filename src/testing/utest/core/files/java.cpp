@@ -24,6 +24,7 @@ UTEST_BEGIN("core.files", java)
         uint8_t u8;
         uint32_t u32;
         LSPString lstr;
+        LSPString tmp;
         java::String *jstr = NULL;
         java::Object *obj = NULL;
 
@@ -40,12 +41,16 @@ UTEST_BEGIN("core.files", java)
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
         UTEST_ASSERT(os.read_string(&jstr) == STATUS_OK);
         UTEST_ASSERT(jstr->string()->equals_ascii("writeObject string"));
+        UTEST_ASSERT(jstr->to_string(&tmp) == STATUS_OK);
+        printf("Read string: %s", tmp.get_utf8());
         jstr = NULL;
+        tmp.clear();
 
         // Read array
         UTEST_ASSERT(os.current_token() == java::JST_ARRAY);
         UTEST_ASSERT(os.read_object(&obj) == STATUS_OK);
-
+        UTEST_ASSERT(obj->to_string(&tmp) == STATUS_OK);
+        printf("Read array: %s", tmp.get_utf8());
 
         // Close file
         UTEST_ASSERT(os.close() == STATUS_OK);
@@ -97,10 +102,10 @@ UTEST_BEGIN("core.files", java)
 
     UTEST_MAIN
     {
-        printf("Testing JDK8 file...");
+        printf("Testing JDK8 file...\n");
         read_jdk8_file();
 
-        printf("Testing REW file...");
+        printf("Testing REW file...\n");
         read_rew_file();
     }
 

@@ -33,6 +33,9 @@ namespace lsp
                 template <class type_t>
                     inline      type_t *get()   { return reinterpret_cast<type_t *>(pData); }
 
+            protected:
+                virtual status_t to_string_padded(LSPString *dst, size_t pad);
+
             public:
                 explicit RawArray(const char *xc);
                 virtual ~RawArray();

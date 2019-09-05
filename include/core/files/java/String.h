@@ -42,6 +42,9 @@ namespace lsp
 
                 inline operator const LSPString &() const { return sString; }
                 inline operator const LSPString *() const { return &sString; }
+
+            public:
+                virtual status_t to_string(LSPString *dst);
         };
     
     } /* namespace java */
