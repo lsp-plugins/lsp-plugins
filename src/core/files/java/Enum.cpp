@@ -25,7 +25,9 @@ namespace lsp
         {
             if (name == CLASS_NAME)
                 return true;
-            return ::strcmp(name, CLASS_NAME) == 0;
+            if (::strcmp(name, CLASS_NAME) == 0)
+                return true;
+            return Object::instanceof(name);
         }
     
     } /* namespace java */

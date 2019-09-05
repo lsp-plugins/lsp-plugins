@@ -53,6 +53,10 @@ namespace lsp
                 inline const char *class_name() const { return pClass; }
 
                 virtual bool instanceof(const char *name);
+
+            public:
+                template <class T>
+                    inline T *cast() { return (instanceof(T::CLASS_NAME)) ? static_cast<T *>(this) : NULL; }
         };
 
     } /* namespace java */
