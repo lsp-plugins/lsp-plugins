@@ -1065,6 +1065,45 @@ namespace lsp
             return res;
         }
 
+        status_t ObjectStream::parse_enum(Enum **dst)
+        {
+            // Fetch token
+            ssize_t token   = lookup_token();
+            if (token != TC_ENUM)
+                return (token >= 0) ? STATUS_CORRUPTED : -token;
+            clear_token();
+
+            // Read class descriptor
+            ObjectStreamClass *desc = NULL;
+            status_t res    = read_class_descriptor(&desc);
+            if (res != STATUS_OK)
+                return res;
+
+            // Create enum object
+            Enum *en        = new Enum();
+            if (en == NULL)
+                return STATUS_NO_MEM;
+            en->pClass      = desc->pRawName;
+
+            // Register enum and allocate data
+            res = pHandles->assign(en);
+
+            // Read enum constant
+            if (res == STATUS_OK)
+            {
+                String *pstr = NULL;
+                res = read_string(&pstr);
+                if (res == STATUS_OK)
+                    res = (en->sName.set(pstr->string())) ? STATUS_OK : STATUS_NO_MEM;
+            }
+
+            // Store result
+            if ((res == STATUS_OK) && (dst != NULL))
+                *dst    = en;
+
+            return res;
+        }
+
         status_t ObjectStream::parse_serial_data(Object *dst, ObjectStreamClass *desc)
         {
             // Initialize slots
@@ -1088,7 +1127,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Perform read of the object
-            status_t res;
+            status_t res = STATUS_OK;
             for (size_t i=0, n=desc->nSlots; i<n; ++i)
             {
                 ObjectStreamClass *cl   = desc->vSlots[i];
@@ -1249,6 +1288,8 @@ namespace lsp
                 case TC_OBJECT: // Object
                     return end_object(mode, parse_ordinary_object(ret));
 
+                case TC_ENUM: // Enumeration
+                    return end_object(mode, parse_enum(ret));
 
                 case TC_CLASSDESC:
                 case TC_PROXYCLASSDESC:
@@ -1291,6 +1332,38 @@ namespace lsp
                 case TC_STRING:
                 case TC_LONGSTRING:
                     return end_object(mode, parse_string(ret));
+
+                default:
+                    break;
+            }
+
+            return end_object(mode, STATUS_BAD_STATE);
+        }
+
+        status_t ObjectStream::read_enum(Enum **dst)
+        {
+            // Fetch token
+            ssize_t token = lookup_token();
+            if (token < 0)
+                return token;
+
+            // Start object mode
+            bool mode = false;
+            status_t res = start_object(mode);
+            if (res != STATUS_OK)
+                return res;
+
+            obj_ptr_t ret(dst);
+            switch (token)
+            {
+                case TC_NULL: // Null reference, valid to be string
+                    return end_object(mode, parse_null(ret));
+
+                case TC_REFERENCE: // Some reference to object, required to be string
+                    return end_object(mode, parse_reference(ret, Enum::CLASS_NAME));
+
+                case TC_ENUM:
+                    return end_object(mode, parse_enum(ret));
 
                 default:
                     break;

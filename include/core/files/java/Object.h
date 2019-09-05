@@ -52,7 +52,7 @@ namespace lsp
             public:
                 inline const char *class_name() const { return pClass; }
 
-                bool instanceof(const char *name);
+                virtual bool instanceof(const char *name);
         };
 
     } /* namespace java */

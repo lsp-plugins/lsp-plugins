@@ -34,6 +34,8 @@ namespace lsp
 
         bool Object::instanceof(const char *name)
         {
+            if (name == pClass)
+                return true;
             return ::strcmp(name, pClass) == 0;
         }
 

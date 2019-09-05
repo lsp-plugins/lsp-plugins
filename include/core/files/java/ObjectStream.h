@@ -18,6 +18,7 @@
 #include <core/files/java/Object.h>
 #include <core/files/java/String.h>
 #include <core/files/java/RawArray.h>
+#include <core/files/java/Enum.h>
 #include <core/files/java/Handles.h>
 #include <core/files/java/ObjectStreamField.h>
 #include <core/files/java/ObjectStreamClass.h>
@@ -67,6 +68,7 @@ namespace lsp
                 status_t    skip_custom_data();
                 status_t    read_custom_data(void **dst, size_t *size);
                 status_t    parse_array(RawArray **dst);
+                status_t    parse_enum(Enum **dst);
                 status_t    parse_ordinary_object(Object **dst);
                 status_t    parse_reset();
                 status_t    parse_null(Object **dst);
@@ -178,6 +180,7 @@ namespace lsp
 
                 status_t    read_object(Object **dst);
                 status_t    read_string(String **dst);
+                status_t    read_enum(Enum **dst);
                 status_t    read_class_descriptor(ObjectStreamClass **dst);
         };
     
