@@ -11,6 +11,7 @@
 #include <core/io/InMemoryStream.h>
 
 #include <core/files/java/defs.h>
+#include <core/files/java/wrappers.h>
 #include <core/files/java/ObjectStream.h>
 
 #include <dsp/endian.h>
@@ -1224,6 +1225,30 @@ namespace lsp
             return STATUS_NOT_IMPLEMENTED;
         }
 
+        Object *ObjectStream::build_object(ObjectStreamClass *desc)
+        {
+            const char *raw_name = desc->raw_name();
+
+            if (!strcmp(raw_name, Byte::CLASS_NAME))
+                return new Byte();
+            if (!strcmp(raw_name, Short::CLASS_NAME))
+                return new Short();
+            if (!strcmp(raw_name, Integer::CLASS_NAME))
+                return new Integer();
+            if (!strcmp(raw_name, Long::CLASS_NAME))
+                return new Long();
+            if (!strcmp(raw_name, Double::CLASS_NAME))
+                return new Double();
+            if (!strcmp(raw_name, Float::CLASS_NAME))
+                return new Float();
+            if (!strcmp(raw_name, Boolean::CLASS_NAME))
+                return new Boolean();
+            if (!strcmp(raw_name, Character::CLASS_NAME))
+                return new Character();
+
+            return new Object(desc->raw_name());
+        }
+
         status_t ObjectStream::parse_ordinary_object(Object **dst)
         {
             // Fetch token
@@ -1239,7 +1264,7 @@ namespace lsp
                 return res;
 
             // Create object
-            Object *obj     = new Object(desc->raw_name());
+            Object *obj     = build_object(desc);
             if (obj == NULL)
                 return STATUS_NO_MEM;
 

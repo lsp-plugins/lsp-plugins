@@ -42,7 +42,7 @@ namespace lsp
 
         status_t Object::to_string_padded(LSPString *dst, size_t pad)
         {
-            if (!dst->fmt_append_ascii("%p = new ", this))
+            if (!dst->fmt_append_ascii("*%p = new ", this))
                 return STATUS_NO_MEM;
             if (!dst->append_utf8(pClass))
                 return STATUS_NO_MEM;
@@ -85,11 +85,11 @@ namespace lsp
                         case JFT_SHORT:     res = dst->fmt_append_utf8("(short) %d\n", int(*(ptr.p_short++))); break;
                         case JFT_BOOL:      res = dst->fmt_append_utf8("(bool) %s\n", (*(ptr.p_bool++)) ? "true" : "false"); break;
                         case JFT_CHAR:
-                            res = dst->append_ascii("(char) ");
+                            res = dst->append_ascii("'");
                             if (res)
                                 res = dst->append(lsp_wchar_t(*(ptr.p_char++)));
                             if (res)
-                                res = dst->append('\n');
+                                res = dst->append_ascii("'\n");
                             break;
                         case JFT_ARRAY:
                         case JFT_OBJECT:

@@ -82,8 +82,10 @@ namespace lsp
                 status_t    parse_serial_data(Object *dst, ObjectStreamClass *desc);
                 status_t    parse_external_data(Object *dst, ObjectStreamClass *desc);
 
-                inline status_t    start_object(bool &mode);
-                inline status_t    end_object(bool &mode, status_t res);
+                Object             *build_object(ObjectStreamClass *desc);
+
+                inline status_t     start_object(bool &mode);
+                inline status_t     end_object(bool &mode, status_t res);
 
             public:
                 explicit ObjectStream(Handles *handles);

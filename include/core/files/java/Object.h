@@ -41,7 +41,7 @@ namespace lsp
                 friend class RawArray;
                 Object & operator = (const Object &);
 
-            private:
+            protected:
                 const char     *pClass;
                 object_slot_t  *vSlots;
                 size_t          nSlots;

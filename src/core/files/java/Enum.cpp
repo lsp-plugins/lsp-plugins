@@ -32,7 +32,7 @@ namespace lsp
 
         status_t Enum::to_string_padded(LSPString *dst, size_t pad)
         {
-            if (!dst->fmt_append_utf8("%p = %s.", this, class_name()))
+            if (!dst->fmt_append_utf8("*%p = %s.", this, class_name()))
                 return STATUS_NO_MEM;
             if (!dst->append(&sName))
                 return STATUS_NO_MEM;

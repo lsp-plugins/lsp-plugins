@@ -75,7 +75,7 @@ namespace lsp
 
         status_t RawArray::to_string_padded(LSPString *dst, size_t pad)
         {
-            if (!dst->fmt_append_utf8("%p = new %s[%d] ", this, sItemType.get_utf8(), nLength))
+            if (!dst->fmt_append_utf8("*%p = new %s[%d] ", this, sItemType.get_utf8(), nLength))
                 return STATUS_NO_MEM;
             if (nLength <= 0)
                 return (dst->append_ascii("{ }\n")) ? STATUS_OK : STATUS_NO_MEM;
@@ -124,7 +124,13 @@ namespace lsp
                         case JFT_LONG:      res = dst->fmt_append_utf8("%lld", (long long)(*(ptr.p_long++))); break;
                         case JFT_SHORT:     res = dst->fmt_append_utf8("%d", int(*(ptr.p_short++))); break;
                         case JFT_BOOL:      res = dst->fmt_append_utf8("%s", (*(ptr.p_bool++)) ? "true" : "false"); break;
-                        case JFT_CHAR:      res = dst->append(lsp_wchar_t(*(ptr.p_char++))); break;
+                        case JFT_CHAR:
+                            res = dst->append('\'');
+                            if (res)
+                                res = dst->append(lsp_wchar_t(*(ptr.p_char++)));
+                            if (res)
+                                res = dst->append('\'');
+                            break;
                         default:
                             return STATUS_CORRUPTED;
                     }

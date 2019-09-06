@@ -24,7 +24,7 @@ namespace lsp
 
         status_t String::to_string_padded(LSPString *dst, size_t pad)
         {
-            if (!dst->fmt_append_ascii("%p = (String) \"", this))
+            if (!dst->fmt_append_ascii("*%p = \"", this))
                 return STATUS_NO_MEM;
             if (!dst->append(&sString))
                 return STATUS_NO_MEM;
