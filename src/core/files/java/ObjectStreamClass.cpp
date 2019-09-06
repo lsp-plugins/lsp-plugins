@@ -32,7 +32,13 @@ namespace lsp
             if (vFields != NULL)
             {
                 for (size_t i=0; i<nFields; ++i)
-                    vFields[i] = NULL;
+                {
+                    if (vFields[i] != NULL)
+                    {
+                        delete vFields[i];
+                        vFields[i] = NULL;
+                    }
+                }
                 ::free(vFields);
                 vFields = NULL;
             }
