@@ -162,6 +162,7 @@ UTEST_BEGIN("core.files", java)
         java::String *str = NULL;
         java::Object *array = NULL;
         uint32_t value = 0;
+        LSPString tmp;
 
         // Perform read
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
@@ -189,6 +190,9 @@ UTEST_BEGIN("core.files", java)
         UTEST_ASSERT(os.current_token() == java::JST_ARRAY);
         UTEST_ASSERT(os.read_object(&array) == STATUS_OK);
 
+        UTEST_ASSERT(array->to_string(&tmp) == STATUS_OK);
+        printf("Read array: %s", tmp.get_utf8());
+
         // Close file
         UTEST_ASSERT(os.close() == STATUS_OK);
         handles.flush();
@@ -199,8 +203,8 @@ UTEST_BEGIN("core.files", java)
         printf("Testing JDK8 file...\n");
         read_jdk8_file();
 
-//        printf("Testing REW file...\n");
-//        read_rew_file();
+        printf("Testing REW file...\n");
+        read_rew_file();
     }
 
 UTEST_END
