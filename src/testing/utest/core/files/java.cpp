@@ -27,6 +27,7 @@ UTEST_BEGIN("core.files", java)
         LSPString tmp;
         java::String *jstr = NULL;
         java::Object *obj = NULL;
+        java::RawArray *arr = NULL;
 
         // Read block data
         UTEST_ASSERT(os.current_token() == java::JST_BLOCK_DATA);
@@ -48,8 +49,8 @@ UTEST_BEGIN("core.files", java)
 
         // Read array
         UTEST_ASSERT(os.current_token() == java::JST_ARRAY);
-        UTEST_ASSERT(os.read_object(&obj) == STATUS_OK);
-        UTEST_ASSERT(obj->to_string(&tmp) == STATUS_OK);
+        UTEST_ASSERT(os.read_array(&arr) == STATUS_OK);
+        UTEST_ASSERT(arr->to_string(&tmp) == STATUS_OK);
         printf("Read array: %s", tmp.get_utf8());
 
         // Close file

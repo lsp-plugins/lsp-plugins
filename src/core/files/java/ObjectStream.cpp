@@ -1345,6 +1345,38 @@ namespace lsp
             return end_object(mode, STATUS_BAD_STATE);
         }
 
+        status_t ObjectStream::read_array(RawArray **dst)
+        {
+            // Fetch token
+            ssize_t token = lookup_token();
+            if (token < 0)
+                return token;
+
+            // Start object mode
+            bool mode = false;
+            status_t res = start_object(mode);
+            if (res != STATUS_OK)
+                return res;
+
+            obj_ptr_t ret(dst);
+            switch (token)
+            {
+                case TC_NULL: // Null reference, valid to be string
+                    return end_object(mode, parse_null(ret));
+
+                case TC_REFERENCE: // Some reference to object, required to be string
+                    return end_object(mode, parse_reference(ret, RawArray::CLASS_NAME));
+
+                case TC_ARRAY:
+                    return end_object(mode, parse_array(ret));
+
+                default:
+                    break;
+            }
+
+            return end_object(mode, STATUS_BAD_STATE);
+        }
+
         status_t ObjectStream::read_enum(Enum **dst)
         {
             // Fetch token
