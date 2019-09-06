@@ -183,6 +183,7 @@ namespace lsp
                 status_t    read_object(Object **dst);
                 status_t    read_array(RawArray **dst);
                 status_t    read_string(String **dst);
+                status_t    read_string(LSPString *dst);
                 status_t    read_enum(Enum **dst);
                 status_t    read_class_descriptor(ObjectStreamClass **dst);
         };

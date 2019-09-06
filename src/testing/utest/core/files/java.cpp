@@ -156,7 +156,7 @@ UTEST_BEGIN("core.files", java)
         // Open file
         java::Handles handles;
         java::ObjectStream os(&handles);
-        UTEST_ASSERT(os.open("res/test/rew/Test1.req") == STATUS_OK);
+        UTEST_ASSERT(os.open("res/test/rew/Test11.req") == STATUS_OK);
         UTEST_ASSERT(os.version() == 5);
 
         java::String *str = NULL;
@@ -176,7 +176,7 @@ UTEST_BEGIN("core.files", java)
 
         UTEST_ASSERT(os.current_token() == java::JST_BLOCK_DATA);
         UTEST_ASSERT(os.read_int(&value) == STATUS_OK);
-        UTEST_ASSERT(value == 18);
+        UTEST_ASSERT(value == 19);
 
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
         UTEST_ASSERT(os.read_string(&str) == STATUS_OK);

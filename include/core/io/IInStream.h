@@ -15,6 +15,7 @@ namespace lsp
 {
     namespace io
     {
+        class IOutStream;
         
         /** This is data stream available to be read from clipboard
          *
@@ -97,6 +98,13 @@ namespace lsp
                  * @return actual number of bytes skipped or error
                  */
                 virtual wssize_t    skip(wsize_t amount);
+
+                /**
+                 * Sink all data to the output stream
+                 * @param os pointer to the output stream
+                 * @return number of bytes written or negative error code
+                 */
+                virtual wssize_t    sink(IOutStream *os, size_t buf_size = 0x1000);
 
                 /** Close the clip data stream
                  *

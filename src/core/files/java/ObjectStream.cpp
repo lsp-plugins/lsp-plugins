@@ -193,9 +193,9 @@ namespace lsp
             obj_stream_hdr_t hdr;
             status_t res = is->read_fully(&hdr, sizeof(hdr));
             if (res != sizeof(hdr))
-                return ((res >= 0) || (res == STATUS_EOF)) ? STATUS_CORRUPTED : res;
+                return ((res >= 0) || (res == STATUS_EOF)) ? STATUS_BAD_FORMAT : res;
             if (BE_TO_CPU(hdr.magic) != JAVA_STREAM_MAGIC)
-                return STATUS_CORRUPTED;
+                return STATUS_BAD_FORMAT;
             uint8_t *block  = reinterpret_cast<uint8_t *>(::malloc(JAVA_MAX_BLOCK_SIZE));
             if (block == NULL)
                 return STATUS_NO_MEM;
@@ -1376,6 +1376,23 @@ namespace lsp
             }
 
             return end_object(mode, STATUS_BAD_STATE);
+        }
+
+        status_t ObjectStream::read_string(LSPString *dst)
+        {
+            String *str = NULL;
+            status_t res = read_string(&str);
+            if (res != STATUS_OK)
+                return res;
+            else if (str == NULL)
+                return STATUS_NULL;
+
+            if (dst != NULL)
+            {
+                if (!dst->set(str->string()))
+                    return STATUS_NO_MEM;
+            }
+            return STATUS_OK;
         }
 
         status_t ObjectStream::read_array(RawArray **dst)

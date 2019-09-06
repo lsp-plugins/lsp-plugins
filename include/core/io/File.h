@@ -74,7 +74,10 @@ namespace lsp
                 virtual ssize_t pread(wsize_t pos, void *dst, size_t count);
 
                 /**
-                 * Write binary file
+                 * Write binary file.
+                 * The implementation should write the most possible amount
+                 * of bytes before exit. Such behaviour will simplify the caller's
+                 * implementation.
                  * @param dst source buffer to perform write
                  * @param count number of bytes to write
                  * @return status of operation
