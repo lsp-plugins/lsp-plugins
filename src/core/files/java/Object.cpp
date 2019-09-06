@@ -7,6 +7,10 @@
 
 #include <core/files/java/defs.h>
 #include <core/files/java/Object.h>
+#include <core/files/java/String.h>
+#include <core/files/java/RawArray.h>
+#include <core/files/java/Enum.h>
+#include <core/files/java/wrappers.h>
 #include <core/files/java/ObjectStreamClass.h>
 
 namespace lsp
@@ -33,11 +37,243 @@ namespace lsp
             pClass      = NULL;
         }
 
-        bool Object::instanceof(const char *name)
+        bool Object::instanceof(const char *name) const
         {
             if (name == pClass)
                 return true;
             return ::strcmp(name, pClass) == 0;
+        }
+
+        template <class type_t, class cast_t>
+            inline status_t Object::read_reference(const char *field, type_t *item, ftype_t type) const
+            {
+                bool found = false;
+
+                // Lookup slot
+                for (ssize_t i=nSlots-1; i>=0; --i)
+                {
+                    const object_slot_t *s = &vSlots[i];
+                    const ObjectStreamClass *os = s->desc;
+
+                    // Lookup field
+                    size_t offset = 0;
+                    for (size_t j=0, m=os->fields(); j<m; ++j)
+                    {
+                        // Check field match
+                        const ObjectStreamField *f = os->field(j);
+                        if (::strcmp(f->raw_name(), field) != 0)
+                        {
+                            offset += f->size_of();
+                            continue;
+                        }
+
+                        found = true;
+                        if (!f->is_reference())
+                            continue;
+
+                        // Null value?
+                        const Object *obj = *reinterpret_cast<const Object **>(&vData[s->offset + offset]);
+                        if (obj == NULL)
+                            return STATUS_NULL;
+
+                        // Can be cast?
+                        const cast_t *w = obj->cast<cast_t>();
+                        if (w == NULL)
+                            continue;
+
+                        // Return the value
+                        if (item != NULL)
+                            *item = w;
+                        return STATUS_OK;
+                    }
+                }
+
+                return (found) ? STATUS_BAD_TYPE : STATUS_NOT_FOUND;
+            }
+
+        template <class type_t, class wrapper_t>
+            inline status_t Object::read_prim_item(const char *field, type_t *item, ftype_t type) const
+            {
+                bool found = false;
+
+                // Lookup slot
+                for (ssize_t i=nSlots-1; i>=0; --i)
+                {
+                    const object_slot_t *s = &vSlots[i];
+                    const ObjectStreamClass *os = s->desc;
+
+                    // Lookup field
+                    size_t offset = 0;
+                    for (size_t j=0, m=os->fields(); j<m; ++j)
+                    {
+                        // Check field match
+                        const ObjectStreamField *f = os->field(j);
+                        if (::strcmp(f->raw_name(), field) != 0)
+                        {
+                            offset += f->size_of();
+                            continue;
+                        }
+                        found = true;
+
+                        // Type match?
+                        if (f->type() == type)
+                        {
+                            if (item != NULL)
+                                *item           = *reinterpret_cast<const type_t *>(&vData[s->offset + offset]);
+                            return STATUS_OK;
+                        }
+
+                        // Reference type?
+                        if (!f->is_reference())
+                        {
+                            offset += f->size_of();
+                            continue;
+                        }
+
+                        // Null value?
+                        const Object *obj = *reinterpret_cast<const Object **>(&vData[s->offset + offset]);
+                        if (obj == NULL)
+                            return STATUS_NULL;
+
+                        // Can be cast to wrapper?
+                        const wrapper_t *w = obj->cast<const wrapper_t>();
+                        if (w == NULL)
+                            continue;
+
+                        // Return the value
+                        return w->get_value(item);
+                    }
+                }
+
+                return (found) ? STATUS_BAD_TYPE : STATUS_NOT_FOUND;
+            }
+
+        status_t Object::get_byte(const char *field, byte_t *dst) const
+        {
+            return read_prim_item<byte_t, Byte>(field, dst, JFT_BYTE);
+        }
+
+        status_t Object::get_short(const char *field, short_t *dst) const
+        {
+            return read_prim_item<short_t, Short>(field, dst, JFT_SHORT);
+        }
+
+        status_t Object::get_int(const char *field, int_t *dst) const
+        {
+            return read_prim_item<int_t, Integer>(field, dst, JFT_INTEGER);
+        }
+
+        status_t Object::get_long(const char *field, long_t *dst) const
+        {
+            return read_prim_item<long_t, Long>(field, dst, JFT_LONG);
+        }
+
+        status_t Object::get_float(const char *field, float_t *dst) const
+        {
+            return read_prim_item<float_t, Float>(field, dst, JFT_FLOAT);
+        }
+
+        status_t Object::get_double(const char *field, double_t *dst) const
+        {
+            return read_prim_item<double_t, Double>(field, dst, JFT_DOUBLE);
+        }
+
+        status_t Object::get_char(const char *field, char_t *dst) const
+        {
+            return read_prim_item<char_t, Character>(field, dst, JFT_CHAR);
+        }
+
+        status_t Object::get_bool(const char *field, bool_t *dst) const
+        {
+            return read_prim_item<bool_t, Boolean>(field, dst, JFT_BOOL);
+        }
+
+        status_t Object::get_object(const char *field, const Object **dst) const
+        {
+            return read_reference<const Object *, Object>(field, dst, JFT_OBJECT);
+        }
+
+        status_t Object::get_array(const char *field, const RawArray **dst) const
+        {
+            return read_reference<const RawArray *, RawArray>(field, dst, JFT_ARRAY);
+        }
+
+        status_t Object::get_enum(const char *field, const Enum **dst) const
+        {
+            const Enum *en = NULL;
+            status_t res = read_reference<const Enum *, Enum>(field, &en, JFT_OBJECT);
+            if (res != STATUS_OK)
+                return res;
+            if (dst != NULL)
+                *dst    = en;
+            return STATUS_OK;
+        }
+
+        status_t Object::get_enum(const char *field, LSPString *dst) const
+        {
+            const Enum *en = NULL;
+            status_t res = get_enum(field, &en);
+            if (res != STATUS_OK)
+                return res;
+            else if (en == NULL)
+                return STATUS_NULL;
+            if (dst == NULL)
+                return STATUS_OK;
+
+            return (dst->set(en->name())) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t Object::get_enum(const char *field, const char **dst) const
+        {
+            const Enum *en = NULL;
+            status_t res = get_enum(field, &en);
+            if (res != STATUS_OK)
+                return res;
+            else if (en == NULL)
+                return STATUS_NULL;
+            if (dst != NULL)
+                *dst = en->name()->get_utf8();
+
+            return STATUS_OK;
+        }
+
+        status_t Object::get_string(const char *field, const String **dst) const
+        {
+            const String *str = NULL;
+            status_t res = read_reference<const String *, String>(field, &str, JFT_OBJECT);
+            if (res != STATUS_OK)
+                return res;
+            if (dst != NULL)
+                *dst    = str;
+            return STATUS_OK;
+        }
+
+        status_t Object::get_string(const char *field, LSPString *dst) const
+        {
+            const String *str = NULL;
+            status_t res = get_string(field, &str);
+            if (res != STATUS_OK)
+                return res;
+            else if (str == NULL)
+                return STATUS_NULL;
+            if (dst == NULL)
+                return STATUS_OK;
+
+            return (dst->set(str->string())) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t Object::get_string(const char *field, const char **dst) const
+        {
+            const String *str = NULL;
+            status_t res = get_string(field, &str);
+            if (res != STATUS_OK)
+                return res;
+            else if (str == NULL)
+                return STATUS_NULL;
+            if (dst != NULL)
+                *dst = str->string()->get_utf8();
+
+            return STATUS_OK;
         }
 
         status_t Object::to_string_padded(LSPString *dst, size_t pad)
@@ -172,9 +408,10 @@ namespace lsp
             return true;
         }
 
-        status_t Object::to_string(LSPString *dst)
+        status_t Object::to_string(LSPString *dst) const
         {
-            return to_string_padded(dst, 0);
+            Object *_this = const_cast<Object *>(this);
+            return _this->to_string_padded(dst, 0);
         }
 
     } /* namespace java */

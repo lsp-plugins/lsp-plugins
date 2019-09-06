@@ -12,6 +12,7 @@ namespace lsp
 {
     namespace java
     {
+        const char *RawArray::CLASS_NAME = "[";
         
         RawArray::RawArray(const char *xc): Object(xc)
         {
@@ -71,6 +72,15 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             return STATUS_OK;
+        }
+
+        bool RawArray::instanceof(const char *name) const
+        {
+            if (name == CLASS_NAME)
+                return true;
+            if (!::strcmp(name, CLASS_NAME))
+                return true;
+            return Object::instanceof(name);
         }
 
         status_t RawArray::to_string_padded(LSPString *dst, size_t pad)

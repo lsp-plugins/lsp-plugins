@@ -39,7 +39,7 @@ namespace lsp
                 const LSPString *name() const   { return &sName; }
                 const char *utf_name() const    { return sName.get_utf8(); }
 
-                virtual bool instanceof(const char *name);
+                virtual bool instanceof(const char *name) const;
         };
     
     } /* namespace java */

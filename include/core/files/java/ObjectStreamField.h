@@ -31,6 +31,7 @@ namespace lsp
                 LSPString       sName;
                 String         *pSignature;
                 size_t          nOffset;
+                char           *sRawName;
 
             public:
                 explicit ObjectStreamField();
@@ -39,6 +40,7 @@ namespace lsp
             public:
                 inline ftype_t              type() const { return enType; }
                 inline const LSPString     *name() const { return &sName; }
+                inline const char          *raw_name() const { return sRawName; }
                 inline const LSPString     *signature() const { return (pSignature != NULL) ? pSignature->string() : NULL; }
                 inline const String        *java_signature() const { return pSignature; }
                 inline size_t               size_of() const { return java::size_of(enType); };

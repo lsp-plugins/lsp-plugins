@@ -21,7 +21,7 @@ namespace lsp
         {
         }
 
-        bool Enum::instanceof(const char *name)
+        bool Enum::instanceof(const char *name) const
         {
             if (name == CLASS_NAME)
                 return true;

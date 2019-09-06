@@ -6,12 +6,26 @@
  */
 
 #include <test/utest.h>
+#include <core/files/java/const.h>
 #include <core/files/java/Handles.h>
 #include <core/files/java/ObjectStream.h>
 
 using namespace lsp;
 
 UTEST_BEGIN("core.files", java)
+
+    union tptype
+    {
+        java::byte_t        v_byte;
+        java::short_t       v_short;
+        java::int_t         v_int;
+        java::long_t        v_long;
+        java::char_t        v_char;
+        java::double_t      v_double;
+        java::float_t       v_float;
+        java::bool_t        v_bool;
+        java::Object       *v_object;
+    };
 
     void read_jdk8_file()
     {
@@ -26,7 +40,6 @@ UTEST_BEGIN("core.files", java)
         LSPString lstr;
         LSPString tmp;
         java::String *jstr = NULL;
-        java::Object *obj = NULL;
         java::RawArray *arr = NULL;
 
         // Read block data
@@ -52,6 +65,86 @@ UTEST_BEGIN("core.files", java)
         UTEST_ASSERT(os.read_array(&arr) == STATUS_OK);
         UTEST_ASSERT(arr->to_string(&tmp) == STATUS_OK);
         printf("Read array: %s", tmp.get_utf8());
+        UTEST_ASSERT(arr->length() == 2);
+
+        const java::Object **vobj = arr->get_objects();
+        UTEST_ASSERT(vobj[0] != NULL);
+        UTEST_ASSERT(vobj[1] != NULL);
+
+        // Check item[0]
+        const java::Object *obj = vobj[0];
+        UTEST_ASSERT(::strcmp(obj->class_name(), "test.TestObject") == 0);
+
+        tptype x;
+        UTEST_ASSERT(obj->get_bool("xbool", &x.v_bool) == STATUS_OK);
+        UTEST_ASSERT(bool(x.v_bool) == false);
+        UTEST_ASSERT(obj->get_byte("xbyte", &x.v_byte) == STATUS_OK);
+        UTEST_ASSERT(x.v_byte == java::byte_t(0x5a));
+        UTEST_ASSERT(obj->get_char("xchar", &x.v_char) == STATUS_OK);
+        UTEST_ASSERT(x.v_char == 'X');
+        UTEST_ASSERT(obj->get_double("xdouble", &x.v_double) == STATUS_OK);
+        UTEST_ASSERT(x.v_double == 440.0);
+        UTEST_ASSERT(obj->get_float("xfloat", &x.v_float) == STATUS_OK);
+        UTEST_ASSERT(x.v_float == 48000.0f);
+        UTEST_ASSERT(obj->get_int("xint", &x.v_int) == STATUS_OK);
+        UTEST_ASSERT(x.v_int == 0x10203040);
+        UTEST_ASSERT(obj->get_long("xlong", &x.v_long) == STATUS_OK);
+        UTEST_ASSERT(x.v_long == java::long_t(0x1122334455667788L));
+        UTEST_ASSERT(obj->get_short("xshort", &x.v_short) == STATUS_OK);
+        UTEST_ASSERT(x.v_short == 0x55aa);
+
+        const java::RawArray *narr = NULL;
+        UTEST_ASSERT(obj->get_array("iarray", &narr) == STATUS_OK);
+        UTEST_ASSERT(narr != NULL);
+        UTEST_ASSERT(narr->length() == 8);
+
+        const java::int_t* ints = narr->get_ints();
+        for (size_t i=0; i<8; ++i)
+            UTEST_ASSERT(ints[i] == java::int_t(i+1));
+
+        UTEST_ASSERT(obj->get_string("iref", &tmp) == STATUS_OK);
+        UTEST_ASSERT(tmp.equals_ascii("Referenced string"));
+        UTEST_ASSERT(obj->get_object("inull", NULL) == STATUS_NULL);
+        UTEST_ASSERT(obj->get_enum("xenum", &tmp) == STATUS_OK);
+        UTEST_ASSERT(tmp.equals_ascii("ONE"));
+
+        // Check item[1]
+        obj = vobj[1];
+        UTEST_ASSERT(::strcmp(obj->class_name(), "test.TestObject") == 0);
+
+        UTEST_ASSERT(obj->get_bool("xbool", &x.v_bool) == STATUS_OK);
+        UTEST_ASSERT(bool(x.v_bool) == true);
+        UTEST_ASSERT(obj->get_byte("xbyte", &x.v_byte) == STATUS_OK);
+        UTEST_ASSERT(x.v_byte == java::byte_t(0xa5));
+        UTEST_ASSERT(obj->get_char("xchar", &x.v_char) == STATUS_OK);
+        UTEST_ASSERT(x.v_char == 'Y');
+        UTEST_ASSERT(obj->get_double("xdouble", &x.v_double) == STATUS_OK);
+        UTEST_ASSERT(x.v_double == 880.0);
+        UTEST_ASSERT(obj->get_float("xfloat", &x.v_float) == STATUS_OK);
+        UTEST_ASSERT(x.v_float == 41000.0f);
+        UTEST_ASSERT(obj->get_int("xint", &x.v_int) == STATUS_OK);
+        UTEST_ASSERT(x.v_int == 0x20304050);
+        UTEST_ASSERT(obj->get_long("xlong", &x.v_long) == STATUS_OK);
+        UTEST_ASSERT(x.v_long == java::long_t(0x5566778811223344L));
+        UTEST_ASSERT(obj->get_short("xshort", &x.v_short) == STATUS_OK);
+        UTEST_ASSERT(x.v_short == java::short_t(0xaa55));
+
+        UTEST_ASSERT(obj->get_array("iarray", &narr) == STATUS_OK);
+        UTEST_ASSERT(narr != NULL);
+        UTEST_ASSERT(narr->length() == 4);
+
+        ints = narr->get_ints();
+        for (size_t i=0; i<4; ++i)
+            UTEST_ASSERT(ints[i] == java::int_t(5-i));
+
+        UTEST_ASSERT(obj->get_array("iref", &narr) == STATUS_OK);
+        UTEST_ASSERT(narr != NULL);
+        UTEST_ASSERT(narr->length() == 6);
+
+        UTEST_ASSERT(obj->get_enum("inull", &tmp) == STATUS_OK);
+        UTEST_ASSERT(tmp.equals_ascii("FOUR"));
+        UTEST_ASSERT(obj->get_enum("xenum", &tmp) == STATUS_OK);
+        UTEST_ASSERT(tmp.equals_ascii("TWO"));
 
         // Close file
         UTEST_ASSERT(os.close() == STATUS_OK);

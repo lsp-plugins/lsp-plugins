@@ -18,6 +18,9 @@ namespace lsp
     {
         class RawArray: public Object
         {
+            public:
+                static const char *CLASS_NAME;
+
             private:
                 friend class ObjectStream;
                 RawArray & operator = (const RawArray &);
@@ -46,6 +49,8 @@ namespace lsp
                 inline size_t           item_size_of() const    { return size_of(enItemType); }
                 inline const LSPString *item_type_name() const  { return &sItemType; }
 
+                virtual bool instanceof(const char *name) const;
+
             public:
                 #define __GET_DEF(otype, name, jft_type) \
                     inline const otype *name() const { \
@@ -53,19 +58,15 @@ namespace lsp
                             reinterpret_cast<const otype *>(pData); \
                     }
 
-                __GET_DEF(uint8_t, get_ubyte, JFT_BYTE)
-                __GET_DEF(int8_t, get_byte, JFT_BYTE)
-                __GET_DEF(uint16_t, get_ushort, JFT_SHORT)
-                __GET_DEF(int16_t, get_short, JFT_SHORT)
-                __GET_DEF(uint32_t, get_uint, JFT_INTEGER)
-                __GET_DEF(int32_t, get_int, JFT_INTEGER)
-                __GET_DEF(uint64_t, get_ulong, JFT_LONG)
-                __GET_DEF(int64_t, get_long, JFT_LONG)
-                __GET_DEF(float_t, get_float, JFT_FLOAT)
-                __GET_DEF(double_t, get_double, JFT_DOUBLE)
-                __GET_DEF(bool_t, get_bool, JFT_BOOL)
-                __GET_DEF(lsp_utf16_t, get_char, JFT_CHAR)
-                __GET_DEF(Object, get_object, JFT_OBJECT)
+                __GET_DEF(byte_t, get_bytes, JFT_BYTE)
+                __GET_DEF(short_t, get_shorts, JFT_SHORT)
+                __GET_DEF(int_t, get_ints, JFT_INTEGER)
+                __GET_DEF(long_t, get_longs, JFT_LONG)
+                __GET_DEF(float_t, get_floats, JFT_FLOAT)
+                __GET_DEF(double_t, get_doubles, JFT_DOUBLE)
+                __GET_DEF(bool_t, get_bools, JFT_BOOL)
+                __GET_DEF(char_t, get_chars, JFT_CHAR)
+                __GET_DEF(Object *, get_objects, JFT_OBJECT)
 
                 #undef __GET_DEF
         };

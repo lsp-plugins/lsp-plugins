@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <stdlib.h>
 #include <core/files/java/Object.h>
 #include <core/files/java/ObjectStreamField.h>
 
@@ -19,11 +20,15 @@ namespace lsp
             enType      = JFT_UNKNOWN;
             pSignature  = NULL;
             nOffset     = 0;
+            sRawName    = NULL;
         }
         
         ObjectStreamField::~ObjectStreamField()
         {
-            pSignature   = NULL;
+            pSignature  = NULL;
+            if (sRawName != NULL)
+                ::free(sRawName);
+            sRawName    = NULL;
         }
 
     } /* namespace java */

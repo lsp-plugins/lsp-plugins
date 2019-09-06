@@ -653,7 +653,15 @@ namespace lsp
 
             // Name
             if (res == STATUS_OK)
+            {
                 res     = read_utf(&f->sName);
+                if (res == STATUS_OK)
+                {
+                    f->sRawName     = f->sName.clone_utf8();
+                    if (f->sRawName == NULL)
+                        res = STATUS_NO_MEM;
+                }
+            }
 
             // Signature
             if (res == STATUS_OK)
