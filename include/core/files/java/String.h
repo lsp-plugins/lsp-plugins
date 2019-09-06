@@ -29,6 +29,9 @@ namespace lsp
             private:
                 LSPString   sString;
 
+            protected:
+                virtual status_t to_string_padded(LSPString *dst, size_t pad);
+
             public:
                 explicit String();
                 virtual ~String();
@@ -42,9 +45,6 @@ namespace lsp
 
                 inline operator const LSPString &() const { return sString; }
                 inline operator const LSPString *() const { return &sString; }
-
-            public:
-                virtual status_t to_string(LSPString *dst);
         };
     
     } /* namespace java */

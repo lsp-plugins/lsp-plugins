@@ -105,8 +105,8 @@ UTEST_BEGIN("core.files", java)
         printf("Testing JDK8 file...\n");
         read_jdk8_file();
 
-        printf("Testing REW file...\n");
-        read_rew_file();
+//        printf("Testing REW file...\n");
+//        read_rew_file();
     }
 
 UTEST_END

@@ -159,6 +159,13 @@ namespace lsp
          * @return decoded result
          */
         ftype_t     decode_primitive_type(size_t tcode);
+
+        /**
+         * Get primitive type name
+         * @param tcode primitive type code
+         * @return primitive type name or NULL if type is non-primitive
+         */
+        const char *primitive_type_name(ftype_t tcode);
     }
 }
 

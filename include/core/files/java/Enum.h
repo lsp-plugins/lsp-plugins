@@ -28,6 +28,9 @@ namespace lsp
             private:
                 LSPString   sName;
 
+            protected:
+                virtual status_t to_string_padded(LSPString *dst, size_t pad);
+
             public:
                 explicit Enum();
                 virtual ~Enum();
@@ -37,9 +40,6 @@ namespace lsp
                 const char *utf_name() const    { return sName.get_utf8(); }
 
                 virtual bool instanceof(const char *name);
-
-            public:
-                virtual status_t to_string(LSPString *dst);
         };
     
     } /* namespace java */

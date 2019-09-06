@@ -48,6 +48,21 @@ namespace lsp
 
             // Get item size
             nLength     = items;
+
+            // Patch item type
+            const char *prim = primitive_type_name(enItemType);
+            if (prim == NULL)
+            {
+                if (!tmp.remove(0, 2))
+                    return STATUS_BAD_TYPE;
+                if (tmp.last() == ';')
+                {
+                    if (!tmp.remove_last())
+                        return STATUS_BAD_TYPE;
+                }
+            }
+            else if (!tmp.set_ascii(prim))
+                return STATUS_NO_MEM;
             sItemType.swap(&tmp);
 
             // Allocate empty data
@@ -74,6 +89,8 @@ namespace lsp
                 ++pad;
                 for (size_t i=0; i<nLength; ++i)
                 {
+                    if (!pad_string(dst, pad))
+                        return STATUS_NO_MEM;
                     Object *obj = *(ptr.p_object++);
                     bool res = (obj != NULL) ?
                         (obj->to_string_padded(dst, pad) == STATUS_OK) :
@@ -82,6 +99,10 @@ namespace lsp
                         return STATUS_NO_MEM;
                 }
                 --pad;
+                if (!pad_string(dst, pad))
+                    return STATUS_NO_MEM;
+                if (!dst->append_ascii("}\n"))
+                    return STATUS_NO_MEM;
             }
             else
             {
@@ -91,28 +112,28 @@ namespace lsp
                 for (size_t i=0; i<nLength; ++i)
                 {
                     bool res = (i > 0) ? dst->append_ascii(", ") : true;
-                    if (res != STATUS_OK)
+                    if (! res)
                         return STATUS_NO_MEM;
 
                     switch (enItemType)
                     {
-                        case JFT_BYTE:      res = dst->fmt_append_utf8("%d\n", *(ptr.p_byte++)); break;
-                        case JFT_DOUBLE:    res = dst->fmt_append_utf8("%f\n", *(ptr.p_double++)); break;
-                        case JFT_FLOAT:     res = dst->fmt_append_utf8("%f\n", *(ptr.p_float++)); break;
-                        case JFT_INTEGER:   res = dst->fmt_append_utf8("%d\n", int(*(ptr.p_int++))); break;
-                        case JFT_LONG:      res = dst->fmt_append_utf8("%lld\n", (long long)(*(ptr.p_long++))); break;
-                        case JFT_SHORT:     res = dst->fmt_append_utf8("%d\n", int(*(ptr.p_short++))); break;
-                        case JFT_BOOL:      res = dst->fmt_append_utf8("%s\n", (*(ptr.p_bool++)) ? "true" : "false"); break;
+                        case JFT_BYTE:      res = dst->fmt_append_utf8("%d", *(ptr.p_byte++)); break;
+                        case JFT_DOUBLE:    res = dst->fmt_append_utf8("%f", *(ptr.p_double++)); break;
+                        case JFT_FLOAT:     res = dst->fmt_append_utf8("%f", *(ptr.p_float++)); break;
+                        case JFT_INTEGER:   res = dst->fmt_append_utf8("%d", int(*(ptr.p_int++))); break;
+                        case JFT_LONG:      res = dst->fmt_append_utf8("%lld", (long long)(*(ptr.p_long++))); break;
+                        case JFT_SHORT:     res = dst->fmt_append_utf8("%d", int(*(ptr.p_short++))); break;
+                        case JFT_BOOL:      res = dst->fmt_append_utf8("%s", (*(ptr.p_bool++)) ? "true" : "false"); break;
                         case JFT_CHAR:      res = dst->append(lsp_wchar_t(*(ptr.p_char++))); break;
                         default:
                             return STATUS_CORRUPTED;
                     }
-                    if (res != STATUS_OK)
+                    if (! res)
                         return STATUS_NO_MEM;
                 }
+                if (!dst->append_ascii(" }\n"))
+                    return STATUS_NO_MEM;
             }
-            if (!dst->append_ascii("}\n"))
-                return STATUS_NO_MEM;
 
             return STATUS_OK;
         }

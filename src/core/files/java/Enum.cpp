@@ -30,11 +30,13 @@ namespace lsp
             return Object::instanceof(name);
         }
 
-        status_t Enum::to_string(LSPString *dst)
+        status_t Enum::to_string_padded(LSPString *dst, size_t pad)
         {
-            if (!dst->fmt_append_utf8("%p = enum %s ", this, class_name()))
+            if (!dst->fmt_append_utf8("%p = %s.", this, class_name()))
                 return STATUS_NO_MEM;
-            return (dst->append(&sName)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!dst->append(&sName))
+                return STATUS_NO_MEM;
+            return (dst->append('\n')) ? STATUS_OK : STATUS_NO_MEM;
         }
     
     } /* namespace java */

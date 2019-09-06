@@ -42,7 +42,7 @@ namespace lsp
 
         status_t Object::to_string_padded(LSPString *dst, size_t pad)
         {
-            if (!dst->fmt_append_ascii("%p = new class ", this))
+            if (!dst->fmt_append_ascii("%p = new ", this))
                 return STATUS_NO_MEM;
             if (!dst->append_utf8(pClass))
                 return STATUS_NO_MEM;
@@ -59,7 +59,7 @@ namespace lsp
 
                 if (!pad_string(dst, pad))
                     return STATUS_NO_MEM;
-                if (!dst->fmt_append_utf8("%s:\n", os->class_name()))
+                if (!dst->fmt_append_utf8("%s:\n", os->raw_name()))
                     return STATUS_NO_MEM;
 
                 ++pad;
@@ -70,7 +70,7 @@ namespace lsp
                     if (!pad_string(dst, pad))
                         return STATUS_NO_MEM;
                     const ObjectStreamField *f = os->field(j);
-                    if (!dst->fmt_append_utf8("%s = "))
+                    if (!dst->fmt_append_utf8("%s = ", f->name()->get_utf8()))
                         return STATUS_NO_MEM;
 
 
@@ -105,7 +105,7 @@ namespace lsp
                             return STATUS_CORRUPTED;
                     }
 
-                    if (res != STATUS_OK)
+                    if (!res)
                         return STATUS_NO_MEM;
                 }
                 // Dump data
@@ -155,6 +155,8 @@ namespace lsp
             }
             --pad;
 
+            if (!pad_string(dst, pad))
+                return STATUS_NO_MEM;
             if (!dst->append_ascii("}\n"))
                 return STATUS_NO_MEM;
 

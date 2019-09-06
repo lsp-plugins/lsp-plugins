@@ -64,7 +64,7 @@ namespace lsp
                 template <class T>
                     inline T *cast() { return (instanceof(T::CLASS_NAME)) ? static_cast<T *>(this) : NULL; }
 
-                virtual status_t to_string(LSPString *dst);
+                status_t to_string(LSPString *dst);
         };
 
     } /* namespace java */

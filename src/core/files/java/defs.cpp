@@ -34,6 +34,26 @@ namespace lsp
 
             return JFT_UNKNOWN;
         }
+
+        const char *primitive_type_name(ftype_t tcode)
+        {
+            switch (tcode)
+            {
+                #define XDEC(a, b) case a: return #b;
+                XDEC(JFT_BYTE, byte)
+                XDEC(JFT_CHAR, char)
+                XDEC(JFT_DOUBLE, double)
+                XDEC(JFT_FLOAT, float)
+                XDEC(JFT_INTEGER, int)
+                XDEC(JFT_LONG, long)
+                XDEC(JFT_SHORT, short)
+                XDEC(JFT_BOOL, bool)
+                #undef XDEC
+                default: break;
+            }
+
+            return NULL;
+        }
     }
 }
 

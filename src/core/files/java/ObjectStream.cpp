@@ -1110,6 +1110,7 @@ namespace lsp
             dst->vSlots     = reinterpret_cast<object_slot_t *>(::malloc(desc->nSlots * sizeof(object_slot_t)));
             if (dst->vSlots == NULL)
                 return STATUS_NO_MEM;
+            dst->nSlots     = desc->nSlots;
 
             // Estimate number of initial data for allocation
             size_t allocated = 0, offset = 0;
@@ -1251,6 +1252,10 @@ namespace lsp
                         parse_external_data(obj, desc) :
                         parse_serial_data(obj, desc);
             }
+
+            // Store result
+            if ((res == STATUS_OK) && (dst != NULL))
+                *dst    = obj;
 
             return res;
         }
