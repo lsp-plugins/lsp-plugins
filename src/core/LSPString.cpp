@@ -743,7 +743,7 @@ namespace lsp
             else if (c != pData[i])
                 return false;
         }
-        return false;
+        return (*str == '\0');
     }
 
     bool LSPString::starts_with_nocase(const LSPString *src) const

@@ -39,39 +39,41 @@ namespace lsp
 
         typedef struct filter_t
         {
-            double          A;
             double          Q;
-            double          a[3];
-            double          aC[3];
-            double          aSum;
-            double          alpha;
-            double          b[3];
-            double          bC[3];
-            double          bSum;
-            double          betasn;
-            int32_t         control;
-            double          cs;
-            bool            enabled;
             double          fc;
-            double          freqNorm;
             double          gain;
-            double          omega;
-            float           optMaxFreq;
-            float           optMinFreq;
-            double          p[5];
-            double          sTh[2];
-            double          sampleRate;
-            double          sn;
-            double          t60Target;
-            int32_t         type;
             filter_type_t   filterType;
+            bool            enabled;
+
+// Other parameters will be used some times... maybe
+//            double          A;
+//            double          a[3];
+//            double          aC[3];
+//            double          aSum;
+//            double          alpha;
+//            double          b[3];
+//            double          bC[3];
+//            double          bSum;
+//            double          betasn;
+//            int32_t         control;
+//            double          cs;
+//            double          freqNorm;
+//            double          omega;
+//            float           optMaxFreq;
+//            float           optMinFreq;
+//            double          p[5];
+//            double          sTh[2];
+//            double          sampleRate;
+//            double          sn;
+//            double          t60Target;
+//            int32_t         type;
         } filter_t;
 
         typedef struct config_t
         {
-            int32_t         vMaj;       // Major version
-            int32_t         vMin;       // Minor version
-            const char     *sHeader;    // Header
+            int32_t         nVerMaj;       // Major version
+            int32_t         nVerMin;       // Minor version
+            const char     *sEqType;    // Equalizer type
             const char     *sNotes;     // Notes
             size_t          nFilters;   // Number of filters
             filter_t       *vFilters;   // List of filters
