@@ -59,7 +59,7 @@ namespace lsp
             char *xnotes        = &xeq[n_hdr];
             ptr                += n_strings;
             ::memcpy(xeq, peq, n_hdr);
-            ::memcpy(xnotes, pnotes, n_hdr);
+            ::memcpy(xnotes, pnotes, n_notes);
 
             cfg->vFilters       = reinterpret_cast<filter_t *>(ptr);
             ptr                += n_filters;
@@ -278,6 +278,8 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
+            lsp_trace("s = %s", s->get_utf8(*offset));
+
             size_t len = s->length();
 
             // Check sign
@@ -318,6 +320,8 @@ namespace lsp
                 *dst = num;
                 return STATUS_OK;
             }
+            else
+                ++(*offset);
 
             // Parse fraction part
             double fnum = 0.1;
@@ -388,6 +392,11 @@ namespace lsp
                 f->filterType   = MODAL;
                 *offset        += 6;
             }
+            else if (s->starts_with_ascii_nocase("pk ", *offset))
+            {
+                f->filterType   = PK;
+                *offset        += 3;
+            }
             else if (s->starts_with_ascii_nocase("lp ", *offset))
             {
                 f->filterType   = LP;
@@ -406,7 +415,7 @@ namespace lsp
             else if (s->starts_with_ascii_nocase("hpq ", *offset))
             {
                 f->filterType   = HPQ;
-                offset         += 4;
+                *offset        += 4;
             }
             else if (s->starts_with_ascii_nocase("ls 6dB ", *offset))
             {
@@ -421,7 +430,7 @@ namespace lsp
             else if (s->starts_with_ascii_nocase("ls ", *offset))
             {
                 f->filterType   = LS;
-                offset         += 3;
+                *offset        += 3;
             }
             else if (s->starts_with_ascii_nocase("hs 6dB ", *offset))
             {
@@ -464,8 +473,11 @@ namespace lsp
 
             // Scan the rest of line for optional parameters
             size_t len = s->length();
+            lsp_trace("offset = %d, len = %d", int(*offset), int(len));
+
             while (*offset < len)
             {
+                lsp_trace("analyzing: %s", s->get_utf8(*offset));
                 if (s->starts_with_ascii_nocase("fc ", *offset))
                 {
                     *offset += 3;
@@ -530,6 +542,7 @@ namespace lsp
 
             while ((res = is->read_line(&s, true)) == STATUS_OK)
             {
+                lsp_trace("Parsing line: %s", s.get_utf8());
                 if (s.starts_with_ascii("Room EQ V"))
                 {
                     offset = 9;
@@ -557,6 +570,8 @@ namespace lsp
                 else if (s.starts_with_ascii("Filter "))
                 {
                     offset = 7;
+                    if (!s.append(' ')) // For easier parsing, we add a whitespace at the end
+                        return STATUS_NO_MEM;
 
                     // Find filter definition
                     size_t len = s.length();
@@ -572,6 +587,12 @@ namespace lsp
                     // Parse filter settings
                     if ((res = parse_filter_settings(f, &s, &offset)) != STATUS_OK)
                         return res;
+
+                    lsp_trace(
+                            "Filter %d: %s [%d] Fc %.0f Hz Gain %.1f dB Q %.7f",
+                            int(vfilters.size()), (f->enabled) ? "ON" : "OFF", f->filterType,
+                            double(f->fc), double(f->gain), double(f->Q)
+                        );
                 }
             }
 
@@ -588,6 +609,12 @@ namespace lsp
 
             // Copy filter data
             ::memcpy(cfg->vFilters, vfilters.get_array(), sizeof(filter_t) * vfilters.size());
+
+            // Store the result
+            if (dst != NULL)
+                *dst    = cfg;
+            else
+                ::free(cfg);
 
             return STATUS_OK;
         }

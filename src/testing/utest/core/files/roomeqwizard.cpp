@@ -25,9 +25,10 @@ UTEST_BEGIN("core.files", roomeqwizard)
         );
         UTEST_ASSERT(f->enabled == enabled);
         UTEST_ASSERT(f->filterType == type);
-        UTEST_ASSERT(float_equals_relative(f->fc, fc));
-        UTEST_ASSERT(float_equals_relative(f->gain, gain));
-        UTEST_ASSERT(float_equals_relative(f->Q, Q));
+        UTEST_ASSERT(float_equals_absolute(f->fc, fc));
+        UTEST_ASSERT(float_equals_absolute(f->gain, gain));
+        if (Q >= 0.0)
+            UTEST_ASSERT(float_equals_absolute(f->Q, Q, 0.5e-3f));
     }
 
     void read_file(const char *fname)
@@ -50,25 +51,25 @@ UTEST_BEGIN("core.files", roomeqwizard)
         size_t idx = 0;
 
         check_filter(&vf[idx++], true, room_ew::PK, 100.00, 10.00, 0.7100000);
-        check_filter(&vf[idx++], true, room_ew::LS, 1000.00, 10.00, 50.0000000);
-        check_filter(&vf[idx++], true, room_ew::HS, 1000.00, -10.00, 10.0000000);
+        check_filter(&vf[idx++], true, room_ew::LS, 1000.00, 10.00, -1);
+        check_filter(&vf[idx++], true, room_ew::HS, 1000.00, -10.00, -1);
         check_filter(&vf[idx++], true, room_ew::PK, 10000.00, -10.00, 0.7100000);
-        check_filter(&vf[idx++], true, room_ew::HS, 321.00, 0.00, 0.7071068);
-        check_filter(&vf[idx++], true, room_ew::NONE, 100.00, 0.00, 10.0000000);
+        check_filter(&vf[idx++], true, room_ew::HS, 321.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::NONE, 100.00, 0.00, -1);
         check_filter(&vf[idx++], true, room_ew::PK, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::MODAL, 100.00, 0.00, 13.6433750);
+        check_filter(&vf[idx++], true, room_ew::MODAL, 100.00, 0.00, 13.643000);
         check_filter(&vf[idx++], true, room_ew::LP, 100.00, 0.00, 0.7071068);
         check_filter(&vf[idx++], true, room_ew::HP, 100.00, 0.00, 0.7071068);
-        check_filter(&vf[idx++], true, room_ew::LPQ, 100.00, 0.00, 0.7071068);
-        check_filter(&vf[idx++], true, room_ew::HPQ, 100.00, 0.00, 0.7071068);
-        check_filter(&vf[idx++], true, room_ew::LS, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::HS, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::LS6, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::HS6, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::LS12, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::HS12, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], false, room_ew::NO, 100.00, 0.00, 30.0000000);
-        check_filter(&vf[idx++], true, room_ew::AP, 100.00, 0.00, 0.7071068);
+        check_filter(&vf[idx++], true, room_ew::LPQ, 100.00, 0.00, 0.7070000);
+        check_filter(&vf[idx++], true, room_ew::HPQ, 100.00, 0.00, 0.7070000);
+        check_filter(&vf[idx++], true, room_ew::LS, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::HS, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::LS6, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::HS6, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::LS12, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::HS12, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], false, room_ew::NO, 100.00, 0.00, -1);
+        check_filter(&vf[idx++], true, room_ew::AP, 100.00, 0.00, 0.7070000);
 
         ::free(cfg);
     }

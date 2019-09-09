@@ -180,7 +180,7 @@ UTEST_BEGIN("core.files", java)
 
         UTEST_ASSERT(os.current_token() == java::JST_STRING);
         UTEST_ASSERT(os.read_string(&str) == STATUS_OK);
-        UTEST_ASSERT(str->string()->equals_ascii("Notes:"));
+        UTEST_ASSERT(str->string()->equals_ascii("Notes:test notes"));
         str = NULL;
 
         UTEST_ASSERT(os.current_token() == java::JST_BLOCK_DATA);
