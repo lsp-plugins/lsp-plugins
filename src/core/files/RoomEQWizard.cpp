@@ -207,7 +207,7 @@ namespace lsp
             return res;
         }
 
-        status_t skip_spaces(const LSPString *s, size_t *offset)
+        status_t skip_whitespace(const LSPString *s, size_t *offset)
         {
             size_t len = s->length();
             while (*offset < len)
@@ -228,15 +228,286 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t skip_data(const LSPString *s, size_t *offset)
+        {
+            size_t len = s->length();
+            while (*offset < len)
+            {
+                switch (s->char_at(*offset))
+                {
+                    case ' ':
+                    case '\n':
+                    case '\t':
+                    case '\r':
+                        return STATUS_OK;
+                    default:
+                        ++(*offset);
+                        break;
+                }
+            }
+
+            return STATUS_OK;
+        }
+
         status_t parse_decimal(ssize_t *dst, const LSPString *s, size_t *offset)
         {
-            // TODO
+            status_t res = skip_whitespace(s, offset);
+            if (res != STATUS_OK)
+                return res;
+
+            ssize_t num = 0, n=0;
+            size_t len = s->length();
+            for ( ; *offset < len; ++(*offset), ++n)
+            {
+                lsp_wchar_t wc = s->char_at(*offset);
+                if ((wc >= '0') && (wc <= '9'))
+                    num = num * 10 + (wc - '0');
+                else
+                    break;
+            }
+            if (n <= 0)
+                return STATUS_BAD_FORMAT;
+
+            *dst    = num;
+            return STATUS_OK;
+        }
+
+        status_t parse_double(double *dst, const LSPString *s, size_t *offset)
+        {
+            status_t res = skip_whitespace(s, offset);
+            if (res != STATUS_OK)
+                return res;
+
+            size_t len = s->length();
+
+            // Check sign
+            bool negative = false;
+            ssize_t is = 0;
+            if (*offset < len)
+            {
+                if (s->char_at(*offset) == '+')
+                {
+                    ++is;
+                    ++(*offset);
+                }
+                else if (s->char_at(*offset) == '-')
+                {
+                    ++is;
+                    ++(*offset);
+                    negative = true;
+                }
+            }
+
+            // Parse integer part
+            double num = 0;
+            ssize_t in=0;
+            for ( ; *offset < len; ++(*offset), ++in)
+            {
+                lsp_wchar_t wc = s->char_at(*offset);
+                if ((wc >= '0') && (wc <= '9'))
+                    num = num * 10 + (wc - '0');
+                else
+                    break;
+            }
+
+            // No fraction part?
+            if (((*offset) >= len) || (s->char_at(*offset) != '.'))
+            {
+                if (in <= 0)
+                    return STATUS_BAD_FORMAT;
+                *dst = num;
+                return STATUS_OK;
+            }
+
+            // Parse fraction part
+            double fnum = 0.1;
+            ssize_t fn=0;
+            for ( ; *offset < len; ++(*offset), ++fn)
+            {
+                lsp_wchar_t wc = s->char_at(*offset);
+                if ((wc >= '0') && (wc <= '9'))
+                {
+                    num += (wc - '0') * fnum;
+                    fnum *= 0.1;
+                }
+                else
+                    break;
+            }
+
+            // No integer and no fraction parts?
+            if ((in <= 0) && (fn <= 0))
+            {
+                --(*offset);
+                if (is > 0)
+                    --(*offset);
+                return STATUS_BAD_FORMAT;
+            }
+
+            // Return the result
+            *dst    = (negative) ? -num : num;
             return STATUS_OK;
         }
 
         status_t parse_filter_settings(filter_t *f, const LSPString *s, size_t *offset)
         {
-            // TODO
+            status_t res;
+            if ((res = skip_whitespace(s, offset)) != STATUS_OK)
+                return res;
+            LSPString tmp;
+
+            /**
+             * Filter  6: ON  None
+             * Filter  7: ON  PK       Fc     100 Hz  Gain   0.0 dB  Q 10.000
+             * Filter  8: ON  Modal    Fc     100 Hz  Gain   0.0 dB  Q 13.643  T60 target   300 ms
+             */
+            // On/Off
+            if (s->starts_with_ascii_nocase("on ", *offset))
+            {
+                *offset    += 3;
+                f->enabled  = true;
+            }
+            else if (s->starts_with_ascii_nocase("off ", *offset))
+            {
+                *offset    += 4;
+                f->enabled  = false;
+            }
+            else
+                return STATUS_BAD_FORMAT;
+
+            if ((res = skip_whitespace(s, offset)) != STATUS_OK)
+                return res;
+
+            // Filter type
+            if (s->starts_with_ascii_nocase("none ", *offset))
+            {
+                f->filterType   = NONE;
+                *offset        += 5;
+            }
+            else if (s->starts_with_ascii_nocase("modal ", *offset))
+            {
+                f->filterType   = MODAL;
+                *offset        += 6;
+            }
+            else if (s->starts_with_ascii_nocase("lp ", *offset))
+            {
+                f->filterType   = LP;
+                *offset        += 3;
+            }
+            else if (s->starts_with_ascii_nocase("hp ", *offset))
+            {
+                f->filterType   = HP;
+                *offset        += 3;
+            }
+            else if (s->starts_with_ascii_nocase("lpq ", *offset))
+            {
+                f->filterType   = LPQ;
+                *offset        += 4;
+            }
+            else if (s->starts_with_ascii_nocase("hpq ", *offset))
+            {
+                f->filterType   = HPQ;
+                offset         += 4;
+            }
+            else if (s->starts_with_ascii_nocase("ls 6dB ", *offset))
+            {
+                f->filterType   = LS6;
+                *offset        += 7;
+            }
+            else if (s->starts_with_ascii_nocase("ls 12dB ", *offset))
+            {
+                f->filterType   = LS12;
+                *offset        += 8;
+            }
+            else if (s->starts_with_ascii_nocase("ls ", *offset))
+            {
+                f->filterType   = LS;
+                offset         += 3;
+            }
+            else if (s->starts_with_ascii_nocase("hs 6dB ", *offset))
+            {
+                f->filterType   = HS6;
+                *offset        += 7;
+            }
+            else if (s->starts_with_ascii_nocase("hs 12dB ", *offset))
+            {
+                f->filterType   = HS12;
+                *offset        += 8;
+            }
+            else if (s->starts_with_ascii_nocase("hs ", *offset))
+            {
+                f->filterType   = HS;
+                *offset        += 3;
+            }
+            else if (s->starts_with_ascii_nocase("no ", *offset))
+            {
+                f->filterType   = NO;
+                *offset        += 3;
+            }
+            else if (s->starts_with_ascii_nocase("ap ", *offset))
+            {
+                f->filterType   = AP;
+                *offset        += 3;
+            }
+            else
+                return STATUS_BAD_FORMAT;
+
+            // Other parameters
+            f->Q        = 1.0;
+            f->fc       = 100.0;
+            f->gain     = 0.0;
+
+            if ((f->filterType == LP) || (f->filterType == HP))
+                f->Q        = M_SQRT1_2;
+
+            if ((res = skip_whitespace(s, offset)) != STATUS_OK)
+                return res;
+
+            // Scan the rest of line for optional parameters
+            size_t len = s->length();
+            while (*offset < len)
+            {
+                if (s->starts_with_ascii_nocase("fc ", *offset))
+                {
+                    *offset += 3;
+                    if ((res = parse_double(&f->fc, s, offset)) != STATUS_OK)
+                        return res;
+                    if (f->fc < 0)
+                        return STATUS_BAD_FORMAT;
+
+                    if ((res = skip_whitespace(s, offset)) != STATUS_OK)
+                        return res;
+                    if (!s->starts_with_ascii_nocase("hz ", *offset))
+                        return STATUS_BAD_FORMAT;
+                    *offset += 3;
+                }
+                else if (s->starts_with_ascii_nocase("gain ", *offset))
+                {
+                    *offset += 5;
+                    if ((res = parse_double(&f->gain, s, offset)) != STATUS_OK)
+                        return res;
+
+                    if ((res = skip_whitespace(s, offset)) != STATUS_OK)
+                        return res;
+                    if (!s->starts_with_ascii_nocase("db ", *offset))
+                        return STATUS_BAD_FORMAT;
+                    *offset += 3;
+                }
+                else if (s->starts_with_ascii_nocase("q ", *offset))
+                {
+                    *offset += 2;
+                    if ((res = parse_double(&f->Q, s, offset)) != STATUS_OK)
+                        return res;
+                }
+                else
+                {
+                    if ((res = skip_data(s, offset)) != STATUS_OK)
+                        return res;
+                }
+
+                if ((res = skip_whitespace(s, offset)) != STATUS_OK)
+                    return res;
+            }
+
             return STATUS_OK;
         }
 
@@ -278,7 +549,7 @@ namespace lsp
                 else if ((s.starts_with_ascii("Equaliser:")) || (s.starts_with_ascii("Equalizer:")))
                 {
                     offset = 10;
-                    if ((res = skip_spaces(&s, &offset)) != STATUS_OK)
+                    if ((res = skip_whitespace(&s, &offset)) != STATUS_OK)
                         return res;
                     if (!eq.set(&s, offset))
                         return STATUS_NO_MEM;
