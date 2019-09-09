@@ -9,14 +9,25 @@
 #include <core/io/InFileStream.h>
 #include <core/io/OutMemoryStream.h>
 #include <core/io/InMemoryStream.h>
+#include <core/io/InSequence.h>
 
 #include <core/files/RoomEQWizard.h>
 #include <core/files/java/ObjectStream.h>
+
+#include <dsp/endian.h>
 
 namespace lsp
 {
     namespace room_ew
     {
+        const char *charsets[] =
+        {
+            "UTF-8",
+            "UTF-16LE",
+            "UTF-16BE",
+            NULL
+        };
+
         config_t *build_config(const LSPString *hdr, const LSPString *notes,
                 int32_t major, int32_t minor, size_t filters)
         {
@@ -194,9 +205,62 @@ namespace lsp
             return res;
         }
 
+        status_t parse_text_config(io::IInSequence *is, config_t **dst)
+        {
+            // TODO
+            return STATUS_OK;
+        }
+
+        status_t load_text_file(io::IInStream *is, config_t **dst, const char *charset)
+        {
+            io::InSequence cs;
+            status_t res = cs.wrap(is, WRAP_NONE, charset);
+            if (res != STATUS_OK)
+            {
+                cs.close();
+                return res;
+            }
+
+            res = parse_text_config(&cs, dst);
+            if (res == STATUS_OK)
+                return cs.close();
+
+            cs.close();
+            return res;
+        }
+
         status_t load_text(io::IInStream *is, config_t **dst)
         {
-            return STATUS_OK;
+            // Read UTF-16 signature (if present)
+            uint16_t signature;
+            status_t res = is->read_block(&signature, sizeof(signature));
+            if (res != STATUS_OK)
+                return (res == STATUS_EOF) ? STATUS_BAD_FORMAT : res;
+
+            signature = BE_TO_CPU(signature);
+            if (signature == 0xfeff) // UTF-16BE
+            {
+                if ((res = load_text_file(is, dst, "UTF-16BE")) == STATUS_OK)
+                    return res;
+            }
+            else if (signature == 0xfffe) // UTF-16LE
+            {
+                if ((res = load_text_file(is, dst, "UTF-16LE")) == STATUS_OK)
+                    return res;
+            }
+
+            // Try to load unicode character sets
+            for (const char **cset=charsets; *cset != NULL; ++cset)
+            {
+                if ((res = is->seek(0)) != STATUS_OK)
+                    return res;
+                if ((res = load_text_file(is, dst, *cset)) == STATUS_OK)
+                    return res;
+            }
+
+            if ((res = is->seek(0)) != STATUS_OK)
+                return res;
+            return load_text_file(is, dst, NULL);
         }
 
 

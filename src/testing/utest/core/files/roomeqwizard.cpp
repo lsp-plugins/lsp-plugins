@@ -77,6 +77,9 @@ UTEST_BEGIN("core.files", roomeqwizard)
     {
         printf("Testing binary file...\n");
         read_file("res/test/rew/Test11.req");
+
+        printf("Testing binary file...\n");
+        read_file("res/test/rew/Test11.txt");
     }
 
 UTEST_END
