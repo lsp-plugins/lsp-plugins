@@ -39,7 +39,7 @@ UTEST_BEGIN("core.files", roomeqwizard)
 
         // Check configuration
         UTEST_ASSERT(cfg != NULL);
-        UTEST_ASSERT(::strcmp(cfg->sNotes, "") == 0);
+        UTEST_ASSERT(::strcmp(cfg->sNotes, "test notes") == 0);
         UTEST_ASSERT(::strcmp(cfg->sEqType, "Generic") == 0);
         UTEST_ASSERT(cfg->nVerMaj == 5);
         UTEST_ASSERT(cfg->nVerMin == 19);
@@ -67,7 +67,7 @@ UTEST_BEGIN("core.files", roomeqwizard)
         check_filter(&vf[idx++], true, room_ew::HS6, 100.00, 0.00, 10.0000000);
         check_filter(&vf[idx++], true, room_ew::LS12, 100.00, 0.00, 10.0000000);
         check_filter(&vf[idx++], true, room_ew::HS12, 100.00, 0.00, 10.0000000);
-        check_filter(&vf[idx++], true, room_ew::NO, 100.00, 0.00, 30.0000000);
+        check_filter(&vf[idx++], false, room_ew::NO, 100.00, 0.00, 30.0000000);
         check_filter(&vf[idx++], true, room_ew::AP, 100.00, 0.00, 0.7071068);
 
         ::free(cfg);

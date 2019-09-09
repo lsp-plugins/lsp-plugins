@@ -16,6 +16,8 @@
 
 #include <dsp/endian.h>
 
+#include <data/cstorage.h>
+
 namespace lsp
 {
     namespace room_ew
@@ -28,17 +30,17 @@ namespace lsp
             NULL
         };
 
-        config_t *build_config(const LSPString *hdr, const LSPString *notes,
+        config_t *build_config(const LSPString *eq, const LSPString *notes,
                 int32_t major, int32_t minor, size_t filters)
         {
-            const char *phdr    = hdr->get_utf8();
-            if (phdr == NULL)
+            const char *peq     = eq->get_utf8();
+            if (peq == NULL)
                 return NULL;
             const char *pnotes  = notes->get_utf8();
             if (pnotes == NULL)
                 return NULL;
 
-            size_t  n_hdr       = ::strlen(phdr) + 1;
+            size_t  n_hdr       = ::strlen(peq) + 1;
             size_t  n_notes     = ::strlen(pnotes) + 1;
             size_t  n_strings   = ALIGN_SIZE(n_hdr + n_notes, DEFAULT_ALIGN);
             size_t  n_cfg       = ALIGN_SIZE(sizeof(config_t), DEFAULT_ALIGN);
@@ -53,10 +55,10 @@ namespace lsp
             config_t *cfg       = reinterpret_cast<config_t *>(ptr);
             ptr                += n_cfg;
 
-            char *xhdr          = reinterpret_cast<char *>(ptr);
-            char *xnotes        = &xhdr[n_hdr];
+            char *xeq          = reinterpret_cast<char *>(ptr);
+            char *xnotes        = &xeq[n_hdr];
             ptr                += n_strings;
-            ::memcpy(xhdr, phdr, n_hdr);
+            ::memcpy(xeq, peq, n_hdr);
             ::memcpy(xnotes, pnotes, n_hdr);
 
             cfg->vFilters       = reinterpret_cast<filter_t *>(ptr);
@@ -65,7 +67,7 @@ namespace lsp
             // Fill the basic configuration
             cfg->nVerMaj        = major;
             cfg->nVerMin        = minor;
-            cfg->sEqType        = xhdr;
+            cfg->sEqType        = xeq;
             cfg->sNotes         = xnotes;
             cfg->nFilters       = filters;
 
@@ -100,19 +102,19 @@ namespace lsp
         status_t load_object_stream(java::ObjectStream *os, config_t **dst)
         {
             status_t res;
-            LSPString hdr, notes, eq;
+            LSPString eq, notes, xeq;
             java::RawArray *filters;
-            java::int_t major, minor, stub;
+            java::int_t major=0, minor=0, stub=0;
 
             // Read the REW data in Java serialization format
-            if ((res = os->read_string(&hdr)) != STATUS_OK)
+            if ((res = os->read_string(&eq)) != STATUS_OK)
                 return res;
-            if (!eq.set_ascii("Equaliser:"))
+            if (!xeq.set_ascii("Equaliser:"))
                 return STATUS_NO_MEM;
-            ssize_t idx = hdr.index_of(&eq);
+            ssize_t idx = eq.index_of(&xeq);
             if (idx >= 0)
-                hdr.remove(0, idx + eq.length());
-            lsp_trace("equalizer: %s", hdr.get_utf8());
+                eq.remove(0, idx + xeq.length());
+            lsp_trace("equalizer: %s", eq.get_utf8());
             if ((res = os->read_int(&major)) != STATUS_OK)
                 return res;
             if ((res = os->read_int(&minor)) != STATUS_OK)
@@ -131,7 +133,7 @@ namespace lsp
                 return res;
 
             // Now we are ready to allocate the data
-            config_t *cfg   = build_config(&hdr, &notes, major, minor, filters->length());
+            config_t *cfg   = build_config(&eq, &notes, major, minor, filters->length());
             if (cfg == NULL)
                 return STATUS_NO_MEM;
 
@@ -205,9 +207,117 @@ namespace lsp
             return res;
         }
 
-        status_t parse_text_config(io::IInSequence *is, config_t **dst)
+        status_t skip_spaces(const LSPString *s, size_t *offset)
+        {
+            size_t len = s->length();
+            while (*offset < len)
+            {
+                switch (s->char_at(*offset))
+                {
+                    case ' ':
+                    case '\n':
+                    case '\t':
+                    case '\r':
+                        ++(*offset);
+                        break;
+                    default:
+                        return STATUS_OK;
+                }
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t parse_decimal(ssize_t *dst, const LSPString *s, size_t *offset)
         {
             // TODO
+            return STATUS_OK;
+        }
+
+        status_t parse_filter_settings(filter_t *f, const LSPString *s, size_t *offset)
+        {
+            // TODO
+            return STATUS_OK;
+        }
+
+        status_t parse_text_config(io::IInSequence *is, config_t **dst)
+        {
+            LSPString s;
+            status_t res;
+
+            // Read header
+            if ((res = is->read_line(&s, true)) != STATUS_OK)
+                return res;
+            if (!s.equals_ascii("Filter Settings file"))
+                return STATUS_UNSUPPORTED_FORMAT;
+
+            // Read lines
+            LSPString notes, eq;
+            ssize_t major=0, minor=0;
+            size_t offset = 0;
+            cstorage<filter_t> vfilters;
+
+            while ((res = is->read_line(&s, true)) == STATUS_OK)
+            {
+                if (s.starts_with_ascii("Room EQ V"))
+                {
+                    offset = 9;
+                    if ((res = parse_decimal(&major, &s, &offset)) != STATUS_OK)
+                        return res;
+                    if ((offset >= s.length()) || (s.char_at(offset) != '.'))
+                        return STATUS_BAD_FORMAT;
+                    ++offset;
+                    if ((res = parse_decimal(&minor, &s, &offset)) != STATUS_OK)
+                        return res;
+                }
+                else if (s.starts_with_ascii("Notes:"))
+                {
+                    if (!notes.set(&s, 6))
+                        return STATUS_NO_MEM;
+                }
+                else if ((s.starts_with_ascii("Equaliser:")) || (s.starts_with_ascii("Equalizer:")))
+                {
+                    offset = 10;
+                    if ((res = skip_spaces(&s, &offset)) != STATUS_OK)
+                        return res;
+                    if (!eq.set(&s, offset))
+                        return STATUS_NO_MEM;
+                }
+                else if (s.starts_with_ascii("Filter "))
+                {
+                    offset = 7;
+
+                    // Find filter definition
+                    size_t len = s.length();
+                    while (offset < len)
+                        if (s.char_at(offset++) == ':')
+                            break;
+
+                    // Allocate filter
+                    filter_t *f = vfilters.add();
+                    if (f == NULL)
+                        return STATUS_NO_MEM;
+
+                    // Parse filter settings
+                    if ((res = parse_filter_settings(f, &s, &offset)) != STATUS_OK)
+                        return res;
+                }
+            }
+
+            // Analyze current status
+            if (res == STATUS_EOF)
+                res = STATUS_OK;
+            else if (res != STATUS_OK)
+                return res;
+
+            // Now we are ready to allocate the data
+            config_t *cfg   = build_config(&eq, &notes, major, minor, vfilters.size());
+            if (cfg == NULL)
+                return STATUS_NO_MEM;
+
+            // Copy filter data
+            ::memcpy(cfg->vFilters, vfilters.get_array(), sizeof(filter_t) * vfilters.size());
+
             return STATUS_OK;
         }
 

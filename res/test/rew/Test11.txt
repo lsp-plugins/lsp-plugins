@@ -1,9 +1,9 @@
 Filter Settings file
 
 Room EQ V5.19
-Dated: 09.09.2019 18:12:29
+Dated: 09.09.2019 19:53:38
 
-Notes:
+Notes:test notes
 
 Equaliser: Generic
 No measurement
@@ -25,6 +25,6 @@ Filter 15: ON  LS 6dB   Fc     100 Hz  Gain   0.0 dB
 Filter 16: ON  HS 6dB   Fc     100 Hz  Gain   0.0 dB
 Filter 17: ON  LS 12dB  Fc     100 Hz  Gain   0.0 dB
 Filter 18: ON  HS 12dB  Fc     100 Hz  Gain   0.0 dB
-Filter 19: ON  NO       Fc     100 Hz
+Filter 19: OFF NO       Fc     100 Hz
 Filter 20: ON  AP       Fc     100 Hz  Q  0.707
 
