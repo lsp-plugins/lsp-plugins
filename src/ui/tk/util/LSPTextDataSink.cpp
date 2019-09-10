@@ -55,7 +55,8 @@ namespace lsp
 
        status_t LSPTextDataSink::write(const void *buf, size_t count)
        {
-           return sOut.write(buf, count);
+           ssize_t written = sOut.write(buf, count);
+           return (written < 0) ? -written : STATUS_OK;
        }
 
        status_t LSPTextDataSink::close(status_t code)

@@ -32,6 +32,8 @@
 
 // Special widget identifiers
 #define WUID_MAIN_MENU                      "main_menu"
+#define WUID_EXPORT_MENU                    "export_menu"
+#define WUID_IMPORT_MENU                    "import_menu"
 
 // Special ports for handling current time
 #define TIME_PORT_PREFIX                    "time:"

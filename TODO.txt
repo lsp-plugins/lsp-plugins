@@ -21,7 +21,9 @@
 * Build fixes for Aarch64 architecture related to CPU feature detection.
 * Implemented drag & drop feature for file loading components.
 * Refactored clipboard mechanism for X11 protocol, addes support of INCR selection transfer.
-- Added support of RoomEQ Wizard configuration file format by Parametric Equalizer plugin series.
+* Refactored UI of the parameteric Equalizer plugin series.
+* Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
+- Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.

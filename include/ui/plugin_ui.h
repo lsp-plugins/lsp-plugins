@@ -78,6 +78,21 @@ namespace lsp
                     virtual status_t get_parameter(LSPString *name, LSPString *value, LSPString *comment, int *flags);
             };
 
+            class ConfigSink: public LSPTextDataSink
+            {
+                private:
+                    plugin_ui      *pUI;
+
+                public:
+                    explicit ConfigSink(plugin_ui *ui): pUI(ui) {}
+                    virtual ~ConfigSink();
+
+                    void unbind();
+
+                public:
+                    virtual status_t    on_complete(status_t code, const LSPString *data);
+            };
+
         protected:
             const plugin_metadata_t    *pMetadata;
             IUIWrapper                 *pWrapper;
@@ -98,6 +113,7 @@ namespace lsp
             cvector<CtlKvtListener>     vKvtListeners;
 
             cstorage<preset_t>          vPresets;
+            ConfigSink                 *pConfigSink;
 
         protected:
             static const port_t         vConfigMetadata[];
@@ -109,7 +125,9 @@ namespace lsp
             io::File       *open_config_file(bool write);
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset);
             status_t        scan_presets();
+            void            build_config_header(LSPString &c);
             void            destroy_presets();
+            status_t        paste_from_clipboard(const LSPString *data);
 
             static status_t slot_preset_select(LSPWidget *sender, void *ptr, void *data);
 
@@ -177,6 +195,18 @@ namespace lsp
              * @return status of operation
              */
             status_t import_settings(const char *filename, bool preset);
+
+            /**
+             * Export settings to clipboard
+             * @return status of operation
+             */
+            status_t export_settings_to_clipboard();
+
+            /**
+             * Import settings from clipboard
+             * @return status of operation
+             */
+            status_t import_settings_from_clipboard();
 
             /** Save global configuration file
              *
