@@ -519,35 +519,7 @@ namespace lsp
 
         status_t LSPGrid::add(LSPWidget *widget)
         {
-            // Allocate cell
-            cell_t *cell    = alloc_cell();
-            if (cell == NULL)
-                return STATUS_OVERFLOW;
-
-            if (cell->pWidget != NULL)
-            {
-                unlink_widget(cell->pWidget);
-                cell->pWidget       = NULL;
-            }
-
-            LSPCell *w      = widget_cast<LSPCell>(widget);
-            if (w != NULL)
-            {
-                cell->nRows     = w->rowspan();
-                cell->nCols     = w->colspan();
-                cell->pWidget   = w->unwrap();
-            }
-            else
-            {
-                cell->nRows     = 1;
-                cell->nCols     = 1;
-                cell->pWidget   = widget;
-            }
-
-            if (cell->pWidget != NULL)
-                cell->pWidget->set_parent(this);
-
-            return tag_cell(cell, false);
+            return add(widget, 1, 1);
         }
 
         status_t LSPGrid::add(LSPWidget *widget, size_t rowspan, size_t colspan)

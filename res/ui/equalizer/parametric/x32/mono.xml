@@ -89,8 +89,6 @@
 					<text text="-9" coord="10;-9 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 				</graph>
 				<hbox spacing="8">
-					<label text="Filters" />
-					<combo id="fsel" />
 					<label text="Mode" />
 					<combo id="mode" />
 					<align pad_right="4" hpos="1"  expand="true"><label text="SPECTRUM GRAPH" /></align>
@@ -112,7 +110,12 @@
 						<value id="g_out" />
 						
 						<cell rows="5">
-							<meter id="sm" angle="1" type="rms_peak" height="128" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
+							<meter id="sm" angle="1" 
+								type="rms_peak" height="128" logarithmic="true"
+								min="-36 db" max="+6 db" 
+								color="middle_channel" 
+								pad_left="2" pad_right="2" 
+							/>
 						</cell>
 						<label text="Out" color="middle_channel" font_size="9" />
 					</grid>
@@ -136,8 +139,8 @@
 			</vbox>
 		</hbox>
 		<hbox spacing="4">
-			<group text="Filters 0-7" expand="true" visibility_id="fsel" visibility_key="0">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
+			<cgroup id="fsel">
+				<grid transpose="true" rows="8" cols="17" hspacing="2" >
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
 					<label text="Mode" fill="true" halign="0" />
@@ -175,9 +178,8 @@
 						<value id="hue_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
-			<group text="Filters 8-15" expand="true" visibility_id="fsel" visibility_key="1">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
+				
+				<grid transpose="true" rows="8" cols="17" hspacing="2" >
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
 					<label text="Mode" fill="true" halign="0" />
@@ -215,9 +217,8 @@
 						<value id="hue_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
-			<group text="Filters 16-23" expand="true" visibility_id="fsel" visibility_key="2">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
+
+				<grid transpose="true" rows="8" cols="17" hspacing="2" >
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
 					<label text="Mode" fill="true" halign="0" />
@@ -255,9 +256,8 @@
 						<value id="hue_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
-			<group text="Filters 24-31" expand="true" visibility_id="fsel" visibility_key="3">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
+				
+				<grid transpose="true" rows="8" cols="17" hspacing="2" >
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
 					<label text="Mode" fill="true" halign="0" />
@@ -295,7 +295,7 @@
 						<value id="hue_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
+			</cgroup>
 		</hbox>
 	</vbox>
 </plugin>

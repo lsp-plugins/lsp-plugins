@@ -22,7 +22,7 @@ namespace lsp
 
         void CtlGrid::set(widget_attribute_t att, const char *value)
         {
-            LSPGrid *grid   = (pWidget != NULL) ? static_cast<LSPGrid *>(pWidget) : NULL;
+            LSPGrid *grid       = widget_cast<LSPGrid>(pWidget);
 
             switch (att)
             {
@@ -63,10 +63,10 @@ namespace lsp
 
         status_t CtlGrid::add(LSPWidget *child)
         {
-            if (pWidget == NULL)
+            LSPGrid *grid       = widget_cast<LSPGrid>(pWidget);
+            if (grid == NULL)
                 return STATUS_BAD_STATE;
 
-            LSPGrid *grid       = static_cast<LSPGrid *>(pWidget);
             return grid->add(child);
         }
     } /* namespace ctl */

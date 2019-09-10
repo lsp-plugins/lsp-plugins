@@ -76,61 +76,61 @@ namespace lsp
 
     static const char *filter_select_16[] =
     {
-        "0-7",
-        "8-15",
+        "Filters 0-7",
+        "Filters 8-15",
         NULL
     };
 
     static const char *filter_select_16lr[] =
     {
-        "Left 0-7",
-        "Right 0-7",
-        "Left 8-15",
-        "Right 8-15",
+        "Filters Left 0-7",
+        "Filters Right 0-7",
+        "Filters Left 8-15",
+        "Filters Right 8-15",
         NULL
     };
 
     static const char *filter_select_16ms[] =
     {
-        "Middle 0-7",
-        "Side 0-7",
-        "Middle 8-15",
-        "Side 8-15",
+        "Filters Middle 0-7",
+        "Filters Side 0-7",
+        "Filters Middle 8-15",
+        "Filters Side 8-15",
         NULL
     };
 
     static const char *filter_select_32[] =
     {
-        "0-7",
-        "8-15",
-        "16-23",
-        "24-31",
+        "Filters 0-7",
+        "Filters 8-15",
+        "Filters 16-23",
+        "Filters 24-31",
         NULL
     };
 
     static const char *filter_select_32lr[] =
     {
-        "Left 0-7",
-        "Right 0-7",
-        "Left 8-15",
-        "Right 8-15",
-        "Left 16-23",
-        "Right 16-23",
-        "Left 24-31",
-        "Right 24-31",
+        "Filters Left 0-7",
+        "Filters Right 0-7",
+        "Filters Left 8-15",
+        "Filters Right 8-15",
+        "Filters Left 16-23",
+        "Filters Right 16-23",
+        "Filters Left 24-31",
+        "Filters Right 24-31",
         NULL
     };
 
     static const char *filter_select_32ms[] =
     {
-        "Mid 0-7",
-        "Side 0-7",
-        "Mid 8-15",
-        "Side 8-15",
-        "Mid 16-23",
-        "Side 16-23",
-        "Mid 24-31",
-        "Side 24-31",
+        "Filters Mid 0-7",
+        "Filters Side 0-7",
+        "Filters Mid 8-15",
+        "Filters Side 8-15",
+        "Filters Mid 16-23",
+        "Filters Side 16-23",
+        "Filters Mid 24-31",
+        "Filters Side 24-31",
         NULL
     };
 
@@ -143,7 +143,7 @@ namespace lsp
             LOG_CONTROL_DFL("f" id "_" #x, "Frequency " label #x, U_HZ, para_equalizer_base_metadata::FREQ, f), \
             { "g" id "_" #x, "Gain " label # x, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, GAIN_AMP_M_36_DB, GAIN_AMP_P_36_DB, GAIN_AMP_0_DB, 0.01, NULL, NULL }, \
             { "q" id "_" #x, "Quality factor " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 100.0f, 0.0f, 0.025f, NULL        }, \
-            { "hue" id "_" #x, "Hue " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
+            { "hue" id "_" #x, "Hue " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
             BLINK("fv" id "_" #x, "Filter visibility " label #x), \
             MESH("agf" id "_" #x, "Amplitude graph " label #x, 2, para_equalizer_base_metadata::FILTER_MESH_POINTS)
 

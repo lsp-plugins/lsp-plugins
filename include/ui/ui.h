@@ -62,5 +62,6 @@ namespace lsp
 // Particular plugin UI
 #include <ui/plugins/test_plugin_ui.h>
 #include <ui/plugins/room_builder_ui.h>
+#include <ui/plugins/para_equalizer_ui.h>
 
 #endif /* _UI_UI_H_ */

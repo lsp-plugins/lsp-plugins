@@ -98,8 +98,6 @@
 					<text text="-9" coord="10;-9 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 				</graph>
 				<hbox spacing="8">
-					<label text="Filters" />
-					<combo id="fsel" />
 					<label text="Mode" />
 					<combo id="mode" />
 					<align hpos="1" expand="true">
@@ -128,17 +126,23 @@
 						<knob id="g_out" />
 						<value id="g_out" />
 						
-						<label text="Balance" expand="true" />
+						<hbox fill="false" spacing="2">
+							<label text="L" color="left_channel" />
+							<label text="/" />
+							<label text="R" color="right_channel" />
+						</hbox>
 						<knob id="bal" balance="0.5" scale_color="green" />
 						
 						<cell rows="4">
-							<grid rows="3" cols="2">
-								<meter id="sml" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="left_channel" pad_left="2" pad_right="2" />
-								<meter id="smr" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="right_channel" pad_left="2" pad_right="2" />
-								<label text="L" color="left_channel" font_size="9" />
-								<label text="R" color="right_channel" font_size="9" />
-								<cell cols="2"><value id="bal" font_size="9" same_line="true" /></cell>
-							</grid>
+							<vbox>
+								<meter id="sml" id2="smr"
+									stereo="true" type="rms_peak"
+									angle="1" height="80"
+									min="-36 db" max="+6 db"
+									color="left_channel" color2="right_channel"
+								/>
+								<value id="bal" font_size="9" same_line="true" />
+							</vbox>
 						</cell>
 					</grid>
 				</group>
@@ -161,8 +165,8 @@
 			</vbox>
 		</hbox>
 		<hbox spacing="4">
-			<group text="Filters 0-7 Left" expand="true" visibility_id="fsel" visibility_key="0">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
+			<cgroup id="fsel">
+				<grid transpose="true" rows="8" cols="17" hspacing="2" >
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
 					<label text="Mode" fill="true" halign="0" />
@@ -200,8 +204,7 @@
 						<value id="huel_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
-			<group text="Filters 0-7 Right" expand="true" visibility_id="fsel" visibility_key="1">
+
 				<grid transpose="true" rows="8" cols="17" hspacing="2">
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
@@ -240,9 +243,7 @@
 						<value id="huer_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
-			
-			<group text="Filters 8-15 Left" expand="true" visibility_id="fsel" visibility_key="2">
+
 				<grid transpose="true" rows="8" cols="17" hspacing="2">
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
@@ -281,8 +282,7 @@
 						<value id="huel_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
-			<group text="Filters 8-15 Right" expand="true" visibility_id="fsel" visibility_key="3">
+
 				<grid transpose="true" rows="8" cols="17" hspacing="2">
 					<label text="#" fill="true" halign="0" />
 					<label text="Filter" fill="true" halign="0" />
@@ -321,7 +321,7 @@
 						<value id="huer_${i}" detailed="false" />
 					</ui:for>
 				</grid>
-			</group>
+			</cgroup>
 			
 		</hbox>
 	</vbox>

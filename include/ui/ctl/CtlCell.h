@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_UI_CTL_CTLCELL_H_
-#define INCLUDE_UI_CTL_CTLCELL_H_
+#ifndef UI_CTL_CTLCELL_H_
+#define UI_CTL_CTLCELL_H_
 
 namespace lsp
 {
@@ -28,4 +28,4 @@ namespace lsp
     } /* namespace ctl */
 } /* namespace lsp */
 
-#endif /* INCLUDE_UI_CTL_CTLCELL_H_ */
+#endif /* UI_CTL_CTLCELL_H_ */
