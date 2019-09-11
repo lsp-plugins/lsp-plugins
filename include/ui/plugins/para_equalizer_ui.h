@@ -34,7 +34,9 @@ namespace lsp
             void        set_filter_frequency(size_t id, double value);
             void        set_filter_quality(size_t id, double value);
             void        set_filter_gain(size_t id, double value);
+            void        set_filter_slope(size_t id, size_t slope);
             void        set_filter_enabled(size_t id, bool enabled);
+            void        set_filter_solo(size_t id, bool solo);
 
         public:
             explicit para_equalizer_ui(const plugin_metadata_t *mdata, void *root_widget);

@@ -173,9 +173,19 @@ namespace lsp
         set_port_value("g", id, gain);
     }
 
+    void para_equalizer_ui::set_filter_slope(size_t id, size_t slope)
+    {
+        set_port_value("s", id, slope - 1);
+    }
+
     void para_equalizer_ui::set_filter_enabled(size_t id, bool enabled)
     {
         set_port_value("xm", id, (enabled) ? 0.0f : 1.0f);
+    }
+
+    void para_equalizer_ui::set_filter_solo(size_t id, bool solo)
+    {
+        set_port_value("xs", id, (solo) ? 1.0f : 0.0f);
     }
 
     status_t para_equalizer_ui::import_rew_file(const LSPString *path)
@@ -187,7 +197,8 @@ namespace lsp
             return res;
 
         // Apply settings
-        for (size_t i=0, j=0; i<cfg->nFilters; ++i)
+        size_t fid = 0;
+        for (size_t i=0; i<cfg->nFilters; ++i)
         {
             const room_ew::filter_t *f = &cfg->vFilters[i];
 
@@ -267,15 +278,28 @@ namespace lsp
                 continue;
 
             // Set-up parameters
-            set_filter_mode(i, mode);
-            set_filter_type(i, type);
-            set_filter_frequency(i, freq);
-            set_filter_gain(i, gain);
-            set_filter_quality(i, quality);
-            set_filter_enabled(i, f->enabled);
+            set_filter_mode(fid, mode);
+            set_filter_type(fid, type);
+            set_filter_slope(fid, 1);
+            set_filter_frequency(fid, freq);
+            set_filter_gain(fid, gain);
+            set_filter_quality(fid, quality);
+            set_filter_enabled(fid, f->enabled);
+            set_filter_solo(fid, false);
 
             // Increment imported filter number
-            ++j;
+            ++fid;
+        }
+
+        // Reset state of all other filters
+        for (; fid < 32; ++fid)
+        {
+            set_filter_type(fid, para_equalizer_base_metadata::EQF_OFF);
+            set_filter_slope(fid, 1);
+            set_filter_gain(fid, 1.0f);
+            set_filter_quality(fid, 0.0f);
+            set_filter_enabled(fid, true);
+            set_filter_solo(fid, false);
         }
 
         return STATUS_OK;
