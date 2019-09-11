@@ -43,9 +43,11 @@ namespace lsp
         "Lo-shelf",
         "Notch",
         "Resonance",
+        "Allpass",
 
         // Additional stuff
 #ifndef LSP_NO_EXPERIMENTAL
+        "Allpass2",
         "Ladder-pass",
         "Ladder-rej",
         "Envelope",

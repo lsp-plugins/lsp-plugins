@@ -35,6 +35,10 @@ namespace lsp
         FLT_MT_RLC_RESONANCE,
         FLT_BT_RLC_NOTCH,
         FLT_MT_RLC_NOTCH,
+        FLT_BT_RLC_ALLPASS,
+        FLT_MT_RLC_ALLPASS,
+        FLT_BT_RLC_ALLPASS2,
+        FLT_MT_RLC_ALLPASS2,
         FLT_BT_RLC_LADDERPASS,
         FLT_MT_RLC_LADDERPASS,
         FLT_BT_RLC_LADDERREJ,
@@ -86,6 +90,7 @@ namespace lsp
         FLT_DR_APO_BANDPASS,
         FLT_DR_APO_NOTCH,
         FLT_DR_APO_ALLPASS,
+        FLT_DR_APO_ALLPASS2,
         FLT_DR_APO_PEAKING,
         FLT_DR_APO_LOSHELF,
         FLT_DR_APO_HISHELF,
@@ -97,7 +102,7 @@ namespace lsp
     {
         size_t      nType;      // Filter class
         float       fFreq;      // Frequency
-        float       fFreq2;     // Second frequency (for bandpass filter)
+        float       fFreq2;     // Second frequency (for bandpass/allpass2 filter)
         float       fGain;      // Gain
         size_t      nSlope;     // Filter slope
         float       fQuality;   // Quality factor

@@ -52,8 +52,10 @@ namespace lsp
             EQF_LOSHELF,
             EQF_NOTCH,
             EQF_RESONANCE,
+            EQF_ALLPASS,
 
 #ifndef LSP_NO_EXPERIMENTAL
+            EQF_ALLPASS2,
             EQF_LADDERPASS,
             EQF_LADDERREJ,
             EQF_ENVELOPE,
