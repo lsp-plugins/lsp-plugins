@@ -319,10 +319,10 @@ namespace lsp
 
             case FLT_DR_APO_ALLPASS2:
             {
-                calc_apo_filter(sParams.nType, &fp);
+                calc_apo_filter(FLT_DR_APO_ALLPASS, &fp);
                 fp.fFreq            = sParams.fFreq2;
                 fp.fGain            = 1.0f;
-                calc_apo_filter(sParams.nType, &fp);
+                calc_apo_filter(FLT_DR_APO_ALLPASS, &fp);
                 nMode               = FM_APO;
                 break;
             }
