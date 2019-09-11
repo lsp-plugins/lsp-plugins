@@ -240,12 +240,15 @@ namespace lsp
              * @return true on success
              */
             bool set_utf8(const char *s, size_t n);
-            bool set_utf16(const lsp_utf16_t *s);
-            bool set_utf16(const lsp_utf16_t *s, size_t n);
-            bool set_ascii(const char *s, size_t n);
-            bool set_native(const char *s, size_t n, const char *charset = NULL);
             inline bool set_utf8(const char *s) { return set_utf8(s, ::strlen(s)); };
+
+            bool set_utf16(const lsp_utf16_t *s, size_t n);
+            bool set_utf16(const lsp_utf16_t *s);
+
+            bool set_ascii(const char *s, size_t n);
             inline bool set_ascii(const char *s) { return set_ascii(s, ::strlen(s)); };
+
+            bool set_native(const char *s, size_t n, const char *charset = NULL);
             inline bool set_native(const char *s, const char *charset) { return set_native(s, ::strlen(s), charset); };
             inline bool set_native(const char *s) { return set_native(s, ::strlen(s), NULL); };
 
@@ -346,11 +349,23 @@ namespace lsp
 
             bool starts_with(lsp_wchar_t ch) const;
             inline bool starts_with(char ch) const { return starts_with(lsp_wchar_t(uint8_t(ch))); };
+            bool starts_with(lsp_wchar_t ch, size_t offset) const;
+            inline bool starts_with(char ch, size_t offset) const { return starts_with(lsp_wchar_t(uint8_t(ch)), offset); };
+
             bool starts_with(const LSPString *src) const;
             bool starts_with_ascii(const char *src) const;
+            bool starts_with(const LSPString *src, size_t offset) const;
+            bool starts_with_ascii(const char *src, size_t offsset) const;
+
             bool starts_with_nocase(lsp_wchar_t ch) const;
             inline bool starts_with_nocase(char ch) const { return starts_with_nocase(lsp_wchar_t(uint8_t(ch))); };
+            bool starts_with_nocase(lsp_wchar_t ch, size_t offset) const;
+            inline bool starts_with_nocase(char ch, size_t offset) const { return starts_with_nocase(lsp_wchar_t(uint8_t(ch)), offset); };
+
             bool starts_with_nocase(const LSPString *src) const;
+            bool starts_with_nocase(const LSPString *src, size_t offset) const;
+            bool starts_with_ascii_nocase(const char *src) const;
+            bool starts_with_ascii_nocase(const char *src, size_t offset) const;
 
             /** Delete character sequence from the string
              *

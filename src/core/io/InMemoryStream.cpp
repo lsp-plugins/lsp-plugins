@@ -17,10 +17,10 @@ namespace lsp
             pData   = NULL;
             nOffset = 0;
             nSize   = 0;
-            enDrop  = DROP_NONE;
+            enDrop  = MEMDROP_NONE;
         }
 
-        InMemoryStream::InMemoryStream(void *data, size_t size, drop_t drop)
+        InMemoryStream::InMemoryStream(void *data, size_t size, lsp_memdrop_t drop)
         {
             pData   = reinterpret_cast<uint8_t *>(data);
             nOffset = 0;
@@ -28,12 +28,20 @@ namespace lsp
             enDrop  = drop;
         }
         
+        InMemoryStream::InMemoryStream(const void *data, size_t size)
+        {
+            pData   = reinterpret_cast<uint8_t *>(const_cast<void *>(data));
+            nOffset = 0;
+            nSize   = size;
+            enDrop  = MEMDROP_NONE;
+        }
+
         InMemoryStream::~InMemoryStream()
         {
             drop();
         }
 
-        void InMemoryStream::wrap(void *data, size_t size, drop_t drop)
+        void InMemoryStream::wrap(void *data, size_t size, lsp_memdrop_t drop)
         {
             InMemoryStream::drop();
             pData   = reinterpret_cast<uint8_t *>(data);
@@ -42,22 +50,31 @@ namespace lsp
             enDrop  = drop;
         }
 
-        bool InMemoryStream::drop(drop_t drop)
+        void InMemoryStream::wrap(const void *data, size_t size)
+        {
+            InMemoryStream::drop();
+            pData   = reinterpret_cast<uint8_t *>(const_cast<void *>(data));
+            nOffset = 0;
+            nSize   = size;
+            enDrop  = MEMDROP_NONE;
+        }
+
+        bool InMemoryStream::drop(lsp_memdrop_t drop)
         {
             if (pData == NULL)
                 return false;
             switch (drop)
             {
-                case DROP_FREE: ::free(pData); break;
-                case DROP_DELETE: delete pData; break;
-                case DROP_ARR_DELETE: delete [] pData; break;
+                case MEMDROP_FREE: ::free(pData); break;
+                case MEMDROP_DELETE: delete pData; break;
+                case MEMDROP_ARR_DELETE: delete [] pData; break;
                 default: break;
             }
 
             pData       = NULL;
             nOffset     = 0;
             nSize       = 0;
-            enDrop      = DROP_NONE;
+            enDrop      = MEMDROP_NONE;
 
             return true;
         }
@@ -100,6 +117,17 @@ namespace lsp
                 position = nSize;
 
             return nOffset = position;
+        }
+
+        wssize_t InMemoryStream::skip(wsize_t amount)
+        {
+            if (pData == NULL)
+                return -set_error(STATUS_NO_DATA);
+            size_t avail = nSize - nOffset;
+            if (avail > amount)
+                avail       = amount;
+            nOffset    += avail;
+            return avail;
         }
 
         status_t InMemoryStream::close()

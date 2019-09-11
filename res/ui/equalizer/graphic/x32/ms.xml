@@ -146,8 +146,6 @@
 					</graph>
 				</align>
 				<hbox spacing="4">
-					<label text="Bands" />
-					<combo id="fsel" />
 					<label text="Mode" />
 					<combo id="slope" />
 					<combo id="mode" />
@@ -191,24 +189,30 @@
 						<knob id="g_out" />
 						<value id="g_out" />
 						
-						<label text="Balance" expand="true" />
+						<hbox fill="false" spacing="2">
+							<label text="L" color="left_channel" />
+							<label text="/" />
+							<label text="R" color="right_channel" />
+						</hbox>
 						<knob id="bal" balance="0.5" scale_color="green" />
 						
 						<cell rows="4">
 							<vbox>
-								<grid rows="3" cols="2" visibility_id="lstn" visibility_key="0">
-									<meter id="sml" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="left_channel" pad_left="2" pad_right="2" />
-									<meter id="smr" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="right_channel" pad_left="2" pad_right="2" />
-									<label text="L" color="left_channel" font_size="8" />
-									<label text="R" color="right_channel" font_size="8" />
-								</grid>
-								<grid rows="3" cols="2" visibility_id="lstn" visibility_key="1">
-									<meter id="sml" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
-									<meter id="smr" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="side_channel" pad_left="2" pad_right="2" />
-									<label text="M" color="middle_channel" font_size="8" />
-									<label text="S" color="side_channel" font_size="8" />
-								</grid>
-								<cell cols="2"><value id="bal" font_size="8" same_line="true" /></cell>
+								<meter id="sml" id2="smr" visibility=":lstn ieq 0"
+									stereo="true" type="rms_peak"
+									angle="1" height="80"
+									min="-36 db" max="+6 db" 
+									color="left_channel" color2="right_channel"
+								/>
+								
+								<meter id="sml" id2="smr" visibility=":lstn ieq 1"
+									stereo="true" type="rms_peak"
+									angle="1" height="80"
+									min="-36 db" max="+6 db" 
+									color="middle_channel" color2="side_channel"
+								/>
+								
+								<value id="bal" font_size="9" same_line="true" />
 							</vbox>
 						</cell>
 					</grid>
@@ -232,7 +236,7 @@
 			</vbox>
 		</hbox>
 		<hbox spacing="4">
-			<group text="Bands" expand="true" visibility_id="fsel" visibility_key="0">
+			<cgroup id="fsel" >
 				<grid rows="5" cols="17">
 					<label text="Hz" fill="true" halign="0" />
 
@@ -271,8 +275,7 @@
 					<label text="(dB)" />
 					<ui:for id="i" first="0" last="15"><value id="gm_${i}" detailed="false" /></ui:for>
 				</grid>
-			</group>
-			<group text="Bands" expand="true" visibility_id="fsel" visibility_key="1">
+
 				<grid rows="5" cols="17">
 					<label text="Hz" fill="true" halign="0" />
 
@@ -311,9 +314,7 @@
 					<label text="(dB)" />
 					<ui:for id="i" first="0" last="15"><value id="gs_${i}" detailed="false" /></ui:for>
 				</grid>
-			</group>
-			
-			<group text="Bands" expand="true" visibility_id="fsel" visibility_key="2">
+
 				<grid rows="5" cols="17">
 					<label text="Hz" fill="true" halign="0" />
 
@@ -352,8 +353,7 @@
 					<label text="(dB)" />
 					<ui:for id="i" first="16" last="31"><value id="gm_${i}" detailed="false" /></ui:for>
 				</grid>
-			</group>
-			<group text="Bands" expand="true" visibility_id="fsel" visibility_key="3">
+
 				<grid rows="5" cols="17">
 					<label text="Hz" fill="true" halign="0" />
 					
@@ -392,7 +392,7 @@
 					<label text="(dB)" />
 					<ui:for id="i" first="16" last="31"><value id="gs_${i}" detailed="false" /></ui:for>
 				</grid>
-			</group>
+			</cgroup>
 		</hbox>
 	</vbox>
 </plugin>

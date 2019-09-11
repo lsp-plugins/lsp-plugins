@@ -44,6 +44,7 @@ namespace lsp
                  * Write amount of bytes to the sink
                  * @param buf buffer to write
                  * @param count number of bytes to write
+                 * @return status of operation
                  */
                 virtual status_t    write(const void *buf, size_t count);
 

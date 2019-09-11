@@ -1,5 +1,4 @@
 <plugin>
-
 	<port id="sw0alias" value="sw0" />
 	
 	<hbox spacing="4">

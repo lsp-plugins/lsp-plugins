@@ -76,6 +76,8 @@ namespace lsp
 
         void CtlMeter::init()
         {
+            CtlWidget::init();
+
             sActivity[0].init(pRegistry, this);
             sActivity[1].init(pRegistry, this);
 

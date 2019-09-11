@@ -108,5 +108,19 @@ namespace lsp
             if (pWidget != NULL)
                 pWidget->query_resize();
         }
+
+        void LSPPadding::set(const LSPPadding *p)
+        {
+            if ((sPadding.nLeft == p->sPadding.nLeft) &&
+                (sPadding.nRight == p->sPadding.nRight) &&
+                (sPadding.nTop == p->sPadding.nTop) &&
+                (sPadding.nBottom == p->sPadding.nBottom))
+                return;
+
+            sPadding            = p->sPadding;
+
+            if (pWidget != NULL)
+                pWidget->query_resize();
+        }
     } /* namespace tk */
 } /* namespace lsp */

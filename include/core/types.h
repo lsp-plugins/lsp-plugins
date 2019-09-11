@@ -80,6 +80,14 @@ namespace lsp
         WRAP_DELETE     = 1 << 1
     };
 
+    enum lsp_memdrop_t
+    {
+        MEMDROP_NONE,
+        MEMDROP_FREE,
+        MEMDROP_DELETE,
+        MEMDROP_ARR_DELETE
+    };
+
     typedef struct float_buffer_t
     {
         size_t      lines;

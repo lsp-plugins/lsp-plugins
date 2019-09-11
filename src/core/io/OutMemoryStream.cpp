@@ -48,7 +48,8 @@ namespace lsp
             if (nSize < sz)
                 nSize       = sz;
 
-            return set_error(STATUS_OK);
+            set_error(STATUS_OK);
+            return count;
         }
 
         wssize_t OutMemoryStream::seek(wsize_t position)

@@ -1,0 +1,30 @@
+Filter Settings file
+
+Room EQ V5.18
+Dated: 07-Apr-2019 16:48:50
+
+Notes:
+
+Equaliser: Generic
+No measurement
+Filter  1: ON  LPQ      Fc    1000 Hz  Q   10.0
+Filter  2: ON  None   
+Filter  3: ON  None   
+Filter  4: ON  None   
+Filter  5: ON  None   
+Filter  6: ON  None   
+Filter  7: ON  None   
+Filter  8: ON  None   
+Filter  9: ON  None   
+Filter 10: ON  None   
+Filter 11: ON  None   
+Filter 12: ON  None   
+Filter 13: ON  None   
+Filter 14: ON  None   
+Filter 15: ON  None   
+Filter 16: ON  None   
+Filter 17: ON  None   
+Filter 18: ON  None   
+Filter 19: ON  None   
+Filter 20: ON  None   
+

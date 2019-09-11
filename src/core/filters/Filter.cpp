@@ -203,6 +203,8 @@ namespace lsp
             case FLT_BT_RLC_BELL:
             case FLT_BT_RLC_RESONANCE:
             case FLT_BT_RLC_NOTCH:
+            case FLT_BT_RLC_ALLPASS:
+            case FLT_BT_RLC_ALLPASS2:
             case FLT_BT_RLC_LADDERPASS:
             case FLT_BT_RLC_LADDERREJ:
             case FLT_BT_RLC_BANDPASS:
@@ -223,6 +225,8 @@ namespace lsp
             case FLT_MT_RLC_BELL:
             case FLT_MT_RLC_RESONANCE:
             case FLT_MT_RLC_NOTCH:
+            case FLT_MT_RLC_ALLPASS:
+            case FLT_MT_RLC_ALLPASS2:
             case FLT_MT_RLC_LADDERPASS:
             case FLT_MT_RLC_LADDERREJ:
             case FLT_MT_RLC_BANDPASS:
@@ -309,6 +313,16 @@ namespace lsp
             case FLT_DR_APO_HISHELF:
             {
                 calc_apo_filter(sParams.nType, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
+            case FLT_DR_APO_ALLPASS2:
+            {
+                calc_apo_filter(FLT_DR_APO_ALLPASS, &fp);
+                fp.fFreq            = sParams.fFreq2;
+                fp.fGain            = 1.0f;
+                calc_apo_filter(FLT_DR_APO_ALLPASS, &fp);
                 nMode               = FM_APO;
                 break;
             }
@@ -792,6 +806,79 @@ namespace lsp
                 c->b[0]                 = 1.0;
                 c->b[1]                 = 2.0 / (1.0 + fp->fQuality);
                 c->b[2]                 = 1.0;
+
+                break;
+            }
+
+            case FLT_BT_RLC_ALLPASS:
+            {
+                // Single all-pass filter
+                size_t i        = fp->nSlope & 1;
+                if (i)
+                {
+                    c                       = add_cascade();
+                    c->t[0]                 = 1.0;
+                    c->t[1]                 = -1.0;
+                    c->t[2]                 = 0.0;
+
+                    c->b[0]                 = 1.0;
+                    c->b[1]                 = 1.0;
+                    c->b[2]                 = 0.0;
+                }
+
+                // 2x all-pass filters in one cascade
+                for (size_t j=i; j < fp->nSlope; j += 2)
+                {
+                    c                       = add_cascade();
+                    // Create transfer function
+                    c->t[0]                 = 1.0;
+                    c->t[1]                 = -2.0;
+                    c->t[2]                 = 1.0;
+
+                    // Bottom polynom
+                    c->b[0]                 = 1.0;
+                    c->b[1]                 = 2.0;
+                    c->b[2]                 = 1.0;
+                }
+
+                // Adjust gain for the last cascade
+                if (c != NULL)
+                {
+                    c->t[0]    *= fp->fGain;
+                    c->t[1]    *= fp->fGain;
+                    c->t[2]    *= fp->fGain;
+                }
+
+                break;
+            }
+
+            case FLT_BT_RLC_ALLPASS2:
+            {
+                double kf               = fp->fFreq2 / fp->fFreq;
+                double kfp1             = 1.0 + kf;
+
+                // 2x all-pass filters in one cascade
+                for (size_t j=0; j < fp->nSlope; j++)
+                {
+                    c                       = add_cascade();
+                    // Create transfer function
+                    c->t[0]                 = 1.0;
+                    c->t[1]                 = -kfp1;
+                    c->t[2]                 = kf;
+
+                    // Bottom polynom
+                    c->b[0]                 = 1.0;
+                    c->b[1]                 = kfp1;
+                    c->b[2]                 = kf;
+                }
+
+                // Adjust gain for the last cascade
+                if (c != NULL)
+                {
+                    c->t[0]    *= fp->fGain;
+                    c->t[1]    *= fp->fGain;
+                    c->t[2]    *= fp->fGain;
+                }
 
                 break;
             }

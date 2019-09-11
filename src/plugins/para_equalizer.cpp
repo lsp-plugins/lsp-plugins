@@ -161,6 +161,22 @@ namespace lsp
                 break;
             }
 
+            case EQF(ALLPASS):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_ALLPASS, 1)
+                    EQS(RLC_MT, FLT_BT_RLC_ALLPASS, 1)
+                    EQS(BWC_BT, FLT_BT_RLC_ALLPASS, 1)
+                    EQS(BWC_MT, FLT_BT_RLC_ALLPASS, 1)
+                    EQS(LRX_BT, FLT_BT_RLC_ALLPASS, 1)
+                    EQS(LRX_MT, FLT_BT_RLC_ALLPASS, 1)
+                    EQS(APO_DR, FLT_DR_APO_ALLPASS, 1)
+                    EQDFL
+                }
+                break;
+            }
+
             case EQF(RESONANCE):
             {
                 switch (mode)
@@ -178,6 +194,22 @@ namespace lsp
             }
 
 #ifndef LSP_NO_EXPERIMENTAL
+            case EQF(ALLPASS2):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_ALLPASS2, 1)
+                    EQS(RLC_MT, FLT_BT_RLC_ALLPASS2, 1)
+                    EQS(BWC_BT, FLT_BT_RLC_ALLPASS2, 1)
+                    EQS(BWC_MT, FLT_BT_RLC_ALLPASS2, 1)
+                    EQS(LRX_BT, FLT_BT_RLC_ALLPASS2, 1)
+                    EQS(LRX_MT, FLT_BT_RLC_ALLPASS2, 1)
+                    EQS(APO_DR, FLT_DR_APO_ALLPASS2, 1)
+                    EQDFL
+                }
+                break;
+            }
+
             case EQF(LADDERPASS):
             {
                 switch (mode)
@@ -261,6 +293,10 @@ namespace lsp
             case FLT_MT_RLC_HIPASS:
             case FLT_BT_RLC_NOTCH:
             case FLT_MT_RLC_NOTCH:
+            case FLT_BT_RLC_ALLPASS:
+            case FLT_MT_RLC_ALLPASS:
+            case FLT_BT_RLC_ALLPASS2:
+            case FLT_MT_RLC_ALLPASS2:
 
             case FLT_BT_BWC_LOPASS:
             case FLT_MT_BWC_LOPASS:
@@ -276,6 +312,8 @@ namespace lsp
             case FLT_DR_APO_NOTCH:
             case FLT_DR_APO_LOPASS:
             case FLT_DR_APO_HIPASS:
+            case FLT_DR_APO_ALLPASS:
+            case FLT_DR_APO_ALLPASS2:
                 return false;
             default:
                 break;

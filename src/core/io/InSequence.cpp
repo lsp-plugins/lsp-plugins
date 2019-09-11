@@ -73,7 +73,7 @@ namespace lsp
 
             // Create input file stream
             InFileStream *is = new InFileStream();
-            status_t res = is->wrap(fd, close, charset);
+            status_t res = is->wrap(fd, close);
             if (res != STATUS_OK)
             {
                 is->close();
@@ -100,7 +100,7 @@ namespace lsp
 
             // Create input file stream
             InFileStream *is = new InFileStream();
-            status_t res = is->wrap_native(fd, close, charset);
+            status_t res = is->wrap_native(fd, close);
             if (res != STATUS_OK)
             {
                 is->close();
@@ -129,7 +129,7 @@ namespace lsp
 
             // Create input file stream
             InFileStream *is = new InFileStream();
-            status_t res = is->wrap(fd, flags, charset);
+            status_t res = is->wrap(fd, flags);
             if (res != STATUS_OK)
             {
                 is->close();
@@ -193,7 +193,7 @@ namespace lsp
 
             // Create input file stream
             InFileStream *is = new InFileStream();
-            status_t res = is->open(path, charset);
+            status_t res = is->open(path);
             if (res != STATUS_OK)
             {
                 is->close();

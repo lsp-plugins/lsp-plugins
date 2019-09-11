@@ -21,7 +21,7 @@ namespace lsp
 
         void CtlCell::set(widget_attribute_t att, const char *value)
         {
-            LSPCell *cell = (pWidget != NULL) ? static_cast<LSPCell *>(pWidget) : NULL;
+            LSPCell *cell = widget_cast<LSPCell>(pWidget);
 
             switch (att)
             {
@@ -42,11 +42,27 @@ namespace lsp
 
         status_t CtlCell::add(LSPWidget *child)
         {
-            if (pWidget == NULL)
+            LSPCell *cell   = widget_cast<LSPCell>(pWidget);
+            if (cell == NULL)
                 return STATUS_BAD_STATE;
 
-            LSPCell *cell   = static_cast<LSPCell *>(pWidget);
-            return cell->add(child);
+            status_t res = cell->add(child);
+            if (res != STATUS_OK)
+                return res;
+
+            // Apply cell changes to the child widget
+            LSPWidget *dst = cell->unwrap();
+            if (dst != NULL)
+            {
+                dst->padding()->set(cell->padding());
+                dst->set_visible(cell->visible());
+                dst->set_expand(cell->expand());
+                dst->set_hfill(cell->hfill());
+                dst->set_vfill(cell->vfill());
+            }
+            return STATUS_OK;
         }
+
+
     } /* namespace ctl */
 } /* namespace lsp */

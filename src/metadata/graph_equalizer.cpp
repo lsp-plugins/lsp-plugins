@@ -45,40 +45,40 @@ namespace lsp
 
     static const char *band_select_16lr[] =
     {
-        "Left",
-        "Right",
+        "Bands Left",
+        "Bands Right",
         NULL
     };
 
     static const char *band_select_16ms[] =
     {
-        "Middle",
-        "Side",
+        "Bands Middle",
+        "Bands Side",
         NULL
     };
 
     static const char *band_select_32[] =
     {
-        "0-15",
-        "16-31",
+        "Bands 0-15",
+        "Bands 16-31",
         NULL
     };
 
     static const char *band_select_32lr[] =
     {
-        "Left 0-15",
-        "Right 0-15",
-        "Left 16-31",
-        "Right 16-31",
+        "Bands Left 0-15",
+        "Bands Right 0-15",
+        "Bands Left 16-31",
+        "Bands Right 16-31",
         NULL
     };
 
     static const char *band_select_32ms[] =
     {
-        "Middle 0-15",
-        "Side 0-15",
-        "Middle 16-31",
-        "Side 16-31",
+        "Bands Middle 0-15",
+        "Bands Side 0-15",
+        "Bands Middle 16-31",
+        "Bands Side 16-31",
         NULL
     };
 
@@ -295,7 +295,7 @@ namespace lsp
         "graph_equalizer_x16_mono",
         "rvwk",
         LSP_GRAPH_EQUALIZER_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x16_mono_ports,
@@ -313,7 +313,7 @@ namespace lsp
         "graph_equalizer_x32_mono",
         "vnca",
         LSP_GRAPH_EQUALIZER_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x32_mono_ports,
@@ -331,7 +331,7 @@ namespace lsp
         "graph_equalizer_x16_stereo",
         "argl",
         LSP_GRAPH_EQUALIZER_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x16_stereo_ports,
@@ -349,7 +349,7 @@ namespace lsp
         "graph_equalizer_x32_stereo",
         "nvsd",
         LSP_GRAPH_EQUALIZER_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x32_stereo_ports,
@@ -367,7 +367,7 @@ namespace lsp
         "graph_equalizer_x16_lr",
         "zefi",
         LSP_GRAPH_EQUALIZER_BASE + 4,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x16_lr_ports,
@@ -385,7 +385,7 @@ namespace lsp
         "graph_equalizer_x32_lr",
         "0heu",
         LSP_GRAPH_EQUALIZER_BASE + 5,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x32_lr_ports,
@@ -403,7 +403,7 @@ namespace lsp
         "graph_equalizer_x16_ms",
         "woys",
         LSP_GRAPH_EQUALIZER_BASE + 6,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x16_ms_ports,
@@ -421,7 +421,7 @@ namespace lsp
         "graph_equalizer_x32_ms",
         "ku8j",
         LSP_GRAPH_EQUALIZER_BASE + 7,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         graph_equalizer_classes,
         E_INLINE_DISPLAY,
         graph_equalizer_x32_ms_ports,

@@ -40,6 +40,7 @@ namespace lsp
 
                 void set(size_t left, size_t right, size_t top, size_t bottom);
                 void set(const padding_t *p);
+                void set(const LSPPadding *p);
         };
     
     } /* namespace tk */

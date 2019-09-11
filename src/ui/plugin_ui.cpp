@@ -233,6 +233,23 @@ namespace lsp
         return STATUS_NO_DATA;
     }
 
+    plugin_ui::ConfigSink::~ConfigSink()
+    {
+        unbind();
+    }
+
+    void plugin_ui::ConfigSink::unbind()
+    {
+        if (pUI != NULL)
+            pUI->pConfigSink = NULL;
+        pUI = NULL;
+    }
+
+    status_t plugin_ui::ConfigSink::on_complete(status_t code, const LSPString *data)
+    {
+        return ((code == STATUS_OK) && (pUI != NULL)) ? pUI->paste_from_clipboard(data) : STATUS_OK;
+    }
+
 
     //--------------------------------------------------------------------------------------------------------
 
@@ -243,6 +260,7 @@ namespace lsp
         PATH(UI_DLG_SAMPLE_PATH_ID, "Dialog path for selecting sample files"),
         PATH(UI_DLG_IR_PATH_ID, "Dialog path for selecting impulse response files"),
         PATH(UI_DLG_CONFIG_PATH_ID, "Dialog path for saving/loading configuration files"),
+        PATH(UI_DLG_REW_PATH_ID, "Dialog path for importing REW settings files"),
         PATH(UI_DLG_MODEL3D_PATH_ID, "Dialog for saving/loading 3D model files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
@@ -270,6 +288,7 @@ namespace lsp
         pRoot           = NULL;
         pRootCtl        = NULL;
         pRootWidget     = root_widget;
+        pConfigSink     = NULL;
     }
 
     plugin_ui::~plugin_ui()
@@ -279,6 +298,13 @@ namespace lsp
 
     void plugin_ui::destroy()
     {
+        // Unbind sink
+        if (pConfigSink != NULL)
+        {
+            pConfigSink->unbind();
+            pConfigSink = NULL;
+        }
+
         // Destroy registry
         CtlRegistry::destroy();
 
@@ -1228,10 +1254,8 @@ namespace lsp
         return NULL;
     }
 
-    status_t plugin_ui::export_settings(const char *filename)
+    void plugin_ui::build_config_header(LSPString &c)
     {
-        LSPString c;
-
         c.append_utf8       ("This file contains configuration of the audio plugin.\n");
         c.fmt_append_utf8   ("  Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
         c.fmt_append_utf8   ("  Plugin version:      %d.%d.%d\n",
@@ -1248,7 +1272,14 @@ namespace lsp
         c.append            ('\n');
         c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
         c.append_utf8       ("  " LSP_BASE_URI " \n");
+    }
 
+    status_t plugin_ui::export_settings(const char *filename)
+    {
+        LSPString c;
+        build_config_header(c);
+
+        // Serialize data to file
         KVTStorage *kvt = kvt_lock();
         ConfigSource cfg(this, vPorts, kvt, &c);
         status_t res = config::save(filename, &cfg, true);
@@ -1258,8 +1289,72 @@ namespace lsp
         return res;
     }
 
+    status_t plugin_ui::export_settings_to_clipboard()
+    {
+        LSPString c, data;
+        build_config_header(c);
+
+        // Serialize data to string
+        KVTStorage *kvt = kvt_lock();
+        ConfigSource cfg(this, vPorts, kvt, &c);
+        status_t res = config::serialize(&data, &cfg, true);
+        kvt->gc();
+        kvt_release();
+
+        if (res != STATUS_OK)
+            return res;
+
+        // Put data to clipboard
+        LSPTextDataSource *ds = new LSPTextDataSource();
+        if (ds == NULL)
+            return STATUS_NO_MEM;
+        ds->acquire();
+        res = ds->set_text(&data);
+        if (res == STATUS_OK)
+            res = sDisplay.set_clipboard(CBUF_CLIPBOARD, ds);
+        ds->release();
+
+        return res;
+    }
+
+    status_t plugin_ui::import_settings_from_clipboard()
+    {
+        // Unbind previous
+        ConfigSink *ds = new ConfigSink(this);
+        if (ds == NULL)
+            return STATUS_NO_MEM;
+
+        if (pConfigSink != NULL)
+            pConfigSink->unbind();
+        pConfigSink = ds;
+
+        // Request clipboard data
+        ds->acquire();
+        status_t res = sDisplay.get_clipboard(CBUF_CLIPBOARD, pConfigSink);
+        ds->release();
+
+        return res;
+    }
+
+    status_t plugin_ui::paste_from_clipboard(const LSPString *data)
+    {
+        // Deserialize configuration data
+        KVTStorage *kvt = kvt_lock();
+        ConfigHandler handler(this, vPorts, kvt, false);
+        status_t res = config::deserialize(data, &handler);
+        handler.notify_all();
+        if (kvt != NULL)
+        {
+            kvt->gc();
+            kvt_release();
+        }
+
+        return res;
+    }
+
     status_t plugin_ui::import_settings(const char *filename, bool preset)
     {
+        // Load configuration data
         KVTStorage *kvt = kvt_lock();
         ConfigHandler handler(this, vPorts, kvt, preset);
         status_t res = config::load(filename, &handler);
