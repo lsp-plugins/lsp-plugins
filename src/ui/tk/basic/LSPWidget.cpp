@@ -14,7 +14,8 @@ namespace lsp
         const w_class_t LSPWidget::metadata = { "LSPWidget", NULL };
 
         LSPWidget::LSPWidget(LSPDisplay *dpy):
-            sPadding(this)
+            sPadding(this),
+            sBgColor(this)
         {
             pUID            = NULL;
             pDisplay        = dpy;
@@ -49,6 +50,9 @@ namespace lsp
 
         status_t LSPWidget::init()
         {
+            // Initialize colors
+            override_color(C_BACKGROUND, &sBgColor);
+
             // Declare slots
             ui_handler_id_t id = 0;
 
@@ -120,6 +124,16 @@ namespace lsp
             Color c;
             init_color(value, &c);
             color->copy(&c);
+        }
+
+        void LSPWidget::override_color(color_t value, LSPColor *color)
+        {
+            if (pDisplay != NULL)
+            {
+                LSPTheme *theme = pDisplay->theme();
+                if (theme != NULL)
+                    theme->override_color(value, color);
+            }
         }
 
         status_t LSPWidget::slot_mouse_move(LSPWidget *sender, void *ptr, void *data)
@@ -381,6 +395,8 @@ namespace lsp
                 wc->remove(this);
 
             pParent = parent;
+            if (pParent != NULL)
+                sBgColor.override(parent->bg_color());
         }
 
         LSPWidget *LSPWidget::toplevel()

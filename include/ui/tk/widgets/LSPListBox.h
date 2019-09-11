@@ -77,7 +77,7 @@ namespace lsp
                 LSPSizeConstraints      sConstraints;
                 Color                   sColor;
                 Color                   sBgColor;
-                LSPWidgetFont           sFont;
+                LSPFont                 sFont;
                 realize_t               sArea;
                 size_t                  nFlags;
                 size_t                  nBMask;

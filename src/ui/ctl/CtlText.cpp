@@ -53,7 +53,7 @@ namespace lsp
             LSPText *text       = static_cast<LSPText *>(pWidget);
 
             // Initialize controllers
-            sColor.init_hsl(pRegistry, text, text->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl2(pRegistry, text, text->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             sCoord.init(pRegistry, this);
         }
 

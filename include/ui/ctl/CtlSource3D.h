@@ -34,16 +34,9 @@ namespace lsp
                 CtlColor        sColor;
                 float           fHueShift;
 
-//                room_source_settings_t sSource;
                 room_source_config_t sSource;
 
                 bool            bRebuildMesh;
-//                float           fPosX;
-//                float           fPosY;
-//                float           fPosZ;
-//                float           fYaw;
-//                float           fPitch;
-//                float           fRoll;
 
                 CtlPort        *pMode;
                 CtlPort        *pPosX;

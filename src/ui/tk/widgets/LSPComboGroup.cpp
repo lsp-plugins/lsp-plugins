@@ -297,7 +297,7 @@ namespace lsp
 
                     // Draw buttons
                     ssize_t half = sGroupHdr.nTop + (fp.Height * 0.5f);
-                    Color *c = sFont.color();
+                    LSPColor *c = sFont.color();
                     s->fill_triangle(
                             cx + 2, half - 2,
                             cx + bwidth - 2, half - 2,

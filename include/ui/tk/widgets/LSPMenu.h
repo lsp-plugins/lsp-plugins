@@ -57,7 +57,7 @@ namespace lsp
 
             protected:
                 cvector<LSPMenuItem>    vItems;
-                LSPWidgetFont           sFont;
+                LSPFont                 sFont;
                 MenuWindow             *pWindow;
                 LSPMenu                *pParentMenu;
                 LSPMenu                *pActiveMenu;

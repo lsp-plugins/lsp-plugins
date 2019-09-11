@@ -270,6 +270,22 @@ namespace lsp
             dst->copy(cl);
             return res;
         }
+
+        bool LSPTheme::override_color(color_t color, LSPColor &dst)
+        {
+            Color cl;
+            bool res = get_color(color, cl);
+            dst.override(cl);
+            return res;
+        }
+
+        bool LSPTheme::override_color(color_t color, LSPColor *dst)
+        {
+            Color cl;
+            bool res = get_color(color, cl);
+            dst->override(cl);
+            return res;
+        }
     
     } /* namespace tk */
 } /* namespace lsp */

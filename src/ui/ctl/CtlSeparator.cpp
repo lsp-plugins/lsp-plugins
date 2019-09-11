@@ -25,19 +25,19 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
-                return;
-
-            LSPSeparator *sep = static_cast<LSPSeparator *>(pWidget);
-
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, sep, sep->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, sep, sep->bg_color(), A_BG_COLOR);
+            LSPSeparator *sep = widget_cast<LSPSeparator>(pWidget);
+
+            if (pWidget != NULL)
+            {
+                sColor.init_hsl2(pRegistry, sep, sep->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+                sBgColor.init_basic2(pRegistry, sep, sep->bg_color(), A_BG_COLOR);
+            }
         }
 
         void CtlSeparator::set(widget_attribute_t att, const char *value)
         {
-            LSPSeparator *sep = (pWidget != NULL) ? static_cast<LSPSeparator *>(pWidget) : NULL;
+            LSPSeparator *sep = widget_cast<LSPSeparator>(pWidget);
 
             switch (att)
             {

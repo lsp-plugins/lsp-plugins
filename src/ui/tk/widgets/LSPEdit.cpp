@@ -425,7 +425,7 @@ namespace lsp
             s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, sColor);
 
             s->set_antialiasing(aa);
-            Color *fcol = sFont.color();
+            LSPColor *fcol = sFont.color();
 
             ssize_t fw = sSize.nWidth - pad *2;
 

@@ -60,8 +60,8 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sTextColor.init_hsl(pRegistry, frac, frac->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sColor.init_hsl(pRegistry, frac, frac->font()->color(), A_SCALE_COLOR, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
+            sTextColor.init_hsl2(pRegistry, frac, frac->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl2(pRegistry, frac, frac->font()->color(), A_SCALE_COLOR, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
 
             // Bind slots
             frac->slots()->bind(LSPSLOT_CHANGE, slot_change, this);

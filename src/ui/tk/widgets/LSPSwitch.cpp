@@ -15,7 +15,10 @@ namespace lsp
         
         const w_class_t LSPSwitch::metadata = { "LSPSwitch", &LSPWidget::metadata };
 
-        LSPSwitch::LSPSwitch(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPSwitch::LSPSwitch(LSPDisplay *dpy): LSPWidget(dpy),
+            sColor(this),
+            sTextColor(this),
+            sBorderColor(this)
         {
             nSize       = 24;
             nBorder     = 8;
@@ -32,18 +35,9 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_KNOB_CAP, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sTextColor);
-                    theme->get_color(C_KNOB_CAP, &sBorderColor);
-                }
-            }
+            override_color(C_KNOB_CAP, &sColor);
+            override_color(C_LABEL_TEXT, &sTextColor);
+            override_color(C_KNOB_CAP, &sBorderColor);
 
             if (!sSlots.add(LSPSLOT_CHANGE))
                 return STATUS_NO_MEM;
@@ -199,7 +193,7 @@ namespace lsp
             }
 
             // Draw symbols
-            bcl.copy(sTextColor);
+            bcl.copy(sTextColor.color());
             bc          = bcl.lightness();
             b1          = bc - ((2 - pos) * 0.1);
             b2          = bc - (pos * 0.1);

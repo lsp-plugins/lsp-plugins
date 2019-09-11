@@ -11,9 +11,11 @@ namespace lsp
 {
     namespace tk
     {
-        LSPFont::LSPFont(LSPDisplay *dpy)
+        void LSPFont::construct(LSPDisplay *dpy, LSPWidget *widget)
         {
             pDisplay        = dpy;
+            pWidget         = widget;
+
             sFP.Ascent      = 0;
             sFP.Descent     = 0;
             sFP.Height      = -1.0f;
@@ -21,12 +23,41 @@ namespace lsp
             sFP.MaxYAdvance = 0;
         }
 
+        LSPFont::LSPFont(LSPDisplay *dpy)
+        {
+            construct(dpy, NULL);
+        }
+
+        LSPFont::LSPFont(LSPWidget *widget)
+        {
+            construct(widget->display(), widget);
+        }
+
+        LSPFont::LSPFont(LSPDisplay *dpy, LSPWidget *widget)
+        {
+            construct(dpy, widget);
+        }
+
+        LSPFont::LSPFont(LSPWidget *widget, LSPDisplay *dpy)
+        {
+            construct(dpy, widget);
+        }
+
         LSPFont::~LSPFont()
         {
+            pDisplay        = NULL;
+            pWidget         = NULL;
         }
 
         void LSPFont::on_change()
         {
+        }
+
+        void LSPFont::trigger_change()
+        {
+            on_change();
+            if (pWidget != NULL)
+                pWidget->query_draw();
         }
 
         void LSPFont::init()
@@ -42,7 +73,7 @@ namespace lsp
             sFont.set(&src->sFont);
             sFP.Height      = -1.0f;
 
-            theme->get_color(C_LABEL_TEXT, sColor);
+            theme->override_color(C_LABEL_TEXT, sColor);
         }
 
         void LSPFont::init(const LSPFont *src)
@@ -57,7 +88,7 @@ namespace lsp
                 return;
             sFP.Height  = -1.0f;
             sFont.set_bold(b);
-            on_change();
+            trigger_change();
         }
 
         void LSPFont::set_italic(bool i)
@@ -66,7 +97,7 @@ namespace lsp
                 return;
             sFP.Height  = -1.0f;
             sFont.set_italic(i);
-            on_change();
+            trigger_change();
         }
 
         void LSPFont::set_underline(bool u)
@@ -74,7 +105,7 @@ namespace lsp
             if (u == sFont.is_underline())
                 return;
             sFont.set_underline(u);
-            on_change();
+            trigger_change();
         }
 
         void LSPFont::set_size(float s)
@@ -84,7 +115,7 @@ namespace lsp
 
             sFP.Height  = -1.0f;
             sFont.set_size(s);
-            on_change();
+            trigger_change();
         }
 
         void LSPFont::set_name(const char *name)
@@ -100,7 +131,7 @@ namespace lsp
 
             sFP.Height  = -1.0f;
             sFont.set_name(name);
-            on_change();
+            trigger_change();
         }
 
         inline bool LSPFont::sync_font_parameters() const

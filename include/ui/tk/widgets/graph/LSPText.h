@@ -31,7 +31,7 @@ namespace lsp
                 float           fHAlign;
                 float           fVAlign;
                 size_t          nCenter;
-                LSPWidgetFont   sFont;
+                LSPFont         sFont;
 
             protected:
                 void do_destroy();

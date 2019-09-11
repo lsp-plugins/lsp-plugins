@@ -35,7 +35,7 @@ namespace lsp
                 size_t          nRadius;
                 size_t          nBorder;
                 LSPWidget      *pWidget;
-                LSPWidgetFont   sFont;
+                LSPFont         sFont;
 
 
             protected:
@@ -48,7 +48,7 @@ namespace lsp
                 inline status_t     get_text(LSPString *dst) const { return (dst->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; };
                 inline Color       *color()                 { return &sColor; }
                 inline Color       *bg_color()              { return &sBgColor; }
-                inline Color       *text_color()            { return sFont.color(); }
+                inline LSPColor    *text_color()            { return sFont.color(); }
                 inline size_t       radius() const          { return nRadius; }
                 inline size_t       border() const          { return nBorder; }
                 inline LSPFont     *font()                  { return &sFont; }

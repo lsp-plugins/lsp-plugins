@@ -22,7 +22,6 @@ namespace lsp
         LSPSaveFile::LSPSaveFile(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(dpy, this),
-            sBgColor(this),
             sDialog(dpy)
         {
             nState      = SFS_SELECT;
@@ -95,8 +94,6 @@ namespace lsp
             };
 
             LSP_STATUS_ASSERT(LSPWidget::init());
-
-            init_color(C_BACKGROUND, &sBgColor);
 
             for (size_t i=0; i<SFS_TOTAL; ++i)
             {

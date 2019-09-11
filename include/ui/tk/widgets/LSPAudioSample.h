@@ -49,8 +49,8 @@ namespace lsp
 
                 LSPString           sHint;
 
-                LSPWidgetFont       sFont;
-                LSPWidgetFont       sHintFont;
+                LSPFont             sFont;
+                LSPFont             sHintFont;
                 LSPSizeConstraints  sConstraints;
 
                 ISurface           *pGlass;

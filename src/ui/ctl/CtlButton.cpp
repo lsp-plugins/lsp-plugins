@@ -122,7 +122,7 @@ namespace lsp
             // Initialize color controllers
             sColor.init_hsl(pRegistry, btn, btn->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             sBgColor.init_basic(pRegistry, btn, btn->bg_color(), A_BG_COLOR);
-            sTextColor.init_basic(pRegistry, btn, btn->font()->color(), A_TEXT_COLOR);
+            sTextColor.init_basic2(pRegistry, btn, btn->font()->color(), A_TEXT_COLOR);
 
             // Bind slots
             btn->slots()->bind(LSPSLOT_CHANGE, slot_change, this);

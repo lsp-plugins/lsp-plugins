@@ -60,7 +60,7 @@ namespace lsp
                 size_t          nSpacing;   // Spacing between meters
                 Color           sBgColor;   // Background color
                 Color           sIndColor;  // Indication color
-                LSPWidgetFont   sFont;
+                LSPFont         sFont;
                 channel_t     **vChannels;
                 size_t          nChannels;
 

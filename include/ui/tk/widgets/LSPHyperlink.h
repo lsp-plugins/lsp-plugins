@@ -26,7 +26,7 @@ namespace lsp
                 };
 
             protected:
-                Color           sHoverColor;
+                LSPColor        sHoverColor;
                 LSPString       sUrl;
                 size_t          nMFlags;
                 size_t          nState;
@@ -49,7 +49,7 @@ namespace lsp
             public:
                 inline const char      *url() const { return sUrl.get_native(); }
                 inline status_t         get_url(LSPString *dst) const { return (dst->set(&sUrl)) ? STATUS_OK : STATUS_NO_MEM; };
-                inline Color           *hover() { return &sHoverColor; }
+                inline LSPColor        *hover() { return &sHoverColor; }
                 LSPMenu                *get_popup()         { return pPopup;        }
 
             public:

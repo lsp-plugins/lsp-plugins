@@ -47,7 +47,6 @@ namespace lsp
                 size_t              nBtnState;
                 ssize_t             nSize;
                 LSPWidgetFont       sFont;
-                LSPWidgetColor      sBgColor;
                 LSPFileDialog       sDialog;
                 ISurface           *pDisk;
                 LSPString           sPath;
@@ -76,7 +75,6 @@ namespace lsp
                 const char                 *file_name() const;
                 status_t                    get_file_name(LSPString *dst);
                 inline LSPFont             *font() { return &sFont; }
-                inline LSPColor            *bg_color() { return &sBgColor; }
                 inline LSPFileFilter       *filter() { return sDialog.filter(); }
                 inline status_t             get_path(LSPString *dst) const { return (dst->set(&sPath)) ? STATUS_OK : STATUS_NO_MEM; }
                 inline const char          *get_path() const { return sPath.get_native(); }

@@ -13,7 +13,8 @@ namespace lsp
     {
         const w_class_t LSPSeparator::metadata = { "LSPSeparator", &LSPWidget::metadata };
 
-        LSPSeparator::LSPSeparator(LSPDisplay *dpy, bool horizontal): LSPWidget(dpy)
+        LSPSeparator::LSPSeparator(LSPDisplay *dpy, bool horizontal): LSPWidget(dpy),
+            sColor(this)
         {
             nSize           = -1;
             nBorder         = 2;
@@ -33,16 +34,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            override_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }

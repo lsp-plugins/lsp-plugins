@@ -31,9 +31,9 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, hlink, hlink->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sHoverColor.init_hsl(pRegistry, hlink, hlink->hover(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, hlink, hlink->bg_color(), A_BG_COLOR);
+            sColor.init_hsl2(pRegistry, hlink, hlink->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sHoverColor.init_hsl2(pRegistry, hlink, hlink->hover(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic2(pRegistry, hlink, hlink->bg_color(), A_BG_COLOR);
         }
 
         void CtlHyperlink::set(widget_attribute_t att, const char *value)

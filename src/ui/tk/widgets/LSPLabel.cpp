@@ -36,8 +36,7 @@ namespace lsp
                 return result;
 
             sFont.init();
-            init_color(C_LABEL_TEXT, sFont.color());
-            init_color(C_BACKGROUND, &sBgColor);
+            override_color(C_LABEL_TEXT, sFont.color());
 
             return STATUS_OK;
         }

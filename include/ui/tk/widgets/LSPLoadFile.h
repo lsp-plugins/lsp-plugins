@@ -61,7 +61,7 @@ namespace lsp
                 size_t              nBtnState;
                 ssize_t             nSize;
                 LoadFileSink       *pSink;
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
                 LSPWidgetColor      sBgColor;
                 LSPFileDialog       sDialog;
                 ISurface           *pDisk;

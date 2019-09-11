@@ -401,7 +401,7 @@ namespace lsp
                     if (y > (-fp.Height))
                     {
                         const char *text = item->text();
-                        Color c;
+                        LSPColor c;
 
                         if (nSelected == ssize_t(i))
                         {
@@ -433,7 +433,7 @@ namespace lsp
                 // Top button
                 if (nScroll > 0)
                 {
-                    Color cl;
+                    LSPColor cl;
 
                     s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, separator, sColor);
                     if (nSelected == SEL_TOP_SCROLL)
@@ -457,7 +457,7 @@ namespace lsp
                 // Bottom button
                 if (nScroll < nScrollMax)
                 {
-                    Color cl;
+                    LSPColor cl;
                     s->fill_rect(nBorder, sSize.nHeight - nBorder - separator,
                         sSize.nWidth - nBorder * 2, separator, sColor);
 

@@ -174,7 +174,7 @@ namespace lsp
             sFont.get_parameters(s, &fp);
             sFont.get_text_parameters(s, &tp, &sText);
 
-            Color logo(sColor);
+            LSPColor logo(sColor);
 
             // Draw screws
             if (nAngle & 0x02)

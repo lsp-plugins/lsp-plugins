@@ -33,18 +33,20 @@ namespace lsp
 
         void CtlSwitch::commit_value(float value)
         {
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
+            if (sw == NULL)
+                return;
+
             const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
             float half = ((p != NULL) && (p->unit != U_BOOL)) ? (p->min + p->max) * 0.5f : 0.5f;
-
-            LSPSwitch *sw   = static_cast<LSPSwitch *>(pWidget);
             sw->set_down((value >= half) ^ (bInvert));
         }
 
         void CtlSwitch::submit_value()
         {
-            if (pWidget == NULL)
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
+            if (sw == NULL)
                 return;
-            LSPSwitch *sw   = static_cast<LSPSwitch *>(pWidget);
 
             bool down       = sw->is_down();
             lsp_trace("switch clicked down=%s", (down) ? "true" : "false");
@@ -65,16 +67,15 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
+            if (sw == NULL)
                 return;
 
-            LSPSwitch *sw   = static_cast<LSPSwitch *>(pWidget);
-
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, sw, sw->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, sw, sw->bg_color(), A_BG_COLOR);
-            sBorderColor.init_basic(pRegistry, sw, sw->border_color(), A_BORDER_COLOR);
-            sTextColor.init_basic(pRegistry, sw, sw->text_color(), A_TEXT_COLOR);
+            sColor.init_hsl2(pRegistry, sw, sw->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic2(pRegistry, sw, sw->bg_color(), A_BG_COLOR);
+            sBorderColor.init_basic2(pRegistry, sw, sw->border_color(), A_BORDER_COLOR);
+            sTextColor.init_basic2(pRegistry, sw, sw->text_color(), A_TEXT_COLOR);
 
             // Bind slots
             sw->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
@@ -82,7 +83,7 @@ namespace lsp
 
         void CtlSwitch::set(widget_attribute_t att, const char *value)
         {
-            LSPSwitch *sw   = (pWidget != NULL) ? static_cast<LSPSwitch *>(pWidget) : NULL;
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
 
             switch (att)
             {

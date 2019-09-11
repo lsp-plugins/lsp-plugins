@@ -184,6 +184,7 @@ namespace lsp
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
+#include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPSurface.h>
 #include <ui/tk/util/LSPFont.h>
 #include <ui/tk/util/LSPPadding.h>
@@ -197,7 +198,6 @@ namespace lsp
 #include <ui/tk/util/LSPKeyboardHandler.h>
 #include <ui/tk/util/LSPSizeConstraints.h>
 #include <ui/tk/util/LSPWindowActions.h>
-#include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPTextDataSource.h>
 #include <ui/tk/util/LSPTextDataSink.h>
 #include <ui/tk/util/LSPUrlSink.h>
