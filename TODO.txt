@@ -27,6 +27,7 @@
   non-power-of-two buffer sizes. Affected plugins: Parametric Equalizer, Graphic Equalizer,
   Spectrum Analyzer, Multiband Compressor.
 * Refactored UI of the parameteric Equalizer plugin series.
+* Refactored UI of the graphic Equalizer plugin series.
 * Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
 * Added allpass filters to Paretric Equalizer plugin.
 * Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
