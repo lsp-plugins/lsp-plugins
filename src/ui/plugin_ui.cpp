@@ -260,6 +260,7 @@ namespace lsp
         PATH(UI_DLG_SAMPLE_PATH_ID, "Dialog path for selecting sample files"),
         PATH(UI_DLG_IR_PATH_ID, "Dialog path for selecting impulse response files"),
         PATH(UI_DLG_CONFIG_PATH_ID, "Dialog path for saving/loading configuration files"),
+        PATH(UI_DLG_REW_PATH_ID, "Dialog path for importing REW settings files"),
         PATH(UI_DLG_MODEL3D_PATH_ID, "Dialog for saving/loading 3D model files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
