@@ -54,8 +54,10 @@ namespace lsp
 
         protected:
             static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
+            status_t check_vst_header(const fxBank *bank, size_t size);
             void deserialize_v1(const fxBank *bank);
-            void deserialize_v2(const fxBank *bank);
+            void deserialize_v2_v3(const uint8_t *data, size_t bytes);
+            void deserialize_new_chunk_format(const uint8_t *data, size_t bytes);
 
             void sync_position();
 
@@ -148,7 +150,7 @@ namespace lsp
             virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
 
             size_t serialize_state(const void **dst);
-            void deserialize_state(const void *data);
+            void deserialize_state(const void *data, size_t size);
 
             /**
              * Lock KVT storage
@@ -833,10 +835,8 @@ namespace lsp
     }
 
     #ifdef LSP_TRACE
-        static void dump_vst_bank(const fxBank *bank)
+        static void dump_vst_bank(const void *bank, size_t ck_size)
         {
-            size_t ck_size              = BE_TO_CPU(bank->byteSize) + 2 * sizeof(VstInt32);
-
             const uint8_t *ddump        = reinterpret_cast<const uint8_t *>(bank);
             lsp_trace("Chunk dump:");
 
@@ -895,6 +895,15 @@ namespace lsp
         bank.currentProgram = 0;
 
         size_t bank_off     = sChunk.write(&bank, offsetof(fxBank, content.data.chunk));
+
+        vst_state_header hdr;
+        ::bzero(&hdr, sizeof(hdr));
+        hdr.nMagic1         = CPU_TO_BE(VstInt32(LSP_VST_USER_MAGIC));
+        hdr.nSize           = 0;
+        hdr.nVersion        = CPU_TO_BE(VstInt32(VST_FX_VERSION_JUCE_FIX));
+        hdr.nMagic2         = CPU_TO_BE(VstInt32(LSP_VST_USER_MAGIC));
+        size_t hdr_off      = sChunk.write(&hdr, sizeof(hdr));
+
         size_t data_off     = sChunk.offset;
         size_t param_off    = 0;
 
@@ -1058,66 +1067,149 @@ namespace lsp
 
         // Write the size of chunk
         fxBank *pbank               = sChunk.fetch<fxBank>(bank_off);
-        pbank->content.data.size    = CPU_TO_BE(VstInt32(sChunk.offset - data_off));
-        pbank->byteSize             = CPU_TO_BE(VstInt32(sChunk.offset - VST_BANK_HDR_SKIP));
+        VstInt32 size               = sChunk.offset - VST_BANK_HDR_SKIP;
+        pbank->content.data.size    = CPU_TO_BE(VstInt32(sChunk.offset - hdr_off));
+        pbank->byteSize             = CPU_TO_BE(size);
 
-        dump_vst_bank(pbank);
+        vst_state_header *phdr      = sChunk.fetch<vst_state_header>(hdr_off);
+        phdr->nSize                 = CPU_TO_BE(VstInt32(sChunk.offset - data_off));
+
+        dump_vst_bank(pbank, sChunk.offset);
+        lsp_trace("Plugin state has been saved");
 
         // Return result
         *dst = pbank;
         return sChunk.offset;
     }
 
-    void VSTWrapper::deserialize_state(const void *data)
+    status_t VSTWrapper::check_vst_header(const fxBank *bank, size_t size)
     {
-        const fxBank *bank          = reinterpret_cast<const fxBank *>(data);
-        dump_vst_bank(bank);
+        // Validate size
+        if (size < size_t(offsetof(fxBank, content.data.chunk)))
+        {
+            lsp_warn("block size too small (0x%08x bytes)", int(size));
+            return STATUS_NOT_FOUND;
+        }
 
         // Validate chunkMagic
         if (bank->chunkMagic != BE_TO_CPU(cMagic))
         {
-            lsp_trace("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_TO_CPU(cMagic)));
-            return;
+            lsp_warn("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_TO_CPU(cMagic)));
+            return STATUS_NOT_FOUND;
         }
 
         // Validate fxMagic
         if (bank->fxMagic != BE_TO_CPU(chunkBankMagic))
         {
-            lsp_trace("bank->fxMagic (%08x) != BE_DATA(VST_OPAQUE_BANK_MAGIC) (%08x)", int(bank->fxMagic), int(BE_TO_CPU(chunkBankMagic)));
-            return;
+            lsp_warn("bank->fxMagic (%08x) != BE_DATA(VST_OPAQUE_BANK_MAGIC) (%08x)", int(bank->fxMagic), int(BE_TO_CPU(chunkBankMagic)));
+            return STATUS_UNSUPPORTED_FORMAT;
         }
 
         // Validate fxID
         if (bank->fxID != BE_TO_CPU(VstInt32(pEffect->uniqueID)))
         {
-            lsp_trace("bank->fxID (%08x) != BE_DATA(VstInt32(pEffect->uniqueID)) (%08x)", int(bank->fxID), int(BE_TO_CPU(VstInt32(pEffect->uniqueID))));
-            return;
+            lsp_warn("bank->fxID (%08x) != BE_DATA(VstInt32(pEffect->uniqueID)) (%08x)", int(bank->fxID), int(BE_TO_CPU(VstInt32(pEffect->uniqueID))));
+            return STATUS_UNSUPPORTED_FORMAT;
         }
 
         // Validate the version
         VstInt32 version  = BE_TO_CPU(bank->version);
         if (version > pEffect->version)
         {
-            lsp_error("Unsupported effect version (%d)", version);
-            return;
+            lsp_warn("Unsupported effect version (%d)", version);
+            return STATUS_UNSUPPORTED_FORMAT;
         }
 
         // Validate the numParams
         if (bank->numPrograms != 0)
         {
-            lsp_trace("bank->numPrograms (%d) != 0", int(bank->numPrograms));
-            return;
+            lsp_warn("bank->numPrograms (%d) != 0", int(bank->numPrograms));
+            return STATUS_UNSUPPORTED_FORMAT;
         }
 
-        // Check the version
-        VstInt32 fxVersion = BE_TO_CPU(bank->fxVersion);
-        if (fxVersion < VST_FX_VERSION_KVT_SUPPORT)
-            deserialize_v1(bank);
+        return STATUS_OK;
+    }
+
+    void VSTWrapper::deserialize_state(const void *data, size_t size)
+    {
+        const fxBank *bank          = reinterpret_cast<const fxBank *>(data);
+        const uint8_t *head         = reinterpret_cast<const uint8_t *>(data);
+
+        status_t res                = check_vst_header(bank, size);
+
+        if (res == STATUS_OK)
+        {
+            lsp_warn("Found standard VST 2.x chunk header");
+            dump_vst_bank(bank, (BE_TO_CPU(bank->byteSize) + 2 * sizeof(VstInt32)));
+
+            // Check the version
+            VstInt32 fxVersion = BE_TO_CPU(bank->fxVersion);
+            if (fxVersion != VST_FX_VERSION_KVT_SUPPORT)
+                deserialize_v1(bank);       // Load V1 bank for legacy support
+            else
+            {
+                // Get size of chunk
+                size_t bytes                    = BE_TO_CPU(VstInt32(bank->byteSize));
+                if (bytes < offsetof(fxBank, content.data.chunk))
+                {
+                    lsp_trace("byte_size (%d) < VST_STATE_BUFFER_SIZE (%d)", int(bytes), int(VST_STATE_BUFFER_SIZE));
+                    return;
+                }
+
+                const uint8_t *tail = &head[bytes + VST_BANK_HDR_SKIP];
+                head               += offsetof(fxBank, content.data.chunk);
+                bytes               = BE_TO_CPU(bank->content.data.size);
+                if (size_t(tail - head) != bytes)
+                {
+                    lsp_trace("Content size=0x%x does not match specified=0x%x", int(tail-head), int(bytes));
+                    return;
+                }
+
+                deserialize_new_chunk_format(head, bytes);
+            }
+        }
+        else if (res == STATUS_NOT_FOUND)
+        {
+            // Do stuff considering that there is NO chunk headers, just raw data
+            lsp_warn("No VST 2.x chunk header found, assuming the body is in valid state");
+            dump_vst_bank(head, size);
+            deserialize_new_chunk_format(head, size);
+        }
         else
-            deserialize_v2(bank);
+            return;
 
         // Call callback
         pPlugin->state_loaded();
+        lsp_trace("Plugin state has been loaded");
+    }
+
+    void VSTWrapper::deserialize_new_chunk_format(const uint8_t *data, size_t bytes)
+    {
+        // Lookup extension header
+        vst_state_header hdr;
+        ::bzero(&hdr, sizeof(hdr));
+        if (bytes >= sizeof(vst_state_header))
+        {
+            const vst_state_header *src = reinterpret_cast<const vst_state_header *>(data);
+            hdr.nMagic1     = BE_TO_CPU(src->nMagic1);
+            hdr.nSize       = BE_TO_CPU(src->nSize);
+            hdr.nVersion    = BE_TO_CPU(src->nVersion);
+            hdr.nMagic2     = BE_TO_CPU(src->nMagic2);
+        }
+
+        // Analyze version
+        if ((hdr.nMagic1 != LSP_VST_USER_MAGIC) || (hdr.nMagic2 != LSP_VST_USER_MAGIC))
+        {
+            lsp_debug("Performing V2 parameter deserialization (0x%x bytes)", int(bytes));
+            deserialize_v2_v3(data, bytes);
+        }
+        else if (hdr.nVersion >= VST_FX_VERSION_JUCE_FIX)
+        {
+            lsp_debug("Performing V3 parameter deserialization");
+            deserialize_v2_v3(&data[sizeof(hdr)], hdr.nSize);
+        }
+        else
+            lsp_warn("Unsupported format, don't know how to deserialize chunk");
     }
 
     VSTPort *VSTWrapper::find_by_id(const char *id)
@@ -1192,28 +1284,10 @@ namespace lsp
         }
     }
 
-    void VSTWrapper::deserialize_v2(const fxBank *bank)
+    void VSTWrapper::deserialize_v2_v3(const uint8_t *data, size_t bytes)
     {
-        lsp_debug("Performing V2 parameter deserialization");
-
-        // Get size of chunk
-        size_t bytes                    = BE_TO_CPU(VstInt32(bank->byteSize));
-        if (bytes < offsetof(fxBank, content.data.chunk))
-        {
-            lsp_trace("byte_size (%d) < VST_STATE_BUFFER_SIZE (%d)", int(bytes), int(VST_STATE_BUFFER_SIZE));
-            return;
-        }
-
-        const uint8_t *head = reinterpret_cast<const uint8_t *>(bank);
-        const uint8_t *tail = &head[bytes + VST_BANK_HDR_SKIP];
-        head               += offsetof(fxBank, content.data.chunk);
-
-        bytes               = BE_TO_CPU(bank->content.data.size);
-        if (size_t(tail - head) != bytes)
-        {
-            lsp_trace("Content size=0x%x does not match specified=0x%x", int(tail-head), int(bytes));
-            return;
-        }
+        const uint8_t *head = data;
+        const uint8_t *tail = &head[bytes];
 
         lsp_debug("Reading regular ports...");
         while (size_t(tail - head) >= sizeof(uint32_t))
@@ -1279,7 +1353,7 @@ namespace lsp
             {
                 // Read parameter length
                 uint32_t len        = BE_TO_CPU(*(reinterpret_cast<const uint32_t *>(head))) + sizeof(uint32_t);
-                lsp_trace("Reading block: off=0x%x, size=%d", int(head - reinterpret_cast<const uint8_t *>(bank)), int(len));
+                lsp_trace("Reading block: off=0x%x, size=%d", int(head - data), int(len));
                 if (len > size_t(tail - head))
                 {
                     lsp_warn("Unexpected end of chunk while fetching KVT parameter size");
@@ -1398,8 +1472,6 @@ namespace lsp
             sKVT.gc();
             sKVTMutex.unlock();
         }
-
-        lsp_debug("Completed state read");
     }
 
     ICanvas *VSTWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)

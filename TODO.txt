@@ -21,6 +21,11 @@
 * Build fixes for Aarch64 architecture related to CPU feature detection.
 * Implemented drag & drop feature for file loading components.
 * Refactored clipboard mechanism for X11 protocol, addes support of INCR selection transfer.
+* Updated VST state serialization mechanism to version 3: now plugin properly handle state if there
+  is no chunk header in the chunk data passed from the host.
+* Fixed memory corruption bug in Analyzer core module that could crash the system on
+  non-power-of-two buffer sizes. Affected plugins: Parametric Equalizer, Graphic Equalizer,
+  Spectrum Analyzer, Multiband Compressor.
 * Refactored UI of the parameteric Equalizer plugin series.
 * Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
 - Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
