@@ -21,9 +21,6 @@
 	<li>
 		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin bypasses signal.
 	</li>
-	<?php if ($nf  > 16) { ?>
-	<li><b>Bands</b> - band selection.</li>
-	<?php } ?>
 	<li><b>Mode</b> - equalizer slope and working mode, enables the following settings:</li>
 	<ul>
 		<li><b>BT48</b> - Filters with 48dB/oct slope, bilinear Z-transform.</li>

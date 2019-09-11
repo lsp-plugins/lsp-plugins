@@ -45,40 +45,40 @@ namespace lsp
 
     static const char *band_select_16lr[] =
     {
-        "Left",
-        "Right",
+        "Bands Left",
+        "Bands Right",
         NULL
     };
 
     static const char *band_select_16ms[] =
     {
-        "Middle",
-        "Side",
+        "Bands Middle",
+        "Bands Side",
         NULL
     };
 
     static const char *band_select_32[] =
     {
-        "0-15",
-        "16-31",
+        "Bands 0-15",
+        "Bands 16-31",
         NULL
     };
 
     static const char *band_select_32lr[] =
     {
-        "Left 0-15",
-        "Right 0-15",
-        "Left 16-31",
-        "Right 16-31",
+        "Bands Left 0-15",
+        "Bands Right 0-15",
+        "Bands Left 16-31",
+        "Bands Right 16-31",
         NULL
     };
 
     static const char *band_select_32ms[] =
     {
-        "Middle 0-15",
-        "Side 0-15",
-        "Middle 16-31",
-        "Side 16-31",
+        "Bands Middle 0-15",
+        "Bands Side 0-15",
+        "Bands Middle 16-31",
+        "Bands Side 16-31",
         NULL
     };
 

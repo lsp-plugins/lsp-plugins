@@ -37,7 +37,6 @@
 	<li>
 		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin bypasses signal.
 	</li>
-	<li><b>Filters</b> - filter panel selection</li>
 	<li><b>Mode</b> - equalizer working mode, enables the following mode for all filters:</li>
 	<ul>
 		<li><b>IIR</b> - Infinite Impulse Response filters, nonlinear minimal phase. In most cases does not add noticeable latency to output signal.</li>
