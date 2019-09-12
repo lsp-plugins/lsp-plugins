@@ -42,8 +42,8 @@ namespace lsp
             if (res != STATUS_SUCCESS)
                 return res;
 
-            override_color(C_HLINK_TEXT, sFont.color());
-            override_color(C_HLINK_HOVER, &sHoverColor);
+            init_color(C_HLINK_TEXT, sFont.color());
+            init_color(C_HLINK_HOVER, &sHoverColor);
 
             set_cursor(MP_HAND); // Initialize pointer
             sFont.set_underline();

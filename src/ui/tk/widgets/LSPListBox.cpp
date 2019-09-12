@@ -178,8 +178,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_LABEL_TEXT, &sColor);
-            override_color(C_LABEL_TEXT, sFont.color());
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_LABEL_TEXT, sFont.color());
 
             result = sHBar.init();
             if (result != STATUS_OK)

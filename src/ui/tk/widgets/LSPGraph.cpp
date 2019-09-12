@@ -50,7 +50,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_GLASS, &sColor);
+            init_color(C_GLASS, &sColor);
 
             return STATUS_OK;
         }

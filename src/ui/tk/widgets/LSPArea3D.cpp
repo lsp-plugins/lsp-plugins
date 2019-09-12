@@ -49,8 +49,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
-            override_color(C_GLASS, &sColor);
-            override_color(C_BACKGROUND, &sBgColor);
+            init_color(C_GLASS, &sColor);
 
             ui_handler_id_t id = 0;
 

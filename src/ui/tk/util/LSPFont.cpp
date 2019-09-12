@@ -72,8 +72,6 @@ namespace lsp
 
             sFont.set(&src->sFont);
             sFP.Height      = -1.0f;
-
-            theme->override_color(C_LABEL_TEXT, sColor);
         }
 
         void LSPFont::init(const LSPFont *src)

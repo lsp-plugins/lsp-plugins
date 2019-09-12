@@ -42,8 +42,8 @@ namespace lsp
             sFont.set_size(16);
             sFont.set_bold(true);
 
-            override_color(C_LOGO_FACE, &sColor);
-            override_color(C_LOGO_TEXT, sFont.color());
+            init_color(C_LOGO_FACE, &sColor);
+            init_color(C_LOGO_TEXT, sFont.color());
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());

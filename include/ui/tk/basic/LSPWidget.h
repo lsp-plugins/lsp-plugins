@@ -80,11 +80,7 @@ namespace lsp
 
                 void            unlink_widget(LSPWidget *widget);
 
-                void            init_color(color_t value, Color *color);
-
                 void            init_color(color_t value, LSPColor *color);
-
-                void            override_color(color_t value, LSPColor *color);
 
             //---------------------------------------------------------------------------------
             // Construction and destruction

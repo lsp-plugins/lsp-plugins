@@ -42,8 +42,8 @@ namespace lsp
             sFont.init();
             sFont.set_size(12.0f);
 
-            override_color(C_BUTTON_FACE, &sColor);
-            override_color(C_BUTTON_TEXT, sFont.color());
+            init_color(C_BUTTON_FACE, &sColor);
+            init_color(C_BUTTON_TEXT, sFont.color());
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());

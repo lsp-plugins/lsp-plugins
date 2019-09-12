@@ -51,7 +51,7 @@ namespace lsp
         status_t LSPWidget::init()
         {
             // Initialize colors
-            override_color(C_BACKGROUND, &sBgColor);
+            init_color(C_BACKGROUND, &sBgColor);
 
             // Declare slots
             ui_handler_id_t id = 0;
@@ -108,32 +108,17 @@ namespace lsp
                 w->pParent  = NULL;
         }
 
-        void LSPWidget::init_color(color_t value, Color *color)
-        {
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                    theme->get_color(value, color);
-            }
-        }
-
         void LSPWidget::init_color(color_t value, LSPColor *color)
         {
             Color c;
-            init_color(value, &c);
-            color->copy(&c);
-        }
-
-        void LSPWidget::override_color(color_t value, LSPColor *color)
-        {
             if (pDisplay != NULL)
             {
                 LSPTheme *theme = pDisplay->theme();
+
                 if (theme != NULL)
-                    theme->override_color(value, color);
+                    theme->get_color(value, c);
             }
+            color->copy(&c);
         }
 
         status_t LSPWidget::slot_mouse_move(LSPWidget *sender, void *ptr, void *data)

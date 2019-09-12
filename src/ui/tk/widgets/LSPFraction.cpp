@@ -56,8 +56,8 @@ namespace lsp
             LSP_STATUS_ASSERT(sNumerator.init());
             LSP_STATUS_ASSERT(sDenominator.init());
 
-            override_color(C_LABEL_TEXT, sFont.color());
-            override_color(C_LABEL_TEXT, &sColor);
+            init_color(C_LABEL_TEXT, sFont.color());
+            init_color(C_LABEL_TEXT, &sColor);
 
             sFont.init();
             sFont.set_bold(true);

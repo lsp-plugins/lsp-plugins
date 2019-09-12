@@ -32,8 +32,6 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_BACKGROUND, &sBgColor);
-
             return STATUS_OK;
         }
 

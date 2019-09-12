@@ -34,7 +34,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_LABEL_TEXT, &sColor);
+            init_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }

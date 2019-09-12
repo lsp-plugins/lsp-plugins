@@ -135,10 +135,10 @@ namespace lsp
                     sFont.init(theme->font());
             }
 
-            override_color(C_BACKGROUND, sFont.color());
-            override_color(C_BACKGROUND, &sBorderColor);
-            override_color(C_LABEL_TEXT, &sBgColor);
-            override_color(C_KNOB_SCALE, &sSelColor);
+            init_color(C_BACKGROUND, sFont.color());
+            init_color(C_BACKGROUND, &sBorderColor);
+            init_color(C_LABEL_TEXT, &sBgColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             return STATUS_OK;
         }

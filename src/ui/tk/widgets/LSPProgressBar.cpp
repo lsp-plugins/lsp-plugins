@@ -48,9 +48,9 @@ namespace lsp
                     sFont.init(theme->font());
             }
 
-            override_color(C_BACKGROUND, sFont.color());
-            override_color(C_LABEL_TEXT, &sColor);
-            override_color(C_KNOB_SCALE, &sSelColor);
+            init_color(C_BACKGROUND, sFont.color());
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             return STATUS_OK;
         }

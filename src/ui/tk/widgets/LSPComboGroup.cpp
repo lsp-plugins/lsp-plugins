@@ -121,8 +121,8 @@ namespace lsp
 
             sFont.init();
             sFont.set_size(12.0f);
-            override_color(C_LABEL_TEXT, &sColor);
-            override_color(C_BACKGROUND, sFont.color());
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_BACKGROUND, sFont.color());
 
             // Bind slots
             ui_handler_id_t id = 0;

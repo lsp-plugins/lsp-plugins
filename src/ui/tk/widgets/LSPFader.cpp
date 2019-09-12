@@ -46,8 +46,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_LABEL_TEXT, &sColor);
-            override_color(C_BACKGROUND, &sBgColor);
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_BACKGROUND, &sBgColor);
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());

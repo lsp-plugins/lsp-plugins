@@ -59,8 +59,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_GLASS, &sColor);
-            override_color(C_LABEL_TEXT, &sTextColor);
+            init_color(C_GLASS, &sColor);
+            init_color(C_LABEL_TEXT, &sTextColor);
 
             return STATUS_OK;
         }

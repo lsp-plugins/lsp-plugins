@@ -48,8 +48,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_KNOB_CAP, &sColor);
-            override_color(C_KNOB_SCALE, &sScaleColor);
+            init_color(C_KNOB_CAP, &sColor);
+            init_color(C_KNOB_SCALE, &sScaleColor);
 
             if (!sSlots.add(LSPSLOT_CHANGE))
                 return STATUS_NO_MEM;

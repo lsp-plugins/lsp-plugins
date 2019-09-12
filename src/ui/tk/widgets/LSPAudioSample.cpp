@@ -72,10 +72,10 @@ namespace lsp
             sHintFont.set_size(16);
             sHintFont.set_bold(true);
 
-            override_color(C_GLASS, &sColor);
-            override_color(C_GRAPH_LINE, &sAxisColor);
-            override_color(C_GRAPH_TEXT, sFont.color());
-            override_color(C_STATUS_OK, sHintFont.color());
+            init_color(C_GLASS, &sColor);
+            init_color(C_GRAPH_LINE, &sAxisColor);
+            init_color(C_GRAPH_TEXT, sFont.color());
+            init_color(C_STATUS_OK, sHintFont.color());
 
             return STATUS_OK;
         }

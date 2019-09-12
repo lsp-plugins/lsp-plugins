@@ -44,11 +44,11 @@ namespace lsp
                 {
                     sFont.init(theme->font());
                     sFont.set_size(12.0f);
-                    override_color(C_BACKGROUND, sFont.color());
+                    init_color(C_BACKGROUND, sFont.color());
                 }
             }
 
-            override_color(C_LABEL_TEXT, &sColor);
+            init_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }

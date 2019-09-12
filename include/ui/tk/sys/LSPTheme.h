@@ -118,21 +118,6 @@ namespace lsp
                  */
                 bool get_color(color_t color, LSPColor *dst);
 
-                /**
-                 * Override color using it's symbolic name
-                 * @param color color ID
-                 * @param dst pointer to store object
-                 * @return false if default color was used
-                 */
-                bool override_color(color_t color, LSPColor &dst);
-
-                /**
-                 * Override color using it's symbolic name
-                 * @param color color ID
-                 * @param dst pointer to store object
-                 * @return false if default color was used
-                 */
-                bool override_color(color_t color, LSPColor *dst);
         };
     
     } /* namespace tk */

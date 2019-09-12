@@ -41,7 +41,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_GLASS, &sIndColor);
+            init_color(C_GLASS, &sIndColor);
 
             sFont.init();
             sFont.set_size(9);

@@ -32,7 +32,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            override_color(C_GREEN, &sColor);
+            init_color(C_GREEN, &sColor);
 
             return STATUS_OK;
         }
