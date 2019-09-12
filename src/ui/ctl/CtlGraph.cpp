@@ -68,13 +68,13 @@ namespace lsp
             }
         }
 
-        status_t CtlGraph::add(LSPWidget *child)
+        status_t CtlGraph::add(CtlWidget *child)
         {
             if (pWidget == NULL)
                 return STATUS_BAD_STATE;
 
             LSPGraph *gr    = widget_cast<LSPGraph>(pWidget);
-            return gr->add(child);
+            return gr->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */

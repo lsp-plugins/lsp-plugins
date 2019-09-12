@@ -64,13 +64,13 @@ namespace lsp
             }
         }
 
-        status_t CtlGroup::add(LSPWidget *child)
+        status_t CtlGroup::add(CtlWidget *child)
         {
             if (pWidget == NULL)
                 return STATUS_BAD_STATE;
 
             LSPGroup *grp     = static_cast<LSPGroup *>(pWidget);
-            return grp->add(child);
+            return grp->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */

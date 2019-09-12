@@ -127,10 +127,10 @@ namespace lsp
             }
         }
 
-        status_t CtlComboGroup::add(LSPWidget *child)
+        status_t CtlComboGroup::add(CtlWidget *child)
         {
             LSPComboGroup *grp     = widget_cast<LSPComboGroup>(pWidget);
-            return (grp != NULL) ? grp->add(child) : STATUS_BAD_STATE;
+            return (grp != NULL) ? grp->add(child->widget()) : STATUS_BAD_STATE;
         }
     
         void CtlComboGroup::notify(CtlPort *port)

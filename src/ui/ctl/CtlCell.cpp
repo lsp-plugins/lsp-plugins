@@ -40,13 +40,13 @@ namespace lsp
             }
         }
 
-        status_t CtlCell::add(LSPWidget *child)
+        status_t CtlCell::add(CtlWidget *child)
         {
             LSPCell *cell   = widget_cast<LSPCell>(pWidget);
             if (cell == NULL)
                 return STATUS_BAD_STATE;
 
-            status_t res = cell->add(child);
+            status_t res = cell->add(child->widget());
             if (res != STATUS_OK)
                 return res;
 

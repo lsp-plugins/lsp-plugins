@@ -45,7 +45,7 @@ namespace lsp
 
                 virtual void set(widget_attribute_t att, const char *value);
 
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
 
                 virtual void notify(CtlPort *port);
 

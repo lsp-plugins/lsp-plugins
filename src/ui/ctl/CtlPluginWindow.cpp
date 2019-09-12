@@ -488,13 +488,13 @@ namespace lsp
             return CtlWidget::resolve(uid);
         }
 
-        status_t CtlPluginWindow::add(LSPWidget *child)
+        status_t CtlPluginWindow::add(CtlWidget *child)
         {
             // Check widget pointer
             if (pBox == NULL)
                 return STATUS_BAD_STATE;
 
-            return pBox->add(child);
+            return pBox->add(child->widget());
         }
 
         status_t CtlPluginWindow::slot_export_settings_to_file(LSPWidget *sender, void *ptr, void *data)

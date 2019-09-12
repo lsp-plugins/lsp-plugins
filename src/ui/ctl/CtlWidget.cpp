@@ -122,7 +122,7 @@ namespace lsp
             }
         }
 
-        status_t CtlWidget::add(LSPWidget *child)
+        status_t CtlWidget::add(CtlWidget *child)
         {
             return STATUS_NOT_IMPLEMENTED;
         }

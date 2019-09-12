@@ -61,13 +61,13 @@ namespace lsp
             }
         }
 
-        status_t CtlGrid::add(LSPWidget *child)
+        status_t CtlGrid::add(CtlWidget *child)
         {
             LSPGrid *grid       = widget_cast<LSPGrid>(pWidget);
             if (grid == NULL)
                 return STATUS_BAD_STATE;
 
-            return grid->add(child);
+            return grid->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */
