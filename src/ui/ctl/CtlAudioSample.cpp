@@ -12,10 +12,12 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAudioSample::metadata = { "CtlAudioSample", &CtlWidget::metadata };
         
         CtlAudioSample::CtlAudioSample(CtlRegistry *src, LSPAudioSample *as):
             CtlWidget(src, as)
         {
+            pClass          = &metadata;
             pMesh           = NULL;
             pStatus         = NULL;
             pLength         = NULL;

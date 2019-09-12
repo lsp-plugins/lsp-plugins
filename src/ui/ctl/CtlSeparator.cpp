@@ -11,10 +11,12 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlSeparator::metadata = { "CtlSeparator", &CtlWidget::metadata };
         
         CtlSeparator::CtlSeparator(CtlRegistry *src, LSPSeparator *widget, ssize_t orientation): CtlWidget(src, widget)
         {
-            nOrientation = orientation;
+            pClass          = &metadata;
+            nOrientation    = orientation;
         }
         
         CtlSeparator::~CtlSeparator()

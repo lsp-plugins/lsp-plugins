@@ -535,19 +535,9 @@ namespace lsp
                 cell->pWidget       = NULL;
             }
 
-            LSPCell *w      = widget_cast<LSPCell>(widget);
-            if (w != NULL)
-            {
-                cell->nRows     = w->rowspan();
-                cell->nCols     = w->colspan();
-                cell->pWidget   = w->unwrap();
-            }
-            else
-            {
-                cell->nRows     = rowspan;
-                cell->nCols     = colspan;
-                cell->pWidget   = widget;
-            }
+            cell->nRows     = rowspan;
+            cell->nCols     = colspan;
+            cell->pWidget   = widget;
 
             if (cell->pWidget != NULL)
                 cell->pWidget->set_parent(this);

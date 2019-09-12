@@ -11,14 +11,17 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlLed::metadata = { "CtlLed", &CtlWidget::metadata };
+
         CtlLed::CtlLed(CtlRegistry *src, LSPLed *widget): CtlWidget(src, widget)
         {
-            fValue      = 0;
-            pPort       = NULL;
-            fKey        = 1;
+            pClass          = &metadata;
+            fValue          = 0;
+            pPort           = NULL;
+            fKey            = 1;
 
-            bActivitySet= false;
-            bInvert     = false;
+            bActivitySet    = false;
+            bInvert         = false;
         }
 
         CtlLed::~CtlLed()

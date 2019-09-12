@@ -16,6 +16,9 @@ namespace lsp
     {
         class CtlPluginWindow: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 typedef struct backend_sel_t
                 {

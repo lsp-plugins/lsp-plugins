@@ -13,6 +13,8 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlSource3D::metadata = { "CtlSource3D", &CtlWidget::metadata };
+
         void CtlSource3D::LSPSourceColor::color_changed()
         {
             LSPMesh3D *mesh = widget_cast<LSPMesh3D>(pSource->pWidget);
@@ -31,33 +33,34 @@ namespace lsp
             CtlWidget(src, widget),
             sXColor(this)
         {
-            fHueShift   = 0.1f;
+            pClass          = &metadata;
+            fHueShift       = 0.1f;
             sXColor.set_rgb(1.0f, 0.0f, 0.0f);
 
             bRebuildMesh= true;
 
-            pMode       = NULL;
-            pPosX       = NULL;
-            pPosY       = NULL;
-            pPosZ       = NULL;
-            pYaw        = NULL;
-            pPitch      = NULL;
-            pSize       = NULL;
-            pRoll       = NULL;
-            pCurvature  = NULL;
-            pHeight     = NULL;
-            pAngle      = NULL;
+            pMode           = NULL;
+            pPosX           = NULL;
+            pPosY           = NULL;
+            pPosZ           = NULL;
+            pYaw            = NULL;
+            pPitch          = NULL;
+            pSize           = NULL;
+            pRoll           = NULL;
+            pCurvature      = NULL;
+            pHeight         = NULL;
+            pAngle          = NULL;
 
             dsp::init_point_xyz(&sSource.sPos, 0.0f, 0.0f, 0.0f);
             sSource.fYaw        = 0.0f;
             sSource.fPitch      = 0.0f;
             sSource.fRoll       = 0.0f;
-            sSource.enType       = RT_AS_ICO;
-            sSource.fSize        = 1.0f;
-            sSource.fHeight      = 1.0f;
-            sSource.fAngle       = 90.0f;
-            sSource.fCurvature   = 100.0f;
-            sSource.fAmplitude   = 1.0f;
+            sSource.enType      = RT_AS_ICO;
+            sSource.fSize       = 1.0f;
+            sSource.fHeight     = 1.0f;
+            sSource.fAngle      = 90.0f;
+            sSource.fCurvature  = 100.0f;
+            sSource.fAmplitude  = 1.0f;
         }
         
         CtlSource3D::~CtlSource3D()

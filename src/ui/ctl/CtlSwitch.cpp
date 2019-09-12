@@ -11,12 +11,14 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlSwitch::metadata = { "CtlSwitch", &CtlWidget::metadata };
         
         CtlSwitch::CtlSwitch(CtlRegistry *src, LSPSwitch *widget): CtlWidget(src, widget)
         {
-            fValue      = 0;
-            pPort       = NULL;
-            bInvert     = false;
+            pClass          = &metadata;
+            fValue          = 0;
+            pPort           = NULL;
+            bInvert         = false;
         }
         
         CtlSwitch::~CtlSwitch()

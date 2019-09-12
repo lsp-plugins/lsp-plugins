@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlHyperlink::metadata = { "CtlHyperlink", &CtlWidget::metadata };
+
         CtlHyperlink::CtlHyperlink(CtlRegistry *src, LSPHyperlink *widget, ctl_label_type_t type): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
         }
 
         CtlHyperlink::~CtlHyperlink()

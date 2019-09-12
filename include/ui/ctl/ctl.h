@@ -226,6 +226,12 @@ namespace lsp
             A_ZSCALE_ID
         };
 
+        typedef struct ctl_class_t
+        {
+            const char         *name;
+            const ctl_class_t  *parent;
+        } ctl_class_t;
+
         // Helper functions
         /** Decode widget type to enum
          *

@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlIndicator: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 float           fValue;
                 CtlPort        *pPort;

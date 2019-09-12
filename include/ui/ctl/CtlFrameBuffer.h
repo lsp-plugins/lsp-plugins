@@ -16,6 +16,9 @@ namespace lsp
         class CtlFrameBuffer: public CtlWidget
         {
             public:
+                static const ctl_class_t metadata;
+
+            public:
                 explicit CtlFrameBuffer(CtlRegistry *src, LSPFrameBuffer *fb);
                 virtual ~CtlFrameBuffer();
 

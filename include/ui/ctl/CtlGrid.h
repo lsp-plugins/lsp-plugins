@@ -14,6 +14,9 @@ namespace lsp
     {
         class CtlGrid: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 ssize_t     nOrientation;
 

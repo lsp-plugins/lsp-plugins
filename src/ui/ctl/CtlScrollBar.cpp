@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlScrollBar::metadata = { "CtlScrollBar", &CtlWidget::metadata };
+
         CtlScrollBar::CtlScrollBar(CtlRegistry *src, LSPScrollBar *widget): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
         }
 
         CtlScrollBar::~CtlScrollBar()

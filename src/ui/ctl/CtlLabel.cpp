@@ -13,15 +13,18 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlLabel::metadata = { "CtlLabel", &CtlWidget::metadata };
+
         CtlLabel::CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            enType      = type;
-            fValue      = 0.0f;
-            bDetailed   = true;
-            bSameLine   = false;
-            nUnits      = U_NONE - 1;
-            nPrecision  = -1;
+            pClass          = &metadata;
+            pPort           = NULL;
+            enType          = type;
+            fValue          = 0.0f;
+            bDetailed       = true;
+            bSameLine       = false;
+            nUnits          = U_NONE - 1;
+            nPrecision      = -1;
         }
 
         CtlLabel::~CtlLabel()

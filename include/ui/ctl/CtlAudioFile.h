@@ -17,6 +17,9 @@ namespace lsp
     {
         class CtlAudioFile: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 enum const_t
                 {

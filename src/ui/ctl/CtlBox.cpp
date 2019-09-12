@@ -11,10 +11,12 @@ namespace lsp
 {
     namespace ctl
     {
-        
+        const ctl_class_t CtlBox::metadata = { "CtlBox", &CtlWidget::metadata };
+
         CtlBox::CtlBox(CtlRegistry *src, LSPBox *widget, ssize_t orientation): CtlWidget(src, widget)
         {
-            nOrientation = orientation;
+            pClass          = &metadata;
+            nOrientation    = orientation;
         }
         
         CtlBox::~CtlBox()

@@ -12,6 +12,7 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlCapture3D::metadata = { "CtlCapture3D", &CtlWidget::metadata };
         
         void CtlCapture3D::LSPCaptureColor::color_changed()
         {
@@ -31,6 +32,7 @@ namespace lsp
             CtlWidget(src, widget),
             sXColor(this)
         {
+            pClass          = &metadata;
             fHueShift       = 0.25f;
             sXColor.set_rgb(1.0f, 0.0f, 0.0f);
 

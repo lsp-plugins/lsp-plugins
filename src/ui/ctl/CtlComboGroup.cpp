@@ -11,14 +11,17 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlComboGroup::metadata = { "CtlComboGroup", &CtlWidget::metadata };
+
         CtlComboGroup::CtlComboGroup(CtlRegistry *src, LSPComboGroup *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            fMin        = 0.0f;
-            fMax        = 0.0f;
-            fStep       = 0.0f;
-            idChange    = -1;
-            pText       = NULL;
+            pClass          = &metadata;
+            pPort           = NULL;
+            fMin            = 0.0f;
+            fMax            = 0.0f;
+            fStep           = 0.0f;
+            idChange        = -1;
+            pText           = NULL;
         }
 
         CtlComboGroup::~CtlComboGroup()

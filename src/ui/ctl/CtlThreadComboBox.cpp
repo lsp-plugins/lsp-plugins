@@ -12,11 +12,13 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlThreadComboBox::metadata = { "CtlThreadComboBox", &CtlWidget::metadata };
         
         CtlThreadComboBox::CtlThreadComboBox(CtlRegistry *src, LSPComboBox *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            idChange    = -1;
+            pClass          = &metadata;
+            pPort           = NULL;
+            idChange        = -1;
         }
         
         CtlThreadComboBox::~CtlThreadComboBox()

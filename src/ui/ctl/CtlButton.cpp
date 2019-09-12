@@ -11,11 +11,13 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlButton::metadata = { "CtlButton", &CtlWidget::metadata };
         
         CtlButton::CtlButton(CtlRegistry *src, LSPButton *widget): CtlWidget(src, widget)
         {
-            fValue      = 0;
-            pPort       = NULL;
+            pClass          = &metadata;
+            fValue          = 0;
+            pPort           = NULL;
         }
         
         CtlButton::~CtlButton()

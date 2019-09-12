@@ -16,6 +16,9 @@ namespace lsp
     {
         class CtlCapture3D: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 class LSPCaptureColor: public LSPColor
                 {

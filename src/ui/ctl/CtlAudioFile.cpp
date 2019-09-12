@@ -14,6 +14,7 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAudioFile::metadata = { "CtlAudioFile", &CtlWidget::metadata };
         
         CtlAudioFile::DataSink::DataSink(CtlAudioFile *file)
         {
@@ -49,6 +50,7 @@ namespace lsp
             CtlWidget(src, af),
             sMenu(af->display())
         {
+            pClass          = &metadata;
             pFile           = NULL;
             pMesh           = NULL;
             pPathID         = NULL;

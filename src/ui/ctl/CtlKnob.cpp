@@ -11,12 +11,15 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlKnob::metadata = { "CtlKnob", &CtlWidget::metadata };
+
         CtlKnob::CtlKnob(CtlRegistry *src, LSPKnob *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            bLog        = false;
-            bLogSet     = false;
-            bCyclingSet = false;
+            pClass          = &metadata;
+            pPort           = NULL;
+            bLog            = false;
+            bLogSet         = false;
+            bCyclingSet     = false;
         }
 
         CtlKnob::~CtlKnob()

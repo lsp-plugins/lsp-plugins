@@ -11,11 +11,13 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlIndicator::metadata = { "CtlIndicator", &CtlWidget::metadata };
         
         CtlIndicator::CtlIndicator(CtlRegistry *src, LSPIndicator *widget): CtlWidget(src, widget)
         {
-            fValue      = 0;
-            pPort       = NULL;
+            pClass          = &metadata;
+            fValue          = 0;
+            pPort           = NULL;
         }
         
         CtlIndicator::~CtlIndicator()

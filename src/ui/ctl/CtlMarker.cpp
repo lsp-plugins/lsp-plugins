@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlMarker::metadata = { "CtlMarker", &CtlWidget::metadata };
+
         CtlMarker::CtlMarker(CtlRegistry *src, LSPMarker *mark): CtlWidget(src, mark)
         {
+            pClass          = &metadata;
             pPort           = NULL;
             fTransparency   = 0.0f;
         }

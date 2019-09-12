@@ -11,12 +11,14 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlProgressBar::metadata = { "CtlProgressBar", &CtlWidget::metadata };
         
         CtlProgressBar::CtlProgressBar(CtlRegistry *src, LSPProgressBar *widget):
             CtlWidget(src, widget)
         {
-            pPort   = NULL;
-            nXFlags = 0;
+            pClass          = &metadata;
+            pPort           = NULL;
+            nXFlags         = 0;
             sFormat.set_native("%.2f%%");
         }
         

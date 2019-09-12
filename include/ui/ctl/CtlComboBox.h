@@ -14,6 +14,9 @@ namespace lsp
     {
         class CtlComboBox: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlPort        *pPort;
                 CtlColor        sBgColor;

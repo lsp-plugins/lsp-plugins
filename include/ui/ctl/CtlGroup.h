@@ -14,6 +14,9 @@ namespace lsp
     {
         class CtlGroup: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlColor        sColor;
                 CtlColor        sTextColor;

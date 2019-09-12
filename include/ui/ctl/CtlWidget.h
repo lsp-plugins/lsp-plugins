@@ -14,7 +14,11 @@ namespace lsp
     {
         class CtlWidget: public CtlPortListener
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
+                const ctl_class_t    *pClass;
                 CtlRegistry    *pRegistry;
                 LSPWidget      *pWidget;
 
@@ -46,9 +50,8 @@ namespace lsp
                  *
                  * @return widget
                  */
-                inline LSPWidget   *widget() { return pWidget; };
+                virtual LSPWidget  *widget();
 
-            public:
                 /** Set attribute to widget controller
                  *
                  * @param name attribute name
@@ -96,7 +99,78 @@ namespace lsp
                  * @return pointer to resolved widget or NULL
                  */
                 virtual LSPWidget *resolve(const char *uid);
+
+            //---------------------------------------------------------------------------------
+            // Metadata, casting and type information
+            public:
+                /** Get widget class
+                 *
+                 * @return actual widget class metadata
+                 */
+                inline const ctl_class_t *get_class() const { return pClass; }
+
+                /** Check wheter the widget is instance of some class
+                 *
+                 * @param wclass widget class
+                 * @return true if widget is instance of some class
+                 */
+                bool instance_of(const ctl_class_t *wclass) const;
+
+                inline bool instance_of(const ctl_class_t &wclass) const { return instance_of(&wclass); }
+
+                /** Another way to check if widget is instance of some class
+                 *
+                 * @return true if widget is instance of some class
+                 */
+                template <class CtlTarget>
+                    inline bool instance_of() const { return instance_of(&CtlTarget::metadata); };
+
+                /** Cast widget to another type
+                 *
+                 * @return pointer to widget or NULL if cast failed
+                 */
+                template <class CtlTarget>
+                    inline CtlTarget *cast() { return instance_of(&CtlTarget::metadata) ? static_cast<CtlTarget *>(this) : NULL; }
+
+                /** Cast widget to another type
+                 *
+                 * @return pointer to widget or NULL if cast failed
+                 */
+                template <class CtlTarget>
+                    inline const CtlTarget *cast() const { return instance_of(&CtlTarget::metadata) ? static_cast<const CtlTarget *>(this) : NULL; }
+
+                /** Get pointer to self as pointer to LSPWidget class
+                 *
+                 * @return pointer to self
+                 */
+                inline CtlWidget *self()              { return this;  }
         };
+
+        template <class CtlTarget>
+            inline CtlTarget *ctl_cast(CtlWidget *src)
+            {
+                return ((src != NULL) && (src->instance_of(&CtlTarget::metadata))) ? static_cast<CtlTarget *>(src) : NULL;
+            }
+
+        template <class CtlTarget>
+            inline const CtlTarget *ctl_cast(const CtlWidget *src)
+            {
+                return ((src != NULL) && (src->instance_of(&CtlTarget::metadata))) ? static_cast<const CtlTarget *>(src) : NULL;
+            }
+
+        template <class CtlTarget>
+            inline CtlTarget *ctl_ptrcast(void *src)
+            {
+                LSPWidget *w = (src != NULL) ? static_cast<CtlTarget *>(src) : NULL;
+                return ((w != NULL) && (w->instance_of(&CtlTarget::metadata))) ? static_cast<CtlTarget *>(w) : NULL;
+            }
+
+        template <class CtlTarget>
+            inline const CtlTarget *ctl_ptrcast(const void *src)
+            {
+                const LSPWidget *w = (src != NULL) ? static_cast<const CtlTarget *>(src) : NULL;
+                return ((w != NULL) && (w->instance_of(&CtlTarget::metadata))) ? static_cast<const CtlTarget *>(w) : NULL;
+            }
 
     }
 } /* namespace lsp */

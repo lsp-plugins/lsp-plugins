@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlSwitch: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 float           fValue;
                 bool            bInvert;

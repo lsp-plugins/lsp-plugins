@@ -15,6 +15,8 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlViewer3D::metadata = { "CtlViewer3D", &CtlWidget::metadata };
+
         static const v_point3d_t axis_lines[] =
         {
             // X axis (red)
@@ -28,19 +30,11 @@ namespace lsp
             { { 0.0f, 0.0f, 0.25f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
 
-//        static const color3d_t *colors[] =
-//        {
-//            &C3D_RED,
-//            &C3D_GREEN,
-//            &C3D_BLUE,
-//            &C3D_CYAN,
-//            &C3D_MAGENTA,
-//            &C3D_YELLOW
-//        };
-        
         CtlViewer3D::CtlViewer3D(CtlRegistry *src, LSPArea3D *widget):
             CtlWidget(src, widget)
         {
+            pClass          = &metadata;
+
             widget->slots()->bind(LSPSLOT_DRAW3D, slot_on_draw3d, this);
             widget->slots()->bind(LSPSLOT_RESIZE, slot_resize, this);
             widget->slots()->bind(LSPSLOT_MOUSE_DOWN, slot_mouse_down, this);

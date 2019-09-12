@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlGraph::metadata = { "CtlGraph", &CtlWidget::metadata };
+
         CtlGraph::CtlGraph(CtlRegistry *src, LSPGraph *graph): CtlWidget(src, graph)
         {
+            pClass          = &metadata;
         }
 
         CtlGraph::~CtlGraph()

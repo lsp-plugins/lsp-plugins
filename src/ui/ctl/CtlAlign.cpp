@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAlign::metadata = { "CtlAlign", &CtlWidget::metadata };
+
         CtlAlign::CtlAlign(CtlRegistry *src, LSPAlign *widget): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
         }
 
         CtlAlign::~CtlAlign()

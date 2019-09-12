@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlComboGroup: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlPort        *pPort;
                 float           fMin;

@@ -14,6 +14,9 @@ namespace lsp
     {
         class CtlSwitchedPort: public CtlPort, public CtlPortListener
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 enum token_type_t
                 {

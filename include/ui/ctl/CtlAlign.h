@@ -15,6 +15,9 @@ namespace lsp
         class CtlAlign: public CtlWidget
         {
             public:
+                static const ctl_class_t metadata;
+
+            public:
                 explicit CtlAlign(CtlRegistry *src, LSPAlign *widget);
                 virtual ~CtlAlign();
 

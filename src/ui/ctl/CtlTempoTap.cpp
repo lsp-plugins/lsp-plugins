@@ -12,14 +12,16 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlTempoTap::metadata = { "CtlTempoTap", &CtlWidget::metadata };
         
         CtlTempoTap::CtlTempoTap(CtlRegistry *src, LSPButton *widget):
             CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            nThresh     = 1000;
-            nLastTap    = 0;
-            fTempo      = 0.0f;
+            pClass          = &metadata;
+            pPort           = NULL;
+            nThresh         = 1000;
+            nLastTap        = 0;
+            fTempo          = 0.0f;
         }
         
         CtlTempoTap::~CtlTempoTap()

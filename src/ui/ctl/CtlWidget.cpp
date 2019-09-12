@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlWidget::metadata = { "CtlWidget", NULL };
+
         CtlWidget::CtlWidget(CtlRegistry *src, LSPWidget *widget)
         {
+            pClass          = &metadata;
             pRegistry       = src;
             pWidget         = widget;
 
@@ -26,10 +29,28 @@ namespace lsp
             nMinHeight      = -1;
         }
 
+        bool CtlWidget::instance_of(const ctl_class_t *wclass) const
+        {
+            const ctl_class_t *wc = pClass;
+            while (wc != NULL)
+            {
+                if (wc == wclass)
+                    return true;
+                wc = wc->parent;
+            }
+
+            return false;
+        }
+
         CtlWidget::~CtlWidget()
         {
             destroy();
         }
+
+        LSPWidget *CtlWidget::widget()
+        {
+            return pWidget;
+        };
 
         void CtlWidget::init_color(color_t value, Color *color)
         {

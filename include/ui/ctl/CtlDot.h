@@ -14,6 +14,9 @@ namespace lsp
     {
         class CtlDot: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlPort        *pTop;
                 CtlPort        *pLeft;

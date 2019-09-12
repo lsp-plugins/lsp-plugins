@@ -12,11 +12,13 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlFrameBuffer::metadata = { "CtlFrameBuffer", &CtlWidget::metadata };
         
         CtlFrameBuffer::CtlFrameBuffer(CtlRegistry *src, LSPFrameBuffer *fb): CtlWidget(src, fb)
         {
-            pPort       = NULL;
-            nRowID      = 0;
+            pClass          = &metadata;
+            pPort           = NULL;
+            nRowID          = 0;
         }
         
         CtlFrameBuffer::~CtlFrameBuffer()

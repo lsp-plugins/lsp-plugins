@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlGroup::metadata = { "CtlGroup", &CtlWidget::metadata };
+
         CtlGroup::CtlGroup(CtlRegistry *src, LSPGroup *widget): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
         }
 
         CtlGroup::~CtlGroup()

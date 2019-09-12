@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlProgressBar: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 enum pflags_t
                 {
