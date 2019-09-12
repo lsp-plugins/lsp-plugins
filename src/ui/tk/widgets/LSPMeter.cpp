@@ -15,7 +15,8 @@ namespace lsp
 
         LSPMeter::LSPMeter(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sIndColor(this),
+            sFont(this)
         {
             nAngle      = 0;
             nMWidth     = 20;
@@ -40,16 +41,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sIndColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            override_color(C_GLASS, &sIndColor);
 
             sFont.init();
             sFont.set_size(9);

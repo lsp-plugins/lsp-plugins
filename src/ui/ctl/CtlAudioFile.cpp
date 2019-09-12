@@ -95,8 +95,8 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_basic(pRegistry, af, af->color(), A_COLOR);
-            sBgColor.init_basic(pRegistry, af, af->bg_color(), A_BG_COLOR);
+            sColor.init_basic2(pRegistry, af, af->color(), A_COLOR);
+            sBgColor.init_basic2(pRegistry, af, af->bg_color(), A_BG_COLOR);
             sPadding.init(af->padding());
 
             af->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);

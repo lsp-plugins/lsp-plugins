@@ -59,7 +59,7 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, mark, mark->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl2(pRegistry, mark, mark->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
 
             // Bind slots
             mark->slots()->bind(LSPSLOT_CHANGE, slot_change, this);

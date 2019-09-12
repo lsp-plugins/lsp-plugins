@@ -504,7 +504,7 @@ namespace lsp
                  *
                  * @param parent parent widget
                  */
-                virtual void set_parent(LSPComplexWidget *parent);
+                void set_parent(LSPComplexWidget *parent);
 
                 /** Commit widet redraw
                  *

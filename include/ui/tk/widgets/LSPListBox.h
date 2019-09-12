@@ -75,8 +75,7 @@ namespace lsp
                 LSPScrollBar            sHBar;
                 LSPScrollBar            sVBar;
                 LSPSizeConstraints      sConstraints;
-                Color                   sColor;
-                Color                   sBgColor;
+                LSPColor                sColor;
                 LSPFont                 sFont;
                 realize_t               sArea;
                 size_t                  nFlags;
@@ -122,9 +121,7 @@ namespace lsp
 
                 inline LSPItemSelection    *selection()     { return &sSelection; }
 
-                inline Color               *color()         { return &sColor; }
-
-                inline Color               *bg_color()      { return &sBgColor; }
+                inline LSPColor            *color()         { return &sColor; }
 
                 inline LSPSizeConstraints  *constraints()   { return &sConstraints; }
 

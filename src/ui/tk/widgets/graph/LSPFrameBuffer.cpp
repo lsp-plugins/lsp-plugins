@@ -13,7 +13,7 @@ namespace lsp
 {
     namespace tk
     {
-        const w_class_t LSPFrameBuffer::metadata = { "LSPFrame", &LSPGraphItem::metadata };
+        const w_class_t LSPFrameBuffer::metadata = { "LSPFrameBuffer", &LSPGraphItem::metadata };
         
         LSPFrameBuffer::LSPFrameBuffer(LSPDisplay *dpy): LSPGraphItem(dpy)
         {

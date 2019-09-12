@@ -58,8 +58,7 @@ namespace lsp
                 ssize_t         nBorder;    // Border
                 bool            bValues;    // Show values flag
                 size_t          nSpacing;   // Spacing between meters
-                Color           sBgColor;   // Background color
-                Color           sIndColor;  // Indication color
+                LSPColor        sIndColor;  // Indication color
                 LSPFont         sFont;
                 channel_t     **vChannels;
                 size_t          nChannels;
@@ -80,8 +79,7 @@ namespace lsp
                 virtual void        destroy();
 
             public:
-                inline Color       *bg_color()                          { return &sBgColor; }
-                inline Color       *ind_color()                         { return &sIndColor; }
+                inline LSPColor    *ind_color()                         { return &sIndColor; }
                 inline size_t       mtr_width() const                   { return nMWidth; }
                 inline size_t       mtr_height() const                  { return nMHeight; }
 

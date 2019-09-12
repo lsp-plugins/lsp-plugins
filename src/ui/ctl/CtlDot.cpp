@@ -35,7 +35,7 @@ namespace lsp
             LSPDot *dot   = static_cast<LSPDot *>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, dot, dot->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl2(pRegistry, dot, dot->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
 
             // Bind slots
             dot->slots()->bind(LSPSLOT_CHANGE, slot_change, this);

@@ -16,7 +16,8 @@ namespace lsp
         LSPFraction::LSPFraction(LSPDisplay *dpy): LSPComplexWidget(dpy),
                 sNumerator(dpy),
                 sDenominator(dpy),
-                sFont(dpy)
+                sFont(this),
+                sColor(this)
         {
             nMinWidth       = -1;
             nMinHeight      = -1;
@@ -55,9 +56,8 @@ namespace lsp
             LSP_STATUS_ASSERT(sNumerator.init());
             LSP_STATUS_ASSERT(sDenominator.init());
 
-            init_color(C_LABEL_TEXT, sFont.color());
-            init_color(C_LABEL_TEXT, &sColor);
-            init_color(C_BACKGROUND, &sBgColor);
+            override_color(C_LABEL_TEXT, sFont.color());
+            override_color(C_LABEL_TEXT, &sColor);
 
             sFont.init();
             sFont.set_bold(true);

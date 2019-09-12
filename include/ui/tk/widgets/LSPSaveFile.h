@@ -35,7 +35,7 @@ namespace lsp
             protected:
                 typedef struct state_t
                 {
-                    LSPWidgetColor *pColor;
+                    LSPColor       *pColor;
                     LSPString       sText;
                 } state_t;
 
@@ -46,7 +46,7 @@ namespace lsp
                 size_t              nButtons;
                 size_t              nBtnState;
                 ssize_t             nSize;
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
                 LSPFileDialog       sDialog;
                 ISurface           *pDisk;
                 LSPString           sPath;

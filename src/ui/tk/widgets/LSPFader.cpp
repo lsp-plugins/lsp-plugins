@@ -15,8 +15,7 @@ namespace lsp
         
         LSPFader::LSPFader(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sColor(this),
-            sBgColor(this)
+            sColor(this)
         {
             fMin            = 0.0f;
             fMax            = 1.0f;
@@ -47,16 +46,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            override_color(C_LABEL_TEXT, &sColor);
+            override_color(C_BACKGROUND, &sBgColor);
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());

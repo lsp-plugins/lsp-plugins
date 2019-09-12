@@ -36,7 +36,9 @@ namespace lsp
         
         const w_class_t LSPIndicator::metadata = { "LSPIndicator", &LSPWidget::metadata };
 
-        LSPIndicator::LSPIndicator(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPIndicator::LSPIndicator(LSPDisplay *dpy): LSPWidget(dpy),
+            sColor(this),
+            sTextColor(this)
         {
             fValue      = 0.0f;
             sFormat     = NULL;
@@ -57,17 +59,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sTextColor);
-                }
-            }
+            override_color(C_GLASS, &sColor);
+            override_color(C_LABEL_TEXT, &sTextColor);
 
             return STATUS_OK;
         }

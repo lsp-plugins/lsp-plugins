@@ -86,8 +86,8 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, grp, grp->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, grp, grp->bg_color(), A_BG_COLOR);
+            sColor.init_hsl2(pRegistry, grp, grp->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic2(pRegistry, grp, grp->bg_color(), A_BG_COLOR);
             sTextColor.init_basic2(pRegistry, grp, grp->font()->color(), A_TEXT_COLOR);
 
             // Bind slots

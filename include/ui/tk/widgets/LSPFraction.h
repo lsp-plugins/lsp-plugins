@@ -27,15 +27,14 @@ namespace lsp
             protected:
                 LSPComboBox         sNumerator;
                 LSPComboBox         sDenominator;
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
+                LSPColor            sColor;
                 realize_t           sNum;
                 realize_t           sDenom;
 
                 ssize_t             nMinWidth;
                 ssize_t             nMinHeight;
                 ssize_t             nTextBorder;
-                LSPColor            sBgColor;
-                LSPColor            sColor;
                 float               fAngle;
                 size_t              nMFlags;
                 size_t              nMState;
@@ -78,7 +77,6 @@ namespace lsp
                 inline bool         opened() const              { return sNumerator.opened() || sDenominator.opened(); }
 
                 inline LSPFont     *font()                      { return &sFont; }
-                inline LSPColor    *bg_color()                  { return &sBgColor; }
                 inline LSPColor    *color()                     { return &sColor; }
 
             public:

@@ -29,7 +29,6 @@ namespace lsp
 
         LSPAudioSample::LSPAudioSample(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sBgColor(this),
             sColor(this),
             sAxisColor(this),
             sFont(this),
@@ -73,11 +72,10 @@ namespace lsp
             sHintFont.set_size(16);
             sHintFont.set_bold(true);
 
-            init_color(C_BACKGROUND, &sBgColor);
-            init_color(C_GLASS, &sColor);
-            init_color(C_GRAPH_LINE, &sAxisColor);
-            init_color(C_GRAPH_TEXT, sFont.color());
-            init_color(C_STATUS_OK, sHintFont.color());
+            override_color(C_GLASS, &sColor);
+            override_color(C_GRAPH_LINE, &sAxisColor);
+            override_color(C_GRAPH_TEXT, sFont.color());
+            override_color(C_STATUS_OK, sHintFont.color());
 
             return STATUS_OK;
         }

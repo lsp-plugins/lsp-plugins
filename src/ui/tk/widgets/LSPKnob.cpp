@@ -16,7 +16,9 @@ namespace lsp
     {
         const w_class_t LSPKnob::metadata = { "LSPKnob", &LSPWidget::metadata };
 
-        LSPKnob::LSPKnob(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPKnob::LSPKnob(LSPDisplay *dpy): LSPWidget(dpy),
+            sColor(this),
+            sScaleColor(this)
         {
             nSize       = 24;
             fBalance    = 0.0f;
@@ -46,17 +48,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_KNOB_CAP, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_KNOB_SCALE, &sScaleColor);
-                }
-            }
+            override_color(C_KNOB_CAP, &sColor);
+            override_color(C_KNOB_SCALE, &sScaleColor);
 
             if (!sSlots.add(LSPSLOT_CHANGE))
                 return STATUS_NO_MEM;
@@ -481,7 +474,7 @@ namespace lsp
             for (ssize_t i=0; (i++)<k_l; )
             {
                 float bright = sqrtf(i * i) / k_l;
-                col.copy(sColor);
+                col.copy(sColor.color());
                 col.blend(hole, bright);
                 dark.copy(col);
                 dark.blend(hole, 0.5f);

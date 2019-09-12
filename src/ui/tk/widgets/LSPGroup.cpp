@@ -15,7 +15,8 @@ namespace lsp
 
         LSPGroup::LSPGroup(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
-            sFont(dpy, this)
+            sColor(this),
+            sFont(this)
         {
             nRadius     = 10;
             nBorder     = 0;
@@ -43,11 +44,11 @@ namespace lsp
                 {
                     sFont.init(theme->font());
                     sFont.set_size(12.0f);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
+                    override_color(C_BACKGROUND, sFont.color());
                 }
             }
+
+            override_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }

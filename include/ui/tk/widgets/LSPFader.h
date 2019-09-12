@@ -43,8 +43,8 @@ namespace lsp
                 float           fLastValue;
                 float           fCurrValue;
 
-                LSPWidgetColor  sColor;
-                LSPWidgetColor  sBgColor;
+                LSPColor        sColor;
+                LSPColor        sBgColor;
 
             protected:
                 float           limit_value(float value);
@@ -71,7 +71,6 @@ namespace lsp
                 inline float            min_value() const { return fMin; }
                 inline float            max_value() const { return fMax; }
                 inline LSPColor        *color() { return &sColor; }
-                inline LSPColor        *bg_color() { return &sBgColor; }
                 inline size_t           angle() const { return nAngle; }
                 inline size_t           button_length() const { return nBtnLength; }
                 inline size_t           button_width() const { return nBtnWidth; }

@@ -19,7 +19,7 @@ namespace lsp
 
         LSPMountStud::LSPMountStud(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sFont(this)
         {
             pClass      = &metadata;
             nAngle      = 0;
@@ -42,9 +42,8 @@ namespace lsp
             sFont.set_size(16);
             sFont.set_bold(true);
 
-            init_color(C_BACKGROUND, &sBgColor);
-            init_color(C_LOGO_FACE, &sColor);
-            init_color(C_LOGO_TEXT, sFont.color());
+            override_color(C_LOGO_FACE, &sColor);
+            override_color(C_LOGO_TEXT, sFont.color());
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());

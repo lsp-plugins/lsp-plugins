@@ -14,7 +14,8 @@ namespace lsp
     {
         const w_class_t LSPMarker::metadata = { "LSPMarker", &LSPGraphItem::metadata };
 
-        LSPMarker::LSPMarker(LSPDisplay *dpy): LSPGraphItem(dpy)
+        LSPMarker::LSPMarker(LSPDisplay *dpy): LSPGraphItem(dpy),
+            sColor(this)
         {
             nBasisID    = 0;
             nParallelID = 1;

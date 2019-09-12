@@ -20,8 +20,7 @@ namespace lsp
             protected:
                 LSPFont             sFont;
                 LSPString           sText;
-                LSPWidgetColor      sBgColor;
-                LSPWidgetColor      sColor;
+                LSPColor            sColor;
                 size_t              nAngle;
                 size_t              nButtons;
                 bool                bPressed;

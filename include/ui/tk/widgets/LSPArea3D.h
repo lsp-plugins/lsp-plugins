@@ -20,8 +20,7 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                LSPWidgetColor  sColor;
-                LSPWidgetColor  sBgColor;
+                LSPColor        sColor;
                 LSPPadding      sIPadding;
 
                 point3d_t       sPov;

@@ -203,10 +203,6 @@ namespace lsp
 #include <ui/tk/util/LSPUrlSink.h>
 #include <ui/tk/util/LSPFileFilter.h>
 
-// Utilitary objects bound to widgets
-#include <ui/tk/util/LSPWidgetColor.h>
-#include <ui/tk/util/LSPWidgetFont.h>
-
 // Widget basics
 #include <ui/tk/basic/LSPWidget.h>
 #include <ui/tk/basic/LSPComplexWidget.h>

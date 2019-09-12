@@ -49,7 +49,6 @@ namespace lsp
             }
 
             override_color(C_BACKGROUND, sFont.color());
-            override_color(C_BACKGROUND, &sBgColor);
             override_color(C_LABEL_TEXT, &sColor);
             override_color(C_KNOB_SCALE, &sSelColor);
 

@@ -16,6 +16,19 @@ namespace lsp
     {
         const w_class_t LSPAudioFile::metadata = { "LSPAudioFile", &LSPWidget::metadata };
 
+        LSPAudioFile::channel_t::channel_t(LSPWidget *widget):
+            sColor(widget),
+            sFadeColor(widget),
+            sLineColor(widget)
+        {
+            nSamples        = 0;
+            nCapacity       = 0;
+            vSamples        = NULL;
+
+            nFadeIn         = 0.0f;
+            nFadeOut        = 0.0f;
+        }
+
         LSPAudioFile::AudioFileSink::AudioFileSink(LSPAudioFile *af): LSPUrlSink("file://")
         {
             pWidget     = af;
@@ -49,10 +62,11 @@ namespace lsp
             sFont(dpy, this),
             sHintFont(dpy, this),
             sConstraints(this),
-            sDialog(dpy)
+            sDialog(dpy),
+            sColor(this),
+            sAxisColor(this)
         {
             pClass          = &metadata;
-//            nFileStatus     = STATUS_UNSPECIFIED;
             pGlass          = NULL;
             pGraph          = NULL;
             nBtnWidth       = 0;
@@ -183,16 +197,10 @@ namespace lsp
 
         LSPAudioFile::channel_t *LSPAudioFile::create_channel(color_t color)
         {
-            channel_t *ch = new channel_t;
+            channel_t *ch = new channel_t(this);
             if (ch == NULL)
                 return NULL;
 
-            ch->nSamples    = 0;
-            ch->nCapacity   = 0;
-            ch->vSamples    = NULL;
-
-            ch->nFadeIn     = 0;
-            ch->nFadeOut    = 0;
             init_color(color, &ch->sColor);
             init_color(C_YELLOW, &ch->sFadeColor);
             init_color(C_YELLOW, &ch->sLineColor);

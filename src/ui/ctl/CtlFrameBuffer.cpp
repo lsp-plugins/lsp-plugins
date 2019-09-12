@@ -33,8 +33,8 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, fb, fb->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, fb, fb->bg_color(), A_BG_COLOR);
+            sColor.init_hsl2(pRegistry, fb, fb->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic2(pRegistry, fb, fb->bg_color(), A_BG_COLOR);
             sMode.init(pRegistry, this);
         }
 

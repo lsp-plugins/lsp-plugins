@@ -78,11 +78,10 @@ namespace lsp
                 size_t              nCBFlags;
                 size_t              nMFlags;
                 realize_t           sGroupHdr;
-                Color               sColor;
-                Color               sBgColor;
+                LSPColor            sColor;
                 cvector<LSPWidget>  vWidgets;
                 LSPComboList        sListBox;
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
                 LSPWindow          *pPopup;
 
             protected:
@@ -120,8 +119,7 @@ namespace lsp
 
             public:
                 const char         *text() const;
-                inline Color       *color()                 { return &sColor; }
-                inline Color       *bg_color()              { return &sBgColor; }
+                inline LSPColor    *color()                 { return &sColor; }
                 inline size_t       radius() const          { return nRadius; }
                 inline size_t       border() const          { return nBorder; }
                 inline LSPFont     *font()                  { return &sFont; }
@@ -130,8 +128,8 @@ namespace lsp
                 inline LSPItemList *items()                 { return sListBox.items();  }
                 inline bool         opened() const          { return nCBFlags & F_OPENED;     }
                 inline bool         circular() const        { return nCBFlags & F_CIRCULAR;   }
-                inline Color       *list_color()            { return sListBox.color(); }
-                inline Color       *list_bg_color()         { return sListBox.bg_color(); }
+                inline LSPColor    *list_color()            { return sListBox.color(); }
+                inline LSPColor    *list_bg_color()         { return sListBox.bg_color(); }
 
             public:
                 void                set_radius(size_t value);

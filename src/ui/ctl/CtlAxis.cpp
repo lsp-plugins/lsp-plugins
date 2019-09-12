@@ -33,7 +33,7 @@ namespace lsp
             LSPAxis *axis   = static_cast<LSPAxis *>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, axis, axis->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl2(pRegistry, axis, axis->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
         }
 
         void CtlAxis::set(widget_attribute_t att, const char *value)

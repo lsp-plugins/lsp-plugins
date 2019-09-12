@@ -86,11 +86,10 @@ namespace lsp
                 LSPString       sText;
                 TextSelection   sSelection;
                 TextCursor      sCursor;
-                LSPWidgetFont   sFont;
+                LSPFont         sFont;
                 KeyboardInput   sInput;
-                Color           sBgColor;
-                Color           sColor;
-                Color           sSelColor;
+                LSPColor        sColor;
+                LSPColor        sSelColor;
                 ssize_t         sTextPos;
                 ssize_t         nMinWidth;
                 size_t          nMBState;
@@ -134,9 +133,8 @@ namespace lsp
                 inline const char         *text() const        { return sText.get_native(); }
                 inline status_t            get_text(LSPString *dst) const { return dst->set(&sText) ? STATUS_OK : STATUS_NO_MEM; };
                 inline const ssize_t       min_width() const   { return nMinWidth;     }
-                inline Color              *bg_color()          { return &sBgColor;     }
-                inline Color              *sel_color()         { return &sSelColor;    }
-                inline Color              *color()             { return &sColor;       }
+                inline LSPColor           *sel_color()         { return &sSelColor;    }
+                inline LSPColor           *color()             { return &sColor;       }
                 inline LSPMenu            *get_popup()         { return pPopup;        }
 
             public:

@@ -395,8 +395,6 @@ namespace lsp
                 wc->remove(this);
 
             pParent = parent;
-            if (pParent != NULL)
-                sBgColor.override(parent->bg_color());
         }
 
         LSPWidget *LSPWidget::toplevel()

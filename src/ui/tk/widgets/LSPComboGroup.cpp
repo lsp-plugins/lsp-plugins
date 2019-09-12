@@ -85,8 +85,9 @@ namespace lsp
         //---------------------------------------------------------------------
         LSPComboGroup::LSPComboGroup(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
+            sColor(this),
             sListBox(dpy, this),
-            sFont(dpy, this)
+            sFont(this)
         {
             nRadius     = 10;
             nBorder     = 0;
@@ -120,18 +121,8 @@ namespace lsp
 
             sFont.init();
             sFont.set_size(12.0f);
-
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            override_color(C_LABEL_TEXT, &sColor);
+            override_color(C_BACKGROUND, sFont.color());
 
             // Bind slots
             ui_handler_id_t id = 0;

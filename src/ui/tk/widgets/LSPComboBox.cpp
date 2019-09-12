@@ -510,8 +510,8 @@ namespace lsp
 
         void LSPComboBox::draw(ISurface *s)
         {
-            Color *bg = sListBox.bg_color();
-            Color *col = sListBox.color();
+            LSPColor *bg = sListBox.bg_color();
+            LSPColor *col = sListBox.color();
             s->clear(*bg);
 
             // Draw body

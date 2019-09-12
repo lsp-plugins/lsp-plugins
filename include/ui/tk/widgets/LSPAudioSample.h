@@ -43,7 +43,6 @@ namespace lsp
                 };
 
             protected:
-                LSPColor            sBgColor;
                 LSPColor            sColor;
                 LSPColor            sAxisColor;
 

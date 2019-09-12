@@ -42,8 +42,7 @@ namespace lsp
                 bool            bClear;         // Clear flag: do complete redraw
                 size_t          nPalette;       // Palette used for drawing
                 calc_color_t    pCalcColor;     // Function for estimating color
-                Color           sBgColor;       // Background color
-                Color           sColor;         // Base color
+                LSPColor        sColor;         // Base color
 
                 rgba_t          sColRGBA, sBgRGBA;
 
@@ -77,8 +76,7 @@ namespace lsp
                 float   get_height() const { return fHeight; }
                 float   get_transparency() const { return fTransparency; }
                 float   get_opacity() const { return 1.0f - fTransparency; }
-                inline Color *bg_color() { return &sBgColor; }
-                inline Color *color() { return &sColor; }
+                inline  LSPColor *color() { return &sColor; }
 
             public:
                 status_t append_data(uint32_t row_id, const float *data);

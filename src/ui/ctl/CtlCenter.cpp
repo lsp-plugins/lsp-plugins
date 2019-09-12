@@ -56,7 +56,7 @@ namespace lsp
             LSPCenter *cnt  = static_cast<LSPCenter *>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, cnt, cnt->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl2(pRegistry, cnt, cnt->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
         }
     } /* namespace ctl */
 } /* namespace lsp */
