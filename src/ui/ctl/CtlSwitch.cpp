@@ -72,10 +72,10 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_hsl2(pRegistry, sw, sw->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic2(pRegistry, sw, sw->bg_color(), A_BG_COLOR);
-            sBorderColor.init_basic2(pRegistry, sw, sw->border_color(), A_BORDER_COLOR);
-            sTextColor.init_basic2(pRegistry, sw, sw->text_color(), A_TEXT_COLOR);
+            sColor.init_hsl(pRegistry, sw, sw->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic(pRegistry, sw, sw->bg_color(), A_BG_COLOR);
+            sBorderColor.init_basic(pRegistry, sw, sw->border_color(), A_BORDER_COLOR);
+            sTextColor.init_basic(pRegistry, sw, sw->text_color(), A_TEXT_COLOR);
 
             // Bind slots
             sw->slots()->bind(LSPSLOT_CHANGE, slot_change, this);

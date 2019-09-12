@@ -32,9 +32,9 @@ namespace lsp
             LSPIndicator *ind = static_cast<LSPIndicator *>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl2(pRegistry, ind, ind->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic2(pRegistry, ind, ind->bg_color(), A_BG_COLOR);
-            sTextColor.init_basic2(pRegistry, ind, ind->text_color(), A_TEXT_COLOR);
+            sColor.init_hsl(pRegistry, ind, ind->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic(pRegistry, ind, ind->bg_color(), A_BG_COLOR);
+            sTextColor.init_basic(pRegistry, ind, ind->text_color(), A_TEXT_COLOR);
         }
 
         void CtlIndicator::end()

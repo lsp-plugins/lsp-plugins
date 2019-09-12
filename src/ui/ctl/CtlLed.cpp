@@ -36,8 +36,8 @@ namespace lsp
             LSPLed *led = static_cast<LSPLed *>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl2(pRegistry, led, led->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic2(pRegistry, led, led->bg_color(), A_BG_COLOR);
+            sColor.init_hsl(pRegistry, led, led->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic(pRegistry, led, led->bg_color(), A_BG_COLOR);
 
             // Initialize activity
             sActivity.init(pRegistry, NULL);

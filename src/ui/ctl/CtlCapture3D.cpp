@@ -68,7 +68,7 @@ namespace lsp
             LSPCapture3D *cap = widget_cast<LSPCapture3D>(pWidget);
             if (cap != NULL)
                 sXColor.copy(cap->color());
-            sColor.init_hsl2(pRegistry, pWidget, &sXColor, A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sColor.init_hsl(pRegistry, pWidget, &sXColor, A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
         }
 
         void CtlCapture3D::set(widget_attribute_t att, const char *value)

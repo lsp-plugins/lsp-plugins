@@ -16,7 +16,6 @@ namespace lsp
             pRegistry       = NULL;
             pWidget         = NULL;
             pDstColor       = NULL;
-            pLspColor       = NULL;
 
             for (size_t i=0; i<C_TOTAL; ++i)
             {
@@ -40,8 +39,7 @@ namespace lsp
         {
             pRegistry               = reg;
             pWidget                 = widget;
-            pDstColor               = col;
-            pLspColor               = lcol;
+            pDstColor               = lcol;
 
             vAttributes[C_BASIC]    = basic;
             vAttributes[C_R]        = r;
@@ -62,9 +60,7 @@ namespace lsp
                 vValues[i]              = NULL;
 
             if (pDstColor != NULL)
-                sColor.copy(pDstColor);
-            else if (pLspColor != NULL)
-                sColor.copy(pLspColor->color());
+                sColor.copy(pDstColor->color());
         }
 
         void CtlColor::map_static(size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
@@ -238,8 +234,7 @@ namespace lsp
         {
             pRegistry           = reg;
             pWidget             = widget;
-            pDstColor           = col;
-            pLspColor           = lcol;
+            pDstColor           = lcol;
 
             LSPDisplay *dpy =  pWidget->display();
             if (dpy == NULL)
@@ -295,8 +290,6 @@ namespace lsp
         {
             if (pDstColor != NULL)
                 pDstColor->copy(sColor);
-            if (pLspColor != NULL)
-                pLspColor->copy(sColor);
             if (pWidget != NULL)
                 pWidget->query_draw();
         }

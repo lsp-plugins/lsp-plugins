@@ -38,8 +38,8 @@ namespace lsp
             LSPLabel *lbl = static_cast<LSPLabel *>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl2(pRegistry, lbl, lbl->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic2(pRegistry, lbl, lbl->bg_color(), A_BG_COLOR);
+            sColor.init_hsl(pRegistry, lbl, lbl->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic(pRegistry, lbl, lbl->bg_color(), A_BG_COLOR);
         }
 
         void CtlLabel::set(widget_attribute_t att, const char *value)

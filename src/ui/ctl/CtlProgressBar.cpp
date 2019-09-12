@@ -36,9 +36,9 @@ namespace lsp
             LSPProgressBar *bar = widget_cast<LSPProgressBar>(pWidget);
             if (bar != NULL)
             {
-                sColor.init_hsl2(pRegistry, bar, bar->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-                sBgColor.init_basic2(pRegistry, bar, bar->bg_color(), A_BG_COLOR);
-                sScaleColor.init_hsl2(pRegistry, bar, bar->sel_color(), A_SCALE_COLOR, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
+                sColor.init_hsl(pRegistry, bar, bar->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+                sBgColor.init_basic(pRegistry, bar, bar->bg_color(), A_BG_COLOR);
+                sScaleColor.init_hsl(pRegistry, bar, bar->sel_color(), A_SCALE_COLOR, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
                 sScaleColor.map_static_hsl(A_SCALE_HUE, -1, -1);
             }
         }

@@ -42,8 +42,8 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_basic2(pRegistry, as, as->color(), A_COLOR);
-            sBgColor.init_basic2(pRegistry, as, as->bg_color(), A_BG_COLOR);
+            sColor.init_basic(pRegistry, as, as->color(), A_COLOR);
+            sBgColor.init_basic(pRegistry, as, as->bg_color(), A_BG_COLOR);
             sPadding.init(as->padding());
         }
 
