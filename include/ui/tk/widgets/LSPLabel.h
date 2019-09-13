@@ -19,10 +19,9 @@ namespace lsp
 
             protected:
                 LSPString       sText;
-                Color           sBgColor;
                 float           fVAlign;
                 float           fHAlign;
-                LSPWidgetFont   sFont;
+                LSPFont         sFont;
                 ssize_t         nBorder;
 
             protected:
@@ -49,12 +48,6 @@ namespace lsp
                  */
                 inline const char     *text() const { return sText.get_native(); }
                 inline status_t        get_text(LSPString *dst) const { return (dst->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; };
-
-                /** Get background color
-                 *
-                 * @return background color
-                 */
-                inline Color          *bg_color() { return &sBgColor; }
 
                 /** Get vertical alignment
                  *

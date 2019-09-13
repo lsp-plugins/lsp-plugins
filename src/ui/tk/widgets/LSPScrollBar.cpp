@@ -13,8 +13,9 @@ namespace lsp
     {
         const w_class_t LSPScrollBar::metadata = { "LSPScrollBar", &LSPWidget::metadata };
 
-        LSPScrollBar::LSPScrollBar(LSPDisplay *dpy, bool horizontal):
-            LSPWidget(dpy)
+        LSPScrollBar::LSPScrollBar(LSPDisplay *dpy, bool horizontal): LSPWidget(dpy),
+            sColor(this),
+            sSelColor(this)
         {
             fMin            = 0.0f;
             fMax            = 1.0f;
@@ -46,17 +47,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_KNOB_SCALE, &sSelColor);
-                }
-            }
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());

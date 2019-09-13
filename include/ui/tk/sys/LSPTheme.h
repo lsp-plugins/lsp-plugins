@@ -117,6 +117,7 @@ namespace lsp
                  * @return false if default color was used
                  */
                 bool get_color(color_t color, LSPColor *dst);
+
         };
     
     } /* namespace tk */

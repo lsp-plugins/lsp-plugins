@@ -25,7 +25,7 @@ namespace lsp
                 size_t              nPoints;
                 float              *vBuffer;
                 size_t              nBufSize;
-                Color               sColor;
+                LSPColor            sColor;
 
             protected:
                 void        drop_data();
@@ -42,7 +42,7 @@ namespace lsp
                 inline size_t       center_id() const       { return nCenter; };
                 inline size_t       dimensions() const      { return nDimensions; };
                 inline size_t       points() const          { return nPoints; };
-                inline Color       *color()                 { return &sColor; };
+                inline LSPColor    *color()                 { return &sColor; };
 
             public:
                 void                set_line_width(size_t value);

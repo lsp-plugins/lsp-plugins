@@ -13,9 +13,42 @@ namespace lsp
     {
         const w_class_t LSPMeter::metadata = { "LSPMeter", &LSPWidget::metadata };
 
+        LSPMeter::channel_t::channel_t(LSPWidget *widget):
+            sColor(widget),
+            sYellow(widget),
+            sRed(widget),
+            sBalance(widget)
+        {
+            fMin         = 0.0f;
+            fMax         = 1.0f;
+            fBalance     = 0.5f;
+            fPeak        = 0.0f;
+            fValue       = 0.0f;
+            fRedZone     = 4.0f/6.0f;
+            fYellowZone  = 3.0f/6.0f;
+            fDarkZone[0] = 0.0f;
+            fDarkZone[1] = 0.0f;
+            fDarkZone[2] = 0.0f;
+            sText        = NULL;
+            nFlags       = 0;
+            fDark[0]     = 0.0f;
+            fDark[1]     = 0.0f;
+            fDark[2]     = 0.0f;
+        }
+
+        LSPMeter::channel_t::~channel_t()
+        {
+            if (sText != NULL)
+            {
+                ::free(sText);
+                sText    = NULL;
+            }
+        }
+
         LSPMeter::LSPMeter(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sIndColor(this),
+            sFont(this)
         {
             nAngle      = 0;
             nMWidth     = 20;
@@ -40,16 +73,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sIndColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_GLASS, &sIndColor);
 
             sFont.init();
             sFont.set_size(9);
@@ -70,63 +94,16 @@ namespace lsp
 
             for (size_t i=0; i<nChannels; ++i)
             {
-                destroy_channel(vChannels[i]);
-                vChannels[i] = NULL;
+                if (vChannels[i] != NULL)
+                {
+                    delete vChannels[i];
+                    vChannels[i] = NULL;
+                }
             }
             nChannels = 0;
 
             delete [] vChannels;
             vChannels = NULL;
-        }
-
-        LSPMeter::channel_t *LSPMeter::create_channel()
-        {
-            if (pDisplay == NULL)
-                return NULL;
-            LSPTheme *theme = pDisplay->theme();
-            if (theme == NULL)
-                return NULL;
-
-            channel_t *c    = new channel_t;
-            if (c == NULL)
-                return NULL;
-
-            c->fMin         = 0.0f;
-            c->fMax         = 1.0f;
-            c->fBalance     = 0.5f;
-            c->fPeak        = 0.0f;
-            c->fValue       = 0.0f;
-            c->fRedZone     = 4.0f/6.0f;
-            c->fYellowZone  = 3.0f/6.0f;
-            c->fDarkZone[0] = 0.0f;
-            c->fDarkZone[1] = 0.0f;
-            c->fDarkZone[2] = 0.0f;
-            c->sText        = NULL;
-            c->nFlags       = 0;
-            c->fDark[0]     = 0.0f;
-            c->fDark[1]     = 0.0f;
-            c->fDark[2]     = 0.0f;
-
-            theme->get_color(C_GREEN, &c->sColor);
-            theme->get_color(C_YELLOW, &c->sYellow);
-            theme->get_color(C_RED, &c->sRed);
-            theme->get_color(C_YELLOW, &c->sBalance);
-
-            return c;
-        }
-
-        void LSPMeter::destroy_channel(channel_t *c)
-        {
-            if (c == NULL)
-                return;
-
-            if (c->sText != NULL)
-            {
-                free(c->sText);
-                c->sText    = NULL;
-            }
-
-            delete c;
         }
 
         status_t LSPMeter::set_mtr_min(size_t i, float value)
@@ -336,14 +313,20 @@ namespace lsp
                 // List is growing
                 for (size_t i=nChannels; i<channels; ++i)
                 {
-                    channel_t *c = create_channel();
+                    channel_t *c = new channel_t(this);
                     if (c == NULL)
                     {
                         for (size_t j=nChannels; j<i; ++i)
-                            destroy_channel(nc[j]);
+                            delete nc[j];
                         delete [] nc;
                         return STATUS_NO_MEM;
                     }
+
+                    init_color(C_GREEN, &c->sColor);
+                    init_color(C_YELLOW, &c->sYellow);
+                    init_color(C_RED, &c->sRed);
+                    init_color(C_YELLOW, &c->sBalance);
+
                     nc[i]   = c;
                 }
             }
@@ -351,7 +334,7 @@ namespace lsp
             {
                 // List is lowering
                 for (size_t i=channels; i<nChannels; ++i)
-                    destroy_channel(vChannels[i]);
+                    delete vChannels[i];
             }
 
             // Drop previous pointer to channels and replace by new
@@ -496,13 +479,13 @@ namespace lsp
 
                 // Determine what color to use for this segment
                 if ((c->nFlags & MF_BALANCE) && (c->fBalance >= vmin) && (c->fBalance < vmax))
-                    cl.copy(c->sBalance);
+                    cl.copy(c->sBalance.color());
                 else if ((c->nFlags & MF_RED) && (c->fRedZone <= vmin))
-                    cl.copy(c->sRed);
+                    cl.copy(c->sRed.color());
                 else if ((c->nFlags & MF_YELLOW) && (c->fYellowZone <= vmin))
-                    cl.copy(c->sYellow);
+                    cl.copy(c->sYellow.color());
                 else
-                    cl.copy(c->sColor);
+                    cl.copy(c->sColor.color());
 
                 // Darken color if needed
                 if ((c->nFlags & MF_DZONE2) && (c->fDarkZone[2] >= vmax))
@@ -561,11 +544,11 @@ namespace lsp
 
             float value = (c->nFlags & MF_PEAK) ? c->fPeak : c->fValue;
             if ((c->nFlags & MF_RED) && (c->fRedZone <= value))
-                cl.copy(c->sRed);
+                cl.copy(c->sRed.color());
             else if ((c->nFlags & MF_YELLOW) && (c->fYellowZone <= value))
-                cl.copy(c->sYellow);
+                cl.copy(c->sYellow.color());
             else
-                cl.copy(c->sColor);
+                cl.copy(c->sColor.color());
 
             // Darken color if needed
             if ((c->nFlags & MF_DZONE2) && (c->fDarkZone[2] >= value))

@@ -12,8 +12,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlMesh::metadata = { "CtlMesh", &CtlWidget::metadata };
+
         CtlMesh::CtlMesh(CtlRegistry *src, LSPMesh *mesh): CtlWidget(src, mesh)
         {
+            pClass          = &metadata;
             pPort           = NULL;
             fTransparency   = 0.0f;
         }

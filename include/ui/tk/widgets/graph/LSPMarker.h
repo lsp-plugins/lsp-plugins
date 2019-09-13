@@ -38,12 +38,10 @@ namespace lsp
                 size_t          nWidth;
                 size_t          nCenter;
                 ssize_t         nBorder;
-                Color           sColor;
+                LSPColor        sColor;
                 size_t          nXFlags;
                 ssize_t         nMouseX;
                 ssize_t         nMouseY;
-//                ssize_t         nDMouseX; // debug
-//                ssize_t         nDMouseY; // debug
                 size_t          nMouseBtn;
 
             protected:
@@ -57,18 +55,18 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                inline size_t   basis_id() const        { return nBasisID;      }
-                inline size_t   parallel_id() const     { return nParallelID;   }
-                inline float    value() const           { return fValue;        }
-                inline float    offset() const          { return fOffset;       }
-                inline float    angle() const           { return fAngle;        }
-                inline size_t   line_width() const      { return nWidth;        }
-                inline size_t   center() const          { return nCenter;       }
-                inline Color   *color()                 { return &sColor;       }
-                inline size_t   border() const          { return nBorder;       }
-                inline bool     editable() const        { return nXFlags & F_EDITABLE; }
-                inline float    minimum() const         { return fMin;          }
-                inline float    maximum() const         { return fMax;          }
+                inline size_t       basis_id() const        { return nBasisID;      }
+                inline size_t       parallel_id() const     { return nParallelID;   }
+                inline float        value() const           { return fValue;        }
+                inline float        offset() const          { return fOffset;       }
+                inline float        angle() const           { return fAngle;        }
+                inline size_t       line_width() const      { return nWidth;        }
+                inline size_t       center() const          { return nCenter;       }
+                inline LSPColor    *color()                 { return &sColor;       }
+                inline size_t       border() const          { return nBorder;       }
+                inline bool         editable() const        { return nXFlags & F_EDITABLE; }
+                inline float        minimum() const         { return fMin;          }
+                inline float        maximum() const         { return fMax;          }
 
             public:
                 void set_basis_id(size_t value);

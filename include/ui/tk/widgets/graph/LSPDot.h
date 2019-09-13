@@ -58,7 +58,7 @@ namespace lsp
                 size_t          nBorder;
                 size_t          nPadding;
                 size_t          nSize;
-                Color           sColor;
+                LSPColor        sColor;
 
             protected:
                 void apply_motion(ssize_t dx, ssize_t dy);
@@ -74,7 +74,7 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                inline Color       *color() { return &sColor; }
+                inline LSPColor    *color()             { return &sColor; }
                 inline float        x_minimum() const   { return sLeft.fMin;        }
                 inline float        x_maximum() const   { return sLeft.fMax;        }
                 inline float        x_value() const     { return sLeft.fValue;      }

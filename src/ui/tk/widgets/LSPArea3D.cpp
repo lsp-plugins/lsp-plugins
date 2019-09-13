@@ -18,7 +18,6 @@ namespace lsp
         LSPArea3D::LSPArea3D(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
             sColor(this),
-            sBgColor(this),
             sIPadding(this)
         {
             pClass          = &metadata;
@@ -50,15 +49,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_GLASS, &sColor);
 
             ui_handler_id_t id = 0;
 

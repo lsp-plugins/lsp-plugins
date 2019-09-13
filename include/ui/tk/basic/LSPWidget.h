@@ -50,6 +50,8 @@ namespace lsp
                 LSPSlotSet          sSlots;         // Slots
                 LSPPadding          sPadding;
 
+                LSPColor            sBgColor;       // Widget color
+
             //---------------------------------------------------------------------------------
             // Slot handlers
             protected:
@@ -77,8 +79,6 @@ namespace lsp
                 void            do_destroy();
 
                 void            unlink_widget(LSPWidget *widget);
-
-                void            init_color(color_t value, Color *color);
 
                 void            init_color(color_t value, LSPColor *color);
 
@@ -335,7 +335,13 @@ namespace lsp
                  *
                  * @return widget padding
                  */
-                inline LSPPadding *padding()                { return &sPadding; };
+                inline LSPPadding  *padding()               { return &sPadding; };
+
+                /**
+                 * Get background color of the widget
+                 * @return background color of the widget
+                 */
+                inline LSPColor    *bg_color()              { return &sBgColor;     }
 
             //---------------------------------------------------------------------------------
             // Manipulation

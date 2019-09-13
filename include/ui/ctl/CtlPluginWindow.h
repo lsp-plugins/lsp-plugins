@@ -16,6 +16,9 @@ namespace lsp
     {
         class CtlPluginWindow: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 typedef struct backend_sel_t
                 {
@@ -95,7 +98,7 @@ namespace lsp
                  *
                  * @param child child widget to add
                  */
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
 
                 /** End initialization of controller
                  *

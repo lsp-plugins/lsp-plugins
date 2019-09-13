@@ -13,15 +13,18 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlLabel::metadata = { "CtlLabel", &CtlWidget::metadata };
+
         CtlLabel::CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            enType      = type;
-            fValue      = 0.0f;
-            bDetailed   = true;
-            bSameLine   = false;
-            nUnits      = U_NONE - 1;
-            nPrecision  = -1;
+            pClass          = &metadata;
+            pPort           = NULL;
+            enType          = type;
+            fValue          = 0.0f;
+            bDetailed       = true;
+            bSameLine       = false;
+            nUnits          = U_NONE - 1;
+            nPrecision      = -1;
         }
 
         CtlLabel::~CtlLabel()
@@ -39,7 +42,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, lbl, lbl->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, lbl, lbl->bg_color(), A_BG_COLOR);
         }
 
         void CtlLabel::set(widget_attribute_t att, const char *value)
@@ -91,11 +93,8 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

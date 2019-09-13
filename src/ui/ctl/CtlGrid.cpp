@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlGrid::metadata = { "CtlGrid", &CtlWidget::metadata };
+
         CtlGrid::CtlGrid(CtlRegistry *src, LSPGrid *widget, ssize_t orientation): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
             nOrientation    = orientation;
         }
 
@@ -61,13 +64,16 @@ namespace lsp
             }
         }
 
-        status_t CtlGrid::add(LSPWidget *child)
+        status_t CtlGrid::add(CtlWidget *child)
         {
             LSPGrid *grid       = widget_cast<LSPGrid>(pWidget);
             if (grid == NULL)
                 return STATUS_BAD_STATE;
 
-            return grid->add(child);
+            CtlCell *cell       = ctl_cast<CtlCell>(child);
+            return (cell != NULL) ?
+                    grid->add(cell->widget(), cell->rows(), cell->columns()) :
+                    grid->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */

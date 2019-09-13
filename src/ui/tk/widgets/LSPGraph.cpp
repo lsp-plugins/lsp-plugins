@@ -17,7 +17,8 @@ namespace lsp
 
         LSPGraph::LSPGraph(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
-            sIPadding(this)
+            sIPadding(this),
+            sColor(this)
         {
             nMinWidth       = 0;
             nMinHeight      = 0;
@@ -49,16 +50,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_GLASS, &sColor);
 
             return STATUS_OK;
         }

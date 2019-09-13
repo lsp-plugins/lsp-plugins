@@ -6,6 +6,7 @@
  */
 
 #include <ui/ws/x11/ws.h>
+#include <cairo/cairo.h>
 
 #ifdef USE_X11_DISPLAY
 namespace lsp
@@ -965,6 +966,66 @@ namespace lsp
                 }
 //                cairo_close_path(pCR);
 //                cairo_fill(pCR);
+            }
+
+            void X11CairoSurface::fill_round_frame(
+                    float fx, float fy, float fw, float fh,
+                    float ix, float iy, float iw, float ih,
+                    float radius, size_t flags,
+                    const Color &color)
+            {
+                if (pCR == NULL)
+                    return;
+
+                fill_frame(fx, fy, fw, fh, ix, iy, iw, ih, color);
+                setSourceRGBA(color);
+
+                // Can draw?
+                float minw = 0.0f;
+                minw += (flags & SURFMASK_L_CORNER) ? radius : 0.0;
+                minw += (flags & SURFMASK_R_CORNER) ? radius : 0.0;
+                if (iw < minw)
+                    return;
+
+                float minh = 0.0f;
+                minh += (flags & SURFMASK_T_CORNER) ? radius : 0.0;
+                minh += (flags & SURFMASK_B_CORNER) ? radius : 0.0;
+                if (ih < minh)
+                    return;
+
+                // Draw corners
+                if (flags & SURFMASK_RT_CORNER)
+                {
+                    cairo_move_to(pCR, ix + iw, iy);
+                    cairo_line_to(pCR, ix + iw, iy + radius);
+                    cairo_arc_negative(pCR, ix + iw - radius, iy + radius, radius, 2.0*M_PI, 1.5*M_PI);
+                    cairo_close_path(pCR);
+                    cairo_fill(pCR);
+                }
+                if (flags & SURFMASK_LT_CORNER)
+                {
+                    cairo_move_to(pCR, ix, iy);
+                    cairo_line_to(pCR, ix + radius, iy);
+                    cairo_arc_negative(pCR, ix + radius, iy + radius, radius, 1.5*M_PI, 1.0*M_PI);
+                    cairo_close_path(pCR);
+                    cairo_fill(pCR);
+                }
+                if (flags & SURFMASK_LB_CORNER)
+                {
+                    cairo_move_to(pCR, ix, iy + ih);
+                    cairo_line_to(pCR, ix, iy + ih - radius);
+                    cairo_arc_negative(pCR, ix + radius, iy + ih - radius, radius, 1.0*M_PI, 0.5*M_PI);
+                    cairo_close_path(pCR);
+                    cairo_fill(pCR);
+                }
+                if (flags & SURFMASK_RB_CORNER)
+                {
+                    cairo_move_to(pCR, ix + iw, iy + ih);
+                    cairo_line_to(pCR, ix + iw - radius, iy + ih);
+                    cairo_arc_negative(pCR, ix + iw - radius, iy + ih - radius, radius, 0.5*M_PI, 0.0);
+                    cairo_close_path(pCR);
+                    cairo_fill(pCR);
+                }
             }
 
             bool X11CairoSurface::get_antialiasing()

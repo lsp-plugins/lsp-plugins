@@ -12,10 +12,12 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAudioSample::metadata = { "CtlAudioSample", &CtlWidget::metadata };
         
         CtlAudioSample::CtlAudioSample(CtlRegistry *src, LSPAudioSample *as):
             CtlWidget(src, as)
         {
+            pClass          = &metadata;
             pMesh           = NULL;
             pStatus         = NULL;
             pLength         = NULL;
@@ -42,8 +44,7 @@ namespace lsp
                 return;
 
             // Initialize color controllers
-            sColor.init_basic2(pRegistry, as, as->color(), A_COLOR);
-            sBgColor.init_basic2(pRegistry, as, as->bg_color(), A_BG_COLOR);
+            sColor.init_basic(pRegistry, as, as->color(), A_COLOR);
             sPadding.init(as->padding());
         }
 
@@ -95,7 +96,6 @@ namespace lsp
                 default:
                 {
                     sColor.set(att, value);
-                    sBgColor.set(att, value);
                     sPadding.set(att, value);
                     CtlWidget::set(att, value);
                     break;

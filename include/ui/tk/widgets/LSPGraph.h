@@ -32,8 +32,7 @@ namespace lsp
                 ISurface               *pCanvas;
 
                 LSPPadding              sIPadding;
-                Color                   sColor;
-                Color                   sBgColor;
+                LSPColor                sColor;
                 cvector<LSPGraphItem>   vObjects;
                 cvector<LSPAxis>        vAxises;
                 cvector<LSPAxis>        vBasises;
@@ -69,8 +68,7 @@ namespace lsp
                 LSPAxis        *basis_axis(size_t index)    { return vBasises[index];   };
                 LSPCenter      *center(size_t index)        { return vCenters[index];   };
 
-                Color          *color()                     { return &sColor;           };
-                Color          *bg_color()                  { return &sBgColor;         };
+                LSPColor       *color()                     { return &sColor;           };
 
                 bool            center(size_t index, float *x, float *y);
                 bool            center(LSPCenter *center, float *x, float *y);

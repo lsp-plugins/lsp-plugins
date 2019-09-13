@@ -14,10 +14,12 @@ namespace lsp
     {
         class CtlGroup: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlColor        sColor;
                 CtlColor        sTextColor;
-                CtlColor        sBgColor;
 
             public:
                 explicit CtlGroup(CtlRegistry *src, LSPGroup *widget);
@@ -28,7 +30,7 @@ namespace lsp
 
                 virtual void set(widget_attribute_t att, const char *value);
 
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
         };
     
     } /* namespace ctl */

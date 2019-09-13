@@ -49,9 +49,8 @@ namespace lsp
                     ssize_t     precision;
                 } item_t;
 
-                Color               sColor;
-                Color               sTextColor;
-                Color               sBgColor;
+                LSPColor            sColor;
+                LSPColor            sTextColor;
                 float               fValue;
 
                 // Format
@@ -87,11 +86,9 @@ namespace lsp
             // Properties
             public:
 
-                inline Color           *color()         { return &sColor; }
+                inline LSPColor        *color()         { return &sColor; }
 
-                inline Color           *text_color()    { return &sTextColor; }
-
-                inline Color           *bg_color()      { return &sBgColor; }
+                inline LSPColor        *text_color()    { return &sTextColor; }
 
                 inline float            value() const   { return fValue; }
 

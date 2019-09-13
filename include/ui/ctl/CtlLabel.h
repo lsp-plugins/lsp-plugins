@@ -23,9 +23,11 @@ namespace lsp
 
         class CtlLabel: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlColor            sColor;
-                CtlColor            sBgColor;
                 CtlPort            *pPort;
                 ctl_label_type_t    enType;
                 float               fValue;

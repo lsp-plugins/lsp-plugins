@@ -21,6 +21,9 @@ namespace lsp
          */
         class CtlViewer3D: public CtlWidget, public CtlKvtListener
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 typedef struct pov_angles_t
                 {
@@ -31,7 +34,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlColor        sBaseColor;
                 CtlPadding      sPadding;
 

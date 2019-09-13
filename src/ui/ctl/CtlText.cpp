@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlText::metadata = { "CtlText", &CtlWidget::metadata };
+
         CtlText::CtlText(CtlRegistry *src, LSPText *text): CtlWidget(src, text)
         {
+            pClass          = &metadata;
         }
 
         CtlText::~CtlText()

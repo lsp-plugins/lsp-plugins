@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlGraph::metadata = { "CtlGraph", &CtlWidget::metadata };
+
         CtlGraph::CtlGraph(CtlRegistry *src, LSPGraph *graph): CtlWidget(src, graph)
         {
+            pClass          = &metadata;
         }
 
         CtlGraph::~CtlGraph()
@@ -29,7 +32,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, gr, gr->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, gr, gr->bg_color(), A_BG_COLOR);
             sPadding.init(gr->padding());
         }
 
@@ -57,24 +59,21 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sPadding.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sPadding.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
         }
 
-        status_t CtlGraph::add(LSPWidget *child)
+        status_t CtlGraph::add(CtlWidget *child)
         {
             if (pWidget == NULL)
                 return STATUS_BAD_STATE;
 
             LSPGraph *gr    = widget_cast<LSPGraph>(pWidget);
-            return gr->add(child);
+            return gr->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */

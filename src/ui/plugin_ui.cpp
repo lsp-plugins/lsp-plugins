@@ -466,12 +466,7 @@ namespace lsp
                 return new CtlGrid(this, grid);
             }
             case WC_CELL:
-            {
-                LSPCell *cell = new LSPCell(&sDisplay);
-                cell->init();
-                vWidgets.add(cell);
-                return new CtlCell(this, cell);
-            }
+                return new CtlCell(this);
             case WC_ALIGN:
             {
                 LSPAlign *align = new LSPAlign(&sDisplay);

@@ -13,7 +13,9 @@ namespace lsp
     {
         const w_class_t LSPLed::metadata = { "LSPLed", &LSPWidget::metadata };
 
-        LSPLed::LSPLed(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPLed::LSPLed(LSPDisplay *dpy):
+            LSPWidget(dpy),
+            sColor(this)
         {
             nSize       = 8;
             bOn         = false;
@@ -30,16 +32,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GREEN, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_GREEN, &sColor);
 
             return STATUS_OK;
         }

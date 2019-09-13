@@ -13,7 +13,8 @@ namespace lsp
     {
         const w_class_t LSPDot::metadata = { "LSPDot", &LSPGraphItem::metadata };
 
-        LSPDot::LSPDot(LSPDisplay *dpy): LSPGraphItem(dpy)
+        LSPDot::LSPDot(LSPDisplay *dpy): LSPGraphItem(dpy),
+            sColor(this)
         {
             sLeft.fMin          = 0.0f;
             sLeft.fMax          = 1.0f;

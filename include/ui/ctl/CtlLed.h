@@ -15,8 +15,10 @@ namespace lsp
         
         class CtlLed: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
-                CtlColor            sBgColor;
                 CtlColor            sColor;
                 CtlPort            *pPort;
                 float               fValue;

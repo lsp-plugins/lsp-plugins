@@ -57,7 +57,7 @@ namespace lsp
 
             protected:
                 cvector<LSPMenuItem>    vItems;
-                LSPWidgetFont           sFont;
+                LSPFont                 sFont;
                 MenuWindow             *pWindow;
                 LSPMenu                *pParentMenu;
                 LSPMenu                *pActiveMenu;
@@ -68,9 +68,8 @@ namespace lsp
                 ssize_t                 nScroll;
                 ssize_t                 nScrollMax;
                 size_t                  nMBState;
-                Color                   sColor;
-                Color                   sSelColor;
-                Color                   sBorderColor;
+                LSPColor                sSelColor;
+                LSPColor                sBorderColor;
                 size_t                  nBorder;
                 size_t                  nSpacing;
 
@@ -96,9 +95,8 @@ namespace lsp
                 inline size_t   border() const      { return nBorder; };
                 inline size_t   spacing() const     { return nSpacing; };
                 inline ssize_t  scroll() const      { return nScroll; };
-                Color          *color()             { return &sColor; }
-                Color          *sel_color()         { return &sSelColor; }
-                Color          *border_color()      { return &sBorderColor; }
+                LSPColor       *sel_color()         { return &sSelColor; }
+                LSPColor       *border_color()      { return &sBorderColor; }
 
             public:
                 inline void set_popup_left(ssize_t value) { nPopupLeft = value; }

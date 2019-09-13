@@ -133,14 +133,6 @@ namespace lsp
             if (sSize.nHeight < 0)
                 sSize.nHeight   = r.nHeight;
 
-
-//            result = sync_size();
-//            if (result != STATUS_SUCCESS)
-//            {
-//                destroy();
-//                return result;
-//            }
-
             lsp_trace("Window has been initialized");
 
             return STATUS_OK;
@@ -201,8 +193,6 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             LSPWidget *widget = static_cast<LSPWidget *>(args);
-//            if (widget->get_class() != W_WINDOW)
-//                return STATUS_BAD_ARGUMENTS;
 
             LSPWindow *_this   = static_cast<LSPWindow *>(widget);
 
@@ -265,29 +255,24 @@ namespace lsp
 
         void LSPWindow::render(ISurface *s, bool force)
         {
-            if (pChild != NULL)
+            if (pChild == NULL)
             {
-                if ((force) || (pChild->redraw_pending()))
-                {
-                    pChild->render(s, force);
-                    pChild->commit_redraw();
-                }
-
-                if (force)
-                {
-                    Color cl;
-                    pDisplay->theme()->get_color(C_BACKGROUND, &cl);
-                    s->fill_frame(
-                        0, 0, sSize.nWidth, sSize.nHeight,
-                        pChild->left(), pChild->top(), pChild->width(), pChild->height(),
-                        cl);
-                }
+                s->clear(sBgColor);
+                return;
             }
-            else
+
+            if ((force) || (pChild->redraw_pending()))
             {
-                Color cl;
-                pDisplay->theme()->get_color(C_BACKGROUND, &cl);
-                s->clear(cl);
+                pChild->render(s, force);
+                pChild->commit_redraw();
+            }
+
+            if (force)
+            {
+                s->fill_frame(
+                    0, 0, sSize.nWidth, sSize.nHeight,
+                    pChild->left(), pChild->top(), pChild->width(), pChild->height(),
+                    sBgColor);
             }
         }
 

@@ -21,7 +21,7 @@ namespace lsp
                 float           fLeft;
                 float           fTop;
                 float           fRadius;
-                Color           sColor;
+                LSPColor        sColor;
 
             public:
                 explicit LSPCenter(LSPDisplay *dpy);
@@ -30,7 +30,7 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                inline Color *color()               { return &sColor;   };
+                inline LSPColor *color()            { return &sColor;   };
                 inline float radius() const         { return fRadius;   };
                 inline float canvas_left() const    { return fLeft;     };
                 inline float canvas_top() const     { return fTop;      };

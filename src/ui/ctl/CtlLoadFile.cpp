@@ -11,16 +11,19 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlLoadFile::metadata = { "CtlLoadFile", &CtlWidget::metadata };
+
         CtlLoadFile::CtlLoadFile(CtlRegistry *reg, LSPLoadFile *load):
             CtlWidget(reg, load)
         {
-            pFile       = NULL;
-            pPath       = NULL;
-            pStatus     = NULL;
-            pCommand    = NULL;
-            pProgress   = NULL;
+            pClass          = &metadata;
+            pFile           = NULL;
+            pPath           = NULL;
+            pStatus         = NULL;
+            pCommand        = NULL;
+            pProgress       = NULL;
 
-            pPathID     = NULL;
+            pPathID         = NULL;
         }
 
         CtlLoadFile::~CtlLoadFile()

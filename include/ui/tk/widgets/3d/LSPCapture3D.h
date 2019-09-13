@@ -26,8 +26,8 @@ namespace lsp
                 } v_capture_t;
 
             protected:
-                LSPWidgetColor  sColor;
-                LSPWidgetColor  sAxisColor;
+                LSPColor        sColor;
+                LSPColor        sAxisColor;
 
                 cstorage<v_capture_t> vItems;
 

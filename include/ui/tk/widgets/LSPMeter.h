@@ -44,11 +44,14 @@ namespace lsp
                     float           fDarkZone[3];   // Dark zone values
                     char           *sText;          // Meter text
                     size_t          nFlags;         // Meter flags
-                    Color           sColor;         // Meter color
-                    Color           sYellow;        // Meter's yellow color
-                    Color           sRed;           // Meter's red color
-                    Color           sBalance;       // Meger's balance color
+                    LSPColor        sColor;         // Meter color
+                    LSPColor        sYellow;        // Meter's yellow color
+                    LSPColor        sRed;           // Meter's red color
+                    LSPColor        sBalance;       // Meger's balance color
                     float           fDark[3];       // Dark zone amount
+
+                    explicit channel_t(LSPWidget *widget);
+                    ~channel_t();
                 } channel_t;
 
             protected:
@@ -58,16 +61,13 @@ namespace lsp
                 ssize_t         nBorder;    // Border
                 bool            bValues;    // Show values flag
                 size_t          nSpacing;   // Spacing between meters
-                Color           sBgColor;   // Background color
-                Color           sIndColor;  // Indication color
-                LSPWidgetFont   sFont;
+                LSPColor        sIndColor;  // Indication color
+                LSPFont         sFont;
                 channel_t     **vChannels;
                 size_t          nChannels;
 
             protected:
                 status_t        set_flag(size_t i, size_t flag, bool value);
-                channel_t      *create_channel();
-                static void     destroy_channel(channel_t *c);
                 void            drop_data();
                 void            draw_meter(ISurface *s, channel_t *c, float x, float y, ssize_t dx, ssize_t dy, float wx, float wy, size_t n);
                 void            out_text(ISurface *s, channel_t *c, float x, float y);
@@ -80,8 +80,7 @@ namespace lsp
                 virtual void        destroy();
 
             public:
-                inline Color       *bg_color()                          { return &sBgColor; }
-                inline Color       *ind_color()                         { return &sIndColor; }
+                inline LSPColor    *ind_color()                         { return &sIndColor; }
                 inline size_t       mtr_width() const                   { return nMWidth; }
                 inline size_t       mtr_height() const                  { return nMHeight; }
 
@@ -98,13 +97,13 @@ namespace lsp
                 inline float        mtr_dz1_value(size_t i) const       { return (i < nChannels) ? vChannels[i]->fDarkZone[1] : 0.0f; }
                 inline float        mtr_dz2_value(size_t i) const       { return (i < nChannels) ? vChannels[i]->fDarkZone[2] : 0.0f; }
                 inline const char  *mtr_text(size_t i) const            { return (i < nChannels) ? vChannels[i]->sText : NULL; }
-                inline Color       *mtr_color(size_t i)                 { return (i < nChannels) ? &vChannels[i]->sColor : NULL; }
-                inline Color       *mtr_rz_color(size_t i)              { return (i < nChannels) ? &vChannels[i]->sRed : NULL; }
-                inline Color       *mtr_yz_color(size_t i)              { return (i < nChannels) ? &vChannels[i]->sYellow : NULL; }
+                inline LSPColor    *mtr_color(size_t i)                 { return (i < nChannels) ? &vChannels[i]->sColor : NULL; }
+                inline LSPColor    *mtr_rz_color(size_t i)              { return (i < nChannels) ? &vChannels[i]->sRed : NULL; }
+                inline LSPColor    *mtr_yz_color(size_t i)              { return (i < nChannels) ? &vChannels[i]->sYellow : NULL; }
                 inline float        mtr_dz0_amount(size_t i) const      { return (i < nChannels) ? vChannels[i]->fDark[0] : 0.0f; }
                 inline float        mtr_dz1_amount(size_t i) const      { return (i < nChannels) ? vChannels[i]->fDark[1] : 0.0f; }
                 inline float        mtr_dz2_amount(size_t i) const      { return (i < nChannels) ? vChannels[i]->fDark[2] : 0.0f; }
-                inline Color       *mtr_balance_color(size_t i)         { return (i < nChannels) ? &vChannels[i]->sBalance : NULL; }
+                inline LSPColor    *mtr_balance_color(size_t i)         { return (i < nChannels) ? &vChannels[i]->sBalance : NULL; }
 
                 inline bool         mtr_peak_used(size_t i) const       { return (i < nChannels) ? vChannels[i]->nFlags & MF_PEAK : false;    }
                 inline bool         mtr_balance_used(size_t i) const    { return (i < nChannels) ? vChannels[i]->nFlags & MF_BALANCE : false; }

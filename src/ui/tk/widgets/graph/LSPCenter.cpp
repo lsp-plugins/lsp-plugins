@@ -13,7 +13,8 @@ namespace lsp
     {
         const w_class_t LSPCenter::metadata = { "LSPCenter", &LSPGraphItem::metadata };
 
-        LSPCenter::LSPCenter(LSPDisplay *dpy): LSPGraphItem(dpy)
+        LSPCenter::LSPCenter(LSPDisplay *dpy): LSPGraphItem(dpy),
+            sColor(this)
         {
             fLeft       = 0.0f;
             fTop        = 0.0f;

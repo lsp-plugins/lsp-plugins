@@ -36,8 +36,7 @@ namespace lsp
                 size_t          vStatic[C_ST_TOTAL];
                 char           *vValues[C_TOTAL];
                 Color           sColor;
-                Color          *pDstColor;
-                LSPColor       *pLspColor;
+                LSPColor       *pDstColor;
 
             protected:
                 void    commit_color();
@@ -49,42 +48,22 @@ namespace lsp
                 virtual ~CtlColor();
 
             public:
-                void init(CtlRegistry *reg, LSPWidget *widget, Color *col, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
-                {
-                    do_init(reg, widget, col, NULL, basic, r, g, b, h, s, l);
-                }
-
-                void init2(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
+                void init(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l)
                 {
                     do_init(reg, widget, NULL, col, basic, r, g, b, h, s, l);
                 }
 
-                inline void init_rgb(CtlRegistry *reg, LSPWidget *widget, Color *col, size_t basic, size_t r, size_t g, size_t b)
-                {
-                    do_init(reg, widget, col, NULL, basic, r, g, b, -1, -1, -1);
-                }
-
-                inline void init_rgb2(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic, size_t r, size_t g, size_t b)
+                inline void init_rgb(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic, size_t r, size_t g, size_t b)
                 {
                     do_init(reg, widget, NULL, col, basic, r, g, b, -1, -1, -1);
                 }
 
-                inline void init_hsl(CtlRegistry *reg, LSPWidget *widget, Color *col, size_t basic, size_t h, size_t s, size_t l)
-                {
-                    do_init(reg, widget, col, NULL, basic, -1, -1, -1, h, s, l);
-                }
-
-                inline void init_hsl2(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic, size_t h, size_t s, size_t l)
+                inline void init_hsl(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic, size_t h, size_t s, size_t l)
                 {
                     do_init(reg, widget, NULL, col, basic, -1, -1, -1, h, s, l);
                 }
 
-                inline void init_basic(CtlRegistry *reg, LSPWidget *widget, Color *col, size_t basic)
-                {
-                    do_init(reg, widget, col, NULL, basic, -1, -1, -1, -1, -1, -1);
-                }
-
-                inline void init_basic2(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic)
+                inline void init_basic(CtlRegistry *reg, LSPWidget *widget, LSPColor *col, size_t basic)
                 {
                     do_init(reg, widget, NULL, col, basic, -1, -1, -1, -1, -1, -1);
                 }
@@ -99,12 +78,7 @@ namespace lsp
                 bool set(LSPTheme *theme, const char *name);
                 bool set(LSPTheme *theme, color_t color);
 
-                bool bind(CtlRegistry *reg, LSPWidget *widget, Color *col)
-                {
-                    return do_bind(reg, widget, col, NULL);
-                }
-
-                bool bind2(CtlRegistry *reg, LSPWidget *widget, LSPColor *col)
+                bool bind(CtlRegistry *reg, LSPWidget *widget, LSPColor *col)
                 {
                     return do_bind(reg, widget, NULL, col);
                 }

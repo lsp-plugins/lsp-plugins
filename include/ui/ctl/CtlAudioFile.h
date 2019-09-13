@@ -17,6 +17,9 @@ namespace lsp
     {
         class CtlAudioFile: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 enum const_t
                 {
@@ -41,7 +44,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlPadding      sPadding;
                 CtlExpression   sFormat;
                 LSPMenu         sMenu;

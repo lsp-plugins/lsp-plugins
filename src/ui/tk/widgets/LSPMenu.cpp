@@ -91,7 +91,9 @@ namespace lsp
         // LSPMenu implementation
         LSPMenu::LSPMenu(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
-            sFont(dpy, this)
+            sFont(this),
+            sSelColor(this),
+            sBorderColor(this)
         {
             pWindow     = NULL;
             pParentMenu = NULL;
@@ -130,14 +132,13 @@ namespace lsp
                 // Get theme
                 LSPTheme *theme = pDisplay->theme();
                 if (theme != NULL)
-                {
                     sFont.init(theme->font());
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBorderColor);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_KNOB_SCALE, &sSelColor);
-                }
             }
+
+            init_color(C_BACKGROUND, sFont.color());
+            init_color(C_BACKGROUND, &sBorderColor);
+            init_color(C_LABEL_TEXT, &sBgColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             return STATUS_OK;
         }
@@ -360,7 +361,7 @@ namespace lsp
 
         void LSPMenu::draw(ISurface *s)
         {
-            s->clear(sColor);
+            s->clear(sBgColor);
 
             font_parameters_t fp;
             text_parameters_t tp;
@@ -401,12 +402,12 @@ namespace lsp
                     if (y > (-fp.Height))
                     {
                         const char *text = item->text();
-                        Color c;
+                        LSPColor c;
 
                         if (nSelected == ssize_t(i))
                         {
                             s->fill_rect(nBorder, y, sSize.nWidth - nBorder*2, fp.Height, sSelColor);
-                            c.copy(sColor);
+                            c.copy(sBgColor);
                         }
                         else
                             c.copy(sFont.color());
@@ -433,12 +434,12 @@ namespace lsp
                 // Top button
                 if (nScroll > 0)
                 {
-                    Color cl;
+                    LSPColor cl;
 
-                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, separator, sColor);
+                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, separator, sBgColor);
                     if (nSelected == SEL_TOP_SCROLL)
                     {
-                        cl.copy(sColor);
+                        cl.copy(sBgColor);
                         s->fill_rect(nBorder + 1, nBorder + 1, sSize.nWidth - (nBorder + 1)* 2, separator - 1, sBorderColor);
                     }
                     else
@@ -452,18 +453,18 @@ namespace lsp
                         cl);
                 }
                 else if (sPadding.top() > 0)
-                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, sPadding.top(), sColor);
+                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, sPadding.top(), sBgColor);
 
                 // Bottom button
                 if (nScroll < nScrollMax)
                 {
-                    Color cl;
+                    LSPColor cl;
                     s->fill_rect(nBorder, sSize.nHeight - nBorder - separator,
-                        sSize.nWidth - nBorder * 2, separator, sColor);
+                        sSize.nWidth - nBorder * 2, separator, sBgColor);
 
                     if (nSelected == SEL_BOTTOM_SCROLL)
                     {
-                        cl.copy(sColor);
+                        cl.copy(sBgColor);
                         s->fill_rect(nBorder + 1, sSize.nHeight - nBorder - separator,
                             sSize.nWidth - (nBorder + 1) * 2, separator - 1, sBorderColor);
                     }
@@ -479,7 +480,7 @@ namespace lsp
                 }
                 else if (sPadding.bottom() > 0)
                     s->fill_rect(nBorder, sSize.nHeight - nBorder - sPadding.bottom(),
-                        sSize.nWidth - nBorder * 2, sPadding.bottom(), sColor);
+                        sSize.nWidth - nBorder * 2, sPadding.bottom(), sBgColor);
 
                 // Restore anti-aliasing
                 s->set_antialiasing(aa);

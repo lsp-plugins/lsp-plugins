@@ -123,7 +123,8 @@ namespace lsp
             sHBar(dpy, true),
             sVBar(dpy, false),
             sConstraints(this),
-            sFont(dpy, this)
+            sColor(this),
+            sFont(this)
         {
             nFlags              = 0;
             nBMask              = 0;
@@ -177,17 +178,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    init_color(C_LABEL_TEXT, &sColor);
-                    init_color(C_BACKGROUND, &sBgColor);
-                    init_color(C_LABEL_TEXT, sFont.color());
-                }
-            }
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_LABEL_TEXT, sFont.color());
 
             result = sHBar.init();
             if (result != STATUS_OK)

@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlProgressBar: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 enum pflags_t
                 {
@@ -28,7 +31,6 @@ namespace lsp
                 CtlExpression   sMax;
                 CtlExpression   sValue;
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlColor        sScaleColor;
                 LSPString       sFormat;
                 size_t          nXFlags;

@@ -27,9 +27,13 @@ namespace lsp
 
         void LSPColor::color_changed()
         {
+        }
+
+        void LSPColor::trigger_change()
+        {
             if (pWidget != NULL)
                 pWidget->query_draw();
+            color_changed();
         }
-    
     } /* namespace tk */
 } /* namespace lsp */

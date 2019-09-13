@@ -20,6 +20,7 @@ namespace lsp
 
         LSPHyperlink::LSPHyperlink(LSPDisplay *dpy):
             LSPLabel(dpy),
+            sHoverColor(this),
             sStdMenu(dpy)
         {
             pClass      = &metadata;
@@ -43,6 +44,7 @@ namespace lsp
 
             init_color(C_HLINK_TEXT, sFont.color());
             init_color(C_HLINK_HOVER, &sHoverColor);
+
             set_cursor(MP_HAND); // Initialize pointer
             sFont.set_underline();
 
@@ -171,7 +173,7 @@ namespace lsp
             ssize_t y       = nBorder - fp.Descent + dy * fVAlign;
 
             // Determine which color to use
-            Color *cl       = (nState & F_MOUSE_IN) ? &sHoverColor : sFont.color();
+            LSPColor *cl    = (nState & F_MOUSE_IN) ? &sHoverColor : sFont.color();
 
             // Estimate text size
             ssize_t last = 0, curr = 0, tail = 0, len = sText.length();

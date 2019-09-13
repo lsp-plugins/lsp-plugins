@@ -11,12 +11,15 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlKnob::metadata = { "CtlKnob", &CtlWidget::metadata };
+
         CtlKnob::CtlKnob(CtlRegistry *src, LSPKnob *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            bLog        = false;
-            bLogSet     = false;
-            bCyclingSet = false;
+            pClass          = &metadata;
+            pPort           = NULL;
+            bLog            = false;
+            bLogSet         = false;
+            bCyclingSet     = false;
         }
 
         CtlKnob::~CtlKnob()
@@ -125,7 +128,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, knob, knob->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, knob, knob->bg_color(), A_BG_COLOR);
             sScaleColor.init_hsl(pRegistry, knob, knob->scale_color(), A_SCALE_COLOR, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
             sScaleColor.map_static_hsl(A_SCALE_HUE, -1, -1);
 
@@ -185,12 +187,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sScaleColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sScaleColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

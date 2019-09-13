@@ -11,9 +11,12 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlListBox::metadata = { "CtlListBox", &CtlWidget::metadata };
+
         CtlListBox::CtlListBox(CtlRegistry *src, LSPListBox *widget): CtlWidget(src, widget)
         {
-            pDialog = NULL;
+            pClass          = &metadata;
+            pDialog         = NULL;
 
 //            char str[32];
 

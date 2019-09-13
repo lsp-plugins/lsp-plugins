@@ -50,7 +50,6 @@ namespace lsp
         LSPLoadFile::LSPLoadFile(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(dpy, this),
-            sBgColor(this),
             sDialog(dpy)
         {
             nState      = LFS_SELECT;
@@ -130,13 +129,11 @@ namespace lsp
                 return STATUS_NO_MEM;
             pSink->acquire();
 
-            init_color(C_BACKGROUND, &sBgColor);
-
             for (size_t i=0; i<LFS_TOTAL; ++i)
             {
                 const state_descr_t *sd = &initial[i];
 
-                vStates[i].pColor = new LSPWidgetColor(this);
+                vStates[i].pColor = new LSPColor(this);
                 if (vStates[i].pColor == NULL)
                     return STATUS_NO_MEM;
                 init_color(color_t(sd->color_id), vStates[i].pColor);

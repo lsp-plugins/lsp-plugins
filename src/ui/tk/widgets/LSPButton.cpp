@@ -15,7 +15,8 @@ namespace lsp
 
         LSPButton::LSPButton(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sColor(this),
+            sFont(this)
         {
             nWidth      = 18;
             nHeight     = 18;
@@ -41,17 +42,8 @@ namespace lsp
             sFont.init();
             sFont.set_size(12.0f);
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_BUTTON_FACE, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_BUTTON_TEXT, sFont.color());
-                }
-            }
+            init_color(C_BUTTON_FACE, &sColor);
+            init_color(C_BUTTON_TEXT, sFont.color());
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());

@@ -16,7 +16,6 @@ namespace lsp
         LSPProgressBar::LSPProgressBar(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(this),
-            sBgColor(this),
             sColor(this),
             sSelColor(this)
         {
@@ -46,15 +45,12 @@ namespace lsp
                 // Get theme
                 LSPTheme *theme = pDisplay->theme();
                 if (theme != NULL)
-                {
                     sFont.init(theme->font());
-
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_KNOB_SCALE, &sSelColor);
-                }
             }
+
+            init_color(C_BACKGROUND, sFont.color());
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             return STATUS_OK;
         }

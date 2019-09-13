@@ -33,7 +33,7 @@ namespace lsp
                 size_t          nWidth;
                 ssize_t         nLength;
                 size_t          nCenter;
-                Color           sColor;
+                LSPColor        sColor;
 
             protected:
                 void            set_flag(size_t flag, bool value);
@@ -67,7 +67,7 @@ namespace lsp
 
                 inline bool linear_scale() const    { return !(nFlags & F_LOGARITHMIC); }
 
-                inline Color *color()               { return &sColor;           };
+                inline LSPColor *color()            { return &sColor;           };
 
                 inline size_t line_width() const    { return nWidth;            };
 

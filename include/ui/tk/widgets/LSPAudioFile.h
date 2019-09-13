@@ -30,9 +30,11 @@ namespace lsp
 
                     float           nFadeIn;
                     float           nFadeOut;
-                    Color           sColor;
-                    Color           sFadeColor;
-                    Color           sLineColor;
+                    LSPColor        sColor;
+                    LSPColor        sFadeColor;
+                    LSPColor        sLineColor;
+
+                    explicit channel_t(LSPWidget *w);
                 } channel_t;
 
                 enum flags_t
@@ -62,13 +64,12 @@ namespace lsp
                 LSPString           sFileName;
                 LSPString           sHint;
                 LSPString           sPath;
-                LSPWidgetFont       sFont;
-                LSPWidgetFont       sHintFont;
+                LSPFont             sFont;
+                LSPFont             sHintFont;
                 LSPSizeConstraints  sConstraints;
                 LSPFileDialog       sDialog;
-                Color               sBgColor;
-                Color               sColor;
-                Color               sAxisColor;
+                LSPColor            sColor;
+                LSPColor            sAxisColor;
 
                 LSPMenu            *pPopup;         // Popup menu
                 size_t              nDecimSize;     // Decimation buffer size
@@ -123,9 +124,8 @@ namespace lsp
                 inline LSPFont         *font() { return &sFont; }
                 inline LSPFont         *hint_font() { return &sHintFont; }
 
-                inline Color           *color() { return &sColor; }
-                inline Color           *bg_color() { return &sBgColor; }
-                inline Color           *axis_color() { return &sAxisColor; }
+                inline LSPColor        *color() { return &sColor; }
+                inline LSPColor        *axis_color() { return &sAxisColor; }
 
                 inline const char      *get_path() const { return sPath.get_native(); }
                 inline status_t         get_path(LSPString *dst) const { return (dst->set(&sPath)) ? STATUS_OK : STATUS_NO_MEM; }
@@ -135,9 +135,9 @@ namespace lsp
                 inline float            channel_fade_in(size_t i) const { const channel_t *c = (const_cast<LSPAudioFile *>(this))->vChannels.get(i); return (c != NULL) ? c->nFadeIn : -1.0f; }
                 inline float            channel_fade_out(size_t i) const { const channel_t *c = (const_cast<LSPAudioFile *>(this))->vChannels.get(i); return (c != NULL) ? c->nFadeOut : -1.0f; }
                 inline const float     *channel_data(size_t i) const { const channel_t *c = (const_cast<LSPAudioFile *>(this))->vChannels.get(i); return ((c != NULL) && (c->vSamples != NULL)) ? c->vSamples : NULL; }
-                inline Color           *channel_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sColor : NULL; }
-                inline Color           *channel_fade_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sFadeColor : NULL; }
-                inline Color           *channel_line_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sLineColor : NULL; }
+                inline LSPColor        *channel_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sColor : NULL; }
+                inline LSPColor        *channel_fade_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sFadeColor : NULL; }
+                inline LSPColor        *channel_line_color(size_t i) { channel_t *c = vChannels.get(i); return (c != NULL) ? &c->sLineColor : NULL; }
 
                 inline bool             show_data() const       { return nStatus & AF_SHOW_DATA; }
                 inline bool             show_hint() const       { return nStatus & AF_SHOW_HINT; }

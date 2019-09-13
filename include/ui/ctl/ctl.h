@@ -119,6 +119,7 @@ namespace lsp
             A_DISTANCE_ID,
             A_DURATION_ID,
             A_EDITABLE,
+            A_EMBED,
             A_EXPAND,
             A_FADEIN_ID,
             A_FADEOUT_ID,
@@ -225,6 +226,12 @@ namespace lsp
             A_ZPOS_ID,
             A_ZSCALE_ID
         };
+
+        typedef struct ctl_class_t
+        {
+            const char         *name;
+            const ctl_class_t  *parent;
+        } ctl_class_t;
 
         // Helper functions
         /** Decode widget type to enum

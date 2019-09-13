@@ -18,10 +18,9 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
                 LSPString           sText;
-                LSPWidgetColor      sBgColor;
-                LSPWidgetColor      sColor;
+                LSPColor            sColor;
                 size_t              nAngle;
                 size_t              nButtons;
                 bool                bPressed;

@@ -14,7 +14,8 @@ namespace lsp
         const w_class_t LSPWidget::metadata = { "LSPWidget", NULL };
 
         LSPWidget::LSPWidget(LSPDisplay *dpy):
-            sPadding(this)
+            sPadding(this),
+            sBgColor(this)
         {
             pUID            = NULL;
             pDisplay        = dpy;
@@ -49,6 +50,9 @@ namespace lsp
 
         status_t LSPWidget::init()
         {
+            // Initialize colors
+            init_color(C_BACKGROUND, &sBgColor);
+
             // Declare slots
             ui_handler_id_t id = 0;
 
@@ -104,21 +108,16 @@ namespace lsp
                 w->pParent  = NULL;
         }
 
-        void LSPWidget::init_color(color_t value, Color *color)
+        void LSPWidget::init_color(color_t value, LSPColor *color)
         {
+            Color c;
             if (pDisplay != NULL)
             {
                 LSPTheme *theme = pDisplay->theme();
 
                 if (theme != NULL)
-                    theme->get_color(value, color);
+                    theme->get_color(value, c);
             }
-        }
-
-        void LSPWidget::init_color(color_t value, LSPColor *color)
-        {
-            Color c;
-            init_color(value, &c);
             color->copy(&c);
         }
 

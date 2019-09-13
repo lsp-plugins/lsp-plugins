@@ -31,6 +31,7 @@
 * Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
 * Added allpass filters to Paretric Equalizer plugin.
 * Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
+* Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.

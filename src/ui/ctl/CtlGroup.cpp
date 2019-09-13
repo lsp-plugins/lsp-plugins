@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlGroup::metadata = { "CtlGroup", &CtlWidget::metadata };
+
         CtlGroup::CtlGroup(CtlRegistry *src, LSPGroup *widget): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
         }
 
         CtlGroup::~CtlGroup()
@@ -29,7 +32,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, grp, grp->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, grp, grp->bg_color(), A_BG_COLOR);
             sTextColor.init_basic(pRegistry, grp, grp->text_color(), A_TEXT_COLOR);
         }
 
@@ -51,26 +53,27 @@ namespace lsp
                     if (grp != NULL)
                         PARSE_INT(value, grp->set_radius(__));
                     break;
+                case A_EMBED:
+                    if (grp != NULL)
+                        PARSE_BOOL(value, grp->set_embed(__));
+                    break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sTextColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sTextColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
         }
 
-        status_t CtlGroup::add(LSPWidget *child)
+        status_t CtlGroup::add(CtlWidget *child)
         {
             if (pWidget == NULL)
                 return STATUS_BAD_STATE;
 
             LSPGroup *grp     = static_cast<LSPGroup *>(pWidget);
-            return grp->add(child);
+            return grp->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */
