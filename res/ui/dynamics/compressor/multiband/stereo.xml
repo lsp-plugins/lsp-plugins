@@ -183,7 +183,7 @@
 		</grid>
 		
 		<vbox spacing="4">
-			<cgroup id="bsel">
+			<cgroup id="bsel" embed="true">
 				<grid rows="11" cols="24">
 					<label text="Band, Hue" bg_color="bg2" />
 					<hbox fill="false" bg_color="bg2">

@@ -116,6 +116,10 @@ namespace lsp
                 case A_TEXT:
                     PARSE_STRING(value, pText);
                     break;
+                case A_EMBED:
+                    if (grp != NULL)
+                        PARSE_BOOL(value, grp->set_embed(__));
+                    break;
                 default:
                 {
                     sColor.set(att, value);

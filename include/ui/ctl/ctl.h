@@ -119,6 +119,7 @@ namespace lsp
             A_DISTANCE_ID,
             A_DURATION_ID,
             A_EDITABLE,
+            A_EMBED,
             A_EXPAND,
             A_FADEIN_ID,
             A_FADEOUT_ID,

@@ -95,6 +95,7 @@ namespace lsp
             "distance_id",
             "duration_id",
             "editable",
+            "embed",
             "expand",
             "fadein_id",
             "fadeout_id",

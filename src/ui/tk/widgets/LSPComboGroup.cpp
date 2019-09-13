@@ -155,7 +155,7 @@ namespace lsp
 
         void LSPComboGroup::query_dimensions(dimensions_t *d)
         {
-            size_t bw       = round(nRadius * M_SQRT2 * 0.5) + 1;
+            size_t bw       = (bEmbed) ? 1 : ::round(nRadius * M_SQRT2 * 0.5) + 1;
             size_t dd       = bw + nBorder + 1;
             d->nGapLeft     = dd;
             d->nGapRight    = dd;
@@ -232,6 +232,16 @@ namespace lsp
 //            lsp_trace("Rendering this=%p, force=%d", this, int(force));
             LSPWidget *current = current_widget();
 
+            // Draw child
+            if (current != NULL)
+            {
+                if ((force) || (current->redraw_pending()))
+                {
+                    current->render(s, force);
+                    current->commit_redraw();
+                }
+            }
+
             if (force)
             {
                 // Get resource
@@ -248,13 +258,23 @@ namespace lsp
                 {
                     realize_t r;
                     current->get_dimensions(&r);
-                    s->fill_frame(
-                        sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
-                        r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                        sBgColor
-                    );
-//                    Color yell(1.0f, 1.0f, 0.0f);
-//                    s->wire_rect(r.nLeft, r.nTop, r.nWidth - 1, r.nHeight - 1, 1.0f, yell);
+
+//                    Color red(1.0f, 0.0f, 0.0f);
+                    if (nRadius > 1)
+                        s->fill_round_frame(
+                            sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                            r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                            nRadius-1, SURFMASK_B_CORNER,
+                            sBgColor
+//                            red
+                        );
+                    else
+                        s->fill_frame(
+                                sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                                r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                                sBgColor
+//                                red
+                            );
                 }
 
                 // Draw frame
@@ -306,16 +326,6 @@ namespace lsp
                 }
 
                 s->set_antialiasing(aa);
-            }
-
-            // Draw child
-            if (current != NULL)
-            {
-                if ((force) || (current->redraw_pending()))
-                {
-                    current->render(s, force);
-                    current->commit_redraw();
-                }
             }
         }
 
@@ -647,6 +657,14 @@ namespace lsp
                 nCBFlags     |= F_CIRCULAR;
             else
                 nCBFlags     &= ~F_CIRCULAR;
+        }
+
+        void LSPComboGroup::set_embed(bool embed)
+        {
+            if (bEmbed == embed)
+                return;
+            bEmbed = true;
+            query_resize();
         }
 
         status_t LSPComboGroup::on_list_change()

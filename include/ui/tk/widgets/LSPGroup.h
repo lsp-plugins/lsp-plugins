@@ -35,7 +35,7 @@ namespace lsp
                 size_t          nBorder;
                 LSPWidget      *pWidget;
                 LSPFont         sFont;
-
+                bool            bEmbed;
 
             protected:
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
@@ -50,12 +50,14 @@ namespace lsp
                 inline size_t       radius() const          { return nRadius; }
                 inline size_t       border() const          { return nBorder; }
                 inline LSPFont     *font()                  { return &sFont; }
+                inline bool         embed() const           { return bEmbed; }
 
             public:
                 status_t            set_text(const char *text);
                 status_t            set_text(const LSPString *text);
                 void                set_radius(size_t value);
                 void                set_border(size_t value);
+                void                set_embed(bool embed);
 
             public:
                 explicit LSPGroup(LSPDisplay *dpy);

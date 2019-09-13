@@ -83,6 +83,7 @@ namespace lsp
                 LSPComboList        sListBox;
                 LSPFont             sFont;
                 LSPWindow          *pPopup;
+                bool            bEmbed;
 
             protected:
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
@@ -123,6 +124,7 @@ namespace lsp
                 inline size_t       radius() const          { return nRadius; }
                 inline size_t       border() const          { return nBorder; }
                 inline LSPFont     *font()                  { return &sFont; }
+                inline bool         embed() const           { return bEmbed; }
 
                 ssize_t             selected() const;
                 inline LSPItemList *items()                 { return sListBox.items();  }
@@ -139,6 +141,7 @@ namespace lsp
                 status_t            set_opened(bool open = true);
                 inline status_t     set_closed(bool closed = true) { return set_opened(!closed); };
                 void                set_circular(bool circular = true);
+                void                set_embed(bool embed);
 
                 inline status_t open()  { return set_opened(true); }
                 inline status_t toggle(){ return set_opened(!(nFlags & F_OPENED)); }

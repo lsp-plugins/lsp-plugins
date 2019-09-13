@@ -53,6 +53,10 @@ namespace lsp
                     if (grp != NULL)
                         PARSE_INT(value, grp->set_radius(__));
                     break;
+                case A_EMBED:
+                    if (grp != NULL)
+                        PARSE_BOOL(value, grp->set_embed(__));
+                    break;
                 default:
                 {
                     sColor.set(att, value);
