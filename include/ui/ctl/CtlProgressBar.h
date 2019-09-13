@@ -31,7 +31,6 @@ namespace lsp
                 CtlExpression   sMax;
                 CtlExpression   sValue;
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlColor        sScaleColor;
                 LSPString       sFormat;
                 size_t          nXFlags;

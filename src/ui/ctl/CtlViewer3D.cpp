@@ -301,7 +301,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, r3d, r3d->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, r3d, r3d->bg_color(), A_BG_COLOR);
             sPadding.init(r3d->padding());
         }
 
@@ -402,12 +401,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sPadding.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sPadding.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

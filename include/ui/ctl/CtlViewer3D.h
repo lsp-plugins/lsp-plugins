@@ -34,7 +34,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlColor        sBaseColor;
                 CtlPadding      sPadding;
 

@@ -23,7 +23,6 @@ namespace lsp
                 bool            bInvert;
                 CtlPort        *pPort;
 
-                CtlColor        sBgColor;
                 CtlColor        sColor;
                 CtlColor        sBorderColor;
                 CtlColor        sTextColor;

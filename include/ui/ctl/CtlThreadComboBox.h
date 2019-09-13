@@ -19,7 +19,6 @@ namespace lsp
 
             protected:
                 CtlPort        *pPort;
-                CtlColor        sBgColor;
                 CtlColor        sColor;
                 ui_handler_id_t idChange;
 

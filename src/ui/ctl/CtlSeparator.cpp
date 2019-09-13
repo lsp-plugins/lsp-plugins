@@ -29,12 +29,8 @@ namespace lsp
 
             // Initialize color controllers
             LSPSeparator *sep = widget_cast<LSPSeparator>(pWidget);
-
-            if (pWidget != NULL)
-            {
+            if (sep != NULL)
                 sColor.init_hsl(pRegistry, sep, sep->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-                sBgColor.init_basic(pRegistry, sep, sep->bg_color(), A_BG_COLOR);
-            }
         }
 
         void CtlSeparator::set(widget_attribute_t att, const char *value)
@@ -69,11 +65,8 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

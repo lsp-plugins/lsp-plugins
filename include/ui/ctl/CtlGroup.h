@@ -20,7 +20,6 @@ namespace lsp
             protected:
                 CtlColor        sColor;
                 CtlColor        sTextColor;
-                CtlColor        sBgColor;
 
             public:
                 explicit CtlGroup(CtlRegistry *src, LSPGroup *widget);

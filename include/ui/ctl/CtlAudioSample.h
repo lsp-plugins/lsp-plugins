@@ -19,7 +19,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlPadding      sPadding;
 
                 CtlPort        *pMesh;

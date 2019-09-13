@@ -402,7 +402,8 @@ namespace lsp
                     continue;
                 if (hidden_widget(w))
                 {
-                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, sBgColor);
+                    LSPColor *c = (w->pWidget != NULL) ? w->pWidget->bg_color() : &sBgColor;
+                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, *c);
                     continue;
                 }
 
@@ -414,11 +415,13 @@ namespace lsp
 //                            int(force), int(w->pWidget->redraw_pending()));
                     if (force)
                     {
+                        LSPColor *c = w->pWidget->bg_color();
+//                        Color red(1.0, 0.0, 0.0);
                         s->fill_frame(
                             w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight,
                             w->s.nLeft, w->s.nTop, w->s.nWidth, w->s.nHeight,
 //                            red
-                            sBgColor
+                            *c
                         );
 //                        s->wire_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, 1, red);
                     }

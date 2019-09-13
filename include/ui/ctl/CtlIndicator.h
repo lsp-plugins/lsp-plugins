@@ -22,7 +22,6 @@ namespace lsp
                 float           fValue;
                 CtlPort        *pPort;
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlColor        sTextColor;
 
             public:

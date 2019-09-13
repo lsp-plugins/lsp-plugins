@@ -98,7 +98,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_basic(pRegistry, af, af->color(), A_COLOR);
-            sBgColor.init_basic(pRegistry, af, af->bg_color(), A_BG_COLOR);
             sPadding.init(af->padding());
 
             af->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
@@ -339,12 +338,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sPadding.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sPadding.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

@@ -44,7 +44,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlPadding      sPadding;
                 CtlExpression   sFormat;
                 LSPMenu         sMenu;

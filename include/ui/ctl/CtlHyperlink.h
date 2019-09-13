@@ -21,7 +21,6 @@ namespace lsp
             protected:
                 CtlColor            sColor;
                 CtlColor            sHoverColor;
-                CtlColor            sBgColor;
 
             protected:
                 void commit_value();

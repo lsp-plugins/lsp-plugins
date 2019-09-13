@@ -20,7 +20,6 @@ namespace lsp
             protected:
                 float           fValue;
                 CtlPort        *pPort;
-                CtlColor        sBgColor;
                 CtlColor        sColor;
                 CtlColor        sTextColor;
 

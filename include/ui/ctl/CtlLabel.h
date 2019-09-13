@@ -28,7 +28,6 @@ namespace lsp
 
             protected:
                 CtlColor            sColor;
-                CtlColor            sBgColor;
                 CtlPort            *pPort;
                 ctl_label_type_t    enType;
                 float               fValue;

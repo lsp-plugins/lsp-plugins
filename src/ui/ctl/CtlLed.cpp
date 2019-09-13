@@ -40,7 +40,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, led, led->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, led, led->bg_color(), A_BG_COLOR);
 
             // Initialize activity
             sActivity.init(pRegistry, NULL);
@@ -74,11 +73,8 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

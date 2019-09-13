@@ -19,7 +19,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 ssize_t         nOrientation;
 
             public:

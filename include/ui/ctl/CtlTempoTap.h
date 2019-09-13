@@ -20,7 +20,6 @@ namespace lsp
 
             protected:
                 CtlPort        *pPort;
-                CtlColor        sBgColor;
                 CtlColor        sColor;
                 CtlColor        sTextColor;
                 ssize_t         nThresh;

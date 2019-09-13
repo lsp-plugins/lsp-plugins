@@ -139,6 +139,7 @@ namespace lsp
                     pWidget->set_unique_id(value);
                     break;
                 default:
+                    sBgColor.set(att, value);
                     break;
             }
         }
@@ -151,6 +152,8 @@ namespace lsp
         void CtlWidget::init()
         {
             sVisibility.init(pRegistry, this);
+            if (pWidget != NULL)
+                sBgColor.init_basic(pRegistry, pWidget, pWidget->bg_color(), A_BG_COLOR);
         }
 
         void CtlWidget::begin()

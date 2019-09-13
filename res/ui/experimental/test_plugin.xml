@@ -43,12 +43,12 @@
 						<cell cols="2">
 							<label text="Two cells label" />
 						</cell>
-						<param id="sw1" color="green" />
-						<param id="sw2" color="blue" />
+						<param id="sw1" color="green" bg_color="bg2" />
+						<param id="sw2" color="blue" bg_color="bg2" />
 						<button id="sw1" size="24" color="green" led="true" />
 						<button id="sw2" size="24" color="blue" />
-						<value id="sw1" color="green" />
-						<value id="sw2" color="blue" />
+						<value id="sw1" color="green" bg_color="bg2" fill="false" />
+						<value id="sw2" color="blue" bg_color="bg2" fill="false" />
 						
 						<param id="sw3" color="yellow" />
 						<label />

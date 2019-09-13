@@ -79,6 +79,7 @@ namespace lsp
             C_UNKNOWN = -1,
 
             C_BACKGROUND,
+            C_BACKGROUND2,
             C_HOLE,
             C_GLASS,
 

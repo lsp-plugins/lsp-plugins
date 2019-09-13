@@ -20,7 +20,6 @@ namespace lsp
 
             protected:
                 CtlColor            sColor;
-                CtlColor            sBgColor;
                 CtlColor            sScaleColor;
 
                 bool                bLog;

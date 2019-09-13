@@ -1,7 +1,9 @@
 <theme>
 	<colors>
 		<!-- Plugin basic colors -->
-		<background value="#1b1c22" />
+		<bg value="#1b1c22" />
+		<bg2 value="#292a30" />
+		<bg3 value="#38393f" />
 		<glass value="#101010" />
 		<hole value="#000000" />
 		

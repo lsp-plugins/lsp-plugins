@@ -90,7 +90,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, grp, grp->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, grp, grp->bg_color(), A_BG_COLOR);
             sTextColor.init_basic(pRegistry, grp, grp->font()->color(), A_TEXT_COLOR);
 
             // Bind slots
@@ -119,12 +118,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sTextColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sTextColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

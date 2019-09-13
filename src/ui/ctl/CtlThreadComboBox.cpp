@@ -36,7 +36,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, cbox, cbox->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, cbox, cbox->bg_color(), A_BG_COLOR);
 
             // Bind slots
             idChange = cbox->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
@@ -109,10 +108,8 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sBgColor.set(att, value);
-                    set |= sColor.set(att, value);
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

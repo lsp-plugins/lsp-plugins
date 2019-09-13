@@ -26,7 +26,6 @@ namespace lsp
                 CtlPort        *pPort;
                 size_t          nRowID;
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlExpression   sMode;
 
             public:

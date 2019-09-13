@@ -45,7 +45,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_basic(pRegistry, as, as->color(), A_COLOR);
-            sBgColor.init_basic(pRegistry, as, as->bg_color(), A_BG_COLOR);
             sPadding.init(as->padding());
         }
 
@@ -97,7 +96,6 @@ namespace lsp
                 default:
                 {
                     sColor.set(att, value);
-                    sBgColor.set(att, value);
                     sPadding.set(att, value);
                     CtlWidget::set(att, value);
                     break;

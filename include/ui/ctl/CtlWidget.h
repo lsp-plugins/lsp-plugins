@@ -21,6 +21,7 @@ namespace lsp
                 const ctl_class_t    *pClass;
                 CtlRegistry    *pRegistry;
                 LSPWidget      *pWidget;
+                CtlColor        sBgColor;
 
                 CtlExpression   sVisibility;
                 char           *pVisibilityID;

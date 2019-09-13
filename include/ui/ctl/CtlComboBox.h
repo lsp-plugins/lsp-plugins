@@ -19,7 +19,6 @@ namespace lsp
 
             protected:
                 CtlPort        *pPort;
-                CtlColor        sBgColor;
                 CtlColor        sColor;
                 float           fMin;
                 float           fMax;
