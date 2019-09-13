@@ -185,7 +185,7 @@ namespace lsp
                     realize_t r;
                     pWidget->get_dimensions(&r);
 //                    Color red(1.0f, 0.0f, 0.0f);
-                    if (nRadius > 1)
+                    if ((bEmbed) && (nRadius > 1))
                         s->fill_round_frame(
                             sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
                             r.nLeft, r.nTop, r.nWidth, r.nHeight,
