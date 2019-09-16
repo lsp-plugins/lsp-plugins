@@ -442,6 +442,9 @@ namespace lsp
                 XFlush(pDisplay);
 //                XSync(pDisplay, False);
 
+                // Call for main task
+                call_main_task(ts);
+
                 // Return number of processed events
                 return result;
             }

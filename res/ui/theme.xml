@@ -52,6 +52,7 @@
 		
 		<!-- Label colors -->
 		<label_text value="#dae0ff" />
+		<invalid_input value="#880000" />
 		
 		<!-- Button colors -->
 		<button_face value="#ffffff" />

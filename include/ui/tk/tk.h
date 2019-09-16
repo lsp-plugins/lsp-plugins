@@ -117,7 +117,9 @@ namespace lsp
 
             C_STATUS_OK,
             C_STATUS_WARN,
-            C_STATUS_ERROR
+            C_STATUS_ERROR,
+
+            C_INVALID_INPUT
         };
 
         /** List of available slots for event processing
