@@ -21,7 +21,7 @@ namespace lsp
         {
             private:
                 io::IInSequence    *pIn;
-                lsp_swchar_t        cUnget;
+                lsp_swchar_t        cCurrent;
                 token_t             enToken;
                 LSPString           sValue;
                 status_t            nError;
@@ -29,11 +29,15 @@ namespace lsp
             protected:
                 lsp_swchar_t        lookup();
                 lsp_swchar_t        commit_lookup(token_t token);
-                void                lookup_identifier();
+                lsp_swchar_t        skip_whitespace();
+                token_t             lookup_identifier();
+                token_t             lookup_string();
                 token_t             commit(token_t token);
-                bool                is_identifier_first(lsp_wchar_t ch);
-                bool                is_identifier_next(lsp_wchar_t ch);
                 token_t             commit_word(lsp_wchar_t ch);
+                token_t             set_error(status_t code);
+
+                static bool         is_identifier_first(lsp_wchar_t ch);
+                static bool         is_identifier_next(lsp_wchar_t ch);
 
             public:
                 explicit Tokenizer(io::IInSequence *in);

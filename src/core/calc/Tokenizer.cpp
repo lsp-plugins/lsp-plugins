@@ -16,7 +16,7 @@ namespace lsp
         Tokenizer::Tokenizer(io::IInSequence *in)
         {
             pIn         = in;
-            cUnget      = -1;
+            cCurrent    = -1;
             enToken     = TT_UNKNOWN;
             nError      = STATUS_OK;
         }
@@ -28,28 +28,28 @@ namespace lsp
 
         lsp_swchar_t Tokenizer::lookup()
         {
-            if (cUnget >= 0)
-                return cUnget;
+            if (cCurrent >= 0)
+                return cCurrent;
 
-            return cUnget = pIn->read();
+            return cCurrent = pIn->read();
+        }
+
+        token_t Tokenizer::set_error(status_t code)
+        {
+            nError          = code;
+            return enToken  = TT_ERROR;
         }
 
         token_t Tokenizer::commit(token_t token)
         {
-            if (cUnget < 0)
-            {
-                nError          = STATUS_BAD_STATE;
-                return enToken  = TT_ERROR;
-            }
+            if (cCurrent < 0)
+                return set_error(STATUS_BAD_STATE);
 
-            if (!sValue.append(lsp_wchar_t(cUnget)))
-            {
-                nError          = STATUS_NO_MEM;
-                return enToken  = TT_ERROR;
-            }
+            if (!sValue.append(lsp_wchar_t(cCurrent)))
+                return set_error(STATUS_NO_MEM);
 
             enToken     = token;
-            cUnget      = -1;
+            cCurrent      = -1;
             return token;
         }
 
@@ -59,9 +59,26 @@ namespace lsp
             return (x != TT_ERROR) ? lookup() : -1;
         }
 
-        void Tokenizer::lookup_identifier()
+        lsp_swchar_t Tokenizer::skip_whitespace()
         {
-            // TODO
+            if (cCurrent < 0)
+                cCurrent = pIn->read();
+
+            while (true)
+            {
+                // Skip whitespace
+                switch (cCurrent)
+                {
+                    case ' ':
+                    case '\t':
+                    case '\n':
+                    case '\r':
+                        cCurrent = pIn->read();
+                        continue;
+                    default:
+                        return cCurrent;
+                }
+            }
         }
 
         bool Tokenizer::is_identifier_first(lsp_wchar_t ch)
@@ -84,6 +101,104 @@ namespace lsp
             return ch == '_';
         }
 
+        token_t Tokenizer::lookup_identifier()
+        {
+            if (!is_identifier_first(cCurrent))
+                return enToken;
+
+            sValue.clear();
+            do
+            {
+                // Append character
+                if (!sValue.append(lsp_wchar_t(cCurrent)))
+                    return set_error(STATUS_NO_MEM);
+
+                // Read next character
+                if ((cCurrent = pIn->read()) < 0)
+                {
+                    if (cCurrent == -STATUS_EOF)
+                        break;
+                    return set_error(-cCurrent);
+                }
+            } while (is_identifier_next(cCurrent));
+
+            return enToken;
+        }
+
+        token_t Tokenizer::lookup_string()
+        {
+            sValue.clear();
+
+            while (cCurrent == '\'')
+            {
+                bool protector  = false;
+                bool scan       = true;
+
+                // Parse string
+                do
+                {
+                    // Read character
+                    if ((cCurrent = pIn->read()) < 0)
+                        return set_error(-cCurrent);
+
+                    if (protector)
+                    {
+                        switch (cCurrent)
+                        {
+                            case '\\':
+                                if (!sValue.append('\\'))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                            case 'n':
+                                if (!sValue.append('\n'))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                            case 't':
+                                if (!sValue.append('\t'))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                            case 'r':
+                                if (!sValue.append('\r'))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                            case '\'':
+                                if (!sValue.append('\''))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                            default:
+                                if (!sValue.append('\\'))
+                                    return set_error(STATUS_NO_MEM);
+                                if (!sValue.append(lsp_wchar_t(cCurrent)))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                        }
+                        protector = false;
+                    }
+                    else
+                    {
+                        switch (cCurrent)
+                        {
+                            case '\\':
+                                protector   = true;
+                                break;
+                            case '\'':
+                                scan        = false;
+                                break;
+                            default:
+                                if (!sValue.append(lsp_wchar_t(cCurrent)))
+                                    return set_error(STATUS_NO_MEM);
+                                break;
+                        }
+                    }
+                } while (scan);
+
+                // Skip whitespace after string
+                skip_whitespace();
+            }
+
+            return enToken = TT_STRING;
+        }
+
         token_t Tokenizer::commit_word(lsp_wchar_t ch)
         {
             if ((enToken != TT_UNKNOWN) && (is_identifier_first(ch)))
@@ -98,7 +213,14 @@ namespace lsp
                 return enToken;
 
             // Skip whitespaces
-            lsp_swchar_t c;
+            lsp_swchar_t c = skip_whitespace();
+            if (c < 0)
+            {
+                enToken = (c == -STATUS_EOF) ? TT_EOF : TT_ERROR;
+                nError  = -c;
+                return enToken;
+            }
+
             sValue.set_length(0);
 
             while (true)
@@ -199,9 +321,11 @@ namespace lsp
                 case ':': // TT_COLON, TT_IDENTIFIER
                 {
                     c = commit(TT_COLON);
-                    lookup_identifier();
-                    return enToken;
+                    return lookup_identifier();
                 }
+
+                case '\'': // TT_STRING
+                    return lookup_string();
 
                 // Alpha
                 case 'a': case 'A': // TT_AND, TT_ADD
