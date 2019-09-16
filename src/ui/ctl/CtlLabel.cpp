@@ -290,13 +290,25 @@ namespace lsp
         bool CtlLabel::apply_value(const LSPString *value)
         {
             lsp_trace("Apply value: %s", value->get_utf8());
-            // TODO
+
+            const port_t *meta = (pPort != NULL) ? pPort->metadata() : NULL;
+            if (meta == NULL)
+                return false;
+
+            float fv;
+            status_t res = parse_value(&fv, value->get_utf8(), meta);
+            if (res != STATUS_OK)
+                return false;
+
+            pPort->set_value(fv);
+            pPort->notify_all();
             return true;
         }
 
         void CtlLabel::end()
         {
-            commit_value();
+            if (pPort != NULL)
+                commit_value();
             CtlWidget::end();
         }
 

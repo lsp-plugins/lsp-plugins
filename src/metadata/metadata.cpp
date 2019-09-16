@@ -12,6 +12,20 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <locale.h>
+#include <errno.h>
+#include <stdlib.h>
+
+#define UPDATE_LOCALE(out_var, lc, value) \
+       char *out_var = ::setlocale(lc, NULL); \
+       if (out_var != NULL) \
+       { \
+           size_t ___len = ::strlen(out_var) + 1; \
+           char *___copy = static_cast<char *>(::alloca(___len)); \
+           ::memcpy(___copy, out_var, ___len); \
+           out_var = ___copy; \
+       } \
+       ::setlocale(lc, value);
 
 namespace lsp
 {
@@ -250,7 +264,6 @@ namespace lsp
     void format_enum(char *buf, size_t len, const port_t *meta, float value)
     {
         float min   = (meta->flags & F_LOWER) ? meta->min: 0;
-//        float max   = meta->min + list_size(meta->items) - 1.0f;
         float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
 
         for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
@@ -316,15 +329,131 @@ namespace lsp
             format_bool(buf, len, meta, value);
         else if (meta->unit == U_ENUM)
             format_enum(buf, len, meta, value);
+        else if ((meta->unit == U_GAIN_AMP) || (meta->unit == U_GAIN_POW))
+            format_decibels(buf, len, meta, value, precision);
+        else if (meta->flags & F_INT)
+            format_int(buf, len, meta, value);
         else
+            format_float(buf, len, meta, value, precision);
+    }
+
+    status_t parse_bool(float *dst, const char *text)
+    {
+        if ((!::strcasecmp(text, "true")) ||
+            (!::strcasecmp(text, "on")) ||
+            (!::strcasecmp(text, "1")))
         {
-            if ((meta->unit == U_GAIN_AMP) || (meta->unit == U_GAIN_POW))
-                format_decibels(buf, len, meta, value, precision);
-            else if (meta->flags & F_INT)
-                format_int(buf, len, meta, value);
-            else
-                format_float(buf, len, meta, value, precision);
+            *dst    = 1.0f;
+            return STATUS_OK;
         }
+
+        if ((!::strcasecmp(text, "false")) ||
+            (!::strcasecmp(text, "off")) ||
+            (!::strcasecmp(text, "0")))
+        {
+            *dst    = 0.0f;
+            return STATUS_OK;
+        }
+
+        return STATUS_INVALID_VALUE;
+    }
+
+    status_t parse_enum(float *dst, const char *text, const port_t *meta)
+    {
+        float min   = (meta->flags & F_LOWER) ? meta->min: 0;
+        float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
+
+        for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
+        {
+            if (!::strcasecmp(text, *p))
+            {
+                *dst    = min;
+                return STATUS_OK;
+            }
+            min    += step;
+        }
+
+        return STATUS_INVALID_VALUE;
+    }
+
+    status_t parse_decibels(float *dst, const char *text, const port_t *meta)
+    {
+        if (!::strcasecmp(text, "-inf"))
+        {
+            *dst = 0.0f;
+            return STATUS_OK;
+        }
+
+        float mul   = (meta->unit == U_GAIN_AMP) ? 0.05f : 0.1f;
+
+        // Parse float value
+        UPDATE_LOCALE(saved_locale, LC_NUMERIC, "C");
+        errno       = 0;
+        char *end   = NULL;
+        float value = ::strtof(text, &end);
+        status_t res= STATUS_INVALID_VALUE;
+
+        if ((*end == '\0') && (errno == 0))
+        {
+            *dst    = ::expf(value * M_LN10 * mul);
+            res     = STATUS_OK;
+        }
+
+        if (saved_locale != NULL)
+            ::setlocale(LC_NUMERIC, saved_locale);
+
+        return res;
+    }
+
+    status_t parse_int(float *dst, const char *text, const port_t *meta)
+    {
+        errno       = 0;
+        char *end   = NULL;
+        long long value = ::strtoll(text, &end, 10);
+        if ((*end == '\0') && (errno == 0))
+        {
+            *dst        = value;
+            return STATUS_OK;
+        }
+
+        return STATUS_INVALID_VALUE;
+    }
+
+    status_t parse_float(float *dst, const char *text, const port_t *meta)
+    {
+        // Parse float value
+        UPDATE_LOCALE(saved_locale, LC_NUMERIC, "C");
+        errno       = 0;
+        char *end   = NULL;
+        float value = ::strtof(text, &end);
+        status_t res= STATUS_INVALID_VALUE;
+
+        if ((*end == '\0') && (errno == 0))
+        {
+            *dst    = value;
+            res     = STATUS_OK;
+        }
+
+        if (saved_locale != NULL)
+            ::setlocale(LC_NUMERIC, saved_locale);
+
+        return res;
+    }
+
+    status_t parse_value(float *dst, const char *text, const port_t *meta)
+    {
+        if (meta->unit == U_BOOL)
+            return parse_bool(dst, text);
+        else if (meta->unit == U_ENUM)
+            return parse_enum(dst, text, meta);
+        else if ((meta->unit == U_GAIN_AMP) || (meta->unit == U_GAIN_POW))
+            return parse_decibels(dst, text, meta);
+        else if (meta->flags & F_INT)
+            return parse_int(dst, text, meta);
+        else
+            return parse_float(dst, text, meta);
+
+        return STATUS_BAD_ARGUMENTS;
     }
 
     void get_port_parameters(const port_t *p, float *min, float *max, float *step)
