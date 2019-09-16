@@ -194,7 +194,7 @@ namespace lsp
             if (pPort == NULL)
                 return;
             const port_t *mdata = pPort->metadata();
-            if (mdata == NULL)
+            if ((mdata == NULL) || (!IS_IN_PORT(mdata)))
                 return;
             fValue      = pPort->get_value();
 
@@ -295,7 +295,7 @@ namespace lsp
             lsp_trace("Apply value: %s", value->get_utf8());
 
             const port_t *meta = (pPort != NULL) ? pPort->metadata() : NULL;
-            if (meta == NULL)
+            if ((meta == NULL) || (!IS_IN_PORT(meta)))
                 return false;
 
             float fv;
@@ -371,7 +371,7 @@ namespace lsp
 
             // Get port metadata
             const port_t *mdata = (_this->pPort != NULL) ? _this->pPort->metadata() : NULL;
-            if (mdata == NULL)
+            if ((mdata == NULL) || (!IS_IN_PORT(mdata)))
                 return STATUS_OK;
 
             // Set-up units
@@ -510,7 +510,7 @@ namespace lsp
 
             // Get port metadata
             const port_t *meta = (_this->pPort != NULL) ? _this->pPort->metadata() : NULL;
-            if (meta == NULL)
+            if ((meta == NULL) || (!IS_IN_PORT(meta)))
                 return false;
 
             // Get popup window
