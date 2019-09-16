@@ -449,10 +449,6 @@ Tobbe:
   There is no LV2 implementation of this plugin to my knowlege. Outside of LV2, the free
   Nova Dynamic EQ vst plugin is an example of this implemented elsewhere.
 
-==== Parameter entering ====
-  In other subject, it would be great to be able to enter numerical values by double clicking
-  on the DB value under the knobs.
-
 ==== Music stuff ====
   i plan on switching completely to linux for my mixing and mastering needs, i like the calf plugins,
   i appreciate the plugins it already contains, i just feel some cool things I'm looking for aren't there

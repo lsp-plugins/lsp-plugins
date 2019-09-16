@@ -2,6 +2,10 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Parameter entering ====
+  In other subject, it would be great to be able to enter numerical values by double clicking
+  on the DB value under the knobs.
+
 ==== Equalizer tuning ====
   Jan Lentfer
     it would be very cool if the parametric EQs could import settings exported from "Room EQ Wizard".
