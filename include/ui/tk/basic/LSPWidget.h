@@ -351,56 +351,62 @@ namespace lsp
                  * @param uid unique widget identifier for DOM search
                  * @return status of operation
                  */
-                status_t set_unique_id(const char *uid);
+                status_t            set_unique_id(const char *uid);
 
                 /** Query widget for redraw
                  *
                  * @param flags redraw flags
                  */
-                virtual void    query_draw(size_t flags = REDRAW_SURFACE);
+                virtual void        query_draw(size_t flags = REDRAW_SURFACE);
+
+                /**
+                 * Put the widget to the destroy queue of the main loop
+                 * @return status of operation
+                 */
+                virtual status_t    queue_destroy();
 
                 /** Query widget for resize
                  *
                  */
-                virtual void    query_resize();
+                virtual void        query_resize();
 
                 /** Set expanding flag
                  *
                  * @param value expanding flag value
                  */
-                virtual void    set_expand(bool value = true);
+                virtual void        set_expand(bool value = true);
 
                 /** Set fill flag
                  *
                  * @param value filling flag value
                  */
-                virtual void    set_fill(bool value = true);
+                virtual void        set_fill(bool value = true);
 
                 /** Set horizontal fill flag
                  *
                  * @param value horizontal filling flag value
                  */
-                virtual void    set_hfill(bool value = true);
+                virtual void        set_hfill(bool value = true);
 
                 /** Set vertical fill flag
                  *
                  * @param value vertical filling flag value
                  */
-                virtual void    set_vfill(bool value = true);
+                virtual void        set_vfill(bool value = true);
 
                 /** Set mouse pointer
                  *
                  * @param mp mouse pointer
                  * @return mouse pointer
                  */
-                virtual status_t set_cursor(mouse_pointer_t mp);
+                virtual status_t    set_cursor(mouse_pointer_t mp);
 
                 /** Get widget surface
                  *
                  * @param s base surface
                  * @return widget surface or NULL
                  */
-                ISurface       *get_surface(ISurface *s);
+                ISurface           *get_surface(ISurface *s);
 
                 /** Get widget surface
                  *
@@ -409,109 +415,109 @@ namespace lsp
                  * @param height requested height
                  * @return widget surface or NULL
                  */
-                ISurface       *get_surface(ISurface *s, ssize_t width, ssize_t height);
+                ISurface           *get_surface(ISurface *s, ssize_t width, ssize_t height);
 
                 /** Render widget to the external surface
                  *
                  * @param surface surface to perform rendering
                  * @param force force child rendering
                  */
-                virtual void render(ISurface *s, bool force);
+                virtual void        render(ISurface *s, bool force);
 
                 /** Draw widget on the internal surface
                  *
                  * @param surface surface to perform drawing
                  */
-                virtual void draw(ISurface *s);
+                virtual void        draw(ISurface *s);
 
                 /** Realize widget
                  *
                  * @param r widget realization parameters
                  */
-                virtual void realize(const realize_t *r);
+                virtual void        realize(const realize_t *r);
 
                 /** Request for size
                  *
                  * @param r minimum and maximum dimensions of the widget
                  */
-                virtual void size_request(size_request_t *r);
+                virtual void        size_request(size_request_t *r);
 
                 /** Hide widget
                  *
                  */
-                virtual bool hide();
+                virtual bool        hide();
 
                 /** Show widget
                  *
                  */
-                virtual bool show();
+                virtual bool        show();
 
                 /** Set widget visibility
                  *
                  * @param visible widget visibility
                  */
-                virtual void set_visible(bool visible=true);
+                virtual void        set_visible(bool visible=true);
 
                 /** Set focus on widget
                  *
                  * @param focus focusing parameter
                  * @return status of operation
                  */
-                virtual status_t set_focus(bool focus = true);
+                virtual status_t    set_focus(bool focus = true);
 
                 /** Kill focus on widget
                  *
                  * @return status of operation
                  */
-                inline status_t kill_focus() { return set_focus(false); };
+                inline status_t     kill_focus() { return set_focus(false); };
 
                 /** Kill focus on widget
                  *
                  * @return status of operation
                  */
-                inline status_t take_focus() { return set_focus(true); };
+                inline status_t     take_focus() { return set_focus(true); };
 
                 /** Mark this widget to be currently pointed by mouse
                  *
                  * @return status of operation
                  */
-                status_t mark_pointed();
+                status_t            mark_pointed();
 
                 /** Invert focus
                  *
                  * @return status of operation
                  */
-                virtual status_t toggle_focus();
+                virtual status_t    toggle_focus();
 
                 /** Set widget invisibility
                  *
                  * @param invisible widget invisibility
                  */
-                inline void set_invisible(bool invisible=true) { set_visible(!invisible); }
+                inline void         set_invisible(bool invisible=true) { set_visible(!invisible); }
 
                 /** Handle UI event from the display
                  *
                  * @param e UI event
                  * @return status of operation
                  */
-                virtual status_t handle_event(const ws_event_t *e);
+                virtual status_t    handle_event(const ws_event_t *e);
 
                 /** Set parent widget of this widget
                  *
                  * @param parent parent widget
                  */
-                void set_parent(LSPComplexWidget *parent);
+                void                set_parent(LSPComplexWidget *parent);
 
                 /** Commit widet redraw
                  *
                  */
-                virtual void    commit_redraw();
+                virtual void        commit_redraw();
 
                 /** Get most top-level widget
                  *
                  * @return most top-level widget
                  */
-                LSPWidget      *toplevel();
+                LSPWidget          *toplevel();
 
             //---------------------------------------------------------------------------------
             // Event handling

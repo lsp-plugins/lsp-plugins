@@ -333,6 +333,13 @@ namespace lsp
 
     void            format_value(char *buf, size_t len, const port_t *meta, float value, ssize_t precision = -1);
 
+    status_t        parse_bool(float *dst, const char *text);
+    status_t        parse_enum(float *dst, const char *text, const port_t *meta);
+    status_t        parse_decibels(float *dst, const char *text, const port_t *meta);
+    status_t        parse_int(float *dst, const char *text, const port_t *meta);
+    status_t        parse_float(float *dst, const char *text, const port_t *meta);
+    status_t        parse_value(float *dst, const char *text, const port_t *meta);
+
     void            get_port_parameters(const port_t *p, float *min, float *max, float *step);
 
     /** Clone port metadata

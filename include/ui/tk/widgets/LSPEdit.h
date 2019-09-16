@@ -30,7 +30,7 @@ namespace lsp
                         virtual void on_change();
 
                     public:
-                        TextSelection(LSPEdit *widget);
+                        explicit TextSelection(LSPEdit *widget);
                         virtual ~TextSelection();
                 };
 
@@ -45,7 +45,7 @@ namespace lsp
                         virtual void on_blink();
 
                     public:
-                        TextCursor(LSPEdit *widget);
+                        explicit TextCursor(LSPEdit *widget);
                         virtual ~TextCursor();
                 };
 
@@ -55,7 +55,7 @@ namespace lsp
                         LSPEdit     *pEdit;
 
                     public:
-                        KeyboardInput(LSPEdit *widget);
+                        explicit KeyboardInput(LSPEdit *widget);
                         virtual ~KeyboardInput();
 
                     public:
@@ -70,7 +70,7 @@ namespace lsp
                         char               *pMime;
 
                     public:
-                        DataSink(LSPEdit *widget);
+                        explicit DataSink(LSPEdit *widget);
                         virtual ~DataSink();
 
                     public:

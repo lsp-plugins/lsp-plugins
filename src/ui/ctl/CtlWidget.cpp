@@ -224,7 +224,7 @@ namespace lsp
 
         LSPWidget *CtlWidget::resolve(const char *uid)
         {
-            const char *wuid = pWidget->unique_id();
+            const char *wuid = (pWidget != NULL) ? pWidget->unique_id() : NULL;
             if ((wuid != NULL) && (!strcmp(wuid, uid)))
                 return pWidget;
             return NULL;
