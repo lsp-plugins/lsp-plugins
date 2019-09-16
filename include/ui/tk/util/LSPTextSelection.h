@@ -43,6 +43,7 @@ namespace lsp
                 void set(ssize_t first);
                 void set_first(ssize_t value);
                 void set_last(ssize_t value);
+                void set_all();
                 void truncate();
                 void unset();
                 inline void clear() { unset(); };

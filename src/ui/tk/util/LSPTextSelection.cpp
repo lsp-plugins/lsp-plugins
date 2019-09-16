@@ -6,6 +6,7 @@
  */
 
 #include <ui/tk/tk.h>
+#include <limits.h>
 
 namespace lsp
 {
@@ -52,6 +53,19 @@ namespace lsp
                     nLast       = first;
                     on_change();
                 }
+            }
+        }
+
+        void LSPTextSelection::set_all()
+        {
+            ssize_t first = limit(0);
+            ssize_t last  = limit(SSIZE_MAX);
+
+            if ((nFirst != last) || (nLast != first))
+            {
+                nFirst      = last;
+                nLast       = first;
+                on_change();
             }
         }
 

@@ -405,6 +405,13 @@ namespace lsp
             nFlags &= ~(REDRAW_SURFACE | REDRAW_CHILD);
         }
 
+        status_t LSPWidget::queue_destroy()
+        {
+            if (pDisplay == NULL)
+                return STATUS_BAD_STATE;
+            return pDisplay->queue_destroy(this);
+        }
+
         void LSPWidget::query_resize()
         {
 //            query_draw(REDRAW_CHILD | REDRAW_SURFACE);

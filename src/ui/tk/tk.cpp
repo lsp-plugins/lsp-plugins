@@ -54,6 +54,8 @@ namespace lsp
             "status_warn",
             "status_error",
 
+            "invalid_input",
+
             NULL
         };
 
