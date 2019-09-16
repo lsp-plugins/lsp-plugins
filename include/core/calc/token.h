@@ -18,9 +18,10 @@ namespace lsp
         {
             TT_UNKNOWN,
 
-            TT_IDENTIFIER,
-            TT_VALUE,
-            TT_STRING,
+            TT_IDENTIFIER,  // Identifier
+            TT_IVALUE,      // Integer value
+            TT_FVALUE,      // Floating-point value
+            TT_STRING,      // String literal
 
             TT_LBRACE,
             TT_RBRACE,

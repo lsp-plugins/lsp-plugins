@@ -58,11 +58,17 @@ namespace lsp
                 inline token_t          current() const { return enToken; }
 
                 /**
-                 * Get current token value for non-primitive tokens
+                 * Get current token value for tokens that consist of characters
                  * @return current token value
                  */
-                inline const LSPString *value() const { return &sValue; }
+                inline const LSPString *text() const { return &sValue; }
 
+
+
+                /**
+                 * Get last error code
+                 * @return last error code
+                 */
                 inline status_t         error() const { return nError; }
         };
     
