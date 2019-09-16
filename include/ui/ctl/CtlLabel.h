@@ -61,6 +61,7 @@ namespace lsp
 
             protected:
                 static status_t slot_submit_value(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_change_value(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_cancel_value(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_dbl_click(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_key_up(LSPWidget *sender, void *ptr, void *data);

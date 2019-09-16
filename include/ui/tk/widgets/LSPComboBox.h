@@ -37,7 +37,7 @@ namespace lsp
                         virtual void            on_item_clear();
 
                     public:
-                        LSPComboList(LSPDisplay *dpy, LSPComboBox *widget);
+                        explicit LSPComboList(LSPDisplay *dpy, LSPComboBox *widget);
                         virtual ~LSPComboList();
                 };
 
@@ -50,7 +50,7 @@ namespace lsp
                         virtual status_t    handle_event(const ws_event_t *e);
 
                     public:
-                        LSPComboPopup(LSPDisplay *dpy, LSPComboBox *widget, ssize_t screen = -1);
+                        explicit LSPComboPopup(LSPDisplay *dpy, LSPComboBox *widget, ssize_t screen = -1);
                         virtual ~LSPComboPopup();
 
 //                    public:

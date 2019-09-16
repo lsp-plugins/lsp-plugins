@@ -61,6 +61,7 @@ namespace lsp
             this->slots()->bind(LSPSLOT_MOUSE_UP, CtlLabel::slot_mouse_button, pLabel);
 
             sValue.slots()->bind(LSPSLOT_KEY_UP, CtlLabel::slot_key_up, pLabel);
+            sValue.slots()->bind(LSPSLOT_CHANGE, CtlLabel::slot_change_value, pLabel);
             sValue.set_min_width(64);
 
             sUnits.padding()->set_left(4);
@@ -72,6 +73,8 @@ namespace lsp
             sCancel.slots()->bind(LSPSLOT_SUBMIT, CtlLabel::slot_cancel_value, pLabel);
 
             this->add(&sBox);
+            this->set_border(1);
+            this->padding()->set(4, 4, 2, 2);
 
             return STATUS_OK;
         }
@@ -495,6 +498,40 @@ namespace lsp
                 if (popup->queue_destroy() == STATUS_OK)
                     _this->pPopup  = NULL;
             }
+            return STATUS_OK;
+        }
+
+        status_t CtlLabel::slot_change_value(LSPWidget *sender, void *ptr, void *data)
+        {
+            // Get control pointer
+            CtlLabel *_this = static_cast<CtlLabel *>(ptr);
+            if ((_this == NULL) || (_this->pPopup == NULL))
+                return STATUS_OK;
+
+            // Get port metadata
+            const port_t *meta = (_this->pPort != NULL) ? _this->pPort->metadata() : NULL;
+            if (meta == NULL)
+                return false;
+
+            // Get popup window
+            PopupWindow *popup  = _this->pPopup;
+            if (popup == NULL)
+                return STATUS_OK;
+
+            // Validate input
+            LSPString value;
+            color_t color = C_RED;
+            if (popup->sValue.get_text(&value) == STATUS_OK)
+            {
+                if (parse_value(NULL, value.get_utf8(), meta) == STATUS_OK)
+                    color   = C_BACKGROUND;
+            }
+
+            // Update color
+            Color cl;
+            popup->display()->theme()->get_color(color, &cl);
+            popup->sValue.font()->color()->copy(&cl);
+
             return STATUS_OK;
         }
 

@@ -343,7 +343,8 @@ namespace lsp
             (!::strcasecmp(text, "on")) ||
             (!::strcasecmp(text, "1")))
         {
-            *dst    = 1.0f;
+            if (dst != NULL)
+                *dst    = 1.0f;
             return STATUS_OK;
         }
 
@@ -351,7 +352,8 @@ namespace lsp
             (!::strcasecmp(text, "off")) ||
             (!::strcasecmp(text, "0")))
         {
-            *dst    = 0.0f;
+            if (dst != NULL)
+                *dst    = 0.0f;
             return STATUS_OK;
         }
 
@@ -367,7 +369,8 @@ namespace lsp
         {
             if (!::strcasecmp(text, *p))
             {
-                *dst    = min;
+                if (dst != NULL)
+                    *dst    = min;
                 return STATUS_OK;
             }
             min    += step;
@@ -380,7 +383,8 @@ namespace lsp
     {
         if (!::strcasecmp(text, "-inf"))
         {
-            *dst = 0.0f;
+            if (dst != NULL)
+                *dst = 0.0f;
             return STATUS_OK;
         }
 
@@ -395,7 +399,8 @@ namespace lsp
 
         if ((*end == '\0') && (errno == 0))
         {
-            *dst    = ::expf(value * M_LN10 * mul);
+            if (dst != NULL)
+                *dst    = ::expf(value * M_LN10 * mul);
             res     = STATUS_OK;
         }
 
@@ -412,7 +417,8 @@ namespace lsp
         long long value = ::strtoll(text, &end, 10);
         if ((*end == '\0') && (errno == 0))
         {
-            *dst        = value;
+            if (dst != NULL)
+                *dst        = value;
             return STATUS_OK;
         }
 
@@ -430,7 +436,8 @@ namespace lsp
 
         if ((*end == '\0') && (errno == 0))
         {
-            *dst    = value;
+            if (dst != NULL)
+                *dst    = value;
             res     = STATUS_OK;
         }
 
@@ -442,6 +449,9 @@ namespace lsp
 
     status_t parse_value(float *dst, const char *text, const port_t *meta)
     {
+        if ((text == NULL) || (meta == NULL) || (*text == '\0'))
+            return STATUS_BAD_ARGUMENTS;
+
         if (meta->unit == U_BOOL)
             return parse_bool(dst, text);
         else if (meta->unit == U_ENUM)
