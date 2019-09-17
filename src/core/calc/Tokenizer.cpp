@@ -30,10 +30,9 @@ namespace lsp
 
         lsp_swchar_t Tokenizer::lookup()
         {
-            if (cCurrent >= 0)
-                return cCurrent;
-
-            return cCurrent = pIn->read();
+            if (cCurrent < 0)
+                cCurrent = pIn->read();
+            return cCurrent;
         }
 
         token_t Tokenizer::set_error(status_t code)
@@ -126,6 +125,9 @@ namespace lsp
 
         token_t Tokenizer::lookup_identifier()
         {
+            if (cCurrent < 0)
+                cCurrent = pIn->read();
+
             if (!is_identifier_first(cCurrent))
                 return enToken;
 
@@ -145,7 +147,7 @@ namespace lsp
                 }
             } while (is_identifier_next(cCurrent));
 
-            return enToken;
+            return enToken = TT_IDENTIFIER;
         }
 
         token_t Tokenizer::lookup_string()
