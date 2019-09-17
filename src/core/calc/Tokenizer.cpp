@@ -123,7 +123,7 @@ namespace lsp
             return true;
         }
 
-        token_t Tokenizer::lookup_identifier()
+        token_t Tokenizer::lookup_identifier(token_t type)
         {
             if (cCurrent < 0)
                 cCurrent = pIn->read();
@@ -147,7 +147,7 @@ namespace lsp
                 }
             } while (is_identifier_next(cCurrent));
 
-            return enToken = TT_IDENTIFIER;
+            return enToken = type;
         }
 
         token_t Tokenizer::lookup_string()
@@ -398,10 +398,369 @@ namespace lsp
             return enToken  = TT_FVALUE;
         }
 
-        token_t Tokenizer::commit_word(lsp_wchar_t ch)
+        token_t Tokenizer::decode_bareword()
         {
-            if ((enToken != TT_UNKNOWN) && (is_identifier_first(ch)))
-                commit(TT_UNKNOWN);
+            size_t idx      = 0;
+            char c          = sValue.char_at(idx++);
+            token_t res     = enToken;
+
+            switch (c)
+            {
+                // Alpha
+                case 'a': case 'A': // TT_AND, TT_ADD
+                    c = sValue.char_at(idx++);
+                    if ((c == 'n') || (c == 'N'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'd') || (c == 'D'))           // AND
+                            res         = TT_AND;
+                    }
+                    else if ((c == 'd') || (c == 'D'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'd') || (c == 'D'))           // ADD
+                            res         = TT_ADD;
+                    }
+                    break;
+
+                case 'b': case 'B': // TT_BAND, TT_BNOT, TT_BOR, TT_BXOR
+                    c = sValue.char_at(idx++);
+                    if ((c == 'a') || (c == 'A'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'n') || (c == 'N'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'd') || (c == 'D'))       // BAND
+                                res         = TT_BAND;
+                        }
+                    }
+                    else if ((c == 'n') || (c == 'N'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'o') || (c == 'O'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 't') || (c == 'T'))       // BNOT
+                                res         = TT_BNOT;
+                        }
+                    }
+                    else if ((c == 'o') || (c == 'O'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'r') || (c == 'R'))           // BOR
+                            res         = TT_BOR;
+                    }
+                    else if ((c == 'x') || (c == 'X'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'o') || (c == 'O'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'r') || (c == 'R'))       // BXOR
+                                res         = TT_BXOR;
+                        }
+                    }
+                    break;
+
+                case 'c': case 'C': // TT_CMP
+                    c = sValue.char_at(idx++);
+                    if ((c == 'm') || (c == 'M'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'p') || (c == 'P'))
+                            res         = TT_CMP;               // CMP
+                    }
+                    break;
+
+                case 'd': case 'D': // TT_DIV, TT_DB
+                    c = sValue.char_at(idx++);
+                    if ((c == 'i') || (c == 'I'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'v') || (c == 'V'))           // DIV
+                            res         = TT_DIV;
+                    }
+                    else if ((c == 'b') || (c == 'B'))          // DB
+                        res         = TT_DB;
+                    break;
+
+                case 'e': case 'E': // TT_EQ, TT_EX
+                    c = sValue.char_at(idx++);
+                    if ((c == 'q') || (c == 'Q'))               // EQ
+                        res         = TT_EQ;
+                    else if ((c == 'x') || (c == 'X'))          // EX
+                        res         = TT_EX;
+                    break;
+
+                case 'f': case 'F': // FALSE, FMOD
+                    c = sValue.char_at(idx++);
+                    if ((c == 'a') || (c == 'A'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'l') || (c == 'L'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 's') || (c == 'S'))
+                            {
+                                c = sValue.char_at(idx++);
+                                if ((c == 'e') || (c == 'E'))   // FALSE
+                                    res         = TT_FALSE;
+                            }
+                        }
+                    }
+                    else if ((c == 'm') || (c == 'M'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'o') || (c == 'O'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'd') || (c == 'D'))       // FMOD
+                                res         = TT_FMOD;
+                        }
+                    }
+                    break;
+
+                case 'g': case 'G': // TT_GREATER, TT_GREATER_EQ
+                    c = sValue.char_at(idx++);
+                    if ((c == 't') || (c == 'T'))               // GT
+                        res         = TT_GREATER;
+                    else if ((c == 'e') || (c == 'E'))          // GE
+                        res         = TT_GREATER_EQ;
+                    break;
+
+                case 'i': case 'I': // TT_IADD, TT_ISUB, TT_IMUL, TT_IDIV, TT_IMOD
+                    c = sValue.char_at(idx++);
+                    if ((c == 'a') || (c == 'A'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'd') || (c == 'D'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'd') || (c == 'D'))       // IADD
+                                res         = TT_IADD;
+                        }
+                    }
+                    else if ((c == 'd') || (c == 'D'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'i') || (c == 'I'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'v') || (c == 'V'))       // IDIV
+                                res         = TT_IDIV;
+                        }
+                    }
+                    else if ((c == 'e') || (c == 'E'))          // IE
+                    {
+                        res         = TT_IEQ;
+                        c           = (idx < sValue.length()) ?
+                                      sValue.char_at(idx++) : -1;
+                        if ((c == 'q') || (c == 'Q'))           // IEQ
+                            res         = TT_IEQ;
+                    }
+                    else if ((c == 'g') || (c == 'G'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 't') || (c == 'T'))           // IGT
+                            res         = TT_IGREATER;
+                        else if ((c == 'e') || (c == 'T'))      // IGE
+                            res         = TT_IGREATER_EQ;
+                    }
+                    else if ((c == 'l') || (c == 'L'))
+                    {
+                        c = sValue.char_at(idx++);              // ILT
+                        if ((c == 't') || (c == 'T'))
+                            res         = TT_ILESS;
+                        else if ((c == 'e') || (c == 'T'))      // ILE
+                            res         = TT_ILESS_EQ;
+                    }
+                    else if ((c == 'm') || (c == 'M'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'o') || (c == 'O'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'd') || (c == 'D'))       // IMOD
+                                res         = TT_IMOD;
+                        }
+                        else if ((c == 'u') || (c == 'U'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'l') || (c == 'L'))       // IMUL
+                                res         = TT_IMUL;
+                        }
+                    }
+                    else if ((c == 'n') || (c == 'N'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'e') || (c == 'E'))
+                            res         = TT_INOT_EQ;           // INE
+                        else if ((c == 'g') || (c == 'G'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 't') || (c == 'T'))       // INGT
+                                res         = TT_ILESS_EQ;
+                            else if ((c == 'e') || (c == 'T'))  // INGE
+                                res         = TT_ILESS;
+                        }
+                        else if ((c == 'l') || (c == 'L'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 't') || (c == 'T'))       // INLT
+                                res         = TT_IGREATER_EQ;
+                            else if ((c == 'e') || (c == 'T'))  // INLE
+                                res         = TT_IGREATER;
+                        }
+                    }
+                    else if ((c == 's') || (c == 'S'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'u') || (c == 'U'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'b') || (c == 'B'))       // ISUB
+                                res         = TT_ISUB;
+                        }
+                    }
+                    break;
+
+                case 'l': case 'L': // TT_LESS, TT_LESS_EQ
+                    c = sValue.char_at(idx++);
+                    if ((c == 't') || (c == 'T'))               // LT
+                        res         = TT_LESS;
+                    else if ((c == 'e') || (c == 'T'))          // LE
+                        res         = TT_LESS_EQ;
+                    break;
+
+                case 'm': case 'M': // TT_MUL, TT_MOD
+                    c = sValue.char_at(idx++);
+                    if ((c == 'o') || (c == 'O'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'd') || (c == 'D'))           // MOD
+                            res         = TT_IMOD;
+                    }
+                    else if ((c == 'u') || (c == 'U'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'l') || (c == 'L'))           // MUL
+                            res         = TT_MUL;
+                    }
+                    break;
+
+                case 'n': case 'N': // TT_NOT, TT_LESS, TT_GREATER, TT_LESS_EQ, TT_GREATER_EQ, TT_NOT_EQ
+                    c = sValue.char_at(idx++);
+                    if ((c == 'o') || (c == 'O'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 't') || (c == 'T'))           // NOT
+                            res         = TT_NOT;
+                    }
+                    else if ((c == 'g') || (c == 'G'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 't') || (c == 'T'))           // NGT
+                            res         = TT_LESS_EQ;
+                        else if ((c == 'e') || (c == 'T'))      // NGE
+                            res         = TT_LESS;
+                    }
+                    else if ((c == 'l') || (c == 'L'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 't') || (c == 'T'))           // NLT
+                            res         = TT_GREATER_EQ;
+                        else if ((c == 'e') || (c == 'T'))      // NLE
+                            res         = TT_GREATER;
+                    }
+                    else if ((c == 'e') || (c == 'E'))          // NE
+                        res         = TT_NOT_EQ;
+                    else if ((c == 'u') || (c == 'U'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'l') || (c == 'L'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'l') || (c == 'L'))       // NULL
+                                res         = TT_NULL;
+                        }
+                    }
+
+                    break;
+
+                case 'o': case 'O': // TT_OR
+                    c = sValue.char_at(idx++);
+                    if ((c == 'r') || (c == 'R'))               // OR
+                        res         = TT_OR;
+                    break;
+
+                case 'p': case 'P': // TT_POW
+                    c = sValue.char_at(idx++);
+                    if ((c == 'o') || (c == 'O'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'w') || (c == 'W'))           // POW
+                            res         = TT_POW;
+                    }
+                    break;
+
+                case 's': case 'S': // TT_SUB
+                    c = sValue.char_at(idx++);
+                    if ((c == 'u') || (c == 'U'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'b') || (c == 'B'))           // SUB
+                            res         = TT_SUB;
+                    }
+                    break;
+
+                case 't': case 'T': // TRUE
+                    c = sValue.char_at(idx++);
+                    if ((c == 'r') || (c == 'R'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'u') || (c == 'U'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'e') || (c == 'E'))       // TRUE
+                                res         = TT_TRUE;
+                        }
+                    }
+                    break;
+
+                case 'u': case 'U': // UNDEF
+                    c = sValue.char_at(idx++);
+                    if ((c == 'n') || (c == 'N'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'd') || (c == 'D'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'e') || (c == 'E'))
+                            {
+                                c = sValue.char_at(idx++);
+                                if ((c == 'f') || (c == 'F'))
+                                    res         = TT_UNDEF;
+                            }
+                        }
+                    }
+                    break;
+
+                case 'x': case 'X': // TT_XOR
+                    c = sValue.char_at(idx++);
+                    if ((c == 'o') || (c == 'O'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'r') || (c == 'R'))       // XOR
+                            res         = TT_XOR;
+                    }
+                    break;
+            }
+
+            // Replace token with new decoded value
+            if (idx == sValue.length())
+                enToken     = res;
+
             return enToken;
         }
 
@@ -522,394 +881,11 @@ namespace lsp
                 case ':': // TT_COLON, TT_IDENTIFIER
                 {
                     c = commit(TT_COLON);
-                    return lookup_identifier();
+                    return lookup_identifier(TT_IDENTIFIER);
                 }
 
                 case '\'': // TT_STRING
                     return lookup_string();
-
-                // Alpha
-                case 'a': case 'A': // TT_AND, TT_ADD
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'n') || (c == 'N'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'd') || (c == 'D'))           // AND
-                            c = commit_lookup(TT_AND);
-                    }
-                    else if ((c == 'd') || (c == 'D'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'd') || (c == 'D'))           // ADD
-                            c = commit_lookup(TT_ADD);
-                    }
-                    return commit_word(c);
-                }
-
-                case 'b': case 'B': // TT_BAND, TT_BNOT, TT_BOR, TT_BXOR
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'a') || (c == 'A'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'n') || (c == 'N'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'd') || (c == 'D'))       // BAND
-                                c = commit_lookup(TT_BAND);
-                        }
-                    }
-                    else if ((c == 'n') || (c == 'N'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 't') || (c == 'T'))       // BNOT
-                                c = commit_lookup(TT_BNOT);
-                        }
-                    }
-                    else if ((c == 'o') || (c == 'O'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'r') || (c == 'R'))           // BOR
-                            c = commit_lookup(TT_BOR);
-                    }
-                    else if ((c == 'x') || (c == 'X'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'r') || (c == 'R'))       // BXOR
-                                c = commit_lookup(TT_BXOR);
-                        }
-                    }
-                    return commit_word(c);
-                }
-
-                case 'c': case 'C': // TT_CMP
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'm') || (c == 'M'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'p') || (c == 'P'))
-                            c = commit_lookup(TT_CMP);          // CMP
-                    }
-                    return commit_word(c);
-                }
-
-                case 'd': case 'D': // TT_DIV, TT_DB
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'i') || (c == 'I'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'v') || (c == 'V'))           // DIV
-                            c = commit_lookup(TT_DIV);
-                    }
-                    else if ((c == 'b') || (c == 'B'))          // DB
-                        c = commit_lookup(TT_DB);
-                    return commit_word(c);
-                }
-
-                case 'e': case 'E': // TT_EQ, TT_EX
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'q') || (c == 'Q'))               // EQ
-                        c = commit_lookup(TT_EQ);
-                    else if ((c == 'x') || (c == 'X'))          // EX
-                        c = commit_lookup(TT_EX);
-
-                    return commit_word(c);
-                }
-
-                case 'f': case 'F': // FALSE, FMOD
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'a') || (c == 'A'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'l') || (c == 'L'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 's') || (c == 'S'))
-                            {
-                                c = commit_lookup(TT_UNKNOWN);
-                                if ((c == 'e') || (c == 'E'))   // FALSE
-                                    c = commit_lookup(TT_FALSE);
-                            }
-                        }
-                    }
-                    else if ((c == 'm') || (c == 'M'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'd') || (c == 'D'))       // FMOD
-                                c = commit_lookup(TT_FMOD);
-                        }
-                    }
-                    return commit_word(c);
-                }
-
-                case 'g': case 'G': // TT_GREATER, TT_GREATER_EQ
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 't') || (c == 'T'))               // GT
-                        c = commit_lookup(TT_GREATER);
-                    else if ((c == 'e') || (c == 'E'))          // GE
-                        c = commit_lookup(TT_GREATER_EQ);
-                    return commit_word(c);
-                }
-
-                case 'i': case 'I': // TT_IADD, TT_ISUB, TT_IMUL, TT_IDIV, TT_IMOD
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'a') || (c == 'A'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'd') || (c == 'D'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'd') || (c == 'D'))       // IADD
-                                c = commit_lookup(TT_IADD);
-                        }
-                    }
-                    else if ((c == 'd') || (c == 'D'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'i') || (c == 'I'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'v') || (c == 'V'))       // IDIV
-                                c = commit_lookup(TT_IDIV);
-                        }
-                    }
-                    else if ((c == 'e') || (c == 'E'))          // IE
-                    {
-                        c = commit_lookup(TT_IEQ);
-                        if ((c == 'q') || (c == 'Q'))           // IEQ
-                            c = commit_lookup(TT_IEQ);
-                    }
-                    else if ((c == 'g') || (c == 'G'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 't') || (c == 'T'))           // IGT
-                            c = commit_lookup(TT_IGREATER);
-                        else if ((c == 'e') || (c == 'T'))      // IGE
-                            c = commit_lookup(TT_IGREATER_EQ);
-                    }
-                    else if ((c == 'l') || (c == 'L'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);          // ILT
-                        if ((c == 't') || (c == 'T'))
-                            c = commit_lookup(TT_ILESS);
-                        else if ((c == 'e') || (c == 'T'))      // ILE
-                            c = commit_lookup(TT_ILESS_EQ);
-                    }
-                    else if ((c == 'm') || (c == 'M'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'd') || (c == 'D'))       // IMOD
-                                c = commit_lookup(TT_IMOD);
-                        }
-                        else if ((c == 'u') || (c == 'U'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'l') || (c == 'L'))       // IMUL
-                                c = commit_lookup(TT_IMUL);
-                        }
-                    }
-                    else if ((c == 'n') || (c == 'N'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'e') || (c == 'E'))
-                            c = commit_lookup(TT_INOT_EQ);      // INE
-                        else if ((c == 'g') || (c == 'G'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 't') || (c == 'T'))       // INGT
-                                c = commit_lookup(TT_ILESS_EQ);
-                            else if ((c == 'e') || (c == 'T'))  // INGE
-                                c = commit_lookup(TT_ILESS);
-                        }
-                        else if ((c == 'l') || (c == 'L'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 't') || (c == 'T'))       // INLT
-                                c = commit_lookup(TT_IGREATER_EQ);
-                            else if ((c == 'e') || (c == 'T'))  // INLE
-                                c = commit_lookup(TT_IGREATER);
-                        }
-                    }
-                    else if ((c == 's') || (c == 'S'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'u') || (c == 'U'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'b') || (c == 'B'))
-                                c = commit_lookup(TT_ISUB);     // ISUB
-                        }
-                    }
-                    return commit_word(c);
-                }
-
-                case 'l': case 'L': // TT_LESS, TT_LESS_EQ
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 't') || (c == 'T'))               // LT
-                        c = commit_lookup(TT_LESS);
-                    else if ((c == 'e') || (c == 'T'))          // LE
-                        c = commit_lookup(TT_LESS_EQ);
-                    return commit_word(c);
-                }
-
-                case 'm': case 'M': // TT_MUL, TT_MOD
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'd') || (c == 'D'))           // MOD
-                            c = commit_lookup(TT_IMOD);
-                    }
-                    else if ((c == 'u') || (c == 'U'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'l') || (c == 'L'))           // MUL
-                            c = commit_lookup(TT_MUL);
-                    }
-                    return commit_word(c);
-                }
-
-                case 'n': case 'N': // TT_NOT, TT_LESS, TT_GREATER, TT_LESS_EQ, TT_GREATER_EQ, TT_NOT_EQ
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 't') || (c == 'T'))           // NOT
-                            c = commit_lookup(TT_NOT);
-                    }
-                    else if ((c == 'g') || (c == 'G'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 't') || (c == 'T'))           // NGT
-                            c = commit_lookup(TT_LESS_EQ);
-                        else if ((c == 'e') || (c == 'T'))      // NGE
-                            c = commit_lookup(TT_LESS);
-                    }
-                    else if ((c == 'l') || (c == 'L'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 't') || (c == 'T'))           // NLT
-                            c = commit_lookup(TT_GREATER_EQ);
-                        else if ((c == 'e') || (c == 'T'))      // NLE
-                            c = commit_lookup(TT_GREATER);
-                    }
-                    else if ((c == 'e') || (c == 'E'))          // NE
-                        c = commit_lookup(TT_NOT_EQ);
-                    else if ((c == 'u') || (c == 'U'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'l') || (c == 'L'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'l') || (c == 'L'))       // NULL
-                                c = commit_lookup(TT_NULL);
-                        }
-                    }
-
-                    return commit_word(c);
-                }
-
-                case 'o': case 'O': // TT_OR
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'r') || (c == 'R'))           // OR
-                        c = commit_lookup(TT_OR);
-                    return commit_word(c);
-                }
-
-                case 'p': case 'P': // TT_POW
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'w') || (c == 'W'))
-                            c = commit_lookup(TT_POW);     // POW
-                    }
-                    return commit_word(c);
-                }
-
-                case 's': case 'S': // TT_SUB
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'u') || (c == 'U'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'b') || (c == 'B'))
-                            c = commit_lookup(TT_SUB);     // SUB
-                    }
-                    return commit_word(c);
-                }
-
-                case 't': case 'T': // TRUE
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'r') || (c == 'R'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'u') || (c == 'U'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'e') || (c == 'E'))   // TRUE
-                                c = commit_lookup(TT_TRUE);
-                        }
-                    }
-                    return commit_word(c);
-                }
-
-                case 'u': case 'U': // UNDEF
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'n') || (c == 'N'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'd') || (c == 'D'))
-                        {
-                            c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'e') || (c == 'E'))
-                            {
-                                c = commit_lookup(TT_UNKNOWN);
-                                if ((c == 'f') || (c == 'F'))
-                                    c = commit_lookup(TT_UNDEF);
-                            }
-                        }
-                    }
-                    return commit_word(c);
-                }
-
-                case 'x': case 'X': // TT_XOR
-                {
-                    c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'r') || (c == 'R'))       // XOR
-                            c = commit_lookup(TT_XOR);
-                    }
-                    return commit_word(c);
-                }
 
                 // Defaults
                 default: // TT_VALUE
@@ -923,7 +899,13 @@ namespace lsp
                             return commit(TT_SUB);
                     }
 
-                    return lookup_number();
+                    if (!is_identifier_first(c))
+                        return lookup_number();
+
+                    if (lookup_identifier(TT_BAREWORD) != TT_BAREWORD)
+                        return enToken;
+
+                    return decode_bareword();
                 }
             }
 

@@ -17,6 +17,7 @@ namespace lsp
         enum token_t
         {
             TT_IDENTIFIER,  // Identifier
+            TT_BAREWORD,    // Bareword
             TT_IVALUE,      // Integer value
             TT_FVALUE,      // Floating-point value
             TT_STRING,      // String literal

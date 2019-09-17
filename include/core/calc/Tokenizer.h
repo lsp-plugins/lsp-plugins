@@ -35,12 +35,12 @@ namespace lsp
                 lsp_swchar_t        lookup();
                 lsp_swchar_t        commit_lookup(token_t token);
                 lsp_swchar_t        skip_whitespace();
-                token_t             lookup_identifier();
+                token_t             lookup_identifier(token_t type);
                 token_t             lookup_string();
                 token_t             lookup_number();
                 token_t             commit(token_t token);
-                token_t             commit_word(lsp_wchar_t ch);
                 token_t             set_error(status_t code);
+                token_t             decode_bareword();
 
                 static bool         is_identifier_first(lsp_wchar_t ch);
                 static bool         is_identifier_next(lsp_wchar_t ch);

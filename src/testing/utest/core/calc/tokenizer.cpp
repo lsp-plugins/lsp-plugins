@@ -107,6 +107,7 @@ UTEST_BEGIN("core.calc", tokenizer)
                 "lt nge gt nle le ngt ge nlt ne eq cmp "
                 "ilt inge igt inle ile ingt ige inlt ine ie ieq "
                 "ex db "
+                "bareword "
             ;
 
         io::InStringSequence sq;
@@ -169,6 +170,7 @@ UTEST_BEGIN("core.calc", tokenizer)
 
         ck_token(t, "ex", TT_EX);
         ck_token(t, "db", TT_DB);
+        ck_token(t, "bareword", TT_BAREWORD);
 
         UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
     }
@@ -255,8 +257,8 @@ UTEST_BEGIN("core.calc", tokenizer)
         ck_float(t, 1.25);
         ck_float(t, -20.0);
 
-        ck_float(t, 1.25);
-        ck_float(t, -20.0);
+        ck_float(t, 0.01953125);
+        ck_float(t, -1280.0);
 
         UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
     }
@@ -290,7 +292,6 @@ UTEST_BEGIN("core.calc", tokenizer)
 
     void test_invalid_tokens()
     {
-        ck_invalid("blablabla", TT_UNKNOWN);
         ck_invalid(".", TT_UNKNOWN);
         ck_invalid(".e+", TT_UNKNOWN);
         ck_invalid("\'", TT_ERROR);
@@ -300,7 +301,7 @@ UTEST_BEGIN("core.calc", tokenizer)
     void test_expression_tokens()
     {
         static const char *tokens =
-            "((:a eq :b) or (:a eq :c+:d)) * 10 + (:b ine :c) ? 1 db : 2.0 db";
+            "((:a eq :b) or (:a eq :c+:d[ssel])) * 10 + (:b ine :c) ? 1 db : 2.0 db";
 
         io::InStringSequence sq;
         UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
@@ -322,6 +323,9 @@ UTEST_BEGIN("core.calc", tokenizer)
                 ck_token(t, "c", TT_IDENTIFIER);
                 ck_token(t, "+", TT_ADD);
                 ck_token(t, "d", TT_IDENTIFIER);
+                ck_token(t, "[", TT_LQBRACE);
+                    ck_token(t, "ssel", TT_BAREWORD);
+                ck_token(t, "]", TT_RQBRACE);
             ck_token(t, ")", TT_RBRACE);
         ck_token(t, ")", TT_RBRACE);
 
