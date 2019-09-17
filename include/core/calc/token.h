@@ -83,6 +83,9 @@ namespace lsp
             TT_COLON,
             TT_SEMICOLON,
 
+            // Special measuring units
+            TT_DB,
+
             TT_EOF,
             TT_ERROR
         };

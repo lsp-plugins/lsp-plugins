@@ -24,6 +24,11 @@ namespace lsp
                 lsp_swchar_t        cCurrent;
                 token_t             enToken;
                 LSPString           sValue;
+                union
+                {
+                    double              fValue;
+                    ssize_t             iValue;
+                };
                 status_t            nError;
 
             protected:
@@ -32,12 +37,14 @@ namespace lsp
                 lsp_swchar_t        skip_whitespace();
                 token_t             lookup_identifier();
                 token_t             lookup_string();
+                token_t             lookup_number();
                 token_t             commit(token_t token);
                 token_t             commit_word(lsp_wchar_t ch);
                 token_t             set_error(status_t code);
 
                 static bool         is_identifier_first(lsp_wchar_t ch);
                 static bool         is_identifier_next(lsp_wchar_t ch);
+                static bool         parse_digit(int *digit, lsp_wchar_t ch, int radix);
 
             public:
                 explicit Tokenizer(io::IInSequence *in);
@@ -61,9 +68,19 @@ namespace lsp
                  * Get current token value for tokens that consist of characters
                  * @return current token value
                  */
-                inline const LSPString *text() const { return &sValue; }
+                inline const LSPString *text_value() const  { return &sValue; }
 
+                /**
+                 * Get floating-point value of the token
+                 * @return floating-point value of the token
+                 */
+                inline const double     float_value() const { return fValue; }
 
+                /**
+                 * Get integer value of the token
+                 * @return integer value of the token
+                 */
+                inline ssize_t          int_value() const   { return iValue; }
 
                 /**
                  * Get last error code
