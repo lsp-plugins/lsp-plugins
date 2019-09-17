@@ -6,6 +6,7 @@
  */
 
 #include <test/utest.h>
+#include <test/helpers.h>
 #include <core/calc/token.h>
 #include <core/calc/Tokenizer.h>
 #include <core/io/InStringSequence.h>
@@ -21,6 +22,22 @@ UTEST_BEGIN("core.calc", tokenizer)
         token_t tok = t.get_token(TF_GET);
         UTEST_ASSERT_MSG(tok == token, "Error testing token: %s", s);
         UTEST_ASSERT_MSG(t.text_value()->equals_ascii(s), "Error testing token: %s", s);
+    }
+
+    void ck_int(Tokenizer &t, ssize_t value)
+    {
+        printf("  checking integer: %d\n", int(value));
+        token_t tok = t.get_token(TF_GET);
+        UTEST_ASSERT_MSG(tok == TT_IVALUE, "Error testing token: not IVALUE");
+        UTEST_ASSERT_MSG(t.int_value() == value, "Error testing token: %d != %d", int(t.int_value()), int(value));
+    }
+
+    void ck_float(Tokenizer &t, double value)
+    {
+        printf("  checking float: %f\n", double(value));
+        token_t tok = t.get_token(TF_GET);
+        UTEST_ASSERT_MSG(tok == TT_FVALUE, "Error testing token: not FVALUE");
+        UTEST_ASSERT_MSG(float_equals_relative(t.float_value(), value), "Error testing token: %f != %f", t.float_value(), value);
     }
 
     void test_sign_tokens()
@@ -167,6 +184,66 @@ UTEST_BEGIN("core.calc", tokenizer)
         UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
     }
 
+    void test_numeric_tokens()
+    {
+        static const char *tokens =
+                " "
+                "+ - 0 0.0 +1 -1 +1.0 -1.0 +1.123 -1.321 "
+                "0b0101 0b0101.0 0b0101.11 "
+                "0o17 0o7.0 0o7.7 "
+                "0d129 0d9.0 0d9.9 "
+                "0x1f 0x1f.0 0x1f.1 "
+                "1.e 2.0e .3e 4.5e 6.7e1 8.9e+1 1.0e-1 .2e+1 .3e-1 "
+                "0b101.0e-10 -0b101.0e+10 "
+            ;
+
+        io::InStringSequence sq;
+        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+
+        Tokenizer t(&sq);
+
+        ck_token(t, "+", TT_ADD);
+        ck_token(t, "-", TT_SUB);
+        ck_int(t, 0);
+        ck_float(t, 0.0);
+        ck_int(t, +1);
+        ck_int(t, -1);
+        ck_float(t, +1.0);
+        ck_float(t, -1.0);
+        ck_float(t, +1.123);
+        ck_float(t, -1.321);
+
+        ck_int(t, 5);
+        ck_float(t, 5.0);
+        ck_float(t, 5.75);
+
+        ck_int(t, 15);
+        ck_float(t, 7.0);
+        ck_float(t, 7.875);
+
+        ck_int(t, 129);
+        ck_float(t, 9.0);
+        ck_float(t, 9.9);
+
+        ck_int(t, 0x1f);
+        ck_float(t, 31.0);
+        ck_float(t, 31.0625);
+
+        ck_float(t, 1.0);
+        ck_float(t, 2.0);
+        ck_float(t, 0.3);
+        ck_float(t, 4.5);
+        ck_float(t, 67.0);
+        ck_float(t, 89.0);
+        ck_float(t, 0.1);
+        ck_float(t, 2.0);
+        ck_float(t, 0.03);
+
+        ck_float(t, 1.25);
+        ck_float(t, -20.0);
+
+        UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
+    }
 
     UTEST_MAIN
     {
@@ -176,6 +253,8 @@ UTEST_BEGIN("core.calc", tokenizer)
         test_text_tokens();
         printf("Testing identifier tokens...\n");
         test_identifier_tokens();
+        printf("Testing numeric tokens...\n");
+        test_numeric_tokens();
     }
 
 UTEST_END

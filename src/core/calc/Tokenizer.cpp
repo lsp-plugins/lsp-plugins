@@ -244,7 +244,7 @@ namespace lsp
             int digit       = 0;
             ssize_t ivalue  = 0;
             double ifrac    = 0;
-            double ifpow    = 0;
+            double ifpow    = 1.0;
             double rradix   = 0.1;
             ssize_t iexp    = 0;
 
@@ -327,8 +327,8 @@ namespace lsp
                     }
                     else
                     {
-                        ifrac      += digit * ifpow;
                         ifpow      *= rradix;
+                        ifrac      += digit * ifpow;
                         flags      |= F_FRAC;
                     }
                     c           = commit_lookup(TT_FVALUE);
@@ -385,14 +385,14 @@ namespace lsp
             }
 
             // Now analyze parsing state
-            if ((flags & (F_INT | F_FRAC | F_EXP)) == F_INT)
+            if ((flags & (F_INT | F_FRAC | F_EXP | F_DOT)) == F_INT)
             {
-                iValue      = ivalue;
+                iValue      = (flags & F_NEGATIVE) ? -ivalue : ivalue;
                 return enToken = TT_IVALUE;
             }
 
             // Form the floating-point value
-            double fv       = (double(ivalue) + ifpow) * pow(radix, iexp);
+            double fv       = (double(ivalue) + ifrac) * pow(radix, iexp);
             fValue          = (flags & F_NEGATIVE) ? -fv : fv;
             return enToken  = TT_FVALUE;
         }
