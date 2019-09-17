@@ -227,11 +227,13 @@ namespace lsp
             enum flags_t
             {
                 F_NEGATIVE      = 1 << 0,
-                F_INT           = 1 << 1,
-                F_FRAC          = 1 << 2,
-                F_EXP           = 1 << 3,
-                F_ESIGN         = 1 << 4,
-                F_ENEGATIVE     = 1 << 5
+                F_SIGN          = 1 << 1,
+                F_INT           = 1 << 2,
+                F_DOT           = 1 << 3,
+                F_FRAC          = 1 << 4,
+                F_EXP           = 1 << 5,
+                F_ESIGN         = 1 << 6,
+                F_ENEGATIVE     = 1 << 7
             };
 
             lsp_swchar_t c  = lookup();
@@ -247,11 +249,14 @@ namespace lsp
             // Has sign?
             if (c == '-')
             {
-                flags      |= F_NEGATIVE;
+                flags      |= F_NEGATIVE | F_SIGN;
                 c           = commit_lookup(TT_UNKNOWN);
             }
             else if (c == '+')
+            {
+                flags      |= F_SIGN;
                 c           = commit_lookup(TT_UNKNOWN);
+            }
 
             // Has prefix ?
             if (c == '0')
@@ -308,6 +313,7 @@ namespace lsp
             // Has a fraction part?
             if (c == '.')
             {
+                flags      |= F_DOT;
                 c           = commit_lookup(TT_FVALUE);
 
                 while (parse_digit(&digit, c, radix))
@@ -329,7 +335,11 @@ namespace lsp
 
             // Is there at least INT or FRAC part defined?
             if ((flags & (F_INT | F_FRAC)) == 0)
+            {
+                if ((flags & (F_SIGN | F_DOT)) == F_SIGN)
+                    return enToken = (flags & F_NEGATIVE) ? TT_SUB : TT_ADD;
                 return enToken = TT_UNKNOWN;
+            }
 
             // Has an exponent part?
             if ((c == 'e') || (c == 'E') || (c == 'p') || (c == 'P'))
@@ -449,7 +459,9 @@ namespace lsp
                 case '/': // TT_DIV
                     return commit(TT_DIV);
                 case '%': // TT_MOD
-                    return commit(TT_MOD);
+                    return commit(TT_IMOD);
+                case '~': // TT_BNOT
+                    return commit(TT_BNOT);
                 case '?': // TT_QUESTION
                     return commit(TT_QUESTION);
                 case '&': // TT_AND
@@ -607,26 +619,35 @@ namespace lsp
                         c = commit_lookup(TT_EQ);
                     else if ((c == 'x') || (c == 'X'))          // EX
                         c = commit_lookup(TT_EX);
-                    if ((enToken != TT_UNKNOWN) && (is_identifier_first(c)))
-                        commit(TT_UNKNOWN);
-                    return enToken;
+
+                    return commit_word(c);
                 }
 
-                case 'f': case 'F': // FALSE
+                case 'f': case 'F': // FALSE, FMOD
                 {
                     c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'a') && (c == 'A'))
+                    if ((c == 'a') || (c == 'A'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'l') && (c == 'L'))
+                        if ((c == 'l') || (c == 'L'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 's') && (c == 'S'))
+                            if ((c == 's') || (c == 'S'))
                             {
                                 c = commit_lookup(TT_UNKNOWN);
-                                if ((c == 'e') && (c == 'E'))   // FALSE
+                                if ((c == 'e') || (c == 'E'))   // FALSE
                                     c = commit_lookup(TT_FALSE);
                             }
+                        }
+                    }
+                    else if ((c == 'm') || (c == 'M'))
+                    {
+                        c = commit_lookup(TT_UNKNOWN);
+                        if ((c == 'o') || (c == 'O'))
+                        {
+                            c = commit_lookup(TT_UNKNOWN);
+                            if ((c == 'd') || (c == 'D'))       // FMOD
+                                c = commit_lookup(TT_FMOD);
                         }
                     }
                     return commit_word(c);
@@ -651,8 +672,8 @@ namespace lsp
                         if ((c == 'd') || (c == 'D'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'd') || (c == 'D'))
-                                c = commit_lookup(TT_IADD);     // IADD
+                            if ((c == 'd') || (c == 'D'))       // IADD
+                                c = commit_lookup(TT_IADD);
                         }
                     }
                     else if ((c == 'd') || (c == 'D'))
@@ -661,31 +682,31 @@ namespace lsp
                         if ((c == 'i') || (c == 'I'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'V') || (c == 'V'))
-                                c = commit_lookup(TT_IDIV);     // IDIV
+                            if ((c == 'v') || (c == 'V'))       // IDIV
+                                c = commit_lookup(TT_IDIV);
                         }
                     }
-                    else if ((c == 'e') || (c == 'E'))
+                    else if ((c == 'e') || (c == 'E'))          // IE
                     {
-                        c = commit_lookup(TT_IEQ);              // IE
-                        if ((c == 'q') || (c == 'Q'))
-                            c = commit_lookup(TT_IEQ);          // IEQ
+                        c = commit_lookup(TT_IEQ);
+                        if ((c == 'q') || (c == 'Q'))           // IEQ
+                            c = commit_lookup(TT_IEQ);
                     }
                     else if ((c == 'g') || (c == 'G'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 't') || (c == 'T'))
-                            c = commit_lookup(TT_IGREATER);     // IGT
-                        else if ((c == 'e') || (c == 'T'))
-                            c = commit_lookup(TT_IGREATER_EQ);  // IGE
+                        if ((c == 't') || (c == 'T'))           // IGT
+                            c = commit_lookup(TT_IGREATER);
+                        else if ((c == 'e') || (c == 'T'))      // IGE
+                            c = commit_lookup(TT_IGREATER_EQ);
                     }
                     else if ((c == 'l') || (c == 'L'))
                     {
-                        c = commit_lookup(TT_UNKNOWN);
+                        c = commit_lookup(TT_UNKNOWN);          // ILT
                         if ((c == 't') || (c == 'T'))
-                            c = commit_lookup(TT_ILESS);        // ILT
-                        else if ((c == 'e') || (c == 'T'))
-                            c = commit_lookup(TT_LESS_EQ);      // ILE
+                            c = commit_lookup(TT_ILESS);
+                        else if ((c == 'e') || (c == 'T'))      // ILE
+                            c = commit_lookup(TT_ILESS_EQ);
                     }
                     else if ((c == 'm') || (c == 'M'))
                     {
@@ -693,14 +714,14 @@ namespace lsp
                         if ((c == 'o') || (c == 'O'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'd') || (c == 'D'))
-                                c = commit_lookup(TT_MOD);      // IMOD
+                            if ((c == 'd') || (c == 'D'))       // IMOD
+                                c = commit_lookup(TT_IMOD);
                         }
                         else if ((c == 'u') || (c == 'U'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
                             if ((c == 'l') || (c == 'L'))       // IMUL
-                                c = commit_lookup(TT_MOD);
+                                c = commit_lookup(TT_IMUL);
                         }
                     }
                     else if ((c == 'n') || (c == 'N'))
@@ -711,22 +732,23 @@ namespace lsp
                         else if ((c == 'g') || (c == 'G'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 't') || (c == 'T'))
-                                c = commit_lookup(TT_ILESS_EQ); // INGT
-                            else if ((c == 'e') || (c == 'T'))
-                                c = commit_lookup(TT_ILESS);    // INGE
+                            if ((c == 't') || (c == 'T'))       // INGT
+                                c = commit_lookup(TT_ILESS_EQ);
+                            else if ((c == 'e') || (c == 'T'))  // INGE
+                                c = commit_lookup(TT_ILESS);
                         }
                         else if ((c == 'l') || (c == 'L'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 't') || (c == 'T'))
-                                c = commit_lookup(TT_IGREATER_EQ); // INLT
-                            else if ((c == 'e') || (c == 'T'))
-                                c = commit_lookup(TT_IGREATER);    // INLE
+                            if ((c == 't') || (c == 'T'))       // INLT
+                                c = commit_lookup(TT_IGREATER_EQ);
+                            else if ((c == 'e') || (c == 'T'))  // INLE
+                                c = commit_lookup(TT_IGREATER);
                         }
                     }
                     else if ((c == 's') || (c == 'S'))
                     {
+                        c = commit_lookup(TT_UNKNOWN);
                         if ((c == 'u') || (c == 'U'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
@@ -740,10 +762,10 @@ namespace lsp
                 case 'l': case 'L': // TT_LESS, TT_LESS_EQ
                 {
                     c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 't') || (c == 'T'))
-                        c = commit_lookup(TT_ILESS);        // ILT
-                    else if ((c == 'e') || (c == 'T'))
-                        c = commit_lookup(TT_ILESS_EQ);     // ILE
+                    if ((c == 't') || (c == 'T'))               // LT
+                        c = commit_lookup(TT_LESS);
+                    else if ((c == 'e') || (c == 'T'))          // LE
+                        c = commit_lookup(TT_LESS_EQ);
                     return commit_word(c);
                 }
 
@@ -753,14 +775,14 @@ namespace lsp
                     if ((c == 'o') || (c == 'O'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'd') || (c == 'D'))
-                            c = commit_lookup(TT_MOD);      // MOD
+                        if ((c == 'd') || (c == 'D'))           // MOD
+                            c = commit_lookup(TT_IMOD);
                     }
                     else if ((c == 'u') || (c == 'U'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'l') || (c == 'L'))       // MUL
-                            c = commit_lookup(TT_MOD);
+                        if ((c == 'l') || (c == 'L'))           // MUL
+                            c = commit_lookup(TT_MUL);
                     }
                     return commit_word(c);
                 }
@@ -792,6 +814,16 @@ namespace lsp
                     }
                     else if ((c == 'e') || (c == 'E'))          // NE
                         c = commit_lookup(TT_NOT_EQ);
+                    else if ((c == 'u') || (c == 'U'))
+                    {
+                        c = commit_lookup(TT_UNKNOWN);
+                        if ((c == 'l') || (c == 'L'))
+                        {
+                            c = commit_lookup(TT_UNKNOWN);
+                            if ((c == 'l') || (c == 'L'))       // NULL
+                                c = commit_lookup(TT_NULL);
+                        }
+                    }
 
                     return commit_word(c);
                 }
@@ -806,6 +838,7 @@ namespace lsp
 
                 case 'p': case 'P': // TT_POW
                 {
+                    c = commit_lookup(TT_UNKNOWN);
                     if ((c == 'o') || (c == 'O'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
@@ -817,6 +850,7 @@ namespace lsp
 
                 case 's': case 'S': // TT_SUB
                 {
+                    c = commit_lookup(TT_UNKNOWN);
                     if ((c == 'u') || (c == 'U'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
@@ -829,14 +863,34 @@ namespace lsp
                 case 't': case 'T': // TRUE
                 {
                     c = commit_lookup(TT_UNKNOWN);
-                    if ((c == 'r') && (c == 'R'))
+                    if ((c == 'r') || (c == 'R'))
                     {
                         c = commit_lookup(TT_UNKNOWN);
-                        if ((c == 'u') && (c == 'U'))
+                        if ((c == 'u') || (c == 'U'))
                         {
                             c = commit_lookup(TT_UNKNOWN);
-                            if ((c == 'e') && (c == 'E'))   // TRUE
-                                c = commit_lookup(TT_FALSE);
+                            if ((c == 'e') || (c == 'E'))   // TRUE
+                                c = commit_lookup(TT_TRUE);
+                        }
+                    }
+                    return commit_word(c);
+                }
+
+                case 'u': case 'U': // UNDEF
+                {
+                    c = commit_lookup(TT_UNKNOWN);
+                    if ((c == 'n') || (c == 'N'))
+                    {
+                        c = commit_lookup(TT_UNKNOWN);
+                        if ((c == 'd') || (c == 'D'))
+                        {
+                            c = commit_lookup(TT_UNKNOWN);
+                            if ((c == 'e') || (c == 'E'))
+                            {
+                                c = commit_lookup(TT_UNKNOWN);
+                                if ((c == 'f') || (c == 'F'))
+                                    c = commit_lookup(TT_UNDEF);
+                            }
                         }
                     }
                     return commit_word(c);

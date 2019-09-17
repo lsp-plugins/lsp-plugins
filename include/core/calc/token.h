@@ -16,78 +16,81 @@ namespace lsp
     {
         enum token_t
         {
-            TT_UNKNOWN,
-
             TT_IDENTIFIER,  // Identifier
             TT_IVALUE,      // Integer value
             TT_FVALUE,      // Floating-point value
             TT_STRING,      // String literal
 
-            TT_LBRACE,
-            TT_RBRACE,
-            TT_LQBRACE,
-            TT_RQBRACE,
+            TT_LBRACE,      // (
+            TT_RBRACE,      // )
+            TT_LQBRACE,     // [
+            TT_RQBRACE,     // ]
 
             // Constants
-            TT_TRUE,
-            TT_FALSE,
+            TT_TRUE,        // true
+            TT_FALSE,       // false
+            TT_NULL,        // null
+            TT_UNDEF,       // undef
 
             // Logical operations
-            TT_AND,
-            TT_OR,
-            TT_NOT,
-            TT_XOR,
+            TT_AND,         // &, &&, and
+            TT_OR,          // |, ||, or
+            TT_NOT,         // !, not
+            TT_XOR,         // ^, ^^, xor
 
             // Binary operations
-            TT_BAND,
-            TT_BOR,
-            TT_BNOT,
-            TT_BXOR,
+            TT_BAND,        // band
+            TT_BOR,         // bor
+            TT_BNOT,        // ~, bnot
+            TT_BXOR,        // bxor
 
             // Floating-point operations
-            TT_ADD,
-            TT_SUB,
-            TT_MUL,
-            TT_POW,
-            TT_DIV,
+            TT_ADD,         // +, add
+            TT_SUB,         // -, sub
+            TT_MUL,         // *, mul
+            TT_POW,         // **, pow
+            TT_DIV,         // /, div
+            TT_FMOD,        // fmod
 
             // Integer operations
-            TT_IADD,
-            TT_ISUB,
-            TT_IMUL,
-            TT_IDIV,
-            TT_MOD,
+            TT_IADD,        // iadd
+            TT_ISUB,        // isub
+            TT_IMUL,        // imul
+            TT_IDIV,        // idiv
+            TT_IMOD,        // %, mod, imod
 
             // Floating-point comparison
-            TT_LESS,
-            TT_GREATER,
-            TT_LESS_EQ,
-            TT_GREATER_EQ,
-            TT_NOT_EQ,
-            TT_EQ,
-            TT_CMP,
+            TT_LESS,        // <, lt, nge
+            TT_GREATER,     // >, gt, nle
+            TT_LESS_EQ,     // <=, le, ngt
+            TT_GREATER_EQ,  // >=, ge, nlt
+            TT_NOT_EQ,      // !=, <>, ne
+            TT_EQ,          // =, ==, eq
+            TT_CMP,         // <=>, cmp
 
             // Integer comparison
-            TT_ILESS,
-            TT_IGREATER,
-            TT_ILESS_EQ,
-            TT_IGREATER_EQ,
-            TT_INOT_EQ,
-            TT_IEQ,
+            TT_ILESS,       // ilt, inge
+            TT_IGREATER,    // igt, inle
+            TT_ILESS_EQ,    // ile, ingt
+            TT_IGREATER_EQ, // ige, ingt
+            TT_INOT_EQ,     // ine
+            TT_IEQ,         // ie, ieq
 
             // Misc operations
-            TT_EX,
-
-            // Different operators
-            TT_QUESTION,
-            TT_COLON,
-            TT_SEMICOLON,
+            TT_EX,          // ex
 
             // Special measuring units
-            TT_DB,
+            TT_DB,          // db
 
-            TT_EOF,
-            TT_ERROR
+            // Different operators
+            TT_QUESTION,    // ?
+            TT_COLON,       // :
+            TT_SEMICOLON,   // ;
+
+            // Control tokens
+            TT_UNKNOWN,     // Unknown token
+            TT_EOF,         // End of file reached
+            TT_ERROR        // error
         };
 
         enum token_flags_t

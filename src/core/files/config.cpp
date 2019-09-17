@@ -958,7 +958,7 @@ namespace lsp
 
         status_t deserialize(const LSPString *cfg, IConfigHandler *h)
         {
-            io::InStringSequence sis(cfg, false);
+            io::InStringSequence sis(cfg);
             status_t res = load(&sis, h);
             if (res != STATUS_OK)
             {

@@ -17,12 +17,13 @@ namespace lsp
     {
         enum value_type_t
         {
-            VT_NULL,
-            VT_UNDEF,
-            VT_INT,
-            VT_FLOAT,
-            VT_STRING,
-            VT_BOOL
+            VT_UNDEF,       // Value is undefined
+            VT_NULL,        // Value is defined but is NULL
+
+            VT_INT,         // Value is of integer type
+            VT_FLOAT,       // Value is of float type
+            VT_STRING,      // Value is of string type
+            VT_BOOL         // Value is of boolean type
         };
 
         typedef struct value_t
