@@ -40,6 +40,18 @@ UTEST_BEGIN("core.calc", tokenizer)
         UTEST_ASSERT_MSG(float_equals_relative(t.float_value(), value), "Error testing token: %f != %f", t.float_value(), value);
     }
 
+    void ck_invalid(const char *s, token_t token)
+    {
+        printf("  checking invalid token: %s\n", s);
+
+        io::InStringSequence sq;
+        UTEST_ASSERT(sq.wrap(s) == STATUS_OK);
+
+        Tokenizer t(&sq);
+        token_t tok = t.get_token(TF_GET);
+        UTEST_ASSERT(tok == token);
+    }
+
     void test_sign_tokens()
     {
         static const char *tokens =
@@ -195,6 +207,7 @@ UTEST_BEGIN("core.calc", tokenizer)
                 "0x1f 0x1f.0 0x1f.1 "
                 "1.e 2.0e .3e 4.5e 6.7e1 8.9e+1 1.0e-1 .2e+1 .3e-1 "
                 "0b101.0e-10 -0b101.0e+10 "
+                "0x5.0p-2 -0x5.0p+2 "
             ;
 
         io::InStringSequence sq;
@@ -242,6 +255,93 @@ UTEST_BEGIN("core.calc", tokenizer)
         ck_float(t, 1.25);
         ck_float(t, -20.0);
 
+        ck_float(t, 1.25);
+        ck_float(t, -20.0);
+
+        UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
+    }
+
+    void test_string_tokens()
+    {
+        static const char *tokens =
+                "'' 1 '\\n' 2 '\\r\\t' 3 "
+                "'123 ' '456 ' '789' 4 'end \\protector'5 '\\\':xc\\\''";
+            ;
+
+        io::InStringSequence sq;
+        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+
+        Tokenizer t(&sq);
+
+        ck_token(t, "", TT_STRING);
+        ck_int(t, 1);
+        ck_token(t, "\n", TT_STRING);
+        ck_int(t, 2);
+        ck_token(t, "\r\t", TT_STRING);
+        ck_int(t, 3);
+        ck_token(t, "123 456 789", TT_STRING);
+        ck_int(t, 4);
+        ck_token(t, "end \\protector", TT_STRING);
+        ck_int(t, 5);
+        ck_token(t, "':xc'", TT_STRING);
+
+        UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
+    }
+
+    void test_invalid_tokens()
+    {
+        ck_invalid("blablabla", TT_UNKNOWN);
+        ck_invalid(".", TT_UNKNOWN);
+        ck_invalid(".e+", TT_UNKNOWN);
+        ck_invalid("\'", TT_ERROR);
+        ck_invalid("\'\' \'", TT_ERROR);
+    }
+
+    void test_expression_tokens()
+    {
+        static const char *tokens =
+            "((:a eq :b) or (:a eq :c+:d)) * 10 + (:b ine :c) ? 1 db : 2.0 db";
+
+        io::InStringSequence sq;
+        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+
+        Tokenizer t(&sq);
+
+        ck_token(t, "(", TT_LBRACE);
+            ck_token(t, "(", TT_LBRACE);
+                ck_token(t, "a", TT_IDENTIFIER);
+                ck_token(t, "eq", TT_EQ);
+                ck_token(t, "b", TT_IDENTIFIER);
+            ck_token(t, ")", TT_RBRACE);
+
+            ck_token(t, "or", TT_OR);
+
+            ck_token(t, "(", TT_LBRACE);
+                ck_token(t, "a", TT_IDENTIFIER);
+                ck_token(t, "eq", TT_EQ);
+                ck_token(t, "c", TT_IDENTIFIER);
+                ck_token(t, "+", TT_ADD);
+                ck_token(t, "d", TT_IDENTIFIER);
+            ck_token(t, ")", TT_RBRACE);
+        ck_token(t, ")", TT_RBRACE);
+
+        ck_token(t, "*", TT_MUL);
+        ck_int(t, 10);
+        ck_token(t, "+", TT_ADD);
+
+        ck_token(t, "(", TT_LBRACE);
+            ck_token(t, "b", TT_IDENTIFIER);
+            ck_token(t, "ine", TT_INOT_EQ);
+            ck_token(t, "c", TT_IDENTIFIER);
+        ck_token(t, ")", TT_RBRACE);
+
+        ck_token(t, "?", TT_QUESTION);
+        ck_int(t, 1);
+        ck_token(t, "db", TT_DB);
+        ck_token(t, ":", TT_COLON);
+        ck_float(t, 2.0);
+        ck_token(t, "db", TT_DB);
+
         UTEST_ASSERT(t.get_token(TF_GET) == TT_EOF);
     }
 
@@ -255,6 +355,13 @@ UTEST_BEGIN("core.calc", tokenizer)
         test_identifier_tokens();
         printf("Testing numeric tokens...\n");
         test_numeric_tokens();
+        printf("Testing string tokens...\n");
+        test_string_tokens();
+        printf("Testing invalid tokens...\n");
+        test_invalid_tokens();
+
+        printf("Testing expression tokens...\n");
+        test_expression_tokens();
     }
 
 UTEST_END

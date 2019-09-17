@@ -208,6 +208,7 @@ namespace lsp
                                 break;
                             case '\'':
                                 scan        = false;
+                                cCurrent    = -1;
                                 break;
                             default:
                                 if (!sValue.append(cCurrent))
