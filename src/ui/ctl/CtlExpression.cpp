@@ -1026,7 +1026,7 @@ namespace lsp
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, F_GET);
+            binding_t *right = parse_bit_or(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1061,7 +1061,7 @@ namespace lsp
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, F_GET);
+            binding_t *right = parse_bit_xor(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1096,7 +1096,7 @@ namespace lsp
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, F_GET);
+            binding_t *right = parse_bit_and(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);

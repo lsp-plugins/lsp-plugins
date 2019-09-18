@@ -25,6 +25,7 @@ namespace lsp
                 enum operation_t
                 {
                     OP_LOAD,
+                    OP_VALUE,
                     OP_TERNARY,
 
                     // Floating-point operations

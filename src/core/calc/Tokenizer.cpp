@@ -419,7 +419,7 @@ namespace lsp
                     {
                         c = sValue.char_at(idx++);
                         if ((c == 'd') || (c == 'D'))           // ADD
-                            res         = TT_ADD;
+                            res         = TT_ADDSYM;
                     }
                     break;
 
@@ -539,6 +539,16 @@ namespace lsp
                             c = sValue.char_at(idx++);
                             if ((c == 'd') || (c == 'D'))       // IADD
                                 res         = TT_IADD;
+                        }
+                    }
+                    else if ((c == 'c') || (c == 'C'))
+                    {
+                        c = sValue.char_at(idx++);
+                        if ((c == 'm') || (c == 'M'))
+                        {
+                            c = sValue.char_at(idx++);
+                            if ((c == 'p') || (c == 'P'))       // ICMP
+                                res         = TT_CMP;
                         }
                     }
                     else if ((c == 'd') || (c == 'D'))
@@ -710,7 +720,7 @@ namespace lsp
                     {
                         c = sValue.char_at(idx++);
                         if ((c == 'b') || (c == 'B'))           // SUB
-                            res         = TT_SUB;
+                            res         = TT_SUBSYM;
                     }
                     break;
 

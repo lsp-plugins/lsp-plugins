@@ -46,8 +46,10 @@ namespace lsp
             TT_BXOR,        // bxor
 
             // Floating-point operations
-            TT_ADD,         // +, add
-            TT_SUB,         // -, sub
+            TT_ADD,         // +
+            TT_SUB,         // -
+            TT_ADDSYM,      // add
+            TT_SUBSYM,      // sub
             TT_MUL,         // *, mul
             TT_POW,         // **, pow
             TT_DIV,         // /, div
@@ -76,6 +78,7 @@ namespace lsp
             TT_IGREATER_EQ, // ige, ingt
             TT_INOT_EQ,     // ine
             TT_IEQ,         // ie, ieq
+            TT_ICMP,        // icmp
 
             // Misc operations
             TT_EX,          // ex
