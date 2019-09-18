@@ -6,6 +6,7 @@
  */
 
 #include <core/calc/parser.h>
+#include <data/cvector.h>
 
 namespace lsp
 {
@@ -13,12 +14,291 @@ namespace lsp
     {
         void parse_destroy(expr_t *expr)
         {
-            // TODO
+            if (expr == NULL)
+                return;
+
+            expr->eval      = NULL;
+            switch (expr->type)
+            {
+                case ET_VALUE:
+                    if ((expr->value.type == VT_STRING) && (expr->value.v_str != NULL))
+                    {
+                        delete expr->value.v_str;
+                        expr->value.v_str = NULL;
+                    }
+                    break;
+                case ET_RESOLVE:
+                    if (expr->resolve.items != NULL)
+                    {
+                        for (size_t i=0, n=expr->resolve.count; i<n; ++i)
+                            parse_destroy(expr->resolve.items[i]);
+                        ::free(expr->resolve.items);
+                        expr->resolve.items     = NULL;
+                    }
+                    if (expr->resolve.name != NULL)
+                    {
+                        delete expr->resolve.name;
+                        expr->resolve.name  = NULL;
+                    }
+                    break;
+                case ET_CALC:
+                    parse_destroy(expr->calc.left);
+                    expr->calc.left      = NULL;
+                    parse_destroy(expr->calc.right);
+                    expr->calc.right     = NULL;
+                    parse_destroy(expr->calc.cond);
+                    expr->calc.cond     = NULL;
+                    break;
+
+                default:
+                    break;
+            }
+
+            // Free the expression
+            ::free(expr);
+        }
+
+        static inline expr_t *create_expr()
+        {
+            return reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+        }
+
+        void drop_indexes(cvector<expr_t> *indexes)
+        {
+            for (size_t i=0, n=indexes->size(); i<n; ++i)
+                parse_destroy(indexes->at(i));
+            indexes->flush();
+        }
+
+        status_t parse_identifier(expr_t **expr, Tokenizer *t, size_t flags)
+        {
+            // Get identifier
+            expr_t *bind = NULL;
+            token_t tok = t->get_token(flags);
+            if (tok != TT_IDENTIFIER)
+                return STATUS_BAD_TOKEN;
+
+            LSPString *id   = t->text_value()->clone();
+            if (id == NULL)
+                return STATUS_NO_MEM;
+
+            // Lookup for indexes
+            cvector<expr_t> indexes;
+            while ((tok = t->get_token(TF_GET | TF_XSIGN)) == TT_LQBRACE)
+            {
+                // Brace, analyze next token
+                tok = t->get_token(TF_GET);
+                if (tok == TT_BAREWORD)
+                {
+                    // Store the bareword
+                    LSPString *name = t->text_value()->clone();
+                    if (name == NULL)
+                    {
+                        drop_indexes(&indexes);
+                        delete id;
+                        return STATUS_NO_MEM;
+                    }
+
+                    // Next token should be TT_RQBRACE
+                    tok = t->get_token(TF_GET);
+                    if (tok != TT_RQBRACE)
+                    {
+                        drop_indexes(&indexes);
+                        delete id;
+                        return STATUS_BAD_TOKEN;
+                    }
+
+                    // Create new expression
+                    bind = create_expr();
+                    if ((bind == NULL) || (!indexes.add(bind)))
+                    {
+                        drop_indexes(&indexes);
+                        delete name;
+                        delete id;
+                        return STATUS_NO_MEM;
+                    }
+                }
+                else
+                {
+                    // Parse the expression in square brackets
+                    status_t res = parse_expression(&bind, t, TF_NONE); // Token already has been taken
+                    if (res != STATUS_OK)
+                    {
+                        drop_indexes(&indexes);
+                        delete id;
+                        return res;
+                    }
+
+                    // Next token should be TT_RQBRACE
+                    tok = t->get_token(TF_NONE);
+                    if (tok != TT_RQBRACE)
+                    {
+                        parse_destroy(bind);
+                        drop_indexes(&indexes);
+                        delete id;
+                        return STATUS_BAD_TOKEN;
+                    }
+
+                    // Add to list of indexes
+                    if (!indexes.add(bind))
+                    {
+                        parse_destroy(bind);
+                        drop_indexes(&indexes);
+                        delete id;
+                        return STATUS_NO_MEM;
+                    }
+                }
+            } // while
+
+            // Create expression
+            bind    = create_expr();
+            if (bind == NULL)
+            {
+                drop_indexes(&indexes);
+                delete id;
+                return STATUS_NO_MEM;
+            }
+
+            bind->eval          = eval_resolve;
+            bind->type          = ET_RESOLVE;
+            bind->resolve.name  = id;
+            bind->resolve.count = indexes.size();
+            bind->resolve.items = indexes.release();
+
+            *expr               = bind;
+            return STATUS_OK;
+        }
+
+        status_t parse_primary(expr_t **expr, Tokenizer *t, size_t flags)
+        {
+            token_t tok = t->get_token(flags);
+            switch (tok)
+            {
+                case TT_IDENTIFIER:
+                    return parse_identifier(expr, t, TF_NONE);
+
+                case TT_IVALUE:
+                case TT_FVALUE:
+                case TT_STRING:
+                case TT_TRUE:
+                case TT_FALSE:
+                case TT_NULL:
+                case TT_UNDEF:
+                {
+                    expr_t *bind        = create_expr();
+                    if (bind == NULL)
+                        return STATUS_NO_MEM;
+
+                    bind->eval          = eval_value;
+                    bind->type          = ET_VALUE;
+                    switch (tok)
+                    {
+                        case TT_IVALUE:
+                            bind->value.type        = VT_INT;
+                            bind->value.v_int       = t->int_value();
+                            break;
+                        case TT_FVALUE:
+                            bind->value.type        = VT_FLOAT;
+                            bind->value.v_float     = t->float_value();
+                            break;
+                        case TT_STRING:
+                            bind->value.type        = VT_STRING;
+                            bind->value.v_str       = t->text_value()->clone();
+                            if (bind->value.v_str != NULL)
+                                break;
+                            ::free(bind);
+                            return STATUS_NO_MEM;
+                        case TT_TRUE:
+                            bind->value.type        = VT_BOOL;
+                            bind->value.v_bool      = true;
+                            break;
+                        case TT_FALSE:
+                            bind->value.type        = VT_BOOL;
+                            bind->value.v_bool      = false;
+                            break;
+                        case TT_NULL:
+                            bind->value.type        = VT_NULL;
+                            break;
+                        case TT_UNDEF:
+                            bind->value.type        = VT_UNDEF;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    *expr   = bind;
+                    t->get_token(TF_GET | TF_XSIGN);
+
+                    return STATUS_OK;
+                }
+
+                case TT_LBRACE:
+                {
+                    expr_t *bind = NULL;
+                    status_t res = parse_expression(&bind, t, TF_GET);
+                    if (res != STATUS_OK)
+                        return res;
+
+                    tok = t->get_token(TF_NONE);
+                    if (tok == TT_RBRACE)
+                    {
+                        t->get_token(TF_GET | TF_XSIGN);
+                        *expr = bind;
+                        return res;
+                    }
+
+                    parse_destroy(bind);
+                    return STATUS_BAD_TOKEN;
+                }
+
+                case TT_EOF:
+                    return STATUS_EOF;
+
+                default:
+                    break;
+            }
+            return STATUS_BAD_TOKEN;
         }
 
         status_t parse_func(expr_t **expr, Tokenizer *t, size_t flags)
         {
-            // TODO
+            // Check token
+            token_t tok = t->get_token(flags);
+
+            // Parse right part
+            status_t res;
+            expr_t *right   = NULL;
+
+            switch(tok)
+            {
+                case TT_EX:
+                case TT_DB:
+                    res = parse_func(&right, t, TF_GET);
+                    break;
+                default:
+                    res = parse_primary(&right, t, TF_NONE);
+                    break;
+            }
+            if (res != STATUS_OK)
+                return res;
+
+            // Create binding between left and right
+            expr_t *bind        = create_expr();
+            if (bind == NULL)
+            {
+                parse_destroy(right);
+                return STATUS_NO_MEM;
+            }
+            switch (tok)
+            {
+                case TT_EX:             bind->eval  = eval_exists; break;
+                case TT_DB:             bind->eval  = eval_db; break;
+                default:                bind->eval  = NULL; break;
+            }
+            bind->type          = ET_CALC;
+            bind->calc.left     = right;
+            bind->calc.right    = NULL;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -35,17 +315,17 @@ namespace lsp
             {
                 case TT_ADD:
                 case TT_SUB:
-                    res = parse_sign(&right, t, flags);
+                    res = parse_sign(&right, t, TF_GET);
                     break;
                 default:
-                    res = parse_func(&right, t, flags);
+                    res = parse_func(&right, t, TF_NONE);
                     break;
             }
             if (res != STATUS_OK)
                 return res;
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(right);
@@ -57,9 +337,10 @@ namespace lsp
                 case TT_SUB:            bind->eval  = eval_psign; break;
                 default:                bind->eval  = NULL; break;
             }
-            bind->sCalc.pLeft   = right;
-            bind->sCalc.pRight  = NULL;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = right;
+            bind->calc.right    = NULL;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -82,16 +363,17 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(right);
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_not;
-            bind->sCalc.pLeft   = right;
-            bind->sCalc.pRight  = NULL;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = right;
+            bind->calc.right    = NULL;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -121,7 +403,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -129,9 +411,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_power;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -169,7 +452,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -186,9 +469,10 @@ namespace lsp
                 case TT_IMOD:           bind->eval  = eval_imod; break;
                 default:                bind->eval  = NULL; break;
             }
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -226,7 +510,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -243,9 +527,10 @@ namespace lsp
                 case TT_ISUB:           bind->eval  = eval_isub; break;
                 default:                bind->eval  = NULL; break;
             }
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -285,7 +570,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -304,9 +589,10 @@ namespace lsp
                 case TT_IGREATER_EQ:    bind->eval  = eval_icmp_ge; break;
                 default:                bind->eval  = NULL; break;
             }
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -344,7 +630,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -361,9 +647,10 @@ namespace lsp
                 case TT_ICMP:       bind->eval  = eval_icmp; break;
                 default:            bind->eval  = NULL; break;
             }
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -393,7 +680,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -401,9 +688,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_bit_and;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -433,7 +721,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -441,9 +729,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_bit_xor;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -473,7 +762,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -481,9 +770,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_bit_or;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -513,7 +803,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -521,9 +811,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_and;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -553,7 +844,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -561,9 +852,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_xor;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
 
             return STATUS_OK;
         }
@@ -594,7 +886,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind        = create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -602,9 +894,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_or;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = NULL;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
             return STATUS_OK;
         }
 
@@ -651,7 +944,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind     = reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
+            expr_t *bind     = create_expr();
             if (bind != NULL)
             {
                 parse_destroy(cond);
@@ -660,9 +953,10 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
             bind->eval          = eval_ternary;
-            bind->sCalc.pLeft   = left;
-            bind->sCalc.pRight  = right;
-            bind->sCalc.pCond   = cond;
+            bind->type          = ET_CALC;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = cond;
             *expr               = bind;
 
             return STATUS_OK;

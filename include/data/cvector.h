@@ -219,7 +219,7 @@ namespace lsp
             {
                 if (pvItems != NULL)
                 {
-                    free(pvItems);
+                    ::free(pvItems);
                     pvItems      = NULL;
                 }
                 nCapacity   = 0;
@@ -280,6 +280,20 @@ namespace lsp
                 inline T *at(size_t index) { return reinterpret_cast<T *>(pvItems[index]); }
 
                 inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
+
+                inline T **release()
+                {
+                    if (nItems <= 0)
+                    {
+                        flush();
+                        return NULL;
+                    }
+                    T **res     = (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL;
+                    pvItems     = NULL;
+                    nCapacity   = 0;
+                    nItems      = 0;
+                    return res;
+                }
 
                 inline void swap_data(cvector<T> *src) { do_swap_data(src); }
 

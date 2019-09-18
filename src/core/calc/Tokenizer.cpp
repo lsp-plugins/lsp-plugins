@@ -21,6 +21,7 @@ namespace lsp
             nError      = STATUS_OK;
             fValue      = 0;
             iValue      = 0;
+            nUnget      = 0;
         }
         
         Tokenizer::~Tokenizer()
@@ -779,6 +780,11 @@ namespace lsp
             // Pre-checks
             if (!(flags & TF_GET))
                 return enToken;
+            else if (nUnget > 0)
+            {
+                --nUnget;
+                return enToken;
+            }
 
             // Skip whitespaces
             lsp_swchar_t c = skip_whitespace();

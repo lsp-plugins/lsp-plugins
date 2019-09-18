@@ -61,6 +61,12 @@ namespace lsp
         status_t eval_not(value_t *value, const expr_t *expr);
         status_t eval_psign(value_t *value, const expr_t *expr);
         status_t eval_nsign(value_t *value, const expr_t *expr);
+
+        status_t eval_exists(value_t *value, const expr_t *expr);
+        status_t eval_db(value_t *value, const expr_t *expr);
+
+        status_t eval_resolve(value_t *value, const expr_t *expr);
+        status_t eval_value(value_t *value, const expr_t *expr);
     }
 }
 

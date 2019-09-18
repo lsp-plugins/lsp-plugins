@@ -17,68 +17,34 @@ namespace lsp
 {
     namespace calc
     {
-        enum operation_t
+        enum expr_type_t
         {
-            OP_LOAD,
-            OP_TERNARY,
-
-            // Floating-point operations
-            OP_ADD,
-            OP_SUB,
-            OP_SIGN,
-            OP_MUL,
-            OP_DIV,
-
-            // Integer operations
-            OP_IADD,
-            OP_ISUB,
-            OP_IMUL,
-            OP_POWER,
-            OP_IDIV,
-            OP_MOD,
-
-            // Logical operations
-            OP_AND,
-            OP_OR,
-            OP_NOT,
-            OP_XOR,
-
-            // Bitwise operations
-            OP_BAND,
-            OP_BOR,
-            OP_BNOT,
-            OP_BXOR,
-
-            // Floating-point comparisons
-            OP_LESS,
-            OP_GREATER,
-            OP_LESS_EQ,
-            OP_GREATER_EQ,
-            OP_NOT_EQ,
-            OP_EQ,
-
-            // Integer comparisons
-            OP_ILESS,
-            OP_IGREATER,
-            OP_ILESS_EQ,
-            OP_IGREATER_EQ,
-            OP_INOT_EQ,
-            OP_IEQ
+            ET_CALC,
+            ET_RESOLVE,
+            ET_VALUE
         };
 
         typedef struct expr_t
         {
-            evaluator_t     eval;
+            evaluator_t     eval;       // Evaluation routine
+            expr_type_t     type;       // Expression data type
             union
             {
                 struct
                 {
-                    expr_t     *pLeft;
-                    expr_t     *pRight;
-                    expr_t     *pCond;
-                } sCalc;
+                    expr_t     *left;       // First operand (unary, binary, ternary)
+                    expr_t     *right;      // Second operand (binary, ternary)
+                    expr_t     *cond;       // Condition (ternary)
+                } calc;
 
-                value_t     sValue;
+                struct
+                {
+                    LSPString  *name;       // Base name of variable
+                    size_t      count;      // Number of additional indexes
+                    expr_t    **items;      // List of additional indexes
+                } resolve;
+
+                value_t     value;          // Value
             };
         } expr_t;
 
@@ -99,6 +65,8 @@ namespace lsp
         status_t parse_not(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_sign(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_func(expr_t **expr, Tokenizer *t, size_t flags);
+        status_t parse_primary(expr_t **expr, Tokenizer *t, size_t flags);
+        status_t parse_identifier(expr_t **expr, Tokenizer *t, size_t flags);
 
         status_t parse_expression(expr_t **expr, Tokenizer *t, size_t flags);
     }

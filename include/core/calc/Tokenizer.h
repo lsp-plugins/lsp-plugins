@@ -30,6 +30,7 @@ namespace lsp
                     ssize_t             iValue;
                 };
                 status_t            nError;
+                size_t              nUnget;
 
             protected:
                 lsp_swchar_t        lookup();
@@ -57,6 +58,11 @@ namespace lsp
                  * @return current token value
                  */
                 token_t                 get_token(size_t flags = TF_NONE);
+
+                /**
+                 * Unget token
+                 */
+                inline void             unget()     { ++nUnget; };
 
                 /**
                  * Get current token

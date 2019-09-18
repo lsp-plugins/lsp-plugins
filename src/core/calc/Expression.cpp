@@ -26,9 +26,23 @@ namespace lsp
             pResolver       = NULL;
         }
 
-        void destroy_all_data()
+        void Expression::destroy_all_data()
         {
-            // TODO
+            for (size_t i=0, n=vRoots.size(); i<n; ++i)
+            {
+                root_t *r = vRoots.at(i);
+                if (r->expr != NULL)
+                {
+                    parse_destroy(r->expr);
+                    r->expr = NULL;
+                }
+                if ((r->result.type == VT_STRING) && (r->result.v_str != NULL))
+                {
+                    delete r->result.v_str;
+                    r->result.v_str = NULL;
+                }
+            }
+            vRoots.flush();
         }
 
         status_t Expression::result(value_t *result, size_t idx)
