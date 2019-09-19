@@ -38,8 +38,19 @@ namespace lsp
             LSPString      *v_str;
         } value_t;
 
+        void init_value(value_t *dst);
         status_t copy_value(value_t *dst, const value_t *src);
         void destroy_value(value_t *value);
+
+        status_t fetch_int(ssize_t *dst, const value_t *v);
+        status_t fetch_float(float *dst, const value_t *v);
+        status_t fetch_bool(bool *dst, const value_t *v);
+        status_t fetch_string(LSPString *dst, const value_t *v);
+
+        status_t cast_int(ssize_t *dst, const value_t *v);
+        status_t cast_float(float *dst, const value_t *v);
+        status_t cast_bool(bool *dst, const value_t *v);
+        status_t cast_string(LSPString *dst, const value_t *v);
     }
 }
 

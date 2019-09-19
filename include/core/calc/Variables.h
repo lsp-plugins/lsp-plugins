@@ -41,8 +41,8 @@ namespace lsp
                 virtual ~Variables();
 
             public:
-                virtual status_t    resolve(value_t *value, const char *name, size_t num_indexes = 0, const size_t *indexes = NULL);
-                virtual status_t    resolve(value_t *value, const LSPString *name, size_t num_indexes = 0, const size_t *indexes = NULL);
+                virtual status_t    resolve(value_t *value, const char *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);
+                virtual status_t    resolve(value_t *value, const LSPString *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);
 
             public:
                 status_t            set_int(const char *name, ssize_t value);

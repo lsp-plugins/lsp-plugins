@@ -37,7 +37,7 @@ namespace lsp
                  * @param indexes pointer to array containing all index values
                  * @return status of operation
                  */
-                virtual status_t resolve(value_t *value, const char *name, size_t num_indexes = 0, const size_t *indexes = NULL);
+                virtual status_t resolve(value_t *value, const char *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);
 
                 /**
                  * Resolve array variable by name and indexes
@@ -47,7 +47,7 @@ namespace lsp
                  * @param indexes pointer to array containing all index values
                  * @return status of operation
                  */
-                virtual status_t resolve(value_t *value, const LSPString *name, size_t num_indexes = 0, const size_t *indexes = NULL);
+                virtual status_t resolve(value_t *value, const LSPString *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);
         };
     
     } /* namespace calc */

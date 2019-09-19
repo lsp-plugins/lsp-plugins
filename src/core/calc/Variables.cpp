@@ -199,7 +199,7 @@ namespace lsp
             return unset(&key, value);
         }
 
-        status_t Variables::resolve(value_t *value, const char *name, size_t num_indexes, const size_t *indexes)
+        status_t Variables::resolve(value_t *value, const char *name, size_t num_indexes, const ssize_t *indexes)
         {
             if (name == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -211,7 +211,7 @@ namespace lsp
             return resolve(value, &key, num_indexes, indexes);
         }
 
-        status_t Variables::resolve(value_t *value, const LSPString *name, size_t num_indexes, const size_t *indexes)
+        status_t Variables::resolve(value_t *value, const LSPString *name, size_t num_indexes, const ssize_t *indexes)
         {
             // Need to form indexes?
             LSPString tmp;
