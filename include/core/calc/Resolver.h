@@ -30,12 +30,14 @@ namespace lsp
 
             public:
                 /**
-                 * Resolve single variable by name
+                 * Resolve array variable by name and indexes
                  * @param value pointer to value to store the data
-                 * @param name variable name
+                 * @param name array variable name
+                 * @param num_indexes number of indexes in array
+                 * @param indexes pointer to array containing all index values
                  * @return status of operation
                  */
-                virtual status_t resolve(value_t *value, const char *name);
+                virtual status_t resolve(value_t *value, const char *name, size_t num_indexes = 0, const size_t *indexes = NULL);
 
                 /**
                  * Resolve array variable by name and indexes
@@ -45,7 +47,7 @@ namespace lsp
                  * @param indexes pointer to array containing all index values
                  * @return status of operation
                  */
-                virtual status_t resolve(value_t *value, const char *name, size_t num_indexes, const size_t *indexes);
+                virtual status_t resolve(value_t *value, const LSPString *name, size_t num_indexes = 0, const size_t *indexes = NULL);
         };
     
     } /* namespace calc */

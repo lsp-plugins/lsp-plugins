@@ -31,6 +31,7 @@ namespace lsp
             public:
                 enum expr_flags
                 {
+                    FLAG_NONE           = 0,
                     FLAG_MULTIPLE       = 1 << 0
                 };
 
@@ -69,7 +70,7 @@ namespace lsp
                  * @param flags additional flags
                  * @return status of operation
                  */
-                status_t    parse(const char *expr, const char *charset = NULL, size_t flags = 0);
+                status_t    parse(const char *expr, const char *charset = NULL, size_t flags = FLAG_NONE);
 
                 /**
                  * Parse the expression
@@ -77,7 +78,7 @@ namespace lsp
                  * @param flags additional flags
                  * @return status of operation
                  */
-                status_t    parse(const LSPString *expr, size_t flags = 0);
+                status_t    parse(const LSPString *expr, size_t flags = FLAG_NONE);
 
                 /**
                  * Parse the expression
@@ -85,7 +86,7 @@ namespace lsp
                  * @param flags additional flags
                  * @return status of operation
                  */
-                status_t    parse(io::IInSequence *seq, size_t flags = 0);
+                status_t    parse(io::IInSequence *seq, size_t flags = FLAG_NONE);
 
                 /**
                  * Check that expression is valid

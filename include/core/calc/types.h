@@ -33,10 +33,13 @@ namespace lsp
             {
                 ssize_t         v_int;
                 double          v_float;
-                LSPString      *v_str;
                 bool            v_bool;
             };
+            LSPString      *v_str;
         } value_t;
+
+        status_t copy_value(value_t *dst, const value_t *src);
+        void destroy_value(value_t *value);
     }
 }
 

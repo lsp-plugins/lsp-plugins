@@ -549,7 +549,7 @@ namespace lsp
                         {
                             c = sValue.char_at(idx++);
                             if ((c == 'p') || (c == 'P'))       // ICMP
-                                res         = TT_CMP;
+                                res         = TT_ICMP;
                         }
                     }
                     else if ((c == 'd') || (c == 'D'))

@@ -155,7 +155,7 @@ UTEST_BEGIN("core.calc", tokenizer)
         ck_token(t, "ne", TT_NOT_EQ);
         ck_token(t, "eq", TT_EQ);
         ck_token(t, "cmp", TT_CMP);
-        ck_token(t, "cmp", TT_ICMP);
+        ck_token(t, "icmp", TT_ICMP);
 
         ck_token(t, "ilt", TT_ILESS);
         ck_token(t, "inge", TT_ILESS);
