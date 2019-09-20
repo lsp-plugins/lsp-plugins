@@ -47,10 +47,12 @@ namespace lsp
         status_t fetch_bool(bool *dst, const value_t *v);
         status_t fetch_string(LSPString *dst, const value_t *v);
 
-        status_t cast_int(ssize_t *dst, const value_t *v);
-        status_t cast_float(float *dst, const value_t *v);
-        status_t cast_bool(bool *dst, const value_t *v);
-        status_t cast_string(LSPString *dst, const value_t *v);
+        status_t cast_int(value_t *v);
+        status_t cast_float(value_t *v);
+        status_t cast_bool(value_t *v);
+        status_t cast_string(value_t *v);
+
+        status_t cast_numeric(value_t *v);
     }
 }
 

@@ -407,7 +407,7 @@ namespace lsp
                 parse_destroy(right);
                 return STATUS_NO_MEM;
             }
-            bind->eval          = eval_not;
+            bind->eval          = (tok == TT_NOT) ? eval_not : eval_neg;
             bind->type          = ET_CALC;
             bind->calc.left     = right;
             bind->calc.right    = NULL;

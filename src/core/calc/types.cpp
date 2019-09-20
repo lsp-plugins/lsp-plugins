@@ -76,13 +76,13 @@ namespace lsp
             return (dst->set(v->v_str)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        status_t cast_int(ssize_t *dst, const value_t *v)
+        status_t cast_int(value_t *v)
         {
             switch (v->type)
             {
-                case VT_INT:    *dst = v->v_int; break;
-                case VT_FLOAT:  *dst = ssize_t(v->v_float); break;
-                case VT_BOOL:   *dst = (v->v_bool) ? 1 : 0; break;
+                case VT_INT:    return STATUS_OK;
+                case VT_FLOAT:  v->v_int = ssize_t(v->v_float); break;
+                case VT_BOOL:   v->v_int = (v->v_bool) ? 1 : 0; break;
                 case VT_STRING:
                 {
                     // Parse integer/float number as string and cast to integer
@@ -101,23 +101,25 @@ namespace lsp
 
                     if (t.get_token(TF_GET) != TT_EOF)
                         return STATUS_BAD_FORMAT;
-                    *dst    = ivalue;
+                    delete v->v_str;
+                    v->v_int    = ivalue;
                     break;
                 }
                 default:
                     return STATUS_BAD_TYPE;
             }
 
+            v->type     = VT_INT;
             return STATUS_OK;
         }
 
-        status_t cast_float(float *dst, const value_t *v)
+        status_t cast_float(value_t *v)
         {
             switch (v->type)
             {
-                case VT_INT:    *dst = v->v_int; break;
-                case VT_FLOAT:  *dst = v->v_float; break;
-                case VT_BOOL:   *dst = (v->v_bool) ? 1.0 : 0.0; break;
+                case VT_INT:    v->v_float = v->v_int; break;
+                case VT_FLOAT:  return STATUS_OK;
+                case VT_BOOL:   v->v_float = (v->v_bool) ? 1.0 : 0.0; break;
                 case VT_STRING:
                 {
                     // Parse integer/float number as string and cast to integer
@@ -136,23 +138,25 @@ namespace lsp
 
                     if (t.get_token(TF_GET) != TT_EOF)
                         return STATUS_BAD_FORMAT;
-                    *dst    = fvalue;
+                    delete v->v_str;
+                    v->v_float  = fvalue;
                     break;
                 }
                 default:
                     return STATUS_BAD_TYPE;
             }
 
+            v->type     = VT_FLOAT;
             return STATUS_OK;
         }
 
-        status_t cast_bool(bool *dst, const value_t *v)
+        status_t cast_bool(value_t *v)
         {
             switch (v->type)
             {
-                case VT_INT:    *dst = v->v_int != 0; break;
-                case VT_FLOAT:  *dst = (v->v_float >= 0.5f) || (v->v_float <= -0.5f); break;
-                case VT_BOOL:   *dst = v->v_bool; break;
+                case VT_INT:    v->v_bool = v->v_int != 0; break;
+                case VT_FLOAT:  v->v_bool = (v->v_float >= 0.5f) || (v->v_float <= -0.5f); break;
+                case VT_BOOL:   return STATUS_OK;
                 case VT_STRING:
                 {
                     // Parse integer/float number as string and cast to integer
@@ -171,7 +175,8 @@ namespace lsp
 
                     if (t.get_token(TF_GET) != TT_EOF)
                         return STATUS_BAD_FORMAT;
-                    *dst    = bvalue;
+                    delete v->v_str;
+                    v->v_bool   = bvalue;
                     break;
                 }
                 default:
@@ -181,30 +186,90 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t cast_string(LSPString *dst, const value_t *v)
+        status_t cast_string(const value_t *v)
         {
+            LSPString tmp;
+
             switch (v->type)
             {
                 case VT_INT:
-                    if (!dst->fmt_ascii("%ld", long(v->v_int)))
+                    if (!tmp.fmt_ascii("%ld", long(v->v_int)))
                         return STATUS_NO_MEM;
                     break;
                 case VT_FLOAT:
-                    if (!dst->fmt_ascii("%f", double(v->v_float)))
+                    if (!tmp.fmt_ascii("%f", double(v->v_float)))
                         return STATUS_NO_MEM;
                     break;
                 case VT_BOOL:
-                    if (!dst->set_ascii((v->v_bool) ? "true" : "false"))
+                    if (!tmp.set_ascii((v->v_bool) ? "true" : "false"))
                         return STATUS_NO_MEM;
                     break;
                 case VT_STRING:
-                    if (!dst->set(v->v_str))
-                        return STATUS_NO_MEM;
-                    break;
+                    return STATUS_OK;
                 default:
                     return STATUS_BAD_TYPE;
             }
 
+            LSPString *ns = tmp.copy();
+            if (ns == NULL)
+                return STATUS_NO_MEM;
+
+            v->type     = VT_STRING;
+            v->v_str    = ns;
+
+            return STATUS_OK;
+        }
+
+        status_t cast_numeric(value_t *v)
+        {
+            switch (v->type)
+            {
+                case VT_INT:    return STATUS_OK;
+                case VT_FLOAT:  return STATUS_OK;
+                case VT_BOOL:
+                    v->type     = VT_INT;
+                    v->v_int    = (v->v_bool) ? 1 : 0;
+                    break;
+                case VT_STRING:
+                {
+                    // Parse integer/float number as string and cast to integer
+                    value_t xv;
+                    io::InStringSequence s(v->v_str);
+                    Tokenizer t(&s);
+                    bool bvalue;
+
+                    switch (t.get_token(TF_GET))
+                    {
+                        case TT_IVALUE:
+                            xv.type     = VT_INT;
+                            xv.v_int    = t.int_value();
+                            break;
+                        case TT_FVALUE:
+                            xv.type     = VT_FLOAT;
+                            xv.v_float  = t.float_value();
+                            break;
+                        case TT_TRUE:
+                            xv.type     = VT_INT;
+                            xv.v_int    = 1;
+                            break;
+                        case TT_FALSE:
+                            xv.type     = VT_INT;
+                            xv.v_int    = 0;
+                            break;
+                        default:
+                            return STATUS_BAD_FORMAT;
+                    }
+
+                    if (t.get_token(TF_GET) != TT_EOF)
+                        return STATUS_BAD_FORMAT;
+
+                    delete v->v_str;
+                    *xv     = v;
+                    break;
+                }
+                default:
+                    return STATUS_BAD_TYPE;
+            }
             return STATUS_OK;
         }
     }

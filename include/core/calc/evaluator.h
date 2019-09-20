@@ -61,6 +61,7 @@ namespace lsp
         status_t eval_power(value_t *value, const expr_t *expr, eval_env_t *env);
 
         status_t eval_not(value_t *value, const expr_t *expr, eval_env_t *env);
+        status_t eval_neg(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_psign(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_nsign(value_t *value, const expr_t *expr, eval_env_t *env);
 
