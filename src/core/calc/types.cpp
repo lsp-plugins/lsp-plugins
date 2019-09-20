@@ -105,6 +105,9 @@ namespace lsp
                     v->v_int    = ivalue;
                     break;
                 }
+                case VT_NULL:
+                case VT_UNDEF:
+                    break;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -142,6 +145,9 @@ namespace lsp
                     v->v_float  = fvalue;
                     break;
                 }
+                case VT_NULL:
+                case VT_UNDEF:
+                    break;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -179,6 +185,9 @@ namespace lsp
                     v->v_bool   = bvalue;
                     break;
                 }
+                case VT_NULL:
+                case VT_UNDEF:
+                    break;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -186,7 +195,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t cast_string(const value_t *v)
+        status_t cast_string(value_t *v)
         {
             LSPString tmp;
 
@@ -206,6 +215,9 @@ namespace lsp
                     break;
                 case VT_STRING:
                     return STATUS_OK;
+                case VT_NULL:
+                case VT_UNDEF:
+                    break;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -236,7 +248,6 @@ namespace lsp
                     value_t xv;
                     io::InStringSequence s(v->v_str);
                     Tokenizer t(&s);
-                    bool bvalue;
 
                     switch (t.get_token(TF_GET))
                     {
@@ -264,9 +275,12 @@ namespace lsp
                         return STATUS_BAD_FORMAT;
 
                     delete v->v_str;
-                    *xv     = v;
+                    *v      = xv;
                     break;
                 }
+                case VT_NULL:
+                case VT_UNDEF:
+                    break;
                 default:
                     return STATUS_BAD_TYPE;
             }
