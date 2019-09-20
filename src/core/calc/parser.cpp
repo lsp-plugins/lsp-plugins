@@ -178,7 +178,53 @@ namespace lsp
                     return parse_identifier(expr, t, TF_NONE);
 
                 case TT_IVALUE:
+                {
+                    expr_t *bind        = create_expr();
+                    if (bind == NULL)
+                        return STATUS_NO_MEM;
+
+                    ssize_t ivalue      = t->int_value();
+
+                    bind->eval          = eval_value;
+                    bind->type          = ET_VALUE;
+                    if (t->get_token(TF_GET | TF_XSIGN) == TT_DB)
+                    {
+                        bind->value.type    = VT_FLOAT;
+                        bind->value.v_float = exp(ivalue * M_LN10 * 0.05);
+                        t->get_token(TF_GET | TF_XSIGN);
+                    }
+                    else
+                    {
+                        bind->value.type    = VT_INT;
+                        bind->value.v_int   = ivalue;
+                    }
+                    break;
+                }
+
                 case TT_FVALUE:
+                {
+                    expr_t *bind        = create_expr();
+                    if (bind == NULL)
+                        return STATUS_NO_MEM;
+
+                    ssize_t fvalue      = t->float_value();
+
+                    bind->eval          = eval_value;
+                    bind->type          = ET_VALUE;
+                    if (t->get_token(TF_GET | TF_XSIGN) == TT_DB)
+                    {
+                        bind->value.type    = VT_FLOAT;
+                        bind->value.v_float = exp(fvalue * M_LN10 * 0.05);
+                        t->get_token(TF_GET | TF_XSIGN);
+                    }
+                    else
+                    {
+                        bind->value.type    = VT_INT;
+                        bind->value.v_int   = fvalue;
+                    }
+                    break;
+                }
+
                 case TT_STRING:
                 case TT_TRUE:
                 case TT_FALSE:
@@ -193,14 +239,6 @@ namespace lsp
                     bind->type          = ET_VALUE;
                     switch (tok)
                     {
-                        case TT_IVALUE:
-                            bind->value.type        = VT_INT;
-                            bind->value.v_int       = t->int_value();
-                            break;
-                        case TT_FVALUE:
-                            bind->value.type        = VT_FLOAT;
-                            bind->value.v_float     = t->float_value();
-                            break;
                         case TT_STRING:
                             bind->value.type        = VT_STRING;
                             bind->value.v_str       = t->text_value()->clone();

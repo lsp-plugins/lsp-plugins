@@ -5,7 +5,9 @@
  *      Author: sadko
  */
 
+#include <core/io/InStringSequence.h>
 #include <core/calc/types.h>
+#include <core/calc/Tokenizer.h>
 
 namespace lsp
 {
@@ -81,10 +83,27 @@ namespace lsp
                 case VT_INT:    *dst = v->v_int; break;
                 case VT_FLOAT:  *dst = ssize_t(v->v_float); break;
                 case VT_BOOL:   *dst = (v->v_bool) ? 1 : 0; break;
-//                case VT_STRING: // TODO
-//                {
-//                    break;
-//                }
+                case VT_STRING:
+                {
+                    // Parse integer/float number as string and cast to integer
+                    io::InStringSequence s(v->v_str);
+                    Tokenizer t(&s);
+                    ssize_t ivalue;
+
+                    switch (t.get_token(TF_GET))
+                    {
+                        case TT_IVALUE: ivalue = t.int_value(); break;
+                        case TT_FVALUE: ivalue = t.int_value(); break;
+                        case TT_TRUE:   ivalue = 1; break;
+                        case TT_FALSE:  ivalue = 0; break;
+                        default: return STATUS_BAD_FORMAT;
+                    }
+
+                    if (t.get_token(TF_GET) != TT_EOF)
+                        return STATUS_BAD_FORMAT;
+                    *dst    = ivalue;
+                    break;
+                }
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -99,10 +118,27 @@ namespace lsp
                 case VT_INT:    *dst = v->v_int; break;
                 case VT_FLOAT:  *dst = v->v_float; break;
                 case VT_BOOL:   *dst = (v->v_bool) ? 1.0 : 0.0; break;
-//                case VT_STRING: // TODO
-//                {
-//                    break;
-//                }
+                case VT_STRING:
+                {
+                    // Parse integer/float number as string and cast to integer
+                    io::InStringSequence s(v->v_str);
+                    Tokenizer t(&s);
+                    double fvalue;
+
+                    switch (t.get_token(TF_GET))
+                    {
+                        case TT_IVALUE: fvalue = t.int_value(); break;
+                        case TT_FVALUE: fvalue = t.float_value(); break;
+                        case TT_TRUE:   fvalue = 1.0; break;
+                        case TT_FALSE:  fvalue = 0.0; break;
+                        default: return STATUS_BAD_FORMAT;
+                    }
+
+                    if (t.get_token(TF_GET) != TT_EOF)
+                        return STATUS_BAD_FORMAT;
+                    *dst    = fvalue;
+                    break;
+                }
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -115,12 +151,29 @@ namespace lsp
             switch (v->type)
             {
                 case VT_INT:    *dst = v->v_int != 0; break;
-                case VT_FLOAT:  *dst = (v->v_float > 0.5f) || (v->v_float < -0.5f); break;
+                case VT_FLOAT:  *dst = (v->v_float >= 0.5f) || (v->v_float <= -0.5f); break;
                 case VT_BOOL:   *dst = v->v_bool; break;
-//                case VT_STRING: // TODO
-//                {
-//                    break;
-//                }
+                case VT_STRING:
+                {
+                    // Parse integer/float number as string and cast to integer
+                    io::InStringSequence s(v->v_str);
+                    Tokenizer t(&s);
+                    bool bvalue;
+
+                    switch (t.get_token(TF_GET))
+                    {
+                        case TT_IVALUE: bvalue = t.int_value() != 0; break;
+                        case TT_FVALUE: bvalue = (t.float_value() > 0.5f) || (t.float_value() <= -0.5f); break;
+                        case TT_TRUE:   bvalue = true; break;
+                        case TT_FALSE:  bvalue = false; break;
+                        default: return STATUS_BAD_FORMAT;
+                    }
+
+                    if (t.get_token(TF_GET) != TT_EOF)
+                        return STATUS_BAD_FORMAT;
+                    *dst    = bvalue;
+                    break;
+                }
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -137,7 +190,7 @@ namespace lsp
                         return STATUS_NO_MEM;
                     break;
                 case VT_FLOAT:
-                    if (!dst->fmt_ascii("%f", long(v->v_float)))
+                    if (!dst->fmt_ascii("%f", double(v->v_float)))
                         return STATUS_NO_MEM;
                     break;
                 case VT_BOOL:
