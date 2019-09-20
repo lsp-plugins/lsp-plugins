@@ -204,54 +204,45 @@ namespace lsp
         {
             value_t right;
 
-            // Test left argument
+            // Fetch left argument and test for UNDEF
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
+            else if (value->type == VT_UNDEF)
+                return STATUS_OK;
 
+            // Fetch right argument and test for UNDEF
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
                 destroy_value(value);
                 return res;
             }
-
-            // Perform comparison
-            if ((value->type == VT_STRING) || (right.type == VT_STRING))
+            else if (right.type == VT_UNDEF)
             {
-                res = cast_string(value);
-                if (res == STATUS_OK)
-                    res = cast_string(&right);
-                if (res == STATUS_OK)
-                {
-                    ssize_t cmp     = value->v_str->compare_to(right.v_str);
-                    destroy_value(value);
-                    destroy_value(&right);
-
-                    value->type     = VT_INT;
-                    value->v_int    = cmp;
-                }
-            }
-            else if ((value->type == VT_FLOAT) || (right.type == VT_FLOAT))
-            {
-                res = cast_float(value);
-                if (res == STATUS_OK)
-                    res = cast_float(&right);
-                if (res == STATUS_OK)
-                {
-                    value->type     = VT_INT;
-                    value->v_int    =
-                            (value->v_float < right.v_float) ? -1 :
-                            (value->v_float > right.v_float) ? 1 : 0;
-
-                    destroy_value(value);
-                    destroy_value(&right);
-
-
-                }
+                destroy_value(value);
+                destroy_value(&right);
+                value->type = VT_UNDEF;
+                return STATUS_OK;
             }
 
+            // Prevent from NULLs
+            if (value->type == VT_NULL)
+            {
+                value->type     = VT_INT;
+                value->v_int    = (right.type == VT_NULL) ? 0 : -1;
+                destroy_value(&right);
+                return STATUS_OK;
+            }
+            else if (right.type == VT_NULL)
+            {
+                value->type     = VT_INT;
+                value->v_int    = 1;
+                destroy_value(&right);
+                return STATUS_OK;
+            }
 
+            // Perform comparison matrix
             switch (value->type)
             {
                 case VT_INT:
@@ -272,23 +263,140 @@ namespace lsp
                             break;
                         case VT_BOOL:
                         {
-
+                            ssize_t ivalue  = (value->v_bool) ? 1 : 0;
                             value->type     = VT_INT;
                             value->v_int    =
-                                    (value->v_int < right.v_float) ? -1 :
-                                    (value->v_int > right.v_float) ? 1 : 0;
+                                    (value->v_int < ivalue) ? -1 :
+                                    (value->v_int > ivalue) ? 1 : 0;
                             break;
                         }
-                    }
+                        case VT_STRING:
+                        {
+                            res = cast_string(value);
+                            if (res == STATUS_OK)
+                            {
+                                ssize_t ivalue  = value->v_str->compare_to(right.v_str);
+                                destroy_value(value);
+                                value->type     = VT_INT;
+                                value->v_int    = ivalue;
+                            }
+                            break;
+                        }
+                        default:
+                            res = STATUS_BAD_TYPE;
+                            break;
+                    } // switch (int)
+                    break;
                 }
                 case VT_FLOAT:
+                {
+                    switch (right.type)
+                    {
+                        case VT_INT:
+                            value->type     = VT_INT;
+                            value->v_int    =
+                                    (value->v_float < right.v_int) ? -1 :
+                                    (value->v_float > right.v_int) ? 1 : 0;
+                            break;
+                        case VT_FLOAT:
+                            value->type     = VT_INT;
+                            value->v_int    =
+                                    (value->v_float < right.v_float) ? -1 :
+                                    (value->v_float > right.v_float) ? 1 : 0;
+                            break;
+                        case VT_BOOL:
+                        {
+                            ssize_t ivalue  = (value->v_bool) ? 1 : 0;
+                            value->type     = VT_INT;
+                            value->v_int    =
+                                    (value->v_float < ivalue) ? -1 :
+                                    (value->v_float > ivalue) ? 1 : 0;
+                            break;
+                        }
+                        case VT_STRING:
+                        {
+                            res = cast_string(value);
+                            if (res == STATUS_OK)
+                            {
+                                ssize_t ivalue  = value->v_str->compare_to(right.v_str);
+                                destroy_value(value);
+                                value->type     = VT_INT;
+                                value->v_int    = ivalue;
+                            }
+                            break;
+                        }
+                        default:
+                            res = STATUS_BAD_TYPE;
+                            break;
+                    } // switch (float)
+                    break;
+                }
+
                 case VT_BOOL:
+                {
+                    ssize_t xvalue = (value->v_bool) ? 1 : 0;
+                    switch (right.type)
+                    {
+                        case VT_INT:
+                            value->type     = VT_INT;
+                            value->v_int    =
+                                    (xvalue < right.v_int) ? -1 :
+                                    (xvalue > right.v_int) ? 1 : 0;
+                            break;
+                        case VT_FLOAT:
+                            value->type     = VT_INT;
+                            value->v_int    =
+                                    (xvalue < right.v_float) ? -1 :
+                                    (xvalue > right.v_float) ? 1 : 0;
+                            break;
+                        case VT_BOOL:
+                        {
+                            ssize_t ivalue  = (value->v_bool) ? 1 : 0;
+                            value->type     = VT_INT;
+                            value->v_int    =
+                                    (xvalue < ivalue) ? -1 :
+                                    (xvalue > ivalue) ? 1 : 0;
+                            break;
+                        }
+                        case VT_STRING:
+                        {
+                            res = cast_string(value);
+                            if (res == STATUS_OK)
+                            {
+                                ssize_t ivalue  = value->v_str->compare_to(right.v_str);
+                                destroy_value(value);
+                                value->type     = VT_INT;
+                                value->v_int    = ivalue;
+                            }
+                            break;
+                        }
+                        default:
+                            res = STATUS_BAD_TYPE;
+                            break;
+                    } // switch (float)
+                    break;
+                }
+
                 case VT_STRING:
+                {
+                    res = cast_string(value);
+                    if (res == STATUS_OK)
+                    {
+                        ssize_t ivalue  = value->v_str->compare_to(right.v_str);
+                        destroy_value(value);
+                        value->type     = VT_INT;
+                        value->v_int    = ivalue;
+                    }
+                    break;
+                }
+
                 default:
-                    destroy_value(value);
                     res = STATUS_BAD_TYPE;
                     break;
             }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
             destroy_value(&right);
 
             return res;
@@ -296,32 +404,98 @@ namespace lsp
 
         status_t eval_cmp_eq(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_cmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type == 0);
+            }
+            else
+                destroy_value(value);
+
+            return res;
         }
 
         status_t eval_cmp_ne(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_cmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type != 0);
+            }
+            else
+                destroy_value(value);
+
+            return res;
         }
 
         status_t eval_cmp_lt(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_cmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type < 0);
+            }
+            else
+                destroy_value(value);
+
+            return res;
         }
 
         status_t eval_cmp_gt(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_cmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type > 0);
+            }
+            else
+                destroy_value(value);
+
+            return res;
         }
 
         status_t eval_cmp_le(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_cmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type <= 0);
+            }
+            else
+                destroy_value(value);
+
+            return res;
         }
 
         status_t eval_cmp_ge(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_cmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type >= 0);
+            }
+            else
+                destroy_value(value);
+
+            return res;
         }
 
 

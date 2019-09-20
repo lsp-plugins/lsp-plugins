@@ -96,7 +96,10 @@ namespace lsp
                         case TT_FVALUE: ivalue = t.int_value(); break;
                         case TT_TRUE:   ivalue = 1; break;
                         case TT_FALSE:  ivalue = 0; break;
-                        default: return STATUS_BAD_FORMAT;
+                        default:
+                            delete v->v_str;
+                            v->type     = VT_UNDEF;
+                            return STATUS_OK;
                     }
 
                     if (t.get_token(TF_GET) != TT_EOF)
@@ -136,7 +139,10 @@ namespace lsp
                         case TT_FVALUE: fvalue = t.float_value(); break;
                         case TT_TRUE:   fvalue = 1.0; break;
                         case TT_FALSE:  fvalue = 0.0; break;
-                        default: return STATUS_BAD_FORMAT;
+                        default:
+                            delete v->v_str;
+                            v->type     = VT_UNDEF;
+                            return STATUS_OK;
                     }
 
                     if (t.get_token(TF_GET) != TT_EOF)
@@ -176,7 +182,10 @@ namespace lsp
                         case TT_FVALUE: bvalue = (t.float_value() > 0.5f) || (t.float_value() <= -0.5f); break;
                         case TT_TRUE:   bvalue = true; break;
                         case TT_FALSE:  bvalue = false; break;
-                        default: return STATUS_BAD_FORMAT;
+                        default:
+                            delete v->v_str;
+                            v->type     = VT_UNDEF;
+                            return STATUS_OK;
                     }
 
                     if (t.get_token(TF_GET) != TT_EOF)
@@ -268,7 +277,9 @@ namespace lsp
                             xv.v_int    = 0;
                             break;
                         default:
-                            return STATUS_BAD_FORMAT;
+                            delete v->v_str;
+                            v->type     = VT_UNDEF;
+                            return STATUS_OK;
                     }
 
                     if (t.get_token(TF_GET) != TT_EOF)
