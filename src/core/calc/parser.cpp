@@ -374,8 +374,8 @@ namespace lsp
             }
             switch (tok)
             {
-                case TT_ADD:            bind->eval  = eval_nsign; break;
-                case TT_SUB:            bind->eval  = eval_psign; break;
+                case TT_ADD:            bind->eval  = eval_psign; break;
+                case TT_SUB:            bind->eval  = eval_nsign; break;
                 default:                bind->eval  = NULL; break;
             }
             bind->type          = ET_CALC;

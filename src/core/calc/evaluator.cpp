@@ -13,61 +13,6 @@ namespace lsp
 {
     namespace calc
     {
-        #define NUMERIC_OP(eval_name, oper) \
-            status_t eval_name(value_t *value, const expr_t *expr, eval_env_t *env) \
-            { \
-                value_t right; \
-                status_t res = expr->calc.left->eval(value, expr->calc.left, env); \
-                if (res != STATUS_OK) \
-                    return res; \
-                \
-                cast_numeric(value); \
-                if (value->type == VT_UNDEF) \
-                    return STATUS_OK; \
-                else if (value->type == VT_NULL) \
-                { \
-                    value->type = VT_UNDEF; \
-                    return STATUS_OK; \
-                } \
-                \
-                res = expr->calc.right->eval(&right, expr->calc.right, env); \
-                if (res != STATUS_OK) \
-                { \
-                    destroy_value(value); \
-                    return res; \
-                } \
-                \
-                cast_numeric(&right); \
-                \
-                switch (right.type) \
-                { \
-                    case VT_INT: \
-                        if (value->type == VT_INT) \
-                            value->v_int    = value->v_int oper right.v_int; \
-                        else \
-                            value->v_float  = value->v_float oper right.v_int; \
-                        break; \
-                    case VT_FLOAT: \
-                        if (value->type == VT_INT) \
-                            value->v_float  = value->v_int oper right.v_float; \
-                        else \
-                            value->v_float  = value->v_float oper right.v_float; \
-                        value->type = VT_FLOAT; \
-                        break; \
-                    case VT_NULL: \
-                        value->type = VT_UNDEF; \
-                        break; \
-                    case VT_UNDEF: break; \
-                    default: res = STATUS_BAD_TYPE; break; \
-                } \
-                \
-                if (res != STATUS_OK) \
-                    destroy_value(value); \
-                destroy_value(&right); \
-                \
-                return res; \
-            }
-
         #define INT_OP(eval_name, oper) \
             status_t eval_name(value_t *value, const expr_t *expr, eval_env_t *env) \
             { \
@@ -162,19 +107,224 @@ namespace lsp
             return res;
         }
 
-//        NUMERIC_OP(eval_add, + );
-        NUMERIC_OP(eval_sub, - );
-        NUMERIC_OP(eval_mul, * );
-        NUMERIC_OP(eval_div, / );
+        status_t eval_sub(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            value_t right;
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_numeric(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+            else if (value->type == VT_NULL)
+            {
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_numeric(&right);
+
+            switch (right.type)
+            {
+                case VT_INT:
+                    if (value->type == VT_INT)
+                        value->v_int    = value->v_int - right.v_int;
+                    else
+                        value->v_float  = value->v_float - double(right.v_int);
+                    break;
+                case VT_FLOAT:
+                    if (value->type == VT_INT)
+                        value->v_float  = double(value->v_int) - right.v_float;
+                    else
+                        value->v_float  = value->v_float - right.v_float;
+                    value->type = VT_FLOAT;
+                    break;
+                case VT_NULL:
+                    value->type = VT_UNDEF;
+                    break;
+                case VT_UNDEF: break;
+                default: res = STATUS_BAD_TYPE; break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
+
+        status_t eval_mul(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            value_t right;
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_numeric(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+            else if (value->type == VT_NULL)
+            {
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_numeric(&right);
+
+            switch (right.type)
+            {
+                case VT_INT:
+                    if (value->type == VT_INT)
+                        value->v_int    = value->v_int * right.v_int;
+                    else
+                        value->v_float  = value->v_float * double(right.v_int);
+                    break;
+                case VT_FLOAT:
+                    if (value->type == VT_INT)
+                        value->v_float  = double(value->v_int) * right.v_float;
+                    else
+                        value->v_float  = value->v_float * right.v_float;
+                    value->type = VT_FLOAT;
+                    break;
+                case VT_NULL:
+                    value->type = VT_UNDEF;
+                    break;
+                case VT_UNDEF: break;
+                default: res = STATUS_BAD_TYPE; break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
+
+        status_t eval_div(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            value_t right;
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_numeric(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+            else if (value->type == VT_NULL)
+            {
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_numeric(&right);
+
+            switch (right.type)
+            {
+                case VT_INT:
+                    if (value->type == VT_INT)
+                    {
+                        if (right.v_int != 0)
+                            value->v_int    = value->v_int / right.v_int;
+                        else
+                            value->type     = VT_UNDEF;
+                    }
+                    else
+                        value->v_float  = value->v_float / double(right.v_int);
+                    break;
+                case VT_FLOAT:
+                    if (value->type == VT_INT)
+                        value->v_float  = double(value->v_int) / right.v_float;
+                    else
+                        value->v_float  = value->v_float / right.v_float;
+                    value->type = VT_FLOAT;
+                    break;
+                case VT_NULL:
+                    value->type = VT_UNDEF;
+                    break;
+                case VT_UNDEF: break;
+                default: res = STATUS_BAD_TYPE; break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
 
         INT_OP(eval_iadd, + );
         INT_OP(eval_isub, - );
         INT_OP(eval_imul, * );
         INT_OP(eval_idiv, / );
-        INT_OP(eval_imod, % );
         INT_OP(eval_bit_or, | );
         INT_OP(eval_bit_and, & );
         INT_OP(eval_bit_xor, ^ );
+
+        status_t eval_imod(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            value_t right;
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_int(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+            else if (value->type == VT_NULL)
+            {
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_int(&right);
+            switch (right.type)
+            {
+                case VT_INT:
+                    if (right.v_int != 0)
+                        value->v_int = value->v_int % right.v_int;
+                    else
+                        value->type  = VT_UNDEF;
+                    break;
+                case VT_NULL: value->type = VT_UNDEF; break;
+                case VT_UNDEF: break;
+                default: res = STATUS_BAD_TYPE; break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
 
         status_t eval_fmod(value_t *value, const expr_t *expr, eval_env_t *env)
         {
@@ -310,8 +460,6 @@ namespace lsp
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
-            else if (value->type == VT_UNDEF)
-                return STATUS_OK;
 
             // Fetch right argument and test for UNDEF
             res = expr->calc.right->eval(&right, expr->calc.right, env);
@@ -320,11 +468,19 @@ namespace lsp
                 destroy_value(value);
                 return res;
             }
+
+            if (value->type == VT_UNDEF)
+            {
+                value->type     = VT_INT;
+                value->v_int    = (right.type == VT_UNDEF) ? 0 : -1;
+                destroy_value(&right);
+                return STATUS_OK;
+            }
             else if (right.type == VT_UNDEF)
             {
-                destroy_value(value);
+                value->type     = VT_INT;
+                value->v_int    = 1;
                 destroy_value(&right);
-                value->type = VT_UNDEF;
                 return STATUS_OK;
             }
 
@@ -360,8 +516,8 @@ namespace lsp
                         case VT_FLOAT:
                             value->type     = VT_INT;
                             value->v_int    =
-                                    (value->v_int < right.v_float) ? -1 :
-                                    (value->v_int > right.v_float) ? 1 : 0;
+                                    (double(value->v_int) < right.v_float) ? -1 :
+                                    (double(value->v_int) > right.v_float) ? 1 : 0;
                             break;
                         case VT_BOOL:
                         {
@@ -481,7 +637,7 @@ namespace lsp
 
                 case VT_STRING:
                 {
-                    res = cast_string(value);
+                    res = cast_string(&right);
                     if (res == STATUS_OK)
                     {
                         ssize_t ivalue  = value->v_str->compare_to(right.v_str);
@@ -512,7 +668,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type == 0);
+                value->v_bool   = (value->v_int == 0);
             }
 
             return res;
@@ -526,7 +682,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type != 0);
+                value->v_bool   = (value->v_int != 0);
             }
 
             return res;
@@ -540,7 +696,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type < 0);
+                value->v_bool   = (value->v_int < 0);
             }
 
             return res;
@@ -554,7 +710,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type > 0);
+                value->v_bool   = (value->v_int > 0);
             }
 
             return res;
@@ -568,7 +724,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type <= 0);
+                value->v_bool   = (value->v_int <= 0);
             }
 
             return res;
@@ -582,7 +738,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type >= 0);
+                value->v_bool   = (value->v_int >= 0);
             }
 
             return res;
@@ -599,10 +755,6 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
-            cast_int(value);
-            if (value->type == VT_UNDEF)
-                return STATUS_OK;
-
             // Fetch right argument and test for UNDEF
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
@@ -611,12 +763,20 @@ namespace lsp
                 return res;
             }
 
+            cast_int(value);
             cast_int(&right);
-            if (right.type == VT_UNDEF)
+            if (value->type == VT_UNDEF)
             {
-                destroy_value(value);
+                value->type     = VT_INT;
+                value->v_int    = (right.type == VT_UNDEF) ? 0 : -1;
                 destroy_value(&right);
-                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+            else if (right.type == VT_UNDEF)
+            {
+                value->type     = VT_INT;
+                value->v_int    = 1;
+                destroy_value(&right);
                 return STATUS_OK;
             }
 
@@ -651,7 +811,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type == 0);
+                value->v_bool   = (value->v_int == 0);
             }
 
             return res;
@@ -665,7 +825,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type != 0);
+                value->v_bool   = (value->v_int != 0);
             }
 
             return res;
@@ -679,7 +839,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type < 0);
+                value->v_bool   = (value->v_int < 0);
             }
 
             return res;
@@ -693,7 +853,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type > 0);
+                value->v_bool   = (value->v_int > 0);
             }
 
             return res;
@@ -707,7 +867,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type <= 0);
+                value->v_bool   = (value->v_int <= 0);
             }
 
             return res;
@@ -721,7 +881,7 @@ namespace lsp
             if (value->type == VT_INT)
             {
                 value->type     = VT_BOOL;
-                value->v_bool   = (value->type >= 0);
+                value->v_bool   = (value->v_int >= 0);
             }
 
             return res;
@@ -753,11 +913,10 @@ namespace lsp
             if (res == STATUS_OK)
             {
                 cast_float(&right);
-
                 switch (right.type)
                 {
                     case VT_FLOAT:
-                        value->v_float  = ::pow(value->v_float, right.v_int);
+                        value->v_float  = ::pow(value->v_float, right.v_float);
                         break;
                     case VT_NULL:
                     case VT_UNDEF:
