@@ -21,49 +21,47 @@ namespace lsp
                 if (res != STATUS_OK) \
                     return res; \
                 \
-                res = cast_numeric(value); \
-                if (res == STATUS_OK) \
-                    res = expr->calc.right->eval(&right, expr->calc.right, env); \
+                cast_numeric(value); \
+                if (value->type == VT_UNDEF) \
+                    return STATUS_OK; \
+                else if (value->type == VT_NULL) \
+                { \
+                    value->type = VT_UNDEF; \
+                    return STATUS_OK; \
+                } \
                 \
+                res = expr->calc.right->eval(&right, expr->calc.right, env); \
                 if (res != STATUS_OK) \
                 { \
                     destroy_value(value); \
                     return res; \
                 } \
                 \
-                res = cast_numeric(&right); \
-                if (res == STATUS_OK) \
-                { \
-                    if (value->type == VT_INT) \
-                    { \
-                        if (right.type == VT_INT) \
-                        { \
-                            value->type     = VT_INT; \
-                            value->v_int    = value->v_int oper right.v_int; \
-                        } \
-                        else \
-                        { \
-                            value->type     = VT_FLOAT; \
-                            value->v_int    = value->v_int oper right.v_float; \
-                        } \
-                    } \
-                    else \
-                    { \
-                        if (value->type == VT_INT) \
-                        { \
-                            value->type     = VT_FLOAT; \
-                            value->v_int    = value->v_float oper right.v_int; \
-                        } \
-                        else \
-                        { \
-                            value->type     = VT_FLOAT; \
-                            value->v_int    = value->v_float oper right.v_float; \
-                        } \
-                    } \
-                } \
-                else \
-                    destroy_value(value); \
+                cast_numeric(&right); \
                 \
+                switch (right.type) \
+                { \
+                    case VT_INT: \
+                        if (value->type == VT_INT) \
+                            value->v_int    = value->v_int oper right.v_int; \
+                        else \
+                            value->v_float  = value->v_float oper right.v_int; \
+                    case VT_FLOAT: \
+                        if (value->type == VT_INT) \
+                            value->v_float  = value->v_int oper right.v_float; \
+                        else \
+                            value->v_float  = value->v_float oper right.v_float; \
+                        value->type = VT_FLOAT; \
+                        break; \
+                    case VT_NULL: \
+                        value->type = VT_UNDEF; \
+                        break; \
+                    case VT_UNDEF: break; \
+                    default: res = STATUS_BAD_TYPE; break; \
+                } \
+                \
+                if (res != STATUS_OK) \
+                    destroy_value(value); \
                 destroy_value(&right); \
                 \
                 return res; \
@@ -77,25 +75,35 @@ namespace lsp
                 if (res != STATUS_OK) \
                     return res; \
                 \
-                res = cast_int(value); \
-                if (res == STATUS_OK) \
-                    res = expr->calc.right->eval(&right, expr->calc.right, env); \
+                cast_int(value); \
+                if (value->type == VT_UNDEF) \
+                    return STATUS_OK; \
+                else if (value->type == VT_NULL) \
+                { \
+                    value->type = VT_UNDEF; \
+                    return STATUS_OK; \
+                } \
+                \
+                res = expr->calc.right->eval(&right, expr->calc.right, env); \
                 if (res != STATUS_OK) \
                 { \
                     destroy_value(value); \
                     return res; \
                 } \
                 \
-                res = cast_int(&right); \
-                if (res == STATUS_OK) \
+                cast_int(&right); \
+                switch (right.type) \
                 { \
-                    value->type     = VT_INT; \
-                    value->v_int    = value->v_int oper right.v_int; \
+                    case VT_INT: value->v_int = value->v_int oper right.v_int; break; \
+                    case VT_NULL: value->type = VT_UNDEF; break; \
+                    case VT_UNDEF: break; \
+                    default: res = STATUS_BAD_TYPE; break; \
                 } \
-                else \
-                    destroy_value(value); \
                 \
+                if (res != STATUS_OK) \
+                    destroy_value(value); \
                 destroy_value(&right); \
+                \
                 return res; \
             }
 
@@ -112,6 +120,45 @@ namespace lsp
         INT_OP(eval_bit_or, | );
         INT_OP(eval_bit_and, & );
         INT_OP(eval_bit_xor, ^ );
+
+        status_t eval_fmod(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            value_t right;
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_float(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+            else if (value->type == VT_NULL)
+            {
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_float(&right);
+            switch (right.type)
+            {
+                case VT_FLOAT: value->v_float = fmod(value->v_float, right.v_float); break;
+                case VT_NULL: value->type = VT_UNDEF; break;
+                case VT_UNDEF: break;
+                default: res = STATUS_BAD_TYPE; break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
 
         status_t eval_xor(value_t *value, const expr_t *expr, eval_env_t *env)
         {
@@ -412,8 +459,6 @@ namespace lsp
                 value->type     = VT_BOOL;
                 value->v_bool   = (value->type == 0);
             }
-            else
-                destroy_value(value);
 
             return res;
         }
@@ -428,8 +473,6 @@ namespace lsp
                 value->type     = VT_BOOL;
                 value->v_bool   = (value->type != 0);
             }
-            else
-                destroy_value(value);
 
             return res;
         }
@@ -444,8 +487,6 @@ namespace lsp
                 value->type     = VT_BOOL;
                 value->v_bool   = (value->type < 0);
             }
-            else
-                destroy_value(value);
 
             return res;
         }
@@ -460,8 +501,6 @@ namespace lsp
                 value->type     = VT_BOOL;
                 value->v_bool   = (value->type > 0);
             }
-            else
-                destroy_value(value);
 
             return res;
         }
@@ -476,8 +515,6 @@ namespace lsp
                 value->type     = VT_BOOL;
                 value->v_bool   = (value->type <= 0);
             }
-            else
-                destroy_value(value);
 
             return res;
         }
@@ -492,8 +529,6 @@ namespace lsp
                 value->type     = VT_BOOL;
                 value->v_bool   = (value->type >= 0);
             }
-            else
-                destroy_value(value);
 
             return res;
         }
@@ -502,37 +537,139 @@ namespace lsp
 
         status_t eval_icmp(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            value_t right;
+
+            // Fetch left argument and test for UNDEF
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_int(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+
+            // Fetch right argument and test for UNDEF
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_int(&right);
+            if (right.type == VT_UNDEF)
+            {
+                destroy_value(value);
+                destroy_value(&right);
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            // Prevent from NULLs
+            if (value->type == VT_NULL)
+            {
+                value->type     = VT_INT;
+                value->v_int    = (right.type == VT_NULL) ? 0 : -1;
+                destroy_value(&right);
+                return STATUS_OK;
+            }
+            else if (right.type == VT_NULL)
+            {
+                value->type     = VT_INT;
+                value->v_int    = 1;
+                destroy_value(&right);
+                return STATUS_OK;
+            }
+
+            // Perform compare
+            value->v_int =
+                    (value->v_int < right.v_int) ? -1 :
+                    (value->v_int > right.v_int) ? 1 : 0;
+            return STATUS_OK;
         }
 
         status_t eval_icmp_eq(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_icmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type == 0);
+            }
+
+            return res;
         }
 
         status_t eval_icmp_ne(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_icmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type != 0);
+            }
+
+            return res;
         }
 
         status_t eval_icmp_lt(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_icmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type < 0);
+            }
+
+            return res;
         }
 
         status_t eval_icmp_gt(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_icmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type > 0);
+            }
+
+            return res;
         }
 
         status_t eval_icmp_le(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_icmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type <= 0);
+            }
+
+            return res;
         }
 
         status_t eval_icmp_ge(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res = eval_icmp(value, expr, env);
+            if (res != STATUS_OK)
+                return res;
+            if (value->type == VT_INT)
+            {
+                value->type     = VT_BOOL;
+                value->v_bool   = (value->type >= 0);
+            }
+
+            return res;
         }
 
         status_t eval_power(value_t *value, const expr_t *expr, eval_env_t *env)
