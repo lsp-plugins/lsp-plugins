@@ -46,6 +46,7 @@ namespace lsp
                             value->v_int    = value->v_int oper right.v_int; \
                         else \
                             value->v_float  = value->v_float oper right.v_int; \
+                        break; \
                     case VT_FLOAT: \
                         if (value->type == VT_INT) \
                             value->v_float  = value->v_int oper right.v_float; \
@@ -107,7 +108,61 @@ namespace lsp
                 return res; \
             }
 
-        NUMERIC_OP(eval_add, + );
+        status_t eval_add(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            value_t right;
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            cast_numeric(value);
+            if (value->type == VT_UNDEF)
+                return STATUS_OK;
+            else if (value->type == VT_NULL)
+            {
+                value->type = VT_UNDEF;
+                return STATUS_OK;
+            }
+
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            cast_numeric(&right);
+
+            switch (right.type)
+            {
+                case VT_INT:
+                    if (value->type == VT_INT)
+                        value->v_int    = value->v_int + right.v_int;
+                    else
+                        value->v_float  = value->v_float + right.v_int;
+                    break;
+                case VT_FLOAT:
+                    if (value->type == VT_INT)
+                        value->v_float  = value->v_int + right.v_float;
+                    else
+                        value->v_float  = value->v_float + right.v_float;
+                    value->type = VT_FLOAT;
+                    break;
+                case VT_NULL:
+                    value->type = VT_UNDEF;
+                    break;
+                case VT_UNDEF: break;
+                default: res = STATUS_BAD_TYPE; break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
+
+//        NUMERIC_OP(eval_add, + );
         NUMERIC_OP(eval_sub, - );
         NUMERIC_OP(eval_mul, * );
         NUMERIC_OP(eval_div, / );
@@ -724,7 +779,7 @@ namespace lsp
 
         status_t eval_neg(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            status_t res = expr->eval(value, expr->calc.left, env);
+            status_t res =  expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
@@ -763,7 +818,7 @@ namespace lsp
 
         status_t eval_not(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            status_t res = expr->eval(value, expr->calc.left, env);
+            status_t res =  expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
@@ -792,12 +847,12 @@ namespace lsp
 
         status_t eval_psign(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            return expr->eval(value, expr->calc.left, env);
+            return  expr->calc.left->eval(value, expr->calc.left, env);
         }
 
         status_t eval_nsign(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            status_t res = expr->eval(value, expr->calc.left, env);
+            status_t res =  expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
@@ -830,7 +885,7 @@ namespace lsp
 
         status_t eval_exists(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            status_t res    = expr->eval(value, expr->calc.left, env);
+            status_t res    =  expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
@@ -845,7 +900,7 @@ namespace lsp
 
         status_t eval_db(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            status_t res = expr->eval(value, expr->calc.left, env);
+            status_t res =  expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 

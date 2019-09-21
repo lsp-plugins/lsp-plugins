@@ -198,6 +198,8 @@ namespace lsp
                         bind->value.type    = VT_INT;
                         bind->value.v_int   = ivalue;
                     }
+
+                    *expr       = bind;
                     break;
                 }
 
@@ -222,6 +224,8 @@ namespace lsp
                         bind->value.type    = VT_INT;
                         bind->value.v_int   = fvalue;
                     }
+
+                    *expr       = bind;
                     break;
                 }
 
@@ -293,9 +297,9 @@ namespace lsp
                     return STATUS_EOF;
 
                 default:
-                    break;
+                    return STATUS_BAD_TOKEN;
             }
-            return STATUS_BAD_TOKEN;
+            return STATUS_OK;
         }
 
         status_t parse_func(expr_t **expr, Tokenizer *t, size_t flags)
@@ -314,8 +318,7 @@ namespace lsp
                     res = parse_func(&right, t, TF_GET);
                     break;
                 default:
-                    res = parse_primary(&right, t, TF_NONE);
-                    break;
+                    return parse_primary(expr, t, TF_NONE);
             }
             if (res != STATUS_OK)
                 return res;
@@ -337,6 +340,8 @@ namespace lsp
             bind->calc.left     = right;
             bind->calc.right    = NULL;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -353,14 +358,12 @@ namespace lsp
             {
                 case TT_ADD:
                 case TT_SUB:
-                    res = parse_sign(&right, t, TF_GET);
+                    if ((res = parse_sign(&right, t, TF_GET)) != STATUS_OK)
+                        return res;
                     break;
                 default:
-                    res = parse_func(&right, t, TF_NONE);
-                    break;
+                    return parse_func(expr, t, TF_NONE);
             }
-            if (res != STATUS_OK)
-                return res;
 
             // Create binding between left and right
             expr_t *bind        = create_expr();
@@ -379,6 +382,8 @@ namespace lsp
             bind->calc.left     = right;
             bind->calc.right    = NULL;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -388,16 +393,17 @@ namespace lsp
             token_t tok = t->get_token(flags);
 
             // Parse right part
+            status_t res;
             expr_t *right   = NULL;
-            status_t res    = ((tok == TT_NOT) || (tok == TT_BNOT)) ?
-                parse_not(&right, t, TF_GET) :
-                parse_sign(&right, t, TF_NONE);
-            if (res != STATUS_OK)
-                return res;
-            else if ((tok != TT_NOT) && (tok != TT_BNOT))
+            switch (tok)
             {
-                *expr       = right;
-                return res;
+                case TT_NOT:
+                case TT_BNOT:
+                    if ((res = parse_not(&right, t, TF_GET)) != STATUS_OK)
+                        return res;
+                    break;
+                default:
+                    return parse_sign(expr, t, TF_NONE);
             }
 
             // Create binding between left and right
@@ -412,6 +418,8 @@ namespace lsp
             bind->calc.left     = right;
             bind->calc.right    = NULL;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -453,6 +461,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -511,6 +521,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -569,6 +581,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -631,6 +645,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -689,6 +705,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -730,6 +748,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -771,6 +791,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -812,6 +834,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -853,6 +877,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -895,6 +921,7 @@ namespace lsp
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
 
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -936,6 +963,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = NULL;
+
+            *expr               = bind;
             return STATUS_OK;
         }
 
@@ -995,8 +1024,8 @@ namespace lsp
             bind->calc.left     = left;
             bind->calc.right    = right;
             bind->calc.cond     = cond;
-            *expr               = bind;
 
+            *expr               = bind;
             return STATUS_OK;
         }
 

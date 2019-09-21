@@ -53,7 +53,6 @@ namespace lsp
                 cstorage<root_t>    vRoots;
 
             protected:
-                status_t            evaluate(value_t *result, expr_t *expr);
                 void                destroy_all_data();
 
             public:

@@ -63,7 +63,7 @@ namespace lsp
             {
                 root_t *r = vRoots.at(i);
                 if (r->expr != NULL)
-                    res     = evaluate(&r->result, r->expr);
+                    res     = r->expr->eval(&r->result, r->expr, pResolver);
                 else
                 {
                     r->result.type  = VT_UNDEF;
@@ -90,7 +90,7 @@ namespace lsp
 
             status_t res = STATUS_BAD_STATE;
             if (r->expr != NULL)
-                res     = evaluate(&r->result, r->expr);
+                res     = r->expr->eval(&r->result, r->expr, pResolver);
             else
             {
                 r->result.type  = VT_UNDEF;
@@ -173,12 +173,6 @@ namespace lsp
                 destroy_all_data();
 
             return res;
-        }
-
-        status_t Expression::evaluate(value_t *result, expr_t *expr)
-        {
-            // TODO
-            return STATUS_OK;
         }
 
     } /* namespace calc */

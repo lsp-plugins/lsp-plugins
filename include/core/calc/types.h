@@ -34,8 +34,8 @@ namespace lsp
                 ssize_t         v_int;
                 double          v_float;
                 bool            v_bool;
+                LSPString      *v_str;
             };
-            LSPString      *v_str;
         } value_t;
 
         void init_value(value_t *dst);
