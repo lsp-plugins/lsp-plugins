@@ -32,9 +32,9 @@ namespace neon_d32
 
                 __ASM_EMIT("1:")
 #if defined(ARCH_ARM6)
-                __ASM_EMIT("push        {%[dst_re], %[dst_im]}
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]"}
                 ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
-                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]"}
 #else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
 #endif
@@ -123,9 +123,9 @@ namespace neon_d32
 
                 __ASM_EMIT("1:")
 #if defined(ARCH_ARM6)
-                __ASM_EMIT("push        {%[dst_re], %[dst_im]}
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]"}
                 ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
-                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]"}
 #else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
 #endif
@@ -236,9 +236,9 @@ namespace neon_d32
 
                 __ASM_EMIT("1:")
 #if defined(ARCH_ARM6)
-                __ASM_EMIT("push        {%[dst_re], %[dst_im]}
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]"}
                 ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
-                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]"}
 #else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
 #endif
@@ -329,9 +329,9 @@ namespace neon_d32
 
                 __ASM_EMIT("1:")
 #if defined(ARCH_ARM6)
-                __ASM_EMIT("push        {%[dst_re], %[dst_im]}
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]"}
                 ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
-                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]"}
 #else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
 #endif
