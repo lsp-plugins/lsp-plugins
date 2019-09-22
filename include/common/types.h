@@ -313,6 +313,7 @@
 #define __lsp_aligned16                     __attribute__ ((aligned (16)))
 #define __lsp_aligned32                     __attribute__ ((aligned (32)))
 #define __lsp_aligned64                     __attribute__ ((aligned (64)))
+#define __lsp_packed                        __attribute__ ((__packed__))
 #define __lsp_aligned(bytes)                __attribute__ ((aligned (bytes)))
 
 //-----------------------------------------------------------------------------
