@@ -44,7 +44,7 @@ endif
 ifeq ($(BUILD_PROFILE), armv7ve)
 LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
-ifeq ($(BUILD_PROFILE), armv7)
+ifeq ($(BUILD_PROFILE), arm32)
 LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
 ifeq ($(BUILD_PROFILE), aarch64)

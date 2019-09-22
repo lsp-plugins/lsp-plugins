@@ -107,7 +107,7 @@ ifeq ($(BUILD_PROFILE),armv7ve)
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
-ifeq ($(BUILD_PROFILE),armv7)
+ifeq ($(BUILD_PROFILE),arm32)
   CC_ARCH          = -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
