@@ -312,8 +312,8 @@ inline int64_t reverse_bits(int64_t v, size_t count)
     ARCH_ARM_ASM
     (
         __ASM_EMIT("rsb             %[count], %[count], $64")
-        __ASM_EMIT("rbit            %[lo], %[lo]")
-        __ASM_EMIT("rbit            %[hi], %[hi]")                  // [ lo, hi ]
+        ARMV6_RBIT32("%[lo]", "%[msk]", "%[tmp]", "%[masks]")
+        ARMV6_RBIT32("%[hi]", "%[msk]", "%[tmp]", "%[masks]")
         __ASM_EMIT("cmp             %[count], $32")
         __ASM_EMIT("blo             2f")
 
