@@ -96,10 +96,12 @@
         #define ARCH_ARM7
         #define ARCH_STRING             "armv7a"
         #define IF_ARCH_ARM7(...)        __VA_ARGS__
+        #define IF_ARCH_LEAST_ARM7(...)  __VA_ARGS__
     #elif (__ARM_ARCH == 6)
         #define ARCH_ARM6
         #define ARCH_STRING             "armv6a"
         #define IF_ARCH_ARM6(...)        __VA_ARGS__
+        #define IF_ARCH_LEAST_ARM6(...)  __VA_ARGS__
     #else
         #define ARCH_STRING             "arm-generic"
     #endif
@@ -406,9 +408,17 @@
     #define IF_ARCH_ARM6(...)
 #endif /* IF_ARCH_ARM6 */
 
+#ifndef IF_ARCH_LEAST_ARM6
+    #define IF_ARCH_LEAST_ARM6(...)
+#endif /* IF_ARCH_LEAST_ARM6 */
+
 #ifndef IF_ARCH_ARM7
     #define IF_ARCH_ARM7(...)
 #endif /* IF_ARCH_ARM7 */
+
+#ifndef IF_ARCH_LEAST_ARM7
+    #define IF_ARCH_LEAST_ARM7(...)
+#endif /* IF_ARCH_LEAST_ARM7 */
 
 #ifndef IF_ARCH_ARM8
     #define IF_ARCH_ARM8(...)
