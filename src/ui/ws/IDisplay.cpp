@@ -27,10 +27,14 @@ namespace lsp
     {
         IDisplay::IDisplay()
         {
-            nTaskID     = 0;
-            s3DFactory  = NULL;
-            nCurrent3D  = 0;
-            nPending3D  = 0;
+            nTaskID             = 0;
+            s3DFactory          = NULL;
+            nCurrent3D          = 0;
+            nPending3D          = 0;
+            sMainTask.nID       = 0;
+            sMainTask.nTime     = 0;
+            sMainTask.pHandler  = NULL;
+            sMainTask.pArg      = NULL;
         }
 
         IDisplay::~IDisplay()
@@ -287,6 +291,12 @@ namespace lsp
                 if (backend != NULL)
                     backend->destroy();
             }
+        }
+
+        void IDisplay::call_main_task(timestamp_t time)
+        {
+            if (sMainTask.pHandler != NULL)
+                sMainTask.pHandler(time, sMainTask.pArg);
         }
 
         int IDisplay::main()
@@ -603,6 +613,12 @@ namespace lsp
         const char * const *IDisplay::getDragContentTypes()
         {
             return NULL;
+        }
+
+        void IDisplay::set_main_callback(task_handler_t handler, void *arg)
+        {
+            sMainTask.pHandler      = handler;
+            sMainTask.pArg          = arg;
         }
     }
 

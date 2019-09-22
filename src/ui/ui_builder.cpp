@@ -455,7 +455,7 @@ namespace lsp
                 {
                     if ((pWidget != NULL) && (pChild->pWidget != NULL))
                     {
-                        LSPWidget *w = pChild->pWidget->widget();
+                        CtlWidget *w = pChild->pWidget;
                         if (w != NULL)
                             pWidget->add(w);
                     }

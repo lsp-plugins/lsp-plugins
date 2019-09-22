@@ -15,24 +15,26 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlPluginWindow::metadata = { "CtlPluginWindow", &CtlWidget::metadata };
         
         CtlPluginWindow::CtlPluginWindow(plugin_ui *src, LSPWindow *wnd):
             CtlWidget(src, wnd)
         {
-            pWnd        = wnd;
-            pMessage    = NULL;
-            bResizable  = true;
-            nVisible    = 1;
-            pUI         = src;
-            pBox        = NULL;
-            pMenu       = NULL;
-            pImport     = NULL;
-            pExport     = NULL;
-            pPMStud     = NULL;
-            pPVersion   = NULL;
-            pPBypass    = NULL;
-            pPath       = NULL;
-            pR3DBackend = NULL;
+            pClass          = &metadata;
+            pWnd            = wnd;
+            pMessage        = NULL;
+            bResizable      = true;
+            nVisible        = 1;
+            pUI             = src;
+            pBox            = NULL;
+            pMenu           = NULL;
+            pImport         = NULL;
+            pExport         = NULL;
+            pPMStud         = NULL;
+            pPVersion       = NULL;
+            pPBypass        = NULL;
+            pPath           = NULL;
+            pR3DBackend     = NULL;
         }
         
         CtlPluginWindow::~CtlPluginWindow()
@@ -488,13 +490,13 @@ namespace lsp
             return CtlWidget::resolve(uid);
         }
 
-        status_t CtlPluginWindow::add(LSPWidget *child)
+        status_t CtlPluginWindow::add(CtlWidget *child)
         {
             // Check widget pointer
             if (pBox == NULL)
                 return STATUS_BAD_STATE;
 
-            return pBox->add(child);
+            return pBox->add(child->widget());
         }
 
         status_t CtlPluginWindow::slot_export_settings_to_file(LSPWidget *sender, void *ptr, void *data)

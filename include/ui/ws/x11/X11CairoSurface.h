@@ -169,6 +169,12 @@ namespace lsp
                         const Color &color
                     );
 
+                    virtual void fill_round_frame(
+                            float fx, float fy, float fw, float fh,
+                            float ix, float iy, float iw, float ih,
+                            float radius, size_t flags,
+                            const Color &color);
+
                     virtual bool get_antialiasing();
 
                     virtual bool set_antialiasing(bool set);

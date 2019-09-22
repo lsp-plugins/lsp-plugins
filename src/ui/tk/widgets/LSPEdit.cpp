@@ -188,6 +188,8 @@ namespace lsp
             sCursor(this),
             sFont(dpy, this),
             sInput(this),
+            sColor(this),
+            sSelColor(this),
             sStdPopup(dpy)
         {
             sTextPos        = 0;
@@ -226,13 +228,12 @@ namespace lsp
                 if (theme != NULL)
                 {
                     sFont.init(theme->font());
-
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_KNOB_SCALE, &sSelColor);
+                    init_color(C_BACKGROUND, sFont.color());
                 }
             }
+
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             // Initialize standard menu
             ui_handler_id_t id = 0;
@@ -425,7 +426,7 @@ namespace lsp
             s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, sColor);
 
             s->set_antialiasing(aa);
-            Color *fcol = sFont.color();
+            LSPColor *fcol = sFont.color();
 
             ssize_t fw = sSize.nWidth - pad *2;
 

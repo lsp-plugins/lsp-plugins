@@ -14,9 +14,11 @@ namespace lsp
     {
         class CtlThreadComboBox: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlPort        *pPort;
-                CtlColor        sBgColor;
                 CtlColor        sColor;
                 ui_handler_id_t idChange;
 

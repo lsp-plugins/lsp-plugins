@@ -11,18 +11,20 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlFraction::metadata = { "CtlFraction", &CtlWidget::metadata };
         
         CtlFraction::CtlFraction(CtlRegistry *src, LSPFraction *frac):
                 CtlWidget(src, frac)
         {
-            pPort       = NULL;
-            pDenom      = NULL;
-            fSig        = 0.0f;
-            fMaxSig     = 2.0f;
-            nNum        = 0;
-            nDenom      = 4;
-            nDenomMin   = 1;
-            nDenomMax   = 64;
+            pClass          = &metadata;
+            pPort           = NULL;
+            pDenom          = NULL;
+            fSig            = 0.0f;
+            fMaxSig         = 2.0f;
+            nNum            = 0;
+            nDenom          = 4;
+            nDenomMin       = 1;
+            nDenomMax       = 64;
         }
         
         CtlFraction::~CtlFraction()

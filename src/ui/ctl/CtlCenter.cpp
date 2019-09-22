@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlCenter::metadata = { "CtlCenter", &CtlWidget::metadata };
+
         CtlCenter::CtlCenter(CtlRegistry *src, LSPCenter *cnt): CtlWidget(src, cnt)
         {
+            pClass          = &metadata;
         }
 
         CtlCenter::~CtlCenter()

@@ -22,7 +22,6 @@ namespace lsp
                 float           nHorPos;
                 float           nVertScale;
                 float           nHorScale;
-                Color           sBgColor;
                 LSPWidget      *pWidget;
 
             protected:
@@ -41,8 +40,6 @@ namespace lsp
                 inline float            hpos() const            { return nHorPos; }
                 inline float            vscale() const          { return nVertScale; }
                 inline float            hscale() const          { return nHorScale; }
-
-                inline Color           *bg_color()              { return &sBgColor; }
 
             public:
                 void                    set_vpos(float value);

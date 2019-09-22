@@ -29,13 +29,17 @@ namespace lsp
                 } item_t;
 
             protected:
-                cstorage<item_t>        sWidgets;
+                cvector<item_t>         sWidgets;
+                cvector<LSPWidget>      vGarbage;
                 LSPSlotSet              sSlots;
                 LSPTheme                sTheme;
                 IDisplay               *pDisplay;
 
             protected:
                 void    do_destroy();
+
+            protected:
+                static status_t     main_task_handler(ws::timestamp_t time, void *arg);
 
             //---------------------------------------------------------------------------------
             // Construction and destruction
@@ -220,6 +224,17 @@ namespace lsp
                  * @return pointer to created surface or NULL
                  */
                 ISurface *create_surface(size_t width, size_t height);
+
+                /**
+                 * Queue widget for removal. Because all widget operations are done in the
+                 * main event loop, it's unsafe to destroy widget immediately in callback
+                 * handlers. This method allows to put the widget to the garbage queue that
+                 * will be recycled at the end of the event loop iteration.
+                 *
+                 * @param widget widget to be queued for destroy
+                 * @return status of operation
+                 */
+                status_t queue_destroy(LSPWidget *widget);
         };
     }
 

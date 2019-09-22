@@ -19,7 +19,7 @@ namespace lsp
 
         LSPMountStud::LSPMountStud(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sFont(this)
         {
             pClass      = &metadata;
             nAngle      = 0;
@@ -42,7 +42,6 @@ namespace lsp
             sFont.set_size(16);
             sFont.set_bold(true);
 
-            init_color(C_BACKGROUND, &sBgColor);
             init_color(C_LOGO_FACE, &sColor);
             init_color(C_LOGO_TEXT, sFont.color());
 
@@ -174,7 +173,7 @@ namespace lsp
             sFont.get_parameters(s, &fp);
             sFont.get_text_parameters(s, &tp, &sText);
 
-            Color logo(sColor);
+            LSPColor logo(sColor);
 
             // Draw screws
             if (nAngle & 0x02)

@@ -496,6 +496,8 @@ namespace lsp
                         break;
 
                     case BS_COMBO:
+                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_MENU;
+                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_POPUP_MENU;
                         atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_COMBO;
                         break;
 

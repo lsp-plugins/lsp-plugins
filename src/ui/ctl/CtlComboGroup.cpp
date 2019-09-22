@@ -11,14 +11,17 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlComboGroup::metadata = { "CtlComboGroup", &CtlWidget::metadata };
+
         CtlComboGroup::CtlComboGroup(CtlRegistry *src, LSPComboGroup *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            fMin        = 0.0f;
-            fMax        = 0.0f;
-            fStep       = 0.0f;
-            idChange    = -1;
-            pText       = NULL;
+            pClass          = &metadata;
+            pPort           = NULL;
+            fMin            = 0.0f;
+            fMax            = 0.0f;
+            fStep           = 0.0f;
+            idChange        = -1;
+            pText           = NULL;
         }
 
         CtlComboGroup::~CtlComboGroup()
@@ -87,7 +90,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, grp, grp->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, grp, grp->bg_color(), A_BG_COLOR);
             sTextColor.init_basic(pRegistry, grp, grp->font()->color(), A_TEXT_COLOR);
 
             // Bind slots
@@ -114,23 +116,24 @@ namespace lsp
                 case A_TEXT:
                     PARSE_STRING(value, pText);
                     break;
+                case A_EMBED:
+                    if (grp != NULL)
+                        PARSE_BOOL(value, grp->set_embed(__));
+                    break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sTextColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sTextColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
         }
 
-        status_t CtlComboGroup::add(LSPWidget *child)
+        status_t CtlComboGroup::add(CtlWidget *child)
         {
             LSPComboGroup *grp     = widget_cast<LSPComboGroup>(pWidget);
-            return (grp != NULL) ? grp->add(child) : STATUS_BAD_STATE;
+            return (grp != NULL) ? grp->add(child->widget()) : STATUS_BAD_STATE;
         }
     
         void CtlComboGroup::notify(CtlPort *port)

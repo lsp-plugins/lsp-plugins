@@ -25,8 +25,7 @@ namespace lsp
                 ssize_t         nMinWidth;
                 ssize_t         nMinHeight;
                 LSPString       sText;
-                LSPWidgetFont   sFont;
-                LSPColor        sBgColor;
+                LSPFont         sFont;
                 LSPColor        sColor;
                 LSPColor        sSelColor;
 
@@ -54,7 +53,6 @@ namespace lsp
                  *
                  * @return background color
                  */
-                inline LSPColor        *bg_color()  { return &sBgColor;     }
                 inline LSPColor        *color()     { return &sColor;       }
                 inline LSPColor        *sel_color() { return &sSelColor;    }
 

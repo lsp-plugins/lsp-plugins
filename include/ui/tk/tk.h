@@ -79,6 +79,7 @@ namespace lsp
             C_UNKNOWN = -1,
 
             C_BACKGROUND,
+            C_BACKGROUND2,
             C_HOLE,
             C_GLASS,
 
@@ -116,7 +117,9 @@ namespace lsp
 
             C_STATUS_OK,
             C_STATUS_WARN,
-            C_STATUS_ERROR
+            C_STATUS_ERROR,
+
+            C_INVALID_INPUT
         };
 
         /** List of available slots for event processing
@@ -184,6 +187,7 @@ namespace lsp
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
+#include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPSurface.h>
 #include <ui/tk/util/LSPFont.h>
 #include <ui/tk/util/LSPPadding.h>
@@ -197,26 +201,19 @@ namespace lsp
 #include <ui/tk/util/LSPKeyboardHandler.h>
 #include <ui/tk/util/LSPSizeConstraints.h>
 #include <ui/tk/util/LSPWindowActions.h>
-#include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPTextDataSource.h>
 #include <ui/tk/util/LSPTextDataSink.h>
 #include <ui/tk/util/LSPUrlSink.h>
 #include <ui/tk/util/LSPFileFilter.h>
 
-// Utilitary objects bound to widgets
-#include <ui/tk/util/LSPWidgetColor.h>
-#include <ui/tk/util/LSPWidgetFont.h>
-
 // Widget basics
 #include <ui/tk/basic/LSPWidget.h>
 #include <ui/tk/basic/LSPComplexWidget.h>
 #include <ui/tk/basic/LSPWidgetContainer.h>
-#include <ui/tk/basic/LSPWidgetProxy.h>
 
 // Basic widgets
 #include <ui/tk/widgets/LSPWindow.h>
 #include <ui/tk/widgets/LSPBox.h>
-#include <ui/tk/widgets/LSPCell.h>
 #include <ui/tk/widgets/LSPGrid.h>
 #include <ui/tk/widgets/LSPMenuItem.h>
 #include <ui/tk/widgets/LSPMenu.h>

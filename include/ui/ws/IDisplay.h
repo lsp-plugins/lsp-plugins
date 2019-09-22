@@ -51,6 +51,7 @@ namespace lsp
             protected:
                 taskid_t                nTaskID;
                 cstorage<dtask_t>       sTasks;
+                dtask_t                 sMainTask;
                 cvector<r3d_library_t>  s3DLibs;            // List of libraries that provide 3D backends
                 cvector<IR3DBackend>    s3DBackends;        // List of all 3D backend instances
                 ipc::Library            s3DLibrary;         // Current backend library used
@@ -66,9 +67,10 @@ namespace lsp
                 status_t            switch_r3d_backend(r3d_library_t *backend);
                 status_t            commit_r3d_factory(const LSPString *path, r3d_factory_t *factory);
                 void                detach_r3d_backends();
+                void                call_main_task(timestamp_t time);
 
             public:
-                IDisplay();
+                explicit IDisplay();
                 virtual ~IDisplay();
 
             public:
@@ -261,6 +263,13 @@ namespace lsp
                  *   may be NULL if there is no currently pending Drag&Drop request
                  */
                 virtual const char * const *getDragContentTypes();
+
+                /**
+                 * Set callback which will be called after each main iteration
+                 * @param handler callback handler routine
+                 * @param arg additional argument
+                 */
+                void set_main_callback(task_handler_t handler, void *arg);
         };
 
     } /* namespace ws */

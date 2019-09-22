@@ -15,8 +15,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlMeter::metadata = { "CtlMeter", &CtlWidget::metadata };
+
         CtlMeter::CtlMeter(CtlRegistry *src, LSPMeter *widget): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
             pPort[0]        = NULL;
             pPort[1]        = NULL;
             nFlags          = 0;

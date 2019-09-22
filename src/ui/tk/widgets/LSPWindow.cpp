@@ -15,7 +15,8 @@ namespace lsp
 
         LSPWindow::LSPWindow(LSPDisplay *dpy, void *handle, ssize_t screen):
             LSPWidgetContainer(dpy),
-            sActions(this)
+            sActions(this),
+            sBorder(this)
         {
             lsp_trace("native_handle = %p", handle);
 
@@ -34,6 +35,7 @@ namespace lsp
             nHorPos         = 0.5f;
             nVertScale      = 0.0f;
             nHorScale       = 0.0f;
+            nBorder         = 0;
 
             sSize.nLeft     = -1;
             sSize.nTop      = -1;
@@ -61,6 +63,9 @@ namespace lsp
             status_t result = LSPWidgetContainer::init();
             if (result < 0)
                 return result;
+
+            // Init color
+            init_color(C_LABEL_TEXT, &sBorder);
 
             // Add slot(s)
             ui_handler_id_t id = 0;
@@ -133,14 +138,6 @@ namespace lsp
             if (sSize.nHeight < 0)
                 sSize.nHeight   = r.nHeight;
 
-
-//            result = sync_size();
-//            if (result != STATUS_SUCCESS)
-//            {
-//                destroy();
-//                return result;
-//            }
-
             lsp_trace("Window has been initialized");
 
             return STATUS_OK;
@@ -201,8 +198,6 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             LSPWidget *widget = static_cast<LSPWidget *>(args);
-//            if (widget->get_class() != W_WINDOW)
-//                return STATUS_BAD_ARGUMENTS;
 
             LSPWindow *_this   = static_cast<LSPWindow *>(widget);
 
@@ -265,29 +260,37 @@ namespace lsp
 
         void LSPWindow::render(ISurface *s, bool force)
         {
-            if (pChild != NULL)
+            if (pChild == NULL)
             {
-                if ((force) || (pChild->redraw_pending()))
-                {
-                    pChild->render(s, force);
-                    pChild->commit_redraw();
-                }
-
-                if (force)
-                {
-                    Color cl;
-                    pDisplay->theme()->get_color(C_BACKGROUND, &cl);
-                    s->fill_frame(
-                        0, 0, sSize.nWidth, sSize.nHeight,
-                        pChild->left(), pChild->top(), pChild->width(), pChild->height(),
-                        cl);
-                }
+                s->clear(sBgColor);
+                return;
             }
-            else
+
+            if ((force) || (pChild->redraw_pending()))
             {
-                Color cl;
-                pDisplay->theme()->get_color(C_BACKGROUND, &cl);
-                s->clear(cl);
+                pChild->render(s, force);
+                pChild->commit_redraw();
+            }
+
+            if (force)
+            {
+                s->fill_frame(
+                    0, 0, sSize.nWidth, sSize.nHeight,
+                    pChild->left(), pChild->top(), pChild->width(), pChild->height(),
+                    sBgColor);
+
+                if (nBorder > 0)
+                {
+                    bool aa = s->set_antialiasing(true);
+                    ssize_t bw = nBorder >> 1;
+                    const Color *c = sBorder.color();
+                    s->wire_round_rect(
+                        bw + 0.5, bw + 0.5, sSize.nWidth - nBorder-1, sSize.nHeight - nBorder-1,
+                        2, SURFMASK_ALL_CORNER, nBorder,
+                        *c
+                    );
+                    s->set_antialiasing(aa);
+                }
             }
         }
 
@@ -326,6 +329,14 @@ namespace lsp
                 return STATUS_OK;
             pPointed    = (focus != this) ? focus : this;
             return update_pointer();
+        }
+
+        void LSPWindow::set_border(size_t border)
+        {
+            if (nBorder == border)
+                return;
+            nBorder     = border;
+            query_resize();
         }
 
         status_t LSPWindow::grab_events()
@@ -974,17 +985,17 @@ namespace lsp
             realize_t rc;
 
             // Dimensions
-            ssize_t xs          = r->nWidth  - sPadding.horizontal();
-            ssize_t ys          = r->nHeight - sPadding.vertical();
+            ssize_t xs          = r->nWidth  - sPadding.horizontal() - nBorder * 2;
+            ssize_t ys          = r->nHeight - sPadding.vertical() - nBorder * 2;
 
             if ((sr.nMinWidth >= 0) && (sr.nMinWidth > xs))
             {
-                rc.nLeft            = sPadding.left();
+                rc.nLeft            = nBorder + sPadding.left();
                 rc.nWidth           = sr.nMinWidth;
             }
             else if (sr.nMaxWidth < 0)
             {
-                rc.nLeft            = sPadding.left();
+                rc.nLeft            = nBorder + sPadding.left();
                 rc.nWidth           = xs;
             }
             else
@@ -993,17 +1004,17 @@ namespace lsp
                 if (rc.nWidth > xs)
                     rc.nWidth           = xs;
                 xs                 -= rc.nWidth;
-                rc.nLeft            = sPadding.left() + xs * nHorPos;
+                rc.nLeft            = nBorder + sPadding.left() + xs * nHorPos;
             }
 
             if ((sr.nMinHeight >= 0) && (sr.nMinHeight > ys))
             {
-                rc.nTop             = sPadding.top();
+                rc.nTop             = nBorder + sPadding.top();
                 rc.nHeight          = sr.nMinHeight;
             }
             else if (sr.nMaxHeight < 0)
             {
-                rc.nTop             = sPadding.top();
+                rc.nTop             = nBorder + sPadding.top();
                 rc.nHeight          = ys;
             }
             else
@@ -1012,7 +1023,7 @@ namespace lsp
                 if (rc.nHeight > ys)
                     rc.nHeight          = ys;
                 ys                 -= rc.nHeight;
-                rc.nTop             = sPadding.top() + ys * nVertPos;
+                rc.nTop             = nBorder + sPadding.top() + ys * nVertPos;
             }
 
             // Call for realize
@@ -1037,6 +1048,9 @@ namespace lsp
             // Estimate minimum possible window dimensions
             r->nMinWidth        = (sConstraints.nMinWidth >= 0) ? sConstraints.nMinWidth : sPadding.horizontal();
             r->nMinHeight       = (sConstraints.nMinHeight >= 0) ? sConstraints.nMinHeight : sPadding.vertical();
+
+            r->nMinWidth       += nBorder * 2;
+            r->nMinHeight      += nBorder * 2;
 
             if (pChild != NULL)
             {

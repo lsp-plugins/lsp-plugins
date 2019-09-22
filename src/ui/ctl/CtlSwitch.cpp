@@ -11,12 +11,14 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlSwitch::metadata = { "CtlSwitch", &CtlWidget::metadata };
         
         CtlSwitch::CtlSwitch(CtlRegistry *src, LSPSwitch *widget): CtlWidget(src, widget)
         {
-            fValue      = 0;
-            pPort       = NULL;
-            bInvert     = false;
+            pClass          = &metadata;
+            fValue          = 0;
+            pPort           = NULL;
+            bInvert         = false;
         }
         
         CtlSwitch::~CtlSwitch()
@@ -33,18 +35,20 @@ namespace lsp
 
         void CtlSwitch::commit_value(float value)
         {
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
+            if (sw == NULL)
+                return;
+
             const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
             float half = ((p != NULL) && (p->unit != U_BOOL)) ? (p->min + p->max) * 0.5f : 0.5f;
-
-            LSPSwitch *sw   = static_cast<LSPSwitch *>(pWidget);
             sw->set_down((value >= half) ^ (bInvert));
         }
 
         void CtlSwitch::submit_value()
         {
-            if (pWidget == NULL)
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
+            if (sw == NULL)
                 return;
-            LSPSwitch *sw   = static_cast<LSPSwitch *>(pWidget);
 
             bool down       = sw->is_down();
             lsp_trace("switch clicked down=%s", (down) ? "true" : "false");
@@ -65,14 +69,12 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
+            if (sw == NULL)
                 return;
-
-            LSPSwitch *sw   = static_cast<LSPSwitch *>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, sw, sw->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, sw, sw->bg_color(), A_BG_COLOR);
             sBorderColor.init_basic(pRegistry, sw, sw->border_color(), A_BORDER_COLOR);
             sTextColor.init_basic(pRegistry, sw, sw->text_color(), A_TEXT_COLOR);
 
@@ -82,7 +84,7 @@ namespace lsp
 
         void CtlSwitch::set(widget_attribute_t att, const char *value)
         {
-            LSPSwitch *sw   = (pWidget != NULL) ? static_cast<LSPSwitch *>(pWidget) : NULL;
+            LSPSwitch *sw   = widget_cast<LSPSwitch>(pWidget);
 
             switch (att)
             {
@@ -110,13 +112,10 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sTextColor.set(att, value);
-                    set |= sBorderColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sTextColor.set(att, value);
+                    sBorderColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

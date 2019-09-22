@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlWidget::metadata = { "CtlWidget", NULL };
+
         CtlWidget::CtlWidget(CtlRegistry *src, LSPWidget *widget)
         {
+            pClass          = &metadata;
             pRegistry       = src;
             pWidget         = widget;
 
@@ -26,10 +29,28 @@ namespace lsp
             nMinHeight      = -1;
         }
 
+        bool CtlWidget::instance_of(const ctl_class_t *wclass) const
+        {
+            const ctl_class_t *wc = pClass;
+            while (wc != NULL)
+            {
+                if (wc == wclass)
+                    return true;
+                wc = wc->parent;
+            }
+
+            return false;
+        }
+
         CtlWidget::~CtlWidget()
         {
             destroy();
         }
+
+        LSPWidget *CtlWidget::widget()
+        {
+            return pWidget;
+        };
 
         void CtlWidget::init_color(color_t value, Color *color)
         {
@@ -118,11 +139,12 @@ namespace lsp
                     pWidget->set_unique_id(value);
                     break;
                 default:
+                    sBgColor.set(att, value);
                     break;
             }
         }
 
-        status_t CtlWidget::add(LSPWidget *child)
+        status_t CtlWidget::add(CtlWidget *child)
         {
             return STATUS_NOT_IMPLEMENTED;
         }
@@ -130,6 +152,8 @@ namespace lsp
         void CtlWidget::init()
         {
             sVisibility.init(pRegistry, this);
+            if (pWidget != NULL)
+                sBgColor.init_basic(pRegistry, pWidget, pWidget->bg_color(), A_BG_COLOR);
         }
 
         void CtlWidget::begin()
@@ -200,7 +224,7 @@ namespace lsp
 
         LSPWidget *CtlWidget::resolve(const char *uid)
         {
-            const char *wuid = pWidget->unique_id();
+            const char *wuid = (pWidget != NULL) ? pWidget->unique_id() : NULL;
             if ((wuid != NULL) && (!strcmp(wuid, uid)))
                 return pWidget;
             return NULL;

@@ -21,8 +21,7 @@ namespace lsp
 
         LSPSaveFile::LSPSaveFile(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this),
-            sBgColor(this),
+            sFont(this),
             sDialog(dpy)
         {
             nState      = SFS_SELECT;
@@ -96,13 +95,11 @@ namespace lsp
 
             LSP_STATUS_ASSERT(LSPWidget::init());
 
-            init_color(C_BACKGROUND, &sBgColor);
-
             for (size_t i=0; i<SFS_TOTAL; ++i)
             {
                 const state_descr_t *sd = &initial[i];
 
-                vStates[i].pColor = new LSPWidgetColor(this);
+                vStates[i].pColor = new LSPColor(this);
                 if (vStates[i].pColor == NULL)
                     return STATUS_NO_MEM;
                 init_color(color_t(sd->color_id), vStates[i].pColor);

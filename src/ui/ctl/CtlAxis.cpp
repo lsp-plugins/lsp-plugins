@@ -11,10 +11,13 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAxis::metadata = { "CtlAxis", &CtlWidget::metadata };
+
         CtlAxis::CtlAxis(CtlRegistry *src, LSPAxis *axis): CtlWidget(src, axis)
         {
-            nFlags      = 0;
-            pPort       = NULL;
+            pClass          = &metadata;
+            nFlags          = 0;
+            pPort           = NULL;
         }
 
         CtlAxis::~CtlAxis()

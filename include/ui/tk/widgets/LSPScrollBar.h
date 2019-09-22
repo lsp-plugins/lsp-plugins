@@ -58,9 +58,8 @@ namespace lsp
                 orientation_t   enOrientation;
                 mouse_pointer_t enActiveCursor;
 
-                Color           sColor;
-                Color           sBgColor;
-                Color           sSelColor;
+                LSPColor        sColor;
+                LSPColor        sSelColor;
                 LSPTimer        sTimer;
 
             protected:
@@ -92,9 +91,8 @@ namespace lsp
                 inline bool             vertical() const { return enOrientation == O_VERTICAL; }
                 inline orientation_t    orientation() const { return enOrientation; }
                 inline bool             fill() const { return nFlags & F_FILL; }
-                inline Color           *color() { return &sColor; }
-                inline Color           *bg_color() { return &sBgColor; }
-                inline Color           *sel_color() { return &sSelColor; }
+                inline LSPColor        *color() { return &sColor; }
+                inline LSPColor        *sel_color() { return &sSelColor; }
                 virtual mouse_pointer_t active_cursor() const;
 
             public:

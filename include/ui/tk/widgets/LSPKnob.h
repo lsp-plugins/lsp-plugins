@@ -25,9 +25,8 @@ namespace lsp
                     S_CLICK
                 };
 
-                Color               sColor;
-                Color               sBgColor;
-                Color               sScaleColor;
+                LSPColor            sColor;
+                LSPColor            sScaleColor;
 
                 size_t              nSize;
                 float               fBalance;
@@ -60,9 +59,8 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                inline Color           *color() { return &sColor; }
-                inline Color           *bg_color() { return &sBgColor; }
-                inline Color           *scale_color() { return &sScaleColor; }
+                inline LSPColor        *color() { return &sColor; }
+                inline LSPColor        *scale_color() { return &sScaleColor; }
                 inline size_t           size() const { return nSize; }
                 inline float            balance() const { return fBalance; }
                 inline float            value() const { return fValue; }

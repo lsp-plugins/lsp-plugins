@@ -57,8 +57,8 @@ namespace lsp
         FBUFFER("fb0", "Frame buffer 0", 64, test_plugin_metadata::FRM_BUFFER_SIZE),
         COMBO("fbm0", "Frame buffer mode 0", 0, fb_modes),
         COMBO("fbm1", "Frame buffer mode 1", 0, fb_modes),
-        KNOB("fbh0", "Frame buffer hue 0", U_NONE, 0.0f, 1.0f, 0.0f, 1.0f/360.0f ),
-        KNOB("fbh1", "Frame buffer hue 1", U_NONE, 0.0f, 1.0f, 1.0f/3.0f, 1.0f/360.0f ),
+        CKNOB("fbh0", "Frame buffer hue 0", U_NONE, 0.0f, 1.0f, 0.0f, 1.0f/360.0f ),
+        CKNOB("fbh1", "Frame buffer hue 1", U_NONE, 0.0f, 1.0f, 1.0f/3.0f, 1.0f/360.0f ),
 
         PATH("ifn", "File name"),
         CONTROL("ihc", "Head cut", U_MSEC, test_plugin_metadata::FILE_LENGTH),

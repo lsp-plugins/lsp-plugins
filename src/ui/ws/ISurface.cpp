@@ -315,6 +315,14 @@ namespace lsp
         {
         }
 
+        void ISurface::fill_round_frame(
+                float fx, float fy, float fw, float fh,
+                float ix, float iy, float iw, float ih,
+                float radius, size_t flags,
+                const Color &color)
+        {
+        }
+
         void ISurface::fill_poly(const float *x, const float *y, size_t n, const Color & color)
         {
         }

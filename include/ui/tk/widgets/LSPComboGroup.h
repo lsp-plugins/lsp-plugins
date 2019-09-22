@@ -78,12 +78,12 @@ namespace lsp
                 size_t              nCBFlags;
                 size_t              nMFlags;
                 realize_t           sGroupHdr;
-                Color               sColor;
-                Color               sBgColor;
+                LSPColor            sColor;
                 cvector<LSPWidget>  vWidgets;
                 LSPComboList        sListBox;
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
                 LSPWindow          *pPopup;
+                bool            bEmbed;
 
             protected:
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
@@ -120,18 +120,18 @@ namespace lsp
 
             public:
                 const char         *text() const;
-                inline Color       *color()                 { return &sColor; }
-                inline Color       *bg_color()              { return &sBgColor; }
+                inline LSPColor    *color()                 { return &sColor; }
                 inline size_t       radius() const          { return nRadius; }
                 inline size_t       border() const          { return nBorder; }
                 inline LSPFont     *font()                  { return &sFont; }
+                inline bool         embed() const           { return bEmbed; }
 
                 ssize_t             selected() const;
                 inline LSPItemList *items()                 { return sListBox.items();  }
                 inline bool         opened() const          { return nCBFlags & F_OPENED;     }
                 inline bool         circular() const        { return nCBFlags & F_CIRCULAR;   }
-                inline Color       *list_color()            { return sListBox.color(); }
-                inline Color       *list_bg_color()         { return sListBox.bg_color(); }
+                inline LSPColor    *list_color()            { return sListBox.color(); }
+                inline LSPColor    *list_bg_color()         { return sListBox.bg_color(); }
 
             public:
                 void                set_radius(size_t value);
@@ -141,6 +141,7 @@ namespace lsp
                 status_t            set_opened(bool open = true);
                 inline status_t     set_closed(bool closed = true) { return set_opened(!closed); };
                 void                set_circular(bool circular = true);
+                void                set_embed(bool embed);
 
                 inline status_t open()  { return set_opened(true); }
                 inline status_t toggle(){ return set_opened(!(nFlags & F_OPENED)); }

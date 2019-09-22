@@ -16,13 +16,35 @@ namespace lsp
         class CtlCell: public CtlWidget
         {
             public:
-                explicit CtlCell(CtlRegistry *src, LSPCell *cell);
+                static const ctl_class_t metadata;
+
+            protected:
+                typedef struct param_t
+                {
+                    widget_attribute_t  attribute;
+                    char                value[];
+                } param_t;
+
+            protected:
+                CtlWidget          *pChild;
+                cvector<param_t>    vParams;
+                size_t              nRows;
+                size_t              nCols;
+
+            public:
+                explicit CtlCell(CtlRegistry *src);
                 virtual ~CtlCell();
 
             public:
+                inline size_t   rows() const        { return nRows; }
+                inline size_t   columns() const     { return nCols; }
+
+            public:
+                virtual LSPWidget *widget();
+
                 virtual void set(widget_attribute_t att, const char *value);
 
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
         };
     
     } /* namespace ctl */

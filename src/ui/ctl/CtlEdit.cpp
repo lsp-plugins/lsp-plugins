@@ -11,9 +11,12 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlEdit::metadata = { "CtlEdit", &CtlWidget::metadata };
+
         CtlEdit::CtlEdit(CtlRegistry *src, LSPEdit *widget): CtlWidget(src, widget)
         {
-            pDialog = NULL;
+            pClass          = &metadata;
+            pDialog         = NULL;
 
             char str[40];
             LSPMenu *menu = new LSPMenu(widget->display());

@@ -15,11 +15,13 @@ namespace lsp
 
         LSPGroup::LSPGroup(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
-            sFont(dpy, this)
+            sColor(this),
+            sFont(this)
         {
             nRadius     = 10;
             nBorder     = 0;
             pWidget     = NULL;
+            bEmbed      = false;
 
             pClass      = &metadata;
         }
@@ -43,11 +45,11 @@ namespace lsp
                 {
                     sFont.init(theme->font());
                     sFont.set_size(12.0f);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
+                    init_color(C_BACKGROUND, sFont.color());
                 }
             }
+
+            init_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }
@@ -67,7 +69,7 @@ namespace lsp
 
         void LSPGroup::query_dimensions(dimensions_t *d)
         {
-            size_t bw       = round(nRadius * M_SQRT2 * 0.5) + 1;
+            size_t bw       = (bEmbed) ? 1 : ::round(nRadius * M_SQRT2 * 0.5) + 1;
             size_t dd       = bw + nBorder + 1;
             d->nGapLeft     = dd;
             d->nGapRight    = dd;
@@ -142,12 +144,29 @@ namespace lsp
             query_resize();
         }
 
+        void LSPGroup::set_embed(bool embed)
+        {
+            if (bEmbed == embed)
+                return;
+            bEmbed = true;
+            query_resize();
+        }
+
         void LSPGroup::render(ISurface *s, bool force)
         {
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
 //            lsp_trace("Rendering this=%p, force=%d", this, int(force));
+            // Draw child
+            if (pWidget != NULL)
+            {
+                if ((force) || (pWidget->redraw_pending()))
+                {
+                    pWidget->render(s, force);
+                    pWidget->commit_redraw();
+                }
+            }
 
             if (force)
             {
@@ -165,13 +184,22 @@ namespace lsp
                 {
                     realize_t r;
                     pWidget->get_dimensions(&r);
-                    s->fill_frame(
-                        sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
-                        r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                        sBgColor
-                    );
-//                    Color yell(1.0f, 1.0f, 0.0f);
-//                    s->wire_rect(r.nLeft, r.nTop, r.nWidth - 1, r.nHeight - 1, 1.0f, yell);
+//                    Color red(1.0f, 0.0f, 0.0f);
+                    if ((bEmbed) && (nRadius > 1))
+                        s->fill_round_frame(
+                            sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                            r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                            nRadius-1, SURFMASK_B_CORNER,
+                            sBgColor
+//                            red
+                        );
+                    else
+                        s->fill_frame(
+                                sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                                r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                                sBgColor
+//                                red
+                            );
                 }
 
                 // Draw frame
@@ -195,16 +223,6 @@ namespace lsp
                 }
 
                 s->set_antialiasing(aa);
-            }
-
-            // Draw child
-            if (pWidget != NULL)
-            {
-                if ((force) || (pWidget->redraw_pending()))
-                {
-                    pWidget->render(s, force);
-                    pWidget->commit_redraw();
-                }
             }
         }
 

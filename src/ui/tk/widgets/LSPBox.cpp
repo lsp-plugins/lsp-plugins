@@ -32,14 +32,6 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-            }
-
             return STATUS_OK;
         }
 
@@ -167,10 +159,11 @@ namespace lsp
                     // Fill unused space with background
                     if (force)
                     {
+                        LSPColor *c = w->pWidget->bg_color();
                         s->fill_frame(
                             w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight,
                             w->s.nLeft, w->s.nTop, w->s.nWidth, w->s.nHeight,
-                            sBgColor
+                            *c
                         );
 //                        s->wire_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, 1, red);
                     }

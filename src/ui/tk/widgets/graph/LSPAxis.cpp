@@ -19,7 +19,8 @@ namespace lsp
     {
         const w_class_t LSPAxis::metadata = { "LSPAxis", &LSPGraphItem::metadata };
 
-        LSPAxis::LSPAxis(LSPDisplay *dpy): LSPGraphItem(dpy)
+        LSPAxis::LSPAxis(LSPDisplay *dpy): LSPGraphItem(dpy),
+            sColor(this)
         {
             nFlags          = F_BASIS;
             fAngle          = 0.0f;

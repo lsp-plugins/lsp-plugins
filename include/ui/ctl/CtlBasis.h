@@ -15,6 +15,9 @@ namespace lsp
         class CtlBasis: public CtlWidget
         {
             public:
+                static const ctl_class_t metadata;
+
+            public:
                 explicit CtlBasis(CtlRegistry *src, LSPBasis *base);
                 virtual ~CtlBasis();
 

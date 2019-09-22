@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlFader: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 bool                bLog;
                 CtlPort            *pPort;

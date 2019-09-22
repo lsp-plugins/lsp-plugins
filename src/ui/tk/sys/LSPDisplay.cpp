@@ -35,17 +35,17 @@ namespace lsp
             for (size_t i=0; i<n; ++i)
             {
                 item_t *ptr     = sWidgets.at(i);
-                if (ptr->id != NULL)
-                {
-                    free(ptr->id);
-                    ptr->id     = NULL;
-                }
+                if (ptr == NULL)
+                    continue;
+
+                ptr->id         = NULL;
                 if (ptr->widget != NULL)
                 {
                     ptr->widget->destroy();
                     delete ptr->widget;
                     ptr->widget = NULL;
                 }
+                ::free(ptr);
             }
             sWidgets.flush();
 
@@ -60,6 +60,46 @@ namespace lsp
                 delete pDisplay;
                 pDisplay = NULL;
             }
+        }
+
+        status_t LSPDisplay::main_task_handler(ws::timestamp_t time, void *arg)
+        {
+            LSPDisplay *_this   = reinterpret_cast<LSPDisplay *>(arg);
+            if (_this == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            for (size_t i=0, n=_this->vGarbage.size(); i<n; ++i)
+            {
+                // Get widget
+                LSPWidget *w = _this->vGarbage.at(i);
+                if (w == NULL)
+                    continue;
+
+                // Widget is registered?
+                for (size_t j=0, m=_this->sWidgets.size(); j<m; )
+                {
+                    item_t *item = _this->sWidgets.at(j);
+                    if (item->widget == w)
+                    {
+                        // Free the binding
+                        _this->sWidgets.remove(j, true);
+                        item->id        = NULL;
+                        item->widget    = NULL;
+                        ::free(item);
+                    }
+                    else
+                        ++j;
+                }
+
+                // Destroy widget
+                w->destroy();
+                delete w;
+            }
+
+            // Cleanup garbage
+            _this->vGarbage.flush();
+
+            return STATUS_OK;
         }
 
         status_t LSPDisplay::init(int argc, const char **argv)
@@ -79,6 +119,7 @@ namespace lsp
             status_t result = pDisplay->init(argc, argv);
             if (result != STATUS_OK)
                 return result;
+            pDisplay->set_main_callback(main_task_handler, this);
 
             // Create slots
             LSPSlot *slot = sSlots.add(LSPSLOT_DESTROY);
@@ -132,34 +173,17 @@ namespace lsp
 
         status_t LSPDisplay::add(LSPWidget *widget, const char *id)
         {
-            if (id != NULL)
-            {
-                // Check that widget does not exist
-                LSPWidget *widget = get(id);
-                if (widget != NULL)
-                    return STATUS_ALREADY_EXISTS;
-            }
+            LSPWidget **w = add(id);
+            if (w == NULL)
+                return STATUS_NO_MEM;
 
-            // Append widget
-            item_t *w   = sWidgets.append();
-            w->widget   = widget;
-            if (id != NULL)
-            {
-                w->id       = strdup(id);
-                if (w->id == NULL)
-                {
-                    sWidgets.remove_last();
-                    return STATUS_NO_MEM;
-                }
-            }
-            else
-                w->id       = NULL;
-
+            *w = widget;
             return STATUS_OK;
         }
 
         LSPWidget **LSPDisplay::add(const char *id)
         {
+            // Prevent from duplicates
             if (id != NULL)
             {
                 // Check that widget does not exist
@@ -168,19 +192,28 @@ namespace lsp
                     return NULL;
             }
 
+            // Allocate memory
+            size_t slen     = (id != NULL) ? (::strlen(id) + 1) * sizeof(char) : 0;
+            size_t to_alloc = ALIGN_SIZE(sizeof(item_t) + slen, DEFAULT_ALIGN);
+
             // Append widget
-            item_t *w   = sWidgets.append();
+            item_t *w   = reinterpret_cast<item_t *>(::malloc(to_alloc));
+            if (w == NULL)
+                return NULL;
+            else if (!sWidgets.add(w))
+            {
+                ::free(w);
+                return NULL;
+            }
+
+            // Initialize widget
+            w->widget       = NULL;
+            w->id           = NULL;
             if (id != NULL)
             {
-                w->id       = strdup(id);
-                if (w->id == NULL)
-                {
-                    sWidgets.remove_last();
-                    return NULL;
-                }
+                w->id           = reinterpret_cast<char *>(&w[1]);
+                ::memcpy(w->id, id, slen);
             }
-            else
-                w->id       = NULL;
 
             return &w->widget;
         }
@@ -277,6 +310,11 @@ namespace lsp
         const char * const *LSPDisplay::get_drag_mime_types()
         {
             return pDisplay->getDragContentTypes();
+        }
+
+        status_t LSPDisplay::queue_destroy(LSPWidget *widget)
+        {
+            return vGarbage.add(widget) ? STATUS_OK : STATUS_NO_MEM;
         }
     }
 

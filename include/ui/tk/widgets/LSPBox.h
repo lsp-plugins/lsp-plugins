@@ -31,7 +31,6 @@ namespace lsp
                 cstorage<cell_t>    vItems;
                 size_t              nSpacing;
                 bool                bProportional;
-                Color               sBgColor;
                 orientation_t       enOrientation;
 
             protected:

@@ -43,14 +43,13 @@ namespace lsp
                 };
 
             protected:
-                LSPColor            sBgColor;
                 LSPColor            sColor;
                 LSPColor            sAxisColor;
 
                 LSPString           sHint;
 
-                LSPWidgetFont       sFont;
-                LSPWidgetFont       sHintFont;
+                LSPFont             sFont;
+                LSPFont             sHintFont;
                 LSPSizeConstraints  sConstraints;
 
                 ISurface           *pGlass;

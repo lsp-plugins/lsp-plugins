@@ -46,7 +46,6 @@ namespace lsp
                 size_t      nCurrRow;
                 size_t      nCurrCol;
                 bool        bVertical;
-                Color       sBgColor;
 
                 cstorage<cell_t>    vCells;
                 cstorage<header_t>  vRows;
@@ -139,12 +138,6 @@ namespace lsp
                  * @return grid orientation
                  */
                 inline orientation_t        orientation() const { return (bVertical) ? O_VERTICAL : O_HORIZONTAL; };
-
-                /** Get background color
-                 *
-                 * @return background color
-                 */
-                inline Color               *bg_color() { return &sBgColor; }
 
             //---------------------------------------------------------------------------------
             // Manipulation

@@ -11,11 +11,14 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlFader::metadata = { "CtlFader", &CtlWidget::metadata };
+
         CtlFader::CtlFader(CtlRegistry *src, LSPFader *widget):
             CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            bLog        = false;
+            pClass          = &metadata;
+            pPort           = NULL;
+            bLog            = false;
         }
         
         CtlFader::~CtlFader()
