@@ -28,12 +28,7 @@
     __ASM_EMIT("and     " msk ", " msk ", " dst) \
     __ASM_EMIT("orr     " dst ", " tmp ", " msk ", lsl #4") \
 
-static const uint32_t masks[] =
-{
-    0x55555555,
-    0x33333333,
-    0x0f0f0f0f
-};
+extern const uint32_t __rb_masks[];
 
 inline uint32_t reverse_bits(uint32_t src)
 {
@@ -43,7 +38,7 @@ inline uint32_t reverse_bits(uint32_t src)
         ARMV6_RBIT32("%[src]", "%[msk]", "%[tmp]", "%[masks]")
         : [src] "+r" (src),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -61,7 +56,7 @@ inline uint32_t reverse_bits(uint32_t src, size_t count)
         __ASM_EMIT("lsr     %[src], %[count]")
         : [src] "+r" (src), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -76,7 +71,7 @@ inline int32_t reverse_bits(int32_t src)
         ARMV6_RBIT32("%[src]", "%[msk]", "%[tmp]", "%[masks]")
         : [src] "+r" (src),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -93,7 +88,7 @@ inline int32_t reverse_bits(int32_t src, size_t count)
         __ASM_EMIT("lsr     %[src], %[count]")
         : [src] "+r" (src), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -109,7 +104,7 @@ inline uint16_t reverse_bits(uint16_t src)
         __ASM_EMIT("lsr %[src], $16")
         : [src] "+r" (src),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -126,7 +121,7 @@ inline uint16_t reverse_bits(uint16_t src, size_t count)
         __ASM_EMIT("lsr     %[src], %[count]")
         : [src] "+r" (src), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -142,7 +137,7 @@ inline int16_t reverse_bits(int16_t src)
         __ASM_EMIT("lsr %[src], $16")
         : [src] "+r" (src),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -159,7 +154,7 @@ inline int16_t reverse_bits(int16_t src, size_t count)
         __ASM_EMIT("lsr     %[src], %[count]")
         : [src] "+r" (src), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -175,7 +170,7 @@ inline uint8_t reverse_bits(uint8_t src)
         __ASM_EMIT("lsr %[src], $24")
         : [src] "+r" (src),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -192,7 +187,7 @@ inline uint8_t reverse_bits(uint8_t src, size_t count)
         __ASM_EMIT("lsr     %[src], %[count]")
         : [src] "+r" (src), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -208,7 +203,7 @@ inline int8_t reverse_bits(int8_t src)
         __ASM_EMIT("lsr %[src], $24")
         : [src] "+r" (src),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
     );
 
     return src;
@@ -224,7 +219,7 @@ inline int8_t reverse_bits(int8_t src, size_t count)
         __ASM_EMIT("lsr     %[src], %[count]")
         : [src] "+r" (src), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -243,7 +238,7 @@ inline uint64_t reverse_bits(uint64_t v)
         ARMV6_RBIT32("%[hi]", "%[msk]", "%[tmp]", "%[masks]")
         : [lo] "+r" (lo), [hi] "+r" (hi),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -262,7 +257,7 @@ inline int64_t reverse_bits(int64_t v)
         ARMV6_RBIT32("%[hi]", "%[msk]", "%[tmp]", "%[masks]")
         : [lo] "+r" (lo), [hi] "+r" (hi),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -297,10 +292,9 @@ inline uint64_t reverse_bits(uint64_t v, size_t count)
         __ASM_EMIT("orr             %[hi], %[tmp]")                 // [ lo >> count, (hi >> count) | (lo << (32 - count)) ]
 
         __ASM_EMIT("4:")
-        : [lo] "+r" (lo), [hi] "+r" (hi), [count] "+r" (count)
-          [tmp] "=&r" (tmp),
+        : [lo] "+r" (lo), [hi] "+r" (hi), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
@@ -335,10 +329,9 @@ inline int64_t reverse_bits(int64_t v, size_t count)
         __ASM_EMIT("orr             %[hi], %[tmp]")                 // [ lo >> count, (hi >> count) | (lo << (32 - count)) ]
 
         __ASM_EMIT("4:")
-        : [lo] "+r" (lo), [hi] "+r" (hi), [count] "+r" (count)
-          [tmp] "=&r" (tmp),
+        : [lo] "+r" (lo), [hi] "+r" (hi), [count] "+r" (count),
           [msk] "=&r" (msk), [tmp] "=&r" (tmp)
-        : [masks] "r" (masks)
+        : [masks] "r" (__rb_masks)
         :
     );
 
