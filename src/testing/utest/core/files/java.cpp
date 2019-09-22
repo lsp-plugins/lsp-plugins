@@ -14,6 +14,7 @@ using namespace lsp;
 
 UTEST_BEGIN("core.files", java)
 
+#pragma pack(push, 1)
     union tptype
     {
         java::byte_t        v_byte;
@@ -26,6 +27,7 @@ UTEST_BEGIN("core.files", java)
         java::bool_t        v_bool;
         java::Object       *v_object;
     };
+#pragma pack(pop)
 
     void read_jdk8_file()
     {

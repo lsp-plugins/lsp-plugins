@@ -99,20 +99,20 @@ namespace lsp
 
             typedef union prim_ptr_t
             {
-                int8_t         *p_byte;
-                uint8_t        *p_ubyte;
-                int16_t        *p_short;
-                uint16_t       *p_ushort;
-                int32_t        *p_int;
-                uint32_t       *p_uint;
-                int64_t        *p_long;
-                uint64_t       *p_ulong;
-                lsp_utf16_t    *p_char;
-                double_t       *p_double;
-                float_t        *p_float;
-                bool_t         *p_bool;
-                Object        **p_object;
-                void           *p_void;
+                int8_t         *p_byte      __lsp_packed;
+                uint8_t        *p_ubyte     __lsp_packed;
+                int16_t        *p_short     __lsp_packed;
+                uint16_t       *p_ushort    __lsp_packed;
+                int32_t        *p_int       __lsp_packed;
+                uint32_t       *p_uint      __lsp_packed;
+                int64_t        *p_long      __lsp_packed;
+                uint64_t       *p_ulong     __lsp_packed;
+                lsp_utf16_t    *p_char      __lsp_packed;
+                double_t       *p_double    __lsp_packed;
+                float_t        *p_float     __lsp_packed;
+                bool_t         *p_bool      __lsp_packed;
+                Object        **p_object    __lsp_packed;
+                void           *p_void      __lsp_packed;
             } prim_ptr_t;
         #pragma pack(pop)
 

@@ -19,8 +19,8 @@ namespace lsp
             {
                 case JFT_BYTE:      return sizeof(uint8_t);
                 case JFT_CHAR:      return sizeof(lsp_utf16_t);
-                case JFT_DOUBLE:    return sizeof(double);
-                case JFT_FLOAT:     return sizeof(float);
+                case JFT_DOUBLE:    return sizeof(double_t);
+                case JFT_FLOAT:     return sizeof(float_t);
                 case JFT_INTEGER:   return sizeof(uint32_t);
                 case JFT_LONG:      return sizeof(uint64_t);
                 case JFT_SHORT:     return sizeof(uint16_t);
