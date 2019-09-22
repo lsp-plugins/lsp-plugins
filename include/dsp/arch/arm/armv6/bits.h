@@ -28,6 +28,24 @@
     __ASM_EMIT("and     " msk ", " msk ", " dst) \
     __ASM_EMIT("orr     " dst ", " tmp ", " msk ", lsl #4") \
 
+#define ARMV6_MV_RBIT32(dst, src, msk, tmp, masks) \
+    __ASM_EMIT("rev     " dst ", " src ) \
+    /* round 1 */ \
+    __ASM_EMIT("ldr     " msk ", [" masks ", #0]") \
+    __ASM_EMIT("and     " tmp ", " msk ", " dst ", lsr #1") \
+    __ASM_EMIT("and     " msk ", " msk ", " dst) \
+    __ASM_EMIT("orr     " dst ", " tmp ", " msk ", lsl #1") \
+    /* round 2 */ \
+    __ASM_EMIT("ldr     " msk ", [" masks ", #4]") \
+    __ASM_EMIT("and     " tmp ", " msk ", " dst ", lsr #2") \
+    __ASM_EMIT("and     " msk ", " msk ", " dst) \
+    __ASM_EMIT("orr     " dst ", " tmp ", " msk ", lsl #2") \
+    /* round 3 */ \
+    __ASM_EMIT("ldr     " msk ", [" masks ", #8]") \
+    __ASM_EMIT("and     " tmp ", " msk ", " dst ", lsr #4") \
+    __ASM_EMIT("and     " msk ", " msk ", " dst) \
+    __ASM_EMIT("orr     " dst ", " tmp ", " msk ", lsl #4") \
+
 extern const uint32_t __rb_masks[];
 
 inline uint32_t reverse_bits(uint32_t src)
@@ -337,7 +355,5 @@ inline int64_t reverse_bits(int64_t v, size_t count)
 
     return hi | (int64_t(lo) << 32);
 }
-
-#undef ARMV6_RBIT32
 
 #endif /* DSP_ARCH_ARM_ARMV6_BITS_H_ */
