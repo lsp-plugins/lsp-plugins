@@ -49,12 +49,20 @@
 // Detect bitness of architecture
 #if defined(__WORDSIZE) && (__WORDSIZE == 64)
     #define ARCH_64BIT
+    typedef uint64_t            umword_t;
+    typedef int64_t             smword_t;
 #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 64)
     #define ARCH_64BIT
+    typedef uint64_t            umword_t;
+    typedef int64_t             smword_t;
 #elif defined(__WORDSIZE) && (__WORDSIZE == 32)
     #define ARCH_32BIT
+    typedef uint32_t            umword_t;
+    typedef int32_t             smword_t;
 #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 32)
     #define ARCH_32BIT
+    typedef uint32_t            umword_t;
+    typedef int32_t             smword_t;
 #else
     #warning "Unsupported architecture bitness"
 #endif /* __WORDSIZE, __SIZE_WIDTH__ */

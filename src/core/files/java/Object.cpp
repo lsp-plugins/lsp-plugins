@@ -64,7 +64,7 @@ namespace lsp
                         const ObjectStreamField *f = os->field(j);
                         if (::strcmp(f->raw_name(), field) != 0)
                         {
-                            offset += f->size_of();
+                            offset += f->aligned_size_of();
                             continue;
                         }
 
@@ -111,7 +111,7 @@ namespace lsp
                         const ObjectStreamField *f = os->field(j);
                         if (::strcmp(f->raw_name(), field) != 0)
                         {
-                            offset += f->size_of();
+                            offset += f->aligned_size_of();
                             continue;
                         }
                         found = true;
@@ -127,7 +127,7 @@ namespace lsp
                         // Reference type?
                         if (!f->is_reference())
                         {
-                            offset += f->size_of();
+                            offset += f->aligned_size_of();
                             continue;
                         }
 
@@ -306,7 +306,8 @@ namespace lsp
                 ++pad;
                 // Dump fields
                 ptr.p_ubyte     = &vData[s->offset];
-                lsp_trace("vData = %p, s->offset = %d", vData, int(s->offset));
+                lsp_trace("vData = %p, s->offset = %d, size=0x%x, first=%p, last=%p",
+                        vData, int(s->offset), int(s->size), &vData[s->offset], &vData[s->offset + s->size]);
 
                 for (size_t j=0, n=os->fields(); j<n; ++j)
                 {
@@ -320,24 +321,24 @@ namespace lsp
                     bool res = true;
                     switch (f->type())
                     {
-                        case JFT_BYTE:      res = dst->fmt_append_utf8("(byte) %d\n", *(ptr.p_byte++)); break;
-                        case JFT_DOUBLE:    res = dst->fmt_append_utf8("(double) %f\n", *(ptr.p_double++)); break;
-                        case JFT_FLOAT:     res = dst->fmt_append_utf8("(float) %f\n", *(ptr.p_float++)); break;
-                        case JFT_INTEGER:   res = dst->fmt_append_utf8("(int) %d\n", int(*(ptr.p_int++))); break;
-                        case JFT_LONG:      res = dst->fmt_append_utf8("(long) %lld\n", (long long)(*(ptr.p_long++))); break;
-                        case JFT_SHORT:     res = dst->fmt_append_utf8("(short) %d\n", int(*(ptr.p_short++))); break;
-                        case JFT_BOOL:      res = dst->fmt_append_utf8("(bool) %s\n", (*(ptr.p_bool++)) ? "true" : "false"); break;
+                        case JFT_BYTE:      res = dst->fmt_append_utf8("(byte) %d\n", *ptr.p_byte); break;
+                        case JFT_DOUBLE:    res = dst->fmt_append_utf8("(double) %f\n", *ptr.p_double); break;
+                        case JFT_FLOAT:     res = dst->fmt_append_utf8("(float) %f\n", *ptr.p_float); break;
+                        case JFT_INTEGER:   res = dst->fmt_append_utf8("(int) %d\n", int(*ptr.p_int)); break;
+                        case JFT_LONG:      res = dst->fmt_append_utf8("(long) %lld\n", (long long)(*ptr.p_long)); break;
+                        case JFT_SHORT:     res = dst->fmt_append_utf8("(short) %d\n", int(*ptr.p_short)); break;
+                        case JFT_BOOL:      res = dst->fmt_append_utf8("(bool) %s\n", (*ptr.p_bool) ? "true" : "false"); break;
                         case JFT_CHAR:
                             res = dst->append_ascii("'");
                             if (res)
-                                res = dst->append(lsp_wchar_t(*(ptr.p_char++)));
+                                res = dst->append(lsp_wchar_t(*ptr.p_char));
                             if (res)
                                 res = dst->append_ascii("'\n");
                             break;
                         case JFT_ARRAY:
                         case JFT_OBJECT:
                         {
-                            Object *obj = *(ptr.p_object++);
+                            Object *obj = *ptr.p_object;
                             if (obj != NULL)
                                 res = obj->to_string_padded(dst, pad) == STATUS_OK;
                             else
@@ -347,6 +348,8 @@ namespace lsp
                         default:
                             return STATUS_CORRUPTED;
                     }
+
+                    ptr.p_ubyte    += f->aligned_size_of();
 
                     if (!res)
                         return STATUS_NO_MEM;

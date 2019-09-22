@@ -940,8 +940,9 @@ namespace lsp
                         ObjectStreamField *f = NULL;
                         if ((res = parse_class_field(&f)) != STATUS_OK)
                             break;
-                        lsp_trace("Class Field: %s, signature: %s, size=%d",
-                                f->name()->get_native(), f->signature()->get_native(), int(f->size_of()));
+                        lsp_trace("Class Field: %s, signature: %s, size=%d, offset=0x%x",
+                                f->name()->get_native(), f->signature()->get_native(),
+                                int(f->size_of()), int(prim_data_size));
 
                         // Determine field location
                         desc->vFields[i]    = f;
@@ -954,9 +955,9 @@ namespace lsp
                         else
                         {
                             f->nOffset      = prim_data_size;
-                            prim_data_size += f->size_of();
+                            prim_data_size += f->aligned_size_of();
                         }
-                        size_of        += f->size_of();
+                        size_of        += f->aligned_size_of();
                     }
 
                     // Validate the final state
@@ -1135,6 +1136,7 @@ namespace lsp
             dst->vData      = reinterpret_cast<uint8_t *>(::malloc(allocated));
             if (dst->vData == NULL)
                 return STATUS_NO_MEM;
+            ::bzero(dst->vData, allocated);
 
             // Perform read of the object
             status_t res = STATUS_OK;
@@ -1191,21 +1193,21 @@ namespace lsp
                         lsp_trace("  reading field: %s", f->sName.get_native());
                         switch (f->type())
                         {
-                            case JFT_BYTE:      res = read_byte(xdata.p_ubyte++); break;
-                            case JFT_CHAR:      res = read_char(xdata.p_char++); break;
-                            case JFT_DOUBLE:    res = read_double(xdata.p_double++); break;
-                            case JFT_FLOAT:     res = read_float(xdata.p_float++); break;
-                            case JFT_INTEGER:   res = read_int(xdata.p_uint++); break;
-                            case JFT_LONG:      res = read_long(xdata.p_ulong++); break;
-                            case JFT_SHORT:     res = read_short(xdata.p_ushort++); break;
-                            case JFT_BOOL:      res = read_bool(xdata.p_bool++); break;
+                            case JFT_BYTE:      res = read_byte(xdata.p_ubyte); break;
+                            case JFT_CHAR:      res = read_char(xdata.p_char); break;
+                            case JFT_DOUBLE:    res = read_double(xdata.p_double); break;
+                            case JFT_FLOAT:     res = read_float(xdata.p_float); break;
+                            case JFT_INTEGER:   res = read_int(xdata.p_uint); break;
+                            case JFT_LONG:      res = read_long(xdata.p_ulong); break;
+                            case JFT_SHORT:     res = read_short(xdata.p_ushort); break;
+                            case JFT_BOOL:      res = read_bool(xdata.p_bool); break;
                             case JFT_ARRAY:
                             case JFT_OBJECT:
                             {
                                 Object *obj = NULL;
                                 res     = read_object(&obj);
                                 if (res == STATUS_OK)
-                                    *(xdata.p_object++)     = obj;
+                                    *xdata.p_object     = obj;
                                 break;
                             }
                             default:
@@ -1215,6 +1217,8 @@ namespace lsp
 
                         if (res != STATUS_OK)
                             break;
+
+                        xdata.p_ubyte  += f->aligned_size_of();
                     }
 
                     offset         += space;
