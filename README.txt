@@ -28,13 +28,13 @@ For more information about licensing, please read LICENSE.txt.
 ==== SYSTEM REQUIREMENTS ====
 
 Current matrix of architecture and platform support is:
-  ┌──────────┬──────┬────────┬──────────┬─────────┬───────┬───────┐
-  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │ ppc64 │ s390x │
-  ╞══════════╪══════╪════════╪══════════╪═════════╪═══════╪═══════╡
-  │GNU/Linux │  F   │   F    │    E     │    E    │   C   │   C   │
-  ├──────────┼──────┼────────┼──────────┼─────────┼───────┼───────┤
-  │FreeBSD   │  E   │   E    │    E     │    U    │   U   │   U   │
-  └──────────┴──────┴────────┴──────────┴─────────┴───────┴───────┘
+  ┌──────────┬──────┬────────┬─────────┬──────────┬─────────┬───────┬───────┐
+  │Platform  │ i586 │ x86_64 │ armv6-a │ armv7-ar │ aarch64 │ ppc64 │ s390x │
+  ╞══════════╪══════╪════════╪═════════╪══════════╪═════════╪═══════╪═══════╡
+  │GNU/Linux │  F   │   F    │    E    │    E     │    E    │   C   │   C   │
+  ├──────────┼──────┼────────┼─────────┼──────────┼─────────┼───────┼───────┤
+  │FreeBSD   │  E   │   E    │    E    │    E     │    U    │   U   │   U   │
+  └──────────┴──────┴────────┴─────────┴──────────┴─────────┴───────┴───────┘
     F - Full support.
     C - The code does compile, not enough knowledge about it's correct work.
     E - Experimental support, not enough feedback from users.
