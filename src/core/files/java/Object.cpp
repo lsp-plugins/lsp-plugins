@@ -279,7 +279,7 @@ namespace lsp
 
         status_t Object::to_string_padded(LSPString *dst, size_t pad)
         {
-            lsp_trace("*%p = new ", this);
+//            lsp_trace("*%p = new ", this);
             if (!dst->fmt_append_ascii("*%p = new ", this))
                 return STATUS_NO_MEM;
             if (!dst->append_utf8(pClass))
@@ -295,26 +295,26 @@ namespace lsp
                 object_slot_t *s = &vSlots[i];
                 ObjectStreamClass *os = s->desc;
 
-                lsp_trace("i=%d, nslots=%d, s=%p, os=%p", int(i), int(nSlots), s, os);
+//                lsp_trace("i=%d, nslots=%d, s=%p, os=%p", int(i), int(nSlots), s, os);
 
                 if (!pad_string(dst, pad))
                     return STATUS_NO_MEM;
-                lsp_trace("%s:\n", os->raw_name());
+//                lsp_trace("%s:\n", os->raw_name());
                 if (!dst->fmt_append_utf8("%s:\n", os->raw_name()))
                     return STATUS_NO_MEM;
 
                 ++pad;
                 // Dump fields
                 ptr.p_ubyte     = &vData[s->offset];
-                lsp_trace("vData = %p, s->offset = %d, size=0x%x, first=%p, last=%p",
-                        vData, int(s->offset), int(s->size), &vData[s->offset], &vData[s->offset + s->size]);
+//                lsp_trace("vData = %p, s->offset = %d, size=0x%x, first=%p, last=%p",
+//                        vData, int(s->offset), int(s->size), &vData[s->offset], &vData[s->offset + s->size]);
 
                 for (size_t j=0, n=os->fields(); j<n; ++j)
                 {
                     if (!pad_string(dst, pad))
                         return STATUS_NO_MEM;
                     const ObjectStreamField *f = os->field(j);
-                    lsp_trace("ptr = %p (type=%d)", ptr.p_ubyte, int(f->type()));
+//                    lsp_trace("ptr = %p (type=%d)", ptr.p_ubyte, int(f->type()));
                     if (!dst->fmt_append_utf8("%s = ", f->name()->get_utf8()))
                         return STATUS_NO_MEM;
 
