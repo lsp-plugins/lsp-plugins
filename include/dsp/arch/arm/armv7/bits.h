@@ -13,7 +13,7 @@
 inline uint32_t reverse_bits(uint32_t src)
 {
     ARCH_ARM_ASM (
-        __ASM_EMIT("rbit    %[res], %[src]")
+        __ASM_EMIT("rbit    %[src], %[src]")
         : [src] "+r" (src)
         : :
     );
@@ -37,7 +37,7 @@ inline uint32_t reverse_bits(uint32_t src, size_t count)
 inline int32_t reverse_bits(int32_t src)
 {
     ARCH_ARM_ASM (
-        __ASM_EMIT("rbit    %[res], %[src]")
+        __ASM_EMIT("rbit    %[src], %[src]")
         : [src] "+r" (src)
         :
     );
@@ -47,8 +47,6 @@ inline int32_t reverse_bits(int32_t src)
 
 inline int32_t reverse_bits(int32_t src, size_t count)
 {
-    int32_t res;
-
     ARCH_ARM_ASM (
         __ASM_EMIT("rsb     %[count], %[count], $32")
         __ASM_EMIT("rbit    %[src], %[src]")
@@ -57,7 +55,7 @@ inline int32_t reverse_bits(int32_t src, size_t count)
         : :
     );
 
-    return res;
+    return src;
 }
 
 inline uint16_t reverse_bits(uint16_t src)
