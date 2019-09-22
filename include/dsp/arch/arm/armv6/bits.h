@@ -305,7 +305,7 @@ inline int64_t reverse_bits(int64_t v, size_t count)
 {
     uint32_t lo = uint32_t(v);
     uint32_t hi = uint32_t(v >> 32);
-    uint32_t tmp;
+    uint32_t msk, tmp;
 
     ARCH_ARM_ASM
     (
