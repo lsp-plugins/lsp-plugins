@@ -31,7 +31,13 @@ namespace neon_d32
                 __ASM_EMIT("mov         %[i], $1")                          // i = 1
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("add         %[src_re], $4")
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
                 __ASM_EMIT("add         %[src_im], $4")
@@ -98,7 +104,7 @@ namespace neon_d32
                   [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
                   [count] "+r" (count)
-                :
+                : IF_ARCH_ARM6([masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -116,7 +122,13 @@ namespace neon_d32
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
 
                 __ASM_EMIT("add         %[s_re], %[src_re], %[j], LSL $2")  // s_re = &src_re[i]
@@ -199,6 +211,7 @@ namespace neon_d32
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
                 : [src_re] "r" (src_re), [src_im] "r" (src_im),
                   [regs] "r" (regs)
+                  IF_ARCH_ARM6(, [masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -222,7 +235,13 @@ namespace neon_d32
                 __ASM_EMIT("mov         %[i], $1")                          // i = 1
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("add         %[src_re], $4")
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
                 __ASM_EMIT("add         %[src_im], $4")
@@ -291,7 +310,7 @@ namespace neon_d32
                   [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
                   [count] "+r" (count)
-                :
+                : IF_ARCH_ARM6([masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -309,7 +328,13 @@ namespace neon_d32
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
 
                 __ASM_EMIT("add         %[s_re], %[src_re], %[j], LSL $2")  // s_re = &src_re[i]
@@ -394,6 +419,7 @@ namespace neon_d32
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
                 : [src_re] "r" (src_re), [src_im] "r" (src_im),
                   [regs] "r" (regs)
+                  IF_ARCH_ARM6(, [masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );

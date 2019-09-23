@@ -29,3 +29,12 @@
     };
 
 #endif /* ARCH_ARM */
+
+#if (!defined(ARCH_ARM7))
+    const uint32_t __rb_masks[] =
+    {
+        0x55555555,
+        0x33333333,
+        0x0f0f0f0f
+    };
+#endif /* ARCH_ARM7 */
