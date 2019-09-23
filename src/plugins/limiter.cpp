@@ -77,10 +77,10 @@ namespace lsp
         size_t c_data   = LIMIT_BUFSIZE * sizeof(float);
         size_t h_data   = limiter_base_metadata::HISTORY_MESH_SIZE * sizeof(float);
         size_t allocate = c_data * 4 * nChannels + h_data;
-        pData           = new uint8_t[allocate + DEFAULT_ALIGN];
-        if (pData == NULL)
+
+        uint8_t *ptr    = alloc_aligned<uint8_t>(pData, allocate, DEFAULT_ALIGN);
+        if (ptr == NULL)
             return;
-        uint8_t *ptr    = ALIGN_PTR(pData, DEFAULT_ALIGN);
 
         vTime           = reinterpret_cast<float *>(ptr);
         ptr            += h_data;
@@ -123,6 +123,8 @@ namespace lsp
 
             // Initialize oversampler
             if (!c->sOver.init())
+                return;
+            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, limiter_base_metadata::LOOKAHEAD_MAX))
                 return;
         }
 
@@ -235,7 +237,7 @@ namespace lsp
     {
         if (pData != NULL)
         {
-            delete [] pData;
+            free_aligned(pData);
             pData = NULL;
         }
         if (vChannels != NULL)
@@ -272,7 +274,6 @@ namespace lsp
 
             c->sBypass.init(sr);
             c->sOver.set_sample_rate(sr);
-            c->sLimit.init(max_sample_rate, limiter_base_metadata::LOOKAHEAD_MAX);
             c->sLimit.set_mode(LM_HERM_THIN);
             c->sLimit.set_sample_rate(real_sample_rate);
             c->sBlink.init(sr);
