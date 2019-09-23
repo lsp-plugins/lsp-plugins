@@ -110,13 +110,20 @@ namespace lsp
 
                     // Create new expression
                     bind = create_expr();
-                    if ((bind == NULL) || (!indexes.add(bind)))
+                    if (bind == NULL)
                     {
                         drop_indexes(&indexes);
                         delete name;
                         delete id;
                         return STATUS_NO_MEM;
                     }
+
+                    // Simple variable get
+                    bind->eval          = eval_resolve;
+                    bind->type          = ET_RESOLVE;
+                    bind->resolve.name  = name;
+                    bind->resolve.count = 0;
+                    bind->resolve.items = NULL;
                 }
                 else
                 {
@@ -138,15 +145,15 @@ namespace lsp
                         delete id;
                         return STATUS_BAD_TOKEN;
                     }
+                }
 
-                    // Add to list of indexes
-                    if (!indexes.add(bind))
-                    {
-                        parse_destroy(bind);
-                        drop_indexes(&indexes);
-                        delete id;
-                        return STATUS_NO_MEM;
-                    }
+                // Add binding to list of indexes
+                if (!indexes.add(bind))
+                {
+                    parse_destroy(bind);
+                    drop_indexes(&indexes);
+                    delete id;
+                    return STATUS_NO_MEM;
                 }
             } // while
 
@@ -209,21 +216,18 @@ namespace lsp
                     if (bind == NULL)
                         return STATUS_NO_MEM;
 
-                    ssize_t fvalue      = t->float_value();
+                    double fvalue       = t->float_value();
 
                     bind->eval          = eval_value;
                     bind->type          = ET_VALUE;
+                    bind->value.type    = VT_FLOAT;
                     if (t->get_token(TF_GET | TF_XSIGN) == TT_DB)
                     {
-                        bind->value.type    = VT_FLOAT;
                         bind->value.v_float = exp(fvalue * M_LN10 * 0.05);
                         t->get_token(TF_GET | TF_XSIGN);
                     }
                     else
-                    {
-                        bind->value.type    = VT_INT;
-                        bind->value.v_int   = fvalue;
-                    }
+                        bind->value.v_float = fvalue;
 
                     *expr       = bind;
                     break;

@@ -110,7 +110,7 @@ namespace lsp
                 }
                 case VT_NULL:
                 case VT_UNDEF:
-                    break;
+                    return STATUS_OK;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -153,7 +153,7 @@ namespace lsp
                 }
                 case VT_NULL:
                 case VT_UNDEF:
-                    break;
+                    return STATUS_OK;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -196,11 +196,12 @@ namespace lsp
                 }
                 case VT_NULL:
                 case VT_UNDEF:
-                    break;
+                    return STATUS_OK;
                 default:
                     return STATUS_BAD_TYPE;
             }
 
+            v->type     = VT_BOOL;
             return STATUS_OK;
         }
 
@@ -226,7 +227,7 @@ namespace lsp
                     return STATUS_OK;
                 case VT_NULL:
                 case VT_UNDEF:
-                    break;
+                    return STATUS_OK;
                 default:
                     return STATUS_BAD_TYPE;
             }
@@ -291,7 +292,7 @@ namespace lsp
                 }
                 case VT_NULL:
                 case VT_UNDEF:
-                    break;
+                    return STATUS_OK;
                 default:
                     return STATUS_BAD_TYPE;
             }

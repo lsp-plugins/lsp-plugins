@@ -235,7 +235,7 @@ namespace lsp
             for (size_t i=0, n=vVars.size(); i<n; ++i)
             {
                 variable_t *var = vVars.at(i);
-                if ((var != NULL) && (var->name.equals(name)))
+                if ((var != NULL) && (var->name.equals(search)))
                 {
                     if (value != NULL)
                         return copy_value(value, &var->value);
