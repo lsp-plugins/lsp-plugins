@@ -1143,8 +1143,21 @@ namespace lsp
 
         status_t eval_ternary(value_t *value, const expr_t *expr, eval_env_t *env)
         {
+            status_t res = expr->calc.cond->eval(value, expr->calc.cond, env);
+            if (res != STATUS_OK)
+                return res;
+            cast_bool(value);
+            if ((value->type) != VT_BOOL)
+            {
+                destroy_value(value);
+                return STATUS_OK;
+            }
 
-            return STATUS_NOT_IMPLEMENTED;
+            // Determine which expression to execute
+            expr = (value->v_bool) ? expr->calc.left : expr->calc.right;
+
+            destroy_value(value);
+            return expr->eval(value, expr, env);
         }
     }
 }

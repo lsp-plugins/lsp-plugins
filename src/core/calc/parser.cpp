@@ -1016,7 +1016,7 @@ namespace lsp
 
             // Create binding between left and right
             expr_t *bind     = create_expr();
-            if (bind != NULL)
+            if (bind == NULL)
             {
                 parse_destroy(cond);
                 parse_destroy(left);
