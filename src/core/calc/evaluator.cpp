@@ -1063,7 +1063,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
-            res = cast_float(value);
+            cast_float(value);
             switch (value->type)
             {
                 case VT_FLOAT:
@@ -1158,6 +1158,184 @@ namespace lsp
 
             destroy_value(value);
             return expr->eval(value, expr, env);
+        }
+
+        status_t eval_strcat(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = cast_string_ext(value)) != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            value_t right;
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+            if ((res = cast_string_ext(&right)) != STATUS_OK)
+            {
+                destroy_value(value);
+                destroy_value(&right);
+                return res;
+            }
+
+            if (!value->v_str->append(right.v_str))
+            {
+                destroy_value(value);
+                res = STATUS_NO_MEM;
+            }
+            destroy_value(&right);
+
+            return res;
+        }
+
+        status_t eval_strrep(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = cast_string_ext(value)) != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+
+            value_t right;
+            res = expr->calc.right->eval(&right, expr->calc.right, env);
+            if (res != STATUS_OK)
+            {
+                destroy_value(value);
+                return res;
+            }
+            cast_int(&right);
+            if ((right.type == VT_NULL) || (right.type == VT_UNDEF) || (right.v_int < 0))
+            {
+                destroy_value(&right);
+                destroy_value(value);
+                return STATUS_OK;
+            }
+
+            // Perform string repeat
+            LSPString tmp;
+            tmp.swap(value->v_str);
+            size_t x = right.v_int;
+            while (x)
+            {
+                if (x & 1)
+                {
+                    if (!value->v_str->append(&tmp))
+                    {
+                        res = STATUS_NO_MEM;
+                        break;
+                    }
+                }
+                if (x >>= 1)
+                {
+                    if (!tmp.append(&tmp))
+                    {
+                        res = STATUS_NO_MEM;
+                        break;
+                    }
+                }
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+            destroy_value(&right);
+
+            return res;
+        }
+
+        status_t eval_strupper(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+            cast_string(value);
+            switch (value->type)
+            {
+                case VT_STRING:
+                    value->v_str->toupper();
+                    break;
+                case VT_NULL:
+                    value->type     = VT_UNDEF;
+                    break;
+                case VT_UNDEF:
+                    break;
+                default:
+                    res = STATUS_BAD_TYPE;
+                    break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
+        }
+
+        status_t eval_strlower(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+            cast_string(value);
+            switch (value->type)
+            {
+                case VT_STRING:
+                    value->v_str->tolower();
+                    break;
+                case VT_NULL:
+                    value->type     = VT_UNDEF;
+                    break;
+                case VT_UNDEF:
+                    break;
+                default:
+                    res = STATUS_BAD_TYPE;
+                    break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
+        }
+
+        status_t eval_strlen(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+            cast_string(value);
+            switch (value->type)
+            {
+                case VT_STRING:
+                {
+                    int len         = value->v_str->length();
+                    destroy_value(value);
+                    value->type     = VT_INT;
+                    value->v_int    = len;
+                    break;
+                }
+                case VT_NULL:
+                    value->type     = VT_UNDEF;
+                    break;
+                case VT_UNDEF:
+                    break;
+                default:
+                    res = STATUS_BAD_TYPE;
+                    break;
+            }
+
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
         }
     }
 }

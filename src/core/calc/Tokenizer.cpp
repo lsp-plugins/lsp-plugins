@@ -12,6 +12,73 @@ namespace lsp
 {
     namespace calc
     {
+        typedef struct bareword_t {
+            const char     *text;
+            token_t         token;
+        } bareword_t;
+
+        static const bareword_t barewords[] =
+        {
+            { "add",        TT_ADDSYM       },
+            { "and",        TT_AND          },
+            { "band",       TT_BAND         },
+            { "bnot",       TT_BNOT         },
+            { "bor",        TT_BOR          },
+            { "bxor",       TT_BXOR         },
+            { "cmp",        TT_CMP          },
+            { "db",         TT_DB           },
+            { "div",        TT_DIV          },
+            { "eq",         TT_EQ           },
+            { "ex",         TT_EX           },
+            { "false",      TT_FALSE        },
+            { "fmod",       TT_FMOD         },
+            { "ge",         TT_GREATER_EQ   },
+            { "gt",         TT_GREATER      },
+            { "iadd",       TT_IADD         },
+            { "icmp",       TT_ICMP         },
+            { "idiv",       TT_IDIV         },
+            { "ie",         TT_IEQ          },
+            { "ieq",        TT_IEQ          },
+            { "ige",        TT_IGREATER_EQ  },
+            { "igt",        TT_IGREATER     },
+            { "ile",        TT_ILESS_EQ     },
+            { "ilt",        TT_ILESS        },
+            { "imod",       TT_IMOD         },
+            { "imul",       TT_IMUL         },
+            { "ine",        TT_INOT_EQ      },
+            { "inge",       TT_ILESS        },
+            { "ingt",       TT_ILESS_EQ     },
+            { "inle",       TT_IGREATER     },
+            { "inlt",       TT_IGREATER_EQ  },
+            { "isub",       TT_ISUB         },
+            { "lc",         TT_SLWR         },
+            { "le",         TT_LESS_EQ      },
+            { "lt",         TT_LESS         },
+            { "mod",        TT_IMOD         },
+            { "mul",        TT_MUL          },
+            { "ne",         TT_NOT_EQ       },
+            { "nge",        TT_LESS         },
+            { "ngt",        TT_LESS_EQ      },
+            { "nle",        TT_GREATER      },
+            { "nlt",        TT_GREATER_EQ   },
+            { "not",        TT_NOT          },
+            { "null",       TT_NULL         },
+            { "or",         TT_OR           },
+            { "pow",        TT_POW          },
+            { "sc",         TT_SCAT         },
+            { "scat",       TT_SCAT         },
+            { "sl",         TT_SLEN         },
+            { "slen",       TT_SLEN         },
+            { "slwr",       TT_SLWR         },
+            { "sr",         TT_SREP         },
+            { "srep",       TT_SREP         },
+            { "sub",        TT_SUBSYM       },
+            { "supr",       TT_SUPR         },
+            { "true",       TT_TRUE         },
+            { "uc",         TT_SUPR         },
+            { "undef",      TT_UNDEF        },
+            { "xor",        TT_XOR          }
+        };
         
         Tokenizer::Tokenizer(io::IInSequence *in)
         {
@@ -401,376 +468,24 @@ namespace lsp
 
         token_t Tokenizer::decode_bareword()
         {
-            size_t idx      = 0;
-            char c          = sValue.char_at(idx++);
-            token_t res     = enToken;
-
-            switch (c)
+            const char *text = sValue.get_utf8();
+            ssize_t first = 0, last = sizeof(barewords)/sizeof(bareword_t) - 1;
+            while (first <= last)
             {
-                // Alpha
-                case 'a': case 'A': // TT_AND, TT_ADD
-                    c = sValue.char_at(idx++);
-                    if ((c == 'n') || (c == 'N'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'd') || (c == 'D'))           // AND
-                            res         = TT_AND;
-                    }
-                    else if ((c == 'd') || (c == 'D'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'd') || (c == 'D'))           // ADD
-                            res         = TT_ADDSYM;
-                    }
-                    break;
+                ssize_t center = (first + last) >> 1;
+                const bareword_t *bw = &barewords[center];
+                int cmp = ::strcmp(text, bw->text);
 
-                case 'b': case 'B': // TT_BAND, TT_BNOT, TT_BOR, TT_BXOR
-                    c = sValue.char_at(idx++);
-                    if ((c == 'a') || (c == 'A'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'n') || (c == 'N'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'd') || (c == 'D'))       // BAND
-                                res         = TT_BAND;
-                        }
-                    }
-                    else if ((c == 'n') || (c == 'N'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 't') || (c == 'T'))       // BNOT
-                                res         = TT_BNOT;
-                        }
-                    }
-                    else if ((c == 'o') || (c == 'O'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'r') || (c == 'R'))           // BOR
-                            res         = TT_BOR;
-                    }
-                    else if ((c == 'x') || (c == 'X'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'r') || (c == 'R'))       // BXOR
-                                res         = TT_BXOR;
-                        }
-                    }
+                if (cmp < 0)
+                    last = center - 1;
+                else if (cmp > 0)
+                    first = center + 1;
+                else
+                {
+                    enToken = bw->token;
                     break;
-
-                case 'c': case 'C': // TT_CMP
-                    c = sValue.char_at(idx++);
-                    if ((c == 'm') || (c == 'M'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'p') || (c == 'P'))
-                            res         = TT_CMP;               // CMP
-                    }
-                    break;
-
-                case 'd': case 'D': // TT_DIV, TT_DB
-                    c = sValue.char_at(idx++);
-                    if ((c == 'i') || (c == 'I'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'v') || (c == 'V'))           // DIV
-                            res         = TT_DIV;
-                    }
-                    else if ((c == 'b') || (c == 'B'))          // DB
-                        res         = TT_DB;
-                    break;
-
-                case 'e': case 'E': // TT_EQ, TT_EX
-                    c = sValue.char_at(idx++);
-                    if ((c == 'q') || (c == 'Q'))               // EQ
-                        res         = TT_EQ;
-                    else if ((c == 'x') || (c == 'X'))          // EX
-                        res         = TT_EX;
-                    break;
-
-                case 'f': case 'F': // FALSE, FMOD
-                    c = sValue.char_at(idx++);
-                    if ((c == 'a') || (c == 'A'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'l') || (c == 'L'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 's') || (c == 'S'))
-                            {
-                                c = sValue.char_at(idx++);
-                                if ((c == 'e') || (c == 'E'))   // FALSE
-                                    res         = TT_FALSE;
-                            }
-                        }
-                    }
-                    else if ((c == 'm') || (c == 'M'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'd') || (c == 'D'))       // FMOD
-                                res         = TT_FMOD;
-                        }
-                    }
-                    break;
-
-                case 'g': case 'G': // TT_GREATER, TT_GREATER_EQ
-                    c = sValue.char_at(idx++);
-                    if ((c == 't') || (c == 'T'))               // GT
-                        res         = TT_GREATER;
-                    else if ((c == 'e') || (c == 'E'))          // GE
-                        res         = TT_GREATER_EQ;
-                    break;
-
-                case 'i': case 'I': // TT_IADD, TT_ISUB, TT_IMUL, TT_IDIV, TT_IMOD
-                    c = sValue.char_at(idx++);
-                    if ((c == 'a') || (c == 'A'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'd') || (c == 'D'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'd') || (c == 'D'))       // IADD
-                                res         = TT_IADD;
-                        }
-                    }
-                    else if ((c == 'c') || (c == 'C'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'm') || (c == 'M'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'p') || (c == 'P'))       // ICMP
-                                res         = TT_ICMP;
-                        }
-                    }
-                    else if ((c == 'd') || (c == 'D'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'i') || (c == 'I'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'v') || (c == 'V'))       // IDIV
-                                res         = TT_IDIV;
-                        }
-                    }
-                    else if ((c == 'e') || (c == 'E'))          // IE
-                    {
-                        res         = TT_IEQ;
-                        c           = (idx < sValue.length()) ?
-                                      sValue.char_at(idx++) : -1;
-                        if ((c == 'q') || (c == 'Q'))           // IEQ
-                            res         = TT_IEQ;
-                    }
-                    else if ((c == 'g') || (c == 'G'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 't') || (c == 'T'))           // IGT
-                            res         = TT_IGREATER;
-                        else if ((c == 'e') || (c == 'T'))      // IGE
-                            res         = TT_IGREATER_EQ;
-                    }
-                    else if ((c == 'l') || (c == 'L'))
-                    {
-                        c = sValue.char_at(idx++);              // ILT
-                        if ((c == 't') || (c == 'T'))
-                            res         = TT_ILESS;
-                        else if ((c == 'e') || (c == 'T'))      // ILE
-                            res         = TT_ILESS_EQ;
-                    }
-                    else if ((c == 'm') || (c == 'M'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'o') || (c == 'O'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'd') || (c == 'D'))       // IMOD
-                                res         = TT_IMOD;
-                        }
-                        else if ((c == 'u') || (c == 'U'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'l') || (c == 'L'))       // IMUL
-                                res         = TT_IMUL;
-                        }
-                    }
-                    else if ((c == 'n') || (c == 'N'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'e') || (c == 'E'))
-                            res         = TT_INOT_EQ;           // INE
-                        else if ((c == 'g') || (c == 'G'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 't') || (c == 'T'))       // INGT
-                                res         = TT_ILESS_EQ;
-                            else if ((c == 'e') || (c == 'T'))  // INGE
-                                res         = TT_ILESS;
-                        }
-                        else if ((c == 'l') || (c == 'L'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 't') || (c == 'T'))       // INLT
-                                res         = TT_IGREATER_EQ;
-                            else if ((c == 'e') || (c == 'T'))  // INLE
-                                res         = TT_IGREATER;
-                        }
-                    }
-                    else if ((c == 's') || (c == 'S'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'u') || (c == 'U'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'b') || (c == 'B'))       // ISUB
-                                res         = TT_ISUB;
-                        }
-                    }
-                    break;
-
-                case 'l': case 'L': // TT_LESS, TT_LESS_EQ
-                    c = sValue.char_at(idx++);
-                    if ((c == 't') || (c == 'T'))               // LT
-                        res         = TT_LESS;
-                    else if ((c == 'e') || (c == 'T'))          // LE
-                        res         = TT_LESS_EQ;
-                    break;
-
-                case 'm': case 'M': // TT_MUL, TT_MOD
-                    c = sValue.char_at(idx++);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'd') || (c == 'D'))           // MOD
-                            res         = TT_IMOD;
-                    }
-                    else if ((c == 'u') || (c == 'U'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'l') || (c == 'L'))           // MUL
-                            res         = TT_MUL;
-                    }
-                    break;
-
-                case 'n': case 'N': // TT_NOT, TT_LESS, TT_GREATER, TT_LESS_EQ, TT_GREATER_EQ, TT_NOT_EQ
-                    c = sValue.char_at(idx++);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 't') || (c == 'T'))           // NOT
-                            res         = TT_NOT;
-                    }
-                    else if ((c == 'g') || (c == 'G'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 't') || (c == 'T'))           // NGT
-                            res         = TT_LESS_EQ;
-                        else if ((c == 'e') || (c == 'T'))      // NGE
-                            res         = TT_LESS;
-                    }
-                    else if ((c == 'l') || (c == 'L'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 't') || (c == 'T'))           // NLT
-                            res         = TT_GREATER_EQ;
-                        else if ((c == 'e') || (c == 'T'))      // NLE
-                            res         = TT_GREATER;
-                    }
-                    else if ((c == 'e') || (c == 'E'))          // NE
-                        res         = TT_NOT_EQ;
-                    else if ((c == 'u') || (c == 'U'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'l') || (c == 'L'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'l') || (c == 'L'))       // NULL
-                                res         = TT_NULL;
-                        }
-                    }
-
-                    break;
-
-                case 'o': case 'O': // TT_OR
-                    c = sValue.char_at(idx++);
-                    if ((c == 'r') || (c == 'R'))               // OR
-                        res         = TT_OR;
-                    break;
-
-                case 'p': case 'P': // TT_POW
-                    c = sValue.char_at(idx++);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'w') || (c == 'W'))           // POW
-                            res         = TT_POW;
-                    }
-                    break;
-
-                case 's': case 'S': // TT_SUB
-                    c = sValue.char_at(idx++);
-                    if ((c == 'u') || (c == 'U'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'b') || (c == 'B'))           // SUB
-                            res         = TT_SUBSYM;
-                    }
-                    break;
-
-                case 't': case 'T': // TRUE
-                    c = sValue.char_at(idx++);
-                    if ((c == 'r') || (c == 'R'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'u') || (c == 'U'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'e') || (c == 'E'))       // TRUE
-                                res         = TT_TRUE;
-                        }
-                    }
-                    break;
-
-                case 'u': case 'U': // UNDEF
-                    c = sValue.char_at(idx++);
-                    if ((c == 'n') || (c == 'N'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'd') || (c == 'D'))
-                        {
-                            c = sValue.char_at(idx++);
-                            if ((c == 'e') || (c == 'E'))
-                            {
-                                c = sValue.char_at(idx++);
-                                if ((c == 'f') || (c == 'F'))
-                                    res         = TT_UNDEF;
-                            }
-                        }
-                    }
-                    break;
-
-                case 'x': case 'X': // TT_XOR
-                    c = sValue.char_at(idx++);
-                    if ((c == 'o') || (c == 'O'))
-                    {
-                        c = sValue.char_at(idx++);
-                        if ((c == 'r') || (c == 'R'))       // XOR
-                            res         = TT_XOR;
-                    }
-                    break;
+                }
             }
-
-            // Replace token with new decoded value
-            if (idx == sValue.length())
-                enToken     = res;
 
             return enToken;
         }

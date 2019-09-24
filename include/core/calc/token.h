@@ -80,6 +80,13 @@ namespace lsp
             TT_IEQ,         // ie, ieq
             TT_ICMP,        // icmp
 
+            // String operations
+            TT_SCAT,        // String concat
+            TT_SREP,        // String repeat
+            TT_SLEN,        // String length
+            TT_SUPR,        // String upper
+            TT_SLWR,        // String lower
+
             // Misc operations
             TT_EX,          // ex
 

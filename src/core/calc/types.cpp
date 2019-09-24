@@ -242,6 +242,48 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t cast_string_ext(value_t *v)
+        {
+            LSPString tmp;
+
+            switch (v->type)
+            {
+                case VT_INT:
+                    if (!tmp.fmt_ascii("%ld", long(v->v_int)))
+                        return STATUS_NO_MEM;
+                    break;
+                case VT_FLOAT:
+                    if (!tmp.fmt_ascii("%f", double(v->v_float)))
+                        return STATUS_NO_MEM;
+                    break;
+                case VT_BOOL:
+                    if (!tmp.set_ascii((v->v_bool) ? "true" : "false"))
+                        return STATUS_NO_MEM;
+                    break;
+                case VT_STRING:
+                    return STATUS_OK;
+                case VT_NULL:
+                    if (!tmp.set_ascii("null"))
+                        return STATUS_NO_MEM;
+                    break;
+                case VT_UNDEF:
+                    if (!tmp.set_ascii("undef"))
+                        return STATUS_NO_MEM;
+                    break;
+                default:
+                    return STATUS_BAD_TYPE;
+            }
+
+            LSPString *ns = tmp.copy();
+            if (ns == NULL)
+                return STATUS_NO_MEM;
+
+            v->type     = VT_STRING;
+            v->v_str    = ns;
+
+            return STATUS_OK;
+        }
+
         status_t cast_numeric(value_t *v)
         {
             switch (v->type)

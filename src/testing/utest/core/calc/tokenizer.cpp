@@ -104,6 +104,7 @@ UTEST_BEGIN("core.calc", tokenizer)
                 "band bor bnot bxor "
                 "add sub mul pow div fmod "
                 "iadd isub imul idiv imod mod "
+                "sc scat sr srep sl slen uc supr lc slwr "
                 "lt nge gt nle le ngt ge nlt ne eq cmp icmp "
                 "ilt inge igt inle ile ingt ige inlt ine ie ieq "
                 "ex db "
@@ -143,6 +144,17 @@ UTEST_BEGIN("core.calc", tokenizer)
         ck_token(t, "idiv", TT_IDIV);
         ck_token(t, "imod", TT_IMOD);
         ck_token(t, "mod", TT_IMOD);
+
+        ck_token(t, "sc", TT_SCAT);
+        ck_token(t, "scat", TT_SCAT);
+        ck_token(t, "sr", TT_SREP);
+        ck_token(t, "srep", TT_SREP);
+        ck_token(t, "sl", TT_SLEN);
+        ck_token(t, "slen", TT_SLEN);
+        ck_token(t, "uc", TT_SUPR);
+        ck_token(t, "supr", TT_SUPR);
+        ck_token(t, "lc", TT_SLWR);
+        ck_token(t, "slwr", TT_SLWR);
 
         ck_token(t, "lt", TT_LESS);
         ck_token(t, "nge", TT_LESS);

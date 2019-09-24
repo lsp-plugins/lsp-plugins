@@ -51,6 +51,7 @@ namespace lsp
         status_t cast_float(value_t *v);
         status_t cast_bool(value_t *v);
         status_t cast_string(value_t *v);
+        status_t cast_string_ext(value_t *v);
 
         status_t cast_numeric(value_t *v);
     }
