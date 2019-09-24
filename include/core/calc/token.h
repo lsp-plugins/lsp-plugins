@@ -84,6 +84,7 @@ namespace lsp
             TT_SCAT,        // String concat
             TT_SREP,        // String repeat
             TT_SLEN,        // String length
+            TT_SREV,        // String reverse
             TT_SUPR,        // String upper
             TT_SLWR,        // String lower
 

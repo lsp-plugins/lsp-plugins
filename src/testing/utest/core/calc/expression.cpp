@@ -61,6 +61,22 @@ UTEST_BEGIN("core.calc", expression)
                 "%s: result (%s) != expected (%s)", expr, (res.v_bool) ? "true" : "false", (value) ? "true" : "false");
     }
 
+    void test_string(const char *expr, Resolver *r, const char *value)
+    {
+        LSPString tmp;
+        Expression e(r);
+        value_t res;
+
+        printf("Evaluating expression: %s -> '%s'\n", expr, value);
+        UTEST_ASSERT(tmp.set_utf8(expr) == true);
+        UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
+        UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
+        UTEST_ASSERT(res.type == VT_STRING);
+        UTEST_ASSERT(tmp.set_utf8(value) == true);
+        UTEST_ASSERT_MSG(tmp.equals(res.v_str),
+                "%s: result ('%s') != expected ('%s')", expr, res.v_str->get_utf8(), tmp.get_utf8());
+    }
+
     void init_vars(Variables &v)
     {
         UTEST_ASSERT(v.set_int("ia", 1) == STATUS_OK);
@@ -87,6 +103,10 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(v.set_float("v_0_1", 1.234) == STATUS_OK);
         UTEST_ASSERT(v.set_bool("v_1_0", true) == STATUS_OK);
         UTEST_ASSERT(v.set_string("v_1_1", "test") == STATUS_OK);
+
+        UTEST_ASSERT(v.set_string("sa", "lower") == STATUS_OK);
+        UTEST_ASSERT(v.set_string("sb", "UPPER") == STATUS_OK);
+
     }
 
     UTEST_MAIN
@@ -94,52 +114,61 @@ UTEST_BEGIN("core.calc", expression)
         Variables v;
         init_vars(v);
 
-//        test_float("12 db", &v, GAIN_AMP_P_12_DB);
-//        test_float("-12 db", &v, GAIN_AMP_M_12_DB);
-//        test_float("db 12", &v, GAIN_AMP_P_12_DB);
-//        test_float("db -12", &v, GAIN_AMP_M_12_DB);
-//        test_float(":fa + :fb/:fc - :fe", &v, 1.59);
-//        test_float(":ic ** :ib", &v, 125.0f);
-//
-//        test_int("0b1011_0010", &v, 0xb2);
-//        test_int("0o1_1", &v, 9);
-//        test_int("0d12_34", &v, 1234);
-//        test_int("0x12_34", &v, 0x1234);
-//        test_int("+6 + -3 - --2", &v, 1);
-//        test_int("(:ia+:ic) idiv :ib", &v, 2);
-//        test_int(":ia * :ic + :id idiv :ib", &v, 7);
-//        test_int(":ie bxor 0x3", &v, 9);
-//        test_int(":ie bor :ic", &v, 15);
-//        test_int(":ie band 0xC", &v, 8);
-//        test_int("~:ia band 0xf", &v, 0x0e);
-//        test_int(":ia icmp null", &v, 1);
-//        test_int("null cmp :ia", &v, -1);
-//        test_int("null <=> undef", &v, 1);
-//        test_int("undef <=> :za", &v, -1);
-//
-//        test_bool(":ia*:ib < :fc / :fe", &v, true);
-//        test_bool(":ia*:ic > :fa / :fb", &v, true);
-//        test_bool(":bb || :ba && :bd ^^ :bc", &v, true);
-//        test_bool("(:bb || :bd) || !(:ba eq :bc)", &v, false);
-//        test_bool("-:ia + :ib - :ic ieq -(:ie - :id)", &v, true);
-//        test_bool("'true' eq true", &v, true);
-//        test_bool("'TRUE' ne true", &v, true);
-//        test_bool("'TRUE' ieq true", &v, true);
-//        test_bool("'0x100' ieq 0x100", &v, true);
-//        test_bool("'0x100' != 0x100", &v, true);
-//        test_bool("ex :ia", &v, true);
-//        test_bool("ex :fz", &v, false);
-//        test_bool(":za ieq :zb", &v, true);
-//        test_bool(":ia >= :za", &v, true);
-//        test_bool(":ia + :za == undef", &v, true);
-//        test_bool("(:v[0][0] ieq 1234) and (:v[bb][ia] = 1.234)", &v, true);
-//        test_bool("(:v[:fa][:ia-:fd]) && (:v[1][:bc] = 'test')", &v, true);
+        test_float("12 db", &v, GAIN_AMP_P_12_DB);
+        test_float("-12 db", &v, GAIN_AMP_M_12_DB);
+        test_float("db 12", &v, GAIN_AMP_P_12_DB);
+        test_float("db -12", &v, GAIN_AMP_M_12_DB);
+        test_float(":fa + :fb/:fc - :fe", &v, 1.59);
+        test_float(":ic ** :ib", &v, 125.0f);
+
+        test_int("0b1011_0010", &v, 0xb2);
+        test_int("0o1_1", &v, 9);
+        test_int("0d12_34", &v, 1234);
+        test_int("0x12_34", &v, 0x1234);
+        test_int("+6 + -3 - --2", &v, 1);
+        test_int("(:ia+:ic) idiv :ib", &v, 2);
+        test_int(":ia * :ic + :id idiv :ib", &v, 7);
+        test_int(":ie bxor 0x3", &v, 9);
+        test_int(":ie bor :ic", &v, 15);
+        test_int(":ie band 0xC", &v, 8);
+        test_int("~:ia band 0xf", &v, 0x0e);
+        test_int(":ia icmp null", &v, 1);
+        test_int("null cmp :ia", &v, -1);
+        test_int("null <=> undef", &v, 1);
+        test_int("undef <=> :za", &v, -1);
+
+        test_bool(":ia*:ib < :fc / :fe", &v, true);
+        test_bool(":ia*:ic > :fa / :fb", &v, true);
+        test_bool(":bb || :ba && :bd ^^ :bc", &v, true);
+        test_bool("(:bb || :bd) || !(:ba eq :bc)", &v, false);
+        test_bool("-:ia + :ib - :ic ieq -(:ie - :id)", &v, true);
+        test_bool("'true' eq true", &v, true);
+        test_bool("'TRUE' ne true", &v, true);
+        test_bool("'TRUE' ieq true", &v, true);
+        test_bool("'0x100' ieq 0x100", &v, true);
+        test_bool("'0x100' != 0x100", &v, true);
+        test_bool("ex :ia", &v, true);
+        test_bool("ex :fz", &v, false);
+        test_bool(":za ieq :zb", &v, true);
+        test_bool(":ia >= :za", &v, true);
+        test_bool(":ia + :za == undef", &v, true);
+        test_bool("(:v[0][0] ieq 1234) and (:v[bb][ia] = 1.234)", &v, true);
+        test_bool("(:v[:fa][:ia-:fd]) && (:v[1][:bc] = 'test')", &v, true);
 
         for (size_t i=0, j=0; i<40; i += 10, ++j)
         {
             UTEST_ASSERT(v.set_int("x", i) == STATUS_OK);
             test_int(":x < 20 ? :x < 10 ? 0 : 1 : :x < 30 ? 2 : 3", &v, j);
         }
+
+        test_int("slen 'abcdef'", &v, 6);
+        test_string("'ABC'", &v, "ABC");
+        test_string("'1' sc 20+:ib sc :ic*9", &v, "12345");
+        test_string("'xy' sr :id", &v, "xyxyxyxyxyxyxy");
+        test_string("lc :sa sc uc :sb", &v, "lowerUPPER");
+        test_string("uc :sa sc lc :sb", &v, "LOWERupper");
+        test_string("srev :sa sc srev :sb", &v, "rewolREPPU");
+        test_string("'null: ' sc :za sc ', undef: ' sc :zx", &v, "null: null, undef: undef");
     }
 
 UTEST_END;

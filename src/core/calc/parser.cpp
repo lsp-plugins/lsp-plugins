@@ -319,6 +319,10 @@ namespace lsp
             {
                 case TT_EX:
                 case TT_DB:
+                case TT_SUPR:
+                case TT_SLWR:
+                case TT_SLEN:
+                case TT_SREV:
                     res = parse_func(&right, t, TF_GET);
                     break;
                 default:
@@ -338,6 +342,10 @@ namespace lsp
             {
                 case TT_EX:             bind->eval  = eval_exists; break;
                 case TT_DB:             bind->eval  = eval_db; break;
+                case TT_SUPR:           bind->eval  = eval_strupper; break;
+                case TT_SLWR:           bind->eval  = eval_strlower; break;
+                case TT_SLEN:           bind->eval  = eval_strlen; break;
+                case TT_SREV:           bind->eval  = eval_strrev; break;
                 default:                bind->eval  = NULL; break;
             }
             bind->type          = ET_CALC;
@@ -590,12 +598,100 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t parse_cmp_rel(expr_t **expr, Tokenizer *t, size_t flags)
+        status_t parse_strrep(expr_t **expr, Tokenizer *t, size_t flags)
         {
             expr_t *left = NULL, *right = NULL;
 
             // Parse left part
             status_t res = parse_addsub(&left, t, flags);
+            if (res != STATUS_OK)
+                return res;
+
+            // Check token
+            token_t tok = t->get_token(TF_NONE);
+            if (tok != TT_SREP)
+            {
+                *expr = left;
+                return res;
+            }
+
+            // Parse right part
+            res = parse_addsub(&right, t, TF_GET);
+            if (res != STATUS_OK)
+            {
+                parse_destroy(left);
+                return res;
+            }
+
+            // Create binding between left and right
+            expr_t *bind        = create_expr();
+            if (bind == NULL)
+            {
+                parse_destroy(left);
+                parse_destroy(right);
+                return STATUS_NO_MEM;
+            }
+
+            bind->type          = ET_CALC;
+            bind->eval          = eval_strrep;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
+
+            *expr               = bind;
+            return STATUS_OK;
+        }
+
+        status_t parse_strcat(expr_t **expr, Tokenizer *t, size_t flags)
+        {
+            expr_t *left = NULL, *right = NULL;
+
+            // Parse left part
+            status_t res = parse_strrep(&left, t, flags);
+            if (res != STATUS_OK)
+                return res;
+
+            // Check token
+            token_t tok = t->get_token(TF_NONE);
+            if (tok != TT_SCAT)
+            {
+                *expr = left;
+                return res;
+            }
+
+            // Parse right part
+            res = parse_strcat(&right, t, TF_GET);
+            if (res != STATUS_OK)
+            {
+                parse_destroy(left);
+                return res;
+            }
+
+            // Create binding between left and right
+            expr_t *bind        = create_expr();
+            if (bind == NULL)
+            {
+                parse_destroy(left);
+                parse_destroy(right);
+                return STATUS_NO_MEM;
+            }
+
+            bind->type          = ET_CALC;
+            bind->eval          = eval_strcat;
+            bind->calc.left     = left;
+            bind->calc.right    = right;
+            bind->calc.cond     = NULL;
+
+            *expr               = bind;
+            return STATUS_OK;
+        }
+
+        status_t parse_cmp_rel(expr_t **expr, Tokenizer *t, size_t flags)
+        {
+            expr_t *left = NULL, *right = NULL;
+
+            // Parse left part
+            status_t res = parse_strcat(&left, t, flags);
             if (res != STATUS_OK)
                 return res;
 

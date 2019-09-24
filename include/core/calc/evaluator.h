@@ -63,6 +63,7 @@ namespace lsp
         status_t eval_strupper(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_strlower(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_strlen(value_t *value, const expr_t *expr, eval_env_t *env);
+        status_t eval_strrev(value_t *value, const expr_t *expr, eval_env_t *env);
 
         status_t eval_power(value_t *value, const expr_t *expr, eval_env_t *env);
 

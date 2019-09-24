@@ -59,6 +59,8 @@ namespace lsp
         status_t parse_bit_and(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_cmp_eq(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_cmp_rel(expr_t **expr, Tokenizer *t, size_t flags);
+        status_t parse_strcat(expr_t **expr, Tokenizer *t, size_t flags);
+        status_t parse_strrep(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_addsub(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_muldiv(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_power(expr_t **expr, Tokenizer *t, size_t flags);

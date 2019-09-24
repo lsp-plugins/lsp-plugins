@@ -72,6 +72,7 @@ namespace lsp
             { "slwr",       TT_SLWR         },
             { "sr",         TT_SREP         },
             { "srep",       TT_SREP         },
+            { "srev",       TT_SREV         },
             { "sub",        TT_SUBSYM       },
             { "supr",       TT_SUPR         },
             { "true",       TT_TRUE         },
@@ -474,7 +475,7 @@ namespace lsp
             {
                 ssize_t center = (first + last) >> 1;
                 const bareword_t *bw = &barewords[center];
-                int cmp = ::strcmp(text, bw->text);
+                int cmp = ::strcasecmp(text, bw->text);
 
                 if (cmp < 0)
                     last = center - 1;
