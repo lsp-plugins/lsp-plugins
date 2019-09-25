@@ -1102,7 +1102,7 @@ namespace lsp
             }
 
             // Compute index values
-            ssize_t *indexes = reinterpret_cast<ssize_t *>(::malloc(expr->resolve.count));
+            ssize_t *indexes = reinterpret_cast<ssize_t *>(::malloc(expr->resolve.count * sizeof(ssize_t)));
             if (indexes == NULL)
                 return STATUS_NO_MEM;
 

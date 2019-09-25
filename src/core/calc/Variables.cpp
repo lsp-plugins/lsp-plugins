@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/calc/types.h>
 #include <core/calc/Variables.h>
 
 namespace lsp
@@ -325,7 +326,10 @@ namespace lsp
             {
                 variable_t *var = vVars.at(i);
                 if (var != NULL)
+                {
+                    destroy_value(&var->value);
                     delete var;
+                }
             }
             vVars.flush();
         }

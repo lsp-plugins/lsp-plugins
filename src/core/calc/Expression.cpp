@@ -214,6 +214,7 @@ namespace lsp
             middle->eval        = eval_strcat;
             middle->calc.left   = *expr;
             middle->calc.right  = right;
+            middle->calc.cond   = NULL;
             *expr               = middle;
 
             return STATUS_OK;
@@ -301,6 +302,7 @@ namespace lsp
                             middle->eval        = eval_strcat;
                             middle->calc.left   = expr;
                             middle->calc.right  = right;
+                            middle->calc.cond   = NULL;
                             expr                = middle;
                         }
                         else
@@ -312,14 +314,11 @@ namespace lsp
                     // Analyze result
                     if (wc < 0)
                     {
-                        res = (wc == STATUS_EOF) ? STATUS_OK : -wc;
+                        res = (wc == -STATUS_EOF) ? STATUS_OK : -wc;
                         break;
                     }
                     else if (wc == '$')
-                    {
                         predicate = true;
-                        continue;
-                    }
                     else if (!tmp.append(wc))  // Append character to string
                     {
                         res = STATUS_NO_MEM;

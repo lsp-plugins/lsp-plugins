@@ -77,6 +77,24 @@ UTEST_BEGIN("core.calc", expression)
                 "%s: result ('%s') != expected ('%s')", expr, res.v_str->get_utf8(), tmp.get_utf8());
     }
 
+    void test_substitution(const char *expr, Resolver *r, const char *value)
+    {
+        LSPString tmp;
+        Expression e(r);
+        value_t res;
+
+        printf("Evaluating expression: %s -> '%s'\n", expr, value);
+        UTEST_ASSERT(tmp.set_utf8(expr) == true);
+        UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_STRING) == STATUS_OK, "Error parsing expression: %s", expr);
+        UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
+        UTEST_ASSERT(cast_string(&res) == STATUS_OK);
+        UTEST_ASSERT(res.type == VT_STRING);
+        UTEST_ASSERT(tmp.set_utf8(value) == true);
+        UTEST_ASSERT_MSG(tmp.equals(res.v_str),
+                "%s: result ('%s') != expected ('%s')", expr, res.v_str->get_utf8(), tmp.get_utf8());
+        destroy_value(&res);
+    }
+
     void init_vars(Variables &v)
     {
         UTEST_ASSERT(v.set_int("ia", 1) == STATUS_OK);
@@ -169,6 +187,13 @@ UTEST_BEGIN("core.calc", expression)
         test_string("uc :sa sc lc :sb", &v, "LOWERupper");
         test_string("srev :sa sc srev :sb", &v, "rewolREPPU");
         test_string("'null: ' sc :za sc ', undef: ' sc :zx", &v, "null: null, undef: undef");
+
+        test_substitution("some bare string", &v, "some bare string");
+        test_substitution("${ia}", &v, "1");
+        test_substitution("Value is: ${ia}", &v, "Value is: 1");
+        test_substitution("Value is: ${:ba}", &v, "Value is: true");
+        test_substitution("$${ia}", &v, "${ia}");
+        test_substitution("${ia}+${:ie}-${:ic}=${:ia+:ie-:ic}", &v, "1+10-5=6");
     }
 
 UTEST_END;
