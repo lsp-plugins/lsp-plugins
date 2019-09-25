@@ -22,6 +22,7 @@ namespace lsp
     namespace calc
     {
         struct expr_t;
+        class Tokenizer;
         
         class Expression
         {
@@ -32,7 +33,8 @@ namespace lsp
                 enum expr_flags
                 {
                     FLAG_NONE           = 0,
-                    FLAG_MULTIPLE       = 1 << 0
+                    FLAG_MULTIPLE       = 1 << 0,
+                    FLAG_STRING         = 1 << 1
                 };
 
             protected:
@@ -54,6 +56,10 @@ namespace lsp
 
             protected:
                 void                destroy_all_data();
+                status_t            prepend_string(expr_t **expr, const LSPString *str, bool force);
+                status_t            parse_substitution(expr_t **expr, Tokenizer *t);
+                status_t            parse_regular(io::IInSequence *seq, size_t flags);
+                status_t            parse_string(io::IInSequence *seq, size_t flags);
 
             public:
                 explicit Expression(Resolver *res);

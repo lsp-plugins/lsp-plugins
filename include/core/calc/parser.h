@@ -48,7 +48,8 @@ namespace lsp
             };
         } expr_t;
 
-        void parse_destroy(expr_t *expr);
+        expr_t  *parse_create_expr();
+        void    parse_destroy(expr_t *expr);
 
         status_t parse_ternary(expr_t **expr, Tokenizer *t, size_t flags);
         status_t parse_or(expr_t **expr, Tokenizer *t, size_t flags);

@@ -58,7 +58,7 @@ namespace lsp
             ::free(expr);
         }
 
-        static inline expr_t *create_expr()
+        expr_t *parse_create_expr()
         {
             return reinterpret_cast<expr_t *>(::malloc(sizeof(expr_t)));
         }
@@ -75,7 +75,7 @@ namespace lsp
             // Get identifier
             expr_t *bind = NULL;
             token_t tok = t->get_token(flags);
-            if (tok != TT_IDENTIFIER)
+            if ((tok != TT_IDENTIFIER) && (!(flags & TF_BAREWORD)))
                 return STATUS_BAD_TOKEN;
 
             LSPString *id   = t->text_value()->clone();
@@ -109,7 +109,7 @@ namespace lsp
                     }
 
                     // Create new expression
-                    bind = create_expr();
+                    bind = parse_create_expr();
                     if (bind == NULL)
                     {
                         drop_indexes(&indexes);
@@ -158,7 +158,7 @@ namespace lsp
             } // while
 
             // Create expression
-            bind    = create_expr();
+            bind    = parse_create_expr();
             if (bind == NULL)
             {
                 drop_indexes(&indexes);
@@ -186,7 +186,7 @@ namespace lsp
 
                 case TT_IVALUE:
                 {
-                    expr_t *bind        = create_expr();
+                    expr_t *bind        = parse_create_expr();
                     if (bind == NULL)
                         return STATUS_NO_MEM;
 
@@ -212,7 +212,7 @@ namespace lsp
 
                 case TT_FVALUE:
                 {
-                    expr_t *bind        = create_expr();
+                    expr_t *bind        = parse_create_expr();
                     if (bind == NULL)
                         return STATUS_NO_MEM;
 
@@ -239,7 +239,7 @@ namespace lsp
                 case TT_NULL:
                 case TT_UNDEF:
                 {
-                    expr_t *bind        = create_expr();
+                    expr_t *bind        = parse_create_expr();
                     if (bind == NULL)
                         return STATUS_NO_MEM;
 
@@ -332,7 +332,7 @@ namespace lsp
                 return res;
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(right);
@@ -378,7 +378,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(right);
@@ -419,7 +419,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(right);
@@ -461,7 +461,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -512,7 +512,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -572,7 +572,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -624,7 +624,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -668,7 +668,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -722,7 +722,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -784,7 +784,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -836,7 +836,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -879,7 +879,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -922,7 +922,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -965,7 +965,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -1008,7 +1008,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -1051,7 +1051,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind        = create_expr();
+            expr_t *bind        = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(left);
@@ -1111,7 +1111,7 @@ namespace lsp
             }
 
             // Create binding between left and right
-            expr_t *bind     = create_expr();
+            expr_t *bind     = parse_create_expr();
             if (bind == NULL)
             {
                 parse_destroy(cond);

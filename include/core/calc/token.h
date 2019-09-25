@@ -26,6 +26,8 @@ namespace lsp
             TT_RBRACE,      // )
             TT_LQBRACE,     // [
             TT_RQBRACE,     // ]
+            TT_LCBRACE,     // {
+            TT_RCBRACE,     // }
 
             // Constants
             TT_TRUE,        // true
@@ -109,7 +111,8 @@ namespace lsp
         {
             TF_NONE     = 0,
             TF_GET      = 1 << 0,
-            TF_XSIGN    = 1 << 1
+            TF_XSIGN    = 1 << 1,
+            TF_BAREWORD = 1 << 2
         };
     }
 }

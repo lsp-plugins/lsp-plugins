@@ -55,7 +55,7 @@ UTEST_BEGIN("core.calc", tokenizer)
     void test_sign_tokens()
     {
         static const char *tokens =
-                "( ) [ ] & && | || ! ^ ^^ ~ + - * ** / % < > <= >= != <> = == <=> ? : ;";
+                "( ) [ ] { } & && | || ! ^ ^^ ~ + - * ** / % < > <= >= != <> = == <=> ? : ;";
 
         io::InStringSequence sq;
         UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
@@ -66,6 +66,8 @@ UTEST_BEGIN("core.calc", tokenizer)
         ck_token(t, ")", TT_RBRACE);
         ck_token(t, "[", TT_LQBRACE);
         ck_token(t, "]", TT_RQBRACE);
+        ck_token(t, "{", TT_LCBRACE);
+        ck_token(t, "}", TT_RCBRACE);
         ck_token(t, "&", TT_AND);
         ck_token(t, "&&", TT_AND);
         ck_token(t, "|", TT_OR);

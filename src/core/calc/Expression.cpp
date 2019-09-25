@@ -7,6 +7,7 @@
 
 #include <core/io/InStringSequence.h>
 #include <core/calc/parser.h>
+#include <core/calc/evaluator.h>
 #include <core/calc/Expression.h>
 #include <core/calc/Tokenizer.h>
 
@@ -135,10 +136,10 @@ namespace lsp
             return res;
         }
 
-        status_t Expression::parse(io::IInSequence *seq, size_t flags)
+        status_t Expression::parse_regular(io::IInSequence *seq, size_t flags)
         {
-            Tokenizer t(seq);
             status_t res = STATUS_OK;
+            Tokenizer t(seq);
 
             while (true)
             {
@@ -168,6 +169,201 @@ namespace lsp
                 else if (!(flags & FLAG_MULTIPLE))
                     break;
             }
+
+            return res;
+        }
+
+        status_t Expression::prepend_string(expr_t **expr, const LSPString *str, bool force)
+        {
+            // Do we really need to prepend?
+            if ((str->length() <= 0) && (!force))
+                return STATUS_OK;
+
+            // What to do with expression?
+            expr_t *right = parse_create_expr();
+            if (right == NULL)
+                return STATUS_NO_MEM;
+
+            right->type         = ET_VALUE;
+            right->eval         = eval_value;
+            right->value.type   = VT_STRING;
+            right->value.v_str  = str->clone();
+
+            if (right->value.v_str == NULL)
+            {
+                parse_destroy(right);
+                return STATUS_NO_MEM;
+            }
+
+            // Do we need to immediately return?
+            if (*expr == NULL)
+            {
+                *expr = right;
+                return STATUS_OK;
+            }
+
+            // Need to create middle expression
+            expr_t *middle      = parse_create_expr();
+            if (middle == NULL)
+            {
+                parse_destroy(right);
+                return STATUS_NO_MEM;
+            }
+
+            middle->type        = ET_CALC;
+            middle->eval        = eval_strcat;
+            middle->calc.left   = *expr;
+            middle->calc.right  = right;
+            *expr               = middle;
+
+            return STATUS_OK;
+        }
+
+        status_t Expression::parse_substitution(expr_t **expr, Tokenizer *t)
+        {
+            expr_t *right = NULL;
+            token_t tok   = t->get_token(TF_GET);
+
+            // Parse expression
+            status_t res = (tok == TT_BAREWORD) ?
+                parse_identifier(&right, t, TF_BAREWORD) :
+                parse_expression(&right, t, TF_NONE);
+
+            if (res != STATUS_OK)
+                return res;
+
+            // Analyze next token after expression
+            tok         = t->get_token(TF_NONE);
+            if (tok != TT_RCBRACE)
+                res = (tok == TT_EOF) ? STATUS_EOF : STATUS_BAD_TOKEN;
+
+            if (res == STATUS_OK)
+                *expr       = right;
+
+            return res;
+        }
+
+        status_t Expression::parse_string(io::IInSequence *seq, size_t flags)
+        {
+            // Create expression
+            LSPString tmp;
+            Tokenizer t(seq);
+            status_t res        = STATUS_OK;
+            expr_t *expr        = NULL;
+            bool predicate      = false;
+
+            while (true)
+            {
+                lsp_swchar_t wc = seq->read();
+                if (predicate)
+                {
+                    predicate = false;
+                    if (wc < 0)
+                    {
+                        res = (wc == STATUS_EOF) ? STATUS_OK : -wc;
+                        break;
+                    }
+                    else if (wc != '{')
+                    {
+                        if (wc != '$')
+                            res = (tmp.append('$')) ? STATUS_OK : STATUS_NO_MEM;
+
+                        if (res == STATUS_OK)
+                            res = (tmp.append(wc)) ? STATUS_OK : STATUS_NO_MEM;
+                        if (res != STATUS_OK)
+                            break;
+                    }
+                    else // Sub-expression
+                    {
+                        // Prepend string if it is defined
+                        res = prepend_string(&expr, &tmp, false);
+                        if (res != STATUS_OK)
+                            break;
+                        tmp.clear();
+
+                        // Parse expression
+                        expr_t *right = NULL;
+                        res = parse_substitution(&right, &t);
+                        if (res != STATUS_OK)
+                            break;
+
+                        // What to do with expression?
+                        if (expr != NULL)
+                        {
+                            expr_t *middle = parse_create_expr();
+                            if (middle == NULL)
+                            {
+                                parse_destroy(right);
+                                res = STATUS_NO_MEM;
+                                break;
+                            }
+                            middle->type        = ET_CALC;
+                            middle->eval        = eval_strcat;
+                            middle->calc.left   = expr;
+                            middle->calc.right  = right;
+                            expr                = middle;
+                        }
+                        else
+                            expr    = right;
+                    }
+                }
+                else
+                {
+                    // Analyze result
+                    if (wc < 0)
+                    {
+                        res = (wc == STATUS_EOF) ? STATUS_OK : -wc;
+                        break;
+                    }
+                    else if (wc == '$')
+                    {
+                        predicate = true;
+                        continue;
+                    }
+                    else if (!tmp.append(wc))  // Append character to string
+                    {
+                        res = STATUS_NO_MEM;
+                        break;
+                    }
+                }
+            }
+
+            // Need to prepend string?
+            if (res == STATUS_OK)
+                res = prepend_string(&expr, &tmp, expr == NULL);
+
+            // Analyze result
+            if (res != STATUS_OK)
+            {
+                parse_destroy(expr);
+                return res;
+            }
+
+            // Allocate placeholder
+            root_t *root    = vRoots.add();
+            if (root == NULL)
+            {
+                parse_destroy(expr);
+                res     = STATUS_NO_MEM;
+            }
+            else
+            {
+                root->expr          = expr;
+                root->result.type   = VT_UNDEF;
+                root->result.v_str  = NULL;
+            }
+
+            return res;
+        }
+
+        status_t Expression::parse(io::IInSequence *seq, size_t flags)
+        {
+            status_t res = STATUS_OK;
+
+            if (flags & FLAG_STRING)
+                res = parse_string(seq, flags & (~FLAG_STRING));
+            else
+                res = parse_regular(seq, flags);
 
             if (res != STATUS_OK)
                 destroy_all_data();

@@ -543,6 +543,10 @@ namespace lsp
                     return commit(TT_LQBRACE);
                 case ']': // TT_RQBRACE
                     return commit(TT_RQBRACE);
+                case '{': // TT_LCBRACE
+                    return commit(TT_LCBRACE);
+                case '}': // TT_RCBRACE
+                    return commit(TT_RCBRACE);
                 case '*': // TT_MUL, TT_POW
                 {
                     commit(TT_MUL);
