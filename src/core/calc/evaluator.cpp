@@ -1366,6 +1366,58 @@ namespace lsp
 
             return res;
         }
+
+        status_t eval_int_cast(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            res = cast_int(value);
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
+        }
+
+        status_t eval_float_cast(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            res = cast_float(value);
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
+        }
+
+        status_t eval_string_cast(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            res = cast_string(value);
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
+        }
+
+        status_t eval_bool_cast(value_t *value, const expr_t *expr, eval_env_t *env)
+        {
+            status_t res = expr->calc.left->eval(value, expr->calc.left, env);
+            if (res != STATUS_OK)
+                return res;
+
+            res = cast_bool(value);
+            if (res != STATUS_OK)
+                destroy_value(value);
+
+            return res;
+        }
     }
 }
 

@@ -58,6 +58,8 @@ namespace lsp
         status_t eval_fmod(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_imod(value_t *value, const expr_t *expr, eval_env_t *env);
 
+        status_t eval_power(value_t *value, const expr_t *expr, eval_env_t *env);
+
         status_t eval_strcat(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_strrep(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_strupper(value_t *value, const expr_t *expr, eval_env_t *env);
@@ -65,7 +67,10 @@ namespace lsp
         status_t eval_strlen(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_strrev(value_t *value, const expr_t *expr, eval_env_t *env);
 
-        status_t eval_power(value_t *value, const expr_t *expr, eval_env_t *env);
+        status_t eval_int_cast(value_t *value, const expr_t *expr, eval_env_t *env);
+        status_t eval_float_cast(value_t *value, const expr_t *expr, eval_env_t *env);
+        status_t eval_string_cast(value_t *value, const expr_t *expr, eval_env_t *env);
+        status_t eval_bool_cast(value_t *value, const expr_t *expr, eval_env_t *env);
 
         status_t eval_not(value_t *value, const expr_t *expr, eval_env_t *env);
         status_t eval_neg(value_t *value, const expr_t *expr, eval_env_t *env);

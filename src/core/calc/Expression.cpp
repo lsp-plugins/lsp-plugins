@@ -51,9 +51,10 @@ namespace lsp
             root_t *r = vRoots.get(idx);
             if (r == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            if (result != NULL)
-                *result     = r->result;
-            return STATUS_OK;
+            if (result == NULL)
+                return STATUS_OK;
+
+            return copy_value(result, &r->result);
         }
 
         status_t Expression::evaluate(value_t *result)
@@ -78,7 +79,7 @@ namespace lsp
 
             // Store the result if ALL is OK
             if ((res == STATUS_OK) && (result != NULL))
-                *result     = vRoots.at(0)->result;
+                res = copy_value(result, &vRoots.at(0)->result);
 
             return res;
         }

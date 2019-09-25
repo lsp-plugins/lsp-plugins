@@ -109,6 +109,7 @@ UTEST_BEGIN("core.calc", tokenizer)
                 "sc scat sr srep sl slen uc supr lc slwr srev "
                 "lt nge gt nle le ngt ge nlt ne eq cmp icmp "
                 "ilt inge igt inle ile ingt ige inlt ine ie ieq "
+                "int float fp bool str "
                 "ex db "
                 "bareword "
             ;
@@ -183,6 +184,12 @@ UTEST_BEGIN("core.calc", tokenizer)
         ck_token(t, "ine", TT_INOT_EQ);
         ck_token(t, "ie", TT_IEQ);
         ck_token(t, "ieq", TT_IEQ);
+
+        ck_token(t, "int", TT_INT);
+        ck_token(t, "float", TT_FLOAT);
+        ck_token(t, "fp", TT_FLOAT);
+        ck_token(t, "bool", TT_BOOL);
+        ck_token(t, "str", TT_STR);
 
         ck_token(t, "ex", TT_EX);
         ck_token(t, "db", TT_DB);

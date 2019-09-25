@@ -29,6 +29,7 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(res.type == VT_FLOAT);
         UTEST_ASSERT_MSG(float_equals_relative(res.v_float, value, tol),
                 "%s: result (%f) != expected (%f)", expr, double(res.v_float), value);
+        destroy_value(&res);
     }
 
     void test_int(const char *expr, Resolver *r, ssize_t value)
@@ -44,6 +45,7 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(res.type == VT_INT);
         UTEST_ASSERT_MSG(res.v_int == value,
                 "%s: result (%ld) != expected (%ld)", expr, long(res.v_int), long(value));
+        destroy_value(&res);
     }
 
     void test_bool(const char *expr, Resolver *r, bool value)
@@ -59,6 +61,7 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(res.type == VT_BOOL);
         UTEST_ASSERT_MSG(res.v_bool == value,
                 "%s: result (%s) != expected (%s)", expr, (res.v_bool) ? "true" : "false", (value) ? "true" : "false");
+        destroy_value(&res);
     }
 
     void test_string(const char *expr, Resolver *r, const char *value)
@@ -75,6 +78,7 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(tmp.set_utf8(value) == true);
         UTEST_ASSERT_MSG(tmp.equals(res.v_str),
                 "%s: result ('%s') != expected ('%s')", expr, res.v_str->get_utf8(), tmp.get_utf8());
+        destroy_value(&res);
     }
 
     void test_substitution(const char *expr, Resolver *r, const char *value)
@@ -113,6 +117,7 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(v.set_float("fc", 0.5) == STATUS_OK);
         UTEST_ASSERT(v.set_float("fd", 0.7) == STATUS_OK);
         UTEST_ASSERT(v.set_float("fe", 0.01) == STATUS_OK);
+        UTEST_ASSERT(v.set_float("fg", 14.1) == STATUS_OK);
 
         UTEST_ASSERT(v.set_null("za") == STATUS_OK);
         UTEST_ASSERT(v.set_null("zb") == STATUS_OK);
@@ -138,6 +143,7 @@ UTEST_BEGIN("core.calc", expression)
         test_float("db -12", &v, GAIN_AMP_M_12_DB);
         test_float(":fa + :fb/:fc - :fe", &v, 1.59);
         test_float(":ic ** :ib", &v, 125.0f);
+        test_float("fp (:ie + :id)", &v, 17.0);
 
         test_int("0b1011_0010", &v, 0xb2);
         test_int("0o1_1", &v, 9);
@@ -154,6 +160,8 @@ UTEST_BEGIN("core.calc", expression)
         test_int("null cmp :ia", &v, -1);
         test_int("null <=> undef", &v, 1);
         test_int("undef <=> :za", &v, -1);
+        test_int("undef <=> :za", &v, -1);
+        test_int("int :ba + int :fg", &v, 15);
 
         test_bool(":ia*:ib < :fc / :fe", &v, true);
         test_bool(":ia*:ic > :fa / :fb", &v, true);
@@ -172,6 +180,7 @@ UTEST_BEGIN("core.calc", expression)
         test_bool(":ia + :za == undef", &v, true);
         test_bool("(:v[0][0] ieq 1234) and (:v[bb][ia] = 1.234)", &v, true);
         test_bool("(:v[:fa][:ia-:fd]) && (:v[1][:bc] = 'test')", &v, true);
+        test_bool("bool :fb", &v, false);
 
         for (size_t i=0, j=0; i<40; i += 10, ++j)
         {
@@ -187,6 +196,7 @@ UTEST_BEGIN("core.calc", expression)
         test_string("uc :sa sc lc :sb", &v, "LOWERupper");
         test_string("srev :sa sc srev :sb", &v, "rewolREPPU");
         test_string("'null: ' sc :za sc ', undef: ' sc :zx", &v, "null: null, undef: undef");
+        test_string("str :bc", &v, "true");
 
         test_substitution("some bare string", &v, "some bare string");
         test_substitution("${ia}", &v, "1");

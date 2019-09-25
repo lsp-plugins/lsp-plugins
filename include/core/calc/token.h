@@ -90,6 +90,12 @@ namespace lsp
             TT_SUPR,        // String upper
             TT_SLWR,        // String lower
 
+            // Casts
+            TT_INT,         // Cast to integer
+            TT_FLOAT,       // Cast to float
+            TT_STR,         // Cast to string
+            TT_BOOL,        // Cast to bool
+
             // Misc operations
             TT_EX,          // ex
 

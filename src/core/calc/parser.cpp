@@ -323,6 +323,10 @@ namespace lsp
                 case TT_SLWR:
                 case TT_SLEN:
                 case TT_SREV:
+                case TT_INT:
+                case TT_FLOAT:
+                case TT_BOOL:
+                case TT_STR:
                     res = parse_func(&right, t, TF_GET);
                     break;
                 default:
@@ -346,6 +350,10 @@ namespace lsp
                 case TT_SLWR:           bind->eval  = eval_strlower; break;
                 case TT_SLEN:           bind->eval  = eval_strlen; break;
                 case TT_SREV:           bind->eval  = eval_strrev; break;
+                case TT_INT:            bind->eval  = eval_int_cast; break;
+                case TT_FLOAT:          bind->eval  = eval_float_cast; break;
+                case TT_BOOL:           bind->eval  = eval_bool_cast; break;
+                case TT_STR:            bind->eval  = eval_string_cast; break;
                 default:                bind->eval  = NULL; break;
             }
             bind->type          = ET_CALC;
