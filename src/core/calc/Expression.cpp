@@ -39,6 +39,14 @@ namespace lsp
 
         void Expression::destroy_all_data()
         {
+            for (size_t i=0, n=vDependencies.size(); i<n; ++i)
+            {
+                LSPString *dep = vDependencies.at(i);
+                if (dep != NULL)
+                    delete dep;
+            }
+            vDependencies.flush();
+
             for (size_t i=0, n=vRoots.size(); i<n; ++i)
             {
                 root_t *r = vRoots.at(i);
@@ -375,10 +383,115 @@ namespace lsp
             else
                 res = parse_regular(seq, flags);
 
+            if (res == STATUS_OK)
+                res     = post_process();
+
             if (res != STATUS_OK)
                 destroy_all_data();
 
             return res;
+        }
+
+        status_t Expression::post_process()
+        {
+            // Scan for dependencies
+            for (size_t i=0, n=vRoots.size(); i<n; ++i)
+            {
+                root_t *root = vRoots.at(i);
+                if (root == NULL)
+                    continue;
+
+                status_t res = scan_dependencies(root->expr);
+                if (res != STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t Expression::add_dependency(const LSPString *str)
+        {
+            // Already have such dependency?
+            for (size_t i=0, n=vDependencies.size(); i<n; ++i)
+            {
+                LSPString *dep = vDependencies.at(i);
+                if (dep->equals(str))
+                    return STATUS_OK;
+            }
+
+            // Add new dependency
+            LSPString *dep = str->clone();
+            if (dep == NULL)
+                return STATUS_NO_MEM;
+
+            if (vDependencies.add(dep))
+                return STATUS_OK;
+
+            delete dep;
+            return STATUS_NO_MEM;
+        }
+
+        status_t Expression::scan_dependencies(expr_t *expr)
+        {
+            if (expr == NULL)
+                return STATUS_OK;
+
+            switch (expr->type)
+            {
+                case ET_VALUE:
+                    return STATUS_OK;
+                case ET_CALC:
+                {
+                    status_t res = scan_dependencies(expr->calc.cond);
+                    if (res == STATUS_OK)
+                        res = scan_dependencies(expr->calc.left);
+                    if (res == STATUS_OK)
+                        res = scan_dependencies(expr->calc.right);
+                    return res;
+                }
+                case ET_RESOLVE:
+                {
+                    status_t res = add_dependency(expr->resolve.name);
+                    if (res != STATUS_OK)
+                        return res;
+                    for (size_t i=0; i<expr->resolve.count; ++i)
+                    {
+                        res = scan_dependencies(expr->resolve.items[i]);
+                        if (res != STATUS_OK)
+                            break;
+                    }
+                    return res;
+                }
+                default:
+                    break;
+            }
+            return STATUS_CORRUPTED;
+        }
+
+        bool Expression::has_dependency(const LSPString *str) const
+        {
+            for (size_t i=0, n=vDependencies.size(); i<n; ++i)
+            {
+                const LSPString *dep = vDependencies.at(i);
+                if (dep->equals(str))
+                    return true;
+            }
+            return false;
+        }
+
+        bool Expression::has_dependency(const char *str) const
+        {
+            LSPString tmp;
+            if (!tmp.set_utf8(str))
+                return false;
+
+            for (size_t i=0, n=vDependencies.size(); i<n; ++i)
+            {
+                const LSPString *dep = vDependencies.at(i);
+                if (dep->equals(&tmp))
+                    return true;
+            }
+            return false;
         }
 
     } /* namespace calc */

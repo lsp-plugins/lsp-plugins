@@ -18,12 +18,10 @@ UTEST_BEGIN("core.calc", expression)
 
     void test_float(const char *expr, Resolver *r, double value, float tol = 0.001)
     {
-        LSPString tmp;
         Expression e(r);
         value_t res;
 
         printf("Evaluating expression: %s -> %f\n", expr, value);
-        UTEST_ASSERT(tmp.set_utf8(expr) == true);
         UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
         UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
         UTEST_ASSERT(res.type == VT_FLOAT);
@@ -34,12 +32,10 @@ UTEST_BEGIN("core.calc", expression)
 
     void test_int(const char *expr, Resolver *r, ssize_t value)
     {
-        LSPString tmp;
         Expression e(r);
         value_t res;
 
         printf("Evaluating expression: %s -> %ld\n", expr, long(value));
-        UTEST_ASSERT(tmp.set_utf8(expr) == true);
         UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
         UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
         UTEST_ASSERT(res.type == VT_INT);
@@ -50,12 +46,10 @@ UTEST_BEGIN("core.calc", expression)
 
     void test_bool(const char *expr, Resolver *r, bool value)
     {
-        LSPString tmp;
         Expression e(r);
         value_t res;
 
         printf("Evaluating expression: %s -> %s\n", expr, (value) ? "true" : "false");
-        UTEST_ASSERT(tmp.set_utf8(expr) == true);
         UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
         UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
         UTEST_ASSERT(res.type == VT_BOOL);
@@ -72,7 +66,7 @@ UTEST_BEGIN("core.calc", expression)
 
         printf("Evaluating expression: %s -> '%s'\n", expr, value);
         UTEST_ASSERT(tmp.set_utf8(expr) == true);
-        UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
+        UTEST_ASSERT_MSG(e.parse(&tmp, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
         UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
         UTEST_ASSERT(res.type == VT_STRING);
         UTEST_ASSERT(tmp.set_utf8(value) == true);
@@ -89,7 +83,7 @@ UTEST_BEGIN("core.calc", expression)
 
         printf("Evaluating expression: %s -> '%s'\n", expr, value);
         UTEST_ASSERT(tmp.set_utf8(expr) == true);
-        UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_STRING) == STATUS_OK, "Error parsing expression: %s", expr);
+        UTEST_ASSERT_MSG(e.parse(&tmp, Expression::FLAG_STRING) == STATUS_OK, "Error parsing expression: %s", expr);
         UTEST_ASSERT(e.evaluate(&res) == STATUS_OK);
         UTEST_ASSERT(cast_string(&res) == STATUS_OK);
         UTEST_ASSERT(res.type == VT_STRING);
@@ -97,6 +91,26 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT_MSG(tmp.equals(res.v_str),
                 "%s: result ('%s') != expected ('%s')", expr, res.v_str->get_utf8(), tmp.get_utf8());
         destroy_value(&res);
+    }
+
+    void test_dependencies(Resolver *r)
+    {
+        LSPString tmp;
+        Expression e(r);
+
+        static const char *expr = "(:v[:fa][:ia-:fd]) && (:v[1][:bc] = 'test') || (:za + :zb == undef)";
+
+        printf("Testing dependencies for expression\n");
+        UTEST_ASSERT(tmp.set_utf8(expr) == true);
+        UTEST_ASSERT_MSG(e.parse(&tmp, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
+        UTEST_ASSERT(e.has_dependency("v"));
+        UTEST_ASSERT(e.has_dependency("fa"));
+        UTEST_ASSERT(e.has_dependency("ia"));
+        UTEST_ASSERT(e.has_dependency("fd"));
+        UTEST_ASSERT(e.has_dependency("bc"));
+        UTEST_ASSERT(e.has_dependency("za"));
+        UTEST_ASSERT(e.has_dependency("zb"));
+        UTEST_ASSERT(!e.has_dependency("zc"));
     }
 
     void init_vars(Variables &v)
@@ -204,6 +218,8 @@ UTEST_BEGIN("core.calc", expression)
         test_substitution("Value is: ${:ba}", &v, "Value is: true");
         test_substitution("$${ia}", &v, "${ia}");
         test_substitution("${ia}+${:ie}-${:ic}=${:ia+:ie-:ic}", &v, "1+10-5=6");
+
+        test_dependencies(&v);
     }
 
 UTEST_END;

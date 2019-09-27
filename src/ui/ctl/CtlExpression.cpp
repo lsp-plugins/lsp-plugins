@@ -16,7 +16,6 @@ namespace lsp
         {
             pCtl        = NULL;
             pListener   = NULL;
-            sExpr.set_resolver(&sVars);
         }
 
         CtlExpression::~CtlExpression()
@@ -28,6 +27,11 @@ namespace lsp
         {
             pCtl        = ctl;
             pListener   = listener;
+
+            // Bind expression stuff
+            sResolver.init(ctl);
+            sVars.set_resolver(&sResolver);
+            sExpr.set_resolver(&sVars);
         }
 
         void CtlExpression::destroy()
@@ -107,7 +111,6 @@ namespace lsp
 
         bool CtlExpression::parse(const char *expr, size_t flags)
         {
-            drop_dependencies();
             LSPString tmp;
             if (!tmp.set_utf8(expr))
                 return false;
@@ -118,7 +121,6 @@ namespace lsp
 
         bool CtlExpression::parse(const LSPString *expr, size_t flags)
         {
-            drop_dependencies();
             if (sExpr.parse(expr, flags) != STATUS_OK)
                 return false;
             return build_dependencies();
@@ -126,7 +128,6 @@ namespace lsp
 
         bool CtlExpression::parse(io::IInSequence *expr, size_t flags)
         {
-            drop_dependencies();
             if (sExpr.parse(expr, flags) != STATUS_OK)
                 return false;
             return build_dependencies();
@@ -134,7 +135,27 @@ namespace lsp
 
         bool CtlExpression::build_dependencies()
         {
-            // TODO
+            drop_dependencies();
+            if (pCtl == NULL)
+                return true;
+
+            for (size_t i=0, n=sExpr.dependencies(); i<n; ++i)
+            {
+                const LSPString *dep = sExpr.dependency(i);
+                if (dep == NULL)
+                    continue;
+
+                CtlPort *p = pCtl->port(dep->get_utf8());
+                if (p == NULL)
+                    continue;
+
+                if (!vDependencies.add(p))
+                {
+                    drop_dependencies();
+                    return false;
+                }
+            }
+
             return true;
         }
     

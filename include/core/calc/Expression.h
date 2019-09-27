@@ -44,15 +44,10 @@ namespace lsp
                     value_t         result;
                 } root_t;
 
-                typedef struct param_t
-                {
-                    LSPString       name;
-                    value_t         value;
-                } param_t;
-
             protected:
                 Resolver           *pResolver;
                 cstorage<root_t>    vRoots;
+                cvector<LSPString>  vDependencies;
 
             protected:
                 void                destroy_all_data();
@@ -60,6 +55,9 @@ namespace lsp
                 status_t            parse_substitution(expr_t **expr, Tokenizer *t);
                 status_t            parse_regular(io::IInSequence *seq, size_t flags);
                 status_t            parse_string(io::IInSequence *seq, size_t flags);
+                status_t            post_process();
+                status_t            scan_dependencies(expr_t *expr);
+                status_t            add_dependency(const LSPString *str);
 
             public:
                 explicit Expression();
@@ -139,7 +137,35 @@ namespace lsp
                  * Sett variable resolver
                  * @param resolver variable resolver
                  */
-                inline void  set_resolver(Resolver *resolver) { pResolver = resolver; }
+                inline void     set_resolver(Resolver *resolver) { pResolver = resolver; }
+
+                /**
+                 * Get number of dependencies
+                 * @return number of dependencies
+                 */
+                inline size_t   dependencies() const { return vDependencies.size(); }
+
+                /**
+                 * Get dependency
+                 * @param idx the index of dependency
+                 * @return dependency name or NULL
+                 */
+                inline const LSPString *dependency(size_t idx) const { return vDependencies.get(idx); }
+
+                /**
+                 * Check that expression has dependency
+                 * @param str dependency name
+                 * @return true if expression has dependency
+                 */
+                bool            has_dependency(const LSPString *str) const;
+
+                /**
+                 * Check that expression has dependency
+                 * @param str dependency name
+                 * @return true if expression has dependency
+                 */
+                bool            has_dependency(const char *str) const;
+
         };
     
     } /* namespace calc */

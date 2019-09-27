@@ -64,6 +64,18 @@ namespace lsp
                 status_t            unset(const LSPString *name, value_t *value = NULL);
 
                 void                clear();
+
+                /**
+                 * Get variable resolver
+                 * @return variable resolver
+                 */
+                inline Resolver    *resolver() { return pResolver; }
+
+                /**
+                 * Sett variable resolver
+                 * @param resolver variable resolver
+                 */
+                inline void         set_resolver(Resolver *resolver) { pResolver = resolver; }
         };
     
     } /* namespace calc */

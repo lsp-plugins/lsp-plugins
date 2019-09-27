@@ -24,10 +24,12 @@ namespace lsp
                 CtlRegistry *pRegistry;
 
             public:
-                explicit CtlPortResolver(CtlRegistry *registry);
+                explicit CtlPortResolver();
                 virtual ~CtlPortResolver();
 
             public:
+                void init(CtlRegistry *registry);
+
                 virtual status_t resolve(calc::value_t *value, const char *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);
 
                 virtual status_t resolve(calc::value_t *value, const LSPString *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);

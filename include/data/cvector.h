@@ -277,7 +277,7 @@ namespace lsp
 
                 inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 
-                inline T *at(size_t index) { return reinterpret_cast<T *>(pvItems[index]); }
+                inline T *at(size_t index) const { return reinterpret_cast<T *>(pvItems[index]); }
 
                 inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
 
