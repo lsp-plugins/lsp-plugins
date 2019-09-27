@@ -1088,6 +1088,12 @@ namespace lsp
         status_t eval_resolve(value_t *value, const expr_t *expr, eval_env_t *env)
         {
             status_t res;
+            if (env == NULL)
+            {
+                value->type     = VT_UNDEF;
+                value->v_str    = NULL;
+                return STATUS_OK;
+            }
 
             // No indexes? Do simple stuff
             if (expr->resolve.count <= 0)

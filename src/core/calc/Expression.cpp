@@ -15,6 +15,10 @@ namespace lsp
 {
     namespace calc
     {
+        Expression::Expression()
+        {
+            pResolver       = NULL;
+        }
         
         Expression::Expression(Resolver *res)
         {
@@ -22,6 +26,12 @@ namespace lsp
         }
         
         Expression::~Expression()
+        {
+            destroy_all_data();
+            pResolver       = NULL;
+        }
+
+        void Expression::destroy()
         {
             destroy_all_data();
             pResolver       = NULL;

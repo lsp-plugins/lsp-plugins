@@ -62,6 +62,7 @@ namespace lsp
                 status_t            parse_string(io::IInSequence *seq, size_t flags);
 
             public:
+                explicit Expression();
                 explicit Expression(Resolver *res);
                 virtual ~Expression();
 
@@ -127,6 +128,18 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t        result(value_t *result, size_t idx);
+
+                /**
+                 * Get variable resolver
+                 * @return variable resolver
+                 */
+                inline Resolver *resolver() { return pResolver; }
+
+                /**
+                 * Sett variable resolver
+                 * @param resolver variable resolver
+                 */
+                inline void  set_resolver(Resolver *resolver) { pResolver = resolver; }
         };
     
     } /* namespace calc */
