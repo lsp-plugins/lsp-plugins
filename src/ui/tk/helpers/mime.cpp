@@ -18,7 +18,7 @@ namespace lsp
         {
             LSPString tmp;
             io::InStringSequence seq;
-            status_t res = seq.wrap(src, false);
+            status_t res = seq.wrap(src);
             if (res != STATUS_OK)
                 return res;
             res = fetch_text_uri_list_item(&tmp, protocol, &seq);
@@ -93,7 +93,7 @@ namespace lsp
         {
             LSPString tmp;
             io::InStringSequence seq;
-            status_t res = seq.wrap(src, false);
+            status_t res = seq.wrap(src);
             if (res != STATUS_OK)
                 return res;
             res = fetch_text_x_moz_url_item(&tmp, protocol, &seq);
@@ -169,7 +169,7 @@ namespace lsp
         {
             LSPString tmp;
             io::InStringSequence seq;
-            status_t res = seq.wrap(src, false);
+            status_t res = seq.wrap(src);
             if (res != STATUS_OK)
                 return res;
             res = fetch_application_x_kde4_urilist_item(&tmp, protocol, &seq);

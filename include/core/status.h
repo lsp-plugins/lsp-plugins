@@ -69,6 +69,7 @@ namespace lsp
         STATUS_NO_SOURCES,
         STATUS_BAD_PATH,
         STATUS_PROTOCOL_ERROR,
+        STATUS_BAD_TOKEN,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

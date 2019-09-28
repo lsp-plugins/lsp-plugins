@@ -172,6 +172,7 @@ namespace lsp
              */
             bool append(char ch);
             bool append(lsp_wchar_t ch);
+            bool append(lsp_swchar_t ch);
             bool append_ascii(const char *arr, size_t n);
             bool append_utf8(const char *arr, size_t n);
             bool append(const lsp_wchar_t *arr, size_t n);

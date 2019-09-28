@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_IO_CHARSET_H_
-#define INCLUDE_CORE_IO_CHARSET_H_
+#ifndef CORE_IO_CHARSET_H_
+#define CORE_IO_CHARSET_H_
 
 #include <core/types.h>
 
@@ -278,4 +278,4 @@ namespace lsp
 
 }
 
-#endif /* INCLUDE_CORE_IO_CHARSET_H_ */
+#endif /* CORE_IO_CHARSET_H_ */

@@ -511,6 +511,14 @@ namespace lsp
         return true;
     }
 
+    bool LSPString::append(lsp_swchar_t ch)
+    {
+        if (!cap_reserve(nLength + 1))
+            return false;
+        pData[nLength++] = ch;
+        return true;
+    }
+
     bool LSPString::append(const lsp_wchar_t *arr, size_t n)
     {
         if (!cap_reserve(nLength + n))
