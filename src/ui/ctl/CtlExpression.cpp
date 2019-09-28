@@ -12,7 +12,13 @@ namespace lsp
     namespace ctl
     {
         
-        CtlExpression::CtlExpression(): CtlPortListener()
+        status_t CtlExpression::CtlResolver::on_resolved(const LSPString *name, CtlPort *p)
+        {
+            return pExpr->on_resolved(name, p);
+        }
+
+        CtlExpression::CtlExpression(): CtlPortListener(),
+            sResolver(this)
         {
             pCtl        = NULL;
             pListener   = NULL;
@@ -68,6 +74,7 @@ namespace lsp
             calc::value_t value;
 
             sVars.clear();
+            drop_dependencies();
             status_t res = sExpr.evaluate(&value);
             if (res != STATUS_OK)
                 return 0.0f;
@@ -84,6 +91,7 @@ namespace lsp
             calc::value_t value;
 
             sVars.clear();
+            drop_dependencies();
             status_t res = sExpr.evaluate(idx, &value);
             if (res != STATUS_OK)
                 return 0.0f;
@@ -116,48 +124,34 @@ namespace lsp
                 return false;
             if (sExpr.parse(&tmp, flags) != STATUS_OK)
                 return false;
-            return build_dependencies();
+            return evaluate() == STATUS_OK;
         }
 
         bool CtlExpression::parse(const LSPString *expr, size_t flags)
         {
             if (sExpr.parse(expr, flags) != STATUS_OK)
                 return false;
-            return build_dependencies();
+            return evaluate() == STATUS_OK;
         }
 
         bool CtlExpression::parse(io::IInSequence *expr, size_t flags)
         {
             if (sExpr.parse(expr, flags) != STATUS_OK)
                 return false;
-            return build_dependencies();
+            return evaluate() == STATUS_OK;
         }
 
-        bool CtlExpression::build_dependencies()
+        status_t CtlExpression::on_resolved(const LSPString *name, CtlPort *p)
         {
-            drop_dependencies();
-            if (pCtl == NULL)
-                return true;
+            // Already subscribed?
+            if (vDependencies.index_of(p) >= 0)
+                return STATUS_OK;
 
-            for (size_t i=0, n=sExpr.dependencies(); i<n; ++i)
-            {
-                const LSPString *dep = sExpr.dependency(i);
-                if (dep == NULL)
-                    continue;
-
-                CtlPort *p = pCtl->port(dep->get_utf8());
-                if (p == NULL)
-                    continue;
-
-                if (!vDependencies.add(p))
-                {
-                    drop_dependencies();
-                    return false;
-                }
-            }
-
-            return true;
+            if (!vDependencies.add(p))
+                return STATUS_NO_MEM;
+            p->bind(this);
+            return STATUS_OK;
         }
-    
+
     } /* namespace tk */
 } /* namespace lsp */

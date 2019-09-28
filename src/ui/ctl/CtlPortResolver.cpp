@@ -36,9 +36,13 @@ namespace lsp
                     return STATUS_NO_MEM;
 
             CtlPort *p      = (pRegistry != NULL) ? pRegistry->port(path.get_utf8()) : NULL;
-            value->type     = (p != NULL) ? calc::VT_FLOAT : calc::VT_UNDEF;
-            value->v_float  = (p != NULL) ? p->get_value() : 0.0f;
-            return STATUS_OK;
+            if (p == NULL)
+                return STATUS_NOT_FOUND;
+
+            value->type     = calc::VT_FLOAT;
+            value->v_float  = p->get_value();
+
+            return on_resolved(&path, p);
         }
 
         status_t CtlPortResolver::resolve(calc::value_t *value, const LSPString *name, size_t num_indexes, const ssize_t *indexes)
@@ -55,8 +59,22 @@ namespace lsp
             }
 
             CtlPort *p      = (pRegistry != NULL) ? pRegistry->port(name->get_utf8()) : NULL;
-            value->type     = (p != NULL) ? calc::VT_FLOAT : calc::VT_UNDEF;
-            value->v_float  = (p != NULL) ? p->get_value() : 0.0f;
+            if (p == NULL)
+                return STATUS_NOT_FOUND;
+
+            value->type     = calc::VT_FLOAT;
+            value->v_float  = p->get_value();
+
+            return on_resolved(name, p);
+        }
+
+        status_t CtlPortResolver::on_resolved(const LSPString *name, CtlPort *p)
+        {
+            return on_resolved(name->get_utf8(), p);
+        }
+
+        status_t CtlPortResolver::on_resolved(const char *name, CtlPort *p)
+        {
             return STATUS_OK;
         }
     

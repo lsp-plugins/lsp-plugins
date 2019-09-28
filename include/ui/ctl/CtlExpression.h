@@ -25,9 +25,22 @@ namespace lsp
                 CtlExpression & operator = (const CtlExpression &);
 
             protected:
+                class CtlResolver: public CtlPortResolver
+                {
+                    protected:
+                        CtlExpression *pExpr;
+
+                    public:
+                        explicit inline CtlResolver(CtlExpression *expr) { pExpr = expr; }
+
+                    public:
+                        virtual status_t on_resolved(const LSPString *name, CtlPort *p);
+                };
+
+            protected:
                 calc::Expression    sExpr;
                 calc::Variables     sVars;
-                CtlPortResolver     sResolver;
+                CtlResolver         sResolver;
                 CtlRegistry        *pCtl;
                 CtlPortListener    *pListener;
                 cvector<CtlPort>    vDependencies;
@@ -35,7 +48,7 @@ namespace lsp
             protected:
                 void            do_destroy();
                 void            drop_dependencies();
-                bool            build_dependencies();
+                status_t        on_resolved(const LSPString *name, CtlPort *p);
 
             public:
                 explicit CtlExpression();
