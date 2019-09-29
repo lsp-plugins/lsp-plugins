@@ -180,7 +180,7 @@ namespace lsp
             void            process_mixed(float *dst, float *gain, const float *src, const float *sc, size_t samples);
 
         public:
-            Limiter();
+            explicit Limiter();
             ~Limiter();
 
         public:

@@ -15,7 +15,7 @@
         \
         ARCH_ARM_ASM \
         ( \
-            __ASM_EMIT("dmb") \
+            IF_ARCH_LEAST_ARM7(__ASM_EMIT("dmb")) \
             __ASM_EMIT("ldr" qsz "      %[tmp], [%[ptr]]") \
             __ASM_EMIT("teq             %[tmp], %[exp]") \
             __ASM_EMIT("str" qsz "eq    %[tmp], %[rep], [%[ptr]]") \
@@ -51,7 +51,7 @@ ATOMIC_CAS_DEF(uint32_t, "ex", volatile)
         ARCH_ARM_ASM                                    \
         (                                               \
             __ASM_EMIT("1:")    \
-            __ASM_EMIT("dmb") \
+            IF_ARCH_LEAST_ARM7(__ASM_EMIT("dmb")) \
             __ASM_EMIT("ldr" qsz "      %[ret], [%[ptr]]") \
             __ASM_EMIT("add             %[sum], %[ret], %[src]") \
             __ASM_EMIT("str" qsz "      %[tmp], %[sum], [%[ptr]]") \
@@ -90,7 +90,7 @@ ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
         ARCH_ARM_ASM                                    \
         (                                               \
             __ASM_EMIT("1:")    \
-            __ASM_EMIT("dmb") \
+            IF_ARCH_LEAST_ARM7(__ASM_EMIT("dmb")) \
             __ASM_EMIT("ldr" qsz "      %[ret], [%[ptr]]") \
             __ASM_EMIT("str" qsz "      %[tmp], %[src], [%[ptr]]") \
             __ASM_EMIT("tst             %[tmp], %[tmp]") \

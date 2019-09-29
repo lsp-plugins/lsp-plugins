@@ -12,6 +12,7 @@
 
 === 1.1.11 ===
 
+* Source code now compiles for the ARMv6A architecture.
 * Fixed GLX context synchronization that could lead to crashes on several systems.
 * Fixed bug with improper mouse pointer coordinates for nested menus.
 * Fixed bug with improper latency value reported by Limiter plugin series.

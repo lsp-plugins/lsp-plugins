@@ -7,6 +7,7 @@
 
 
 #include <dsp/dsp.h>
+#include <dsp/bits.h>
 #include <core/types.h>
 
 #ifdef ARCH_ARM

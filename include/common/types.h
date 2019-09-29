@@ -49,12 +49,20 @@
 // Detect bitness of architecture
 #if defined(__WORDSIZE) && (__WORDSIZE == 64)
     #define ARCH_64BIT
+    typedef uint64_t            umword_t;
+    typedef int64_t             smword_t;
 #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 64)
     #define ARCH_64BIT
+    typedef uint64_t            umword_t;
+    typedef int64_t             smword_t;
 #elif defined(__WORDSIZE) && (__WORDSIZE == 32)
     #define ARCH_32BIT
+    typedef uint32_t            umword_t;
+    typedef int32_t             smword_t;
 #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 32)
     #define ARCH_32BIT
+    typedef uint32_t            umword_t;
+    typedef int32_t             smword_t;
 #else
     #warning "Unsupported architecture bitness"
 #endif /* __WORDSIZE, __SIZE_WIDTH__ */
@@ -96,10 +104,12 @@
         #define ARCH_ARM7
         #define ARCH_STRING             "armv7a"
         #define IF_ARCH_ARM7(...)        __VA_ARGS__
+        #define IF_ARCH_LEAST_ARM7(...)  __VA_ARGS__
     #elif (__ARM_ARCH == 6)
         #define ARCH_ARM6
         #define ARCH_STRING             "armv6a"
         #define IF_ARCH_ARM6(...)        __VA_ARGS__
+        #define IF_ARCH_LEAST_ARM6(...)  __VA_ARGS__
     #else
         #define ARCH_STRING             "arm-generic"
     #endif
@@ -305,6 +315,7 @@
 #define __lsp_aligned16                     __attribute__ ((aligned (16)))
 #define __lsp_aligned32                     __attribute__ ((aligned (32)))
 #define __lsp_aligned64                     __attribute__ ((aligned (64)))
+#define __lsp_packed                        __attribute__ ((__packed__))
 #define __lsp_aligned(bytes)                __attribute__ ((aligned (bytes)))
 
 //-----------------------------------------------------------------------------
@@ -406,9 +417,17 @@
     #define IF_ARCH_ARM6(...)
 #endif /* IF_ARCH_ARM6 */
 
+#ifndef IF_ARCH_LEAST_ARM6
+    #define IF_ARCH_LEAST_ARM6(...)
+#endif /* IF_ARCH_LEAST_ARM6 */
+
 #ifndef IF_ARCH_ARM7
     #define IF_ARCH_ARM7(...)
 #endif /* IF_ARCH_ARM7 */
+
+#ifndef IF_ARCH_LEAST_ARM7
+    #define IF_ARCH_LEAST_ARM7(...)
+#endif /* IF_ARCH_LEAST_ARM7 */
 
 #ifndef IF_ARCH_ARM8
     #define IF_ARCH_ARM8(...)
