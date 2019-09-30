@@ -206,7 +206,6 @@ namespace neon_d32
             __ASM_EMIT("bne         5b")
 
             // Store memory
-            __ASM_EMIT("6:")
             __ASM_EMIT("vstm        %[FD], {q1-q2}")
             __ASM_EMIT("8:")
 
