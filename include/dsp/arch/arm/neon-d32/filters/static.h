@@ -98,7 +98,7 @@ namespace neon_d32
             __ASM_EMIT("vmul.f32    q2, q8, q6")                            // q2       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
             __ASM_EMIT("vadd.f32    d4, d17")                               // q2       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
             __ASM_EMIT("subs        %[count], $1")
-            __ASM_EMIT("bls         2f")
+            __ASM_EMIT("bls         4f")
 
             // Perform 2x A+B filter processing (loop unrolling)
             __ASM_EMIT("subs        %[count], $2")
