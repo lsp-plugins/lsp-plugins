@@ -149,7 +149,7 @@ namespace neon_d32
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {s6}")
+            __ASM_EMIT("vld1.32         d3[0], [%[src]]")
             __ASM_EMIT("8:")
 
             EFF_HSLA_HUE_CORE
@@ -164,7 +164,7 @@ namespace neon_d32
             __ASM_EMIT("12:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             14f")
-            __ASM_EMIT("vstm            %[dst]!, {q6}")
+            __ASM_EMIT("vstm            %[dst], {q6}")
 
             __ASM_EMIT("14:")
 
@@ -280,7 +280,7 @@ namespace neon_d32
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {s6}")
+            __ASM_EMIT("vld1.32         d3[0], [%[src]]")
             __ASM_EMIT("8:")
 
             EFF_HSLA_SAT_CORE
@@ -295,7 +295,7 @@ namespace neon_d32
             __ASM_EMIT("12:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             14f")
-            __ASM_EMIT("vstm            %[dst]!, {q6}")
+            __ASM_EMIT("vstm            %[dst], {q6}")
 
             __ASM_EMIT("14:")
 
@@ -412,7 +412,7 @@ namespace neon_d32
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {s6}")
+            __ASM_EMIT("vld1.32         d3[0], [%[src]]")
             __ASM_EMIT("8:")
 
             EFF_HSLA_LIGHT_CORE
@@ -427,7 +427,7 @@ namespace neon_d32
             __ASM_EMIT("12:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             14f")
-            __ASM_EMIT("vstm            %[dst]!, {q6}")
+            __ASM_EMIT("vstm            %[dst], {q6}")
 
             __ASM_EMIT("14:")
 
@@ -533,7 +533,7 @@ IF_ARCH_ARM
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {s6}")
+            __ASM_EMIT("vld1.32         d3[0], [%[src]]")
             __ASM_EMIT("8:")
 
             EFF_HSLA_ALPHA_CORE
@@ -548,7 +548,7 @@ IF_ARCH_ARM
             __ASM_EMIT("12:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             14f")
-            __ASM_EMIT("vstm            %[dst]!, {q6}")
+            __ASM_EMIT("vstm            %[dst], {q6}")
 
             __ASM_EMIT("14:")
 
