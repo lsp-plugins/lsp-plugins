@@ -147,7 +147,7 @@ namespace neon_d32
             __ASM_EMIT("orr         %[mask], %[mask], LSL $1")              // mask  = (mask << 1) | 1
             __ASM_EMIT("vext.32     q0, q0, q0, $3")                        // q0    = s' = s[3] s[0] s[1] s[2]
             __ASM_EMIT("vext.32     q10, q11, q10, $3")                     // q10   = (vmask << 1) | 1
-            __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vld1.32     d0[0], [%[src]]!")                      // q0    = s
             __ASM_EMIT("vmul.f32    q13, q3, q0")                           // q13   = a0*s
             __ASM_EMIT("vmul.f32    q14, q4, q0")                           // q14   = a1*s
             __ASM_EMIT("vmul.f32    q15, q5, q0")                           // q15   = a2*s
@@ -165,8 +165,8 @@ namespace neon_d32
             // Do main loop
             __ASM_EMIT("5:")
             __ASM_EMIT("vext.32     q0, q0, q0, $3")                        // q0    = s' = s[3] s[0] s[1] s[2]
-            __ASM_EMIT("vstm        %[dst], {s0}")
-            __ASM_EMIT("vldm        %[src], {s0}")                          // q0    = s
+            __ASM_EMIT("vst1.32     d0[0], [%[dst]]!")
+            __ASM_EMIT("vld1.32     d0[0], [%[src]]!")
             __ASM_EMIT("vmul.f32    q13, q3, q0")                           // q13   = a0*s
             __ASM_EMIT("vmul.f32    q14, q4, q0")                           // q14   = a1*s
             __ASM_EMIT("vmul.f32    q15, q5, q0")                           // q15   = a2*s
@@ -189,7 +189,7 @@ namespace neon_d32
             __ASM_EMIT("vext.32     q10, q11, q10, $3")                     // q10    = (vmask << 1) | 0
             __ASM_EMIT("tst         %[mask], $0x20")                        // Need to emit?
             __ASM_EMIT("beq         8f")
-            __ASM_EMIT("vstm        %[dst]!, {s0}")
+            __ASM_EMIT("vst1.32     d0[0], [%[dst]]!")
             __ASM_EMIT("8:")
 
             __ASM_EMIT("vmul.f32    q13, q3, q0")                           // q13   = a0*s
