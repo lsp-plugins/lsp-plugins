@@ -34,6 +34,7 @@
 * Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 * Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 * Added possibility to double-click the parameter's value number and enter it manually with keyboard.
+* Additionally optimized DSP biquad filters for 32-bit ARM NEON instruction set.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
