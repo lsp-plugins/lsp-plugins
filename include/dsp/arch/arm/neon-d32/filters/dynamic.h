@@ -32,7 +32,7 @@ namespace neon_d32
             __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0   = s s s s
             __ASM_EMIT("vmov        s5, s4")                                // q1   = d0 d0 d1 0
             __ASM_EMIT("vmla.f32    q1, q0, q2")                            // q1   = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
-            __ASM_EMIT("vstm        %[dst]!, {s4}")                         // *dst = s*a0+d0
+            __ASM_EMIT("vst1.32     d2[0], [%[dst]]!")                      // *dst = s*a0+d0
             __ASM_EMIT("vmul.f32    q4, q1, q3")                            // q4   = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
             __ASM_EMIT("vadd.f32    d8, d3")                                // q4   = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
             __ASM_EMIT("subs        %[count], $1")
@@ -86,7 +86,7 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32    q2, q0, q4")                            // q2   = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
             __ASM_EMIT("vmla.f32    q3, q1, q5")                            // q3   = r*i0+e0 r*i0+e0 r*i1+e1 r*i2
             __ASM_EMIT("vdup.32     q1, d4[0]")                             // q1   = r r r r
-            __ASM_EMIT("vstm        %[dst]!, {s12}")                        // *dst = r*i0+e0
+            __ASM_EMIT("vst1.32     d6[0], [%[dst]]!")                      // *dst = r*i0+e0
             __ASM_EMIT("vmul.f32    q8, q2, q6")                            // q8   = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
             __ASM_EMIT("vmul.f32    q9, q3, q7")                            // q9   = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
             __ASM_EMIT("vadd.f32    d16, d5")                               // q8   = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
@@ -102,7 +102,7 @@ namespace neon_d32
             __ASM_EMIT("vmov        s14, s13")                              // q3   = j0 j1 j1 0
             __ASM_EMIT("vmov        s13, s12")                              // q3   = j0 j0 j1 0
             __ASM_EMIT("vmla.f32    q3, q1, q5")                            // q3   = r*i0+e0 r*i0+e0 r*i1+e1 r*i2
-            __ASM_EMIT("vstm        %[dst]!, {s12}")                        // *dst = r*i0+e0
+            __ASM_EMIT("vst1.32     d6[0], [%[dst]]!")                      // *dst = r*i0+e0
             __ASM_EMIT("vmul.f32    q9, q3, q7")                            // q9   = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
             __ASM_EMIT("vadd.f32    d18, d7")                               // q9   = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
             __ASM_EMIT("vmov        q3, q9")                                // q3   = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
@@ -143,7 +143,7 @@ namespace neon_d32
 
             // Do pre-loop
             __ASM_EMIT("1:")
-            __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vld1.32     d0[0], [%[src]]!")                      // q0    = s
             __ASM_EMIT("vldm        %[f]!, {q3-q7}")                        // q3-q7 = { a0, a1, a2, b1, b2 }
             __ASM_EMIT("vmul.f32    q10, q3, q0")                           // q10   = a0*s
             __ASM_EMIT("vmul.f32    q11, q4, q0")                           // q11   = a1*s
@@ -165,7 +165,7 @@ namespace neon_d32
 
             // Do main loop
             __ASM_EMIT("3:")
-            __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vld1.32     d0[0], [%[src]]!")                      // q0    = s
             __ASM_EMIT("vldm        %[f]!, {q3-q7}")                        // q3-q7 = { a0, a1, a2, b1, b2 }
             __ASM_EMIT("vmul.f32    q10, q3, q0")                           // q10   = a0*s
             __ASM_EMIT("vmul.f32    q11, q4, q0")                           // q11   = a1*s
@@ -176,7 +176,7 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32    q1, q11, q2")                           // q1    = d0' = d1 + a1*s + b1*s2
             __ASM_EMIT("vext.32     q0, q10, q10, $3")                      // q0    = s2[3] s2[0] s2[1] s2[2]
             __ASM_EMIT("vmov        q2, q12")
-            __ASM_EMIT("vstm        %[dst]!, {s0}")
+            __ASM_EMIT("vst1.32     d0[0], [%[dst]]!")
             __ASM_EMIT("subs        %[count], $1")
             __ASM_EMIT("bne         3b")
 
@@ -198,7 +198,7 @@ namespace neon_d32
             __ASM_EMIT("vext.32     q0, q10, q10, $3")                      // q0    = s2[3] s2[0] s2[1] s2[2]
             __ASM_EMIT("tst         %[mask], $0x08")
             __ASM_EMIT("beq         6f")
-            __ASM_EMIT("vstm        %[dst]!, {s0}")
+            __ASM_EMIT("vst1.32     d0[0], [%[dst]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("vbit        q2, q12, q8")                           // q2    = (d1 & ~vmask) | (d1' & vmask)
             __ASM_EMIT("vbit        q1, q11, q8")                           // q1    = (d0 & ~vmask) | (d0' & vmask)
@@ -251,7 +251,7 @@ namespace neon_d32
             // Do pre-loop
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm        %[f]!, {q6-q11}")                       // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
-            __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vld1.32     d0[0], [%[src]]!")                      // q0    = s
             __ASM_EMIT("vldm        %[f]!, {q12-q15}")                      // q12-q13 = b1, q14-q15 = b2
 
             __ASM_EMIT("vmul.f32    q6, q6, q0")                            // q6    = a0*s
@@ -289,7 +289,7 @@ namespace neon_d32
             // Do main loop
             __ASM_EMIT("3:")
             __ASM_EMIT("vldm        %[f]!, {q6-q11}")                       // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
-            __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vld1.32     d0[0], [%[src]]!")                      // q0    = s
             __ASM_EMIT("vldm        %[f]!, {q12-q15}")                      // q12-q13 = b1, q14-q15 = b2
 
             __ASM_EMIT("vmul.f32    q6, q6, q0")                            // q6    = a0*s
@@ -309,7 +309,7 @@ namespace neon_d32
             __ASM_EMIT("vmov        q4, q10")                               // q4    = d1'
             __ASM_EMIT("vmov        q5, q11")
 
-            __ASM_EMIT("vstm        %[dst]!, {s31}")                        // *dst++= s2[7]
+            __ASM_EMIT("vst1.32     d15[1], [%[dst]]!")                     // *dst++= s2[7]
             __ASM_EMIT("vext.32     q1, q6, q7, $3")                        // q1    = s2[3] s2[4] s2[5] s2[6]
             __ASM_EMIT("vext.32     q0, q6, q6, $3")                        // q0    = s2[3] s2[0] s2[1] s2[2]
 
@@ -345,7 +345,7 @@ namespace neon_d32
 
             __ASM_EMIT("tst         %[mask], $0x80")
             __ASM_EMIT("beq         6f")
-            __ASM_EMIT("vstm        %[dst]!, {s31}")
+            __ASM_EMIT("vst1.32     d15[1], [%[dst]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("vext.32     q1, q6, q7, $3")                        // q1    = s2[3] s2[4] s2[5] s2[6]
             __ASM_EMIT("vldm        %[vmask], {q12-q15}")                   // q12-q15 = vmask
