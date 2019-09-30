@@ -28,9 +28,9 @@ namespace neon_d32
 
             // Start loop
             __ASM_EMIT("1:")
-            __ASM_EMIT("vmov        s6, s5")                                // q1       = d0 d1 d1 0
+            __ASM_EMIT("vext.f32    q1, q1, q1, $3")                        // q1       = 0 d0 d1 0
             __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
-            __ASM_EMIT("vmov        s5, s4")                                // q1       = d0 d0 d1 0
+            __ASM_EMIT("vdup.32     d2, d2[1]")                             // q1       = d0 d0 d1 0
             __ASM_EMIT("vmla.f32    q1, q0, q2")                            // q1       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
             __ASM_EMIT("vst1.32     d2[0], [%[dst]]!")                      // *dst++   = s*a0+d0
             __ASM_EMIT("vmul.f32    q4, q1, q3")                            // q4       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
