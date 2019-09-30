@@ -120,7 +120,6 @@ namespace neon_d32
 
     static const uint32_t biquad_x4_mask[8] __lsp_aligned16 =
     {
-//        0xffffffff, 0x00000000, 0x00000000, 0x00000000,
         0x00000000, 0x00000000, 0x00000000, 0x00000000,
         0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
     };
@@ -182,13 +181,13 @@ namespace neon_d32
             // Do post-loop
             __ASM_EMIT("6:")
             __ASM_EMIT("veor        q11, q11")                              // q11    = 0
-            __ASM_EMIT("veor        %[mask], 1")                            // reset flag
+            __ASM_EMIT("eor         %[mask], $1")                           // reset flag
 
             __ASM_EMIT("7:")
             __ASM_EMIT("lsl         %[mask], $1")                           // mask  = mask << 1
             __ASM_EMIT("vext.32     q0, q0, q0, $3")                        // q0    = s' = s[3] s[0] s[1] s[2]
             __ASM_EMIT("vext.32     q10, q11, q10, $3")                     // q10    = (vmask << 1) | 0
-            __ASM_EMIT("tst         %[mask], $0x10")                        // Need to emit?
+            __ASM_EMIT("tst         %[mask], $0x20")                        // Need to emit?
             __ASM_EMIT("beq         8f")
             __ASM_EMIT("vstm        %[dst]!, {s0}")
             __ASM_EMIT("8:")
@@ -203,7 +202,7 @@ namespace neon_d32
             __ASM_EMIT("vbit        q9, q15, q10")                          // q9    = (d1 & ~vmask) | (d1' & vmask)
             __ASM_EMIT("vbit        q8, q14, q10")                          // q8    = (d0 & ~vmask) | (d0' & vmask)
 
-            __ASM_EMIT("tst         %[mask], $0x0f")
+            __ASM_EMIT("tst         %[mask], $0x1e")
             __ASM_EMIT("bne         7b")
 
             // Store memory
