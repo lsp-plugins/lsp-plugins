@@ -20,14 +20,42 @@ namespace neon_d32
         (
             // Check count
             __ASM_EMIT("tst         %[count], %[count]")
-            __ASM_EMIT("beq         2f")
+            __ASM_EMIT("beq         4f")
 
             // Load permanent data
             __ASM_EMIT("vld1.32     {q1}, [%[FD]]")                         // q1       = d0 d1 0 0
             __ASM_EMIT("vld1.32     {q2-q3}, [%[FX1]]")                     // q2       = a0 a0 a1 a2, q3 = b1 b2 0 0
 
-            // Start loop
+            // X2 loop (unrolled)
+            __ASM_EMIT("subs        %[count], $2")
+            __ASM_EMIT("blt         2f")
+
             __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
+            __ASM_EMIT("vext.f32    q1, q1, q1, $3")                        // q1       = 0 d0 d1 0
+            __ASM_EMIT("vdup.32     d2, d2[1]")                             // q1       = d0 d0 d1 0
+            __ASM_EMIT("vmla.f32    q1, q0, q2")                            // q1       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
+            __ASM_EMIT("vst1.32     d2[0], [%[dst]]!")                      // *dst++   = s*a0+d0
+            __ASM_EMIT("vmul.f32    q4, q1, q3")                            // q4       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
+            __ASM_EMIT("vadd.f32    d8, d3")                                // q4       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
+
+            __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
+            __ASM_EMIT("vext.f32    q4, q4, q4, $3")                        // q4       = 0 d0 d1 0
+            __ASM_EMIT("vdup.32     d8, d8[1]")                             // q4       = d0 d0 d1 0
+            __ASM_EMIT("vmla.f32    q4, q0, q2")                            // q4       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
+            __ASM_EMIT("vst1.32     d8[0], [%[dst]]!")                      // *dst++   = s*a0+d0
+            __ASM_EMIT("vmul.f32    q1, q4, q3")                            // q1       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
+            __ASM_EMIT("vadd.f32    d2, d9")                                // q1       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
+
+            __ASM_EMIT("subs        %[count], $2")
+            __ASM_EMIT("bge         1b")
+
+            // X1 loop:
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds        %[count], $1")
+            __ASM_EMIT("blt         4f")
+
+            __ASM_EMIT("3:")
             __ASM_EMIT("vext.f32    q1, q1, q1, $3")                        // q1       = 0 d0 d1 0
             __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
             __ASM_EMIT("vdup.32     d2, d2[1]")                             // q1       = d0 d0 d1 0
@@ -37,11 +65,11 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32    d8, d3")                                // q4       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
             __ASM_EMIT("subs        %[count], $1")
             __ASM_EMIT("vmov        q1, q4")                                // q1       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
-            __ASM_EMIT("bne         1b")
+            __ASM_EMIT("bne         3b")
 
             // Store the updated buffer state
             __ASM_EMIT("vst1.32     {q1}, [%[FD]]")
-            __ASM_EMIT("2:")
+            __ASM_EMIT("4:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             : [FD] "r" (&f->d[0]), [FX1] "r" (&f->x1)
