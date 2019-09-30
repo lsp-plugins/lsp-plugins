@@ -141,7 +141,7 @@ namespace neon_d32
             __ASM_EMIT("vldm        %[FD], {q8-q9}")                        // q8-q9 = { d0, d1 }
             __ASM_EMIT("vldm        %[FX4], {q3-q7}")                       // q3-q7 = { a0, a1, a2, b1, b2 }
             __ASM_EMIT("vldm        %[X_MASK], {q10-q11}")                  // q10-q11 = { vmask, 1 }
-            __ASM_EMIT("eor         %[mask], %[mask]")                      // mask  = 0
+            __ASM_EMIT("mov         %[mask], $1")                           // mask  = 1
 
             // Do pre-loop
             __ASM_EMIT("1:")
@@ -160,7 +160,7 @@ namespace neon_d32
             __ASM_EMIT("vbit        q8, q14, q10")                          // q8    = (d0 & ~vmask) | (d0' & vmask)
             __ASM_EMIT("subs        %[count], $1")
             __ASM_EMIT("beq         6f")
-            __ASM_EMIT("cmp         %[mask], $0x07")
+            __ASM_EMIT("cmp         %[mask], $0x1f")
             __ASM_EMIT("bne         1b")
 
             // Do main loop
@@ -182,12 +182,13 @@ namespace neon_d32
             // Do post-loop
             __ASM_EMIT("6:")
             __ASM_EMIT("veor        q11, q11")                              // q11    = 0
+            __ASM_EMIT("veor        %[mask], 1")                            // reset flag
 
             __ASM_EMIT("7:")
             __ASM_EMIT("lsl         %[mask], $1")                           // mask  = mask << 1
             __ASM_EMIT("vext.32     q0, q0, q0, $3")                        // q0    = s' = s[3] s[0] s[1] s[2]
             __ASM_EMIT("vext.32     q10, q11, q10, $3")                     // q10    = (vmask << 1) | 0
-            __ASM_EMIT("tst         %[mask], $0x08")                        // Need to emit?
+            __ASM_EMIT("tst         %[mask], $0x10")                        // Need to emit?
             __ASM_EMIT("beq         8f")
             __ASM_EMIT("vstm        %[dst]!, {s0}")
             __ASM_EMIT("8:")
