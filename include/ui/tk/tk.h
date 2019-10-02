@@ -160,6 +160,19 @@ namespace lsp
             const w_class_t    *parent;
         } w_class_t;
 
+        enum ui_property_type_t
+        {
+            PT_INT,         // Integer property
+            PT_FLOAT,       // Floating-point property
+            PT_BOOL,        // Boolean property
+            PT_STRING       // String (text) property
+        };
+
+        /**
+         * Atom identifier
+         */
+        typedef ssize_t             ui_atom_t;
+
         /** Get color name by it's identifier
          *
          * @param color color identifier

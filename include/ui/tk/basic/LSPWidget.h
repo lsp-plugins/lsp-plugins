@@ -51,6 +51,7 @@ namespace lsp
                 LSPPadding          sPadding;
 
                 LSPColor            sBgColor;       // Widget color
+                LSPStyle            sStyle;
 
             //---------------------------------------------------------------------------------
             // Slot handlers
@@ -342,6 +343,12 @@ namespace lsp
                  * @return background color of the widget
                  */
                 inline LSPColor    *bg_color()              { return &sBgColor;     }
+
+                /**
+                 * Return widget's style
+                 * @return widget's style
+                 */
+                inline LSPStyle    *style()                 { return &sStyle; }
 
             //---------------------------------------------------------------------------------
             // Manipulation

@@ -54,6 +54,8 @@ namespace lsp
             inline void alpha(float a)  { A = a; };
 
             inline void get_rgb(float &r, float &g, float &b) const { check_rgb(); r = R; g = G; b = B; }
+            inline void get_rgba(float &r, float &g, float &b, float &a) const { check_rgb(); r = R; g = G; b = B; a = A; }
+
             inline void set_rgb(float r, float g, float b)
             {
                 nMask = M_RGB;
@@ -80,6 +82,8 @@ namespace lsp
             inline void lightness(float l)  { check_hsl(); L = l; nMask = M_HSL;  };
 
             inline void get_hsl(float &h, float &s, float &l) const { check_hsl(); h = H; s = S; l = L; }
+            inline void get_hsla(float &h, float &s, float &l, float &a) const { check_hsl(); h = H; s = S; l = L; a = A; }
+
             inline void set_hsl(float h, float s, float l)
             {
                 nMask   = M_HSL;
