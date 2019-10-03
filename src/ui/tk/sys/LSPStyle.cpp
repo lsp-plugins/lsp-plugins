@@ -100,8 +100,8 @@ namespace lsp
                     char *tmp = ::strdup(src->v.sValue);
                     if (tmp == NULL)
                         return STATUS_NO_MEM;
-                    ::free(src->v.sValue);
-                    src->v.sValue = tmp;
+                    ::free(dst->v.sValue);
+                    dst->v.sValue = tmp;
                     ++dst->changes;
                     break;
                 }
@@ -153,7 +153,7 @@ namespace lsp
                 // Try to deploy the value
                 size_t change = p->changes;
                 status_t res = copy_property(p, parent);
-                if (change != p->changes)
+                if ((res == STATUS_OK) && (change != p->changes))
                 {
                     notify_children(p);
                     notify_listeners(p);
@@ -205,7 +205,7 @@ namespace lsp
 
         void LSPStyle::notify_listeners(const property_t *prop)
         {
-            size_t id = prop->id;
+            ui_atom_t id = prop->id;
             for (size_t i=0, n=vListeners.size(); i<n; ++i)
             {
                 listener_t *lst = vListeners.at(i);
@@ -467,6 +467,7 @@ namespace lsp
 
         status_t LSPStyle::set_property(ui_atom_t id, property_t *src)
         {
+            status_t res = STATUS_OK;
             property_t *p = get_property(id);
             if (p == NULL)
             {
@@ -478,18 +479,21 @@ namespace lsp
                 p->id       = id;
                 p->type     = src->type;
                 p->refs     = 1;
+                p->changes  = 0;
                 p->dfl      = false;
-                p->v        = src->v;
+
+                res         = copy_property(p, src);
+                if (res != STATUS_OK)
+                    vProperties.remove(p);
             }
             else
+                status_t res = copy_property(p, src);
+
+            // Notify listeners and children for changes
+            if (res == STATUS_OK)
             {
-                // Modify property
-                undef_property(p);
-                if (p->dfl)
-                    ++p->refs;
-                p->dfl      = false;
-                p->type     = src->type;
-                p->v        = src->v;
+                notify_listeners(p);
+                notify_children(p);
             }
 
             return STATUS_OK;
@@ -525,16 +529,20 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             property_t tmp;
-            tmp.type        = PT_BOOL;
-            tmp.v.sValue    = value->clone_utf8();
-            if (tmp.v.sValue == NULL)
-                return STATUS_NO_MEM;
+            tmp.type        = PT_STRING;
+            tmp.v.sValue    = const_cast<char *>(value->get_utf8());
+            return set_property(id, &tmp);
+        }
 
-            status_t res = set_property(id, &tmp);
-            if (res != STATUS_OK)
-                ::free(tmp.v.sValue);
+        status_t LSPStyle::set_string(ui_atom_t id, const char *value)
+        {
+            if (value == NULL)
+                return STATUS_BAD_ARGUMENTS;
 
-            return res;
+            property_t tmp;
+            tmp.type        = PT_STRING;
+            tmp.v.sValue    = const_cast<char *>(value);
+            return set_property(id, &tmp);
         }
 
         status_t LSPStyle::set_default(ui_atom_t id)

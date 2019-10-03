@@ -153,6 +153,7 @@ namespace lsp
                 status_t            set_float(ui_atom_t id, float value);
                 status_t            set_bool(ui_atom_t id, bool value);
                 status_t            set_string(ui_atom_t id, const LSPString *value);
+                status_t            set_string(ui_atom_t id, const char *value);
                 status_t            set_default(ui_atom_t id);
         };
     
