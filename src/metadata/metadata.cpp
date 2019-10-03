@@ -414,7 +414,7 @@ namespace lsp
     {
         errno       = 0;
         char *end   = NULL;
-        long long value = ::strtoll(text, &end, 10);
+        long value  = ::strtol(text, &end, 10);
         if ((*end == '\0') && (errno == 0))
         {
             if (dst != NULL)
