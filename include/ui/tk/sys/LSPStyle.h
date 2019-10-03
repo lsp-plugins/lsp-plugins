@@ -125,6 +125,11 @@ namespace lsp
                  */
                 status_t            bind(ui_atom_t id, ui_property_type_t type, IStyleListener *listener);
 
+                inline status_t     bind_int(ui_atom_t id, IStyleListener *listener)        { return bind(id, PT_INT, listener); };
+                inline status_t     bind_float(ui_atom_t id, IStyleListener *listener)      { return bind(id, PT_FLOAT, listener); };
+                inline status_t     bind_bool(ui_atom_t id, IStyleListener *listener)       { return bind(id, PT_BOOL, listener); };
+                inline status_t     bind_string(ui_atom_t id, IStyleListener *listener)     { return bind(id, PT_STRING, listener); };
+
                 /**
                  * Check that listener is already bound to the property
                  * @param id property identifier
@@ -148,6 +153,7 @@ namespace lsp
                 status_t            get_string(ui_atom_t id, LSPString *dst) const;
                 bool                exists(ui_atom_t id) const;
                 bool                is_default(ui_atom_t id) const;
+                ssize_t             get_type(ui_atom_t id) const;
 
                 status_t            set_int(ui_atom_t id, ssize_t value);
                 status_t            set_float(ui_atom_t id, float value);

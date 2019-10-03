@@ -165,7 +165,9 @@ namespace lsp
             PT_INT,         // Integer property
             PT_FLOAT,       // Floating-point property
             PT_BOOL,        // Boolean property
-            PT_STRING       // String (text) property
+            PT_STRING,      // String (text) property
+
+            PT_UNKNOWN  = -1
         };
 
         /**

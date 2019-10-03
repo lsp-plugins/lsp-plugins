@@ -41,11 +41,29 @@ namespace lsp
 
         void LSPStyle::do_destroy()
         {
+            // Unlink listeners
+            vListeners.flush();
+
+            // Destroy properties
+            for (size_t i=0, n=vProperties.size(); i<n; ++i)
+                undef_property(vProperties.at(i));
+            vProperties.flush();
+
+            // Unlink from parent
             if (pParent != NULL)
             {
                 pParent->vChildren.remove(this, true);
                 pParent     = NULL;
             }
+
+            // Unlink from children
+            for (size_t i=0, n=vChildren.size(); i<n; ++i)
+            {
+                LSPStyle *child = vChildren.at(i);
+                if (child != NULL)
+                    child->pParent = NULL;
+            }
+            vChildren.flush();
         }
 
         void LSPStyle::undef_property(property_t *property)
@@ -63,7 +81,7 @@ namespace lsp
                     break;
             }
 
-            property->type = -1;
+            property->type = PT_UNKNOWN;
         }
 
         status_t LSPStyle::copy_property(property_t *dst, const property_t *src)
@@ -465,6 +483,12 @@ namespace lsp
             return (prop != NULL);
         }
 
+        ssize_t LSPStyle::get_type(ui_atom_t id) const
+        {
+            const property_t *prop = get_property_recursive(id);
+            return (prop != NULL) ? prop->type : PT_UNKNOWN;
+        }
+
         status_t LSPStyle::set_property(ui_atom_t id, property_t *src)
         {
             status_t res = STATUS_OK;
@@ -487,7 +511,7 @@ namespace lsp
                     vProperties.remove(p);
             }
             else
-                status_t res = copy_property(p, src);
+                res         = copy_property(p, src);
 
             // Notify listeners and children for changes
             if (res == STATUS_OK)
