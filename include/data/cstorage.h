@@ -279,6 +279,8 @@ namespace lsp
 
                 inline T *get_array() { return reinterpret_cast<T *>(basic_storage::first()); }
 
+                inline const T *get_array() const { return const_cast< cstorage<T, A> *>(this)->first(); }
+
                 inline T *last() { return reinterpret_cast<T *>(basic_storage::last()); }
 
                 inline T *insert(size_t idx) { return reinterpret_cast<T *>(basic_storage::insert_items(idx, 1)); }

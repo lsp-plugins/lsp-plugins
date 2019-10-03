@@ -17,10 +17,10 @@ namespace lsp
         /**
          * Style Listener
          */
-        class ILSPStyleListener
+        class IStyleListener
         {
             public:
-                virtual ~ILSPStyleListener();
+                virtual ~IStyleListener();
 
             public:
                 virtual void notify(ui_atom_t property);
@@ -37,6 +37,7 @@ namespace lsp
                     ui_atom_t           id;         // Unique identifier of property
                     ssize_t             type;       // Type of property
                     size_t              refs;       // Number of references
+                    size_t              changes;    // Number of changes
                     bool                dfl;        // Default value
                     union
                     {
@@ -49,8 +50,8 @@ namespace lsp
 
                 typedef struct listener_t
                 {
-                    property_t         *pProperty;
-                    ILSPStyleListener  *pListener;
+                    ui_atom_t           nId;        // Property identifier
+                    IStyleListener     *pListener;  // Listener
                 } listener_t;
 
             private:
@@ -72,8 +73,15 @@ namespace lsp
                 property_t         *get_property_recursive(ui_atom_t id);
                 property_t         *get_property(ui_atom_t id);
                 status_t            set_property(ui_atom_t id, property_t *src);
+                status_t            init_property(property_t *p, ui_atom_t id, size_t type);
+                status_t            copy_property(property_t *dst, const property_t *src);
                 inline const property_t   *get_property_recursive(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property_recursive(id); };
                 inline const property_t   *get_property(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property(id); };
+
+                void                sync();
+                void                notify_change(const property_t *prop);
+                void                notify_children(const property_t *prop);
+                void                notify_listeners(const property_t *prop);
 
             public:
                 /**
@@ -115,7 +123,15 @@ namespace lsp
                  * @param id property identifier
                  * @return status of operation
                  */
-                status_t            bind(ui_atom_t id, ui_property_type_t type, ILSPStyleListener *listener);
+                status_t            bind(ui_atom_t id, ui_property_type_t type, IStyleListener *listener);
+
+                /**
+                 * Check that listener is already bound to the property
+                 * @param id property identifier
+                 * @param listener listener
+                 * @return true if listener is bound
+                 */
+                bool                is_bound(ui_atom_t id, IStyleListener *listener) const;
 
                 /**
                  * Unbind listener from a property
@@ -123,7 +139,7 @@ namespace lsp
                  * @param listener property listener
                  * @return status of operation
                  */
-                status_t            unbind(ui_atom_t id, ILSPStyleListener *listener);
+                status_t            unbind(ui_atom_t id, IStyleListener *listener);
 
             public:
                 status_t            get_int(ui_atom_t id, ssize_t *dst) const;
