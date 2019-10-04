@@ -128,6 +128,39 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t LSPStyle::init_property(property_t *dst, const property_t *src)
+        {
+            // Init contents
+            switch (src->type)
+            {
+                case PT_INT:
+                    dst->v.iValue   = src->v.iValue;
+                    break;
+                case PT_FLOAT:
+                    dst->v.fValue   = src->v.fValue;
+                    break;
+                case PT_BOOL:
+                    dst->v.bValue   = src->v.bValue;
+                    break;
+                case PT_STRING:
+                {
+                    // Update value
+                    char *tmp = ::strdup(src->v.sValue);
+                    if (tmp == NULL)
+                        return STATUS_NO_MEM;
+                    dst->v.sValue = tmp;
+                    break;
+                }
+                default:
+                    return STATUS_BAD_TYPE;
+            }
+
+            dst->changes  = 0;
+            dst->type     = src->type;
+
+            return STATUS_OK;
+        }
+
         status_t LSPStyle::init_property(property_t *p, ui_atom_t id, size_t type)
         {
             p->type     = type;
@@ -143,9 +176,13 @@ namespace lsp
                 case PT_FLOAT: p->v.fValue = 0; break;
                 case PT_BOOL: p->v.bValue = false; break;
                 case PT_STRING:
-                    if ((p->v.sValue = ::strdup("")) == NULL)
+                {
+                    char *v = ::strdup("");
+                    if (v == NULL)
                         return STATUS_NO_MEM;
+                    p->v.sValue = v;
                     break;
+                }
             }
 
             ++p->changes;
@@ -471,6 +508,18 @@ namespace lsp
             return (dst->set_utf8(prop->v.sValue)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
+        status_t LSPStyle::get_string(ui_atom_t id, const char **dst) const
+        {
+            const property_t *prop = get_property_recursive(id);
+            if (prop == NULL)
+                return STATUS_NOT_FOUND;
+            else if (prop->type != PT_STRING)
+                return STATUS_BAD_TYPE;
+
+            *dst = prop->v.sValue;
+            return STATUS_OK;
+        }
+
         bool LSPStyle::is_default(ui_atom_t id) const
         {
             const property_t *prop = get_property_recursive(id);
@@ -501,12 +550,10 @@ namespace lsp
                     return STATUS_NO_MEM;
 
                 p->id       = id;
-                p->type     = src->type;
                 p->refs     = 1;
-                p->changes  = 0;
                 p->dfl      = false;
 
-                res         = copy_property(p, src);
+                res         = init_property(p, src);
                 if (res != STATUS_OK)
                     vProperties.remove(p);
             }

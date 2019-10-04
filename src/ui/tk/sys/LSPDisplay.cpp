@@ -104,21 +104,40 @@ namespace lsp
 
         status_t LSPDisplay::init(int argc, const char **argv)
         {
+            IDisplay *dpy = NULL;
+
             // Create display dependent on the platform
             #ifdef USE_X11_DISPLAY
-                pDisplay        = new x11::X11Display();
+                dpy         = new x11::X11Display();
             #else
                 #error "Unknown windowing system configuration"
             #endif /* USE_X11_DISPLAY */
 
             // Analyze display pointer
-            if (pDisplay == NULL)
+            if (dpy == NULL)
                 return STATUS_NO_MEM;
 
+            status_t res = dpy->init(argc, argv);
+            if (res == STATUS_OK)
+                res = init(dpy, argc, argv);
+
+            if (res != STATUS_OK)
+            {
+                dpy->destroy();
+                delete dpy;
+            }
+
+            return res;
+        }
+
+        status_t LSPDisplay::init(IDisplay *dpy, int argc, const char **argv)
+        {
+            // Should be non-null
+            if (dpy == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
             // Initialize display
-            status_t result = pDisplay->init(argc, argv);
-            if (result != STATUS_OK)
-                return result;
+            pDisplay    = dpy;
             pDisplay->set_main_callback(main_task_handler, this);
 
             // Create slots

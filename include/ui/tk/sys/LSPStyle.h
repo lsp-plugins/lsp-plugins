@@ -23,6 +23,10 @@ namespace lsp
                 virtual ~IStyleListener();
 
             public:
+                /**
+                 * Notify about property value change
+                 * @param property property identifier
+                 */
                 virtual void notify(ui_atom_t property);
         };
 
@@ -74,6 +78,7 @@ namespace lsp
                 property_t         *get_property(ui_atom_t id);
                 status_t            set_property(ui_atom_t id, property_t *src);
                 status_t            init_property(property_t *p, ui_atom_t id, size_t type);
+                status_t            init_property(property_t *dst, const property_t *src);
                 status_t            copy_property(property_t *dst, const property_t *src);
                 inline const property_t   *get_property_recursive(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property_recursive(id); };
                 inline const property_t   *get_property(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property(id); };
@@ -147,10 +152,24 @@ namespace lsp
                 status_t            unbind(ui_atom_t id, IStyleListener *listener);
 
             public:
+                /**
+                 * Return overall number of properties
+                 * @return overall number of properties
+                 */
+                inline size_t       properties() const  { return vProperties.size(); }
+
+                /**
+                 * Return overall number of listeners
+                 * @return overall number of listeners
+                 */
+                inline size_t       listeners() const   { return vListeners.size(); }
+
+            public:
                 status_t            get_int(ui_atom_t id, ssize_t *dst) const;
                 status_t            get_float(ui_atom_t id, float *dst) const;
                 status_t            get_bool(ui_atom_t id, bool *dst) const;
                 status_t            get_string(ui_atom_t id, LSPString *dst) const;
+                status_t            get_string(ui_atom_t id, const char **dst) const;
                 bool                exists(ui_atom_t id) const;
                 bool                is_default(ui_atom_t id) const;
                 ssize_t             get_type(ui_atom_t id) const;

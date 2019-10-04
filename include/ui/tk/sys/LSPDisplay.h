@@ -56,11 +56,20 @@ namespace lsp
 
                 /** Initialize display
                  *
-                 * @param argc
-                 * @param argv
+                 * @param argc number of additional arguments
+                 * @param argv list of additional arguments
                  * @return status of operation
                  */
                 status_t init(int argc, const char **argv);
+
+                /** Initialize display
+                 *
+                 * @param dpy underlying display object
+                 * @param argc number of additional arguments
+                 * @param argv list of additional arguments
+                 * @return status of operation
+                 */
+                status_t init(ws::IDisplay *dpy, int argc, const char **argv);
 
                 /** Destroy display
                  *
