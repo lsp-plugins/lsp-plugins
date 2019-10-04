@@ -176,13 +176,13 @@ UTEST_BEGIN("ui.tk.sys", style)
         //  Style inheritance:
         //  s <- s1 <- s3
         //  s <- s2 <- s4
-
         UTEST_ASSERT(s1.init() == STATUS_OK);
         UTEST_ASSERT(s2.init() == STATUS_OK);
         UTEST_ASSERT(s3.init() == STATUS_OK);
         UTEST_ASSERT(s4.init() == STATUS_OK);
 
         // Bind listeners
+        printf("Binding listeners...\n");
         UTEST_ASSERT(s1.bind(var1, PT_INT, &l1) == STATUS_OK);
         UTEST_ASSERT(s2.bind(var1, PT_INT, &l2) == STATUS_OK);
         UTEST_ASSERT(s3.bind(var1, PT_INT, &l3) == STATUS_OK);
@@ -191,6 +191,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(s4.bind(var2, PT_INT, &l4) == STATUS_OK);
 
         // Initialize
+        printf("Initializing...\n");
         UTEST_ASSERT(s1.set_int(var1, 256) == STATUS_OK); // Should be notified only l1
         UTEST_ASSERT(s4.set_int(var2, 99) == STATUS_OK); // Should be notified only l4
         UTEST_ASSERT(l1.cl_get(var1) == 2);
@@ -213,6 +214,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(iv == 99);
 
         // Set inheritance
+        printf("Setting inheritance...\n");
         UTEST_ASSERT(s1.set_parent(&s1) == STATUS_BAD_ARGUMENTS);
         UTEST_ASSERT(s1.set_parent(&s) == STATUS_OK);
         UTEST_ASSERT(s1.set_parent(&s) == STATUS_OK);
@@ -245,6 +247,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(iv == 99);
 
         // Check relations
+        printf("Checking relations...\n");
         UTEST_ASSERT(s1.parent() == &s);
         UTEST_ASSERT(s2.parent() == &s);
         UTEST_ASSERT(!s3.has_parent(&s, false));
@@ -262,6 +265,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(!s4.has_child(&s3, true));
 
         // Change root property
+        printf("Changing root property 'count'...\n");
         UTEST_ASSERT(s.set_int(var1, 256) == STATUS_OK);
         UTEST_ASSERT(l1.cl_get(var1) == 0);
         UTEST_ASSERT(l2.cl_get(var1) == 1);
@@ -277,6 +281,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_BAD_TYPE);
 
         // Change another property
+        printf("Changing root property 'int_value'...\n");
         UTEST_ASSERT(s.set_int(var2, 199) == STATUS_OK);
         UTEST_ASSERT(l1.cl_get(var2) == 0);
         UTEST_ASSERT(l2.cl_get(var2) == 0);
@@ -338,12 +343,20 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(iv == 99);
 
         // Destroy styles
-        s3.destroy();
-        s4.destroy();
+        printf("Destroying styles s1 and s2...\n");
+        s1.destroy();
+        s2.destroy();
         UTEST_ASSERT(!s1.has_child(&s3, true));
         UTEST_ASSERT(!s2.has_child(&s4, true));
+        UTEST_ASSERT(!s.has_child(&s1, true));
+        UTEST_ASSERT(!s.has_child(&s2, true));
+        UTEST_ASSERT(!s.has_child(&s3, true));
+        UTEST_ASSERT(!s.has_child(&s4, true));
+
         UTEST_ASSERT(l1.cl_get(var1) == 0);
         UTEST_ASSERT(l2.cl_get(var1) == 0);
+        UTEST_ASSERT(l3.cl_get(var1) == 1);
+        UTEST_ASSERT(l4.cl_get(var1) == 0);
         UTEST_ASSERT(l1.cl_get(var2) == 0);
         UTEST_ASSERT(l2.cl_get(var2) == 0);
     }

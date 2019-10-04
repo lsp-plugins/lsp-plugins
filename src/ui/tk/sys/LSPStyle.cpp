@@ -203,6 +203,9 @@ namespace lsp
 
         status_t LSPStyle::sync_property(property_t *p)
         {
+            if (!p->dfl)
+                return STATUS_OK;
+
             property_t *parent  = get_property_recursive(pParent, p->id);
             size_t changes      = p->changes;
             status_t res        = (parent != NULL) ? copy_property(p, parent) : set_property_default(p);
@@ -256,11 +259,7 @@ namespace lsp
             // For each property: copy value from parent and notify children and listeners for changes
             property_t *vp = vProperties.get_array();
             for (size_t i=0, n=vProperties.size(); i < n; ++i)
-            {
-                property_t *p = &vp[i];
-                if (p->dfl) // Skip non-default properties
-                    sync_property(p);
-            }
+                sync_property(&vp[i]);
 
             // Call all children for sync()
             for (size_t i=0, n=vChildren.size(); i<n; ++i)
