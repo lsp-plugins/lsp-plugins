@@ -18,8 +18,16 @@ UTEST_BEGIN("ui.tk.sys", style)
     {
         private:
             cstorage<size_t>    counters;
+            test_type_t        *test;
+            const char         *id;
 
         public:
+            explicit ChangeListener(test_type_t *test, const char *id)
+            {
+                this->test = test;
+                this->id = id;
+            }
+
             virtual ~ChangeListener()
             {
             }
@@ -31,6 +39,7 @@ UTEST_BEGIN("ui.tk.sys", style)
                     counters.add(size_t(0));
                 size_t *cnt = counters.get(property);
                 ++(*cnt);
+                test->printf("%s[%d]++ -> %d\n", id, int(property), int(*cnt));
             }
 
             ssize_t get(ui_atom_t property)
@@ -44,6 +53,7 @@ UTEST_BEGIN("ui.tk.sys", style)
                 size_t *cnt = counters.get(property);
                 ssize_t val = (cnt == NULL) ? -1 : *cnt;
                 *cnt = 0;
+                test->printf("%s[%d] = %d\n", id, int(property), int(*cnt));
                 return val;
             }
     };
@@ -156,7 +166,7 @@ UTEST_BEGIN("ui.tk.sys", style)
 
     void test_binding(LSPStyle &s)
     {
-        ChangeListener l1, l2, l3, l4;
+        ChangeListener l1(this, "s1"), l2(this, "s2"), l3(this, "s3"), l4(this, "s4");
         LSPStyle s1, s2, s3, s4;
         ssize_t iv = -1;
 
@@ -223,8 +233,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(iv == 42);
         UTEST_ASSERT(s3.get_int(var1, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 256);
-        UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_OK);
-        UTEST_ASSERT(iv == 42);
+        UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_BAD_TYPE);
 
         UTEST_ASSERT(s1.get_int(var2, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 10);
@@ -255,9 +264,9 @@ UTEST_BEGIN("ui.tk.sys", style)
         // Change root property
         UTEST_ASSERT(s.set_int(var1, 256) == STATUS_OK);
         UTEST_ASSERT(l1.cl_get(var1) == 0);
-        UTEST_ASSERT(l2.cl_get(var1) == 0);
-        UTEST_ASSERT(l3.cl_get(var1) == 1);
-        UTEST_ASSERT(l4.cl_get(var1) == 1);
+        UTEST_ASSERT(l2.cl_get(var1) == 1);
+        UTEST_ASSERT(l3.cl_get(var1) == 0);
+        UTEST_ASSERT(l4.cl_get(var1) == 0);
 
         UTEST_ASSERT(s1.get_int(var1, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 256);
@@ -265,8 +274,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(iv == 256);
         UTEST_ASSERT(s3.get_int(var1, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 256);
-        UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_OK);
-        UTEST_ASSERT(iv == 256);
+        UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_BAD_TYPE);
 
         // Change another property
         UTEST_ASSERT(s.set_int(var2, 199) == STATUS_OK);
@@ -285,6 +293,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(iv == 99);
 
         // Unlink style s1
+        printf("Unlinking style s1...\n");
         UTEST_ASSERT(s1.set_parent(NULL) == STATUS_OK);
         UTEST_ASSERT(!s.has_child(&s1, false));
         UTEST_ASSERT(!s.has_child(&s1, true));
@@ -293,9 +302,9 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(s1.parent() == NULL);
 
         UTEST_ASSERT(l1.cl_get(var1) == 0);
-        UTEST_ASSERT(l2.cl_get(var1) == 0);
-        UTEST_ASSERT(l1.cl_get(var2) == 1);
-        UTEST_ASSERT(l2.cl_get(var2) == 1);
+        UTEST_ASSERT(l3.cl_get(var1) == 0);
+        UTEST_ASSERT(l1.cl_get(var2) == 0);
+        UTEST_ASSERT(l3.cl_get(var2) == 1);
 
         UTEST_ASSERT(s1.get_int(var1, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 256);
@@ -306,7 +315,8 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(s3.get_int(var2, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 0);
 
-        // Unlink style s1
+        // Unlink style s2
+        printf("Unlinking style s2...\n");
         UTEST_ASSERT(s.remove(&s2) == STATUS_OK);
         UTEST_ASSERT(!s.has_child(&s2, false));
         UTEST_ASSERT(!s.has_child(&s2, true));
@@ -314,19 +324,18 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(!s2.has_parent(&s, true));
         UTEST_ASSERT(s2.parent() == NULL);
 
-        UTEST_ASSERT(l1.cl_get(var1) == 1);
         UTEST_ASSERT(l2.cl_get(var1) == 1);
+        UTEST_ASSERT(l4.cl_get(var1) == 0);
         UTEST_ASSERT(l1.cl_get(var2) == 0);
         UTEST_ASSERT(l2.cl_get(var2) == 0);
 
         UTEST_ASSERT(s2.get_int(var1, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 0);
-        UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_OK);
-        UTEST_ASSERT(iv == 0);
+        UTEST_ASSERT(s4.get_int(var1, &iv) == STATUS_BAD_TYPE);
         UTEST_ASSERT(s2.get_int(var2, &iv) == STATUS_OK);
         UTEST_ASSERT(iv == 0);
         UTEST_ASSERT(s4.get_int(var2, &iv) == STATUS_OK);
-        UTEST_ASSERT(iv == 199);
+        UTEST_ASSERT(iv == 99);
 
         // Destroy styles
         s3.destroy();

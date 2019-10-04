@@ -77,8 +77,10 @@ namespace lsp
                 static property_t  *get_property_recursive(const LSPStyle *curr, ui_atom_t id);
                 property_t         *get_property(ui_atom_t id);
                 status_t            set_property(ui_atom_t id, property_t *src);
-                status_t            init_property(property_t *p, ui_atom_t id, size_t type);
-                status_t            init_property(property_t *dst, const property_t *src);
+                status_t            sync_property(property_t *p);
+                property_t         *create_property(ui_atom_t id, const property_t *src);
+                property_t         *create_property(ui_atom_t id, ui_property_type_t type);
+                status_t            set_property_default(property_t *dst);
                 status_t            copy_property(property_t *dst, const property_t *src);
                 inline const property_t   *get_property(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property(id); };
 

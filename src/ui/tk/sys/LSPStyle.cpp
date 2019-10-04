@@ -41,14 +41,6 @@ namespace lsp
 
         void LSPStyle::do_destroy()
         {
-            // Unlink listeners
-            vListeners.flush();
-
-            // Destroy properties
-            for (size_t i=0, n=vProperties.size(); i<n; ++i)
-                undef_property(vProperties.at(i));
-            vProperties.flush();
-
             // Unlink from parent
             if (pParent != NULL)
             {
@@ -56,14 +48,26 @@ namespace lsp
                 pParent     = NULL;
             }
 
-            // Unlink from children
+            // Unlink from children and remove all children
             for (size_t i=0, n=vChildren.size(); i<n; ++i)
             {
                 LSPStyle *child = vChildren.at(i);
                 if (child != NULL)
+                {
                     child->pParent = NULL;
+                    child->sync();
+                }
             }
             vChildren.flush();
+
+            // Synchronize state with listeners and remove them all
+            sync();
+            vListeners.flush();
+
+            // Destroy stored properties
+            for (size_t i=0, n=vProperties.size(); i<n; ++i)
+                undef_property(vProperties.at(i));
+            vProperties.flush();
         }
 
         void LSPStyle::undef_property(property_t *property)
@@ -128,66 +132,123 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPStyle::init_property(property_t *dst, const property_t *src)
+        LSPStyle::property_t *LSPStyle::create_property(ui_atom_t id, const property_t *src)
         {
+            // Allocate property
+            property_t *dst = vProperties.add();
+            if (dst == NULL)
+                return NULL;
+
             // Init contents
             switch (src->type)
             {
-                case PT_INT:
-                    dst->v.iValue   = src->v.iValue;
-                    break;
-                case PT_FLOAT:
-                    dst->v.fValue   = src->v.fValue;
-                    break;
-                case PT_BOOL:
-                    dst->v.bValue   = src->v.bValue;
-                    break;
+                case PT_INT:    dst->v.iValue   = src->v.iValue;    break;
+                case PT_FLOAT:  dst->v.fValue   = src->v.fValue;    break;
+                case PT_BOOL:   dst->v.bValue   = src->v.bValue;    break;
                 case PT_STRING:
                 {
                     // Update value
-                    char *tmp = ::strdup(src->v.sValue);
+                    if ((dst->v.sValue = ::strdup(src->v.sValue)) == NULL)
+                    {
+                        vProperties.remove(dst);
+                        return NULL;
+                    }
+                    break;
+                }
+                default:
+                    return NULL;
+            }
+
+            dst->id         = id;
+            dst->refs       = 0;
+            dst->type       = src->type;
+            dst->changes    = 0;
+            dst->dfl        = true;
+
+            return dst;
+        }
+
+        LSPStyle::property_t *LSPStyle::create_property(ui_atom_t id, ui_property_type_t type)
+        {
+            // Allocate property
+            property_t *dst = vProperties.add();
+            if (dst == NULL)
+                return NULL;
+
+            // Init contents
+            switch (type)
+            {
+                case PT_INT:    dst->v.iValue = 0;      break;
+                case PT_FLOAT:  dst->v.fValue = 0.0;    break;
+                case PT_BOOL:   dst->v.bValue = 0;      break;
+                case PT_STRING:
+                    if ((dst->v.sValue = ::strdup("")) == NULL)
+                    {
+                        vProperties.remove(dst);
+                        return NULL;
+                    }
+                    break;
+                default:
+                    return NULL;
+            }
+
+            dst->id         = id;
+            dst->refs       = 0;
+            dst->type       = type;
+            dst->changes    = 0;
+            dst->dfl        = true;
+
+            return dst;
+        }
+
+        status_t LSPStyle::sync_property(property_t *p)
+        {
+            property_t *parent  = get_property_recursive(pParent, p->id);
+            size_t changes      = p->changes;
+            status_t res        = (parent != NULL) ? copy_property(p, parent) : set_property_default(p);
+            if ((res == STATUS_OK) && (changes != p->changes))
+            {
+                notify_listeners(p);
+                notify_children(p);
+            }
+            return res;
+        }
+
+        status_t LSPStyle::set_property_default(property_t *p)
+        {
+            switch (p->type)
+            {
+                case PT_INT:
+                    if (p->v.iValue == 0)
+                        return STATUS_OK;
+                    p->v.iValue = 0;
+                    break;
+                case PT_FLOAT:
+                    if (p->v.fValue == 0)
+                        return STATUS_OK;
+                    p->v.fValue = 0;
+                    break;
+                case PT_BOOL:
+                    if (p->v.bValue == false)
+                        return STATUS_OK;
+                    p->v.bValue = false;
+                    break;
+                case PT_STRING:
+                {
+                    char *tmp = ::strdup("");
                     if (tmp == NULL)
                         return STATUS_NO_MEM;
-                    dst->v.sValue = tmp;
+                    ::free(p->v.sValue);
+                    p->v.sValue = tmp;
                     break;
                 }
                 default:
                     return STATUS_BAD_TYPE;
             }
 
-            dst->changes  = 0;
-            dst->type     = src->type;
-
+            p->dfl  = true;
+            ++p->changes;
             return STATUS_OK;
-        }
-
-        status_t LSPStyle::init_property(property_t *p, ui_atom_t id, size_t type)
-        {
-            property_t  dfl;
-            char c;
-
-            property_t *parent = get_property_recursive(pParent, id);
-            if (parent == NULL)
-            {
-                dfl.type = type;
-                switch (type)
-                {
-                    case PT_INT: dfl.v.iValue = 0; break;
-                    case PT_FLOAT: dfl.v.fValue = 0; break;
-                    case PT_BOOL: dfl.v.bValue = false; break;
-                    case PT_STRING: c = '\0'; dfl.v.sValue = &c; break;
-                    default: return STATUS_BAD_TYPE;
-                }
-                parent = &dfl;
-            }
-
-            status_t res = copy_property(p, parent);
-            if (res == STATUS_OK)
-            {
-                p->type     = type;
-                p->dfl      = true;
-            }
-            return res;
         }
 
         void LSPStyle::sync()
@@ -197,22 +258,8 @@ namespace lsp
             for (size_t i=0, n=vProperties.size(); i < n; ++i)
             {
                 property_t *p = &vp[i];
-                if (!p->dfl) // Skip non-default properties
-                    continue;
-
-                // Lookup for a parent property
-                property_t *parent = get_property_recursive(pParent, p->id);
-                if (parent == NULL)
-                    continue;
-
-                // Try to deploy the value
-                size_t change = p->changes;
-                status_t res = copy_property(p, parent);
-                if ((res == STATUS_OK) && (change != p->changes))
-                {
-                    notify_children(p);
-                    notify_listeners(p);
-                }
+                if (p->dfl) // Skip non-default properties
+                    sync_property(p);
             }
 
             // Call all children for sync()
@@ -289,7 +336,7 @@ namespace lsp
 
         status_t LSPStyle::remove(LSPStyle *child)
         {
-            if (child == NULL)
+            if ((child == NULL) || (child == this))
                 return STATUS_BAD_ARGUMENTS;
 
             ssize_t idx = vChildren.index_of(child);
@@ -300,7 +347,7 @@ namespace lsp
                 return STATUS_UNKNOWN_ERR;
 
             child->pParent = NULL;
-            sync();
+            child->sync();
 
             return STATUS_OK;
         }
@@ -392,20 +439,13 @@ namespace lsp
             // Property has been found?
             if (p == NULL)
             {
-                // Allocate new property
-                p = vProperties.add();
+                // Lookup parent property
+                property_t *parent = get_property_recursive(pParent, id);
+
+                // Create property
+                p = (parent != NULL) ? create_property(id, parent) : create_property(id, type);
                 if (p == NULL)
                     return STATUS_NO_MEM;
-                p->id       = id;
-                p->refs     = 0;
-
-                // Initialize property
-                status_t res = init_property(p, id, type);
-                if (res != STATUS_OK)
-                {
-                    vProperties.remove(p);
-                    return res;
-                }
 
                 // Allocate listener binding
                 lst = vListeners.add();
@@ -604,22 +644,12 @@ namespace lsp
             if (p == NULL)
             {
                 // Allocate new property
-                p = vProperties.add();
+                p = create_property(id, src);
                 if (p == NULL)
                     return STATUS_NO_MEM;
-
-                p->id       = id;
-                p->refs     = 1;
                 p->dfl      = false;
-
-                res         = init_property(p, src);
-                if (res == STATUS_OK)
-                {
-                    notify_listeners(p);
-                    notify_children(p);
-                }
-                else
-                    vProperties.remove(p);
+                notify_listeners(p);
+                notify_children(p);
             }
             else
             {
@@ -696,19 +726,8 @@ namespace lsp
                 return STATUS_OK;
 
             // Initialize property with default value
-            size_t change = p->changes;
-            status_t res = init_property(p, p->id, p->type);
-            if (res != STATUS_OK)
-                return res;
-
-            // Notify if changed
-            if (change != p->changes)
-            {
-                notify_children(p);
-                notify_listeners(p);
-            }
-
-            return STATUS_OK;
+            p->dfl = true;
+            return sync_property(p);
         }
     
     } /* namespace tk */
