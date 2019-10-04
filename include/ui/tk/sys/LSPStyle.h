@@ -74,13 +74,12 @@ namespace lsp
             protected:
                 void                undef_property(property_t *property);
                 void                do_destroy();
-                property_t         *get_property_recursive(ui_atom_t id);
+                static property_t  *get_property_recursive(const LSPStyle *curr, ui_atom_t id);
                 property_t         *get_property(ui_atom_t id);
                 status_t            set_property(ui_atom_t id, property_t *src);
                 status_t            init_property(property_t *p, ui_atom_t id, size_t type);
                 status_t            init_property(property_t *dst, const property_t *src);
                 status_t            copy_property(property_t *dst, const property_t *src);
-                inline const property_t   *get_property_recursive(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property_recursive(id); };
                 inline const property_t   *get_property(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property(id); };
 
                 void                sync();
@@ -115,6 +114,22 @@ namespace lsp
                  * @return parent style
                  */
                 inline LSPStyle    *parent()        { return pParent; };
+
+                /**
+                 * Check whether style has a child
+                 * @param child child style
+                 * @param recursive flag that indicates that a recursive search should be performed
+                 * @return true if style has a child
+                 */
+                bool                has_child(LSPStyle *child, bool recursive = false);
+
+                /**
+                 * Check whether style has a parent
+                 * @param parent parent style
+                 * @param recursive flag that indicates that a recursive search should be performed
+                 * @return true if style has a parent
+                 */
+                bool                has_parent(LSPStyle *parent, bool recursive = false);
 
                 /**
                  * Get root style

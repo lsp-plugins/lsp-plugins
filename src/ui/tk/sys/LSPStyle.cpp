@@ -163,31 +163,31 @@ namespace lsp
 
         status_t LSPStyle::init_property(property_t *p, ui_atom_t id, size_t type)
         {
-            p->type     = type;
-            p->dfl      = true;
+            property_t  dfl;
+            char c;
 
-            property_t *parent = (pParent != NULL) ? pParent->get_property_recursive(id) : NULL;
-            if (parent != NULL)
-                return copy_property(p, parent);
-
-            switch (type)
+            property_t *parent = get_property_recursive(pParent, id);
+            if (parent == NULL)
             {
-                case PT_INT: p->v.iValue = 0; break;
-                case PT_FLOAT: p->v.fValue = 0; break;
-                case PT_BOOL: p->v.bValue = false; break;
-                case PT_STRING:
+                dfl.type = type;
+                switch (type)
                 {
-                    char *v = ::strdup("");
-                    if (v == NULL)
-                        return STATUS_NO_MEM;
-                    p->v.sValue = v;
-                    break;
+                    case PT_INT: dfl.v.iValue = 0; break;
+                    case PT_FLOAT: dfl.v.fValue = 0; break;
+                    case PT_BOOL: dfl.v.bValue = false; break;
+                    case PT_STRING: c = '\0'; dfl.v.sValue = &c; break;
+                    default: return STATUS_BAD_TYPE;
                 }
+                parent = &dfl;
             }
 
-            ++p->changes;
-
-            return STATUS_OK;
+            status_t res = copy_property(p, parent);
+            if (res == STATUS_OK)
+            {
+                p->type     = type;
+                p->dfl      = true;
+            }
+            return res;
         }
 
         void LSPStyle::sync()
@@ -201,7 +201,7 @@ namespace lsp
                     continue;
 
                 // Lookup for a parent property
-                property_t *parent = (pParent != NULL) ? pParent->get_property_recursive(p->id) : NULL;
+                property_t *parent = get_property_recursive(pParent, p->id);
                 if (parent == NULL)
                     continue;
 
@@ -226,26 +226,26 @@ namespace lsp
 
         void LSPStyle::notify_change(const property_t *prop)
         {
-            // Find the matching property (if present) and update it's value
-            for (size_t i=0, n=vProperties.size(); i < n; ++i)
-            {
-                property_t *p = vProperties.at(i);
-                if ((p != NULL) || (p->id == prop->id))
-                {
-                    // Do not modify non-default properties
-                    if (!p->dfl)
-                        return;
+            // Find the matching property (if present)
+            property_t *p = get_property(prop->id);
 
-                    // Try to deploy value
-                    size_t change = p->changes;
-                    copy_property(p, prop);
-                    if (change != p->changes)
-                    {
-                        notify_children(p);
-                        notify_listeners(p);
-                    }
-                }
+            // Property not found?
+            if (p == NULL)
+            {
+                notify_children(prop); // Just bypass event to children
+                return;
             }
+            else if (!p->dfl) // Not default property? Ignore the event
+                return;
+
+            // Copy property value and notify listener and children only if property has changed
+            size_t change = p->changes;
+            status_t res = copy_property(p, prop);
+            if ((res == STATUS_OK) && (change == p->changes))
+                return;
+
+            notify_listeners(prop);
+            notify_children(prop);
         }
 
         void LSPStyle::notify_children(const property_t *prop)
@@ -331,6 +331,39 @@ namespace lsp
             return STATUS_OK;
         }
 
+        bool LSPStyle::has_child(LSPStyle *child, bool recursive)
+        {
+            // First, lookup self children
+            if (vChildren.index_of(child) >= 0)
+                return true;
+            else if (!recursive)
+                return false;
+
+            // Second, lookup recursive
+            for (size_t i=0, n=vChildren.size(); i<n; ++i)
+            {
+                LSPStyle *s = vChildren.at(i);
+                if ((s != NULL) && (s->has_child(child, recursive)))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool LSPStyle::has_parent(LSPStyle *parent, bool recursive)
+        {
+            if (parent == NULL)
+                return false;
+            else if (!recursive)
+                return (pParent == parent);
+
+            for (LSPStyle *p = pParent; p != NULL; p = p->pParent)
+                if (p == parent)
+                    return true;
+
+            return false;
+        }
+
         LSPStyle *LSPStyle::root()
         {
             LSPStyle *curr = this;
@@ -400,6 +433,9 @@ namespace lsp
             lst->pListener  = listener;
             ++p->refs;
 
+            notify_listeners(p);
+            notify_children(p);
+
             return STATUS_OK;
         }
 
@@ -453,11 +489,11 @@ namespace lsp
             return NULL;
         }
 
-        LSPStyle::property_t *LSPStyle::get_property_recursive(ui_atom_t id)
+        LSPStyle::property_t *LSPStyle::get_property_recursive(const LSPStyle *root, ui_atom_t id)
         {
             property_t *p = NULL;
 
-            for (LSPStyle *curr = this; curr != NULL; curr = curr->pParent)
+            for (LSPStyle *curr = const_cast<LSPStyle *>(root); curr != NULL; curr = curr->pParent)
                 if ((p = curr->get_property(id)) != NULL)
                     break;
 
@@ -466,75 +502,98 @@ namespace lsp
 
         status_t LSPStyle::get_int(ui_atom_t id, ssize_t *dst) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             if (prop == NULL)
-                return STATUS_NOT_FOUND;
+            {
+                *dst = 0;
+                return STATUS_OK;
+            }
             else if (prop->type != PT_INT)
                 return STATUS_BAD_TYPE;
-            *dst = prop->v.iValue;
+            if (dst != NULL)
+                *dst = prop->v.iValue;
             return STATUS_OK;
         }
 
         status_t LSPStyle::get_float(ui_atom_t id, float *dst) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             if (prop == NULL)
-                return STATUS_NOT_FOUND;
+            {
+                *dst = 0.0f;
+                return STATUS_OK;
+            }
             else if (prop->type != PT_FLOAT)
                 return STATUS_BAD_TYPE;
-            *dst = prop->v.fValue;
+            if (dst != NULL)
+                *dst = prop->v.fValue;
             return STATUS_OK;
         }
 
         status_t LSPStyle::get_bool(ui_atom_t id, bool *dst) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             if (prop == NULL)
-                return STATUS_NOT_FOUND;
+            {
+                *dst = false;
+                return STATUS_OK;
+            }
             else if (prop->type != PT_BOOL)
                 return STATUS_BAD_TYPE;
-            *dst = prop->v.bValue;
+            if (dst != NULL)
+                *dst = prop->v.bValue;
             return STATUS_OK;
         }
 
         status_t LSPStyle::get_string(ui_atom_t id, LSPString *dst) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             if (prop == NULL)
-                return STATUS_NOT_FOUND;
+            {
+                if (dst != NULL)
+                    dst->truncate();
+                return STATUS_OK;
+            }
             else if (prop->type != PT_STRING)
                 return STATUS_BAD_TYPE;
 
+            if (dst == NULL)
+                return STATUS_OK;
             return (dst->set_utf8(prop->v.sValue)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
         status_t LSPStyle::get_string(ui_atom_t id, const char **dst) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             if (prop == NULL)
-                return STATUS_NOT_FOUND;
+            {
+                if (dst != NULL)
+                    *dst = "";
+                return STATUS_OK;
+            }
             else if (prop->type != PT_STRING)
                 return STATUS_BAD_TYPE;
 
-            *dst = prop->v.sValue;
+            if (dst != NULL)
+                *dst = prop->v.sValue;
             return STATUS_OK;
         }
 
         bool LSPStyle::is_default(ui_atom_t id) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             return (prop != NULL) ? prop->dfl : false;
         }
 
         bool LSPStyle::exists(ui_atom_t id) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             return (prop != NULL);
         }
 
         ssize_t LSPStyle::get_type(ui_atom_t id) const
         {
-            const property_t *prop = get_property_recursive(id);
+            const property_t *prop = get_property_recursive(this, id);
             return (prop != NULL) ? prop->type : PT_UNKNOWN;
         }
 
@@ -554,20 +613,32 @@ namespace lsp
                 p->dfl      = false;
 
                 res         = init_property(p, src);
-                if (res != STATUS_OK)
+                if (res == STATUS_OK)
+                {
+                    notify_listeners(p);
+                    notify_children(p);
+                }
+                else
                     vProperties.remove(p);
             }
             else
+            {
+                // Notify only if value has changed
+                size_t change = p->changes;
                 res         = copy_property(p, src);
 
-            // Notify listeners and children for changes
-            if (res == STATUS_OK)
-            {
-                notify_listeners(p);
-                notify_children(p);
+                if (res == STATUS_OK)
+                {
+                    p->dfl      = false;
+                    if (change != p->changes)
+                    {
+                        notify_listeners(p);
+                        notify_children(p);
+                    }
+                }
             }
 
-            return STATUS_OK;
+            return res;
         }
 
         status_t LSPStyle::set_int(ui_atom_t id, ssize_t value)
