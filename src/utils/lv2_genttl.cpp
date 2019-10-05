@@ -134,6 +134,8 @@ namespace lsp
         { U_GAIN_AMP,   NULL,       "gain",                 "%f"        },
         { U_GAIN_POW,   NULL,       "gain",                 "%f"        },
 
+        { U_SEMITONES,  NULL,       "st",                   "%.2f"      },
+
         { U_DEG_CEL,    NULL,       "degrees Celsium",      "%.2f"      },
         { U_DEG_FAR,    NULL,       "degrees Fahrenheit",   "%.2f"      },
         { U_DEG_K,      NULL,       "degrees Kelvin",       "%.2f"      },

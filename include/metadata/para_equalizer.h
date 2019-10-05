@@ -40,6 +40,11 @@ namespace lsp
         static const float          OUT_GAIN_DFL        = 1.0f;
         static const size_t         MODE_DFL            = 0;
 
+        static const float          PITCH_MIN           = -120.0f;
+        static const float          PITCH_MAX           = 120.0f;
+        static const float          PITCH_DFL           = 0.0f;
+        static const float          PITCH_STEP          = 0.01f;
+
         static const size_t         REFRESH_RATE        = 20;
 
         enum eq_filter_t
