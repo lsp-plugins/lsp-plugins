@@ -134,6 +134,11 @@
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
 
+==== Equalizer ====
+
+unfa:
+  Add a knob that allows to simultaneously shift frequency for all active filters in the EQ.
+
 ==== FFT analysis of the Profiler and Convolver ====
 
 Could it be possible to add a frequency-domain display mode? 
