@@ -83,7 +83,7 @@ namespace lsp
                 LSPComboList        sListBox;
                 LSPFont             sFont;
                 LSPWindow          *pPopup;
-                bool            bEmbed;
+                bool                bEmbed;
 
             protected:
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
