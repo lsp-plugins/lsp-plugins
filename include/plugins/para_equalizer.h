@@ -68,6 +68,7 @@ namespace lsp
                 size_t              nLatency;       // Latency of the channel
                 float               fInGain;        // Input gain
                 float               fOutGain;       // Output gain
+                float               fPitch;         // Frequency shift
                 eq_filter_t        *vFilters;       // List of filters
                 float              *vBuffer;        // Buffer for temporary data
                 float              *vIn;            // Input buffer
@@ -81,9 +82,11 @@ namespace lsp
                 IPort              *pOut;           // Output port
                 IPort              *pInGain;        // Input gain
                 IPort              *pTrAmp;         // Amplitude chart
+                IPort              *pPitch;         // Frequency shift
                 IPort              *pFft;           // FFT chart
                 IPort              *pVisible;       // Visibility flag
-                IPort              *pMeter;         // Output level meter
+                IPort              *pInMeter;       // Output level meter
+                IPort              *pOutMeter;      // Output level meter
             } eq_channel_t;
 
         protected:
@@ -117,7 +120,7 @@ namespace lsp
             inline equalizer_mode_t get_eq_mode();
 
         public:
-            para_equalizer_base(const plugin_metadata_t &metadata, size_t filters, size_t mode);
+            explicit para_equalizer_base(const plugin_metadata_t &metadata, size_t filters, size_t mode);
             virtual ~para_equalizer_base();
 
         public:

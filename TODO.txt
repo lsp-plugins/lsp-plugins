@@ -31,10 +31,13 @@
 * Refactored UI of the graphic Equalizer plugin series.
 * Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
 * Added allpass filters to Paretric Equalizer plugin.
+* Added knobs that allow to simultaneously shift frequency for all active filters
+  in the Parametric Equalizer plugin series.
 * Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 * Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 * Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 * Additionally optimized DSP biquad filters for 32-bit ARM NEON instruction set.
+* Updated UI of Graphic Equalizer plugins.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
@@ -133,11 +136,6 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
-
-==== Equalizer ====
-
-unfa:
-  Add a knob that allows to simultaneously shift frequency for all active filters in the EQ.
 
 ==== FFT analysis of the Profiler and Convolver ====
 

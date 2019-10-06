@@ -547,9 +547,11 @@ namespace lsp
                     case PropertyNotify:
                     {
                         XPropertyEvent *sc          = &ev->xproperty;
+                        #ifdef LSP_TRACE
                         char *name                  = ::XGetAtomName(pDisplay, sc->atom);
 //                        lsp_trace("XPropertyEvent for window 0x%lx, property %ld (%s), state=%d", long(sc->window), long(sc->atom), name, int(sc->state));
                         ::XFree(name);
+                        #endif
                         handle_property_notify(sc);
                         return true;
                     }
@@ -565,13 +567,20 @@ namespace lsp
                     case SelectionRequest:
                     {
                         XSelectionRequestEvent *sr   = &ev->xselectionrequest;
+                        #ifdef LSP_TRACE
+                        char *asel = XGetAtomName(pDisplay, sr->selection);
+                        char *atar = XGetAtomName(pDisplay, sr->target);
+                        char *aprop = XGetAtomName(pDisplay, sr->property);
                         lsp_trace("SelectionRequest requestor = 0x%x, selection=%d (%s), target=%d (%s), property=%d (%s), time=%ld",
                                      int(sr->requestor),
-                                     int(sr->selection), XGetAtomName(pDisplay, sr->selection),
-                                     int(sr->target), XGetAtomName(pDisplay, sr->target),
-                                     int(sr->property), XGetAtomName(pDisplay, sr->property),
+                                     int(sr->selection), asel,
+                                     int(sr->target), atar,
+                                     int(sr->property), aprop,
                                      long(sr->time));
-
+                        ::XFree(asel);
+                        ::XFree(atar);
+                        ::XFree(aprop);
+                        #endif
                         handle_selection_request(sr);
                         return true;
                     }
@@ -579,11 +588,16 @@ namespace lsp
                     {
                         // Check that it's proper selection event
                         XSelectionEvent *se = &ev->xselection;
+                        if (se->property == None)
+                            return true;
+
+                        #ifdef LSP_TRACE
                         char *aname = ::XGetAtomName(pDisplay, se->property);
                         lsp_trace("SelectionNotify for window=0x%lx, selection=%ld, property=%ld (%s)",
                                 long(se->requestor), long(se->selection), long(se->property), aname);
                         if (aname != NULL)
                             ::XFree(aname);
+                        #endif
                         handle_selection_notify(se);
 
                         return true;
@@ -663,6 +677,8 @@ namespace lsp
                 for (size_t i=0, n=size/sizeof(uint32_t); i<n; ++i)
                 {
                     // Get atom name
+                    if (list[i] == None)
+                        continue;
                     char *a_name = ::XGetAtomName(pDisplay, list[i]);
                     if (a_name == NULL)
                         continue;
@@ -675,7 +691,7 @@ namespace lsp
 
                     if (!ctype->add(a_dup))
                     {
-                        ::free(a_name);
+                        ::XFree(a_name);
                         ::free(a_dup);
                         return STATUS_NO_MEM;
                     }
@@ -1299,7 +1315,7 @@ namespace lsp
                     if (data != NULL)
                     {
                         Atom *dst   = data;
-                        *dst        = sAtoms.X11_TARGETS;
+                        *(dst++)    = sAtoms.X11_TARGETS;
                         lsp_trace("  supported target: TARGETS (%ld)", long(*dst));
 
                         for (const char *const *p = mime; *p != NULL; ++p, ++dst)

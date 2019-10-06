@@ -67,6 +67,7 @@ namespace lsp
         "bpm",
 
         "cent",
+        "st",
 
         "bar",
         "beat",

@@ -76,7 +76,8 @@ namespace lsp
                 IPort              *pTrAmp;         // Amplitude chart
                 IPort              *pFft;           // FFT chart
                 IPort              *pVisible;       // Visibility flag
-                IPort              *pMeter;         // Output level meter
+                IPort              *pInMeter;       // Output level meter
+                IPort              *pOutMeter;      // Output level meter
             } eq_channel_t;
 
         protected:

@@ -52,6 +52,7 @@ namespace lsp
                 return res;
 
             sBox.set_horizontal();
+            sBox.set_spacing(2);
             sBox.add(&sValue);
             sBox.add(&sUnits);
             sBox.add(&sApply);
@@ -74,7 +75,7 @@ namespace lsp
 
             this->add(&sBox);
             this->set_border(1);
-            this->padding()->set(4, 4, 2, 2);
+            this->padding()->set(4, 2, 2, 2);
 
             return STATUS_OK;
         }
