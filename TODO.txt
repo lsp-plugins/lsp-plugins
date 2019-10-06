@@ -31,6 +31,8 @@
 * Refactored UI of the graphic Equalizer plugin series.
 * Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
 * Added allpass filters to Paretric Equalizer plugin.
+* Added knobs that allow to simultaneously shift frequency for all active filters
+  in the Parametric Equalizer plugin series.
 * Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 * Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 * Added possibility to double-click the parameter's value number and enter it manually with keyboard.
