@@ -589,10 +589,8 @@ namespace lsp
                         // Check that it's proper selection event
                         XSelectionEvent *se = &ev->xselection;
                         if (se->property == None)
-                        {
-                            lsp_trace("XConvertSelection failed");
                             return true;
-                        }
+
                         #ifdef LSP_TRACE
                         char *aname = ::XGetAtomName(pDisplay, se->property);
                         lsp_trace("SelectionNotify for window=0x%lx, selection=%ld, property=%ld (%s)",
