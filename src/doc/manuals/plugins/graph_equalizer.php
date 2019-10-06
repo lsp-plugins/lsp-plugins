@@ -7,7 +7,7 @@
 				(strpos($PAGE, '_lr') > 0) ? 'lr' : (
 				(strpos($PAGE, '_ms') > 0) ? 'ms' : '?'
 				)));
-	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
+	$cc     =   ($m == 'm') ? 'mono' : 'stereo';
 ?>
 <?php require_once("${DOC_BASE}/manuals/common/filters.php"); ?>
 <p>
