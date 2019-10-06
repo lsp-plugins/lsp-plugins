@@ -677,6 +677,8 @@ namespace lsp
                 for (size_t i=0, n=size/sizeof(uint32_t); i<n; ++i)
                 {
                     // Get atom name
+                    if (list[i] == None)
+                        continue;
                     char *a_name = ::XGetAtomName(pDisplay, list[i]);
                     if (a_name == NULL)
                         continue;
@@ -1313,7 +1315,7 @@ namespace lsp
                     if (data != NULL)
                     {
                         Atom *dst   = data;
-                        *dst        = sAtoms.X11_TARGETS;
+                        *(dst++)    = sAtoms.X11_TARGETS;
                         lsp_trace("  supported target: TARGETS (%ld)", long(*dst));
 
                         for (const char *const *p = mime; *p != NULL; ++p, ++dst)
