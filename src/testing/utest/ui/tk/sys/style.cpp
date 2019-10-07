@@ -69,7 +69,6 @@ UTEST_BEGIN("ui.tk.sys", style)
             ui_atom_t       p_x;
             ui_atom_t       p_y;
 
-            size_t          evmask;
             float           r;
             float           phi;
             float           x;
@@ -84,14 +83,16 @@ UTEST_BEGIN("ui.tk.sys", style)
 
             void sync(size_t mask)
             {
-                if ((mask & F_R) & (~evmask))
+                style->begin();
+                if (mask & F_R)
                     style->set_float(p_r, r);
-                if ((mask & F_PHI) & (~evmask))
+                if (mask & F_PHI)
                     style->set_float(p_phi, phi);
-                if ((mask & F_X) & (~evmask))
+                if (mask & F_X)
                     style->set_float(p_x, x);
-                if ((mask & F_Y) & (~evmask))
+                if (mask & F_Y)
                     style->set_float(p_y, y);
+                style->end();
             }
 
         public:
@@ -103,7 +104,7 @@ UTEST_BEGIN("ui.tk.sys", style)
                 p_phi       = -1;
                 p_x         = -1;
                 p_y         = -1;
-                evmask      = 0;
+
                 r           = 1.0f;
                 phi         = 0.0f;
                 x           = 1.0f;
@@ -135,22 +136,22 @@ UTEST_BEGIN("ui.tk.sys", style)
             virtual void notify(ui_atom_t property)
             {
                 float v;
-                if ((property == p_r) && (!(evmask & F_R)))
+                if (property == p_r)
                 {
                     style->get_float(p_r, &v);
                     set_r(v);
                 }
-                else if ((property == p_phi) && (!(evmask & F_PHI)))
+                else if (property == p_phi)
                 {
                     style->get_float(p_phi, &v);
                     set_phi(v);
                 }
-                else if ((property == p_x) && (!(evmask & F_X)))
+                else if (property == p_x)
                 {
                     style->get_float(p_x, &v);
                     set_x(v);
                 }
-                else if ((property == p_y) && (!(evmask & F_Y)))
+                else if (property == p_y)
                 {
                     style->get_float(p_y, &v);
                     set_y(v);
@@ -165,15 +166,11 @@ UTEST_BEGIN("ui.tk.sys", style)
                 if (r == vr)
                     return;
 
-                size_t old = evmask;
-                evmask |= (F_R | F_PHI);
-
                 r = vr;
+                style->get_float(p_phi, &phi);
                 x = r * cosf(phi);
                 y = r * sinf(phi);
                 sync(F_R | F_X | F_Y);
-
-                evmask = old;
             }
 
             void set_phi(float vphi)
@@ -181,15 +178,11 @@ UTEST_BEGIN("ui.tk.sys", style)
                 if (phi == vphi)
                     return;
 
-                size_t old = evmask;
-                evmask |= (F_R | F_PHI);
-
+                style->get_float(p_r, &r);
                 phi = vphi;
                 x = r * cosf(phi);
                 y = r * sinf(phi);
                 sync(F_PHI | F_X | F_Y);
-
-                evmask = old;
             }
 
             void set_x(float vx)
@@ -197,14 +190,12 @@ UTEST_BEGIN("ui.tk.sys", style)
                 if (x == vx)
                     return;
 
-                size_t old = evmask;
-                evmask |= (F_X | F_Y);
                 x       = vx;
+                style->get_float(p_y, &y);
                 r       = sqrtf(x*x + y*y);
-                phi     = atanf(y / x);
+                phi     = (y >= 0.0f) ? acos(x / r) : M_PI + acos(-x / r);
 
                 sync(F_R | F_PHI | F_X);
-                evmask = old;
             }
 
             void set_y(float vy)
@@ -212,14 +203,12 @@ UTEST_BEGIN("ui.tk.sys", style)
                 if (y == vy)
                     return;
 
-                size_t old = evmask;
-                evmask |= (F_X | F_Y);
+                style->get_float(p_x, &x);
                 y       = vy;
                 r       = sqrtf(x*x + y*y);
-                phi     = atanf(y / x);
+                phi     = (y >= 0.0f) ? acos(x / r) : M_PI + acos(-x / r);
 
                 sync(F_R | F_PHI | F_Y);
-                evmask = old;
             }
     };
 

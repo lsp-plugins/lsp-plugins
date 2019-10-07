@@ -36,13 +36,20 @@ namespace lsp
         class LSPStyle
         {
             protected:
+                enum flags_t
+                {
+                    F_DEFAULT           = 1 << 0,
+                    F_NTF_LISTENERS     = 1 << 1,
+                    F_NTF_CHILDREN      = 1 << 2
+                };
+
                 typedef struct property_t
                 {
                     ui_atom_t           id;         // Unique identifier of property
                     ssize_t             type;       // Type of property
                     size_t              refs;       // Number of references
                     size_t              changes;    // Number of changes
-                    bool                dfl;        // Default value
+                    size_t              flags;      // Flags
                     LSPStyle           *owner;      // Style that is owning a property
                     union
                     {
@@ -64,6 +71,7 @@ namespace lsp
                 cvector<LSPStyle>       vChildren;
                 cstorage<property_t>    vProperties;
                 cstorage<listener_t>    vListeners;
+                ssize_t                 nLock;
 
             public:
                 explicit LSPStyle();
@@ -75,6 +83,7 @@ namespace lsp
             protected:
                 void                undef_property(property_t *property);
                 void                do_destroy();
+                void                delayed_notify();
                 property_t         *get_property_recursive(ui_atom_t id);
                 property_t         *get_parent_property(ui_atom_t id);
                 property_t         *get_property(ui_atom_t id);
@@ -89,9 +98,9 @@ namespace lsp
                 inline const property_t   *get_property_recursive(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property_recursive(id); };
 
                 void                sync();
-                void                notify_change(const property_t *prop);
-                void                notify_children(const property_t *prop);
-                void                notify_listeners(const property_t *prop);
+                void                notify_change(property_t *prop);
+                void                notify_children(property_t *prop);
+                void                notify_listeners(property_t *prop);
 
             public:
                 /**
@@ -209,6 +218,19 @@ namespace lsp
                 inline size_t       listeners() const   { return vListeners.size(); }
 
             public:
+                /**
+                 * Start transactional update of properties.
+                 * All listeners and children will be notified
+                 * only after transaction becomes completed
+                 */
+                void                begin();
+
+                /**
+                 * End transactional update of properties.
+                 * All listeners and children will be notified
+                 */
+                void                end();
+
                 status_t            get_int(ui_atom_t id, ssize_t *dst) const;
                 status_t            get_float(ui_atom_t id, float *dst) const;
                 status_t            get_bool(ui_atom_t id, bool *dst) const;

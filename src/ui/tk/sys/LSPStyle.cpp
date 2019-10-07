@@ -21,6 +21,7 @@ namespace lsp
         
         LSPStyle::LSPStyle()
         {
+            nLock       = 0;
         }
         
         LSPStyle::~LSPStyle()
@@ -40,6 +41,10 @@ namespace lsp
 
         void LSPStyle::do_destroy()
         {
+            // Unlock all pending transactions
+            nLock   = 0;
+            delayed_notify();
+
             // Unlink from parents and remove all children
             for (size_t i=0, n=vParents.size(); i<n; ++i)
             {
@@ -163,7 +168,7 @@ namespace lsp
             dst->refs       = 0;
             dst->type       = src->type;
             dst->changes    = 0;
-            dst->dfl        = true;
+            dst->flags      = F_DEFAULT;
             dst->owner      = this;
 
             return dst;
@@ -197,7 +202,7 @@ namespace lsp
             dst->refs       = 0;
             dst->type       = type;
             dst->changes    = 0;
-            dst->dfl        = true;
+            dst->flags      = F_DEFAULT;
             dst->owner      = this;
 
             return dst;
@@ -205,7 +210,7 @@ namespace lsp
 
         status_t LSPStyle::sync_property(property_t *p)
         {
-            if (!p->dfl)
+            if (!(p->flags & F_DEFAULT))
                 return STATUS_OK;
 
             property_t *parent  = get_parent_property(p->id);
@@ -251,7 +256,7 @@ namespace lsp
                     return STATUS_BAD_TYPE;
             }
 
-            p->dfl  = true;
+            p->flags   |= F_DEFAULT;
             ++p->changes;
             return STATUS_OK;
         }
@@ -272,7 +277,24 @@ namespace lsp
             }
         }
 
-        void LSPStyle::notify_change(const property_t *prop)
+        void LSPStyle::delayed_notify()
+        {
+            for (size_t i=0, n=vProperties.size(); i < n; ++i)
+            {
+                property_t *prop = vProperties.at(i);
+
+                // Notify if notification is pending
+                if (prop->flags & F_NTF_LISTENERS)
+                    notify_listeners(prop);
+                if (prop->flags & F_NTF_CHILDREN)
+                    notify_children(prop);
+
+                // Reset notification flags
+                prop->flags &= ~(F_NTF_LISTENERS | F_NTF_CHILDREN);
+            }
+        }
+
+        void LSPStyle::notify_change(property_t *prop)
         {
             // Find the matching property (if present)
             property_t *p = get_property(prop->id);
@@ -283,7 +305,7 @@ namespace lsp
                 notify_children(prop); // Just bypass event to children
                 return;
             }
-            else if (!p->dfl) // Not default property? Ignore the event
+            else if (!(p->flags & F_DEFAULT)) // Not default property? Ignore the event
                 return;
 
             // Get parent Property
@@ -306,12 +328,20 @@ namespace lsp
             }
 
             // Notify children and listeners about property change
-            notify_listeners(prop);
-            notify_children(prop);
+            notify_listeners(p);
+            notify_children(p);
         }
 
-        void LSPStyle::notify_children(const property_t *prop)
+        void LSPStyle::notify_children(property_t *prop)
         {
+            // In transaction, just set notification flag instead of issuing notification procedure
+            if ((nLock > 0) && (prop->owner == this))
+            {
+                prop->flags    |= F_NTF_CHILDREN;
+                return;
+            }
+
+            // Notify all children about property change
             for (size_t i=0, n=vChildren.size(); i<n; ++i)
             {
                 LSPStyle *child = vChildren.at(i);
@@ -320,8 +350,16 @@ namespace lsp
             }
         }
 
-        void LSPStyle::notify_listeners(const property_t *prop)
+        void LSPStyle::notify_listeners(property_t *prop)
         {
+            // In transaction, just set notification flag instead of issuing notification procedure
+            if ((nLock > 0) && (prop->owner == this))
+            {
+                prop->flags    |= F_NTF_LISTENERS;
+                return;
+            }
+
+            // Notify all listeners about property change
             ui_atom_t id = prop->id;
             for (size_t i=0, n=vListeners.size(); i<n; ++i)
             {
@@ -600,6 +638,19 @@ namespace lsp
             return (p != NULL) ? p : get_parent_property(id);
         }
 
+        void LSPStyle::begin()
+        {
+            ++nLock;
+        }
+
+        void LSPStyle::end()
+        {
+            if (nLock == 0)
+                return;
+            if (!(--nLock))
+                delayed_notify();
+        }
+
         status_t LSPStyle::get_int(ui_atom_t id, ssize_t *dst) const
         {
             const property_t *prop = get_property_recursive(id);
@@ -682,7 +733,7 @@ namespace lsp
         bool LSPStyle::is_default(ui_atom_t id) const
         {
             const property_t *prop = get_property_recursive(id);
-            return (prop != NULL) ? prop->dfl : false;
+            return (prop != NULL) ? (prop->flags & F_DEFAULT) : false;
         }
 
         bool LSPStyle::exists(ui_atom_t id) const
@@ -707,7 +758,7 @@ namespace lsp
                 p = create_property(id, src);
                 if (p == NULL)
                     return STATUS_NO_MEM;
-                p->dfl      = false;
+                p->flags   &= ~F_DEFAULT;
                 notify_listeners(p);
                 notify_children(p);
             }
@@ -719,7 +770,7 @@ namespace lsp
 
                 if (res == STATUS_OK)
                 {
-                    p->dfl      = false;
+                    p->flags   &= ~F_DEFAULT;
                     if (change != p->changes)
                     {
                         notify_listeners(p);
@@ -782,11 +833,11 @@ namespace lsp
             property_t *p = get_property(id);
             if (p == NULL)
                 return STATUS_NOT_FOUND;
-            else if (p->dfl)
+            else if (p->flags & F_DEFAULT)
                 return STATUS_OK;
 
             // Initialize property with default value
-            p->dfl = true;
+            p->flags   |= F_DEFAULT;
             return sync_property(p);
         }
     
