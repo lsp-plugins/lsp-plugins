@@ -21,7 +21,6 @@ namespace lsp
         
         LSPStyle::LSPStyle()
         {
-            pParent     = NULL;
         }
         
         LSPStyle::~LSPStyle()
@@ -41,11 +40,12 @@ namespace lsp
 
         void LSPStyle::do_destroy()
         {
-            // Unlink from parent
-            if (pParent != NULL)
+            // Unlink from parents and remove all children
+            for (size_t i=0, n=vParents.size(); i<n; ++i)
             {
-                pParent->vChildren.remove(this, true);
-                pParent     = NULL;
+                LSPStyle *parent = vParents.at(i);
+                if (parent != NULL)
+                    parent->vChildren.remove(this);
             }
 
             // Unlink from children and remove all children
@@ -54,7 +54,7 @@ namespace lsp
                 LSPStyle *child = vChildren.at(i);
                 if (child != NULL)
                 {
-                    child->pParent = NULL;
+                    child->vParents.remove(this);
                     child->sync();
                 }
             }
@@ -164,6 +164,7 @@ namespace lsp
             dst->type       = src->type;
             dst->changes    = 0;
             dst->dfl        = true;
+            dst->owner      = this;
 
             return dst;
         }
@@ -197,6 +198,7 @@ namespace lsp
             dst->type       = type;
             dst->changes    = 0;
             dst->dfl        = true;
+            dst->owner      = this;
 
             return dst;
         }
@@ -206,7 +208,7 @@ namespace lsp
             if (!p->dfl)
                 return STATUS_OK;
 
-            property_t *parent  = get_property_recursive(pParent, p->id);
+            property_t *parent  = get_parent_property(p->id);
             size_t changes      = p->changes;
             status_t res        = (parent != NULL) ? copy_property(p, parent) : set_property_default(p);
             if ((res == STATUS_OK) && (changes != p->changes))
@@ -284,12 +286,26 @@ namespace lsp
             else if (!p->dfl) // Not default property? Ignore the event
                 return;
 
-            // Copy property value and notify listener and children only if property has changed
-            size_t change = p->changes;
-            status_t res = copy_property(p, prop);
-            if ((res == STATUS_OK) && (change == p->changes))
-                return;
+            // Get parent Property
+            property_t *parent = get_parent_property(prop->id);
+            if (parent != NULL)
+            {
+                // Parent property has been changed?
+                size_t change = p->changes;
+                status_t res = copy_property(p, parent);
+                if ((res == STATUS_OK) && (change == p->changes))
+                    return;
+            }
+            else
+            {
+                // Copy property value and notify listener and children only if property has changed
+                size_t change = p->changes;
+                status_t res = copy_property(p, prop);
+                if ((res == STATUS_OK) && (change == p->changes))
+                    return;
+            }
 
+            // Notify children and listeners about property change
             notify_listeners(prop);
             notify_children(prop);
         }
@@ -315,63 +331,91 @@ namespace lsp
             }
         }
 
-        status_t LSPStyle::add(LSPStyle *child)
+        status_t LSPStyle::add_child(LSPStyle *child, ssize_t idx)
         {
-            if ((child == NULL) || (child == this))
+            // Check arguments
+            if (child == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            if (child->pParent == this)
-                return STATUS_ALREADY_EXISTS;
-
-            if (!vChildren.add(child))
-                return STATUS_NO_MEM;
-            if (child->pParent != NULL)
-                child->pParent->vChildren.remove(child, true);
-
-            child->pParent  = this;
-            sync();
-
-            return STATUS_OK;
-        }
-
-        status_t LSPStyle::remove(LSPStyle *child)
-        {
-            if ((child == NULL) || (child == this))
-                return STATUS_BAD_ARGUMENTS;
-
-            ssize_t idx = vChildren.index_of(child);
             if (idx < 0)
-                return STATUS_NOT_FOUND;
+                idx = vChildren.size();
+            else if (size_t(idx) > vChildren.size())
+                return STATUS_INVALID_VALUE;
 
-            if (!vChildren.remove(idx, true))
-                return STATUS_UNKNOWN_ERR;
+            // Check
+            if (vChildren.index_of(child) >= 0)
+                return STATUS_ALREADY_EXISTS;
+            if ((child == this) || (child->has_child(this, true)))
+                return STATUS_BAD_HIERARCHY;
 
-            child->pParent = NULL;
+            // Make bindings
+            if (!vChildren.insert(child, idx))
+                return STATUS_NO_MEM;
+            if (!child->vParents.add(this))
+            {
+                vChildren.remove(child);
+                return STATUS_NO_MEM;
+            }
+
+            // Synchronize state
             child->sync();
 
             return STATUS_OK;
         }
 
-        status_t LSPStyle::set_parent(LSPStyle *parent)
+        status_t LSPStyle::add_parent(LSPStyle *parent, ssize_t idx)
         {
-            if (parent == this)
-                return STATUS_BAD_ARGUMENTS;
-            else if (pParent == parent)
-                return STATUS_OK;
-
+            // Check arguments
             if (parent == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (idx < 0)
+                idx = vParents.size();
+            else if (size_t(idx) > vParents.size())
+                return STATUS_INVALID_VALUE;
+
+            // Check
+            if (vParents.index_of(parent) >= 0)
+                return STATUS_ALREADY_EXISTS;
+            if ((parent == this) || (this->has_child(parent, true)))
+                return STATUS_BAD_HIERARCHY;
+
+            // Make bindings
+            if (!vParents.insert(parent, idx))
+                return STATUS_NO_MEM;
+            if (!parent->vChildren.add(this))
             {
-                if (!pParent->vChildren.remove(this, true))
-                    return STATUS_UNKNOWN_ERR;
-            }
-            else
-            {
-                if (!parent->vChildren.add(this))
-                    return STATUS_NO_MEM;
-                if (pParent != NULL)
-                    pParent->vChildren.remove(this, true);
+                vParents.remove(parent);
+                return STATUS_NO_MEM;
             }
 
-            pParent     = parent;
+            // Synchronize state
+            sync();
+
+            return STATUS_OK;
+        }
+
+        status_t LSPStyle::remove_child(LSPStyle *child)
+        {
+            if (child == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            if (!vChildren.remove(child, true))
+                return STATUS_NOT_FOUND;
+
+            child->vParents.remove(this);
+            child->sync();
+
+            return STATUS_OK;
+        }
+
+        status_t LSPStyle::remove_parent(LSPStyle *parent)
+        {
+            if (parent == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            if (!vParents.remove(parent))
+                return STATUS_NOT_FOUND;
+
+            parent->vChildren.remove(this);
             sync();
 
             return STATUS_OK;
@@ -379,6 +423,9 @@ namespace lsp
 
         bool LSPStyle::has_child(LSPStyle *child, bool recursive)
         {
+            if ((child == NULL) || (child == this))
+                return false;
+
             // First, lookup self children
             if (vChildren.index_of(child) >= 0)
                 return true;
@@ -398,24 +445,24 @@ namespace lsp
 
         bool LSPStyle::has_parent(LSPStyle *parent, bool recursive)
         {
-            if (parent == NULL)
+            if ((parent == NULL) || (parent == this))
                 return false;
-            else if (!recursive)
-                return (pParent == parent);
 
-            for (LSPStyle *p = pParent; p != NULL; p = p->pParent)
-                if (p == parent)
+            // First, lookup self children
+            if (vParents.index_of(parent) >= 0)
+                return true;
+            else if (!recursive)
+                return false;
+
+            // Second, lookup recursively parents
+            for (size_t i=0, n=vParents.size(); i<n; ++i)
+            {
+                LSPStyle *s = vParents.at(i);
+                if ((s != NULL) && (s->has_parent(parent, recursive)))
                     return true;
+            }
 
             return false;
-        }
-
-        LSPStyle *LSPStyle::root()
-        {
-            LSPStyle *curr = this;
-            while (curr->pParent != NULL)
-                curr = curr->pParent;
-            return curr;
         }
 
         bool LSPStyle::is_bound(ui_atom_t id, IStyleListener *listener) const
@@ -439,7 +486,7 @@ namespace lsp
             if (p == NULL)
             {
                 // Lookup parent property
-                property_t *parent = get_property_recursive(pParent, id);
+                property_t *parent = get_parent_property(id);
 
                 // Create property
                 p = (parent != NULL) ? create_property(id, parent) : create_property(id, type);
@@ -505,7 +552,7 @@ namespace lsp
             if ((--p->refs) <= 0)
             {
                 undef_property(p);
-                property_t *parent = (pParent != NULL) ? pParent->get_property(p->id) : NULL;
+                property_t *parent = get_parent_property(p->id);
                 notify_children((parent != NULL) ? parent : p);
                 vProperties.remove(p);
             }
@@ -518,30 +565,44 @@ namespace lsp
 
         LSPStyle::property_t *LSPStyle::get_property(ui_atom_t id)
         {
-            property_t *pv = vProperties.get_array();
             for (size_t i=0, n=vProperties.size(); i<n; ++i)
             {
-                property_t *p = &pv[i];
+                property_t *p   = vProperties.at(i);
                 if ((p != NULL) && (p->id == id))
                     return p;
             }
             return NULL;
         }
 
-        LSPStyle::property_t *LSPStyle::get_property_recursive(const LSPStyle *root, ui_atom_t id)
+        LSPStyle::property_t *LSPStyle::get_parent_property(ui_atom_t id)
         {
-            property_t *p = NULL;
+            // Lookup parents in reverse order
+            for (ssize_t i=vParents.size() - 1; i >= 0; --i)
+            {
+                LSPStyle *curr = vParents.at(i);
+                if (curr == NULL)
+                    continue;
 
-            for (LSPStyle *curr = const_cast<LSPStyle *>(root); curr != NULL; curr = curr->pParent)
-                if ((p = curr->get_property(id)) != NULL)
-                    break;
+                // Try to fetch property first
+                property_t *p = curr->get_property(id);
+                if (p == NULL) // Property not found?
+                    p = curr->get_parent_property(id); // Search parents recursively
+                if (p != NULL)
+                    return p;
+            }
 
-            return p;
+            return NULL;
+        }
+
+        LSPStyle::property_t *LSPStyle::get_property_recursive(ui_atom_t id)
+        {
+            property_t *p = get_property(id);
+            return (p != NULL) ? p : get_parent_property(id);
         }
 
         status_t LSPStyle::get_int(ui_atom_t id, ssize_t *dst) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             if (prop == NULL)
             {
                 *dst = 0;
@@ -556,7 +617,7 @@ namespace lsp
 
         status_t LSPStyle::get_float(ui_atom_t id, float *dst) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             if (prop == NULL)
             {
                 *dst = 0.0f;
@@ -571,7 +632,7 @@ namespace lsp
 
         status_t LSPStyle::get_bool(ui_atom_t id, bool *dst) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             if (prop == NULL)
             {
                 *dst = false;
@@ -586,7 +647,7 @@ namespace lsp
 
         status_t LSPStyle::get_string(ui_atom_t id, LSPString *dst) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             if (prop == NULL)
             {
                 if (dst != NULL)
@@ -603,7 +664,7 @@ namespace lsp
 
         status_t LSPStyle::get_string(ui_atom_t id, const char **dst) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             if (prop == NULL)
             {
                 if (dst != NULL)
@@ -620,19 +681,19 @@ namespace lsp
 
         bool LSPStyle::is_default(ui_atom_t id) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             return (prop != NULL) ? prop->dfl : false;
         }
 
         bool LSPStyle::exists(ui_atom_t id) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             return (prop != NULL);
         }
 
         ssize_t LSPStyle::get_type(ui_atom_t id) const
         {
-            const property_t *prop = get_property_recursive(this, id);
+            const property_t *prop = get_property_recursive(id);
             return (prop != NULL) ? prop->type : PT_UNKNOWN;
         }
 

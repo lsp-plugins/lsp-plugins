@@ -43,6 +43,7 @@ namespace lsp
                     size_t              refs;       // Number of references
                     size_t              changes;    // Number of changes
                     bool                dfl;        // Default value
+                    LSPStyle           *owner;      // Style that is owning a property
                     union
                     {
                         ssize_t     iValue;
@@ -59,7 +60,7 @@ namespace lsp
                 } listener_t;
 
             private:
-                LSPStyle               *pParent;
+                cvector<LSPStyle>       vParents;
                 cvector<LSPStyle>       vChildren;
                 cstorage<property_t>    vProperties;
                 cstorage<listener_t>    vListeners;
@@ -74,7 +75,8 @@ namespace lsp
             protected:
                 void                undef_property(property_t *property);
                 void                do_destroy();
-                static property_t  *get_property_recursive(const LSPStyle *curr, ui_atom_t id);
+                property_t         *get_property_recursive(ui_atom_t id);
+                property_t         *get_parent_property(ui_atom_t id);
                 property_t         *get_property(ui_atom_t id);
                 status_t            set_property(ui_atom_t id, property_t *src);
                 status_t            sync_property(property_t *p);
@@ -82,7 +84,9 @@ namespace lsp
                 property_t         *create_property(ui_atom_t id, ui_property_type_t type);
                 status_t            set_property_default(property_t *dst);
                 status_t            copy_property(property_t *dst, const property_t *src);
+
                 inline const property_t   *get_property(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property(id); };
+                inline const property_t   *get_property_recursive(ui_atom_t id) const { return const_cast<LSPStyle *>(this)->get_property_recursive(id); };
 
                 void                sync();
                 void                notify_change(const property_t *prop);
@@ -91,39 +95,32 @@ namespace lsp
 
             public:
                 /**
-                 * Add child style
-                 * @param child child style
-                 * @return status of operation
+                 * Get number of parent styles
+                 * @return number of parent styles
                  */
-                status_t            add(LSPStyle *child);
+                inline size_t       parents() const     { return vParents.size();   }
 
-                /** Remove child style
-                 *
-                 * @param child child style to remove
-                 * @return status of operation
+                /**
+                 * Get parent style
+                 * @param idx sequential number of parent style starting with 0
+                 * @return parent style or NULL if does not exist
                  */
-                status_t            remove(LSPStyle *child);
+                inline LSPStyle    *parent(size_t idx)  { return vParents.get(idx); };
 
                 /**
                  * Set parent style
                  * @param parent parent style
-                 * @return statys of operation
+                 * @param idx parent index, negative value means last
+                 * @return status of operation
                  */
-                status_t            set_parent(LSPStyle *parent);
+                status_t            add_parent(LSPStyle *parent, ssize_t idx = -1);
 
                 /**
-                 * Get parent style
-                 * @return parent style
+                 * Remove the parent style
+                 * @param parent parent style to remove
+                 * @return status of operation
                  */
-                inline LSPStyle    *parent()        { return pParent; };
-
-                /**
-                 * Check whether style has a child
-                 * @param child child style
-                 * @param recursive flag that indicates that a recursive search should be performed
-                 * @return true if style has a child
-                 */
-                bool                has_child(LSPStyle *child, bool recursive = false);
+                status_t            remove_parent(LSPStyle *parent);
 
                 /**
                  * Check whether style has a parent
@@ -134,10 +131,40 @@ namespace lsp
                 bool                has_parent(LSPStyle *parent, bool recursive = false);
 
                 /**
-                 * Get root style
-                 * @return root style
+                 * Get number of child styles
+                 * @return number of child styles
                  */
-                LSPStyle           *root();
+                inline size_t       children() const    { return vChildren.size();   }
+
+                /**
+                 * Get child style
+                 * @param idx sequential number of child style starting with 0
+                 * @return child style or NULL if does not exist
+                 */
+                inline LSPStyle    *child(size_t idx)  { return vChildren.get(idx); };
+
+                /**
+                 * Add child style
+                 * @param child child style
+                 * @param idx child index, negative value means last
+                 * @return status of operation
+                 */
+                status_t            add_child(LSPStyle *child, ssize_t idx = -1);
+
+                /** Remove child style
+                 *
+                 * @param child child style to remove
+                 * @return status of operation
+                 */
+                status_t            remove_child(LSPStyle *child);
+
+                /**
+                 * Check whether style has a child
+                 * @param child child style
+                 * @param recursive flag that indicates that a recursive search should be performed
+                 * @return true if style has a child
+                 */
+                bool                has_child(LSPStyle *child, bool recursive = false);
 
             public:
                 /**

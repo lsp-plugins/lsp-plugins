@@ -7,6 +7,7 @@
 
 #include <ui/tk/tk.h>
 #include <test/utest.h>
+#include <test/helpers.h>
 #include <data/cvector.h>
 #include <data/cstorage.h>
 
@@ -58,6 +59,170 @@ UTEST_BEGIN("ui.tk.sys", style)
             }
     };
 
+    class Circle: public IStyleListener
+    {
+        private:
+            test_type_t    *test;
+            LSPStyle       *style;
+            ui_atom_t       p_r;
+            ui_atom_t       p_phi;
+            ui_atom_t       p_x;
+            ui_atom_t       p_y;
+
+            size_t          evmask;
+            float           r;
+            float           phi;
+            float           x;
+            float           y;
+
+            enum mask {
+                F_R         = 1 << 0,
+                F_PHI       = 1 << 1,
+                F_X         = 1 << 2,
+                F_Y         = 1 << 3
+            };
+
+            void sync(size_t mask)
+            {
+                if ((mask & F_R) & (~evmask))
+                    style->set_float(p_r, r);
+                if ((mask & F_PHI) & (~evmask))
+                    style->set_float(p_phi, phi);
+                if ((mask & F_X) & (~evmask))
+                    style->set_float(p_x, x);
+                if ((mask & F_Y) & (~evmask))
+                    style->set_float(p_y, y);
+            }
+
+        public:
+            explicit Circle(test_type_t *t)
+            {
+                test        = t;
+                style       = NULL;
+                p_r         = -1;
+                p_phi       = -1;
+                p_x         = -1;
+                p_y         = -1;
+                evmask      = 0;
+                r           = 1.0f;
+                phi         = 0.0f;
+                x           = 1.0f;
+                y           = 0.0f;
+            }
+
+            status_t init(LSPStyle *s, ui_atom_t r, ui_atom_t phi, ui_atom_t x, ui_atom_t y)
+            {
+                style       = s;
+                p_r         = r;
+                p_phi       = phi;
+                p_x         = x;
+                p_y         = y;
+
+                status_t res = STATUS_OK;
+
+                if (res == STATUS_OK)
+                    res = s->bind(r, PT_FLOAT, this);
+                if (res == STATUS_OK)
+                    res = s->bind(phi, PT_FLOAT, this);
+                if (res == STATUS_OK)
+                    res = s->bind(x, PT_FLOAT, this);
+                if (res == STATUS_OK)
+                    res = s->bind(y, PT_FLOAT, this);
+
+                return res;
+            }
+
+            virtual void notify(ui_atom_t property)
+            {
+                float v;
+                if ((property == p_r) && (!(evmask & F_R)))
+                {
+                    style->get_float(p_r, &v);
+                    set_r(v);
+                }
+                else if ((property == p_phi) && (!(evmask & F_PHI)))
+                {
+                    style->get_float(p_phi, &v);
+                    set_phi(v);
+                }
+                else if ((property == p_x) && (!(evmask & F_X)))
+                {
+                    style->get_float(p_x, &v);
+                    set_x(v);
+                }
+                else if ((property == p_y) && (!(evmask & F_Y)))
+                {
+                    style->get_float(p_y, &v);
+                    set_y(v);
+                }
+            }
+
+            inline float get_r() const { return r; }
+            inline float get_phi() const { return phi; }
+
+            void set_r(float vr)
+            {
+                if (r == vr)
+                    return;
+
+                size_t old = evmask;
+                evmask |= (F_R | F_PHI);
+
+                r = vr;
+                x = r * cosf(phi);
+                y = r * sinf(phi);
+                sync(F_R | F_X | F_Y);
+
+                evmask = old;
+            }
+
+            void set_phi(float vphi)
+            {
+                if (phi == vphi)
+                    return;
+
+                size_t old = evmask;
+                evmask |= (F_R | F_PHI);
+
+                phi = vphi;
+                x = r * cosf(phi);
+                y = r * sinf(phi);
+                sync(F_PHI | F_X | F_Y);
+
+                evmask = old;
+            }
+
+            void set_x(float vx)
+            {
+                if (x == vx)
+                    return;
+
+                size_t old = evmask;
+                evmask |= (F_X | F_Y);
+                x       = vx;
+                r       = sqrtf(x*x + y*y);
+                phi     = atanf(y / x);
+
+                sync(F_R | F_PHI | F_X);
+                evmask = old;
+            }
+
+            void set_y(float vy)
+            {
+                if (y == vy)
+                    return;
+
+                size_t old = evmask;
+                evmask |= (F_X | F_Y);
+                y       = vy;
+                r       = sqrtf(x*x + y*y);
+                phi     = atanf(y / x);
+
+                sync(F_R | F_PHI | F_Y);
+                evmask = old;
+            }
+    };
+
     cvector<char> atoms;
 
     ui_atom_t atom(const char *name)
@@ -102,8 +267,8 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(s.set_string(atom("string_value"), "Some string value") == STATUS_OK);
         UTEST_ASSERT(s.set_string(atom("dfl_string_value"), "Default value") == STATUS_OK);
 
-        UTEST_ASSERT(s.set_float(atom("circle.rho"), 1.0f) == STATUS_OK);
-        UTEST_ASSERT(s.set_float(atom("circle.theta"), 0.0f) == STATUS_OK);
+        UTEST_ASSERT(s.set_float(atom("circle.r"), 2.0f) == STATUS_OK);
+        UTEST_ASSERT(s.set_float(atom("circle.phi"), M_PI) == STATUS_OK);
         UTEST_ASSERT(s.set_float(atom("circle.x"), 0.5f) == STATUS_OK);
         UTEST_ASSERT(s.set_float(atom("circle.y"), 0.5f) == STATUS_OK);
         UTEST_ASSERT(s.set_float(atom("dfl_float_value"), 440.0f) == STATUS_OK);
@@ -215,12 +380,14 @@ UTEST_BEGIN("ui.tk.sys", style)
 
         // Set inheritance
         printf("Setting inheritance...\n");
-        UTEST_ASSERT(s1.set_parent(&s1) == STATUS_BAD_ARGUMENTS);
-        UTEST_ASSERT(s1.set_parent(&s) == STATUS_OK);
-        UTEST_ASSERT(s1.set_parent(&s) == STATUS_OK);
-        UTEST_ASSERT(s2.set_parent(&s) == STATUS_OK);
-        UTEST_ASSERT(s3.set_parent(&s1) == STATUS_OK);
-        UTEST_ASSERT(s4.set_parent(&s2) == STATUS_OK);
+        UTEST_ASSERT(s1.add_parent(&s1) == STATUS_BAD_HIERARCHY);
+        UTEST_ASSERT(s1.add_parent(&s) == STATUS_OK);
+        UTEST_ASSERT(s1.add_parent(&s) == STATUS_ALREADY_EXISTS);
+        UTEST_ASSERT(s3.add_parent(&s1) == STATUS_OK);
+        UTEST_ASSERT(s.add_child(&s) == STATUS_BAD_HIERARCHY);
+        UTEST_ASSERT(s.add_child(&s2) == STATUS_OK);
+        UTEST_ASSERT(s.add_child(&s2) == STATUS_ALREADY_EXISTS);
+        UTEST_ASSERT(s2.add_child(&s4) == STATUS_OK);
 
         UTEST_ASSERT(l1.cl_get(var1) == 0);
         UTEST_ASSERT(l2.cl_get(var1) == 1);
@@ -248,8 +415,8 @@ UTEST_BEGIN("ui.tk.sys", style)
 
         // Check relations
         printf("Checking relations...\n");
-        UTEST_ASSERT(s1.parent() == &s);
-        UTEST_ASSERT(s2.parent() == &s);
+        UTEST_ASSERT(s1.has_parent(&s));
+        UTEST_ASSERT(s2.has_parent(&s));
         UTEST_ASSERT(!s3.has_parent(&s, false));
         UTEST_ASSERT(s3.has_parent(&s, true));
         UTEST_ASSERT(!s4.has_parent(&s, false));
@@ -299,12 +466,12 @@ UTEST_BEGIN("ui.tk.sys", style)
 
         // Unlink style s1
         printf("Unlinking style s1...\n");
-        UTEST_ASSERT(s1.set_parent(NULL) == STATUS_OK);
+        UTEST_ASSERT(s1.remove_parent(&s) == STATUS_OK);
         UTEST_ASSERT(!s.has_child(&s1, false));
         UTEST_ASSERT(!s.has_child(&s1, true));
         UTEST_ASSERT(!s1.has_parent(&s, false));
         UTEST_ASSERT(!s1.has_parent(&s, true));
-        UTEST_ASSERT(s1.parent() == NULL);
+        UTEST_ASSERT(s1.parents() == 0);
 
         UTEST_ASSERT(l1.cl_get(var1) == 0);
         UTEST_ASSERT(l3.cl_get(var1) == 0);
@@ -322,12 +489,12 @@ UTEST_BEGIN("ui.tk.sys", style)
 
         // Unlink style s2
         printf("Unlinking style s2...\n");
-        UTEST_ASSERT(s.remove(&s2) == STATUS_OK);
+        UTEST_ASSERT(s.remove_child(&s2) == STATUS_OK);
         UTEST_ASSERT(!s.has_child(&s2, false));
         UTEST_ASSERT(!s.has_child(&s2, true));
         UTEST_ASSERT(!s2.has_parent(&s, false));
         UTEST_ASSERT(!s2.has_parent(&s, true));
-        UTEST_ASSERT(s2.parent() == NULL);
+        UTEST_ASSERT(s2.parents() == 0);
 
         UTEST_ASSERT(l2.cl_get(var1) == 1);
         UTEST_ASSERT(l4.cl_get(var1) == 0);
@@ -361,11 +528,72 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(l2.cl_get(var2) == 0);
     }
 
+    void test_function(LSPStyle &s)
+    {
+        ui_atom_t r = atom("circle.r");
+        ui_atom_t phi = atom("circle.phi");
+        ui_atom_t x = atom("circle.x");
+        ui_atom_t y = atom("circle.y");
+        float v;
+
+        printf("Initializing circle...\n");
+        Circle circle(this);
+        UTEST_ASSERT(circle.init(&s, r, phi, x, y) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(circle.get_r(), 2.0f));
+        UTEST_ASSERT(float_equals_relative(circle.get_phi(), M_PI));
+
+        UTEST_ASSERT(s.get_float(r, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 2.0f));
+        UTEST_ASSERT(s.get_float(phi, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, M_PI));
+        UTEST_ASSERT(s.get_float(x, &v) == STATUS_OK); // Affected by init()
+        UTEST_ASSERT(float_equals_relative(v, -2.0f));
+        UTEST_ASSERT(s.get_float(y, &v) == STATUS_OK); // Affected by init()
+        UTEST_ASSERT(float_equals_relative(v, 0.0f));
+
+        printf("Testing circle.set_phi...\n");
+        circle.set_phi(0.0f);
+        UTEST_ASSERT(s.get_float(r, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 2.0f));
+        UTEST_ASSERT(s.get_float(phi, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 0.0f));
+        UTEST_ASSERT(s.get_float(x, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 2.0f));
+        UTEST_ASSERT(s.get_float(y, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 0.0f));
+
+        printf("Testing circle.set_y...\n");
+        circle.set_y(2.0f);
+        UTEST_ASSERT(s.get_float(r, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 2.0f * M_SQRT2));
+        UTEST_ASSERT(s.get_float(phi, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, M_PI * 0.25f));
+        UTEST_ASSERT(s.get_float(x, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 2.0f));
+        UTEST_ASSERT(s.get_float(y, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, 2.0f));
+
+        printf("Setting x...\n");
+        UTEST_ASSERT(s.set_float(x, -2.0f) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(circle.get_r(), 2.0f * M_SQRT2));
+        UTEST_ASSERT(float_equals_relative(circle.get_phi(), 0.75f * M_PI));
+
+        printf("Setting r...\n");
+        UTEST_ASSERT(s.set_float(r, 2.0f) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(circle.get_r(), 2.0f));
+        UTEST_ASSERT(float_equals_relative(circle.get_phi(), 0.75f * M_PI));
+        UTEST_ASSERT(s.get_float(x, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, M_SQRT2));
+        UTEST_ASSERT(s.get_float(y, &v) == STATUS_OK);
+        UTEST_ASSERT(float_equals_relative(v, M_SQRT2));
+    }
+
     UTEST_MAIN
     {
         LSPStyle root;
         init_style(root);
         test_binding(root);
+        test_function(root);
     }
 
     UTEST_DESTROY
