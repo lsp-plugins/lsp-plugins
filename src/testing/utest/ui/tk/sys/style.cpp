@@ -246,6 +246,7 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(s.init() == STATUS_OK);
 
         // Set initial values
+        printf("Building root style...\n");
         UTEST_ASSERT(s.set_int(atom("int_value"), 10) == STATUS_OK);
         UTEST_ASSERT(s.set_int(atom("dfl_int_value"), 123) == STATUS_OK);
         UTEST_ASSERT(s.set_int(atom("count"), 42) == STATUS_OK);
@@ -577,12 +578,77 @@ UTEST_BEGIN("ui.tk.sys", style)
         UTEST_ASSERT(float_equals_relative(v, M_SQRT2));
     }
 
+    void test_multiple_parents()
+    {
+        LSPStyle p1, p2;
+        LSPStyle c1, c2;
+        ChangeListener l1(this, "c1"), l2(this, "c2");
+
+        ui_atom_t v1 = atom("value1");
+        ui_atom_t v2 = atom("value2");
+        ssize_t v;
+
+        printf("Initializing style inheritance...\n");
+        UTEST_ASSERT(p1.init() == STATUS_OK);
+        UTEST_ASSERT(p2.init() == STATUS_OK);
+        UTEST_ASSERT(c1.init() == STATUS_OK);
+        UTEST_ASSERT(c2.init() == STATUS_OK);
+
+        UTEST_ASSERT(c1.bind_int(v1, &l1) == STATUS_OK);
+        UTEST_ASSERT(c1.bind_int(v2, &l1) == STATUS_OK);
+        UTEST_ASSERT(c2.bind_int(v1, &l2) == STATUS_OK);
+        UTEST_ASSERT(c2.bind_int(v2, &l2) == STATUS_OK);
+
+        UTEST_ASSERT(c1.add_parent(&p1) == STATUS_OK);
+        UTEST_ASSERT(c1.add_parent(&p2) == STATUS_OK);
+        UTEST_ASSERT(c2.add_parent(&p1) == STATUS_OK);
+
+        printf("Setting values...\n");
+        UTEST_ASSERT(p1.set_int(v1, 1) == STATUS_OK);
+        UTEST_ASSERT(p1.set_int(v2, 2) == STATUS_OK);
+        UTEST_ASSERT(p2.set_int(v1, 100) == STATUS_OK);
+        UTEST_ASSERT(p2.set_int(v2, 200) == STATUS_OK);
+
+        UTEST_ASSERT(l1.cl_get(v1) == 3);
+        UTEST_ASSERT(l1.cl_get(v2) == 3);
+        UTEST_ASSERT(l2.cl_get(v1) == 2);
+        UTEST_ASSERT(l2.cl_get(v2) == 2);
+
+        UTEST_ASSERT(c1.get_int(v1, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 100);
+        UTEST_ASSERT(c1.get_int(v2, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 200);
+        UTEST_ASSERT(c2.get_int(v1, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 1);
+        UTEST_ASSERT(c2.get_int(v2, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 2);
+
+        printf("Overriding values...\n");
+        UTEST_ASSERT(p1.set_int(v1, 10) == STATUS_OK);
+        UTEST_ASSERT(p1.set_int(v2, 20) == STATUS_OK);
+
+        UTEST_ASSERT(l1.cl_get(v1) == 0);
+        UTEST_ASSERT(l1.cl_get(v2) == 0);
+        UTEST_ASSERT(l2.cl_get(v1) == 1);
+        UTEST_ASSERT(l2.cl_get(v2) == 1);
+
+        UTEST_ASSERT(c1.get_int(v1, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 100);
+        UTEST_ASSERT(c1.get_int(v2, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 200);
+        UTEST_ASSERT(c2.get_int(v1, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 10);
+        UTEST_ASSERT(c2.get_int(v2, &v) == STATUS_OK);
+        UTEST_ASSERT(v == 20);
+    }
+
     UTEST_MAIN
     {
         LSPStyle root;
         init_style(root);
         test_binding(root);
         test_function(root);
+        test_multiple_parents();
     }
 
     UTEST_DESTROY
