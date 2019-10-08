@@ -44,13 +44,10 @@ namespace lsp
                 inline const LSPString     *signature() const { return (pSignature != NULL) ? pSignature->string() : NULL; }
                 inline const String        *java_signature() const { return pSignature; }
                 inline size_t               size_of() const { return java::size_of(enType); };
-                inline size_t               aligned_size_of() const
-                {
-                    size_t res = java::size_of(enType);
-                    return (res < sizeof(umword_t)) ? sizeof(umword_t) : res;
-                }
+                inline size_t               aligned_offset(size_t offset) const { return java::aligned_offset(offset, enType); };
                 inline bool                 is_reference() const { return java::is_reference(enType); }
                 inline bool                 is_primitive() const { return java::is_primitive(enType); }
+                inline size_t               offset() const { return nOffset; }
         };
     
     } /* namespace java */

@@ -57,36 +57,35 @@ namespace lsp
                     const ObjectStreamClass *os = s->desc;
 
                     // Lookup field
-                    size_t offset = 0;
+                    uint8_t *data       = &vData[s->offset];
                     for (size_t j=0, m=os->fields(); j<m; ++j)
                     {
-                        // Check field match
+                        // Align base of the current field
                         const ObjectStreamField *f = os->field(j);
-                        if (::strcmp(f->raw_name(), field) != 0)
+
+                        // Check field match
+                        if (::strcmp(f->raw_name(), field) == 0)
                         {
-                            offset += f->aligned_size_of();
-                            continue;
-                        }
+                            found = true;
+                            if (f->is_reference())
+                            {
+                                // Null value?
+                                const Object *obj = *reinterpret_cast<const Object **>(&data[f->offset()]);
+                                if (obj == NULL)
+                                    return STATUS_NULL;
 
-                        found = true;
-                        if (!f->is_reference())
-                            continue;
-
-                        // Null value?
-                        const Object *obj = *reinterpret_cast<const Object **>(&vData[s->offset + offset]);
-                        if (obj == NULL)
-                            return STATUS_NULL;
-
-                        // Can be cast?
-                        const cast_t *w = obj->cast<cast_t>();
-                        if (w == NULL)
-                            continue;
-
-                        // Return the value
-                        if (item != NULL)
-                            *item = w;
-                        return STATUS_OK;
-                    }
+                                // Can be cast?
+                                const cast_t *w = obj->cast<cast_t>();
+                                if (w != NULL)
+                                {
+                                    // Return the value
+                                    if (item != NULL)
+                                        *item = w;
+                                    return STATUS_OK;
+                                }
+                            } // is_reference
+                        } // strcmp
+                    } // for
                 }
 
                 return (found) ? STATUS_BAD_TYPE : STATUS_NOT_FOUND;
@@ -104,45 +103,38 @@ namespace lsp
                     const ObjectStreamClass *os = s->desc;
 
                     // Lookup field
-                    size_t offset = 0;
+                    uint8_t *data       = &vData[s->offset];
                     for (size_t j=0, m=os->fields(); j<m; ++j)
                     {
-                        // Check field match
+                        // Align base of the current field
                         const ObjectStreamField *f = os->field(j);
-                        if (::strcmp(f->raw_name(), field) != 0)
+
+                        // Check field match
+                        if (::strcmp(f->raw_name(), field) == 0)
                         {
-                            offset += f->aligned_size_of();
-                            continue;
+                            found = true;
+
+                            // Type match?
+                            if (f->type() == type)
+                            {
+                                if (item != NULL)
+                                    *item           = *reinterpret_cast<const type_t *>(&data[f->offset()]);
+                                return STATUS_OK;
+                            }
+                            else if (f->is_reference()) // Reference type?
+                            {
+                                // Need to check for wrappers (e.g. java.lang.Long -> long)
+                                // Null value?
+                                const Object *obj = *reinterpret_cast<const Object **>(&data[f->offset()]);
+                                if (obj == NULL)
+                                    return STATUS_NULL;
+
+                                // Can be cast to wrapper?
+                                const wrapper_t *w = obj->cast<const wrapper_t>();
+                                if (w != NULL)
+                                    return w->get_value(item);
+                            }
                         }
-                        found = true;
-
-                        // Type match?
-                        if (f->type() == type)
-                        {
-                            if (item != NULL)
-                                *item           = *reinterpret_cast<const type_t *>(&vData[s->offset + offset]);
-                            return STATUS_OK;
-                        }
-
-                        // Reference type?
-                        if (!f->is_reference())
-                        {
-                            offset += f->aligned_size_of();
-                            continue;
-                        }
-
-                        // Null value?
-                        const Object *obj = *reinterpret_cast<const Object **>(&vData[s->offset + offset]);
-                        if (obj == NULL)
-                            return STATUS_NULL;
-
-                        // Can be cast to wrapper?
-                        const wrapper_t *w = obj->cast<const wrapper_t>();
-                        if (w == NULL)
-                            continue;
-
-                        // Return the value
-                        return w->get_value(item);
                     }
                 }
 
@@ -292,8 +284,9 @@ namespace lsp
             {
                 prim_ptr_t ptr;
 
-                object_slot_t *s = &vSlots[i];
-                ObjectStreamClass *os = s->desc;
+                object_slot_t *s        = &vSlots[i];
+                ObjectStreamClass *os   = s->desc;
+                uint8_t *data           = &vData[s->offset];
 
 //                lsp_trace("i=%d, nslots=%d, s=%p, os=%p", int(i), int(nSlots), s, os);
 
@@ -304,16 +297,15 @@ namespace lsp
                     return STATUS_NO_MEM;
 
                 ++pad;
-                // Dump fields
-                ptr.p_ubyte     = &vData[s->offset];
-//                lsp_trace("vData = %p, s->offset = %d, size=0x%x, first=%p, last=%p",
-//                        vData, int(s->offset), int(s->size), &vData[s->offset], &vData[s->offset + s->size]);
 
+                // Dump fields
                 for (size_t j=0, n=os->fields(); j<n; ++j)
                 {
+                    const ObjectStreamField *f = os->field(j);
+                    ptr.p_ubyte     = &data[f->offset()];
+
                     if (!pad_string(dst, pad))
                         return STATUS_NO_MEM;
-                    const ObjectStreamField *f = os->field(j);
 //                    lsp_trace("ptr = %p (type=%d)", ptr.p_ubyte, int(f->type()));
                     if (!dst->fmt_append_utf8("%s = ", f->name()->get_utf8()))
                         return STATUS_NO_MEM;
@@ -348,8 +340,6 @@ namespace lsp
                         default:
                             return STATUS_CORRUPTED;
                     }
-
-                    ptr.p_ubyte    += f->aligned_size_of();
 
                     if (!res)
                         return STATUS_NO_MEM;

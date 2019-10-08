@@ -32,6 +32,14 @@ namespace lsp
             return 0;
         }
 
+        size_t aligned_offset(size_t offset, ftype_t type)
+        {
+            // Currently we can not consider offsets being power of 2, use divides
+            size_t size = size_of(type);
+            size_t tail = offset % size;
+            return (tail) ? offset - tail + size : offset;
+        }
+
         bool is_primitive(ftype_t type)
         {
             switch (type)
