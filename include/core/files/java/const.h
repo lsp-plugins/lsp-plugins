@@ -78,11 +78,12 @@ namespace lsp
         size_t      size_of(ftype_t type);
 
         /**
-         * Determine size of primitive type
-         * @param type of primitive type
-         * @return size of primitive type
+         * Compute aligned offset of the typed data
+         * @param offset the current offset
+         * @param type data type
+         * @return aligned offset, greater or equal than passed value
          */
-        size_t      aligned_size_of(ftype_t type);
+        size_t      aligned_offset(size_t offset, ftype_t type);
 
         /**
          * Check that type is primitive
