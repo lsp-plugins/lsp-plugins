@@ -68,6 +68,16 @@ namespace lsp
             if ((style == NULL) || (dpy == NULL))
                 return STATUS_NO_DATA;
 
+            LSPString tmp;
+            ui_atom_t atom;
+            status_t res = STATUS_OK;
+
+            #define LISTENER_BIND(var, postfix) \
+                if (res == STATUS_OK) \
+                { \
+                    res = STATUS_NOT_FOUND; \
+                }
+
             // TODO: perform binding
 
             return STATUS_OK;
@@ -148,6 +158,11 @@ namespace lsp
         LSPColor::LSPColor(LSPWidget *widget): sListener(this)
         {
             pWidget     = widget;
+        }
+
+        status_t LSPColor::bind(const char *property)
+        {
+            return sListener.bind(property);
         }
 
         LSPColor::~LSPColor()

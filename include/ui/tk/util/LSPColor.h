@@ -50,6 +50,9 @@ namespace lsp
                 explicit LSPColor(LSPWidget *widget);
                 virtual ~LSPColor();
 
+            public:
+                status_t    bind(const char *property);
+
             protected:
                 virtual void    color_changed();
                 void            trigger_change();
