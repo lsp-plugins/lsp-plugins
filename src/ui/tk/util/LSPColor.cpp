@@ -14,6 +14,7 @@ namespace lsp
         LSPColor::Listener::Listener(LSPColor *color)
         {
             pColor      = color;
+            pStyle      = NULL;
             aR          = -1;
             aG          = -1;
             aB          = -1;
@@ -35,9 +36,7 @@ namespace lsp
 
         void LSPColor::Listener::unbind()
         {
-            if ((pColor == NULL) || (pColor->pWidget == NULL))
-                return;
-            LSPStyle *style = pColor->pWidget->style();
+            LSPStyle *style = pStyle;
             if (style == NULL)
                 return;
 
@@ -56,31 +55,59 @@ namespace lsp
             LISTENER_UNBIND(aHSL);
             LISTENER_UNBIND(aHSLA);
             #undef LISTENER_UNBIND
+
+            pStyle  = NULL;
         }
         
-        status_t LSPColor::Listener::bind(const char *property)
+        status_t LSPColor::Listener::bind(LSPDisplay *dpy, LSPStyle *style, const char *property)
         {
+            // Unbind from previously used style
+            unbind();
+
+            // Check state
             if ((pColor == NULL) || (pColor->pWidget == NULL))
                 return STATUS_NOT_BOUND;
 
-            LSPDisplay *dpy = pColor->pWidget->display();   // Display provides atoms
-            LSPStyle *style = pColor->pWidget->style();     // Style is a target for binding
-            if ((style == NULL) || (dpy == NULL))
-                return STATUS_NO_DATA;
-
             LSPString tmp;
+            if (!tmp.set_utf8(property))
+                return STATUS_NO_MEM;
+            size_t len = tmp.length();
+
             ui_atom_t atom;
             status_t res = STATUS_OK;
 
-            #define LISTENER_BIND(var, postfix) \
+            #define LISTENER_BIND(var, ptype, postfix) \
                 if (res == STATUS_OK) \
                 { \
-                    res = STATUS_NOT_FOUND; \
+                    res = (tmp.append_utf8(postfix)) ? STATUS_OK : STATUS_NO_MEM; \
+                    if ((res == STATUS_OK) && ((atom = dpy->atom_id(tmp.get_utf8()) < 0))) \
+                        res = -atom; \
+                    if (res == STATUS_OK) \
+                        res = style->bind(atom, ptype, this); \
+                    var = atom; \
+                    tmp.set_length(len); \
                 }
 
-            // TODO: perform binding
+            // Perform binding
+            LISTENER_BIND(aR, PT_FLOAT, ".red");
+            LISTENER_BIND(aG, PT_FLOAT, ".green");
+            LISTENER_BIND(aB, PT_FLOAT, ".blue");
 
-            return STATUS_OK;
+            LISTENER_BIND(aH, PT_FLOAT, ".hue");
+            LISTENER_BIND(aS, PT_FLOAT, ".sat");
+            LISTENER_BIND(aL, PT_FLOAT, ".light");
+
+            LISTENER_BIND(aRGB, PT_STRING, ".rgb");
+            LISTENER_BIND(aRGBA, PT_STRING, ".rgba");
+            LISTENER_BIND(aHSL, PT_STRING, ".hsl");
+            LISTENER_BIND(aHSLA, PT_STRING, ".hsla");
+
+            #undef LISTENER_BIND
+
+            if (res != STATUS_OK)
+                unbind();
+
+            return res;
         }
 
         void LSPColor::Listener::sync()
@@ -143,9 +170,7 @@ namespace lsp
 
         void LSPColor::Listener::notify(ui_atom_t property)
         {
-            if ((pColor == NULL) || (pColor->pWidget == NULL))
-                return;
-            LSPStyle *style = pColor->pWidget->style();
+            LSPStyle *style = pStyle;
             if (style == NULL)
                 return;
         }
@@ -162,7 +187,31 @@ namespace lsp
 
         status_t LSPColor::bind(const char *property)
         {
-            return sListener.bind(property);
+            if (property == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (pWidget == NULL)
+                return STATUS_BAD_STATE;
+            return sListener.bind(pWidget->display(), pWidget->style(), property);
+        }
+
+        status_t LSPColor::bind(LSPStyle *style, const char *property)
+        {
+            if ((property == NULL) || (style == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            if (pWidget == NULL)
+                return STATUS_BAD_STATE;
+
+            return sListener.bind(pWidget->display(), style, property);
+        }
+
+        status_t LSPColor::bind(LSPDisplay *dpy, LSPStyle *style, const char *property)
+        {
+            if ((property == NULL) || (style == NULL) || (dpy == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            if (pWidget == NULL)
+                return STATUS_BAD_STATE;
+
+            return sListener.bind(dpy, style, property);
         }
 
         LSPColor::~LSPColor()

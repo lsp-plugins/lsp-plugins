@@ -31,6 +31,7 @@ namespace lsp
             protected:
                 cvector<item_t>         sWidgets;
                 cvector<LSPWidget>      vGarbage;
+                cvector<char>           vAtoms;
                 LSPSlotSet              sSlots;
                 LSPTheme                sTheme;
                 IDisplay               *pDisplay;
@@ -178,6 +179,20 @@ namespace lsp
                  * @return current display theme
                  */
                 inline LSPTheme *theme()                    { return &sTheme; }
+
+                /**
+                 * Get atom identifier by name
+                 * @param name atom name
+                 * @return atom identifier or negative error code
+                 */
+                ui_atom_t atom_id(const char *name);
+
+                /**
+                 * Get atom name by identifier
+                 * @param name atom name or NULL
+                 * @return atom identifier
+                 */
+                const char *atom_name(ui_atom_t id);
 
                 /**
                  * Get clipboard data

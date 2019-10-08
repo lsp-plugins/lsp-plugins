@@ -22,6 +22,7 @@ namespace lsp
                 {
                     private:
                         LSPColor   *pColor;
+                        LSPStyle   *pStyle;
                         ui_atom_t   aR, aG, aB, aRGB;
                         ui_atom_t   aH, aS, aL, aHSL;
                         ui_atom_t   aA, aRGBA, aHSLA;
@@ -37,7 +38,7 @@ namespace lsp
 
                         void            unbind();
 
-                        status_t        bind(const char *property);
+                        status_t        bind(LSPDisplay *dpy, LSPStyle *style, const char *property);
                 };
 
             protected:
@@ -52,6 +53,8 @@ namespace lsp
 
             public:
                 status_t    bind(const char *property);
+                status_t    bind(LSPStyle *style, const char *property);
+                status_t    bind(LSPDisplay *dpy, LSPStyle *style, const char *property);
 
             protected:
                 virtual void    color_changed();

@@ -53,6 +53,15 @@ namespace lsp
             sSlots.execute(LSPSLOT_DESTROY, NULL);
             sSlots.destroy();
 
+            // Destroy atoms
+            for (size_t i=0, n=vAtoms.size(); i<n; ++i)
+            {
+                char *ptr = vAtoms.at(i);
+                if (ptr != NULL)
+                    ::free(ptr);
+            }
+            vAtoms.flush();
+
             // Destroy display
             if (pDisplay != NULL)
             {
@@ -304,6 +313,48 @@ namespace lsp
             }
 
             return false;
+        }
+
+        ui_atom_t LSPDisplay::atom_id(const char *name)
+        {
+            if (name == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Find position to insert slot
+            ssize_t first   = 0, last = ssize_t(vAtoms.size()) - 1, idx = 0;
+            while (first <= last)
+            {
+                idx             = (first + last) >> 1;
+                int cmp         = ::strcmp(vAtoms.at(idx), name);
+
+                if (cmp < 0)
+                    first       = ++idx;
+                else if (cmp > 0)
+                    last        = --idx;
+                else // (cmp == 0)
+                    return idx;
+            }
+
+            // Now allocate new atom name
+            char *aname         = ::strdup(name);
+            if (aname == NULL)
+                return -STATUS_NO_MEM;
+
+            // Insert atom name to the found position
+            if (!vAtoms.insert(aname, first))
+            {
+                ::free(aname);
+                return -STATUS_NO_MEM;;
+            }
+
+            return first;
+        }
+
+        const char *LSPDisplay::atom_name(ui_atom_t id)
+        {
+            if (id < 0)
+                return NULL;
+            return vAtoms.get(id);
         }
 
         status_t LSPDisplay::get_clipboard(size_t id, IDataSink *sink)
