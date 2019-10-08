@@ -199,11 +199,11 @@ namespace lsp
         nMask   = c->nMask & (M_RGB | M_HSL);
     }
 
-    int Color::format_rgb(char *dst, size_t len, size_t tolerance) const
+    int Color::format(char *dst, size_t len, size_t tolerance, const float *v, char prefix, bool alpha)
     {
         if ((tolerance <= 0) || (tolerance > 4))
             return 0;
-        size_t required = (tolerance * 3) + 2; // Number of hex characters x number of colors + 2 symbols
+        size_t required = (tolerance * (alpha ? 4 : 3)) + 2; // Number of hex characters x number of colors + 2 symbols
         if (len < required)
             return 0;
 
@@ -211,31 +211,82 @@ namespace lsp
         const char *fmt;
         size_t tol;
 
-        switch (tolerance)
+        if (alpha)
         {
-            case 1:
-                fmt = "#%01x%01x%01x";
-                tol = 0xf;
-                break;
-            case 3:
-                fmt = "#%03x%03x%03x";
-                tol = 0xfff;
-                break;
-            case 4:
-                fmt = "#%04x%04x%04x";
-                tol = 0xffff;
-                break;
-            default:
-                fmt = "#%02x%02x%02x";
-                tol = 0xff;
-                break;
+            switch (tolerance)
+            {
+                case 1:
+                    fmt = "%c%01x%01x%01x%01x";
+                    tol = 0xf;
+                    break;
+                case 3:
+                    fmt = "%c%03x%03x%03x%03x";
+                    tol = 0xfff;
+                    break;
+                case 4:
+                    fmt = "%c%04x%04x%04x%04x";
+                    tol = 0xffff;
+                    break;
+                default:
+                    fmt = "%c%02x%02x%02x%02x";
+                    tol = 0xff;
+                    break;
+            }
+
+            return ::sprintf(dst, fmt, prefix, size_t(v[0] * tol), size_t(v[1] * tol), size_t(v[2] * tol), size_t(v[3] * tol));
         }
+        else
+        {
+            switch (tolerance)
+            {
+                case 1:
+                    fmt = "%c%01x%01x%01x";
+                    tol = 0xf;
+                    break;
+                case 3:
+                    fmt = "%c%03x%03x%03x";
+                    tol = 0xfff;
+                    break;
+                case 4:
+                    fmt = "%c%04x%04x%04x";
+                    tol = 0xffff;
+                    break;
+                default:
+                    fmt = "%c%02x%02x%02x";
+                    tol = 0xff;
+                    break;
+            }
 
-        float r, g, b;
-        get_rgb(r, g, b);
-        size_t i_r = r * tol, i_g = g * tol, i_b = b * tol;
+            return ::sprintf(dst, fmt, prefix, size_t(v[0] * tol), size_t(v[1] * tol), size_t(v[2] * tol));
+        }
+    }
 
-        return sprintf(dst, fmt, i_r, i_g, i_b);
+    int Color::format_rgb(char *dst, size_t len, size_t tolerance) const
+    {
+        float v[3];
+        get_rgb(v[0], v[1], v[2]);
+        return format(dst, len, tolerance, v, '#', false);
+    }
+
+    int Color::format_hsl(char *dst, size_t len, size_t tolerance) const
+    {
+        float v[3];
+        get_hsl(v[0], v[1], v[2]);
+        return format(dst, len, tolerance, v, '@', false);
+    }
+
+    int Color::format_rgba(char *dst, size_t len, size_t tolerance) const
+    {
+        float v[4];
+        get_rgba(v[3], v[0], v[1], v[2]);
+        return format(dst, len, tolerance, v, '#', true);
+    }
+
+    int Color::format_hsla(char *dst, size_t len, size_t tolerance) const
+    {
+        float v[4];
+        get_hsla(v[3], v[0], v[1], v[2]);
+        return format(dst, len, tolerance, v, '@', true);
     }
 
     uint32_t Color::rgb24() const

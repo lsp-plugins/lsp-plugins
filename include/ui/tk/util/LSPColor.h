@@ -13,12 +13,37 @@ namespace lsp
     namespace tk
     {
         class LSPWidget;
+        class LSPStyle;
 
         class LSPColor
         {
             protected:
+                class Listener: public IStyleListener
+                {
+                    private:
+                        LSPColor   *pColor;
+                        ui_atom_t   aR, aG, aB, aRGB;
+                        ui_atom_t   aH, aS, aL, aHSL;
+                        ui_atom_t   aA, aRGBA, aHSLA;
+
+                    public:
+                        explicit Listener(LSPColor *color);
+                        virtual ~Listener();
+
+                    public:
+                        virtual void    notify(ui_atom_t property);
+
+                        void            sync();
+
+                        void            unbind();
+
+                        status_t        bind(const char *property);
+                };
+
+            protected:
                 Color       sColor;
                 LSPWidget  *pWidget;
+                Listener    sListener;
 
             public:
                 explicit LSPColor();
@@ -46,20 +71,20 @@ namespace lsp
                 inline void get_hsla(float &h, float &s, float &l, float &a) const { sColor.get_hsla(h, s, l, a); }
 
             public:
-                inline void red(float r)        { sColor.red(r);    trigger_change();    };
-                inline void green(float g)      { sColor.green(g);  trigger_change();    };
-                inline void blue(float b)       { sColor.blue(b);   trigger_change();    };
-                inline void alpha(float a)      { sColor.alpha(a);  trigger_change();    };
+                void red(float r);
+                void green(float g);
+                void blue(float b);
+                void alpha(float a);
 
-                inline void set_rgb(float r, float g, float b) { sColor.set_rgb(r, g, b); trigger_change(); }
-                inline void set_rgba(float r, float g, float b, float a) { sColor.set_rgba(r, g, b, a); trigger_change(); }
+                void set_rgb(float r, float g, float b);
+                void set_rgba(float r, float g, float b, float a);
 
-                inline void hue(float h)        { sColor.hue(h);        trigger_change();    };
-                inline void saturation(float s) { sColor.saturation(s); trigger_change();    };
-                inline void lightness(float l)  { sColor.lightness(l);  trigger_change();    };
+                void hue(float h);
+                void saturation(float s);
+                void lightness(float l);
 
-                inline void set_hsl(float h, float s, float l) { sColor.set_hsl(h, s, l); trigger_change(); }
-                inline void set_hsla(float h, float s, float l, float a) { sColor.set_hsla(h, s, l, a); trigger_change(); }
+                void set_hsl(float h, float s, float l);
+                void set_hsla(float h, float s, float l, float a);
 
             public:
                 void blend(const Color &c, float alpha)     { sColor.blend(c, alpha); trigger_change(); }
@@ -76,6 +101,21 @@ namespace lsp
                 inline int format_rgb(char *dst, size_t len, size_t tolerance = 2) const
                 {
                     return sColor.format_rgb(dst, len, tolerance);
+                }
+
+                inline int format_rgba(char *dst, size_t len, size_t tolerance = 2) const
+                {
+                    return sColor.format_rgba(dst, len, tolerance);
+                }
+
+                inline int format_hsl(char *dst, size_t len, size_t tolerance = 2) const
+                {
+                    return sColor.format_hsl(dst, len, tolerance);
+                }
+
+                inline int format_hsla(char *dst, size_t len, size_t tolerance = 2) const
+                {
+                    return sColor.format_hsla(dst, len, tolerance);
                 }
 
                 inline uint32_t rgb24() const { return sColor.rgb24(); }

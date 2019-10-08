@@ -12,8 +12,6 @@ namespace lsp
 {
     namespace tk
     {
-        class LSPColor;
-        
         /**
          * Style Listener
          */

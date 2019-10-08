@@ -35,6 +35,8 @@ namespace lsp
             inline void check_rgb() const { if (!(nMask & M_RGB)) { calc_rgb(); nMask |= M_RGB; } };
             inline void check_hsl() const { if (!(nMask & M_HSL)) { calc_hsl(); nMask |= M_HSL; } };
 
+            static int  format(char *dst, size_t len, size_t tolerance, const float *v, char prefix, bool alpha);
+
         public:
             inline Color(): R(0), G(0), B(0), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
             inline Color(float r, float g, float b): R(r), G(g), B(b), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
@@ -113,6 +115,9 @@ namespace lsp
             void copy(const Color *c, float a);
 
             int format_rgb(char *dst, size_t len, size_t tolerance = 2) const;
+            int format_hsl(char *dst, size_t len, size_t tolerance = 2) const;
+            int format_rgba(char *dst, size_t len, size_t tolerance = 2) const;
+            int format_hsla(char *dst, size_t len, size_t tolerance = 2) const;
 
             uint32_t    rgb24() const;
     };
