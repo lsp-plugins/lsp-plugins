@@ -35,6 +35,7 @@
 * Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 * Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 * Implemented more advanced expression language for UIs.
+* Implemented styling system and basic styling mechanism for UIs.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.

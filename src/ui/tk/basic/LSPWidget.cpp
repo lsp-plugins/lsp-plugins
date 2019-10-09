@@ -15,7 +15,8 @@ namespace lsp
 
         LSPWidget::LSPWidget(LSPDisplay *dpy):
             sPadding(this),
-            sBgColor(this)
+            sBgColor(this),
+            sBrightness(this)
         {
             pUID            = NULL;
             pDisplay        = dpy;
@@ -50,8 +51,14 @@ namespace lsp
 
         status_t LSPWidget::init()
         {
-            // Initialize colors
-            init_color(C_BACKGROUND, &sBgColor);
+            // Initialize style
+            status_t res = sStyle.init();
+            if (res == STATUS_OK)
+                res = sStyle.add_parent(pDisplay->theme()->root());
+            if (res == STATUS_OK)
+                res = sBgColor.bind(&sStyle, "bg_color");
+            if (res == STATUS_OK)
+                res = sBrightness.bind(&sStyle, "brightness");
 
             // Declare slots
             ui_handler_id_t id = 0;
@@ -375,11 +382,17 @@ namespace lsp
         {
             if (pParent == parent)
                 return;
+
             LSPWidgetContainer *wc = widget_cast<LSPWidgetContainer>(pParent);
             if (wc != NULL)
+            {
+                sStyle.remove_parent(pParent->style()); // Unlink style
                 wc->remove(this);
+            }
 
             pParent = parent;
+            if (parent != NULL) // Inherit the style of parent widget
+                sStyle.add_parent(parent->style());
         }
 
         LSPWidget *LSPWidget::toplevel()

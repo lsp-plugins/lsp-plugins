@@ -92,7 +92,11 @@ namespace lsp
         lsp_theme_root_handler root(theme);
         XMLParser parser;
 
-        return (parser.parse(path, &root)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+        status_t res = (parser.parse(path, &root)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+        if (res == STATUS_OK)
+            res = theme->after_load();
+
+        return res;
     }
 }
 

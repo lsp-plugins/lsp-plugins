@@ -53,6 +53,15 @@ namespace lsp
             sSlots.execute(LSPSLOT_DESTROY, NULL);
             sSlots.destroy();
 
+            // Destroy atoms
+            for (size_t i=0, n=vAtoms.size(); i<n; ++i)
+            {
+                char *ptr = vAtoms.at(i);
+                if (ptr != NULL)
+                    ::free(ptr);
+            }
+            vAtoms.flush();
+
             // Destroy display
             if (pDisplay != NULL)
             {
@@ -104,21 +113,40 @@ namespace lsp
 
         status_t LSPDisplay::init(int argc, const char **argv)
         {
+            IDisplay *dpy = NULL;
+
             // Create display dependent on the platform
             #ifdef USE_X11_DISPLAY
-                pDisplay        = new x11::X11Display();
+                dpy         = new x11::X11Display();
             #else
                 #error "Unknown windowing system configuration"
             #endif /* USE_X11_DISPLAY */
 
             // Analyze display pointer
-            if (pDisplay == NULL)
+            if (dpy == NULL)
                 return STATUS_NO_MEM;
 
+            status_t res = dpy->init(argc, argv);
+            if (res == STATUS_OK)
+                res = init(dpy, argc, argv);
+
+            if (res != STATUS_OK)
+            {
+                dpy->destroy();
+                delete dpy;
+            }
+
+            return res;
+        }
+
+        status_t LSPDisplay::init(IDisplay *dpy, int argc, const char **argv)
+        {
+            // Should be non-null
+            if (dpy == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
             // Initialize display
-            status_t result = pDisplay->init(argc, argv);
-            if (result != STATUS_OK)
-                return result;
+            pDisplay    = dpy;
             pDisplay->set_main_callback(main_task_handler, this);
 
             // Create slots
@@ -285,6 +313,42 @@ namespace lsp
             }
 
             return false;
+        }
+
+        ui_atom_t LSPDisplay::atom_id(const char *name)
+        {
+            if (name == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Find existing atom
+            size_t last = vAtoms.size();
+            for (size_t i=0; i<last; ++i)
+            {
+                const char *aname = vAtoms.at(i);
+                if (!::strcmp(aname, name))
+                    return i;
+            }
+
+            // Allocate new atom name
+            char *aname         = ::strdup(name);
+            if (aname == NULL)
+                return -STATUS_NO_MEM;
+
+            // Insert atom name to the found position
+            if (!vAtoms.add(aname))
+            {
+                ::free(aname);
+                return -STATUS_NO_MEM;
+            }
+
+            return last;
+        }
+
+        const char *LSPDisplay::atom_name(ui_atom_t id)
+        {
+            if (id < 0)
+                return NULL;
+            return vAtoms.get(id);
         }
 
         status_t LSPDisplay::get_clipboard(size_t id, IDataSink *sink)

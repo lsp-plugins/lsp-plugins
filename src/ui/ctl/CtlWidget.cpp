@@ -108,6 +108,9 @@ namespace lsp
                     BIND_EXPR(sVisibility, value);
                     bVisibilitySet      = true;
                     break;
+                case A_BRIGHT:
+                    BIND_EXPR(sBright, value);
+                    break;
                 case A_PADDING:
                     PARSE_INT(value, pWidget->padding()->set_all(__));
                     break;
@@ -197,23 +200,28 @@ namespace lsp
 
         void CtlWidget::notify(CtlPort *port)
         {
+            if (pWidget == NULL)
+                return;
+
+            // Visibility
             if (sVisibility.valid())
             {
                 float value = sVisibility.evaluate();
-                if (pWidget != NULL)
-                {
-//                    lsp_trace("set visible widget %s ptr=%p to %s",
-//                            pWidget->get_class()->name,
-//                            pWidget,
-//                            (value >= 0.5f) ? "true" : "false");
-                    pWidget->set_visible(value >= 0.5f);
-                }
+                pWidget->set_visible(value >= 0.5f);
+            }
+
+            // Brightness
+            if (sBright.valid())
+            {
+                float value = sBright.evaluate();
+                pWidget->set_brightness(value >= 0.5f);
             }
         }
 
         void CtlWidget::destroy()
         {
             sVisibility.destroy();
+            sBright.destroy();
 
             if (pVisibilityID != NULL)
             {

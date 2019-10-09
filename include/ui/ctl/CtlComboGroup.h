@@ -29,6 +29,7 @@ namespace lsp
 
                 CtlColor        sColor;
                 CtlColor        sTextColor;
+                CtlExpression   sEmbed;
 
             protected:
                 static status_t slot_change(LSPWidget *sender, void *ptr, void *data);

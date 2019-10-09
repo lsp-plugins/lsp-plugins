@@ -44,7 +44,6 @@ namespace lsp
                 float           fCurrValue;
 
                 LSPColor        sColor;
-                LSPColor        sBgColor;
 
             protected:
                 float           limit_value(float value);

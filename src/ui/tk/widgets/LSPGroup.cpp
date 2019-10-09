@@ -148,7 +148,7 @@ namespace lsp
         {
             if (bEmbed == embed)
                 return;
-            bEmbed = true;
+            bEmbed = embed;
             query_resize();
         }
 
@@ -258,6 +258,12 @@ namespace lsp
             if (r->nMinHeight < 0)
                 r->nMinHeight   = 0;
 
+            if (pWidget != NULL)
+            {
+                r->nMinWidth   += pWidget->padding()->horizontal();
+                r->nMinHeight  += pWidget->padding()->vertical();
+            }
+
             dimensions_t d;
             query_dimensions(&d);
 
@@ -301,10 +307,10 @@ namespace lsp
             pWidget->size_request(&sr);
 
             realize_t rc;
-            rc.nLeft    = r->nLeft   + d.nGapLeft;
-            rc.nTop     = r->nTop    + d.nGapTop;
-            rc.nWidth   = r->nWidth  - d.nGapLeft - d.nGapRight;
-            rc.nHeight  = r->nHeight - d.nGapTop - d.nGapBottom;
+            rc.nLeft    = r->nLeft   + d.nGapLeft  + pWidget->padding()->left();
+            rc.nTop     = r->nTop    + d.nGapTop   + pWidget->padding()->top();
+            rc.nWidth   = r->nWidth  - d.nGapLeft  - d.nGapRight   - pWidget->padding()->horizontal();
+            rc.nHeight  = r->nHeight - d.nGapTop   - d.nGapBottom  - pWidget->padding()->vertical();
 
             if ((sr.nMaxWidth > 0) && (sr.nMaxWidth < rc.nWidth))
             {

@@ -24,6 +24,7 @@ namespace lsp
                 CtlColor        sBgColor;
 
                 CtlExpression   sVisibility;
+                CtlExpression   sBright;
                 char           *pVisibilityID;
                 ssize_t         nVisible;
                 ssize_t         nVisibilityKey;

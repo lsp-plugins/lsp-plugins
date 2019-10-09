@@ -37,15 +37,6 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-                if (theme != NULL)
-                {
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
-
             return STATUS_OK;
         }
 

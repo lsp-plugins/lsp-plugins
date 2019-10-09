@@ -35,6 +35,8 @@ namespace lsp
             inline void check_rgb() const { if (!(nMask & M_RGB)) { calc_rgb(); nMask |= M_RGB; } };
             inline void check_hsl() const { if (!(nMask & M_HSL)) { calc_hsl(); nMask |= M_HSL; } };
 
+            static int  format(char *dst, size_t len, size_t tolerance, const float *v, char prefix, bool alpha);
+
         public:
             inline Color(): R(0), G(0), B(0), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
             inline Color(float r, float g, float b): R(r), G(g), B(b), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
@@ -54,6 +56,8 @@ namespace lsp
             inline void alpha(float a)  { A = a; };
 
             inline void get_rgb(float &r, float &g, float &b) const { check_rgb(); r = R; g = G; b = B; }
+            inline void get_rgba(float &r, float &g, float &b, float &a) const { check_rgb(); r = R; g = G; b = B; a = A; }
+
             inline void set_rgb(float r, float g, float b)
             {
                 nMask = M_RGB;
@@ -80,6 +84,8 @@ namespace lsp
             inline void lightness(float l)  { check_hsl(); L = l; nMask = M_HSL;  };
 
             inline void get_hsl(float &h, float &s, float &l) const { check_hsl(); h = H; s = S; l = L; }
+            inline void get_hsla(float &h, float &s, float &l, float &a) const { check_hsl(); h = H; s = S; l = L; a = A; }
+
             inline void set_hsl(float h, float s, float l)
             {
                 nMask   = M_HSL;
@@ -109,6 +115,9 @@ namespace lsp
             void copy(const Color *c, float a);
 
             int format_rgb(char *dst, size_t len, size_t tolerance = 2) const;
+            int format_hsl(char *dst, size_t len, size_t tolerance = 2) const;
+            int format_rgba(char *dst, size_t len, size_t tolerance = 2) const;
+            int format_hsla(char *dst, size_t len, size_t tolerance = 2) const;
 
             uint32_t    rgb24() const;
     };

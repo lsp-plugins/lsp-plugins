@@ -160,6 +160,21 @@ namespace lsp
             const w_class_t    *parent;
         } w_class_t;
 
+        enum ui_property_type_t
+        {
+            PT_INT,         // Integer property
+            PT_FLOAT,       // Floating-point property
+            PT_BOOL,        // Boolean property
+            PT_STRING,      // String (text) property
+
+            PT_UNKNOWN  = -1
+        };
+
+        /**
+         * Atom identifier
+         */
+        typedef ssize_t             ui_atom_t;
+
         /** Get color name by it's identifier
          *
          * @param color color identifier
@@ -183,11 +198,13 @@ namespace lsp
 #include <ui/tk/sys/LSPSlot.h>
 #include <ui/tk/sys/LSPTimer.h>
 #include <ui/tk/sys/LSPSlotSet.h>
+#include <ui/tk/sys/LSPStyle.h>
+#include <ui/tk/sys/LSPColor.h>
+#include <ui/tk/sys/LSPFloat.h>
 #include <ui/tk/sys/LSPTheme.h>
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
-#include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPSurface.h>
 #include <ui/tk/util/LSPFont.h>
 #include <ui/tk/util/LSPPadding.h>
