@@ -91,9 +91,9 @@ namespace lsp
         {
             nRadius     = 10;
             nBorder     = 0;
-            pPopup      = NULL;
             nCBFlags    = 0;
             nMFlags     = 0;
+            pPopup      = NULL;
             bEmbed      = false;
 
             sGroupHdr.nLeft     = 0;

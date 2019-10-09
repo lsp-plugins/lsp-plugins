@@ -930,9 +930,8 @@ namespace lsp
                     desc->nFields = fields;
 
                     // Read, parse and validate each field
-                    size_t prim_data_size = 0;
+                    size_t base           = 0;
                     size_t num_obj_fields = 0;
-                    size_t size_of        = 0;
                     ssize_t first_obj_idx = -1;
 
                     for (size_t i=0; i<fields; ++i)
@@ -948,16 +947,14 @@ namespace lsp
                         desc->vFields[i]    = f;
                         if (f->is_reference())
                         {
-                            f->nOffset      = num_obj_fields++;
+                            ++num_obj_fields;
                             if (first_obj_idx < 0)
                                 first_obj_idx   = i;
                         }
-                        else
-                        {
-                            f->nOffset      = prim_data_size;
-                            prim_data_size += f->aligned_size_of();
-                        }
-                        size_of        += f->aligned_size_of();
+
+                        // Store the offset of the field
+                        f->nOffset      = f->aligned_offset(base);
+                        base            = f->nOffset + f->size_of();
                     }
 
                     // Validate the final state
@@ -965,7 +962,7 @@ namespace lsp
                         res     = STATUS_CORRUPTED;
 
                     // Update object statistics
-                    desc->nSizeOf   = size_of;
+                    desc->nSizeOf   = base;
                 }
                 else
                     res     = STATUS_NO_MEM;
@@ -1129,7 +1126,7 @@ namespace lsp
                 ObjectStreamClass *cl = desc->vSlots[i];
 //                if (cl->is_serializable()) // Skip serializable objects
 //                    continue;
-                allocated += ALIGN_SIZE(cl->nSizeOf, sizeof(size_t));
+                allocated      += ALIGN_SIZE(cl->nSizeOf, MINIMUM_ALIGN);
             }
 
             // Allocate memory
@@ -1163,7 +1160,8 @@ namespace lsp
                         continue;
 
                     // Align the object's data to the boundary and re-allocate segment
-                    size_t space    = ALIGN_SIZE(tail, sizeof(size_t));
+                    size_t space    = ALIGN_SIZE(tail, MINIMUM_ALIGN);
+                    sl->size        = tail;
                     allocated      += space;
                     uint8_t *xdata  = reinterpret_cast<uint8_t *>(::realloc(dst->vData, space));
                     if (xdata == NULL)
@@ -1175,21 +1173,20 @@ namespace lsp
                     // Copy data to the class structure
                     ::memcpy(&xdata[offset], tmp, tail);
                     ::free(tmp);
-                    sl->size        = tail;
                     offset         += space;
                 }
                 else
                 {
                     // Read serial data
                     prim_ptr_t xdata;
-                    size_t space    = ALIGN_SIZE(cl->nSizeOf, sizeof(size_t));
+                    size_t space    = ALIGN_SIZE(cl->nSizeOf, MINIMUM_ALIGN);
                     sl->size        = cl->nSizeOf;
-                    xdata.p_ubyte   = &dst->vData[offset];
 
                     // Operate each field
                     for (size_t j=0, m=cl->nFields; j<m; ++j)
                     {
                         ObjectStreamField *f    = cl->vFields[j];
+                        xdata.p_ubyte           = &dst->vData[f->offset()];
 //                        lsp_trace("  reading field: %s", f->sName.get_native());
                         switch (f->type())
                         {
@@ -1217,8 +1214,6 @@ namespace lsp
 
                         if (res != STATUS_OK)
                             break;
-
-                        xdata.p_ubyte  += f->aligned_size_of();
                     }
 
                     offset         += space;

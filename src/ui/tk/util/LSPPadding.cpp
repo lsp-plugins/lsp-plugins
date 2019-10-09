@@ -78,6 +78,32 @@ namespace lsp
                 pWidget->query_resize();
         }
 
+        void LSPPadding::set_horizontal(size_t left, size_t right)
+        {
+            if ((sPadding.nLeft == left) &&
+                (sPadding.nRight == right))
+                return;
+
+            sPadding.nLeft      = left;
+            sPadding.nRight     = right;
+
+            if (pWidget != NULL)
+                pWidget->query_resize();
+        }
+
+        void LSPPadding::set_vertical(size_t top, size_t bottom)
+        {
+            if ((sPadding.nTop == top) &&
+                (sPadding.nBottom == bottom))
+                return;
+
+            sPadding.nTop       = top;
+            sPadding.nBottom    = bottom;
+
+            if (pWidget != NULL)
+                pWidget->query_resize();
+        }
+
         void LSPPadding::set(size_t left, size_t right, size_t top, size_t bottom)
         {
             if ((sPadding.nLeft == left) &&

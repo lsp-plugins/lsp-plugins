@@ -7,10 +7,9 @@
 
 #include <core/resource.h>
 
+#ifdef LSP_BUILTIN_RESOURCES
 namespace lsp
 {
-#ifdef LSP_BUILTIN_RESOURCES
-
     const resource_t *resource_get(const char *id, resource_type_t type)
     {
         if (id == NULL)
@@ -91,16 +90,13 @@ namespace lsp
         *ptr                = &data[count];
         return count;
     }
+}
 #else
-    const resource_t builtin_resources[] =
-    {
-        { NULL, NULL, RESOURCE_UNKNOWN }
-    };
 
-    const char *string_dictionary = "";
-    const float float_dictionary[] = { 0.0f };
+BUILTIN_RESOURCES_STUB /* No built-in resources */
 
-
+namespace lsp
+{
     const resource_t *resource_get(const char *id, resource_type_t type)
     {
         return NULL;
@@ -145,8 +141,7 @@ namespace lsp
     {
         return -1;
     }
-#endif
-
 }
+#endif
 
 

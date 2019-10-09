@@ -2,6 +2,11 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Equalizer ====
+
+unfa:
+  Add a knob that allows to simultaneously shift frequency for all active filters in the EQ.
+
 ==== Parameter entering ====
   In other subject, it would be great to be able to enter numerical values by double clicking
   on the DB value under the knobs.

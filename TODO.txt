@@ -16,6 +16,8 @@
 * Fixed GLX context synchronization that could lead to crashes on several systems.
 * Fixed bug with improper mouse pointer coordinates for nested menus.
 * Fixed bug with improper latency value reported by Limiter plugin series.
+* Fixed corrupted LADSPA binaries due to lack of objects containing non-required resources.
+  Replaced objects with empty stubs.
 * Implemented ipc::Process class that allows to run nested processes with I/O redirection.
   Code now prefers vfork() system call agains fork().
 * Fixed bug in loading 3D Wavefont OBJ files that was caused by improper texture coordinate handling.
@@ -31,11 +33,15 @@
 * Refactored UI of the graphic Equalizer plugin series.
 * Added possibility to export state to clipboard and import state from clipboard for any plugin from UI.
 * Added allpass filters to Paretric Equalizer plugin.
+* Added knobs that allow to simultaneously shift frequency for all active filters
+  in the Parametric Equalizer plugin series.
 * Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 * Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 * Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 * Implemented more advanced expression language for UIs.
 * Implemented styling system and basic styling mechanism for UIs.
+* Additionally optimized DSP biquad filters for 32-bit ARM NEON instruction set.
+* Updated UI of Graphic Equalizer plugins.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
@@ -134,6 +140,14 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== Analyzer ====
+
+Sciurius
+  Using the LSP multichannel (x2, x4, …) Spectrumanalyzer I can hold (freeze the graph) of each
+  of the channels. But how can I hold all channels simultanesously?
+  
+  https://discourse.ardour.org/t/spectrumanalyzer-hold-multiple-channels/88489
 
 ==== FFT analysis of the Profiler and Convolver ====
 
