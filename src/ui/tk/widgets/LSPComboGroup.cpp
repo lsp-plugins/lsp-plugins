@@ -94,6 +94,7 @@ namespace lsp
             pPopup      = NULL;
             nCBFlags    = 0;
             nMFlags     = 0;
+            bEmbed      = false;
 
             sGroupHdr.nLeft     = 0;
             sGroupHdr.nTop      = 0;
@@ -357,6 +358,12 @@ namespace lsp
             if (r->nMinHeight < 0)
                 r->nMinHeight   = 0;
 
+            if (w != NULL)
+            {
+                r->nMinWidth   += w->padding()->horizontal();
+                r->nMinHeight  += w->padding()->vertical();
+            }
+
             dimensions_t d;
             query_dimensions(&d);
 
@@ -401,10 +408,10 @@ namespace lsp
             w->size_request(&sr);
 
             realize_t rc;
-            rc.nLeft    = r->nLeft   + d.nGapLeft;
-            rc.nTop     = r->nTop    + d.nGapTop;
-            rc.nWidth   = r->nWidth  - d.nGapLeft - d.nGapRight;
-            rc.nHeight  = r->nHeight - d.nGapTop - d.nGapBottom;
+            rc.nLeft    = r->nLeft   + d.nGapLeft  + w->padding()->left();
+            rc.nTop     = r->nTop    + d.nGapTop   + w->padding()->top();
+            rc.nWidth   = r->nWidth  - d.nGapLeft  - d.nGapRight   - w->padding()->horizontal();
+            rc.nHeight  = r->nHeight - d.nGapTop   - d.nGapBottom  - w->padding()->vertical();
 
             if ((sr.nMaxWidth > 0) && (sr.nMaxWidth < rc.nWidth))
             {
@@ -663,7 +670,7 @@ namespace lsp
         {
             if (bEmbed == embed)
                 return;
-            bEmbed = true;
+            bEmbed = embed;
             query_resize();
         }
 

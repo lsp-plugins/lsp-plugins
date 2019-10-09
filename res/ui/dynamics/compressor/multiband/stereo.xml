@@ -183,12 +183,12 @@
 		</grid>
 		
 		<vbox spacing="4">
-			<cgroup id="bsel" embed="true">
+			<cgroup id="bsel" embed=":bsel ieq 0">
 				<grid rows="11" cols="24">
 					<label text="Band, Hue" bg_color="bg2" />
 					<hbox fill="false" bg_color="bg2">
-						<button value="1" editable="false" size="16" color="red" hue_id="hue_0" led="true" bg_color="bg2" />
-						<label text="#0" bg_color="bg2" />
+						<button value="1" editable="false" size="16" color="red" hue_id="hue_0" led="true" />
+						<label text="#0" />
 					</hbox>
 					<knob id="hue_0" size="12" scale_hue_id="hue_0" bg_color="bg2" />
 					
@@ -197,8 +197,8 @@
 							<vsep />
 						</cell>
 						<hbox fill="false" bg_color="bg2">
-							<button id="cbe_${i}" size="16" color="red" hue_id="hue_${i}" led="true" bg_color="bg2" />
-							<label text="#${i}" bg_color="bg2" />
+							<button id="cbe_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
+							<label text="#${i}" />
 						</hbox>
 						<knob id="hue_${i}" size="12" scale_hue_id="hue_${i}" bg_color="bg2" />
 					</ui:for>
@@ -226,15 +226,15 @@
 					<ui:for id="i" first="0" last="7">
 						<cell cols="2" fill="false" bg_color="bg2" >
 							<grid rows="2" cols="4" fill="false" hspacing="2">
-								<button id="ce_${i}" size="12" color="red" hue_id="hue_${i}" led="true" bg_color="bg2" />
-								<button id="bs_${i}" size="12" color="green" led="true" bg_color="bg2" />
-								<button id="bm_${i}" size="12" color="red" led="true" bg_color="bg2" />
-								<button id="sce_${i}" size="12" color="yellow" led="true" visibility="ex :sce_${i}" bg_color="bg2" />
+								<button id="ce_${i}" size="12" color="red" hue_id="hue_${i}" led="true" />
+								<button id="bs_${i}" size="12" color="green" led="true" />
+								<button id="bm_${i}" size="12" color="red" led="true" />
+								<button id="sce_${i}" size="12" color="yellow" led="true" visibility="ex :sce_${i}" />
 								
-								<label text="On" font_size="9" bg_color="bg2" />
-								<label text="S" font_size="9" bg_color="bg2" />
-								<label text="M" font_size="9" bg_color="bg2" />
-								<label text="Ext" font_size="9" visibility="ex :sce_${i}" bg_color="bg2" />
+								<label text="On" font_size="9" />
+								<label text="S" font_size="9" />
+								<label text="M" font_size="9" />
+								<label text="Ext" font_size="9" visibility="ex :sce_${i}" />
 							</grid>
 						</cell>
 					</ui:for>
@@ -254,8 +254,8 @@
 					</ui:for>
 					
 					<vbox bg_color="bg2">
-						<label text="Ratio," bg_color="bg2" />
-						<label text="Knee (dB)" bg_color="bg2" />
+						<label text="Ratio," />
+						<label text="Knee (dB)" />
 					</vbox>
 					<ui:for id="i" first="0" last="7">
 						<knob id="cr_${i}" size="16" scale_hue_id="hue_${i}" bg_color="bg2" />
@@ -264,9 +264,9 @@
 					<label bg_color="bg2" />
 					<ui:for id="i" first="0" last="7">
 						<hbox fill="false" bg_color="bg2" >
-							<value id="cr_${i}" size="16" detailed="false" bg_color="bg2" />
-							<label text=":" bg_color="bg2" />
-							<label text="1" bg_color="bg2" />
+							<value id="cr_${i}" size="16" detailed="false" />
+							<label text=":" />
+							<label text="1" />
 						</hbox>
 						<value id="kn_${i}" size="16" detailed="false" bg_color="bg2" />
 					</ui:for>
@@ -286,10 +286,10 @@
 					</ui:for>
 					
 					<vbox bg_color="bg2">
-						<label text="Release" bg_color="bg2" />
-						<label text="(dB, ms)" bg_color="bg2" />
+						<label text="Release" />
+						<label text="(dB, ms)" />
 					</vbox>
-					<ui:for id="i" first="0" last="7" bg_color="bg2" >
+					<ui:for id="i" first="0" last="7">
 						<knob id="rrl_${i}" size="16" scale_color="magenta" bg_color="bg2" />
 						<knob id="rt_${i}" size="16" scale_hue_id="hue_${i}" bg_color="bg2" />
 					</ui:for>

@@ -379,11 +379,17 @@ namespace lsp
         {
             if (pParent == parent)
                 return;
+
             LSPWidgetContainer *wc = widget_cast<LSPWidgetContainer>(pParent);
             if (wc != NULL)
+            {
+                sStyle.remove_parent(pParent->style()); // Unlink style
                 wc->remove(this);
+            }
 
             pParent = parent;
+            if (parent != NULL) // Inherit the style of parent widget
+                sStyle.add_parent(parent->style());
         }
 
         LSPWidget *LSPWidget::toplevel()

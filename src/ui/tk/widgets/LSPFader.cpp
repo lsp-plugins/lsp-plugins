@@ -47,7 +47,6 @@ namespace lsp
                 return result;
 
             init_color(C_LABEL_TEXT, &sColor);
-            init_color(C_BACKGROUND, &sBgColor);
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());

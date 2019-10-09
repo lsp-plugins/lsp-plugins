@@ -94,6 +94,9 @@ namespace lsp
 
             // Bind slots
             idChange = grp->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+
+            // Init embed expression
+            sEmbed.init(pRegistry, this);
         }
 
         void CtlComboGroup::set(widget_attribute_t att, const char *value)
@@ -117,8 +120,7 @@ namespace lsp
                     PARSE_STRING(value, pText);
                     break;
                 case A_EMBED:
-                    if (grp != NULL)
-                        PARSE_BOOL(value, grp->set_embed(__));
+                    BIND_EXPR(sEmbed, value);
                     break;
                 default:
                 {
@@ -140,21 +142,38 @@ namespace lsp
         {
             CtlWidget::notify(port);
 
+            LSPComboGroup *cgroup = widget_cast<LSPComboGroup>(pWidget);
+            if (cgroup == NULL)
+                return;
+
             if (pPort == port)
             {
                 ssize_t index = (pPort->get_value() - fMin) / fStep;
+                cgroup->set_selected(index);
+            }
 
-                LSPComboGroup *cgroup = widget_cast<LSPComboGroup>(pWidget);
-                if (cgroup != NULL)
-                    cgroup->set_selected(index);
+            if (sEmbed.valid())
+            {
+                float value = sEmbed.evaluate();
+                cgroup->set_embed(value >= 0.5f);
             }
         }
 
         void CtlComboGroup::end()
         {
+            LSPComboGroup *cbox = widget_cast<LSPComboGroup>(pWidget);
+            if (cbox == NULL)
+                return;
+
+            // Evaluate expression
+            if (sEmbed.valid())
+            {
+                float value = sEmbed.evaluate();
+                cbox->set_embed(value >= 0.5f);
+            }
+
             if (pWidget != NULL)
             {
-                LSPComboGroup *cbox = widget_cast<LSPComboGroup>(pWidget);
                 const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
 
                 if (p != NULL)

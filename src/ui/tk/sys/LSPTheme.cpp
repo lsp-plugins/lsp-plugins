@@ -37,7 +37,7 @@ namespace lsp
         status_t LSPTheme::after_load()
         {
             // Initialize default root style settings
-            get_color(C_RED, &sBgColor);
+            get_color(C_BACKGROUND, &sBgColor);
 
             return STATUS_OK;
         }
