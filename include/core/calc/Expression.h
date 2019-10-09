@@ -117,7 +117,7 @@ namespace lsp
                  * Get number of results
                  * @return number of results
                  */
-                inline size_t   results() const { return vRoots.size() > 0; };
+                inline size_t   results() const { return vRoots.size(); };
 
                 /**
                  * Get result of the specific expression

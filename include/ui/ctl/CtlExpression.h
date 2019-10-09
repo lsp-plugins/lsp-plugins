@@ -15,9 +15,11 @@ namespace lsp
 {
     namespace ctl
     {
-        #define CTL_EXPR_TOKEN_LENGTH   128
-        
-        #define EXPR_FLAGS_MULTIPLE             (1 << 0)
+        enum
+        {
+            EXPR_FLAGS_MULTIPLE = calc::Expression::FLAG_MULTIPLE,
+            EXPR_FLAGS_STRING   = calc::Expression::FLAG_STRING
+        };
 
         class CtlExpression: public CtlPortListener
         {

@@ -132,6 +132,8 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(v.set_float("fd", 0.7) == STATUS_OK);
         UTEST_ASSERT(v.set_float("fe", 0.01) == STATUS_OK);
         UTEST_ASSERT(v.set_float("fg", 14.1) == STATUS_OK);
+        UTEST_ASSERT(v.set_float("zoom1", GAIN_AMP_M_12_DB) == STATUS_OK);
+        UTEST_ASSERT(v.set_float("zoom2", GAIN_AMP_P_12_DB) == STATUS_OK);
 
         UTEST_ASSERT(v.set_null("za") == STATUS_OK);
         UTEST_ASSERT(v.set_null("zb") == STATUS_OK);
@@ -177,6 +179,8 @@ UTEST_BEGIN("core.calc", expression)
         test_int("undef <=> :za", &v, -1);
         test_int("int :ba + int :fg", &v, 15);
 
+        test_bool(":zoom1 le -9 db", &v, true);
+        test_bool(":zoom2 le -9 db", &v, false);
         test_bool(":ia*:ib < :fc / :fe", &v, true);
         test_bool(":ia*:ic > :fa / :fb", &v, true);
         test_bool(":bb || :ba && :bd ^^ :bc", &v, true);
