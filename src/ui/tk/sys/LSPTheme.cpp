@@ -32,6 +32,7 @@ namespace lsp
             // Initialize root style
             sStyle.init();
             sBgColor.bind(dpy, &sStyle, "bg_color");
+            sHoleColor.bind(dpy, &sStyle, "hole_color");
             sBrightness.bind(dpy, &sStyle, "brightness");
         }
 
@@ -39,6 +40,7 @@ namespace lsp
         {
             // Initialize default root style settings
             get_color(C_BACKGROUND, &sBgColor);
+            get_color(C_HOLE, &sHoleColor);
             sBrightness.set(1.0f); // Normal brightness
 
             return STATUS_OK;
@@ -48,6 +50,8 @@ namespace lsp
         {
             // Destroy style bindings
             sBgColor.unbind();
+            sHoleColor.unbind();
+            sBrightness.unbind();
 
             // Destroy root style
             sStyle.destroy();

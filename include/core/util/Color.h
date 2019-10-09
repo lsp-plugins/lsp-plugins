@@ -106,7 +106,7 @@ namespace lsp
             void blend(float r, float g, float b, float alpha);
             void darken(float amount);
             void lighten(float amount);
-            static Color blend(const Color &c1, const Color &c2, float alpha);
+            void blend(const Color &c1, const Color &c2, float alpha);
 
             void copy(const Color &c);
             void copy(const Color *c);
@@ -120,6 +120,9 @@ namespace lsp
             int format_hsla(char *dst, size_t len, size_t tolerance = 2) const;
 
             uint32_t    rgb24() const;
+
+        public:
+            void scale_lightness(float amount);
     };
 
 } /* namespace lsp */

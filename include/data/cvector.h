@@ -28,7 +28,7 @@ namespace lsp
             {
                 if (nItems >= nCapacity)
                 {
-                    void *data      = realloc(pvItems, sizeof(void *) * (nCapacity + CVECTOR_GROW));
+                    void *data      = ::realloc(pvItems, sizeof(void *) * (nCapacity + CVECTOR_GROW));
                     if (data == NULL)
                         return false;
 
@@ -147,7 +147,24 @@ namespace lsp
                 src->nItems     = 0;
             }
 
-            inline ssize_t do_index_of(const void *ptr)
+            inline bool do_copy_from(const basic_vector *src)
+            {
+                if (nCapacity < src->nItems)
+                {
+                    size_t cap      = ((src->nItems + CVECTOR_GROW - 1) / CVECTOR_GROW) * CVECTOR_GROW;
+                    void *data      = ::realloc(pvItems, sizeof(void *) * (cap));
+                    if (data == NULL)
+                        return false;
+
+                    pvItems         = static_cast<void **>(data);
+                    nCapacity       = cap;
+                }
+                ::memcpy(pvItems, src->pvItems, sizeof(void *) * src->nItems);
+                nItems          = src->nItems;
+                return true;
+            }
+
+            inline ssize_t do_index_of(const void *ptr) const
             {
                 for (size_t i=0; i<nItems; ++i)
                 {
@@ -299,7 +316,9 @@ namespace lsp
 
                 inline void take_from(cvector<T> *src) { do_take_from(src); }
 
-                inline ssize_t index_of(const T *item) { return do_index_of(item); }
+                inline ssize_t index_of(const T *item) const { return do_index_of(item); }
+
+                inline bool copy_from(const cvector<T> *src) { return do_copy_from(src); }
         };
 
 }

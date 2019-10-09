@@ -204,14 +204,14 @@ namespace lsp
                 return;
 
             // Visibility
-            if (sVisibility.valid())
+            if (sVisibility.depends(port))
             {
                 float value = sVisibility.evaluate();
                 pWidget->set_visible(value >= 0.5f);
             }
 
             // Brightness
-            if (sBright.valid())
+            if (sBright.depends(port))
             {
                 float value = sBright.evaluate();
                 pWidget->set_brightness(value >= 0.5f);

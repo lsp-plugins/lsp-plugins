@@ -44,6 +44,9 @@ namespace lsp
                 CtlRegistry        *pCtl;
                 CtlPortListener    *pListener;
                 cvector<CtlPort>    vDependencies;
+                #ifdef LSP_TRACE
+                LSPString           sText;
+                #endif /* LSP_TRACE */
 
             protected:
                 void            do_destroy();
@@ -68,7 +71,12 @@ namespace lsp
                 bool            parse(const char *expr, size_t flags = calc::Expression::FLAG_NONE);
                 bool            parse(const LSPString *expr, size_t flags = calc::Expression::FLAG_NONE);
                 bool            parse(io::IInSequence *expr, size_t flags = calc::Expression::FLAG_NONE);
-                inline bool     valid() const           { return sExpr.valid(); };
+                inline bool     valid() const               { return sExpr.valid(); };
+                inline bool     depends(CtlPort *port) const { return vDependencies.index_of(port) >= 0; }
+
+                #ifdef LSP_TRACE
+                inline const char *text() const         { return sText.get_utf8(); }
+                #endif /* LSP_TRACE */
         };
     
     } /* namespace tk */

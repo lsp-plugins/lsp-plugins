@@ -56,9 +56,9 @@ namespace lsp
             if (res == STATUS_OK)
                 res = sStyle.add_parent(pDisplay->theme()->root());
             if (res == STATUS_OK)
-                res = sBgColor.bind(&sStyle, "bg_color");
+                res = sBgColor.bind("bg_color");
             if (res == STATUS_OK)
-                res = sBrightness.bind(&sStyle, "brightness");
+                res = sBrightness.bind("brightness");
 
             // Declare slots
             ui_handler_id_t id = 0;
@@ -427,8 +427,6 @@ namespace lsp
 
         void LSPWidget::query_resize()
         {
-//            query_draw(REDRAW_CHILD | REDRAW_SURFACE);
-
             LSPWidget *w = toplevel();
             if ((w != NULL) && (w != this))
                 w->query_resize();
@@ -484,14 +482,10 @@ namespace lsp
 
         void LSPWidget::set_visible(bool visible)
         {
-            bool flag = nFlags & F_VISIBLE;
-            if (!(flag ^ visible))
-                return;
-
-            if (flag)
-                hide();
-            else
+            if (visible)
                 show();
+            else
+                hide();
         }
 
         /** Set mouse pointer

@@ -65,8 +65,11 @@ namespace lsp
 
         void CtlExpression::notify(CtlPort *port)
         {
-            if (pListener != NULL)
-                pListener->notify(port);
+            if (vDependencies.index_of(port) < 0)
+                return;
+            if (pListener == NULL)
+                return;
+            pListener->notify(port);
         }
 
         float CtlExpression::evaluate()
@@ -119,19 +122,37 @@ namespace lsp
 
         bool CtlExpression::parse(const char *expr, size_t flags)
         {
+            sVars.clear();
+            drop_dependencies();
+
             LSPString tmp;
             if (!tmp.set_utf8(expr))
                 return false;
             if (sExpr.parse(&tmp, flags) != STATUS_OK)
                 return false;
-            return evaluate() == STATUS_OK;
+
+            status_t res = sExpr.evaluate();
+            #ifdef LSP_TRACE
+                if (res == STATUS_OK)
+                    sText.swap(&tmp);
+            #endif
+            return res;
         }
 
         bool CtlExpression::parse(const LSPString *expr, size_t flags)
         {
+            sVars.clear();
+            drop_dependencies();
+
             if (sExpr.parse(expr, flags) != STATUS_OK)
                 return false;
-            return evaluate() == STATUS_OK;
+
+            status_t res = sExpr.evaluate();
+            #ifdef LSP_TRACE
+                if (res == STATUS_OK)
+                    res = (sText.set(expr) ? STATUS_OK : STATUS_NO_MEM);
+            #endif
+            return res;
         }
 
         bool CtlExpression::parse(io::IInSequence *expr, size_t flags)
@@ -143,12 +164,14 @@ namespace lsp
 
         status_t CtlExpression::on_resolved(const LSPString *name, CtlPort *p)
         {
+            lsp_trace("[%s] resolved %s -> %s = %f", sText.get_utf8(), name->get_utf8(), p->id(), p->get_value());
             // Already subscribed?
             if (vDependencies.index_of(p) >= 0)
                 return STATUS_OK;
 
             if (!vDependencies.add(p))
                 return STATUS_NO_MEM;
+            lsp_trace("bind to %s", p->id());
             p->bind(this);
             return STATUS_OK;
         }

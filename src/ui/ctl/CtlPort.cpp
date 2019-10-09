@@ -23,6 +23,8 @@ namespace lsp
 
         void CtlPort::bind(CtlPortListener *listener)
         {
+            if (vListeners.index_of(listener) >= 0)
+                return;
             vListeners.add(listener);
         }
 
@@ -76,16 +78,28 @@ namespace lsp
 
         void CtlPort::notify_all()
         {
-            size_t count = vListeners.size();
+            // Prevent from modifying list of listeners at the sync stage
+            cvector<CtlPortListener> listeners;
+            if (!listeners.copy_from(&vListeners))
+                return;
+
+            // Call notify() for all listeners in the list
+            size_t count = listeners.size();
             for (size_t i=0; i<count; ++i)
-                vListeners[i]->notify(this);
+                listeners.at(i)->notify(this);
         }
 
         void CtlPort::sync_metadata()
         {
-            size_t count = vListeners.size();
+            // Prevent from modifying list of listeners at the sync stage
+            cvector<CtlPortListener> listeners;
+            if (!listeners.copy_from(&vListeners))
+                return;
+
+            // Call sync_metadata() for all listeners in the list
+            size_t count = listeners.size();
             for (size_t i=0; i<count; ++i)
-                vListeners[i]->sync_metadata(this);
+                listeners.at(i)->sync_metadata(this);
         }
     
     } /* namespace tk */

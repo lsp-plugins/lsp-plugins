@@ -64,6 +64,9 @@ namespace lsp
         
         status_t LSPColor::Listener::bind(LSPDisplay *dpy, LSPStyle *style, const char *property)
         {
+            if (pStyle == style)
+                return STATUS_OK;
+
             // Unbind from previously used style
             unbind();
 

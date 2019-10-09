@@ -985,7 +985,6 @@ namespace lsp
             switch (value->type)
             {
                 case VT_BOOL:
-                    value->type     = VT_BOOL;
                     value->v_bool   = !value->v_bool;
                     break;
                 case VT_NULL:

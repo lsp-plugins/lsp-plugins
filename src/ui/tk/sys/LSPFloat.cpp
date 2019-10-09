@@ -56,19 +56,29 @@ namespace lsp
                 pStyle->unbind(aValue, this);
                 aValue = -1;
             }
+
+            pStyle  = NULL;
         }
 
         status_t LSPFloat::Listener::bind(LSPDisplay *dpy, LSPStyle *style, const char *property)
         {
+            if (pStyle == style)
+                return STATUS_OK;
+
             unbind();
 
             ui_atom_t atom = dpy->atom_id(property);
             if (atom <= 0)
                 return -atom;
 
+            style->begin();
             status_t res = style->bind_float(atom, this);
             if (res == STATUS_OK)
+            {
                 aValue      = atom;
+                pStyle      = style;
+            }
+            style->end();
 
             return res;
         }

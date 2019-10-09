@@ -124,13 +124,12 @@ namespace lsp
         set_rgb(r + (r1 - r) * alpha, g + (g1 - g) * alpha, b + (b1 - b) * alpha);
     }
 
-    Color Color::blend(const Color &c1, const Color &c2, float alpha)
+    void Color::blend(const Color &c1, const Color &c2, float alpha)
     {
         float r1, g1, b1, r2, g2, b2;
         c1.get_rgb(r1, g1, b1);
         c2.get_rgb(r2, g2, b2);
-
-        return Color(r2 + (r1 - r2) * alpha, g2 + (g1 - g2) * alpha, b2 + (b1 - b2) * alpha);
+        set_rgb(r2 + (r1 - r2) * alpha, g2 + (g1 - g2) * alpha, b2 + (b1 - b2) * alpha);
     }
 
     void Color::darken(float amount)
@@ -149,6 +148,17 @@ namespace lsp
 
         float a = 1.0 - amount;
         set_rgb(r + (1.0 - r) * a, g + (1.0 - g) * a, b + (1.0 - b) * a);
+    }
+
+    void Color::scale_lightness(float amount)
+    {
+        check_hsl();
+        L *= amount;
+        if (L < 0.0f)
+            L = 0.0f;
+        else if (L > 1.0f)
+            L = 1.0f;
+        nMask = M_HSL;
     }
 
     void Color::copy(const Color &c)

@@ -31,6 +31,7 @@ namespace lsp
                 LSPFont                *pFont;
                 LSPStyle                sStyle;
                 LSPColor                sBgColor;
+                LSPColor                sHoleColor;
                 LSPFloat                sBrightness;
 
             private:
@@ -62,6 +63,12 @@ namespace lsp
                  * @return default background color for widgets
                  */
                 inline LSPColor         *bg_color() { return &sBgColor; }
+
+                /**
+                 * Get color of hole (space not containing anything)
+                 * @return color of hole
+                 */
+                inline LSPColor         *hole_color() { return &sHoleColor; }
 
                 /**
                  * Get default brightness for widgets
