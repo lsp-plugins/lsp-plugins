@@ -233,7 +233,7 @@ namespace lsp
                     break;
             }
 
-            return ::sprintf(dst, fmt, prefix, size_t(v[0] * tol), size_t(v[1] * tol), size_t(v[2] * tol), size_t(v[3] * tol));
+            return ::sprintf(dst, fmt, prefix, size_t(v[3] * tol), size_t(v[0] * tol), size_t(v[1] * tol), size_t(v[2] * tol));
         }
         else
         {
@@ -278,14 +278,14 @@ namespace lsp
     int Color::format_rgba(char *dst, size_t len, size_t tolerance) const
     {
         float v[4];
-        get_rgba(v[3], v[0], v[1], v[2]);
+        get_rgba(v[0], v[1], v[2], v[3]);
         return format(dst, len, tolerance, v, '#', true);
     }
 
     int Color::format_hsla(char *dst, size_t len, size_t tolerance) const
     {
         float v[4];
-        get_hsla(v[3], v[0], v[1], v[2]);
+        get_hsla(v[0], v[1], v[2], v[3]);
         return format(dst, len, tolerance, v, '@', true);
     }
 

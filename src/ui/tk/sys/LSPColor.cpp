@@ -50,6 +50,8 @@ namespace lsp
             LISTENER_UNBIND(aS);
             LISTENER_UNBIND(aL);
 
+            LISTENER_UNBIND(aA);
+
             LISTENER_UNBIND(aRGB);
             LISTENER_UNBIND(aRGBA);
             LISTENER_UNBIND(aHSL);
@@ -64,23 +66,21 @@ namespace lsp
             // Unbind from previously used style
             unbind();
 
-            // Check state
-            if ((pColor == NULL) || (pColor->pWidget == NULL))
-                return STATUS_NOT_BOUND;
-
             LSPString tmp;
             if (!tmp.set_utf8(property))
                 return STATUS_NO_MEM;
             size_t len = tmp.length();
 
-            ui_atom_t atom;
+            ui_atom_t atom = -1;
             status_t res = STATUS_OK;
+
+            style->begin();
 
             #define LISTENER_BIND(var, ptype, postfix) \
                 if (res == STATUS_OK) \
                 { \
                     res = (tmp.append_utf8(postfix)) ? STATUS_OK : STATUS_NO_MEM; \
-                    if ((res == STATUS_OK) && ((atom = dpy->atom_id(tmp.get_utf8()) < 0))) \
+                    if ((res == STATUS_OK) && ((atom = dpy->atom_id(tmp.get_utf8())) < 0)) \
                         res = -atom; \
                     if (res == STATUS_OK) \
                         res = style->bind(atom, ptype, this); \
@@ -97,6 +97,8 @@ namespace lsp
             LISTENER_BIND(aS, PT_FLOAT, ".sat");
             LISTENER_BIND(aL, PT_FLOAT, ".light");
 
+            LISTENER_BIND(aA, PT_FLOAT, ".alpha");
+
             LISTENER_BIND(aRGB, PT_STRING, ".rgb");
             LISTENER_BIND(aRGBA, PT_STRING, ".rgba");
             LISTENER_BIND(aHSL, PT_STRING, ".hsl");
@@ -106,19 +108,22 @@ namespace lsp
 
             if (res != STATUS_OK)
                 unbind();
+            else
+                pStyle = style;
+
+            style->end();
 
             return res;
         }
 
         void LSPColor::Listener::sync()
         {
-            if ((pColor == NULL) || (pColor->pWidget == NULL))
-                return;
-
-            Color &c = pColor->sColor;
-            LSPStyle *style = pColor->pWidget->style();
+            LSPStyle *style = pStyle;
             if (style == NULL)
                 return;
+            if (pColor == NULL)
+                return;
+            Color &c = pColor->sColor;
 
             char buf[16];
             style->begin();
@@ -173,6 +178,33 @@ namespace lsp
             LSPStyle *style = pStyle;
             if (style == NULL)
                 return;
+            Color *c = (pColor != NULL) ? &pColor->sColor : NULL;
+            if (c == NULL)
+                return;
+
+            float v;
+            style->begin();
+
+            if ((property == aR) && (style->get_float(aR, &v) == STATUS_OK))
+                c->red(v);
+            if ((property == aG) && (style->get_float(aG, &v) == STATUS_OK))
+                c->green(v);
+            if ((property == aB) && (style->get_float(aB, &v) == STATUS_OK))
+                c->blue(v);
+
+            if ((property == aH) && (style->get_float(aH, &v) == STATUS_OK))
+                c->hue(v);
+            if ((property == aS) && (style->get_float(aS, &v) == STATUS_OK))
+                c->saturation(v);
+            if ((property == aL) && (style->get_float(aL, &v) == STATUS_OK))
+                c->lightness(v);
+
+            if ((property == aA) && (style->get_float(aA, &v) == STATUS_OK))
+                c->alpha(v);
+
+            // TODO: add textual properties configuration
+
+            style->end();
         }
 
         LSPColor::LSPColor(): sListener(this)
@@ -208,8 +240,6 @@ namespace lsp
         {
             if ((property == NULL) || (style == NULL) || (dpy == NULL))
                 return STATUS_BAD_ARGUMENTS;
-            if (pWidget == NULL)
-                return STATUS_BAD_STATE;
 
             return sListener.bind(dpy, style, property);
         }

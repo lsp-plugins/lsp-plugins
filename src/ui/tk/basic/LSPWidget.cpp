@@ -50,8 +50,12 @@ namespace lsp
 
         status_t LSPWidget::init()
         {
-            // Initialize colors
-            init_color(C_BACKGROUND, &sBgColor);
+            // Initialize style
+            status_t res = sStyle.init();
+            if (res == STATUS_OK)
+                res = sStyle.add_parent(pDisplay->theme()->root());
+            if (res == STATUS_OK)
+                res = sBgColor.bind(&sStyle, "bg_color");
 
             // Declare slots
             ui_handler_id_t id = 0;

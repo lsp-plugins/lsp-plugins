@@ -15,6 +15,7 @@ namespace lsp
         class LSPFont;
         class LSPDisplay;
         class LSPColor;
+        class LSPStyle;
 
         class LSPTheme
         {
@@ -28,6 +29,8 @@ namespace lsp
             private:
                 cstorage<color_data_t>  sColors;
                 LSPFont                *pFont;
+                LSPStyle                sStyle;
+                LSPColor                sBgColor;
 
             private:
                 bool find_color(const char *name, Color *dst);
@@ -42,8 +45,22 @@ namespace lsp
 
                 void init(LSPDisplay *dpy);
 
+                status_t after_load();
+
             public:
                 inline LSPFont          *font() { return pFont; }
+
+                /**
+                 * Get root style
+                 * @return root style
+                 */
+                inline LSPStyle         *root() { return &sStyle; }
+
+                /**
+                 * Get default background color for widgets
+                 * @return default background color for widgets
+                 */
+                inline LSPColor         *bg_color() { return &sBgColor; }
 
             public:
                 /** Add color to theme

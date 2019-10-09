@@ -28,10 +28,29 @@ namespace lsp
             pFont->set_bold(false);
             pFont->set_italic(false);
             pFont->color()->set_rgb(1.0f, 1.0f, 1.0f);
+
+            // Initialize root style
+            sStyle.init();
+            sBgColor.bind(dpy, &sStyle, "bg_color");
+        }
+
+        status_t LSPTheme::after_load()
+        {
+            // Initialize default root style settings
+            get_color(C_RED, &sBgColor);
+
+            return STATUS_OK;
         }
 
         LSPTheme::~LSPTheme()
         {
+            // Destroy style bindings
+            sBgColor.unbind();
+
+            // Destroy root style
+            sStyle.destroy();
+
+            // Destroy color names
             size_t n = sColors.size();
 
             for (size_t i=0; i<n; ++i)

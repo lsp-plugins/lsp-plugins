@@ -320,34 +320,28 @@ namespace lsp
             if (name == NULL)
                 return -STATUS_BAD_ARGUMENTS;
 
-            // Find position to insert slot
-            ssize_t first   = 0, last = ssize_t(vAtoms.size()) - 1, idx = 0;
-            while (first <= last)
+            // Find existing atom
+            size_t last = vAtoms.size();
+            for (size_t i=0; i<last; ++i)
             {
-                idx             = (first + last) >> 1;
-                int cmp         = ::strcmp(vAtoms.at(idx), name);
-
-                if (cmp < 0)
-                    first       = ++idx;
-                else if (cmp > 0)
-                    last        = --idx;
-                else // (cmp == 0)
-                    return idx;
+                const char *aname = vAtoms.at(i);
+                if (!::strcmp(aname, name))
+                    return i;
             }
 
-            // Now allocate new atom name
+            // Allocate new atom name
             char *aname         = ::strdup(name);
             if (aname == NULL)
                 return -STATUS_NO_MEM;
 
             // Insert atom name to the found position
-            if (!vAtoms.insert(aname, first))
+            if (!vAtoms.add(aname))
             {
                 ::free(aname);
-                return -STATUS_NO_MEM;;
+                return -STATUS_NO_MEM;
             }
 
-            return first;
+            return last;
         }
 
         const char *LSPDisplay::atom_name(ui_atom_t id)

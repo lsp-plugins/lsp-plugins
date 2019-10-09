@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef UI_TK_UTIL_LSPCOLOR_H_
-#define UI_TK_UTIL_LSPCOLOR_H_
+#ifndef UI_TK_SYS_LSPCOLOR_H_
+#define UI_TK_SYS_LSPCOLOR_H_
 
 namespace lsp
 {
@@ -55,6 +55,7 @@ namespace lsp
                 status_t    bind(const char *property);
                 status_t    bind(LSPStyle *style, const char *property);
                 status_t    bind(LSPDisplay *dpy, LSPStyle *style, const char *property);
+                inline void unbind() { sListener.unbind(); };
 
             protected:
                 virtual void    color_changed();
@@ -136,4 +137,4 @@ namespace lsp
     } /* namespace tk */
 } /* namespace lsp */
 
-#endif /* UI_TK_UTIL_LSPCOLOR_H_ */
+#endif /* UI_TK_SYS_LSPCOLOR_H_ */

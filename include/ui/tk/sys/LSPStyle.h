@@ -70,6 +70,7 @@ namespace lsp
                 cstorage<property_t>    vProperties;
                 cstorage<listener_t>    vListeners;
                 ssize_t                 nLock;
+                bool                    bDelayed;
 
             public:
                 explicit LSPStyle();

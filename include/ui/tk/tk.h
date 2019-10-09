@@ -198,12 +198,12 @@ namespace lsp
 #include <ui/tk/sys/LSPSlot.h>
 #include <ui/tk/sys/LSPTimer.h>
 #include <ui/tk/sys/LSPSlotSet.h>
-#include <ui/tk/sys/LSPTheme.h>
 #include <ui/tk/sys/LSPStyle.h>
+#include <ui/tk/sys/LSPColor.h>
+#include <ui/tk/sys/LSPTheme.h>
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
-#include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPSurface.h>
 #include <ui/tk/util/LSPFont.h>
 #include <ui/tk/util/LSPPadding.h>

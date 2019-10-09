@@ -22,6 +22,7 @@ namespace lsp
         LSPStyle::LSPStyle()
         {
             nLock       = 0;
+            bDelayed    = false;
         }
         
         LSPStyle::~LSPStyle()
@@ -279,19 +280,35 @@ namespace lsp
 
         void LSPStyle::delayed_notify()
         {
-            for (size_t i=0, n=vProperties.size(); i < n; ++i)
+            size_t notified;
+
+            if (bDelayed)
+                return;
+
+            bDelayed = true; // Disallow delayed notify because it is already active
+            do
             {
-                property_t *prop = vProperties.at(i);
+                notified = 0;
+                for (size_t i=0, n=vProperties.size(); i < n; ++i)
+                {
+                    property_t *prop = vProperties.at(i);
 
-                // Notify if notification is pending
-                if (prop->flags & F_NTF_LISTENERS)
-                    notify_listeners(prop);
-                if (prop->flags & F_NTF_CHILDREN)
-                    notify_children(prop);
-
-                // Reset notification flags
-                prop->flags &= ~(F_NTF_LISTENERS | F_NTF_CHILDREN);
-            }
+                    // Notify if notification is pending
+                    if (prop->flags & F_NTF_LISTENERS)
+                    {
+                        prop->flags &= ~F_NTF_LISTENERS;
+                        notify_listeners(prop);
+                        ++notified;
+                    }
+                    if (prop->flags & F_NTF_CHILDREN)
+                    {
+                        prop->flags &= ~F_NTF_CHILDREN;
+                        notify_children(prop);
+                        ++notified;
+                    }
+                }
+            } while (notified > 0);
+            bDelayed = false;
         }
 
         void LSPStyle::notify_change(property_t *prop)
@@ -647,7 +664,7 @@ namespace lsp
         {
             if (nLock == 0)
                 return;
-            if (!(--nLock))
+            if (!(--nLock)) // last end() ?
                 delayed_notify();
         }
 
