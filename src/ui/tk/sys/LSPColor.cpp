@@ -31,7 +31,8 @@ namespace lsp
         LSPColor::Listener::~Listener()
         {
             unbind();
-            pColor = NULL;
+            pColor      = NULL;
+            pStyle      = NULL;
         }
 
         void LSPColor::Listener::unbind()

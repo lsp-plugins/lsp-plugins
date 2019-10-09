@@ -33,11 +33,8 @@ namespace lsp
 
                     public:
                         virtual void    notify(ui_atom_t property);
-
                         void            sync();
-
                         void            unbind();
-
                         status_t        bind(LSPDisplay *dpy, LSPStyle *style, const char *property);
                 };
 

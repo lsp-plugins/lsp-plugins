@@ -32,12 +32,14 @@ namespace lsp
             // Initialize root style
             sStyle.init();
             sBgColor.bind(dpy, &sStyle, "bg_color");
+            sBrightness.bind(dpy, &sStyle, "brightness");
         }
 
         status_t LSPTheme::after_load()
         {
             // Initialize default root style settings
             get_color(C_BACKGROUND, &sBgColor);
+            sBrightness.set(1.0f); // Normal brightness
 
             return STATUS_OK;
         }

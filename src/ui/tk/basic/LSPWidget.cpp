@@ -15,7 +15,8 @@ namespace lsp
 
         LSPWidget::LSPWidget(LSPDisplay *dpy):
             sPadding(this),
-            sBgColor(this)
+            sBgColor(this),
+            sBrightness(this)
         {
             pUID            = NULL;
             pDisplay        = dpy;
@@ -56,6 +57,8 @@ namespace lsp
                 res = sStyle.add_parent(pDisplay->theme()->root());
             if (res == STATUS_OK)
                 res = sBgColor.bind(&sStyle, "bg_color");
+            if (res == STATUS_OK)
+                res = sBrightness.bind(&sStyle, "brightness");
 
             // Declare slots
             ui_handler_id_t id = 0;

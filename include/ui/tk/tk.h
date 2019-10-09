@@ -200,6 +200,7 @@ namespace lsp
 #include <ui/tk/sys/LSPSlotSet.h>
 #include <ui/tk/sys/LSPStyle.h>
 #include <ui/tk/sys/LSPColor.h>
+#include <ui/tk/sys/LSPFloat.h>
 #include <ui/tk/sys/LSPTheme.h>
 #include <ui/tk/sys/LSPDisplay.h>
 

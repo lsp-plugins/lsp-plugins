@@ -106,6 +106,7 @@ namespace lsp
             A_BIND,
             A_BORDER,
             A_BORDER_COLOR,
+            A_BRIGHT,
             A_CENTER,
             A_COLOR,
             A_COLOR2,

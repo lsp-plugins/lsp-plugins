@@ -31,6 +31,7 @@ namespace lsp
                 LSPFont                *pFont;
                 LSPStyle                sStyle;
                 LSPColor                sBgColor;
+                LSPFloat                sBrightness;
 
             private:
                 bool find_color(const char *name, Color *dst);
@@ -61,6 +62,12 @@ namespace lsp
                  * @return default background color for widgets
                  */
                 inline LSPColor         *bg_color() { return &sBgColor; }
+
+                /**
+                 * Get default brightness for widgets
+                 * @return default brightness for widgets
+                 */
+                inline LSPFloat         *brightness() { return &sBrightness; }
 
             public:
                 /** Add color to theme

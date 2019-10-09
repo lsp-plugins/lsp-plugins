@@ -51,6 +51,7 @@ namespace lsp
                 LSPPadding          sPadding;
 
                 LSPColor            sBgColor;       // Widget color
+                LSPFloat            sBrightness;    // Brightness
                 LSPStyle            sStyle;
 
             //---------------------------------------------------------------------------------
@@ -350,6 +351,12 @@ namespace lsp
                  */
                 inline LSPStyle    *style()                 { return &sStyle; }
 
+                /**
+                 * Get brightness
+                 * @return brightness
+                 */
+                inline float        brightness() const      { return sBrightness.get(); }
+
             //---------------------------------------------------------------------------------
             // Manipulation
             public:
@@ -400,6 +407,13 @@ namespace lsp
                  * @param value vertical filling flag value
                  */
                 virtual void        set_vfill(bool value = true);
+
+                /**
+                 * Set brightness of the widget
+                 * @param brightness brightness
+                 * @return previous value
+                 */
+                inline float        set_brightness(float brightness) { return sBrightness.set(brightness); }
 
                 /** Set mouse pointer
                  *

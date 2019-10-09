@@ -30,6 +30,8 @@ namespace lsp
 
         void CtlComboGroup::do_destroy()
         {
+            sEmbed.destroy();
+
             LSPComboGroup *grp = widget_cast<LSPComboGroup>(pWidget);
             if (grp == NULL)
                 return;
@@ -50,6 +52,7 @@ namespace lsp
         void CtlComboGroup::destroy()
         {
             CtlWidget::destroy();
+            sEmbed.destroy();
             do_destroy();
         }
 
