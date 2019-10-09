@@ -24,10 +24,10 @@ namespace lsp
 
         void CtlText::update_coords()
         {
-            if (pWidget == NULL)
+            LSPText *text       = widget_cast<LSPText>(pWidget);
+            if (text == NULL)
                 return;
 
-            LSPText *text       = static_cast<LSPText *>(pWidget);
             if (!sCoord.valid())
                 return;
 
@@ -50,10 +50,10 @@ namespace lsp
         void CtlText::init()
         {
             CtlWidget::init();
-            if (pWidget == NULL)
-                return;
 
-            LSPText *text       = static_cast<LSPText *>(pWidget);
+            LSPText *text       = widget_cast<LSPText>(pWidget);
+            if (text == NULL)
+                return;
 
             // Initialize controllers
             sColor.init_hsl(pRegistry, text, text->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
@@ -68,7 +68,7 @@ namespace lsp
 
         void CtlText::set(widget_attribute_t att, const char *value)
         {
-            LSPText *text = (pWidget != NULL) ? static_cast<LSPText *>(pWidget) : NULL;
+            LSPText *text = widget_cast<LSPText>(pWidget);
 
             switch (att)
             {
@@ -100,9 +100,8 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
