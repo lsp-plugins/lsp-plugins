@@ -155,6 +155,7 @@ namespace lsp
         void CtlWidget::init()
         {
             sVisibility.init(pRegistry, this);
+            sBright.init(pRegistry, this);
             if (pWidget != NULL)
                 sBgColor.init_basic(pRegistry, pWidget, pWidget->bg_color(), A_BG_COLOR);
         }
@@ -214,7 +215,7 @@ namespace lsp
             if (sBright.depends(port))
             {
                 float value = sBright.evaluate();
-                pWidget->set_brightness(value >= 0.5f);
+                pWidget->set_brightness(value);
             }
         }
 
