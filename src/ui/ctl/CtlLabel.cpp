@@ -183,7 +183,6 @@ namespace lsp
         void CtlLabel::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
-
             if (pPort == port)
                 commit_value();
         }
@@ -193,8 +192,10 @@ namespace lsp
             // Get metadata and value
             if (pPort == NULL)
                 return;
+            lsp_trace("Commit %s = %f", pPort->id(), pPort->get_value());
+
             const port_t *mdata = pPort->metadata();
-            if ((mdata == NULL) || (!IS_IN_PORT(mdata)))
+            if (mdata == NULL)
                 return;
             fValue      = pPort->get_value();
 
