@@ -62,7 +62,7 @@ namespace lsp
 
             private:
                 bool    parse_format(const char *format);
-                void    draw_digit(ISurface *s, int x, int y, char ch, char mod);
+                void    draw_digit(ISurface *s, int x, int y, char ch, char mod, const Color &on, const Color &off);
 
                 bool    fmt_time(buffer_t *buf, double value);
                 bool    fmt_float(buffer_t *buf, double value);

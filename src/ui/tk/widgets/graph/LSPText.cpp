@@ -167,6 +167,10 @@ namespace lsp
             if (cv == NULL)
                 return;
 
+            // Get palette
+            Color font_color(sFont.raw_color());
+            font_color.scale_lightness(brightness());
+
             // Get center
             float x = 0.0f, y = 0.0f;
             cv->center(nCenter, &x, &y);
@@ -219,7 +223,7 @@ namespace lsp
                 sFont.get_text_parameters(s, &tp, &sText, last, tail);
                 ssize_t tx  = x + (tw - tp.Width*0.5f)*(fHAlign - 1.0f) + fHAlign*2.0f;
                 ty         += fp.Height;
-                sFont.draw(s, tx, ty, &sText, last, tail);
+                sFont.draw(s, tx, ty, font_color, &sText, last, tail);
 
                 last    = curr + 1;
             }

@@ -56,7 +56,8 @@ namespace lsp
                 float height() const;
                 float max_x_advance() const;
                 float max_y_advance() const;
-                LSPColor *color()                   { return &sColor; }
+                inline LSPColor *color()            { return &sColor; }
+                inline const Color *raw_color() const { return sColor.color(); }
 
             public:
                 void set_bold(bool b = true);

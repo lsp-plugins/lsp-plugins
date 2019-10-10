@@ -67,6 +67,7 @@ namespace lsp
         "No valid sources",
         "Bad path",
         "Protocol error",
+        "Bad token",
 
         NULL
     };

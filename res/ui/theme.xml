@@ -2,8 +2,8 @@
 	<colors>
 		<!-- Plugin basic colors -->
 		<bg value="#1b1c22" />
-		<bg2 value="#292a30" />
-		<bg3 value="#38393f" />
+		<bg2 value="#2f3037" />
+		<bg3 value="#45464d" />
 		<glass value="#101010" />
 		<hole value="#000000" />
 		

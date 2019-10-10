@@ -470,13 +470,21 @@ namespace lsp
 
         void LSPFraction::draw(ISurface *s)
         {
-//            Color c;
             LSPString num, denom;
             font_parameters_t fp;
             text_parameters_t tp, bp;
             realize_t t, b;
 
-            s->clear(sBgColor);
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            Color font(sFont.raw_color());
+
+            color.scale_lightness(brightness());
+            font.scale_lightness(brightness());
+
+            // Clear
+            s->clear(bg_color);
 
             // Get font parameters
             sFont.get_parameters(s, &fp);
@@ -510,8 +518,6 @@ namespace lsp
             float dx    = cosf(angle);
             float dy    = sinf(angle);
 
-//            c.set_rgb(1, 0, 0);
-
             ssize_t cx  = sSize.nWidth >> 1;    // Center of fraction (x)
             ssize_t cy  = sSize.nHeight >> 1;   // Center of fraction (y)
 
@@ -543,15 +549,14 @@ namespace lsp
             sDenom.nHeight  = b.nHeight;
 
             // Output numerator and denominator
-//            c.set_rgb(0, 1, 0);
             bool aa     = s->set_antialiasing(true);
-            sFont.draw(s, t.nLeft - ( tp.Width)*0.5f, t.nTop - fp.Descent + fp.Height*0.5f, &num);
-            sFont.draw(s, b.nLeft - ( bp.Width)*0.5f, b.nTop - fp.Descent + fp.Height*0.5f, &denom);
+            sFont.draw(s, t.nLeft - ( tp.Width)*0.5f, t.nTop - fp.Descent + fp.Height*0.5f, font, &num);
+            sFont.draw(s, b.nLeft - ( bp.Width)*0.5f, b.nTop - fp.Descent + fp.Height*0.5f, font, &denom);
 
             // Draw line
             dx          = dx * t.nHeight;
             dy          = dy * t.nHeight;
-            s->line(cx + dx, cy - dy, cx - dx, cy + dy, lw, sColor);
+            s->line(cx + dx, cy - dy, cx - dx, cy + dy, lw, color);
             s->set_antialiasing(aa);
         }
 

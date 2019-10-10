@@ -260,9 +260,11 @@ namespace lsp
 
         void LSPWindow::render(ISurface *s, bool force)
         {
+            Color bg_color(sBgColor);
+
             if (pChild == NULL)
             {
-                s->clear(sBgColor);
+                s->clear(bg_color);
                 return;
             }
 
@@ -277,17 +279,20 @@ namespace lsp
                 s->fill_frame(
                     0, 0, sSize.nWidth, sSize.nHeight,
                     pChild->left(), pChild->top(), pChild->width(), pChild->height(),
-                    sBgColor);
+                    bg_color);
 
                 if (nBorder > 0)
                 {
                     bool aa = s->set_antialiasing(true);
                     ssize_t bw = nBorder >> 1;
-                    const Color *c = sBorder.color();
+
+                    Color border(sBorder);
+                    border.scale_lightness(brightness());
+
                     s->wire_round_rect(
                         bw + 0.5, bw + 0.5, sSize.nWidth - nBorder-1, sSize.nHeight - nBorder-1,
                         2, SURFMASK_ALL_CORNER, nBorder,
-                        *c
+                        border
                     );
                     s->set_antialiasing(aa);
                 }

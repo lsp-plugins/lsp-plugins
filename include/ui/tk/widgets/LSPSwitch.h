@@ -28,6 +28,7 @@ namespace lsp
                 LSPColor        sColor;
                 LSPColor        sTextColor;
                 LSPColor        sBorderColor;
+                LSPColor        sHoleColor;
 
                 size_t          nSize;
                 size_t          nBorder;
@@ -58,6 +59,8 @@ namespace lsp
                 inline LSPColor *text_color()   { return &sTextColor; }
 
                 inline LSPColor *border_color() { return &sBorderColor; }
+
+                inline LSPColor *hole_color()   { return &sHoleColor; }
 
                 inline ssize_t size() const     { return nSize; }
 

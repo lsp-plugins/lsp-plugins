@@ -472,6 +472,7 @@ namespace lsp
             Color cl;
 
             float vmin          = c->fMin;
+            float bright        = brightness();
 
             for (size_t i=0; i<n; ++i)
             {
@@ -521,11 +522,11 @@ namespace lsp
                 }
 
                 if (! matched)
-                    cl.blend(sIndColor, 0.05f);
+                    cl.blend(sIndColor.color(), 0.05f);
+                cl.scale_lightness(bright);
 
                 // Draw the segment
                 s->fill_rect(x, y, wx, wy, cl);
-//                s->fill_rect(x, y, wx, wy, cl);
 
                 // Update location
                 x      += dx;
@@ -558,6 +559,7 @@ namespace lsp
             else if ((c->nFlags & MF_DZONE0) && (c->fDarkZone[0] >= value))
                 cl.darken(c->fDark[0]);
 
+            cl.scale_lightness(brightness());
 
 //            s->line(x - 3, y, x + 3, y, 1.0f, white);
 //            s->line(x, y-3, x, y+3, 1.0f, white);
@@ -574,6 +576,12 @@ namespace lsp
 
         void LSPMeter::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color ind_color(sIndColor);
+
+            ind_color.scale_lightness(brightness());
+
             // Variables
             font_parameters_t   fp;
             text_parameters_t   tp;
@@ -586,7 +594,7 @@ namespace lsp
             ssize_t tsy         = 0;
 
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
             bool aa             = s->set_antialiasing(true);
 
             // Estimate text field size
@@ -624,9 +632,7 @@ namespace lsp
                 float mtr_ix        = left + 0.5f;
                 ssize_t w2          = p_width - 1;
 
-                Color grey(0.5f, 0.5f, 0.5f);
-//                s->fill_rect(left - nBorder, top - nBorder, ov_width + (nBorder << 1), ov_height + (nBorder << 1), grey);
-                s->fill_rect(left - nBorder, top - nBorder, ov_width + (nBorder << 1), ov_height + (nBorder << 1), sIndColor);
+                s->fill_rect(left - nBorder, top - nBorder, ov_width + (nBorder << 1), ov_height + (nBorder << 1), ind_color);
                 channel_t **c       = vChannels;
 
                 if (nAngle & 2)
@@ -715,9 +721,7 @@ namespace lsp
                 ssize_t w2          = p_width - 1;
 
                 // Draw glass
-                Color grey(0.5f, 0.5f, 0.5f);
-//                s->fill_rect(left - nBorder, top - nBorder, ov_height + (nBorder << 1), ov_width + (nBorder << 1), grey);
-                s->fill_rect(left - nBorder, top - nBorder, ov_height + (nBorder << 1), ov_width + (nBorder << 1), sIndColor);
+                s->fill_rect(left - nBorder, top - nBorder, ov_height + (nBorder << 1), ov_width + (nBorder << 1), ind_color);
                 channel_t **c       = vChannels;
 
                 if (nAngle & 2)

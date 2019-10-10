@@ -31,6 +31,7 @@ namespace lsp
             protected:
                 cvector<item_t>         sWidgets;
                 cvector<LSPWidget>      vGarbage;
+                cvector<char>           vAtoms;
                 LSPSlotSet              sSlots;
                 LSPTheme                sTheme;
                 IDisplay               *pDisplay;
@@ -56,11 +57,20 @@ namespace lsp
 
                 /** Initialize display
                  *
-                 * @param argc
-                 * @param argv
+                 * @param argc number of additional arguments
+                 * @param argv list of additional arguments
                  * @return status of operation
                  */
                 status_t init(int argc, const char **argv);
+
+                /** Initialize display
+                 *
+                 * @param dpy underlying display object
+                 * @param argc number of additional arguments
+                 * @param argv list of additional arguments
+                 * @return status of operation
+                 */
+                status_t init(ws::IDisplay *dpy, int argc, const char **argv);
 
                 /** Destroy display
                  *
@@ -169,6 +179,20 @@ namespace lsp
                  * @return current display theme
                  */
                 inline LSPTheme *theme()                    { return &sTheme; }
+
+                /**
+                 * Get atom identifier by name
+                 * @param name atom name
+                 * @return atom identifier or negative error code
+                 */
+                ui_atom_t atom_id(const char *name);
+
+                /**
+                 * Get atom name by identifier
+                 * @param name atom name or NULL
+                 * @return atom identifier
+                 */
+                const char *atom_name(ui_atom_t id);
 
                 /**
                  * Get clipboard data

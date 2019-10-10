@@ -19,6 +19,7 @@ namespace lsp
 
             protected:
                 LSPFileDialog      *pDialog;
+                cvector<LSPWidget>  vWidgets;
 
             protected:
                 static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);

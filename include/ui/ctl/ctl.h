@@ -106,6 +106,7 @@ namespace lsp
             A_BIND,
             A_BORDER,
             A_BORDER_COLOR,
+            A_BRIGHT,
             A_CENTER,
             A_COLOR,
             A_COLOR2,
@@ -267,6 +268,7 @@ namespace lsp
 // Core headers
 #include <ui/ctl/CtlRegistry.h>
 #include <ui/ctl/CtlPortListener.h>
+#include <ui/ctl/CtlPortResolver.h>
 #include <ui/ctl/CtlPort.h>
 #include <ui/ctl/CtlExpression.h>
 #include <ui/ctl/CtlColor.h>

@@ -20,6 +20,10 @@ namespace lsp
             protected:
                 CtlColor        sColor;
                 CtlColor        sTextColor;
+                CtlExpression   sEmbed;
+
+            protected:
+                void do_destroy();
 
             public:
                 explicit CtlGroup(CtlRegistry *src, LSPGroup *widget);
@@ -28,9 +32,13 @@ namespace lsp
             public:
                 virtual void init();
 
+                virtual void destroy();
+
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual status_t add(CtlWidget *child);
+
+                virtual void notify(CtlPort *port);
         };
     
     } /* namespace ctl */

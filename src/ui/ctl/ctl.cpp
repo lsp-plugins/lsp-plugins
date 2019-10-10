@@ -82,6 +82,7 @@ namespace lsp
             "bind",
             "border",
             "border_color",
+            "bright",
             "center",
             "color",
             "color2",

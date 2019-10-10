@@ -76,6 +76,7 @@ namespace lsp
 
             if (pPort != NULL)
             {
+                lsp_trace("Setting %s = %f", pPort->id(), value);
                 pPort->set_value(value);
                 pPort->notify_all();
             }

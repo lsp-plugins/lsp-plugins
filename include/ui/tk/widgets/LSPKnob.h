@@ -27,6 +27,8 @@ namespace lsp
 
                 LSPColor            sColor;
                 LSPColor            sScaleColor;
+                LSPColor            sHoleColor;
+                LSPColor            sTipColor;
 
                 size_t              nSize;
                 float               fBalance;
@@ -61,6 +63,7 @@ namespace lsp
             public:
                 inline LSPColor        *color() { return &sColor; }
                 inline LSPColor        *scale_color() { return &sScaleColor; }
+                inline LSPColor        *tip_color() { return &sTipColor; }
                 inline size_t           size() const { return nSize; }
                 inline float            balance() const { return fBalance; }
                 inline float            value() const { return fValue; }

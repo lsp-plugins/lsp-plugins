@@ -150,18 +150,6 @@ namespace lsp
                 query_draw();
         }
 
-        void LSPButton::set_color(const Color *c)
-        {
-            sColor.copy(c);
-            query_draw();
-        }
-
-        void LSPButton::set_bg_color(const Color *c)
-        {
-            sBgColor.copy(c);
-            query_draw();
-        }
-
         void LSPButton::set_min_width(size_t value)
         {
             if (nMinWidth == value)
@@ -192,8 +180,13 @@ namespace lsp
             IGradient *gr = NULL;
             size_t pressed = nState;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Calculate real boundaries
             ssize_t c_x     = (sSize.nWidth >> 1);
@@ -232,7 +225,7 @@ namespace lsp
             else
                 b_l ++;
 
-            float lightness = sColor.lightness();
+            float lightness = color.lightness();
             if (pressed & S_LED)
             {
                 // Draw light
@@ -243,26 +236,26 @@ namespace lsp
                     ssize_t x_rr = l_rr - 1;
 
                     gr  =  s->linear_gradient(c_x, c_y - b_h, c_x, c_y - b_h - x_rr);
-                    gr->add_color(0.0, sColor, 0.5f);
-                    gr->add_color(1.0, sColor, 1.0f);
+                    gr->add_color(0.0, color, 0.5f);
+                    gr->add_color(1.0, color, 1.0f);
                     s->fill_triangle(c_x - b_w - l_rr, c_y - b_h - l_rr, c_x + b_w + l_rr, c_y - b_h - l_rr, c_x, c_y, gr);
                     delete gr;
 
                     gr  =  s->linear_gradient(c_x, c_y + b_h, c_x, c_y + b_h + x_rr);
-                    gr->add_color(0.0, sColor, 0.5f);
-                    gr->add_color(1.0, sColor, 1.0f);
+                    gr->add_color(0.0, color, 0.5f);
+                    gr->add_color(1.0, color, 1.0f);
                     s->fill_triangle(c_x + b_w + l_rr, c_y + b_h + l_rr, c_x - b_w - l_rr, c_y + b_h + l_rr, c_x, c_y, gr);
                     delete gr;
 
                     gr  =  s->linear_gradient(c_x - b_w, c_y, c_x - b_w - x_rr, c_y);
-                    gr->add_color(0.0, sColor, 0.5f);
-                    gr->add_color(1.0, sColor, 1.0f);
+                    gr->add_color(0.0, color, 0.5f);
+                    gr->add_color(1.0, color, 1.0f);
                     s->fill_triangle(c_x - b_w - l_rr, c_y - b_h - l_rr, c_x - b_w - l_rr, c_y + b_h + l_rr, c_x, c_y, gr);
                     delete gr;
 
                     gr  =  s->linear_gradient(c_x + b_w, c_y, c_x + b_w + x_rr, c_y);
-                    gr->add_color(0.0, sColor, 0.5f);
-                    gr->add_color(1.0, sColor, 1.0f);
+                    gr->add_color(0.0, color, 0.5f);
+                    gr->add_color(1.0, color, 1.0f);
                     s->fill_triangle(c_x + b_w + l_rr, c_y + b_h + l_rr, c_x + b_w + l_rr, c_y - b_h - l_rr, c_x, c_y, gr);
                     delete gr;
                 }
@@ -281,7 +274,7 @@ namespace lsp
                 else
                     gr = s->radial_gradient(c_x + b_w, c_y - b_h, b_rad * 0.25f, c_x + b_w, c_y - b_h, b_rad * 3.0f);
 
-                Color cl(sColor);
+                Color cl(color);
                 cl.lightness(bright);
                 gr->add_color(0.0f, cl);
                 cl.darken(0.9f);
@@ -300,7 +293,7 @@ namespace lsp
 
             if (pressed & S_LED)
             {
-                Color cl(sColor);
+                Color cl(color);
                 cl.lightness(lightness);
 
                 gr = s->radial_gradient(c_x - b_w, c_y + b_h, b_rad * 0.25f, c_x, c_y, b_rad * 0.8f);
@@ -316,6 +309,9 @@ namespace lsp
                 text_parameters_t tp;
                 font_parameters_t fp;
 
+                Color font_color(sFont.raw_color());
+                font_color.scale_lightness(brightness());
+
                 sFont.get_parameters(s, &fp);
                 sFont.get_text_parameters(s, &tp, &sTitle);
 
@@ -324,7 +320,7 @@ namespace lsp
                 if (pressed & S_TOGGLED)
                     c_x++;
 
-                sFont.draw(s, c_x - (tp.Width * 0.5f), c_y - (fp.Height * 0.5f) + fp.Ascent, &sTitle);
+                sFont.draw(s, c_x - (tp.Width * 0.5f), c_y - (fp.Height * 0.5f) + fp.Ascent, font_color, &sTitle);
             }
 
             s->set_antialiasing(aa);

@@ -361,7 +361,19 @@ namespace lsp
 
         void LSPMenu::draw(ISurface *s)
         {
-            s->clear(sBgColor);
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color border(sBorderColor);
+            Color font(sFont.raw_color());
+            Color sel(sSelColor);
+            Color tmp;
+
+            border.scale_lightness(brightness());
+            font.scale_lightness(brightness());
+            sel.scale_lightness(brightness());
+
+            // Draw background
+            s->clear(bg_color);
 
             font_parameters_t fp;
             text_parameters_t tp;
@@ -392,7 +404,7 @@ namespace lsp
                     if (y > (-separator))
                     {
                         if (sep_len > 0)
-                            s->fill_rect(x - sPadding.left() + nSpacing, y + (separator >> 1), sep_len, 1, sBorderColor);
+                            s->fill_rect(x - sPadding.left() + nSpacing, y + (separator >> 1), sep_len, 1, border);
                     }
 
                     y += separator;
@@ -402,23 +414,21 @@ namespace lsp
                     if (y > (-fp.Height))
                     {
                         const char *text = item->text();
-                        LSPColor c;
-
                         if (nSelected == ssize_t(i))
                         {
-                            s->fill_rect(nBorder, y, sSize.nWidth - nBorder*2, fp.Height, sSelColor);
-                            c.copy(sBgColor);
+                            s->fill_rect(nBorder, y, sSize.nWidth - nBorder*2, fp.Height, sel);
+                            tmp.copy(bg_color);
                         }
                         else
-                            c.copy(sFont.color());
+                            tmp.copy(font);
 
                         if (text != NULL)
-                            sFont.draw(s, x, y + fp.Ascent + hspace, c, text);
+                            sFont.draw(s, x, y + fp.Ascent + hspace, tmp, text);
 
                         if (item->has_submenu())
                         {
                             sFont.get_text_parameters(s, &tp, "►");
-                            sFont.draw(s, sSize.nWidth - nBorder - nSpacing - tp.XAdvance - 2, y + fp.Ascent + hspace, c, "►");
+                            sFont.draw(s, sSize.nWidth - nBorder - nSpacing - tp.XAdvance - 2, y + fp.Ascent + hspace, tmp, "►");
                         }
                     }
 
@@ -434,53 +444,50 @@ namespace lsp
                 // Top button
                 if (nScroll > 0)
                 {
-                    LSPColor cl;
-
-                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, separator, sBgColor);
+                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, separator, bg_color);
                     if (nSelected == SEL_TOP_SCROLL)
                     {
-                        cl.copy(sBgColor);
-                        s->fill_rect(nBorder + 1, nBorder + 1, sSize.nWidth - (nBorder + 1)* 2, separator - 1, sBorderColor);
+                        tmp.copy(bg_color);
+                        s->fill_rect(nBorder + 1, nBorder + 1, sSize.nWidth - (nBorder + 1)* 2, separator - 1, border);
                     }
                     else
-                        cl.copy(sFont.color());
+                        tmp.copy(font);
 
                     // Draw arrow up
                     s->fill_triangle(
                         cx, nBorder + 3,
                         cx + separator, nBorder + separator - 2,
                         cx - separator, nBorder + separator - 2,
-                        cl);
+                        tmp);
                 }
                 else if (sPadding.top() > 0)
-                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, sPadding.top(), sBgColor);
+                    s->fill_rect(nBorder, nBorder, sSize.nWidth - nBorder * 2, sPadding.top(), bg_color);
 
                 // Bottom button
                 if (nScroll < nScrollMax)
                 {
-                    LSPColor cl;
                     s->fill_rect(nBorder, sSize.nHeight - nBorder - separator,
-                        sSize.nWidth - nBorder * 2, separator, sBgColor);
+                        sSize.nWidth - nBorder * 2, separator, bg_color);
 
                     if (nSelected == SEL_BOTTOM_SCROLL)
                     {
-                        cl.copy(sBgColor);
+                        tmp.copy(bg_color);
                         s->fill_rect(nBorder + 1, sSize.nHeight - nBorder - separator,
-                            sSize.nWidth - (nBorder + 1) * 2, separator - 1, sBorderColor);
+                            sSize.nWidth - (nBorder + 1) * 2, separator - 1, border);
                     }
                     else
-                        cl.copy(sFont.color());
+                        tmp.copy(font);
 
                     // Draw arrow down
                     s->fill_triangle(
                         cx, sSize.nHeight - nBorder - 3,
                         cx + separator, sSize.nHeight - nBorder - separator + 2,
                         cx - separator, sSize.nHeight - nBorder - separator + 2,
-                        cl);
+                        tmp);
                 }
                 else if (sPadding.bottom() > 0)
                     s->fill_rect(nBorder, sSize.nHeight - nBorder - sPadding.bottom(),
-                        sSize.nWidth - nBorder * 2, sPadding.bottom(), sBgColor);
+                        sSize.nWidth - nBorder * 2, sPadding.bottom(), bg_color);
 
                 // Restore anti-aliasing
                 s->set_antialiasing(aa);
@@ -488,7 +495,7 @@ namespace lsp
 
             if (nBorder > 0)
                 s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
-                    nBorder, nBorder, sSize.nWidth - nBorder * 2, sSize.nHeight - nBorder * 2, sBorderColor);
+                    nBorder, nBorder, sSize.nWidth - nBorder * 2, sSize.nHeight - nBorder * 2, border);
         }
 
         bool LSPMenu::hide()

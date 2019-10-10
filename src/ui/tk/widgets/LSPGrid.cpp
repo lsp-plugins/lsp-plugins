@@ -37,15 +37,6 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-                if (theme != NULL)
-                {
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
-
             return STATUS_OK;
         }
 
@@ -391,9 +382,10 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
-            // Render nested widgets
-//            Color red(1, 0, 0);
+            // Estimate palette
+            Color bg_color;
 
+            // Render nested widgets
             size_t visible = 0;
             for (size_t i=0; i<items; ++i)
             {
@@ -402,8 +394,11 @@ namespace lsp
                     continue;
                 if (hidden_widget(w))
                 {
-                    LSPColor *c = (w->pWidget != NULL) ? w->pWidget->bg_color() : &sBgColor;
-                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, *c);
+                    if (w->pWidget != NULL)
+                        bg_color.copy(w->pWidget->bg_color()->color());
+                    else
+                        bg_color.copy(sBgColor);
+                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, bg_color);
                     continue;
                 }
 
@@ -415,13 +410,11 @@ namespace lsp
 //                            int(force), int(w->pWidget->redraw_pending()));
                     if (force)
                     {
-                        LSPColor *c = w->pWidget->bg_color();
-//                        Color red(1.0, 0.0, 0.0);
+                        bg_color.copy(w->pWidget->bg_color()->color());
                         s->fill_frame(
                             w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight,
                             w->s.nLeft, w->s.nTop, w->s.nWidth, w->s.nHeight,
-//                            red
-                            *c
+                            bg_color
                         );
 //                        s->wire_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, 1, red);
                     }
@@ -434,7 +427,10 @@ namespace lsp
 
             // Draw background if needed
             if ((!visible) && (force))
-                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+            {
+                bg_color.copy(sBgColor);
+                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
+            }
 
 //            s->wire_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, 1, red);
         }
