@@ -209,6 +209,13 @@ namespace lsp
             // TODO: add textual properties configuration
 
             style->end();
+
+            if (pColor != NULL)
+            {
+                pColor->color_changed();
+                if (pColor->pWidget != NULL)
+                    pColor->pWidget->query_draw();
+            }
         }
 
         LSPColor::LSPColor(): sListener(this)
@@ -259,10 +266,8 @@ namespace lsp
         void LSPColor::trigger_change()
         {
             color_changed();
-
             if (pWidget != NULL)
                 pWidget->query_draw();
-
             sListener.sync();
         }
 

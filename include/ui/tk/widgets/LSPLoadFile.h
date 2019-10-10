@@ -67,7 +67,7 @@ namespace lsp
                 LSPString           sPath;
 
             protected:
-                ISurface   *render_disk(ISurface *s, ssize_t w, const Color &c);
+                ISurface           *render_disk(ISurface *s, ssize_t w, const Color &c, const Color &bg);
                 static status_t     slot_on_activate(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_submit(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_close(LSPWidget *sender, void *ptr, void *data);

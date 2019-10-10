@@ -136,40 +136,42 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Estimate palette
+            Color bg_color(sBgColor);
+
             // Render child widgets
             size_t visible = visible_items();
 
             // Draw background if needed
             if ((!visible) && (force))
             {
-                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 return;
             }
 
             // Draw items
-//            Color red(1.0, 0.0, 0.0);
             for (size_t i=0; i<items; ++i)
             {
-                cell_t *w = vItems.at(i);
-                if (hidden_widget(w))
+                cell_t *wc = vItems.at(i);
+                if (hidden_widget(wc))
                     continue;
 
-                if ((force) || (w->pWidget->redraw_pending()))
+                LSPWidget *w = wc->pWidget;
+
+                if ((force) || (w->redraw_pending()))
                 {
                     // Fill unused space with background
                     if (force)
                     {
-                        LSPColor *c = w->pWidget->bg_color();
+                        bg_color.copy(w->bg_color()->color());
                         s->fill_frame(
-                            w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight,
-                            w->s.nLeft, w->s.nTop, w->s.nWidth, w->s.nHeight,
-                            *c
+                            wc->a.nLeft, wc->a.nTop, wc->a.nWidth, wc->a.nHeight,
+                            wc->s.nLeft, wc->s.nTop, wc->s.nWidth, wc->s.nHeight,
+                            bg_color
                         );
-//                        s->wire_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, 1, red);
                     }
-//                    lsp_trace("Rendering this=%p, tgt=%p, force=%d", this, w->pWidget, int(force));
-                    w->pWidget->render(s, force);
-                    w->pWidget->commit_redraw();
+                    w->render(s, force);
+                    w->commit_redraw();
                 }
             }
         }

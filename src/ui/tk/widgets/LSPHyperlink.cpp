@@ -159,8 +159,13 @@ namespace lsp
 
         void LSPHyperlink::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color font((nState & F_MOUSE_IN) ? sHoverColor.color() : sFont.color()->color());
+            font.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Get text parameters
             font_parameters_t fp;
@@ -171,9 +176,6 @@ namespace lsp
             ssize_t n_lines = 1 + sText.count('\n');
             ssize_t dy      = sSize.nHeight - fp.Height*n_lines - (nBorder << 1);
             ssize_t y       = nBorder - fp.Descent + dy * fVAlign;
-
-            // Determine which color to use
-            LSPColor *cl    = (nState & F_MOUSE_IN) ? &sHoverColor : sFont.color();
 
             // Estimate text size
             ssize_t last = 0, curr = 0, tail = 0, len = sText.length();
@@ -200,7 +202,7 @@ namespace lsp
                 ssize_t x   = nBorder + dx * fHAlign - tp.XBearing;
                 y          += fp.Height;
 
-                sFont.draw(s, x, y, *cl, &sText, last, tail);
+                sFont.draw(s, x, y, font, &sText, last, tail);
                 last    = curr + 1;
             }
         }

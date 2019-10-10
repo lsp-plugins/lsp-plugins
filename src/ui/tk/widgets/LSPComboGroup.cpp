@@ -230,6 +230,11 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
 //            lsp_trace("Rendering this=%p, force=%d", this, int(force));
             LSPWidget *current = current_widget();
 
@@ -254,33 +259,30 @@ namespace lsp
 
                 // Draw background
                 if (current == NULL)
-                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 else
                 {
                     realize_t r;
                     current->get_dimensions(&r);
 
-//                    Color red(1.0f, 0.0f, 0.0f);
                     if ((bEmbed) && (nRadius > 1))
                         s->fill_round_frame(
                             sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
                             r.nLeft, r.nTop, r.nWidth, r.nHeight,
                             nRadius-1, SURFMASK_B_CORNER,
-                            sBgColor
-//                            red
+                            bg_color
                         );
                     else
                         s->fill_frame(
                                 sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
                                 r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                                sBgColor
-//                                red
+                                bg_color
                             );
                 }
 
                 // Draw frame
                 bool aa = s->set_antialiasing(true);
-                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, sColor);
+                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, color);
 
                 ssize_t bwidth      = 12;
                 sGroupHdr.nLeft     = cx;
@@ -295,35 +297,37 @@ namespace lsp
                     // Draw text border
                     font_parameters_t   fp;
                     text_parameters_t   tp;
-
                     sFont.get_parameters(s, &fp);
                     sFont.get_text_parameters(s, &tp, text);
 
                     sGroupHdr.nWidth    = 4 + nRadius + tp.Width + bwidth;
                     sGroupHdr.nHeight   = fp.Height + 4;
 
-                    s->fill_round_rect(cx - 1, cy-1, sGroupHdr.nWidth, sGroupHdr.nHeight, nRadius, 0x04, sColor);
+                    s->fill_round_rect(cx - 1, cy-1, sGroupHdr.nWidth, sGroupHdr.nHeight, nRadius, 0x04, color);
 
                     // Show text
-                    sFont.draw(s, cx + bwidth + 4 , cy + fp.Ascent + nBorder, text);
+                    Color font(sFont.raw_color());
+                    font.scale_lightness(brightness());
+
+                    sFont.draw(s, cx + bwidth + 4 , cy + fp.Ascent + nBorder, font, text);
 
                     // Draw buttons
                     ssize_t half = sGroupHdr.nTop + (fp.Height * 0.5f);
-                    LSPColor *c = sFont.color();
+
                     s->fill_triangle(
                             cx + 2, half - 2,
                             cx + bwidth - 2, half - 2,
                             cx + bwidth*0.5f, half - 6,
-                            *c);
+                            font);
 
                     s->fill_triangle(
                             cx + 2, half + 1,
                             cx + bwidth - 2, half + 1,
                             cx + bwidth*0.5f, half + 5,
-                            *c);
+                            font);
 
                     s->set_antialiasing(false);
-                    s->line(cx + bwidth + 2, cy + 1, cx + bwidth + 2, cy + fp.Height + 1, 1, *c);
+                    s->line(cx + bwidth + 2, cy + 1, cx + bwidth + 2, cy + fp.Height + 1, 1, font);
                 }
 
                 s->set_antialiasing(aa);

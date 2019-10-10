@@ -19,6 +19,8 @@ namespace lsp
 
             protected:
                 LSPColor            sColor;
+                LSPColor            sHoleColor;
+                LSPColor            sGlassColor;
                 size_t              nSize;
                 bool                bOn;
 
@@ -29,7 +31,11 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                inline LSPColor *color()    { return &sColor; }
+                inline LSPColor *color()        { return &sColor; }
+
+                inline LSPColor *hole_color()   { return &sHoleColor; }
+
+                inline LSPColor *glass_color()  { return &sGlassColor; }
 
                 inline bool on() const      { return bOn; }
 

@@ -30,12 +30,15 @@ namespace lsp
             if ((pStyle == NULL) || (pProperty == NULL))
                 return;
 
-            if (property == aValue)
-            {
-                float v = 0.0f;
-                if (pStyle->get_float(aValue, &v) == STATUS_OK)
-                    pProperty->set(v);
-            }
+            if (property != aValue)
+                return;
+
+            if (pStyle->get_float(aValue, &pProperty->fValue) != STATUS_OK)
+                return;
+
+            // Query widget for redraw
+            if (pProperty->pWidget != NULL)
+                pProperty->pWidget->query_draw();
         }
 
         void LSPFloat::Listener::sync()

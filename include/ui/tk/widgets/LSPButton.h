@@ -76,8 +76,6 @@ namespace lsp
                 void            set_toggle();
                 void            set_normal();
                 void            set_editable(bool value = true);
-                void            set_color(const Color *c);
-                void            set_bg_color(const Color *c);
                 void            set_down(bool value = true);
                 void            set_led(bool value = true);
                 void            set_min_width(size_t value);

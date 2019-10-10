@@ -427,16 +427,21 @@ namespace lsp
             if (lst != NULL)
                 s->draw(lst, sArea.nLeft, sArea.nTop);
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw the frame around
             size_t dx = (sVBar.visible()) ? 7 : 6;
             size_t dy = (sHBar.visible()) ? 7 : 6;
 
             s->fill_frame(sSize.nLeft, sSize.nTop, sArea.nWidth + dx, sArea.nHeight + dy,
                         sArea.nLeft, sArea.nTop, sArea.nWidth, sArea.nHeight,
-                        sBgColor);
+                        bg_color);
 
             bool aa = s->set_antialiasing(true);
-            s->wire_round_rect(sSize.nLeft + 0.5f, sSize.nTop + 0.5f, sArea.nWidth + 5, sArea.nHeight + 5, 2, SURFMASK_ALL_CORNER, 1, sColor);
+            s->wire_round_rect(sSize.nLeft + 0.5f, sSize.nTop + 0.5f, sArea.nWidth + 5, sArea.nHeight + 5, 2, SURFMASK_ALL_CORNER, 1, color);
             s->set_antialiasing(aa);
 
             // Finally, draw scroll bars
@@ -460,8 +465,18 @@ namespace lsp
 
         void LSPListBox::draw(ISurface *s)
         {
-            s->clear(sBgColor);
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            Color font(sFont.raw_color());
 
+            color.scale_lightness(brightness());
+            font.scale_lightness(brightness());
+
+            // Draw background
+            s->clear(bg_color);
+
+            // Draw
             font_parameters_t fp;
             sFont.get_parameters(s, &fp);
 
@@ -481,11 +496,11 @@ namespace lsp
 
                 if (sSelection.contains(first))
                 {
-                    s->fill_rect(0.0f, y, sArea.nWidth, fp.Height, *(sFont.color()));
-                    sFont.draw(s, 1.0f, y + fp.Ascent, sBgColor, text);
+                    s->fill_rect(0.0f, y, sArea.nWidth, fp.Height, font);
+                    sFont.draw(s, 1.0f, y + fp.Ascent, bg_color, text);
                 }
                 else
-                    sFont.draw(s, 1.0f, y + fp.Ascent, text);
+                    sFont.draw(s, 1.0f, y + fp.Ascent, font, text);
             }
         }
 

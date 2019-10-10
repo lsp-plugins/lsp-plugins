@@ -134,6 +134,10 @@ namespace lsp
                 return;
             }
 
+            // Prepare palette
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Determine number of dimensions
             size_t basis    = (sBasis.size() > 0) ? sBasis.size() : cv->basis_axes();
             size_t n_vecs   = (nDimensions > basis) ? basis : nDimensions;
@@ -205,11 +209,11 @@ namespace lsp
             // Now we have dots in x_vec[] and y_vec[]
             bool aa = s->set_antialiasing(bSmooth);
             if (sColor.alpha() <= 0.0f)
-                s->wire_poly(x_vec, y_vec, nPoints, nWidth, sColor);
+                s->wire_poly(x_vec, y_vec, nPoints, nWidth, color);
             else
             {
                 Color wire(sColor, 0.0f);
-                s->draw_poly(x_vec, y_vec, nPoints, nWidth, sColor, wire);
+                s->draw_poly(x_vec, y_vec, nPoints, nWidth, color, wire);
             }
             s->set_antialiasing(aa);
         }

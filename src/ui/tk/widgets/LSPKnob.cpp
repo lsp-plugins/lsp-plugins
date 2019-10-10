@@ -398,7 +398,7 @@ namespace lsp
             Color cap(sColor);
             Color tip(sTipColor);
 
-            sdcol.blend(sBgColor, 0.75f);
+            sdcol.blend(bg_color, 0.75f);
 
             scol.scale_lightness(bright);
             sdcol.scale_lightness(bright);

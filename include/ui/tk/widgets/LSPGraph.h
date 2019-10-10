@@ -44,7 +44,7 @@ namespace lsp
                 #endif /* LSP_TRACE */
 
             protected:
-                ISurface       *get_canvas(ISurface *s, ssize_t w, ssize_t h);
+                ISurface       *get_canvas(ISurface *s, ssize_t w, ssize_t h, const Color &color);
                 void            do_destroy();
 
             protected:

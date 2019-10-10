@@ -42,6 +42,8 @@ namespace lsp
             inline Color(float r, float g, float b): R(r), G(g), B(b), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
             inline Color(const Color &src): R(src.R), G(src.G), B(src.B), H(src.H), S(src.S), L(src.L), nMask(src.nMask), A(src.A) {};
             inline Color(const Color &src, float a): R(src.R), G(src.G), B(src.B), H(src.H), S(src.S), L(src.L), nMask(src.nMask), A(a) {};
+            inline Color(const Color *src): R(src->R), G(src->G), B(src->B), H(src->H), S(src->S), L(src->L), nMask(src->nMask), A(src->A) {};
+            inline Color(const Color *src, float a): R(src->R), G(src->G), B(src->B), H(src->H), S(src->S), L(src->L), nMask(src->nMask), A(a) {};
             inline Color(uint32_t rgb): R(float((rgb >> 16) & 0xff)/255.0f), G(float((rgb >> 8) & 0xff)/255.0f), B(float(rgb & 0xff)/255.0f), H(0.0f), S(0.0f), L(0.0f), nMask(M_RGB), A(0) {};
             inline Color(uint32_t rgb, float a): R(float((rgb >> 16) & 0xff)/255.0f), G(float((rgb >> 8) & 0xff)/255.0f), B(float(rgb & 0xff)/255.0f), H(0.0f), S(0.0f), L(0.0f), nMask(M_RGB), A(a) {};
 

@@ -84,8 +84,13 @@ namespace lsp
 
         void LSPSeparator::render(ISurface *s, bool force)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Draw separator
             ssize_t width   = sSize.nWidth - nBorder * 2;
@@ -96,14 +101,14 @@ namespace lsp
                 ssize_t length  = (nSize >= 0) ? nSize : width - nPadding * 2;
                 if (length < ssize_t(nLineWidth))
                     length      = nLineWidth;
-                s->fill_rect(sSize.nLeft + ((sSize.nWidth - length) >> 1), sSize.nTop + ((sSize.nHeight - nLineWidth) >> 1), length, nLineWidth, sColor);
+                s->fill_rect(sSize.nLeft + ((sSize.nWidth - length) >> 1), sSize.nTop + ((sSize.nHeight - nLineWidth) >> 1), length, nLineWidth, color);
             }
             else
             {
                 ssize_t length  = (nSize >= 0) ? nSize : height - nPadding * 2;
                 if (length < ssize_t(nLineWidth))
                     length      = nLineWidth;
-                s->fill_rect(sSize.nLeft + ((sSize.nWidth - nLineWidth) >> 1), sSize.nTop + ((sSize.nHeight - length) >> 1), nLineWidth, length, sColor);
+                s->fill_rect(sSize.nLeft + ((sSize.nWidth - nLineWidth) >> 1), sSize.nTop + ((sSize.nHeight - length) >> 1), nLineWidth, length, color);
             }
         }
 

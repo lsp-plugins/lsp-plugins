@@ -249,6 +249,11 @@ namespace lsp
             if (cv == NULL)
                 return;
 
+            // Generate palette
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
+            // Prepare arguments
             float left  = sLeft.fValue;
             float top   = sTop.fValue;
 
@@ -286,7 +291,7 @@ namespace lsp
                     Color c2(sColor, 0.9f);
 
                     IGradient *gr = s->radial_gradient(x, y, 0.0f, x, y, radius);
-                    gr->add_color(0.0f, sColor);
+                    gr->add_color(0.0f, color);
                     gr->add_color(1.0f, c2);
                     s->fill_circle(x, y, radius, gr);
 
@@ -296,7 +301,7 @@ namespace lsp
                 Color hole(0.0f, 0.0f, 0.0f);
                 s->set_antialiasing(bSmooth);
                 s->fill_circle(x, y, nSize, hole);
-                s->fill_circle(x, y, nSize-1, sColor);
+                s->fill_circle(x, y, nSize-1, color);
                 s->set_antialiasing(aa);
             }
             else
@@ -312,7 +317,7 @@ namespace lsp
                         Color c2(sColor, 0.9f);
 
                         IGradient *gr = s->radial_gradient(x, y, 0.0f, x, y, nBorder);
-                        gr->add_color(0.0f, sColor);
+                        gr->add_color(0.0f, color);
                         gr->add_color(1.0f, c2);
                         s->fill_circle(x, y, nBorder, gr);
 
@@ -325,7 +330,7 @@ namespace lsp
                 }
 
                 s->set_antialiasing(bSmooth);
-                s->fill_circle(x, y, nSize-1, sColor);
+                s->fill_circle(x, y, nSize-1, color);
                 s->set_antialiasing(aa);
             }
         }

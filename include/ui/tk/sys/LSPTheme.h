@@ -32,6 +32,7 @@ namespace lsp
                 LSPStyle                sStyle;
                 LSPColor                sBgColor;
                 LSPColor                sHoleColor;
+                LSPColor                sGlassColor;
                 LSPFloat                sBrightness;
 
             private:

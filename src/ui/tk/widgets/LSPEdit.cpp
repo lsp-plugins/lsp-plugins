@@ -420,14 +420,24 @@ namespace lsp
             text_parameters_t tp;
             ssize_t pad  = 3;
 
-            s->clear(sBgColor);
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            Color fcol(sFont.raw_color());
+            Color sel_col(sSelColor);
 
+            color.scale_lightness(brightness());
+            fcol.scale_lightness(brightness());
+            sel_col.scale_lightness(brightness());
+
+            // Draw background
+            s->clear(bg_color);
+
+            // Draw
             bool aa = s->set_antialiasing(true);
-            s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, sColor);
+            s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, color);
 
             s->set_antialiasing(aa);
-            LSPColor *fcol = sFont.color();
-
             ssize_t fw = sSize.nWidth - pad *2;
 
             sFont.get_parameters(s, &fp);
@@ -480,60 +490,56 @@ namespace lsp
                 if (first > 0)
                 {
                     sFont.get_text_parameters(s, &tp, &sText, 0, first);
-                    sFont.draw(s, xpos, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, &sText, 0, first);
+                    sFont.draw(s, xpos, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, fcol, &sText, 0, first);
                     xpos           += /*tp.XBearing + */ tp.XAdvance;
                 }
                 sFont.get_text_parameters(s, &tp, &sText, first, last);
-                s->fill_rect(xpos, pad, tp.XBearing + tp.XAdvance, sSize.nHeight - pad*2, sSelColor);
-                sFont.draw(s, xpos, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, sColor, &sText, first, last);
+                s->fill_rect(xpos, pad, tp.XBearing + tp.XAdvance, sSize.nHeight - pad*2, sel_col);
+                sFont.draw(s, xpos, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, color, &sText, first, last);
                 xpos           += /*tp.XBearing + */ tp.XAdvance;
 
                 if (last < ssize_t(sText.length()))
                 {
                     sFont.get_text_parameters(s, &tp, &sText, last);
-                    sFont.draw(s, xpos, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, &sText, last);
+                    sFont.draw(s, xpos, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, fcol, &sText, last);
                     xpos           += /*tp.XBearing + */ tp.XAdvance;
                 }
             }
             else
-                sFont.draw(s, sTextPos + pad, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, &sText);
+                sFont.draw(s, sTextPos + pad, pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f + fp.Ascent, fcol, &sText);
 
             // Draw cursor if required
             if (sCursor.visible() && sCursor.shining())
             {
-//                sFont.get_text_parameters(s, &tp, &sText, ileft, sCursor.location());
-//                ileft += sCursor.location();
                 float cleft = xleft + pad ; // + tp.XAdvance + tp.XBearing;
                 float ctop  = pad + (sSize.nHeight - pad * 2 - fp.Height)*0.5f;
 
                 if (sCursor.inserting())
                 {
                     if ((sSelection.valid()) && (!sSelection.is_empty()))
-                        s->line(cleft + 0.5f, ctop, cleft, ctop + fp.Height, 1.0f, sBgColor);
+                        s->line(cleft + 0.5f, ctop, cleft, ctop + fp.Height, 1.0f, bg_color);
                     else
-                        s->line(cleft + 0.5f, ctop, cleft, ctop + fp.Height, 1.0f, *fcol);
+                        s->line(cleft + 0.5f, ctop, cleft, ctop + fp.Height, 1.0f, fcol);
                 }
                 else // replacing
                 {
                     if (sCursor.position() >= ssize_t(sText.length()))
                     {
                         sFont.get_text_parameters(s, &tp, "_");
-                        s->fill_rect(cleft, pad, tp.XAdvance, sSize.nHeight - pad * 2, sBgColor);
+                        s->fill_rect(cleft, pad, tp.XAdvance, sSize.nHeight - pad * 2, bg_color);
                     }
                     else
                     {
                         sFont.get_text_parameters(s, &tp, &sText, sCursor.position(), sCursor.position() + 1);
                         ssize_t xw = (tp.XAdvance > tp.Width) ? tp.XAdvance : tp.Width + 1;
-                        s->fill_rect(cleft + tp.XBearing - 1, pad, xw, sSize.nHeight - pad * 2, sBgColor);
-                        sFont.draw(s, cleft, ctop + fp.Ascent, sColor, &sText, sCursor.position(), sCursor.position() + 1);
-//                        sFont.get_text_parameters(s, &tp, &sText, sCursor.position(), sCursor.position() + 1);
-//                        s->line(cleft, sSize.nHeight - pad - 0.5f, cleft + tp.XAdvance, sSize.nHeight - pad - 0.5f, 1.0f, *fcol);
+                        s->fill_rect(cleft + tp.XBearing - 1, pad, xw, sSize.nHeight - pad * 2, bg_color);
+                        sFont.draw(s, cleft, ctop + fp.Ascent, color, &sText, sCursor.position(), sCursor.position() + 1);
                     }
                 }
             }
 
             s->set_antialiasing(true);
-            s->wire_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, 1, sColor);
+            s->wire_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, 1, color);
 
             s->set_antialiasing(aa);
         }

@@ -157,6 +157,11 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
 //            lsp_trace("Rendering this=%p, force=%d", this, int(force));
             // Draw child
             if (pWidget != NULL)
@@ -179,7 +184,7 @@ namespace lsp
 
                 // Draw background
                 if (pWidget == NULL)
-                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 else
                 {
                     realize_t r;
@@ -190,21 +195,19 @@ namespace lsp
                             sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
                             r.nLeft, r.nTop, r.nWidth, r.nHeight,
                             nRadius-1, SURFMASK_B_CORNER,
-                            sBgColor
-//                            red
+                            bg_color
                         );
                     else
                         s->fill_frame(
                                 sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
                                 r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                                sBgColor
-//                                red
+                                bg_color
                             );
                 }
 
                 // Draw frame
                 bool aa = s->set_antialiasing(true);
-                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, sColor);
+                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, color);
 
                 // Draw text frame
                 if (sText.length() > 0)
@@ -216,10 +219,12 @@ namespace lsp
                     sFont.get_parameters(s, &fp);
                     sFont.get_text_parameters(s, &tp, &sText);
 
-                    s->fill_round_rect(cx-1, cy-1, 4 + nRadius + tp.Width, fp.Height + 4, nRadius, 0x04, sColor);
+                    s->fill_round_rect(cx-1, cy-1, 4 + nRadius + tp.Width, fp.Height + 4, nRadius, 0x04, color);
 
                     // Show text
-                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, &sText);
+                    Color font(sFont.raw_color());
+                    font.scale_lightness(brightness());
+                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, font, &sText);
                 }
 
                 s->set_antialiasing(aa);

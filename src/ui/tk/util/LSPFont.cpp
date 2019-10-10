@@ -322,28 +322,38 @@ namespace lsp
 
         void LSPFont::draw(ISurface *s, float x, float y, const char *text)
         {
-            s->out_text(sFont, x, y, text, sColor);
+            Color tmp(sColor);
+            s->out_text(sFont, x, y, text, tmp);
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const LSPString *text)
         {
             const char *str = text->get_utf8();
             if (str != NULL)
-                s->out_text(sFont, x, y, str, sColor);
+            {
+                Color tmp(sColor);
+                s->out_text(sFont, x, y, str, tmp);
+            }
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const LSPString *text, size_t first)
         {
             const char *str = text->get_utf8(first);
             if (str != NULL)
-                s->out_text(sFont, x, y, str, sColor);
+            {
+                Color tmp(sColor);
+                s->out_text(sFont, x, y, str, tmp);
+            }
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const LSPString *text, size_t first, size_t last)
         {
             const char *str = text->get_utf8(first, last);
             if (str != NULL)
-                s->out_text(sFont, x, y, str, sColor);
+            {
+                Color tmp(sColor);
+                s->out_text(sFont, x, y, str, tmp);
+            }
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const Color & c, const char *text)

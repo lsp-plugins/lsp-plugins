@@ -127,10 +127,13 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Initialize palette
+            Color bg_color(sBgColor);
+
             // Draw background if child is invisible or not present
             if ((pWidget == NULL) || (!pWidget->visible()))
             {
-                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 return;
             }
 
@@ -143,7 +146,7 @@ namespace lsp
                     s->fill_frame(
                         sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
                         r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                        sBgColor
+                        bg_color
                     );
                 }
 

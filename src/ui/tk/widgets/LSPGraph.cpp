@@ -86,7 +86,7 @@ namespace lsp
             LSPWidgetContainer::destroy();
         }
 
-        ISurface *LSPGraph::get_canvas(ISurface *s, ssize_t w, ssize_t h)
+        ISurface *LSPGraph::get_canvas(ISurface *s, ssize_t w, ssize_t h, const Color & color)
         {
             // Check surface
             if (pCanvas != NULL)
@@ -110,7 +110,7 @@ namespace lsp
             }
 
             // Clear canvas
-            pCanvas->clear(sColor);
+            pCanvas->clear(color);
 
             // Draw all objects
             size_t n_objects = vObjects.size();
@@ -308,20 +308,20 @@ namespace lsp
 
         void LSPGraph::draw(ISurface *s)
         {
-//            #ifdef LSP_TRACE
-//            if (sClock.tv_sec == 0)
-//                clock_gettime(CLOCK_REALTIME, &sClock);
-//            #endif /* LSP_TRACE */
+            // Prepare palette
+            Color color(sColor);
+            Color bg_color(sColor);
+            color.scale_lightness(brightness());
 
             // Draw background
             ssize_t pr = (nBorder + 1) >> 1;
             s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
                     pr, pr, sSize.nWidth - 2*pr, sSize.nHeight - 2*pr,
-                    sBgColor);
+                    bg_color);
 
             size_t bw = nBorder;
 
-            s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, sColor);
+            s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, color);
 
             // Draw graph content
             size_t bs   = bw * M_SQRT2 * 0.5;
@@ -329,30 +329,16 @@ namespace lsp
             ssize_t gh  = sSize.nHeight - (bs << 1);
 
             // Draw the internals
-            ISurface *cv = get_canvas(s, gw, gh);
+            ISurface *cv = get_canvas(s, gw, gh, color);
             if (cv != NULL)
                 s->draw(cv, bs, bs);
             fCanvasLeft = sSize.nLeft + bs;
             fCanvasTop  = sSize.nTop + bs;
 
             // Draw the glass and the border
-            cv = create_border_glass(s, &pGlass, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, sColor);
+            cv = create_border_glass(s, &pGlass, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, color);
             if (cv != NULL)
                 s->draw(cv, 0, 0);
-
-//            #ifdef LSP_TRACE
-//            nFrames ++;
-//            struct timespec stime;
-//            clock_gettime(CLOCK_REALTIME, &stime);
-//            if ((stime.tv_sec - sClock.tv_sec) >= 5)
-//            {
-//                double dt = double(stime.tv_sec - sClock.tv_sec) + double(stime.tv_nsec - sClock.tv_nsec)*1e-9;
-//                lsp_trace("seconds = %.2f, FPS = %.2f", dt, nFrames / dt);
-//
-//                nFrames = 0;
-//                sClock = stime;
-//            }
-//            #endif /* LSP_TRACE */
         }
     } /* namespace tk */
 } /* namespace lsp */

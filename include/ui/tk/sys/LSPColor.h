@@ -125,9 +125,9 @@ namespace lsp
                 inline uint32_t rgb24() const { return sColor.rgb24(); }
 
             public:
-                inline const Color *color() { return &sColor; }
+                inline const Color *color() const { return &sColor; }
 
-                operator const Color &() const { return sColor;  }
+//                operator const Color &() const { return sColor;  }
                 operator const Color *() const { return &sColor; }
         };
 

@@ -155,6 +155,10 @@ namespace lsp
             if (cv == NULL)
                 return;
 
+            // Prepare palette
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Get basis
             LSPAxis *basis      = cv->axis(nBasisID);
             if (basis == NULL)
@@ -216,8 +220,8 @@ namespace lsp
                 IGradient *g = s->linear_gradient(x, y, nx, ny);
                 if (g != NULL)
                 {
-                    g->add_color(0.0f, sColor, 0.25f  + 0.5f * (1.0f - sColor.alpha()));
-                    g->add_color(1.0f, sColor, 1.0f);
+                    g->add_color(0.0f, color, 0.25f  + 0.5f * (1.0f - color.alpha()));
+                    g->add_color(1.0f, color, 1.0f);
 
                     s->parametric_bar(
                         a, b, c, a2, b2, c2,

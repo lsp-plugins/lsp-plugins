@@ -384,8 +384,13 @@ namespace lsp
 
         void LSPFader::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Clear surface
-            s->clear(sBgColor);
+            s->clear(bg_color);
             ssize_t l, t;
 
             if (nAngle & 1) // Vertical
@@ -401,7 +406,7 @@ namespace lsp
 
             // Draw the hole
             bool aa = s->set_antialiasing(true);
-            Color hole(sBgColor);
+            Color hole(bg_color);
             float hlb = hole.lightness() + 0.5f;
             float hld = 0;
             float r = (nAngle & 1) ? sqrtf(sSize.nHeight*sSize.nHeight + 64) : sqrtf(sSize.nWidth*sSize.nWidth + 64);
@@ -457,7 +462,7 @@ namespace lsp
 
                 IGradient *gr = s->radial_gradient(bl, bt + rh, b_rad * 0.25f, bl, bt + rh, b_rad * 3.0f);
 
-                Color cl(sColor);
+                Color cl(color);
                 cl.lightness(bright);
                 gr->add_color(0.0f, cl);
                 cl.darken(0.9f);
