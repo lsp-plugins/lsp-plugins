@@ -5,6 +5,8 @@
 				<label text="Mode" />
 				<combo id="mode" />
 				
+				<button text="Freeze" size="16" width="64" led="true" id="freeze" color="yellow" />
+				
 				<label text="Spectrogram" visibility=":mode ige 4" />
 				<combo id="spm" visibility=":mode ige 4" />
 				

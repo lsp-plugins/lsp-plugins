@@ -609,7 +609,6 @@ namespace lsp
 
                 // Bypass signal
                 dsp::copy(c->vOut, c->vIn, count);
-                sAnalyzer.process(i, c->vIn, count);  // Process the data
 
                 if (bBypass)
                 {
@@ -623,6 +622,9 @@ namespace lsp
                 }
                 else
                 {
+                    // Process the data
+                    sAnalyzer.process(i, c->vIn, count);
+
                     // Copy data to output channel
                     if (data_request)
                     {
