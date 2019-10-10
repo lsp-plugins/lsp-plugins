@@ -2,6 +2,14 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Analyzer ====
+
+Sciurius:
+  Using the LSP multichannel (x2, x4, …) Spectrumanalyzer I can hold (freeze the graph) of each
+  of the channels. But how can I hold all channels simultanesously?
+  
+  https://discourse.ardour.org/t/spectrumanalyzer-hold-multiple-channels/88489
+
 ==== Equalizer ====
 
 unfa:

@@ -5,6 +5,8 @@
 				<label text="Mode" />
 				<combo id="mode" />
 				
+				<button text="Freeze" size="16" width="64" led="true" id="freeze" color="yellow" />
+				
 				<label text="Spectrogram" visibility=":mode ige 2" />
 				<combo id="spm" visibility=":mode ige 2" />
 				
@@ -161,8 +163,8 @@
 					<label text="Hue" />
 					<label text="Shift" />
 					
-					<button id="on_0" size="16" color="red" led="true" hue_id="hue_0" />
-					<button id="frz_0" size="16" color="red" led="true" hue_id="hue_0"  />
+					<button id="on_0" size="32" color="red" led="true" hue_id="hue_0" />
+					<button id="frz_0" size="32" color="red" led="true" hue_id="hue_0"  />
 					<knob id="hue_0" scale_hue_id="hue_0" />
 					<knob id="sh_0" scale_hue_id="hue_0" />
 					
