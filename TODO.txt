@@ -43,6 +43,7 @@
 * Additionally optimized DSP biquad filters for 32-bit ARM NEON instruction set.
 * Updated UI of the Graphic Equalizer plugin series.
 * Updated UI of the Multiband Compressor plugin series.
+- Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
