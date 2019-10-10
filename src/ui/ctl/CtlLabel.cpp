@@ -193,7 +193,6 @@ namespace lsp
             // Get metadata and value
             if (pPort == NULL)
                 return;
-            lsp_trace("Commit %s = %f", pPort->id(), pPort->get_value());
 
             const port_t *mdata = pPort->metadata();
             if (mdata == NULL)
@@ -294,8 +293,6 @@ namespace lsp
 
         bool CtlLabel::apply_value(const LSPString *value)
         {
-            lsp_trace("Apply value: %s", value->get_utf8());
-
             const port_t *meta = (pPort != NULL) ? pPort->metadata() : NULL;
             if ((meta == NULL) || (!IS_IN_PORT(meta)))
                 return false;

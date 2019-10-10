@@ -41,7 +41,8 @@
 * Implemented more advanced expression language for UIs.
 * Implemented styling system and basic styling mechanism for UIs.
 * Additionally optimized DSP biquad filters for 32-bit ARM NEON instruction set.
-* Updated UI of Graphic Equalizer plugins.
+* Updated UI of the Graphic Equalizer plugin series.
+* Updated UI of the Multiband Compressor plugin series.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.

@@ -60,12 +60,12 @@ namespace lsp
                 if (p != NULL)
                     p->unbind(this);
             }
-            vDependencies.flush();
+            vDependencies.clear();
         }
 
         void CtlExpression::notify(CtlPort *port)
         {
-            if (vDependencies.index_of(port) < 0)
+            if (!depends(port))
                 return;
             if (pListener == NULL)
                 return;
@@ -164,14 +164,14 @@ namespace lsp
 
         status_t CtlExpression::on_resolved(const LSPString *name, CtlPort *p)
         {
-            lsp_trace("[%s] resolved %s -> %s = %f", sText.get_utf8(), name->get_utf8(), p->id(), p->get_value());
+            // lsp_trace("[%s] resolved %s -> %s = %f", sText.get_utf8(), name->get_utf8(), p->id(), p->get_value());
             // Already subscribed?
             if (vDependencies.index_of(p) >= 0)
                 return STATUS_OK;
 
             if (!vDependencies.add(p))
                 return STATUS_NO_MEM;
-            lsp_trace("bind to %s", p->id());
+            // lsp_trace("bind to %s", p->id());
             p->bind(this);
             return STATUS_OK;
         }
