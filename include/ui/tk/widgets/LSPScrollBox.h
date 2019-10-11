@@ -56,11 +56,15 @@ namespace lsp
                 LSPScrollBar        sVBar;
 
             protected:
+                static status_t     slot_on_scroll(LSPWidget *sender, void *ptr, void *data);
+
+            protected:
                 static inline bool  hidden_widget(const cell_t *w);
                 size_t              visible_items();
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
                 void                do_destroy();
                 virtual void        estimate_allocation(allocation_t *alloc);
+                void                realize_children();
 
             public:
                 explicit LSPScrollBox(LSPDisplay *dpy, bool horizontal = true);

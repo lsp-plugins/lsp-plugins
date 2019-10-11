@@ -183,6 +183,28 @@ namespace lsp
             // Estimate palette
             Color bg_color(sBgColor);
 
+            realize_t area;
+            area.nLeft      = left();
+            area.nTop       = top();
+            area.nWidth     = width();
+            area.nHeight    = height();
+
+            // Render scroll bars
+            if (sVBar.visible())
+            {
+                area.nWidth    -= sVBar.width();
+                if ((force) || (sVBar.redraw_pending()))
+                    sVBar.render(s, force);
+            }
+            if (sHBar.visible())
+            {
+                area.nHeight   -= sHBar.height();
+                if ((force) || (sHBar.redraw_pending()))
+                    sHBar.render(s, force);
+            }
+            if ((sHBar.visible()) && (sVBar.visible()))
+                s->fill_rect(sVBar.left(), sHBar.top(), sVBar.width(), sHBar.height(), bg_color);
+
             // Render child widgets
             size_t visible = visible_items();
 
@@ -193,7 +215,9 @@ namespace lsp
                 return;
             }
 
-            // Draw items
+            // Draw items clipped
+            s->clip_begin(area.nLeft, area.nTop, area.nWidth, area.nHeight);
+
             for (size_t i=0; i<items; ++i)
             {
                 cell_t *wc = vItems.at(i);
@@ -218,6 +242,8 @@ namespace lsp
                     w->commit_redraw();
                 }
             }
+
+            s->clip_end();
         }
 
         status_t LSPScrollBox::add(LSPWidget *widget)
@@ -488,11 +514,19 @@ namespace lsp
             }
 
             // Now we have n_left=0, now need to generate proper Left and Top coordinates of widget
-            ssize_t l = r->nLeft - sHBar.value(), t = r->nTop - sVBar.value(); // Left-Top corner
+            realize_children();
+        }
+
+        void LSPScrollBox::realize_children()
+        {
+            // Left-Top corner
+            size_t visible = visible_items();
+            ssize_t l = left() - ssize_t((sHBar.visible()) ? sHBar.value() : 0.0f);
+            ssize_t t = top() - ssize_t((sVBar.visible()) ? sVBar.value() : 0.0f);
             size_t counter = 0;
 
-            // Now completely apply geometry to each widget
-            for (size_t i=0; i<n_items; ++i)
+            // Apply geometry to each widget
+            for (size_t i=0, n_items=vItems.size(); i<n_items; ++i)
             {
                 // Get widget
                 cell_t *w = vItems.at(i);
@@ -714,6 +748,15 @@ namespace lsp
             estimate_allocation(&alloc);
             *r              = alloc.r;
         }
-    
+
+        status_t LSPScrollBox::slot_on_scroll(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPScrollBox *box = widget_ptrcast<LSPScrollBox>(data);
+            if (box == NULL)
+                return STATUS_BAD_STATE;
+            box->realize_children();
+            return STATUS_OK;
+        }
+
     } /* namespace tk */
 } /* namespace lsp */

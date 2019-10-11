@@ -628,6 +628,20 @@ namespace lsp
                  */
                 virtual void fill_circle(float x, float y, float r, IGradient *g);
 
+                /**
+                 * Begin clipping of the rectangle area
+                 * @param x left-top corner X coordinate
+                 * @param y left-top corner Y coordinate
+                 * @param w width
+                 * @param h height
+                 */
+                virtual void clip_begin(float x, float y, float w, float h);
+
+                /**
+                 * End clipping
+                 */
+                virtual void clip_end();
+
                 /** Get anti-aliasing
                  *
                  * @return anti-aliasing state
