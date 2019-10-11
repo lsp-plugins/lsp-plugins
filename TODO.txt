@@ -44,6 +44,7 @@
 * Updated UI of the Graphic Equalizer plugin series.
 * Updated UI of the Multiband Compressor plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
+- Added bookmarks to file opening dialog.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
@@ -52,7 +53,6 @@
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
 - Optimize DSP for AArch64 architecture.
 - Additionally optimized DSP code with AVX, AVX2 and FMA3 instruction set.
-- Added bookmarks to file opening dialog.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
 - Added frequency-domain spectral analysis to convolver plugin series.

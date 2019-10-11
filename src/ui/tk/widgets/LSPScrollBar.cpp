@@ -125,6 +125,7 @@ namespace lsp
                 return;
 
             fValue      = value;
+            sSlots.execute(LSPSLOT_CHANGE, this);
             query_draw();
         }
 

@@ -25,8 +25,15 @@ namespace lsp
          */
         enum orientation_t
         {
-            O_HORIZONTAL,//!< O_HORIZONTAL horizontal orientation
-            O_VERTICAL   //!< O_VERTICAL vertical orientation
+            O_HORIZONTAL,       //!< O_HORIZONTAL horizontal orientation
+            O_VERTICAL          //!< O_VERTICAL vertical orientation
+        };
+
+        enum scrolling_t
+        {
+            SCROLL_NONE,        //!< SCROLL_NONE no scrolling permitted
+            SCROLL_OPTIONAL,    //!< SCROLL_OPTIONAL scrolling is permitted but in optional state
+            SCROLL_ALWAYS       //!< SCROLL_ALWAYS scrolling is permitted but in optional state
         };
 
         /** Widget classes
@@ -254,6 +261,7 @@ namespace lsp
 #include <ui/tk/widgets/LSPComboGroup.h>
 #include <ui/tk/widgets/LSPProgressBar.h>
 #include <ui/tk/widgets/LSPAudioSample.h>
+#include <ui/tk/widgets/LSPScrollBox.h>
 
 // Dialogs
 #include <ui/tk/widgets/dialogs/LSPMessageBox.h>
