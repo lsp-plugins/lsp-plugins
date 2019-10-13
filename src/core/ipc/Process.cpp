@@ -661,6 +661,19 @@ namespace lsp
             return status() != PSTATUS_ERROR;
         }
 
+        ssize_t Process::process_id() const
+        {
+            switch (nStatus)
+            {
+                case PSTATUS_RUNNING:
+                case PSTATUS_EXITED:
+                    return nPID;
+                default:
+                    break;
+            }
+            return -1;
+        }
+
         status_t Process::exit_code(int *code)
         {
             if (code == NULL)

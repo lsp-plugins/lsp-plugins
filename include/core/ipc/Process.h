@@ -346,6 +346,12 @@ namespace lsp
                 bool        exited();
 
                 /**
+                 * Get unique process identifier
+                 * @return process identifier
+                 */
+                ssize_t     process_id() const;
+
+                /**
                  * Wait for the process termination
                  * @param millis number of milliseconds to wait, negative value means infinite wait
                  * @return status of operation

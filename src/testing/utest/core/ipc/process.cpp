@@ -98,6 +98,7 @@ UTEST_BEGIN("core.ipc", process)
             p.set_command(&cmd);
             p.add_arg("utest");
             p.add_arg("--debug");
+            p.add_arg("--verbose");
             p.add_arg("--nofork");
             p.add_arg(full_name());
             p.add_arg("--args");
@@ -109,29 +110,38 @@ UTEST_BEGIN("core.ipc", process)
             p.set_env(ENV_VAR_NAME, "test_value");
 
             // Redirect stdout and stderr
-            io::IInStream *xstdout = p.get_stdout();
-            UTEST_ASSERT(xstdout != NULL);
-            io::IInStream *xstderr = p.get_stderr();
-            UTEST_ASSERT(xstderr != NULL);
+//            io::IInStream *xstdout = p.get_stdout();
+//            UTEST_ASSERT(xstdout != NULL);
+//            io::IInStream *xstderr = p.get_stderr();
+//            UTEST_ASSERT(xstderr != NULL);
 
             // Launch the process
+            printf("Starting child process...\n");
+            UTEST_ASSERT(p.process_id() < 0);
             UTEST_ASSERT(p.launch() == STATUS_OK);
+            printf("Started child process, pid=%d\n", int(p.process_id()));
             UTEST_ASSERT(p.wait(0) == STATUS_OK); // Test process status
             UTEST_ASSERT(p.wait(200) == STATUS_OK); // Wait for a short while
             UTEST_ASSERT(p.status() == ipc::Process::PSTATUS_RUNNING); // Check status
+            printf("Waiting for process...\n");
             UTEST_ASSERT(p.wait() == STATUS_OK); // Wait until termination
 
             // Close stdout and stderr
-            UTEST_ASSERT(xstdout->close() == STATUS_OK);
-            UTEST_ASSERT(xstderr->close() == STATUS_OK);
+//            UTEST_ASSERT(xstdout->close() == STATUS_OK);
+//            UTEST_ASSERT(xstderr->close() == STATUS_OK);
 
             // Analyze exit status
             int code = 0;
             UTEST_ASSERT(p.exit_code(&code) == STATUS_OK);
+            printf("Waited process has terminated with code=%d\n", int(code));
             UTEST_ASSERT(code == 0);
+
+            printf("Parent process has exited\n");
         }
         else
         {
+            printf("Child process started\n");
+
             // Perform argument check
             UTEST_ASSERT(argc == 3);
             UTEST_ASSERT(strcmp(argv[0], "child") == 0);
@@ -143,7 +153,9 @@ UTEST_BEGIN("core.ipc", process)
             UTEST_ASSERT(value.equals_ascii("test_value"));
 
             // Perform a sleep for synchronization with caller
+            printf("Entering sleep\n");
             ipc::Thread::sleep(2 * 1000);
+            printf("Child process has exited\n");
         }
     }
 UTEST_END;
