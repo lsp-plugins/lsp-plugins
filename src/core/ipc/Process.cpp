@@ -1168,7 +1168,7 @@ namespace lsp
             return res;
         }
 
-        void Process::execvpe_process(const char *cmd, char * const *argv, char * const *envp)
+        void Process::execve_process(const char *cmd, char * const *argv, char * const *envp)
         {
             // Override STDIN, STDOUT, STDERR
             if (hStdIn >= 0)
@@ -1193,11 +1193,7 @@ namespace lsp
             }
 
             // Launch the process
-            #if defined(PLATFORM_BSD)
-                ::exect(cmd, argv, envp);
-            #else
-                ::execve(cmd, argv, envp);
-            #endif
+            ::execve(cmd, argv, envp);
 
             // Return error only if ::execvpe failed
             ::exit(STATUS_UNKNOWN_ERR);
@@ -1223,7 +1219,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-                execvpe_process(cmd, argv, envp);
+                execve_process(cmd, argv, envp);
 
             // The parent process stuff
             nPID        = pid;
@@ -1252,7 +1248,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-                execvpe_process(cmd, argv, envp);
+                execve_process(cmd, argv, envp);
 
             // The parent process stuff
             nPID        = pid;

@@ -110,10 +110,10 @@ UTEST_BEGIN("core.ipc", process)
             p.set_env(ENV_VAR_NAME, "test_value");
 
             // Redirect stdout and stderr
-//            io::IInStream *xstdout = p.get_stdout();
-//            UTEST_ASSERT(xstdout != NULL);
-//            io::IInStream *xstderr = p.get_stderr();
-//            UTEST_ASSERT(xstderr != NULL);
+            io::IInStream *xstdout = p.get_stdout();
+            UTEST_ASSERT(xstdout != NULL);
+            io::IInStream *xstderr = p.get_stderr();
+            UTEST_ASSERT(xstderr != NULL);
 
             // Launch the process
             printf("Starting child process...\n");
@@ -127,8 +127,8 @@ UTEST_BEGIN("core.ipc", process)
             UTEST_ASSERT(p.wait() == STATUS_OK); // Wait until termination
 
             // Close stdout and stderr
-//            UTEST_ASSERT(xstdout->close() == STATUS_OK);
-//            UTEST_ASSERT(xstderr->close() == STATUS_OK);
+            UTEST_ASSERT(xstdout->close() == STATUS_OK);
+            UTEST_ASSERT(xstderr->close() == STATUS_OK);
 
             // Analyze exit status
             int code = 0;
