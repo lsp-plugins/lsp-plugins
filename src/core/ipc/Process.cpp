@@ -1196,7 +1196,7 @@ namespace lsp
             #if defined(PLATFORM_BSD)
                 ::exect(cmd, argv, envp);
             #else
-                ::execvpe(cmd, argv, envp);
+                ::execve(cmd, argv, envp);
             #endif
 
             // Return error only if ::execvpe failed
