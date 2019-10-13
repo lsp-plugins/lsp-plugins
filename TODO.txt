@@ -45,6 +45,8 @@
 * Updated UI of the Multiband Compressor plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
 - Added bookmarks to file opening dialog.
+  KDE5 bookmark location: ~/.local/share/user-places.xbel (xml)
+  GTK3 bookmark location: ~/.config/gtk-3.0/bookmarks (plain hrefs)
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
