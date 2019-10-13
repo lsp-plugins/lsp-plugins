@@ -444,6 +444,27 @@ namespace lsp
                 vWidgets.add(box);
                 return new CtlBox(this, box);
             }
+            case WC_HSBOX:
+            {
+                LSPScrollBox *box = new LSPScrollBox(&sDisplay, true);
+                box->init();
+                vWidgets.add(box);
+                return new CtlScrollBox(this, box, O_HORIZONTAL);
+            }
+            case WC_VSBOX:
+            {
+                LSPScrollBox *box = new LSPScrollBox(&sDisplay, false);
+                box->init();
+                vWidgets.add(box);
+                return new CtlScrollBox(this, box, O_VERTICAL);
+            }
+            case WC_SBOX:
+            {
+                LSPScrollBox *box = new LSPScrollBox(&sDisplay);
+                box->init();
+                vWidgets.add(box);
+                return new CtlScrollBox(this, box);
+            }
             case WC_HGRID:
             {
                 LSPGrid *grid = new LSPGrid(&sDisplay, true);
