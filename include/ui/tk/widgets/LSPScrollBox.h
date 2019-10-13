@@ -50,6 +50,8 @@ namespace lsp
                 orientation_t       enOrientation;
                 scrolling_t         enHScroll;
                 scrolling_t         enVScroll;
+                ssize_t             nAreaX;
+                ssize_t             nAreaY;
 
                 LSPSizeConstraints  sConstraints;
                 LSPScrollBar        sHBar;

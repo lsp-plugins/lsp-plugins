@@ -23,6 +23,9 @@ namespace lsp
             enOrientation   = (horizontal) ? O_HORIZONTAL : O_VERTICAL;
             enHScroll		= SCROLL_NONE;
             enVScroll		= SCROLL_NONE;
+            nAreaX          = 0;
+            nAreaY          = 0;
+
             pClass          = &metadata;
         }
         
@@ -45,9 +48,18 @@ namespace lsp
                 return result;
 
             sHBar.set_parent(this);
-            sVBar.set_parent(this);
-            sVBar.hide();
+            sHBar.set_step(16.0f);
+            sHBar.set_tiny_step(1.0f);
             sHBar.hide();
+
+            sVBar.set_parent(this);
+            sVBar.set_step(16.0f);
+            sVBar.set_tiny_step(1.0f);
+            sVBar.hide();
+
+
+            sHBar.slot(LSPSLOT_CHANGE)->bind(slot_on_scroll, self());
+            sVBar.slot(LSPSLOT_CHANGE)->bind(slot_on_scroll, self());
 
             return STATUS_OK;
         }
@@ -218,10 +230,20 @@ namespace lsp
             // Draw items clipped
             s->clip_begin(area.nLeft, area.nTop, area.nWidth, area.nHeight);
 
+            ssize_t w_right     = area.nLeft + area.nWidth;
+            ssize_t w_bottom    = area.nTop + area.nHeight;
+
             for (size_t i=0; i<items; ++i)
             {
                 cell_t *wc = vItems.at(i);
                 if (hidden_widget(wc))
+                    continue;
+
+                // Do not draw widget area if it is outside the clip area
+                if ((wc->a.nLeft >= w_right) ||
+                    (wc->a.nTop >= w_bottom) ||
+                    ((wc->a.nLeft + wc->a.nWidth) <= area.nLeft) ||
+                    ((wc->a.nTop + wc->a.nHeight) <= area.nTop))
                     continue;
 
                 LSPWidget *w = wc->pWidget;
@@ -238,8 +260,16 @@ namespace lsp
                             bg_color
                         );
                     }
-                    w->render(s, force);
-                    w->commit_redraw();
+
+                    // Skip clipped widgets
+                    if (!((w->left() >= w_right) ||
+                        (w->top() >= w_bottom) ||
+                        (w->right() <= area.nLeft) ||
+                        (w->bottom() <= area.nTop)))
+                    {
+                        w->render(s, force);
+                        w->commit_redraw();
+                    }
                 }
             }
 
@@ -312,9 +342,16 @@ namespace lsp
             ssize_t vavail = alloc.ah;
 
             // Place horizontal scroll bar if enabled
+            havail  = (alloc.vs) ? r->nWidth - vbar.nMinWidth : r->nWidth;
+            vavail  = (alloc.hs) ? r->nHeight - hbar.nMinHeight : r->nHeight;
+
+            if (alloc.aw < havail)
+                alloc.aw    = havail;
+            if (alloc.ah < vavail)
+                alloc.ah    = vavail;
+
             if (alloc.hs)
             {
-                havail = (alloc.vs) ? r->nWidth - vbar.nMinWidth : r->nWidth;
                 if (hbar.nMaxWidth < 0)
                     hbar.nMaxWidth = havail;
 
@@ -324,10 +361,8 @@ namespace lsp
                 hbr.nWidth  = hbar.nMaxWidth;
                 hbr.nHeight = hbar.nMinHeight;
 
-                havail      = alloc.aw - havail;
-
                 sHBar.set_min_value(0.0f);
-                sHBar.set_max_value((havail < 0.0f) ? 0.0f : havail);
+                sHBar.set_max_value(alloc.aw - havail);
                 sHBar.show();
                 sHBar.query_draw();
                 sHBar.realize(&hbr);
@@ -343,7 +378,6 @@ namespace lsp
             // Place vertical scroll bar if enabled
             if (alloc.vs)
             {
-                vavail  = (alloc.hs) ? r->nHeight - hbar.nMinHeight : r->nHeight;
                 if (vbar.nMaxHeight < 0)
                     vbar.nMaxHeight = vavail;
 
@@ -353,10 +387,8 @@ namespace lsp
                 vbr.nWidth  = vbar.nMinWidth;
                 vbr.nHeight = vbar.nMaxHeight;
 
-                vavail      = alloc.ah - vavail;
-
                 sVBar.set_min_value(0.0f);
-                sVBar.set_max_value((vavail < 0.0f) ? 0.0f : vavail);
+                sVBar.set_max_value(alloc.ah - vavail);
                 sVBar.show();
                 sVBar.query_draw();
                 sVBar.realize(&vbr);
@@ -369,11 +401,15 @@ namespace lsp
                 sVBar.set_max_value(0.0f);
             }
 
-            if (havail > alloc.aw)
-                alloc.aw        = havail;
-            if (vavail > alloc.ah)
-                alloc.ah        = vavail;
+            nAreaX  = alloc.aw;
+            nAreaY  = alloc.ah;
 
+            // Realize all children at their actual positions
+            realize_children();
+        }
+
+        void LSPScrollBox::realize_children()
+        {
             // Estimate number of items for allocation
             size_t n_items  = vItems.size();
             if (n_items <= 0)
@@ -381,7 +417,7 @@ namespace lsp
 
             size_t visible = visible_items();
 
-            ssize_t n_left  = (enOrientation == O_HORIZONTAL) ? alloc.aw : alloc.ah;
+            ssize_t n_left  = (enOrientation == O_HORIZONTAL) ? nAreaX : nAreaY;
             if (visible > 0)
                 n_left         -= (visible-1)*nSpacing;
             size_t n_size   = n_left;
@@ -401,7 +437,7 @@ namespace lsp
                     w->a.nWidth     = w->p.nLeft + w->p.nRight;
                     if (w->r.nMinWidth >= 0)
                         w->a.nWidth    += w->r.nMinWidth;
-                    w->a.nHeight    = alloc.ah;
+                    w->a.nHeight    = nAreaY;
                     n_left         -= w->a.nWidth;
 
                     // Calculate number of expanded widgets
@@ -416,7 +452,7 @@ namespace lsp
                     w->a.nHeight    = w->p.nTop + w->p.nBottom;
                     if (w->r.nMinHeight)
                         w->a.nHeight    += w->r.nMinHeight;
-                    w->a.nWidth     = alloc.aw;
+                    w->a.nWidth     = nAreaX;
                     n_left         -= w->a.nHeight;
 
                     // Calculate number of expanded widgets
@@ -518,15 +554,9 @@ namespace lsp
             }
 
             // Now we have n_left=0, now need to generate proper Left and Top coordinates of widget
-            realize_children();
-        }
-
-        void LSPScrollBox::realize_children()
-        {
             // Left-Top corner
-            size_t visible = visible_items();
-            ssize_t l = left() - ssize_t((sHBar.visible()) ? sHBar.value() : 0.0f);
-            ssize_t t = top() - ssize_t((sVBar.visible()) ? sVBar.value() : 0.0f);
+            ssize_t l   = left() - ssize_t(sHBar.value());
+            ssize_t t   = top() - ssize_t(sVBar.value());
             size_t counter = 0;
 
             // Apply geometry to each widget
@@ -721,7 +751,7 @@ namespace lsp
             }
             else if (alloc->vs)
             {
-                hsize           = alloc->aw + hsb.nMinWidth;
+                hsize           = alloc->aw + vsb.nMinWidth;
                 vsize           = lsp_max(minh, vsb.nMinHeight);
             }
             else
@@ -750,10 +780,12 @@ namespace lsp
 
         status_t LSPScrollBox::slot_on_scroll(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPScrollBox *box = widget_ptrcast<LSPScrollBox>(data);
-            if (box == NULL)
+            LSPScrollBox *_this = widget_ptrcast<LSPScrollBox>(ptr);
+            if (_this == NULL)
                 return STATUS_BAD_STATE;
-            box->realize_children();
+
+            _this->realize_children();
+            _this->query_draw();
             return STATUS_OK;
         }
 
