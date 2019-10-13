@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/debug.h>
 #include <core/ipc/Process.h>
 #include <unistd.h>
 #include <string.h>
@@ -1072,6 +1073,8 @@ namespace lsp
 
         status_t Process::spawn_process(const char *cmd, char * const *argv, char * const *envp)
         {
+            lsp_trace("Creating child process using posix_spawn...");
+
             // Initialize spawn routines
             posix_spawnattr_t attr;
             if (::posix_spawnattr_init(&attr))
@@ -1202,6 +1205,7 @@ namespace lsp
 
         status_t Process::vfork_process(const char *cmd, char * const *argv, char * const *envp)
         {
+            lsp_trace("Creating child process using vfork()...");
             errno           = 0;
             pid_t pid       = ::vfork();
 
@@ -1230,6 +1234,7 @@ namespace lsp
 
         status_t Process::fork_process(const char *cmd, char * const *argv, char * const *envp)
         {
+            lsp_trace("Creating child process using fork()...");
             errno           = 0;
             pid_t pid       = ::fork();
 
