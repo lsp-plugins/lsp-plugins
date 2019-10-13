@@ -64,6 +64,9 @@
 				<hlink url="http://lsp-plug.in/" text="LSP Plugins" />
 			</vbox>
 		</group>
+		<vsbox min_width="64" max_width="128" min_height="64" max_height="128" hscroll="always" vscroll="always" >
+			
+		</vsbox>
 		<group text="Meters">
 			<hbox>
 				<vbox spacing="2">

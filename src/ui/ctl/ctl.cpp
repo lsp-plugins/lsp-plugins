@@ -117,7 +117,7 @@ namespace lsp
             "hpos",
             "hpos_id",
             "hscale",
-            "hsroll",
+            "hscroll",
             "hspacing",
             "hue2_id",
             "hue_id",
@@ -263,10 +263,16 @@ namespace lsp
 
         scrolling_t widget_scroll(const char *value)
         {
-            if ((!::strcmp(value, "1")) || (!::strcasecmp(value, "optional"))|| (!::strcasecmp(value, "o")))
+            if ((!::strcmp(value, "1")) ||
+                (!::strcasecmp(value, "optional")) ||
+                (!::strcasecmp(value, "o")))
                 return SCROLL_OPTIONAL;
-            if ((!::strcmp(value, "2")) || (!::strcasecmp(value, "always"))|| (!::strcasecmp(value, "a")))
-                return SCROLL_OPTIONAL;
+            if ((!::strcmp(value, "2")) ||
+                (!::strcasecmp(value, "always")) ||
+                (!::strcasecmp(value, "a")) ||
+                (!::strcasecmp(value, "true")) ||
+                (!::strcasecmp(value, "t")))
+                return SCROLL_ALWAYS;
 
             return SCROLL_NONE;
         }

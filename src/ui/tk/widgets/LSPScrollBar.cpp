@@ -590,7 +590,8 @@ namespace lsp
 
         float LSPScrollBar::get_normalized_value()
         {
-            return (fValue - fMin) / (fMax - fMin);
+            float delta = fMax - fMin;
+            return (delta != 0.0f) ? (fValue - fMin) / (fMax - fMin) : 0.0f;
         }
 
         void LSPScrollBar::update()

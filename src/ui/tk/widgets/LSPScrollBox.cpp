@@ -206,12 +206,12 @@ namespace lsp
                 s->fill_rect(sVBar.left(), sHBar.top(), sVBar.width(), sHBar.height(), bg_color);
 
             // Render child widgets
-            size_t visible = visible_items();
+            size_t n_visible = visible_items();
 
             // Draw background if needed
-            if ((!visible) && (force))
+            if ((!n_visible) && (force))
             {
-                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
+                s->fill_rect(area.nLeft, area.nTop, area.nWidth, area.nHeight, bg_color);
                 return;
             }
 
@@ -319,13 +319,15 @@ namespace lsp
                     hbar.nMaxWidth = havail;
 
                 realize_t hbr;
-                hbr.nLeft   = r->nLeft + ((r->nWidth - hbar.nMaxWidth) >> 1);
+                hbr.nLeft   = r->nLeft + ((havail - hbar.nMaxWidth) >> 1);
                 hbr.nTop    = r->nTop + r->nHeight - hbar.nMinHeight;
                 hbr.nWidth  = hbar.nMaxWidth;
                 hbr.nHeight = hbar.nMinHeight;
 
+                havail      = alloc.aw - havail;
+
                 sHBar.set_min_value(0.0f);
-                sHBar.set_max_value(alloc.aw - havail);
+                sHBar.set_max_value((havail < 0.0f) ? 0.0f : havail);
                 sHBar.show();
                 sHBar.query_draw();
                 sHBar.realize(&hbr);
@@ -347,12 +349,14 @@ namespace lsp
 
                 realize_t vbr;
                 vbr.nLeft   = r->nLeft + r->nWidth - vbar.nMinWidth;
-                vbr.nTop    = r->nTop + ((r->nHeight - vbar.nMaxHeight) >> 1);
+                vbr.nTop    = r->nTop + ((vavail - vbar.nMaxHeight) >> 1);
                 vbr.nWidth  = vbar.nMinWidth;
                 vbr.nHeight = vbar.nMaxHeight;
 
+                vavail      = alloc.ah - vavail;
+
                 sVBar.set_min_value(0.0f);
-                sVBar.set_max_value(alloc.ah - vavail);
+                sVBar.set_max_value((vavail < 0.0f) ? 0.0f : vavail);
                 sVBar.show();
                 sVBar.query_draw();
                 sVBar.realize(&vbr);
@@ -621,16 +625,11 @@ namespace lsp
             size_request_t *r   = &alloc->r;
             sConstraints.get(r);
 
-            // Are there any items?
-            size_t n_items  = vItems.size();
-            if (n_items <= 0)
-                return;
-
             // Estimated width and height of widget area
             alloc->aw = 0;
             alloc->ah = 0;
 
-            for (size_t i=0; i<n_items; ++i)
+            for (size_t i=0, n_items=vItems.size(); i<n_items; ++i)
             {
                 // Get widget
                 cell_t *w = vItems.at(i);
@@ -690,18 +689,18 @@ namespace lsp
             if (vsb.nMinHeight < 0)
                 vsb.nMinHeight       = 0;
 
-            ssize_t minw    = lsp_min(r->nMinWidth, 0);
-            ssize_t minh    = lsp_min(r->nMinHeight, 0);
+            ssize_t minw    = (r->nMinWidth >= 0) ? r->nMinWidth : 0;
+            ssize_t minh    = (r->nMinHeight >= 0) ? r->nMinHeight : 0;
             ssize_t hsize   = 0;
             ssize_t vsize   = 0;
 
             alloc->hs       = (enHScroll == SCROLL_ALWAYS) ||
                               ((enHScroll == SCROLL_OPTIONAL) && (r->nMaxWidth >= 0) && (alloc->aw > r->nMaxWidth));
-            alloc->vs       = (enVScroll == SCROLL_ALWAYS) &&
+            alloc->vs       = (enVScroll == SCROLL_ALWAYS) ||
                               ((enVScroll == SCROLL_OPTIONAL) && (r->nMaxHeight >= 0) && (alloc->ah > r->nMaxHeight));
 
             if (alloc->hs)
-                alloc->vs       = (enVScroll == SCROLL_ALWAYS) &&
+                alloc->vs       = (enVScroll == SCROLL_ALWAYS) ||
                                   ((enVScroll == SCROLL_OPTIONAL) && (r->nMaxHeight >= 0) && ((alloc->ah + hsb.nMinHeight) > r->nMaxHeight));
             else if (alloc->vs)
                 alloc->hs       = (enHScroll == SCROLL_ALWAYS) ||

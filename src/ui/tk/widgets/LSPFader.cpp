@@ -303,8 +303,9 @@ namespace lsp
 
         float LSPFader::get_normalized_value()
         {
-            size_t a      = nAngle & 3;
-            float v = (fMax == fMin) ? 0.5f : (fValue - fMin) / (fMax - fMin);
+            size_t a        = nAngle & 3;
+            float delta     = fMax - fMin;
+            float v         = (delta == 0.0f) ? 0.5f : (fValue - fMin) / delta;
             return ((a == 1) || (a == 2)) ? 1.0f - v : v;
         }
 

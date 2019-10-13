@@ -49,7 +49,7 @@ namespace lsp
 
         status_t CtlBox::add(CtlWidget *child)
         {
-            LSPScrollBox *box     = widget_cast<LSPScrollBox>(pWidget);
+            LSPBox *box     = widget_cast<LSPBox>(pWidget);
             return (box != NULL) ? box->add(child->widget()) : STATUS_BAD_STATE;
         }
 
