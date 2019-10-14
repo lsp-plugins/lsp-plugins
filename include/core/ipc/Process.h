@@ -79,7 +79,7 @@ namespace lsp
                 status_t        spawn_process(const char *cmd, char * const *argv, char * const *envp);
                 status_t        vfork_process(const char *cmd, char * const *argv, char * const *envp);
                 status_t        fork_process(const char *cmd, char * const *argv, char * const *envp);
-                void            execvpe_process(const char *cmd, char * const *argv, char * const *envp);
+                void            execve_process(const char *cmd, char * const *argv, char * const *envp);
 #endif /* PLATFORM_WINDOWS */
 
             public:
@@ -344,6 +344,12 @@ namespace lsp
                  * @return true if process has exited
                  */
                 bool        exited();
+
+                /**
+                 * Get unique process identifier
+                 * @return process identifier
+                 */
+                ssize_t     process_id() const;
 
                 /**
                  * Wait for the process termination

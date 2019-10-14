@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/debug.h>
 #include <core/ipc/Process.h>
 #include <unistd.h>
 #include <string.h>
@@ -661,6 +662,19 @@ namespace lsp
             return status() != PSTATUS_ERROR;
         }
 
+        ssize_t Process::process_id() const
+        {
+            switch (nStatus)
+            {
+                case PSTATUS_RUNNING:
+                case PSTATUS_EXITED:
+                    return nPID;
+                default:
+                    break;
+            }
+            return -1;
+        }
+
         status_t Process::exit_code(int *code)
         {
             if (code == NULL)
@@ -1059,6 +1073,8 @@ namespace lsp
 
         status_t Process::spawn_process(const char *cmd, char * const *argv, char * const *envp)
         {
+            lsp_trace("Creating child process using posix_spawn...");
+
             // Initialize spawn routines
             posix_spawnattr_t attr;
             if (::posix_spawnattr_init(&attr))
@@ -1152,7 +1168,7 @@ namespace lsp
             return res;
         }
 
-        void Process::execvpe_process(const char *cmd, char * const *argv, char * const *envp)
+        void Process::execve_process(const char *cmd, char * const *argv, char * const *envp)
         {
             // Override STDIN, STDOUT, STDERR
             if (hStdIn >= 0)
@@ -1177,11 +1193,7 @@ namespace lsp
             }
 
             // Launch the process
-            #if defined(PLATFORM_BSD)
-                ::exect(cmd, argv, envp);
-            #else
-                ::execvpe(cmd, argv, envp);
-            #endif
+            ::execve(cmd, argv, envp);
 
             // Return error only if ::execvpe failed
             ::exit(STATUS_UNKNOWN_ERR);
@@ -1189,6 +1201,7 @@ namespace lsp
 
         status_t Process::vfork_process(const char *cmd, char * const *argv, char * const *envp)
         {
+            lsp_trace("Creating child process using vfork()...");
             errno           = 0;
             pid_t pid       = ::vfork();
 
@@ -1206,7 +1219,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-                execvpe_process(cmd, argv, envp);
+                execve_process(cmd, argv, envp);
 
             // The parent process stuff
             nPID        = pid;
@@ -1217,6 +1230,7 @@ namespace lsp
 
         status_t Process::fork_process(const char *cmd, char * const *argv, char * const *envp)
         {
+            lsp_trace("Creating child process using fork()...");
             errno           = 0;
             pid_t pid       = ::fork();
 
@@ -1234,7 +1248,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-                execvpe_process(cmd, argv, envp);
+                execve_process(cmd, argv, envp);
 
             // The parent process stuff
             nPID        = pid;

@@ -44,6 +44,8 @@
 * Updated UI of the Graphic Equalizer plugin series.
 * Updated UI of the Multiband Compressor plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
+* Fixed improper use of vfork() when launching nested processes under FreeBSD @ 32-bit ARM architecture
+  that caused child and parent processes to freeze.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
