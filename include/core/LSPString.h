@@ -150,7 +150,11 @@ namespace lsp
              * @return copy of the string or NULL on error
              */
             LSPString *copy() const;
+            LSPString *copy(ssize_t first) const;
+            LSPString *copy(ssize_t first, ssize_t last) const;
             inline LSPString *clone() const { return copy(); }
+            inline LSPString *clone(ssize_t first) const { return copy(first); }
+            inline LSPString *clone(ssize_t first, ssize_t last) const { return copy(first, last); }
 
             /** Insert data at specified position
              *

@@ -289,6 +289,36 @@ namespace lsp
         return s;
     }
 
+    LSPString *LSPString::copy(ssize_t first) const
+    {
+        LSPString *s = new LSPString();
+        if (s != NULL)
+        {
+            if (!s->set(this, first))
+            {
+                delete s;
+                s = NULL;
+            }
+        }
+
+        return s;
+    }
+
+    LSPString *LSPString::copy(ssize_t first, ssize_t last) const
+    {
+        LSPString *s = new LSPString();
+        if (s != NULL)
+        {
+            if (!s->set(this, first, last))
+            {
+                delete s;
+                s = NULL;
+            }
+        }
+
+        return s;
+    }
+
     lsp_wchar_t LSPString::at(ssize_t index) const
     {
         if (index < 0)
