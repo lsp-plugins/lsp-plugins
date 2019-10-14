@@ -54,6 +54,7 @@
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
 - Optimize DSP for AArch64 architecture.
 - Additionally optimized DSP code with AVX, AVX2 and FMA3 instruction set.
+- Added MIDI groups to MultiSampler plugin series.
 - Added bookmarks to file opening dialog.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
@@ -144,6 +145,20 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== Mute Groups in MultiSamplers ====
+  KozmykJ
+    Is there a way to set Mute Groups as in Hi-Hat open vs closed ?
+
+  LSP Project
+    Standard MIDI mapping describes Closed Hi-Hat as MIDI note 42, Opened Hi-Hat as MIDI
+    note 46 which are mapped independently.
+    Do I right understand that under 'mute group' you mean a case when playback of note 42
+    becomes muted when note 46 triggers and vice verse?
+
+  KozmykJ
+    Yes that's what I was wondering. Hi-Hat is just the most obvious case. Of course there are
+    other uses. 
 
 ==== FFT analysis of the Profiler and Convolver ====
 
