@@ -26,6 +26,7 @@ namespace lsp
             JT_COMMA,           // ,
             JT_SQ_STRING,       // 'string'
             JT_DQ_STRING,       // "string"
+            JT_IDENTIFIER,      // identifier
             JT_SL_COMMENT,      // //comment
             JT_ML_COMMENT,      // /* comment */
             JT_DECIMAL,         // 1234
