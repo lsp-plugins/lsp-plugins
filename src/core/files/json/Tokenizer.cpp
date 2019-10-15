@@ -230,6 +230,12 @@ namespace lsp
                         if (tok == JT_ERROR)
                             return tok;
                     }
+                    else if ((c == 'x') || (c == 'X'))
+                    {
+                        token_t tok = parse_hexadecimal_escape_sequence(type);
+                        if (tok == JT_ERROR)
+                            return tok;
+                    }
                     else
                     {
                         // Commit previously pending unicode characters
@@ -292,11 +298,7 @@ namespace lsp
             // Seek for 'u' or 'U'
             lsp_swchar_t c = lookup();
             if (c < 0)
-            {
-                if (c != -STATUS_EOF)
-                    return set_error(-c);
-                break;
-            }
+                return set_error(-c);
             else if ((c != 'u') && (c != 'U'))
                 return set_error(STATUS_BAD_TOKEN);
             skip(type);
@@ -305,6 +307,37 @@ namespace lsp
             int digit = 0;
             lsp_utf16_t cp = 0;
             for (size_t i=0; i<4; ++i)
+            {
+                c = lookup();
+                if (c < 0)
+                    return set_error(-c);
+
+                skip(type);
+                if (!parse_digit(&digit, c, 16))
+                    return set_error(STATUS_BAD_TOKEN);
+
+                cp = (cp << 16) + digit;
+            }
+
+            // All is fine, store, truncate value and return result
+            status_t res = add_pending_character(cp);
+            return (res != STATUS_OK) ? set_error(res) : enToken = type;
+        }
+
+        token_t Tokenizer::parse_hexadecimal_escape_sequence(token_t type)
+        {
+            // Seek for 'u' or 'U'
+            lsp_swchar_t c = lookup();
+            if (c < 0)
+                return set_error(-c);
+            else if ((c != 'x') && (c != 'X'))
+                return set_error(STATUS_BAD_TOKEN);
+            skip(type);
+
+            // Read 4 mandatory digits
+            int digit = 0;
+            size_t cp = 0;
+            for (size_t i=0; i<2; ++i)
             {
                 c = lookup();
                 if (c < 0)

@@ -51,6 +51,7 @@ namespace lsp
                 status_t            add_pending_character(lsp_utf16_t ch);
                 status_t            commit_pending_characters();
                 token_t             parse_unicode_escape_sequence(token_t type);
+                token_t             parse_hexadecimal_escape_sequence(token_t type);
 
                 token_t             parse_string(token_t type);
                 token_t             parse_identifier();
