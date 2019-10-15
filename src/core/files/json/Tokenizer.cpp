@@ -208,8 +208,85 @@ namespace lsp
 
         token_t Tokenizer::parse_string(token_t type)
         {
-            // TODO
-            return JT_UNKNOWN;
+            sValue.clear();
+            skip(type);
+
+            status_t res;
+            bool protector  = false;
+
+            // Parse string
+            while (true)
+            {
+                // Read character
+                lsp_swchar_t c = lookup();
+                if (c < 0)
+                    return set_error(-c);
+
+                if (protector)
+                {
+                    protector = false;
+
+                    if ((c == 'u') || (c == 'U'))
+                    {
+                        token_t tok = parse_unicode_escape_sequence(type);
+                        if (tok == JT_ERROR)
+                            return tok;
+                    }
+                    else
+                    {
+                        // Commit previously pending unicode characters
+                        if ((res = commit_pending_characters()) != STATUS_OK)
+                            return set_error(res);
+
+                        switch (c)
+                        {
+                            // Escaped characters: ' " \ b f n r t v
+                            case 'b': c = '\b'; break;
+                            case 'f': c = '\f'; break;
+                            case 'n': c = '\n'; break;
+                            case 'r': c = '\r'; break;
+                            case 't': c = '\t'; break;
+                            case 'v': c = '\v'; break;
+                            default: // Any other characters just omit the protector character in ECMA script
+                                break;
+                        }
+
+                        if (!sValue.append(c))
+                            return set_error(STATUS_NO_MEM);
+                    }
+                }
+                else
+                {
+                    // Commit previously pending unicode characters
+                    if ((res = commit_pending_characters()) != STATUS_OK)
+                        return set_error(res);
+
+                    switch (c)
+                    {
+                        case '\\':
+                            protector   = true;
+                            break;
+                        case '\"':
+                            if (type == JT_DQ_STRING)
+                                return skip(type);
+                            if (!sValue.append(c))
+                                return set_error(STATUS_NO_MEM);
+                            break;
+                        case '\'':
+                            if (type == JT_SQ_STRING)
+                                return skip(type);
+                            if (!sValue.append(c))
+                                return set_error(STATUS_NO_MEM);
+                            break;
+                        default:
+                            if (!sValue.append(cCurrent))
+                                return set_error(STATUS_NO_MEM);
+                            break;
+                    }
+                }
+            }
+
+            return enToken = type;
         }
 
         token_t Tokenizer::parse_unicode_escape_sequence(token_t type)
@@ -224,6 +301,7 @@ namespace lsp
             }
             else if ((c != 'u') && (c != 'U'))
                 return set_error(STATUS_BAD_TOKEN);
+            skip(type);
 
             // Read 4 mandatory digits
             int digit = 0;
@@ -234,9 +312,7 @@ namespace lsp
                 if (c < 0)
                     return set_error(-c);
 
-                token_t res = commit(type);
-                if (res == JT_ERROR)
-                    return res;
+                skip(type);
                 if (!parse_digit(&digit, c, 16))
                     return set_error(STATUS_BAD_TOKEN);
 
@@ -244,7 +320,6 @@ namespace lsp
             }
 
             // All is fine, store, truncate value and return result
-            sValue.set_length(sValue.length() - 5);
             status_t res = add_pending_character(cp);
             return (res != STATUS_OK) ? set_error(res) : enToken = type;
         }
