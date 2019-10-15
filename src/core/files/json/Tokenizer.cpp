@@ -117,27 +117,27 @@ namespace lsp
 
         bool Tokenizer::is_identifier_start(lsp_wchar_t ch)
         {
-            if (::iswlower(ch))
-                return true;
             if (::iswupper(ch))
+                return true;
+            if (::iswlower(ch))
                 return true;
             return (ch == '_') || (ch == '$') || (ch == '\\');
         }
 
         bool Tokenizer::is_identifier(lsp_wchar_t ch)
         {
-            if (::iswlower(ch))
-                return true;
             if (::iswupper(ch))
+                return true;
+            if (::iswlower(ch))
                 return true;
             if (::iswdigit(ch))
                 return true;
-            return (ch == '_') || (ch == '$') || (ch == '\\');
+            return (ch == '_') || (ch == '$');
         }
 
         bool Tokenizer::is_reserved_word(const LSPString *text)
         {
-            size_t first = 0, last = sizeof(ecma_reserved) / sizeof (const char *) - 1;
+            ssize_t first = 0, last = sizeof(ecma_reserved) / sizeof (const char *) - 1;
             while (first <= last)
             {
                 ssize_t center = (first + last) >> 1;
@@ -251,13 +251,44 @@ namespace lsp
                             case 'r': c = '\r'; break;
                             case 't': c = '\t'; break;
                             case 'v': c = '\v'; break;
+                            case '0': c = '\0'; break;
+                            case '\n':
+                                skip(type); // Skip end of line
+                                c = lookup();
+                                if (c < 0)
+                                {
+                                    if (c != -STATUS_EOF)
+                                        return set_error(-c);
+                                }
+                                else if (c == '\r')
+                                    skip(type);
+                                c = -1;
+                                break;
+
+                            case '\r':
+                            case 0x2028:
+                            case 0x2029:
+                                skip(type);
+                                c = -1; // Line terminator
+                                break;
+
                             default: // Any other characters just omit the protector character in ECMA script
                                 break;
                         }
 
-                        if (!sValue.append(c))
-                            return set_error(STATUS_NO_MEM);
+                        // Append character (if it is present)
+                        if (c >= 0)
+                        {
+                            if (!sValue.append(c))
+                                return set_error(STATUS_NO_MEM);
+                            skip(type);
+                        }
                     }
+                }
+                else if (c == '\\')
+                {
+                    skip(type);
+                    protector   = true;
                 }
                 else
                 {
@@ -267,26 +298,22 @@ namespace lsp
 
                     switch (c)
                     {
-                        case '\\':
-                            protector   = true;
-                            break;
+                        case '\n':
+                            return set_error(STATUS_BAD_TOKEN);
                         case '\"':
                             if (type == JT_DQ_STRING)
                                 return skip(type);
-                            if (!sValue.append(c))
-                                return set_error(STATUS_NO_MEM);
                             break;
                         case '\'':
                             if (type == JT_SQ_STRING)
                                 return skip(type);
-                            if (!sValue.append(c))
-                                return set_error(STATUS_NO_MEM);
                             break;
                         default:
-                            if (!sValue.append(cCurrent))
-                                return set_error(STATUS_NO_MEM);
                             break;
                     }
+
+                    if ((type = commit(type)) == JT_ERROR)
+                        return type;
                 }
             }
 
@@ -316,7 +343,7 @@ namespace lsp
                 if (!parse_digit(&digit, c, 16))
                     return set_error(STATUS_BAD_TOKEN);
 
-                cp = (cp << 16) + digit;
+                cp = (cp << 4) + digit;
             }
 
             // All is fine, store, truncate value and return result
@@ -347,7 +374,7 @@ namespace lsp
                 if (!parse_digit(&digit, c, 16))
                     return set_error(STATUS_BAD_TOKEN);
 
-                cp = (cp << 16) + digit;
+                cp = (cp << 4) + digit;
             }
 
             // All is fine, store, truncate value and return result
@@ -359,9 +386,7 @@ namespace lsp
         {
             // Commit identifier's start character
             status_t res;
-            token_t tok = commit(JT_IDENTIFIER);
-            if (tok == JT_ERROR)
-                return tok;
+            token_t tok;
 
             while (true)
             {
@@ -442,12 +467,27 @@ namespace lsp
                 // Analyze character
                 switch (c) {
                     case '\n':
-                        return skip(JT_SL_COMMENT);
+                    {
+                        status_t res = commit_pending_characters();
+                        return (res == STATUS_OK) ? skip(JT_SL_COMMENT) : set_error(STATUS_BAD_TOKEN);
+                    }
+                    case '\\':
+                    {
+                        skip(JT_SL_COMMENT);
+                        token_t tok = parse_unicode_escape_sequence(JT_SL_COMMENT);
+                        if (tok == JT_ERROR)
+                            return tok;
+                        break;
+                    }
                     default:
                     {
-                        token_t res = commit(JT_SL_COMMENT);
-                        if (res == JT_ERROR)
-                            return res;
+                        status_t res = commit_pending_characters();
+                        if (res != STATUS_OK)
+                            return set_error(STATUS_BAD_TOKEN);
+
+                        token_t tok = commit(JT_SL_COMMENT);
+                        if (tok == JT_ERROR)
+                            return tok;
                         break;
                     }
                 }
@@ -462,7 +502,7 @@ namespace lsp
             sValue.set_length(0);
             skip(JT_SL_COMMENT);
 
-            bool asterisk = false;
+            lsp_swchar_t last = -1;
             while (true)
             {
                 // Read character
@@ -471,24 +511,50 @@ namespace lsp
                     return set_error(-c);
 
                 // Check state
-                if (asterisk)
+                if (last == '*')
                 {
                     if (c == '/')
                     {
                         // Remove last stored character (asterisk)
                         sValue.remove_last();
-                        return commit(JT_ML_COMMENT);
+                        return skip(JT_ML_COMMENT);
                     }
+                }
+                else if (last == '\n')
+                {
+                    if (c == '\r')
+                    {
+                        skip(JT_ML_COMMENT);
+                        continue;
+                    }
+                    last = -1;
                 }
 
                 // Append current character to the comment
-                token_t res = commit(JT_ML_COMMENT);
-                if (res == JT_ERROR)
-                    return res;
+                switch (c) {
+                    case '\\':
+                    {
+                        skip(JT_ML_COMMENT);
+                        token_t tok = parse_unicode_escape_sequence(JT_ML_COMMENT);
+                        if (tok == JT_ERROR)
+                            return tok;
+                        break;
+                    }
 
-                // Last character was asterisk?
-                if (c == '*')
-                    asterisk = true;
+                    default:
+                    {
+                        status_t res = commit_pending_characters();
+                        if (res != STATUS_OK)
+                            return set_error(STATUS_BAD_TOKEN);
+
+                        token_t tok = commit(JT_ML_COMMENT);
+                        if (tok == JT_ERROR)
+                            return tok;
+                    }
+                }
+
+                // Remember last character
+                last = c;
             }
 
             return JT_UNKNOWN;
@@ -577,7 +643,7 @@ namespace lsp
             {
                 if (!(flags & F_INT)) // There should be at least one integer character
                     return enToken = JT_UNKNOWN;
-                iValue      = ivalue;
+                iValue      = (flags & F_NEGATIVE) ? -ivalue : ivalue;
                 return enToken  = (radix != 16) ? JT_DECIMAL : JT_HEXADECIMAL;
             }
 
@@ -631,6 +697,23 @@ namespace lsp
                     return enToken  = JT_UNKNOWN;
                 else if (flags & F_ENEGATIVE)
                     iexp        = -iexp;
+            }
+
+            // Ensure that the next character is not an identifier character (ECMA)
+            c = lookup();
+            if (c < 0)
+            {
+                if (c != (-STATUS_EOF))
+                    return set_error(-c);
+            }
+            else if (is_identifier_start(c))
+                return set_error(STATUS_BAD_FORMAT);
+
+            // Now analyze parsing state
+            if ((flags & (F_INT | F_FRAC | F_EXP | F_DOT)) == F_INT)
+            {
+                iValue      = (flags & F_NEGATIVE) ? -ivalue : ivalue;
+                return enToken = JT_DECIMAL;
             }
 
             // Form the floating-point value

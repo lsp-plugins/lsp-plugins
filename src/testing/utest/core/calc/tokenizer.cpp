@@ -45,7 +45,7 @@ UTEST_BEGIN("core.calc", tokenizer)
         printf("  checking invalid token: %s\n", s);
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(s) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(s, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
         token_t tok = t.get_token(TF_GET);
@@ -58,7 +58,7 @@ UTEST_BEGIN("core.calc", tokenizer)
                 "( ) [ ] { } & && | || ! ^ ^^ ~ + - * ** / % < > <= >= != <> = == <=> ? : ;";
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(tokens, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
 
@@ -115,7 +115,7 @@ UTEST_BEGIN("core.calc", tokenizer)
             ;
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(tokens, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
 
@@ -205,7 +205,7 @@ UTEST_BEGIN("core.calc", tokenizer)
             ;
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(tokens, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
 
@@ -236,7 +236,7 @@ UTEST_BEGIN("core.calc", tokenizer)
             ;
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(tokens, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
 
@@ -294,7 +294,7 @@ UTEST_BEGIN("core.calc", tokenizer)
             ;
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(tokens, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
 
@@ -327,7 +327,7 @@ UTEST_BEGIN("core.calc", tokenizer)
             "((:a eq :b) or (:a eq :c+:d[ssel])) * 10 + (:b ine :c) ? 1 db : 2.0 db";
 
         io::InStringSequence sq;
-        UTEST_ASSERT(sq.wrap(tokens) == STATUS_OK);
+        UTEST_ASSERT(sq.wrap(tokens, "UTF-8") == STATUS_OK);
 
         Tokenizer t(&sq);
 
