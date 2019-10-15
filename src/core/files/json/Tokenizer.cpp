@@ -162,8 +162,6 @@ namespace lsp
                 res = ch - 'a' + 10;
             else if ((ch >= 'A') && (ch <= 'F'))
                 res = ch - 'A' + 10;
-            else if (ch == '_')
-                res = -1;
             else
                 return false;
 
@@ -465,8 +463,147 @@ namespace lsp
 
         token_t Tokenizer::parse_number()
         {
-            // TODO
-            return JT_UNKNOWN;
+            enum flags_t
+            {
+                F_NEGATIVE      = 1 << 0,
+                F_SIGN          = 1 << 1,
+                F_INTEGER       = 1 << 2,
+                F_INT           = 1 << 3,
+                F_DOT           = 1 << 4,
+                F_FRAC          = 1 << 5,
+                F_EXP           = 1 << 6,
+                F_ESIGN         = 1 << 7,
+                F_ENEGATIVE     = 1 << 8
+            };
+
+            lsp_swchar_t c  = lookup();
+            size_t flags    = 0;
+            int radix       = 10;
+            int digit       = 0;
+            ssize_t ivalue  = 0;
+            double ifrac    = 0;
+            double ifpow    = 1.0;
+            double rradix   = 0.1;
+            ssize_t iexp    = 0;
+
+            // Has sign?
+            if (c == '-')
+            {
+                flags      |= F_NEGATIVE | F_SIGN;
+                c           = commit_lookup(JT_UNKNOWN);
+            }
+            else if (c == '+')
+            {
+                flags      |= F_SIGN;
+                c           = commit_lookup(JT_UNKNOWN);
+            }
+
+            // Has prefix ?
+            if (c == '0')
+            {
+                c           = commit_lookup(JT_UNKNOWN);
+                switch (c)
+                {
+                    case 'x': // hexadecimal
+                    case 'X':
+                        radix       = 16;
+                        rradix      = 0.0625;
+                        c           = commit_lookup(JT_UNKNOWN);
+                        flags      |= F_INTEGER;
+                        break;
+                    default:
+                        flags      |= F_INT;
+                        break;
+                }
+            }
+            else if ((c == 'I') || (c == 'N')) // Infinity or NaN?
+            {
+                LSPString tmp;
+                tmp.swap(&sValue);
+                token_t tok = parse_identifier();
+                if (!tmp.append(&sValue))
+                    return set_error(STATUS_NO_MEM);
+                sValue.swap(&tmp);
+                if (tok != JT_DOUBLE)
+                    return enToken = JT_UNKNOWN;
+                if (flags & F_NEGATIVE)
+                    fValue  = -fValue;
+                return tok;
+            }
+
+            // Read the integer part
+            while (parse_digit(&digit, c, radix))
+            {
+                ivalue      = ivalue*radix + digit;
+                flags      |= F_INT;
+                c           = commit_lookup(JT_DECIMAL);
+            }
+
+            // Is integer only?
+            if (flags & F_INTEGER)
+            {
+                if (!(flags & F_INT)) // There should be at least one integer character
+                    return enToken = JT_UNKNOWN;
+                iValue      = ivalue;
+                return enToken  = (radix != 16) ? JT_DECIMAL : JT_HEXADECIMAL;
+            }
+
+            // Has a fraction part?
+            if (c == '.')
+            {
+                flags      |= F_DOT;
+                c           = commit_lookup(JT_DOUBLE);
+
+                while (parse_digit(&digit, c, radix))
+                {
+                    ifpow      *= rradix;
+                    ifrac      += digit * ifpow;
+                    flags      |= F_FRAC;
+                    c           = commit_lookup(JT_DOUBLE);
+                }
+            }
+
+            // Is there at least INT or FRAC part defined?
+            if ((flags & (F_INT | F_FRAC)) == 0)
+                return enToken = JT_UNKNOWN;
+
+            // Has an exponent part?
+            if ((c == 'e') || (c == 'E'))
+            {
+                c           = commit_lookup(JT_DOUBLE);
+
+                // Has sign?
+                if (c == '-')
+                {
+                    flags      |= F_ENEGATIVE | F_ESIGN;
+                    c           = commit_lookup(JT_UNKNOWN);
+                }
+                else if (c == '+')
+                {
+                    flags      |= F_ESIGN;
+                    c           = commit_lookup(JT_UNKNOWN);
+                }
+
+                // Parse exponent
+                while (parse_digit(&digit, c, radix))
+                {
+                    iexp        = iexp*radix + digit;
+                    flags      |= F_EXP;
+                    c           = commit_lookup(JT_DOUBLE);
+                }
+
+                // Analyze post-condition: if exponent sign is defined,
+                // the exponent value also should be defined
+                if ((flags & (F_ESIGN | F_EXP)) == F_ESIGN)
+                    return enToken  = JT_UNKNOWN;
+                else if (flags & F_ENEGATIVE)
+                    iexp        = -iexp;
+            }
+
+            // Form the floating-point value
+            double fv       = (double(ivalue) + ifrac) * pow(radix, iexp);
+            fValue          = (flags & F_NEGATIVE) ? -fv : fv;
+            return enToken  = JT_DOUBLE;
         }
 
         token_t Tokenizer::get_token(bool get)
