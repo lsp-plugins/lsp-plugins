@@ -20,26 +20,37 @@ namespace lsp
         class Tokenizer
         {
             protected:
-                io::IInSequence    *pIn;
-                lsp_swchar_t        cCurrent;
-                token_t             enToken;
-                LSPString           sValue;
+                io::IInSequence        *pIn;
+                lsp_swchar_t            cCurrent;
+                token_t                 enToken;
+                LSPString               sValue;
                 union
                 {
                     double              fValue;
                     ssize_t             iValue;
                 };
-                status_t            nError;
-                size_t              nUnget;
+                status_t                nError;
+                size_t                  nUnget;
+                lsp_utf16_t            *vPending;
+                size_t                  nPending;
+                size_t                  nCapacity;
 
             protected:
                 lsp_swchar_t        skip_whitespace();
                 inline lsp_swchar_t lookup();
                 token_t             commit(token_t token);
+                inline token_t      skip(token_t token)            { cCurrent = -1; return enToken = token; }
                 lsp_swchar_t        commit_lookup(token_t token);
                 inline token_t      set_error(status_t code);
-                bool                is_identifier_start(lsp_wchar_t ch);
-                bool                is_identifier(lsp_wchar_t ch);
+
+                static bool         is_reserved_word(const LSPString *text);
+                static bool         is_identifier_start(lsp_wchar_t ch);
+                static bool         is_identifier(lsp_wchar_t ch);
+                static bool         parse_digit(int *digit, lsp_wchar_t ch, int radix);
+
+                status_t            add_pending_character(lsp_utf16_t ch);
+                status_t            commit_pending_characters();
+                token_t             parse_unicode_escape_sequence(token_t type);
 
                 token_t             parse_string(token_t type);
                 token_t             parse_identifier();

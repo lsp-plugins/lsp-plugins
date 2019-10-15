@@ -27,6 +27,10 @@ namespace lsp
             JT_SQ_STRING,       // 'string'
             JT_DQ_STRING,       // "string"
             JT_IDENTIFIER,      // identifier
+            JT_TRUE,            // true
+            JT_FALSE,           // false
+            JT_NULL,            // null
+            JT_RESERVED,        // reserved word
             JT_SL_COMMENT,      // //comment
             JT_ML_COMMENT,      // /* comment */
             JT_DECIMAL,         // 1234
