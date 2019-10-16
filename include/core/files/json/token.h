@@ -49,7 +49,7 @@ namespace lsp
         enum json_version_t
         {
             JSON_LEGACY     = 0,    //!< JSON_LEGACY legacy JSON, very strict verison
-            JSON_JSON5      = 5000  //!< JSON_JSON5 more user-friendly version
+            JSON_VERSION5   = 5000  //!< JSON_VERSION5 more user-friendly version
         };
 
         /**

@@ -91,7 +91,7 @@ UTEST_BEGIN("core.files.json", parser)
                 ev.type, json_event_name(ev.type), ev.sValue.get_utf8());
     }
 
-    void test_read_valid_json()
+    void test_read_valid_events_json()
     {
         using namespace lsp::json;
 
@@ -104,7 +104,8 @@ UTEST_BEGIN("core.files.json", parser)
                         "false,"
                         "["
                             "1234,"
-                            "\"value\""
+                            "\"value\","
+                            "{}"
                         "]"
                     "],"
                     "\"object\": {"
@@ -126,6 +127,8 @@ UTEST_BEGIN("core.files.json", parser)
                 check_event(p, JE_ARRAY_START);
                     check_event(p, 1234);
                     check_event(p, JE_STRING, "value");
+                    check_event(p, JE_OBJECT_START);
+                    check_event(p, JE_OBJECT_END);
                 check_event(p, JE_ARRAY_END);
             check_event(p, JE_ARRAY_END);
             check_event(p, JE_PROPERTY, "object"); check_event(p, JE_OBJECT_START);
@@ -140,10 +143,342 @@ UTEST_BEGIN("core.files.json", parser)
         UTEST_ASSERT(p.get_next(&ev) == STATUS_EOF);
     }
 
+    void test_read_valid_events_json5()
+    {
+        using namespace lsp::json;
+
+        static const char *data =
+                "/*some comment here */{"
+                    "\"version\": 5.0, // test of JSON5\n"
+                    "array: ["
+                        "\"string\","
+                        "true,"
+                        "false,"
+                        "["
+                            "0x1234,"
+                            "\"value\","
+                            "{},"
+                        "]"
+                    "],\n"
+                    "// object test\n"
+                    "\"object\": {"
+                        "bvalue: true,"
+                        "ivalue: 1024,"
+                        "fvalue: 440.0,"
+                        "\"null\": null,"
+                    "}"
+                "}\n"
+                "// Comment after end";
+
+        Parser p;
+        UTEST_ASSERT(p.open(data, JSON_VERSION5, "UTF-8") == STATUS_OK);
+        check_event(p, JE_OBJECT_START);
+            check_event(p, JE_PROPERTY, "version"); check_event(p, 5.0);
+            check_event(p, JE_PROPERTY, "array"); check_event(p, JE_ARRAY_START);
+                check_event(p, JE_STRING, "string");
+                check_event(p, true);
+                check_event(p, false);
+                check_event(p, JE_ARRAY_START);
+                    check_event(p, 0x1234);
+                    check_event(p, JE_STRING, "value");
+                    check_event(p, JE_OBJECT_START);
+                    check_event(p, JE_OBJECT_END);
+                check_event(p, JE_ARRAY_END);
+            check_event(p, JE_ARRAY_END);
+            check_event(p, JE_PROPERTY, "object"); check_event(p, JE_OBJECT_START);
+                check_event(p, JE_PROPERTY, "bvalue"); check_event(p, true);
+                check_event(p, JE_PROPERTY, "ivalue"); check_event(p, 1024);
+                check_event(p, JE_PROPERTY, "fvalue"); check_event(p, 440.0);
+                check_event(p, JE_PROPERTY, "null"); check_event(p, JE_NULL);
+            check_event(p, JE_OBJECT_END);
+        check_event(p, JE_OBJECT_END);
+
+        event_t ev;
+        UTEST_ASSERT(p.get_next(&ev) == STATUS_EOF);
+    }
+
+    status_t read_fully(const char *text, json::json_version_t version)
+    {
+        using namespace lsp::json;
+
+        Parser p;
+        event_t ev;
+        status_t res;
+
+        UTEST_ASSERT(p.open(text, version, "UTF-8") == STATUS_OK);
+
+        while ((res = p.get_next(&ev)) == STATUS_OK) { } // Nothing
+
+        if (res == STATUS_EOF)
+            res = p.close();
+        else
+            p.close();
+
+        return res;
+    }
+
+    void test_read_invalid_json()
+    {
+        static const char *list[] = {
+            "{",
+            "}",
+            "{a",
+            "{\"a\"",
+            "{\"a\"\"b\"",
+            "{\"a\":",
+            "{\"a\":b",
+            "{\"a\":\"b\"",
+            "{\"a\":\"b\"]",
+            "{\"a\":\"b\",",
+            "{\"a\":\"b\",}",
+            "{\"a\":\"b\" \"c\":\"d\"}",
+            "{a:\"b\"}",
+            "{\"a\",\"b\"}",
+
+            "[",
+            "]",
+            "[a",
+            "[\"a\"",
+            "[\"a\" \"b\"",
+            "[\"a\",",
+            "[\"a\",}",
+            "[\"a\",]",
+            "[\"a\", \"b\" \"c\"]",
+            "[\"a\":\"b\"]",
+
+            "0x123",
+            "NULL",
+            "a",
+            "\"a\", \"b\"",
+            "\"a\":\"b\"",
+            "{},[]",
+            "{}[]",
+            "[]{}",
+            "1, 2",
+
+            NULL
+        };
+
+        for (const char **ptr = list; *ptr != NULL; ++ptr)
+        {
+            printf("  Testing: %s\n", *ptr);
+            UTEST_ASSERT(read_fully(*ptr, json::JSON_LEGACY) != STATUS_OK);
+        }
+    }
+
+    void test_read_invalid_json5()
+    {
+        static const char *list[] = {
+            "{",
+            "}",
+            "{a",
+            "{\"a\"",
+            "{\"a\"\"b\"",
+            "{\"a\":",
+            "{\"a\":b",
+            "{\"a\":\"b\"",
+            "{\"a\":\"b\"]",
+            "{\"a\":\"b\",",
+            "{\"a\":\"b\" \"c\":\"d\"}",
+            "{\"a\",\"b\"}",
+
+            "[",
+            "]",
+            "[a",
+            "[\"a\"",
+            "[\"a\" \"b\"",
+            "[\"a\",",
+            "[\"a\",}",
+            "[\"a\", \"b\" \"c\"]",
+            "[\"a\":\"b\"]",
+
+            "NULL",
+            "a",
+            "0x123,",
+            "1,",
+            "\"a\", \"b\"",
+            "\"a\":\"b\"",
+            "{},[]",
+            "{}[]",
+            "[]{}",
+            "1, 2",
+
+            NULL
+        };
+
+        for (const char **ptr = list; *ptr != NULL; ++ptr)
+        {
+            printf("  Testing: %s\n", *ptr);
+            UTEST_ASSERT(read_fully(*ptr, json::JSON_VERSION5) != STATUS_OK);
+        }
+    }
+
+    void test_read_valid_json()
+    {
+        static const char *list[] = {
+            "1",
+            "1.0",
+            "null",
+            "\"a\"",
+            "[]",
+            "{}",
+
+            "[1]",
+            "[1.0]",
+            "[null]",
+            "[\"a\"]",
+            "[[]]",
+            "[{}]",
+            "[\"a\", 1]",
+            "[\"a\", 1.0]",
+            "[\"a\", null]",
+            "[\"a\", \"b\"]",
+            "[\"a\", []]",
+            "[\"a\", {}]",
+
+            "{\"a\":1}",
+            "{\"a\":1.0}",
+            "{\"a\":null}",
+            "{\"a\":\"b\"}",
+            "{\"a\":[]}",
+            "{\"a\":{}}",
+            "{\"a\":\"b\",\"c\":1}",
+            "{\"a\":\"b\",\"c\":1.0}",
+            "{\"a\":\"b\",\"c\":null}",
+            "{\"a\":\"b\",\"c\":\"d\"}",
+            "{\"a\":\"b\",\"c\":[]}",
+            "{\"a\":\"b\",\"c\":{}}",
+
+            NULL
+        };
+
+        for (const char **ptr = list; *ptr != NULL; ++ptr)
+        {
+            printf("  Testing: %s\n", *ptr);
+            UTEST_ASSERT(read_fully(*ptr, json::JSON_LEGACY) == STATUS_OK);
+        }
+    }
+
+    void test_read_valid_json5()
+    {
+        static const char *list[] = {
+            "//a",
+            "/*a*/",
+
+            "1",
+            "0x10",
+            "1.0",
+            "null",
+            "\"a\"",
+            "[]",
+            "{}",
+
+            "/*a*/1",
+            "/*a*/0x10",
+            "/*a*/1.0",
+            "/*a*/null",
+            "/*a*/\"a\"",
+            "/*a*/[]",
+            "/*a*/{}",
+
+            "1//a",
+            "0x10//a",
+            "1.0//a",
+            "null//a",
+            "\"a\"//a",
+            "[]//a",
+            "{}//a",
+            "[/*a*/]",
+            "{/*a*/}",
+
+            "[1]",
+            "[0x10]",
+            "[1.0]",
+            "[null]",
+            "[\"a\"]",
+            "[[]]",
+            "[{}]",
+            "[1,]",
+            "[0x10,]",
+            "[1.0,]",
+            "[null,]",
+            "[\"a\",]",
+            "[[],]",
+            "[{},]",
+            "[\"a\", 1]",
+            "[\"a\", 0x10]",
+            "[\"a\", 1.0]",
+            "[\"a\", null]",
+            "[\"a\", \"b\"]",
+            "[\"a\", []]",
+            "[\"a\", {}]",
+
+            "{\"a\":1}",
+            "{\"a\":0x10}",
+            "{\"a\":1.0}",
+            "{\"a\":null}",
+            "{\"a\":\"b\"}",
+            "{\"a\":[]}",
+            "{\"a\":{}}",
+
+            "{\"a\":1,}",
+            "{\"a\":0x10,}",
+            "{\"a\":1.0,}",
+            "{\"a\":null,}",
+            "{\"a\":\"b\",}",
+            "{\"a\":[],}",
+            "{\"a\":{},}",
+
+            "{a:1}",
+            "{a:0x10}",
+            "{a:1.0}",
+            "{a:null}",
+            "{a:\"b\"}",
+            "{a:[]}",
+            "{a:{}}",
+
+            "{a:1,}",
+            "{a:0x10,}",
+            "{a:1.0,}",
+            "{a:null,}",
+            "{a:\"b\",}",
+            "{a:[],}",
+            "{a:{},}",
+
+            "{\"a\":\"b\",\"c\":1}",
+            "{\"a\":\"b\",\"c\":0x10}",
+            "{\"a\":\"b\",\"c\":1.0}",
+            "{\"a\":\"b\",\"c\":null}",
+            "{\"a\":\"b\",\"c\":\"d\"}",
+            "{\"a\":\"b\",\"c\":[]}",
+            "{\"a\":\"b\",\"c\":{}}",
+
+            NULL
+        };
+
+        for (const char **ptr = list; *ptr != NULL; ++ptr)
+        {
+            printf("  Testing: %s\n", *ptr);
+            UTEST_ASSERT(read_fully(*ptr, json::JSON_VERSION5) == STATUS_OK);
+        }
+    }
+
     UTEST_MAIN
     {
+        printf("Testing invalid json read...\n");
+        test_read_invalid_json();
+        printf("Testing invalid json5 read...\n");
+        test_read_invalid_json5();
+
         printf("Testing valid json read...\n");
         test_read_valid_json();
+        printf("Testing valid json5 read...\n");
+        test_read_valid_json5();
+
+        printf("Testing valid json events read...\n");
+        test_read_valid_events_json();
+        printf("Testing valid json5 events read...\n");
+        test_read_valid_events_json5();
     }
 
 UTEST_END

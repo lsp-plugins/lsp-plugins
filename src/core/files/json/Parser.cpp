@@ -247,7 +247,7 @@ namespace lsp
 
                 case JT_SQ_STRING:   // Single-quoted strings are allowed since JSON5
                 case JT_IDENTIFIER:
-                    if (enVersion < JSON_JSON5)
+                    if (enVersion < JSON_VERSION5)
                         return STATUS_BAD_TOKEN;
                     if (!sCurrent.sValue.set(pTokenizer->text_value()))
                         return STATUS_NO_MEM;
@@ -255,7 +255,7 @@ namespace lsp
                     break;
 
                 case JT_HEXADECIMAL: // Hexadecimals are allowed since JSON5
-                    if (enVersion < JSON_JSON5)
+                    if (enVersion < JSON_VERSION5)
                         return STATUS_BAD_TOKEN;
                     sCurrent.iValue = pTokenizer->int_value();
                     sCurrent.type   = JE_INTEGER;
@@ -285,7 +285,7 @@ namespace lsp
 
                     case JT_SL_COMMENT:     // Skip comments
                     case JT_ML_COMMENT:
-                        if (enVersion <= JSON_JSON5) // Only JSON5 allows comments
+                        if (enVersion < JSON_VERSION5) // Only JSON5 allows comments
                             return STATUS_BAD_TOKEN;
                         break;
 
@@ -339,7 +339,7 @@ namespace lsp
 
                     case JT_SL_COMMENT:     // Skip comments
                     case JT_ML_COMMENT:
-                        if (enVersion <= JSON_JSON5) // Only JSON5 allows comments
+                        if (enVersion < JSON_VERSION5) // Only JSON5 allows comments
                             return STATUS_BAD_TOKEN;
                         break;
 
@@ -351,7 +351,7 @@ namespace lsp
 
                     case JT_RQ_BRACE:       // End of current array
                         // Closing brace after comma is allowed only since JSON5
-                        if ((sState.flags & PF_COMMA) && (enVersion <= JSON_JSON5))
+                        if ((sState.flags & PF_COMMA) && (enVersion < JSON_VERSION5))
                             return STATUS_BAD_TOKEN;
                         sCurrent.type       = JE_ARRAY_END;
                         return pop_state();
@@ -417,7 +417,7 @@ namespace lsp
 
                     case JT_SL_COMMENT:     // Skip comments
                     case JT_ML_COMMENT:
-                        if (enVersion <= JSON_JSON5) // Only JSON5 allows comments
+                        if (enVersion < JSON_VERSION5) // Only JSON5 allows comments
                             return STATUS_BAD_TOKEN;
                         break;
 
@@ -437,12 +437,14 @@ namespace lsp
                     {
                         size_t flags = sState.flags & PF_OBJECT_ALL;
 
-                        // JSON5 allows a comma before closing brace
-                        if ((flags == PF_OBJECT_ALL) && (enVersion <= JSON_JSON5))
-                            return STATUS_BAD_TOKEN;
-
                         // If property is present, there should be a corresponding value
-                        if ((flags != 0) && (flags != (PF_PROPERTY | PF_COLON | PF_VALUE)))
+                        // JSON5 allows a comma before closing brace
+                        if (flags == PF_OBJECT_ALL)
+                        {
+                            if (enVersion < JSON_VERSION5)
+                                return STATUS_BAD_TOKEN;
+                        }
+                        else if ((flags != 0) && (flags != (PF_PROPERTY | PF_COLON | PF_VALUE)))
                             return STATUS_BAD_TOKEN;
 
                         sCurrent.type       = JE_OBJECT_END;
