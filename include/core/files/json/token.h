@@ -12,6 +12,9 @@ namespace lsp
 {
     namespace json
     {
+        /**
+         * Low-level JSON tokens
+         */
         enum token_t
         {
             JT_UNKNOWN,         // Unknown token
@@ -37,6 +40,61 @@ namespace lsp
             JT_HEXADECIMAL,     // 0x1234
             JT_DOUBLE,          // 12.34, 1.234e+1
         };
+
+        /**
+         * JSON versions
+         */
+        enum json_version_t
+        {
+            JSON_LEGACY     = 0,    //!< JSON_LEGACY legacy JSON, very strict verison
+            JSON_JSON5      = 5000  //!< JSON_JSON5 more user-friendly version
+        };
+
+        /**
+         * High-level JSON event types
+         */
+        enum event_type_t
+        {
+            JE_OBJECT_START,    // Start of object - {
+            JE_OBJECT_END,      // End of object - }
+            JE_ARRAY_START,     // Start of array - [
+            JE_ARRAY_END,       // End of array - ]
+            JE_PROPERTY,        // Property - "key":
+            JE_STRING,          // "String value"
+            JE_INTEGER,         // Integer value - 123, 0x123
+            JE_DOUBLE,          // Floating-point value
+            JE_BOOL,            // Boolean value
+            JE_NULL,            // Null value
+
+            JE_UNKNOWN = -1     // Unknown event
+        };
+
+        /**
+         * JSON event
+         */
+        typedef struct event_t
+        {
+            event_type_t    type;
+            LSPString       sValue;
+            union
+            {
+                bool            bValue;
+                ssize_t         iValue;
+                double          fValue;
+            };
+        } event_t;
+
+        /**
+         * JSON serialization flags
+         */
+        typedef struct json_flags_t
+        {
+            json_version_t  version;            // Json version
+            bool            preferIdentifiers;  // Prever identifiers over strings
+            lsp_wchar_t     identCharacter;     // Identation character
+            size_t          identAmount;        // Number of characters for identation
+            bool            newLines;           // Use newline characters
+        } json_flags_t;
     }
 }
 
