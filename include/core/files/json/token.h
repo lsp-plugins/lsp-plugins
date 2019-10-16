@@ -8,6 +8,8 @@
 #ifndef CORE_FILES_JSON_TOKEN_H_
 #define CORE_FILES_JSON_TOKEN_H_
 
+#include <core/LSPString.h>
+
 namespace lsp
 {
     namespace json

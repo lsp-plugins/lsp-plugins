@@ -12,6 +12,7 @@
 #include <core/io/IInStream.h>
 #include <core/files/json/token.h>
 #include <core/files/json/Tokenizer.h>
+#include <data/cstorage.h>
 
 namespace lsp
 {
@@ -23,45 +24,49 @@ namespace lsp
             private:
                 Parser & operator = (const Parser &);
 
-                enum state_t
+                enum pmode_t
                 {
-                    READ_ROOT       = '/',
-                    READ_ARRAY      = '[',
-                    READ_OBJECT     = '{',
-                    READ_REJECT     = '#'
+                    READ_ROOT,
+                    READ_ARRAY,
+                    READ_OBJECT
                 };
 
                 enum parse_flags_t
                 {
-                    PF_GET          = 1 << 0,
-                    PF_COMMA        = 1 << 1,
-                    PF_COLON        = 1 << 2,
-                    PF_PROPERTY     = 1 << 3,
-                    PF_VALUE        = 1 << 4
+                    PF_COMMA        = 1 << 0,
+                    PF_COLON        = 1 << 1,
+                    PF_PROPERTY     = 1 << 2,
+                    PF_VALUE        = 1 << 3,
+
+                    PF_ARRAY_ALL    = PF_COMMA | PF_VALUE,
+                    PF_OBJECT_ALL   = PF_COMMA | PF_COLON | PF_PROPERTY | PF_VALUE
                 };
+
+                typedef struct state_t
+                {
+                    pmode_t         mode;
+                    size_t          flags;
+                } state_t;
 
             protected:
                 Tokenizer          *pTokenizer;
                 io::IInSequence    *pSequence;
                 size_t              nWFlags;
                 json_version_t      enVersion;
-                LSPString           sStack;         // State stack
+                state_t             sState;
                 event_t             sCurrent;
-                state_t             enState;
-                size_t              nPFlags;
+                cstorage<state_t>   sStack;
 
             protected:
                 status_t            read_root();
                 status_t            read_array();
                 status_t            read_object();
-                status_t            read_reject();
                 status_t            read_primitive(token_t tok);
 
-                inline bool         push_state(state_t state);
-                inline bool         pop_state();
+                inline status_t     push_state(pmode_t state);
+                inline status_t     pop_state();
 
                 inline token_t      lookup_token();
-                inline void         unget_token();
 
             public:
                 explicit Parser();

@@ -20,9 +20,8 @@ namespace lsp
             pSequence       = NULL;
             nWFlags         = 0;
             enVersion       = JSON_LEGACY;
-            enState         = READ_ROOT;
-            nPFlags         = PF_GET;
-
+            sState.mode     = READ_ROOT;
+            sState.flags    = 0;
             sCurrent.type   = JE_UNKNOWN;
         }
         
@@ -111,12 +110,12 @@ namespace lsp
             if (tok == NULL)
                 return STATUS_NO_MEM;
 
-            pTokenizer  = tok;
-            pSequence   = seq;
-            nWFlags     = flags;
-            enVersion   = version;
-            enState     = READ_ROOT;
-            nPFlags     = PF_GET;
+            pTokenizer      = tok;
+            pSequence       = seq;
+            nWFlags         = flags;
+            enVersion       = version;
+            sState.mode     = READ_ROOT;
+            sState.flags    = 0;
 
             return STATUS_OK;
         }
@@ -147,44 +146,33 @@ namespace lsp
             }
 
             sCurrent.type   = JE_UNKNOWN;
+            sStack.flush();
 
             return res;
         }
 
-        bool Parser::push_state(state_t state)
+        status_t Parser::push_state(pmode_t mode)
         {
-            if (!sStack.append(state))
-                return false;
+            if (!sStack.add(&sState))
+                return STATUS_NO_MEM;
 
-            enState = state;
-            nPFlags    &=   PF_GET; // Reset all flags except PF_GET
-            return true;
+            sState.mode     = mode;
+            sState.flags    = 0;
+            return STATUS_OK;
         }
 
-        bool Parser::pop_state()
+        status_t Parser::pop_state()
         {
-            if (!sStack.remove_last())
-                return false;
-
-            if (sStack.length() <= 0)
-                enState     = READ_REJECT;
-            else
-                enState     = state_t(sStack.last());
-
-            nPFlags    &=   PF_GET; // Reset all flags except PF_GET
-            return true;
+            state_t *st = sStack.last();
+            if (st == NULL)
+                return STATUS_BAD_STATE;
+            sState          = *st;
+            return (sStack.remove_last()) ? STATUS_OK : STATUS_BAD_STATE;
         }
 
         token_t Parser::lookup_token()
         {
-            token_t tok     = pTokenizer->get_token(nPFlags & PF_GET);
-            nPFlags        |= PF_GET;
-            return tok;
-        }
-
-        void Parser::unget_token()
-        {
-            nPFlags        &= ~PF_GET;
+            return pTokenizer->get_token(true);
         }
 
         status_t Parser::get_current(event_t *ev)
@@ -224,7 +212,6 @@ namespace lsp
             }
 
             ev->type = sCurrent.type;
-            nPFlags    &=   PF_GET; // Reset all flags except PF_GET
             return STATUS_OK;
         }
 
@@ -298,19 +285,23 @@ namespace lsp
 
                     case JT_SL_COMMENT:     // Skip comments
                     case JT_ML_COMMENT:
+                        if (enVersion <= JSON_JSON5) // Only JSON5 allows comments
+                            return STATUS_BAD_TOKEN;
                         break;
 
                     case JT_LQ_BRACE:       // Start of array
-                        if (!push_state(READ_ARRAY))
-                            return STATUS_NO_MEM;
+                        if (sState.flags & PF_VALUE)
+                            return STATUS_BAD_TOKEN;
                         sCurrent.type       = JE_ARRAY_START;
-                        return STATUS_OK;
+                        sState.flags       |= PF_VALUE;
+                        return push_state(READ_ARRAY);
 
                     case JT_LC_BRACE:       // Start of object
-                        if (!push_state(READ_OBJECT))
-                            return STATUS_NO_MEM;
+                        if (sState.flags & PF_VALUE)
+                            return STATUS_BAD_TOKEN;
                         sCurrent.type       = JE_OBJECT_START;
-                        return STATUS_OK;
+                        sState.flags       |= PF_VALUE;
+                        return push_state(READ_OBJECT);
 
                     case JT_SQ_STRING:
                     case JT_DQ_STRING:
@@ -320,32 +311,10 @@ namespace lsp
                     case JT_DECIMAL:
                     case JT_DOUBLE:
                     case JT_HEXADECIMAL:
+                        if (sState.flags & PF_VALUE)
+                            return STATUS_BAD_TOKEN;
+                        sState.flags       |= PF_VALUE;
                         return read_primitive(tok);
-
-                    default:
-                        return STATUS_BAD_TOKEN;
-                }
-            }
-        }
-
-        status_t Parser::read_reject()
-        {
-            while (true)
-            {
-                // Get token
-                token_t tok     = lookup_token();
-
-                // Analyze token
-                switch (tok)
-                {
-                    case JT_EOF:            // End of input
-                        return STATUS_OK;
-                    case JT_ERROR:          // Error input
-                        return pTokenizer->error();
-
-                    case JT_SL_COMMENT:     // Skip comments
-                    case JT_ML_COMMENT:
-                        break;
 
                     default:
                         return STATUS_BAD_TOKEN;
@@ -370,34 +339,42 @@ namespace lsp
 
                     case JT_SL_COMMENT:     // Skip comments
                     case JT_ML_COMMENT:
+                        if (enVersion <= JSON_JSON5) // Only JSON5 allows comments
+                            return STATUS_BAD_TOKEN;
                         break;
 
                     case JT_COMMA:          // Comma
-                        if (nPFlags & PF_COMMA)
+                        if ((sState.flags & PF_ARRAY_ALL) != PF_VALUE)
                             return STATUS_BAD_TOKEN;
-                        nPFlags     |= PF_COMMA;    // Add comma flag
+                        sState.flags    |= PF_COMMA;    // Add comma flag
                         break;
 
                     case JT_RQ_BRACE:       // End of current array
                         // Closing brace after comma is allowed only since JSON5
-                        if ((nPFlags & PF_COMMA) && (enVersion <= JSON_JSON5))
+                        if ((sState.flags & PF_COMMA) && (enVersion <= JSON_JSON5))
                             return STATUS_BAD_TOKEN;
-                        if (!pop_state())
-                            return STATUS_BAD_STATE;
                         sCurrent.type       = JE_ARRAY_END;
-                        return STATUS_OK;
+                        return pop_state();
 
                     case JT_LQ_BRACE:       // Start of sub-array
-                        if (!push_state(READ_ARRAY))
-                            return STATUS_NO_MEM;
+                    {
+                        size_t flags        = sState.flags & PF_ARRAY_ALL;
+                        if ((flags != 0) && (flags != (PF_VALUE | PF_COMMA)))
+                            return STATUS_BAD_TOKEN;
+                        sState.flags        = PF_VALUE;
                         sCurrent.type       = JE_ARRAY_START;
-                        return STATUS_OK;
+                        return push_state(READ_ARRAY);
+                    }
 
                     case JT_LC_BRACE:       // Start of nested object
-                        if (!push_state(READ_OBJECT))
-                            return STATUS_NO_MEM;
+                    {
+                        size_t flags        = sState.flags & PF_ARRAY_ALL;
+                        if ((flags != 0) && (flags != (PF_VALUE | PF_COMMA)))
+                            return STATUS_BAD_TOKEN;
+                        sState.flags        = PF_VALUE;
                         sCurrent.type       = JE_OBJECT_START;
-                        return STATUS_OK;
+                        return push_state(READ_OBJECT);
+                    }
 
                     case JT_SQ_STRING:
                     case JT_DQ_STRING:
@@ -407,7 +384,13 @@ namespace lsp
                     case JT_DECIMAL:
                     case JT_DOUBLE:
                     case JT_HEXADECIMAL:    // Read primitive type
+                    {
+                        size_t flags        = sState.flags & PF_ARRAY_ALL;
+                        if ((flags != 0) && (flags != (PF_VALUE | PF_COMMA)))
+                            return STATUS_BAD_TOKEN;
+                        sState.flags        = PF_VALUE;
                         return read_primitive(tok);
+                    }
 
                     default:
                         return STATUS_BAD_TOKEN;
@@ -417,6 +400,8 @@ namespace lsp
 
         status_t Parser::read_object()
         {
+            status_t res;
+
             while (true)
             {
                 // Get token
@@ -432,68 +417,89 @@ namespace lsp
 
                     case JT_SL_COMMENT:     // Skip comments
                     case JT_ML_COMMENT:
+                        if (enVersion <= JSON_JSON5) // Only JSON5 allows comments
+                            return STATUS_BAD_TOKEN;
                         break;
 
                     case JT_COMMA:          // Comma
-                        if (nPFlags & PF_COMMA)
+                        if ((sState.flags & PF_OBJECT_ALL) != (PF_PROPERTY | PF_COLON | PF_VALUE))
                             return STATUS_BAD_TOKEN;
-                        nPFlags     |= PF_COMMA;    // Add comma flag
+                        sState.flags     |= PF_COMMA;    // Add comma flag
                         break;
 
                     case JT_COLON:          // Colon
-                        if (!(nPFlags & PF_PROPERTY))
+                        if ((sState.flags & PF_OBJECT_ALL) != PF_PROPERTY)
                             return STATUS_BAD_TOKEN;
-                        if (nPFlags & PF_COLON)
-                            return STATUS_BAD_TOKEN;
-                        nPFlags     |= PF_COLON;
+                        sState.flags     |= PF_COLON;
                         break;
 
                     case JT_RC_BRACE:       // End of current object
                     {
-                        // Closing brace after comma is allowed only since JSON5
-                        if ((nPFlags & PF_COMMA) && (enVersion <= JSON_JSON5))
+                        size_t flags = sState.flags & PF_OBJECT_ALL;
+
+                        // JSON5 allows a comma before closing brace
+                        if ((flags == PF_OBJECT_ALL) && (enVersion <= JSON_JSON5))
                             return STATUS_BAD_TOKEN;
 
                         // If property is present, there should be a corresponding value
-                        size_t flags = (nPFlags & (PF_PROPERTY | PF_VALUE));
-                        if ((flags != 0) && (flags != (PF_PROPERTY | PF_VALUE)))
-                            return STATUS_CORRUPTED;
+                        if ((flags != 0) && (flags != (PF_PROPERTY | PF_COLON | PF_VALUE)))
+                            return STATUS_BAD_TOKEN;
 
-                        if (!pop_state())
-                            return STATUS_BAD_STATE;
-                        sCurrent.type       = JE_ARRAY_END;
-                        return STATUS_OK;
+                        sCurrent.type       = JE_OBJECT_END;
+                        return pop_state();
                     }
 
                     case JT_LQ_BRACE:       // Start of array value
                         // Property should be defined first
-                        if ((nPFlags & (PF_PROPERTY | PF_COLON)) != (PF_PROPERTY | PF_COLON))
+                        if ((sState.flags & PF_OBJECT_ALL) != (PF_PROPERTY | PF_COLON))
                             return STATUS_BAD_TOKEN;
-                        if (!push_state(READ_ARRAY))
-                            return STATUS_NO_MEM;
                         sCurrent.type       = JE_ARRAY_START;
-                        return STATUS_OK;
+                        sState.flags       |= PF_VALUE;
+                        return push_state(READ_ARRAY);
 
                     case JT_LC_BRACE:       // Start of object value
                         // Property should be defined first
-                        if ((nPFlags & (PF_PROPERTY | PF_COLON)) != (PF_PROPERTY | PF_COLON))
+                        if ((sState.flags & PF_OBJECT_ALL) != (PF_PROPERTY | PF_COLON))
                              return STATUS_BAD_TOKEN;
-                        if (!push_state(READ_OBJECT))
-                            return STATUS_NO_MEM;
                         sCurrent.type       = JE_OBJECT_START;
-                        return STATUS_OK;
+                        sState.flags       |= PF_VALUE;
+                        return push_state(READ_OBJECT);
 
                     case JT_SQ_STRING:
                     case JT_DQ_STRING:
                     case JT_IDENTIFIER:     // Property name
                     {
-                        if (nPFlags & PF_PROPERTY)  // Property is not set?
-                            return STATUS_BAD_TOKEN;
-                        status_t res        = read_primitive(tok);
-                        if (res != STATUS_OK)
-                            return res;
-                        sCurrent.type       = JE_PROPERTY;
-                        return STATUS_OK;
+                        size_t flags = sState.flags & PF_OBJECT_ALL;
+                        if ((flags == 0) || (flags == PF_OBJECT_ALL)) // Property name?
+                        {
+                            if ((res = read_primitive(tok)) == STATUS_OK)
+                            {
+                                sState.flags        = PF_PROPERTY;
+                                sCurrent.type       = JE_PROPERTY;  // Override type of event
+                            }
+                        }
+                        else if (flags == (PF_PROPERTY | PF_COLON)) // Value?
+                        {
+                            if ((res = read_primitive(tok)) == STATUS_OK)
+                                sState.flags       |= PF_VALUE;
+                        }
+                        else
+                            res = STATUS_BAD_STATE;
+
+                        return res;
+                    }
+
+                    case JT_TRUE:
+                    case JT_FALSE:
+                    case JT_NULL:
+                    case JT_DECIMAL:
+                    case JT_DOUBLE:
+                    case JT_HEXADECIMAL:    // Read primitive type
+                    {
+                        if ((sState.flags & PF_OBJECT_ALL) != (PF_PROPERTY | PF_COLON))
+                             return STATUS_BAD_TOKEN;
+                        sState.flags    |= PF_VALUE;
+                        return read_primitive(tok);
                     }
 
                     default:
@@ -510,7 +516,7 @@ namespace lsp
             status_t res;
 
             // Root position?
-            switch (enState)
+            switch (sState.mode)
             {
                 case READ_ROOT:
                     res = read_root();
@@ -522,10 +528,6 @@ namespace lsp
 
                 case READ_OBJECT:
                     res = read_object();
-                    break;
-
-                case READ_REJECT:
-                    res = read_reject();
                     break;
 
                 default:
