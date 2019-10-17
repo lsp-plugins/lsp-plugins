@@ -25,6 +25,7 @@ namespace lsp
             private:
                 Serializer & operator = (const Serializer &);
 
+            protected:
                 enum pmode_t
                 {
                     WRITE_ROOT,
@@ -34,22 +35,34 @@ namespace lsp
 
                 enum serialize_flags_t
                 {
-                    SF_COMMA        = 1 << 0,
                     SF_PROPERTY     = 1 << 1,
                     SF_VALUE        = 1 << 2,
 
-                    SF_ARRAY_ALL    = SF_COMMA | SF_VALUE,
-                    SF_OBJECT_ALL   = SF_COMMA | SF_PROPERTY | SF_VALUE
+                    SF_ARRAY_ALL    = SF_VALUE,
+                    SF_OBJECT_ALL   = SF_PROPERTY | SF_VALUE
                 };
 
                 typedef struct state_t
                 {
                     pmode_t         mode;
                     size_t          flags;
+                    size_t          ident;
                 } state_t;
 
             protected:
-                inline void         init_serial_flags(const serial_flags_t *flags);
+                io::IOutSequence   *pOut;
+                size_t              nWFlags;
+                state_t             sState;
+                cstorage<state_t>   sStack;
+                serial_flags_t      sSettings;
+
+            protected:
+                inline status_t     push_state(pmode_t state);
+                inline status_t     pop_state();
+                inline void         copy_settings(const serial_flags_t *flags);
+
+                inline status_t     new_line();
+                status_t            write_raw(const char *buf, int len);
 
             public:
                 explicit Serializer();
@@ -59,64 +72,57 @@ namespace lsp
                 /**
                  * Open parser
                  * @param path UTF-8 path to the file
-                 * @param flags serialization flags
+                 * @param settings serialization flags
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const char *path, const serial_flags_t *flags, const char *charset = NULL);
+                status_t    open(const char *path, const serial_flags_t *settings, const char *charset = NULL);
 
                 /**
                  * Open parser
                  * @param path string representation of path to the file
-                 * @param flags serialization flags
+                 * @param settings serialization flags
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const LSPString *path, const serial_flags_t *flags, const char *charset = NULL);
+                status_t    open(const LSPString *path, const serial_flags_t *settings, const char *charset = NULL);
 
                 /**
                  * Open parser
                  * @param path path to the file
-                 * @param flags serialization flags
+                 * @param settings serialization flags
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const io::Path *path, const serial_flags_t *flags, const char *charset = NULL);
+                status_t    open(const io::Path *path, const serial_flags_t *settings, const char *charset = NULL);
 
                 /**
                  * Wrap string with parser
                  * @param str string to wrap
-                 * @param flags serialization flags
-                 * @param charset character set
+                 * @param settings serialization flags
                  * @return status of operation
                  */
-                status_t    wrap(const char *str, const serial_flags_t *flags, const char *charset = NULL);
-
-                /**
-                 * Wrap string with parser
-                 * @param str string to wrap
-                 * @param flags serialization flags
-                 * @return status of operation
-                 */
-                status_t    wrap(const LSPString *str, const serial_flags_t *flags);
+                status_t    wrap(LSPString *str, const serial_flags_t *settings);
 
                 /**
                  * Wrap input sequence with parser
                  * @param seq sequence to use for reads
-                 * @param flags serialization flags
+                 * @param settings serialization flags
+                 * @param flags wrapping flags
                  * @return status of operation
                  */
-                status_t    wrap(io::IOutSequence *seq, const serial_flags_t *flags, size_t flags = WRAP_NONE);
+                status_t    wrap(io::IOutSequence *seq, const serial_flags_t *settings, size_t flags = WRAP_NONE);
 
                 /**
                  * Wrap input stream with parser
-                 * @param is input stream
+                 * @param os output stream
                  * @param version JSON version
-                 * @param flags serialization flags
+                 * @param settings serialization flags
+                 * @param flags wrapping flags
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    wrap(io::IOutStream *is, const serial_flags_t *flags, size_t flags = WRAP_NONE, const char *charset = NULL);
+                status_t    wrap(io::IOutStream *os, const serial_flags_t *settings, size_t flags = WRAP_NONE, const char *charset = NULL);
 
                 /**
                  * Close parser
@@ -215,16 +221,15 @@ namespace lsp
                 /**
                  * Write property
                  * @param name property name
-                 * @param charset character set
                  * @return status of operation
                  */
-                status_t    write_property(const LSPString *name, const char *charset=NULL);
+                status_t    write_property(const LSPString *name);
 
                 /**
                  * Write beginning of the object
                  * @return status of operation
                  */
-                status_t    begin_object();
+                status_t    start_object();
 
                 /**
                  * Write the end of the object
@@ -236,7 +241,7 @@ namespace lsp
                  * Write beginning of the array
                  * @return status of operation
                  */
-                status_t    begin_array();
+                status_t    start_array();
 
                 /**
                  * Write the end of the array

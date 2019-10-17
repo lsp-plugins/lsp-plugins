@@ -32,17 +32,17 @@ namespace lsp
                 virtual ~OutFileStream();
 
             public:
-                status_t wrap(FILE *fd, bool close, const char *charset = NULL);
+                status_t wrap(FILE *fd, bool close);
 
-                status_t wrap_native(lsp_fhandle_t fd, bool close, const char *charset = NULL);
+                status_t wrap_native(lsp_fhandle_t fd, bool close);
 
-                status_t wrap(File *fd, size_t flags, const char *charset = NULL);
+                status_t wrap(File *fd, size_t flags);
 
-                status_t open(const char *path, size_t mode, const char *charset = NULL);
+                status_t open(const char *path, size_t mode);
 
-                status_t open(const LSPString *path, size_t mode, const char *charset = NULL);
+                status_t open(const LSPString *path, size_t mode);
 
-                status_t open(const Path *path, size_t mode, const char *charset = NULL);
+                status_t open(const Path *path, size_t mode);
 
                 virtual wssize_t    position();
 

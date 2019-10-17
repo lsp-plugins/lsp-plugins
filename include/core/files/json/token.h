@@ -92,10 +92,11 @@ namespace lsp
         typedef struct serial_flags_t
         {
             json_version_t  version;            // Json version
-            bool            preferIdentifiers;  // Prever identifiers over strings (at least JSON5)
-            lsp_wchar_t     identCharacter;     // Identation character
-            size_t          identAmount;        // Number of characters for identation
-            bool            newLines;           // Use newline characters
+            bool            identifiers;        // Prefer identifiers over strings (at least JSON5)
+            lsp_wchar_t     ident;              // Identation character
+            size_t          padding;            // Number of characters for identation
+            bool            separator;          // Add space separator after colons in objects
+            bool            multiline;          // Use newline characters (multiline output)
         } serial_flags_t;
     }
 }

@@ -25,6 +25,7 @@ namespace lsp
             private:
                 Parser & operator = (const Parser &);
 
+            protected:
                 enum pmode_t
                 {
                     READ_ROOT,

@@ -52,7 +52,7 @@ namespace lsp
             return set_error(res);
         }
     
-        status_t OutFileStream::wrap(FILE *fd, bool close, const char *charset)
+        status_t OutFileStream::wrap(FILE *fd, bool close)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -70,7 +70,7 @@ namespace lsp
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_DELETE, charset);
+            res = wrap(f, WRAP_DELETE);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -79,7 +79,7 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t OutFileStream::wrap_native(lsp_fhandle_t fd, bool close, const char *charset)
+        status_t OutFileStream::wrap_native(lsp_fhandle_t fd, bool close)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -95,7 +95,7 @@ namespace lsp
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_DELETE, charset);
+            res = wrap(f, WRAP_DELETE);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -118,7 +118,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t OutFileStream::open(const char *path, size_t mode, const char *charset)
+        status_t OutFileStream::open(const char *path, size_t mode)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -128,10 +128,10 @@ namespace lsp
             LSPString tmp;
             if (!tmp.set_utf8(path))
                 return set_error(STATUS_NO_MEM);
-            return open(&tmp, mode, charset);
+            return open(&tmp, mode);
         }
 
-        status_t OutFileStream::open(const LSPString *path, size_t mode, const char *charset)
+        status_t OutFileStream::open(const LSPString *path, size_t mode)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -150,12 +150,12 @@ namespace lsp
                 return set_error(res);
             }
 
-            return wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
+            return wrap(f, WRAP_CLOSE | WRAP_DELETE);
         }
 
-        status_t OutFileStream::open(const Path *path, size_t mode, const char *charset)
+        status_t OutFileStream::open(const Path *path, size_t mode)
         {
-            return open(path->as_string(), mode, charset);
+            return open(path->as_string(), mode);
         }
 
         wssize_t OutFileStream::position()
