@@ -10,6 +10,7 @@
 
 #include <common/types.h>
 #include <core/io/IInStream.h>
+#include <core/io/Path.h>
 #include <core/files/json/token.h>
 #include <core/files/json/Tokenizer.h>
 #include <data/cstorage.h>
@@ -75,38 +76,65 @@ namespace lsp
             public:
                 /**
                  * Open parser
+                 * @param path UTF-8 path to the file
+                 * @param version JSON version
+                 * @param charset character set
+                 * @return status of operation
+                 */
+                status_t    open(const char *path, json_version_t version, const char *charset = NULL);
+
+                /**
+                 * Open parser
+                 * @param path string representation of path to the file
+                 * @param version JSON version
+                 * @param charset character set
+                 * @return status of operation
+                 */
+                status_t    open(const LSPString *path, json_version_t version, const char *charset = NULL);
+
+                /**
+                 * Open parser
+                 * @param path path to the file
+                 * @param version JSON version
+                 * @param charset character set
+                 * @return status of operation
+                 */
+                status_t    open(const io::Path *path, json_version_t version, const char *charset = NULL);
+
+                /**
+                 * Wrap string with parser
                  * @param str string to wrap
                  * @param version JSON version
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const char *str, json_version_t version, const char *charset = NULL);
+                status_t    wrap(const char *str, json_version_t version, const char *charset = NULL);
 
                 /**
-                 * Open parser
+                 * Wrap string with parser
                  * @param str string to wrap
                  * @param version JSON version
                  * @return status of operation
                  */
-                status_t    open(const LSPString *str, json_version_t version);
+                status_t    wrap(const LSPString *str, json_version_t version);
 
                 /**
-                 * Open parser
+                 * Wrap input sequence with parser
                  * @param seq sequence to use for reads
                  * @param version JSON version
                  * @return status of operation
                  */
-                status_t    open(io::IInSequence *seq, json_version_t version, size_t flags = WRAP_NONE);
+                status_t    wrap(io::IInSequence *seq, json_version_t version, size_t flags = WRAP_NONE);
 
                 /**
-                 * Open parser
+                 * Wrap input stream with parser
                  * @param is input stream
                  * @param version JSON version
                  * @param flags wrap flags
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(io::IInStream *is, json_version_t version, size_t flags = WRAP_NONE, const char *charset = NULL);
+                status_t    wrap(io::IInStream *is, json_version_t version, size_t flags = WRAP_NONE, const char *charset = NULL);
 
                 /**
                  * Close parser

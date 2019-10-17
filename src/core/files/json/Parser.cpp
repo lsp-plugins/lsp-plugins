@@ -7,6 +7,7 @@
 
 #include <core/io/InStringSequence.h>
 #include <core/io/InSequence.h>
+#include <core/io/InFileStream.h>
 #include <core/files/json/Parser.h>
 
 namespace lsp
@@ -30,7 +31,76 @@ namespace lsp
             close();
         }
 
-        status_t Parser::open(const char *str, json_version_t version, const char *charset)
+        status_t Parser::open(const char *path, json_version_t version, const char *charset)
+        {
+            if (pTokenizer != NULL)
+                return STATUS_BAD_STATE;
+            else if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            io::InFileStream *ifs = new io::InFileStream();
+            if (ifs == NULL)
+                return STATUS_NO_MEM;
+            status_t res = ifs->open(path);
+            if (res == STATUS_OK)
+            {
+                res     = wrap(ifs, version, WRAP_CLOSE | WRAP_DELETE, charset);
+                if (res == STATUS_OK)
+                    return res;
+                ifs->close();
+            }
+            delete ifs;
+
+            return res;
+        }
+
+        status_t Parser::open(const LSPString *path, json_version_t version, const char *charset)
+        {
+            if (pTokenizer != NULL)
+                return STATUS_BAD_STATE;
+            else if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            io::InFileStream *ifs = new io::InFileStream();
+            if (ifs == NULL)
+                return STATUS_NO_MEM;
+            status_t res = ifs->open(path);
+            if (res == STATUS_OK)
+            {
+                res     = wrap(ifs, version, WRAP_CLOSE | WRAP_DELETE, charset);
+                if (res == STATUS_OK)
+                    return res;
+                ifs->close();
+            }
+            delete ifs;
+
+            return res;
+        }
+
+        status_t Parser::open(const io::Path *path, json_version_t version, const char *charset)
+        {
+            if (pTokenizer != NULL)
+                return STATUS_BAD_STATE;
+            else if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            io::InFileStream *ifs = new io::InFileStream();
+            if (ifs == NULL)
+                return STATUS_NO_MEM;
+            status_t res = ifs->open(path);
+            if (res == STATUS_OK)
+            {
+                res     = wrap(ifs, version, WRAP_CLOSE | WRAP_DELETE, charset);
+                if (res == STATUS_OK)
+                    return res;
+                ifs->close();
+            }
+            delete ifs;
+
+            return res;
+        }
+
+        status_t Parser::wrap(const char *str, json_version_t version, const char *charset)
         {
             if (pTokenizer != NULL)
                 return STATUS_BAD_STATE;
@@ -44,7 +114,7 @@ namespace lsp
             status_t res = seq->wrap(str, charset);
             if (res == STATUS_OK)
             {
-                if ((res = open(seq, version, WRAP_CLOSE | WRAP_DELETE)) == STATUS_OK)
+                if ((res = wrap(seq, version, WRAP_CLOSE | WRAP_DELETE)) == STATUS_OK)
                     return res;
                 seq->close();
             }
@@ -53,7 +123,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parser::open(const LSPString *str, json_version_t version)
+        status_t Parser::wrap(const LSPString *str, json_version_t version)
         {
             if (pTokenizer != NULL)
                 return STATUS_BAD_STATE;
@@ -67,7 +137,7 @@ namespace lsp
             status_t res = seq->wrap(str);
             if (res == STATUS_OK)
             {
-                if ((res = open(seq, version, WRAP_CLOSE | WRAP_DELETE)) == STATUS_OK)
+                if ((res = wrap(seq, version, WRAP_CLOSE | WRAP_DELETE)) == STATUS_OK)
                     return res;
                 seq->close();
             }
@@ -76,7 +146,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parser::open(io::IInStream *is, json_version_t version, size_t flags, const char *charset)
+        status_t Parser::wrap(io::IInStream *is, json_version_t version, size_t flags, const char *charset)
         {
             if (pTokenizer != NULL)
                 return STATUS_BAD_STATE;
@@ -90,7 +160,7 @@ namespace lsp
             status_t res = seq->wrap(is, flags, charset);
             if (res == STATUS_OK)
             {
-                if ((res = open(seq, version, WRAP_CLOSE | WRAP_DELETE)) == STATUS_OK)
+                if ((res = wrap(seq, version, WRAP_CLOSE | WRAP_DELETE)) == STATUS_OK)
                     return res;
                 seq->close();
             }
@@ -99,7 +169,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parser::open(io::IInSequence *seq, json_version_t version, size_t flags)
+        status_t Parser::wrap(io::IInSequence *seq, json_version_t version, size_t flags)
         {
             if (pTokenizer != NULL)
                 return STATUS_BAD_STATE;

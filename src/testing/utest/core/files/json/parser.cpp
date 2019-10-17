@@ -117,7 +117,7 @@ UTEST_BEGIN("core.files.json", parser)
                 "}";
 
         Parser p;
-        UTEST_ASSERT(p.open(data, JSON_LEGACY, "UTF-8") == STATUS_OK);
+        UTEST_ASSERT(p.wrap(data, JSON_LEGACY, "UTF-8") == STATUS_OK);
         check_event(p, JE_OBJECT_START);
             check_event(p, JE_PROPERTY, "version"); check_event(p, 1.0);
             check_event(p, JE_PROPERTY, "array"); check_event(p, JE_ARRAY_START);
@@ -171,7 +171,7 @@ UTEST_BEGIN("core.files.json", parser)
                 "// Comment after end";
 
         Parser p;
-        UTEST_ASSERT(p.open(data, JSON_VERSION5, "UTF-8") == STATUS_OK);
+        UTEST_ASSERT(p.wrap(data, JSON_VERSION5, "UTF-8") == STATUS_OK);
         check_event(p, JE_OBJECT_START);
             check_event(p, JE_PROPERTY, "version"); check_event(p, 5.0);
             check_event(p, JE_PROPERTY, "array"); check_event(p, JE_ARRAY_START);
@@ -205,7 +205,7 @@ UTEST_BEGIN("core.files.json", parser)
         event_t ev;
         status_t res;
 
-        UTEST_ASSERT(p.open(text, version, "UTF-8") == STATUS_OK);
+        UTEST_ASSERT(p.wrap(text, version, "UTF-8") == STATUS_OK);
 
         while ((res = p.get_next(&ev)) == STATUS_OK) { } // Nothing
 
@@ -489,7 +489,7 @@ UTEST_BEGIN("core.files.json", parser)
                 "}";
 
         Parser p;
-        UTEST_ASSERT(p.open(data, JSON_LEGACY, "UTF-8") == STATUS_OK);
+        UTEST_ASSERT(p.wrap(data, JSON_LEGACY, "UTF-8") == STATUS_OK);
         check_event(p, JE_OBJECT_START);
             UTEST_ASSERT(p.skip_next() == STATUS_OK);   // "version": 1.0
             check_event(p, JE_PROPERTY, "array"); check_event(p, JE_ARRAY_START);

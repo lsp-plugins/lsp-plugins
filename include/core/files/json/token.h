@@ -89,14 +89,14 @@ namespace lsp
         /**
          * JSON serialization flags
          */
-        typedef struct json_flags_t
+        typedef struct serial_flags_t
         {
             json_version_t  version;            // Json version
-            bool            preferIdentifiers;  // Prever identifiers over strings
+            bool            preferIdentifiers;  // Prever identifiers over strings (at least JSON5)
             lsp_wchar_t     identCharacter;     // Identation character
             size_t          identAmount;        // Number of characters for identation
             bool            newLines;           // Use newline characters
-        } json_flags_t;
+        } serial_flags_t;
     }
 }
 

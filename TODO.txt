@@ -44,7 +44,7 @@
 * Updated UI of the Graphic Equalizer plugin series.
 * Updated UI of the Multiband Compressor plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
-- Implemented JSON5 parser and serializer - https://spec.json5.org/ .
+- Implemented JSON5 parser and serializer mechanisms.
 - Added bookmarks to file opening dialog.
   KDE5 bookmark location: ~/.local/share/user-places.xbel (xml)
   GTK3 bookmark location: ~/.config/gtk-3.0/bookmarks (plain hrefs)
