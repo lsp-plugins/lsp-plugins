@@ -128,6 +128,19 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    get_current(event_t *ev);
+
+                /**
+                 * Skip nested data structures after current event
+                 * @return status of operation
+                 */
+                status_t    skip_next();
+
+                /**
+                 * Skip nested data structures associated with current event.
+                 * If current event is JE_OBJECT_START
+                 * @return status of operation
+                 */
+                status_t    skip_current();
         };
     
     } /* namespace json */

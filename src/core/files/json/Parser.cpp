@@ -542,6 +542,71 @@ namespace lsp
 
             return res;
         }
-    
+
+        status_t Parser::skip_next()
+        {
+            status_t res = get_next(NULL);
+            if (res == STATUS_OK)
+                res     = skip_current();
+            return res;
+        }
+
+        status_t Parser::skip_current()
+        {
+            status_t res;
+
+            switch (sCurrent.type)
+            {
+                case JE_OBJECT_START:
+                    while (true)
+                    {
+                        // Get next event
+                        if ((res = get_next(NULL)) != STATUS_OK)
+                            return res;
+
+                        // Analyze event type
+                        if (sCurrent.type != JE_PROPERTY)
+                            return (sCurrent.type == JE_OBJECT_END) ? STATUS_OK : STATUS_BAD_TOKEN;
+
+                        // Skip the value after property
+                        if ((res = get_next(NULL)) != STATUS_OK)
+                            return res;
+                        if ((res = skip_current()) != STATUS_OK)
+                            return res;
+                    }
+                    break;
+
+                case JE_ARRAY_START:
+                    while (true)
+                    {
+                        // Get next event
+                        if ((res = get_next(NULL)) != STATUS_OK)
+                            return res;
+
+                        // Analyze event type
+                        if (sCurrent.type == JE_ARRAY_END)
+                            return STATUS_OK;
+
+                        // Skip the value after property
+                        if ((res = skip_current()) != STATUS_OK)
+                            return res;
+                    }
+                    break;
+
+                case JE_PROPERTY:
+                    // Skip the value after property
+                    if ((res = get_next(NULL)) != STATUS_OK)
+                        return res;
+                    if ((res = skip_current()) != STATUS_OK)
+                        return res;
+                    break;
+
+                default:
+                    break;
+            }
+
+            return STATUS_OK;
+        }
+
     } /* namespace json */
 } /* namespace lsp */

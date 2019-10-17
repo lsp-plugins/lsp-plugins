@@ -463,6 +463,49 @@ UTEST_BEGIN("core.files.json", parser)
         }
     }
 
+    void test_skip_json()
+    {
+        using namespace lsp::json;
+
+        static const char *data =
+                "{"
+                    "\"version\": 1.0,"
+                    "\"array\": ["
+                        "\"string\","
+                        "true,"
+                        "false,"
+                        "["
+                            "1234,"
+                            "\"value\","
+                            "{}"
+                        "]"
+                    "],"
+                    "\"object\": {"
+                        "\"bvalue\": true,"
+                        "\"ivalue\": 1024,"
+                        "\"fvalue\": 440.0,"
+                        "\"null\": null"
+                    "}"
+                "}";
+
+        Parser p;
+        UTEST_ASSERT(p.open(data, JSON_LEGACY, "UTF-8") == STATUS_OK);
+        check_event(p, JE_OBJECT_START);
+            UTEST_ASSERT(p.skip_next() == STATUS_OK);   // "version": 1.0
+            check_event(p, JE_PROPERTY, "array"); check_event(p, JE_ARRAY_START);
+                UTEST_ASSERT(p.skip_next() == STATUS_OK);   // "string"
+                check_event(p, true);
+                check_event(p, false);
+                UTEST_ASSERT(p.skip_next() == STATUS_OK);   // [ ... ]
+            check_event(p, JE_ARRAY_END);
+            check_event(p, JE_PROPERTY, "object");
+            UTEST_ASSERT(p.skip_current() == STATUS_OK); // { ... }
+        check_event(p, JE_OBJECT_END);
+
+        event_t ev;
+        UTEST_ASSERT(p.get_next(&ev) == STATUS_EOF);
+    }
+
     UTEST_MAIN
     {
         printf("Testing invalid json read...\n");
@@ -479,6 +522,9 @@ UTEST_BEGIN("core.files.json", parser)
         test_read_valid_events_json();
         printf("Testing valid json5 events read...\n");
         test_read_valid_events_json5();
+
+        printf("Testing skip method for json...\n");
+        test_skip_json();
     }
 
 UTEST_END
