@@ -148,6 +148,21 @@ namespace lsp
                 status_t    write_hex(ssize_t value);
 
                 /**
+                 * Write double
+                 * @param value double value
+                 * @return status of operation
+                 */
+                status_t    write_double(double value);
+
+                /**
+                 * Write double
+                 * @param value double value
+                 * @param fmt format specifier (same as for sprintf)
+                 * @return status of operation
+                 */
+                status_t    write_double(double value, const char *fmt);
+
+                /**
                  * Write boolean value
                  * @param value value to write
                  * @return status of operation
