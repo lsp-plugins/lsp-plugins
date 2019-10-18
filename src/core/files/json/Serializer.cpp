@@ -235,7 +235,7 @@ namespace lsp
             if (event == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
-            switch (event)
+            switch (event->type)
             {
                 case JE_OBJECT_START:   return start_object();
                 case JE_OBJECT_END:     return end_object();
@@ -291,8 +291,8 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             char buf[0x20];
-            int len = ::snprintf(buf, sizeof(buf), "%lld", value);
-            return (len < sizeof(buf)) ? write_raw(buf, len) : STATUS_OVERFLOW;
+            int len = ::snprintf(buf, sizeof(buf), "%lld", (long long)value);
+            return (len < int(sizeof(buf))) ? write_raw(buf, len) : STATUS_OVERFLOW;
         }
 
         status_t Serializer::write_hex(ssize_t value)
@@ -303,8 +303,8 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             char buf[0x20];
-            int len = ::snprintf(buf, sizeof(buf), "0x%llx", value);
-            return (len < sizeof(buf)) ? write_raw(buf, len) : STATUS_OVERFLOW;
+            int len = ::snprintf(buf, sizeof(buf), "0x%llx", (long long)value);
+            return (len < int(sizeof(buf))) ? write_raw(buf, len) : STATUS_OVERFLOW;
         }
 
         status_t Serializer::write_double(double value)
@@ -314,7 +314,7 @@ namespace lsp
 
             char buf[0x20];
             int len = ::snprintf(buf, sizeof(buf), "%f", value);
-            return (len < sizeof(buf)) ? write_raw(buf, len) : STATUS_OVERFLOW;
+            return (len < int(sizeof(buf))) ? write_raw(buf, len) : STATUS_OVERFLOW;
         }
 
         status_t Serializer::write_double(double value, const char *fmt)
@@ -346,7 +346,7 @@ namespace lsp
             return write_raw("null", 4);
         }
 
-        status_t Serializer::write_string(const char *value, const char *charset=NULL)
+        status_t Serializer::write_string(const char *value, const char *charset)
         {
             if (value == NULL)
                 return write_null();
@@ -413,7 +413,7 @@ namespace lsp
                         res = new_line();
                     break;
                 case WRITE_OBJECT:
-                    if (!sState.flags & SF_PROPERTY)
+                    if (!(sState.flags & SF_PROPERTY))
                         return STATUS_CORRUPTED;
                     sState.flags &= ~SF_PROPERTY;
                     break;
@@ -459,7 +459,7 @@ namespace lsp
                         res = new_line();
                     break;
                 case WRITE_OBJECT:
-                    if (!sState.flags & SF_PROPERTY)
+                    if (!(sState.flags & SF_PROPERTY))
                         return STATUS_CORRUPTED;
                     sState.flags &= ~SF_PROPERTY;
                     break;

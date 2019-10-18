@@ -104,7 +104,7 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t OutFileStream::wrap(File *fd, size_t flags, const char *charset)
+        status_t OutFileStream::wrap(File *fd, size_t flags)
         {
             if (pFD != NULL)
                 return set_error(STATUS_BAD_STATE);
