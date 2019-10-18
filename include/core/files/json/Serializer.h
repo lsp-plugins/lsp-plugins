@@ -35,11 +35,10 @@ namespace lsp
 
                 enum serialize_flags_t
                 {
-                    SF_PROPERTY     = 1 << 1,
-                    SF_VALUE        = 1 << 2,
-
-                    SF_ARRAY_ALL    = SF_VALUE,
-                    SF_OBJECT_ALL   = SF_PROPERTY | SF_VALUE
+                    SF_PROPERTY     = 1 << 0,
+                    SF_VALUE        = 1 << 1,
+                    SF_COMMA        = 1 << 2,
+                    SF_CONTENT      = 1 << 3
                 };
 
                 typedef struct state_t
@@ -58,13 +57,14 @@ namespace lsp
 
             protected:
                 inline status_t     push_state(pmode_t state);
-                inline status_t     pop_state();
+                status_t            pop_state();
                 inline void         copy_settings(const serial_flags_t *flags);
 
-                inline status_t     new_line();
                 inline char         hex(int x);
                 status_t            write_raw(const char *buf, int len);
                 status_t            write_literal(const LSPString *value);
+                inline status_t     emit_comma();
+                inline status_t     emit_separator();
 
             public:
                 explicit Serializer();
@@ -140,6 +140,18 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    write(const event_t *event);
+
+                /**
+                 * Write comma
+                 * @return status of operation
+                 */
+                status_t    write_comma();
+
+                /**
+                 * Write new line
+                 * @return status of operation
+                 */
+                status_t    write_new_line();
 
                 /**
                  * Write integer value

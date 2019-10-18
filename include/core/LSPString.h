@@ -156,6 +156,12 @@ namespace lsp
             inline LSPString *clone(ssize_t first) const { return copy(first); }
             inline LSPString *clone(ssize_t first, ssize_t last) const { return copy(first, last); }
 
+            /** Allocate instance of string and drain self data to this instance
+             *
+             * @return not null pointer is there is enough memory
+             */
+            LSPString *release();
+
             /** Insert data at specified position
              *
              * @param pos position

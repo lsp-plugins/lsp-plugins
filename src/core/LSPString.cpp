@@ -289,6 +289,14 @@ namespace lsp
         return s;
     }
 
+    LSPString *LSPString::release()
+    {
+        LSPString *str = new LSPString();
+        if (str != NULL)
+            str->swap(this);
+        return str;
+    }
+
     LSPString *LSPString::copy(ssize_t first) const
     {
         LSPString *s = new LSPString();

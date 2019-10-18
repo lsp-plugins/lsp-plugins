@@ -180,6 +180,7 @@ namespace lsp
         {
             status_t res = STATUS_OK;
 
+            // Close handles
             if (pOut != NULL)
             {
                 if (nWFlags & WRAP_CLOSE)
@@ -194,6 +195,8 @@ namespace lsp
 
                 pOut = NULL;
             }
+
+            sStack.flush();
 
             return res;
         }
@@ -214,13 +217,40 @@ namespace lsp
             state_t *st = sStack.last();
             if (st == NULL)
                 return STATUS_BAD_STATE;
+
             sState          = *st;
             return (sStack.remove_last()) ? STATUS_OK : STATUS_BAD_STATE;
         }
 
-        status_t Serializer::new_line()
+        status_t Serializer::write_comma()
         {
-            status_t res = (sSettings.multiline) ? pOut->write('\n') : STATUS_OK;
+            if (pOut == NULL)
+                return STATUS_BAD_STATE;
+
+            switch (sState.mode)
+            {
+                case WRITE_ROOT:
+                    return STATUS_INVALID_VALUE;
+                case WRITE_ARRAY:
+                case WRITE_OBJECT:
+                    if ((sState.flags & (SF_VALUE | SF_COMMA)) != SF_VALUE)
+                        return STATUS_INVALID_VALUE;
+                    break;
+                default:
+                    return STATUS_BAD_STATE;
+            }
+
+            sState.flags   |= SF_COMMA;
+            return pOut->write(',');
+        }
+
+        status_t Serializer::write_new_line()
+        {
+            if (!sSettings.multiline)
+                return STATUS_OK;
+
+            sState.flags   &= ~SF_CONTENT;
+            status_t res = pOut->write('\n');
             if (res != STATUS_OK)
                 return res;
             for (size_t i=0, n=sState.ident; i<n; ++i)
@@ -228,6 +258,7 @@ namespace lsp
                 if ((res = pOut->write(sSettings.ident)) != STATUS_OK)
                     break;
             }
+
             return res;
         }
 
@@ -235,7 +266,7 @@ namespace lsp
         {
             return ((x &= 0x0f) < 10) ? (x + '0') : (x + 'A' - 10);
         }
-    
+
         status_t Serializer::write(const event_t *event)
         {
             if (event == NULL)
@@ -259,9 +290,24 @@ namespace lsp
             return STATUS_BAD_ARGUMENTS;
         }
 
+        status_t Serializer::emit_comma()
+        {
+            if ((sState.flags & (SF_VALUE | SF_COMMA)) != SF_VALUE)
+                return STATUS_OK;
+            sState.flags |= SF_CONTENT;
+            return pOut->write(',');
+        }
+
+        status_t Serializer::emit_separator()
+        {
+            if ((!sSettings.separator) || (!(sState.flags & SF_CONTENT)))
+                return STATUS_OK;
+            return pOut->write(' ');
+        }
+
         status_t Serializer::write_raw(const char *buf, int len)
         {
-            status_t res;
+            status_t res = STATUS_OK;
 
             switch (sState.mode)
             {
@@ -270,9 +316,8 @@ namespace lsp
                         return STATUS_INVALID_VALUE;
                     break;
                 case WRITE_ARRAY:
-                    res = (sState.flags & SF_VALUE) ? pOut->write(',') : STATUS_OK;
-                    if (res == STATUS_OK)
-                        res = new_line();
+                    if ((res = emit_comma()) == STATUS_OK)
+                        res = write_new_line();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -282,12 +327,12 @@ namespace lsp
                 default:
                     return STATUS_BAD_STATE;
             }
+            if (res == STATUS_OK)
+                res = emit_separator();
 
-            if (res != STATUS_OK)
-                return res;
-            sState.flags   |= SF_VALUE;
+            sState.flags   &= ~SF_COMMA;
+            sState.flags   |= SF_VALUE | SF_CONTENT;
 
-            // Output data to the sequence
             return (res == STATUS_OK) ? pOut->write_ascii(buf, len) : res;
         }
 
@@ -306,10 +351,12 @@ namespace lsp
             if (pOut == NULL)
                 return STATUS_BAD_STATE;
             else if (sSettings.version < JSON_VERSION5)
-                return STATUS_BAD_ARGUMENTS;
+                return STATUS_INVALID_VALUE;
 
             char buf[0x20];
-            int len = ::snprintf(buf, sizeof(buf), "0x%llx", (long long)value);
+            int len = (value < 0) ?
+                    ::snprintf(buf, sizeof(buf), "-0x%llx", (long long)(-value)) :
+                    ::snprintf(buf, sizeof(buf), "0x%llx", (long long)value);
             return (len < int(sizeof(buf))) ? write_raw(buf, len) : STATUS_OVERFLOW;
         }
 
@@ -343,7 +390,7 @@ namespace lsp
             if (buf == NULL)
                 return STATUS_NO_MEM;
 
-            status_t res = (len <= 0) ? write_raw(buf, len) : STATUS_NO_DATA;
+            status_t res = (len >= 0) ? write_raw(buf, len) : STATUS_NO_DATA;
             ::free(buf);
             return res;
         }
@@ -379,7 +426,7 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             // Analyze state
-            status_t res;
+            status_t res = STATUS_OK;
 
             switch (sState.mode)
             {
@@ -388,9 +435,8 @@ namespace lsp
                         return STATUS_INVALID_VALUE;
                     break;
                 case WRITE_ARRAY:
-                    res = (sState.flags & SF_VALUE) ? pOut->write(',') : STATUS_OK;
-                    if (res == STATUS_OK)
-                        res = new_line();
+                    if ((res = emit_comma()) == STATUS_OK)
+                        res = write_new_line();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -400,12 +446,13 @@ namespace lsp
                 default:
                     return STATUS_BAD_STATE;
             }
+            if (res == STATUS_OK)
+                res = emit_separator();
 
-            if (res != STATUS_OK)
-                return res;
-            sState.flags   |= SF_VALUE;
+            sState.flags   &= ~SF_COMMA;
+            sState.flags   |= SF_VALUE | SF_CONTENT;
 
-            return write_literal(value);
+            return (res == STATUS_OK) ? write_literal(value) : res;
         }
 
         status_t Serializer::write_literal(const LSPString *value)
@@ -416,6 +463,7 @@ namespace lsp
             xb[0] = '\\';
 
             // Output start quote
+            sState.flags |= SF_CONTENT;
             if ((res = pOut->write('\"')) != STATUS_OK)
                 return res;
 
@@ -452,12 +500,13 @@ namespace lsp
                     {
                         if ((res = pOut->write(value, last, curr)) != STATUS_OK)
                             return res;
-                        last = curr+1; // Put pointer to the next character
                     }
 
                     // Append escape sequence and reset extra buffer size
                     if ((res = pOut->write_ascii(xb, bl)) != STATUS_OK)
                         return res;
+
+                    last = curr+1; // Put buffer pointer to the next character
                     bl = 1;
                 }
             }
@@ -485,8 +534,10 @@ namespace lsp
         {
             if (pOut == NULL)
                 return STATUS_BAD_STATE;
-            else if ((value == NULL) || (sSettings.version < JSON_VERSION5))
+            else if (value == NULL)
                 return STATUS_BAD_ARGUMENTS;
+            else if (sSettings.version < JSON_VERSION5)
+                return STATUS_INVALID_VALUE;
 
             // Comment can be placed everywhere, we don't need to analyze state
             status_t res;
@@ -499,6 +550,10 @@ namespace lsp
             xb[3] = '0';
 
             // Output start quote
+            if ((res = emit_separator()) != STATUS_OK)
+                return res;
+
+            sState.flags |= SF_CONTENT;
             if ((res = pOut->write_ascii("/*", 2)) != STATUS_OK)
                 return res;
 
@@ -514,6 +569,13 @@ namespace lsp
                             break;
                         xb[bl++]    = hex(ch >> 4);
                         xb[bl++]    = hex(ch);
+                        break;
+                    case '/':
+                        if (prev != '*')
+                            break;
+                        // Asterisk code in unicode
+                        xb[bl++]    = '2';
+                        xb[bl++]    = 'F';
                         break;
                     case '*':
                         if (prev != '/')
@@ -539,12 +601,12 @@ namespace lsp
                     {
                         if ((res = pOut->write(value, last, curr)) != STATUS_OK)
                             return res;
-                        last = curr+1; // Put pointer to the next character
                     }
 
                     // Append escape sequence and reset extra buffer size
                     if ((res = pOut->write_ascii(xb, bl)) != STATUS_OK)
                         return res;
+                    last = curr+1; // Put buffer pointer to the next character
                     bl = 4;
                 }
 
@@ -585,12 +647,17 @@ namespace lsp
                 case WRITE_OBJECT:
                     if (sState.flags & SF_PROPERTY)
                         return STATUS_INVALID_VALUE;
+                    if ((res = emit_comma()) == STATUS_OK)
+                        res = write_new_line();
+                    if (res != STATUS_OK)
+                        return res;
                     break;
                 default:
                     return STATUS_BAD_STATE;
             }
 
-            sState.flags |= SF_PROPERTY;
+            sState.flags   &= ~SF_COMMA;
+            sState.flags   |= SF_PROPERTY | SF_CONTENT;
 
             // Do we need to prefer identifiers instead of property name?
             if ((sSettings.identifiers) && (sSettings.version >= JSON_VERSION5))
@@ -598,11 +665,8 @@ namespace lsp
             else
                 res = write_literal(name);
 
-            // Write colon and spacing
-            if (res == STATUS_OK)
-                res = (sSettings.separator) ? pOut->write(':') : pOut->write_ascii(": ", 2);
-
-            return res;
+            // Write queued comment, colon and spacing
+            return (res == STATUS_OK) ? pOut->write(':') : res;
         }
 
         status_t Serializer::start_object()
@@ -610,8 +674,7 @@ namespace lsp
             if (pOut == NULL)
                 return STATUS_BAD_STATE;
 
-            status_t res;
-
+            status_t res = STATUS_OK;
             switch (sState.mode)
             {
                 case WRITE_ROOT:
@@ -619,9 +682,8 @@ namespace lsp
                         return STATUS_INVALID_VALUE;
                     break;
                 case WRITE_ARRAY:
-                    res = (sState.flags & SF_VALUE) ? pOut->write(',') : STATUS_OK;
-                    if (res == STATUS_OK)
-                        res = new_line();
+                    if ((res = emit_comma()) == STATUS_OK)
+                        res = write_new_line();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -631,12 +693,12 @@ namespace lsp
                 default:
                     return STATUS_BAD_STATE;
             }
+            if (res == STATUS_OK)
+                res = emit_separator();
 
-            if (res != STATUS_OK)
-                return res;
-            sState.flags   |= SF_VALUE;
-
-            res = pOut->write('{');
+            sState.flags   |= SF_VALUE | SF_CONTENT;
+            if (res == STATUS_OK)
+                res = pOut->write('{');
             return (res == STATUS_OK) ? push_state(WRITE_OBJECT) : res;
         }
 
@@ -644,10 +706,16 @@ namespace lsp
         {
             if ((pOut == NULL) || (sState.mode != WRITE_OBJECT) || (sState.flags & SF_PROPERTY))
                 return STATUS_BAD_STATE;
+            else if ((sState.flags & SF_COMMA) && (sSettings.version < JSON_VERSION5))
+                return STATUS_INVALID_VALUE;
 
+            bool data = sState.flags & SF_VALUE;
             status_t res = pop_state();
-            if ((res == STATUS_OK) && (sState.flags & SF_VALUE))
-                res         = new_line();
+            if ((res == STATUS_OK) && (data))
+                res = write_new_line();
+
+            sState.flags   &= ~SF_COMMA;
+            sState.flags   |= SF_CONTENT;
             return (res == STATUS_OK) ? pOut->write('}') : res;
         }
 
@@ -656,8 +724,7 @@ namespace lsp
             if (pOut == NULL)
                 return STATUS_BAD_STATE;
 
-            status_t res;
-
+            status_t res = STATUS_OK;
             switch (sState.mode)
             {
                 case WRITE_ROOT:
@@ -665,9 +732,8 @@ namespace lsp
                         return STATUS_INVALID_VALUE;
                     break;
                 case WRITE_ARRAY:
-                    res = (sState.flags & SF_VALUE) ? pOut->write(',') : STATUS_OK;
-                    if (res == STATUS_OK)
-                        res = new_line();
+                    if ((res = emit_comma()) == STATUS_OK)
+                        res = write_new_line();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -677,24 +743,30 @@ namespace lsp
                 default:
                     return STATUS_BAD_STATE;
             }
+            if (res == STATUS_OK)
+                res = emit_separator();
 
-            if (res != STATUS_OK)
-                return res;
-            sState.flags   |= SF_VALUE;
-
-            res = pOut->write('[');
+            sState.flags   |= SF_VALUE | SF_CONTENT;
+            if (res == STATUS_OK)
+                res = pOut->write('[');
             return (res == STATUS_OK) ? push_state(WRITE_ARRAY) : res;
         }
 
         status_t Serializer::end_array()
         {
-            if ((pOut == NULL) || (sState.mode != WRITE_OBJECT))
+            if ((pOut == NULL) || (sState.mode != WRITE_ARRAY))
                 return STATUS_BAD_STATE;
+            else if ((sState.flags & SF_COMMA) && (sSettings.version < JSON_VERSION5))
+                return STATUS_INVALID_VALUE;
 
+            bool data = sState.flags & SF_VALUE;
             status_t res = pop_state();
-            if ((res == STATUS_OK) && (sState.flags & SF_VALUE))
-                res         = new_line();
-            return (res == STATUS_OK) ? pOut->write('}') : res;
+            if ((res == STATUS_OK) && (data))
+                res = write_new_line();
+
+            sState.flags   &= ~SF_COMMA;
+            sState.flags   |= SF_CONTENT;
+            return (res == STATUS_OK) ? pOut->write(']') : res;
         }
 
     } /* namespace json */

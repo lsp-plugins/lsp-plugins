@@ -95,7 +95,7 @@ namespace lsp
             bool            identifiers;        // Prefer identifiers over strings (at least JSON5)
             lsp_wchar_t     ident;              // Identation character
             size_t          padding;            // Number of characters for identation
-            bool            separator;          // Add space separator after colons in objects
+            bool            separator;          // Add space separator after colons and commas in objects
             bool            multiline;          // Use newline characters (multiline output)
         } serial_flags_t;
     }
