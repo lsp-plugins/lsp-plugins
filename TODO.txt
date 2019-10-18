@@ -44,7 +44,8 @@
 * Updated UI of the Graphic Equalizer plugin series.
 * Updated UI of the Multiband Compressor plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
-- Added bookmarks to file opening dialog.
+* Implemented JSON and JSON5 parsing and serializing mechanisms.
+- Added bookmarks to file opening/saving dialogs.
   KDE5 bookmark location: ~/.local/share/user-places.xbel (xml)
   GTK3 bookmark location: ~/.config/gtk-3.0/bookmarks (plain hrefs)
 - Refactored and optimized reverb simulation algorithm.
