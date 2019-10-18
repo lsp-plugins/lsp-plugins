@@ -17,12 +17,17 @@ UTEST_BEGIN("core.files", bookmarks)
     {
         printf("Testing GTK3 bookmarks...\n");
 
-        cvector<LSPString> bm;
+        cvector<bookmark_t> bm;
 
         UTEST_ASSERT(read_bookmarks_gtk3(&bm, "res/test/bookmarks/gtk-3.0.bookmarks") == STATUS_OK);
-        UTEST_ASSERT(bm.size() == 2);
-        UTEST_ASSERT(bm.get(0)->equals_ascii("/path/to/file1"));
-        UTEST_ASSERT(bm.get(1)->equals_ascii("path/to/file2"));
+
+        for (size_t i=0; i<bm.size(); ++i)
+            printf("  Read GTK3 bookmark: %s\n", bm.get(i)->path.get_utf8());
+
+        UTEST_ASSERT(bm.size() == 4);
+        UTEST_ASSERT(bm.get(0)->path.equals_ascii("/path/to/file1"));
+        UTEST_ASSERT(bm.get(1)->path.equals_ascii("path/to/file2"));
+        UTEST_ASSERT(bm.get(2)->path.equals_ascii("/path/with spaces/for test"));
 
         destroy_bookmarks(&bm);
     }
