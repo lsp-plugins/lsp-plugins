@@ -19,6 +19,11 @@ namespace lsp
         
         class Tokenizer
         {
+            private:
+                Tokenizer & operator = (const Tokenizer &);
+
+                friend class Serializer;
+
             protected:
                 io::IInSequence        *pIn;
                 lsp_swchar_t            cCurrent;
@@ -44,6 +49,7 @@ namespace lsp
                 inline token_t      set_error(status_t code);
 
                 static bool         is_reserved_word(const LSPString *text);
+                static bool         is_valid_identifier(const LSPString *text);
                 static bool         is_identifier_start(lsp_wchar_t ch);
                 static bool         is_identifier(lsp_wchar_t ch);
                 static bool         parse_digit(int *digit, lsp_wchar_t ch, int radix);

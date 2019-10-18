@@ -62,7 +62,9 @@ namespace lsp
                 inline void         copy_settings(const serial_flags_t *flags);
 
                 inline status_t     new_line();
+                inline char         hex(int x);
                 status_t            write_raw(const char *buf, int len);
+                status_t            write_literal(const LSPString *value);
 
             public:
                 explicit Serializer();

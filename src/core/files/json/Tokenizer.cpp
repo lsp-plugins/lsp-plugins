@@ -15,31 +15,70 @@ namespace lsp
     {
         static const char *ecma_reserved[] =
         {
+            "Infinity",
+            "abstract",
+            "arguments",
+            "await",
+            "boolean",
             "break",
+            "byte",
             "case",
             "catch",
+            "char",
+            "class",
+            "const",
             "continue",
             "debugger",
             "default",
             "delete",
+            "do",
+            "double",
             "instanceof",
+            "interface",
             "else",
+            "enum",
+            "eval",
+            "export",
+            "extends",
+            "false",
+            "final",
             "finally",
+            "float",
             "for",
             "function",
+            "goto",
             "if",
+            "implements",
+            "import",
             "in",
-            "typeof",
+            "int",
+            "let",
+            "long",
+            "native",
             "new",
+            "null",
+            "package",
+            "private",
+            "protected",
+            "public",
             "return",
+            "short",
+            "static",
+            "super",
             "switch",
+            "synchronized",
             "this",
             "throw",
+            "transient",
             "try",
+            "true",
+            "typeof",
             "var",
             "void",
+            "volatile",
             "while",
-            "with"
+            "with",
+            "yield"
         };
         
         Tokenizer::Tokenizer(io::IInSequence *in)
@@ -151,6 +190,22 @@ namespace lsp
             }
 
             return false;
+        }
+
+        bool Tokenizer::is_valid_identifier(const LSPString *text)
+        {
+            size_t len = text->length();
+            if (len <= 0)
+                return false;
+            if (!is_identifier_start(text->char_at(0)))
+                return false;
+            for (size_t i=1; i<len; ++i)
+            {
+                if (!is_identifier(text->char_at(i)))
+                    return false;
+            }
+
+            return !is_reserved_word(text);
         }
 
         bool Tokenizer::parse_digit(int *digit, lsp_wchar_t ch, int radix)
