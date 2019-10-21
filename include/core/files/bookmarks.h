@@ -18,7 +18,7 @@ namespace lsp
 {
     namespace bookmarks
     {
-        enum bm_oritin_t
+        enum bm_origin_t
         {
             BM_LSP      = 1 << 0,
             BM_GTK3     = 1 << 1,
