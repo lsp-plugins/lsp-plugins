@@ -13,6 +13,7 @@
 #include <core/LSPString.h>
 #include <core/io/Path.h>
 #include <core/io/IInSequence.h>
+#include <core/io/IOutSequence.h>
 
 namespace lsp
 {
@@ -34,8 +35,8 @@ namespace lsp
 
         /**
          * Read GTK3 bookmarks
-         * @param path location of the file in UTF-8 encoding
          * @param dst list to store bookmarks
+         * @param path location of the file in UTF-8 encoding
          * @param charset file encoding character set, NULL for default locale
          * @return status of operation
          */
@@ -43,8 +44,8 @@ namespace lsp
 
         /**
          * Read GTK3 bookmarks
-         * @param path location of the file
          * @param dst list to store bookmarks
+         * @param path location of the file
          * @param charset file encoding character set, NULL for default locale
          * @return status of operation
          */
@@ -52,8 +53,8 @@ namespace lsp
 
         /**
          * Read GTK3 bookmarks
-         * @param path location of the file
          * @param dst list to store bookmarks
+         * @param path location of the file
          * @param charset file encoding character set, NULL for default locale
          * @return status of operation
          */
@@ -61,17 +62,16 @@ namespace lsp
 
         /**
          * Read GTK3 bookmarks
-         * @param path location of the file
          * @param dst list to store bookmarks
-         * @param charset file encoding character set, NULL for default locale
+         * @param in input character sequence
          * @return status of operation
          */
         status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, io::IInSequence *in);
 
         /**
          * Read LSP bookmarks in JSON5 format
-         * @param path location of the file in UTF-8 encoding
          * @param dst list to store bookmarks
+         * @param path location of the file in UTF-8 encoding
          * @param charset file encoding character set, NULL for default locale
          * @return status of operation
          */
@@ -79,8 +79,8 @@ namespace lsp
 
         /**
          * Read LSP bookmarks in JSON5 format
-         * @param path location of the file
          * @param dst list to store bookmarks
+         * @param path location of the file
          * @param charset file encoding character set, NULL for default locale
          * @return status of operation
          */
@@ -88,8 +88,8 @@ namespace lsp
 
         /**
          * Read LSP bookmarks in JSON5 format
-         * @param path location of the file
          * @param dst list to store bookmarks
+         * @param path location of the file
          * @param charset file encoding character set, NULL for default locale
          * @return status of operation
          */
@@ -97,12 +97,46 @@ namespace lsp
 
         /**
          * Read LSP bookmarks in JSON5 format
-         * @param path location of the file
          * @param dst list to store bookmarks
-         * @param charset file encoding character set, NULL for default locale
+         * @param in input character sequence
          * @return status of operation
          */
         status_t read_bookmarks(cvector<bookmark_t> *dst, io::IInSequence *in);
+
+        /**
+         * Save LSP bookmarks in JSON5 format
+         * @param src list to store bookmarks
+         * @param path location of the file in UTF-8 encoding
+         * @param charset file encoding character set, NULL for default locale
+         * @return status of operation
+         */
+        status_t save_bookmarks(const cvector<bookmark_t> *src, const char *path, const char *charset=NULL);
+
+        /**
+         * Save LSP bookmarks in JSON5 format
+         * @param src list to store bookmarks
+         * @param path location of the file
+         * @param charset file encoding character set, NULL for default locale
+         * @return status of operation
+         */
+        status_t save_bookmarks(const cvector<bookmark_t> *src, const LSPString *path, const char *charset=NULL);
+
+        /**
+         * Save LSP bookmarks in JSON5 format
+         * @param src list to store bookmarks
+         * @param path location of the file
+         * @param charset file encoding character set, NULL for default locale
+         * @return status of operation
+         */
+        status_t save_bookmarks(const cvector<bookmark_t> *src, const io::Path *path, const char *charset=NULL);
+
+        /**
+         * Save LSP bookmarks in JSON5 format
+         * @param src list to store bookmarks
+         * @param out output character sequence
+         * @return status of operation
+         */
+        status_t save_bookmarks(const cvector<bookmark_t> *src, io::IOutSequence *out);
 
         /**
          * Destroy bookmarks

@@ -5,8 +5,10 @@
  *      Author: sadko
  */
 
+#include <metadata/metadata.h>
 #include <core/files/bookmarks.h>
 #include <core/files/json/Parser.h>
+#include <core/files/json/Serializer.h>
 #include <core/io/InFileStream.h>
 #include <core/io/InSequence.h>
 
@@ -436,6 +438,135 @@ namespace lsp
             cvector<bookmark_t> tmp;
             status_t res = p.wrap(in, json::JSON_VERSION5, WRAP_NONE);
             return (res == STATUS_OK) ? read_bookmarks(dst, p) : res;
+        }
+
+        void init_settings(json::serial_flags_t *s)
+        {
+            s->version      = json::JSON_VERSION5;
+            s->identifiers  = false;
+            s->ident        = ' ';
+            s->padding      = 4;
+            s->separator    = true;
+            s->multiline    = true;
+        }
+
+        status_t save_item(const bookmark_t *item, json::Serializer &s)
+        {
+            status_t res;
+            if ((res = s.start_object()) != STATUS_OK)
+                return res;
+            {
+                // Path
+                if ((res = s.write_property("path")) != STATUS_OK)
+                    return res;
+                if ((res = s.write_string(&item->path)) != STATUS_OK)
+                    return res;
+
+                // Name
+                if ((res = s.write_property("name")) != STATUS_OK)
+                    return res;
+                if ((res = s.write_string(&item->name)) != STATUS_OK)
+                    return res;
+
+                // Origin
+                if ((res = s.write_property("origin")) != STATUS_OK)
+                    return res;
+                bool ml = s.set_multiline(false);
+                if ((res = s.start_array()) != STATUS_OK)
+                    return res;
+                {
+                    if ((item->origin & BM_LSP) && ((res = s.write_string("lsp")) != STATUS_OK))
+                        return res;
+                    if ((item->origin & BM_GTK3) && ((res = s.write_string("gtk3")) != STATUS_OK))
+                        return res;
+                    if ((item->origin & BM_QT5) && ((res = s.write_string("qt5")) != STATUS_OK))
+                        return res;
+                }
+                if ((res = s.end_array()) != STATUS_OK)
+                    return res;
+                s.set_multiline(ml);
+            }
+
+            if ((res = s.end_object()) != STATUS_OK)
+                return res;
+
+            return res;
+        }
+
+        status_t save_bookmarks(const cvector<bookmark_t> *src, json::Serializer &s)
+        {
+            static const char *comment = "\n"
+                    " * This file contains list of bookmarked directories.\n"
+                    " * \n"
+                    " * (C) " LSP_FULL_NAME " \n"
+                    " ";
+
+            // Write header
+            status_t res = s.write_comment(comment);
+            if (res == STATUS_OK)
+                res = s.writeln();
+            if (res == STATUS_OK)
+                res = s.start_array();
+
+            // Serialize body
+            if (res == STATUS_OK)
+            {
+                for (size_t i=0, n=src->size(); i<n; ++i)
+                {
+                    const bookmark_t *bm = src->at(i);
+                    if ((bm == NULL) || (bm->origin == 0)) // Skip bookmarks with empty origin
+                        continue;
+                    if ((res = save_item(bm, s)) != STATUS_OK)
+                        break;
+                }
+            }
+
+            if (res == STATUS_OK)
+                res = s.end_array();
+
+            // Close serializer
+            if (res == STATUS_OK)
+                res = s.close();
+            else
+                s.close();
+
+            return res;
+        }
+
+        status_t save_bookmarks(const cvector<bookmark_t> *src, const char *path, const char *charset)
+        {
+            json::Serializer s;
+            json::serial_flags_t flags;
+            init_settings(&flags);
+            status_t res = s.open(path, &flags, charset);
+            return (res == STATUS_OK) ? save_bookmarks(src, s) : res;
+        }
+
+        status_t save_bookmarks(const cvector<bookmark_t> *src, const LSPString *path, const char *charset)
+        {
+            json::Serializer s;
+            json::serial_flags_t flags;
+            init_settings(&flags);
+            status_t res = s.open(path, &flags, charset);
+            return (res == STATUS_OK) ? save_bookmarks(src, s) : res;
+        }
+
+        status_t save_bookmarks(const cvector<bookmark_t> *src, const io::Path *path, const char *charset)
+        {
+            json::Serializer s;
+            json::serial_flags_t flags;
+            init_settings(&flags);
+            status_t res = s.open(path, &flags, charset);
+            return (res == STATUS_OK) ? save_bookmarks(src, s) : res;
+        }
+
+        status_t save_bookmarks(const cvector<bookmark_t> *src, io::IOutSequence *out)
+        {
+            json::Serializer s;
+            json::serial_flags_t flags;
+            init_settings(&flags);
+            status_t res = s.wrap(out, &flags, WRAP_NONE);
+            return (res == STATUS_OK) ? save_bookmarks(src, s) : res;
         }
     }
 }

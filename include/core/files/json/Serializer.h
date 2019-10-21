@@ -151,7 +151,7 @@ namespace lsp
                  * Write new line
                  * @return status of operation
                  */
-                status_t    write_new_line();
+                status_t    writeln();
 
                 /**
                  * Write integer value
@@ -195,7 +195,14 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    write_string(const char *value, const char *charset=NULL);
+                status_t    write_string(const char *value, const char *charset);
+
+                /**
+                 * Write string in UTF-8
+                 * @param value value to write, NULL will be interpreted as NULL value
+                 * @return status of operation
+                 */
+                status_t    write_string(const char *value);
 
                 /**
                  * Write string value
@@ -215,7 +222,14 @@ namespace lsp
                  * @param value comment to write
                  * @return status of operation
                  */
-                status_t    write_comment(const char *value, const char *charset=NULL);
+                status_t    write_comment(const char *value, const char *charset);
+
+                /**
+                 * Write comment in UTF-8 encoding
+                 * @param value comment to write
+                 * @return status of operation
+                 */
+                status_t    write_comment(const char *value);
 
                 /**
                  * Write comment
@@ -230,7 +244,15 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    write_property(const char *name, const char *charset=NULL);
+                status_t    write_property(const char *name, const char *charset);
+
+                /**
+                 * Write property in UTF-8 encoding
+                 * @param name property name
+                 * @param charset character set
+                 * @return status of operation
+                 */
+                status_t    write_property(const char *name);
 
                 /**
                  * Write property
@@ -262,6 +284,24 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    end_array();
+
+            public:
+                /**
+                 * Get multiline flag
+                 * @return multiline flag
+                 */
+                inline bool get_multiline() const { return sSettings.multiline; }
+
+                /**
+                 * Get multiline flag
+                 * @return multiline flag
+                 */
+                inline bool set_multiline(bool multiline)
+                {
+                    bool prev = sSettings.multiline;
+                    sSettings.multiline = multiline;
+                    return prev;
+                }
         };
     
     } /* namespace json */

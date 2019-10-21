@@ -216,6 +216,7 @@ namespace lsp
             }
 
             sCurrent.type   = JE_UNKNOWN;
+            sCurrent.sValue.truncate();
             sStack.flush();
 
             return res;

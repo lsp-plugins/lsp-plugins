@@ -52,7 +52,7 @@ namespace lsp
             {
                 if (nItems >= nCapacity)
                 {
-                    void *data      = realloc(pvItems, sizeof(void *) * (nCapacity + CVECTOR_GROW));
+                    void *data      = ::realloc(pvItems, sizeof(void *) * (nCapacity + CVECTOR_GROW));
                     if (data == NULL)
                         return false;
 
@@ -68,7 +68,7 @@ namespace lsp
                 }
                 else
                 {
-                    memmove(&pvItems[idx+1], &pvItems[idx], (nItems - idx) * sizeof(void *));
+                    ::memmove(&pvItems[idx+1], &pvItems[idx], (nItems - idx) * sizeof(void *));
                     pvItems[idx]    = const_cast<void *>(ptr);
                 }
                 ++nItems;
@@ -95,7 +95,7 @@ namespace lsp
                     if (fast)
                         pvItems[i]  = pvItems[nItems];
                     else
-                        memmove(&pvItems[i], &pvItems[i+1], (nItems - i) * sizeof(void *));
+                        ::memmove(&pvItems[i], &pvItems[i+1], (nItems - i) * sizeof(void *));
                 }
 
                 pvItems[nItems] = NULL;

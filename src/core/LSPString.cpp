@@ -139,21 +139,13 @@ namespace lsp
             return true;
         if (nLength > size)
             nLength = size;
-        if (size > 0)
-        {
-            lsp_wchar_t *v = xrealloc(pData, size);
-            if (v == NULL)
-                return false;
-            pData       = v;
-            nCapacity   = size;
-        }
-        else
-        {
-            ::free(pData);
-            pData       = NULL;
-            nLength     = 0;
-            nCapacity   = 0;
-        }
+
+        lsp_wchar_t *v = xrealloc(pData, size);
+        if ((v == NULL) && (size > 0))
+            return false;
+
+        pData       = (size > 0) ? v : NULL;
+        nCapacity   = size;
         return true;
     }
 
@@ -161,11 +153,12 @@ namespace lsp
     {
         if (size < nCapacity)
             return true;
+
         lsp_wchar_t *v = xrealloc(pData, size);
-        if (v == NULL)
+        if ((v == NULL) && (size > 0))
             return false;
 
-        pData       = v;
+        pData       = (size > 0) ? v : NULL;
         nCapacity   = size;
         return true;
     }
@@ -181,9 +174,9 @@ namespace lsp
         if (nCapacity <= nLength)
             return;
         lsp_wchar_t *v = xrealloc(pData, nLength);
-        if (v == NULL)
+        if ((v == NULL) && (nLength > 0))
             return;
-        pData       = v;
+        pData       = (nLength > 0) ? v : NULL;
         nCapacity   = nLength;
     }
 

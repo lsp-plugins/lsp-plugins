@@ -244,7 +244,7 @@ namespace lsp
             return pOut->write(',');
         }
 
-        status_t Serializer::write_new_line()
+        status_t Serializer::writeln()
         {
             if (!sSettings.multiline)
                 return STATUS_OK;
@@ -317,7 +317,7 @@ namespace lsp
                     break;
                 case WRITE_ARRAY:
                     if ((res = emit_comma()) == STATUS_OK)
-                        res = write_new_line();
+                        res = writeln();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -418,6 +418,15 @@ namespace lsp
             return (tmp.set_native(value, charset)) ? write_string(&tmp) : STATUS_NO_MEM;
         }
 
+        status_t Serializer::write_string(const char *value)
+        {
+            if (value == NULL)
+                return write_null();
+
+            LSPString tmp;
+            return (tmp.set_utf8(value)) ? write_string(&tmp) : STATUS_NO_MEM;
+        }
+
         status_t Serializer::write_string(const LSPString *value)
         {
             if (value == NULL)
@@ -436,7 +445,7 @@ namespace lsp
                     break;
                 case WRITE_ARRAY:
                     if ((res = emit_comma()) == STATUS_OK)
-                        res = write_new_line();
+                        res = writeln();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -528,6 +537,14 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
             LSPString tmp;
             return (tmp.set_native(value, charset)) ? write_comment(&tmp) : STATUS_NO_MEM;
+        }
+
+        status_t Serializer::write_comment(const char *value)
+        {
+            if (value == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString tmp;
+            return (tmp.set_utf8(value)) ? write_comment(&tmp) : STATUS_NO_MEM;
         }
 
         status_t Serializer::write_comment(const LSPString *value)
@@ -633,6 +650,14 @@ namespace lsp
             return (tmp.set_native(name, charset)) ? write_property(&tmp) : STATUS_NO_MEM;
         }
 
+        status_t Serializer::write_property(const char *name)
+        {
+            if (name == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString tmp;
+            return (tmp.set_utf8(name)) ? write_property(&tmp) : STATUS_NO_MEM;
+        }
+
         status_t Serializer::write_property(const LSPString *name)
         {
             if (name == NULL)
@@ -648,7 +673,7 @@ namespace lsp
                     if (sState.flags & SF_PROPERTY)
                         return STATUS_INVALID_VALUE;
                     if ((res = emit_comma()) == STATUS_OK)
-                        res = write_new_line();
+                        res = writeln();
                     if (res != STATUS_OK)
                         return res;
                     break;
@@ -683,7 +708,7 @@ namespace lsp
                     break;
                 case WRITE_ARRAY:
                     if ((res = emit_comma()) == STATUS_OK)
-                        res = write_new_line();
+                        res = writeln();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -712,7 +737,7 @@ namespace lsp
             bool data = sState.flags & SF_VALUE;
             status_t res = pop_state();
             if ((res == STATUS_OK) && (data))
-                res = write_new_line();
+                res = writeln();
 
             sState.flags   &= ~SF_COMMA;
             sState.flags   |= SF_CONTENT;
@@ -733,7 +758,7 @@ namespace lsp
                     break;
                 case WRITE_ARRAY:
                     if ((res = emit_comma()) == STATUS_OK)
-                        res = write_new_line();
+                        res = writeln();
                     break;
                 case WRITE_OBJECT:
                     if (!(sState.flags & SF_PROPERTY))
@@ -762,7 +787,7 @@ namespace lsp
             bool data = sState.flags & SF_VALUE;
             status_t res = pop_state();
             if ((res == STATUS_OK) && (data))
-                res = write_new_line();
+                res = writeln();
 
             sState.flags   &= ~SF_COMMA;
             sState.flags   |= SF_CONTENT;

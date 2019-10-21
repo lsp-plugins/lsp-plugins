@@ -249,7 +249,9 @@ UTEST_BEGIN("core.files.json", parser)
 
         UTEST_ASSERT(p.wrap(text, version, "UTF-8") == STATUS_OK);
 
-        while ((res = p.read_next(&ev)) == STATUS_OK) { } // Nothing
+        while ((res = p.read_next(&ev)) == STATUS_OK) {
+            printf("    Read event: 0x%02x (%s)\n", ev.type, json_event_name(ev.type));
+        } // Nothing
 
         if (res == STATUS_EOF)
             res = p.close();
@@ -391,6 +393,7 @@ UTEST_BEGIN("core.files.json", parser)
             "{\"a\":\"b\",\"c\":[]}",
             "{\"a\":\"b\",\"c\":{}}",
 
+            "[{\"\":\"\"}]",
             NULL
         };
 

@@ -303,7 +303,7 @@ UTEST_BEGIN("core.files.json", serializer)
         UTEST_ASSERT(s.wrap(&out, &settings) == STATUS_OK);
 
         UTEST_ASSERT(s.write_comment("\n * c1\n ") == STATUS_OK);
-        UTEST_ASSERT(s.write_new_line() == STATUS_OK);
+        UTEST_ASSERT(s.writeln() == STATUS_OK);
         UTEST_ASSERT(s.start_object() == STATUS_OK);
             // Try to rite invalid data
             UTEST_ASSERT(s.write_int(123) == STATUS_INVALID_VALUE);
@@ -315,7 +315,7 @@ UTEST_BEGIN("core.files.json", serializer)
             UTEST_ASSERT(s.start_object() == STATUS_INVALID_VALUE);
             UTEST_ASSERT(s.start_array() == STATUS_INVALID_VALUE);
 
-            UTEST_ASSERT(s.write_new_line() == STATUS_OK);
+            UTEST_ASSERT(s.writeln() == STATUS_OK);
             UTEST_ASSERT(s.write_comment("/* array */") == STATUS_OK);
             UTEST_ASSERT(s.write_property("array") == STATUS_OK);
             UTEST_ASSERT(s.start_array() == STATUS_OK);
@@ -356,7 +356,7 @@ UTEST_BEGIN("core.files.json", serializer)
             UTEST_ASSERT(s.write_comma() == STATUS_OK);
             UTEST_ASSERT(s.write_comment(" end of array ") == STATUS_OK);
 
-            UTEST_ASSERT(s.write_new_line() == STATUS_OK);
+            UTEST_ASSERT(s.writeln() == STATUS_OK);
             UTEST_ASSERT(s.write_comment("** object **") == STATUS_OK);
             UTEST_ASSERT(s.write_property("object") == STATUS_OK);
             UTEST_ASSERT(s.start_object() == STATUS_OK);
@@ -399,7 +399,7 @@ UTEST_BEGIN("core.files.json", serializer)
             UTEST_ASSERT(s.write_comment(" end of object ") == STATUS_OK);
 
         UTEST_ASSERT(s.end_object() == STATUS_OK);
-        UTEST_ASSERT(s.write_new_line() == STATUS_OK);
+        UTEST_ASSERT(s.writeln() == STATUS_OK);
         UTEST_ASSERT(s.write_comment(" end of file ") == STATUS_OK);
         UTEST_ASSERT(s.close() == STATUS_OK);
 
