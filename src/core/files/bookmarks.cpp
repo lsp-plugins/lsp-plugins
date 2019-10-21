@@ -6,6 +6,7 @@
  */
 
 #include <core/files/bookmarks.h>
+#include <core/files/json/Parser.h>
 #include <core/io/InFileStream.h>
 #include <core/io/InSequence.h>
 
@@ -38,6 +39,8 @@ namespace lsp
             list->flush();
         }
 
+        //---------------------------------------------------------------------
+        // GTK3 stuff
         status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const char *path, const char *charset)
         {
             if ((path == NULL) || (dst == NULL))
@@ -222,7 +225,7 @@ namespace lsp
 
                 // Create bookmark
                 bookmark_t *bm  = new bookmark_t;
-                bm->source      = BM_GTK3;
+                bm->origin      = BM_GTK3;
                 if (bm == NULL)
                 {
                     destroy_bookmarks(&vtmp);
@@ -260,6 +263,179 @@ namespace lsp
             destroy_bookmarks(&vtmp);
 
             return STATUS_OK;
+        }
+
+        //---------------------------------------------------------------------
+        // LSP stuff
+        status_t read_json_origin(size_t *origin, json::Parser &p)
+        {
+            json::event_t ev;
+
+            status_t res = p.read_next(&ev);
+            if (res != STATUS_OK)
+                return res;
+            if (ev.type != json::JE_ARRAY_START)
+                return STATUS_CORRUPTED;
+
+            while (true)
+            {
+                // Check that it is not end of array
+                status_t res = p.read_next(&ev);
+                if (res != STATUS_OK)
+                    return res;
+                if (ev.type == json::JE_ARRAY_END)
+                    break;
+                else if (ev.type != json::JE_STRING)
+                    return STATUS_CORRUPTED;
+
+                // Analyze string
+                if (ev.sValue.equals_ascii("lsp"))
+                    *origin    |= BM_LSP;
+                else if (ev.sValue.equals_ascii("gtk3"))
+                    *origin    |= BM_GTK3;
+                else if (ev.sValue.equals_ascii("qt5"))
+                    *origin    |= BM_QT5;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t read_json_item(bookmark_t *item, json::Parser &p)
+        {
+            json::event_t ev;
+
+            while (true)
+            {
+                // Check that it is not end of array
+                status_t res = p.read_next(&ev);
+                if (res != STATUS_OK)
+                    return res;
+                if (ev.type == json::JE_OBJECT_END)
+                    break;
+                else if (ev.type != json::JE_PROPERTY)
+                    return STATUS_CORRUPTED;
+
+                // Read properties
+                if (ev.sValue.equals_ascii("path"))
+                {
+                    if ((res = p.read_string(&item->path)) != STATUS_OK)
+                        return res;
+                }
+                else if (ev.sValue.equals_ascii("name"))
+                {
+                    if ((res = p.read_string(&item->name)) != STATUS_OK)
+                        return res;
+                }
+                else if (ev.sValue.equals_ascii("origin"))
+                {
+                    if ((res = read_json_origin(&item->origin, p)) != STATUS_OK)
+                        return res;
+                }
+                else if ((res = p.skip_next()) != STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t read_json_bookmarks(cvector<bookmark_t> *dst, json::Parser &p)
+        {
+            json::event_t ev;
+
+            status_t res = p.read_next(&ev);
+            if (res != STATUS_OK)
+                return res;
+            if (ev.type != json::JE_ARRAY_START)
+                return STATUS_CORRUPTED;
+
+            while (true)
+            {
+                // Check that it is not end of array
+                status_t res = p.read_next(&ev);
+                if (res != STATUS_OK)
+                    return res;
+                if (ev.type == json::JE_ARRAY_END)
+                    break;
+                else if (ev.type != json::JE_OBJECT_START)
+                    return STATUS_CORRUPTED;
+
+                // Read bookmark item
+                bookmark_t *item = new bookmark_t;
+                item->origin     = 0;
+
+                res = read_json_item(item, p);
+                if (res != STATUS_OK)
+                {
+                    if (res == STATUS_NULL)
+                        res = STATUS_CORRUPTED;
+                    delete item;
+                    return res;
+                }
+                else if (!dst->add(item))
+                {
+                    delete item;
+                    return STATUS_NO_MEM;
+                }
+            }
+
+            return res;
+        }
+
+        status_t read_bookmarks(cvector<bookmark_t> *dst, json::Parser &p)
+        {
+            cvector<bookmark_t> tmp;
+            status_t res = read_json_bookmarks(&tmp, p);
+            if (res == STATUS_OK)
+                res = p.close();
+
+            if (res != STATUS_OK)
+                p.close();
+            else
+                dst->swap_data(&tmp);
+            destroy_bookmarks(&tmp);
+
+            return res;
+        }
+
+        status_t read_bookmarks(cvector<bookmark_t> *dst, const char *path, const char *charset)
+        {
+            if (dst == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            json::Parser p;
+            status_t res = p.open(path, json::JSON_VERSION5, charset);
+            return (res == STATUS_OK) ? read_bookmarks(dst, p) : res;
+        }
+
+        status_t read_bookmarks(cvector<bookmark_t> *dst, const LSPString *path, const char *charset)
+        {
+            if (dst == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            json::Parser p;
+            status_t res = p.open(path, json::JSON_VERSION5, charset);
+            return (res == STATUS_OK) ? read_bookmarks(dst, p) : res;
+        }
+
+        status_t read_bookmarks(cvector<bookmark_t> *dst, const io::Path *path, const char *charset)
+        {
+            if (dst == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            json::Parser p;
+            status_t res = p.open(path, json::JSON_VERSION5, charset);
+            return (res == STATUS_OK) ? read_bookmarks(dst, p) : res;
+        }
+
+        status_t read_bookmarks(cvector<bookmark_t> *dst, io::IInSequence *in)
+        {
+            if (dst == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            json::Parser p;
+            cvector<bookmark_t> tmp;
+            status_t res = p.wrap(in, json::JSON_VERSION5, WRAP_NONE);
+            return (res == STATUS_OK) ? read_bookmarks(dst, p) : res;
         }
     }
 }

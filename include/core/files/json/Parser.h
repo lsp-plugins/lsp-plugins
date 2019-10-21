@@ -149,7 +149,44 @@ namespace lsp
                  * @param ev event to read
                  * @return status of operation
                  */
-                status_t    get_next(event_t *ev);
+                status_t    read_next(event_t *ev);
+
+                /**
+                 * Read next event and return it's type. The event
+                 * will be accessible by get_current() call
+                 *
+                 * @param type event type
+                 * @return status of operation
+                 */
+                status_t    read_next_type(event_type_t *type);
+
+                /**
+                 * Read string value
+                 * @param dst pointer to string to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    read_string(LSPString *dst);
+
+                /**
+                 * Read double value
+                 * @param dst pointer to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    read_double(double *dst);
+
+                /**
+                 * Read integer value
+                 * @param dst pointer to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    read_int(ssize_t *dst);
+
+                /**
+                 * Read boolean value
+                 * @param dst pointer to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    read_bool(bool *dst);
 
                 /**
                  * Get current event
@@ -157,6 +194,34 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    get_current(event_t *ev);
+
+                /**
+                 * Get current string value
+                 * @param dst pointer to string to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    get_string(LSPString *dst);
+
+                /**
+                 * Get current double value
+                 * @param dst pointer to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    get_double(double *dst);
+
+                /**
+                 * Get current integer value
+                 * @param dst pointer to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    get_int(ssize_t *dst);
+
+                /**
+                 * Get current boolean value
+                 * @param dst pointer to store the value
+                 * @return status of operation, STATUS_NULL if value is null
+                 */
+                status_t    get_bool(bool *dst);
 
                 /**
                  * Skip nested data structures after current event

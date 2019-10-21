@@ -580,7 +580,7 @@ namespace lsp
             }
         }
 
-        status_t Parser::get_next(event_t *ev)
+        status_t Parser::read_next(event_t *ev)
         {
             if (pTokenizer == NULL)
                 return STATUS_BAD_STATE;
@@ -613,9 +613,146 @@ namespace lsp
             return res;
         }
 
+        status_t Parser::read_next_type(event_type_t *type)
+        {
+            event_t ev;
+            status_t res = read_next(&ev);
+            if ((res == STATUS_OK) && (type != NULL))
+                *type = ev.type;
+            return res;
+        }
+
+        status_t Parser::read_string(LSPString *dst)
+        {
+            event_t ev;
+            status_t res = read_next(&ev);
+            if (res != STATUS_OK)
+                return res;
+            switch (ev.type)
+            {
+                case JE_STRING: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                dst->swap(&ev.sValue);
+            return STATUS_OK;
+        }
+
+        status_t Parser::read_double(double *dst)
+        {
+            event_t ev;
+            status_t res = read_next(&ev);
+            if (res != STATUS_OK)
+                return res;
+            switch (ev.type)
+            {
+                case JE_DOUBLE: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                *dst = ev.fValue;
+            return STATUS_OK;
+        }
+
+        status_t Parser::read_int(ssize_t *dst)
+        {
+            event_t ev;
+            status_t res = read_next(&ev);
+            if (res != STATUS_OK)
+                return res;
+            switch (ev.type)
+            {
+                case JE_INTEGER: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                *dst = ev.iValue;
+            return STATUS_OK;
+        }
+
+        status_t Parser::read_bool(bool *dst)
+        {
+            event_t ev;
+            status_t res = read_next(&ev);
+            if (res != STATUS_OK)
+                return res;
+            switch (ev.type)
+            {
+                case JE_BOOL: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                *dst = ev.bValue;
+            return STATUS_OK;
+        }
+
+        status_t Parser::get_string(LSPString *dst)
+        {
+            if (pTokenizer == NULL)
+                return STATUS_BAD_STATE;
+            switch (sCurrent.type)
+            {
+                case JE_STRING: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                return (dst->set(&sCurrent.sValue)) ? STATUS_OK : STATUS_NO_MEM;
+            return STATUS_OK;
+        }
+
+        status_t Parser::get_double(double *dst)
+        {
+            if (pTokenizer == NULL)
+                return STATUS_BAD_STATE;
+            switch (sCurrent.type)
+            {
+                case JE_DOUBLE: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                *dst = sCurrent.fValue;
+            return STATUS_OK;
+        }
+
+        status_t Parser::get_int(ssize_t *dst)
+        {
+            if (pTokenizer == NULL)
+                return STATUS_BAD_STATE;
+            switch (sCurrent.type)
+            {
+                case JE_INTEGER: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                *dst = sCurrent.iValue;
+            return STATUS_OK;
+        }
+
+        status_t Parser::get_bool(bool *dst)
+        {
+            if (pTokenizer == NULL)
+                return STATUS_BAD_STATE;
+            switch (sCurrent.type)
+            {
+                case JE_BOOL: break;
+                case JE_NULL: return STATUS_NULL;
+                default: return STATUS_BAD_TYPE;
+            }
+            if (dst != NULL)
+                *dst = sCurrent.bValue;
+            return STATUS_OK;
+        }
+
         status_t Parser::skip_next()
         {
-            status_t res = get_next(NULL);
+            status_t res = read_next(NULL);
             if (res == STATUS_OK)
                 res     = skip_current();
             return res;
@@ -631,7 +768,7 @@ namespace lsp
                     while (true)
                     {
                         // Get next event
-                        if ((res = get_next(NULL)) != STATUS_OK)
+                        if ((res = read_next(NULL)) != STATUS_OK)
                             return res;
 
                         // Analyze event type
@@ -639,7 +776,7 @@ namespace lsp
                             return (sCurrent.type == JE_OBJECT_END) ? STATUS_OK : STATUS_BAD_TOKEN;
 
                         // Skip the value after property
-                        if ((res = get_next(NULL)) != STATUS_OK)
+                        if ((res = read_next(NULL)) != STATUS_OK)
                             return res;
                         if ((res = skip_current()) != STATUS_OK)
                             return res;
@@ -650,7 +787,7 @@ namespace lsp
                     while (true)
                     {
                         // Get next event
-                        if ((res = get_next(NULL)) != STATUS_OK)
+                        if ((res = read_next(NULL)) != STATUS_OK)
                             return res;
 
                         // Analyze event type
@@ -665,7 +802,7 @@ namespace lsp
 
                 case JE_PROPERTY:
                     // Skip the value after property
-                    if ((res = get_next(NULL)) != STATUS_OK)
+                    if ((res = read_next(NULL)) != STATUS_OK)
                         return res;
                     if ((res = skip_current()) != STATUS_OK)
                         return res;

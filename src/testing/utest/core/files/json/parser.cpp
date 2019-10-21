@@ -41,7 +41,7 @@ UTEST_BEGIN("core.files.json", parser)
     {
         json::event_t ev;
         printf("  Checking event: 0x%02x (%s)\n", type, json_event_name(type));
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_OK);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_OK);
         UTEST_ASSERT_MSG(ev.type == type, "Unexpected event type: 0x%02x (%s)", ev.type, json_event_name(ev.type));
     }
 
@@ -49,7 +49,7 @@ UTEST_BEGIN("core.files.json", parser)
     {
         json::event_t ev;
         printf("  Checking event: 0x%02x (%s) -> %d\n", json::JE_INTEGER, json_event_name(json::JE_INTEGER), int(value));
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_OK);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_OK);
         UTEST_ASSERT_MSG(ev.type == json::JE_INTEGER, "Unexpected event type: 0x%02x (%s)",
                 ev.type, json_event_name(ev.type));
         UTEST_ASSERT_MSG(ev.iValue == value,"Unexpected event value: 0x%02x (%s) -> %d",
@@ -60,7 +60,7 @@ UTEST_BEGIN("core.files.json", parser)
     {
         json::event_t ev;
         printf("  Checking event: 0x%02x (%s) -> %f\n", json::JE_DOUBLE, json_event_name(json::JE_DOUBLE), double(value));
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_OK);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_OK);
         UTEST_ASSERT_MSG(ev.type == json::JE_DOUBLE, "Unexpected event type: 0x%02x (%s)",
                 ev.type, json_event_name(ev.type));
         UTEST_ASSERT_MSG(float_equals_relative(ev.fValue, value), "Unexpected event value: 0x%02x (%s) -> %f",
@@ -71,7 +71,7 @@ UTEST_BEGIN("core.files.json", parser)
     {
         json::event_t ev;
         printf("  Checking event: 0x%02x (%s) -> %s\n", json::JE_BOOL, json_event_name(json::JE_BOOL), (value) ? "true" : "false");
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_OK);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_OK);
         UTEST_ASSERT_MSG(ev.type == json::JE_BOOL, "Unexpected event type: 0x%02x (%s)",
                 ev.type, json_event_name(ev.type));
         UTEST_ASSERT_MSG(ev.bValue == value, "Unexpected event value: 0x%02x (%s) -> %s",
@@ -84,7 +84,7 @@ UTEST_BEGIN("core.files.json", parser)
         LSPString tmp;
         UTEST_ASSERT(tmp.set_utf8(text));
         printf("  Checking event: 0x%02x (%s) -> %s\n", type, json_event_name(type), tmp.get_utf8());
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_OK);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_OK);
         UTEST_ASSERT_MSG(ev.type == type, "Unexpected event type: 0x%02x (%s)",
                 ev.type, json_event_name(ev.type));
         UTEST_ASSERT_MSG(tmp.equals(&ev.sValue), "Unexpected event value: 0x%02x (%s) -> %s",
@@ -140,7 +140,7 @@ UTEST_BEGIN("core.files.json", parser)
         check_event(p, JE_OBJECT_END);
 
         event_t ev;
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_EOF);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_EOF);
     }
 
     void test_read_valid_events_json5()
@@ -154,6 +154,7 @@ UTEST_BEGIN("core.files.json", parser)
                         "\"string\","
                         "true,"
                         "false,"
+                        "12.34,"
                         "["
                             "0x1234,"
                             "\"value\","
@@ -165,10 +166,26 @@ UTEST_BEGIN("core.files.json", parser)
                         "bvalue: true,"
                         "ivalue: 1024,"
                         "fvalue: 440.0,"
+                        "svalue: \"string value\","
                         "\"null\": null,"
-                    "}"
+                    "},"
+                    "\"extra\": ["
+                        "0x10,"
+                        "1.6,"
+                        "false,"
+                        "\"read_string\","
+                        "null,"
+                        "null,"
+                        "null,"
+                        "null,"
+                    "]"
                 "}\n"
                 "// Comment after end";
+
+        bool bv;
+        ssize_t iv;
+        double fv;
+        LSPString sv;
 
         Parser p;
         UTEST_ASSERT(p.wrap(data, JSON_VERSION5, "UTF-8") == STATUS_OK);
@@ -177,10 +194,15 @@ UTEST_BEGIN("core.files.json", parser)
             check_event(p, JE_PROPERTY, "array"); check_event(p, JE_ARRAY_START);
                 check_event(p, JE_STRING, "string");
                 check_event(p, true);
+                UTEST_ASSERT(p.get_bool(NULL) == STATUS_OK);
                 check_event(p, false);
+                check_event(p, 12.34);
+                UTEST_ASSERT(p.get_double(NULL) == STATUS_OK);
                 check_event(p, JE_ARRAY_START);
                     check_event(p, 0x1234);
+                    UTEST_ASSERT(p.get_int(NULL) == STATUS_OK);
                     check_event(p, JE_STRING, "value");
+                    UTEST_ASSERT(p.get_string(NULL) == STATUS_OK);
                     check_event(p, JE_OBJECT_START);
                     check_event(p, JE_OBJECT_END);
                 check_event(p, JE_ARRAY_END);
@@ -189,12 +211,32 @@ UTEST_BEGIN("core.files.json", parser)
                 check_event(p, JE_PROPERTY, "bvalue"); check_event(p, true);
                 check_event(p, JE_PROPERTY, "ivalue"); check_event(p, 1024);
                 check_event(p, JE_PROPERTY, "fvalue"); check_event(p, 440.0);
+                check_event(p, JE_PROPERTY, "svalue"); check_event(p, JE_STRING, "string value");
                 check_event(p, JE_PROPERTY, "null"); check_event(p, JE_NULL);
+                UTEST_ASSERT(p.get_string(NULL) == STATUS_NULL);
+                UTEST_ASSERT(p.get_int(NULL) == STATUS_NULL);
+                UTEST_ASSERT(p.get_double(NULL) == STATUS_NULL);
+                UTEST_ASSERT(p.get_bool(NULL) == STATUS_NULL);
             check_event(p, JE_OBJECT_END);
+            check_event(p, JE_PROPERTY, "extra"); check_event(p, JE_ARRAY_START);
+                UTEST_ASSERT(p.read_int(&iv) == STATUS_OK);
+                UTEST_ASSERT(iv == 0x10);
+                UTEST_ASSERT(p.read_double(&fv) == STATUS_OK);
+                UTEST_ASSERT(float_equals_relative(fv, 1.6));
+                UTEST_ASSERT(p.read_bool(&bv) == STATUS_OK);
+                UTEST_ASSERT(bv == false);
+                UTEST_ASSERT(p.read_string(&sv) == STATUS_OK);
+                UTEST_ASSERT(sv.equals_ascii("read_string"));
+
+                UTEST_ASSERT(p.read_int(&iv) == STATUS_NULL);
+                UTEST_ASSERT(p.read_double(&fv) == STATUS_NULL);
+                UTEST_ASSERT(p.read_bool(&bv) == STATUS_NULL);
+                UTEST_ASSERT(p.read_string(&sv) == STATUS_NULL);
+            check_event(p, JE_ARRAY_END);
         check_event(p, JE_OBJECT_END);
 
         event_t ev;
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_EOF);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_EOF);
     }
 
     status_t read_fully(const char *text, json::json_version_t version)
@@ -207,7 +249,7 @@ UTEST_BEGIN("core.files.json", parser)
 
         UTEST_ASSERT(p.wrap(text, version, "UTF-8") == STATUS_OK);
 
-        while ((res = p.get_next(&ev)) == STATUS_OK) { } // Nothing
+        while ((res = p.read_next(&ev)) == STATUS_OK) { } // Nothing
 
         if (res == STATUS_EOF)
             res = p.close();
@@ -503,7 +545,7 @@ UTEST_BEGIN("core.files.json", parser)
         check_event(p, JE_OBJECT_END);
 
         event_t ev;
-        UTEST_ASSERT(p.get_next(&ev) == STATUS_EOF);
+        UTEST_ASSERT(p.read_next(&ev) == STATUS_EOF);
     }
 
     UTEST_MAIN
