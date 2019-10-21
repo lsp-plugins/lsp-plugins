@@ -139,6 +139,20 @@ namespace lsp
         status_t save_bookmarks(const cvector<bookmark_t> *src, io::IOutSequence *out);
 
         /**
+         * Merge bookmarks:
+         *   - add all existing in src bookmarks to dst if they are non-existing in dst
+         *   - set origin flag in dst to 'origin' for all bookmarks that exist in dst and origin
+         *   - unset origin flsg in dst for all bookmarks that do not exist in src
+         *   - remove all bookmarks that have zero origin
+         * @param dst destination storage of bookmarks
+         * @param src source change set
+         * @param origin origin flag associated with source
+         * @param changes number of changes
+         * @return status of operation
+         */
+        status_t merge_bookmarks(cvector<bookmark_t> *dst, size_t *changes, const cvector<bookmark_t> *src, bm_origin_t origin);
+
+        /**
          * Destroy bookmarks
          * @param list list of bookmarks
          */

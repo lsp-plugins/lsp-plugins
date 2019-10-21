@@ -41,6 +41,105 @@ namespace lsp
             list->flush();
         }
 
+        bool bookmark_exists(const cvector<bookmark_t> *search, const LSPString *path)
+        {
+            for (size_t i=0, n=search->size(); i<n; ++i)
+            {
+                const bookmark_t *bm = search->at(i);
+                if ((bm != NULL) && (bm->path.equals(path)))
+                    return true;
+            }
+            return false;
+        }
+
+        status_t merge_bookmarks(cvector<bookmark_t> *dst, size_t *changes, const cvector<bookmark_t> *src, bm_origin_t origin)
+        {
+            if ((dst == NULL) || (src == NULL) || (origin == 0))
+                return STATUS_BAD_ARGUMENTS;
+
+            size_t nc = 0;
+
+            // Step 1: check presence of all bookmarks of 'dst' in 'src'
+            for (size_t i=0; i<dst->size(); )
+            {
+                bookmark_t *bm = dst->at(i);
+                if (bm == NULL) // Remove all NULL entries
+                {
+                    if (!dst->remove(i))
+                        return STATUS_NO_MEM;
+                    ++nc;
+                    continue;
+                }
+                else
+                    ++i;
+
+                if (bookmark_exists(src, &bm->path))
+                {
+                    if (!(bm->origin & origin))
+                    {
+                        bm->origin     |= origin;
+                        ++nc;
+                    }
+                }
+                else if (bm->origin & origin)
+                {
+                    bm->origin     &= ~origin;
+                    ++nc;
+                }
+            }
+
+            // Step 2: check presence of all bookmarks of 'src' in 'dst'
+            for (size_t i=0, n=src->size(); i<n; ++i)
+            {
+                const bookmark_t *bm = src->at(i);
+                if ((bm == NULL) || (bookmark_exists(dst, &bm->path)))
+                    continue;
+
+                // Copy bookmark
+                bookmark_t *dm = new bookmark_t;
+                if (dm == NULL)
+                    return STATUS_NO_MEM;
+
+                if ((!dm->path.set(&bm->path)) ||
+                    (!dm->name.set(&bm->name)))
+                {
+                    delete dm;
+                    return STATUS_NO_MEM;
+                }
+
+                if (!dst->add(dm))
+                {
+                    delete dm;
+                    return STATUS_NO_MEM;
+                }
+
+                // Mark with origin + LSP flag
+                dm->origin     |= (origin | BM_LSP);
+                ++nc;
+            }
+
+            // Step 3: remove all bookmarks with empty flags
+            for (size_t i=0; i<dst->size();)
+            {
+                bookmark_t *bm = dst->at(i);
+                if (bm->origin == 0)
+                {
+                    if (!dst->remove(i))
+                        return STATUS_NO_MEM;
+                    ++nc;
+                    continue;
+                }
+                else
+                    ++i;
+            }
+
+            // Store number of changes
+            if (changes != NULL)
+                *changes    = nc;
+
+            return STATUS_OK;
+        }
+
         //---------------------------------------------------------------------
         // GTK3 stuff
         status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const char *path, const char *charset)
@@ -568,6 +667,8 @@ namespace lsp
             status_t res = s.wrap(out, &flags, WRAP_NONE);
             return (res == STATUS_OK) ? save_bookmarks(src, s) : res;
         }
+
+
     }
 }
 

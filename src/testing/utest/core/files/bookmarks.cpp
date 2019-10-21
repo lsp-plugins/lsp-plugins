@@ -97,15 +97,61 @@ UTEST_BEGIN("core.files", bookmarks)
         UTEST_ASSERT(bm.get(1)->origin == (BM_LSP | BM_GTK3 | BM_QT5));
     }
 
+    void test_merge_bookmarks()
+    {
+        cvector<bookmark_t> dst, src;
+
+        add_bookmark(dst, "/0/0", "0-0", 0);                    // removed
+        add_bookmark(dst, "/0/1", "0-1", BM_LSP);               // + BM_GTK3 -> changed
+        add_bookmark(dst, "/1/0", "1-0", BM_GTK3);              // not changed
+        add_bookmark(dst, "/1/1", "1-1", BM_LSP | BM_GTK3);     // - BM_GTK3 -> changed
+        add_bookmark(dst, "/2/0", "2-0", BM_GTK3);              // - BM_GTK3 -> removed
+        UTEST_ASSERT(dst.add(NULL));                            // removed
+
+        add_bookmark(src, "/0/1", "0-1", BM_GTK3);
+        add_bookmark(src, "/1/0", "1-0", BM_GTK3);
+        add_bookmark(src, "/2/1", "2-1", BM_GTK3);              // added
+        UTEST_ASSERT(src.add(NULL));                            // ignored
+
+        size_t changes = 0;
+        UTEST_ASSERT(merge_bookmarks(&dst, &changes, &src, BM_GTK3) == STATUS_OK);
+
+        for (size_t i=0; i<dst.size(); ++i)
+        {
+            bookmark_t *b = dst.get(i);
+            printf("  Merged LSP bookmark: %s -> %s (0x%x)\n", b->path.get_utf8(), b->name.get_utf8(), int(b->origin));
+        }
+
+        UTEST_ASSERT(changes > 0);
+        UTEST_ASSERT(dst.size() == 4);
+
+        UTEST_ASSERT(dst.get(0)->path.equals_ascii("/0/1"));
+        UTEST_ASSERT(dst.get(0)->name.equals_ascii("0-1"));
+        UTEST_ASSERT(dst.get(0)->origin == (BM_LSP | BM_GTK3));
+
+        UTEST_ASSERT(dst.get(1)->path.equals_ascii("/1/0"));
+        UTEST_ASSERT(dst.get(1)->name.equals_ascii("1-0"));
+        UTEST_ASSERT(dst.get(1)->origin == (BM_GTK3));
+
+        UTEST_ASSERT(dst.get(2)->path.equals_ascii("/1/1"));
+        UTEST_ASSERT(dst.get(2)->name.equals_ascii("1-1"));
+        UTEST_ASSERT(dst.get(2)->origin == (BM_LSP));
+
+        UTEST_ASSERT(dst.get(3)->path.equals_ascii("/2/1"));
+        UTEST_ASSERT(dst.get(3)->name.equals_ascii("2-1"));
+        UTEST_ASSERT(dst.get(3)->origin == (BM_GTK3 | BM_LSP));
+    }
+
     UTEST_MAIN
     {
-//        printf("Testing read of GTK3 bookmarks...\n");
-//        test_gtk3_bookmarks();
-//        printf("Testing read of LSP bookmarks...\n");
-//        test_lsp_bookmarks();
-
+        printf("Testing read of GTK3 bookmarks...\n");
+        test_gtk3_bookmarks();
+        printf("Testing read of LSP bookmarks...\n");
+        test_lsp_bookmarks();
         printf("Testing write of LSP bookmarks...\n");
         test_save_bookmarks();
+        printf("Testing merge of LSP bookmarks...\n");
+        test_merge_bookmarks();
     }
 
 UTEST_END
