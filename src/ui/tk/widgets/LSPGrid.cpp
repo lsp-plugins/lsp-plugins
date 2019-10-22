@@ -369,7 +369,7 @@ namespace lsp
         status_t LSPGrid::set_spacing(size_t hor, size_t vert)
         {
             nHSpacing       = hor;
-            nHSpacing       = vert;
+            nVSpacing       = vert;
             query_resize();
             return STATUS_OK;
         }
@@ -566,6 +566,7 @@ namespace lsp
         {
             cell_t *w;
             header_t *h, *v;
+            realize_t alloc;
 
             size_t n_rows   = vRows.size();
             size_t n_cols   = vCols.size();
@@ -612,16 +613,18 @@ namespace lsp
                     w->a.nWidth     = estimate_size(v, w->nCols, nHSpacing);
                     w->a.nHeight    = estimate_size(h, w->nRows, nVSpacing);
 
-                    if (hidden_widget(w))
-                        continue;
-
-                    w->s            = w->a; // Copy cell parameters to cell size attributes
-                    w->s.nWidth    -= w->p.nLeft + w->p.nRight;
-                    w->s.nHeight   -= w->p.nTop  + w->p.nBottom;
+                    alloc           = w->a;
                     if ((i + w->nRows) < n_rows)
                         w->a.nHeight   += nVSpacing;
                     if ((j + w->nCols) < n_cols)
                         w->a.nWidth    += nHSpacing;
+
+                    if (hidden_widget(w))
+                        continue;
+
+                    w->s            = alloc; // Copy cell parameters to cell size attributes
+                    w->s.nWidth    -= w->p.nLeft + w->p.nRight;
+                    w->s.nHeight   -= w->p.nTop  + w->p.nBottom;
 
                     // Do not fill horizontally
                     if (!w->pWidget->hfill())

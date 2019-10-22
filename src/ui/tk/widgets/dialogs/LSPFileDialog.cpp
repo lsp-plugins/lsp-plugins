@@ -54,8 +54,10 @@ namespace lsp
             sWFiles(dpy),
             sWAction(dpy),
             sWCancel(dpy),
-            sVBox(dpy),
+            sMainGrid(dpy),
+            sBookmarks(dpy),
             sHBox(dpy),
+            sWarnBox(dpy),
             sAppendExt(dpy),
             wAutoExt(dpy),
             wGo(dpy),
@@ -78,7 +80,7 @@ namespace lsp
             do_destroy();
         }
 
-        status_t LSPFileDialog::add_label(LSPWidgetContainer *c, const char *text, LSPLabel **label)
+        status_t LSPFileDialog::add_label(LSPWidgetContainer *c, const char *text, float align, LSPLabel **label)
         {
             LSPAlign *algn = new LSPAlign(pDisplay);
             if (algn == NULL)
@@ -99,7 +101,7 @@ namespace lsp
                 result = lbl->init();
             if (result == STATUS_OK)
                 result = algn->init();
-            algn->set_hpos(0.0f);
+            algn->set_hpos(align);
             if (result == STATUS_OK)
                 result = lbl->set_text(text);
 
@@ -197,6 +199,8 @@ namespace lsp
             sWCancel.set_min_height(24);
             LSP_STATUS_ASSERT(sWWarning.init());
             sWWarning.set_visible(false);
+            sWWarning.set_expand(true);
+            sWWarning.set_align(1.0f, 0.5f);
 
             LSP_STATUS_ASSERT(wGo.init());
             LSP_STATUS_ASSERT(wGo.set_title("Go"));
@@ -209,42 +213,71 @@ namespace lsp
             wPathBox.set_spacing(2);
             wPathBox.set_fill(true);
 
-            init_color(C_YELLOW, sWWarning.font()->color());
-
-            // Initialize boxes
-            LSP_STATUS_ASSERT(sVBox.init());
-            sVBox.set_vertical();
-            sVBox.set_spacing(4);
+            LSP_STATUS_ASSERT(sMainGrid.init());
+            sMainGrid.set_rows(7);
+            sMainGrid.set_columns(2);
+            sMainGrid.set_spacing(4, 4);
 
             LSP_STATUS_ASSERT(sHBox.init());
             sHBox.set_horizontal();
             sHBox.set_spacing(8);
 
-            // Initialize structure
-            LSP_STATUS_ASSERT(add_label(&sVBox, "Location"));
+            LSP_STATUS_ASSERT(sWarnBox.init());
+            sWarnBox.set_horizontal();
+            sWarnBox.set_spacing(8);
+
+            LSP_STATUS_ASSERT(sBookmarks.init());
+            sBookmarks.set_vertical();
+            sBookmarks.set_spacing(4);
+            sBookmarks.set_expand(true);
+            sBookmarks.constraints()->set_min_width(192);
+            sBookmarks.set_vscroll(SCROLL_ALWAYS);
+            sBookmarks.set_hscroll(SCROLL_NONE);
+
+            init_color(C_YELLOW, sWWarning.font()->color());
+
+            // Initialize supplementary elements
+            // Path box
             LSP_STATUS_ASSERT(wPathBox.add(&sWPath));
             LSP_STATUS_ASSERT(wPathBox.add(&wGo));
             LSP_STATUS_ASSERT(wPathBox.add(&wUp));
-            LSP_STATUS_ASSERT(sVBox.add(&wPathBox));
-            LSP_STATUS_ASSERT(sVBox.add(&sWWarning));
-            LSP_STATUS_ASSERT(add_label(&sVBox, "Files"));
-            LSP_STATUS_ASSERT(sVBox.add(&sWFiles));
-            LSP_STATUS_ASSERT(add_label(&sVBox, "File name", &pWSearch));
-            LSP_STATUS_ASSERT(sVBox.add(&sWSearch));
-            LSP_STATUS_ASSERT(add_ext_button(&sVBox, "Automatic extension"));
-            LSP_STATUS_ASSERT(add_label(&sVBox, "Filter"));
-            LSP_STATUS_ASSERT(sVBox.add(&sWFilter));
-            LSP_STATUS_ASSERT(sVBox.add(&sHBox));
+            // Button box
             LSP_STATUS_ASSERT(sHBox.add(&sWAction));
             LSP_STATUS_ASSERT(sHBox.add(&sWCancel));
+            // Warning box
+            LSP_STATUS_ASSERT(add_label(&sWarnBox, "Files"));
+            LSP_STATUS_ASSERT(sWarnBox.add(&sWWarning));
 
+            // Initialize grid
+            // Row 1
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Location", 1.0f));
+            LSP_STATUS_ASSERT(sMainGrid.add(&wPathBox));
+            // Row 2
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Bookmarks"));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
+            // Row 3
+            LSP_STATUS_ASSERT(sMainGrid.add(&sBookmarks));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sWFiles));
+            // Row 4
+            LSP_STATUS_ASSERT(sMainGrid.add(NULL));
+            LSP_STATUS_ASSERT(add_ext_button(&sMainGrid, "Automatic extension"));
+            // Row 5
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "File name", 1.0f, &pWSearch));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sWSearch));
+            // Row 6
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Filter", 1.0f));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sWFilter));
+            // Row 7
+            LSP_STATUS_ASSERT(sMainGrid.add(NULL));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sHBox));
+
+            // Initialize structure
             init_color(C_YELLOW, wAutoExt.color());
             wAutoExt.set_led(true);
             wAutoExt.set_toggle();
             wAutoExt.set_down(true);
 
-            // Add child
-            LSP_STATUS_ASSERT(this->add(&sVBox));
+            LSP_STATUS_ASSERT(this->add(&sMainGrid));
 
             // Bind events
             status_t result = sWAction.slots()->bind(LSPSLOT_SUBMIT, slot_on_action, self());
@@ -312,8 +345,10 @@ namespace lsp
             sWFiles.destroy();
             sWAction.destroy();
             sWCancel.destroy();
-            sVBox.destroy();
             sHBox.destroy();
+            sWarnBox.destroy();
+            sBookmarks.destroy();
+            sMainGrid.destroy();
             sWWarning.destroy();
             sAppendExt.destroy();
             wAutoExt.destroy();

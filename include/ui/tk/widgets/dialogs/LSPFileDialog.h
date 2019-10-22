@@ -68,8 +68,10 @@ namespace lsp
                 LSPListBox          sWFiles;
                 LSPButton           sWAction;
                 LSPButton           sWCancel;
-                LSPBox              sVBox;
+                LSPGrid             sMainGrid;
+                LSPScrollBox        sBookmarks;
                 LSPBox              sHBox;
+                LSPBox              sWarnBox;
                 LSPAlign            sAppendExt;
                 LSPButton           wAutoExt;
                 LSPButton           wGo;
@@ -115,7 +117,7 @@ namespace lsp
                 void                do_destroy();
                 status_t            refresh_current_path();
                 ssize_t             default_index(ssize_t val);
-                status_t            add_label(LSPWidgetContainer *c, const char *text, LSPLabel **label = NULL);
+                status_t            add_label(LSPWidgetContainer *c, const char *text, float align = 0.0f, LSPLabel **label = NULL);
                 status_t            add_ext_button(LSPWidgetContainer *c, const char *text);
                 status_t            add_file_entry(cvector<file_entry_t> *dst, const char *name, size_t flags);
                 void                destroy_file_entries(cvector<file_entry_t> *dst);
