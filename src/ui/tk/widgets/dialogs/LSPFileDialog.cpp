@@ -7,6 +7,7 @@
 
 #include <ui/tk/tk.h>
 #include <core/io/Dir.h>
+#include <core/system.h>
 #include <unistd.h>
 
 namespace lsp
@@ -325,6 +326,7 @@ namespace lsp
 
         void LSPFileDialog::do_destroy()
         {
+            drop_bookmarks();
             destroy_file_entries(&vFiles);
 
             // Clear labels
@@ -1054,6 +1056,7 @@ namespace lsp
             if ((idx < 0) && (sFilter.size() > 0))
                 idx = 0;
             sWFilter.set_selected(idx);
+            refresh_bookmarks();
             refresh_current_path();
             return STATUS_OK;
         }
@@ -1062,6 +1065,91 @@ namespace lsp
         {
             ws_event_t ev = *e;
             return on_dlg_cancel(&ev);
+        }
+
+        void LSPFileDialog::drop_bookmarks()
+        {
+            // TODO: destroy widgets
+
+            // Destroy bookmarks storage
+            bookmarks::destroy_bookmarks(&vBookmarks);
+        }
+
+        status_t LSPFileDialog::read_lsp_bookmarks(cvector<bookmark_t> &vbm)
+        {
+            io::Path path;
+            status_t res = system::get_home_directory(&path);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = path.append_child(LSP_BOOKMARK_PATH)) != STATUS_OK)
+                return res;
+
+            return bookmarks::read_bookmarks(&vbm, &path);
+        }
+
+        status_t LSPFileDialog::read_gtk3_bookmarks(cvector<bookmark_t> &vbm)
+        {
+            io::Path path;
+            status_t res = system::get_home_directory(&path);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = path.append_child(GTK3_BOOKMARK_PATH)) != STATUS_OK)
+                return res;
+
+            return bookmarks::read_bookmarks_gtk3(&vbm, &path);
+        }
+
+        status_t LSPFileDialog::read_qt5_bookmarks(cvector<bookmark_t> &vbm)
+        {
+            io::Path path;
+            status_t res = system::get_home_directory(&path);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = path.append_child(QT5_BOOKMARK_PATH)) != STATUS_OK)
+                return res;
+
+            return bookmarks::read_bookmarks_qt5(&vbm, &path);
+        }
+
+        status_t LSPFileDialog::save_bookmarks()
+        {
+            io::Path path, parent;
+            status_t res = system::get_home_directory(&path);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = path.append_child(LSP_BOOKMARK_PATH)) != STATUS_OK)
+                return res;
+            if ((res = path.get_parent(&parent)) != STATUS_OK)
+                return res;
+            if ((res = parent.mkdir(true)) != STATUS_OK)
+                return res;
+            return bookmarks::save_bookmarks(&vBookmarks, &path);
+        }
+
+        status_t LSPFileDialog::refresh_bookmarks()
+        {
+            drop_bookmarks();
+
+            // Read LSP bookmarks
+            cvector<bookmark_t> tmp;
+            status_t res, xres;
+            size_t changes;
+
+            // Read bookmarks from different sources and merge
+            xres = read_lsp_bookmarks(vBookmarks);
+            if ((res = read_gtk3_bookmarks(tmp)) == STATUS_OK)
+                bookmarks::merge_bookmarks(&vBookmarks, &changes, &tmp, bookmarks::BM_GTK3);
+            if ((res = read_qt5_bookmarks(tmp)) == STATUS_OK)
+                bookmarks::merge_bookmarks(&vBookmarks, &changes, &tmp, bookmarks::BM_QT5);
+            bookmarks::destroy_bookmarks(&tmp);
+
+            // Check if we need to store bookmarks
+            if ((changes > 0) || (xres != STATUS_OK))
+                save_bookmarks();
+
+            // TODO: create widgets
+
+            return STATUS_OK;
         }
 
     } /* namespace ctl */

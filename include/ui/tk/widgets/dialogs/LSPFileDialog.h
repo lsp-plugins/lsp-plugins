@@ -8,6 +8,8 @@
 #ifndef UI_TK_WIDGETS_DIALOGS_LSPFILEDIALOG_H_
 #define UI_TK_WIDGETS_DIALOGS_LSPFILEDIALOG_H_
 
+#include <core/files/bookmarks.h>
+
 namespace lsp
 {
     namespace tk
@@ -36,11 +38,19 @@ namespace lsp
                     F_ISHIDDEN  = 1 << 6
                 };
 
+                typedef lsp::bookmarks::bookmark_t  bookmark_t;
+
                 typedef struct file_entry_t
                 {
                     LSPString       sName;
                     size_t          nFlags;
                 } file_entry_t;
+
+                typedef struct bookmark_entry_t
+                {
+                    LSPHyperlink    sHlink;
+
+                } bookmark_entry_t;
 
                 class LSPFileDialogFilter: public LSPFileFilter
                 {
@@ -86,6 +96,7 @@ namespace lsp
                 file_dialog_mode_t  enMode;
                 cvector<LSPWidget>  vWidgets;
                 cvector<file_entry_t> vFiles;
+                cvector<bookmark_t> vBookmarks;
 
                 LSPString           sConfirm;       // Confirmation message
                 LSPString           sSelected;
@@ -130,6 +141,13 @@ namespace lsp
                 status_t            build_full_path(LSPString *dst, const LSPString *fname);
                 status_t            show_message(const char *heading, const char *main, const char *message);
                 file_entry_t       *selected_entry();
+
+                void                drop_bookmarks();
+                status_t            read_lsp_bookmarks(cvector<bookmark_t> &vbm);
+                status_t            read_gtk3_bookmarks(cvector<bookmark_t> &vbm);
+                status_t            read_qt5_bookmarks(cvector<bookmark_t> &vbm);
+                status_t            save_bookmarks();
+                status_t            refresh_bookmarks();
 
             public:
                 explicit LSPFileDialog(LSPDisplay *dpy);

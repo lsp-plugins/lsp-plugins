@@ -135,7 +135,7 @@ namespace lsp
 
             // Store number of changes
             if (changes != NULL)
-                *changes    = nc;
+                *changes   += nc;
 
             return STATUS_OK;
         }
@@ -363,6 +363,38 @@ namespace lsp
             dst->swap_data(&vtmp);
             destroy_bookmarks(&vtmp);
 
+            return STATUS_OK;
+        }
+
+        //---------------------------------------------------------------------
+        // QT5 stuff
+        //---------------------------------------------------------------------
+        // GTK3 stuff
+        status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const char *path, const char *charset)
+        {
+            // TODO
+            destroy_bookmarks(dst);
+            return STATUS_OK;
+        }
+
+        status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const LSPString *path, const char *charset)
+        {
+            // TODO
+            destroy_bookmarks(dst);
+            return STATUS_OK;
+        }
+
+        status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const io::Path *path, const char *charset)
+        {
+            // TODO
+            destroy_bookmarks(dst);
+            return STATUS_OK;
+        }
+
+        status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, io::IInSequence *in)
+        {
+            // TODO
+            destroy_bookmarks(dst);
             return STATUS_OK;
         }
 
