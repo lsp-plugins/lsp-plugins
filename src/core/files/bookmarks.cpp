@@ -214,23 +214,23 @@ namespace lsp
             return res;
         }
 
-        status_t decode_gtk3_path(LSPString *dst, const LSPString *src, size_t off)
+        status_t decode_gtk3_path(LSPString *dst, const LSPString *src, size_t first, size_t last)
         {
             char *buf = NULL;
             int code;
             size_t bcap=0, blen=0;
             LSPString tmp;
 
-            for (size_t len=src->length(); off < len; )
+            while (first < last)
             {
-                lsp_wchar_t c = src->char_at(off);
+                lsp_wchar_t c = src->char_at(first);
                 if (c == '%')
                 {
                     // Read hex codes
                     do
                     {
                         // Check availability
-                        if ((len - off) < 3)
+                        if ((last - first) < 3)
                         {
                             if (buf != NULL)
                                 ::free(buf);
@@ -238,8 +238,8 @@ namespace lsp
                         }
 
                         // Fetch byte code
-                        code    = decode_hex(src->char_at(++off)) << 4;
-                        code   |= decode_hex(src->char_at(++off));
+                        code    = decode_hex(src->char_at(++first)) << 4;
+                        code   |= decode_hex(src->char_at(++first));
                         if (code < 0)
                         {
                             if (buf != NULL)
@@ -263,7 +263,7 @@ namespace lsp
                         buf[blen++]     = code;
 
                         // Read next character
-                        c = src->char_at(++off);
+                        c = src->char_at(++first);
                     } while (c == '%');
 
                     // Perform encoding
@@ -292,7 +292,7 @@ namespace lsp
                     return STATUS_NO_MEM;
                 }
                 else
-                    ++off;
+                    ++first;
             }
 
             // Destroy buffer
@@ -307,6 +307,7 @@ namespace lsp
             cvector<bookmark_t> vtmp;
             LSPString tmp;
             status_t res;
+            ssize_t split;
 
             while (true)
             {
@@ -324,6 +325,7 @@ namespace lsp
                 if (!tmp.starts_with_ascii_nocase("file://"))
                     continue;
 
+
                 // Create bookmark
                 bookmark_t *bm  = new bookmark_t;
                 bm->origin      = BM_GTK3;
@@ -333,7 +335,11 @@ namespace lsp
                     return STATUS_NO_MEM;
                 }
 
-                if ((res = decode_gtk3_path(&bm->path, &tmp, 7)) != STATUS_OK)
+                // Is there alias?
+                split = tmp.index_of(' ');
+
+                // Decode bookmark respectively to the presence of alias
+                if ((res = decode_gtk3_path(&bm->path, &tmp, 7, (split < 0) ? tmp.length() : split)) != STATUS_OK)
                 {
                     delete bm;
                     destroy_bookmarks(&vtmp);
@@ -341,10 +347,19 @@ namespace lsp
                 }
 
                 // Obtain the last name in path
-                ssize_t idx = bm->path.rindex_of(FILE_SEPARATOR_C);
-                if (idx < 0)
-                    idx = -1;
-                if (!bm->name.set(&bm->path, idx+1))
+                if (split < 0)
+                {
+                    split = bm->path.rindex_of(FILE_SEPARATOR_C);
+                    if (split < 0)
+                        split = -1;
+                    if (!bm->name.set(&bm->path, split + 1))
+                    {
+                        delete bm;
+                        destroy_bookmarks(&vtmp);
+                        return STATUS_NO_MEM;
+                    }
+                }
+                else if (!bm->name.set(&tmp, split + 1))
                 {
                     delete bm;
                     destroy_bookmarks(&vtmp);

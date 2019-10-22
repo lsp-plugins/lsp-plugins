@@ -19,12 +19,15 @@ UTEST_BEGIN("core.files", bookmarks)
         UTEST_ASSERT(read_bookmarks_gtk3(&bm, "res/test/bookmarks/gtk-3.0.bookmarks") == STATUS_OK);
 
         for (size_t i=0; i<bm.size(); ++i)
-            printf("  Read GTK3 bookmark: %s\n", bm.get(i)->path.get_utf8());
+            printf("  Read GTK3 bookmark: %s -> %s\n", bm.get(i)->path.get_utf8(), bm.get(i)->name.get_utf8());
 
         UTEST_ASSERT(bm.size() == 4);
         UTEST_ASSERT(bm.get(0)->path.equals_ascii("/path/to/file1"));
+        UTEST_ASSERT(bm.get(0)->name.equals_ascii("file1"));
         UTEST_ASSERT(bm.get(1)->path.equals_ascii("path/to/file2"));
+        UTEST_ASSERT(bm.get(1)->name.equals_ascii("Some alias"));
         UTEST_ASSERT(bm.get(2)->path.equals_ascii("/path/with spaces/for test"));
+        UTEST_ASSERT(bm.get(2)->name.equals_ascii("for test"));
 
         destroy_bookmarks(&bm);
     }
