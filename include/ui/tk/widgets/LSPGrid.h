@@ -57,8 +57,8 @@ namespace lsp
                 void                destroy_cells();
                 static inline bool  hidden_widget(const cell_t *w);
                 static void         split_size(header_t *h, size_t items, size_t size);
-                static void         distribute_size(header_t *h, size_t items, size_t rq_size, size_t spacing);
-                static size_t       estimate_size(header_t *h, size_t items, size_t spacing);
+                static void         distribute_size(cstorage<header_t> &vh, size_t idx, size_t items, size_t rq_size);
+                static size_t       estimate_size(cstorage<header_t> &vh, size_t idx, size_t items, size_t *spacing);
                 static void         assign_coords(header_t *h, size_t items, size_t start);
                 cell_t             *alloc_cell();
                 status_t            tag_cell(cell_t *c, bool main);
