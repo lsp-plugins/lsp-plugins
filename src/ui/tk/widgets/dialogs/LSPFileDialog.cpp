@@ -1432,7 +1432,7 @@ namespace lsp
             // Read LSP bookmarks
             cvector<bookmark_t> bm, tmp;
             status_t res, xres;
-            size_t changes;
+            size_t changes = 0;
 
             // Read bookmarks from different sources and merge
             xres = read_lsp_bookmarks(bm);
@@ -1499,6 +1499,8 @@ namespace lsp
                 if (res != STATUS_OK)
                     break;
             }
+
+            bookmarks::destroy_bookmarks(&bm);
 
             if (res != STATUS_OK)
             {

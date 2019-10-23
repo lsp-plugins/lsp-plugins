@@ -154,11 +154,19 @@ namespace lsp
         if (size < nCapacity)
             return true;
 
-        lsp_wchar_t *v = xrealloc(pData, size);
-        if ((v == NULL) && (size > 0))
-            return false;
+        if (size > 0)
+        {
+            lsp_wchar_t *v = xrealloc(pData, size);
+            if (v == NULL)
+                return false;
+            pData   = v;
+        }
+        else if (pData != NULL)
+        {
+            ::free(pData);
+            pData   = NULL;
+        }
 
-        pData       = (size > 0) ? v : NULL;
         nCapacity   = size;
         return true;
     }
