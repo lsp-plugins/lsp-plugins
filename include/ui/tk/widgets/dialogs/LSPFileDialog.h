@@ -46,11 +46,14 @@ namespace lsp
                     size_t          nFlags;
                 } file_entry_t;
 
-                typedef struct bookmark_entry_t
+                typedef struct bm_entry_t
                 {
-                    LSPHyperlink    sHlink;
+                    LSPHyperlink            sHlink;
+                    io::Path                sPath;
+                    bookmarks::bookmark_t   sBookmark;
 
-                } bookmark_entry_t;
+                    inline bm_entry_t(LSPDisplay *dpy): sHlink(dpy) {}
+                } bm_entry_t;
 
                 class LSPFileDialogFilter: public LSPFileFilter
                 {
@@ -79,7 +82,9 @@ namespace lsp
                 LSPButton           sWAction;
                 LSPButton           sWCancel;
                 LSPGrid             sMainGrid;
-                LSPScrollBox        sBookmarks;
+                LSPScrollBox        sSBBookmarks;
+                LSPAlign            sSBAlign;
+                LSPBox              sBookmarks;
                 LSPBox              sHBox;
                 LSPBox              sWarnBox;
                 LSPAlign            sAppendExt;
@@ -96,7 +101,8 @@ namespace lsp
                 file_dialog_mode_t  enMode;
                 cvector<LSPWidget>  vWidgets;
                 cvector<file_entry_t> vFiles;
-                cvector<bookmark_t> vBookmarks;
+                cvector<bm_entry_t> vBookmarks;
+                bm_entry_t         *pSelBookmark;
 
                 LSPString           sConfirm;       // Confirmation message
                 LSPString           sSelected;
@@ -143,11 +149,13 @@ namespace lsp
                 file_entry_t       *selected_entry();
 
                 void                drop_bookmarks();
-                status_t            read_lsp_bookmarks(cvector<bookmark_t> &vbm);
-                status_t            read_gtk3_bookmarks(cvector<bookmark_t> &vbm);
-                status_t            read_qt5_bookmarks(cvector<bookmark_t> &vbm);
-                status_t            save_bookmarks();
+                static status_t     read_lsp_bookmarks(cvector<bookmark_t> &vbm);
+                static status_t     read_gtk2_bookmarks(cvector<bookmark_t> &vbm);
+                static status_t     read_gtk3_bookmarks(cvector<bookmark_t> &vbm);
+                static status_t     read_qt5_bookmarks(cvector<bookmark_t> &vbm);
+                status_t            save_bookmarks(cvector<bookmark_t> *vbm);
                 status_t            refresh_bookmarks();
+                status_t            select_current_bookmark();
 
             public:
                 explicit LSPFileDialog(LSPDisplay *dpy);

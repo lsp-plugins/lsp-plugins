@@ -310,10 +310,24 @@ namespace lsp
             {
                 cell_t *cell        = vItems.at(i);
                 if (cell->pWidget == child)
-                    return (vItems.remove(i)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+                {
+                    if (!vItems.remove(i))
+                        return STATUS_UNKNOWN_ERR;
+                    query_resize();
+                    return STATUS_OK;
+                }
             }
 
             return STATUS_NOT_FOUND;
+        }
+
+        status_t LSPScrollBox::remove_all()
+        {
+            if (vItems.size() <= 0)
+                return STATUS_OK;
+            vItems.flush();
+            query_resize();
+            return STATUS_OK;
         }
 
         void LSPScrollBox::realize(const realize_t *r)

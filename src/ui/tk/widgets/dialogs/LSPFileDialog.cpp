@@ -56,6 +56,8 @@ namespace lsp
             sWAction(dpy),
             sWCancel(dpy),
             sMainGrid(dpy),
+            sSBBookmarks(dpy),
+            sSBAlign(dpy),
             sBookmarks(dpy),
             sHBox(dpy),
             sWarnBox(dpy),
@@ -67,6 +69,7 @@ namespace lsp
             sWWarning(dpy),
             sFilter(this)
         {
+            pSelBookmark    = NULL;
             pWConfirm       = NULL;
             nDefaultFilter  = 0;
             nUIDGen         = 0;
@@ -227,13 +230,24 @@ namespace lsp
             sWarnBox.set_horizontal();
             sWarnBox.set_spacing(8);
 
+            LSP_STATUS_ASSERT(sSBBookmarks.init());
+            sSBBookmarks.set_vertical();
+            sSBBookmarks.set_spacing(4);
+            sSBBookmarks.set_expand(true);
+            sSBBookmarks.constraints()->set_min_width(192);
+            sSBBookmarks.set_vscroll(SCROLL_OPTIONAL);
+            sSBBookmarks.set_hscroll(SCROLL_NONE);
+
+            LSP_STATUS_ASSERT(sSBAlign.init());
+            sSBAlign.set_pos(0.0f, -1.0f); // Middle, Top
+            sSBAlign.set_scale(1.0f, 0.0f); // Maximum width, minimum height
+            LSP_STATUS_ASSERT(sSBBookmarks.add(&sSBAlign));
+
             LSP_STATUS_ASSERT(sBookmarks.init());
             sBookmarks.set_vertical();
             sBookmarks.set_spacing(4);
             sBookmarks.set_expand(true);
-            sBookmarks.constraints()->set_min_width(192);
-            sBookmarks.set_vscroll(SCROLL_ALWAYS);
-            sBookmarks.set_hscroll(SCROLL_NONE);
+            LSP_STATUS_ASSERT(sSBAlign.add(&sBookmarks));
 
             init_color(C_YELLOW, sWWarning.font()->color());
 
@@ -257,7 +271,7 @@ namespace lsp
             LSP_STATUS_ASSERT(add_label(&sMainGrid, "Bookmarks"));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
             // Row 3
-            LSP_STATUS_ASSERT(sMainGrid.add(&sBookmarks));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sSBBookmarks));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFiles));
             // Row 4
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
@@ -349,6 +363,8 @@ namespace lsp
             sWCancel.destroy();
             sHBox.destroy();
             sWarnBox.destroy();
+            sSBBookmarks.destroy();
+            sSBAlign.destroy();
             sBookmarks.destroy();
             sMainGrid.destroy();
             sWWarning.destroy();
@@ -622,7 +638,7 @@ namespace lsp
 
             apply_filters();
 
-            return STATUS_OK;
+            return select_current_bookmark();
         }
 
         status_t LSPFileDialog::apply_filters()
@@ -1067,14 +1083,6 @@ namespace lsp
             return on_dlg_cancel(&ev);
         }
 
-        void LSPFileDialog::drop_bookmarks()
-        {
-            // TODO: destroy widgets
-
-            // Destroy bookmarks storage
-            bookmarks::destroy_bookmarks(&vBookmarks);
-        }
-
         status_t LSPFileDialog::read_lsp_bookmarks(cvector<bookmark_t> &vbm)
         {
             io::Path path;
@@ -1085,6 +1093,18 @@ namespace lsp
                 return res;
 
             return bookmarks::read_bookmarks(&vbm, &path);
+        }
+
+        status_t LSPFileDialog::read_gtk2_bookmarks(cvector<bookmark_t> &vbm)
+        {
+            io::Path path;
+            status_t res = system::get_home_directory(&path);
+            if (res != STATUS_OK)
+                return res;
+            if ((res = path.append_child(GTK2_BOOKMARK_PATH)) != STATUS_OK)
+                return res;
+
+            return bookmarks::read_bookmarks_gtk2(&vbm, &path);
         }
 
         status_t LSPFileDialog::read_gtk3_bookmarks(cvector<bookmark_t> &vbm)
@@ -1111,9 +1131,11 @@ namespace lsp
             return bookmarks::read_bookmarks_qt5(&vbm, &path);
         }
 
-        status_t LSPFileDialog::save_bookmarks()
+        status_t LSPFileDialog::save_bookmarks(cvector<bookmark_t> *vbm)
         {
             io::Path path, parent;
+            cvector<bookmark_t> tmp;
+
             status_t res = system::get_home_directory(&path);
             if (res != STATUS_OK)
                 return res;
@@ -1123,7 +1145,82 @@ namespace lsp
                 return res;
             if ((res = parent.mkdir(true)) != STATUS_OK)
                 return res;
-            return bookmarks::save_bookmarks(&vBookmarks, &path);
+
+            if (vbm == NULL)
+            {
+                // Build list of bookmarks
+                for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
+                {
+                    bm_entry_t *ent = vBookmarks.at(i);
+                    if ((ent != NULL) && (!tmp.add(&ent->sBookmark)))
+                    {
+                        tmp.flush();
+                        return STATUS_NO_MEM;
+                    }
+                }
+
+                vbm = &tmp;
+            }
+
+            return bookmarks::save_bookmarks(vbm, &path);
+        }
+
+        void LSPFileDialog::drop_bookmarks()
+        {
+            // Deactivate currently selected bookmark
+            sBookmarks.remove_all();
+            pSelBookmark = NULL;
+
+            // Destroy bookmarks storage
+            for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
+            {
+                bm_entry_t *ent = vBookmarks.at(i);
+                if (ent != NULL)
+                {
+                    ent->sHlink.destroy();
+                    delete ent;
+                }
+            }
+            vBookmarks.flush();
+        }
+
+        status_t LSPFileDialog::select_current_bookmark()
+        {
+            status_t res;
+            LSPString spath;
+            io::Path path;
+
+            // Get path and canonicalize
+            if ((res = sWPath.get_text(&spath)) != STATUS_OK)
+                return res;
+            if ((res = path.set(&spath)) != STATUS_OK)
+                return res;
+            if ((res = path.canonicalize()) != STATUS_OK)
+                return res;
+
+            bm_entry_t *found = NULL;
+            for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
+            {
+                bm_entry_t *ent = vBookmarks.at(i);
+                if ((ent != NULL) && (ent->sPath.equals(&path)))
+                {
+                    found = ent;
+                    break;
+                }
+            }
+
+            // Check state
+            if (found == pSelBookmark)
+                return STATUS_OK;
+
+            // Deactivate selected bookmark
+            if (pSelBookmark != NULL)
+                pSelBookmark->sHlink.bg_color()->set_default();
+            pSelBookmark = found;
+            if (found != NULL)
+                init_color(C_BACKGROUND2, found->sHlink.bg_color());
+
+            return STATUS_OK;
         }
 
         status_t LSPFileDialog::refresh_bookmarks()
@@ -1131,25 +1228,72 @@ namespace lsp
             drop_bookmarks();
 
             // Read LSP bookmarks
-            cvector<bookmark_t> tmp;
+            cvector<bookmark_t> bm, tmp;
             status_t res, xres;
             size_t changes;
 
             // Read bookmarks from different sources and merge
-            xres = read_lsp_bookmarks(vBookmarks);
+            xres = read_lsp_bookmarks(bm);
+            if ((res = read_gtk2_bookmarks(tmp)) == STATUS_OK)
+                bookmarks::merge_bookmarks(&bm, &changes, &tmp, bookmarks::BM_GTK2);
             if ((res = read_gtk3_bookmarks(tmp)) == STATUS_OK)
-                bookmarks::merge_bookmarks(&vBookmarks, &changes, &tmp, bookmarks::BM_GTK3);
+                bookmarks::merge_bookmarks(&bm, &changes, &tmp, bookmarks::BM_GTK3);
             if ((res = read_qt5_bookmarks(tmp)) == STATUS_OK)
-                bookmarks::merge_bookmarks(&vBookmarks, &changes, &tmp, bookmarks::BM_QT5);
+                bookmarks::merge_bookmarks(&bm, &changes, &tmp, bookmarks::BM_QT5);
             bookmarks::destroy_bookmarks(&tmp);
 
             // Check if we need to store bookmarks
             if ((changes > 0) || (xres != STATUS_OK))
-                save_bookmarks();
+                save_bookmarks(&bm);
 
-            // TODO: create widgets
+            // Create widgets
+            bm_entry_t *ent = NULL;
+            for (size_t i=0, n=bm.size(); i<n; ++i)
+            {
+                bookmarks::bookmark_t *b = bm.at(i);
+                if (b == NULL)
+                    continue;
 
-            return STATUS_OK;
+                // Allocate entry
+                if ((ent = new bm_entry_t(pDisplay)) == NULL)
+                {
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+
+                // Initialize data
+                if ((res = ent->sPath.set(&b->path)) != STATUS_OK)
+                    break;
+                if ((res = ent->sPath.canonicalize()) != STATUS_OK)
+                    break;
+                if ((res = ent->sHlink.init()) != STATUS_OK)
+                    break;
+                if ((res = ent->sHlink.set_text(&b->name)) != STATUS_OK)
+                    break;
+                ent->sHlink.set_halign(0.0f);
+                ent->sHlink.padding()->set_horizontal(8, 8);
+                if ((res = sBookmarks.add(&ent->sHlink)) != STATUS_OK)
+                    break;
+                ent->sBookmark.path.swap(&b->path);
+                ent->sBookmark.name.swap(&b->name);
+                ent->sBookmark.origin = b->origin;
+
+                // Commit to list
+                res = (vBookmarks.add(ent)) ? STATUS_OK : STATUS_NO_MEM;
+            }
+
+            if (res != STATUS_OK)
+            {
+                drop_bookmarks();
+                if (ent != NULL)
+                {
+                    ent->sHlink.destroy();
+                    delete ent;
+                }
+                return res;
+            }
+
+            return select_current_bookmark();
         }
 
     } /* namespace ctl */

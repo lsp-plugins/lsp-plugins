@@ -17,6 +17,7 @@
 #include <core/io/IOutSequence.h>
 
 #define GTK3_BOOKMARK_PATH          ".config/gtk-3.0/bookmarks"
+#define GTK2_BOOKMARK_PATH          ".gtk-bookmarks"
 #define QT5_BOOKMARK_PATH           ".local/share/user-places.xbel"
 #define LSP_BOOKMARK_PATH           ".config/" LSP_ARTIFACT_ID "/bookmarks.json"
 
@@ -27,8 +28,9 @@ namespace lsp
         enum bm_origin_t
         {
             BM_LSP      = 1 << 0,
-            BM_GTK3     = 1 << 1,
-            BM_QT5      = 1 << 2
+            BM_GTK2     = 1 << 1,
+            BM_GTK3     = 1 << 2,
+            BM_QT5      = 1 << 3
         };
 
         typedef struct bookmark_t
@@ -72,6 +74,41 @@ namespace lsp
          * @return status of operation
          */
         status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, io::IInSequence *in);
+
+        /**
+         * Read GTK3 bookmarks
+         * @param dst list to store bookmarks
+         * @param path location of the file in UTF-8 encoding
+         * @param charset file encoding character set, NULL for default locale
+         * @return status of operation
+         */
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, const char *path, const char *charset=NULL);
+
+        /**
+         * Read GTK3 bookmarks
+         * @param dst list to store bookmarks
+         * @param path location of the file
+         * @param charset file encoding character set, NULL for default locale
+         * @return status of operation
+         */
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, const LSPString *path, const char *charset=NULL);
+
+        /**
+         * Read GTK3 bookmarks
+         * @param dst list to store bookmarks
+         * @param path location of the file
+         * @param charset file encoding character set, NULL for default locale
+         * @return status of operation
+         */
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, const io::Path *path, const char *charset=NULL);
+
+        /**
+         * Read GTK3 bookmarks
+         * @param dst list to store bookmarks
+         * @param in input character sequence
+         * @return status of operation
+         */
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, io::IInSequence *in);
 
         /**
          * Read QT5 bookmarks

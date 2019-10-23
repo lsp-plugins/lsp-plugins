@@ -142,78 +142,6 @@ namespace lsp
 
         //---------------------------------------------------------------------
         // GTK3 stuff
-        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const char *path, const char *charset)
-        {
-            if ((path == NULL) || (dst == NULL))
-                return STATUS_BAD_ARGUMENTS;
-
-            cvector<bookmark_t> tmp;
-            io::InSequence is;
-            status_t res;
-            if ((res = is.open(path, charset)) == STATUS_OK)
-            {
-                res = read_bookmarks_gtk3(&tmp, &is);
-                if (res == STATUS_OK)
-                    res = is.close();
-                else
-                    is.close();
-            }
-
-            if (res == STATUS_OK)
-                dst->swap_data(&tmp);
-            destroy_bookmarks(&tmp);
-
-            return res;
-        }
-
-        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const LSPString *path, const char *charset)
-        {
-            if ((path == NULL) || (dst == NULL))
-                return STATUS_BAD_ARGUMENTS;
-
-            cvector<bookmark_t> tmp;
-            io::InSequence is;
-            status_t res;
-            if ((res = is.open(path, charset)) == STATUS_OK)
-            {
-                res = read_bookmarks_gtk3(&tmp, &is);
-                if (res == STATUS_OK)
-                    res = is.close();
-                else
-                    is.close();
-            }
-
-            if (res == STATUS_OK)
-                dst->swap_data(&tmp);
-            destroy_bookmarks(&tmp);
-
-            return res;
-        }
-
-        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const io::Path *path, const char *charset)
-        {
-            if ((path == NULL) || (dst == NULL))
-                return STATUS_BAD_ARGUMENTS;
-
-            cvector<bookmark_t> tmp;
-            io::InSequence is;
-            status_t res;
-            if ((res = is.open(path, charset)) == STATUS_OK)
-            {
-                res = read_bookmarks_gtk3(&tmp, &is);
-                if (res == STATUS_OK)
-                    res = is.close();
-                else
-                    is.close();
-            }
-
-            if (res == STATUS_OK)
-                dst->swap_data(&tmp);
-            destroy_bookmarks(&tmp);
-
-            return res;
-        }
-
         status_t decode_gtk3_path(LSPString *dst, const LSPString *src, size_t first, size_t last)
         {
             char *buf = NULL;
@@ -302,7 +230,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, io::IInSequence *in)
+        status_t read_bookmarks_gtk(cvector<bookmark_t> *dst, io::IInSequence *in, size_t origin)
         {
             cvector<bookmark_t> vtmp;
             LSPString tmp;
@@ -328,7 +256,7 @@ namespace lsp
 
                 // Create bookmark
                 bookmark_t *bm  = new bookmark_t;
-                bm->origin      = BM_GTK3;
+                bm->origin      = origin;
                 if (bm == NULL)
                 {
                     destroy_bookmarks(&vtmp);
@@ -381,10 +309,121 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t read_bookmarks_gtk(cvector<bookmark_t> *dst, const char *path, const char *charset, size_t origin)
+        {
+            if ((path == NULL) || (dst == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            cvector<bookmark_t> tmp;
+            io::InSequence is;
+            status_t res;
+            if ((res = is.open(path, charset)) == STATUS_OK)
+            {
+                res = read_bookmarks_gtk(&tmp, &is, origin);
+                if (res == STATUS_OK)
+                    res = is.close();
+                else
+                    is.close();
+            }
+
+            if (res == STATUS_OK)
+                dst->swap_data(&tmp);
+            destroy_bookmarks(&tmp);
+
+            return res;
+        }
+
+        status_t read_bookmarks_gtk(cvector<bookmark_t> *dst, const LSPString *path, const char *charset, size_t origin)
+        {
+            if ((path == NULL) || (dst == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            cvector<bookmark_t> tmp;
+            io::InSequence is;
+            status_t res;
+            if ((res = is.open(path, charset)) == STATUS_OK)
+            {
+                res = read_bookmarks_gtk(&tmp, &is, origin);
+                if (res == STATUS_OK)
+                    res = is.close();
+                else
+                    is.close();
+            }
+
+            if (res == STATUS_OK)
+                dst->swap_data(&tmp);
+            destroy_bookmarks(&tmp);
+
+            return res;
+        }
+
+        status_t read_bookmarks_gtk(cvector<bookmark_t> *dst, const io::Path *path, const char *charset, size_t origin)
+        {
+            if ((path == NULL) || (dst == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            cvector<bookmark_t> tmp;
+            io::InSequence is;
+            status_t res;
+            if ((res = is.open(path, charset)) == STATUS_OK)
+            {
+                res = read_bookmarks_gtk(&tmp, &is, origin);
+                if (res == STATUS_OK)
+                    res = is.close();
+                else
+                    is.close();
+            }
+
+            if (res == STATUS_OK)
+                dst->swap_data(&tmp);
+            destroy_bookmarks(&tmp);
+
+            return res;
+        }
+
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, const char *path, const char *charset)
+        {
+            return read_bookmarks_gtk(dst, path, charset, BM_GTK2);
+        }
+
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, const LSPString *path, const char *charset)
+        {
+            return read_bookmarks_gtk(dst, path, charset, BM_GTK2);
+        }
+
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, const io::Path *path, const char *charset)
+        {
+            return read_bookmarks_gtk(dst, path, charset, BM_GTK2);
+        }
+
+        status_t read_bookmarks_gtk2(cvector<bookmark_t> *dst, io::IInSequence *in)
+        {
+            return read_bookmarks_gtk(dst, in, BM_GTK2);
+        }
+
+        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const char *path, const char *charset)
+        {
+            return read_bookmarks_gtk(dst, path, charset, BM_GTK3);
+        }
+
+        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const LSPString *path, const char *charset)
+        {
+            return read_bookmarks_gtk(dst, path, charset, BM_GTK3);
+        }
+
+        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, const io::Path *path, const char *charset)
+        {
+            return read_bookmarks_gtk(dst, path, charset, BM_GTK3);
+        }
+
+        status_t read_bookmarks_gtk3(cvector<bookmark_t> *dst, io::IInSequence *in)
+        {
+            return read_bookmarks_gtk(dst, in, BM_GTK3);
+        }
+
         //---------------------------------------------------------------------
         // QT5 stuff
         //---------------------------------------------------------------------
-        // GTK3 stuff
         status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const char *path, const char *charset)
         {
             // TODO

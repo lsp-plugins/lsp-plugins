@@ -35,6 +35,7 @@ namespace lsp
                         virtual void    notify(ui_atom_t property);
                         void            sync();
                         void            unbind();
+                        void            reset();
                         status_t        bind(LSPDisplay *dpy, LSPStyle *style, const char *property);
                 };
 
@@ -53,6 +54,9 @@ namespace lsp
                 status_t    bind(LSPStyle *style, const char *property);
                 status_t    bind(LSPDisplay *dpy, LSPStyle *style, const char *property);
                 inline void unbind() { sListener.unbind(); };
+
+            public:
+                void        set_default();
 
             protected:
                 virtual void    color_changed();

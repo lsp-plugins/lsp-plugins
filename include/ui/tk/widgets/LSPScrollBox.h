@@ -209,6 +209,12 @@ namespace lsp
                  */
                 virtual status_t remove(LSPWidget *child);
 
+                /** Remove all widgets
+                 *
+                 * @return status of operation
+                 */
+                virtual status_t    remove_all();
+
                 /** Realize the widget
                  *
                  * @param r realization structure
