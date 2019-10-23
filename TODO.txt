@@ -195,13 +195,6 @@ Tobbe:
   ufug:
     LSP offers the most tweakable one, but it does not seem to have a browser for easily auditioning your
     collection of impulse responses (as far as I can see)
-    
-  funkmuscle:
-    Also the older versions, you could of bookmarked the dir where IR files are. I can't seem to figure out
-    how to do it with the version.
-  
-  sadko4u:
-    Currently because all dialogs were written from scratch, there are no bookmarks currently.
 
 ==== UI ====
   tom-:

@@ -1474,7 +1474,7 @@ namespace lsp
                     break;
                 res = (url.set_ascii("file://")) ? STATUS_OK : STATUS_NO_MEM;
                 if (res == STATUS_OK)
-                    res = (url.append(&b->path)) ? STATUS_OK : STATUS_NO_MEM; // TODO: urlencode the path
+                    res = (url.append(&b->path)) ? STATUS_OK : STATUS_NO_MEM;
                 if (res != STATUS_OK)
                     break;
 
