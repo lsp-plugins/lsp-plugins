@@ -80,6 +80,11 @@ namespace lsp
             return NULL;
         }
 
+        status_t LSPComplexWidget::handle_event_internal(const ws_event_t *e)
+        {
+            return LSPWidget::handle_event(e);
+        }
+
         status_t LSPComplexWidget::handle_event(const ws_event_t *e)
         {
             switch (e->nType)
@@ -88,7 +93,7 @@ namespace lsp
                 {
                     LSPWidget *child  = (pKey == NULL) ? find_widget(e->nLeft, e->nTop) : pKey;
                     if (child == NULL)
-                        return LSPWidget::handle_event(e);
+                        return handle_event_internal(e);
 
                     // Handle key release event and free if possible
                     child->handle_event(e);
@@ -102,7 +107,7 @@ namespace lsp
                 {
                     LSPWidget *child  = (pKey == NULL) ? find_widget(e->nLeft, e->nTop) : pKey;
                     if (child == NULL)
-                        return LSPWidget::handle_event(e);
+                        return handle_event_internal(e);
 
                     // Handle key press event
                     child->handle_event(e);
@@ -117,7 +122,7 @@ namespace lsp
                     LSPWidget *child = acquire_mouse_handler(e);
                     nMouse     &= ~(1 << e->nCode);
                     if (child == NULL)
-                        return LSPWidget::handle_event(e);
+                        return handle_event_internal(e);
 
                     // Handle mouse release event and free if possible
                     child->handle_event(e);
@@ -130,7 +135,7 @@ namespace lsp
                     LSPWidget *child = acquire_mouse_handler(e);
                     nMouse     |= 1 << e->nCode;
                     if (child == NULL)
-                        return LSPWidget::handle_event(e);
+                        return handle_event_internal(e);
 
                     // Handle mouse button press event
                     return child->handle_event(e);
@@ -142,7 +147,7 @@ namespace lsp
                 {
                     LSPWidget *child  = acquire_mouse_handler(e);
                     if (child == NULL)
-                        LSPWidget::handle_event(e);
+                        handle_event_internal(e);
                     else
                         child->handle_event(e);
                     release_mouse_handler(e);
@@ -154,7 +159,7 @@ namespace lsp
                     LSPWidget *child  = acquire_mouse_handler(e);
                     nMouse      = e->nState & MCF_BTN_MASK;
                     if (child == NULL)
-                        return LSPWidget::handle_event(e);
+                        return handle_event_internal(e);
 
                     child->handle_event(e);
                     break;
@@ -187,7 +192,7 @@ namespace lsp
                 }
 
                 default:
-                    return LSPWidget::handle_event(e);
+                    return handle_event_internal(e);
             }
 
             return STATUS_OK;

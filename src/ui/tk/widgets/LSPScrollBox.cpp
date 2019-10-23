@@ -20,6 +20,8 @@ namespace lsp
         {
             nSpacing        = 0;
             bProportional   = false;
+            bHSBypass       = true;
+            bVSBypass       = true;
             enOrientation   = (horizontal) ? O_HORIZONTAL : O_VERTICAL;
             enHScroll		= SCROLL_NONE;
             enVScroll		= SCROLL_NONE;
@@ -349,7 +351,7 @@ namespace lsp
 
             // Estimate scroll bar sizes (if needed)
             allocation_t alloc;
-            estimate_allocation(&alloc);
+            estimate_allocation(&alloc, r);
 
             size_request_t hbar, vbar;
             hbar.nMinWidth   = -1;
@@ -670,7 +672,7 @@ namespace lsp
             }
         }
 
-        void LSPScrollBox::estimate_allocation(allocation_t *alloc)
+        void LSPScrollBox::estimate_allocation(allocation_t *alloc, const realize_t *realize)
         {
             // Initialize allocation
             alloc->aw           = -1;
@@ -679,7 +681,15 @@ namespace lsp
             alloc->vs           = false;
 
             size_request_t *r   = &alloc->r;
-            sConstraints.get(r);
+            if (realize != NULL)
+            {
+                r->nMinWidth    = realize->nWidth;
+                r->nMinHeight   = realize->nHeight;
+                r->nMaxWidth    = realize->nWidth;
+                r->nMaxHeight   = realize->nHeight;
+            }
+            else
+                sConstraints.get(r);
 
             // Estimated width and height of widget area
             alloc->aw = 0;
@@ -800,8 +810,53 @@ namespace lsp
         void LSPScrollBox::size_request(size_request_t *r)
         {
             allocation_t alloc;
-            estimate_allocation(&alloc);
+            estimate_allocation(&alloc, NULL);
             *r              = alloc.r;
+        }
+
+        status_t LSPScrollBox::handle_event(const ws_event_t *e)
+        {
+            if (e->nType != UIE_MOUSE_SCROLL)
+                return LSPWidgetContainer::handle_event(e);
+
+            ws_event_t xe = *e;
+            LSPScrollBar *bar1 = &sVBar, *bar2 = &sHBar;
+            bool b1 = bVSBypass, b2 = bHSBypass;
+
+            if ((xe.nCode == MCD_LEFT) || (xe.nCode == MCD_RIGHT))
+            {
+                xe.nCode = (xe.nCode == MCD_LEFT) ? MCD_DOWN : MCD_UP;
+                bar1 = &sHBar;
+                bar2 = &sVBar;
+                b1 = bHSBypass;
+                b2 = bVSBypass;
+            }
+
+            if ((xe.nCode == MCD_UP) || (xe.nCode == MCD_DOWN))
+            {
+                if (bar1->visible())
+                {
+                    // Shift overrides vertical scroll with horizontal scroll
+                    if ((xe.nState & MCF_SHIFT) && (bar2->visible()))
+                    {
+                        if (xe.nState & MCF_ALT)
+                        {
+                            xe.nState &= ~MCF_ALT;
+                            xe.nState |= MCF_SHIFT;
+                        }
+                        else
+                            xe.nState &= ~MCF_SHIFT;
+
+                        return (b2) ? LSPWidgetContainer::handle_event(e) : bar2->handle_event(&xe);
+                    }
+
+                    return (b1) ? LSPWidgetContainer::handle_event(e) : bar1->handle_event(&xe);
+                }
+                else if (bar2->visible())
+                    return (b2) ? LSPWidgetContainer::handle_event(e) : bar2->handle_event(&xe);
+            }
+
+            return STATUS_OK;
         }
 
         status_t LSPScrollBox::slot_on_scroll(LSPWidget *sender, void *ptr, void *data)

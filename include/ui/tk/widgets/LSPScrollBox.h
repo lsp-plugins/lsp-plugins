@@ -47,6 +47,8 @@ namespace lsp
                 cstorage<cell_t>    vItems;
                 size_t              nSpacing;
                 bool                bProportional;
+                bool                bHSBypass;
+                bool                bVSBypass;
                 orientation_t       enOrientation;
                 scrolling_t         enHScroll;
                 scrolling_t         enVScroll;
@@ -65,7 +67,7 @@ namespace lsp
                 size_t              visible_items();
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
                 void                do_destroy();
-                virtual void        estimate_allocation(allocation_t *alloc);
+                virtual void        estimate_allocation(allocation_t *alloc, const realize_t *realize);
                 void                realize_children();
 
             public:
@@ -119,17 +121,19 @@ namespace lsp
                  */
                 inline orientation_t    orientation() const { return enOrientation; }
 
-                inline scrolling_t      vscroll() const     { return enVScroll; }
-                inline float            vscroll_pos() const { return sVBar.value(); }
-                inline float            vscroll_min() const { return sVBar.min_value(); }
-                inline float            vscroll_max() const { return sVBar.max_value(); }
-                inline float            vscroll_on() const  { return sVBar.visible(); }
+                inline scrolling_t      vscroll() const         { return enVScroll; }
+                inline float            vscroll_bypass() const  { return bVSBypass; }
+                inline float            vscroll_pos() const     { return sVBar.value(); }
+                inline float            vscroll_min() const     { return sVBar.min_value(); }
+                inline float            vscroll_max() const     { return sVBar.max_value(); }
+                inline float            vscroll_on() const      { return sVBar.visible(); }
 
-                inline scrolling_t      hscroll() const     { return enHScroll; }
-                inline float            hscroll_pos() const { return sHBar.value(); }
-                inline float            hscroll_min() const { return sHBar.min_value(); }
-                inline float            hscroll_max() const { return sHBar.max_value(); }
-                inline bool             hscroll_on() const  { return sHBar.visible(); }
+                inline scrolling_t      hscroll() const         { return enHScroll; }
+                inline float            hscroll_bypass() const  { return bHSBypass; }
+                inline float            hscroll_pos() const     { return sHBar.value(); }
+                inline float            hscroll_min() const     { return sHBar.min_value(); }
+                inline float            hscroll_max() const     { return sHBar.max_value(); }
+                inline bool             hscroll_on() const      { return sHBar.visible(); }
 
             //---------------------------------------------------------------------------------
             // Manipulation
@@ -165,6 +169,12 @@ namespace lsp
                 void        set_vscroll_pos(float value) { sVBar.set_value(value); }
 
                 /**
+                 * Set bypass of vertical scrolling events
+                 * @param value vertical scrolling events bypass
+                 */
+                void        set_vscroll_bypass(bool bypass = true) { bVSBypass = bypass; }
+
+                /**
                  * Set horizontal scrolling mode
                  * @param mode scrolling mode
                  */
@@ -175,6 +185,12 @@ namespace lsp
                  * @param value horizontal scrolling value in pixels
                  */
                 void        set_hscroll_pos(float value) { sHBar.set_value(value); }
+
+                /**
+                 * Set bypass of horizontal scrolling events
+                 * @param value horizontal scrolling events bypass
+                 */
+                void        set_hscroll_bypass(bool bypass = true) { bHSBypass = bypass; }
 
                 /** Set horizontal orientation
                  *
@@ -226,6 +242,8 @@ namespace lsp
                  * @param r size request
                  */
                 virtual void size_request(size_request_t *r);
+
+                virtual status_t    handle_event(const ws_event_t *e);
         };
     
     } /* namespace tk */

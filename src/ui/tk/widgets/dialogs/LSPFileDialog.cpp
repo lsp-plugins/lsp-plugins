@@ -271,7 +271,9 @@ namespace lsp
             sSBBookmarks.set_expand(true);
             sSBBookmarks.constraints()->set_min_width(192);
             sSBBookmarks.set_vscroll(SCROLL_OPTIONAL);
+            sSBBookmarks.set_vscroll_bypass(false);
             sSBBookmarks.set_hscroll(SCROLL_NONE);
+            sSBBookmarks.set_hscroll_bypass(false);
 
             LSP_STATUS_ASSERT(sSBAlign.init());
             sSBAlign.set_pos(0.0f, -1.0f); // Middle, Top

@@ -31,7 +31,9 @@ namespace lsp
             //---------------------------------------------------------------------------------
             // Manipulation
             protected:
-                virtual LSPWidget    *find_widget(ssize_t x, ssize_t y);
+                virtual LSPWidget      *find_widget(ssize_t x, ssize_t y);
+
+                virtual status_t        handle_event_internal(const ws_event_t *e);
 
             //---------------------------------------------------------------------------------
             // Construction and destruction
