@@ -822,6 +822,12 @@ namespace lsp
             return (dlg != NULL) ? dlg->on_path_key_up(ev) : STATUS_BAD_STATE;
         }
 
+        status_t LSPFileDialog::slot_on_bm_submit(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            return (_this != NULL) ? _this->on_bm_submit(sender) : STATUS_BAD_ARGUMENTS;
+        }
+
         status_t LSPFileDialog::on_dlg_go(void *data)
         {
             LSPString path;
@@ -1226,6 +1232,7 @@ namespace lsp
         status_t LSPFileDialog::refresh_bookmarks()
         {
             drop_bookmarks();
+            LSPString url;
 
             // Read LSP bookmarks
             cvector<bookmark_t> bm, tmp;
@@ -1270,8 +1277,17 @@ namespace lsp
                     break;
                 if ((res = ent->sHlink.set_text(&b->name)) != STATUS_OK)
                     break;
+                res = (url.set_ascii("file://")) ? STATUS_OK : STATUS_NO_MEM;
+                if (res == STATUS_OK)
+                    res = (url.append(&b->path)) ? STATUS_OK : STATUS_NO_MEM; // TODO: urlencode the path
+                if (res != STATUS_OK)
+                    break;
+
                 ent->sHlink.set_halign(0.0f);
+                ent->sHlink.set_follow(false);
+                ent->sHlink.set_url(&url);
                 ent->sHlink.padding()->set_horizontal(8, 8);
+                ent->sHlink.slots()->bind(LSPSLOT_SUBMIT, slot_on_bm_submit, self());
                 if ((res = sBookmarks.add(&ent->sHlink)) != STATUS_OK)
                     break;
                 ent->sBookmark.path.swap(&b->path);
@@ -1294,6 +1310,20 @@ namespace lsp
             }
 
             return select_current_bookmark();
+        }
+
+        status_t LSPFileDialog::on_bm_submit(LSPWidget *sender)
+        {
+            for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
+            {
+                bm_entry_t *ent = vBookmarks.at(i);
+                if (ent == NULL)
+                    continue;
+                if (sender == &ent->sHlink)
+                    return set_path(&ent->sBookmark.path);
+            }
+
+            return STATUS_OK;
         }
 
     } /* namespace ctl */

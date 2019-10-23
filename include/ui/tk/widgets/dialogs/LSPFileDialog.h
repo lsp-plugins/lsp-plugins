@@ -120,6 +120,7 @@ namespace lsp
                 static status_t     slot_on_go(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_up(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_path_key_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_submit(LSPWidget *sender, void *ptr, void *data);
 
                 virtual status_t    on_dlg_action(void *data);
                 virtual status_t    on_dlg_confirm(void *data);
@@ -130,6 +131,8 @@ namespace lsp
                 virtual status_t    on_dlg_go(void *data);
                 virtual status_t    on_dlg_up(void *data);
                 virtual status_t    on_path_key_up(ws_event_t *e);
+
+                status_t            on_bm_submit(LSPWidget *sender);
 
                 void                do_destroy();
                 status_t            refresh_current_path();

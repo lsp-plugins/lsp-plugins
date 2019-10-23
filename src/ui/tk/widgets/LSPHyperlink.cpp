@@ -26,6 +26,7 @@ namespace lsp
             pClass      = &metadata;
             nMFlags     = 0;
             nState      = 0;
+            bFollow     = true;
             pPopup      = &sStdMenu;
 
             vStdItems[0]    = NULL;
@@ -75,6 +76,8 @@ namespace lsp
 
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0) return -id;
+            sSlots.add(LSPSLOT_BEFORE_POPUP);
+            sSlots.add(LSPSLOT_POPUP);
 
             return STATUS_OK;
         }
@@ -85,21 +88,58 @@ namespace lsp
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
+        void LSPHyperlink::set_follow(bool follow)
+        {
+            bFollow     = follow;
+        }
+
         status_t LSPHyperlink::slot_copy_link_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPHyperlink *_this = widget_ptrcast<LSPHyperlink>(ptr);
             if (_this == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
+            return _this->copy_url(CBUF_CLIPBOARD);
+        }
+
+        status_t LSPHyperlink::follow_url()
+        {
+            #ifdef PLATFORM_WINDOWS
+                ::ShellExecuteW(
+                    NULL,               // Not associated with window
+                    L"open",            // Open hyperlink
+                    sUrl.get_utf16(),   // The file to execute
+                    NULL,               // Parameters
+                    NULL,               // Directory
+                    SW_SHOWNORMAL       // Show command
+                );
+            #else
+                status_t res;
+                ipc::Process p;
+
+                if ((res = p.set_command("xdg-open")) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.add_arg(&sUrl)) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.launch()) != STATUS_OK)
+                    return STATUS_OK;
+                p.wait();
+            #endif /* PLATFORM_WINDOWS */
+
+            return STATUS_OK;
+        }
+
+        status_t LSPHyperlink::copy_url(clipboard_id_t cb)
+        {
             // Copy data to clipboard
             LSPTextDataSource *src = new LSPTextDataSource();
             if (src == NULL)
                 return STATUS_NO_MEM;
             src->acquire();
 
-            status_t result = src->set_text(&_this->sUrl);
+            status_t result = src->set_text(&sUrl);
             if (result == STATUS_OK)
-                _this->pDisplay->set_clipboard(CBUF_CLIPBOARD, src);
+                pDisplay->set_clipboard(cb, src);
             src->release();
 
             return result;
@@ -108,30 +148,7 @@ namespace lsp
         status_t LSPHyperlink::on_submit()
         {
             lsp_trace("hyperlink submitted");
-
-#ifdef PLATFORM_WINDOWS
-            ::ShellExecuteW(
-                NULL,               // Not associated with window
-                L"open",            // Open hyperlink
-                sUrl.get_utf16(),   // The file to execute
-                NULL,               // Parameters
-                NULL,               // Directory
-                SW_SHOWNORMAL       // Show command
-            );
-#else
-            status_t res;
-            ipc::Process p;
-
-            if ((res = p.set_command("xdg-open")) != STATUS_OK)
-                return STATUS_OK;
-            if ((res = p.add_arg(&sUrl)) != STATUS_OK)
-                return STATUS_OK;
-            if ((res = p.launch()) != STATUS_OK)
-                return STATUS_OK;
-            p.wait();
-#endif /* PLATFORM_WINDOWS */
-
-            return STATUS_OK;
+            return (bFollow) ? follow_url() : STATUS_OK;
         }
 
         void LSPHyperlink::destroy()
@@ -144,6 +161,7 @@ namespace lsp
                     vStdItems[i] = NULL;
                 }
 
+            sStdMenu.destroy();
             LSPLabel::destroy();
         }
 
@@ -306,7 +324,11 @@ namespace lsp
                 if ((flags == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT))
                     sSlots.execute(LSPSLOT_SUBMIT, this);
                 else if ((flags == (1 << MCB_RIGHT)) && (e->nCode == MCB_RIGHT) && (pPopup != NULL))
+                {
+                    sSlots.execute(LSPSLOT_BEFORE_POPUP, this, pPopup->self());
                     pPopup->show(this, e);
+                    sSlots.execute(LSPSLOT_POPUP, this, pPopup->self());
+                }
             }
 
             return STATUS_OK;
