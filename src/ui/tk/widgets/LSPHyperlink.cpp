@@ -163,6 +163,7 @@ namespace lsp
 
             sStdMenu.destroy();
             LSPLabel::destroy();
+            pPopup = NULL;
         }
 
         status_t LSPHyperlink::set_url(const char *url)

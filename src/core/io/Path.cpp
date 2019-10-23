@@ -953,60 +953,60 @@ namespace lsp
             return (res != STATUS_OK) ? attr.size : -res;
         }
 
-        wssize_t Path::exists() const
+        bool Path::exists() const
         {
             fattr_t attr;
             status_t res = File::stat(&sPath, &attr);
             return res == STATUS_OK;
         }
 
-        wssize_t Path::is_reg() const
+        bool Path::is_reg() const
         {
             fattr_t attr;
-            status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_BLOCK : -res;
+            status_t res = File::sym_stat(&sPath, &attr);
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_BLOCK);
         }
 
-        wssize_t Path::is_dir() const
+        bool Path::is_dir() const
         {
             fattr_t attr;
-            status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_DIRECTORY : -res;
+            status_t res = File::sym_stat(&sPath, &attr);
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_DIRECTORY);
         }
 
-        wssize_t Path::is_block_dev() const
+        bool Path::is_block_dev() const
         {
             fattr_t attr;
-            status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_BLOCK : -res;
+            status_t res = File::sym_stat(&sPath, &attr);
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_BLOCK);
         }
 
-        wssize_t Path::is_char_dev() const
+        bool Path::is_char_dev() const
         {
             fattr_t attr;
-            status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_CHARACTER : -res;
+            status_t res = File::sym_stat(&sPath, &attr);
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_CHARACTER);
         }
 
-        wssize_t Path::is_fifo() const
+        bool Path::is_fifo() const
         {
             fattr_t attr;
-            status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_FIFO : -res;
+            status_t res = File::sym_stat(&sPath, &attr);
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_FIFO);
         }
 
-        wssize_t Path::is_symlink() const
+        bool Path::is_symlink() const
         {
             fattr_t attr;
             status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_SYMLINK : -res;
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_SYMLINK);
         }
 
-        wssize_t Path::is_socket() const
+        bool Path::is_socket() const
         {
             fattr_t attr;
-            status_t res = File::stat(&sPath, &attr);
-            return (res != STATUS_OK) ? attr.type == fattr_t::FT_SOCKET : -res;
+            status_t res = File::sym_stat(&sPath, &attr);
+            return (res == STATUS_OK) && (attr.type == fattr_t::FT_SOCKET);
         }
 
         status_t Path::mkdir() const

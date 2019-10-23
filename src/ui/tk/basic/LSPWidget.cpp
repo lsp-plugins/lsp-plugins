@@ -384,11 +384,16 @@ namespace lsp
                 return;
 
             if (pParent != NULL)
+            {
+                LSPWindow *wnd = widget_cast<LSPWindow>(toplevel());
+                if (wnd != NULL)
+                    wnd->unfocus_child(this);
                 sStyle.remove_parent(pParent->style()); // Unlink style
 
-            LSPWidgetContainer *wc = widget_cast<LSPWidgetContainer>(pParent);
-            if (wc != NULL)
-                wc->remove(this);
+                LSPWidgetContainer *wc = widget_cast<LSPWidgetContainer>(pParent);
+                if (wc != NULL)
+                    wc->remove(this);
+            }
 
             pParent = parent;
             if (parent != NULL) // Inherit the style of parent widget

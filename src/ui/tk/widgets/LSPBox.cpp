@@ -214,6 +214,7 @@ namespace lsp
                     if (!vItems.remove(i))
                         return STATUS_UNKNOWN_ERR;
                     query_resize();
+                    child->set_parent(NULL);
                     return STATUS_OK;
                 }
             }
@@ -225,7 +226,18 @@ namespace lsp
         {
             if (vItems.size() <= 0)
                 return STATUS_OK;
-            vItems.flush();
+
+            cstorage<cell_t> tmp;
+            vItems.swap(&tmp);
+
+            for (size_t i=0, n=vItems.size(); i<n; ++i)
+            {
+                cell_t *cell        = vItems.at(i);
+                if (cell->pWidget != NULL)
+                    cell->pWidget->set_parent(NULL);
+            }
+
+            tmp.flush();
             query_resize();
             return STATUS_OK;
         }

@@ -242,6 +242,23 @@ namespace lsp
                 nCapacity   = 0;
                 nItems      = 0;
             }
+
+            inline bool move(size_t a, size_t b)
+            {
+                if ((a >= nItems) || (b >= nItems))
+                    return false;
+                else if (a == b)
+                    return true;
+
+                void *ptr   = pvItems[a];
+                if (a < b)
+                    ::memmove(&pvItems[a], &pvItems[a+1], (b-a) * sizeof(void *));
+                else
+                    ::memmove(&pvItems[b+1], &pvItems[b], (a-b) * sizeof(void *));
+                pvItems[b]  = ptr;
+
+                return true;
+            }
     };
 
     // Generalize pointers with templates

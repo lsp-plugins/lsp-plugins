@@ -478,6 +478,8 @@ namespace lsp
                 // Analyze string
                 if (ev.sValue.equals_ascii("lsp"))
                     *origin    |= BM_LSP;
+                else if (ev.sValue.equals_ascii("gtk2"))
+                    *origin    |= BM_GTK2;
                 else if (ev.sValue.equals_ascii("gtk3"))
                     *origin    |= BM_GTK3;
                 else if (ev.sValue.equals_ascii("qt5"))
@@ -661,6 +663,8 @@ namespace lsp
                     return res;
                 {
                     if ((item->origin & BM_LSP) && ((res = s.write_string("lsp")) != STATUS_OK))
+                        return res;
+                    if ((item->origin & BM_GTK2) && ((res = s.write_string("gtk2")) != STATUS_OK))
                         return res;
                     if ((item->origin & BM_GTK3) && ((res = s.write_string("gtk3")) != STATUS_OK))
                         return res;

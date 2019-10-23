@@ -59,6 +59,8 @@ namespace lsp
             sSBBookmarks(dpy),
             sSBAlign(dpy),
             sBookmarks(dpy),
+            sBMPopup(dpy),
+            sBMAdd(dpy),
             sHBox(dpy),
             sWarnBox(dpy),
             sAppendExt(dpy),
@@ -70,6 +72,7 @@ namespace lsp
             sFilter(this)
         {
             pSelBookmark    = NULL;
+            pPopupBookmark  = NULL;
             pWConfirm       = NULL;
             nDefaultFilter  = 0;
             nUIDGen         = 0;
@@ -128,6 +131,34 @@ namespace lsp
                 *label = lbl;
 
             return result;
+        }
+
+        status_t LSPFileDialog::add_menu_item(LSPMenu *m, const char *text, ui_event_handler_t handler)
+        {
+            LSPMenuItem *mi = new LSPMenuItem(pDisplay);
+            if (mi == NULL)
+                return STATUS_NO_MEM;
+            if (!vWidgets.add(mi))
+            {
+                mi->destroy();
+                delete mi;
+                return STATUS_NO_MEM;
+            }
+
+            LSP_STATUS_ASSERT(mi->init());
+            if (text != NULL)
+            {
+                LSP_STATUS_ASSERT(mi->set_text(text));
+                ui_handler_id_t id = mi->slots()->bind(LSPSLOT_SUBMIT, handler, self());
+                if (id < 0)
+                    return STATUS_UNKNOWN_ERR;
+            }
+            else
+                mi->set_separator(true);
+
+            LSP_STATUS_ASSERT(m->add(mi));
+
+            return STATUS_OK;
         }
 
         status_t LSPFileDialog::add_ext_button(LSPWidgetContainer *c, const char *text)
@@ -212,6 +243,10 @@ namespace lsp
             LSP_STATUS_ASSERT(wUp.init());
             LSP_STATUS_ASSERT(wUp.set_title("Up"));
             wUp.set_min_width(32);
+            LSP_STATUS_ASSERT(sBMAdd.init());
+            LSP_STATUS_ASSERT(sBMAdd.set_title("+Bookmarks"));
+            sBMAdd.set_min_width(32);
+
             LSP_STATUS_ASSERT(wPathBox.init());
             wPathBox.set_horizontal();
             wPathBox.set_spacing(2);
@@ -249,13 +284,17 @@ namespace lsp
             sBookmarks.set_expand(true);
             LSP_STATUS_ASSERT(sSBAlign.add(&sBookmarks));
 
+            LSP_STATUS_ASSERT(init_bm_popup_menu());
+
             init_color(C_YELLOW, sWWarning.font()->color());
 
             // Initialize supplementary elements
             // Path box
-            LSP_STATUS_ASSERT(wPathBox.add(&sWPath));
-            LSP_STATUS_ASSERT(wPathBox.add(&wGo));
+            sBMAdd.set_fill(true);
+            LSP_STATUS_ASSERT(wPathBox.add(&sBMAdd));
             LSP_STATUS_ASSERT(wPathBox.add(&wUp));
+            LSP_STATUS_ASSERT(wPathBox.add(&wGo));
+            LSP_STATUS_ASSERT(add_label(&wPathBox, "Location", 1.0f));
             // Button box
             LSP_STATUS_ASSERT(sHBox.add(&sWAction));
             LSP_STATUS_ASSERT(sHBox.add(&sWCancel));
@@ -265,8 +304,8 @@ namespace lsp
 
             // Initialize grid
             // Row 1
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Location", 1.0f));
             LSP_STATUS_ASSERT(sMainGrid.add(&wPathBox));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sWPath));
             // Row 2
             LSP_STATUS_ASSERT(add_label(&sMainGrid, "Bookmarks"));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
@@ -319,6 +358,9 @@ namespace lsp
             result = wUp.slots()->bind(LSPSLOT_SUBMIT, slot_on_up, self());
             if (result < 0)
                 return -result;
+            result = sBMAdd.slots()->bind(LSPSLOT_SUBMIT, slot_on_bm_add, self());
+            if (result < 0)
+                return -result;
             result = sWPath.slots()->bind(LSPSLOT_KEY_UP, slot_on_path_key_up, self());
             if (result < 0)
                 return -result;
@@ -366,6 +408,8 @@ namespace lsp
             sSBBookmarks.destroy();
             sSBAlign.destroy();
             sBookmarks.destroy();
+            sBMPopup.destroy();
+            sBMAdd.destroy();
             sMainGrid.destroy();
             sWWarning.destroy();
             sAppendExt.destroy();
@@ -389,6 +433,22 @@ namespace lsp
                 delete pWMessage;
                 pWMessage = NULL;
             }
+        }
+
+        status_t LSPFileDialog::init_bm_popup_menu()
+        {
+            LSP_STATUS_ASSERT(sBMPopup.init());
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Open", slot_on_bm_menu_open));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Follow URL", slot_on_bm_menu_follow));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Copy URL", slot_on_bm_menu_copy));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Delete", slot_on_bm_menu_delete));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, NULL, NULL));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "First", slot_on_bm_menu_first));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Up", slot_on_bm_menu_up));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Down", slot_on_bm_menu_down));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Last", slot_on_bm_menu_last));
+
+            return STATUS_OK;
         }
 
         void LSPFileDialog::sync_mode()
@@ -815,6 +875,14 @@ namespace lsp
             return (dlg != NULL) ? dlg->on_dlg_up(data) : STATUS_BAD_STATE;
         }
 
+        status_t LSPFileDialog::slot_on_bm_add(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
+            if (dlg != NULL)
+                dlg->add_new_bookmark();
+            return STATUS_OK;
+        }
+
         status_t LSPFileDialog::slot_on_path_key_up(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
@@ -826,6 +894,109 @@ namespace lsp
         {
             LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
             return (_this != NULL) ? _this->on_bm_submit(sender) : STATUS_BAD_ARGUMENTS;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_popup(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            _this->pPopupBookmark = _this->find_bookmark(sender);
+            return STATUS_OK;;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_open(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            return ((_this != NULL) && (_this->pPopupBookmark != NULL)) ?
+                _this->set_path(&_this->pPopupBookmark->sBookmark.path) :
+                STATUS_OK;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_follow(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            return ((_this != NULL) && (_this->pPopupBookmark != NULL)) ?
+                _this->pPopupBookmark->sHlink.follow_url() :
+                STATUS_OK;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_copy(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            return ((_this != NULL) && (_this->pPopupBookmark != NULL)) ?
+                _this->pPopupBookmark->sHlink.copy_url(CBUF_CLIPBOARD) :
+                STATUS_OK;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_delete(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            return ((_this != NULL) && (_this->pPopupBookmark != NULL)) ?
+                _this->remove_bookmark(_this->pPopupBookmark) :
+                STATUS_OK;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_up(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            ssize_t idx = (_this->pPopupBookmark != NULL) ?
+                    _this->vBookmarks.index_of(_this->pPopupBookmark) : -1;
+
+            // Find previous visible bookmark
+            ssize_t prev = idx - 1;
+            for ( ; prev >= 0; --prev)
+            {
+                bm_entry_t *ent = _this->vBookmarks.at(prev);
+                if ((ent != NULL) && (ent->sBookmark.origin & bookmarks::BM_LSP))
+                    break;
+            }
+
+            if (prev < 0)
+                return STATUS_OK;
+
+            return (_this->vBookmarks.swap(prev, idx)) ?  _this->sync_bookmarks() : STATUS_UNKNOWN_ERR;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_down(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            ssize_t items = _this->vBookmarks.size();
+            ssize_t idx = (_this->pPopupBookmark != NULL) ?
+                    _this->vBookmarks.index_of(_this->pPopupBookmark) : items;
+
+            // Find next visible bookmark
+            ssize_t next = idx + 1;
+            for ( ; next < items; ++next)
+            {
+                bm_entry_t *ent = _this->vBookmarks.at(next);
+                if ((ent != NULL) && (ent->sBookmark.origin & bookmarks::BM_LSP))
+                    break;
+            }
+
+            if (next >= items)
+                return STATUS_OK;
+
+            return (_this->vBookmarks.swap(idx, next)) ?  _this->sync_bookmarks() : STATUS_UNKNOWN_ERR;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_first(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            ssize_t idx = (_this->pPopupBookmark != NULL) ?
+                    _this->vBookmarks.index_of(_this->pPopupBookmark) : -1;
+            if (idx <= 0)
+                return STATUS_OK;
+            return (_this->vBookmarks.move(idx, 0)) ? _this->sync_bookmarks() : STATUS_UNKNOWN_ERR;
+        }
+
+        status_t LSPFileDialog::slot_on_bm_menu_last(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *_this = widget_ptrcast<LSPFileDialog>(ptr);
+            ssize_t last = _this->vBookmarks.size() - 1;
+            ssize_t idx = (_this->pPopupBookmark != NULL) ?
+                    _this->vBookmarks.index_of(_this->pPopupBookmark) : last;
+            if (idx >= last)
+                return STATUS_OK;
+            return (_this->vBookmarks.move(idx, last)) ? _this->sync_bookmarks() : STATUS_UNKNOWN_ERR;
         }
 
         status_t LSPFileDialog::on_dlg_go(void *data)
@@ -1175,7 +1346,8 @@ namespace lsp
         {
             // Deactivate currently selected bookmark
             sBookmarks.remove_all();
-            pSelBookmark = NULL;
+            pSelBookmark    = NULL;
+            pPopupBookmark  = NULL;
 
             // Destroy bookmarks storage
             for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
@@ -1227,6 +1399,27 @@ namespace lsp
                 init_color(C_BACKGROUND2, found->sHlink.bg_color());
 
             return STATUS_OK;
+        }
+
+        status_t LSPFileDialog::sync_bookmarks()
+        {
+            status_t res;
+            if ((res = sBookmarks.remove_all()) != STATUS_OK)
+                return res;
+
+            for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
+            {
+                bm_entry_t *ent = vBookmarks.at(i);
+                if ((ent == NULL) || (!(ent->sBookmark.origin & bookmarks::BM_LSP)))
+                    continue;
+                if ((res = sBookmarks.add(&ent->sHlink)) != STATUS_OK)
+                    break;
+            }
+
+            if (res != STATUS_OK)
+                sBookmarks.remove_all();
+
+            return (res == STATUS_OK) ? save_bookmarks(NULL) : res;
         }
 
         status_t LSPFileDialog::refresh_bookmarks()
@@ -1288,14 +1481,21 @@ namespace lsp
                 ent->sHlink.set_url(&url);
                 ent->sHlink.padding()->set_horizontal(8, 8);
                 ent->sHlink.slots()->bind(LSPSLOT_SUBMIT, slot_on_bm_submit, self());
-                if ((res = sBookmarks.add(&ent->sHlink)) != STATUS_OK)
-                    break;
+                ent->sHlink.slots()->bind(LSPSLOT_BEFORE_POPUP, slot_on_bm_popup, self());
+                ent->sHlink.set_popup(&sBMPopup);
+                if (b->origin & bookmarks::BM_LSP)
+                {
+                    if ((res = sBookmarks.add(&ent->sHlink)) != STATUS_OK)
+                        break;
+                }
                 ent->sBookmark.path.swap(&b->path);
                 ent->sBookmark.name.swap(&b->name);
                 ent->sBookmark.origin = b->origin;
 
-                // Commit to list
+                // Commit to list if
                 res = (vBookmarks.add(ent)) ? STATUS_OK : STATUS_NO_MEM;
+                if (res != STATUS_OK)
+                    break;
             }
 
             if (res != STATUS_OK)
@@ -1312,16 +1512,144 @@ namespace lsp
             return select_current_bookmark();
         }
 
-        status_t LSPFileDialog::on_bm_submit(LSPWidget *sender)
+        LSPFileDialog::bm_entry_t *LSPFileDialog::find_bookmark(LSPWidget *sender)
         {
+            LSPHyperlink *hlink = widget_cast<LSPHyperlink>(sender);
+            if (hlink == NULL)
+                return NULL;
+
             for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
             {
                 bm_entry_t *ent = vBookmarks.at(i);
-                if (ent == NULL)
-                    continue;
-                if (sender == &ent->sHlink)
-                    return set_path(&ent->sBookmark.path);
+                if ((ent != NULL) && (hlink == &ent->sHlink))
+                    return ent;
             }
+            return NULL;
+        }
+
+        status_t LSPFileDialog::on_bm_submit(LSPWidget *sender)
+        {
+            bm_entry_t *ent = find_bookmark(sender);
+            return (ent != NULL) ? set_path(&ent->sBookmark.path) : STATUS_OK;
+        }
+
+        status_t LSPFileDialog::remove_bookmark(bm_entry_t *entry)
+        {
+            // Make invisible for LSP toolkit
+            entry->sBookmark.origin &= ~bookmarks::BM_LSP;
+            sBookmarks.remove(&entry->sHlink);
+            if (pSelBookmark == entry)
+                pSelBookmark = NULL;
+            if (pPopupBookmark == entry)
+                pPopupBookmark = NULL;
+
+            // Drop entry if origin is emtpy
+            if (!entry->sBookmark.origin)
+            {
+                vBookmarks.remove(entry);
+                entry->sHlink.destroy();
+                delete entry;
+            }
+
+            // Synchronize bookmarks and save state
+            return sync_bookmarks();
+        }
+
+        status_t LSPFileDialog::add_new_bookmark()
+        {
+            status_t res;
+            LSPString spath;
+            io::Path path;
+
+            // Get current path
+            if ((res = sWPath.get_text(&spath)) != STATUS_OK)
+                return res;
+            if ((res = path.set(&spath)) != STATUS_OK)
+                return res;
+
+            // Get selected entry
+            file_entry_t *fent = selected_entry();
+            if ((fent != NULL) && ((fent->nFlags & (F_ISDIR | F_DOTDOT)) == F_ISDIR))
+            {
+                if ((res = path.append_child(&fent->sName)) != STATUS_OK)
+                    return res;
+            }
+
+            lsp_trace("Add bookmark path=%s", path.as_native());
+
+            // Canonicalize path
+            if ((res = path.canonicalize()) != STATUS_OK)
+                return res;
+            if (!path.is_dir())
+                return STATUS_NOT_DIRECTORY;
+
+            // Now seek that item is already present
+            bm_entry_t *ent;
+            for (size_t i=0, n=vBookmarks.size(); i<n; ++i)
+            {
+                ent = vBookmarks.at(i);
+                if ((ent != NULL) && (ent->sPath.equals(&path)))
+                {
+                    if (ent->sBookmark.origin & bookmarks::BM_LSP)
+                        return STATUS_ALREADY_EXISTS;
+                    if ((res = path.get_last(&ent->sBookmark.name)) != STATUS_OK)
+                        return res;
+                    ent->sBookmark.origin |= bookmarks::BM_LSP;
+                    return sync_bookmarks();
+                }
+            }
+
+            // Create new bookmark
+            if ((ent = new bm_entry_t(pDisplay)) == NULL)
+                return STATUS_NO_MEM;
+            if (!vBookmarks.add(ent))
+            {
+                delete ent;
+                return STATUS_NO_MEM;
+            }
+
+            if ((res = init_entry(ent, &path)) != STATUS_OK)
+            {
+                vBookmarks.remove(ent);
+                ent->sHlink.destroy();
+                delete ent;
+                return STATUS_NO_MEM;
+            }
+
+            // Synchronize bookmarks and exit
+            return sync_bookmarks();
+        }
+
+        status_t LSPFileDialog::init_entry(bm_entry_t *ent, const io::Path *path)
+        {
+            status_t res;
+            LSPString url;
+
+            ent->sBookmark.origin   = bookmarks::BM_LSP;
+            if ((res = path->get_last(&ent->sBookmark.name)) != STATUS_OK)
+                return res;
+            if ((res = path->get(&ent->sBookmark.path)) != STATUS_OK)
+                return res;
+
+            // Initialize data
+            if ((res = ent->sPath.set(path)) != STATUS_OK)
+                return res;
+            if ((res = ent->sHlink.init()) != STATUS_OK)
+                return res;
+            if ((res = ent->sHlink.set_text(&ent->sBookmark.name)) != STATUS_OK)
+                return res;
+            if ((res = path->get(&url)) != STATUS_OK)
+                return res;
+            if (!url.prepend_ascii("file://"))
+                return STATUS_NO_MEM;
+
+            ent->sHlink.set_halign(0.0f);
+            ent->sHlink.set_follow(false);
+            ent->sHlink.set_url(&url);
+            ent->sHlink.padding()->set_horizontal(8, 8);
+            ent->sHlink.slots()->bind(LSPSLOT_SUBMIT, slot_on_bm_submit, self());
+            ent->sHlink.slots()->bind(LSPSLOT_BEFORE_POPUP, slot_on_bm_popup, self());
+            ent->sHlink.set_popup(&sBMPopup);
 
             return STATUS_OK;
         }
