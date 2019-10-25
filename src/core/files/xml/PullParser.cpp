@@ -22,12 +22,12 @@ namespace lsp
             pIn         = NULL;
             nWFlags     = 0;
             nToken      = XT_START_DOCUMENT;
-            nState      = PS_READ_PROLOG;
+            nState      = PS_READ_HEADER;
             enVersion   = XML_VERSION_1_0;
             nFlags      = 0;
 
             vBuffer     = NULL;
-            nBufHead    = 0;
+            nBufMark    = -1;
             nBufTail    = 0;
             nBufSize    = 0;
             nBufCap     = 0;
@@ -186,13 +186,13 @@ namespace lsp
             pIn             = seq;
             nWFlags         = flags;
             nToken          = XT_START_DOCUMENT;
-            nState          = PS_READ_PROLOG;
+            nState          = PS_READ_HEADER;
             enVersion       = XML_VERSION_1_0;
             sVersion.truncate();
             sCharset.truncate();
             nFlags          = 0;
 
-            nBufHead        = 0;
+            nBufMark        = 0;
             nBufTail        = 0;
             nBufSize        = 0;
 
@@ -208,7 +208,7 @@ namespace lsp
                 ::free(vBuffer);
                 vBuffer     = NULL;
             }
-            nBufHead    = 0;
+            nBufMark    = -1;
             nBufTail    = 0;
             nBufSize    = 0;
             nBufCap     = 0;
@@ -337,34 +337,20 @@ namespace lsp
             return false;
         }
 
-        void PullParser::unget_all()
+        status_t PullParser::fill_buf()
         {
-            nBufTail    = nBufHead;
-        }
-
-        void PullParser::commit_all()
-        {
-            nBufHead    = nBufTail;
-        }
-
-        void PullParser::commit_unget()
-        {
-            nBufHead    = nBufTail-1;
-        }
-
-        lsp_swchar_t PullParser::get_char()
-        {
-            // Is there available data in buffer?
-            if (nBufTail < nBufSize)
-                return vBuffer[nBufTail++];
-
             // Release the rest of buffer
-            if (nBufHead > 0)
+            if (nBufMark > 0)
             {
-                ::memmove(vBuffer, &vBuffer[nBufHead], (nBufSize - nBufHead) * sizeof(lsp_wchar_t));
-                nBufSize   -= nBufHead;
-                nBufTail   -= nBufHead;
-                nBufHead    = 0;
+                ::memmove(vBuffer, &vBuffer[nBufMark], (nBufSize - nBufMark) * sizeof(lsp_wchar_t));
+                nBufSize   -= nBufMark;
+                nBufTail   -= nBufMark;
+                nBufMark    = 0;
+            }
+            else if (nBufMark < 0)
+            {
+                nBufSize    = 0;
+                nBufTail    = 0;
             }
 
             // Need to reserve space in buffer?
@@ -373,7 +359,7 @@ namespace lsp
                 size_t ncap = ((nBufSize + 0x1000) & (~0xffff)) + nBufCap;
                 lsp_wchar_t *p = reinterpret_cast<lsp_wchar_t *>(::realloc(vBuffer, ncap * sizeof(lsp_wchar_t)));
                 if (p == NULL)
-                    return -STATUS_NO_MEM;
+                    return STATUS_NO_MEM;
                 vBuffer     = p;
                 nBufCap     = ncap;
             }
@@ -381,96 +367,147 @@ namespace lsp
             // Read character data
             ssize_t nread = pIn->read(&vBuffer[nBufSize], nBufCap - nBufSize);
             if (nread <= 0)
-                return (nread < 0) ? nread : -STATUS_EOF;
+                return (nread < 0) ? nread : STATUS_EOF;
             nBufSize       += nread;
+
+            return STATUS_OK;
+        }
+
+        lsp_swchar_t PullParser::get_char()
+        {
+            // Ensure that there is data in buffer
+            if (nBufTail < nBufSize)
+            {
+                status_t res = fill_buf();
+                if (res != STATUS_OK)
+                    return -res;
+            }
 
             // Return the next character
             return vBuffer[nBufTail++];
         }
 
+        lsp_swchar_t PullParser::lookup_char()
+        {
+            // Ensure that there is data in buffer
+            if (nBufTail < nBufSize)
+            {
+                status_t res = fill_buf();
+                if (res != STATUS_OK)
+                    return -res;
+            }
+
+            // Return the next character
+            return vBuffer[nBufTail];
+        }
+
+        lsp_swchar_t PullParser::lookup_next_char()
+        {
+            ++nBufTail;
+            return lookup_char();
+        }
+
+        void PullParser::next_char()
+        {
+            ++nBufTail;
+        }
+
+        void PullParser::mark_buf()
+        {
+            nBufMark    = nBufTail;
+        }
+
+        void PullParser::commit_buf()
+        {
+            nBufMark    = -1;
+        }
+
+        void PullParser::rollback_buf()
+        {
+            nBufTail    = nBufMark;
+            nBufMark    = -1;
+        }
+
         status_t PullParser::lookup(const char *text)
         {
+            mark_buf();
             for ( ; *text != '\0'; ++text)
             {
                 lsp_swchar_t c = get_char();
                 if (c < 0)
                 {
-                    unget_all();
+                    rollback_buf();
                     return -c;
                 }
                 else if (c != *text)
                 {
-                    unget_all();
+                    rollback_buf();
                     return STATUS_NOT_FOUND;
                 }
             }
-            commit_all();
+
+            commit_buf();
             return STATUS_OK;
         }
 
         status_t PullParser::lookup_nocase(const char *text)
         {
+            mark_buf();
+
             for ( ; *text != '\0'; ++text)
             {
                 lsp_swchar_t c = get_char();
                 if (c < 0)
                 {
-                    unget_all();
+                    rollback_buf();
                     return -c;
                 }
                 else if (lsp_swchar_t(::towupper(c)) != lsp_swchar_t(::toupper(*text)))
                 {
-                    unget_all();
+                    rollback_buf();
                     return STATUS_NOT_FOUND;
                 }
             }
-            commit_all();
+
+            commit_buf();
             return STATUS_OK;
         }
 
         bool PullParser::skip_spaces()
         {
             bool skipped = false;
+
             while (true)
             {
                 // Read next character
-                lsp_swchar_t c = get_char();
+                lsp_swchar_t c = lookup_char();
                 if (!is_whitespace(c))
-                {
-                    unget_all();
                     break;
-                }
 
-                commit_all();
                 skipped = true;
+                next_char();
             }
 
             return skipped;
         }
 
-        status_t PullParser::read_assign()
+        status_t PullParser::read_character(lsp_wchar_t ch)
         {
             // Read character
-            lsp_swchar_t c = get_char();
-            if (c != '=')
-            {
-                unget_all();
+            lsp_swchar_t c = lookup_char();
+            if (c != lsp_swchar_t(ch))
                 return (c < 0) ? -c : STATUS_CORRUPTED;
-            }
 
-            commit_all();
+            next_char();
             return STATUS_OK;
         }
 
         status_t PullParser::read_name(LSPString *name)
         {
             // Get first character
-            lsp_swchar_t c = get_char();
+            lsp_swchar_t c = lookup_char();
             if (!(is_name_start(c)))
-            {
-                unget_all();
-                return (c < 0) ? -c : STATUS_NOT_FOUND;
-            }
+                return (c < 0) ? -c : STATUS_CORRUPTED;
 
             // Read name
             name->clear();
@@ -481,10 +518,9 @@ namespace lsp
                     return STATUS_NO_MEM;
 
                 // Get next character
-                c = get_char();
+                c = lookup_next_char();
             } while (is_name_char(c));
 
-            commit_unget();
             return STATUS_OK;
         }
 
@@ -493,13 +529,11 @@ namespace lsp
             // Get first character
             lsp_swchar_t c = get_char();
             if ((c != '\'') && (c != '\"'))
-            {
-                unget_all();
-                return (c < 0) ? -c : STATUS_NOT_FOUND;
-            }
+                return (c < 0) ? -c : STATUS_CORRUPTED;
 
             // Read quoted value
             value->clear();
+
             while (true)
             {
                 lsp_swchar_t xc = get_char();
@@ -513,7 +547,6 @@ namespace lsp
                     return STATUS_NO_MEM;
             }
 
-            commit_all();
             return STATUS_OK;
         }
 
@@ -521,16 +554,16 @@ namespace lsp
         {
             status_t res;
 
-            if (!skip_spaces()) // Space is mandatory
+            if (!skip_spaces()) // Spaces are mandatory
                 return STATUS_CORRUPTED;
             if ((res = read_name(name)) != STATUS_OK)
                 return res;
 
-            skip_spaces(); // Space is optional
-            if ((res = read_assign()) != STATUS_OK)
+            skip_spaces(); // Spaces are optional
+            if ((res = read_character('=')) != STATUS_OK)
                 return res;
 
-            skip_spaces(); // Space is optional
+            skip_spaces(); // Spaces are optional
             if ((res = read_value(value)) != STATUS_OK)
                 return res;
 
@@ -555,7 +588,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t PullParser::read_prolog()
+        status_t PullParser::read_header()
         {
             status_t res;
 
@@ -631,7 +664,41 @@ namespace lsp
 
         status_t PullParser::read_comment()
         {
-            // TODO
+            lsp_swchar_t p = -1, c; // Previous character is undefined
+            sValue.clear();
+
+            while (true)
+            {
+                // Fetch new character
+                if ((c = get_char()) < 0)
+                    return -c;
+
+                // Check character
+                if ((c == '-') && (p == '-'))
+                {
+                    // Lookup next character
+                    if ((c = get_char()) < 0)
+                        return -c;
+                    else if (c != '>')
+                        return STATUS_CORRUPTED; // Malformed comment
+
+                    // Fully fetched comment
+                    nToken = XT_COMMENT;
+                    return STATUS_OK;
+                }
+                else
+                {
+                    if ((p == '-') && (!sValue.append(p)))
+                        return STATUS_NO_MEM;
+                    if (!sValue.append(c))
+                        return STATUS_NO_MEM;
+                }
+
+                // Save last read chatacter
+                p = c;
+            }
+
+
             return STATUS_OK;
         }
 
@@ -673,8 +740,8 @@ namespace lsp
                     nToken          = XT_END_DOCUMENT;
                     return -STATUS_EOF;
 
-                case PS_READ_PROLOG:
-                    return read_prolog();
+                case PS_READ_HEADER:
+                    return read_header();
 
                 case PS_READ_MISC:
                     return read_misc();

@@ -107,9 +107,9 @@ namespace lsp
             return;
 
         if (pTemp->pData != NULL)
-            free(pTemp->pData);
+            ::free(pTemp->pData);
 
-        free(pTemp);
+        ::free(pTemp);
         pTemp = NULL;
     }
 
@@ -147,6 +147,14 @@ namespace lsp
         pData       = (size > 0) ? v : NULL;
         nCapacity   = size;
         return true;
+    }
+
+    size_t LSPString::set_length(size_t length)
+    {
+        if (nLength <= length)
+            return length;
+        drop_temp();
+        return nLength = length;
     }
 
     bool LSPString::reserve(size_t size)

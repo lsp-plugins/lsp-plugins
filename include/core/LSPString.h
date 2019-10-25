@@ -69,7 +69,7 @@ namespace lsp
              * @param length the length of the string
              * @return the length of the string after applied operarion
              */
-            inline size_t set_length(size_t length) { return (nLength >= length) ? nLength = length : nLength; }
+            size_t set_length(size_t length);
 
             /** Get the capacity of the string
              *

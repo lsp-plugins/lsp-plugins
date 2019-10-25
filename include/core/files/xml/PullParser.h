@@ -23,7 +23,7 @@ namespace lsp
             protected:
                 enum parse_state_t
                 {
-                    PS_READ_PROLOG,
+                    PS_READ_HEADER,
                     PS_READ_MISC,
                     PS_ELEMENT,
                     PS_ELEMENT_DATA,
@@ -45,7 +45,7 @@ namespace lsp
                 xml_version_t       enVersion;
 
                 lsp_wchar_t        *vBuffer;
-                size_t              nBufHead;
+                ssize_t             nBufMark;
                 size_t              nBufTail;
                 size_t              nBufSize;
                 size_t              nBufCap;
@@ -58,33 +58,39 @@ namespace lsp
                 LSPString           sValue;         // Property value
 
             protected:
-                bool            is_valid_char(lsp_swchar_t c);
-                bool            is_name_start(lsp_swchar_t c);
-                bool            is_name_char(lsp_swchar_t c);
-                bool            is_whitespace(lsp_swchar_t c);
-                bool            is_restricted_char(lsp_swchar_t c);
+                status_t            fill_buf();
+                lsp_swchar_t        get_char();
+                lsp_swchar_t        lookup_char();
+                inline lsp_swchar_t lookup_next_char();
+                status_t            lookup(const char *text);
+                status_t            lookup_nocase(const char *text);
 
-                inline void     unget_all();
-                inline void     commit_all();
-                inline void     commit_unget();
-                lsp_swchar_t    get_char();
-                status_t        lookup(const char *text);
-                status_t        lookup_nocase(const char *text);
-                bool            skip_spaces();
+                inline void         next_char();
+                inline void         mark_buf();
+                inline void         commit_buf();
+                inline void         rollback_buf();
 
-                status_t        parse_version(const LSPString *version);
-                status_t        parse_encoding(const LSPString *encoding);
-                status_t        parse_standalone(const LSPString *standalone);
+                bool                is_valid_char(lsp_swchar_t c);
+                bool                is_name_start(lsp_swchar_t c);
+                bool                is_name_char(lsp_swchar_t c);
+                bool                is_whitespace(lsp_swchar_t c);
+                bool                is_restricted_char(lsp_swchar_t c);
 
-                status_t        read_assign();
-                status_t        read_name(LSPString *name);
-                status_t        read_value(LSPString *value);
-                status_t        read_attribute(LSPString *name, LSPString *value);
+                bool                skip_spaces();
 
-                status_t        read_prolog();
-                status_t        read_misc();
-                status_t        read_comment();
-                status_t        read_processing_instruction();
+                status_t            parse_version(const LSPString *version);
+                status_t            parse_encoding(const LSPString *encoding);
+                status_t            parse_standalone(const LSPString *standalone);
+
+                status_t            read_character(lsp_wchar_t ch);
+                status_t            read_name(LSPString *name);
+                status_t            read_value(LSPString *value);
+                status_t            read_attribute(LSPString *name, LSPString *value);
+
+                status_t            read_header();
+                status_t            read_misc();
+                status_t            read_comment();
+                status_t            read_processing_instruction();
 
             public:
                 explicit PullParser();
