@@ -21,16 +21,12 @@ namespace lsp
         {
             pIn         = NULL;
             nWFlags     = 0;
-            nToken      = XT_START_DOCUMENT;
-            nState      = PS_READ_HEADER;
+            nToken      = -STATUS_NO_DATA;
+            nState      = PS_READ_MISC;
             enVersion   = XML_VERSION_1_0;
             nFlags      = 0;
 
-            vBuffer     = NULL;
-            nBufMark    = -1;
-            nBufTail    = 0;
-            nBufSize    = 0;
-            nBufCap     = 0;
+            cLast       = -1;
         }
         
         PullParser::~PullParser()
@@ -185,16 +181,13 @@ namespace lsp
 
             pIn             = seq;
             nWFlags         = flags;
-            nToken          = XT_START_DOCUMENT;
-            nState          = PS_READ_HEADER;
+            nToken          = -STATUS_NO_DATA;
+            nState          = PS_READ_MISC;
             enVersion       = XML_VERSION_1_0;
             sVersion.truncate();
             sCharset.truncate();
             nFlags          = 0;
-
-            nBufMark        = 0;
-            nBufTail        = 0;
-            nBufSize        = 0;
+            cLast           = -1;
 
             return STATUS_OK;
         }
@@ -203,16 +196,7 @@ namespace lsp
         {
             status_t res = STATUS_OK;
 
-            if (vBuffer != NULL)
-            {
-                ::free(vBuffer);
-                vBuffer     = NULL;
-            }
-            nBufMark    = -1;
-            nBufTail    = 0;
-            nBufSize    = 0;
-            nBufCap     = 0;
-
+            cLast           = -1;
             sVersion.truncate();
             sCharset.truncate();
             nFlags          = 0;
@@ -337,140 +321,19 @@ namespace lsp
             return false;
         }
 
-        status_t PullParser::fill_buf()
+        lsp_swchar_t PullParser::getch()
         {
-            // Release the rest of buffer
-            if (nBufMark > 0)
-            {
-                ::memmove(vBuffer, &vBuffer[nBufMark], (nBufSize - nBufMark) * sizeof(lsp_wchar_t));
-                nBufSize   -= nBufMark;
-                nBufTail   -= nBufMark;
-                nBufMark    = 0;
-            }
-            else if (nBufMark < 0)
-            {
-                nBufSize    = 0;
-                nBufTail    = 0;
-            }
+            if (cLast < 0)
+                return pIn->read();
 
-            // Need to reserve space in buffer?
-            if (nBufSize >= nBufCap)
-            {
-                size_t ncap = ((nBufSize + 0x1000) & (~0xffff)) + nBufCap;
-                lsp_wchar_t *p = reinterpret_cast<lsp_wchar_t *>(::realloc(vBuffer, ncap * sizeof(lsp_wchar_t)));
-                if (p == NULL)
-                    return STATUS_NO_MEM;
-                vBuffer     = p;
-                nBufCap     = ncap;
-            }
-
-            // Read character data
-            ssize_t nread = pIn->read(&vBuffer[nBufSize], nBufCap - nBufSize);
-            if (nread <= 0)
-                return (nread < 0) ? nread : STATUS_EOF;
-            nBufSize       += nread;
-
-            return STATUS_OK;
+            lsp_swchar_t c = cLast;
+            cLast = -1;
+            return c;
         }
 
-        lsp_swchar_t PullParser::get_char()
+        void PullParser::ungetch(lsp_swchar_t ch)
         {
-            // Ensure that there is data in buffer
-            if (nBufTail < nBufSize)
-            {
-                status_t res = fill_buf();
-                if (res != STATUS_OK)
-                    return -res;
-            }
-
-            // Return the next character
-            return vBuffer[nBufTail++];
-        }
-
-        lsp_swchar_t PullParser::lookup_char()
-        {
-            // Ensure that there is data in buffer
-            if (nBufTail < nBufSize)
-            {
-                status_t res = fill_buf();
-                if (res != STATUS_OK)
-                    return -res;
-            }
-
-            // Return the next character
-            return vBuffer[nBufTail];
-        }
-
-        lsp_swchar_t PullParser::lookup_next_char()
-        {
-            ++nBufTail;
-            return lookup_char();
-        }
-
-        void PullParser::next_char()
-        {
-            ++nBufTail;
-        }
-
-        void PullParser::mark_buf()
-        {
-            nBufMark    = nBufTail;
-        }
-
-        void PullParser::commit_buf()
-        {
-            nBufMark    = -1;
-        }
-
-        void PullParser::rollback_buf()
-        {
-            nBufTail    = nBufMark;
-            nBufMark    = -1;
-        }
-
-        status_t PullParser::lookup(const char *text)
-        {
-            mark_buf();
-            for ( ; *text != '\0'; ++text)
-            {
-                lsp_swchar_t c = get_char();
-                if (c < 0)
-                {
-                    rollback_buf();
-                    return -c;
-                }
-                else if (c != *text)
-                {
-                    rollback_buf();
-                    return STATUS_NOT_FOUND;
-                }
-            }
-
-            commit_buf();
-            return STATUS_OK;
-        }
-
-        status_t PullParser::lookup_nocase(const char *text)
-        {
-            mark_buf();
-
-            for ( ; *text != '\0'; ++text)
-            {
-                lsp_swchar_t c = get_char();
-                if (c < 0)
-                {
-                    rollback_buf();
-                    return -c;
-                }
-                else if (lsp_swchar_t(::towupper(c)) != lsp_swchar_t(::toupper(*text)))
-                {
-                    rollback_buf();
-                    return STATUS_NOT_FOUND;
-                }
-            }
-
-            commit_buf();
-            return STATUS_OK;
+            cLast = ch;
         }
 
         bool PullParser::skip_spaces()
@@ -480,32 +343,33 @@ namespace lsp
             while (true)
             {
                 // Read next character
-                lsp_swchar_t c = lookup_char();
+                lsp_swchar_t c = getch();
                 if (!is_whitespace(c))
+                {
+                    ungetch(c);
                     break;
-
+                }
                 skipped = true;
-                next_char();
             }
 
             return skipped;
         }
 
-        status_t PullParser::read_character(lsp_wchar_t ch)
+        status_t PullParser::read_text(const char *text)
         {
-            // Read character
-            lsp_swchar_t c = lookup_char();
-            if (c != lsp_swchar_t(ch))
-                return (c < 0) ? -c : STATUS_CORRUPTED;
-
-            next_char();
+            lsp_swchar_t c;
+            for ( ; *text != '\0'; ++text)
+            {
+                if ((c = getch()) != *text)
+                    return (c < 0) ? -c : STATUS_CORRUPTED;
+            }
             return STATUS_OK;
         }
 
         status_t PullParser::read_name(LSPString *name)
         {
             // Get first character
-            lsp_swchar_t c = lookup_char();
+            lsp_swchar_t c = getch();
             if (!(is_name_start(c)))
                 return (c < 0) ? -c : STATUS_CORRUPTED;
 
@@ -518,16 +382,18 @@ namespace lsp
                     return STATUS_NO_MEM;
 
                 // Get next character
-                c = lookup_next_char();
+                c = getch();
             } while (is_name_char(c));
 
+            // Return back last character and return OK status
+            ungetch(c);
             return STATUS_OK;
         }
 
         status_t PullParser::read_value(LSPString *value)
         {
             // Get first character
-            lsp_swchar_t c = get_char();
+            lsp_swchar_t c = getch();
             if ((c != '\'') && (c != '\"'))
                 return (c < 0) ? -c : STATUS_CORRUPTED;
 
@@ -536,11 +402,11 @@ namespace lsp
 
             while (true)
             {
-                lsp_swchar_t xc = get_char();
-                if (xc < 0)
+                lsp_swchar_t xc = getch();
+                if (xc == c)
+                    return STATUS_OK;
+                else if (xc < 0)
                     return -xc;
-                else if (xc == c)
-                    break;
 
                 // Append current character
                 if (!value->append(xc))
@@ -553,15 +419,14 @@ namespace lsp
         status_t PullParser::read_attribute(LSPString *name, LSPString *value)
         {
             status_t res;
+            lsp_swchar_t c;
 
-            if (!skip_spaces()) // Spaces are mandatory
-                return STATUS_CORRUPTED;
             if ((res = read_name(name)) != STATUS_OK)
                 return res;
 
             skip_spaces(); // Spaces are optional
-            if ((res = read_character('=')) != STATUS_OK)
-                return res;
+            if ((c = getch()) != '=')
+                return STATUS_CORRUPTED;
 
             skip_spaces(); // Spaces are optional
             if ((res = read_value(value)) != STATUS_OK)
@@ -591,18 +456,7 @@ namespace lsp
         status_t PullParser::read_header()
         {
             status_t res;
-
-            // Lookup prolog
-            if ((res = lookup_nocase("<?xml")) != STATUS_OK)
-            {
-                if (res != STATUS_NOT_FOUND)
-                    return res;
-
-                enVersion   = XML_VERSION_1_0;
-                nToken      = XT_START_DOCUMENT;
-                nState      = PS_READ_MISC;
-                return STATUS_OK;
-            }
+            lsp_swchar_t c;
 
             // Fetch optional attributes
             enum flags_t
@@ -617,11 +471,26 @@ namespace lsp
 
             while (true)
             {
-                // Fetch next attribute
-                res = read_attribute(&name, &value);
-                if (res == STATUS_NOT_FOUND)
-                    break;
-                else if (res != STATUS_OK)
+                // Skip spaces and read next character
+                bool skipped = skip_spaces();
+                if ((c = getch()) < 0)
+                    return -c;
+
+                if (c == '?') // end of header?
+                {
+                    // Read next character
+                    if ((c = getch()) != '>')
+                        return (c < 0) ? -c : STATUS_CORRUPTED;
+                    return read_document();
+                }
+
+                // At least one space is mandatory
+                if (!skipped)
+                    return STATUS_CORRUPTED;
+
+                // Read attribute name
+                ungetch(c);
+                if ((res = read_attribute(&name, &value)) != STATUS_OK)
                     return res;
 
                 // Check attribute type
@@ -645,21 +514,10 @@ namespace lsp
                         return res;
                 }
 
-                // Check that flag is at proper place
+                // Check that attribute is at proper place
                 if (flag <= flags)
                     return STATUS_CORRUPTED;
             }
-
-            // Skip extra space and lookup for close
-            skip_spaces();
-            if ((res = lookup("?>")) != STATUS_OK)
-                return (res != STATUS_NOT_FOUND) ? res : STATUS_CORRUPTED;
-
-            // Change state
-            nToken      = XT_START_DOCUMENT;
-            nState      = PS_READ_MISC;
-
-            return STATUS_OK;
         }
 
         status_t PullParser::read_comment()
@@ -670,14 +528,14 @@ namespace lsp
             while (true)
             {
                 // Fetch new character
-                if ((c = get_char()) < 0)
+                if ((c = getch()) < 0)
                     return -c;
 
                 // Check character
                 if ((c == '-') && (p == '-'))
                 {
                     // Lookup next character
-                    if ((c = get_char()) < 0)
+                    if ((c = getch()) < 0)
                         return -c;
                     else if (c != '>')
                         return STATUS_CORRUPTED; // Malformed comment
@@ -694,42 +552,324 @@ namespace lsp
                         return STATUS_NO_MEM;
                 }
 
-                // Save last read chatacter
+                // Save last read character
                 p = c;
             }
-
 
             return STATUS_OK;
         }
 
         status_t PullParser::read_processing_instruction()
         {
+            status_t res;
+
+            // Read processing instruction name
+            if ((res = read_name(&sName)) != STATUS_OK)
+                return res;
+
+            if (sName.equals_ascii_nocase("xml"))
+            {
+                if (nFlags & XF_HEADER)
+                    return STATUS_CORRUPTED; // XML processing instruction is prohibited
+                return read_header();
+            }
+
+            // Read processing instruction value
+            lsp_swchar_t p = -1, c; // Previous character is undefined
+
+            while (true)
+            {
+                // Fetch new character
+                if ((c = getch()) < 0)
+                    return -c;
+
+                // Check character
+                if ((c == '>') && (p == '?'))
+                {
+                    // Fully fetched comment
+                    nToken = XT_PROCESSING_INSTRUCTION;
+                    return STATUS_OK;
+                }
+                else
+                {
+                    if ((p == '-') && (!sValue.append(p)))
+                        return STATUS_NO_MEM;
+                    if (!sValue.append(c))
+                        return STATUS_NO_MEM;
+                }
+
+                // Save last read chatacter
+                p = c;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_doctype()
+        {
             // TODO
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_document()
+        {
+            nToken  = XT_START_DOCUMENT;
+            nFlags |= XF_HEADER;
             return STATUS_OK;
         }
 
         status_t PullParser::read_misc()
         {
             status_t res;
+            lsp_swchar_t c;
 
-            skip_spaces();
+            // Skip whitespace
+            if (!(nFlags & XF_HEADER))
+            {
+                if (skip_spaces())
+                    return read_document();
+            }
+            else
+                skip_spaces();
 
-            // Check for comment
-            if ((res = lookup("<!--")) == STATUS_OK)
-                return read_comment();
-            else if (res != STATUS_NOT_FOUND)
-                return res;
+            // Next character should be '<'
+            if ((c = getch()) != '<')
+                return (c < 0) ? -c : STATUS_CORRUPTED;
 
-            // Check for processing instruction
-            if ((res = lookup("<?")) == STATUS_OK)
+            // Get the following character
+            if ((c = getch()) < 0)
+                return -c;
+
+            // Processing instruction?
+            if (c == '?')
                 return read_processing_instruction();
-            else if (res != STATUS_NOT_FOUND)
-                return res;
+            else if (!(nFlags & XF_HEADER))
+                return read_document();
 
-            return STATUS_CORRUPTED;
+            // Comment or Doctype?
+            if (c == '!')
+            {
+                // Get next character
+                if ((c = getch()) < 0)
+                    return -c;
+
+                if (c == '-') // Comment?
+                {
+                    // '<!--' should be parsed
+                    if ((c = getch()) != '-')
+                        return (c < 0) ? -c : STATUS_CORRUPTED;
+                    return read_comment();
+                }
+
+                if (c == 'D') // Doctype?
+                {
+                    // 'DOCTYPE' should be parsed
+                    if ((res = read_text("OCTYPE")) != STATUS_OK)
+                        return res;
+                    return read_doctype();
+                }
+
+                return STATUS_CORRUPTED;
+            }
+
+            // We already have root tag?
+            if (nFlags & XF_ROOT)
+                return STATUS_CORRUPTED;
+            nFlags |= XF_ROOT;  // Now we already have root tag defined
+
+            // Return character and read root tag name
+            ungetch(c);
+            return read_tag_open();
         }
 
-        status_t PullParser::read_next()
+        status_t PullParser::preprocess_value(LSPString *value)
+        {
+            // TODO
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_cdata()
+        {
+            status_t res;
+
+
+
+            // TODO
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_tag_open()
+        {
+            status_t res;
+            if ((res = read_name(&sName)) != STATUS_OK)
+                return res;
+
+            // Add tag to stack
+            LSPString *tag = sName.clone();
+            if (tag == NULL)
+                return STATUS_NO_MEM;
+            else if (!vTags.push(tag))
+            {
+                delete tag;
+                return STATUS_NO_MEM;
+            }
+
+            // Change state
+            nToken  = XT_START_ELEMENT;
+            nState  = PS_READ_ATTRIBUTES;
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_tag_close(bool copy)
+        {
+            // Get last tag name
+            LSPString *name = NULL;
+            if (!vTags.pop(&name))
+                return STATUS_CORRUPTED;
+
+            if (copy)
+                sName.swap(name);
+            else if ((!sName.equals(name)))
+                return STATUS_CORRUPTED;
+
+            delete name;
+
+            // Update state
+            nToken = XT_END_ELEMENT;
+            nState = (vTags.size() > 0) ? PS_READ_ELEMENT_DATA : PS_READ_MISC;
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_tag_content()
+        {
+            lsp_swchar_t c;
+            status_t res;
+
+            // Read character
+            if ((c = getch()) < 0)
+                return -c;
+
+            // Tag? Processing instruction? End of tag? Comment? CDATA?
+            if (c == '<')
+            {
+                // Get next character
+                if ((c = getch()) < 0)
+                    return -c;
+
+                // Read tag name
+                if (c == '/') // End of tag ?
+                {
+                    // Read tag name
+                    if ((res = read_name(&sName)) != STATUS_OK)
+                        return res;
+
+                    // '>' is required
+                    skip_spaces();
+                    if ((c = getch()) != '>')
+                        return (c < 0) ? -c : STATUS_CORRUPTED;
+
+                    return read_tag_close(true);
+                }
+                else if (c == '?') // Processing instruction ?
+                    return read_processing_instruction();
+                else if (c == '!') // Comment? CDATA?
+                {
+                    // Get next character
+                    if ((c = getch()) < 0)
+                        return -c;
+
+                    // CDATA?
+                    if (c == '[')
+                    {
+                        // Lookup CDATA start
+                        if ((res = read_text("CDATA[")) != STATUS_OK)
+                            return res;
+                        return read_cdata();
+                    }
+
+                    // Comment?
+                    if (c == '-')
+                    {
+                        // Next character is required to be '-'
+                        if ((c = getch()) != '-')
+                            return (c < 0) ? -c : STATUS_CORRUPTED;
+                        return read_comment();
+                    }
+
+                    // No match
+                    return STATUS_CORRUPTED;
+                }
+
+                // Just open tag name?
+                ungetch(c);
+                if ((res = read_name(&sName)) != STATUS_OK)
+                    return res;
+
+                nToken      = XT_START_ELEMENT;
+                nState      = PS_READ_ATTRIBUTES;
+                return STATUS_OK;
+            }
+
+            // Entity reference?
+            if (c == '&')
+            {
+            }
+
+            // Character reference?
+            if (c == '%')
+            {
+            }
+
+            // Character data
+            sValue.clear();
+
+            // TODO: read character data
+
+
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_tag_attribute()
+        {
+            status_t res;
+            lsp_swchar_t c;
+
+            // Ignore set of spaces if they are present
+            bool skipped = skip_spaces();
+            if ((c = getch()) < 0)
+                return -c;
+
+            // End of tag header?
+            if (c == '>')
+            {
+                nState = PS_READ_ELEMENT_DATA;
+                return read_tag_content();
+            }
+
+            // End of tag?
+            if (c == '/')
+            {
+                // Required character
+                if ((c = getch()) != '>')
+                    return (c < 0) ? -c : STATUS_CORRUPTED;
+
+                return read_tag_close(true);
+            }
+
+            // Try to read attribute and preprocess it's value
+            if (!skipped) // At least one space is mandatory
+                return STATUS_CORRUPTED;
+            ungetch(c);
+            if ((res = read_attribute(&sName, &sValue)) != STATUS_OK)
+                return res;
+            if ((res = preprocess_value(&sValue)) != STATUS_OK)
+                return res;
+
+            nToken = XT_ATTRIBUTE;
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_token()
         {
             if (pIn == NULL)
                 return STATUS_BAD_STATE;
@@ -738,18 +878,27 @@ namespace lsp
             {
                 case PS_END_DOCUMENT:
                     nToken          = XT_END_DOCUMENT;
-                    return -STATUS_EOF;
-
-                case PS_READ_HEADER:
-                    return read_header();
+                    return STATUS_EOF;
 
                 case PS_READ_MISC:
                     return read_misc();
+
+                case PS_READ_ATTRIBUTES:
+                    return read_tag_attribute();
+
+                case PS_READ_ELEMENT_DATA:
+                    return read_tag_content();
 
                 default:
                     break;
             }
             return STATUS_CORRUPTED;
+        }
+
+        status_t PullParser::read_next()
+        {
+            status_t res = read_token();
+            return (res == STATUS_OK) ? nToken : -res;
         }
 
         status_t PullParser::get_current()
