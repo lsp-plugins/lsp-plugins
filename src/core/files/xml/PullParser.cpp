@@ -23,6 +23,7 @@ namespace lsp
             nWFlags     = 0;
             nToken      = -STATUS_NO_DATA;
             nState      = PS_READ_MISC;
+            nSaved      = PS_READ_MISC;
             enVersion   = XML_VERSION_1_0;
             nFlags      = 0;
 
@@ -183,6 +184,7 @@ namespace lsp
             nWFlags         = flags;
             nToken          = -STATUS_NO_DATA;
             nState          = PS_READ_MISC;
+            nSaved          = PS_READ_MISC;
             enVersion       = XML_VERSION_1_0;
             sVersion.truncate();
             sEncoding.truncate();
@@ -218,126 +220,6 @@ namespace lsp
             }
 
             return res;
-        }
-
-        bool PullParser::is_valid_char(lsp_swchar_t c)
-        {
-            if (enVersion == XML_VERSION_1_0)
-            {
-                if ((c >= 0x20) && (c <= 0xd7ff))
-                    return true;
-                if ((c == 0x9) || (c == 0xa) || (c == 0xd))
-                    return true;
-            }
-            else
-            {
-                if ((c >= 1) && (c <= 0xd7ff))
-                    return true;
-            }
-            if ((c >= 0xe000) && (c <= 0xfffd))
-                return true;
-            return (c >= 0x10000) && (c <= 0x10ffff);
-        }
-
-        bool PullParser::is_name_start(lsp_swchar_t c)
-        {
-            if ((c >= 'a') && (c <= 'z'))
-                return true;
-            if ((c >= 'A') && (c <= 'Z'))
-                return true;
-            if ((c == ':') || (c == '_'))
-                return true;
-            if ((c >= 0xc0) && (c <= 0xd6))
-                return true;
-            if ((c >= 0xd8) && (c <= 0xf6))
-                return true;
-            if ((c >= 0xf8) && (c <= 0x2ff))
-                return true;
-            if ((c >= 0x370) && (c <= 0x37d))
-                return true;
-            if ((c >= 0x37f) && (c <= 0x1fff))
-                return true;
-            if ((c >= 0x200c) && (c <= 0x200d))
-                return true;
-            if ((c >= 0x2070) && (c <= 0x218f))
-                return true;
-            if ((c >= 0x2c00) && (c <= 0x2fef))
-                return true;
-            if ((c >= 0x3001) && (c <= 0xd7ff))
-                return true;
-            if ((c >= 0xf900) && (c <= 0xfdcf))
-                return true;
-            if ((c >= 0xfdf0) && (c <= 0xfffd))
-                return true;
-            if ((c >= 0x10000) && (c <= 0xeffff))
-                return true;
-
-            return false;
-        }
-
-        bool PullParser::is_name_char(lsp_swchar_t c)
-        {
-            if ((c >= '0') && (c <= '9'))
-                return true;
-            if ((c == '-') || (c == '.') || (c == 0xb7))
-                return true;
-            if (is_name_start(c))
-                return true;
-            if ((c >= 0x300) && (c <= 0x36f))
-                return true;
-            if ((c >= 0x203f) && (c <= 0x2040))
-                return true;
-            return false;
-        }
-
-        bool PullParser::is_whitespace(lsp_swchar_t c)
-        {
-            switch (c)
-            {
-                case 0x20:
-                case 0x09:
-                case 0x0d:
-                case 0x0a:
-                    return true;
-            }
-            return false;
-        }
-
-        bool PullParser::is_restricted_char(lsp_swchar_t c)
-        {
-            if (enVersion > XML_VERSION_1_0)
-            {
-                if ((c >= 0x01) && (c <= 0x08))
-                    return true;
-                if ((c >= 0x0b) && (c <= 0x0c))
-                    return true;
-                if ((c >= 0x0e) && (c <= 0x1f))
-                    return true;
-                if ((c >= 0x7f) && (c <= 0x84))
-                    return true;
-                if ((c >= 0x86) && (c <= 0x9f))
-                    return true;
-            }
-            return false;
-        }
-
-        bool PullParser::is_encoding_first(lsp_swchar_t c)
-        {
-            if ((c >= 'a') && (c <= 'z'))
-                return true;
-            if ((c >= 'A') && (c <= 'Z'))
-                return true;
-            return false;
-        }
-
-        bool PullParser::is_encoding_char(lsp_swchar_t c)
-        {
-            if (is_encoding_first(c))
-                return true;
-            if ((c >= '0') && (c <= '9'))
-                return true;
-
-            return ((c == '_') || (c == '.') || (c == '-'));
         }
 
         lsp_swchar_t PullParser::getch()
@@ -389,7 +271,7 @@ namespace lsp
         {
             // Get first character
             lsp_swchar_t c = getch();
-            if (!(is_name_start(c)))
+            if (!(is_name_first(c)))
                 return (c < 0) ? -c : STATUS_CORRUPTED;
 
             // Read name
@@ -402,7 +284,7 @@ namespace lsp
 
                 // Get next character
                 c = getch();
-            } while (is_name_char(c));
+            } while (is_name_next(c));
 
             // Return back last character and return OK status
             ungetch(c);
@@ -454,65 +336,104 @@ namespace lsp
             return res;
         }
 
-        status_t PullParser::parse_version(const LSPString *text)
+        status_t PullParser::read_version()
         {
-            if (!text->starts_with_ascii("1."))
-                return STATUS_BAD_FORMAT;
+            // Get quote character
+            lsp_swchar_t qc = getch();
+            if ((qc != '\'') && (qc != '\"'))
+                return (qc < 0) ? -qc : STATUS_CORRUPTED;
 
-            ssize_t n = text->length();
-            if (n <= 0)
-                return STATUS_CORRUPTED;
+            // Version should be '1.x'
+            lsp_swchar_t c;
+            if ((c = getch()) != '1')
+                return (c < 0) ? -c : STATUS_CORRUPTED;
+            if ((c = getch()) != '.')
+                return (c < 0) ? -c : STATUS_CORRUPTED;
 
-            ssize_t v = 0;
-            for (size_t i=2; i<n; ++i)
+            // Read integer value
+            size_t v=0, k=0;
+            while ((c = getch()) != qc)
             {
-                lsp_wchar_t c = text->char_at(i);
+                if (v >= 0x1000000) // Prevent from integer overflow
+                    return STATUS_CORRUPTED;
+
                 if ((c >= '0') && (c <= '9'))
                     v = v * 10 + (c - '0');
                 else
-                    return STATUS_CORRUPTED;
+                    return (c < 0) ? -c : STATUS_CORRUPTED;
+                ++k;
             }
 
-            enVersion = (v >= 1) ? XML_VERSION_1_1 : XML_VERSION_1_0;
-            if (!sVersion.set(text))
+            // Validate number of digits
+            if (k <= 0)
+                return STATUS_CORRUPTED;
+
+            // Update version text
+            if (!sVersion.fmt_ascii("1.%d", int(v)))
                 return STATUS_NO_MEM;
+
+            enVersion = (v >= 1) ? XML_VERSION_1_1 : XML_VERSION_1_0;
             nFlags |= XF_VERSION;
 
             return STATUS_OK;
         }
 
-        status_t PullParser::parse_encoding(const LSPString *text)
+        status_t PullParser::read_encoding()
         {
-            // Estimate length
-            size_t n = text->length();
-            if (n <= 0)
-                return STATUS_BAD_FORMAT;
+            sEncoding.clear();
 
-            // Check the first character
-            if (!is_encoding_first(text->first()))
+            // Get quote character
+            lsp_swchar_t qc = getch();
+            if ((qc != '\'') && (qc != '\"'))
+                return (qc < 0) ? -qc : STATUS_CORRUPTED;
+
+            // Read encoding char
+            lsp_swchar_t c = getch();
+            if (!is_encoding_first(c))
                 return STATUS_BAD_FORMAT;
+            if (!sEncoding.append(c))
+                return STATUS_NO_MEM;
 
             // Check the remained characters
-            for (size_t i=1; i<n; ++i)
-                if (!is_encoding_char(text->char_at(i)))
-                    return STATUS_BAD_FORMAT;
-
-            if (!sEncoding.set(text))
-                return STATUS_NO_MEM;
+            while ((c = getch()) != qc)
+            {
+                if (!is_encoding_next(c))
+                    return (c < 0) ? -c : STATUS_CORRUPTED;
+                if (!sEncoding.append(c))
+                    return STATUS_NO_MEM;
+            }
 
             nFlags |= XF_ENCODING;
 
             return STATUS_OK;
         }
 
-        status_t PullParser::parse_standalone(const LSPString *text)
+        status_t PullParser::read_standalone()
         {
-            if (text->equals_ascii("yes"))
+            LSPString tmp;
+
+            // Get quote character
+            lsp_swchar_t qc = getch();
+            if ((qc != '\'') && (qc != '\"'))
+                return (qc < 0) ? -qc : STATUS_CORRUPTED;
+
+            // Read quoted string
+            lsp_swchar_t c;
+            while ((c = getch()) != qc)
+            {
+                if (tmp.length() >= 3)
+                    return STATUS_CORRUPTED;
+                if (!tmp.append(c))
+                    return STATUS_NO_MEM;
+            }
+
+            // Compare string with possible value
+            if (tmp.equals_ascii("yes"))
                 nFlags |= XF_STANDALONE;
-            else if (text->equals_ascii("no"))
+            else if (tmp.equals_ascii("no"))
                 nFlags &= ~XF_STANDALONE;
             else
-                return STATUS_BAD_FORMAT;
+                return STATUS_CORRUPTED;
 
             return STATUS_OK;
         }
@@ -554,27 +475,32 @@ namespace lsp
 
                 // Read attribute name
                 ungetch(c);
-                if ((res = read_attribute(&name, &value)) != STATUS_OK)
+                if ((res = read_name(&name)) != STATUS_OK)
                     return res;
+
+                // Required '=' sign
+                skip_spaces();
+                if ((c = getch()) != '=')
+                    return (c < 0) ? -c : STATUS_CORRUPTED;
 
                 // Check attribute type
                 size_t flag = 0;
                 if (name.equals_ascii("version"))
                 {
                     flag = F_VERSION;
-                    if ((res = parse_version(&value)) != STATUS_OK)
+                    if ((res = read_version()) != STATUS_OK)
                         return res;
                 }
                 else if (name.equals_ascii("encoding"))
                 {
                     flag = F_ENCODING;
-                    if ((res = parse_encoding(&value)) != STATUS_OK)
+                    if ((res = read_encoding()) != STATUS_OK)
                         return res;
                 }
                 else if (name.equals_ascii("standalone"))
                 {
                     flag = F_STANDALONE;
-                    if ((res = parse_standalone(&value)) != STATUS_OK)
+                    if ((res = read_standalone()) != STATUS_OK)
                         return res;
                 }
 
@@ -598,12 +524,8 @@ namespace lsp
                 // Going to end of comment?
                 if (c == '-')
                 {
-                    // Get next character
-                    if ((xc = getch()) < 0)
-                        return -xc;
-
                     // End of comment?
-                    if (xc == '-')
+                    if ((xc = getch()) == '-')
                     {
                         // Next character should be '>'
                         if ((xc = getch()) != '>')
@@ -764,11 +686,37 @@ namespace lsp
 
         status_t PullParser::read_cdata()
         {
-            status_t res;
+            lsp_swchar_t c;
 
+            sValue.clear();
 
+            while (true)
+            {
+                // Get next character
+                if ((c = getch()) < 0)
+                    return -c;
 
-            // TODO
+                // CDATA end?
+                if (c == '>')
+                {
+                    ssize_t pos = sValue.length() - 2;
+                    if (
+                        (pos >= 0) &&
+                        (sValue.char_at(pos) == ']') &&
+                        (sValue.char_at(pos+1) == ']')
+                    )
+                        break;
+                }
+
+                // No, simple character
+                if (!sValue.append(c))
+                    return STATUS_NO_MEM;
+            }
+
+            // Remove last two characters which are ']]'
+            sValue.set_length(sValue.length() - 2);
+
+            nToken      = XT_CDATA;
             return STATUS_OK;
         }
 
@@ -814,6 +762,168 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t PullParser::read_entity_reference(LSPString *ref, LSPString *cdata)
+        {
+            lsp_swchar_t c, code = 0;
+            status_t res;
+
+            // Get character
+            if ((c = getch()) < 0)
+                return -c;
+
+            // Entity reference ?
+            if (c != '#')
+            {
+                ungetch(c);
+
+                // Read entity name
+                if ((res = read_name(ref)) != STATUS_OK)
+                    return res;
+
+                if (ref->equals_ascii("amp"))
+                    code    = '&';
+                else if (ref->equals_ascii("gt"))
+                    code    = '>';
+                else if (ref->equals_ascii("lt"))
+                    code    = '<';
+                else if (ref->equals_ascii("apos"))
+                    code    = '\'';
+                else if (ref->equals_ascii("lt"))
+                    code    = '\"';
+
+                // Clear entity name if there is a character alias
+                if (code != 0)
+                    ref->clear();
+
+                // Get next character which should be ';'
+                if ((c = getch()) < 0)
+                    return -c;
+            }
+            else
+            {
+                // Get next character
+                if ((c = getch()) < 0)
+                    return -c;
+
+                // Hexadecimal character?
+                if (c == 'x')
+                {
+                    // Read hex digit
+                    while ((c = getch()) >= 0)
+                    {
+                        // Protect from integer overflow
+                        if (code >= 0x1000000)
+                            return STATUS_CORRUPTED;
+
+                        // Decode hex character
+                        if ((c >= '0') && (c <= '9'))
+                            code = (code << 16) | (c - '0');
+                        else if ((c >= 'a') && (c <= 'f'))
+                            code = (code << 16) | (c - 'a' + 10);
+                        else if ((c >= 'A') && (c <= 'F'))
+                            code = (code << 16) | (c - 'A' + 10);
+                        else
+                            break;
+                    }
+                }
+                else // Decimal character?
+                {
+                    do
+                    {
+                        // Protect from integer overflow
+                        if (code >= 0x1000000)
+                            return STATUS_CORRUPTED;
+
+                        // Decode decimal character
+                        if ((c >= '0') && (c <= '9'))
+                            code = (code * 10) | (c - '0');
+                        else
+                            break;
+                    } while ((c = getch()) >= 0);
+                }
+
+                // Validate character
+                if (!is_valid_char(code, enVersion))
+                    return STATUS_CORRUPTED;
+            }
+
+            // Current character should be ';'
+            if (c != ';')
+                return STATUS_CORRUPTED;
+            else if (code == 0)
+            {
+                nSaved      = nState;
+                nState      = PS_READ_REFERENCE;
+                return STATUS_OK;
+            }
+
+            // Append fetched character to the character data and exit
+            return (cdata->append(code)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t PullParser::read_characters()
+        {
+            lsp_swchar_t c;
+            status_t res;
+            LSPString refname;
+
+            sValue.clear();
+
+            while (true)
+            {
+                // Get next character
+                if ((c = getch()) < 0)
+                    return -c;
+
+                // Start of tag?
+                if (c == '<')
+                {
+                    ungetch(c);
+                    break;
+                }
+
+                // Reference?
+                if (c == '&')
+                {
+                    // Read and append reference (if possible) to the string value
+                    if ((res = read_entity_reference(&refname, &sValue)) != STATUS_OK)
+                        return res;
+
+                    // No reference name is pending?
+                    if (refname.length() <= 0)
+                        continue;
+
+                    // Save reference name
+                    sName.swap(&refname);
+                    nState      = PS_READ_REFERENCE;
+                    return STATUS_OK;
+                }
+
+                // CDATA end?
+                if (c == '>')
+                {
+                    ssize_t pos = sValue.length() - 2;
+                    if (
+                        (pos >= 0) &&
+                        (sValue.char_at(pos) == ']') &&
+                        (sValue.char_at(pos+1) == ']')
+                    )
+                        return STATUS_CORRUPTED;
+                }
+
+                // No, simple character
+                if (!sValue.append(c))
+                    return STATUS_NO_MEM;
+            }
+
+            // Ensure that there is character data
+            if (sValue.length() <= 0)
+                return STATUS_CORRUPTED;
+
+            nToken      = XT_CHARACTERS;
+            return STATUS_OK;
+        }
+
         status_t PullParser::read_tag_content()
         {
             lsp_swchar_t c;
@@ -824,82 +934,67 @@ namespace lsp
                 return -c;
 
             // Tag? Processing instruction? End of tag? Comment? CDATA?
-            if (c == '<')
+            if (c != '<')
+            {
+                ungetch(c);
+                return read_characters();
+            }
+
+            // Get next character
+            if ((c = getch()) < 0)
+                return -c;
+
+            // Read tag name
+            if (c == '/') // End of tag ?
+            {
+                // Read tag name
+                if ((res = read_name(&sName)) != STATUS_OK)
+                    return res;
+
+                // '>' is required
+                skip_spaces();
+                if ((c = getch()) != '>')
+                    return (c < 0) ? -c : STATUS_CORRUPTED;
+
+                return read_tag_close(true);
+            }
+            else if (c == '?') // Processing instruction ?
+                return read_processing_instruction();
+            else if (c == '!') // Comment? CDATA?
             {
                 // Get next character
                 if ((c = getch()) < 0)
                     return -c;
 
-                // Read tag name
-                if (c == '/') // End of tag ?
+                // CDATA?
+                if (c == '[')
                 {
-                    // Read tag name
-                    if ((res = read_name(&sName)) != STATUS_OK)
+                    // Lookup CDATA start
+                    if ((res = read_text("CDATA[")) != STATUS_OK)
                         return res;
-
-                    // '>' is required
-                    skip_spaces();
-                    if ((c = getch()) != '>')
-                        return (c < 0) ? -c : STATUS_CORRUPTED;
-
-                    return read_tag_close(true);
+                    return read_cdata();
                 }
-                else if (c == '?') // Processing instruction ?
-                    return read_processing_instruction();
-                else if (c == '!') // Comment? CDATA?
+
+                // Comment?
+                if (c == '-')
                 {
-                    // Get next character
-                    if ((c = getch()) < 0)
-                        return -c;
-
-                    // CDATA?
-                    if (c == '[')
-                    {
-                        // Lookup CDATA start
-                        if ((res = read_text("CDATA[")) != STATUS_OK)
-                            return res;
-                        return read_cdata();
-                    }
-
-                    // Comment?
-                    if (c == '-')
-                    {
-                        // Next character is required to be '-'
-                        if ((c = getch()) != '-')
-                            return (c < 0) ? -c : STATUS_CORRUPTED;
-                        return read_comment();
-                    }
-
-                    // No match
-                    return STATUS_CORRUPTED;
+                    // Next character is required to be '-'
+                    if ((c = getch()) != '-')
+                        return (c < 0) ? -c : STATUS_CORRUPTED;
+                    return read_comment();
                 }
 
-                // Just open tag name?
-                ungetch(c);
-                if ((res = read_name(&sName)) != STATUS_OK)
-                    return res;
-
-                nToken      = XT_START_ELEMENT;
-                nState      = PS_READ_ATTRIBUTES;
-                return STATUS_OK;
+                // No match
+                return STATUS_CORRUPTED;
             }
 
-            // Entity reference?
-            if (c == '&')
-            {
-            }
+            // Just open tag name?
+            ungetch(c);
+            if ((res = read_name(&sName)) != STATUS_OK)
+                return res;
 
-            // Character reference?
-            if (c == '%')
-            {
-            }
-
-            // Character data
-            sValue.clear();
-
-            // TODO: read character data
-
-
+            nToken      = XT_START_ELEMENT;
+            nState      = PS_READ_ATTRIBUTES;
             return STATUS_OK;
         }
 
@@ -963,10 +1058,40 @@ namespace lsp
                 case PS_READ_ELEMENT_DATA:
                     return read_tag_content();
 
+                case PS_READ_REFERENCE:
+                    nToken          = XT_ENTITY_RESOLVE;
+                    return STATUS_OK;
+
                 default:
                     break;
             }
             return STATUS_CORRUPTED;
+        }
+
+        status_t PullParser::resolve_entity(const LSPString *value)
+        {
+            if (pIn == NULL)
+                return STATUS_BAD_STATE;
+            else if (value == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            if (nState != PS_READ_REFERENCE)
+                return STATUS_BAD_STATE;
+
+            // Append value with entity content
+            if (!sValue.append(value))
+                return STATUS_NO_MEM;
+
+            nState          = nSaved;
+            return STATUS_OK;
+        }
+
+        status_t PullParser::resolve_entity(const char *value, const char *charset)
+        {
+            LSPString tmp;
+            if (!tmp.set_native(value, charset))
+                return STATUS_NO_MEM;
+            return resolve_entity(value);
         }
 
         status_t PullParser::read_next()

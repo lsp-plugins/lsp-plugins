@@ -28,6 +28,7 @@ namespace lsp
                     PS_READ_ELEMENTS,
                     PS_READ_ATTRIBUTES,
                     PS_READ_ELEMENT_DATA,
+                    PS_READ_REFERENCE,
                     PS_END_DOCUMENT
                 };
 
@@ -37,7 +38,8 @@ namespace lsp
                     XF_ENCODING     = 1 << 1,
                     XF_VERSION      = 1 << 2,
                     XF_ROOT         = 1 << 3,
-                    XF_HEADER       = 1 << 4
+                    XF_HEADER       = 1 << 4,
+                    XF_DOCTYPE      = 1 << 5
                 };
 
             protected:
@@ -45,6 +47,7 @@ namespace lsp
                 size_t              nWFlags;
                 status_t            nToken;
                 parse_state_t       nState;
+                parse_state_t       nSaved;
                 xml_version_t       enVersion;
 
                 lsp_swchar_t        cLast;
@@ -61,19 +64,11 @@ namespace lsp
                 inline lsp_swchar_t getch();
                 inline void         ungetch(lsp_swchar_t c);
 
-                bool                is_valid_char(lsp_swchar_t c);
-                bool                is_name_start(lsp_swchar_t c);
-                bool                is_name_char(lsp_swchar_t c);
-                bool                is_whitespace(lsp_swchar_t c);
-                bool                is_restricted_char(lsp_swchar_t c);
-                bool                is_encoding_first(lsp_swchar_t c);
-                bool                is_encoding_char(lsp_swchar_t c);
-
                 bool                skip_spaces();
 
-                status_t            parse_version(const LSPString *text);
-                status_t            parse_encoding(const LSPString *text);
-                status_t            parse_standalone(const LSPString *text);
+                status_t            read_version();
+                status_t            read_encoding();
+                status_t            read_standalone();
 
                 status_t            preprocess_value(LSPString *value);
 
@@ -93,6 +88,8 @@ namespace lsp
                 status_t            read_tag_content();
                 status_t            read_processing_instruction();
                 status_t            read_cdata();
+                status_t            read_characters();
+                status_t            read_entity_reference(LSPString *ref, LSPString *cdata);
 
                 status_t            read_token();
 
@@ -174,6 +171,21 @@ namespace lsp
                  * @return XT_ element code or negative status of operation
                  */
                 status_t            get_current();
+
+                /**
+                 * Resolve entity with specified value
+                 * @param value value to resolve
+                 * @return status of operation
+                 */
+                status_t            resolve_entity(const LSPString *value);
+
+                /**
+                 * Resolve entity with specified value
+                 * @param value value to resolve
+                 * @param charset character set encoding
+                 * @return status of operation
+                 */
+                status_t            resolve_entity(const char *value, const char *charset = NULL);
 
             public:
                 /**
