@@ -76,7 +76,8 @@ namespace lsp
                 status_t            preprocess_value(LSPString *value);
 
                 status_t            read_text(const char *text);
-                status_t            read_document();
+                status_t            read_start_document();
+                status_t            read_end_document();
                 status_t            read_name(LSPString *name);
                 status_t            read_value(LSPString *value);
                 status_t            read_attribute(LSPString *name, LSPString *value);

@@ -481,7 +481,7 @@ namespace lsp
                     // Read next character
                     if ((c = getch()) != '>')
                         return (c < 0) ? -c : STATUS_CORRUPTED;
-                    return read_document();
+                    return read_start_document();
                 }
 
                 // At least one space is mandatory
@@ -611,10 +611,17 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t PullParser::read_document()
+        status_t PullParser::read_start_document()
         {
             nToken  = XT_START_DOCUMENT;
             nFlags |= XF_HEADER;
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_end_document()
+        {
+            nToken  = XT_END_DOCUMENT;
+            nState  = PS_END_DOCUMENT;
             return STATUS_OK;
         }
 
@@ -627,14 +634,18 @@ namespace lsp
             if (!(nFlags & XF_HEADER))
             {
                 if (skip_spaces())
-                    return read_document();
+                    return read_start_document();
             }
             else
                 skip_spaces();
 
             // Next character should be '<'
             if ((c = getch()) != '<')
+            {
+                if (c == -STATUS_EOF)
+                    return read_end_document();
                 return (c < 0) ? -c : STATUS_CORRUPTED;
+            }
 
             // Get the following character
             if ((c = getch()) < 0)
@@ -644,7 +655,7 @@ namespace lsp
             if (c == '?')
                 return read_processing_instruction();
             else if (!(nFlags & XF_HEADER))
-                return read_document();
+                return read_start_document();
 
             // Comment or Doctype?
             if (c == '!')
