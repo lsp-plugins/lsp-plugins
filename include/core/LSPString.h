@@ -33,11 +33,13 @@ namespace lsp
             mutable buffer_t   *pTemp;
 
         protected:
-            inline bool cap_reserve(size_t size);
-            void drop_temp();
-            bool append_temp(const char *p, size_t n) const;
-            bool resize_temp(size_t n) const;
-            bool grow_temp(size_t n) const;
+            bool            size_reserve(size_t size);
+            inline bool     cap_reserve(size_t size);
+            inline bool     cap_grow(size_t delta);
+            void            drop_temp();
+            bool            append_temp(const char *p, size_t n) const;
+            bool            resize_temp(size_t n) const;
+            bool            grow_temp(size_t n) const;
 
             static inline lsp_wchar_t *xmalloc(size_t size) { return reinterpret_cast<lsp_wchar_t *>(::malloc(size * sizeof(lsp_wchar_t))); }
             static inline lsp_wchar_t *xrealloc(lsp_wchar_t * ptr, size_t size) { return reinterpret_cast<lsp_wchar_t *>(::realloc(ptr, size * sizeof(lsp_wchar_t))); };
@@ -96,7 +98,7 @@ namespace lsp
              * @param size number of characters to use as capacity
              * @return true on success
              */
-            bool reserve(size_t size);
+            inline bool reserve(size_t size) { return (size > nCapacity) ? size_reserve(size) : true; };
 
             /**
              * Clear the string without deallocating internal buffer
