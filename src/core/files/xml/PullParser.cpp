@@ -185,7 +185,7 @@ namespace lsp
             nState          = PS_READ_MISC;
             enVersion       = XML_VERSION_1_0;
             sVersion.truncate();
-            sCharset.truncate();
+            sEncoding.truncate();
             nFlags          = 0;
             cLast           = -1;
 
@@ -198,7 +198,7 @@ namespace lsp
 
             cLast           = -1;
             sVersion.truncate();
-            sCharset.truncate();
+            sEncoding.truncate();
             nFlags          = 0;
 
             if (pIn != NULL)
@@ -321,6 +321,25 @@ namespace lsp
             return false;
         }
 
+        bool PullParser::is_encoding_first(lsp_swchar_t c)
+        {
+            if ((c >= 'a') && (c <= 'z'))
+                return true;
+            if ((c >= 'A') && (c <= 'Z'))
+                return true;
+            return false;
+        }
+
+        bool PullParser::is_encoding_char(lsp_swchar_t c)
+        {
+            if (is_encoding_first(c))
+                return true;
+            if ((c >= '0') && (c <= '9'))
+                return true;
+
+            return ((c == '_') || (c == '.') || (c == '-'));
+        }
+
         lsp_swchar_t PullParser::getch()
         {
             if (cLast < 0)
@@ -435,21 +454,66 @@ namespace lsp
             return res;
         }
 
-        status_t PullParser::parse_version(const LSPString *version)
+        status_t PullParser::parse_version(const LSPString *text)
         {
-            // TODO
+            if (!text->starts_with_ascii("1."))
+                return STATUS_BAD_FORMAT;
+
+            ssize_t n = text->length();
+            if (n <= 0)
+                return STATUS_CORRUPTED;
+
+            ssize_t v = 0;
+            for (size_t i=2; i<n; ++i)
+            {
+                lsp_wchar_t c = text->char_at(i);
+                if ((c >= '0') && (c <= '9'))
+                    v = v * 10 + (c - '0');
+                else
+                    return STATUS_CORRUPTED;
+            }
+
+            enVersion = (v >= 1) ? XML_VERSION_1_1 : XML_VERSION_1_0;
+            if (!sVersion.set(text))
+                return STATUS_NO_MEM;
+            nFlags |= XF_VERSION;
+
             return STATUS_OK;
         }
 
-        status_t PullParser::parse_encoding(const LSPString *version)
+        status_t PullParser::parse_encoding(const LSPString *text)
         {
-            // TODO
+            // Estimate length
+            size_t n = text->length();
+            if (n <= 0)
+                return STATUS_BAD_FORMAT;
+
+            // Check the first character
+            if (!is_encoding_first(text->first()))
+                return STATUS_BAD_FORMAT;
+
+            // Check the remained characters
+            for (size_t i=1; i<n; ++i)
+                if (!is_encoding_char(text->char_at(i)))
+                    return STATUS_BAD_FORMAT;
+
+            if (!sEncoding.set(text))
+                return STATUS_NO_MEM;
+
+            nFlags |= XF_ENCODING;
+
             return STATUS_OK;
         }
 
-        status_t PullParser::parse_standalone(const LSPString *version)
+        status_t PullParser::parse_standalone(const LSPString *text)
         {
-            // TODO
+            if (text->equals_ascii("yes"))
+                nFlags |= XF_STANDALONE;
+            else if (text->equals_ascii("no"))
+                nFlags &= ~XF_STANDALONE;
+            else
+                return STATUS_BAD_FORMAT;
+
             return STATUS_OK;
         }
 
@@ -522,7 +586,7 @@ namespace lsp
 
         status_t PullParser::read_comment()
         {
-            lsp_swchar_t p = -1, c; // Previous character is undefined
+            lsp_swchar_t c, xc;
             sValue.clear();
 
             while (true)
@@ -531,29 +595,28 @@ namespace lsp
                 if ((c = getch()) < 0)
                     return -c;
 
-                // Check character
-                if ((c == '-') && (p == '-'))
+                // Going to end of comment?
+                if (c == '-')
                 {
-                    // Lookup next character
-                    if ((c = getch()) < 0)
-                        return -c;
-                    else if (c != '>')
-                        return STATUS_CORRUPTED; // Malformed comment
+                    // Get next character
+                    if ((xc = getch()) < 0)
+                        return -xc;
 
-                    // Fully fetched comment
-                    nToken = XT_COMMENT;
-                    return STATUS_OK;
-                }
-                else
-                {
-                    if ((p == '-') && (!sValue.append(p)))
-                        return STATUS_NO_MEM;
-                    if (!sValue.append(c))
-                        return STATUS_NO_MEM;
+                    // End of comment?
+                    if (xc == '-')
+                    {
+                        // Next character should be '>'
+                        if ((xc = getch()) != '>')
+                            return (xc < 0) ? -xc : STATUS_CORRUPTED;
+                        return STATUS_OK;
+                    }
+
+                    // Return character back
+                    ungetch(xc);
                 }
 
-                // Save last read character
-                p = c;
+                if (!sValue.append(c))
+                    return STATUS_NO_MEM;
             }
 
             return STATUS_OK;

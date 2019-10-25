@@ -181,7 +181,10 @@ namespace lsp
 
     inline bool LSPString::cap_reserve(size_t size)
     {
-        return reserve((size + (GRANULARITY-1)) & (~(GRANULARITY-1)));
+        return reserve(
+                nCapacity +
+                ((size + (GRANULARITY-1)) & (~(GRANULARITY-1)))
+            );
     }
 
     void LSPString::reduce()

@@ -34,7 +34,7 @@ namespace lsp
                 enum xml_flags_t
                 {
                     XF_STANDALONE   = 1 << 0,
-                    XF_CHARSET      = 1 << 1,
+                    XF_ENCODING     = 1 << 1,
                     XF_VERSION      = 1 << 2,
                     XF_ROOT         = 1 << 3,
                     XF_HEADER       = 1 << 4
@@ -52,7 +52,7 @@ namespace lsp
                 // Misc data
                 size_t              nFlags;         // Field presence
                 LSPString           sVersion;       // Document version
-                LSPString           sCharset;       // Document character set
+                LSPString           sEncoding;      // Document encoding
                 LSPString           sName;          // Property/Tag name
                 LSPString           sValue;         // Property value
                 cvector<LSPString>  vTags;
@@ -66,12 +66,14 @@ namespace lsp
                 bool                is_name_char(lsp_swchar_t c);
                 bool                is_whitespace(lsp_swchar_t c);
                 bool                is_restricted_char(lsp_swchar_t c);
+                bool                is_encoding_first(lsp_swchar_t c);
+                bool                is_encoding_char(lsp_swchar_t c);
 
                 bool                skip_spaces();
 
-                status_t            parse_version(const LSPString *version);
-                status_t            parse_encoding(const LSPString *encoding);
-                status_t            parse_standalone(const LSPString *standalone);
+                status_t            parse_version(const LSPString *text);
+                status_t            parse_encoding(const LSPString *text);
+                status_t            parse_standalone(const LSPString *text);
 
                 status_t            preprocess_value(LSPString *value);
 
@@ -105,7 +107,7 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const char *path, const char *charset = NULL);
+                status_t            open(const char *path, const char *charset = NULL);
 
                 /**
                  * Open parser
@@ -113,7 +115,7 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const LSPString *path, const char *charset = NULL);
+                status_t            open(const LSPString *path, const char *charset = NULL);
 
                 /**
                  * Open parser
@@ -121,7 +123,7 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    open(const io::Path *path, const char *charset = NULL);
+                status_t            open(const io::Path *path, const char *charset = NULL);
 
                 /**
                  * Wrap string with parser
@@ -129,21 +131,21 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    wrap(const char *str, const char *charset = NULL);
+                status_t            wrap(const char *str, const char *charset = NULL);
 
                 /**
                  * Wrap string with parser
                  * @param str string to wrap
                  * @return status of operation
                  */
-                status_t    wrap(const LSPString *str);
+                status_t            wrap(const LSPString *str);
 
                 /**
                  * Wrap input sequence with parser
                  * @param seq sequence to use for reads
                  * @return status of operation
                  */
-                status_t    wrap(io::IInSequence *seq, size_t flags = WRAP_NONE);
+                status_t            wrap(io::IInSequence *seq, size_t flags = WRAP_NONE);
 
                 /**
                  * Wrap input stream with parser
@@ -152,26 +154,51 @@ namespace lsp
                  * @param charset character set
                  * @return status of operation
                  */
-                status_t    wrap(io::IInStream *is, size_t flags = WRAP_NONE, const char *charset = NULL);
+                status_t            wrap(io::IInStream *is, size_t flags = WRAP_NONE, const char *charset = NULL);
 
                 /**
                  * Close parser
                  * @return status of operation
                  */
-                status_t    close();
+                status_t            close();
 
             public:
                 /**
                  * Read next element
                  * @return XT_ element code or negative status of operation
                  */
-                status_t    read_next();
+                status_t            read_next();
 
                 /**
                  * Get current element
                  * @return XT_ element code or negative status of operation
                  */
-                status_t    get_current();
+                status_t            get_current();
+
+            public:
+                /**
+                 * Check whethere document is standalone
+                 * @return true if document is standalone
+                 */
+                inline bool             is_standalone() const   { return nFlags & XF_STANDALONE; }
+
+                /**
+                 * Get version string
+                 * @return version string or NULL is version string is not present in header
+                 */
+                inline const LSPString *version() const         { return (nFlags & XF_VERSION) ? &sVersion : NULL; }
+
+                /**
+                 * Get actual parser version
+                 * @return actual parser version
+                 */
+                inline xml_version_t    xml_version() const     { return enVersion; }
+
+                /**
+                 * Get document encoding
+                 * @return document encoding or NULL if encoding string is not present in header
+                 */
+                inline const LSPString *encoding() const        { return (nFlags & XF_ENCODING) ? &sEncoding : NULL; }
         };
     
     } /* namespace xml */
