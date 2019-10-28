@@ -29,12 +29,8 @@ namespace lsp
             XT_DTD,
             XT_END_DOCUMENT,
             XT_END_ELEMENT,
-            XT_ENTITY_DECLARATION,
             XT_ENTITY_RESOLVE,
-            XT_NAMESPACE,
-            XT_NOTATION_DECLARATION,
             XT_PROCESSING_INSTRUCTION,
-            XT_SPACE,
             XT_START_DOCUMENT,
             XT_START_ELEMENT
         };

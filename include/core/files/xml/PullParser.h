@@ -50,7 +50,8 @@ namespace lsp
                 parse_state_t       nSaved;
                 xml_version_t       enVersion;
 
-                lsp_swchar_t        cLast;
+                lsp_swchar_t        vUngetch[4];
+                size_t              nUngetch;
 
                 // Misc data
                 size_t              nFlags;         // Field presence
@@ -69,8 +70,6 @@ namespace lsp
                 status_t            read_version();
                 status_t            read_encoding();
                 status_t            read_standalone();
-
-                status_t            preprocess_value(LSPString *value);
 
                 status_t            read_text(const char *text);
                 status_t            read_start_document();
@@ -211,6 +210,18 @@ namespace lsp
                  * @return document encoding or NULL if encoding string is not present in header
                  */
                 inline const LSPString *encoding() const        { return (nFlags & XF_ENCODING) ? &sEncoding : NULL; }
+
+                /**
+                 * Return name of current property, tag or processing instruction
+                 * @return name name
+                 */
+                const LSPString        *name() const;
+
+                /**
+                 * Return value of current property, comment or processing instruction
+                 * @return value value
+                 */
+                const LSPString        *value() const;
         };
     
     } /* namespace xml */

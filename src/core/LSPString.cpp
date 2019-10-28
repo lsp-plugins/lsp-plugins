@@ -1360,11 +1360,11 @@ namespace lsp
         size_t i=0;
         for ( ; i<nLength; ++i)
         {
-            int retval = lsp_swchar_t(pData[i]) - uint8_t(src[i]);
+            if (src[i] == '\0')
+                return pData[i];
+            int retval = int(pData[i]) - uint8_t(src[i]);
             if (retval != 0)
                 return retval;
-            else if (src[i] == '\0')
-                return nLength - i - 1;
         }
         return -int(uint8_t(src[i]));
     }
@@ -1374,11 +1374,11 @@ namespace lsp
         size_t i=0;
         for ( ; i<nLength; ++i)
         {
-            int retval = lsp_swchar_t(pData[i]) - ::towupper(uint8_t(src[i]));
+            if (src[i] == '\0')
+                return pData[i];
+            int retval = int(::towlower(pData[i])) - ::towlower(uint8_t(src[i]));
             if (retval != 0)
                 return retval;
-            else if (src[i] == '\0')
-                return nLength - i - 1;
         }
         return -int(uint8_t(src[i]));
     }
@@ -1390,7 +1390,7 @@ namespace lsp
 
         while (n--)
         {
-            int retval = int(towlower(*(a++))) - int(towlower(*(b++)));
+            int retval = int(::towlower(*(a++))) - int(::towlower(*(b++)));
             if (retval != 0)
                 return retval;
         }
