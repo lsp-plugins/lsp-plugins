@@ -472,7 +472,7 @@ namespace lsp
                     // Read next character
                     if ((c = getch()) != '>')
                         return (c < 0) ? -c : STATUS_CORRUPTED;
-                    return read_start_document();
+                    return (flags & F_VERSION) ? read_start_document() : STATUS_CORRUPTED;
                 }
 
                 // At least one space is mandatory
@@ -513,6 +513,7 @@ namespace lsp
                 // Check that attribute is at proper place
                 if (flag <= flags)
                     return STATUS_CORRUPTED;
+                flags |= flag;
             }
         }
 
@@ -568,7 +569,8 @@ namespace lsp
             }
 
             // Read processing instruction value
-            lsp_swchar_t c; // Previous character is undefined
+            lsp_swchar_t c;
+            skip_spaces(); // Skip spaces
 
             sValue.clear();
             while (true)
@@ -756,7 +758,7 @@ namespace lsp
 
             if (copy)
                 sName.swap(name);
-            else if ((!sName.equals(name)))
+            else if (!sName.equals(name))
                 return STATUS_CORRUPTED;
 
             delete name;
@@ -818,11 +820,11 @@ namespace lsp
 
                         // Decode hex character
                         if ((c >= '0') && (c <= '9'))
-                            code = (code << 16) | (c - '0');
+                            code = (code << 4) | (c - '0');
                         else if ((c >= 'a') && (c <= 'f'))
-                            code = (code << 16) | (c - 'a' + 10);
+                            code = (code << 4) | (c - 'a' + 10);
                         else if ((c >= 'A') && (c <= 'F'))
-                            code = (code << 16) | (c - 'A' + 10);
+                            code = (code << 4) | (c - 'A' + 10);
                         else
                             break;
                     }
@@ -837,7 +839,7 @@ namespace lsp
 
                         // Decode decimal character
                         if ((c >= '0') && (c <= '9'))
-                            code = (code * 10) | (c - '0');
+                            code = (code * 10) + (c - '0');
                         else
                             break;
                     } while ((c = getch()) >= 0);
@@ -966,7 +968,7 @@ namespace lsp
                 if ((c = getch()) != '>')
                     return (c < 0) ? -c : STATUS_CORRUPTED;
 
-                return read_tag_close(true);
+                return read_tag_close(false);
             }
             else if (c == '?') // Processing instruction ?
                 return read_processing_instruction();
@@ -1093,7 +1095,7 @@ namespace lsp
             return STATUS_CORRUPTED;
         }
 
-        status_t PullParser::resolve_reference(const LSPString *value)
+        status_t PullParser::set_value(const LSPString *value)
         {
             if (pIn == NULL)
                 return STATUS_BAD_STATE;

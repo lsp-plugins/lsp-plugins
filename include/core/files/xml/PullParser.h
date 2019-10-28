@@ -182,7 +182,7 @@ namespace lsp
                  * @param value value to resolve
                  * @return status of operation
                  */
-                status_t            resolve_reference(const LSPString *value);
+                status_t            set_value(const LSPString *value);
 
                 /**
                  * Resolve entity with specified value
