@@ -101,11 +101,11 @@ UTEST_BEGIN("core.files.xml", pullparser)
                     break;
 
                 case XT_ENTITY_RESOLVE:
-                    if (!tmp.set(p.value()))
+                    if (!tmp.set(p.name()))
                         return STATUS_NO_MEM;
                     tmp.toupper();
-                    printf("  ENTITY_RESOLVE: name='%s', resolving to '%s'\n", p.value()->get_utf8(), tmp.get_utf8());
-                    if ((res = p.resolve_entity(&tmp)) != STATUS_OK)
+                    printf("  REFERENCE_RESOLVE: name='%s', resolving to '%s'\n", p.name()->get_utf8(), tmp.get_utf8());
+                    if ((res = p.resolve_reference(&tmp)) != STATUS_OK)
                         return res;
                     break;
 
@@ -140,7 +140,9 @@ UTEST_BEGIN("core.files.xml", pullparser)
 //            "<?xml version='1.0'?><root></root>",
 //            "<?xml version='1.0'?><root att1=\"value1\"></root>",
 //            "<?xml version='1.0'?><root att1=\"value1\" ns:attr2='value2'  ></root>",
-            "<?xml version='1.0'?><root att1=\"value1\" ><nested id=\"&amp;&amp;&amp;\" /><nested2 x='123'><?pi2 args?><!-- comment --></nested2></root>",
+//            "<?xml version='1.0'?><root att1=\"value1\" ><nested id=\"&amp;&amp;&amp;\" /><nested2 x='123'><?pi2 args?><!-- comment --></nested2></root>",
+//            "<?xml version='1.0'?><root>text &quot;&lt;<![CDATA[character&amp;data]]>&gt;&quot;</root>",
+            "<?xml version='1.0'?><root>&unknown_entity;<nested att='&unknown_entity2;' /></root>",
             NULL
         };
 

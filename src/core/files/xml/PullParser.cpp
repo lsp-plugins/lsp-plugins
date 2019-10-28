@@ -23,9 +23,9 @@ namespace lsp
             nWFlags     = 0;
             nToken      = -STATUS_NO_DATA;
             nState      = PS_READ_MISC;
-            nSaved      = PS_READ_MISC;
             enVersion   = XML_VERSION_1_0;
             nFlags      = 0;
+            nStates     = 0;
 
             nUngetch    = 0;
         }
@@ -184,7 +184,7 @@ namespace lsp
             nWFlags         = flags;
             nToken          = -STATUS_NO_DATA;
             nState          = PS_READ_MISC;
-            nSaved          = PS_READ_MISC;
+            nStates         = 0;
             enVersion       = XML_VERSION_1_0;
             sVersion.truncate();
             sEncoding.truncate();
@@ -230,6 +230,17 @@ namespace lsp
         void PullParser::ungetch(lsp_swchar_t ch)
         {
             vUngetch[nUngetch++] = ch;
+        }
+
+        void PullParser::push_state(parse_state_t override)
+        {
+            vStates[nStates++]  = nState;
+            nState              = override;
+        }
+
+        void PullParser::pop_state()
+        {
+            nState  = vStates[--nStates];
         }
 
         bool PullParser::skip_spaces()
@@ -286,65 +297,49 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t PullParser::read_value(LSPString *value)
+        status_t PullParser::read_attribute_value(lsp_swchar_t qc)
         {
+            lsp_swchar_t c;
             status_t res;
-            LSPString refname;
-
-            // Get first character
-            lsp_swchar_t qc = getch();
-            if ((qc != '\'') && (qc != '\"'))
-                return (qc < 0) ? -qc : STATUS_CORRUPTED;
-
-            // Read quoted value
-            value->clear();
 
             while (true)
             {
-                lsp_swchar_t c = getch();
-                if (c == qc)
-                    return STATUS_OK;
-                else if (c < 0)
+                // Read character
+                if ((c = getch()) < 0)
+                {
+                    pop_state();
                     return -c;
+                }
+                else if (c == qc)
+                    break;
 
                 // Reference?
                 if (c == '&')
                 {
                     // Read and append reference (if possible) to the string value
-                    if ((res = read_entity_reference(&refname, &sValue)) != STATUS_OK)
+                    if ((res = read_entity_reference(&sValue)) != STATUS_OK)
+                    {
+                        pop_state();
                         return res;
+                    }
 
                     // Need to query reference?
                     if (nState != PS_READ_REFERENCE)
                         continue;
-                    return STATUS_OK;
+                    return STATUS_OK; // Query for reference, do not need to pop_state()
                 }
 
                 // Append current character
-                if (!value->append(c))
+                if (!sValue.append(c))
+                {
+                    pop_state();
                     return STATUS_NO_MEM;
+                }
             }
 
+            pop_state();
+            nToken = XT_ATTRIBUTE;
             return STATUS_OK;
-        }
-
-        status_t PullParser::read_attribute(LSPString *name, LSPString *value)
-        {
-            status_t res;
-            lsp_swchar_t c;
-
-            if ((res = read_name(name)) != STATUS_OK)
-                return res;
-
-            skip_spaces(); // Spaces are optional
-            if ((c = getch()) != '=')
-                return STATUS_CORRUPTED;
-
-            skip_spaces(); // Spaces are optional
-            if ((res = read_value(value)) != STATUS_OK)
-                return res;
-
-            return res;
         }
 
         status_t PullParser::read_version()
@@ -772,7 +767,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t PullParser::read_entity_reference(LSPString *ref, LSPString *cdata)
+        status_t PullParser::read_entity_reference(LSPString *cdata)
         {
             lsp_swchar_t c, code = 0;
             status_t res;
@@ -787,23 +782,19 @@ namespace lsp
                 ungetch(c);
 
                 // Read entity name
-                if ((res = read_name(ref)) != STATUS_OK)
+                if ((res = read_name(&sRefName)) != STATUS_OK)
                     return res;
 
-                if (ref->equals_ascii("amp"))
+                if (sRefName.equals_ascii("amp"))
                     code    = '&';
-                else if (ref->equals_ascii("gt"))
+                else if (sRefName.equals_ascii("gt"))
                     code    = '>';
-                else if (ref->equals_ascii("lt"))
+                else if (sRefName.equals_ascii("lt"))
                     code    = '<';
-                else if (ref->equals_ascii("apos"))
+                else if (sRefName.equals_ascii("apos"))
                     code    = '\'';
-                else if (ref->equals_ascii("lt"))
+                else if (sRefName.equals_ascii("quot"))
                     code    = '\"';
-
-                // Clear entity name if there is a character alias
-                if (code != 0)
-                    ref->clear();
 
                 // Get next character which should be ';'
                 if ((c = getch()) < 0)
@@ -862,8 +853,8 @@ namespace lsp
                 return STATUS_CORRUPTED;
             else if (code == 0)
             {
-                nSaved      = nState;
-                nState      = PS_READ_REFERENCE;
+                push_state(PS_READ_REFERENCE);
+                nToken      = XT_ENTITY_RESOLVE;
                 return STATUS_OK;
             }
 
@@ -875,15 +866,15 @@ namespace lsp
         {
             lsp_swchar_t c;
             status_t res;
-            LSPString refname;
-
-            sValue.clear();
 
             while (true)
             {
                 // Get next character
                 if ((c = getch()) < 0)
+                {
+                    pop_state();
                     return -c;
+                }
 
                 // Start of tag?
                 if (c == '<')
@@ -896,13 +887,16 @@ namespace lsp
                 if (c == '&')
                 {
                     // Read and append reference (if possible) to the string value
-                    if ((res = read_entity_reference(&refname, &sValue)) != STATUS_OK)
+                    if ((res = read_entity_reference(&sValue)) != STATUS_OK)
+                    {
+                        pop_state();
                         return res;
+                    }
 
                     // Need to query reference?
                     if (nState != PS_READ_REFERENCE)
                         continue;
-                    return STATUS_OK;
+                    return STATUS_OK; // Query for reference, do not need to pop_state()
                 }
 
                 // CDATA end?
@@ -914,15 +908,23 @@ namespace lsp
                         (sValue.char_at(pos) == ']') &&
                         (sValue.char_at(pos+1) == ']')
                     )
+                    {
+                        pop_state();
                         return STATUS_CORRUPTED;
+                    }
                 }
 
                 // No, simple character
                 if (!sValue.append(c))
+                {
+                    pop_state();
                     return STATUS_NO_MEM;
+                }
             }
 
             // Ensure that there is character data
+            pop_state();
+
             if (sValue.length() <= 0)
                 return STATUS_CORRUPTED;
 
@@ -943,6 +945,8 @@ namespace lsp
             if (c != '<')
             {
                 ungetch(c);
+                sValue.clear();
+                push_state(PS_READ_CHARACTERS);
                 return read_characters();
             }
 
@@ -1001,8 +1005,8 @@ namespace lsp
 
         status_t PullParser::read_tag_attribute()
         {
-            status_t res;
             lsp_swchar_t c;
+            status_t res;
 
             // Ignore set of spaces if they are present
             bool skipped = skip_spaces();
@@ -1029,12 +1033,25 @@ namespace lsp
             // Try to read attribute and preprocess it's value
             if (!skipped) // At least one space is mandatory
                 return STATUS_CORRUPTED;
+
+            // Read attribute name
             ungetch(c);
-            if ((res = read_attribute(&sName, &sValue)) != STATUS_OK)
+            if ((res = read_name(&sName)) != STATUS_OK)
                 return res;
 
-            nToken = XT_ATTRIBUTE;
-            return STATUS_OK;
+            skip_spaces(); // Spaces are optional
+            if ((c = getch()) != '=')
+                return STATUS_CORRUPTED;
+
+            skip_spaces(); // Spaces are optional
+            c = getch(); // Get quote character
+            if ((c != '\'') && (c != '\"'))
+                return (c < 0) ? -c : STATUS_CORRUPTED;
+
+            // Read quoted value
+            sValue.clear();
+            push_state((c == '\'') ? PS_READ_SQ_ATTRIBUTE : PS_READ_DQ_ATTRIBUTE);
+            return read_attribute_value(c);
         }
 
         status_t PullParser::read_token()
@@ -1061,13 +1078,22 @@ namespace lsp
                     nToken          = XT_ENTITY_RESOLVE;
                     return STATUS_OK;
 
+                case PS_READ_CHARACTERS:
+                    return read_characters();
+
+                case PS_READ_SQ_ATTRIBUTE:
+                    return read_attribute_value('\'');
+
+                case PS_READ_DQ_ATTRIBUTE:
+                    return read_attribute_value('\"');
+
                 default:
                     break;
             }
             return STATUS_CORRUPTED;
         }
 
-        status_t PullParser::resolve_entity(const LSPString *value)
+        status_t PullParser::resolve_reference(const LSPString *value)
         {
             if (pIn == NULL)
                 return STATUS_BAD_STATE;
@@ -1081,7 +1107,7 @@ namespace lsp
             if (!sValue.append(value))
                 return STATUS_NO_MEM;
 
-            nState          = nSaved;
+            pop_state();
             return STATUS_OK;
         }
 
@@ -1112,11 +1138,12 @@ namespace lsp
             switch (nToken)
             {
                 case XT_ATTRIBUTE:
-                case XT_ENTITY_RESOLVE:
                 case XT_PROCESSING_INSTRUCTION:
                 case XT_START_ELEMENT:
                 case XT_END_ELEMENT:
                     return &sName;
+                case XT_ENTITY_RESOLVE:
+                    return &sRefName;
                 default:
                     break;
             }

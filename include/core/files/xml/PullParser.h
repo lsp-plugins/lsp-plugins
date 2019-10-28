@@ -29,6 +29,9 @@ namespace lsp
                     PS_READ_ATTRIBUTES,
                     PS_READ_ELEMENT_DATA,
                     PS_READ_REFERENCE,
+                    PS_READ_CHARACTERS,
+                    PS_READ_SQ_ATTRIBUTE,
+                    PS_READ_DQ_ATTRIBUTE,
                     PS_END_DOCUMENT
                 };
 
@@ -47,11 +50,12 @@ namespace lsp
                 size_t              nWFlags;
                 status_t            nToken;
                 parse_state_t       nState;
-                parse_state_t       nSaved;
                 xml_version_t       enVersion;
 
                 lsp_swchar_t        vUngetch[4];
                 size_t              nUngetch;
+                parse_state_t       vStates[4];
+                size_t              nStates;
 
                 // Misc data
                 size_t              nFlags;         // Field presence
@@ -59,11 +63,14 @@ namespace lsp
                 LSPString           sEncoding;      // Document encoding
                 LSPString           sName;          // Property/Tag name
                 LSPString           sValue;         // Property value
+                LSPString           sRefName;       // Reference name
                 cvector<LSPString>  vTags;
 
             protected:
                 inline lsp_swchar_t getch();
                 inline void         ungetch(lsp_swchar_t c);
+                inline void         push_state(parse_state_t override);
+                inline void         pop_state();
 
                 bool                skip_spaces();
 
@@ -75,8 +82,7 @@ namespace lsp
                 status_t            read_start_document();
                 status_t            read_end_document();
                 status_t            read_name(LSPString *name);
-                status_t            read_value(LSPString *value);
-                status_t            read_attribute(LSPString *name, LSPString *value);
+                status_t            read_attribute_value(lsp_swchar_t qc);
                 status_t            read_header();
                 status_t            read_misc();
                 status_t            read_comment();
@@ -88,7 +94,7 @@ namespace lsp
                 status_t            read_processing_instruction();
                 status_t            read_cdata();
                 status_t            read_characters();
-                status_t            read_entity_reference(LSPString *ref, LSPString *cdata);
+                status_t            read_entity_reference(LSPString *cdata);
 
                 status_t            read_token();
 
@@ -176,7 +182,7 @@ namespace lsp
                  * @param value value to resolve
                  * @return status of operation
                  */
-                status_t            resolve_entity(const LSPString *value);
+                status_t            resolve_reference(const LSPString *value);
 
                 /**
                  * Resolve entity with specified value
