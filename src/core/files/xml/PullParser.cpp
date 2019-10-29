@@ -198,11 +198,24 @@ namespace lsp
         {
             status_t res = STATUS_OK;
 
+            // Drop unnecessary resources
             nUngetch        = 0;
             sVersion.truncate();
             sEncoding.truncate();
+            sName.truncate();
+            sValue.truncate();
             nFlags          = 0;
 
+            // Remove all tag hierarchy
+            for (size_t i=0, n=vTags.size(); i<n; ++i)
+            {
+                LSPString *s = vTags.at(i);
+                if (s != NULL)
+                    delete s;
+            }
+            vTags.flush();
+
+            // Release input sequence
             if (pIn != NULL)
             {
                 if (nWFlags & WRAP_CLOSE)
@@ -759,8 +772,10 @@ namespace lsp
             if (copy)
                 sName.swap(name);
             else if (!sName.equals(name))
+            {
+                delete name;
                 return STATUS_CORRUPTED;
-
+            }
             delete name;
 
             // Update state
