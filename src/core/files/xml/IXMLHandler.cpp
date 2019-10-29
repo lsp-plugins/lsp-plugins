@@ -45,6 +45,11 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t IXMLHandler::doctype(const LSPString *name, const LSPString *pub, const LSPString *sys)
+        {
+            return STATUS_OK;
+        }
+
         status_t IXMLHandler::resolve(LSPString *value, const LSPString *name)
         {
             return STATUS_OK;

@@ -32,6 +32,29 @@ UTEST_BEGIN("core.files", bookmarks)
         destroy_bookmarks(&bm);
     }
 
+    void test_qt5_bookmarks()
+    {
+        cvector<bookmark_t> bm;
+        UTEST_ASSERT(read_bookmarks_qt5(&bm, "res/test/bookmarks/qt5-bookmarks.xml") == STATUS_OK);
+
+        for (size_t i=0; i<bm.size(); ++i)
+            printf("  Read QT5 bookmark: %s -> %s\n", bm.get(i)->path.get_utf8(), bm.get(i)->name.get_utf8());
+
+        UTEST_ASSERT(bm.size() == 5);
+        UTEST_ASSERT(bm.get(0)->path.equals_utf8("/home/vsadovnikov"));
+        UTEST_ASSERT(bm.get(0)->name.equals_utf8("Home"));
+        UTEST_ASSERT(bm.get(1)->path.equals_utf8("/home/vsadovnikov/Рабочий стол"));
+        UTEST_ASSERT(bm.get(1)->name.equals_utf8("Desktop"));
+        UTEST_ASSERT(bm.get(2)->path.equals_utf8("/home/vsadovnikov/Загрузки"));
+        UTEST_ASSERT(bm.get(2)->name.equals_utf8("Downloads"));
+        UTEST_ASSERT(bm.get(3)->path.equals_utf8("/"));
+        UTEST_ASSERT(bm.get(3)->name.equals_utf8("Root"));
+        UTEST_ASSERT(bm.get(4)->path.equals_utf8("/home/vsadovnikov/eclipse"));
+        UTEST_ASSERT(bm.get(4)->name.equals_utf8("eclipse"));
+
+        destroy_bookmarks(&bm);
+    }
+
     void test_lsp_bookmarks()
     {
         cvector<bookmark_t> bm;
@@ -149,6 +172,8 @@ UTEST_BEGIN("core.files", bookmarks)
     {
         printf("Testing read of GTK3 bookmarks...\n");
         test_gtk3_bookmarks();
+        printf("Testing read of QT5 bookmarks...\n");
+        test_qt5_bookmarks();
         printf("Testing read of LSP bookmarks...\n");
         test_lsp_bookmarks();
         printf("Testing write of LSP bookmarks...\n");

@@ -188,6 +188,9 @@ namespace lsp
             enVersion       = XML_VERSION_1_0;
             sVersion.truncate();
             sEncoding.truncate();
+            sDoctype.truncate();
+            sPublic.truncate();
+            sSystem.truncate();
             nFlags          = 0;
             nUngetch        = 0;
 
@@ -204,6 +207,9 @@ namespace lsp
             sEncoding.truncate();
             sName.truncate();
             sValue.truncate();
+            sDoctype.truncate();
+            sPublic.truncate();
+            sSystem.truncate();
             nFlags          = 0;
 
             // Remove all tag hierarchy
@@ -612,10 +618,123 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t PullParser::read_system_literal(LSPString *dst)
+        {
+            LSPString tmp;
+
+            // Get quote character
+            lsp_swchar_t qc = getch();
+            if ((qc != '\'') && (qc != '\"'))
+                return (qc < 0) ? -qc : STATUS_CORRUPTED;
+
+            // Read quoted string
+            lsp_swchar_t c;
+            while ((c = getch()) != qc)
+            {
+                if (!tmp.append(c))
+                    return STATUS_NO_MEM;
+            }
+
+            dst->swap(&tmp);
+            return STATUS_OK;
+        }
+
+        status_t PullParser::read_pubid_literal(LSPString *dst)
+        {
+            LSPString tmp;
+
+            // Get quote character
+            lsp_swchar_t qc = getch();
+            if ((qc != '\'') && (qc != '\"'))
+                return (qc < 0) ? -qc : STATUS_CORRUPTED;
+
+            // Read quoted string
+            lsp_swchar_t c;
+            while ((c = getch()) != qc)
+            {
+                if ((!is_pubid_char(c)) || (c == qc))
+                    return STATUS_CORRUPTED;
+                if (!tmp.append(c))
+                    return STATUS_NO_MEM;
+            }
+
+            dst->swap(&tmp);
+            return STATUS_OK;
+        }
+
         status_t PullParser::read_doctype()
         {
-            // TODO: currently we don't support DOCTYPE definition, maybe once it will be added
-            return STATUS_NOT_IMPLEMENTED;
+            status_t res;
+            lsp_swchar_t c;
+            LSPString x;
+
+            // Duplicate DOCTYPE?
+            if (nFlags & XF_DOCTYPE)
+                return STATUS_CORRUPTED;
+
+            // Space is required
+            if (!skip_spaces())
+                return STATUS_CORRUPTED;
+            if ((res = read_name(&sDoctype)) != STATUS_OK)
+                return res;
+
+            // Watch next token
+            nFlags |= XF_DOCTYPE;
+            bool skip = skip_spaces();
+            if ((c = getch()) < 0)
+                return -c;
+
+            // ExternalID is present?
+            if (c == 'P')
+            {
+                if (!skip)
+                    return STATUS_CORRUPTED;
+                if ((res = read_text("UBLIC")) != STATUS_OK)
+                    return res;
+                if (!skip_spaces())
+                    return STATUS_CORRUPTED;
+                if ((res = read_pubid_literal(&sPublic)) != STATUS_OK)
+                    return res;
+                nFlags |= XF_DOCTYPE_PUB;
+                if (!skip_spaces())
+                    return STATUS_CORRUPTED;
+                if ((res = read_system_literal(&sSystem)) != STATUS_OK)
+                    return res;
+                nFlags |= XF_DOCTYPE_SYS;
+
+                // Skip spaces and get next token
+                skip_spaces();
+                if ((c = getch()) < 0)
+                    return -c;
+            }
+            else if (c == 'S')
+            {
+                if (!skip)
+                    return STATUS_CORRUPTED;
+                if ((res = read_text("YSTEM")) != STATUS_OK)
+                    return res;
+                if (!skip_spaces())
+                    return STATUS_CORRUPTED;
+                if ((res = read_system_literal(&sSystem)) != STATUS_OK)
+                    return res;
+                nFlags |= XF_DOCTYPE_SYS;
+
+                // Skip spaces and get next token
+                skip_spaces();
+                if ((c = getch()) < 0)
+                    return -c;
+            }
+
+            // intSubset?
+            if (c == '[')
+            {
+                // TODO: currently we don't support DOCTYPE definition with built-in doctypes
+                return STATUS_NOT_IMPLEMENTED;
+            }
+
+            // End of Doctype?
+            nToken      = XT_DTD;
+            return (c == '>') ? STATUS_OK : STATUS_CORRUPTED;
         }
 
         status_t PullParser::read_start_document()

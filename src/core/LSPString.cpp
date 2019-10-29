@@ -1369,6 +1369,12 @@ namespace lsp
         return -int(uint8_t(src[i]));
     }
 
+    int LSPString::compare_to_utf8(const char *src) const
+    {
+        LSPString tmp;
+        return (tmp.set_utf8(src)) ? compare_to(&tmp) : 0;
+    }
+
     int LSPString::compare_to_ascii_nocase(const char *src) const
     {
         size_t i=0;
@@ -1401,6 +1407,12 @@ namespace lsp
             return -int(*b);
 
         return 0;
+    }
+
+    int LSPString::compare_to_utf8_nocase(const char *src) const
+    {
+        LSPString tmp;
+        return (tmp.set_utf8(src)) ? compare_to_nocase(&tmp) : 0;
     }
 
     size_t LSPString::tolower()

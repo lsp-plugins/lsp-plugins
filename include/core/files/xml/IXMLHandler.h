@@ -66,6 +66,15 @@ namespace lsp
                 virtual status_t comment(const LSPString *text);
 
                 /**
+                 * Handle doctype
+                 * @param name document type name
+                 * @param pub public literal
+                 * @param sys system literal
+                 * @return status of operation
+                 */
+                virtual status_t doctype(const LSPString *name, const LSPString *pub, const LSPString *sys);
+
+                /**
                  * Resolve entity reference
                  * @param value pointer to store the reference value
                  * @param name reference name

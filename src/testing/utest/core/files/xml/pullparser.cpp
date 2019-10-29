@@ -31,6 +31,16 @@ UTEST_BEGIN("core.files.xml", pullparser)
         UTEST_ASSERT(p.value() == NULL);
     }
 
+    void check_doctype(PullParser &p, const char *type, const char *pub, const char *sys)
+    {
+        printf("  DOCTYPE: type=%s, pub=%s, sys=%s\n", type, pub, sys);
+        status_t token = p.read_next();
+        UTEST_ASSERT(token == XT_DTD);
+        UTEST_ASSERT((p.doctype() != NULL) && (p.doctype()->equals_ascii(type)));
+        UTEST_ASSERT((p.pub_literal() != NULL) && (p.pub_literal()->equals_ascii(pub)));
+        UTEST_ASSERT((p.sys_literal() != NULL) && (p.sys_literal()->equals_ascii(sys)));
+    }
+
     void check_document_end(PullParser &p)
     {
         printf("  END_DOCUMENT\n");
@@ -223,6 +233,14 @@ UTEST_BEGIN("core.files.xml", pullparser)
                     printf("  START_ELEMENT: name='%s'\n", p.name()->get_utf8());
                     break;
 
+                case XT_DTD:
+                    printf("  DOCTYPE: type=%s, public=%s, system=%s\n",
+                            (p.doctype() != NULL) ? p.doctype()->get_utf8() : NULL,
+                            (p.pub_literal() != NULL) ? p.pub_literal()->get_utf8() : NULL,
+                            (p.sys_literal() != NULL) ? p.sys_literal()->get_utf8() : NULL
+                        );
+                    break;
+
                 default:
                     printf("Unknown event: %d\n", int(res));
                     return STATUS_UNKNOWN_ERR;
@@ -243,6 +261,11 @@ UTEST_BEGIN("core.files.xml", pullparser)
             "<!-- Simple comment -->",
             "<!--- comment - with - dash -->",
             "<!-- Simple comment 1 -->\n<!-- Simple comment 2 -->",
+            "<!DOCTYPE greeting>",
+            "<!DOCTYPE greeting >",
+            "<!DOCTYPE greeting SYSTEM \"hello.dtd\">",
+            "<!DOCTYPE greeting SYSTEM 'hello.dtd'>",
+            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">",
             "<?xml version='1.0'?><!-- comment after header -->",
             "<?xml version='1.0'?><!-- c1 --><?pi some text ?><!-- c2 -->",
             "<?xml version='1.0'?><?pi?>",
@@ -281,7 +304,19 @@ UTEST_BEGIN("core.files.xml", pullparser)
             "<?xml version='1.0' standalone='true' ?>",
             "<?xml version='1.0' standalone='NO' ?>",
 
-            "<?xml version='1.0'?><!DOCTYPE xml>",
+            "<!DOCTYPE greeting 123>",
+            "<!DOCTYPE greeting xml>",
+            "<!DOCTYPE greeting []>",
+            "<!DOCTYPE greeting SYSTEM>",
+            "<!DOCTYPE greeting PUBLIC>",
+            "<!DOCTYPE greeting SYSTEM >",
+            "<!DOCTYPE greeting PUBLIC >",
+            "<!DOCTYPE greeting SYSTEM 'привет.dtd' []>",
+            "<!DOCTYPE greeting SYSTEM \"greeting.dtd\" []>",
+            "<!DOCTYPE HTML PUBLIC \"привет\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">",
+            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\" []>",
+            "<!DOCTYPE greeting><!DOCTYPE xml>",
+
             "<?xml version='1.0'?><![CDATA[1234]]>",
 
             "<?xml version='1.0'?><!---- invalid comment -->",
@@ -328,6 +363,7 @@ UTEST_BEGIN("core.files.xml", pullparser)
     {
         const char *xml =
             "<?xml version='1.1' encoding='US-ASCII' standalone='yes'?>\n"
+            "<!DOCTYPE TEST PUBLIC 'lsp-plugin' 'http://lsp-plug.in/test.dtd'>\n"
             "<!--c1-->\n"
             "<?pi v1?>\n"
             "<!--c2-->\n"
@@ -361,6 +397,7 @@ UTEST_BEGIN("core.files.xml", pullparser)
         UTEST_ASSERT((p.wrap(&text)) == STATUS_OK);
 
         check_document_start(p, XML_VERSION_1_1, "1.1", "US-ASCII", true);
+        check_doctype(p, "TEST", "lsp-plugin", "http://lsp-plug.in/test.dtd");
         check_comment(p, "c1");
         check_pi(p, "pi", "v1");
         check_comment(p, "c2");

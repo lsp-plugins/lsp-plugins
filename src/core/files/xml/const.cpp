@@ -94,6 +94,28 @@ namespace lsp
             return false;
         }
 
+        bool is_pubid_char(lsp_swchar_t c)
+        {
+            if ((c >= 'a') && (c <= 'z'))
+                return true;
+            if ((c >= 'A') && (c <= 'Z'))
+                return true;
+            if ((c >= '0') && (c <= '9'))
+                return true;
+
+            switch (c)
+            {
+                case 0x20: case 0x0d: case 0x0a: case '\'':
+                case '-': case '(': case ')': case '+':
+                case ',': case '.': case '/': case ':':
+                case '=': case '?': case ';': case '!':
+                case '*': case '#': case '@': case '$':
+                case '_': case '%':
+                    return true;
+            }
+            return false;
+        }
+
         bool is_restricted_char(lsp_swchar_t c, xml_version_t version)
         {
             if (version <= XML_VERSION_1_0)

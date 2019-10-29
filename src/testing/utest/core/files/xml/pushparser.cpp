@@ -136,12 +136,18 @@ UTEST_BEGIN("core.files.xml", pushparser)
             {
                 return validate("PI", name, args, NULL);
             }
+
+            virtual status_t doctype(const LSPString *name, const LSPString *pub, const LSPString *sys)
+            {
+                return validate("DTD", name, pub, sys, NULL);
+            }
     };
 
     void test_xml_parsing()
     {
         const char *xml =
             "<?xml version='1.1' encoding='US-ASCII' standalone='yes'?>\n"
+            "<!DOCTYPE TEST PUBLIC 'lsp-plugin' 'http://lsp-plug.in/test.dtd'>\n"
             "<!--c1-->\n"
             "<?pi v1?>\n"
             "<!--c2-->\n"
@@ -170,6 +176,7 @@ UTEST_BEGIN("core.files.xml", pushparser)
         const char *events[] =
         {
             "START,1.1,US-ASCII",
+            "DTD,TEST,lsp-plugin,http://lsp-plug.in/test.dtd",
             "COMM,c1",
             "PI,pi,v1",
             "COMM,c2",

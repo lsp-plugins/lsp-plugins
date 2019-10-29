@@ -241,6 +241,10 @@ namespace lsp
                         res = handler->processing(sParser.name(), sParser.value());
                         break;
 
+                    case XT_DTD:
+                        res = handler->doctype(sParser.doctype(), sParser.pub_literal(), sParser.sys_literal());
+                        break;
+
                     default:
                         res = STATUS_CORRUPTED;
                         break;

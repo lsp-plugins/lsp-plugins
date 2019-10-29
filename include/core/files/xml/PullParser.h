@@ -42,7 +42,9 @@ namespace lsp
                     XF_VERSION      = 1 << 2,
                     XF_ROOT         = 1 << 3,
                     XF_HEADER       = 1 << 4,
-                    XF_DOCTYPE      = 1 << 5
+                    XF_DOCTYPE      = 1 << 5,
+                    XF_DOCTYPE_SYS  = 1 << 6,
+                    XF_DOCTYPE_PUB  = 1 << 7,
                 };
 
             protected:
@@ -64,6 +66,9 @@ namespace lsp
                 LSPString           sName;          // Property/Tag name
                 LSPString           sValue;         // Property value
                 LSPString           sRefName;       // Reference name
+                LSPString           sDoctype;       // Document type
+                LSPString           sSystem;        // System literal
+                LSPString           sPublic;        // Public literal
                 cvector<LSPString>  vTags;
 
             protected:
@@ -95,6 +100,8 @@ namespace lsp
                 status_t            read_cdata();
                 status_t            read_characters();
                 status_t            read_entity_reference(LSPString *cdata);
+                status_t            read_system_literal(LSPString *dst);
+                status_t            read_pubid_literal(LSPString *dst);
 
                 status_t            read_token();
 
@@ -234,6 +241,24 @@ namespace lsp
                  * @return current element nesting level
                  */
                 inline size_t           level() const           { return vTags.size(); }
+
+                /**
+                 * Get document type name
+                 * @return document type name or NULL if not present
+                 */
+                inline const            LSPString *doctype() const { return (nFlags & XF_DOCTYPE) ? &sDoctype : NULL; }
+
+                /**
+                 * Get document type public literal
+                 * @return document type public literal or NULL if not present
+                 */
+                inline const            LSPString *pub_literal() const { return (nFlags & XF_DOCTYPE_PUB) ? &sPublic: NULL; }
+
+                /**
+                 * Get document type system literal
+                 * @return document type system literal or NULL if not present
+                 */
+                inline const            LSPString *sys_literal() const { return (nFlags & XF_DOCTYPE_SYS) ? &sSystem: NULL; }
         };
     
     } /* namespace xml */

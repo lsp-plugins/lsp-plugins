@@ -9,7 +9,7 @@
 #include <core/files/bookmarks.h>
 #include <core/files/json/Parser.h>
 #include <core/files/json/Serializer.h>
-//#include <core/files/xml/PushParser.h>
+#include <core/files/xml/PushParser.h>
 #include <core/io/InFileStream.h>
 #include <core/io/InSequence.h>
 
@@ -17,6 +17,121 @@ namespace lsp
 {
     namespace bookmarks
     {
+        class XbelParser: public xml::IXMLHandler
+        {
+            private:
+                cvector<bookmark_t>    *vList;
+                size_t                  nOrigin;
+                bookmark_t             *pCurr;
+                bool                    bTitle;
+                LSPString               sPath;
+
+            public:
+                explicit XbelParser(cvector<bookmark_t> *list, size_t origin)
+                {
+                    vList       = list;
+                    nOrigin     = origin;
+                    pCurr       = NULL;
+                    bTitle      = false;
+                }
+
+            public:
+                virtual status_t doctype(const LSPString *doctype, const LSPString *pub, const LSPString *sys)
+                {
+                    if ((doctype != NULL) && (!doctype->equals_ascii_nocase("xbel")))
+                        return STATUS_BAD_FORMAT;
+                    return STATUS_OK;
+                }
+
+                virtual status_t start_element(const LSPString *name, const LSPString * const *atts, size_t nattr)
+                {
+                    // Append tag name to path
+                    if (!sPath.append('/'))
+                        return STATUS_NO_MEM;
+                    if (!sPath.append(name))
+                        return STATUS_NO_MEM;
+
+                    // Check path
+                    if (sPath.equals_ascii("/xbel/bookmark"))
+                    {
+                        LSPString href;
+
+                        // Scan for 'href' attribute
+                        for ( ; nattr > 0; --nattr, atts += 2)
+                            if (atts[0]->equals_ascii("href"))
+                            {
+                                if (atts[1]->starts_with_ascii("file://"))
+                                {
+                                    if (!href.set(atts[1], 7))
+                                        return STATUS_NO_MEM;
+                                }
+                                break;
+                            }
+
+                        // Do we have a reference?
+                        if (href.length() > 0)
+                        {
+                            // Allocate bookmark descriptor
+                            bookmark_t *bm  = new bookmark_t();
+                            if (bm == NULL)
+                                return STATUS_NO_MEM;
+                            if (!vList->add(bm))
+                            {
+                                delete bm;
+                                return STATUS_NO_MEM;
+                            }
+
+                            // Initialize bookmark
+                            ssize_t idx = href.rindex_of(FILE_SEPARATOR_C);
+                            if (!bm->name.set(&href, (idx >= 0) ? idx : 0))
+                            {
+                                delete bm;
+                                return STATUS_NO_MEM;
+                            }
+                            bm->origin      = BM_LSP | nOrigin;
+                            bm->path.swap(&href);
+
+                            // Save pointer to bookmark
+                            pCurr           = bm;
+                            bTitle          = false;
+                        }
+                    }
+
+                    return STATUS_OK;
+                }
+
+                virtual status_t characters(const LSPString *text)
+                {
+                    if (sPath.equals_ascii("/xbel/bookmark/title"))
+                    {
+                        if (pCurr == NULL)
+                            return STATUS_OK;
+
+                        bool success    = (bTitle) ? pCurr->name.append(text) : pCurr->name.set(text);
+                        if (!success)
+                            return STATUS_NO_MEM;
+                        bTitle          = true;
+                    }
+                    return STATUS_OK;
+                }
+
+                virtual status_t end_element(const LSPString *name)
+                {
+                    // Forget about current bookmark
+                    if (sPath.equals_ascii("/xbel/bookmark"))
+                    {
+                        pCurr       = NULL;
+                        bTitle      = false;
+                    }
+
+                    // Reduce path
+                    ssize_t idx = sPath.rindex_of('/');
+                    sPath.set_length((idx >= 0) ? idx : 0);
+                    return STATUS_OK;
+                }
+        };
+
+
         static inline int decode_hex(lsp_wchar_t c)
         {
             if ((c >= '0') && (c <= '9'))
@@ -115,7 +230,7 @@ namespace lsp
                 }
 
                 // Mark with origin + LSP flag
-                dm->origin     |= (origin | BM_LSP);
+                dm->origin      = (origin | BM_LSP);
                 ++nc;
             }
 
@@ -425,32 +540,61 @@ namespace lsp
         //---------------------------------------------------------------------
         // QT5 stuff
         //---------------------------------------------------------------------
+
         status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const char *path, const char *charset)
         {
-            // TODO
-            destroy_bookmarks(dst);
-            return STATUS_OK;
+            cvector<bookmark_t> tmp;
+            status_t res;
+
+            xml::PushParser p;
+            XbelParser h(&tmp, BM_QT5);
+            if ((res = p.parse_file(&h, path, charset)) == STATUS_OK)
+                dst->swap_data(&tmp);
+
+            destroy_bookmarks(&tmp);
+            return res;
         }
 
         status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const LSPString *path, const char *charset)
         {
-            // TODO
-            destroy_bookmarks(dst);
-            return STATUS_OK;
+            cvector<bookmark_t> tmp;
+            status_t res;
+
+            xml::PushParser p;
+            XbelParser h(&tmp, BM_QT5);
+            if ((res = p.parse_file(&h, path, charset)) == STATUS_OK)
+                dst->swap_data(&tmp);
+
+            destroy_bookmarks(&tmp);
+            return res;
         }
 
         status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, const io::Path *path, const char *charset)
         {
-            // TODO
-            destroy_bookmarks(dst);
-            return STATUS_OK;
+            cvector<bookmark_t> tmp;
+            status_t res;
+
+            xml::PushParser p;
+            XbelParser h(&tmp, BM_QT5);
+            if ((res = p.parse_file(&h, path, charset)) == STATUS_OK)
+                dst->swap_data(&tmp);
+
+            destroy_bookmarks(&tmp);
+            return res;
         }
 
         status_t read_bookmarks_qt5(cvector<bookmark_t> *dst, io::IInSequence *in)
         {
-            // TODO
-            destroy_bookmarks(dst);
-            return STATUS_OK;
+            cvector<bookmark_t> tmp;
+            status_t res;
+
+            xml::PushParser p;
+            XbelParser h(&tmp, BM_QT5);
+            if ((res = p.parse_data(&h, in)) == STATUS_OK)
+                dst->swap_data(&tmp);
+
+            destroy_bookmarks(&tmp);
+            return res;
         }
 
         //---------------------------------------------------------------------

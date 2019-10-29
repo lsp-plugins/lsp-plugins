@@ -39,6 +39,7 @@ namespace lsp
         bool is_name_first(lsp_swchar_t c);
         bool is_name_next(lsp_swchar_t c);
         bool is_whitespace(lsp_swchar_t c);
+        bool is_pubid_char(lsp_swchar_t c);
         bool is_restricted_char(lsp_swchar_t c, xml_version_t version);
         bool is_encoding_first(lsp_swchar_t c);
         bool is_encoding_next(lsp_swchar_t c);
