@@ -364,10 +364,12 @@ UTEST_BEGIN("core.files.xml", pullparser)
         check_comment(p, "c1");
         check_pi(p, "pi", "v1");
         check_comment(p, "c2");
+        UTEST_ASSERT(p.level() == 0);
 
         check_start_element(p, "root:root");
         check_attribute(p, "xmlns:test", "http://some test namespace");
         check_text(p, "\n");
+            UTEST_ASSERT(p.level() == 1);
             check_pi(p, "pi", "v2");
             check_text(p, "\n");
             check_comment(p, "c3");
@@ -378,6 +380,7 @@ UTEST_BEGIN("core.files.xml", pullparser)
             check_start_element(p, "tag1");
             check_attribute(p, "p1", "10");
             check_attribute(p, "p2", "20");
+                UTEST_ASSERT(p.level() == 2);
                 check_pi(p, "pi", "v4");
                 check_text(p, "\n");
                 check_comment(p, "c4");
@@ -386,16 +389,20 @@ UTEST_BEGIN("core.files.xml", pullparser)
                 check_text(p, "\n");
             check_end_element(p, "tag1");
             check_text(p, "\nREFERENCE1\n");
+            UTEST_ASSERT(p.level() == 1);
 
             check_start_element(p, "test:tag2");
+            UTEST_ASSERT(p.level() == 2);
             check_attribute(p, "attr", "&\"\'<>");
             check_attribute(p, "attr2", "Привет");
             check_end_element(p, "test:tag2");
+            UTEST_ASSERT(p.level() == 1);
             check_text(p, "\n");
 
             check_start_element(p, "tag3");
             check_attribute(p, "param", "A-Z");
             check_attribute(p, "ref", "REFERENCE2-REFERENCE3");
+                UTEST_ASSERT(p.level() == 2);
                 check_text(p, "\n");
                 check_comment(p, "cdata");
                 check_text(p, "\n");
@@ -405,7 +412,9 @@ UTEST_BEGIN("core.files.xml", pullparser)
                 check_text(p, "\n");
             check_end_element(p, "tag3");
             check_text(p, "\n");
+            UTEST_ASSERT(p.level() == 1);
         check_end_element(p, "root:root");
+        UTEST_ASSERT(p.level() == 0);
         check_pi(p, "pi", "v6");
         check_comment(p, " end ");
     }

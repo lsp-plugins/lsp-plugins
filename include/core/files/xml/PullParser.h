@@ -228,6 +228,12 @@ namespace lsp
                  * @return value value
                  */
                 const LSPString        *value() const;
+
+                /**
+                 * Get current element nesting level
+                 * @return current element nesting level
+                 */
+                inline size_t           level() const           { return vTags.size(); }
         };
     
     } /* namespace xml */

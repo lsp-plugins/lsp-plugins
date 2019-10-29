@@ -9,6 +9,7 @@
 #include <core/files/bookmarks.h>
 #include <core/files/json/Parser.h>
 #include <core/files/json/Serializer.h>
+//#include <core/files/xml/PushParser.h>
 #include <core/io/InFileStream.h>
 #include <core/io/InSequence.h>
 
