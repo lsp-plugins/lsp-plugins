@@ -1,53 +1,39 @@
 /*
  * XMLHandler.h
  *
- *  Created on: 09 нояб. 2015 г.
+ *  Created on: 29 окт. 2019 г.
  *      Author: sadko
  */
 
 #ifndef UI_XMLHANDLER_H_
 #define UI_XMLHANDLER_H_
 
+#include <core/files/xml/IXMLHandler.h>
+#include <ui/XMLNode.h>
+#include <data/cvector.h>
+
 namespace lsp
 {
-    class XMLHandler
+    
+    class XMLHandler: public xml::IXMLHandler
     {
-        public:
-            virtual ~XMLHandler();
+        private:
+            XMLHandler & operator = (const XMLHandler &);
 
         protected:
-            static const char *findAttribute(const char **atts, const char *name);
+            cvector<XMLNode>    vHandlers;
+            XMLNode            *pRoot;
 
         public:
-            /** Called when XML handler is set
-             *
-             */
-            virtual void enter();
+            explicit XMLHandler(XMLNode *root);
+            virtual ~XMLHandler();
 
-            /** Call on tag open
-             *
-             * @param name tag name
-             * @param atts tag attributes
-             * @return handler of tag sub-structure or NULL
-             */
-            virtual XMLHandler     *startElement(const char *name, const char **atts);
+        public:
+            virtual status_t start_document(xml::xml_version_t xversion, const LSPString *version, const LSPString *encoding, bool standalone);
 
-            /** Call on tag close
-             *
-             * @param name tag name
-             */
-            virtual void            endElement(const char *name);
+            virtual status_t start_element(const LSPString *name, const LSPString * const *atts);
 
-            /** Called when there will be no more data
-             *
-             */
-            virtual void quit();
-
-            /** Called when child has been fully parsed
-             *
-             * @param child child that has been fully parsed
-             */
-            virtual void completed(XMLHandler *child);
+            virtual status_t end_element(const LSPString *name);
     };
 
 } /* namespace lsp */

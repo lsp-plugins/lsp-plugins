@@ -55,7 +55,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t IXMLHandler::start_element(const LSPString *name, const LSPString * const *atts, size_t nattr)
+        status_t IXMLHandler::start_element(const LSPString *name, const LSPString * const *atts)
         {
             return STATUS_OK;
         }

@@ -30,7 +30,7 @@ namespace lsp
         private:
             typedef struct node_t
             {
-                XMLHandler *handler;
+                OldXMLHandler *handler;
             #if defined(LSP_USE_EXPAT)
                 xml_char_t *tag;
             #elif defined(LSP_USE_MSXML)
@@ -43,17 +43,17 @@ namespace lsp
             size_t          nCapacity;
             size_t          nSize;
             node_t         *vStack;
-            XMLHandler      hStub; // Stub handler
+            OldXMLHandler   hStub; // Stub handler
 
         private:
             static void free_node(node_t *node);
-            bool init_node(node_t *node, const char *tag, XMLHandler *handler);
+            bool init_node(node_t *node, const char *tag, OldXMLHandler *handler);
 
             static void startElementHandler(void *userData, const xml_char_t *name, const xml_char_t **atts);
             static void endElementHandler(void *userData, const xml_char_t *);
 
         private:
-            bool push(const xml_char_t *tag, XMLHandler *handler);
+            bool push(const xml_char_t *tag, OldXMLHandler *handler);
             node_t  *pop();
             node_t  *top();
 
@@ -68,7 +68,7 @@ namespace lsp
              * @param root root handler
              * @return status of operation
              */
-            bool    parse(const LSPString *path, XMLHandler *root);
+            bool    parse(const LSPString *path, OldXMLHandler *root);
 
             /** Send start element event
              *

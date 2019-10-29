@@ -48,7 +48,7 @@ namespace lsp
 #include <metadata/metadata.h>
 
 // Configuration parsing
-#include <ui/XMLHandler.h>
+#include <ui/OldXMLHandler.h>
 #include <ui/XMLParser.h>
 
 // Common definitions

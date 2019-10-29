@@ -14,7 +14,7 @@
 
 namespace lsp
 {
-    class ui_for_handler: public XMLHandler
+    class ui_for_handler: public OldXMLHandler
     {
         protected:
             enum tag_t
@@ -40,7 +40,7 @@ namespace lsp
 
         private:
             ui_builder             *pBuilder;
-            XMLHandler             *pHandler;
+            OldXMLHandler             *pHandler;
             cvector<xml_event_t>    vEvents;
             size_t                  nLevel;
             char                   *pID;
@@ -191,7 +191,7 @@ namespace lsp
             }
 
         public:
-            ui_for_handler(ui_builder *bld, XMLHandler *handler, const char **atts)
+            ui_for_handler(ui_builder *bld, OldXMLHandler *handler, const char **atts)
             {
                 pBuilder            = bld;
                 pHandler            = handler;
@@ -258,7 +258,7 @@ namespace lsp
             }
 
         public:
-            virtual XMLHandler *startElement(const char *name, const char **atts)
+            virtual OldXMLHandler *startElement(const char *name, const char **atts)
             {
                 // Allocate event
                 xml_event_t *evt        = new xml_event_t;
@@ -329,7 +329,7 @@ namespace lsp
                     var->nValue             = value;
 
                     // Initialize call stack
-                    cstack<XMLHandler> stack;
+                    cstack<OldXMLHandler> stack;
                     if (!stack.push(pHandler))
                         break;
 
@@ -347,8 +347,8 @@ namespace lsp
                             case EVT_TAG_OPEN:
                             {
                                 char **atts                 = process_attributes(evt->vAttributes);
-                                XMLHandler *handler         = stack.top();
-                                XMLHandler *next            = handler->startElement(evt->sTag, const_cast<const char **>(atts));
+                                OldXMLHandler *handler         = stack.top();
+                                OldXMLHandler *next            = handler->startElement(evt->sTag, const_cast<const char **>(atts));
                                 if (next != NULL)
                                     next->enter();
                                 stack.push(next);
@@ -359,8 +359,8 @@ namespace lsp
 
                             case EVT_TAG_CLOSE:
                             {
-                                XMLHandler  *handler        = stack.pop();
-                                XMLHandler  *prev           = stack.top();
+                                OldXMLHandler  *handler        = stack.pop();
+                                OldXMLHandler  *prev           = stack.top();
                                 if (handler != NULL)
                                     handler->quit();
                                 if (prev != NULL)
@@ -381,13 +381,13 @@ namespace lsp
             }
     };
 
-    class ui_widget_handler: public XMLHandler
+    class ui_widget_handler: public OldXMLHandler
     {
         private:
             ui_builder         *pBuilder;
             CtlWidget          *pWidget;
             ui_widget_handler  *pChild;
-            XMLHandler         *pSpecial;
+            OldXMLHandler         *pSpecial;
 
         public:
             ui_widget_handler(ui_builder *bld, CtlWidget *widget)
@@ -410,7 +410,7 @@ namespace lsp
                 pWidget->begin();
             }
 
-            virtual XMLHandler *startElement(const char *name, const char **atts)
+            virtual OldXMLHandler *startElement(const char *name, const char **atts)
             {
                 // Check for special conditions
                 if (strstr(name, "ui:") != NULL)
@@ -449,7 +449,7 @@ namespace lsp
                 pWidget->end();
             }
 
-            virtual void completed(XMLHandler *child)
+            virtual void completed(OldXMLHandler *child)
             {
                 if ((child == pChild) && (pChild != NULL))
                 {
@@ -472,7 +472,7 @@ namespace lsp
             }
     };
 
-    class ui_root_handler: public XMLHandler
+    class ui_root_handler: public OldXMLHandler
     {
         private:
             ui_builder         *pBuilder;
@@ -495,7 +495,7 @@ namespace lsp
             }
 
         public:
-            virtual XMLHandler *startElement(const char *name, const char **atts)
+            virtual OldXMLHandler *startElement(const char *name, const char **atts)
             {
                 CtlWidget *widget = NULL;
 

@@ -1,54 +1,73 @@
 /*
- * XMLParser.cpp
+ * XMLHandler.cpp
  *
- *  Created on: 09 нояб. 2015 г.
+ *  Created on: 29 окт. 2019 г.
  *      Author: sadko
  */
 
-#include <ui/ui.h>
-#include <string.h>
+#include <ui/XMLHandler.h>
 
 namespace lsp
 {
+    
+    XMLHandler::XMLHandler(XMLNode *root)
+    {
+        pRoot   = root;
+    }
+    
     XMLHandler::~XMLHandler()
     {
+        pRoot   = NULL;
+        vHandlers.flush();
     }
 
-    void XMLHandler::enter()
+    status_t XMLHandler::start_document(xml::xml_version_t xversion, const LSPString *version, const LSPString *encoding, bool standalone)
     {
+        return (vHandlers.push(pRoot)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    const char *XMLHandler::findAttribute(const char **atts, const char *name)
+    status_t XMLHandler::start_element(const LSPString *name, const LSPString * const *atts)
     {
-        while (*atts != NULL)
+        XMLNode *top        = vHandlers.last();
+        XMLNode *child      = NULL;
+
+        if (top != NULL)
         {
-            const char *a_name      = *atts++;
-            const char *a_value     = *atts++;
-            if ((a_name != NULL) && (a_value != NULL))
-            {
-                if (!strcmp(a_name, name))
-                    return a_value;
-            }
+            status_t res = top->start_element(&child, name, atts);
+            if ((res == STATUS_OK) && (child != NULL))
+                res = child->enter();
+
+            if (res != STATUS_OK)
+                return res;
         }
 
-        return NULL;
+        return (vHandlers.push(child)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    XMLHandler *XMLHandler::startElement(const char *name, const char **atts)
+    status_t XMLHandler::end_element(const LSPString *name)
     {
-        return NULL;
-    }
+        status_t res;
+        XMLNode *node = NULL, *top = NULL;
 
-    void XMLHandler::endElement(const char *name)
-    {
-    }
+        if (!vHandlers.pop(&node))
+            return STATUS_CORRUPTED;
+        top     = vHandlers.last();
 
-    void XMLHandler::quit()
-    {
-    }
+        // Call callbacks
+        if (node != NULL)
+        {
+            if ((res = node->quit()) != STATUS_OK)
+                return res;
+        }
+        if (top != NULL)
+        {
+            if ((res = top->completed(node)) != STATUS_OK)
+                return res;
+            if ((res = top->end_element(name)) != STATUS_OK)
+                return res;
+        }
 
-    void XMLHandler::completed(XMLHandler *child)
-    {
+        return STATUS_OK;
     }
 
 } /* namespace lsp */

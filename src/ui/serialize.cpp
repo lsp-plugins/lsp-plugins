@@ -13,7 +13,7 @@ namespace lsp
 {
     using namespace tk;
 
-    class lsp_theme_handler: public XMLHandler
+    class lsp_theme_handler: public OldXMLHandler
     {
         protected:
             LSPTheme        *pTheme;
@@ -24,7 +24,7 @@ namespace lsp
                 pTheme      = theme;
             }
 
-            virtual void completed(XMLHandler *child)
+            virtual void completed(OldXMLHandler *child)
             {
                 if (child != NULL)
                     delete child;
@@ -37,7 +37,7 @@ namespace lsp
             lsp_theme_color_handler(LSPTheme *theme) : lsp_theme_handler(theme) {}
 
         public:
-            virtual XMLHandler *startElement(const char *name, const char **atts)
+            virtual OldXMLHandler *startElement(const char *name, const char **atts)
             {
                 const char *value = findAttribute(atts, "value");
                 if (value != NULL)
@@ -55,7 +55,7 @@ namespace lsp
             lsp_theme_body_handler(LSPTheme *theme) : lsp_theme_handler(theme) {}
 
         public:
-            virtual XMLHandler *startElement(const char *name, const char **atts)
+            virtual OldXMLHandler *startElement(const char *name, const char **atts)
             {
                 if (!strcmp(name, "colors"))
                     return new lsp_theme_color_handler(pTheme);
@@ -71,7 +71,7 @@ namespace lsp
             lsp_theme_root_handler(LSPTheme *theme) : lsp_theme_handler(theme) {}
 
         public:
-            virtual XMLHandler *startElement(const char *name, const char **atts)
+            virtual OldXMLHandler *startElement(const char *name, const char **atts)
             {
                 if (!strcmp(name, "theme"))
                     return new lsp_theme_body_handler(pTheme);
@@ -80,7 +80,7 @@ namespace lsp
                 return NULL;
             }
 
-            virtual void completed(XMLHandler *child)
+            virtual void completed(OldXMLHandler *child)
             {
                 if (child != NULL)
                     delete child;

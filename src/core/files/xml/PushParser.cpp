@@ -141,14 +141,21 @@ namespace lsp
                 // Is there tag element pending?
                 if ((ctag.size() > 0) && ((token != XT_ATTRIBUTE) && (token != XT_ENTITY_RESOLVE)))
                 {
+                    // Add NULL-terminating element
+                    if (!ctag.add(NULL))
+                        return STATUS_NO_MEM;
+
+                    // Analyze state
                     LSPString **atts        = ctag.get_array();
                     size_t n                = ctag.size();
-                    if (!(n & 1))
+                    if (n & 1) // Nubmber of elements should be even
                     {
                         res     = STATUS_CORRUPTED;
                         break;
                     }
-                    res     = handler->start_element(atts[0], &atts[1], n >> 1);
+
+                    // Call handler
+                    res     = handler->start_element(atts[0], &atts[1]);
                     drop_list(&ctag);
                     if (res != STATUS_OK)
                         break;

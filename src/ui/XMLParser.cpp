@@ -48,7 +48,7 @@ namespace lsp
         node->tag       = NULL;
     }
 
-    bool XMLParser::init_node(node_t *node, const char *tag, XMLHandler *handler)
+    bool XMLParser::init_node(node_t *node, const char *tag, OldXMLHandler *handler)
     {
 #if defined(LSP_USE_EXPAT)
         if (tag != NULL)
@@ -83,7 +83,7 @@ namespace lsp
     {
         node_t *top         = this->top();
 
-        XMLHandler *handler = (top->handler != NULL) ? top->handler->startElement(name, atts) : NULL;
+        OldXMLHandler *handler = (top->handler != NULL) ? top->handler->startElement(name, atts) : NULL;
         if (handler != NULL)
             handler->enter();
 
@@ -108,7 +108,7 @@ namespace lsp
         free_node(node);
     }
 
-    bool XMLParser::push(const xml_char_t *tag, XMLHandler *handler)
+    bool XMLParser::push(const xml_char_t *tag, OldXMLHandler *handler)
     {
         if (nSize >= nCapacity)
         {
@@ -141,7 +141,7 @@ namespace lsp
         return (nSize > 0) ? &vStack[nSize-1] : NULL;
     }
 
-    bool XMLParser::parse(const LSPString *path, XMLHandler *root)
+    bool XMLParser::parse(const LSPString *path, OldXMLHandler *root)
     {
         if (!push(NULL, root))
             return false;

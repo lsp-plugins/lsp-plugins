@@ -297,6 +297,14 @@ namespace lsp
                     return true;
                 }
 
+                inline T *last() { return (nItems > 0) ? reinterpret_cast<T *>(pvItems[nItems-1]) : NULL; }
+
+                inline T *last() const { return (nItems > 0) ? reinterpret_cast<const T *>(pvItems[nItems-1]) : NULL; }
+
+                inline T *first() { return (nItems > 0) ? reinterpret_cast<T *>(pvItems[0]) : NULL; }
+
+                inline T *first() const { return (nItems > 0) ? reinterpret_cast<const T *>(pvItems[0]) : NULL; }
+
                 inline bool add_unique(T *item) { return basic_vector::add_unique(item); }
 
                 inline bool insert(T *item, size_t index) { return basic_vector::insert_item(item, index); }

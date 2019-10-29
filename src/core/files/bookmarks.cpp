@@ -43,7 +43,7 @@ namespace lsp
                     return STATUS_OK;
                 }
 
-                virtual status_t start_element(const LSPString *name, const LSPString * const *atts, size_t nattr)
+                virtual status_t start_element(const LSPString *name, const LSPString * const *atts)
                 {
                     // Append tag name to path
                     if (!sPath.append('/'))
@@ -57,7 +57,7 @@ namespace lsp
                         LSPString href;
 
                         // Scan for 'href' attribute
-                        for ( ; nattr > 0; --nattr, atts += 2)
+                        for ( ; *atts != NULL; atts += 2)
                             if (atts[0]->equals_ascii("href"))
                             {
                                 if (atts[1]->starts_with_ascii("file://"))
