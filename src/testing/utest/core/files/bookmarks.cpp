@@ -121,6 +121,8 @@ UTEST_BEGIN("core.files", bookmarks)
         UTEST_ASSERT(bm.get(1)->path.equals_ascii("/home/some/path/1"));
         UTEST_ASSERT(bm.get(1)->name.equals_ascii("Additional path"));
         UTEST_ASSERT(bm.get(1)->origin == (BM_LSP | BM_GTK3 | BM_QT5));
+
+        destroy_bookmarks(&bm);
     }
 
     void test_merge_bookmarks()
@@ -166,6 +168,9 @@ UTEST_BEGIN("core.files", bookmarks)
         UTEST_ASSERT(dst.get(3)->path.equals_ascii("/2/1"));
         UTEST_ASSERT(dst.get(3)->name.equals_ascii("2-1"));
         UTEST_ASSERT(dst.get(3)->origin == (BM_GTK3 | BM_LSP));
+
+        destroy_bookmarks(&dst);
+        destroy_bookmarks(&src);
     }
 
     UTEST_MAIN

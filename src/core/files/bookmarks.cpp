@@ -242,6 +242,7 @@ namespace lsp
                 {
                     if (!dst->remove(i))
                         return STATUS_NO_MEM;
+                    delete bm;
                     ++nc;
                     continue;
                 }
