@@ -20,6 +20,9 @@ namespace lsp
          */
         class IXMLHandler
         {
+            private:
+                IXMLHandler & operator = (const IXMLHandler &);
+
             public:
                 explicit IXMLHandler();
                 virtual ~IXMLHandler();

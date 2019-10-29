@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/debug.h>
 #include <core/files/xml/PushParser.h>
 
 namespace lsp
@@ -138,7 +139,7 @@ namespace lsp
                 }
 
                 // Is there tag element pending?
-                if ((ctag.size() > 0) && (token != XT_ATTRIBUTE))
+                if ((ctag.size() > 0) && ((token != XT_ATTRIBUTE) && (token != XT_ENTITY_RESOLVE)))
                 {
                     LSPString **atts        = ctag.get_array();
                     size_t n                = ctag.size();

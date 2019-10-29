@@ -78,7 +78,17 @@ namespace test
 
         va_list vl;
         va_start(vl, fmt);
-        int res = vprintf(fmt, vl);
+        int res = ::vprintf(fmt, vl);
+        va_end(vl);
+        fflush(stdout);
+        return res;
+    }
+
+    int Test::eprintf(const char *fmt, ...)
+    {
+        va_list vl;
+        va_start(vl, fmt);
+        int res = ::vfprintf(stderr, fmt, vl);
         va_end(vl);
         fflush(stdout);
         return res;
