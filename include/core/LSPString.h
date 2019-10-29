@@ -33,11 +33,13 @@ namespace lsp
             mutable buffer_t   *pTemp;
 
         protected:
-            inline bool cap_reserve(size_t size);
-            void drop_temp();
-            bool append_temp(const char *p, size_t n) const;
-            bool resize_temp(size_t n) const;
-            bool grow_temp(size_t n) const;
+            bool            size_reserve(size_t size);
+            inline bool     cap_reserve(size_t size);
+            inline bool     cap_grow(size_t delta);
+            void            drop_temp();
+            bool            append_temp(const char *p, size_t n) const;
+            bool            resize_temp(size_t n) const;
+            bool            grow_temp(size_t n) const;
 
             static inline lsp_wchar_t *xmalloc(size_t size) { return reinterpret_cast<lsp_wchar_t *>(::malloc(size * sizeof(lsp_wchar_t))); }
             static inline lsp_wchar_t *xrealloc(lsp_wchar_t * ptr, size_t size) { return reinterpret_cast<lsp_wchar_t *>(::realloc(ptr, size * sizeof(lsp_wchar_t))); };
@@ -69,7 +71,7 @@ namespace lsp
              * @param length the length of the string
              * @return the length of the string after applied operarion
              */
-            inline size_t set_length(size_t length) { return (nLength >= length) ? nLength = length : nLength; }
+            size_t set_length(size_t length);
 
             /** Get the capacity of the string
              *
@@ -96,7 +98,7 @@ namespace lsp
              * @param size number of characters to use as capacity
              * @return true on success
              */
-            bool reserve(size_t size);
+            inline bool reserve(size_t size) { return (size > nCapacity) ? size_reserve(size) : true; };
 
             /**
              * Clear the string without deallocating internal buffer
@@ -424,6 +426,7 @@ namespace lsp
             int compare_to(const LSPString *src) const;
             int compare_to_ascii(const char *src) const;
             int compare_to_nocase(const LSPString *src) const;
+            int compare_to_ascii_nocase(const char *src) const;
 
             size_t tolower();
             size_t tolower(ssize_t first);
@@ -439,8 +442,10 @@ namespace lsp
              * @return true if equals
              */
             bool equals(const LSPString *src) const;
-            inline bool equals_ascii(const char *src) const { return compare_to_ascii(src) == 0; };
             bool equals_nocase(const LSPString *src) const;
+
+            inline bool equals_ascii(const char *src) const { return compare_to_ascii(src) == 0; };
+            inline bool equals_ascii_nocase(const char *src) const { return compare_to_ascii_nocase(src) == 0; };
 
             /** Calculate number of character occurences
              *
