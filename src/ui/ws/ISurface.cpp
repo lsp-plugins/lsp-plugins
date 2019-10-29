@@ -346,6 +346,14 @@ namespace lsp
         void ISurface::fill_circle(float x, float y, float r, IGradient *g)
         {
         }
+
+        void ISurface::clip_begin(float x, float y, float w, float h)
+        {
+        }
+
+        void ISurface::clip_end()
+        {
+        }
     
         bool ISurface::get_antialiasing()
         {

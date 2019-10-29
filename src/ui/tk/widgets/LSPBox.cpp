@@ -210,10 +210,36 @@ namespace lsp
             {
                 cell_t *cell        = vItems.at(i);
                 if (cell->pWidget == child)
-                    return (vItems.remove(i)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+                {
+                    if (!vItems.remove(i))
+                        return STATUS_UNKNOWN_ERR;
+                    query_resize();
+                    child->set_parent(NULL);
+                    return STATUS_OK;
+                }
             }
 
             return STATUS_NOT_FOUND;
+        }
+
+        status_t LSPBox::remove_all()
+        {
+            if (vItems.size() <= 0)
+                return STATUS_OK;
+
+            cstorage<cell_t> tmp;
+            vItems.swap(&tmp);
+
+            for (size_t i=0, n=vItems.size(); i<n; ++i)
+            {
+                cell_t *cell        = vItems.at(i);
+                if (cell->pWidget != NULL)
+                    cell->pWidget->set_parent(NULL);
+            }
+
+            tmp.flush();
+            query_resize();
+            return STATUS_OK;
         }
 
         void LSPBox::realize(const realize_t *r)

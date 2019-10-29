@@ -8,6 +8,8 @@
 #ifndef UI_TK_WIDGETS_DIALOGS_LSPFILEDIALOG_H_
 #define UI_TK_WIDGETS_DIALOGS_LSPFILEDIALOG_H_
 
+#include <core/files/bookmarks.h>
+
 namespace lsp
 {
     namespace tk
@@ -36,11 +38,22 @@ namespace lsp
                     F_ISHIDDEN  = 1 << 6
                 };
 
+                typedef lsp::bookmarks::bookmark_t  bookmark_t;
+
                 typedef struct file_entry_t
                 {
                     LSPString       sName;
                     size_t          nFlags;
                 } file_entry_t;
+
+                typedef struct bm_entry_t
+                {
+                    LSPHyperlink            sHlink;
+                    io::Path                sPath;
+                    bookmarks::bookmark_t   sBookmark;
+
+                    inline bm_entry_t(LSPDisplay *dpy): sHlink(dpy) {}
+                } bm_entry_t;
 
                 class LSPFileDialogFilter: public LSPFileFilter
                 {
@@ -68,8 +81,14 @@ namespace lsp
                 LSPListBox          sWFiles;
                 LSPButton           sWAction;
                 LSPButton           sWCancel;
-                LSPBox              sVBox;
+                LSPGrid             sMainGrid;
+                LSPScrollBox        sSBBookmarks;
+                LSPAlign            sSBAlign;
+                LSPBox              sBookmarks;
+                LSPMenu             sBMPopup;
+                LSPButton           sBMAdd;
                 LSPBox              sHBox;
+                LSPBox              sWarnBox;
                 LSPAlign            sAppendExt;
                 LSPButton           wAutoExt;
                 LSPButton           wGo;
@@ -84,6 +103,9 @@ namespace lsp
                 file_dialog_mode_t  enMode;
                 cvector<LSPWidget>  vWidgets;
                 cvector<file_entry_t> vFiles;
+                cvector<bm_entry_t> vBookmarks;
+                bm_entry_t         *pSelBookmark;
+                bm_entry_t         *pPopupBookmark;
 
                 LSPString           sConfirm;       // Confirmation message
                 LSPString           sSelected;
@@ -101,6 +123,17 @@ namespace lsp
                 static status_t     slot_on_go(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_up(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_path_key_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_add(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_popup(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_open(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_follow(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_copy(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_delete(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_down(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_first(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_bm_menu_last(LSPWidget *sender, void *ptr, void *data);
 
                 virtual status_t    on_dlg_action(void *data);
                 virtual status_t    on_dlg_confirm(void *data);
@@ -112,10 +145,13 @@ namespace lsp
                 virtual status_t    on_dlg_up(void *data);
                 virtual status_t    on_path_key_up(ws_event_t *e);
 
+                status_t            on_bm_submit(LSPWidget *sender);
+
                 void                do_destroy();
                 status_t            refresh_current_path();
                 ssize_t             default_index(ssize_t val);
-                status_t            add_label(LSPWidgetContainer *c, const char *text, LSPLabel **label = NULL);
+                status_t            add_label(LSPWidgetContainer *c, const char *text, float align = 0.0f, LSPLabel **label = NULL);
+                status_t            add_menu_item(LSPMenu *m, const char *text, ui_event_handler_t handler);
                 status_t            add_ext_button(LSPWidgetContainer *c, const char *text);
                 status_t            add_file_entry(cvector<file_entry_t> *dst, const char *name, size_t flags);
                 void                destroy_file_entries(cvector<file_entry_t> *dst);
@@ -128,6 +164,21 @@ namespace lsp
                 status_t            build_full_path(LSPString *dst, const LSPString *fname);
                 status_t            show_message(const char *heading, const char *main, const char *message);
                 file_entry_t       *selected_entry();
+
+                void                drop_bookmarks();
+                static status_t     read_lsp_bookmarks(cvector<bookmark_t> &vbm);
+                static status_t     read_gtk2_bookmarks(cvector<bookmark_t> &vbm);
+                static status_t     read_gtk3_bookmarks(cvector<bookmark_t> &vbm);
+                static status_t     read_qt5_bookmarks(cvector<bookmark_t> &vbm);
+                status_t            save_bookmarks(cvector<bookmark_t> *vbm);
+                status_t            sync_bookmarks();
+                status_t            refresh_bookmarks();
+                status_t            select_current_bookmark();
+                status_t            remove_bookmark(bm_entry_t *entry);
+                status_t            init_bm_popup_menu();
+                status_t            add_new_bookmark();
+                status_t            init_entry(bm_entry_t *ent, const io::Path *path);
+                bm_entry_t         *find_bookmark(LSPWidget *sender);
 
             public:
                 explicit LSPFileDialog(LSPDisplay *dpy);
@@ -154,7 +205,6 @@ namespace lsp
 
                 inline LSPFileFilter *filter() { return &sFilter; }
 
-//                inline size_t filters() const { return vFilters.size(); }
                 status_t get_filter(size_t idx, LSPString *pattern, LSPString *title);
                 inline size_t default_filter() const { return nDefaultFilter; }
 

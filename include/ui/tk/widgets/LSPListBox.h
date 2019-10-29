@@ -12,7 +12,6 @@ namespace lsp
 {
     namespace tk
     {
-        
         class LSPListBox: public LSPComplexWidget
         {
             public:
@@ -127,8 +126,14 @@ namespace lsp
 
                 inline LSPFont             *font()          { return &sFont; }
 
-                inline float                vscroll() const { return sVBar.value(); }
-                inline float                hscroll() const { return sHBar.value(); }
+                inline float                vscroll() const     { return sVBar.value(); }
+                inline float                vscroll_min() const { return sVBar.min_value(); }
+                inline float                vscroll_max() const { return sVBar.max_value(); }
+                inline float                vscroll_on() const  { return sVBar.visible(); }
+                inline float                hscroll() const     { return sHBar.value(); }
+                inline float                hscroll_min() const { return sHBar.min_value(); }
+                inline float                hscroll_max() const { return sHBar.max_value(); }
+                inline bool                 hscroll_on() const  { return sHBar.visible(); }
 
             public:
                 void set_min_width(ssize_t value);

@@ -310,7 +310,7 @@ namespace lsp
         {
             // Prepare palette
             Color color(sColor);
-            Color bg_color(sColor);
+            Color bg_color(sBgColor);
             color.scale_lightness(brightness());
 
             // Draw background

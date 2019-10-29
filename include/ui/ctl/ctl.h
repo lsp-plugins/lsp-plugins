@@ -54,6 +54,7 @@ namespace lsp
             WC_HGRID,
             WC_HLINK,
             WC_HSBAR,
+            WC_HSBOX,
             WC_HSEP,
             WC_INDICATOR,
             WC_KNOB,
@@ -72,6 +73,7 @@ namespace lsp
             WC_SAMPLE,
             WC_SAVE,
             WC_SBAR,
+            WC_SBOX,
             WC_SEP,
             WC_SOURCE3D,
             WC_STATUS,
@@ -84,6 +86,7 @@ namespace lsp
             WC_VGRID,
             WC_VIEWER3D,
             WC_VSBAR,
+            WC_VSBOX,
             WC_VSEP,
             WC_WINDOW
         };
@@ -138,6 +141,7 @@ namespace lsp
             A_HPOS,
             A_HPOS_ID,
             A_HSCALE,
+            A_HSCROLL,
             A_HSPACING,
             A_HUE2_ID,
             A_HUE_ID,
@@ -155,8 +159,12 @@ namespace lsp
             A_LOGARITHMIC,
             A_MAX,
             A_MAX_DURATION_ID,
+            A_MAX_HEIGHT,
+            A_MAX_WIDTH,
             A_MESH_ID,
             A_MIN,
+            A_MIN_HEIGHT,
+            A_MIN_WIDTH,
             A_MODE,
             A_MODE_ID,
             A_OFFSET,
@@ -217,6 +225,7 @@ namespace lsp
             A_VPOS,
             A_VPOS_ID,
             A_VSCALE,
+            A_VSCROLL,
             A_VSPACING,
             A_WIDTH,
             A_XPOS_ID,
@@ -262,6 +271,13 @@ namespace lsp
          * @return attribute name or NULL if not found
          */
         const char *widget_attribute(widget_attribute_t type);
+
+        /**
+         * Get widget scrolling
+         * @param value value representing scrolling
+         * @return scrolling type
+         */
+        scrolling_t widget_scroll(const char *value);
     }
 }
 
@@ -282,6 +298,7 @@ namespace lsp
 #include <ui/ctl/CtlWidget.h>
 #include <ui/ctl/CtlPluginWindow.h>
 #include <ui/ctl/CtlBox.h>
+#include <ui/ctl/CtlScrollBox.h>
 #include <ui/ctl/CtlGrid.h>
 #include <ui/ctl/CtlButton.h>
 #include <ui/ctl/CtlSwitch.h>

@@ -2,6 +2,14 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Bookmarks in File dialogs ====
+  funkmuscle:
+    Also the older versions, you could of bookmarked the dir where IR files are. I can't seem to figure out
+    how to do it with the version.
+  
+  sadko4u:
+    Currently because all dialogs were written from scratch, there are no bookmarks currently.
+
 ==== Analyzer ====
 
 Sciurius:

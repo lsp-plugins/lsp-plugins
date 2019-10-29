@@ -1095,6 +1095,23 @@ namespace lsp
                 pData = NULL;
             }
 
+            void X11CairoSurface::clip_begin(float x, float y, float w, float h)
+            {
+                if (pCR == NULL)
+                    return;
+                cairo_save(pCR);
+                cairo_rectangle(pCR, x, y, w, h);
+                cairo_clip(pCR);
+                cairo_new_path(pCR);
+            }
+
+            void X11CairoSurface::clip_end()
+            {
+                if (pCR == NULL)
+                    return;
+                cairo_restore(pCR);
+            }
+
         }
     }
 

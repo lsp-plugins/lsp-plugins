@@ -62,6 +62,34 @@ namespace lsp
             pStyle  = NULL;
         }
         
+        void LSPColor::Listener::reset()
+        {
+            LSPStyle *style = pStyle;
+            if (style == NULL)
+                return;
+
+            style->begin();
+
+            #define LISTENER_RESET(var) if (var >= 0) style->set_default(var);
+            LISTENER_RESET(aR);
+            LISTENER_RESET(aG);
+            LISTENER_RESET(aB);
+
+            LISTENER_RESET(aH);
+            LISTENER_RESET(aS);
+            LISTENER_RESET(aL);
+
+            LISTENER_RESET(aA);
+
+            LISTENER_RESET(aRGB);
+            LISTENER_RESET(aRGBA);
+            LISTENER_RESET(aHSL);
+            LISTENER_RESET(aHSLA);
+            #undef LISTENER_UNBIND
+
+            style->end();
+        }
+
         status_t LSPColor::Listener::bind(LSPDisplay *dpy, LSPStyle *style, const char *property)
         {
             if (pStyle == style)
@@ -257,6 +285,11 @@ namespace lsp
 
         LSPColor::~LSPColor()
         {
+        }
+
+        void LSPColor::set_default()
+        {
+            sListener.reset();
         }
 
         void LSPColor::color_changed()

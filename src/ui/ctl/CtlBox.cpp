@@ -50,10 +50,7 @@ namespace lsp
         status_t CtlBox::add(CtlWidget *child)
         {
             LSPBox *box     = widget_cast<LSPBox>(pWidget);
-            if (box == NULL)
-                return STATUS_BAD_STATE;
-
-            return box->add(child->widget());
+            return (box != NULL) ? box->add(child->widget()) : STATUS_BAD_STATE;
         }
 
     } /* namespace ctl */

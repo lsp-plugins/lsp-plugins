@@ -32,5 +32,10 @@ namespace lsp
         {
             return STATUS_NOT_FOUND;
         }
+
+        status_t LSPWidgetContainer::remove_all()
+        {
+            return STATUS_NOT_IMPLEMENTED;
+        }
     } /* namespace tk */
 } /* namespace lsp */

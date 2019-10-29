@@ -885,6 +885,8 @@ namespace lsp
 
         status_t LSPWindow::unfocus_child(LSPWidget *focus)
         {
+            if (pPointed == focus)
+                pPointed = NULL;
             if (focus != pFocus)
                 return STATUS_OK;
 

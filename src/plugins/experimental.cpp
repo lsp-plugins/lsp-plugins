@@ -106,14 +106,13 @@ namespace lsp
                     nStatus     = STATUS_BAD_ARGUMENTS;
                 else if ((fname[2] != 'a') && (fname[2] != 'A'))
                     nStatus     = STATUS_BAD_ARGUMENTS;
-                else if ((fname[3] != 'v') && (fname[3] != 'v'))
+                else if ((fname[3] != 'v') && (fname[3] != 'V'))
                     nStatus     = STATUS_BAD_ARGUMENTS;
                 else
                     nStatus     = STATUS_OK;
             }
 
             path->accept();
-            path->commit();
         }
     }
 

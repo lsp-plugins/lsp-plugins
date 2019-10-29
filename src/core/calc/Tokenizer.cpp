@@ -518,24 +518,6 @@ namespace lsp
 
             sValue.set_length(0);
 
-            while (true)
-            {
-                // Lookup character
-                c = lookup();
-
-                // Skip whitespace
-                if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n'))
-                    continue;
-                else if (c < 0)
-                {
-                    enToken = (c == -STATUS_EOF) ? TT_EOF : TT_ERROR;
-                    nError  = -c;
-                    return enToken;
-                }
-                else
-                    break; // OK
-            }
-
             // Now analyze first character
             switch (c)
             {

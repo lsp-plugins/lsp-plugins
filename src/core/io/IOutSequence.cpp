@@ -55,13 +55,8 @@ namespace lsp
                 return set_error(STATUS_BAD_ARGUMENTS);
 
             ssize_t len = s->length();
-            if (first < 0)
-            {
-                if ((first += len) < 0)
-                    return set_error(STATUS_OVERFLOW);
-            }
-            else if (first >= len)
-                return set_error((first > len) ? STATUS_OVERFLOW : STATUS_OK);
+            if (first > len)
+                return set_error(STATUS_OVERFLOW);
     
             const lsp_wchar_t *v = s->characters();
             return write(&v[first], len - first);
@@ -73,28 +68,19 @@ namespace lsp
                 return set_error(STATUS_BAD_ARGUMENTS);
 
             ssize_t len = s->length();
-            if (first < 0)
-            {
-                if ((first += len) < 0)
-                    return set_error(STATUS_OVERFLOW);
-            }
-            else if (first >= len)
-                return set_error((first > len) ? STATUS_OVERFLOW : STATUS_OK);
+            if (first > len)
+                return set_error(STATUS_OVERFLOW);
+            else if (last > len)
+                return set_error(STATUS_OVERFLOW);
 
-            if (last < 0)
-            {
-                if ((last += len) < 0)
-                    return set_error(STATUS_OVERFLOW);
-            }
-            else if (last >= len)
-                return set_error((last > len) ? STATUS_OVERFLOW : STATUS_OK);
-
-            ssize_t count = last - first;
-            if (count <= 0)
-                return set_error((count < 0) ? STATUS_OVERFLOW : STATUS_OK);
+            len = last - first;
+            if (len < 0)
+                return set_error(STATUS_OVERFLOW);
+            else if (len == 0)
+                return set_error(STATUS_OK);
 
             const lsp_wchar_t *v = s->characters();
-            return write(&v[first], count);
+            return write(&v[first], len);
         }
 
         status_t IOutSequence::writeln(lsp_wchar_t c)

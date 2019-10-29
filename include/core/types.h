@@ -72,7 +72,7 @@ typedef int32_t         lsp_swchar_t;
 
 namespace lsp
 {
-    enum lsp_wrap_flatgs_t
+    enum lsp_wrap_flags_t
     {
         WRAP_NONE       = 0,
 

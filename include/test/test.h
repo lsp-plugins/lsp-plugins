@@ -43,6 +43,7 @@ namespace test
 
         public:
             int             printf(const char *fmt, ...);
+            int             eprintf(const char *fmt, ...);
 
         public:
             inline const char *name() const         { return __test_name; }
