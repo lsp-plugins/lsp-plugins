@@ -45,10 +45,9 @@
 * Updated UI of the Multiband Compressor plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
 * Implemented JSON and JSON5 parsing and serializing mechanisms.
-* Implemented XML parsing mechanism without builtin DOCTYPE definition support.
-- Added bookmarks to file opening/saving dialogs.
-  KDE5 bookmark location: ~/.local/share/user-places.xbel (xml)
-  GTK3 bookmark location: ~/.config/gtk-3.0/bookmarks (plain hrefs)
+* Implemented XML parsing mechanism without built-in DOCTYPE definition support.
+* Added bookmark support by file opening/saving dialogs. Bookmarks are also automatically imported from
+  GNOME/KDE desktop environments' configuration files.
 - Refactored and optimized reverb simulation algorithm.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
