@@ -12,9 +12,7 @@
 #include <string.h>
 
 #if defined(LSP_BUILTIN_RESOURCES)
-//    #define XML_OPEN_TAG        '\x55'
     #define XML_CLOSE_TAG       0xff
-//    #define XML_END_DOCUMENT    '\0'
 #endif /* LSP_XML_BUILTIN */
 
 namespace lsp
@@ -45,8 +43,6 @@ namespace lsp
 #if defined(LSP_USE_EXPAT)
         if (node->tag != NULL)
             lsp_free(node->tag);
-#elif defined(LSP_USE_MSXML)
-        // TODO
 #endif /* LSP_USE_EXPAT */
 
         node->tag       = NULL;
@@ -63,8 +59,6 @@ namespace lsp
         }
         else
             node->tag           = NULL;
-#elif defined(LSP_USE_MSXML)
-        // TODO
 #elif defined(LSP_BUILTIN_RESOURCES)
         node->tag           = tag;
 #endif /* LSP_BUILTIN_RESOURCES */
@@ -147,17 +141,17 @@ namespace lsp
         return (nSize > 0) ? &vStack[nSize-1] : NULL;
     }
 
-    bool XMLParser::parse(const char *path, XMLHandler *root)
+    bool XMLParser::parse(const LSPString *path, XMLHandler *root)
     {
         if (!push(NULL, root))
             return false;
 
-#if defined(LSP_USE_EXPAT)
+#ifndef LSP_BUILTIN_RESOURCES
         XML_Parser parser = XML_ParserCreate(NULL);
         XML_SetUserData(parser, this);
         XML_SetElementHandler(parser, startElementHandler, endElementHandler);
 
-        FILE *fd = fopen(path, "r");
+        FILE *fd = fopen(path->get_native(), "r");
         if (fd == NULL)
         {
             XML_ParserFree(parser);
@@ -191,11 +185,9 @@ namespace lsp
         XML_ParserFree(parser);
         fclose(fd);
         return true;
-#elif defined(LSP_USE_MSXML)
-        // TODO
 #elif defined(LSP_BUILTIN_RESOURCES)
         // Obtain resource
-        const resource_t *res = resource_get(path, RESOURCE_XML);
+        const resource_t *res = resource_get(path->get_utf8(), RESOURCE_XML);
         if (res == NULL)
             return false;
         lsp_trace("Resource id=%s, type=%d, data=%p", res->id, int(res->type), res->data);

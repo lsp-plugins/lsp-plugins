@@ -12,8 +12,6 @@
 
 #if defined(LSP_USE_EXPAT)
     #include <expat.h>
-#elif defined(LSP_USE_MSXML)
-    #include <msxml.h>
 #endif /* LSP_USE_EXPAT */
 
 namespace lsp
@@ -70,20 +68,20 @@ namespace lsp
              * @param root root handler
              * @return status of operation
              */
-            bool    parse(const char *path, XMLHandler *root);
+            bool    parse(const LSPString *path, XMLHandler *root);
 
             /** Send start element event
              *
              * @param name start element name
              * @param atts start element attributes
              */
-            void startElement(const xml_char_t *name, const xml_char_t **atts);
+            void    startElement(const xml_char_t *name, const xml_char_t **atts);
 
             /** Send end element event
              *
              * @param name end element name
              */
-            void endElement(const xml_char_t *name);
+            void    endElement(const xml_char_t *name);
     };
 } /* namespace lsp */
 

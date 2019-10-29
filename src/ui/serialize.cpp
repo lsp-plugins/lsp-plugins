@@ -87,7 +87,7 @@ namespace lsp
             }
     };
 
-    status_t load_theme(tk::LSPTheme *theme, const char *path)
+    status_t load_theme(tk::LSPTheme *theme, const LSPString *path)
     {
         lsp_theme_root_handler root(theme);
         XMLParser parser;

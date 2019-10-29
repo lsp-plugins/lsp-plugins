@@ -18,7 +18,7 @@ namespace lsp
      * @param path path to the file
      * @return true if theme was loaded
      */
-    status_t    load_theme(tk::LSPTheme *theme, const char *path);
+    status_t    load_theme(tk::LSPTheme *theme, const LSPString *path);
 }
 
 #endif /* UI_SERIALIZE_H_ */

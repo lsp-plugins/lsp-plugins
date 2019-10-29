@@ -30,7 +30,7 @@ namespace lsp
             virtual ~ui_builder();
 
         public:
-            bool build(const char *path);
+            bool build(const LSPString *path);
 
             inline plugin_ui *get_ui()   { return pUI; }
 

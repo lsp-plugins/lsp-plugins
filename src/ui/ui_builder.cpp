@@ -582,7 +582,7 @@ namespace lsp
         return var;
     }
 
-    bool ui_builder::build(const char *path)
+    bool ui_builder::build(const LSPString *path)
     {
         ui_root_handler root(this);
         XMLParser parser;
