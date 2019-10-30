@@ -22,15 +22,30 @@ namespace lsp
     class ui_builder
     {
         private:
+            ui_builder & operator = (const ui_builder &);
+
+        private:
             plugin_ui                  *pUI;
             cvector<ui_variable_t>      vVars;
 
         public:
             explicit ui_builder(plugin_ui *ui);
-            virtual ~ui_builder();
+            ~ui_builder();
 
         public:
-            bool build(const LSPString *path);
+            /**
+             * Build UI
+             * @param uri URI of the XML resource
+             * @return status of operation
+             */
+            status_t build(const LSPString *uri);
+
+            /**
+             * Build UI
+             * @param uri URI of the XML resource
+             * @return status of operation
+             */
+            status_t build(const char *uri);
 
             inline plugin_ui *get_ui()   { return pUI; }
 

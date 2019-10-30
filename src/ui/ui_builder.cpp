@@ -582,11 +582,23 @@ namespace lsp
         return var;
     }
 
-    bool ui_builder::build(const LSPString *path)
+    status_t ui_builder::build(const LSPString *path)
     {
         ui_root_handler root(this);
         XMLParser parser;
 
-        return parser.parse(path, &root);
+        return (parser.parse(path, &root)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+    }
+
+    status_t ui_builder::build(const char *path)
+    {
+        LSPString tmp;
+        if (!tmp.set_utf8(path))
+            return STATUS_NO_MEM;
+
+        ui_root_handler root(this);
+        XMLParser parser;
+
+        return (parser.parse(&tmp, &root)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
     }
 }

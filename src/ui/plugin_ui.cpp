@@ -1090,10 +1090,10 @@ namespace lsp
         lsp_trace("Generating UI from URI %s", path.get_utf8());
 
         ui_builder bld(this);
-        if (!bld.build(&path))
+        if ((result = bld.build(&path)) != STATUS_OK)
         {
             lsp_error("Could not build UI from URI %s", path.get_utf8());
-            return STATUS_UNKNOWN_ERR;
+            return result;
         }
 
         // Fetch main menu
