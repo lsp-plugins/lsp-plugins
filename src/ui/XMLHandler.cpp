@@ -119,7 +119,7 @@ namespace lsp
 
         // Perform parse
         xml::PushParser parser;
-        return parser.parse_file(this, path);
+        return parser.parse_file(this, path, "UTF-8");
     }
 
     status_t XMLHandler::parse_resource(const resource_t *rs, XMLNode *root)
@@ -143,14 +143,14 @@ namespace lsp
         do
         {
             size_t token = resource_fetch_byte(&data);
-            lsp_trace("token = 0x%02x, path=%s", int(token), sPath.get_utf8());
+            //lsp_trace("token = 0x%02x, path=%s", int(token), sPath.get_utf8());
 
             if (token != XML_CLOSE_TAG)
             {
                 // Get element name
                 if ((s = fetch_element_string(&data)) == NULL)
                     return STATUS_NO_MEM;
-                lsp_trace("element = %s", s->get_utf8());
+                //lsp_trace("element = %s", s->get_utf8());
 
                 // Update current path
                 if (!sPath.append('/'))
@@ -163,10 +163,10 @@ namespace lsp
                 {
                     if ((s = fetch_element_string(&data)) == NULL)
                         return STATUS_NO_MEM;
-                    lsp_trace("  attribute = %s", s->get_utf8());
+                    //lsp_trace("  attribute = %s", s->get_utf8());
                     if ((s = fetch_element_string(&data)) == NULL)
                         return STATUS_NO_MEM;
-                    lsp_trace("  value     = %s", s->get_utf8());
+                    //lsp_trace("  value     = %s", s->get_utf8());
                 }
 
                 // Add NULL-terminating element
