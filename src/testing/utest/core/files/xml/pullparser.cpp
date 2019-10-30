@@ -253,30 +253,38 @@ UTEST_BEGIN("core.files.xml", pullparser)
         static const char *xml[] =
         {
             "",
+
             "<?xml version='1.0'?>",
             "<?xml version='1.1' encoding='UTF-8'?>",
             "<?xml version='1.1' encoding='UTF-8' standalone='yes' ?>",
             "<?xml version='1.0' standalone='yes' ?>",
             "<?xml \n\t\r version='1.1' \n\t\r encoding='UTF-8' \n\t\r  standalone='yes' \n\t\r ?>",
+
             "<!-- Simple comment -->",
             "<!--- comment - with - dash -->",
             "<!-- Simple comment 1 -->\n<!-- Simple comment 2 -->",
+
             "<!DOCTYPE greeting>",
             "<!DOCTYPE greeting >",
             "<!DOCTYPE greeting SYSTEM \"hello.dtd\">",
             "<!DOCTYPE greeting SYSTEM 'hello.dtd'>",
             "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">",
+
             "<?xml version='1.0'?><!-- comment after header -->",
             "<?xml version='1.0'?><!-- c1 --><?pi some text ?><!-- c2 -->",
+
             "<?xml version='1.0'?><?pi?>",
             "<?xml version='1.0'?><?pi arg?>",
             "<?xml version='1.0'?><?pi arg arg   ?>",
+
             "<?xml version='1.0'?><root/>",
             "<?xml version='1.0'?><root />",
             "<?xml version='1.0'?><root></root>",
             "<?xml version='1.0'?><root>&#x00000000000020;</root>",
             "<?xml version='1.0'?><root>&reference1;</root>",
             "<?xml version='1.0'?><root><![CDATA[data]]data]]></root>",
+
+            "<?xml version='1.0'?><root id='1' ID='2'></root>",
             "<?xml version='1.0'?><root att1=\"value1\"></root>",
             "<?xml version='1.0'?><root att1=\"value1\" ns:attr2='value2'  ></root>",
             "<?xml version='1.0'?><root><t1><t2></t2></t1></root>",
@@ -337,10 +345,12 @@ UTEST_BEGIN("core.files.xml", pullparser)
             "<?xml version='1.0'?><root></ root>",
             "<?xml version='1.0'?><root1/><root2/>",
             "<?xml version='1.0'?><root1></root1><root2></root2>",
+
             "<?xml version='1.0'?><root att1></root>",
             "<?xml version='1.0'?><root att=value></root>",
             "<?xml version='1.0'?><root 1att='value'></root>",
             "<?xml version='1.0'?><root att='value' att2></root>",
+            "<?xml version='1.0'?><root att='value1' att='value2'></root>",
 
             "<?xml version='1.0'?><root><tag></root>",
             "<?xml version='1.0'?><root><1tag /></root>",

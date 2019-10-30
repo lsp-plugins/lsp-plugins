@@ -213,13 +213,8 @@ namespace lsp
             nFlags          = 0;
 
             // Remove all tag hierarchy
-            for (size_t i=0, n=vTags.size(); i<n; ++i)
-            {
-                LSPString *s = vTags.at(i);
-                if (s != NULL)
-                    delete s;
-            }
-            vTags.flush();
+            drop_list(&vTags);
+            drop_list(&vAtts);
 
             // Release input sequence
             if (pIn != NULL)
@@ -260,6 +255,40 @@ namespace lsp
         void PullParser::pop_state()
         {
             nState  = vStates[--nStates];
+        }
+
+        void PullParser::drop_list(cvector<LSPString> *list)
+        {
+            for (size_t i=0, n=list->size(); i<n; ++i)
+            {
+                LSPString *s = list->at(i);
+                if (s != NULL)
+                    delete s;
+            }
+            list->flush();
+        }
+
+        status_t PullParser::check_duplicate_attribute()
+        {
+            // Is item present in list?
+            for (size_t i=0, n=vAtts.size(); i<n; ++i)
+            {
+                LSPString *s = vAtts.at(i);
+                if ((s != NULL) && (s->equals(&sName)))
+                    return STATUS_CORRUPTED;
+            }
+
+            // Add to list
+            LSPString *copy = sName.clone();
+            if (copy == NULL)
+                return STATUS_NO_MEM;
+            if (!vAtts.add(copy))
+            {
+                delete copy;
+                return STATUS_NO_MEM;
+            }
+
+            return STATUS_OK;
         }
 
         bool PullParser::skip_spaces()
@@ -876,6 +905,7 @@ namespace lsp
             }
 
             // Change state
+            drop_list(&vAtts);
             nToken  = XT_START_ELEMENT;
             nState  = PS_READ_ATTRIBUTES;
             return STATUS_OK;
@@ -898,6 +928,7 @@ namespace lsp
             delete name;
 
             // Update state
+            drop_list(&vAtts);
             nToken = XT_END_ELEMENT;
             nState = (vTags.size() > 0) ? PS_READ_ELEMENT_DATA : PS_READ_MISC;
             return STATUS_OK;
@@ -1174,6 +1205,8 @@ namespace lsp
             ungetch(c);
             if ((res = read_name(&sName)) != STATUS_OK)
                 return res;
+            else if (check_duplicate_attribute())
+                return STATUS_CORRUPTED;
 
             skip_spaces(); // Spaces are optional
             if ((c = getch()) != '=')

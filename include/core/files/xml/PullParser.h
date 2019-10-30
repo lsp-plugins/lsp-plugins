@@ -70,14 +70,18 @@ namespace lsp
                 LSPString           sSystem;        // System literal
                 LSPString           sPublic;        // Public literal
                 cvector<LSPString>  vTags;
+                cvector<LSPString>  vAtts;
 
             protected:
+                static void         drop_list(cvector<LSPString> *list);
+
                 inline lsp_swchar_t getch();
                 inline void         ungetch(lsp_swchar_t c);
                 inline void         push_state(parse_state_t override);
                 inline void         pop_state();
 
                 bool                skip_spaces();
+                status_t            check_duplicate_attribute();
 
                 status_t            read_version();
                 status_t            read_encoding();
