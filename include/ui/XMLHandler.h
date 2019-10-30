@@ -32,6 +32,7 @@ namespace lsp
 
         public:
             explicit XMLHandler();
+            explicit XMLHandler(XMLNode *root);
             virtual ~XMLHandler();
 
         public:

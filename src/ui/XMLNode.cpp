@@ -6,10 +6,12 @@
  */
 
 #include <ui/XMLNode.h>
+#include <ui/XMLHandler.h>
 
 namespace lsp
 {
-    
+    //-------------------------------------------------------------------------
+    // XML Node implementation
     XMLNode::XMLNode()
     {
     }
@@ -60,6 +62,159 @@ namespace lsp
     status_t XMLNode::completed(XMLNode *child)
     {
         return STATUS_OK;
+    }
+
+    //-------------------------------------------------------------------------
+    // XML Playback Node implementation
+    XMLPlaybackNode::xml_event_t::xml_event_t(event_t type)
+    {
+        nEvent      = type;
+    }
+
+    XMLPlaybackNode::xml_event_t::~xml_event_t()
+    {
+        for (size_t i=0, n=vData.size(); i<n; ++i)
+        {
+            LSPString *s = vData.at(i);
+            if (s != NULL)
+                delete s;
+        }
+        vData.flush();
+    }
+
+    status_t XMLPlaybackNode::xml_event_t::add_param(const LSPString *name)
+    {
+        LSPString *tmp;
+        if ((tmp = name->clone()) == NULL)
+            return STATUS_NO_MEM;
+        else if (!vData.add(tmp))
+        {
+            delete tmp;
+            return STATUS_NO_MEM;
+        }
+        return STATUS_OK;
+    }
+
+    XMLPlaybackNode::xml_event_t *XMLPlaybackNode::add_event(event_t ev)
+    {
+        xml_event_t *evt        = new xml_event_t(EVT_START_ELEMENT);
+        if (evt == NULL)
+            return NULL;
+        else if (!vEvents.add(evt))
+        {
+            delete evt;
+            evt = NULL;
+        }
+        return evt;
+    }
+
+    XMLPlaybackNode::XMLPlaybackNode(XMLNode *handler)
+    {
+        pHandler    = handler;
+        nLevel      = 0;
+    }
+
+    XMLPlaybackNode::~XMLPlaybackNode()
+    {
+        for (size_t i=0, n=vEvents.size(); i<n; ++i)
+        {
+            xml_event_t *ev = vEvents.at(i);
+            if (ev != NULL)
+                delete ev;
+        }
+        vEvents.flush();
+    }
+
+    status_t XMLPlaybackNode::init(const LSPString * const *atts)
+    {
+        return STATUS_OK;
+    }
+
+    status_t XMLPlaybackNode::playback()
+    {
+        status_t res;
+        XMLHandler h(pHandler);
+
+        for (size_t i=0, n=vEvents.size(); i<n; ++i)
+        {
+            // Fetch event
+            xml_event_t *ev = vEvents.at(i);
+            if (ev == NULL)
+            {
+                res = STATUS_CORRUPTED;
+                break;
+            }
+
+            // Parse event
+            LSPString **atts = ev->vData.get_array();
+            switch (ev->nEvent)
+            {
+                case EVT_START_ELEMENT:
+                    res = h.start_element(atts[0], &atts[1]);
+                    break;
+                case EVT_END_ELEMENT:
+                    res = h.end_element(atts[0]);
+                    break;
+                default:
+                    res = STATUS_CORRUPTED;
+                    break;
+            }
+
+            // Check result
+            if (res != STATUS_OK)
+                break;
+        }
+
+        return res;
+    }
+
+    status_t XMLPlaybackNode::execute()
+    {
+        return playback();
+    }
+
+    status_t XMLPlaybackNode::start_element(XMLNode **child, const LSPString *name, const LSPString * const *atts)
+    {
+        // Allocate event
+        status_t res;
+        xml_event_t *evt        = add_event(EVT_START_ELEMENT);
+        if (evt == NULL)
+            return STATUS_NO_MEM;
+
+        // Clone element name
+        if ((res = evt->add_param(name)) != STATUS_OK)
+            return res;
+
+        // Clone tag attributes
+        for ( ; *atts != NULL; ++atts)
+        {
+            // Clone attribute
+            if ((res = evt->add_param(*atts)) != STATUS_OK)
+                return res;
+        }
+
+        // Increment level, set child to this
+        ++nLevel;
+        *child = this;
+
+        return STATUS_OK;
+    }
+
+    status_t XMLPlaybackNode::end_element(const LSPString *name)
+    {
+        // Allocate event and add parameter
+        xml_event_t *evt        = add_event(EVT_END_ELEMENT);
+        return (evt != NULL) ? evt->add_param(name) : STATUS_NO_MEM;
+    }
+
+    status_t XMLPlaybackNode::quit()
+    {
+        // Prevent from early execution
+        if ((nLevel--) != 0)
+            return STATUS_OK;
+
+        // Execute the main logic
+        return execute();
     }
 
 } /* namespace lsp */

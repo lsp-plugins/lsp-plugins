@@ -21,6 +21,11 @@ namespace lsp
     {
     }
     
+    XMLHandler::XMLHandler(XMLNode *root)
+    {
+        vHandlers.add(root);
+    }
+
     XMLHandler::~XMLHandler()
     {
         vHandlers.flush();

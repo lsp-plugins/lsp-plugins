@@ -9,6 +9,7 @@
 #define UI_XMLNODE_H_
 
 #include <core/LSPString.h>
+#include <data/cvector.h>
 
 namespace lsp
 {
@@ -57,6 +58,63 @@ namespace lsp
              * @param child child that has been fully parsed
              */
             virtual status_t        completed(XMLNode *child);
+    };
+
+    class XMLPlaybackNode: public XMLNode
+    {
+        private:
+            XMLPlaybackNode & operator = (const XMLPlaybackNode &src);
+
+        private:
+            enum event_t
+            {
+                EVT_START_ELEMENT,
+                EVT_END_ELEMENT
+            };
+
+            typedef struct xml_event_t
+            {
+                event_t             nEvent;
+                cvector<LSPString>  vData;
+
+                inline xml_event_t(event_t type);
+                ~xml_event_t();
+                status_t add_param(const LSPString *name);
+            } xml_event_t;
+
+        private:
+            XMLNode                *pHandler;
+            cvector<xml_event_t>    vEvents;
+            size_t                  nLevel;
+
+        private:
+            xml_event_t *add_event(event_t ev);
+
+        public:
+            explicit XMLPlaybackNode(XMLNode *handler);
+
+            virtual ~XMLPlaybackNode();
+
+            virtual status_t init(const LSPString * const *atts);
+
+        public:
+            /**
+             * Playback recorded data
+             * @return
+             */
+            virtual status_t playback();
+
+            /**
+             * Execute the body of playback node
+             * @return status of operation
+             */
+            virtual status_t execute();
+
+            virtual status_t start_element(XMLNode **child, const LSPString *name, const LSPString * const *atts);
+
+            virtual status_t end_element(const LSPString *name);
+
+            virtual status_t quit();
     };
 
 } /* namespace lsp */
