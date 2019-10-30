@@ -47,10 +47,6 @@ namespace lsp
 // Metadata
 #include <metadata/metadata.h>
 
-// Configuration parsing
-#include <ui/XMLHandler.h>
-#include <ui/XMLParser.h>
-
 // Common definitions
 #include <ui/common.h>
 #include <ui/IUIWrapper.h>

@@ -1,53 +1,79 @@
 /*
  * XMLHandler.h
  *
- *  Created on: 09 нояб. 2015 г.
+ *  Created on: 29 окт. 2019 г.
  *      Author: sadko
  */
 
 #ifndef UI_XMLHANDLER_H_
 #define UI_XMLHANDLER_H_
 
+#include <core/files/xml/IXMLHandler.h>
+#include <ui/XMLNode.h>
+#include <data/cvector.h>
+#include <core/resource.h>
+
 namespace lsp
 {
-    class XMLHandler
+    
+    class XMLHandler: public xml::IXMLHandler
     {
-        public:
-            virtual ~XMLHandler();
+        private:
+            XMLHandler & operator = (const XMLHandler &);
 
         protected:
-            static const char *findAttribute(const char **atts, const char *name);
+            cvector<XMLNode>    vHandlers;
+            cvector<LSPString>  vElement;
+            LSPString           sPath;
+
+        protected:
+            void            drop_element();
+            LSPString      *fetch_element_string(const void **data);
 
         public:
-            /** Called when XML handler is set
-             *
-             */
-            virtual void enter();
+            explicit XMLHandler();
+            explicit XMLHandler(XMLNode *root);
+            virtual ~XMLHandler();
 
-            /** Call on tag open
-             *
-             * @param name tag name
-             * @param atts tag attributes
-             * @return handler of tag sub-structure or NULL
-             */
-            virtual XMLHandler     *startElement(const char *name, const char **atts);
+        public:
+            virtual status_t start_element(const LSPString *name, const LSPString * const *atts);
 
-            /** Call on tag close
-             *
-             * @param name tag name
-             */
-            virtual void            endElement(const char *name);
+            virtual status_t end_element(const LSPString *name);
 
-            /** Called when there will be no more data
-             *
+        public:
+            /**
+             * Parse resource from file
+             * @param path path to the file
+             * @param root root node that will handle XML data
+             * @return status of operation
              */
-            virtual void quit();
+            status_t parse_file(const LSPString *path, XMLNode *root);
 
-            /** Called when child has been fully parsed
-             *
-             * @param child child that has been fully parsed
+            /**
+             * Parse resource from resource descriptor
+             * @param rs resource descriptor
+             * @param root root node that will handle XML data
+             * @return status of operation
              */
-            virtual void completed(XMLHandler *child);
+            status_t parse_resource(const resource_t *rs, XMLNode *root);
+
+            /**
+             * Parse resource at specified URI. Depending on compilation flags,
+             * the URI will point at builtin resource or at local filesystem resource
+             * @param uri URI of the resource
+             * @param root root node that will handle XML data
+             * @return status of operation
+             */
+            status_t parse(const LSPString *uri, XMLNode *root);
+
+            /**
+             * Parse resource at specified URI. Depending on compilation flags,
+             * the URI will point at builtin resource or at local filesystem resource
+             * @param uri URI of the resource
+             * @param root root node that will handle XML data
+             * @return status of operation
+             */
+            status_t parse(const char *uri, XMLNode *root);
     };
 
 } /* namespace lsp */

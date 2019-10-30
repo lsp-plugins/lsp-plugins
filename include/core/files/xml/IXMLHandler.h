@@ -85,11 +85,10 @@ namespace lsp
                 /**
                  * Handle start of the element
                  * @param name tag name
-                 * @param atts attributes (may be NULL): even index is name, odd index is value
-                 * @param nattr number of attributes in list
+                 * @param atts NULL-terminated list of attributes: even index is name, odd index is value
                  * @return status of operation
                  */
-                virtual status_t start_element(const LSPString *name, const LSPString * const *atts, size_t nattr);
+                virtual status_t start_element(const LSPString *name, const LSPString * const *atts);
 
                 /**
                  * Handle end of the element

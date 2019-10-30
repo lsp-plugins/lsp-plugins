@@ -50,6 +50,7 @@
 * Implemented XML parsing mechanism without built-in DOCTYPE definition support.
 * Added bookmark support by file opening/saving dialogs. Bookmarks are also automatically imported from
   GNOME/KDE desktop environments' configuration files.
+* Removed EXPAT library from build dependencies since LSP Plugins have their own XML parser.
 - Added MIDI groups to MultiSampler plugin series.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
 - Implemented sampler plugin series with stereo outputs.

@@ -15,10 +15,18 @@ namespace lsp
     /** Load theme from XML
      *
      * @param theme theme to store data
-     * @param path path to the file
+     * @param uri uri of the resource
      * @return true if theme was loaded
      */
-    status_t    load_theme(tk::LSPTheme *theme, const char *path);
+    status_t    load_theme(tk::LSPTheme *theme, const LSPString *uri);
+
+    /** Load theme from XML
+     *
+     * @param theme theme to store data
+     * @param uri uri of the resource
+     * @return true if theme was loaded
+     */
+    status_t    load_theme(tk::LSPTheme *theme, const char *uri);
 }
 
 #endif /* UI_SERIALIZE_H_ */

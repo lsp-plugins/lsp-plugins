@@ -107,13 +107,13 @@ UTEST_BEGIN("core.files.xml", pushparser)
                 return STATUS_OK;
             }
 
-            virtual status_t start_element(const LSPString *name, const LSPString * const *atts, size_t nattr)
+            virtual status_t start_element(const LSPString *name, const LSPString * const *atts)
             {
                 LSPString tmp;
                 if (!tmp.append(name))
                     return STATUS_NO_MEM;
 
-                while (nattr-- > 0)
+                while (*atts != NULL)
                 {
                     if (!tmp.append(','))
                         return STATUS_NO_MEM;

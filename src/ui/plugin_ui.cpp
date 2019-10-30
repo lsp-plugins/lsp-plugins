@@ -1062,28 +1062,17 @@ namespace lsp
     status_t plugin_ui::build()
     {
         status_t result;
-        char path[PATH_MAX + 1];
+        LSPString path;
 
         // Load theme
         LSPTheme *theme = sDisplay.theme();
         if (theme == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        #ifdef LSP_BUILTIN_RESOURCES
-            ::strncpy(path, "ui/theme.xml", PATH_MAX);
-        #else
-            ::strncpy(path, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml", PATH_MAX);
-        #endif /* LSP_BUILTIN_RESOURCES */
-
-        lsp_trace("Loading theme from file %s", path);
-        result = load_theme(sDisplay.theme(), path);
+        lsp_trace("Loading theme");
+        result = load_theme(theme, "ui/theme.xml");
         if (result != STATUS_OK)
             return result;
-
-        // Final tuning of the theme
-        theme->get_color(C_LABEL_TEXT, theme->font()->color());
-        font_parameters_t fp;
-        theme->font()->get_parameters(&fp); // Cache font parameters for further user
 
         // Read global configuration
         result = load_global_config();
@@ -1091,18 +1080,14 @@ namespace lsp
             lsp_error("Error while loading global configuration file");
 
         // Generate path to UI schema
-        #ifdef LSP_BUILTIN_RESOURCES
-            ::snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
-        #else
-            ::snprintf(path, PATH_MAX, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource);
-        #endif /* LSP_BUILTIN_RESOURCES */
-        lsp_trace("Generating UI from file %s", path);
-
         ui_builder bld(this);
-        if (!bld.build(path))
+        if (!path.fmt_utf8("ui/%s", pMetadata->ui_resource))
+            return STATUS_NO_MEM;
+        lsp_trace("Generating UI from URI %s", path.get_utf8());
+        if ((result = bld.build(&path)) != STATUS_OK)
         {
-            lsp_error("Could not build UI from file %s", path);
-            return STATUS_UNKNOWN_ERR;
+            lsp_error("Could not build UI from URI %s", path.get_utf8());
+            return result;
         }
 
         // Fetch main menu

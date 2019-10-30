@@ -268,15 +268,10 @@ namespace lsp
 
             fprintf(out,    "#include <core/resource.h>\n\n");
 
-            fprintf(out,    "// Control characters\n");
-    //        fprintf(out,    "#define X_TAG_OPEN      \"\\x55\"\n");
-            fprintf(out,    "#define X_TAG_CLOSE     \"\\xff\"\n\n");
-            fprintf(out,    "#define X_SEPARATOR     \"\\0\"\n\n");
-
             fprintf(out,    "// String encoders\n");
-            fprintf(out,    "#define K(k)            k X_SEPARATOR\n");
+            fprintf(out,    "#define K(k)            k \"\\0\"\n");
             fprintf(out,    "#define O(x, count)     count x\n");
-            fprintf(out,    "#define C(x)            X_TAG_CLOSE \n");
+            fprintf(out,    "#define C(x)            \"\\xff\" \n");
             fprintf(out,    "#define P(k, v)         k v \n\n");
 
             fprintf(out,    "// Resource definition\n");

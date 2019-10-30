@@ -201,7 +201,6 @@ For successful build you need the following packages to be installed:
   * jack-devel >= 1.9.5
   * lv2-devel >= 1.10
   * ladspa-devel >= 1.13
-  * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14
