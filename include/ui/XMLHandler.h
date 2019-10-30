@@ -11,6 +11,7 @@
 #include <core/files/xml/IXMLHandler.h>
 #include <ui/XMLNode.h>
 #include <data/cvector.h>
+#include <core/resource.h>
 
 namespace lsp
 {
@@ -22,18 +23,56 @@ namespace lsp
 
         protected:
             cvector<XMLNode>    vHandlers;
-            XMLNode            *pRoot;
+            cvector<LSPString>  vElement;
+            LSPString           sPath;
+
+        protected:
+            void            drop_element();
+            LSPString      *fetch_element_string(const void **data);
 
         public:
-            explicit XMLHandler(XMLNode *root);
+            explicit XMLHandler();
             virtual ~XMLHandler();
 
         public:
-            virtual status_t start_document(xml::xml_version_t xversion, const LSPString *version, const LSPString *encoding, bool standalone);
-
             virtual status_t start_element(const LSPString *name, const LSPString * const *atts);
 
             virtual status_t end_element(const LSPString *name);
+
+        public:
+            /**
+             * Parse resource from file
+             * @param path path to the file
+             * @param root root node that will handle XML data
+             * @return status of operation
+             */
+            status_t parse_file(const LSPString *path, XMLNode *root);
+
+            /**
+             * Parse resource from resource descriptor
+             * @param rs resource descriptor
+             * @param root root node that will handle XML data
+             * @return status of operation
+             */
+            status_t parse_resource(const resource_t *rs, XMLNode *root);
+
+            /**
+             * Parse resource at specified URI. Depending on compilation flags,
+             * the URI will point at builtin resource or at local filesystem resource
+             * @param uri URI of the resource
+             * @param root root node that will handle XML data
+             * @return status of operation
+             */
+            status_t parse(const LSPString *uri, XMLNode *root);
+
+            /**
+             * Parse resource at specified URI. Depending on compilation flags,
+             * the URI will point at builtin resource or at local filesystem resource
+             * @param uri URI of the resource
+             * @param root root node that will handle XML data
+             * @return status of operation
+             */
+            status_t parse(const char *uri, XMLNode *root);
     };
 
 } /* namespace lsp */

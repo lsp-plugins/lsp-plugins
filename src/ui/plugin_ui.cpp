@@ -1069,23 +1069,10 @@ namespace lsp
         if (theme == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        #ifdef LSP_BUILTIN_RESOURCES
-            if (!path.set_utf8("ui/theme.xml"))
-                return STATUS_NO_MEM;
-        #else
-            if (!path.set_utf8("res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml"))
-                return STATUS_NO_MEM;
-        #endif /* LSP_BUILTIN_RESOURCES */
-
-        lsp_trace("Loading theme from file %s", path.get_utf8());
-        result = load_theme(sDisplay.theme(), &path);
+        lsp_trace("Loading theme");
+        result = load_theme(theme, "ui/theme.xml");
         if (result != STATUS_OK)
             return result;
-
-        // Final tuning of the theme
-        theme->get_color(C_LABEL_TEXT, theme->font()->color());
-        font_parameters_t fp;
-        theme->font()->get_parameters(&fp); // Cache font parameters for further user
 
         // Read global configuration
         result = load_global_config();
@@ -1097,15 +1084,15 @@ namespace lsp
             if (!path.fmt_utf8("ui/%s", pMetadata->ui_resource))
                 return STATUS_NO_MEM;
         #else
-            if (!path.fmt_utf8("res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource))
+            if (!path.fmt_utf8(LSP_RESOURCE_PATH FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource))
                 return STATUS_NO_MEM;
         #endif /* LSP_BUILTIN_RESOURCES */
-        lsp_trace("Generating UI from file %s", path.get_utf8());
+        lsp_trace("Generating UI from URI %s", path.get_utf8());
 
         ui_builder bld(this);
         if (!bld.build(&path))
         {
-            lsp_error("Could not build UI from file %s", path.get_utf8());
+            lsp_error("Could not build UI from URI %s", path.get_utf8());
             return STATUS_UNKNOWN_ERR;
         }
 

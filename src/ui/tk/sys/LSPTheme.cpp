@@ -39,11 +39,16 @@ namespace lsp
 
         status_t LSPTheme::after_load()
         {
+            font_parameters_t fp;
+
             // Initialize default root style settings
             get_color(C_BACKGROUND, &sBgColor);
             get_color(C_GLASS, &sGlassColor);
             get_color(C_HOLE, &sHoleColor);
             sBrightness.set(1.0f); // Normal brightness
+
+            get_color(C_LABEL_TEXT, pFont->color());
+            pFont->get_parameters(&fp); // Cache font parameters for further use
 
             return STATUS_OK;
         }

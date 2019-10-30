@@ -10,6 +10,13 @@
 
 #include <core/types.h>
 
+#ifndef LSP_RESOURCE_PATH
+    #define LSP_RESOURCE_PATH           "res"
+#endif
+
+#define LSP_BUILTIN_PREFIX          "builtin://"
+#define LSP_BUILTIN_PREFIX_LEN      10
+
 namespace lsp
 {
     enum resource_type_t
