@@ -85,7 +85,6 @@ namespace lsp
         private:
             XMLNode                *pHandler;
             cvector<xml_event_t>    vEvents;
-            size_t                  nLevel;
 
         private:
             xml_event_t *add_event(event_t ev);
@@ -114,7 +113,6 @@ namespace lsp
 
             virtual status_t end_element(const LSPString *name);
 
-            virtual status_t quit();
     };
 
 } /* namespace lsp */

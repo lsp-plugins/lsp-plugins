@@ -1080,16 +1080,10 @@ namespace lsp
             lsp_error("Error while loading global configuration file");
 
         // Generate path to UI schema
-        #ifdef LSP_BUILTIN_RESOURCES
-            if (!path.fmt_utf8("ui/%s", pMetadata->ui_resource))
-                return STATUS_NO_MEM;
-        #else
-            if (!path.fmt_utf8(LSP_RESOURCE_PATH FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource))
-                return STATUS_NO_MEM;
-        #endif /* LSP_BUILTIN_RESOURCES */
-        lsp_trace("Generating UI from URI %s", path.get_utf8());
-
         ui_builder bld(this);
+        if (!path.fmt_utf8("ui/%s", pMetadata->ui_resource))
+            return STATUS_NO_MEM;
+        lsp_trace("Generating UI from URI %s", path.get_utf8());
         if ((result = bld.build(&path)) != STATUS_OK)
         {
             lsp_error("Could not build UI from URI %s", path.get_utf8());

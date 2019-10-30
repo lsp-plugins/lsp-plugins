@@ -143,7 +143,7 @@ namespace lsp
         do
         {
             size_t token = resource_fetch_byte(&data);
-            lsp_trace("token = 0x%02x", int(token));
+            lsp_trace("token = 0x%02x, path=%s", int(token), sPath.get_utf8());
 
             if (token != XML_CLOSE_TAG)
             {
@@ -177,13 +177,16 @@ namespace lsp
                 LSPString **items = vElement.get_array();
                 if ((res = start_element(items[0], &items[1])) != STATUS_OK)
                     return res;
+
+                // Drop last used element
+                drop_element();
             }
             else
             {
                 // Obtain real element name
                 LSPString ename;
                 ssize_t idx = sPath.rindex_of('/');
-                if (idx <= 0)
+                if (idx < 0)
                     return STATUS_CORRUPTED;
                 if (!ename.set(&sPath, idx+1))
                     return STATUS_NO_MEM;
@@ -191,6 +194,9 @@ namespace lsp
                 // Issue callback
                 if ((res = end_element(&ename)) != STATUS_OK)
                     return res;
+
+                // Update path
+                sPath.set_length(idx);
             }
         }
         while (!sPath.is_empty());
@@ -209,7 +215,6 @@ namespace lsp
     status_t XMLHandler::parse(const LSPString *uri, XMLNode *root)
     {
         // Check for directive of using built-in resource
-        status_t res;
         if (uri->starts_with_ascii(LSP_BUILTIN_PREFIX))
         {
             LSPString bpath;
@@ -221,6 +226,7 @@ namespace lsp
 
 #ifndef LSP_BUILTIN_RESOURCES
         // Form the proper path to resource and call file parsing
+        status_t res;
         io::Path p;
         if ((res = p.set(LSP_RESOURCE_PATH)) != STATUS_OK)
             return res;

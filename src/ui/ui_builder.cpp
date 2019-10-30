@@ -46,6 +46,15 @@ namespace lsp
             ssize_t         nLast;
             ssize_t         nStep;
 
+        protected:
+            status_t iterate(ssize_t value)
+            {
+                status_t res;
+                if ((res = pBuilder->vars()->set_int(pID, value)) != STATUS_OK)
+                    return res;
+                return playback();
+            }
+
         public:
             explicit ui_for_handler(ui_builder *bld, XMLNode *handler) : ui_recording_handler(bld, handler)
             {
@@ -121,16 +130,21 @@ namespace lsp
                     return res;
 
                 // Perform a loop
-                for (ssize_t value = nFirst; value <= nLast; value += nStep)
+                if (nFirst <= nLast)
                 {
-                    if ((res = pBuilder->set_int(pID, value)) != STATUS_OK)
-                        return res;
-                    if ((res = playback()) != STATUS_OK)
-                        return res;
+                    for (ssize_t value = nFirst; value <= nLast; value += nStep)
+                        if ((res = iterate(value)) != STATUS_OK)
+                            break;
+                }
+                else
+                {
+                    for (ssize_t value = nLast; value >= nFirst; value += nStep)
+                        if ((res = iterate(value)) != STATUS_OK)
+                            break;
                 }
 
                 // Pop scope and return
-                return pBuilder->pop_scope();
+                return (res == STATUS_OK) ? pBuilder->pop_scope() : res;
             }
     };
 
@@ -200,10 +214,14 @@ namespace lsp
                 // Initialize pWidget parameters
                 for ( ; *atts != NULL; atts += 2)
                 {
-                    const char *a_name      = atts[0]->get_utf8();
-                    const char *a_value     = atts[1]->get_utf8();
-                    if ((a_name != NULL) && (a_value != NULL))
-                        widget->set(a_name, a_value);
+                    LSPString aname, avalue;
+                    if ((res = pBuilder->eval_string(&aname, atts[0])) != STATUS_OK)
+                        return res;
+                    if ((res = pBuilder->eval_string(&avalue, atts[1])) != STATUS_OK)
+                        return res;
+
+                    // Set widget attribute
+                    widget->set(aname.get_utf8(), avalue.get_utf8());
                 }
 
                 // Create handler
@@ -235,8 +253,11 @@ namespace lsp
                 }
                 else if ((child == pSpecial) && (pSpecial != NULL))
                 {
-                    delete pSpecial;
+                    ui_recording_handler * special = pSpecial;
                     pSpecial = NULL;
+
+                    res = special->execute();
+                    delete special;
                 }
                 return res;
             }
@@ -270,6 +291,8 @@ namespace lsp
         public:
             virtual status_t start_element(XMLNode **child, const LSPString *name, const LSPString * const *atts)
             {
+                status_t res;
+
                 // Check that root tag is valid
                 const char *root_tag = widget_ctl(WC_PLUGIN);
                 if (!name->equals_ascii(root_tag))
@@ -290,10 +313,14 @@ namespace lsp
                 // Initialize widget parameters
                 for ( ; *atts != NULL; atts += 2)
                 {
-                    const char *a_name      = atts[0]->get_utf8();
-                    const char *a_value     = atts[1]->get_utf8();
-                    if ((a_name != NULL) && (a_value != NULL))
-                        widget->set(a_name, a_value);
+                    LSPString aname, avalue;
+                    if ((res = pBuilder->eval_string(&aname, atts[0])) != STATUS_OK)
+                        return res;
+                    if ((res = pBuilder->eval_string(&avalue, atts[1])) != STATUS_OK)
+                        return res;
+
+                    // Set widget attribute
+                    widget->set(aname.get_utf8(), avalue.get_utf8());
                 }
 
                 // Create handler
@@ -368,10 +395,14 @@ namespace lsp
         status_t res = evaluate(&v, expr);
         if (res != STATUS_OK)
             return res;
-        else if (v.type != calc::VT_STRING)
-            res     = STATUS_BAD_TYPE;
-        else
-            value->swap(v.v_str);
+
+        if ((res = calc::cast_string(&v)) == STATUS_OK)
+        {
+            if (v.type == calc::VT_STRING)
+                value->swap(v.v_str);
+            else
+                res = STATUS_BAD_TYPE;
+        }
         destroy_value(&v);
         return res;
     }
@@ -394,12 +425,6 @@ namespace lsp
         // Store value
         *value = v;
         return STATUS_OK;
-    }
-
-    status_t ui_builder::set_int(const LSPString *var, ssize_t value)
-    {
-        calc::Variables *r = vars();
-        return (r != NULL) ? r->set_int(var, value) : STATUS_BAD_STATE;
     }
 
     status_t ui_builder::build(const LSPString *path)

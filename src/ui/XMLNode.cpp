@@ -97,7 +97,7 @@ namespace lsp
 
     XMLPlaybackNode::xml_event_t *XMLPlaybackNode::add_event(event_t ev)
     {
-        xml_event_t *evt        = new xml_event_t(EVT_START_ELEMENT);
+        xml_event_t *evt        = new xml_event_t(ev);
         if (evt == NULL)
             return NULL;
         else if (!vEvents.add(evt))
@@ -111,7 +111,6 @@ namespace lsp
     XMLPlaybackNode::XMLPlaybackNode(XMLNode *handler)
     {
         pHandler    = handler;
-        nLevel      = 0;
     }
 
     XMLPlaybackNode::~XMLPlaybackNode()
@@ -193,8 +192,11 @@ namespace lsp
                 return res;
         }
 
+        // Add terminator
+        if (!evt->vData.add(NULL))
+            return STATUS_NO_MEM;
+
         // Increment level, set child to this
-        ++nLevel;
         *child = this;
 
         return STATUS_OK;
@@ -205,16 +207,6 @@ namespace lsp
         // Allocate event and add parameter
         xml_event_t *evt        = add_event(EVT_END_ELEMENT);
         return (evt != NULL) ? evt->add_param(name) : STATUS_NO_MEM;
-    }
-
-    status_t XMLPlaybackNode::quit()
-    {
-        // Prevent from early execution
-        if ((nLevel--) != 0)
-            return STATUS_OK;
-
-        // Execute the main logic
-        return execute();
     }
 
 } /* namespace lsp */

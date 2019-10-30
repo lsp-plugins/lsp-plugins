@@ -28,8 +28,6 @@ namespace lsp
         private:
             status_t evaluate(calc::value_t *value, const LSPString *expr);
 
-            inline calc::Variables *vars() { calc::Variables *r = vStack.last();  return (r != NULL) ? r : &vRoot; }
-
         public:
             explicit ui_builder(plugin_ui *ui);
             ~ui_builder();
@@ -72,7 +70,19 @@ namespace lsp
              * Get current variable resolver
              * @return current variable resolver
              */
-            inline calc::Resolver *resolver() { calc::Variables *r = vStack.last();  return (r != NULL) ? r : &vRoot; }
+            inline calc::Resolver *resolver()   { calc::Variables *r = vStack.last();  return (r != NULL) ? r : &vRoot; }
+
+            /**
+             * Get current variable scope
+             * @return current variable scope
+             */
+            inline calc::Variables *vars()      { calc::Variables *r = vStack.last();  return (r != NULL) ? r : &vRoot; }
+
+            /**
+             * Get root variable scope
+             * @return root variable scope
+             */
+            inline calc::Variables *root()      { return &vRoot; }
 
             /**
              * Evaluate value and return as string
@@ -89,14 +99,6 @@ namespace lsp
              * @return status of operation
              */
             status_t eval_int(ssize_t *value, const LSPString *expr);
-
-            /**
-             * Set integer value
-             * @param var variable name
-             * @param value value to set
-             * @return status of operation
-             */
-            status_t set_int(const LSPString *var, ssize_t value);
     };
 }
 
