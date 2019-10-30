@@ -80,7 +80,7 @@ ${workspace_loc:/${ProjName}/include}
 <p>Now we need to enable extra headers for additional packages, for this purpose visit <b>GCC C++ Compiler</b> &rarr; <b>Miscellaneous</b>
 and enter into the <b>Other flags</b> field the following string:</p>
 <pre>
--c -fmessage-length=0 -m64 -msse -msse2 `pkg-config --cflags jack expat x11 cairo lv2 sndfile gl`
+-c -fmessage-length=0 -m64 -msse -msse2 `pkg-config --cflags jack x11 cairo lv2 sndfile gl`
 </pre>
 <p>Also, check the <b>Position Independent Code (-fPIC)</b> flag:</p>
 <div class="images">
@@ -114,7 +114,7 @@ and enter into the <b>Other flags</b> field the following string:</p>
 <p>Select <b>GCC C++ Linker</b> &rarr; <b>Miscellaneous</b> settings and enter the following string to <b>Linker flags</b> field
 to enable linkage with external libraries:<p>
 <pre>
-`pkg-config --libs jack expat x11 cairo lv2 sndfile gl`
+`pkg-config --libs jack x11 cairo lv2 sndfile gl`
 </pre>
 <p>The window should look like:</p>
 <div class="images">
