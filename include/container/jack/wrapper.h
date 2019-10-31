@@ -264,12 +264,12 @@ namespace lsp
     int JACKWrapper::run(size_t samples)
     {
         // Prepare ports
-        size_t n_ports  = vPorts.size();
-
+        size_t n_ports      = vPorts.size();
+        JACKPort **v_ports  = vPorts.get_array();
         for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            JACKPort *port = vPorts.at(i);
+            JACKPort *port = v_ports[i];
             if (port == NULL)
                 continue;
 
@@ -303,7 +303,7 @@ namespace lsp
         // Post-process ALL ports
         for (size_t i=0; i<n_ports; ++i)
         {
-            JACKPort *port = vPorts.at(i);
+            JACKPort *port = v_ports[i];
             if (port != NULL)
                 port->post_process(samples);
         }
@@ -425,9 +425,10 @@ namespace lsp
             #ifdef LSP_DEBUG
                 const char *src_id = jp->metadata()->id;
 
-                for (size_t i=0; i<vPorts.size(); ++i)
+                JACKPort **vp = vPorts.get_array();
+                for (size_t i=0, n=vPorts.size(); i<n; ++i)
                 {
-                    if (!strcmp(src_id, vPorts.at(i)->metadata()->id))
+                    if (!::strcmp(src_id, vp[i]->metadata()->id))
                     {
                         lsp_error("ERROR: port %s already defined", src_id);
                     }
