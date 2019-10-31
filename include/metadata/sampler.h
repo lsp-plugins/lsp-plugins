@@ -53,6 +53,8 @@ namespace lsp
         static const size_t PLAYBACKS_MAX           = 8192;     // Maximum number of simultaneously playing samples
         static const size_t SAMPLE_FILES            = 8;        // Number of sample files
         static const size_t BUFFER_SIZE             = 4096;     // Size of temporary buffer
+
+        static const size_t INSTRUMENTS_MAX         = 64;       // Maximum supported instruments
     };
 
     // Single samplers

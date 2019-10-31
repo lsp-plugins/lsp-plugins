@@ -114,7 +114,6 @@ namespace lsp
             float              *vBuffer;                    // Buffer
             bool                bBypass;                    // Bypass flag
             bool                bReorder;                   // Reorder flag
-            bool                bFadeout;                   // Fadeout flag
             float               fFadeout;                   // Fadeout in milliseconds
             float               fDynamics;                  // Dynamics
             float               fDrift;                     // Time drifting
@@ -152,7 +151,7 @@ namespace lsp
             virtual void trigger_stop(size_t timestamp);
 
         public:
-            void    set_fadeout(bool enabled, float length);
+            void    set_fadeout(float length);
 
         public:
             bool    init(ipc::IExecutor *executor, size_t files, size_t channels);
@@ -174,6 +173,9 @@ namespace lsp
 
     class sampler_base: public plugin_t
     {
+        protected:
+            const size_t BITMASK_MAX        = ((sampler_base_metadata::INSTRUMENTS_MAX + 31) >> 1);
+
         protected:
             typedef struct sampler_channel_t
             {
@@ -206,6 +208,7 @@ namespace lsp
                 size_t              nChannel;           // Channel
                 size_t              nMuteGroup;         // Mute group
                 bool                bMuting;            // Muting flag
+                bool                bNoteOff;           // Handle note-off event
 
                 sampler_channel_t   vChannels[sampler_kernel_metadata::TRACKS_MAX];       // Sampler output channels
                 IPort              *pGain;              // Gain output port
@@ -216,6 +219,7 @@ namespace lsp
                 IPort              *pOctave;            // Octave port
                 IPort              *pMuteGroup;         // Mute group
                 IPort              *pMidiNote;          // Output midi note #
+                IPort              *pNoteOff;           // Note off switch
             } sampler_t;
 
         protected:

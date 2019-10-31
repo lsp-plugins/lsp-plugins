@@ -46,7 +46,6 @@ namespace lsp
         vBuffer         = NULL;
         bBypass         = false;
         bReorder        = false;
-        bFadeout        = false;
         fFadeout        = 10.0f;
         fDynamics       = sampler_base_metadata::DYNA_DFL;
         fDrift          = sampler_base_metadata::DRIFT_DFL;
@@ -64,9 +63,8 @@ namespace lsp
         destroy_state();
     }
 
-    void sampler_kernel::set_fadeout(bool enabled, float length)
+    void sampler_kernel::set_fadeout(float length)
     {
-        bFadeout        = enabled;
         fFadeout        = length;
     }
 
@@ -824,7 +822,7 @@ namespace lsp
 
     void sampler_kernel::trigger_off(size_t timestamp, float level)
     {
-        if ((nActive <= 0) || (!bFadeout))
+        if (nActive <= 0)
             return;
 
         size_t delay    = timestamp;
@@ -996,7 +994,7 @@ namespace lsp
     sampler_base::sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports): plugin_t(metadata)
     {
         nChannels       = channels;
-        nSamplers       = samplers;
+        nSamplers       = lsp_min(sampler_base_metadata::INSTRUMENTS_MAX, samplers);
         nFiles          = files;
         bDryPorts       = dry_ports;
         vSamplers       = NULL;
@@ -1066,6 +1064,7 @@ namespace lsp
             s->nChannel     = sampler_kernel_metadata::CHANNEL_DFL;
             s->nMuteGroup   = i;
             s->bMuting      = false;
+            s->bNoteOff     = false;
 
             // Initialize channels
             lsp_trace("Initializing channel group #%d...", int(i));
@@ -1087,6 +1086,7 @@ namespace lsp
             s->pOctave      = NULL;
             s->pMuteGroup   = NULL;
             s->pMidiNote    = NULL;
+            s->pNoteOff     = NULL;
         }
 
         // Initialize temporary buffers
@@ -1319,6 +1319,7 @@ namespace lsp
 
         // Update settings on all samplers and triggers
         bool muting     = pMuting->getValue() >= 0.5f;
+        bool note_off   = pNoteOff->getValue() >= 0.5f;
         lsp_trace("muting=%s", (muting) ? "true" : "false");
 
         for (size_t i=0; i<nSamplers; ++i)
@@ -1330,6 +1331,8 @@ namespace lsp
             s->nChannel     = s->pChannel->getValue();
             s->nMuteGroup   = (s->pMuteGroup != NULL) ? s->pMuteGroup->getValue() : i;
             s->bMuting      = muting;
+            s->bNoteOff     = (s->pNoteOff != NULL) ? s->pNoteOff->getValue() : false;
+            s->bNoteOff     = s->bNoteOff || note_off;
 
             lsp_trace("Sampler %d channel=%d, note=%d", int(i), int(s->nChannel), int(s->nNote));
             if (s->pMidiNote != NULL)
@@ -1368,7 +1371,7 @@ namespace lsp
 
             // Additional parameters
             lsp_trace("Call for set sampler fadeout...");
-            s->sSampler.set_fadeout(pNoteOff->getValue() >= 0.5f, pFadeout->getValue());
+            s->sSampler.set_fadeout(pFadeout->getValue());
             lsp_trace("Call sampler %d for update", int(i));
             s->sSampler.update_settings();
         }
@@ -1432,30 +1435,65 @@ namespace lsp
             switch (me->type)
             {
                 case MIDI_MSG_NOTE_ON:
+                {
                     lsp_trace("NOTE_ON: channel=%d, pitch=%d, velocity=%d",
                             int(me->channel), int(me->note.pitch), int(me->note.velocity));
+
+                    uint32_t mg[BITMASK_MAX]; // Triggered mute groups
+                    uint32_t ts[BITMASK_MAX]; // Triggered samplers
+
+                    // Initialize parameters
+                    float gain  = me->note.velocity / 127.0f;
+                    for (size_t j=0; j<BITMASK_MAX; ++j)
+                    {
+                        mg[j]       = 0;
+                        ts[j]       = 0;
+                    }
+
+                    // Scan state of samplers
                     for (size_t j=0; j<nSamplers; ++j)
                     {
                         sampler_t *s = &vSamplers[j];
                         if (s->nNote != me->note.pitch)
                             continue;
 
-                        s->sSampler.trigger_on(me->timestamp, me->note.velocity / 127.0f);
+                        size_t g = s->nMuteGroup;
+                        mg[g >> 5] |= (1 << (g & 0x1f));        // Mark mute group as triggered
+                        ts[j >> 5] |= (1 << (j & 0x1f));        // Mark sampler as triggered
+                    }
+
+                    // Apply changes
+                    for (size_t j=0; j<nSamplers; ++j)
+                    {
+                        sampler_t *s    = &vSamplers[j];
+                        size_t g        = s->nMuteGroup;
+                        bool muted      = mg[g >> 5] & (1 << (g & 0x1f));
+                        bool triggered  = ts[j >> 5] & (1 << (j & 0x1f));
+
+                        if (triggered)
+                            s->sSampler.trigger_on(me->timestamp, gain);
+                        else if (muted)
+                            s->sSampler.trigger_off(me->timestamp, gain);
                     }
                     break;
+                }
 
                 case MIDI_MSG_NOTE_OFF:
+                {
                     lsp_trace("NOTE_OFF: channel=%d, pitch=%d, velocity=%d",
                             int(me->channel), int(me->note.pitch), int(me->note.velocity));
+                    float gain = me->note.velocity / 127.0f;
+
                     for (size_t j=0; j<nSamplers; ++j)
                     {
                         sampler_t *s = &vSamplers[j];
-                        if (s->nNote != me->note.pitch)
+                        if ((!s->bMuting) || (s->nNote != me->note.pitch))
                             continue;
 
-                        s->sSampler.trigger_off(me->timestamp, me->note.velocity / 127.0f);
+                        s->sSampler.trigger_off(me->timestamp, gain);
                     }
                     break;
+                }
 
                 case MIDI_MSG_NOTE_CONTROLLER:
                     lsp_trace("NOTE_CONTROLLER: channel=%d, control=%02x, value=%d",
