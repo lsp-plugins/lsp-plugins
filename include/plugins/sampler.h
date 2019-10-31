@@ -174,7 +174,7 @@ namespace lsp
     class sampler_base: public plugin_t
     {
         protected:
-            const size_t BITMASK_MAX        = ((sampler_base_metadata::INSTRUMENTS_MAX + 31) >> 1);
+            static const size_t BITMASK_MAX        = ((sampler_base_metadata::INSTRUMENTS_MAX + 31) >> 5);
 
         protected:
             typedef struct sampler_channel_t
@@ -218,6 +218,7 @@ namespace lsp
                 IPort              *pNote;              // Note port
                 IPort              *pOctave;            // Octave port
                 IPort              *pMuteGroup;         // Mute group
+                IPort              *pMuting;            // Muting
                 IPort              *pMidiNote;          // Output midi note #
                 IPort              *pNoteOff;           // Note off switch
             } sampler_t;
@@ -248,7 +249,7 @@ namespace lsp
             IPort              *pGain;              // Output gain port
 
         protected:
-            void        process_midi_events();
+            void        process_trigger_events();
 
         public:
             explicit sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports);

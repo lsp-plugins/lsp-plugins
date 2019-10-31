@@ -13,12 +13,12 @@
 		<!-- Instrument editor -->
 		<grid rows="2" cols="2" visibility=":msel ieq 0" spacing="4">
 			<cgroup id="inst" text="Instrument # ">
-				<grid rows="3" cols="6" spacing="4">
+				<grid rows="4" cols="6" spacing="4">
 					<!-- Row 1 -->
 					<label text="Channel" />
 					<label text="Note" />
 					<label text="MIDI #" />
-					<cell rows="3"><vsep /></cell>
+					<cell rows="4"><vsep /></cell>
 					<label text="Dynamics" />
 					<label text="Time drifting" />
 
@@ -29,13 +29,30 @@
 						<combo id="oct[inst]" fill="true" />
 					</hbox>
 					<indicator id="mn[inst]" format="i3" text_color="green" />
-					<knob id="dyna[inst]" scale_color="green" />
-					<knob id="drft[inst]" scale_color="green" />
+					<cell rows="2"><knob id="dyna[inst]" scale_color="green" /></cell>
+					<cell rows="2"><knob id="drft[inst]" scale_color="green" /></cell>
 					
 					<!-- Row 3 -->
-					<cell cols="3"><label /></cell>
-					<value id="dyna[inst]" />
-					<value id="drft[inst]" />
+					<label text="Group" />
+					<align hpos="0">
+						<hbox spacing="4">
+							<button id="mtg[inst]" color="yellow" led="true" size="12" />
+							<label text="Muting" />
+						</hbox>
+					</align>
+					<label />
+					
+					<!-- Row 4 -->
+					<combo id="mgrp[inst]" />
+					<align hpos="0">
+						<hbox spacing="4">
+							<button id="nto[inst]" color="green" led="true" size="12" />
+							<label text="Note off" />
+						</hbox>
+					</align>
+					<label />
+					<value id="dyna[inst]" same_line="true" />
+					<value id="drft[inst]" same_line="true" />
 				</grid>
 			</cgroup>
 			<group text="Audio Output">
@@ -51,7 +68,7 @@
 					<label text="Mute" />
 					
 					<button id="muting" size="24" color="yellow" led="true" />
-					<knob id="fout" size="20" />
+					<knob id="fout" />
 					<knob id="dry" />
 					<knob id="wet" />
 					<knob id="g_out" />

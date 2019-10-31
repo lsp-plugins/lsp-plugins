@@ -1085,6 +1085,7 @@ namespace lsp
             s->pNote        = NULL;
             s->pOctave      = NULL;
             s->pMuteGroup   = NULL;
+            s->pMuting      = NULL;
             s->pMidiNote    = NULL;
             s->pNoteOff     = NULL;
         }
@@ -1186,6 +1187,10 @@ namespace lsp
             {
                 TRACE_PORT(vPorts[port_id]);
                 s->pMuteGroup   = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                s->pMuting      = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                s->pNoteOff     = vPorts[port_id++];
             }
             TRACE_PORT(vPorts[port_id]);
             s->pMidiNote    = vPorts[port_id++];
@@ -1330,8 +1335,9 @@ namespace lsp
             s->nNote        = (s->pOctave->getValue() * 12) + s->pNote->getValue();
             s->nChannel     = s->pChannel->getValue();
             s->nMuteGroup   = (s->pMuteGroup != NULL) ? s->pMuteGroup->getValue() : i;
-            s->bMuting      = muting;
-            s->bNoteOff     = (s->pNoteOff != NULL) ? s->pNoteOff->getValue() : false;
+            s->bMuting      = (s->pMuting != NULL) ? s->pMuting->getValue() >= 0.5f : false;
+            s->bMuting      = s->bMuting || muting;
+            s->bNoteOff     = (s->pNoteOff != NULL) ? s->pNoteOff->getValue() >= 0.5f : false;
             s->bNoteOff     = s->bNoteOff || note_off;
 
             lsp_trace("Sampler %d channel=%d, note=%d", int(i), int(s->nChannel), int(s->nNote));
@@ -1370,9 +1376,7 @@ namespace lsp
             }
 
             // Additional parameters
-            lsp_trace("Call for set sampler fadeout...");
             s->sSampler.set_fadeout(pFadeout->getValue());
-            lsp_trace("Call sampler %d for update", int(i));
             s->sSampler.update_settings();
         }
     }
@@ -1398,18 +1402,15 @@ namespace lsp
         }
     }
 
-    void sampler_base::process_midi_events()
+    void sampler_base::process_trigger_events()
     {
         // Process muting button
-        if (pMute != NULL)
+        if ((pMute != NULL) && (sMute.pending()))
         {
-            if (sMute.pending())
-            {
-                // Cancel playback for all samplers
-                for (size_t i=0; i<nSamplers; ++i)
-                    vSamplers[i].sSampler.trigger_stop(0);
-                sMute.commit(true);
-            }
+            // Cancel playback for all samplers
+            for (size_t i=0; i<nSamplers; ++i)
+                vSamplers[i].sSampler.trigger_stop(0);
+            sMute.commit(true);
         }
 
         // Get MIDI input, return if none
@@ -1457,7 +1458,7 @@ namespace lsp
                         if (s->nNote != me->note.pitch)
                             continue;
 
-                        size_t g = s->nMuteGroup;
+                        size_t g    = s->nMuteGroup;
                         mg[g >> 5] |= (1 << (g & 0x1f));        // Mark mute group as triggered
                         ts[j >> 5] |= (1 << (j & 0x1f));        // Mark sampler as triggered
                     }
@@ -1467,7 +1468,7 @@ namespace lsp
                     {
                         sampler_t *s    = &vSamplers[j];
                         size_t g        = s->nMuteGroup;
-                        bool muted      = mg[g >> 5] & (1 << (g & 0x1f));
+                        bool muted      = (g > 0) && (mg[g >> 5] & (1 << (g & 0x1f)));
                         bool triggered  = ts[j >> 5] & (1 << (j & 0x1f));
 
                         if (triggered)
@@ -1487,7 +1488,7 @@ namespace lsp
                     for (size_t j=0; j<nSamplers; ++j)
                     {
                         sampler_t *s = &vSamplers[j];
-                        if ((!s->bMuting) || (s->nNote != me->note.pitch))
+                        if ((!s->bNoteOff) || (s->nNote != me->note.pitch))
                             continue;
 
                         s->sSampler.trigger_off(me->timestamp, gain);
@@ -1498,12 +1499,13 @@ namespace lsp
                 case MIDI_MSG_NOTE_CONTROLLER:
                     lsp_trace("NOTE_CONTROLLER: channel=%d, control=%02x, value=%d",
                             int(me->channel), int(me->ctl.control), int(me->ctl.value));
+                    if (me->ctl.control != MIDI_CTL_ALL_NOTES_OFF)
+                        break;
+
                     for (size_t j=0; j<nSamplers; ++j)
                     {
                         sampler_t *s = &vSamplers[j];
                         if ((!s->bMuting) || (me->channel != s->nChannel))
-                            continue;
-                        if (me->ctl.control != MIDI_CTL_ALL_NOTES_OFF)
                             continue;
 
                         s->sSampler.trigger_stop(me->timestamp);
@@ -1519,7 +1521,7 @@ namespace lsp
     void sampler_base::process(size_t samples)
     {
         // Process all MIDI events
-        process_midi_events();
+        process_trigger_events();
 
         // Prepare audio channels
         for (size_t i=0; i<nChannels; ++i)

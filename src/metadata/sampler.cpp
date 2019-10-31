@@ -20,6 +20,19 @@ namespace lsp
         NULL
     };
 
+    static const char *mute_groups[] =
+    {
+        "None",
+        "A", "B", "C", "D",
+        "E", "F", "G", "H",
+        "I", "J", "K", "L",
+        "M", "N", "O", "P",
+        "Q", "R", "S", "T",
+        "U", "V", "W", "X",
+        "Y", "Z",
+        NULL
+    };
+
     static const char *sampler_x12_instruments[] =
     {
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
@@ -119,11 +132,13 @@ namespace lsp
         CONTROL("drft", "Time drifting", U_MSEC, sampler_base_metadata::DRIFT), \
         PORT_SET("ssel", "Sample selector", sampler_sample_selectors, sample)
 
-    #define S_MG_INSTRUMENT(sample, groups)    \
+    #define S_MG_INSTRUMENT(sample)    \
         COMBO("chan", "Channel", sampler_kernel_metadata::CHANNEL_DFL, midi_channels), \
         COMBO("note", "Note", sampler_kernel_metadata::NOTE_DFL, notes), \
         COMBO("oct", "Octave", sampler_kernel_metadata::OCTAVE_DFL, octaves), \
-        COMBO("mgrp", "Mute Group", 0, groups), \
+        COMBO("mgrp", "Mute Group", 0, mute_groups), \
+        SWITCH("mtg", "Mute on stop", 0.0f), \
+        SWITCH("nto", "Note-off handling", 0.0f), \
         { "mn", "MIDI Note #", U_NONE, R_METER, F_OUT | F_LOWER | F_UPPER | F_INT, 0, 127, 0, 0, NULL }, \
         TRIGGER("trg", "Instrument listen"), \
         CONTROL("dyna", "Dynamics", U_PERCENT, sampler_base_metadata::DYNA), \
@@ -133,8 +148,8 @@ namespace lsp
     #define S_AREA_SELECTOR(list)     \
         COMBO("msel", "Area selector", 0, list)
 
-    #define S_INSTRUMENT_SELECTOR(list, ports)     \
-        PORT_SET("inst", "Instrument selector", list, ports)
+    #define S_INSTRUMENT_SELECTOR(list)     \
+        PORT_SET("inst", "Instrument selector", list, sampler_multiple_ports)
 
     #define S_MIXER(id)                      \
         SWITCH("ion_" #id, "Instrument on " #id, 1.0f), \
@@ -318,21 +333,9 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t sampler_x12_inst_ports[] =
+    static const port_t sampler_multiple_ports[] =
     {
-        S_MG_INSTRUMENT(sample_file_stereo_ports, sampler_x12_instruments),
-        PORTS_END
-    };
-
-    static const port_t sampler_x24_inst_ports[] =
-    {
-        S_MG_INSTRUMENT(sample_file_stereo_ports, sampler_x24_instruments),
-        PORTS_END
-    };
-
-    static const port_t sampler_x48_inst_ports[] =
-    {
-        S_MG_INSTRUMENT(sample_file_stereo_ports, sampler_x48_instruments),
+        S_MG_INSTRUMENT(sample_file_stereo_ports),
         PORTS_END
     };
 
@@ -365,7 +368,7 @@ namespace lsp
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
         S_AREA_SELECTOR(sampler_x12_mixer_lines),
-        S_INSTRUMENT_SELECTOR(sampler_x12_instruments, sampler_x12_inst_ports),
+        S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_MIXER(0),
         S_MIXER(1),
         S_MIXER(2),
@@ -388,7 +391,7 @@ namespace lsp
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
         S_AREA_SELECTOR(sampler_x24_mixer_lines),
-        S_INSTRUMENT_SELECTOR(sampler_x24_instruments, sampler_x24_inst_ports),
+        S_INSTRUMENT_SELECTOR(sampler_x24_instruments),
         S_MIXER(0),
         S_MIXER(1),
         S_MIXER(2),
@@ -423,7 +426,7 @@ namespace lsp
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
         S_AREA_SELECTOR(sampler_x48_mixer_lines),
-        S_INSTRUMENT_SELECTOR(sampler_x48_instruments, sampler_x48_inst_ports),
+        S_INSTRUMENT_SELECTOR(sampler_x48_instruments),
         S_MIXER(0),
         S_MIXER(1),
         S_MIXER(2),
@@ -482,7 +485,7 @@ namespace lsp
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
         S_AREA_SELECTOR(sampler_x12_mixer_lines),
-        S_INSTRUMENT_SELECTOR(sampler_x12_instruments, sampler_x12_inst_ports),
+        S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),
         S_DIRECT_OUT(2),
@@ -505,7 +508,7 @@ namespace lsp
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
         S_AREA_SELECTOR(sampler_x24_mixer_lines),
-        S_INSTRUMENT_SELECTOR(sampler_x24_instruments, sampler_x24_inst_ports),
+        S_INSTRUMENT_SELECTOR(sampler_x24_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),
         S_DIRECT_OUT(2),
@@ -540,7 +543,7 @@ namespace lsp
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
         S_AREA_SELECTOR(sampler_x48_mixer_lines),
-        S_INSTRUMENT_SELECTOR(sampler_x48_instruments, sampler_x48_inst_ports),
+        S_INSTRUMENT_SELECTOR(sampler_x48_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),
         S_DIRECT_OUT(2),
