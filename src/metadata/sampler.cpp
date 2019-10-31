@@ -110,9 +110,9 @@ namespace lsp
         MESH("fd", "Sample file contents", sampler_kernel_metadata::TRACKS_MAX, sampler_kernel_metadata::MESH_SIZE)
 
     #define S_INSTRUMENT(sample)            \
-        COMBO("chan", "Channel", midi_trigger_kernel_metadata::CHANNEL_DFL, midi_channels), \
-        COMBO("note", "Note", midi_trigger_kernel_metadata::NOTE_DFL, notes), \
-        COMBO("oct", "Octave", midi_trigger_kernel_metadata::OCTAVE_DFL, octaves), \
+        COMBO("chan", "Channel", sampler_kernel_metadata::CHANNEL_DFL, midi_channels), \
+        COMBO("note", "Note", sampler_kernel_metadata::NOTE_DFL, notes), \
+        COMBO("oct", "Octave", sampler_kernel_metadata::OCTAVE_DFL, octaves), \
         { "mn", "MIDI Note #", U_NONE, R_METER, F_OUT | F_LOWER | F_UPPER | F_INT, 0, 127, 0, 0, NULL }, \
         TRIGGER("trg", "Instrument listen"), \
         CONTROL("dyna", "Dynamics", U_PERCENT, sampler_base_metadata::DYNA), \

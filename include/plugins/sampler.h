@@ -143,7 +143,7 @@ namespace lsp
             void        cancel_sample(const afile_t *af, size_t fadeout, size_t delay);
 
         public:
-            sampler_kernel();
+            explicit sampler_kernel();
             virtual ~sampler_kernel();
 
         public:
@@ -170,34 +170,6 @@ namespace lsp
              * @param samples number of samples to process
              */
             void    process(float **outs, const float **ins, size_t samples);
-    };
-
-    class midi_trigger_kernel: public midi_trigger_kernel_metadata
-    {
-        protected:
-            ITrigger           *pHandler;       // Trigger event handler
-
-            size_t              nNote;          // Trigger note
-            size_t              nChannel;       // Channel
-            bool                bMuting;        // Muting flag
-
-            IPort              *pChannel;       // Note port
-            IPort              *pNote;          // Note port
-            IPort              *pOctave;        // Octave port
-            IPort              *pMidiNote;      // Output midi note #
-
-        public:
-            midi_trigger_kernel();
-            virtual ~midi_trigger_kernel();
-
-        public:
-            bool    init(ITrigger *handler);
-            size_t  bind(cvector<IPort> &ports, size_t port_id);
-            void    destroy();
-
-            void    update_settings();
-            void    set_muting(bool muting);
-            void    process_events(const midi_t *in, midi_t *out);
     };
 
     class sampler_base: public plugin_t
@@ -229,13 +201,19 @@ namespace lsp
             typedef struct sampler_t
             {
                 sampler_kernel      sSampler;           // Sampler
-                midi_trigger_kernel sTrigger;           // MIDI trigger
                 float               fGain;              // Overall gain
+                size_t              nNote;              // Trigger note
+                size_t              nChannel;           // Channel
+                bool                bMuting;            // Muting flag
 
                 sampler_channel_t   vChannels[sampler_kernel_metadata::TRACKS_MAX];       // Sampler output channels
                 IPort              *pGain;              // Gain output port
                 IPort              *pBypass;            // Bypass port
                 IPort              *pDryBypass;         // Dry bypass port
+                IPort              *pChannel;           // Note port
+                IPort              *pNote;              // Note port
+                IPort              *pOctave;            // Octave port
+                IPort              *pMidiNote;          // Output midi note #
             } sampler_t;
 
         protected:
@@ -263,8 +241,11 @@ namespace lsp
             IPort              *pWet;               // Wet amount port
             IPort              *pGain;              // Output gain port
 
+        protected:
+            void        process_midi_events();
+
         public:
-            sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports);
+            explicit sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports);
             virtual ~sampler_base();
 
         public:
