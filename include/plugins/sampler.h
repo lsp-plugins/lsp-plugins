@@ -204,6 +204,7 @@ namespace lsp
                 float               fGain;              // Overall gain
                 size_t              nNote;              // Trigger note
                 size_t              nChannel;           // Channel
+                size_t              nMuteGroup;         // Mute group
                 bool                bMuting;            // Muting flag
 
                 sampler_channel_t   vChannels[sampler_kernel_metadata::TRACKS_MAX];       // Sampler output channels
@@ -213,6 +214,7 @@ namespace lsp
                 IPort              *pChannel;           // Note port
                 IPort              *pNote;              // Note port
                 IPort              *pOctave;            // Octave port
+                IPort              *pMuteGroup;         // Mute group
                 IPort              *pMidiNote;          // Output midi note #
             } sampler_t;
 

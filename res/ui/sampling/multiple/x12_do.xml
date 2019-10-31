@@ -10,7 +10,7 @@
 			</hbox>
 		</align>
 		
-				<!-- Instrument editor -->
+		<!-- Instrument editor -->
 		<grid rows="2" cols="2" visibility=":msel ieq 0" spacing="4">
 			<cgroup id="inst" text="Instrument # ">
 				<grid rows="3" cols="6" spacing="4">
@@ -72,7 +72,7 @@
 						id="sf[inst][ssel]" head_id="hc[inst][ssel]" tail_id="tc[inst][ssel]"
 						fadein_id="fi[inst][ssel]" fadeout_id="fo[inst][ssel]" length_id="fl[inst][ssel]"
 						status_id="fs[inst][ssel]" mesh_id="fd[inst][ssel]"
-						width="320" height="127"
+						width="320" height="160"
 						path_id="ui:dlg_sample_path"
 						bind="makeup=mk[inst][ssel],predelay=pd[inst][ssel]"
 					/>

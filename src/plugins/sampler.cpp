@@ -1064,6 +1064,7 @@ namespace lsp
 
             s->nNote        = sampler_kernel_metadata::NOTE_DFL + sampler_kernel_metadata::OCTAVE_DFL * 12;
             s->nChannel     = sampler_kernel_metadata::CHANNEL_DFL;
+            s->nMuteGroup   = i;
             s->bMuting      = false;
 
             // Initialize channels
@@ -1084,6 +1085,7 @@ namespace lsp
             s->pChannel     = NULL;
             s->pNote        = NULL;
             s->pOctave      = NULL;
+            s->pMuteGroup   = NULL;
             s->pMidiNote    = NULL;
         }
 
@@ -1180,6 +1182,11 @@ namespace lsp
             s->pNote        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             s->pOctave      = vPorts[port_id++];
+            if (nSamplers > 1)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                s->pMuteGroup   = vPorts[port_id++];
+            }
             TRACE_PORT(vPorts[port_id]);
             s->pMidiNote    = vPorts[port_id++];
 
@@ -1321,6 +1328,7 @@ namespace lsp
             // MIDI note and channel
             s->nNote        = (s->pOctave->getValue() * 12) + s->pNote->getValue();
             s->nChannel     = s->pChannel->getValue();
+            s->nMuteGroup   = (s->pMuteGroup != NULL) ? s->pMuteGroup->getValue() : i;
             s->bMuting      = muting;
 
             lsp_trace("Sampler %d channel=%d, note=%d", int(i), int(s->nChannel), int(s->nNote));
