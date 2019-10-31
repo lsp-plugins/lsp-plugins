@@ -1089,6 +1089,7 @@ namespace lsp
             lsp_error("Could not build UI from URI %s", path.get_utf8());
             return result;
         }
+        lsp_trace("UI has been generated");
 
         // Fetch main menu
         LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));

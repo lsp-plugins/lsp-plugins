@@ -10,155 +10,134 @@
 			</hbox>
 		</align>
 		
-		<!-- Instrument editor -->
-		<vbox visibility_id="msel" visibility_key="0" spacing="4" expand="true">
-			<hbox spacing="4">
-				<group text="Instrument setup">
-					<hbox>
-						<grid rows="3" cols="6" hspacing="4">
-							<cell cols="3" expand="true">
-								<grid rows="2" cols="3" fill="false" hspacing="8">
-									<label fill="true" halign="0" text="Instrument #:" />
-									<combo id="inst" width="20" />
-									<label expand="true" />
-									<cell cols="3" fill="true">
-										<hsep />
-									</cell>
-								</grid>
-							</cell>
-							<cell rows="3" fill="true"><vsep /></cell>
-							<label text="Dynamics" />
-							<label text="Time drifting" />
-		
-							<label text="Channel" />
-							<label text="Note" />
-							<label text="MIDI #" />
-							<knob id="dyna[inst]" scale_color="green" />
-							<knob id="drft[inst]" scale_color="green" />
-							
-							<combo id="chan[inst]" fill="true" />
-							<hbox fill="true" spacing="2">
-								<combo id="note[inst]" fill="true" />
-								<combo id="oct[inst]" fill="true" />
-							</hbox>
-							<indicator id="mn[inst]" format="i3" text_color="green" />
-							<value id="dyna[inst]" />
-							<value id="drft[inst]" />
-						</grid>
-					</hbox>
-				</group>
-				<group text="Audio Output">
-					<grid rows="3" cols="6">
-						<label text="Muting" />
-						<hbox spacing="4" fill="false">
-							<button id="noff" led="true" color="green" size="12" />
-							<label text="Note off" />
-						</hbox>
-						<label id="dry" />
-						<label id="wet" />
-						<label id="g_out" />
-						<label text="Mute" />
-						
-						<button id="muting" size="24" color="yellow" led="true" />
-						<knob id="fout" size="20" />
-						<knob id="dry" />
-						<knob id="wet" />
-						<knob id="g_out" />
-						<button id="mute" size="32" />
-						
-						<label />
-						<value id="fout" />
-						<value id="dry" />
-						<value id="wet" />
-						<value id="g_out" />
-						<led id="mute" color="red" />
-					</grid>
-				</group>
-			</hbox>
-			<hbox spacing="4">
-				<group text="Samples">
-					<vbox>
-						<align hpos="-1">
-							<hbox spacing="8">
-								<label text="Sample # " />
-								<combo id="ssel[inst]" width="20" />
-							</hbox>
-						</align>
-						
-						<hsep />
-						
-						<!-- File editor -->
-						<file
-							id="sf[inst][ssel]" head_id="hc[inst][ssel]" tail_id="tc[inst][ssel]"
-							fadein_id="fi[inst][ssel]" fadeout_id="fo[inst][ssel]" length_id="fl[inst][ssel]"
-							status_id="fs[inst][ssel]" mesh_id="fd[inst][ssel]"
-							width="320" height="127"
-							path_id="ui:dlg_sample_path"
-							bind="makeup=mk[inst][ssel],predelay=pd[inst][ssel]"
-						/>
-							
-						<grid rows="3" cols="7" vspacing="2" expand="true">
-							<label text="Head cut" />
-							<label text="Tail cut" />
-							<label text="Fade in" />
-							<label text="Fade out" />
-							<label text="Makeup" />
-							<label text="Pre-delay" />
-							<label text="Listen" />
-							
-							<knob id="hc[inst][ssel]" size="20" />
-							<knob id="tc[inst][ssel]" size="20" />
-							<knob id="fi[inst][ssel]" size="20" scale_color="yellow" />
-							<knob id="fo[inst][ssel]" size="20" scale_color="yellow" />
-							<knob id="mk[inst][ssel]" size="20" />
-							<knob id="pd[inst][ssel]" size="20" />
-							<button id="ls[inst][ssel]" size="32" toggle="false" />
-							
-							<value id="hc[inst][ssel]" />
-							<value id="tc[inst][ssel]" />
-							<value id="fi[inst][ssel]" />
-							<value id="fo[inst][ssel]" />
-							<value id="mk[inst][ssel]" />
-							<value id="pd[inst][ssel]" />
-							<led id="ls[inst][ssel]" />
-						</grid>
-					</vbox>
-				</group>
-				<group text="Sample matrix" expand="true">
-					<!-- Sample matrix -->
-					<grid rows="11" cols="9" transpose="true">
-						<label text="Sample #" fill="true" halign="0" />
-						<label text="Enabled" fill="true" halign="0" />
-						<label text="Active" fill="true" halign="0" />
-						<label text="Velocity" fill="true" halign="0" />
-						<label text="(%)" fill="true" halign="0" />
-						<label text="Pan Left" fill="true" halign="0" />
-						<label text="(%)" fill="true" halign="0" />
-						<label text="Pan Right" fill="true" halign="0" />
-						<label text="(%)" fill="true" halign="0" />
-						<label text="Listen" fill="true" halign="0" />
-						<label text="Note on" fill="true" halign="0" />
+				<!-- Instrument editor -->
+		<grid rows="2" cols="2" visibility=":msel ieq 0" spacing="4">
+			<cgroup id="inst" text="Instrument # ">
+				<grid rows="3" cols="6" spacing="4">
+					<!-- Row 1 -->
+					<label text="Channel" />
+					<label text="Note" />
+					<label text="MIDI #" />
+					<cell rows="3"><vsep /></cell>
+					<label text="Dynamics" />
+					<label text="Time drifting" />
 
-						<ui:for id="i" first="0" last="7" >
-							<label text="${i}" />
-							<button id="on[inst]_${i}" size="16" color="yellow" led="true" />
-							<led id="ac[inst]_${i}" color="yellow" size="6" />
-							<knob id="vl[inst]_${i}" size="20" scale_color="magenta" />
-							<value id="vl[inst]_${i}" detailed="false" />
-							<knob id="pl[inst]_${i}" size="20" balance="0.5" scale_color="red" />
-							<value id="pl[inst]_${i}" detailed="false" />
-							<knob id="pr[inst]_${i}" size="20" balance="0.5" scale_color="cyan" />
-							<value id="pr[inst]_${i}" detailed="false" />
-							<button id="ls[inst]_${i}" size="32" toggle="false" />
-							<led id="no[inst]_${i}" />
-						</ui:for>
+					<!-- Row 2 -->
+					<combo id="chan[inst]" fill="true" />
+					<hbox fill="true" spacing="2">
+						<combo id="note[inst]" fill="true" />
+						<combo id="oct[inst]" fill="true" />
+					</hbox>
+					<indicator id="mn[inst]" format="i3" text_color="green" />
+					<knob id="dyna[inst]" scale_color="green" />
+					<knob id="drft[inst]" scale_color="green" />
+					
+					<!-- Row 3 -->
+					<cell cols="3"><label /></cell>
+					<value id="dyna[inst]" />
+					<value id="drft[inst]" />
+				</grid>
+			</cgroup>
+			<group text="Audio Output">
+				<grid rows="3" cols="6">
+					<label text="Muting" />
+					<hbox spacing="4" fill="false">
+						<button id="noff" led="true" color="green" size="12" />
+						<label text="Note off" />
+					</hbox>
+					<label id="dry" />
+					<label id="wet" />
+					<label id="g_out" />
+					<label text="Mute" />
+					
+					<button id="muting" size="24" color="yellow" led="true" />
+					<knob id="fout" size="20" />
+					<knob id="dry" />
+					<knob id="wet" />
+					<knob id="g_out" />
+					<button id="mute" size="32" />
+					
+					<label />
+					<value id="fout" />
+					<value id="dry" />
+					<value id="wet" />
+					<value id="g_out" />
+					<led id="mute" color="red" />
+				</grid>
+			</group>
+			<cgroup id="ssel[inst]" text="Sample # ">
+				<vbox>
+					<!-- File editor -->
+					<file
+						id="sf[inst][ssel]" head_id="hc[inst][ssel]" tail_id="tc[inst][ssel]"
+						fadein_id="fi[inst][ssel]" fadeout_id="fo[inst][ssel]" length_id="fl[inst][ssel]"
+						status_id="fs[inst][ssel]" mesh_id="fd[inst][ssel]"
+						width="320" height="127"
+						path_id="ui:dlg_sample_path"
+						bind="makeup=mk[inst][ssel],predelay=pd[inst][ssel]"
+					/>
+						
+					<grid rows="3" cols="7" vspacing="2" expand="true">
+						<label text="Head cut" />
+						<label text="Tail cut" />
+						<label text="Fade in" />
+						<label text="Fade out" />
+						<label text="Makeup" />
+						<label text="Pre-delay" />
+						<label text="Listen" />
+						
+						<knob id="hc[inst][ssel]" size="20" />
+						<knob id="tc[inst][ssel]" size="20" />
+						<knob id="fi[inst][ssel]" size="20" scale_color="yellow" />
+						<knob id="fo[inst][ssel]" size="20" scale_color="yellow" />
+						<knob id="mk[inst][ssel]" size="20" />
+						<knob id="pd[inst][ssel]" size="20" />
+						<button id="ls[inst][ssel]" size="32" toggle="false" />
+						
+						<value id="hc[inst][ssel]" />
+						<value id="tc[inst][ssel]" />
+						<value id="fi[inst][ssel]" />
+						<value id="fo[inst][ssel]" />
+						<value id="mk[inst][ssel]" />
+						<value id="pd[inst][ssel]" />
+						<led id="ls[inst][ssel]" />
 					</grid>
-				</group>
-			</hbox>
-		</vbox>
+				</vbox>
+			</cgroup>
+			<group text="Sample matrix" expand="true">
+				<!-- Sample matrix -->
+				<grid rows="11" cols="9" transpose="true">
+					<label text="Sample #" fill="true" halign="0" />
+					<label text="Enabled" fill="true" halign="0" />
+					<label text="Active" fill="true" halign="0" />
+					<label text="Velocity" fill="true" halign="0" />
+					<label text="(%)" fill="true" halign="0" />
+					<label text="Pan Left" fill="true" halign="0" />
+					<label text="(%)" fill="true" halign="0" />
+					<label text="Pan Right" fill="true" halign="0" />
+					<label text="(%)" fill="true" halign="0" />
+					<label text="Listen" fill="true" halign="0" />
+					<label text="Note on" fill="true" halign="0" />
+
+					<ui:for id="i" first="0" last="7" >
+						<label text="${i}" />
+						<button id="on[inst]_${i}" size="16" color="yellow" led="true" />
+						<led id="ac[inst]_${i}" color="yellow" size="6" />
+						<knob id="vl[inst]_${i}" size="20" scale_color="magenta" />
+						<value id="vl[inst]_${i}" detailed="false" />
+						<knob id="pl[inst]_${i}" size="20" balance="0.5" scale_color="red" />
+						<value id="pl[inst]_${i}" detailed="false" />
+						<knob id="pr[inst]_${i}" size="20" balance="0.5" scale_color="cyan" />
+						<value id="pr[inst]_${i}" detailed="false" />
+						<button id="ls[inst]_${i}" size="32" toggle="false" />
+						<led id="no[inst]_${i}" />
+					</ui:for>
+				</grid>
+			</group>
+		</grid>
 		
 		<!-- Instrument mixer -->
-		<group text="Instrument mixer" visibility_id="msel" visibility_key="1" expand="true">
+		<group text="Instrument mixer" visibility=":msel ieq 1">
 			<grid rows="13" cols="13" transpose="true" hspacing="2" vspacing="2">
 				<label text="Instrument #" fill="true" halign="0" />
 				<label text="Enabled" fill="true" halign="0" />
