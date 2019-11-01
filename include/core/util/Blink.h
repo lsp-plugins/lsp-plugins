@@ -49,8 +49,8 @@ namespace lsp
             inline void init(size_t sample_rate, float time = 0.1f)
             {
                 nCounter        = 0;
-                fTime           = time;
                 nTime           = seconds_to_samples(sample_rate, time);
+                fTime           = time;
             }
 
             /** Update current sample rate

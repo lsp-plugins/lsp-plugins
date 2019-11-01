@@ -102,7 +102,7 @@ namespace lsp
 
         protected:
             ipc::IExecutor     *pExecutor;                  // Executor service
-            afile_t           **vFiles;                     // List of audio files
+            afile_t            *vFiles;                     // List of audio files
             afile_t           **vActive;                    // List of active audio files
             SamplePlayer        vChannels[TRACKS_MAX];      // List of channels
             Bypass              vBypass[TRACKS_MAX];        // List of bypasses
@@ -126,6 +126,7 @@ namespace lsp
             IPort              *pDrift;                     // Time drifting port
             IPort              *pActivity;                  // Activity port
             IPort              *pListen;                    // Listen trigger
+            uint8_t            *pData;                      // Pointer to aligned data
 
         protected:
             void        destroy_state();

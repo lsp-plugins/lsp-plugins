@@ -660,6 +660,13 @@ namespace lsp
         }
         vPorts.clear();
 
+        // Cleanup generated metadata
+        for (size_t i=0; i<vGenMetadata.size(); ++i)
+        {
+            lsp_trace("destroy generated port metadata %p", vGenMetadata[i]);
+            drop_port_metadata(vGenMetadata[i]);
+        }
+
         // Clear all other port containers
         vDataPorts.clear();
         vSyncPorts.clear();

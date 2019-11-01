@@ -297,6 +297,7 @@ namespace lsp
                 size_t flags = 0;
                 LSPString v_name;
                 calc::value_t v_value;
+                calc::init_value(&v_value);
 
                 for ( ; *atts != NULL; atts += 2)
                 {
@@ -331,8 +332,10 @@ namespace lsp
                     return STATUS_CORRUPTED;
                 }
 
-                // Set variable
-                return pBuilder->vars()->set(&v_name, &v_value);
+                // Set variable and destroy value
+                res = pBuilder->vars()->set(&v_name, &v_value);
+                calc::destroy_value(&v_value);
+                return res;
             }
     };
 

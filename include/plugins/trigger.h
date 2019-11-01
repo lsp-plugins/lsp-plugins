@@ -20,24 +20,6 @@
 
 namespace lsp
 {
-    class audio_trigger_kernel
-    {
-        protected:
-
-        public:
-            audio_trigger_kernel();
-            virtual ~audio_trigger_kernel();
-
-        public:
-            bool    init(ITrigger *handler, size_t channels);
-            void    update_sample_rate(long sr);
-            size_t  bind(cvector<IPort> &ports, size_t port_id);
-            void    destroy();
-
-            void    update_settings();
-            void    process(const float **data, size_t samples);
-    };
-
     class trigger_base: public plugin_t, public trigger_base_metadata
     {
         protected:
@@ -169,7 +151,7 @@ namespace lsp
             size_t              decode_source();
 
         public:
-            trigger_base(const plugin_metadata_t &metadata, size_t files, size_t channels, bool midi);
+            explicit trigger_base(const plugin_metadata_t &metadata, size_t files, size_t channels, bool midi);
             virtual ~trigger_base();
 
         public:
@@ -188,28 +170,28 @@ namespace lsp
     class trigger_mono: public trigger_base, public trigger_mono_metadata
     {
         public:
-            trigger_mono();
+            explicit trigger_mono();
             virtual ~trigger_mono();
     };
 
     class trigger_stereo: public trigger_base, public trigger_stereo_metadata
     {
         public:
-            trigger_stereo();
+            explicit trigger_stereo();
             virtual ~trigger_stereo();
     };
 
     class trigger_midi_mono: public trigger_base, public trigger_midi_mono_metadata
     {
         public:
-            trigger_midi_mono();
+            explicit trigger_midi_mono();
             virtual ~trigger_midi_mono();
     };
 
     class trigger_midi_stereo: public trigger_base, public trigger_midi_stereo_metadata
     {
         public:
-            trigger_midi_stereo();
+            explicit trigger_midi_stereo();
             virtual ~trigger_midi_stereo();
     };
 

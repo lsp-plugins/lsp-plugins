@@ -55,6 +55,7 @@ namespace lsp
         pDrift          = NULL;
         pActivity       = NULL;
         pListen         = NULL;
+        pData           = NULL;
     }
 
     sampler_kernel::~sampler_kernel()
@@ -83,18 +84,16 @@ namespace lsp
 
         // Now determine object sizes
         size_t afsample_size        = ALIGN_SIZE(sizeof(afsample_t), DEFAULT_ALIGN);
-        size_t afile_hdr_size       = ALIGN_SIZE(sizeof(afile_t), DEFAULT_ALIGN);
-        size_t afile_size           = afile_hdr_size + 3 * afsample_size;
+        size_t afile_size           = AFI_TOTAL * afsample_size;
         size_t array_size           = ALIGN_SIZE(sizeof(afile_t *) * files, DEFAULT_ALIGN);
 
         lsp_trace("afsample_size        = %d", int(afsample_size));
-        lsp_trace("afile_hdr_size       = %d", int(afile_hdr_size));
         lsp_trace("afile_size           = %d", int(afile_size));
         lsp_trace("array_size           = %d", int(array_size));
 
         // Allocate raw chunk and link data
         size_t allocate             = array_size * 2 + afile_size * files;
-        uint8_t *ptr                = new uint8_t[allocate];
+        uint8_t *ptr                = alloc_aligned<uint8_t>(pData, allocate);
         if (ptr == NULL)
             return false;
 
@@ -103,9 +102,10 @@ namespace lsp
             lsp_trace("allocate = %d, ptr range=%p-%p", int(allocate), ptr, tail);
         #endif /* LSP_TRACE */
 
-        vFiles                      = reinterpret_cast<afile_t **>(ptr);
-        ptr                        += array_size;
-        lsp_trace("vFiles               = %p", vFiles);
+        // Allocate files
+        vFiles                      = new afile_t[files];
+        if (vFiles == NULL)
+            return false;
 
         vActive                     = reinterpret_cast<afile_t **>(ptr);
         ptr                        += array_size;
@@ -113,8 +113,7 @@ namespace lsp
 
         for (size_t i=0; i<files; ++i)
         {
-            afile_t *af                 = reinterpret_cast<afile_t *>(ptr);
-            lsp_trace("vFiles[%d]           = %p", int(i), af);
+            afile_t *af                 = &vFiles[i];
 
             af->nID                     = i;
             af->pLoader                 = NULL;
@@ -154,11 +153,10 @@ namespace lsp
                 af->pGains[j]               = NULL;
             }
 
-            uint8_t *afptr              = ptr + afile_hdr_size;
             for (size_t j=0; j<AFI_TOTAL; ++j)
             {
-                afsample_t *afs             = reinterpret_cast<afsample_t *>(afptr);
-                afptr                      += afsample_size;
+                afsample_t *afs             = reinterpret_cast<afsample_t *>(ptr);
+                ptr                        += afsample_size;
 
                 af->vData[j]                = afs;
                 lsp_trace("vFiles[%d]->vData[%d]    = %p", int(i), int(j), afs);
@@ -171,16 +169,14 @@ namespace lsp
                     afs->vThumbs[k]     = NULL;
             }
 
-            vFiles[i]                   = af;
             vActive[i]                  = NULL;
-            ptr                        += afile_size;
         }
 
         // Create additional objects: tasks for file loading
         lsp_trace("Create loaders");
         for (size_t i=0; i<files; ++i)
         {
-            afile_t  *af        = vFiles[i];
+            afile_t  *af        = &vFiles[i];
 
             // Create loader
             AFLoader *ldr       = new AFLoader(this, af);
@@ -246,8 +242,8 @@ namespace lsp
         {
             lsp_trace("Binding sample %d", int(i));
 
-            afile_t *af             = vFiles[i];
-
+            afile_t *af             = &vFiles[i];
+            // Allocate files
             TRACE_PORT(ports[port_id]);
             af->pFile               = ports[port_id++];
             TRACE_PORT(ports[port_id]);
@@ -314,22 +310,24 @@ namespace lsp
             for (size_t i=0; i<nFiles;++i)
             {
                 // Delete audio file loaders
-                AFLoader *ldr   = vFiles[i]->pLoader;
+                AFLoader *ldr   = vFiles[i].pLoader;
                 if (ldr != NULL)
                 {
                     delete ldr;
-                    vFiles[i]->pLoader = NULL;
+                    vFiles[i].pLoader = NULL;
                 }
 
                 // Destroy samples
                 for (size_t j=0; j<AFI_TOTAL; ++j)
-                    destroy_afsample(vFiles[i]->vData[j]);
+                    destroy_afsample(vFiles[i].vData[j]);
             }
 
             // Drop list of files
-            delete [] reinterpret_cast<uint8_t *>(vFiles);
+            delete [] vFiles;
             vFiles = NULL;
         }
+
+        free_aligned(pData);
 
         // Foget variables
         pExecutor       = NULL;
@@ -357,7 +355,7 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             // Get descriptor
-            afile_t *af             = vFiles[i];
+            afile_t *af             = &vFiles[i];
             if (af->pFile == NULL)
                 continue;
 
@@ -385,7 +383,7 @@ namespace lsp
         // Iterate all samples
         for (size_t i=0; i<nFiles; ++i)
         {
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
 
             // On/off switch
             bool on             = (af->pOn->getValue() >= 0.5f);
@@ -474,7 +472,7 @@ namespace lsp
         sActivity.init(sr);
 
         for (size_t i=0; i<nFiles; ++i)
-            vFiles[i]->sNoteOn.init(sr);
+            vFiles[i].sNoteOn.init(sr);
     }
 
     void sampler_kernel::destroy_afsample(afsample_t *af)
@@ -702,13 +700,13 @@ namespace lsp
         nActive     = 0;
         for (size_t i=0; i<nFiles; ++i)
         {
-            if (!vFiles[i]->bOn)
+            if (!vFiles[i].bOn)
                 continue;
-            if (vFiles[i]->vData[AFI_CURR]->pSample == NULL)
+            if (vFiles[i].vData[AFI_CURR]->pSample == NULL)
                 continue;
 
             lsp_trace("file %d is active", int(nActive));
-            vActive[nActive++]  = vFiles[i];
+            vActive[nActive++]  = &vFiles[i];
         }
 
         // Sort the list of active files
@@ -850,7 +848,7 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             // Get descriptor
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
             if (af->pFile == NULL)
                 continue;
 
@@ -872,7 +870,7 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             // Get descriptor
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
             if (af->pFile == NULL)
                 continue;
 
@@ -954,7 +952,7 @@ namespace lsp
 
         for (size_t i=0; i<nFiles; ++i)
         {
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
 
             // Output information about the file
             af->pLength->setValue(af->fLength);
