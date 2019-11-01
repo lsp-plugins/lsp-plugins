@@ -98,6 +98,14 @@ namespace lsp
             status_t eval_string(LSPString *value, const LSPString *expr);
 
             /**
+             * Evaluate value and return as boolean
+             * @param var pointer to store string
+             * @param expr expression
+             * @return status of operation
+             */
+            status_t eval_bool(bool *value, const LSPString *expr);
+
+            /**
              * Evaluate value and return as integer
              * @param var pointer to store integer value
              * @param expr expression

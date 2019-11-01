@@ -336,6 +336,92 @@ namespace lsp
             }
     };
 
+    class ui_if_handler: public XMLNode
+    {
+        private:
+            ui_if_handler & operator = (const ui_if_handler &src);
+
+        protected:
+            ui_builder             *pBuilder;
+            XMLNode                *pHandler;
+            bool                    bPass;
+
+        public:
+            explicit ui_if_handler(ui_builder *bld, XMLNode *handler)
+            {
+                pBuilder    = bld;
+                pHandler    = handler;
+                bPass       = true;
+            }
+
+            virtual ~ui_if_handler()
+            {
+                pBuilder    = NULL;
+                pHandler    = NULL;
+            }
+
+        public:
+            virtual status_t init(const LSPString * const *atts)
+            {
+                status_t res;
+                bool valid = false;
+
+                for ( ; *atts != NULL; atts += 2)
+                {
+                    const LSPString *name   = atts[0];
+                    const LSPString *value  = atts[1];
+
+                    if ((name == NULL) || (value == NULL))
+                        continue;
+
+                    if (name->equals_ascii("test"))
+                    {
+                        if ((res = pBuilder->eval_bool(&bPass, value)) != STATUS_OK)
+                            return res;
+                        valid = true;
+                    }
+                    else
+                    {
+                        lsp_error("Unknown attribute: %s", name->get_utf8());
+                        return STATUS_CORRUPTED;
+                    }
+                }
+
+                if (!valid)
+                {
+                    lsp_error("Not all attributes are set");
+                    return STATUS_CORRUPTED;
+                }
+
+                return STATUS_OK;
+            }
+
+            virtual status_t start_element(XMLNode **child, const LSPString *name, const LSPString * const *atts)
+            {
+                return (bPass) ? pHandler->start_element(child, name, atts) : STATUS_OK;
+            }
+
+            virtual status_t end_element(const LSPString *name)
+            {
+                return (bPass) ? pHandler->end_element(name) : STATUS_OK;
+            }
+
+            virtual status_t completed(XMLNode *child)
+            {
+                return (bPass) ? pHandler->completed(child) : STATUS_OK;
+            }
+
+            virtual status_t quit()
+            {
+                return (bPass) ? pHandler->quit() : STATUS_OK;
+            }
+
+            virtual status_t enter()
+            {
+                return (bPass) ? pHandler->enter() : STATUS_OK;
+            }
+    };
+
     class ui_widget_handler: public XMLNode
     {
         private:
@@ -398,6 +484,15 @@ namespace lsp
                     else if (name->equals_ascii("ui:set"))
                     {
                         ui_set_handler *h = new ui_set_handler(pBuilder);
+                        if (h == NULL)
+                            return STATUS_NO_MEM;
+                        if ((res = h->init(atts)) != STATUS_OK)
+                            return res;
+                        *child  = pOther    = h;
+                    }
+                    else if (name->equals_ascii("ui:if"))
+                    {
+                        ui_if_handler *h = new ui_if_handler(pBuilder, this);
                         if (h == NULL)
                             return STATUS_NO_MEM;
                         if ((res = h->init(atts)) != STATUS_OK)
@@ -622,6 +717,24 @@ namespace lsp
         {
             if (v.type == calc::VT_STRING)
                 value->swap(v.v_str);
+            else
+                res = STATUS_BAD_TYPE;
+        }
+        destroy_value(&v);
+        return res;
+    }
+
+    status_t ui_builder::eval_bool(bool *value, const LSPString *expr)
+    {
+        calc::value_t v;
+        status_t res = evaluate(&v, expr);
+        if (res != STATUS_OK)
+            return res;
+
+        if ((res = calc::cast_bool(&v)) == STATUS_OK)
+        {
+            if (v.type == calc::VT_BOOL)
+                *value  = v.v_bool;
             else
                 res = STATUS_BAD_TYPE;
         }

@@ -52,18 +52,18 @@
   GNOME/KDE desktop environments' configuration files.
 * Removed EXPAT library from build dependencies since LSP Plugins have their own XML parser.
 * Added MIDI groups to MultiSampler plugin series.
-- Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
+* Added possibility to control how painning and gain controls affect the signal passed to the direct output tracks.
 - Refactored and optimized reverb simulation algorithm.
+- Optimize DSP for AArch64 architecture.
+- Added multilingual support by the graphical toolkit.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
-- Optimize DSP for AArch64 architecture.
 - Additionally optimized DSP code with AVX, AVX2 and FMA3 instruction set.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
-- Added multilingual support by the graphical toolkit.
  
 
 *******************************************************************************
