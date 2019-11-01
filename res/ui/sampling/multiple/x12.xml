@@ -155,7 +155,7 @@
 		
 		<!-- Instrument mixer -->
 		<group text="Instrument mixer" visibility=":msel ieq 1">
-			<grid rows="12" cols="13" transpose="true" hspacing="2" vspacing="2">
+			<grid rows="13" cols="13" transpose="true" hspacing="2" vspacing="2">
 				<label text="Instrument #" fill="true" halign="0" />
 				<label text="Enabled" fill="true" halign="0" />
 				<label text="Mix gain" fill="true" halign="0" />
@@ -164,6 +164,7 @@
 				<label text="(%)" fill="true" halign="0" />
 				<label text="Pan Right" fill="true" halign="0" />
 				<label text="(%)" fill="true" halign="0" />
+				<label text="Group" fill="true" halign="0" />
 				<label text="MIDI #" fill="true" halign="0" />
 				<label text="Note on" fill="true" halign="0" />
 				<label text="Listen" fill="true" halign="0" />
@@ -178,6 +179,7 @@
 					<value id="panl_${i}" detailed="false" />
 					<knob id="panr_${i}" size="20" balance="0.5" scale_color="cyan" />
 					<value id="panr_${i}" detailed="false" />
+					<combo id="mgrp_${i}" />
 					<indicator id="mn_${i}" format="i3" text_color="green" />
 					<led id="iact_${i}" />
 					<button id="trg_${i}" size="32" toggle="false" />
