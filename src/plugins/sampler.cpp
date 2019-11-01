@@ -1473,7 +1473,7 @@ namespace lsp
                     for (size_t j=0; j<nSamplers; ++j)
                     {
                         sampler_t *s = &vSamplers[j];
-                        if (s->nNote != me->note.pitch)
+                        if ((s->nNote != me->note.pitch) || (s->nChannel != me->channel))
                             continue;
 
                         size_t g    = s->nMuteGroup;
@@ -1506,7 +1506,7 @@ namespace lsp
                     for (size_t j=0; j<nSamplers; ++j)
                     {
                         sampler_t *s = &vSamplers[j];
-                        if ((!s->bNoteOff) || (s->nNote != me->note.pitch))
+                        if ((!s->bNoteOff) || (s->nNote != me->note.pitch) || (s->nChannel != me->channel))
                             continue;
 
                         s->sSampler.trigger_off(me->timestamp, gain);
