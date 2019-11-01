@@ -177,6 +177,12 @@ namespace lsp
             static const size_t BITMASK_MAX        = ((sampler_base_metadata::INSTRUMENTS_MAX + 31) >> 5);
 
         protected:
+            enum dm_mode_t
+            {
+                DM_APPLY_GAIN   = 1 << 0,
+                DM_APPLY_PAN    = 1 << 1
+            };
+
             typedef struct sampler_channel_t
             {
                 float      *vDry;           // Dry output
@@ -227,6 +233,7 @@ namespace lsp
             size_t              nChannels;          // Number of channels per output
             size_t              nSamplers;          // Number of samplers
             size_t              nFiles;             // Number of files per sampler
+            size_t              nDOMode;            // Mode of direct output
             bool                bDryPorts;          // Dry ports allocated as temporary buffers
             sampler_t          *vSamplers;          // Lisf of samplers
 
@@ -247,6 +254,8 @@ namespace lsp
             IPort              *pDry;               // Dry amount port
             IPort              *pWet;               // Wet amount port
             IPort              *pGain;              // Output gain port
+            IPort              *pDOGain;            // Direct output gain flag
+            IPort              *pDOPan;             // Direct output panning flag
 
         protected:
             void        process_trigger_events();

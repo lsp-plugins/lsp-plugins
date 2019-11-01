@@ -7,6 +7,11 @@
 			<hbox spacing="8">
 				<label text="Working area" />
 				<combo id="msel" halign="1" />
+				<label text="Direct output:" />
+				<button id="do_gain" led="true" color="left_channel" />
+				<label text="Gain" />
+				<button id="do_pan" led="true" color="right_channel" />
+				<label text="Panning" />
 			</hbox>
 		</align>
 		

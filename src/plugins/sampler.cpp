@@ -996,6 +996,7 @@ namespace lsp
         nChannels       = channels;
         nSamplers       = lsp_min(sampler_base_metadata::INSTRUMENTS_MAX, samplers);
         nFiles          = files;
+        nDOMode         = 0;
         bDryPorts       = dry_ports;
         vSamplers       = NULL;
 
@@ -1026,6 +1027,8 @@ namespace lsp
         pDry            = NULL;
         pWet            = NULL;
         pGain           = NULL;
+        pDOGain         = NULL;
+        pDOPan          = NULL;
     }
 
     sampler_base::~sampler_base()
@@ -1153,6 +1156,13 @@ namespace lsp
         pWet        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pGain       = vPorts[port_id++];
+        if (bDryPorts)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            pDOGain     = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pDOPan      = vPorts[port_id++];
+        }
 
         // If number of samplers <= 2 - skip area selector
         if (nSamplers > 2)
@@ -1325,7 +1335,15 @@ namespace lsp
         // Update settings on all samplers and triggers
         bool muting     = pMuting->getValue() >= 0.5f;
         bool note_off   = pNoteOff->getValue() >= 0.5f;
+        nDOMode         = 0;
+        if ((pDOGain != NULL) && (pDOGain->getValue() >= 0.5f))
+            nDOMode        |= DM_APPLY_GAIN;
+        if ((pDOPan != NULL) && (pDOPan->getValue() >= 0.5f))
+            nDOMode        |= DM_APPLY_PAN;
+
         lsp_trace("muting=%s", (muting) ? "true" : "false");
+        lsp_trace("note_off=%s", (note_off) ? "true" : "false");
+        lsp_trace("do_mode=0x%x", int(nDOMode));
 
         for (size_t i=0; i<nSamplers; ++i)
         {
@@ -1573,28 +1591,48 @@ namespace lsp
                 // Call sampler for processing
                 s->sSampler.process(tmp_outs, tmp_ins, left);
 
+                // Preprocess dry channels: fill with zeros
+                for (size_t j=0; j<nChannels; ++j)
+                {
+                    sampler_channel_t *c    = &s->vChannels[j];
+                    if (c->vDry != NULL)
+                        dsp::fill_zero(c->vDry, count);
+                }
+
                 // Now post-process all channels for sampler
                 for (size_t j=0; j<nChannels; ++j)
                 {
                     sampler_channel_t *c    = &s->vChannels[j];
 
-                    // Copy to direct out buffer if present
-                    if (c->vDry != NULL)
-                    {
-                        c->sDryBypass.process(c->vDry, NULL, tmp_outs[j], count);
-                        dsp::scale2(c->vDry, s->fGain, count);
-                        c->vDry     += count;
-                    }
+                    // Copy data to direct output buffer if present
+                    float gain  = (nDOMode & DM_APPLY_GAIN) ? s->fGain : 1.0f;
+                    float pan   = (nDOMode & DM_APPLY_PAN) ? c->fPan : 1.0f;
+                    if (s->vChannels[j].vDry != NULL)
+                        dsp::scale_add3(s->vChannels[j].vDry, tmp_outs[j], pan * gain, count);
+                    if (s->vChannels[j^1].vDry != NULL)
+                        dsp::scale_add3(s->vChannels[j^1].vDry, tmp_outs[j], (1.0f - pan) * gain, count);
 
                     // Process output
                     c->sBypass.process(tmp_outs[j], NULL, tmp_outs[j], count);
 
                     // Mix output to common sampler's bus
-                    dsp::scale_add3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
+                    if (vChannels[j].vOut != NULL)
+                        dsp::scale_add3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
 
-                    // Apply pan to the other stereo channel for mult-sampler
-                    if (nSamplers > 1)
+                    // Apply pan to the other stereo channel (if present)
+                    if (vChannels[j^1].vOut != NULL)
                         dsp::scale_add3(vChannels[j^1].vOut, tmp_outs[j], (1.0f - c->fPan) * s->fGain, count);
+                }
+
+                // Post-process dry channels
+                for (size_t j=0; j<nChannels; ++j)
+                {
+                    sampler_channel_t *c    = &s->vChannels[j];
+                    if (c->vDry != NULL)
+                    {
+                        c->sDryBypass.process(c->vDry, NULL, c->vDry, count);
+                        c->vDry    += count;
+                    }
                 }
             }
 

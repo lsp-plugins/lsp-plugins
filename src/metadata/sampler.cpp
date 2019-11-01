@@ -102,6 +102,10 @@ namespace lsp
         WET_GAIN(1.0f),         \
         OUT_GAIN
 
+    #define S_DO_CONTROL \
+        SWITCH("do_gain", "Apply gain to direct-out", 1.0f), \
+        SWITCH("do_pan", "Apply panning to direct-out", 1.0f)
+
     #define S_SAMPLE_FILE(gain)        \
         PATH("sf", "Sample file"), \
         CONTROL("hc", "Sample head cut", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
@@ -484,6 +488,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_DO_CONTROL,
         S_AREA_SELECTOR(sampler_x12_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_DIRECT_OUT(0),
@@ -507,6 +512,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_DO_CONTROL,
         S_AREA_SELECTOR(sampler_x24_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x24_instruments),
         S_DIRECT_OUT(0),
@@ -542,6 +548,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_DO_CONTROL,
         S_AREA_SELECTOR(sampler_x48_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x48_instruments),
         S_DIRECT_OUT(0),
