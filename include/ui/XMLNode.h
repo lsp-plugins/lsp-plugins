@@ -10,6 +10,7 @@
 
 #include <core/LSPString.h>
 #include <data/cvector.h>
+#include <core/files/xml/IXMLHandler.h>
 
 namespace lsp
 {
@@ -65,7 +66,7 @@ namespace lsp
         private:
             XMLPlaybackNode & operator = (const XMLPlaybackNode &src);
 
-        private:
+        protected:
             enum event_t
             {
                 EVT_START_ELEMENT,
@@ -97,6 +98,24 @@ namespace lsp
             virtual status_t init(const LSPString * const *atts);
 
         public:
+            /**
+             * Playback start element
+             * @param handler XML handler
+             * @param name element name
+             * @param atts element attributes
+             * @return status of operation
+             */
+            virtual status_t playback_start_element(xml::IXMLHandler *handler, const LSPString *name, const LSPString * const *atts);
+
+            /**
+             * Playback end element
+             * @param handler XML handler
+             * @param name element name
+             * @param atts element attributes
+             * @return status of operation
+             */
+            virtual status_t playback_end_element(xml::IXMLHandler *handler, const LSPString *name);
+
             /**
              * Playback recorded data
              * @return

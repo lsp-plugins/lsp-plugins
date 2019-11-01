@@ -81,7 +81,10 @@ namespace lsp
                     {
                         if (pID != NULL)
                             return STATUS_CORRUPTED;
-                        if ((pID = value->clone()) == NULL)
+                        LSPString tmp;
+                        if ((res = pBuilder->eval_string(&tmp, value)) != STATUS_OK)
+                            return res;
+                        if ((pID = tmp.release()) == NULL)
                             return STATUS_NO_MEM;
                     }
                     else if (name->equals_ascii("first"))
@@ -99,6 +102,11 @@ namespace lsp
                         if ((res = pBuilder->eval_int(&nStep, value)) != STATUS_OK)
                             return res;
                         increment_set = true;
+                    }
+                    else
+                    {
+                        lsp_error("Unknown attribute: %s", name->get_utf8());
+                        return STATUS_CORRUPTED;
                     }
                 }
 
@@ -148,6 +156,186 @@ namespace lsp
             }
     };
 
+    class ui_attribute_handler: public ui_recording_handler
+    {
+        private:
+            cvector<LSPString>      vAtts;
+            size_t                  nLevel;
+
+        public:
+            explicit ui_attribute_handler(ui_builder *bld, XMLNode *handler) : ui_recording_handler(bld, handler)
+            {
+                nLevel = 0;
+            }
+
+            virtual ~ui_attribute_handler()
+            {
+                for (size_t i=0, n=vAtts.size(); i<n; ++i)
+                {
+                    LSPString *s = vAtts.at(i);
+                    if (s != NULL)
+                        delete s;
+                }
+                vAtts.flush();
+            }
+
+        public:
+            virtual status_t init(const LSPString * const *atts)
+            {
+                status_t res;
+                LSPString *attr;
+
+                // Generate list of appended properties
+                for (size_t i=0; *atts != NULL; ++atts, ++i)
+                {
+                    if (i & 1)
+                    {
+                        // Evaluate attribute value
+                        attr    = new LSPString;
+                        if (attr != NULL)
+                        {
+                            if ((res = pBuilder->eval_string(attr, *atts)) != STATUS_OK)
+                            {
+                                delete attr;
+                                return res;
+                            }
+                        }
+                    }
+                    else // Copy attribute name
+                        attr     = (*atts)->clone();
+
+                    // Append attribute
+                    if (attr == NULL)
+                        return STATUS_NO_MEM;
+                    else if (!vAtts.add(attr))
+                    {
+                        delete attr;
+                        return STATUS_NO_MEM;
+                    }
+                }
+
+                return STATUS_OK;
+            }
+
+            virtual status_t playback_start_element(xml::IXMLHandler *handler, const LSPString *name, const LSPString * const *atts)
+            {
+                cvector<LSPString> tmp;
+
+                // Need to override attributes?
+                if ((nLevel++) == 0)
+                {
+                    // Copy attributes
+                    for (size_t i=0; atts[i] != NULL; ++i)
+                        if (!tmp.add(const_cast<LSPString *>(atts[i])))
+                            return STATUS_NO_MEM;
+
+                    // Append unexisting attributes
+                    LSPString **vatts = vAtts.get_array();
+                    for (size_t i=0, n=vAtts.size(); i<n; i += 2)
+                    {
+                        LSPString *name   = vatts[i];
+                        LSPString *value  = vatts[i+1];
+
+                        // Check for duplicate
+                        for (size_t j=0; atts[j] != NULL; j+=2)
+                            if (atts[j]->equals(name))
+                            {
+                                name = NULL;
+                                break;
+                            }
+
+                        // Append property if it does not exist
+                        if (name == NULL)
+                            continue;
+
+                        if (!tmp.add(name))
+                            return STATUS_NO_MEM;
+                        if (!tmp.add(value))
+                            return STATUS_NO_MEM;
+                    }
+
+                    // Append argument terminator
+                    if (!tmp.add(NULL))
+                        return STATUS_NO_MEM;
+
+                    // Override properties with our own list
+                    atts = tmp.get_array();
+                }
+                return ui_recording_handler::playback_start_element(handler, name, atts);
+            }
+
+            virtual status_t playback_end_element(xml::IXMLHandler *handler, const LSPString *name)
+            {
+                --nLevel;
+                return ui_recording_handler::playback_end_element(handler, name);
+            }
+    };
+
+    class ui_set_handler: public XMLNode
+    {
+        private:
+            ui_set_handler & operator = (const ui_set_handler &src);
+
+        protected:
+            ui_builder             *pBuilder;
+
+        public:
+            explicit ui_set_handler(ui_builder *bld)
+            {
+                pBuilder    = bld;
+            }
+
+            virtual ~ui_set_handler()
+            {
+                pBuilder    = NULL;
+            }
+
+        public:
+            virtual status_t init(const LSPString * const *atts)
+            {
+                status_t res;
+                size_t flags = 0;
+                LSPString v_name;
+                calc::value_t v_value;
+
+                for ( ; *atts != NULL; atts += 2)
+                {
+                    const LSPString *name   = atts[0];
+                    const LSPString *value  = atts[1];
+
+                    if ((name == NULL) || (value == NULL))
+                        continue;
+
+                    if (name->equals_ascii("id"))
+                    {
+                        if ((res = pBuilder->eval_string(&v_name, value)) != STATUS_OK)
+                            return res;
+                        flags      |= 1;
+                    }
+                    else if (name->equals_ascii("value"))
+                    {
+                        if ((res = pBuilder->evaluate(&v_value, value)) != STATUS_OK)
+                            return res;
+                        flags      |= 2;
+                    }
+                    else
+                    {
+                        lsp_error("Unknown attribute: %s", name->get_utf8());
+                        return STATUS_CORRUPTED;
+                    }
+                }
+
+                if (flags != 3)
+                {
+                    lsp_error("Not all attributes are set");
+                    return STATUS_CORRUPTED;
+                }
+
+                // Set variable
+                return pBuilder->vars()->set(&v_name, &v_value);
+            }
+    };
+
     class ui_widget_handler: public XMLNode
     {
         private:
@@ -158,6 +346,7 @@ namespace lsp
             CtlWidget              *pWidget;
             ui_widget_handler      *pChild;
             ui_recording_handler   *pSpecial;
+            XMLNode                *pOther;
 
         public:
             explicit ui_widget_handler(ui_builder *bld, CtlWidget *widget)
@@ -166,6 +355,7 @@ namespace lsp
                 pWidget     = widget;
                 pChild      = NULL;
                 pSpecial    = NULL;
+                pOther      = NULL;
             }
 
             virtual ~ui_widget_handler()
@@ -190,16 +380,34 @@ namespace lsp
                 {
                     // Build special handler
                     if (name->equals_ascii("ui:for"))
-                        pSpecial    = new ui_for_handler(pBuilder, this);
+                    {
+                        if ((pSpecial = new ui_for_handler(pBuilder, this)) == NULL)
+                            return STATUS_NO_MEM;
+                        if ((res = pSpecial->init(atts)) != STATUS_OK)
+                            return res;
+                        *child  = pSpecial;
+                    }
+                    else if (name->equals_ascii("ui:attributes"))
+                    {
+                        if ((pSpecial = new ui_attribute_handler(pBuilder, this)) == NULL)
+                            return STATUS_NO_MEM;
+                        if ((res = pSpecial->init(atts)) != STATUS_OK)
+                            return res;
+                        *child  = pSpecial;
+                    }
+                    else if (name->equals_ascii("ui:set"))
+                    {
+                        ui_set_handler *h = new ui_set_handler(pBuilder);
+                        if (h == NULL)
+                            return STATUS_NO_MEM;
+                        if ((res = h->init(atts)) != STATUS_OK)
+                            return res;
+                        *child  = pOther    = h;
+                    }
+                    else
+                        res         = STATUS_CORRUPTED;
 
-                    // Is there any instance?
-                    if (pSpecial == NULL)
-                        return STATUS_CORRUPTED;
-
-                    if ((res = pSpecial->init(atts)) != STATUS_OK)
-                        return res;
-                    *child = pSpecial;
-                    return STATUS_OK;
+                    return res;
                 }
 
                 // Get UI
@@ -259,6 +467,12 @@ namespace lsp
                     res = special->execute();
                     delete special;
                 }
+                if ((child == pOther) && (pOther != NULL))
+                {
+                    delete pOther;
+                    pOther = NULL;
+                }
+
                 return res;
             }
     };
@@ -355,11 +569,18 @@ namespace lsp
 
         // Parse expression
         if ((res = e.parse(expr, calc::Expression::FLAG_STRING)) != STATUS_OK)
+        {
+            lsp_error("Could not parse expression: %s", expr->get_utf8());
             return res;
+        }
         e.set_resolver(vars());
 
         // Evaluate expression
-        return e.evaluate(value);
+        res = e.evaluate(value);
+        if (res != STATUS_OK)
+            lsp_error("Could not evaluate expression: %s", expr->get_utf8());
+
+        return res;
     }
 
     status_t ui_builder::push_scope()
@@ -368,14 +589,15 @@ namespace lsp
         calc::Variables *v = new calc::Variables();
         if (v == NULL)
             return STATUS_NO_MEM;
+
+        // Bind resolver, push to stack and quit
+        v->set_resolver(vars());
         if (!vStack.push(v))
         {
             delete v;
             return STATUS_NO_MEM;
         }
 
-        // Bind resolver and quit
-        v->set_resolver(vars());
         return STATUS_OK;
     }
 
