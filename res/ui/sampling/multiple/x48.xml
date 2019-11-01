@@ -40,7 +40,9 @@
 							<label text="Muting" />
 						</hbox>
 					</align>
-					<label />
+					<cell rows="2">
+						<button id="ion[inst]" size="32" led="true" color="yellow" text="ON" />
+					</cell>
 					
 					<!-- Row 4 -->
 					<combo id="mgrp[inst]" />
@@ -50,7 +52,6 @@
 							<label text="Note off" />
 						</hbox>
 					</align>
-					<label />
 					<value id="dyna[inst]" same_line="true" />
 					<value id="drft[inst]" same_line="true" />
 				</grid>
