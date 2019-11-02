@@ -129,6 +129,16 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t XMLPlaybackNode::playback_start_element(xml::IXMLHandler *handler, const LSPString *name, const LSPString * const *atts)
+    {
+        return handler->start_element(name, atts);
+    }
+
+    status_t XMLPlaybackNode::playback_end_element(xml::IXMLHandler *handler, const LSPString *name)
+    {
+        return handler->end_element(name);
+    }
+
     status_t XMLPlaybackNode::playback()
     {
         status_t res;
@@ -149,10 +159,10 @@ namespace lsp
             switch (ev->nEvent)
             {
                 case EVT_START_ELEMENT:
-                    res = h.start_element(atts[0], &atts[1]);
+                    res = playback_start_element(&h, atts[0], &atts[1]);
                     break;
                 case EVT_END_ELEMENT:
-                    res = h.end_element(atts[0]);
+                    res = playback_end_element(&h, atts[0]);
                     break;
                 default:
                     res = STATUS_CORRUPTED;

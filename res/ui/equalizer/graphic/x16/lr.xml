@@ -72,38 +72,40 @@
 						<mesh id="ag_r" width="3" color="right_channel" fill="0.8" smooth="true" visibility_id="fftv_r" />
 						
 						<!-- Dots -->
-						<dot hpos="14.62" vpos_id="gl_0" visibility_id="fvl_0" editable="true" color="left_channel" />
-						<dot hpos="17.10" vpos_id="gr_0" visibility_id="fvr_0" editable="true" color="right_channel" />
-						<dot hpos="23.27" vpos_id="gl_1" visibility_id="fvl_1" editable="true" color="left_channel" />
-						<dot hpos="27.07" vpos_id="gr_1" visibility_id="fvr_1" editable="true" color="right_channel" />
-						<dot hpos="36.74" vpos_id="gl_2" visibility_id="fvl_2" editable="true" color="left_channel" />
-						<dot hpos="42.86" vpos_id="gr_2" visibility_id="fvr_2" editable="true" color="right_channel" />
-						<dot hpos="58.48" vpos_id="gl_3" visibility_id="fvl_3" editable="true" color="left_channel" />
-						<dot hpos="68.40" vpos_id="gr_3" visibility_id="fvr_3" editable="true" color="right_channel" />
-						<dot hpos="92.83" vpos_id="gl_4" visibility_id="fvl_4" editable="true" color="left_channel" />
-						<dot hpos="107.72" vpos_id="gr_4" visibility_id="fvr_4" editable="true" color="right_channel" />
-						<dot hpos="146.20" vpos_id="gl_5" visibility_id="fvl_5" editable="true" color="left_channel" />
-						<dot hpos="171.00" vpos_id="gr_5" visibility_id="fvr_5" editable="true" color="right_channel" />
-						<dot hpos="232.70" vpos_id="gl_6" visibility_id="fvl_6" editable="true" color="left_channel" />
-						<dot hpos="270.74" vpos_id="gr_6" visibility_id="fvr_6" editable="true" color="right_channel" />
-						<dot hpos="367.45" vpos_id="gl_7" visibility_id="fvl_7" editable="true" color="left_channel" />
-						<dot hpos="428.63" vpos_id="gr_7" visibility_id="fvr_7" editable="true" color="right_channel" />
-						<dot hpos="584.80" vpos_id="gl_8" visibility_id="fvl_8" editable="true" color="left_channel" />
-						<dot hpos="683.99" vpos_id="gr_8" visibility_id="fvr_8" editable="true" color="right_channel" />
-						<dot hpos="928.32" vpos_id="gl_9" visibility_id="fvl_9" editable="true" color="left_channel" />
-						<dot hpos="1077.22" vpos_id="gr_9" visibility_id="fvr_9" editable="true" color="right_channel" />
-						<dot hpos="1462.01" vpos_id="gl_10" visibility_id="fvl_10" editable="true" color="left_channel" />
-						<dot hpos="1709.98" vpos_id="gr_10" visibility_id="fvr_10" editable="true" color="right_channel" />
-						<dot hpos="2326.97" vpos_id="gl_11" visibility_id="fvl_11" editable="true" color="left_channel" />
-						<dot hpos="2707.39" vpos_id="gr_11" visibility_id="fvr_11" editable="true" color="right_channel" />
-						<dot hpos="3674.49" vpos_id="gl_12" visibility_id="fvl_12" editable="true" color="left_channel" />
-						<dot hpos="4286.31" vpos_id="gr_12" visibility_id="fvr_12" editable="true" color="right_channel" />
-						<dot hpos="5848.04" vpos_id="gl_13" visibility_id="fvl_13" editable="true" color="left_channel" />
-						<dot hpos="6839.91" vpos_id="gr_13" visibility_id="fvr_13" editable="true" color="right_channel" />
-						<dot hpos="9283.18" vpos_id="gl_14" visibility_id="fvl_14" editable="true" color="left_channel" />
-						<dot hpos="10772.17" vpos_id="gr_14" visibility_id="fvr_14" editable="true" color="right_channel" />
-						<dot hpos="14620.09" vpos_id="gl_15" visibility_id="fvl_15" editable="true" color="left_channel" />
-						<dot hpos="17099.76" vpos_id="gr_15" visibility_id="fvr_15" editable="true" color="right_channel" />
+						<ui:attributes editable="true" border="8" padding="8">
+							<dot hpos="14.62" vpos_id="gl_0" visibility_id="fvl_0" color="left_channel" />
+							<dot hpos="17.10" vpos_id="gr_0" visibility_id="fvr_0" color="right_channel" />
+							<dot hpos="23.27" vpos_id="gl_1" visibility_id="fvl_1" color="left_channel" />
+							<dot hpos="27.07" vpos_id="gr_1" visibility_id="fvr_1" color="right_channel" />
+							<dot hpos="36.74" vpos_id="gl_2" visibility_id="fvl_2" color="left_channel" />
+							<dot hpos="42.86" vpos_id="gr_2" visibility_id="fvr_2" color="right_channel" />
+							<dot hpos="58.48" vpos_id="gl_3" visibility_id="fvl_3" color="left_channel" />
+							<dot hpos="68.40" vpos_id="gr_3" visibility_id="fvr_3" color="right_channel" />
+							<dot hpos="92.83" vpos_id="gl_4" visibility_id="fvl_4" color="left_channel" />
+							<dot hpos="107.72" vpos_id="gr_4" visibility_id="fvr_4" color="right_channel" />
+							<dot hpos="146.20" vpos_id="gl_5" visibility_id="fvl_5" color="left_channel" />
+							<dot hpos="171.00" vpos_id="gr_5" visibility_id="fvr_5" color="right_channel" />
+							<dot hpos="232.70" vpos_id="gl_6" visibility_id="fvl_6" color="left_channel" />
+							<dot hpos="270.74" vpos_id="gr_6" visibility_id="fvr_6" color="right_channel" />
+							<dot hpos="367.45" vpos_id="gl_7" visibility_id="fvl_7" color="left_channel" />
+							<dot hpos="428.63" vpos_id="gr_7" visibility_id="fvr_7" color="right_channel" />
+							<dot hpos="584.80" vpos_id="gl_8" visibility_id="fvl_8" color="left_channel" />
+							<dot hpos="683.99" vpos_id="gr_8" visibility_id="fvr_8" color="right_channel" />
+							<dot hpos="928.32" vpos_id="gl_9" visibility_id="fvl_9" color="left_channel" />
+							<dot hpos="1077.22" vpos_id="gr_9" visibility_id="fvr_9" color="right_channel" />
+							<dot hpos="1462.01" vpos_id="gl_10" visibility_id="fvl_10" color="left_channel" />
+							<dot hpos="1709.98" vpos_id="gr_10" visibility_id="fvr_10" color="right_channel" />
+							<dot hpos="2326.97" vpos_id="gl_11" visibility_id="fvl_11" color="left_channel" />
+							<dot hpos="2707.39" vpos_id="gr_11" visibility_id="fvr_11" color="right_channel" />
+							<dot hpos="3674.49" vpos_id="gl_12" visibility_id="fvl_12" color="left_channel" />
+							<dot hpos="4286.31" vpos_id="gr_12" visibility_id="fvr_12" color="right_channel" />
+							<dot hpos="5848.04" vpos_id="gl_13" visibility_id="fvl_13" color="left_channel" />
+							<dot hpos="6839.91" vpos_id="gr_13" visibility_id="fvr_13" color="right_channel" />
+							<dot hpos="9283.18" vpos_id="gl_14" visibility_id="fvl_14" color="left_channel" />
+							<dot hpos="10772.17" vpos_id="gr_14" visibility_id="fvr_14" color="right_channel" />
+							<dot hpos="14620.09" vpos_id="gl_15" visibility_id="fvl_15" color="left_channel" />
+							<dot hpos="17099.76" vpos_id="gr_15" visibility_id="fvr_15" color="right_channel" />
+						</ui:attributes>
 						
 						<!-- Boundaries -->
 						<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
@@ -207,81 +209,54 @@
 		</hbox>
 		<hbox spacing="4">
 			<cgroup id="fsel" >
-				<grid rows="5" cols="17">
-					<label text="Hz" fill="true" halign="0" />
-					<label text="16" />
-					<label text="25" />
-					<label text="40" />
-					<label text="63" />
-					<label text="100" />
-					<label text="160" />
-					<label text="250" />
-					<label text="400" />
-					<label text="630" />
-					<label text="1K" />
-					<label text="1.6K" />
-					<label text="2.5K" />
-					<label text="4K" />
-					<label text="6.3K" />
-					<label text="10K" />
-					<label text="16K" />
+				<ui:for id="blk" first="0" last="1">
+					<ui:set id="chc" value="${(:blk mod 2) ? 'right_channel' : 'left_channel'}" />
+					<ui:set id="chp" value="${(:blk mod 2) ? 'r' : 'l'}" />
+					<ui:set id="f" value="${:blk idiv 2}" />
 					
-					<label text="Ctl" />
-					<ui:for id="i" first="0" last="15">
-						<grid rows="3" cols="2" fill="false">
-							<button id="xel_${i}" led="true" size="12" color="yellow" />
-							<label text="On" font_size="9" />
-							<button id="xsl_${i}" led="true" size="12" color="green" />
-							<button id="xml_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="9" />
-							<label text="M" font_size="9" />
-						</grid>
-					</ui:for>
-					
-					<label text="Gain" />
-					<ui:for id="i" first="0" last="15"><knob id="gl_${i}"  size="20" scale_color="left_channel" /></ui:for>
-					
-					<label text="(dB)" />
-					<ui:for id="i" first="0" last="15"><value id="gl_${i}" detailed="false" /></ui:for>
-				</grid>
-
-				<grid rows="5" cols="17">
-					<label text="Hz" fill="true" halign="0" />
-					<label text="16" />
-					<label text="25" />
-					<label text="40" />
-					<label text="63" />
-					<label text="100" />
-					<label text="160" />
-					<label text="250" />
-					<label text="400" />
-					<label text="630" />
-					<label text="1K" />
-					<label text="1.6K" />
-					<label text="2.5K" />
-					<label text="4K" />
-					<label text="6.3K" />
-					<label text="10K" />
-					<label text="16K" />
-					
-					<label text="Ctl" />
-					<ui:for id="i" first="0" last="15">
-						<grid rows="3" cols="2" fill="false">
-							<button id="xer_${i}" led="true" size="12" color="yellow" />
-							<label text="On" font_size="9" />
-							<button id="xsr_${i}" led="true" size="12" color="green" />
-							<button id="xmr_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="9" />
-							<label text="M" font_size="9" />
-						</grid>
-					</ui:for>
-					
-					<label text="Gain" />
-					<ui:for id="i" first="0" last="15"><knob id="gr_${i}"  size="20" scale_color="right_channel" /></ui:for>
-					
-					<label text="(dB)" />
-					<ui:for id="i" first="0" last="15"><value id="gr_${i}" detailed="false" /></ui:for>
-				</grid>
+					<grid rows="5" cols="17">
+						<label text="Hz" fill="true" halign="0" />
+						<label text="16" />
+						<label text="25" />
+						<label text="40" />
+						<label text="63" />
+						<label text="100" />
+						<label text="160" />
+						<label text="250" />
+						<label text="400" />
+						<label text="630" />
+						<label text="1K" />
+						<label text="1.6K" />
+						<label text="2.5K" />
+						<label text="4K" />
+						<label text="6.3K" />
+						<label text="10K" />
+						<label text="16K" />
+						
+						<label text="Ctl" halign="0" />
+						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
+							<ui:set id="ch" value="${chp}_${i}" />
+							<grid rows="3" cols="2" fill="false">
+								<button id="xe${ch}" led="true" size="12" color="yellow" />
+								<label text="On" font_size="9" />
+								<button id="xs${ch}" led="true" size="12" color="green" />
+								<button id="xm${ch}" led="true" size="12" color="red" />
+								<label text="S" font_size="9" />
+								<label text="M" font_size="9" />
+							</grid>
+						</ui:for>
+						
+						<label text="Gain" halign="0" />
+						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
+							<knob id="g${chp}_${i}"  size="20" scale_color="${chc}" />
+						</ui:for>
+						
+						<label text="(dB)" halign="0" />
+						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
+							<value id="g${chp}_${i}" detailed="false" />
+						</ui:for>
+					</grid>
+				</ui:for>
 			</cgroup>
 		</hbox>
 	</vbox>

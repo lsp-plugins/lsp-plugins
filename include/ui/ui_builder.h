@@ -25,9 +25,6 @@ namespace lsp
             cvector<calc::Variables>    vStack;
             calc::Variables             vRoot;
 
-        private:
-            status_t evaluate(calc::value_t *value, const LSPString *expr);
-
         public:
             explicit ui_builder(plugin_ui *ui);
             ~ui_builder();
@@ -85,12 +82,28 @@ namespace lsp
             inline calc::Variables *root()      { return &vRoot; }
 
             /**
+             * Evaluate expression
+             * @param value value to return
+             * @param expr expression to evaluate
+             * @return status of operation
+             */
+            status_t evaluate(calc::value_t *value, const LSPString *expr);
+
+            /**
              * Evaluate value and return as string
              * @param var pointer to store string
              * @param expr expression
              * @return status of operation
              */
             status_t eval_string(LSPString *value, const LSPString *expr);
+
+            /**
+             * Evaluate value and return as boolean
+             * @param var pointer to store string
+             * @param expr expression
+             * @return status of operation
+             */
+            status_t eval_bool(bool *value, const LSPString *expr);
 
             /**
              * Evaluate value and return as integer

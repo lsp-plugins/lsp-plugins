@@ -36,7 +36,7 @@
 					<mesh id="osg_l" width="2" color="left_channel" visibility_id="olv_l" />
 					<mesh id="osg_r" width="2" color="right_channel" visibility_id="olv_r" />
 					<mesh id="scg" width="2" color="bright_green" visibility_id="slv" />
-					<mesh id="evg" width="2" color="bright_magenta" hue="0.044" visibility_id="elv" />
+					<mesh id="evg" width="2" color="bright_magenta" visibility_id="elv" />
 					<mesh id="grg" width="2" color="bright_blue" visibility_id="grv" />
 					
 					<!-- Text -->
@@ -134,11 +134,11 @@
 					<!-- Markers -->
 					<ui:for id="i" first="0" last="3">
 						<marker id="al${i}" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility_id="ae${i}" />
-						<text text="${i}" coord=":al${i};15.84893" color="magenta" halign="-1" valign="-1" visibility_id="ae${i}" />
+						<text text="${i}" coord=":al${i};15.84893" color="g_magenta" halign="-1" valign="-1" visibility_id="ae${i}" />
 					</ui:for>
 					<ui:for id="i" first="0" last="3">
 						<marker id="rl${i}" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility_id="re${i}" />
-						<text text="${i}" coord=":rl${i};0.00025" color="orange" halign="-1" valign="1" visibility_id="re${i}" />
+						<text text="${i}" coord=":rl${i};0.00025" color="g_orange" halign="-1" valign="1" visibility_id="re${i}" />
 					</ui:for>
 					
 					<!-- Dots -->

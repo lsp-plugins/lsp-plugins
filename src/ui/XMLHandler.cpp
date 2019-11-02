@@ -36,6 +36,7 @@ namespace lsp
     {
         XMLNode *top        = vHandlers.last();
         XMLNode *child      = NULL;
+        //lsp_trace("start: %s", name->get_utf8());
 
         // Analyze
         if (top != NULL)
@@ -55,6 +56,8 @@ namespace lsp
     {
         status_t res;
         XMLNode *node = NULL, *top = NULL;
+
+        //lsp_trace("end: %s", name->get_utf8());
 
         // Obtain handlers
         if (!vHandlers.pop(&node))

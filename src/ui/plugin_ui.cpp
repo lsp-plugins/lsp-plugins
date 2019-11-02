@@ -1089,6 +1089,7 @@ namespace lsp
             lsp_error("Could not build UI from URI %s", path.get_utf8());
             return result;
         }
+        lsp_trace("UI has been generated");
 
         // Fetch main menu
         LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));
@@ -1427,6 +1428,17 @@ namespace lsp
         return false;
     }
 
+    static int port_cmp(const void *va, const void *vb)
+    {
+        const CtlPort *const *a = reinterpret_cast<const CtlPort *const *>(va);
+        const CtlPort *const *b = reinterpret_cast<const CtlPort *const *>(vb);
+
+        const port_t *am    = (*a)->metadata();
+        const port_t *bm    = (*b)->metadata();
+
+        return ::strcmp(am->id, bm->id);
+    }
+
     size_t plugin_ui::rebuild_sorted_ports()
     {
         size_t count = vPorts.size();
@@ -1435,26 +1447,14 @@ namespace lsp
         for (size_t i=0; i<count; ++i)
             vSortedPorts.add(vPorts.at(i));
 
-        count   = vSortedPorts.size();
+        if (count <= 1)
+            return count;
 
-        // Sort by port ID
-        if (count >= 2)
-        {
-            for (size_t i=0; i<(count-1); ++i)
-                for (size_t j=i+1; j<count; ++j)
-                {
-                    CtlPort *a  = vSortedPorts.at(i);
-                    CtlPort *b  = vSortedPorts.at(j);
-                    if ((a == NULL) || (b == NULL))
-                        continue;
-                    const port_t *am    = a->metadata();
-                    const port_t *bm    = b->metadata();
-                    if ((am == NULL) || (bm == NULL))
-                        continue;
-                    if (strcmp(am->id, bm->id) > 0)
-                        vSortedPorts.swap_unsafe(i, j);
-                }
-        }
+        count           = vSortedPorts.size();
+        CtlPort **vp    = vSortedPorts.get_array();
+
+        // Sort by port's ID
+        ::qsort(vp, count, sizeof(CtlPort *), port_cmp);
 
 //        #ifdef LSP_TRACE
 //            for (size_t i=0; i<count; ++i)

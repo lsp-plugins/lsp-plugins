@@ -1337,11 +1337,12 @@ namespace lsp
         receive_atoms(samples);
 
         // Pre-rocess regular ports
-        size_t n_all_ports = vAllPorts.size();
+        size_t n_all_ports      = vAllPorts.size();
+        LV2Port **v_all_ports   = vAllPorts.get_array();
         for (size_t i=0; i<n_all_ports; ++i)
         {
             // Get port
-            LV2Port *port = vAllPorts.at(i);
+            LV2Port *port = v_all_ports[i];
             if (port == NULL)
                 continue;
 
@@ -1371,7 +1372,7 @@ namespace lsp
         // Post-process regular ports for changes
         for (size_t i=0; i<n_all_ports; ++i)
         {
-            LV2Port *port = vAllPorts.at(i);
+            LV2Port *port = v_all_ports[i];
             if (port != NULL)
                 port->post_process(samples);
         }

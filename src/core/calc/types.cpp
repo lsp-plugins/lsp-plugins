@@ -232,7 +232,7 @@ namespace lsp
                     return STATUS_BAD_TYPE;
             }
 
-            LSPString *ns = tmp.copy();
+            LSPString *ns = tmp.release();
             if (ns == NULL)
                 return STATUS_NO_MEM;
 
@@ -274,7 +274,7 @@ namespace lsp
                     return STATUS_BAD_TYPE;
             }
 
-            LSPString *ns = tmp.copy();
+            LSPString *ns = tmp.release();
             if (ns == NULL)
                 return STATUS_NO_MEM;
 

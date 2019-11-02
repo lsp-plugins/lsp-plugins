@@ -83,6 +83,7 @@
 		<g_magenta value="#ff00ff" />
 		<g_red value="#ff0000" />
 		<g_blue value="#0000ff" />
+		<g_orange value="#ff8800" />
 		
 		<!-- Channel colors -->
 		<left_channel value="#ff0000" />

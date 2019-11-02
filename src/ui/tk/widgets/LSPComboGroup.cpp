@@ -144,6 +144,8 @@ namespace lsp
         LSPWidget *LSPComboGroup::current_widget()
         {
             ssize_t idx = sListBox.selection()->value();
+            if (idx >= ssize_t(vWidgets.size()))
+                idx = vWidgets.size() - 1;
             LSPWidget *w = vWidgets.get(idx);
             return ((w == NULL) || (w->invisible())) ? NULL : w;
         }

@@ -35,123 +35,6 @@ namespace lsp
     };
 
     //-------------------------------------------------------------------------
-    midi_trigger_kernel::midi_trigger_kernel()
-    {
-        pHandler        = NULL;
-        nNote           = NOTE_DFL + OCTAVE_DFL * 12;
-        nChannel        = CHANNEL_DFL;
-        bMuting         = false;
-
-        pChannel        = NULL;
-        pNote           = NULL;
-        pOctave         = NULL;
-        pMidiNote       = NULL;
-    }
-
-    midi_trigger_kernel::~midi_trigger_kernel()
-    {
-        lsp_trace("this = %p", this);
-        destroy();
-    }
-
-    bool midi_trigger_kernel::init(ITrigger *handler)
-    {
-        pHandler        = handler;
-        return true;
-    }
-
-    size_t midi_trigger_kernel::bind(cvector<IPort> &ports, size_t port_id)
-    {
-        lsp_trace("Binding ports...\n");
-        TRACE_PORT(ports[port_id]);
-        pChannel        = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pNote           = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pOctave         = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pMidiNote       = ports[port_id++];
-
-        return port_id;
-    }
-
-    void midi_trigger_kernel::destroy()
-    {
-        pHandler        = NULL;
-
-        pChannel        = NULL;
-        pNote           = NULL;
-        pOctave         = NULL;
-        pMidiNote       = NULL;
-    }
-
-    void midi_trigger_kernel::update_settings()
-    {
-        nNote       = (pOctave->getValue() * 12) + pNote->getValue();
-        nChannel    = pChannel->getValue();
-
-        lsp_trace("trigger note=%d", int(nNote));
-        lsp_trace("trigger channel=%d", int(nChannel));
-    }
-
-    void midi_trigger_kernel::set_muting(bool muting)
-    {
-        bMuting     = muting;
-    }
-
-    void midi_trigger_kernel::process_events(const midi_t *in, midi_t *out)
-    {
-        // Output parameter
-        pMidiNote->setValue(nNote);
-
-        // Skip processing on no input
-        if (in == NULL)
-            return;
-
-        #ifdef LSP_TRACE
-            if (in->nEvents > 0)
-                lsp_trace("trigger this=%p, number of events = %d", this, int(in->nEvents));
-        #endif
-        for (size_t i=0; i<in->nEvents; ++i)
-        {
-            // Analyze MIDI event
-            const midi_event_t *me    = &in->vEvents[i];
-            if (me->type == MIDI_MSG_NOTE_ON)
-            {
-                lsp_trace("NOTE_ON: channel=%d, pitch=%d, velocity=%d", int(me->channel), int(me->note.pitch), int(me->note.velocity));
-                if (me->note.pitch != nNote)
-                    continue;
-
-                // Pass normalized velocity to the handler
-                if (pHandler != NULL)
-                    pHandler->trigger_on(me->timestamp, me->note.velocity / 127.0f);
-            }
-            else if (me->type == MIDI_MSG_NOTE_OFF)
-            {
-                lsp_trace("NOTE_OFF: channel=%d, pitch=%d, velocity=%d", int(me->channel), int(me->note.pitch), int(me->note.velocity));
-                if (me->note.pitch != nNote)
-                    continue;
-
-                // Pass normalized velocity to the handler
-                if (pHandler != NULL)
-                    pHandler->trigger_off(me->timestamp, me->note.velocity / 127.0f);
-            }
-            else if (me->type == MIDI_MSG_NOTE_CONTROLLER)
-            {
-                lsp_trace("NOTE_CONTROLLER: channel=%d, control=%02x, value=%d", int(me->channel), int(me->ctl.control), int(me->ctl.value));
-                if ((!bMuting) || (me->channel != nChannel))
-                    continue;
-                if (me->ctl.control != MIDI_CTL_ALL_NOTES_OFF)
-                    continue;
-
-                // Apply changes to all ports
-                if (pHandler != NULL)
-                    pHandler->trigger_stop(me->timestamp);
-            }
-        }
-    }
-
-    //-------------------------------------------------------------------------
     sampler_kernel::sampler_kernel()
     {
         pExecutor       = NULL;
@@ -163,7 +46,6 @@ namespace lsp
         vBuffer         = NULL;
         bBypass         = false;
         bReorder        = false;
-        bFadeout        = false;
         fFadeout        = 10.0f;
         fDynamics       = sampler_base_metadata::DYNA_DFL;
         fDrift          = sampler_base_metadata::DRIFT_DFL;
@@ -173,6 +55,7 @@ namespace lsp
         pDrift          = NULL;
         pActivity       = NULL;
         pListen         = NULL;
+        pData           = NULL;
     }
 
     sampler_kernel::~sampler_kernel()
@@ -181,9 +64,8 @@ namespace lsp
         destroy_state();
     }
 
-    void sampler_kernel::set_fadeout(bool enabled, float length)
+    void sampler_kernel::set_fadeout(float length)
     {
-        bFadeout        = enabled;
         fFadeout        = length;
     }
 
@@ -202,18 +84,16 @@ namespace lsp
 
         // Now determine object sizes
         size_t afsample_size        = ALIGN_SIZE(sizeof(afsample_t), DEFAULT_ALIGN);
-        size_t afile_hdr_size       = ALIGN_SIZE(sizeof(afile_t), DEFAULT_ALIGN);
-        size_t afile_size           = afile_hdr_size + 3 * afsample_size;
+        size_t afile_size           = AFI_TOTAL * afsample_size;
         size_t array_size           = ALIGN_SIZE(sizeof(afile_t *) * files, DEFAULT_ALIGN);
 
         lsp_trace("afsample_size        = %d", int(afsample_size));
-        lsp_trace("afile_hdr_size       = %d", int(afile_hdr_size));
         lsp_trace("afile_size           = %d", int(afile_size));
         lsp_trace("array_size           = %d", int(array_size));
 
         // Allocate raw chunk and link data
         size_t allocate             = array_size * 2 + afile_size * files;
-        uint8_t *ptr                = new uint8_t[allocate];
+        uint8_t *ptr                = alloc_aligned<uint8_t>(pData, allocate);
         if (ptr == NULL)
             return false;
 
@@ -222,9 +102,10 @@ namespace lsp
             lsp_trace("allocate = %d, ptr range=%p-%p", int(allocate), ptr, tail);
         #endif /* LSP_TRACE */
 
-        vFiles                      = reinterpret_cast<afile_t **>(ptr);
-        ptr                        += array_size;
-        lsp_trace("vFiles               = %p", vFiles);
+        // Allocate files
+        vFiles                      = new afile_t[files];
+        if (vFiles == NULL)
+            return false;
 
         vActive                     = reinterpret_cast<afile_t **>(ptr);
         ptr                        += array_size;
@@ -232,8 +113,7 @@ namespace lsp
 
         for (size_t i=0; i<files; ++i)
         {
-            afile_t *af                 = reinterpret_cast<afile_t *>(ptr);
-            lsp_trace("vFiles[%d]           = %p", int(i), af);
+            afile_t *af                 = &vFiles[i];
 
             af->nID                     = i;
             af->pLoader                 = NULL;
@@ -273,11 +153,10 @@ namespace lsp
                 af->pGains[j]               = NULL;
             }
 
-            uint8_t *afptr              = ptr + afile_hdr_size;
             for (size_t j=0; j<AFI_TOTAL; ++j)
             {
-                afsample_t *afs             = reinterpret_cast<afsample_t *>(afptr);
-                afptr                      += afsample_size;
+                afsample_t *afs             = reinterpret_cast<afsample_t *>(ptr);
+                ptr                        += afsample_size;
 
                 af->vData[j]                = afs;
                 lsp_trace("vFiles[%d]->vData[%d]    = %p", int(i), int(j), afs);
@@ -290,16 +169,14 @@ namespace lsp
                     afs->vThumbs[k]     = NULL;
             }
 
-            vFiles[i]                   = af;
             vActive[i]                  = NULL;
-            ptr                        += afile_size;
         }
 
         // Create additional objects: tasks for file loading
         lsp_trace("Create loaders");
         for (size_t i=0; i<files; ++i)
         {
-            afile_t  *af        = vFiles[i];
+            afile_t  *af        = &vFiles[i];
 
             // Create loader
             AFLoader *ldr       = new AFLoader(this, af);
@@ -365,8 +242,8 @@ namespace lsp
         {
             lsp_trace("Binding sample %d", int(i));
 
-            afile_t *af             = vFiles[i];
-
+            afile_t *af             = &vFiles[i];
+            // Allocate files
             TRACE_PORT(ports[port_id]);
             af->pFile               = ports[port_id++];
             TRACE_PORT(ports[port_id]);
@@ -433,22 +310,24 @@ namespace lsp
             for (size_t i=0; i<nFiles;++i)
             {
                 // Delete audio file loaders
-                AFLoader *ldr   = vFiles[i]->pLoader;
+                AFLoader *ldr   = vFiles[i].pLoader;
                 if (ldr != NULL)
                 {
                     delete ldr;
-                    vFiles[i]->pLoader = NULL;
+                    vFiles[i].pLoader = NULL;
                 }
 
                 // Destroy samples
                 for (size_t j=0; j<AFI_TOTAL; ++j)
-                    destroy_afsample(vFiles[i]->vData[j]);
+                    destroy_afsample(vFiles[i].vData[j]);
             }
 
             // Drop list of files
-            delete [] reinterpret_cast<uint8_t *>(vFiles);
+            delete [] vFiles;
             vFiles = NULL;
         }
+
+        free_aligned(pData);
 
         // Foget variables
         pExecutor       = NULL;
@@ -476,7 +355,7 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             // Get descriptor
-            afile_t *af             = vFiles[i];
+            afile_t *af             = &vFiles[i];
             if (af->pFile == NULL)
                 continue;
 
@@ -504,7 +383,7 @@ namespace lsp
         // Iterate all samples
         for (size_t i=0; i<nFiles; ++i)
         {
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
 
             // On/off switch
             bool on             = (af->pOn->getValue() >= 0.5f);
@@ -593,7 +472,7 @@ namespace lsp
         sActivity.init(sr);
 
         for (size_t i=0; i<nFiles; ++i)
-            vFiles[i]->sNoteOn.init(sr);
+            vFiles[i].sNoteOn.init(sr);
     }
 
     void sampler_kernel::destroy_afsample(afsample_t *af)
@@ -821,13 +700,13 @@ namespace lsp
         nActive     = 0;
         for (size_t i=0; i<nFiles; ++i)
         {
-            if (!vFiles[i]->bOn)
+            if (!vFiles[i].bOn)
                 continue;
-            if (vFiles[i]->vData[AFI_CURR]->pSample == NULL)
+            if (vFiles[i].vData[AFI_CURR]->pSample == NULL)
                 continue;
 
             lsp_trace("file %d is active", int(nActive));
-            vActive[nActive++]  = vFiles[i];
+            vActive[nActive++]  = &vFiles[i];
         }
 
         // Sort the list of active files
@@ -941,7 +820,7 @@ namespace lsp
 
     void sampler_kernel::trigger_off(size_t timestamp, float level)
     {
-        if ((nActive <= 0) || (!bFadeout))
+        if (nActive <= 0)
             return;
 
         size_t delay    = timestamp;
@@ -969,7 +848,7 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             // Get descriptor
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
             if (af->pFile == NULL)
                 continue;
 
@@ -991,7 +870,7 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             // Get descriptor
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
             if (af->pFile == NULL)
                 continue;
 
@@ -1073,7 +952,7 @@ namespace lsp
 
         for (size_t i=0; i<nFiles; ++i)
         {
-            afile_t *af         = vFiles[i];
+            afile_t *af         = &vFiles[i];
 
             // Output information about the file
             af->pLength->setValue(af->fLength);
@@ -1113,8 +992,9 @@ namespace lsp
     sampler_base::sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports): plugin_t(metadata)
     {
         nChannels       = channels;
-        nSamplers       = samplers;
+        nSamplers       = lsp_min(sampler_base_metadata::INSTRUMENTS_MAX, samplers);
         nFiles          = files;
+        nDOMode         = 0;
         bDryPorts       = dry_ports;
         vSamplers       = NULL;
 
@@ -1145,6 +1025,8 @@ namespace lsp
         pDry            = NULL;
         pWet            = NULL;
         pGain           = NULL;
+        pDOGain         = NULL;
+        pDOPan          = NULL;
     }
 
     sampler_base::~sampler_base()
@@ -1179,10 +1061,11 @@ namespace lsp
             if (!s->sSampler.init(executor, nFiles, nChannels))
                 return;
 
-            // Initialize trigger
-            lsp_trace("Initializing trigger #%d...", int(i));
-            if (!s->sTrigger.init(&s->sSampler))
-                return;
+            s->nNote        = sampler_kernel_metadata::NOTE_DFL + sampler_kernel_metadata::OCTAVE_DFL * 12;
+            s->nChannel     = sampler_kernel_metadata::CHANNEL_DFL;
+            s->nMuteGroup   = i;
+            s->bMuting      = false;
+            s->bNoteOff     = false;
 
             // Initialize channels
             lsp_trace("Initializing channel group #%d...", int(i));
@@ -1199,6 +1082,13 @@ namespace lsp
             s->pGain        = NULL;
             s->pBypass      = NULL;
             s->pDryBypass   = NULL;
+            s->pChannel     = NULL;
+            s->pNote        = NULL;
+            s->pOctave      = NULL;
+            s->pMuteGroup   = NULL;
+            s->pMuting      = NULL;
+            s->pMidiNote    = NULL;
+            s->pNoteOff     = NULL;
         }
 
         // Initialize temporary buffers
@@ -1264,6 +1154,13 @@ namespace lsp
         pWet        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pGain       = vPorts[port_id++];
+        if (bDryPorts)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            pDOGain     = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pDOPan      = vPorts[port_id++];
+        }
 
         // If number of samplers <= 2 - skip area selector
         if (nSamplers > 2)
@@ -1284,15 +1181,31 @@ namespace lsp
         // Now process each instrument
         for (size_t i=0; i<nSamplers; ++i)
         {
-            sampler_t *s = &vSamplers[i];
+            sampler_t *s    = &vSamplers[i];
 
             // Bind trigger
             lsp_trace("Binding trigger #%d ports...", int(i));
-            port_id     = s->sTrigger.bind(vPorts, port_id);
+            TRACE_PORT(vPorts[port_id]);
+            s->pChannel     = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            s->pNote        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            s->pOctave      = vPorts[port_id++];
+            if (nSamplers > 1)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                s->pMuteGroup   = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                s->pMuting      = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                s->pNoteOff     = vPorts[port_id++];
+            }
+            TRACE_PORT(vPorts[port_id]);
+            s->pMidiNote    = vPorts[port_id++];
 
             // Bind sampler
             lsp_trace("Binding sampler #%d ports...", int(i));
-            port_id     = s->sSampler.bind(vPorts, port_id, true);
+            port_id         = s->sSampler.bind(vPorts, port_id, true);
         }
 
         if (nSamplers > 1)
@@ -1352,18 +1265,24 @@ namespace lsp
         {
             for (size_t i=0; i<nSamplers; ++i)
             {
-                sampler_t *s = &vSamplers[i];
-
+                sampler_t *s    = &vSamplers[i];
                 s->sSampler.destroy();
-                s->sTrigger.destroy();
 
                 for (size_t j=0; j<nChannels; ++j)
                 {
                     sampler_channel_t *c    = &s->vChannels[j];
-                    c->vDry     = NULL;
-                    c->pDry     = NULL;
-                    c->pPan     = NULL;
+                    c->vDry         = NULL;
+                    c->pDry         = NULL;
+                    c->pPan         = NULL;
                 }
+
+                s->pGain        = NULL;
+                s->pBypass      = NULL;
+                s->pDryBypass   = NULL;
+                s->pChannel     = NULL;
+                s->pNote        = NULL;
+                s->pOctave      = NULL;
+                s->pMidiNote    = NULL;
             }
 
             delete [] vSamplers;
@@ -1413,12 +1332,33 @@ namespace lsp
 
         // Update settings on all samplers and triggers
         bool muting     = pMuting->getValue() >= 0.5f;
+        bool note_off   = pNoteOff->getValue() >= 0.5f;
+        nDOMode         = 0;
+        if ((pDOGain != NULL) && (pDOGain->getValue() >= 0.5f))
+            nDOMode        |= DM_APPLY_GAIN;
+        if ((pDOPan != NULL) && (pDOPan->getValue() >= 0.5f))
+            nDOMode        |= DM_APPLY_PAN;
+
         lsp_trace("muting=%s", (muting) ? "true" : "false");
+        lsp_trace("note_off=%s", (note_off) ? "true" : "false");
+        lsp_trace("do_mode=0x%x", int(nDOMode));
 
         for (size_t i=0; i<nSamplers; ++i)
         {
             sampler_t *s    = &vSamplers[i];
-//            lsp_trace("Processing sampler %d, ptr=%p", int(i), s);
+
+            // MIDI note and channel
+            s->nNote        = (s->pOctave->getValue() * 12) + s->pNote->getValue();
+            s->nChannel     = s->pChannel->getValue();
+            s->nMuteGroup   = (s->pMuteGroup != NULL) ? s->pMuteGroup->getValue() : i;
+            s->bMuting      = (s->pMuting != NULL) ? s->pMuting->getValue() >= 0.5f : false;
+            s->bMuting      = s->bMuting || muting;
+            s->bNoteOff     = (s->pNoteOff != NULL) ? s->pNoteOff->getValue() >= 0.5f : false;
+            s->bNoteOff     = s->bNoteOff || note_off;
+
+            lsp_trace("Sampler %d channel=%d, note=%d", int(i), int(s->nChannel), int(s->nNote));
+            if (s->pMidiNote != NULL)
+                s->pMidiNote->setValue(s->nNote);
 
             // Get gain values
             s->fGain        = (s->pGain != NULL) ? s->pGain->getValue() : 1.0f;
@@ -1451,16 +1391,8 @@ namespace lsp
                 c->sDryBypass.set_bypass(dry_bypass);
             }
 
-//            lsp_trace("gain = %f, bypass=%s, dry_bypass=%s", s->fGain, (bypass) ? "true" : "false", (dry_bypass) ? "true" : "false");
-
             // Additional parameters
-            lsp_trace("Call for set sampler fadeout...");
-            s->sSampler.set_fadeout(pNoteOff->getValue() >= 0.5f, pFadeout->getValue());
-            lsp_trace("Call for set trigger muting...");
-            s->sTrigger.set_muting(muting);
-            lsp_trace("Call trigger %d for update", int(i));
-            s->sTrigger.update_settings();
-            lsp_trace("Call sampler %d for update", int(i));
+            s->sSampler.set_fadeout(pFadeout->getValue());
             s->sSampler.update_settings();
         }
     }
@@ -1486,21 +1418,126 @@ namespace lsp
         }
     }
 
+    void sampler_base::process_trigger_events()
+    {
+        // Process muting button
+        if ((pMute != NULL) && (sMute.pending()))
+        {
+            // Cancel playback for all samplers
+            for (size_t i=0; i<nSamplers; ++i)
+                vSamplers[i].sSampler.trigger_stop(0);
+            sMute.commit(true);
+        }
+
+        // Get MIDI input, return if none
+        midi_t *in          = (pMidiIn != NULL) ? reinterpret_cast<midi_t *>(pMidiIn->getBuffer()) : NULL;
+        if (in == NULL)
+            return;
+
+        // Bypass MIDI events
+        midi_t *out         = (pMidiOut != NULL) ? reinterpret_cast<midi_t *>(pMidiOut->getBuffer()) : NULL;
+        if (out != NULL)
+            out->copy_from(in);
+
+        #ifdef LSP_TRACE
+            if (in->nEvents > 0)
+                lsp_trace("trigger this=%p, number of events = %d", this, int(in->nEvents));
+        #endif
+
+        // Process MIDI events for all samplers
+        for (size_t i=0; i<in->nEvents; ++i)
+        {
+            // Analyze MIDI event
+            const midi_event_t *me    = &in->vEvents[i];
+            switch (me->type)
+            {
+                case MIDI_MSG_NOTE_ON:
+                {
+                    lsp_trace("NOTE_ON: channel=%d, pitch=%d, velocity=%d",
+                            int(me->channel), int(me->note.pitch), int(me->note.velocity));
+
+                    uint32_t mg[BITMASK_MAX]; // Triggered mute groups
+                    uint32_t ts[BITMASK_MAX]; // Triggered samplers
+
+                    // Initialize parameters
+                    float gain  = me->note.velocity / 127.0f;
+                    for (size_t j=0; j<BITMASK_MAX; ++j)
+                    {
+                        mg[j]       = 0;
+                        ts[j]       = 0;
+                    }
+
+                    // Scan state of samplers
+                    for (size_t j=0; j<nSamplers; ++j)
+                    {
+                        sampler_t *s = &vSamplers[j];
+                        if ((s->nNote != me->note.pitch) || (s->nChannel != me->channel))
+                            continue;
+
+                        size_t g    = s->nMuteGroup;
+                        mg[g >> 5] |= (1 << (g & 0x1f));        // Mark mute group as triggered
+                        ts[j >> 5] |= (1 << (j & 0x1f));        // Mark sampler as triggered
+                    }
+
+                    // Apply changes
+                    for (size_t j=0; j<nSamplers; ++j)
+                    {
+                        sampler_t *s    = &vSamplers[j];
+                        size_t g        = s->nMuteGroup;
+                        bool muted      = (g > 0) && (mg[g >> 5] & (1 << (g & 0x1f)));
+                        bool triggered  = ts[j >> 5] & (1 << (j & 0x1f));
+
+                        if (triggered)
+                            s->sSampler.trigger_on(me->timestamp, gain);
+                        else if (muted)
+                            s->sSampler.trigger_off(me->timestamp, gain);
+                    }
+                    break;
+                }
+
+                case MIDI_MSG_NOTE_OFF:
+                {
+                    lsp_trace("NOTE_OFF: channel=%d, pitch=%d, velocity=%d",
+                            int(me->channel), int(me->note.pitch), int(me->note.velocity));
+                    float gain = me->note.velocity / 127.0f;
+
+                    for (size_t j=0; j<nSamplers; ++j)
+                    {
+                        sampler_t *s = &vSamplers[j];
+                        if ((!s->bNoteOff) || (s->nNote != me->note.pitch) || (s->nChannel != me->channel))
+                            continue;
+
+                        s->sSampler.trigger_off(me->timestamp, gain);
+                    }
+                    break;
+                }
+
+                case MIDI_MSG_NOTE_CONTROLLER:
+                    lsp_trace("NOTE_CONTROLLER: channel=%d, control=%02x, value=%d",
+                            int(me->channel), int(me->ctl.control), int(me->ctl.value));
+                    if (me->ctl.control != MIDI_CTL_ALL_NOTES_OFF)
+                        break;
+
+                    for (size_t j=0; j<nSamplers; ++j)
+                    {
+                        sampler_t *s = &vSamplers[j];
+                        if ((!s->bMuting) || (me->channel != s->nChannel))
+                            continue;
+
+                        s->sSampler.trigger_stop(me->timestamp);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        } // for i
+    }
+
     void sampler_base::process(size_t samples)
     {
-        // Get source event list
-        midi_t *in          = (pMidiIn != NULL) ? reinterpret_cast<midi_t *>(pMidiIn->getBuffer()) : NULL;
-        if (in != NULL)            // Return on no events
-        {
-            // Get target event list
-            midi_t *out         = (pMidiOut != NULL) ? reinterpret_cast<midi_t *>(pMidiOut->getBuffer()) : NULL;
-            if (out != NULL)
-                out->copy_from(in);    // Bypass MIDI events
-
-            // Process MIDI events for all samplers
-            for (size_t i=0; i<nSamplers; ++i)
-                vSamplers[i].sTrigger.process_events(in, out);
-        }
+        // Process all MIDI events
+        process_trigger_events();
 
         // Prepare audio channels
         for (size_t i=0; i<nChannels; ++i)
@@ -1508,18 +1545,6 @@ namespace lsp
             channel_t *c    = &vChannels[i];
             c->vIn          = c->pIn->getBuffer<float>();
             c->vOut         = c->pOut->getBuffer<float>();
-        }
-
-        // Process muting button
-        if (pMute != NULL)
-        {
-            if (sMute.pending())
-            {
-                // Cancel playback for all samplers
-                for (size_t i=0; i<nSamplers; ++i)
-                    vSamplers[i].sSampler.trigger_stop(0);
-                sMute.commit(true);
-            }
         }
 
         // Prepare sampler's buffers
@@ -1564,28 +1589,48 @@ namespace lsp
                 // Call sampler for processing
                 s->sSampler.process(tmp_outs, tmp_ins, left);
 
+                // Preprocess dry channels: fill with zeros
+                for (size_t j=0; j<nChannels; ++j)
+                {
+                    sampler_channel_t *c    = &s->vChannels[j];
+                    if (c->vDry != NULL)
+                        dsp::fill_zero(c->vDry, count);
+                }
+
                 // Now post-process all channels for sampler
                 for (size_t j=0; j<nChannels; ++j)
                 {
                     sampler_channel_t *c    = &s->vChannels[j];
 
-                    // Copy to direct out buffer if present
-                    if (c->vDry != NULL)
-                    {
-                        c->sDryBypass.process(c->vDry, NULL, tmp_outs[j], count);
-                        dsp::scale2(c->vDry, s->fGain, count);
-                        c->vDry     += count;
-                    }
+                    // Copy data to direct output buffer if present
+                    float gain  = (nDOMode & DM_APPLY_GAIN) ? s->fGain : 1.0f;
+                    float pan   = (nDOMode & DM_APPLY_PAN) ? c->fPan : 1.0f;
+                    if (s->vChannels[j].vDry != NULL)
+                        dsp::scale_add3(s->vChannels[j].vDry, tmp_outs[j], pan * gain, count);
+                    if (s->vChannels[j^1].vDry != NULL)
+                        dsp::scale_add3(s->vChannels[j^1].vDry, tmp_outs[j], (1.0f - pan) * gain, count);
 
                     // Process output
                     c->sBypass.process(tmp_outs[j], NULL, tmp_outs[j], count);
 
                     // Mix output to common sampler's bus
-                    dsp::scale_add3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
+                    if (vChannels[j].vOut != NULL)
+                        dsp::scale_add3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
 
-                    // Apply pan to the other stereo channel for mult-sampler
-                    if (nSamplers > 1)
+                    // Apply pan to the other stereo channel (if present)
+                    if (vChannels[j^1].vOut != NULL)
                         dsp::scale_add3(vChannels[j^1].vOut, tmp_outs[j], (1.0f - c->fPan) * s->fGain, count);
+                }
+
+                // Post-process dry channels
+                for (size_t j=0; j<nChannels; ++j)
+                {
+                    sampler_channel_t *c    = &s->vChannels[j];
+                    if (c->vDry != NULL)
+                    {
+                        c->sDryBypass.process(c->vDry, NULL, c->vDry, count);
+                        c->vDry    += count;
+                    }
                 }
             }
 

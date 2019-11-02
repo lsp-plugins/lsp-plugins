@@ -36,7 +36,7 @@
 					<mesh id="ocg_l" width="2" color="left_channel" visibility_id="olv_l" />
 					<mesh id="ocg_r" width="2" color="right_channel" visibility_id="olv_r" />
 					<mesh id="scg" width="2" color="bright_green" visibility_id="slv" />
-					<mesh id="evg" width="2" color="bright_magenta" hue="0.044" visibility_id="elv" />
+					<mesh id="evg" width="2" color="bright_magenta" visibility_id="elv" />
 					<mesh id="grg" width="2" color="bright_blue" visibility_id="grv" />
 					
 					<!-- Markers -->

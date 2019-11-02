@@ -525,14 +525,15 @@ namespace lsp
         }
 
         // Calculate the overall allocation size
+        size_t to_copy          = sizeof(port_t) * elements;
         string_bytes            = ALIGN_SIZE(string_bytes, DEFAULT_ALIGN);
-        elements                = ALIGN_SIZE(sizeof(port_t) * elements, DEFAULT_ALIGN);
+        elements                = ALIGN_SIZE(to_copy, DEFAULT_ALIGN);
         size_t allocate         = string_bytes + elements;
         uint8_t *ptr            = lsp_tmalloc(uint8_t, allocate);
         port_t *meta            = reinterpret_cast<port_t *>(ptr);
 
         // Copy port metadata
-        memcpy(meta, metadata, elements);
+        ::memcpy(meta, metadata, to_copy);
 
         // Update identifiers if needed
         if (postfix_len > 0)

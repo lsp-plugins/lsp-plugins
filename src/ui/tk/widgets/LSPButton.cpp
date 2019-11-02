@@ -316,11 +316,12 @@ namespace lsp
                 sFont.get_text_parameters(s, &tp, &sTitle);
 
                 if (pressed & S_PRESSED)
+                {
                     c_y++;
-                if (pressed & S_TOGGLED)
                     c_x++;
+                }
 
-                sFont.draw(s, c_x - (tp.Width * 0.5f), c_y - (fp.Height * 0.5f) + fp.Ascent, font_color, &sTitle);
+                sFont.draw(s, c_x - (tp.XAdvance * 0.5f), c_y - (fp.Height * 0.5f) + fp.Ascent, font_color, &sTitle);
             }
 
             s->set_antialiasing(aa);

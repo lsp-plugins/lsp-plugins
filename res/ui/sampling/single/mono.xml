@@ -1,5 +1,5 @@
 <plugin resizable="false">
-	<grid rows="2" cols="2" hspacing="4" vspacing="4" transpose="true">
+	<grid rows="2" cols="2" spacing="4" transpose="true">
 		<group text="MIDI Setup" expand="true">
 			<grid rows="3" cols="6" hspacing="4">
 				<label text="Channel" />
@@ -30,23 +30,14 @@
 				<led id="mute" color="red" />
 			</grid>
 		</group>
-		<group text="Samples">
+		<cgroup id="ssel" text="Sample # ">
 			<vbox>
-				<align hpos="-1">
-					<hbox spacing="8">
-						<label text="Sample # " />
-						<combo id="ssel" width="20" />
-					</hbox>
-				</align>
-				
-				<hsep />
-				
 				<!-- File editor -->
 				<file
 					id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
 					fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
 					status_id="fs[ssel]" mesh_id="fd[ssel]"
-					width="320" height="127"
+					width="320" height="160"
 					path_id="ui:dlg_sample_path"
 					bind="makeup=mk[ssel],predelay=pd[ssel]"
 				/>
@@ -77,7 +68,7 @@
 					<led id="ls[ssel]" />
 				</grid>
 			</vbox>
-		</group>
+		</cgroup>
 		<group text="Audio Channel" expand="true">
 			<grid rows="3" cols="5">
 				<label id="dyna" />

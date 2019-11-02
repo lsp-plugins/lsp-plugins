@@ -496,11 +496,12 @@ namespace lsp
         }
 
         // Process ALL ports for changes
-        size_t n_ports = vPorts.size();
+        size_t n_ports      = vPorts.size();
+        VSTPort **v_ports   = vPorts.get_array();
         for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            VSTPort *port = vPorts.at(i);
+            VSTPort *port = v_ports[i];
             if (port == NULL)
                 continue;
 
@@ -539,7 +540,7 @@ namespace lsp
         // Post-process ALL ports
         for (size_t i=0; i<n_ports; ++i)
         {
-            VSTPort *port = vPorts.at(i);
+            VSTPort *port = v_ports[i];
             if (port != NULL)
                 port->post_process(samples);
         }

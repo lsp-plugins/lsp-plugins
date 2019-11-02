@@ -71,24 +71,26 @@
 						<mesh id="ag" width="3" color="middle_channel" fill="0.8" smooth="true" />
 						
 						<!-- Dots -->
-						<dot hpos="16" vpos_id="g_0" visibility_id="fv_0" editable="true" color="middle_channel" />
-						<dot hpos="25" vpos_id="g_1" visibility_id="fv_1" editable="true" color="middle_channel" />
-						<dot hpos="40" vpos_id="g_2" visibility_id="fv_2" editable="true" color="middle_channel" />
-						<dot hpos="63" vpos_id="g_3" visibility_id="fv_3" editable="true" color="middle_channel" />
-						<dot hpos="100" vpos_id="g_4" visibility_id="fv_4" editable="true" color="middle_channel" />
-						<dot hpos="160" vpos_id="g_5" visibility_id="fv_5" editable="true" color="middle_channel" />
-						<dot hpos="250" vpos_id="g_6" visibility_id="fv_6" editable="true" color="middle_channel" />
-						<dot hpos="400" vpos_id="g_7" visibility_id="fv_7" editable="true" color="middle_channel" />
-						<dot hpos="630" vpos_id="g_8" visibility_id="fv_8" editable="true" color="middle_channel" />
-						<dot hpos="1000" vpos_id="g_9" visibility_id="fv_9" editable="true" color="middle_channel" />
-						<dot hpos="1600" vpos_id="g_10" visibility_id="fv_10" editable="true" color="middle_channel" />
-						<dot hpos="2500" vpos_id="g_11" visibility_id="fv_11" editable="true" color="middle_channel" />
-						<dot hpos="4000" vpos_id="g_12" visibility_id="fv_12" editable="true" color="middle_channel" />
-						<dot hpos="6300" vpos_id="g_13" visibility_id="fv_13" editable="true" color="middle_channel" />
-						<dot hpos="10000" vpos_id="g_14" visibility_id="fv_14" editable="true" color="middle_channel" />
-						<dot hpos="16000" vpos_id="g_15" visibility_id="fv_15" editable="true" color="middle_channel" />
+						<ui:attributes editable="true" color="middle_channel" border="8" padding="8">
+							<dot hpos="16" vpos_id="g_0" visibility_id="fv_0" />
+							<dot hpos="25" vpos_id="g_1" visibility_id="fv_1" />
+							<dot hpos="40" vpos_id="g_2" visibility_id="fv_2" />
+							<dot hpos="63" vpos_id="g_3" visibility_id="fv_3" />
+							<dot hpos="100" vpos_id="g_4" visibility_id="fv_4" />
+							<dot hpos="160" vpos_id="g_5" visibility_id="fv_5" />
+							<dot hpos="250" vpos_id="g_6" visibility_id="fv_6" />
+							<dot hpos="400" vpos_id="g_7" visibility_id="fv_7" />
+							<dot hpos="630" vpos_id="g_8" visibility_id="fv_8" />
+							<dot hpos="1000" vpos_id="g_9" visibility_id="fv_9" />
+							<dot hpos="1600" vpos_id="g_10" visibility_id="fv_10" />
+							<dot hpos="2500" vpos_id="g_11" visibility_id="fv_11" />
+							<dot hpos="4000" vpos_id="g_12" visibility_id="fv_12" />
+							<dot hpos="6300" vpos_id="g_13" visibility_id="fv_13" />
+							<dot hpos="10000" vpos_id="g_14" visibility_id="fv_14" />
+							<dot hpos="16000" vpos_id="g_15" visibility_id="fv_15" />
+						</ui:attributes>
 						
-												<!-- Boundaries -->
+						<!-- Boundaries -->
 						<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
 						<marker value="24000" color="g_white" basis="0" parallel="1" />
 						
@@ -209,7 +211,7 @@
 					<label text="10K" />
 					<label text="16K" />
 					
-					<label text="Ctl" />
+					<label text="Ctl" halign="0" />
 					<ui:for id="i" first="0" last="15">
 						<grid rows="3" cols="2" fill="false">
 							<button id="xe_${i}" led="true" size="12" color="yellow" />
@@ -221,11 +223,15 @@
 						</grid>
 					</ui:for>
 					
-					<label text="Gain" />
-					<ui:for id="i" first="0" last="15"><knob id="g_${i}"  size="20" scale_color="middle_channel" /></ui:for>
+					<label text="Gain" halign="0" />
+					<ui:for id="i" first="0" last="15">
+						<knob id="g_${i}" size="20" scale_color="middle_channel" />
+					</ui:for>
 					
-					<label text="(dB)" />
-					<ui:for id="i" first="0" last="15"><value id="g_${i}" detailed="false" /></ui:for>
+					<label text="(dB)" halign="0" />
+					<ui:for id="i" first="0" last="15">
+						<value id="g_${i}" detailed="false" />
+					</ui:for>
 				</grid>
 			</group>
 		</hbox>

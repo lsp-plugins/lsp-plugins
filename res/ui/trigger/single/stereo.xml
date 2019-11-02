@@ -132,23 +132,14 @@
 		
 		<!-- Instrument editor -->
 		<hbox visibility_id="asel" visibility_key="1" spacing="4">
-			<group text="Samples">
+			<cgroup id="ssel" text="Sample # ">
 				<vbox>
-					<align hpos="-1">
-						<hbox spacing="4">
-							<label text="Sample # " />
-							<combo id="ssel" width="20" />
-						</hbox>
-					</align>
-					
-					<hsep />
-					
 					<!-- File editor -->
 					<file
 						id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
 						fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
 						status_id="fs[ssel]" mesh_id="fd[ssel]"
-						width="320" height="127"
+						width="320" height="160"
 						path_id="ui:dlg_sample_path"
 						bind="makeup=mk[ssel],predelay=pd[ssel]"
 					/>
@@ -179,7 +170,7 @@
 						<led id="ls[ssel]" />
 					</grid>
 				</vbox>
-			</group>
+			</cgroup>
 			<group text="Sample matrix" expand="true">
 				<!-- Sample matrix -->
 				<grid rows="11" cols="9" transpose="true">

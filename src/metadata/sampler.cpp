@@ -20,6 +20,19 @@ namespace lsp
         NULL
     };
 
+    static const char *mute_groups[] =
+    {
+        "None",
+        "A", "B", "C", "D",
+        "E", "F", "G", "H",
+        "I", "J", "K", "L",
+        "M", "N", "O", "P",
+        "Q", "R", "S", "T",
+        "U", "V", "W", "X",
+        "Y", "Z",
+        NULL
+    };
+
     static const char *sampler_x12_instruments[] =
     {
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
@@ -89,6 +102,10 @@ namespace lsp
         WET_GAIN(1.0f),         \
         OUT_GAIN
 
+    #define S_DO_CONTROL \
+        SWITCH("do_gain", "Apply gain to direct-out", 1.0f), \
+        SWITCH("do_pan", "Apply panning to direct-out", 1.0f)
+
     #define S_SAMPLE_FILE(gain)        \
         PATH("sf", "Sample file"), \
         CONTROL("hc", "Sample head cut", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
@@ -99,7 +116,7 @@ namespace lsp
         { "vl", "Sample velocity max",  U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOWERING, 0.0f, 100.0f, 0.0f, 0.05, NULL }, \
         { "pd", "Sample pre-delay",  U_MSEC, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
                 sampler_kernel_metadata::PREDELAY_MIN, sampler_kernel_metadata::PREDELAY_MAX, 0, sampler_kernel_metadata::PREDELAY_STEP, NULL }, \
-        { "on", "Sample enabled", U_BOOL, R_CONTROL, F_IN, 0, 0, 1.0f, 0, NULL }, \
+        SWITCH("on", "Sample enabled", 1.0f), \
         TRIGGER("ls", "Sample listen"), \
         gain, \
         BLINK("ac", "Sample activity"), \
@@ -109,10 +126,23 @@ namespace lsp
         STATUS("fs", "Sample load status"), \
         MESH("fd", "Sample file contents", sampler_kernel_metadata::TRACKS_MAX, sampler_kernel_metadata::MESH_SIZE)
 
-    #define S_INSTRUMENT(sample)            \
-        COMBO("chan", "Channel", midi_trigger_kernel_metadata::CHANNEL_DFL, midi_channels), \
-        COMBO("note", "Note", midi_trigger_kernel_metadata::NOTE_DFL, notes), \
-        COMBO("oct", "Octave", midi_trigger_kernel_metadata::OCTAVE_DFL, octaves), \
+    #define S_INSTRUMENT(sample)    \
+        COMBO("chan", "Channel", sampler_kernel_metadata::CHANNEL_DFL, midi_channels), \
+        COMBO("note", "Note", sampler_kernel_metadata::NOTE_DFL, notes), \
+        COMBO("oct", "Octave", sampler_kernel_metadata::OCTAVE_DFL, octaves), \
+        { "mn", "MIDI Note #", U_NONE, R_METER, F_OUT | F_LOWER | F_UPPER | F_INT, 0, 127, 0, 0, NULL }, \
+        TRIGGER("trg", "Instrument listen"), \
+        CONTROL("dyna", "Dynamics", U_PERCENT, sampler_base_metadata::DYNA), \
+        CONTROL("drft", "Time drifting", U_MSEC, sampler_base_metadata::DRIFT), \
+        PORT_SET("ssel", "Sample selector", sampler_sample_selectors, sample)
+
+    #define S_MG_INSTRUMENT(sample)    \
+        COMBO("chan", "Channel", sampler_kernel_metadata::CHANNEL_DFL, midi_channels), \
+        COMBO("note", "Note", sampler_kernel_metadata::NOTE_DFL, notes), \
+        COMBO("oct", "Octave", sampler_kernel_metadata::OCTAVE_DFL, octaves), \
+        COMBO("mgrp", "Mute Group", 0, mute_groups), \
+        SWITCH("mtg", "Mute on stop", 0.0f), \
+        SWITCH("nto", "Note-off handling", 0.0f), \
         { "mn", "MIDI Note #", U_NONE, R_METER, F_OUT | F_LOWER | F_UPPER | F_INT, 0, 127, 0, 0, NULL }, \
         TRIGGER("trg", "Instrument listen"), \
         CONTROL("dyna", "Dynamics", U_PERCENT, sampler_base_metadata::DYNA), \
@@ -123,7 +153,7 @@ namespace lsp
         COMBO("msel", "Area selector", 0, list)
 
     #define S_INSTRUMENT_SELECTOR(list)     \
-        PORT_SET("inst", "Instrument selector", list, sampler_instrument_ports)
+        PORT_SET("inst", "Instrument selector", list, sampler_multiple_ports)
 
     #define S_MIXER(id)                      \
         SWITCH("ion_" #id, "Instrument on " #id, 1.0f), \
@@ -307,9 +337,9 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t sampler_instrument_ports[] =
+    static const port_t sampler_multiple_ports[] =
     {
-        S_INSTRUMENT(sample_file_stereo_ports),
+        S_MG_INSTRUMENT(sample_file_stereo_ports),
         PORTS_END
     };
 
@@ -458,6 +488,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_DO_CONTROL,
         S_AREA_SELECTOR(sampler_x12_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_DIRECT_OUT(0),
@@ -481,6 +512,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_DO_CONTROL,
         S_AREA_SELECTOR(sampler_x24_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x24_instruments),
         S_DIRECT_OUT(0),
@@ -516,6 +548,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_DO_CONTROL,
         S_AREA_SELECTOR(sampler_x48_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x48_instruments),
         S_DIRECT_OUT(0),
@@ -581,7 +614,7 @@ namespace lsp
         "sampler_mono",
         "ca4r",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_mono_ports,
@@ -599,7 +632,7 @@ namespace lsp
         "sampler_stereo",
         "kjw3",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_stereo_ports,
@@ -617,7 +650,7 @@ namespace lsp
         "multisampler_x12",
         "clrs",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_x12_ports,
@@ -635,7 +668,7 @@ namespace lsp
         "multisampler_x24",
         "visl",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_x24_ports,
@@ -653,7 +686,7 @@ namespace lsp
         "multisampler_x48",
         "hnj4",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_x48_ports,
@@ -671,7 +704,7 @@ namespace lsp
         "multisampler_x12_do",
         "7zkj",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_x12_do_ports,
@@ -689,7 +722,7 @@ namespace lsp
         "multisampler_x24_do",
         "vimj",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_x24_do_ports,
@@ -707,7 +740,7 @@ namespace lsp
         "multisampler_x48_do",
         "blyi",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         sampler_classes,
         E_NONE,
         sampler_x48_do_ports,

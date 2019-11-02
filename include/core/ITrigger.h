@@ -17,8 +17,11 @@ namespace lsp
      */
     class ITrigger
     {
+        private:
+            ITrigger & operator = (const ITrigger &);
+
         public:
-            ITrigger();
+            explicit ITrigger();
             virtual ~ITrigger();
 
         public:

@@ -146,7 +146,7 @@
 					<knob id="calf" />
 					<knob id="cala" />
 					<meter id="ilv_l" id2="ilv_r" stereo="true" angle="0.0" logarithmic="true"
-                        min="-72 db" max="24 db" height="128" color="left_channel" color_2="right_channel" type="rms_peak" />
+                        min="-72 db" max="24 db" height="128" color="left_channel" color2="right_channel" type="rms_peak" />
 
 					<value id="calf" />
 					<value id="cala" />
