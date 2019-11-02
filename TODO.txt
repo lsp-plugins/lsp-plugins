@@ -53,6 +53,7 @@
 * Removed EXPAT library from build dependencies since LSP Plugins have their own XML parser.
 * Added MIDI groups to MultiSampler plugin series.
 * Added possibility to control how painning and gain controls affect the signal passed to the direct output tracks.
+- Added allpass filters in the classic mode to the Multiband compressor for phase compensation.
 - Refactored and optimized reverb simulation algorithm.
 - Optimize DSP for AArch64 architecture.
 - Added multilingual support by the graphical toolkit.
