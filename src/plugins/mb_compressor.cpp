@@ -209,6 +209,9 @@ namespace lsp
                     return;
                 if (!b->sRejFilter.init(NULL))
                     return;
+//                if (!b->sRejFilter.init(mb_compressor_base_metadata::BANDS_MAX, 6))
+//                    return;
+//                b->sRejFilter.set_mode(EQM_IIR);
 
                 // Initialize sidechain equalizers
                 b->sEQ[0].init(2, 6);
@@ -854,6 +857,7 @@ namespace lsp
                 // Do simple sort of PLAN items by frequency
                 if (c->nPlanSize > 1)
                 {
+                    // Sort in descending order
                     for (size_t si=0; si < c->nPlanSize-1; ++si)
                         for (size_t sj=si+1; sj < c->nPlanSize; ++sj)
                             if (compare_bands_for_sort(c->vPlan[si], c->vPlan[sj]))
@@ -1255,7 +1259,7 @@ namespace lsp
                         b->sPassFilter.process(vEnv, vBuffer, to_process); // Filter frequencies from input
                         b->sRejFilter.process(vBuffer, vBuffer, to_process); // Filter frequencies from input
                         dsp::mul2(vEnv, b->vVCA, to_process); // Apply VCA gain
-                        dsp::add2(c->vBuffer, vEnv, to_process); // Add signal to the channel buffer
+                        dsp::sub2(c->vBuffer, vEnv, to_process); // Add signal to the channel buffer
                     }
                 }
             }
@@ -1323,7 +1327,7 @@ namespace lsp
 
                     b->sPassFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mul3(vTr2, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::scale_add3(vTr, vTr2, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
+                    dsp::scale_sub3(vTr, vTr2, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
 
                     b->sRejFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mul2(c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);

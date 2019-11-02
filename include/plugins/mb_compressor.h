@@ -49,6 +49,7 @@ namespace lsp
                 Compressor      sComp;              // Compressor
                 Filter          sPassFilter;        // Passing filter for 'classic' mode
                 Filter          sRejFilter;         // Rejection filter for 'classic' mode
+//                Equalizer       sRejFilter;         // Rejection equalizer for 'classic' mode
                 Delay           sDelay;             // Delay for lookahead purpose
 
                 float          *vTr;                // Transfer function
