@@ -432,10 +432,11 @@ namespace lsp
             pWidget->query_draw();
         }
 
-        status_t CtlViewer3D::add(LSPWidget *child)
+        status_t CtlViewer3D::add(CtlWidget *child)
         {
             LSPArea3D *r3d  = widget_cast<LSPArea3D>(pWidget);
-            return (r3d != NULL) ? r3d->add(child) : STATUS_NOT_IMPLEMENTED;
+            LSPWidget *w = child->widget();
+            return (r3d != NULL) ? r3d->add(w) : STATUS_NOT_IMPLEMENTED;
         }
 
         void CtlViewer3D::sync_angle_change(float *dst, CtlPort *port, CtlPort *psrc)

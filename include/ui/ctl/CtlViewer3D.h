@@ -112,7 +112,7 @@ namespace lsp
 
                 virtual void notify(CtlPort *port);
 
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
 
                 virtual bool changed(KVTStorage *kvt, const char *id, const kvt_param_t *value);
         };

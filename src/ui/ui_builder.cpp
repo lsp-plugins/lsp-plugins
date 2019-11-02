@@ -721,7 +721,10 @@ namespace lsp
             if (v.type == calc::VT_STRING)
                 value->swap(v.v_str);
             else
+            {
+                lsp_error("Evaluation error: bad return type of expression %s", expr->get_utf8());
                 res = STATUS_BAD_TYPE;
+            }
         }
         destroy_value(&v);
         return res;
@@ -739,7 +742,10 @@ namespace lsp
             if (v.type == calc::VT_BOOL)
                 *value  = v.v_bool;
             else
+            {
+                lsp_error("Evaluation error: bad return type of expression %s", expr->get_utf8());
                 res = STATUS_BAD_TYPE;
+            }
         }
         destroy_value(&v);
         return res;
@@ -758,7 +764,10 @@ namespace lsp
         const char *p = tmp.get_utf8();
         long v = ::strtol(p, &eptr, 10);
         if ((errno != 0) || (eptr == NULL) || (*eptr != '\0'))
+        {
+            lsp_error("Evaluation error: bad return type of expression %s", expr->get_utf8());
             return STATUS_INVALID_VALUE;
+        }
 
         // Store value
         *value = v;

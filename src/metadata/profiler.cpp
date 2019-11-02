@@ -127,7 +127,7 @@ namespace lsp
         profiler_classes,
         E_NONE,
         profiler_mono_ports,
-        "util/profiler/profiler_mono.xml",
+        "util/profiler/mono.xml",
         NULL,
         mono_plugin_port_groups
     };
@@ -145,7 +145,7 @@ namespace lsp
         profiler_classes,
         E_NONE,
         profiler_stereo_ports,
-        "util/profiler/profiler_stereo.xml",
+        "util/profiler/stereo.xml",
         NULL,
         stereo_plugin_port_groups
     };
