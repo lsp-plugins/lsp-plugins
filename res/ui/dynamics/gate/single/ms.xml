@@ -37,8 +37,8 @@
 					<mesh id="ocg_s" width="2" color="side_channel" visibility=":olv_s" />
 					<mesh id="scg_m" width="2" color="bright_green" visibility=":slv_m" />
 					<mesh id="scg_s" width="2" color="bright_green" visibility=":slv_s" />
-					<mesh id="evg_m" width="2" color="bright_magenta" hue="0.044" visibility=":elv_m" />
-					<mesh id="evg_s" width="2" color="bright_magenta" hue="0.044" visibility=":elv_s" />
+					<mesh id="evg_m" width="2" color="bright_magenta" visibility=":elv_m" />
+					<mesh id="evg_s" width="2" color="bright_magenta" visibility=":elv_s" />
 					<mesh id="grg_m" width="2" color="bright_blue" visibility=":grv_m" />
 					<mesh id="grg_s" width="2" color="bright_blue" visibility=":grv_s" />
 					
