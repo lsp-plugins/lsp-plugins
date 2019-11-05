@@ -60,7 +60,7 @@ namespace lsp
     bool mb_compressor_base::compare_bands_for_sort(const comp_band_t *b1, const comp_band_t *b2)
     {
         if (b1->fFreqStart != b2->fFreqStart)
-            return (b1->fFreqStart < b2->fFreqStart);
+            return (b1->fFreqStart > b2->fFreqStart);
         return b1 < b2;
     }
 
@@ -857,7 +857,7 @@ namespace lsp
                 // Do simple sort of PLAN items by frequency
                 if (c->nPlanSize > 1)
                 {
-                    // Sort in descending order
+                    // Sort in ascending order
                     for (size_t si=0; si < c->nPlanSize-1; ++si)
                         for (size_t sj=si+1; sj < c->nPlanSize; ++sj)
                             if (compare_bands_for_sort(c->vPlan[si], c->vPlan[sj]))
@@ -867,10 +867,10 @@ namespace lsp
                                 c->vPlan[sj]    = tmp;
                             }
 
-                    for (ssize_t j=c->nPlanSize-1; j>0; --j)
-                        c->vPlan[j]->fFreqEnd       = c->vPlan[j-1]->fFreqStart;
+                    for (size_t j=1; j<c->nPlanSize; ++j)
+                        c->vPlan[j-1]->fFreqEnd     = c->vPlan[j]->fFreqStart;
                 }
-                c->vPlan[0]->fFreqEnd       = (fSampleRate >> 1);
+                c->vPlan[c->nPlanSize-1]->fFreqEnd       = (fSampleRate >> 1);
 
                 // Configure equalizers
                 lsp_trace("Reordered bands according to frequency grow");
@@ -890,7 +890,7 @@ namespace lsp
                     for (size_t k=0; k<channels; ++k)
                     {
                         // Configure lo-pass filter
-                        fp.nType        = ((j != 0) || (b->bCustHCF)) ? FLT_BT_LRX_LOPASS : FLT_NONE;
+                        fp.nType        = ((j != (c->nPlanSize-1)) || (b->bCustHCF)) ? FLT_BT_LRX_LOPASS : FLT_NONE;
                         fp.fFreq        = (b->bCustHCF) ? b->pScHcfFreq->getValue() : b->pFreqEnd->getValue();
                         fp.fFreq2       = fp.fFreq;
                         fp.fQuality     = 0.0f;
@@ -901,7 +901,7 @@ namespace lsp
                         b->sEQ[k].set_params(0, &fp);
 
                         // Configure hi-pass filter
-                        fp.nType        = ((j != (c->nPlanSize-1)) || (b->bCustLCF)) ? FLT_BT_LRX_HIPASS : FLT_NONE;
+                        fp.nType        = ((j != 0) || (b->bCustLCF)) ? FLT_BT_LRX_HIPASS : FLT_NONE;
                         fp.fFreq        = (b->bCustLCF) ? b->pScLcfFreq->getValue() : b->fFreqStart;
                         fp.fFreq2       = fp.fFreq;
                         fp.fQuality     = 0.0f;
@@ -924,15 +924,15 @@ namespace lsp
                         // Configure filter for band
                         if (j <= 0)
                         {
-                            fp.nType        = (c->nPlanSize > 1) ? FLT_BT_LRX_HISHELF : FLT_BT_AMPLIFIER;
-                            fp.fFreq        = b->fFreqStart;
-                            fp.fFreq2       = b->fFreqStart;
+                            fp.nType        = (c->nPlanSize > 1) ? FLT_BT_LRX_LOSHELF : FLT_BT_AMPLIFIER;
+                            fp.fFreq        = b->fFreqEnd;
+                            fp.fFreq2       = b->fFreqEnd;
                         }
                         else if (j >= (c->nPlanSize - 1))
                         {
-                            fp.nType        = FLT_BT_LRX_LOSHELF;
-                            fp.fFreq        = b->fFreqEnd;
-                            fp.fFreq2       = b->fFreqEnd;
+                            fp.nType        = FLT_BT_LRX_HISHELF;
+                            fp.fFreq        = b->fFreqStart;
+                            fp.fFreq2       = b->fFreqStart;
                         }
                         else
                         {
@@ -955,7 +955,7 @@ namespace lsp
                         fp.nSlope       = 2; // TODO
                         fp.fQuality     = 0.0;
 
-                        // We're going from high frequencies to low frequencies
+                        // We're going from low frequencies to high frequencies
                         if (j >= (c->nPlanSize - 1))
                         {
                             fp.fFreq    = 1.0f;
@@ -967,12 +967,12 @@ namespace lsp
                         }
                         else
                         {
-                            fp.fFreq    = b->fFreqStart;
-                            fp.fFreq2   = b->fFreqStart;
+                            fp.fFreq    = b->fFreqEnd;
+                            fp.fFreq2   = b->fFreqEnd;
 
-                            fp.nType    = FLT_BT_LRX_HIPASS;
-                            b->sPassFilter.update(fSampleRate, &fp);
                             fp.nType    = FLT_BT_LRX_LOPASS;
+                            b->sPassFilter.update(fSampleRate, &fp);
+                            fp.nType    = FLT_BT_LRX_HIPASS;
                             b->sRejFilter.update(fSampleRate, &fp);
                         }
                     }
@@ -996,7 +996,7 @@ namespace lsp
             }
         }
 
-        // Update latench
+        // Update latency
         set_latency(latency);
         for (size_t i=0; i<channels; ++i)
         {
