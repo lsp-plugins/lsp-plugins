@@ -1089,6 +1089,32 @@ namespace lsp
         }
     }
 
+    /*
+         The overall schema of signal processing in 'classic' mode for 4 channels:
+
+               f1          f2          f3          f4
+        s   ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐    s'
+       ──┬─►│ LPF │────►│ APF │────►│ APF │────►│  +  │────────►
+         │  └─────┘     └─────┘     └─────┘     └─────┘
+         │                             ▲           ▲
+         │                             │           │
+         │  ┌─────┐     ┌─────┐     ┌─────┐        │
+         └─►│ HPF │──┬─►│ LPF │────►│ INV │        │
+            └─────┘  │  └─────┘     └─────┘        │
+                     │                             │
+                     │                             │
+                     │  ┌─────┐     ┌─────┐     ┌─────┐
+                     └─►│ HPF │──┬─►│ LPF │────►│  +  │
+                        └─────┘  │  └─────┘     └─────┘
+                                 │                 ▲
+                                 │                 │
+                                 │  ┌─────┐     ┌─────┐
+                                 └─►│ HPF │────►│ INV │
+                                    └─────┘     └─────┘
+
+
+     */
+
     void mb_compressor_base::process(size_t samples)
     {
         size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
