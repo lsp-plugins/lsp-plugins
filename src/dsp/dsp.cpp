@@ -124,7 +124,15 @@ namespace dsp
     void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* div3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+
+    void    (* add_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* sub_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* div_k2)(float *dst, float k, size_t count) = NULL;
     void    (* scale2)(float *dst, float k, size_t count) = NULL;
+
+    void    (* add_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* sub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* div_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* scale3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* exp1)(float *dst, size_t count) = NULL;
@@ -204,7 +212,10 @@ namespace dsp
     void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
     void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
+    void    (* complex_arg)(float *dst, const float *re, const float *im, size_t count) = NULL;
     void    (* pcomplex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
+    void    (* pcomplex_arg)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_modarg)(float *mod, float *arg, const float *src, size_t count) = NULL;
 
     void    (* pcomplex_c2r_add2)(float *dst, const float *src, size_t count) = NULL;
     void    (* pcomplex_c2r_sub2)(float *dst, const float *src, size_t count) = NULL;

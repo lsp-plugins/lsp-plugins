@@ -198,6 +198,43 @@ namespace native
         }
     }
 
+    void pcomplex_arg(float *dst, const float *src, size_t count)
+    {
+        for (; count > 0; --count, src += 2)
+        {
+            float re        = src[0];
+            float im        = src[1];
+            float re2       = re * re;
+            float im2       = im * im;
+
+            float mod       = sqrtf(re2 + im2);
+            float arg       = (im != 0.0f) ? 2.0f * atanf((mod - re)/ im) :
+                              (re == 0.0f) ? NAN :
+                              (re < 0.0f) ? M_PI : 0.0f;
+
+            *(dst++)        = arg;
+        }
+    }
+
+    void pcomplex_modarg(float *mod, float *arg, const float *src, size_t count)
+    {
+        for (; count > 0; --count, src += 2)
+        {
+            float r         = src[0];
+            float i         = src[1];
+            float r2        = r * r;
+            float i2        = i * i;
+
+            float m         = sqrtf(r2 + i2);
+            float a         = (i != 0.0f) ? 2.0f * atanf((m - r)/ i) :
+                              (r == 0.0f) ? NAN :
+                              (r < 0.0f) ? M_PI : 0.0f;
+
+            *(mod++)        = m;
+            *(arg++)        = a;
+        }
+    }
+
     void pcomplex_div2(float *dst, const float *src, size_t count)
     {
         while (count--)
