@@ -20,6 +20,8 @@ namespace lsp
             nCenter     = 0;
             nDimensions = 0;
             nPoints     = 0;
+            nXIndex     = -1;
+            nYIndex     = -1;
             vBuffer     = NULL;
             nBufSize    = 0;
 
@@ -66,6 +68,22 @@ namespace lsp
             query_draw();
         }
 
+        void LSPMesh::set_x_index(ssize_t value)
+        {
+            if (nXIndex == value)
+                return;
+            nXIndex = value;
+            query_draw();
+        }
+
+        void LSPMesh::set_y_index(ssize_t value)
+        {
+            if (nYIndex == value)
+                return;
+            nYIndex = value;
+            query_draw();
+        }
+
         void LSPMesh::set_center_id(size_t value)
         {
             if (nCenter == value)
@@ -77,23 +95,30 @@ namespace lsp
         status_t LSPMesh::set_data(size_t dimensions, size_t points, const float **data)
         {
 //            lsp_trace("dimensions = %d, points=%d, data=%p", int(dimensions), int(points), data);
+            size_t k=0;
+            if (nXIndex >= 0)
+                ++k;
+            if (nYIndex >= 0)
+                ++k;
+
+            size_t n = (k >= 0) ? k : dimensions;
 
             // Allocate data
             size_t vec_size = ALIGN_SIZE(points, DEFAULT_ALIGN);
-            size_t new_size = (dimensions + 2) * vec_size;
+            size_t new_size = (n + 2) * vec_size;
 
             if (new_size > nBufSize)
             {
                 if (vBuffer != NULL)
                 {
-                    float *ptr  = reinterpret_cast<float *>(realloc(vBuffer, new_size * sizeof(float)));
+                    float *ptr  = reinterpret_cast<float *>(::realloc(vBuffer, new_size * sizeof(float)));
                     if (ptr == NULL)
                         return STATUS_NO_MEM;
                     vBuffer     = ptr;
                 }
                 else
                 {
-                    vBuffer     = reinterpret_cast<float *>(malloc(new_size * sizeof(float)));
+                    vBuffer     = reinterpret_cast<float *>(::malloc(new_size * sizeof(float)));
                     if (vBuffer == NULL)
                         return STATUS_NO_MEM;
                 }
@@ -103,21 +128,38 @@ namespace lsp
 
             // Now we are ready to store data
             float *dst      = vBuffer;
-            for (size_t i=0; i<dimensions; ++i)
+            if (n > 0)
             {
-                dsp::copy(dst, data[i], points);
-                dst            += vec_size;
-//                #ifdef LSP_TRACE
-//                if (points >= 8)
-//                    lsp_trace("  [%d] = %f %f %f %f %f %f %f %f",
-//                            int(i), dst[0], dst[1], dst[2], dst[3],
-//                            dst[4], dst[5], dst[6], dst[7]
-//                            );
-//                #endif
+                // Copy just specific data
+                if (nXIndex >= 0)
+                {
+                    if (nXIndex < ssize_t(dimensions))
+                        dsp::copy(dst, data[nXIndex], points);
+                    else
+                        dsp::fill_zero(dst, points);
+                    dst            += vec_size;
+                }
+                if (nYIndex >= 0)
+                {
+                    if (nYIndex < ssize_t(dimensions))
+                        dsp::copy(dst, data[nYIndex], points);
+                    else
+                        dsp::fill_zero(dst, points);
+                    dst            += vec_size;
+                }
+            }
+            else
+            {
+                // Copy all data
+                for (size_t i=0; i<n; ++i)
+                {
+                    dsp::copy(dst, data[i], points);
+                    dst            += vec_size;
+                }
             }
 
             // Store dimensions
-            nDimensions     = dimensions;
+            nDimensions     = n;
             nPoints         = points;
 
             query_draw();

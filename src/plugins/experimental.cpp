@@ -371,6 +371,7 @@ namespace lsp
         size_t port_id = 0;
         pIn             = vPorts[port_id++];
         pOut            = vPorts[port_id++];
+        ++port_id;  // skip 'area'
         pGraph          = vPorts[port_id++];
 
         for (size_t i=0; i<2; ++i)
@@ -404,16 +405,24 @@ namespace lsp
             dsp::fill_zero(m->pvData[2], MESH_POINTS);
 
             // Compute transfer function of the system
+            size_t nf   = 0;
             dsp::fill_zero(vChart, MESH_POINTS*2);
             for (size_t i=0; i<2; ++i)
             {
                 pfilter_t *pf   = &vFilters[i];
+                if (pf->nOp == 0)
+                    continue;
+                ++nf;
                 pf->sFilter.freq_chart(vTmpBuf, m->pvData[0], MESH_POINTS);
                 if (pf->nOp == 1) // add
                     dsp::add2(vChart, vTmpBuf, MESH_POINTS * 2);
                 else if (pf->nOp == 2) // sub
                     dsp::sub2(vChart, vTmpBuf, MESH_POINTS * 2);
             }
+
+            // No active filters?
+            if (nf <= 0)
+                dsp::pcomplex_fill_ri(vChart, 1.0f, 0.0f, MESH_POINTS);
 
             // Compute transfer function (amplitude and phase)
             dsp::pcomplex_modarg(m->pvData[1], m->pvData[2], vChart, MESH_POINTS);
@@ -435,6 +444,9 @@ namespace lsp
                 else
                     dsp::sub_k2(&f[i], M_PI*2, MESH_POINTS-i);
             }
+
+            // Notify
+            m->data(3, MESH_POINTS);
         }
     }
 
