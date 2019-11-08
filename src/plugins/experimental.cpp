@@ -398,9 +398,11 @@ namespace lsp
         if ((m != NULL) && (m->isEmpty()))
         {
             // Generate list of frequencies, cleanup other buffers
+            float zp[2], tzp[2];
             float *f = m->pvData[0];
+            float fstep     = logf(FREQ_MAX/FREQ_MIN) / (MESH_POINTS - 1);
             for (size_t i=0; i<MESH_POINTS; ++i)
-                f[i]    = ((FREQ_MAX - FREQ_MIN) * i) / (MESH_POINTS - 1);
+                f[i]    = FREQ_MIN * expf(i * fstep);
             dsp::fill_zero(m->pvData[1], MESH_POINTS);
             dsp::fill_zero(m->pvData[2], MESH_POINTS);
 
@@ -414,10 +416,17 @@ namespace lsp
                     continue;
                 ++nf;
                 pf->sFilter.freq_chart(vTmpBuf, m->pvData[0], MESH_POINTS);
+                pf->sFilter.freq_chart(tzp, m->pvData[0], 1);
                 if (pf->nOp == 1) // add
+                {
                     dsp::add2(vChart, vTmpBuf, MESH_POINTS * 2);
+                    dsp::add2(tzp, zp, 2);
+                }
                 else if (pf->nOp == 2) // sub
+                {
                     dsp::sub2(vChart, vTmpBuf, MESH_POINTS * 2);
+                    dsp::sub2(tzp, zp, 2);
+                }
             }
 
             // No active filters?
@@ -426,23 +435,24 @@ namespace lsp
 
             // Compute transfer function (amplitude and phase)
             dsp::pcomplex_modarg(m->pvData[1], m->pvData[2], vChart, MESH_POINTS);
+            dsp::pcomplex_modarg(&zp[0], &zp[1], zp, 1);
             dsp::scale2(m->pvData[2], 180.0f / M_PI, MESH_POINTS);
 
             // Patch the phase
             f = m->pvData[2];
             if (f[0] > 1e-3)
-                dsp::sub_k2(f, M_PI * 2, MESH_POINTS);
+                dsp::sub_k2(f, 360.0f - f[0], MESH_POINTS);
             for (size_t i=1; i<MESH_POINTS; ++i)
             {
                 float a = f[i-1], b=f[i];
-                if (fabs(a-b) < M_PI) // Detect jump over PI*2
+                if (fabs(a-b) < 90.0f) // Detect jump over PI*2
                     continue;
 
                 // Patch the curve
                 if (b > a)
-                    dsp::add_k2(&f[i], M_PI*2, MESH_POINTS-i);
+                    dsp::sub_k2(&f[i], 360.0f, MESH_POINTS-i);
                 else
-                    dsp::sub_k2(&f[i], M_PI*2, MESH_POINTS-i);
+                    dsp::add_k2(&f[i], 360.0f, MESH_POINTS-i);
             }
 
             // Notify
@@ -465,6 +475,7 @@ namespace lsp
             pf->sFP.fQuality= pf->pQuality->getValue();
 
             pf->sFilter.update(fSampleRate, &pf->sFP);
+            pf->sFilter.rebuild();
 
             pf->nOp         = pf->pOp->getValue();
         }

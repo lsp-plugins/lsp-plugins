@@ -854,7 +854,7 @@ namespace lsp
 
             case FLT_BT_RLC_ALLPASS2:
             {
-                double kf               = fp->fFreq2 / fp->fFreq;
+                double kf               = fp->fFreq2;
                 double kfp1             = 1.0 + kf;
 
                 // 2x all-pass filters in one cascade
