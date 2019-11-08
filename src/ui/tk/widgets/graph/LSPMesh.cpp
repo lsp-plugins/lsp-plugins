@@ -101,7 +101,7 @@ namespace lsp
             if (nYIndex >= 0)
                 ++k;
 
-            size_t n = (k >= 0) ? k : dimensions;
+            size_t n = (k > 0) ? k : dimensions;
 
             // Allocate data
             size_t vec_size = ALIGN_SIZE(points, DEFAULT_ALIGN);
@@ -128,7 +128,7 @@ namespace lsp
 
             // Now we are ready to store data
             float *dst      = vBuffer;
-            if (n > 0)
+            if (k > 0)
             {
                 // Copy just specific data
                 if (nXIndex >= 0)

@@ -65,6 +65,8 @@ namespace lsp
         FLT_MT_BWC_LADDERREJ,
         FLT_BT_BWC_BANDPASS,
         FLT_MT_BWC_BANDPASS,
+        FLT_BT_BWC_ALLPASS,
+        FLT_MT_BWC_ALLPASS,
 
         // Linkwitz–Riley filters
         FLT_BT_LRX_LOPASS,
@@ -83,6 +85,8 @@ namespace lsp
         FLT_MT_LRX_LADDERREJ,
         FLT_BT_LRX_BANDPASS,
         FLT_MT_LRX_BANDPASS,
+        FLT_BT_LRX_ALLPASS,
+        FLT_MT_LRX_ALLPASS,
 
         // APO (textbook) Style digital biquad filters (DR stands for direct design: coefficient served directly in digital domain)
         FLT_DR_APO_LOPASS,

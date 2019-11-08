@@ -101,6 +101,8 @@ namespace lsp
         FT(FLT_MT_BWC_LADDERREJ),
         FT(FLT_BT_BWC_BANDPASS),
         FT(FLT_MT_BWC_BANDPASS),
+        FT(FLT_BT_BWC_ALLPASS),
+        FT(FLT_MT_BWC_ALLPASS),
 
         FT(FLT_BT_LRX_LOPASS),
         FT(FLT_MT_LRX_LOPASS),
@@ -118,6 +120,8 @@ namespace lsp
         FT(FLT_MT_LRX_LADDERREJ),
         FT(FLT_BT_LRX_BANDPASS),
         FT(FLT_MT_LRX_BANDPASS),
+        FT(FLT_BT_LRX_ALLPASS),
+        FT(FLT_MT_LRX_ALLPASS),
 
         FT(FLT_DR_APO_LOPASS),
         FT(FLT_DR_APO_HIPASS),
