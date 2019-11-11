@@ -147,6 +147,11 @@ namespace lsp
             nFlags                 |= FF_CLEAR;
     }
 
+    void Filter::set_sample_rate(size_t sr)
+    {
+        update(sr, &sParams);
+    }
+
     void Filter::get_params(filter_params_t *params)
     {
         if (params != NULL)

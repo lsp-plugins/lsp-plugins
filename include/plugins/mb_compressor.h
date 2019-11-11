@@ -49,6 +49,7 @@ namespace lsp
                 Compressor      sComp;              // Compressor
                 Filter          sPassFilter;        // Passing filter for 'classic' mode
                 Filter          sRejFilter;         // Rejection filter for 'classic' mode
+                Filter          sAllFilter;         // All-pass filter for phase compensation
 //                Equalizer       sRejFilter;         // Rejection equalizer for 'classic' mode
                 Delay           sDelay;             // Delay for lookahead purpose
 
@@ -177,7 +178,8 @@ namespace lsp
             float          *vBuffer;                // Temporary buffer
             float          *vEnv;                   // Compressor envelope buffer
             float          *vTr;                    // Transfer buffer
-            float          *vTr2;                   // Transfer buffer (second)
+            float          *vPFc;                   // Pass filter characteristics buffer
+            float          *vRFc;                   // Reject filter characteristics buffer
             float          *vFreqs;                 // Analyzer FFT frequencies
             float          *vCurve;                 // Curve
             uint32_t       *vIndexes;               // Analyzer FFT indexes
@@ -198,7 +200,7 @@ namespace lsp
             static bool compare_bands_for_sort(const comp_band_t *b1, const comp_band_t *b2);
 
         public:
-            mb_compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
+            explicit mb_compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
             virtual ~mb_compressor_base();
 
         public:

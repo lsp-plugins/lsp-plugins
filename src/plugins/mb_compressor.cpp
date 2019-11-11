@@ -31,7 +31,8 @@ namespace lsp
         fZoom           = GAIN_AMP_0_DB;
         pData           = NULL;
         vTr             = NULL;
-        vTr2            = NULL;
+        vPFc             = NULL;
+        vRFc            = NULL;
         vFreqs          = NULL;
         vCurve          = NULL;
         vIndexes        = NULL;
@@ -94,7 +95,8 @@ namespace lsp
         size_t to_alloc =
                 // Global buffers
                 2 * filter_mesh_size + // vTr (both complex and real)
-                2 * filter_mesh_size + // vTr2 (both complex and real)
+                2 * filter_mesh_size + // vFc (both complex and real)
+                2 * filter_mesh_size + // vSig (both complex and real)
                 mb_compressor_base_metadata::CURVE_MESH_SIZE * sizeof(float) + // Curve
                 mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(float) + // vFreqs array
                 mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
@@ -123,7 +125,9 @@ namespace lsp
         // Remember the pointer to frequencies buffer
         vTr             = reinterpret_cast<float *>(ptr);
         ptr            += filter_mesh_size * 2;
-        vTr2            = reinterpret_cast<float *>(ptr);
+        vPFc             = reinterpret_cast<float *>(ptr);
+        ptr            += filter_mesh_size * 2;
+        vRFc            = reinterpret_cast<float *>(ptr);
         ptr            += filter_mesh_size * 2;
         vFreqs          = reinterpret_cast<float *>(ptr);
         ptr            += mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(float);
@@ -209,9 +213,8 @@ namespace lsp
                     return;
                 if (!b->sRejFilter.init(NULL))
                     return;
-//                if (!b->sRejFilter.init(mb_compressor_base_metadata::BANDS_MAX, 6))
-//                    return;
-//                b->sRejFilter.set_mode(EQM_IIR);
+                if (!b->sAllFilter.init(NULL))
+                    return;
 
                 // Initialize sidechain equalizers
                 b->sEQ[0].init(2, 6);
@@ -566,6 +569,7 @@ namespace lsp
 
                     b->sPassFilter.destroy();
                     b->sRejFilter.destroy();
+                    b->sAllFilter.destroy();
                 }
             }
 
@@ -954,26 +958,25 @@ namespace lsp
                         fp.fGain        = 1.0f;
                         fp.nSlope       = 2; // TODO
                         fp.fQuality     = 0.0;
+                        fp.fFreq    	= b->fFreqEnd;
+                        fp.fFreq2   	= b->fFreqEnd;
 
                         // We're going from low frequencies to high frequencies
                         if (j >= (c->nPlanSize - 1))
                         {
-                            fp.fFreq    = 1.0f;
-                            fp.fFreq2   = 1.0f;
-
                             fp.nType    = FLT_NONE;
                             b->sPassFilter.update(fSampleRate, &fp);
                             b->sRejFilter.update(fSampleRate, &fp);
+                            b->sAllFilter.update(fSampleRate, &fp);
                         }
                         else
                         {
-                            fp.fFreq    = b->fFreqEnd;
-                            fp.fFreq2   = b->fFreqEnd;
-
                             fp.nType    = FLT_BT_LRX_LOPASS;
                             b->sPassFilter.update(fSampleRate, &fp);
                             fp.nType    = FLT_BT_LRX_HIPASS;
                             b->sRejFilter.update(fSampleRate, &fp);
+                            fp.nType    = (j == 0) ? FLT_NONE : FLT_BT_LRX_ALLPASS;
+                            b->sAllFilter.update(fSampleRate, &fp);
                         }
                     }
                 }
@@ -1064,6 +1067,10 @@ namespace lsp
                 b->sComp.set_sample_rate(sr);
                 b->sDelay.init(max_delay);
 
+                b->sPassFilter.set_sample_rate(sr);
+                b->sRejFilter.set_sample_rate(sr);
+                b->sAllFilter.set_sample_rate(sr);
+
                 b->sEQ[0].set_sample_rate(sr);
                 if (channels > 1)
                     b->sEQ[1].set_sample_rate(sr);
@@ -1090,29 +1097,22 @@ namespace lsp
     }
 
     /*
-         The overall schema of signal processing in 'classic' mode for 4 channels:
-
-               f1          f2          f3          f4
-        s   ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐    s'
-       ──┬─►│ LPF │────►│ APF │────►│ APF │────►│  +  │────────►
-         │  └─────┘     └─────┘     └─────┘     └─────┘
-         │                             ▲           ▲
-         │                             │           │
-         │  ┌─────┐     ┌─────┐     ┌─────┐        │
-         └─►│ HPF │──┬─►│ LPF │────►│ INV │        │
-            └─────┘  │  └─────┘     └─────┘        │
-                     │                             │
-                     │                             │
-                     │  ┌─────┐     ┌─────┐     ┌─────┐
-                     └─►│ HPF │──┬─►│ LPF │────►│  +  │
-                        └─────┘  │  └─────┘     └─────┘
-                                 │                 ▲
-                                 │                 │
-                                 │  ┌─────┐     ┌─────┐
-                                 └─►│ HPF │────►│ INV │
-                                    └─────┘     └─────┘
+         The overall schema of signal processing in 'classic' mode for 4 bands:
 
 
+        s   ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐  s'
+       ──┬─►│LPF 1│────►│VCA 1│────►│APF 2│────►│  +  │────►│APF 3│────►│  +  │────►│  +  │────►
+         │  └─────┘     └─────┘     └─────┘     └─────┘     └─────┘     └─────┘     └─────┘
+         │                                         ▲                       ▲           ▲
+         │                                         │                       │           │
+         │  ┌─────┐                 ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐        │
+         └─►│HPF 1│──────────────┬─►│LPF 2│────►│VCA 2│  ┌─►│LPF 3│────►│VCA 3│        │
+            └─────┘              │  └─────┘     └─────┘  │  └─────┘     └─────┘        │
+                                 │                       │                             │
+                                 │                       │                             │
+                                 │  ┌─────┐              │  ┌─────┐     ┌─────┐        │
+                                 └─►│HPF 2│──────────────┴─►│HPF 3│────►│VCA 4│────────┘
+                                    └─────┘                 └─────┘     └─────┘
      */
 
     void mb_compressor_base::process(size_t samples)
@@ -1282,10 +1282,11 @@ namespace lsp
                     {
                         comp_band_t *b      = c->vPlan[j];
 
+                        b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process); // Process the signal with all-pass
                         b->sPassFilter.process(vEnv, vBuffer, to_process); // Filter frequencies from input
-                        b->sRejFilter.process(vBuffer, vBuffer, to_process); // Filter frequencies from input
                         dsp::mul2(vEnv, b->vVCA, to_process); // Apply VCA gain
-                        dsp::sub2(c->vBuffer, vEnv, to_process); // Add signal to the channel buffer
+                        dsp::add2(c->vBuffer, vEnv, to_process); // Add signal to the channel buffer
+                        b->sRejFilter.process(vBuffer, vBuffer, to_process); // Filter frequencies from input
                     }
                 }
             }
@@ -1331,35 +1332,41 @@ namespace lsp
             // Calculate transfer function for the compressor
             if (bModern)
             {
-                dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
-
-                // Calculate transfer function
-                for (size_t j=0; j<c->nPlanSize; ++j)
-                {
-                    comp_band_t *b      = c->vPlan[j];
-                    sFilters.freq_chart(b->nFilterID, c->vTr, vFreqs, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(vTr, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                }
-            }
-            else
-            {
-                dsp::fill_zero(vTr, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
                 dsp::pcomplex_fill_ri(c->vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
                 // Calculate transfer function
                 for (size_t j=0; j<c->nPlanSize; ++j)
                 {
                     comp_band_t *b      = c->vPlan[j];
-
-                    b->sPassFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul3(vTr2, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::scale_sub3(vTr, vTr2, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
-
-                    b->sRejFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    sFilters.freq_chart(b->nFilterID, vTr, vFreqs, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(c->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
                 }
             }
-            dsp::pcomplex_mod(c->vTrMem, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+            else
+            {
+                dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);   // vBuffer
+                dsp::fill_zero(c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS*2);                 // c->vBuffer
+
+                // Calculate transfer function
+                for (size_t j=0; j<c->nPlanSize; ++j)
+                {
+                    comp_band_t *b      = c->vPlan[j];
+
+                    // Apply all-pass characteristics
+                    b->sAllFilter.freq_chart(vPFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(c->vTr, vPFc, mb_compressor_base_metadata::FFT_MESH_POINTS);
+
+                    // Apply lo-pass filter characteristics
+                    b->sPassFilter.freq_chart(vPFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(vPFc, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::scale_add3(c->vTr, vPFc, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
+
+                    // Apply hi-pass filter characteristics
+                    b->sRejFilter.freq_chart(vRFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(vTr, vRFc, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                }
+            }
+            dsp::pcomplex_mod(c->vTrMem, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
             // Output FFT curve, compression curve and FFT spectrogram for each band
             for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)

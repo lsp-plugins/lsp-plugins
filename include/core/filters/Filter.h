@@ -91,6 +91,12 @@ namespace lsp
              */
             void update(size_t sr, const filter_params_t *params);
 
+            /**
+             * Update sample rate
+             * @param sr sample rate
+             */
+            void set_sample_rate(size_t sr);
+
             /** Get current filter parameters
              *
              * @param params pointer to filter parameters to store
