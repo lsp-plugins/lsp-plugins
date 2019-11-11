@@ -12,6 +12,7 @@
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
+#include <core/filters/Filter.h>
 
 namespace lsp
 {
@@ -67,7 +68,7 @@ namespace lsp
             void        oscillate(float *dst, const osc_t *osc, float t, ssize_t n);
 
         public:
-            test_plugin();
+            explicit test_plugin();
             virtual ~test_plugin();
 
         public:
@@ -78,6 +79,46 @@ namespace lsp
             virtual void update_settings();
 
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
+    };
+
+    class filter_analyzer:  public plugin_t, public filter_analyzer_metadata
+    {
+        protected:
+            typedef struct pfilter_t
+            {
+                Filter              sFilter;
+                filter_params_t     sFP;
+                size_t              nOp;
+
+                IPort              *pType;
+                IPort              *pSlope;
+                IPort              *pOp;
+                IPort              *pFreqLo;
+                IPort              *pFreqHi;
+                IPort              *pGain;
+                IPort              *pQuality;
+            } pilter_;
+
+        protected:
+            IPort      *pIn;
+            IPort      *pOut;
+            IPort      *pGraph;
+            pfilter_t   vFilters[2];
+            float       vChart[MESH_POINTS*2];
+            float       vTmpBuf[MESH_POINTS*2];
+
+        public:
+            explicit filter_analyzer();
+            virtual ~filter_analyzer();
+
+        public:
+            virtual void init(IWrapper *wrapper);
+
+            virtual void process(size_t samples);
+
+            virtual void update_settings();
+
+            void set_sample_rate(long sr);
     };
 #endif
 }

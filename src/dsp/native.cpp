@@ -121,11 +121,17 @@ namespace native
         EXPORT1(sub2);
         EXPORT1(mul2);
         EXPORT1(div2);
+        EXPORT1(add_k2);
+        EXPORT1(sub_k2);
+        EXPORT1(div_k2);
         EXPORT1(scale2);
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
+        EXPORT1(add_k3);
+        EXPORT1(sub_k3);
+        EXPORT1(div_k3);
         EXPORT1(scale3);
 
         EXPORT1(h_sum);
@@ -181,6 +187,7 @@ namespace native
         EXPORT1(complex_cvt2modarg);
         EXPORT1(complex_cvt2reim);
         EXPORT1(complex_mod);
+        EXPORT1(complex_arg);
 
         EXPORT1(pcomplex_mul2);
         EXPORT1(pcomplex_mul3);
@@ -194,6 +201,8 @@ namespace native
         EXPORT1(pcomplex_c2r);
         EXPORT1(pcomplex_add_r);
         EXPORT1(pcomplex_mod);
+        EXPORT1(pcomplex_arg);
+        EXPORT1(pcomplex_modarg);
 
         EXPORT1(pcomplex_c2r_add2);
         EXPORT1(pcomplex_c2r_sub2);

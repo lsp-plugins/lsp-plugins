@@ -35,6 +35,28 @@ namespace lsp
 
         static const plugin_metadata_t metadata;
     };
+
+    struct filter_analyzer_metadata
+    {
+        static const size_t         MESH_POINTS         = 640;
+
+        static const float          FREQ_MIN            = SPEC_FREQ_MIN;
+        static const float          FREQ_MAX            = SPEC_FREQ_MAX;
+        static const float          FREQ_DFL            = 100;
+        static const float          FREQ_STEP           = 0.002;
+
+        static const float          GAIN_MIN            = GAIN_AMP_M_36_DB;
+        static const float          GAIN_MAX            = GAIN_AMP_P_36_DB;
+        static const float          GAIN_DFL            = GAIN_AMP_0_DB;
+        static const float          GAIN_STEP           = 0.01f;
+
+        static const float          QUALITY_MIN         = 0.0f;
+        static const float          QUALITY_MAX         = 100.0f;
+        static const float          QUALITY_DFL         = 0.0f;
+        static const float          QUALITY_STEP        = 0.025f;
+
+        static const plugin_metadata_t metadata;
+    };
 #endif
 }
 

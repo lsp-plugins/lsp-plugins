@@ -16,6 +16,9 @@ namespace lsp
 {
     class Filter
     {
+        private:
+            Filter & operator = (const Filter &);
+
         protected:
             #pragma pack(push, 16)
             typedef struct cascade_t
@@ -66,7 +69,7 @@ namespace lsp
             void matched_transform();
 
         public:
-            Filter();
+            explicit Filter();
             ~Filter();
 
         public:
@@ -87,6 +90,12 @@ namespace lsp
              * @param params filter parameters
              */
             void update(size_t sr, const filter_params_t *params);
+
+            /**
+             * Update sample rate
+             * @param sr sample rate
+             */
+            void set_sample_rate(size_t sr);
 
             /** Get current filter parameters
              *

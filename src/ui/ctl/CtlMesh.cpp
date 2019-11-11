@@ -57,6 +57,14 @@ namespace lsp
                 case A_FILL:
                     PARSE_FLOAT(value, fTransparency = __);
                     break;
+                case A_X_INDEX:
+                    if (mesh != NULL)
+                        PARSE_INT(value, mesh->set_x_index(__));
+                    break;
+                case A_Y_INDEX:
+                    if (mesh != NULL)
+                        PARSE_INT(value, mesh->set_y_index(__));
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);

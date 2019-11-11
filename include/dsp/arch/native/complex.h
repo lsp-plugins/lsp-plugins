@@ -66,35 +66,36 @@ namespace native
     {
         while (count--)
         {
-            float re        = *(src_re++);
-            float im        = *(src_im++);
-            float re2       = re * re;
-            float im2       = im * im;
-            float mod       = sqrtf(re2 + im2);
-            float arg;
+            float r         = *(src_re++);
+            float i         = *(src_im++);
+            float r2        = r * r;
+            float i2        = i * i;
 
-            if (re2 > im2)
-            {
-                if (im >= 0)
-                    arg = acos(re / mod);
-                else
-                    arg = 2 * M_PI - acos(re / mod);
-            }
-            else
-            {
-                if (re > 0)
-                {
-                    if (im >= 0)
-                        arg = asin(im / mod);
-                    else
-                        arg = 2*M_PI + asin(im / mod);
-                }
-                else
-                    arg = M_PI - asin(im / mod);
-            }
+            float m         = sqrtf(r2 + i2);
+            float a         = (i != 0.0f) ? 2.0f * atanf((m - r)/ i) :
+                              (r == 0.0f) ? NAN :
+                              (r < 0.0f) ? M_PI : 0.0f;
 
-            *(dst_mod++)    = mod;
-            *(dst_arg++)    = arg;
+            *(dst_mod++)    = m;
+            *(dst_arg++)    = a;
+        }
+    }
+
+    void complex_arg(float *dst, const float *re, const float *im, size_t count)
+    {
+        while (count--)
+        {
+            float r         = *(re++);
+            float i         = *(im++);
+            float r2        = r * r;
+            float i2        = i * i;
+
+            float m         = sqrtf(r2 + i2);
+            float a         = (i != 0.0f) ? 2.0f * atanf((m - r)/ i) :
+                              (r == 0.0f) ? NAN :
+                              (r < 0.0f) ? M_PI : 0.0f;
+
+            *(dst++)        = a;
         }
     }
 

@@ -146,7 +146,7 @@ namespace lsp
                 }
                 else
                 {
-                    for (ssize_t value = nLast; value >= nFirst; value += nStep)
+                    for (ssize_t value = nFirst; value >= nLast; value += nStep)
                         if ((res = iterate(value)) != STATUS_OK)
                             break;
                 }

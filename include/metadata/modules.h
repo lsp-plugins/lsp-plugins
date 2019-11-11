@@ -152,6 +152,9 @@ MOD_PLUGIN(room_builder_stereo, room_builder_ui)
 
     // Test plugin
     MOD_PLUGIN(test_plugin, test_plugin_ui)
+
+    // Test plugin
+    MOD_PLUGIN(filter_analyzer, plugin_ui)
 #endif
 
 // Undefine capabilities

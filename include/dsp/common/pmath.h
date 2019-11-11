@@ -207,10 +207,33 @@ namespace dsp
      */
     extern void (* div2)(float *dst, const float *src, size_t count);
 
+    /**
+     * Add constant value to the data
+     * @param dst destination
+     * @param k constant value to add
+     * @param count number of elements of destination to modify
+     */
+    extern void (* add_k2)(float *dst, float k, size_t count);
+
+    /**
+     * Subtract constant value from the data
+     * @param dst destination
+     * @param k constant value to subtract
+     * @param count number of elements of destination to modify
+     */
+    extern void (* sub_k2)(float *dst, float k, size_t count);
+
+    /**
+     * Divide data by constant value
+     * @param dst destination
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* div_k2)(float *dst, float k, size_t count);
+
     /** Scale: dst[i] = dst[i] * k
      *
      * @param dst destination
-     * @param src source
      * @param k multiplier
      * @param count number of elements
      */
@@ -249,6 +272,34 @@ namespace dsp
      * @param count number of elements
      */
     extern void (* div3)(float *dst, const float *src1, const float *src2, size_t count);
+
+    /**
+     * Add constant value to the data
+     * @param dst destination
+     * @param src source
+     * @param k constant value to add
+     * @param count number of elements of destination to modify
+     */
+    extern void (* add_k3)(float *dst, const float *src, float k, size_t count);
+
+    /**
+     * Subtract constant value from the data
+     * @param dst destination
+     * @param src source
+     * @param k constant value to subtract
+     * @param count number of elements of destination to modify
+     */
+    extern void (* sub_k3)(float *dst, const float *src, float k, size_t count);
+
+    /**
+     * Divide data by constant value
+     * @param dst destination
+     * @param src source
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* div_k3)(float *dst, const float *src, float k, size_t count);
+
 
     /** Scale: dst[i] = src[i] * k
      *

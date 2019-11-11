@@ -188,6 +188,25 @@ namespace native
             dst[i] /= src[i];
     }
 
+    void add_k2(float *dst, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] += k;
+    };
+
+    void sub_k2(float *dst, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] -= k;
+    };
+
+    void div_k2(float *dst, float k, size_t count)
+    {
+        k = 1.0f / k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] *= k;
+    };
+
     void scale2(float *dst, float k, size_t count)
     {
         for (size_t i=0; i<count; ++i)
@@ -217,6 +236,25 @@ namespace native
         for (size_t i=0; i<count; ++i)
             dst[i] = src1[i] / src2[i];
     }
+
+    void add_k3(float *dst, const float *src, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] + k;
+    };
+
+    void sub_k3(float *dst, const float *src, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] - k;
+    };
+
+    void div_k3(float *dst, const float *src, float k, size_t count)
+    {
+        k = 1.0f / k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] * k;
+    };
 
     void scale3(float *dst, const float *src, float k, size_t count)
     {
