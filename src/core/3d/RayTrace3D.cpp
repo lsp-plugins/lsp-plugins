@@ -362,7 +362,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Add capture object to context
-            res     = root.add_object(obj, obj_id, &cap->pos, &cap->material);
+            res     = root.add_object(obj, obj_id, &cap->pos, NULL);
             if (res != STATUS_OK)
                 return res;
         }
@@ -506,7 +506,10 @@ namespace lsp
 
         res     = ctx->fetch_objects(&root, segs, objs);
         if (res != STATUS_OK) // Some error occurred
+        {
+            delete ctx;
             return res;
+        }
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Fetched %d objects", int(n_objs));
@@ -1272,7 +1275,6 @@ namespace lsp
             dcap->pos       = scap->pos;
             dcap->radius    = scap->radius;
             dcap->type      = scap->type;
-            dcap->material  = scap->material;
             dcap->direction = scap->direction;
 
             // Copy bindings
@@ -1594,20 +1596,6 @@ namespace lsp
 
         dsp::apply_matrix3d_mv1(&cap->direction, &cap->pos);
         dsp::normalize_vector(&cap->direction);
-
-        // "Black hole"
-        rt_material_t *m    = &cap->material;
-        m->absorption[0]    = 1.0f;
-        m->diffusion[0]     = 1.0f;
-        m->dispersion[0]    = 1.0f;
-        m->transparency[0]  = 0.0f;
-
-        m->absorption[0]    = 1.0f;
-        m->diffusion[0]     = 1.0f;
-        m->dispersion[0]    = 1.0f;
-        m->transparency[0]  = 0.0f;
-
-        m->permeability     = 1.0f;
 
         return idx;
     }

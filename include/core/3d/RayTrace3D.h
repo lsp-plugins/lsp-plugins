@@ -38,7 +38,6 @@ namespace lsp
 
             typedef struct capture_t: public rt_capture_settings_t
             {
-                rt_material_t       material;
                 vector3d_t          direction;
                 cstorage<sample_t>  bindings;
             } capture_t;

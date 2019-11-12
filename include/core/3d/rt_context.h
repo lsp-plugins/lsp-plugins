@@ -38,6 +38,9 @@ namespace lsp
 
     typedef struct rt_context_t
     {
+        private:
+            rt_context & operator = (const rt_context &);
+
         protected:
             typedef struct rt_triangle_sort_t
             {
@@ -61,6 +64,7 @@ namespace lsp
         protected:
             static int      compare_triangles(const void *p1, const void *p2);
             status_t        add_triangle(const rtm_triangle_t *t);
+            status_t        add_triangle(const rt_triangle_t *t);
             status_t        add_edge(rtm_edge_t *e);
 
         public:
@@ -128,6 +132,15 @@ namespace lsp
              * @return status of operation
              */
             status_t        fetch_objects(rt_mesh_t *src, size_t n, const size_t *mask);
+
+            /**
+             * Add opaque object for capturing data. Edges of opaque object will not be
+             * added to the split plan.
+             *
+             * @param vt array of raw triangles
+             * @param n number of triangles
+             */
+            status_t        add_opaque_object(const rt_triangle_t *vt, size_t n);
 
             /**
              * Cull view with the view planes
