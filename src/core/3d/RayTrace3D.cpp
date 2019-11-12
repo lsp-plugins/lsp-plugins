@@ -1884,11 +1884,6 @@ namespace lsp
         raw_triangle_t buf1[16], buf2[16], *in, *out;
         size_t nin, nout;
 
-//        dsp::calc_plane_p3(&spl[0], &view->s, &view->p[0], &view->p[1]);
-//        dsp::calc_plane_p3(&spl[1], &view->s, &view->p[1], &view->p[2]);
-//        dsp::calc_plane_p3(&spl[2], &view->s, &view->p[2], &view->p[0]);
-//        dsp::calc_plane_p3(&spl[3], &view->p[0], &view->p[1], &view->p[2]);
-
         // Cull each triangle of bounding box with four scissor planes
         for (size_t i=0, m = sizeof(bbox_map)/sizeof(size_t); i < m; )
         {

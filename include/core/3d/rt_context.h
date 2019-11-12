@@ -39,7 +39,7 @@ namespace lsp
     typedef struct rt_context_t
     {
         private:
-            rt_context & operator = (const rt_context &);
+            rt_context_t & operator = (const rt_context_t &);
 
         protected:
             typedef struct rt_triangle_sort_t

@@ -122,7 +122,7 @@ namespace lsp
         raw_triangle_t buf1[16], buf2[16];
         size_t                  nout;
         size_t                  nin = 1;
-        const raw_triangle_t   *in  = buf1;
+        raw_triangle_t         *in  = buf1;
         raw_triangle_t         *out = buf2;
 
         in->v[0]    = t->v[0];
@@ -456,7 +456,7 @@ namespace lsp
         raw_triangle_t buf1[16], buf2[16];
         size_t                  nout;
         size_t                  nin = 1;
-        const raw_triangle_t   *in  = buf1;
+        raw_triangle_t         *in  = buf1;
         raw_triangle_t         *out = buf2;
 
         in->v[0]    = *(t->v[0]);
