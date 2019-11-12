@@ -38,8 +38,10 @@ namespace lsp
 
             typedef struct capture_t: public rt_capture_settings_t
             {
-                vector3d_t          direction;
-                cstorage<sample_t>  bindings;
+                vector3d_t                  direction;      // Direction
+                bound_box3d_t               bbox;           // Bounding box
+                cstorage<sample_t>          bindings;       // Bindings
+                cstorage<rt_triangle_t>     mesh;           // Mesh associated with capture
             } capture_t;
 
             typedef struct stats_t
@@ -82,6 +84,7 @@ namespace lsp
                 #endif
 
                     status_t    generate_root_mesh();
+                    status_t    generate_capture_mesh(size_t id, capture_t *c);
                     status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
                     status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 

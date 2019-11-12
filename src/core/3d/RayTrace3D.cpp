@@ -63,7 +63,8 @@ namespace lsp
                 }
             }
 
-            cap->bindings.first();
+            cap->bindings.flush();
+            cap->mesh.flush();
             delete cap;
         }
 
@@ -413,6 +414,54 @@ namespace lsp
             for (size_t i=0,n=root.triangle.size(); i<n; ++i)
                 trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C3D_RED, &C3D_GREEN, &C3D_BLUE);
         );
+
+        return res;
+    }
+
+    status_t RayTrace3D::TaskThread::generate_capture_mesh(size_t id, capture_t *c)
+    {
+        status_t res;
+        cstorage<raw_triangle_t> mesh;
+
+        // Generate capture mesh
+        if ((res = rt_gen_capture_mesh(mesh, c)) != STATUS_OK)
+            return res;
+
+        // Generate bound box for capture and it's mesh
+        bound_box3d_t *b    = &c->bbox;
+        float r             = c->radius;
+        dsp::init_point_xyz(&b->p[0], -r, r, r);
+        dsp::init_point_xyz(&b->p[1], -r, -r, r);
+        dsp::init_point_xyz(&b->p[2], r, -r, r);
+        dsp::init_point_xyz(&b->p[3], r, r, r);
+        dsp::init_point_xyz(&b->p[4], -r, r, -r);
+        dsp::init_point_xyz(&b->p[5], -r, -r, -r);
+        dsp::init_point_xyz(&b->p[6], r, -r, -r);
+        dsp::init_point_xyz(&b->p[7], r, r, -r);
+
+        // Apply changes to bounding box
+        for (size_t j=0; j<8; ++j)
+            dsp::apply_matrix3d_mp1(&b->p[j], &c->pos);
+
+        // Convert data
+        size_t count = mesh.size();
+        const raw_triangle_t *src = mesh.get_array();
+        rt_triangle_t *dst = c->mesh.append_n(count);
+        if (dst == NULL)
+            return STATUS_NO_MEM;
+
+        for (size_t j=0; j < count; ++j, ++src, ++dst)
+        {
+            // Generate points and fill additional fields
+            dsp::apply_matrix3d_mp2(&dst->v[0], &src->v[0], &c->pos);
+            dsp::apply_matrix3d_mp2(&dst->v[1], &src->v[1], &c->pos);
+            dsp::apply_matrix3d_mp2(&dst->v[2], &src->v[2], &c->pos);
+            dsp::calc_normal3d_pv(&dst->n, src->v);
+
+            dst->oid        = id;
+            dst->face       = j;
+            dst->m          = NULL;
+        }
 
         return res;
     }
@@ -1165,8 +1214,11 @@ namespace lsp
             }
         );
 
-        // Prepare root context
+        // Prepare root context and captures
         res         = generate_root_mesh();
+        if (res == STATUS_OK)
+            res         = prepare_captures();
+
         if (res != STATUS_OK)
             return res;
         else if (trace->bCancelled)
@@ -1185,14 +1237,6 @@ namespace lsp
         {
             destroy_tasks(&estimate);
             return STATUS_CANCELLED;
-        }
-
-        // Prepare captures
-        res = prepare_captures();
-        if (res != STATUS_OK)
-        {
-            destroy_tasks(&estimate);
-            return res;
         }
 
         // Estimate the progress by doing set of steps
@@ -1277,6 +1321,11 @@ namespace lsp
             dcap->type      = scap->type;
             dcap->direction = scap->direction;
 
+            // Generate mesh
+            status_t res    = generate_capture_mesh(i, dcap);
+            if (res != STATUS_OK)
+                return res;
+
             // Copy bindings
             for (size_t j=0; j<scap->bindings.size(); ++j)
             {
@@ -1314,12 +1363,10 @@ namespace lsp
         // Cleanup statistics
         clear_stats(&stats);
 
-        // Copy context
-        status_t res = root.copy(&t->root);
-
-        // Prepare captures
+        // Prepare captures and copy context
+        status_t res = prepare_captures();
         if (res == STATUS_OK)
-            res = prepare_captures();
+            res = root.copy(&t->root);
 
         return res;
     }
