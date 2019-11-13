@@ -137,6 +137,7 @@ namespace lsp
             static void clear_stats(stats_t *stats);
             static void dump_stats(const char *label, const stats_t *stats);
             static void merge_stats(stats_t *dst, const stats_t *src);
+
             static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view);
 
             void        remove_scene(bool destroy);

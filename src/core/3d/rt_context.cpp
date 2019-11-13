@@ -1410,22 +1410,24 @@ namespace lsp
     {
         // Find the nearest to the point of view triangle
         rt_triangle_t *st = NULL;
-        float d, dmin = -1.0f;
-        size_t nt = 0;
+        float d, dmin = 0.0f;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
             // Opaque triangles can not affect depth test
             if (t->m == NULL)
                 continue;
 
-            ++nt;
             d = dsp::calc_min_distance_pv(&view.s, t->v);
-            if (d < dmin)
+            if ((st == NULL) || (d < dmin))
             {
                 st      = t;
                 dmin    = d;
             }
         RT_FOREACH_END;
+
+        // There is no triangle to perform cull-back?
+        if (st == NULL)
+            return STATUS_OK;
 
         // Build plane equation and perform cull-back
         vector3d_t v;
