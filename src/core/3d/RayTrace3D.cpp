@@ -558,18 +558,15 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        size_t n = ctx->triangle.size();
-        if (n <= 1)
+        if (!ctx->plan.is_empty())
+            ctx->state  = S_SPLIT;
+        else if (ctx->triangle.size() <= 0)
         {
-            if (n <= 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state  = S_REFLECT;
+            delete ctx;
+            return STATUS_OK;
         }
         else
-            ctx->state  = S_SPLIT;
+            ctx->state  = S_REFLECT;
 
         return submit_task(ctx);
     }
@@ -624,13 +621,13 @@ namespace lsp
             }
 
             // Update context state
-            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
+            ctx->state  = (ctx->plan.is_empty()) ? S_REFLECT : S_SPLIT;
             return submit_task(ctx);
         }
         else if (out.triangle.size() > 0)
         {
             ctx->swap(&out);
-            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
+            ctx->state  = (ctx->plan.is_empty()) ? S_REFLECT : S_SPLIT;
 
             return submit_task(ctx);
         }
@@ -665,8 +662,8 @@ namespace lsp
             delete ctx;
             return STATUS_OK;
         }
-        ctx->state  = S_REFLECT;
 
+        ctx->state  = S_REFLECT;
         return submit_task(ctx);
     }
 
@@ -998,7 +995,6 @@ namespace lsp
             default:
                 break;
         }
-
 
         // Estimate distance and time parameters for source point
         vector3d_t ds[3];
