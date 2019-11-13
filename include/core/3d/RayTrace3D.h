@@ -16,7 +16,6 @@
 #include <core/3d/raytrace.h>
 #include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
-#include <core/3d/RTObjectFactory.h>
 #include <core/ipc/Thread.h>
 #include <core/ipc/Mutex.h>
 
@@ -36,12 +35,17 @@ namespace lsp
                 ssize_t             r_max;
             } sample_t;
 
+            typedef struct rt_binding_t
+            {
+                cstorage<sample_t>          bindings;       // Capture bindings
+            } rt_binding_t;
+
             typedef struct capture_t: public rt_capture_settings_t
             {
                 vector3d_t                  direction;      // Direction
                 bound_box3d_t               bbox;           // Bounding box
-                cstorage<sample_t>          bindings;       // Bindings
                 cstorage<rt_triangle_t>     mesh;           // Mesh associated with capture
+                cstorage<sample_t>          bindings;       // Capture bindings
             } capture_t;
 
             typedef struct stats_t
@@ -63,10 +67,9 @@ namespace lsp
                     RayTrace3D             *trace;
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
-                    cvector<capture_t>      captures;
+                    cvector<rt_binding_t>   bindings;       // Bindings
                     rt_mesh_t               root;
                     ssize_t                 heavy_state;
-                    RTObjectFactory         factory;
 
                 protected:
                     status_t    main_loop();
@@ -78,9 +81,9 @@ namespace lsp
                     status_t    cullback_view(rt_context_t *ctx);
                     status_t    reflect_view(rt_context_t *ctx);
                 #ifdef LSP_RT_TRACE
-                    status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
+                    status_t    capture(capture_t *capture, cstorage<sample_t> *bindings, const rt_view_t *v, View3D *trace);
                 #else
-                    status_t    capture(capture_t *capture, const rt_view_t *v);
+                    status_t    capture(capture_t *capture, cstorage<sample_t> *bindings, const rt_view_t *v);
                 #endif
 
                     status_t    generate_root_mesh();
@@ -91,7 +94,7 @@ namespace lsp
                     status_t    submit_task(rt_context_t *ctx);
 
                 public:
-                    TaskThread(RayTrace3D *trace);
+                    explicit TaskThread(RayTrace3D *trace);
                     virtual ~TaskThread();
 
                 public:

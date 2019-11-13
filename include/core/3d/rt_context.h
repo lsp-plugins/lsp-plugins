@@ -30,7 +30,6 @@ namespace lsp
     enum rt_context_state_t
     {
         S_SCAN_OBJECTS,
-//        S_CULL_VIEW,
         S_SPLIT,
         S_CULL_BACK,
         S_REFLECT

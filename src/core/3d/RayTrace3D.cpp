@@ -42,19 +42,16 @@ namespace lsp
 
     RayTrace3D::TaskThread::~TaskThread()
     {
-        factory.clear();
-
         // Cleanup capture state
-        for (size_t i=0; i<captures.size(); ++i)
+        for (size_t i=0; i<bindings.size(); ++i)
         {
-            capture_t *cap = captures.get(i);
-
-            // Cleanup bindings
-            for (size_t j=0; j<cap->bindings.size(); ++j)
+            rt_binding_t *b     = bindings.at(i);
+            if (b == NULL)
+                continue;
+            for (size_t j=0; j<b->bindings.size(); ++j)
             {
                 // Cleanup sample
-                sample_t *samp  = cap->bindings.get(j);
-
+                sample_t *samp  = b->bindings.at(j);
                 if (samp->sample != NULL)
                 {
                     samp->sample->destroy();
@@ -62,13 +59,10 @@ namespace lsp
                     samp->sample = NULL;
                 }
             }
-
-            cap->bindings.flush();
-            cap->mesh.flush();
-            delete cap;
+            delete b;
         }
 
-        captures.flush();
+        bindings.flush();
     }
 
     status_t RayTrace3D::TaskThread::run()
@@ -357,14 +351,7 @@ namespace lsp
             capture_t *cap      = trace->vCaptures.get(i);
             if (cap == NULL)
                 return STATUS_BAD_STATE;
-
-            Object3D *obj       = factory.buildIcosphere(1);
-            if (obj == NULL)
-                return STATUS_NO_MEM;
-
-            // Add capture object to context
-            res     = root.add_object(obj, obj_id, &cap->pos, NULL);
-            if (res != STATUS_OK)
+            if ((res = generate_capture_mesh(obj_id, cap)) != STATUS_OK)
                 return res;
         }
 
@@ -496,22 +483,10 @@ namespace lsp
             if (cap == NULL)
                 return STATUS_BAD_STATE;
 
-            Object3D *obj       = factory.buildIcosphere(1);
-            if (obj == NULL)
-                return STATUS_NO_MEM;
+            if (!check_bound_box(&cap->bbox, &ctx->view))
+                continue;
 
-            // Add capture identifier to list of visible objects
-            res     =  check_object(ctx, obj, &cap->pos);
-            if (res == STATUS_OK)
-            {
-                size_t part = obj_id / (sizeof(size_t) * 8);
-                size_t off  = obj_id % (sizeof(size_t) * 8);
-                objs[part] |= size_t(1) << off;
-                ++n_objs;
-            }
-            else if (res == STATUS_SKIP)
-                res     = STATUS_OK;
-            else
+            if ((res = ctx->add_opaque_object(cap->mesh.get_array(), cap->mesh.size())) != STATUS_OK)
                 return res;
         }
 
@@ -547,17 +522,10 @@ namespace lsp
 
         // Fetch visible objects from root context into current context
 //        lsp_trace("Fetch %d objects", int(n_objs));
-        if (n_objs <= 0)
+        if (n_objs >= 0)
         {
-            delete ctx;
-            return STATUS_OK;
-        }
-
-        res     = ctx->fetch_objects(&root, segs, objs);
-        if (res != STATUS_OK) // Some error occurred
-        {
-            delete ctx;
-            return res;
+            if ((res = ctx->fetch_objects(&root, segs, objs)) != STATUS_OK)
+                return res;
         }
 
         RT_TRACE_BREAK(trace->pDebug,
@@ -571,19 +539,15 @@ namespace lsp
         )
 
         // Update state
-        //ctx->state      = S_CULL_VIEW;
-        n_objs = ctx->triangle.size();
-        if (n_objs <= 1)
+        if (!ctx->plan.is_empty())
+            ctx->state  = S_SPLIT;
+        else if (ctx->triangle.size() <= 0)
         {
-            if (n_objs <= 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state  = S_REFLECT;
+            delete ctx;
+            return STATUS_OK;
         }
         else
-            ctx->state  = S_SPLIT;
+            ctx->state  = S_REFLECT;
 
         return submit_task(ctx);
     }
@@ -912,81 +876,77 @@ namespace lsp
             }
 
             // Perform capture
-            if (size_t(ct->oid) < captures.size())
+            capture_t *cap  = trace->vCaptures.get(ct->oid);
+            if (cap != NULL)
             {
-                capture_t *cap  = captures.get(ct->oid);
-                if (cap->bindings.size() > 0)
+                rt_binding_t *b = bindings.get(ct->oid);
+                if (b != NULL)
                 {
                     // Perform synchronized capturing
                     ++stats.calls_capture;
                     #ifdef LSP_RT_TRACE
-                        res = capture(cap, &cv, &ctx->trace);
+                        res = capture(cap, &b->bindings, &cv, &ctx->trace);
                     #else
-                        res = capture(cap, &cv);
+                        res = capture(cap, &b->bindings, &cv);
                     #endif /* LSP_RT_TRACE */
-                    if (res != STATUS_OK)
-                        break;
                 }
+                else
+                    res = STATUS_CORRUPTED;
             }
-
-            // Create reflection context
-            if ((rv.amplitude <= -trace->fEnergyThresh) || (rv.amplitude >= trace->fEnergyThresh))
+            else
             {
-                // Revert the order of triangle because direction has changed to opposite
-                rv.p[1]     = v.p[2];
-                rv.p[2]     = v.p[1];
-
-                rc      = new rt_context_t(&rv, S_SCAN_OBJECTS);
-                if (rc == NULL)
+                // Create reflection context
+                if ((rv.amplitude <= -trace->fEnergyThresh) || (rv.amplitude >= trace->fEnergyThresh))
                 {
-                    res = STATUS_NO_MEM;
-                    break;
+                    // Revert the order of triangle because direction has changed to opposite
+                    rv.p[1]     = v.p[2];
+                    rv.p[2]     = v.p[1];
+
+                    if ((rc = new rt_context_t(&rv, S_SCAN_OBJECTS)) != NULL)
+                    {
+                        RT_TRACE(trace->pDebug,
+                            rc->set_debug_context(trace->pDebug);
+                        );
+
+                        if ((res = submit_task(rc)) != STATUS_OK)
+                            delete rc;
+                    }
+                    else
+                        res = STATUS_NO_MEM;
                 }
 
-                RT_TRACE(trace->pDebug,
-                    rc->set_debug_context(trace->pDebug);
-                );
-
-                res = submit_task(rc);
-                if (res != STATUS_OK)
+                // Create refraction context
+                if ((tv.amplitude <= -trace->fEnergyThresh) || (tv.amplitude >= trace->fEnergyThresh))
                 {
-                    delete rc;
-                    break;
-                }
-            }
+                    if ((rc = new rt_context_t(&tv, S_SCAN_OBJECTS)) != NULL)
+                    {
+                        RT_TRACE(trace->pDebug,
+                            rc->set_debug_context(trace->pDebug);
+                        );
 
-            // Create refraction context
-            if ((tv.amplitude <= -trace->fEnergyThresh) || (tv.amplitude >= trace->fEnergyThresh))
-            {
-                rc      = new rt_context_t(&tv, S_SCAN_OBJECTS);
-                if (rc == NULL)
-                {
-                    res = STATUS_NO_MEM;
-                    break;
-                }
-
-                RT_TRACE(trace->pDebug,
-                    rc->set_debug_context(trace->pDebug);
-                );
-
-                res = submit_task(rc);
-                if (res != STATUS_OK)
-                {
-                    delete rc;
-                    break;
+                        if ((res = submit_task(rc)) != STATUS_OK)
+                            delete rc;
+                    }
+                    else
+                        res = STATUS_NO_MEM;
                 }
             }
+
+            // Analyze result
+            if (res != STATUS_OK)
+                break;
         }
 
+        // Drop current context on OK status
         if (res == STATUS_OK)
             delete ctx;
         return res;
     }
 
 #ifdef LSP_RT_TRACE
-    status_t RayTrace3D::TaskThread::capture(capture_t *capture, const rt_view_t *v, View3D *view)
+    status_t RayTrace3D::TaskThread::capture(capture_t *capture, cstorage<sample_t> *bindings, const rt_view_t *v, View3D *view)
 #else
-    status_t RayTrace3D::TaskThread::capture(capture_t *capture, const rt_view_t *v)
+    status_t RayTrace3D::TaskThread::capture(capture_t *capture, cstorage<sample_t> *bindings, const rt_view_t *v)
 #endif /* LSP_RT_TRACE */
     {
 //        lsp_trace("Capture:\n"
@@ -1128,9 +1088,9 @@ namespace lsp
 //                    trace->lkCapture.lock();
 
                     // Append sample to each matching capture
-                    for (size_t ci=0, cn=capture->bindings.size(); ci<cn; ++ci)
+                    for (size_t ci=0, cn=bindings->size(); ci<cn; ++ci)
                     {
-                        sample_t *s = capture->bindings.at(ci);
+                        sample_t *s = bindings->at(ci);
 
                         // Skip reflection not in range
                         if ((s->r_min >= 0) && (v->rnum < s->r_min))
@@ -1307,31 +1267,21 @@ namespace lsp
         {
             // Allocate capture
             capture_t *scap = trace->vCaptures.get(i);
-            capture_t *dcap = new capture_t();
-            if (dcap == NULL)
+            rt_binding_t *b = new rt_binding_t();
+            if (b == NULL)
                 return STATUS_NO_MEM;
-            else if (!captures.add(dcap))
+            else if (!bindings.add(b))
             {
-                delete dcap;
+                delete b;
                 return STATUS_NO_MEM;
             }
-
-            dcap->pos       = scap->pos;
-            dcap->radius    = scap->radius;
-            dcap->type      = scap->type;
-            dcap->direction = scap->direction;
-
-            // Generate mesh
-            status_t res    = generate_capture_mesh(i, dcap);
-            if (res != STATUS_OK)
-                return res;
 
             // Copy bindings
             for (size_t j=0; j<scap->bindings.size(); ++j)
             {
                 // Allocate binding
                 sample_t *ssamp = scap->bindings.get(j);
-                sample_t *dsamp = dcap->bindings.add();
+                sample_t *dsamp = b->bindings.add();
                 if (dsamp == NULL)
                     return STATUS_NO_MEM;
 
@@ -1374,13 +1324,13 @@ namespace lsp
     status_t RayTrace3D::TaskThread::merge_result()
     {
         cvector<capture_t> &dst = trace->vCaptures;
-        if (dst.size() != captures.size())
+        if (dst.size() != bindings.size())
             return STATUS_CORRUPTED;
 
         for (size_t i=0; i<dst.size(); ++i)
         {
-            capture_t *csrc = captures.at(i);
-            capture_t *cdst = dst.at(i);
+            rt_binding_t   *csrc    = bindings.at(i);
+            capture_t      *cdst    = dst.at(i);
 
             if (csrc->bindings.size() != cdst->bindings.size())
                 return STATUS_CORRUPTED;
