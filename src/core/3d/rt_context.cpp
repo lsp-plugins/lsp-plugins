@@ -120,41 +120,39 @@ namespace lsp
 
         // Initialize data structures
         raw_triangle_t buf1[16], buf2[16];
-        size_t                  nout;
-        size_t                  nin = 1;
-        const raw_triangle_t   *in  = t;
-        raw_triangle_t         *out = buf2;
-
-//        in->v[0]    = t->v[0];
-//        in->v[1]    = t->v[1];
-//        in->v[2]    = t->v[2];
+        size_t nbuf1, nbuf2;
 
         const vector3d_t *pl = view.pl;
 
-        for (size_t i=0; i<3; ++i, ++pl)
-        {
-            // Spit each triangle
-            nout = 0;
+        // Loop 0: 1 input triangle
+        nbuf1 = 0;
+        dsp::cull_triangle_raw(buf1, &nbuf1, pl, t);
+        if (!nbuf1)
+            return STATUS_SKIP;
+        ++pl;
 
-            for (size_t j=0; j<nin; ++j, ++in)
-                dsp::cull_triangle_raw(out, &nout, pl, in);
+        // Loop 1
+        nbuf2 = 0;
+        for (size_t j=0; j<nbuf1; ++j)
+            dsp::cull_triangle_raw(buf2, &nbuf2, pl, &buf1[j]);
+        if (!nbuf2)
+            return STATUS_SKIP;
+        ++pl;
 
-            if (!nout)
-                return STATUS_SKIP;
-
-            // Update state
-            nin     = nout;
-            if (i & 1)
-                in = buf1, out = buf2;
-            else
-                in = buf2, out = buf1;
-        }
+        // Loop 2
+        nbuf1 = 0;
+        for (size_t j=0; j<nbuf2; ++j)
+            dsp::cull_triangle_raw(buf1, &nbuf1, pl, &buf2[j]);
+        if (!nbuf1)
+            return STATUS_SKIP;
+        ++pl;
 
         // Last step
         rt_triangle_t *nt;
-        nout = 0;
+        raw_triangle_t  *in = buf1;
+        nbuf2 = 0;
 
-        for (size_t j=0; j<nin; ++j, ++in)
+        for (size_t j=0; j<nbuf1; ++j, ++in)
         {
             tag = dsp::colocation_x3_v1pv(pl, in->v);
 
@@ -195,8 +193,7 @@ namespace lsp
                     nt->face    = t->face;
                     nt->m       = t->m;
 
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
 
                 // 1 intersection, 1 triangle
@@ -213,8 +210,7 @@ namespace lsp
                     nt->m       = t->m;
 
                     dsp::calc_split_point_p2v1(&nt->v[2], &in->v[0], &in->v[2], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
                 case 0x24:  // 2 1 0
                     if (!(nt = triangle.alloc()))
@@ -229,8 +225,7 @@ namespace lsp
                     nt->m       = t->m;
 
                     dsp::calc_split_point_p2v1(&nt->v[0], &in->v[0], &in->v[2], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
 
                 case 0x12:  // 1 0 2
@@ -246,8 +241,7 @@ namespace lsp
                     nt->m       = t->m;
 
                     dsp::calc_split_point_p2v1(&nt->v[1], &in->v[0], &in->v[1], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
                 case 0x18:  // 1 2 0
                     if (!(nt = triangle.alloc()))
@@ -262,8 +256,7 @@ namespace lsp
                     nt->m       = t->m;
 
                     dsp::calc_split_point_p2v1(&nt->v[0], &in->v[0], &in->v[1], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
 
                 case 0x09:  // 0 2 1
@@ -279,8 +272,7 @@ namespace lsp
                     nt->m       = t->m;
 
                     dsp::calc_split_point_p2v1(&nt->v[2], &in->v[1], &in->v[2], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
                 case 0x21:  // 2 0 1
                     if (!(nt = triangle.alloc()))
@@ -295,7 +287,7 @@ namespace lsp
                     nt->m       = t->m;
 
                     dsp::calc_split_point_p2v1(&nt->v[1], &in->v[1], &in->v[2], pl);
-                    ++out; ++nout;
+                    ++nbuf2;
                     break;
 
                 // 2 intersections, 1 triangle
@@ -313,8 +305,7 @@ namespace lsp
 
                     dsp::calc_split_point_p2v1(&nt->v[1], &in->v[0], &in->v[1], pl);
                     dsp::calc_split_point_p2v1(&nt->v[2], &in->v[0], &in->v[2], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
                 case 0x08:  // 0 2 0
                     if (!(nt = triangle.alloc()))
@@ -330,8 +321,7 @@ namespace lsp
 
                     dsp::calc_split_point_p2v1(&nt->v[0], &in->v[1], &in->v[0], pl);
                     dsp::calc_split_point_p2v1(&nt->v[2], &in->v[1], &in->v[2], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
                 case 0x20:  // 2 0 0
                     if (!(nt = triangle.alloc()))
@@ -347,8 +337,7 @@ namespace lsp
 
                     dsp::calc_split_point_p2v1(&nt->v[0], &in->v[2], &in->v[0], pl);
                     dsp::calc_split_point_p2v1(&nt->v[1], &in->v[2], &in->v[1], pl);
-                    ++out;
-                    ++nout;
+                    ++nbuf2;
                     break;
 
                 // 2 intersections, 2 triangles
@@ -378,7 +367,7 @@ namespace lsp
                     nt->face    = t->face;
                     nt->m       = t->m;
 
-                    nout += 2;
+                    nbuf2 += 2;
                     break;
 
                 case 0x22:  // 2 0 2
@@ -407,7 +396,7 @@ namespace lsp
                     nt->face    = t->face;
                     nt->m       = t->m;
 
-                    nout += 2;
+                    nbuf2 += 2;
                     break;
 
                 case 0x0a:  // 0 2 2
@@ -436,7 +425,7 @@ namespace lsp
                     nt->face    = t->face;
                     nt->m       = t->m;
 
-                    nout += 2;
+                    nbuf2 += 2;
                     break;
 
                 default:
@@ -444,7 +433,7 @@ namespace lsp
             }
         }
 
-        return (nout) ? STATUS_OK : STATUS_SKIP;
+        return (nbuf2) ? STATUS_OK : STATUS_SKIP;
     }
 
     status_t rt_context_t::add_triangle(const rtm_triangle_t *t)
