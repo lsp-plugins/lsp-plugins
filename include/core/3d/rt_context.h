@@ -64,7 +64,8 @@ namespace lsp
             static int      compare_triangles(const void *p1, const void *p2);
             status_t        add_triangle(const rtm_triangle_t *t);
             status_t        add_triangle(const rt_triangle_t *t);
-            status_t        add_edge(rtm_edge_t *e);
+            status_t        add_edge(const rtm_edge_t *e);
+            status_t        add_edge(const rt_edge_t *e);
 
         public:
             // Construction/destruction
@@ -140,6 +141,16 @@ namespace lsp
              * @param n number of triangles
              */
             status_t        add_opaque_object(const rt_triangle_t *vt, size_t n);
+
+            /**
+             * Add object for capturing data.
+             * @param vt array of raw triangles
+             * @param ve array of edges that should be added to plan
+             * @param nt number of raw triangles
+             * @param ne number of edges that should be added to plan
+             * @return status of operation
+             */
+            status_t        add_object(const rt_triangle_t *vt, const rt_edge_t *ve, size_t nt, size_t ne);
 
             /**
              * Cull view with the view planes

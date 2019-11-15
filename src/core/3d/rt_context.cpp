@@ -781,7 +781,7 @@ namespace lsp
         return (nout) ? STATUS_OK : STATUS_SKIP;
     }
 
-    status_t rt_context_t::add_edge(rtm_edge_t *e)
+    status_t rt_context_t::add_edge(const rtm_edge_t *e)
     {
         size_t tag;
         point3d_t sp[2];
@@ -791,6 +791,47 @@ namespace lsp
         // Cut the split edge
         sp[0]       = *(e->v[0]);
         sp[1]       = *(e->v[1]);
+
+        // Process each plane
+        const vector3d_t *pl    = view.pl;
+
+        for (size_t j=0; j<4; ++j, ++pl)
+        {
+            tag = dsp::colocation_x2_v1pv(pl, sp);
+
+            switch (tag)
+            {
+                case 0x06: // 1 2
+                case 0x09: // 2 1
+                case 0x0a: // 2 2
+                    // Split edge is under the plane
+                    break;
+
+                case 0x02: // 0 2 -- p[0] is under the plane, p[1] is over the plane, cut p[1]
+                    dsp::calc_split_point_pvv1(&sp[1], sp, pl);
+                    break;
+
+                case 0x08: // 2 0 -- p[1] is under the plane, p[0] is over the plane, cut p[0]
+                    dsp::calc_split_point_pvv1(&sp[0], sp, pl);
+                    break;
+
+                default: // Split edge is over the plane or on the plane
+                    return STATUS_OK;
+            }
+        }
+
+        // Add split plane to plan
+        return (plan.add_edge(sp)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    status_t rt_context_t::add_edge(const rt_edge_t *e)
+    {
+        size_t tag;
+        point3d_t sp[2];
+
+        // Cut the split edge
+        sp[0]       = e->p[0];
+        sp[1]       = e->p[1];
 
         // Process each plane
         const vector3d_t *pl    = view.pl;
@@ -912,6 +953,31 @@ namespace lsp
 
             // Add triangle
             res = add_triangle(t);
+            if ((res != STATUS_SKIP) && (res != STATUS_OK))
+                return res;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t rt_context_t::add_object(const rt_triangle_t *vt, const rt_edge_t *ve, size_t nt, size_t ne)
+    {
+        status_t res;
+
+        // Add all triangles
+        for (size_t i=0; i<nt; ++i)
+        {
+            // Add triangle
+            res = add_triangle(&vt[i]);
+            if ((res != STATUS_SKIP) && (res != STATUS_OK))
+                return res;
+        }
+
+        // Add all edges
+        for (size_t i=0; i<ne; ++i)
+        {
+            // Add triangle
+            res = add_edge(&ve[i]);
             if ((res != STATUS_SKIP) && (res != STATUS_OK))
                 return res;
         }

@@ -152,6 +152,10 @@ namespace lsp
         size_t              __pad;      // Alignment to be sizeof() multiple of 16
     } rt_triangle_t;
 
+    typedef struct rt_edge_t {
+        point3d_t           p[2];       // Edge points
+    } rt_edge_t;
+
     typedef struct rt_material_t
     {
         float           absorption[2];      // The amount of energy that will be absorpted
