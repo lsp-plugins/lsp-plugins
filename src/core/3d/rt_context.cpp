@@ -122,12 +122,12 @@ namespace lsp
         raw_triangle_t buf1[16], buf2[16];
         size_t                  nout;
         size_t                  nin = 1;
-        raw_triangle_t         *in  = buf1;
+        const raw_triangle_t   *in  = t;
         raw_triangle_t         *out = buf2;
 
-        in->v[0]    = t->v[0];
-        in->v[1]    = t->v[1];
-        in->v[2]    = t->v[2];
+//        in->v[0]    = t->v[0];
+//        in->v[1]    = t->v[1];
+//        in->v[2]    = t->v[2];
 
         const vector3d_t *pl = view.pl;
 
