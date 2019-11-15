@@ -62,6 +62,7 @@ namespace lsp
             delete b;
         }
 
+        destroy_objects(&objects);
         bindings.flush();
     }
 
@@ -74,6 +75,7 @@ namespace lsp
         // Enter the main loop
         status_t res = main_loop();
         destroy_tasks(&tasks);
+        destroy_objects(&objects);
 
         // Finalize DSP context and return result
         dsp::finish(&ctx);
@@ -344,7 +346,7 @@ namespace lsp
         size_t obj_id = 0;
 
         // Clear contents of the root context
-        root.clear();
+        rt_mesh_t root;
         RT_TRACE(trace->pDebug, root.set_debug_context(trace->pDebug, &trace->pDebug->trace); );
 
         // Add capture objects as fake icosphere objects
@@ -358,7 +360,7 @@ namespace lsp
         }
 
         // Add scene objects
-        for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
+        for (size_t i=0, oid=obj_id, n=trace->pScene->num_objects(); i<n; ++i, ++oid)
         {
             // Get object
             Object3D *obj       = trace->pScene->object(i);
@@ -372,9 +374,8 @@ namespace lsp
             if (m == NULL)
                 return STATUS_BAD_STATE;
 
-            // Compute bounding box and add object to context
-            obj->calc_bound_box();
-            res         = root.add_object(obj, obj_id, obj->matrix(), m);
+            // Add object to context
+            res         = root.add_object(obj, oid, obj->matrix(), m);
             if (res != STATUS_OK)
                 return res;
         }
@@ -392,6 +393,32 @@ namespace lsp
 
         lsp_trace("Overall mesh statistics: %d vertexes, %d edges, %d triangles",
                 int(root.vertex.size()), int(root.edge.size()), int(root.triangle.size()));
+
+        // Generate object meshes
+        destroy_objects(&objects);
+        for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
+        {
+            // Get object
+            Object3D *obj       = trace->pScene->object(i);
+            if (obj == NULL)
+                return STATUS_BAD_STATE;
+            else if (!obj->is_visible()) // Skip invisible objects
+                continue;
+
+            // Create object
+            rt_object_t *rt = new rt_object_t();
+            if (rt == NULL)
+                return STATUS_NO_MEM;
+            else if (!objects.add(rt)) {
+                delete rt;
+                return STATUS_NO_MEM;
+            }
+
+            // Compute object's bounding box
+            obj->calc_bound_box();
+            if ((res = generate_object_mesh(obj_id, rt, &root, obj, obj->matrix())) != STATUS_OK)
+                return res;
+        }
 
         RT_TRACE(trace->pDebug,
             if (!trace->pScene->validate())
@@ -455,6 +482,71 @@ namespace lsp
         return res;
     }
 
+    status_t RayTrace3D::TaskThread::generate_object_mesh(ssize_t id, rt_object_t *o, rt_mesh_t *src, Object3D *obj, const matrix3d_t *m)
+    {
+        rtx_edge_t *e;
+
+        // Initialize ptag
+        for (size_t i=0, n=src->edge.size(); i<n; ++i)
+            src->edge.get(i)->itag  = -1;
+
+        // Build set of triangles and edges
+        ssize_t itag = 0;
+        for (size_t i=0, n=src->triangle.size(); i<n; ++i)
+        {
+            // Fetch triangle
+            const rtm_triangle_t *t = src->triangle.get(i);
+            if (t->oid != id)
+                continue;
+
+            // Add triangle
+            rtx_triangle_t *rt = o->mesh.add();
+            if (rt == NULL)
+                return STATUS_NO_MEM;
+
+            rt->v[0]    = *(t->v[0]);
+            rt->v[1]    = *(t->v[1]);
+            rt->v[2]    = *(t->v[2]);
+            rt->n       = t->n;
+            rt->oid     = t->oid;
+            rt->face    = t->face;
+            rt->m       = t->m;
+
+            // Add edges to if they are still not present
+            for (size_t j=0; j<3; ++j)
+            {
+                rtm_edge_t *se  = t->e[j];
+                rt->e[j]        = reinterpret_cast<rtx_edge_t *>(se);
+
+                if (se->itag < 0)
+                {
+                    if ((e = o->plan.add()) == NULL)
+                        return STATUS_NO_MEM;
+                    e->v[0]         = *(se->v[0]);
+                    e->v[1]         = *(se->v[1]);
+                    se->itag        = itag++;
+                }
+            }
+        }
+
+        // Patch edge pointers according to stored indexes
+        for (size_t i=0, n=o->mesh.size(); i<n; ++i)
+        {
+            rtx_triangle_t *rt = o->mesh.at(i);
+            for (size_t j=0; j<3; ++j)
+            {
+                rtm_edge_t *se  = reinterpret_cast<rtm_edge_t *>(rt->e[j]);
+                rt->e[j]        = o->plan.at(se->itag);
+            }
+        }
+
+        // Apply changes to bound box
+        const obj_boundbox_t *bbox = obj->bound_box();
+        for (size_t i=0; i<8; ++i)
+            dsp::apply_matrix3d_mp2(&o->bbox.p[i], &bbox->p[i], m);
+
+        return STATUS_OK;
+    }
 
     status_t RayTrace3D::TaskThread::scan_objects(rt_context_t *ctx)
     {
@@ -476,45 +568,7 @@ namespace lsp
             objs[i]             = 0;
 
         size_t n_objs       = 0;
-        size_t obj_id       = trace->vCaptures.size();
-
-        // Iterate all object and add to the context if the object is potentially participating the ray tracing algorithm
-        for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
-        {
-            // Get object
-            Object3D *obj       = trace->pScene->object(i);
-            if (obj == NULL)
-                return STATUS_BAD_STATE;
-            else if (!obj->is_visible()) // Skip invisible objects
-                continue;
-
-            // Get material
-            rt_material_t *m    = trace->vMaterials.get(i);
-            if (m == NULL)
-                return STATUS_BAD_STATE;
-
-            // Add object identifier to list of visible objects
-            res     =  check_object(ctx, obj, obj->matrix());
-            if (res == STATUS_OK)
-            {
-                size_t part = obj_id / (sizeof(size_t) * 8);
-                size_t off  = obj_id % (sizeof(size_t) * 8);
-                objs[part] |= size_t(1) << off;
-                ++n_objs;
-            }
-            else if (res == STATUS_SKIP)
-                res     = STATUS_OK;
-            else
-                return res;
-        }
-
-        // Fetch visible objects from root context into current context
-//        lsp_trace("Fetch %d objects", int(n_objs));
-        if (n_objs >= 0)
-        {
-            if ((res = ctx->fetch_objects(&root, segs, objs)) != STATUS_OK)
-                return res;
-        }
+        size_t obj_id       = 0;
 
         // Add captures as opaque objects
         obj_id = 0;
@@ -550,7 +604,7 @@ namespace lsp
             {
                 RT_TRACE_BREAK(trace->pDebug,
                     ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
-                    for (size_t j=0,n=cap->mesh.size(); j<n; ++j)
+                    for (size_t j=0,m=cap->mesh.size(); j<m; ++j)
                     {
                         rt_triangle_t *st = cap->mesh.at(j);
 
@@ -571,6 +625,70 @@ namespace lsp
             // Add capture as opaque object
             if ((res = ctx->add_opaque_object(cap->mesh.get_array(), cap->mesh.size())) != STATUS_OK)
                 return res;
+        }
+
+        // Iterate all object and add to the context if the object is potentially participating the ray tracing algorithm
+        for (size_t i=0, n=objects.size(); i<n; ++i)
+        {
+            rt_object_t *rt = objects.at(i);
+            if (rt == NULL)
+                return STATUS_BAD_STATE;
+
+            // Check bound box
+            bool check = rt->mesh.size() > 16;
+            if (check)
+            {
+                RT_TRACE_BREAK(trace->pDebug,
+                    lsp_trace("Testing bound box");
+
+                    ctx->trace.add_view_1c(&ctx->view, &C3D_MAGENTA);
+                    v_vertex3d_t v[3];
+                    for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+                    {
+                        v[0].p      = rt->bbox.p[bbox_map[j++]];
+                        v[0].c      = C3D_YELLOW;
+                        v[1].p      = rt->bbox.p[bbox_map[j++]];
+                        v[1].c      = C3D_YELLOW;
+                        v[2].p      = rt->bbox.p[bbox_map[j++]];
+                        v[2].c      = C3D_YELLOW;
+
+                        dsp::calc_normal3d_p3(&v[0].n, &v[0].p, &v[1].p, &v[2].p);
+                        v[1].n      = v[0].n;
+                        v[2].n      = v[0].n;
+
+                        ctx->trace.add_triangle(v);
+                    }
+                )
+
+                // Perform simple bounding-box check
+                check = !check_bound_box(&rt->bbox, &ctx->view);
+            }
+            if (check)
+            {
+                RT_TRACE(trace->pDebug,
+                    for (size_t j=0,m=rt->mesh.size(); j<m; ++j)
+                    {
+                        rtx_triangle_t *st = rt->mesh.at(j);
+
+                        v_triangle3d_t t;
+                        t.p[0]  = st->v[0];
+                        t.p[1]  = st->v[1];
+                        t.p[2]  = st->v[2];
+                        t.n[0]  = st->n;
+                        t.n[1]  = st->n;
+                        t.n[2]  = st->n;
+
+                        ctx->ignored.add(&t);
+                    }
+                );
+                continue;
+            }
+
+            // Add object to context
+            res = ctx->add_object(rt->mesh.get_array(), rt->plan.get_array(), rt->mesh.size(), rt->plan.size());
+            if (res != STATUS_OK)
+                return res;
+            ++n_objs;
         }
 
         RT_TRACE_BREAK(trace->pDebug,
@@ -1350,12 +1468,58 @@ namespace lsp
         // Cleanup statistics
         clear_stats(&stats);
 
-        // Prepare captures and copy context
+        // Prepare captures and data context
         status_t res = prepare_captures();
         if (res == STATUS_OK)
-            res = root.copy(&t->root);
+            res = copy_objects(&t->objects);
 
         return res;
+    }
+
+    status_t RayTrace3D::TaskThread::copy_objects(cvector<rt_object_t> *src)
+    {
+        rtx_edge_t *se, *de;
+        rtx_triangle_t *dt;
+
+        for (size_t i=0, n=src->size(); i<n; ++i)
+        {
+            // Get source object
+            rt_object_t *s = src->at(i);
+            if (s == NULL)
+                return STATUS_CORRUPTED;
+
+            // Create destination object
+            rt_object_t *d = new rt_object_t;
+            if (d == NULL)
+                return STATUS_NO_MEM;
+            else if (!objects.add(d))
+            {
+                delete d;
+                return STATUS_NO_MEM;
+            }
+
+            // Copy edges and triangles
+            if (!d->plan.add_all(&s->plan))
+                return STATUS_NO_MEM;
+            if (!d->mesh.add_all(&s->mesh))
+                return STATUS_NO_MEM;
+
+            // Patch pointers
+            se = s->plan.get_array();
+            de = d->plan.get_array();
+            dt = d->mesh.get_array();
+            for (size_t j=0, m=d->mesh.size(); j<m; ++j, ++dt)
+            {
+                dt->e[0] = &de[dt->e[0] - se];
+                dt->e[1] = &de[dt->e[1] - se];
+                dt->e[2] = &de[dt->e[2] - se];
+            }
+
+            // Copy bound box
+            d->bbox     = s->bbox;
+        }
+
+        return STATUS_OK;
     }
 
     status_t RayTrace3D::TaskThread::merge_result()
@@ -1511,6 +1675,22 @@ namespace lsp
         }
 
         tasks->flush();
+    }
+
+    void RayTrace3D::destroy_objects(cvector<rt_object_t> *objects)
+    {
+        for (size_t i=0, n=objects->size(); i<n; ++i)
+        {
+            rt_object_t *obj = objects->get(i);
+            if (obj != NULL)
+            {
+                obj->mesh.flush();
+                obj->plan.flush();
+                delete obj;
+            }
+        }
+
+        objects->flush();
     }
 
     void RayTrace3D::remove_scene(bool destroy)

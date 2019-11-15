@@ -65,7 +65,7 @@ namespace lsp
             status_t        add_triangle(const rtm_triangle_t *t);
             status_t        add_triangle(const rt_triangle_t *t);
             status_t        add_edge(const rtm_edge_t *e);
-            status_t        add_edge(const rt_edge_t *e);
+            status_t        add_edge(const rtx_edge_t *e);
 
         public:
             // Construction/destruction
@@ -150,7 +150,7 @@ namespace lsp
              * @param ne number of edges that should be added to plan
              * @return status of operation
              */
-            status_t        add_object(const rt_triangle_t *vt, const rt_edge_t *ve, size_t nt, size_t ne);
+            status_t        add_object(rtx_triangle_t *vt, rtx_edge_t *ve, size_t nt, size_t ne);
 
             /**
              * Cull view with the view planes

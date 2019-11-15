@@ -48,6 +48,13 @@ namespace lsp
                 cstorage<sample_t>          bindings;       // Capture bindings
             } capture_t;
 
+            typedef struct rt_object_t
+            {
+                bound_box3d_t               bbox;
+                cstorage<rtx_triangle_t>    mesh;
+                cstorage<rtx_edge_t>        plan;
+            } rt_object_t;
+
             typedef struct stats_t
             {
                 uint64_t            root_tasks;
@@ -68,13 +75,14 @@ namespace lsp
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
                     cvector<rt_binding_t>   bindings;       // Bindings
-                    rt_mesh_t               root;
+                    cvector<rt_object_t>    objects;
                     ssize_t                 heavy_state;
 
                 protected:
                     status_t    main_loop();
                     status_t    process_context(rt_context_t *ctx);
 
+                    status_t    copy_objects(cvector<rt_object_t> *src);
                     status_t    scan_objects(rt_context_t *ctx);
                     status_t    cull_view(rt_context_t *ctx);
                     status_t    split_view(rt_context_t *ctx);
@@ -88,6 +96,7 @@ namespace lsp
 
                     status_t    generate_root_mesh();
                     status_t    generate_capture_mesh(size_t id, capture_t *c);
+                    status_t    generate_object_mesh(ssize_t id, rt_object_t *o, rt_mesh_t *src, Object3D *obj, const matrix3d_t *m);
                     status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
                     status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
@@ -134,6 +143,7 @@ namespace lsp
 
         protected:
             static void destroy_tasks(cvector<rt_context_t> *tasks);
+            static void destroy_objects(cvector<rt_object_t> *objects);
             static void clear_stats(stats_t *stats);
             static void dump_stats(const char *label, const stats_t *stats);
             static void merge_stats(stats_t *dst, const stats_t *src);

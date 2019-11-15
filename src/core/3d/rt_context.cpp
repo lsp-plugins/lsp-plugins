@@ -786,8 +786,6 @@ namespace lsp
         size_t tag;
         point3d_t sp[2];
 
-        e->itag = 0;
-
         // Cut the split edge
         sp[0]       = *(e->v[0]);
         sp[1]       = *(e->v[1]);
@@ -824,14 +822,14 @@ namespace lsp
         return (plan.add_edge(sp)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    status_t rt_context_t::add_edge(const rt_edge_t *e)
+    status_t rt_context_t::add_edge(const rtx_edge_t *e)
     {
         size_t tag;
         point3d_t sp[2];
 
         // Cut the split edge
-        sp[0]       = e->p[0];
-        sp[1]       = e->p[1];
+        sp[0]       = e->v[0];
+        sp[1]       = e->v[1];
 
         // Process each plane
         const vector3d_t *pl    = view.pl;
@@ -960,26 +958,48 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::add_object(const rt_triangle_t *vt, const rt_edge_t *ve, size_t nt, size_t ne)
+    status_t rt_context_t::add_object(rtx_triangle_t *vt, rtx_edge_t *ve, size_t nt, size_t ne)
     {
         status_t res;
+
+        // Set-up tag for the edge
+        for (size_t i=0; i<ne; ++i)
+            ve->itag    = 1;
 
         // Add all triangles
         for (size_t i=0; i<nt; ++i)
         {
-            // Add triangle
-            res = add_triangle(&vt[i]);
-            if ((res != STATUS_SKIP) && (res != STATUS_OK))
-                return res;
-        }
+            const rtx_triangle_t *t = &vt[i];
+            // Skip ignored triangles
+            if ((t->oid == view.oid) && (t->face == view.face))
+                continue;
 
-        // Add all edges
-        for (size_t i=0; i<ne; ++i)
-        {
             // Add triangle
-            res = add_edge(&ve[i]);
-            if ((res != STATUS_SKIP) && (res != STATUS_OK))
+            res = add_triangle(reinterpret_cast<const rt_triangle_t *>(&vt[i]));
+            if (res == STATUS_SKIP)
+                continue;
+            else if (res != STATUS_OK)
                 return res;
+
+            // Add edges to plan
+            if (t->e[0]->itag)
+            {
+                if ((res = add_edge(t->e[0])) != STATUS_OK)
+                    return res;
+                t->e[0]->itag   = 0;
+            }
+            if (t->e[1]->itag)
+            {
+                if ((res = add_edge(t->e[1])) != STATUS_OK)
+                    return res;
+                t->e[1]->itag   = 0;
+            }
+            if (t->e[2]->itag)
+            {
+                if ((res = add_edge(t->e[2])) != STATUS_OK)
+                    return res;
+                t->e[2]->itag   = 0;
+            }
         }
 
         return STATUS_OK;
