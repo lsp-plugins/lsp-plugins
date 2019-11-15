@@ -964,7 +964,7 @@ namespace lsp
 
         // Set-up tag for the edge
         for (size_t i=0; i<ne; ++i)
-            ve->itag    = 1;
+            ve[i].itag      = 1;
 
         // Add all triangles
         for (size_t i=0; i<nt; ++i)
