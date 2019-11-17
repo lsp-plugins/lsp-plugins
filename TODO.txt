@@ -55,7 +55,11 @@
 * Added possibility to control how painning and gain controls affect the signal passed to the direct output tracks.
 * Added allpass filters that add phase compensation in the classic mode of the Multiband compressor
   and allow to achieve flat frequency response.
-- Refactored and optimized reverb simulation algorithm.
+* Changed reverb simulation algorithm: the algorithm now handles captures as opaque objects, not
+  part of the 3D scene. So the number and location of the captures does not impact the audio simulations.
+  This allows to render the impulse response in more accurate way. However, even after some set of additional
+  optimizations has been made, this yields to some performance degradation because there are much more ray
+  groups required to be rendered.
 - Optimize DSP for AArch64 architecture.
 - Added multilingual support by the graphical toolkit.
 - Decomposition of core modules into submodules.
