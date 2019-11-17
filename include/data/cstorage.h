@@ -138,7 +138,7 @@ namespace lsp
             }
 
         public:
-            inline basic_storage(size_t sz, size_t align)
+            inline basic_storage(size_t sz)
             {
                 vItems      = NULL;
                 nCapacity   = 0;
@@ -198,15 +198,15 @@ namespace lsp
 
     };
 
-    template <class T, size_t A=DEFAULT_ALIGN>
+    template <class T>
         class cstorage: public basic_storage
         {
             private:
-                cstorage(const cstorage<T, A> &src);                            // Disable copying
-                cstorage<T, A> & operator = (const cstorage<T, A> & src);       // Disable copying
+                cstorage(const cstorage<T> &src);                               // Disable copying
+                cstorage<T> & operator = (const cstorage<T> & src);             // Disable copying
 
             public:
-                explicit cstorage() : basic_storage(sizeof(T), A) {};
+                explicit cstorage() : basic_storage(sizeof(T)) {};
                 ~cstorage() {};
 
             public:
@@ -279,7 +279,7 @@ namespace lsp
 
                 inline T *get_array() { return reinterpret_cast<T *>(basic_storage::first()); }
 
-                inline const T *get_array() const { return const_cast< cstorage<T, A> *>(this)->first(); }
+                inline const T *get_array() const { return const_cast< cstorage<T> *>(this)->first(); }
 
                 inline T *last() { return reinterpret_cast<T *>(basic_storage::last()); }
 
@@ -348,9 +348,17 @@ namespace lsp
                     return ((idx < 0) || (idx >= ssize_t(nItems))) ? -1 : idx;
                 }
 
-                inline void swap(cstorage<T, A> *src) { do_swap_data(src); }
+                inline void swap(cstorage<T> *src) { do_swap_data(src); }
 
-                inline bool add_all(const cstorage<T, A> *src) {
+                inline bool add_all(const T *src, size_t count) {
+                    if (count <= 0)
+                        return true;
+                    T *ptr = append_n(count);
+                    ::memcpy(ptr, src, count * nSizeOf);
+                    return true;
+                }
+
+                inline bool add_all(const cstorage<T> *src) {
                     if (src->nItems <= 0)
                         return true;
                     T *ptr = append_n(src->nItems);

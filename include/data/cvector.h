@@ -164,6 +164,25 @@ namespace lsp
                 return true;
             }
 
+            inline bool add_all(const void *const *src, size_t count)
+            {
+                size_t n = nItems + count;
+                if (nCapacity < n)
+                {
+                    size_t cap      = ((n + CVECTOR_GROW - 1) / CVECTOR_GROW) * CVECTOR_GROW;
+                    void *data      = ::realloc(pvItems, sizeof(void *) * (cap));
+                    if (data == NULL)
+                        return false;
+
+                    pvItems         = static_cast<void **>(data);
+                    nCapacity       = cap;
+                }
+
+                ::memcpy(&pvItems[nItems], src, sizeof(void *) * count);
+                nItems          = n;
+                return true;
+            }
+
             inline ssize_t do_index_of(const void *ptr) const
             {
                 for (size_t i=0; i<nItems; ++i)
@@ -273,7 +292,13 @@ namespace lsp
                 explicit inline cvector() {}
 
             public:
+                inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
+
                 inline bool add(T *item) { return basic_vector::add_item(item); }
+
+                inline bool add_all(const T * const *items, size_t count) { return basic_vector::add_all(items, count); }
+
+                inline bool add_all(const cvector<T> *items) { return basic_vector::add_all(items->get_array(), items->size()); }
 
                 inline bool push(T *item) { return basic_vector::add_item(item); }
 
@@ -320,8 +345,6 @@ namespace lsp
                 inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 
                 inline T *at(size_t index) const { return reinterpret_cast<T *>(pvItems[index]); }
-
-                inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
 
                 inline T **release()
                 {

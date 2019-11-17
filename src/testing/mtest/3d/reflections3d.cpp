@@ -197,12 +197,12 @@ MTEST_BEGIN("3d", reflections)
                         break;
                     }
 
-                    case XK_Home:
+                    case XK_End:
                         nTrace++;
                         lsp_trace("Set trace breakpoint to %d", int(nTrace));
                         update_view();
                         break;
-                    case XK_End:
+                    case XK_Home:
                         if (nTrace >= 0)
                         {
                             nTrace--;

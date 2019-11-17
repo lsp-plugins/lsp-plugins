@@ -16,7 +16,6 @@
 #include <core/3d/raytrace.h>
 #include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
-#include <core/3d/RTObjectFactory.h>
 #include <core/ipc/Thread.h>
 #include <core/ipc/Mutex.h>
 
@@ -36,12 +35,25 @@ namespace lsp
                 ssize_t             r_max;
             } sample_t;
 
+            typedef struct rt_binding_t
+            {
+                cstorage<sample_t>          bindings;       // Capture bindings
+            } rt_binding_t;
+
             typedef struct capture_t: public rt_capture_settings_t
             {
-                rt_material_t       material;
-                vector3d_t          direction;
-                cstorage<sample_t>  bindings;
+                vector3d_t                  direction;      // Direction
+                bound_box3d_t               bbox;           // Bounding box
+                cstorage<rt_triangle_t>     mesh;           // Mesh associated with capture
+                cstorage<sample_t>          bindings;       // Capture bindings
             } capture_t;
+
+            typedef struct rt_object_t
+            {
+                bound_box3d_t               bbox;
+                cstorage<rtx_triangle_t>    mesh;
+                cstorage<rtx_edge_t>        plan;
+            } rt_object_t;
 
             typedef struct stats_t
             {
@@ -62,34 +74,36 @@ namespace lsp
                     RayTrace3D             *trace;
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
-                    cvector<capture_t>      captures;
-                    rt_mesh_t               root;
+                    cvector<rt_binding_t>   bindings;       // Bindings
+                    cvector<rt_object_t>    objects;
                     ssize_t                 heavy_state;
-                    RTObjectFactory         factory;
 
                 protected:
                     status_t    main_loop();
                     status_t    process_context(rt_context_t *ctx);
 
+                    status_t    copy_objects(cvector<rt_object_t> *src);
                     status_t    scan_objects(rt_context_t *ctx);
                     status_t    cull_view(rt_context_t *ctx);
                     status_t    split_view(rt_context_t *ctx);
                     status_t    cullback_view(rt_context_t *ctx);
                     status_t    reflect_view(rt_context_t *ctx);
                 #ifdef LSP_RT_TRACE
-                    status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
+                    status_t    capture(capture_t *capture, cstorage<sample_t> *bindings, const rt_view_t *v, View3D *trace);
                 #else
-                    status_t    capture(capture_t *capture, const rt_view_t *v);
+                    status_t    capture(capture_t *capture, cstorage<sample_t> *bindings, const rt_view_t *v);
                 #endif
 
                     status_t    generate_root_mesh();
+                    status_t    generate_capture_mesh(size_t id, capture_t *c);
+                    status_t    generate_object_mesh(ssize_t id, rt_object_t *o, rt_mesh_t *src, Object3D *obj, const matrix3d_t *m);
                     status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
                     status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
                     status_t    submit_task(rt_context_t *ctx);
 
                 public:
-                    TaskThread(RayTrace3D *trace);
+                    explicit TaskThread(RayTrace3D *trace);
                     virtual ~TaskThread();
 
                 public:
@@ -129,9 +143,11 @@ namespace lsp
 
         protected:
             static void destroy_tasks(cvector<rt_context_t> *tasks);
+            static void destroy_objects(cvector<rt_object_t> *objects);
             static void clear_stats(stats_t *stats);
             static void dump_stats(const char *label, const stats_t *stats);
             static void merge_stats(stats_t *dst, const stats_t *src);
+
             static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view);
 
             void        remove_scene(bool destroy);
