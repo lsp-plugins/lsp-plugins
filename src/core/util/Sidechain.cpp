@@ -165,7 +165,7 @@ namespace lsp
 
         // Adjust pre-amplification
         if (fGain != 1.0f)
-            dsp::scale2(out, fGain, samples);
+            dsp::mul_k2(out, fGain, samples);
 
         // Update refresh counter
         nRefresh       += samples;

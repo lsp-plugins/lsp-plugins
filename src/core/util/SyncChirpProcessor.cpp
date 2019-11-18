@@ -1507,7 +1507,7 @@ namespace lsp
         }
 
         // Normalising by square sample rate to recover physical units.
-        dsp::scale2(vResult, sChirpParams.fConvScale / (nSampleRate * nSampleRate), sConvParams.vConvLengths[channel]);
+        dsp::mul_k2(vResult, sChirpParams.fConvScale / (nSampleRate * nSampleRate), sConvParams.vConvLengths[channel]);
 
         return STATUS_OK;
     }
@@ -2087,7 +2087,7 @@ namespace lsp
         }
 
         if (normalize)
-            dsp::scale2(dst, 1.0f / dsp::abs_max(vResult, irSamples), plotCount);
+            dsp::mul_k2(dst, 1.0f / dsp::abs_max(vResult, irSamples), plotCount);
     }
 
     void SyncChirpProcessor::get_convolution_result_plottable_samples(size_t channel, float *dst, ssize_t offset, size_t convLimit, size_t plotCount, bool normalize)

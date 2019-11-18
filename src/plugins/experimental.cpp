@@ -160,7 +160,7 @@ namespace lsp
 
             // dsp::scale - optimized version for
             //  *(out++) = *(in++) * fGain    x   samples times
-            dsp::scale3(out, in, fGain, samples);
+            dsp::mul_k3(out, in, fGain, samples);
         }
 
         size_t out_status = pOutStatus->getValue();
@@ -436,7 +436,7 @@ namespace lsp
             // Compute transfer function (amplitude and phase)
             dsp::pcomplex_modarg(m->pvData[1], m->pvData[2], vChart, MESH_POINTS);
             dsp::pcomplex_modarg(&zp[0], &zp[1], zp, 1);
-            dsp::scale2(m->pvData[2], 180.0f / M_PI, MESH_POINTS);
+            dsp::mul_k2(m->pvData[2], 180.0f / M_PI, MESH_POINTS);
 
             // Patch the phase
             f = m->pvData[2];

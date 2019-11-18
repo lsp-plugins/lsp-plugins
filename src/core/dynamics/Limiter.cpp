@@ -907,7 +907,7 @@ namespace lsp
             }
 
             if (max > fThreshold)
-                dsp::scale2(gain, (fThreshold - 0.000001f)/max, to_do);
+                dsp::mul_k2(gain, (fThreshold - 0.000001f)/max, to_do);
 
             // Move pointers
             nThresh    -= to_do;

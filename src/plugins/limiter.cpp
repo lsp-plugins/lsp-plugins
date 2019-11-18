@@ -501,7 +501,7 @@ namespace lsp
                 // Apply input gain if needed
                 if (fInGain != GAIN_AMP_0_DB)
                 {
-                    dsp::scale3(c->vOutBuf, c->vIn, fInGain, to_do);
+                    dsp::mul_k3(c->vOutBuf, c->vIn, fInGain, to_do);
                     c->sOver.upsample(c->vDataBuf, c->vOutBuf, to_do);
                 }
                 else
@@ -512,7 +512,7 @@ namespace lsp
                 {
                     if (fPreamp != GAIN_AMP_0_DB)
                     {
-                        dsp::scale3(c->vOutBuf, c->vSc, fPreamp, to_do);
+                        dsp::mul_k3(c->vOutBuf, c->vSc, fPreamp, to_do);
                         c->sOver.upsample(c->vScBuf, c->vOutBuf, to_do);
                     }
                     else
@@ -521,7 +521,7 @@ namespace lsp
                 else
                 {
                     if (fPreamp != GAIN_AMP_0_DB)
-                        dsp::scale3(c->vScBuf, c->vDataBuf, fPreamp, to_doxn);
+                        dsp::mul_k3(c->vScBuf, c->vDataBuf, fPreamp, to_doxn);
                     else
                         dsp::copy(c->vScBuf, c->vDataBuf, to_doxn);
                 }

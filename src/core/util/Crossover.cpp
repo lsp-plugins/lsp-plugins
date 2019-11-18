@@ -306,7 +306,7 @@ namespace lsp
             if (pHandler != NULL)
                 pHandler->process(0, out, in, samples);
             else
-                dsp::scale3(out, in, vBands[0].fAmp, samples);
+                dsp::mul_k3(out, in, vBands[0].fAmp, samples);
 
             // And return
             return;

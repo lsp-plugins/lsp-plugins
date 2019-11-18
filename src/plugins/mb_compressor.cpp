@@ -1147,30 +1147,30 @@ namespace lsp
             if (nMode == MBCM_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_process);
-                dsp::scale2(vChannels[0].vBuffer, fInGain, to_process);
-                dsp::scale2(vChannels[1].vBuffer, fInGain, to_process);
+                dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_process);
+                dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_process);
             }
             else if (nMode == MBCM_MONO)
-                dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
             else
             {
-                dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
-                dsp::scale3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
+                dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
             }
             if (bSidechain)
             {
                 if (nMode == MBCM_MS)
                 {
                     dsp::lr_to_ms(vChannels[0].vExtScBuffer, vChannels[1].vExtScBuffer, vChannels[0].vScIn, vChannels[1].vScIn, to_process);
-                    dsp::scale2(vChannels[0].vExtScBuffer, fInGain, to_process);
-                    dsp::scale2(vChannels[1].vExtScBuffer, fInGain, to_process);
+                    dsp::mul_k2(vChannels[0].vExtScBuffer, fInGain, to_process);
+                    dsp::mul_k2(vChannels[1].vExtScBuffer, fInGain, to_process);
                 }
                 else if (nMode == MBCM_MONO)
-                    dsp::scale3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
                 else
                 {
-                    dsp::scale3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
-                    dsp::scale3(vChannels[1].vExtScBuffer, vChannels[1].vScIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[1].vExtScBuffer, vChannels[1].vScIn, fInGain, to_process);
                 }
             }
 
@@ -1213,7 +1213,7 @@ namespace lsp
                     if (b->bEnabled)
                     {
                         b->sComp.process(b->vVCA, vEnv, vBuffer, to_process); // Output
-                        dsp::scale2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
+                        dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
                         // Output curve level
                         float lvl = dsp::abs_max(vEnv, to_process);
@@ -1390,7 +1390,7 @@ namespace lsp
 
                         // Fill mesh
                         dsp::copy(&mesh->pvData[0][1], vFreqs, mb_compressor_base_metadata::MESH_POINTS);
-                        dsp::scale3(&mesh->pvData[1][1], b->vTr, b->fScPreamp, mb_compressor_base_metadata::MESH_POINTS);
+                        dsp::mul_k3(&mesh->pvData[1][1], b->vTr, b->fScPreamp, mb_compressor_base_metadata::MESH_POINTS);
                         mesh->data(2, mb_compressor_base_metadata::FILTER_MESH_POINTS);
 
                         // Mark mesh as synchronized
@@ -1410,7 +1410,7 @@ namespace lsp
                             dsp::copy(mesh->pvData[0], vCurve, mb_compressor_base_metadata::CURVE_MESH_SIZE);
                             b->sComp.curve(mesh->pvData[1], vCurve, mb_compressor_base_metadata::CURVE_MESH_SIZE);
                             if (b->fMakeup != GAIN_AMP_0_DB)
-                                dsp::scale2(mesh->pvData[1], b->fMakeup, compressor_base_metadata::CURVE_MESH_SIZE);
+                                dsp::mul_k2(mesh->pvData[1], b->fMakeup, compressor_base_metadata::CURVE_MESH_SIZE);
 
                             // Mark mesh containing data
                             mesh->data(2, mb_compressor_base_metadata::CURVE_MESH_SIZE);

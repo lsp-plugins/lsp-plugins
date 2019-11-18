@@ -1044,7 +1044,7 @@ namespace lsp
 
                 // Normalize graph if possible
                 if (f->fNorm != 1.0f)
-                    dsp::scale2(dst, f->fNorm, impulse_reverb_base_metadata::MESH_SIZE);
+                    dsp::mul_k2(dst, f->fNorm, impulse_reverb_base_metadata::MESH_SIZE);
             }
         }
 

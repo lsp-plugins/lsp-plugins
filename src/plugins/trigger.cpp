@@ -639,7 +639,7 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
                 ctls[i]             = c->vCtl;
-                dsp::scale3(ctls[i], ins[i], preamp, to_process);
+                dsp::mul_k3(ctls[i], ins[i], preamp, to_process);
                 c->sGraph.process(ctls[i], samples);
             }
 

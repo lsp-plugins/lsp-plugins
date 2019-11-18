@@ -224,6 +224,14 @@ namespace dsp
     extern void (* sub_k2)(float *dst, float k, size_t count);
 
     /**
+     * Subtract data from constant value
+     * @param dst destination
+     * @param k constant value to subtract
+     * @param count number of elements of destination to modify
+     */
+    extern void (* rsub_k2)(float *dst, float k, size_t count);
+
+    /**
      * Divide data by constant value
      * @param dst destination
      * @param k constant value to use as divisor
@@ -231,13 +239,21 @@ namespace dsp
      */
     extern void (* div_k2)(float *dst, float k, size_t count);
 
+    /**
+     * Divide constant value by data
+     * @param dst destination
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* rdiv_k2)(float *dst, float k, size_t count);
+
     /** Scale: dst[i] = dst[i] * k
      *
      * @param dst destination
      * @param k multiplier
      * @param count number of elements
      */
-    extern void (* scale2)(float *dst, float k, size_t count);
+    extern void (* mul_k2)(float *dst, float k, size_t count);
 
     /** Calculate dst[i] = src1[i] + src2[i]
      *
@@ -292,6 +308,15 @@ namespace dsp
     extern void (* sub_k3)(float *dst, const float *src, float k, size_t count);
 
     /**
+     * Subtract value data from constant value
+     * @param dst destination
+     * @param src source
+     * @param k constant value to subtract
+     * @param count number of elements of destination to modify
+     */
+    extern void (* rsub_k3)(float *dst, const float *src, float k, size_t count);
+
+    /**
      * Divide data by constant value
      * @param dst destination
      * @param src source
@@ -300,6 +325,13 @@ namespace dsp
      */
     extern void (* div_k3)(float *dst, const float *src, float k, size_t count);
 
+    /**
+     * Divide constant value by data
+     * @param dst destination
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* rdiv_k3)(float *dst, const float *src, float k, size_t count);
 
     /** Scale: dst[i] = src[i] * k
      *
@@ -308,7 +340,7 @@ namespace dsp
      * @param k multiplier
      * @param count number of elements
      */
-    extern void (* scale3)(float *dst, const float *src, float k, size_t count);
+    extern void (* mul_k3)(float *dst, const float *src, float k, size_t count);
 
     /**
      * Compute dst[i] = exp(dst[i])

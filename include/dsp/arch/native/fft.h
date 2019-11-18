@@ -78,16 +78,16 @@ namespace native
     {
         rank            = 1 << rank;
         float k         = 1.0f / rank;
-        dsp::scale3(dst_re, src_re, k, rank);
-        dsp::scale3(dst_im, src_im, k, rank);
+        dsp::mul_k3(dst_re, src_re, k, rank);
+        dsp::mul_k3(dst_im, src_im, k, rank);
     }
 
     void normalize_fft2(float *re, float *im, size_t rank)
     {
         rank            = 1 << rank;
         float k         = 1.0f / rank;
-        dsp::scale2(re, k, rank);
-        dsp::scale2(im, k, rank);
+        dsp::mul_k2(re, k, rank);
+        dsp::mul_k2(im, k, rank);
     }
 
     static void do_normalize_fft(float *dst_re, float *dst_im, size_t rank)

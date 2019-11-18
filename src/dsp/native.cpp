@@ -123,16 +123,20 @@ namespace native
         EXPORT1(div2);
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
+        EXPORT1(rsub_k2);
         EXPORT1(div_k2);
-        EXPORT1(scale2);
+        EXPORT1(rdiv_k2);
+        EXPORT1(mul_k2);
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
         EXPORT1(add_k3);
         EXPORT1(sub_k3);
+        EXPORT1(rsub_k3);
         EXPORT1(div_k3);
-        EXPORT1(scale3);
+        EXPORT1(rdiv_k3);
+        EXPORT1(mul_k3);
 
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);

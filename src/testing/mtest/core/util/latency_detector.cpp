@@ -84,7 +84,7 @@ MTEST_BEGIN("core.util", latency_detector)
             dsp::copy(bak, &out[buf_count - *delay_exact], *delay_exact);
 
             // Do Scaling (opposite phase with negative sign).
-            dsp::scale2(in, -1.0f, buf_count);
+            dsp::mul_k2(in, -1.0f, buf_count);
         }
 
         // Now latency is detected:

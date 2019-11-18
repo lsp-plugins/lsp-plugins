@@ -1,0 +1,120 @@
+/*
+ * op_k2.cpp
+ *
+ *  Created on: 18 нояб. 2019 г.
+ *      Author: sadko
+ */
+
+#include <dsp/dsp.h>
+#include <test/ptest.h>
+#include <core/sugar.h>
+
+#define MIN_RANK 8
+#define MAX_RANK 16
+
+namespace native
+{
+    void    add_k3(float *dst, const float *src, float k, size_t count);
+    void    sub_k3(float *dst, const float *src, float k, size_t count);
+    void    mul_k3(float *dst, const float *src, float k, size_t count);
+    void    div_k3(float *dst, const float *src, float k, size_t count);
+    void    rsub_k3(float *dst, const float *src, float k, size_t count);
+    void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+}
+
+IF_ARCH_X86(
+    namespace sse
+    {
+        void    add_k3(float *dst, const float *src, float k, size_t count);
+        void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    mul_k3(float *dst, const float *src, float k, size_t count);
+        void    div_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
+        void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
+)
+
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    add_k3(float *dst, const float *src, float k, size_t count);
+        void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    mul_k3(float *dst, const float *src, float k, size_t count);
+        void    div_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
+        void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
+)
+
+typedef void (* op_k3_t)(float *dst, const float *src, float k, size_t count);
+
+PTEST_BEGIN("dsp.pmath", op_k3, 5, 1000)
+
+    void call(const char *label, float *dst, const float *src, size_t count, op_k3_t func)
+    {
+        if (!PTEST_SUPPORTED(func))
+            return;
+
+        char buf[80];
+        sprintf(buf, "%s x %d", label, int(count));
+        printf("Testing %s numbers...\n", buf);
+
+        PTEST_LOOP(buf,
+            func(dst, src, 1.001f, count);
+        );
+    }
+
+    PTEST_MAIN
+    {
+        size_t buf_size = 1 << MAX_RANK;
+        uint8_t *data   = NULL;
+        float *dst      = alloc_aligned<float>(data, buf_size * 4, 64);
+        float *src      = &dst[buf_size];
+        float *backup   = &src[buf_size];
+
+        for (size_t i=0; i < buf_size*2; ++i)
+            dst[i]          = float(rand()) / RAND_MAX;
+        dsp::copy(backup, dst, buf_size*2);
+
+        #define CALL(...) \
+            dsp::copy(dst, backup, buf_size*2); \
+            call(__VA_ARGS__);
+
+        for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
+        {
+            size_t count = 1 << i;
+
+            CALL("native:add_k3", dst, src, count, native::add_k3);
+            IF_ARCH_X86(CALL("sse:add_k3", src, dst, count, sse::add_k3));
+            IF_ARCH_ARM(CALL("neon_d32:add_k3", src, dst, count, neon_d32::add_k3));
+            PTEST_SEPARATOR;
+
+            CALL("native:sub_k3", dst, src, count, native::sub_k3);
+            IF_ARCH_X86(CALL("sse:sub_k3", dst, src, count, sse::sub_k3));
+            IF_ARCH_ARM(CALL("neon_d32:sub_k3", dst, src, count, neon_d32::sub_k3));
+            PTEST_SEPARATOR;
+
+            CALL("native:mul_k3", dst, src, count, native::mul_k3);
+            IF_ARCH_X86(CALL("sse:mul_k3", dst, src, count, sse::mul_k3));
+            IF_ARCH_ARM(CALL("neon_d32:mul_k3", dst, src, count, neon_d32::mul_k3));
+            PTEST_SEPARATOR;
+
+            CALL("native:div_k3", dst, src, count, native::div_k3);
+            IF_ARCH_X86(CALL("sse:div_k3", dst, src, count, sse::div_k3));
+            IF_ARCH_ARM(CALL("neon_d32:div_k3", dst, src, count, neon_d32::div_k3));
+            PTEST_SEPARATOR;
+
+            CALL("native:rsub_k3", dst, src, count, native::rsub_k3);
+            IF_ARCH_X86(CALL("sse:rsub_k3", dst, src, count, sse::rsub_k3));
+            IF_ARCH_ARM(CALL("neon_d32:rsub_k3", dst, src, count, neon_d32::rsub_k3));
+            PTEST_SEPARATOR;
+
+            CALL("native:rdiv_k3", dst, src, count, native::rdiv_k3);
+            IF_ARCH_X86(CALL("sse:rdiv_k3", dst, src, count, sse::rdiv_k3));
+            IF_ARCH_ARM(CALL("neon_d32:rdiv_k3", dst, src, count, neon_d32::rdiv_k3));
+            PTEST_SEPARATOR2;
+        }
+
+        free_aligned(data);
+    }
+PTEST_END

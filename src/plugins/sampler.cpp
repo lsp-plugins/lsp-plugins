@@ -661,7 +661,7 @@ namespace lsp
 
                     // Normalize graph if possible
                     if (afs->fNorm != 1.0f)
-                        dsp::scale2(dst, afs->fNorm, MESH_SIZE);
+                        dsp::mul_k2(dst, afs->fNorm, MESH_SIZE);
                 }
 
                 // Update length of the sample

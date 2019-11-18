@@ -84,7 +84,7 @@ namespace native
 
         // Divide if it is possible
         if (max != 0.0f)
-            dsp::scale2(dst, 1.0f / max, count);
+            dsp::mul_k2(dst, 1.0f / max, count);
     }
 
     void normalize(float *dst, const float *src, size_t count)
@@ -101,7 +101,7 @@ namespace native
 
         // Normalize OR copy
         if (max > 0.0f)
-            dsp::scale3(dst, src, 1.0f / max, count);
+            dsp::mul_k3(dst, src, 1.0f / max, count);
         else
             dsp::copy(dst, src, count);
     }
@@ -200,6 +200,12 @@ namespace native
             dst[i] -= k;
     };
 
+    void rsub_k2(float *dst, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = k - dst[i];
+    };
+
     void div_k2(float *dst, float k, size_t count)
     {
         k = 1.0f / k;
@@ -207,7 +213,13 @@ namespace native
             dst[i] *= k;
     };
 
-    void scale2(float *dst, float k, size_t count)
+    void rdiv_k2(float *dst, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = k / dst[i];
+    };
+
+    void mul_k2(float *dst, float k, size_t count)
     {
         for (size_t i=0; i<count; ++i)
             dst[i] *= k;
@@ -249,6 +261,12 @@ namespace native
             dst[i] = src[i] - k;
     };
 
+    void rsub_k3(float *dst, const float *src, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = k - src[i];
+    };
+
     void div_k3(float *dst, const float *src, float k, size_t count)
     {
         k = 1.0f / k;
@@ -256,7 +274,13 @@ namespace native
             dst[i] = src[i] * k;
     };
 
-    void scale3(float *dst, const float *src, float k, size_t count)
+    void rdiv_k3(float *dst, const float *src, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = k / src[i];
+    };
+
+    void mul_k3(float *dst, const float *src, float k, size_t count)
     {
         for (size_t i=0; i<count; ++i)
             dst[i] = src[i] * k;

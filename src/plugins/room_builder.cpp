@@ -1999,7 +1999,7 @@ namespace lsp
             {
                 norm    = 1.0f / norm;
                 for (size_t j=0; j<hdr.channels; ++j)
-                    dsp::scale2(c->vThumbs[j], norm, room_builder_base_metadata::MESH_SIZE);
+                    dsp::mul_k2(c->vThumbs[j], norm, room_builder_base_metadata::MESH_SIZE);
             }
 
             // Release KVT storage
