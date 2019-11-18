@@ -95,23 +95,23 @@ UTEST_BEGIN("dsp.pmath", op_k2)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:add_k2", 16, native::add_k2, sse::add_k2));
-        IF_ARCH_ARM(call("neon_d32:add_k2", 16, native::add_k2, neon_d32::add_k2));
+        IF_ARCH_X86(call("sse::add_k2", 16, native::add_k2, sse::add_k2));
+        IF_ARCH_ARM(call("neon_d32::add_k2", 16, native::add_k2, neon_d32::add_k2));
 
-        IF_ARCH_X86(call("sse:sub_k2", 16, native::sub_k2, sse::sub_k2));
-        IF_ARCH_ARM(call("neon_d32:sub_k2", 16, native::sub_k2, neon_d32::sub_k2));
+        IF_ARCH_X86(call("sse::sub_k2", 16, native::sub_k2, sse::sub_k2));
+        IF_ARCH_ARM(call("neon_d32::sub_k2", 16, native::sub_k2, neon_d32::sub_k2));
 
-        IF_ARCH_X86(call("sse:rsub_k2", 16, native::rsub_k2, sse::rsub_k2));
-        IF_ARCH_ARM(call("neon_d32:rsub_k2", 16, native::rsub_k2, neon_d32::rsub_k2));
+        IF_ARCH_X86(call("sse::rsub_k2", 16, native::rsub_k2, sse::rsub_k2));
+        IF_ARCH_ARM(call("neon_d32::rsub_k2", 16, native::rsub_k2, neon_d32::rsub_k2));
 
-        IF_ARCH_X86(call("sse:mul_k2", 16, native::mul_k2, sse::mul_k2));
-        IF_ARCH_ARM(call("neon_d32:mul_k2", 16, native::mul_k2, neon_d32::mul_k2));
+        IF_ARCH_X86(call("sse::mul_k2", 16, native::mul_k2, sse::mul_k2));
+        IF_ARCH_ARM(call("neon_d32::mul_k2", 16, native::mul_k2, neon_d32::mul_k2));
 
-        IF_ARCH_X86(call("sse:div_k2", 16, native::div_k2, sse::div_k2));
-        IF_ARCH_ARM(call("neon_d32:div_k2", 16, native::div_k2, neon_d32::div_k2));
+        IF_ARCH_X86(call("sse::div_k2", 16, native::div_k2, sse::div_k2));
+        IF_ARCH_ARM(call("neon_d32::div_k2", 16, native::div_k2, neon_d32::div_k2));
 
-        IF_ARCH_X86(call("sse:rdiv_k2", 16, native::rdiv_k2, sse::rdiv_k2));
-        IF_ARCH_ARM(call("neon_d32:rdiv_k2", 16, native::rdiv_k2, neon_d32::rdiv_k2));
+        IF_ARCH_X86(call("sse::rdiv_k2", 16, native::rdiv_k2, sse::rdiv_k2));
+        IF_ARCH_ARM(call("neon_d32::rdiv_k2", 16, native::rdiv_k2, neon_d32::rdiv_k2));
     }
 UTEST_END
 

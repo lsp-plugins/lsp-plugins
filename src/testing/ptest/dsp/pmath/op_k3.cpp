@@ -84,34 +84,34 @@ PTEST_BEGIN("dsp.pmath", op_k3, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:add_k3", dst, src, count, native::add_k3);
-            IF_ARCH_X86(CALL("sse:add_k3", src, dst, count, sse::add_k3));
-            IF_ARCH_ARM(CALL("neon_d32:add_k3", src, dst, count, neon_d32::add_k3));
+            CALL("native::add_k3", dst, src, count, native::add_k3);
+            IF_ARCH_X86(CALL("sse::add_k3", src, dst, count, sse::add_k3));
+            IF_ARCH_ARM(CALL("neon_d32::add_k3", src, dst, count, neon_d32::add_k3));
             PTEST_SEPARATOR;
 
-            CALL("native:sub_k3", dst, src, count, native::sub_k3);
-            IF_ARCH_X86(CALL("sse:sub_k3", dst, src, count, sse::sub_k3));
-            IF_ARCH_ARM(CALL("neon_d32:sub_k3", dst, src, count, neon_d32::sub_k3));
+            CALL("native::sub_k3", dst, src, count, native::sub_k3);
+            IF_ARCH_X86(CALL("sse::sub_k3", dst, src, count, sse::sub_k3));
+            IF_ARCH_ARM(CALL("neon_d32::sub_k3", dst, src, count, neon_d32::sub_k3));
             PTEST_SEPARATOR;
 
-            CALL("native:mul_k3", dst, src, count, native::mul_k3);
-            IF_ARCH_X86(CALL("sse:mul_k3", dst, src, count, sse::mul_k3));
-            IF_ARCH_ARM(CALL("neon_d32:mul_k3", dst, src, count, neon_d32::mul_k3));
+            CALL("native::mul_k3", dst, src, count, native::mul_k3);
+            IF_ARCH_X86(CALL("sse::mul_k3", dst, src, count, sse::mul_k3));
+            IF_ARCH_ARM(CALL("neon_d32::mul_k3", dst, src, count, neon_d32::mul_k3));
             PTEST_SEPARATOR;
 
-            CALL("native:div_k3", dst, src, count, native::div_k3);
-            IF_ARCH_X86(CALL("sse:div_k3", dst, src, count, sse::div_k3));
-            IF_ARCH_ARM(CALL("neon_d32:div_k3", dst, src, count, neon_d32::div_k3));
+            CALL("native::div_k3", dst, src, count, native::div_k3);
+            IF_ARCH_X86(CALL("sse::div_k3", dst, src, count, sse::div_k3));
+            IF_ARCH_ARM(CALL("neon_d32::div_k3", dst, src, count, neon_d32::div_k3));
             PTEST_SEPARATOR;
 
-            CALL("native:rsub_k3", dst, src, count, native::rsub_k3);
-            IF_ARCH_X86(CALL("sse:rsub_k3", dst, src, count, sse::rsub_k3));
-            IF_ARCH_ARM(CALL("neon_d32:rsub_k3", dst, src, count, neon_d32::rsub_k3));
+            CALL("native::rsub_k3", dst, src, count, native::rsub_k3);
+            IF_ARCH_X86(CALL("sse::rsub_k3", dst, src, count, sse::rsub_k3));
+            IF_ARCH_ARM(CALL("neon_d32::rsub_k3", dst, src, count, neon_d32::rsub_k3));
             PTEST_SEPARATOR;
 
-            CALL("native:rdiv_k3", dst, src, count, native::rdiv_k3);
-            IF_ARCH_X86(CALL("sse:rdiv_k3", dst, src, count, sse::rdiv_k3));
-            IF_ARCH_ARM(CALL("neon_d32:rdiv_k3", dst, src, count, neon_d32::rdiv_k3));
+            CALL("native::rdiv_k3", dst, src, count, native::rdiv_k3);
+            IF_ARCH_X86(CALL("sse::rdiv_k3", dst, src, count, sse::rdiv_k3));
+            IF_ARCH_ARM(CALL("neon_d32::rdiv_k3", dst, src, count, neon_d32::rdiv_k3));
             PTEST_SEPARATOR2;
         }
 
