@@ -15,7 +15,6 @@ namespace asimd
 
 #define OP_VV2_CORE(DST, SRC, OP, SEL) \
     __ASM_EMIT("subs        %[count], %[count], #32") \
-    __ASM_EMIT("mov         v17.16b, v16.16b") \
     __ASM_EMIT("blo         2f") \
     /* 32x blocks */ \
     __ASM_EMIT("1:") \
@@ -292,7 +291,6 @@ namespace asimd
 
 #define OP_VV3_CORE(DST, SRC1, SRC2, OP) \
     __ASM_EMIT("subs        %[count], %[count], #32") \
-    __ASM_EMIT("mov         v17.16b, v16.16b") \
     __ASM_EMIT("blo         2f") \
     /* 32x blocks */ \
     __ASM_EMIT("1:") \
