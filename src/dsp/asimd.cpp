@@ -47,6 +47,7 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+#include <dsp/arch/aarch64/asimd/pmath/op_kx.h>
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
 
@@ -65,6 +66,20 @@ namespace asimd
         lsp_trace("Optimizing DSP for ASIMD instruction set");
         EXPORT1(copy);
         EXPORT1(move);
+
+        EXPORT1(add_k2);
+        EXPORT1(sub_k2);
+        EXPORT1(rsub_k2);
+        EXPORT1(mul_k2);
+        EXPORT1(div_k2);
+        EXPORT1(rdiv_k2);
+
+        EXPORT1(add_k3);
+        EXPORT1(sub_k3);
+        EXPORT1(rsub_k3);
+        EXPORT1(mul_k3);
+        EXPORT1(div_k3);
+        EXPORT1(rdiv_k3);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);

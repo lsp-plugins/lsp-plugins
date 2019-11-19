@@ -48,6 +48,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void    add_k3(float *dst, const float *src, float k, size_t count);
+        void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    mul_k3(float *dst, const float *src, float k, size_t count);
+        void    div_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
+        void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
+)
+
 typedef void (* op_k3_t)(float *dst, const float *src, float k, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -97,21 +109,27 @@ UTEST_BEGIN("dsp.pmath", op_k3)
     {
         IF_ARCH_X86(call("sse::add_k3", 16, native::add_k3, sse::add_k3));
         IF_ARCH_ARM(call("neon_d32::add_k3", 16, native::add_k3, neon_d32::add_k3));
+        IF_ARCH_AARCH64(call("asimd::add_k3", 16, native::add_k3, asimd::add_k3));
 
         IF_ARCH_X86(call("sse::sub_k3", 16, native::sub_k3, sse::sub_k3));
         IF_ARCH_ARM(call("neon_d32::sub_k3", 16, native::sub_k3, neon_d32::sub_k3));
+        IF_ARCH_AARCH64(call("asimd::sub_k3", 16, native::sub_k3, asimd::sub_k3));
 
         IF_ARCH_X86(call("sse::rsub_k3", 16, native::rsub_k3, sse::rsub_k3));
         IF_ARCH_ARM(call("neon_d32::rsub_k3", 16, native::rsub_k3, neon_d32::rsub_k3));
+        IF_ARCH_AARCH64(call("asimd::rsub_k3", 16, native::rsub_k3, asimd::rsub_k3));
 
         IF_ARCH_X86(call("sse::mul_k3", 16, native::mul_k3, sse::mul_k3));
         IF_ARCH_ARM(call("neon_d32::mul_k3", 16, native::mul_k3, neon_d32::mul_k3));
+        IF_ARCH_AARCH64(call("asimd::mul_k3", 16, native::mul_k3, asimd::mul_k3));
 
         IF_ARCH_X86(call("sse::div_k3", 16, native::div_k3, sse::div_k3));
         IF_ARCH_ARM(call("neon_d32::div_k3", 16, native::div_k3, neon_d32::div_k3));
+        IF_ARCH_AARCH64(call("asimd::div_k3", 16, native::div_k3, asimd::div_k3));
 
         IF_ARCH_X86(call("sse::rdiv_k3", 16, native::rdiv_k3, sse::rdiv_k3));
         IF_ARCH_ARM(call("neon_d32::rdiv_k3", 16, native::rdiv_k3, neon_d32::rdiv_k3));
+        IF_ARCH_AARCH64(call("asimd::rdiv_k3", 16, native::rdiv_k3, asimd::rdiv_k3));
     }
 UTEST_END
 
