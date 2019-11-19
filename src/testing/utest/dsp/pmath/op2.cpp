@@ -41,10 +41,10 @@ IF_ARCH_ARM(
     {
         void    add2(float *dst, const float *src, size_t count);
         void    sub2(float *dst, const float *src, size_t count);
-//        void    rsub2(float *dst, const float *src, size_t count);
+        void    rsub2(float *dst, const float *src, size_t count);
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
-//        void    rdiv2(float *dst, const float *src, size_t count);
+        void    rdiv2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -117,10 +117,10 @@ UTEST_BEGIN("dsp.pmath", op2)
 
         IF_ARCH_ARM(call("neon_d32::add2", 16, native::add2, neon_d32::add2));
         IF_ARCH_ARM(call("neon_d32::sub2", 16, native::sub2, neon_d32::sub2));
-//        IF_ARCH_ARM(call("neon_d32::rsub2", 16, native::rsub2, neon_d32::rsub2));
+        IF_ARCH_ARM(call("neon_d32::rsub2", 16, native::rsub2, neon_d32::rsub2));
         IF_ARCH_ARM(call("neon_d32::mul2", 16, native::mul2, neon_d32::mul2));
         IF_ARCH_ARM(call("neon_d32::div2", 16, native::div2, neon_d32::div2));
-//        IF_ARCH_ARM(call("neon_d32::rdiv2", 16, native::rdiv2, neon_d32::rdiv2));
+        IF_ARCH_ARM(call("neon_d32::rdiv2", 16, native::rdiv2, neon_d32::rdiv2));
 
         IF_ARCH_AARCH64(call("asimd::add2", 16, native::add2, asimd::add2));
         IF_ARCH_AARCH64(call("asimd::sub2", 16, native::sub2, asimd::sub2));

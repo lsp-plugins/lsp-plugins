@@ -41,10 +41,10 @@ IF_ARCH_ARM(
     {
         void    add2(float *dst, const float *src, size_t count);
         void    sub2(float *dst, const float *src, size_t count);
-//        void    rsub2(float *dst, const float *src, size_t count);
+        void    rsub2(float *dst, const float *src, size_t count);
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
-//        void    rdiv2(float *dst, const float *src, size_t count);
+        void    rdiv2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -108,7 +108,7 @@ PTEST_BEGIN("dsp.pmath", op2, 5, 1000)
 
             call("native::rsub2", dst, src, count, native::rsub2);
             IF_ARCH_X86(call("sse::rsub2", dst, src, count, sse::rsub2));
-//            IF_ARCH_ARM(call("neon_d32::rsub2", dst, src, count, neon_d32::rsub2));
+            IF_ARCH_ARM(call("neon_d32::rsub2", dst, src, count, neon_d32::rsub2));
             IF_ARCH_AARCH64(call("asimd::rsub2", dst, src, count, asimd::rsub2));
             PTEST_SEPARATOR;
 
@@ -126,7 +126,7 @@ PTEST_BEGIN("dsp.pmath", op2, 5, 1000)
 
             call("native::rdiv2", dst, src, count, native::rdiv2);
             IF_ARCH_X86(call("sse::rdiv2", dst, src, count, sse::rdiv2));
-//            IF_ARCH_ARM(call("neon_d32::rdiv2", dst, src, count, neon_d32::rdiv2));
+            IF_ARCH_ARM(call("neon_d32::rdiv2", dst, src, count, neon_d32::rdiv2));
             IF_ARCH_AARCH64(call("asimd::rdiv2", dst, src, count, asimd::rdiv2));
             PTEST_SEPARATOR2;
         }

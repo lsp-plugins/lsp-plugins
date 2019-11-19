@@ -56,6 +56,12 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/graphics/effects.h>
 
 #include <dsp/arch/arm/neon-d32/pmath.h>
+#include <dsp/arch/arm/neon-d32/pmath/op_kx.h>
+#include <dsp/arch/arm/neon-d32/pmath/op_vv.h>
+#include <dsp/arch/arm/neon-d32/pmath/exp.h>
+#include <dsp/arch/arm/neon-d32/pmath/log.h>
+#include <dsp/arch/arm/neon-d32/pmath/pow.h>
+
 #include <dsp/arch/arm/neon-d32/hmath.h>
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
@@ -68,9 +74,6 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/fastconv.h>
 #include <dsp/arch/arm/neon-d32/mix.h>
 
-#include <dsp/arch/arm/neon-d32/pmath/exp.h>
-#include <dsp/arch/arm/neon-d32/pmath/log.h>
-#include <dsp/arch/arm/neon-d32/pmath/pow.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -136,10 +139,12 @@ namespace neon_d32
         EXPORT1(abs1);
         EXPORT1(abs2);
 
-        EXPORT1(add2);
-        EXPORT1(sub2);
-        EXPORT1(mul2);
-        EXPORT1(div2);
+        EXPORT1(add_k3);
+        EXPORT1(sub_k3);
+        EXPORT1(rsub_k3);
+        EXPORT1(mul_k3);
+        EXPORT1(div_k3);
+        EXPORT1(rdiv_k3);
 
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
@@ -148,12 +153,17 @@ namespace neon_d32
         EXPORT1(div_k2);
         EXPORT1(rdiv_k2);
 
-        EXPORT1(add_k3);
-        EXPORT1(sub_k3);
-        EXPORT1(rsub_k3);
-        EXPORT1(mul_k3);
-        EXPORT1(div_k3);
-        EXPORT1(rdiv_k3);
+        EXPORT1(add2);
+        EXPORT1(sub2);
+        EXPORT1(rsub2);
+        EXPORT1(mul2);
+        EXPORT1(div2);
+        EXPORT1(rdiv2);
+
+        EXPORT1(add3);
+        EXPORT1(sub3);
+        EXPORT1(mul3);
+        EXPORT1(div3);
 
         EXPORT1(abs_add2);
         EXPORT1(abs_sub2);
@@ -164,11 +174,6 @@ namespace neon_d32
         EXPORT1(scale_sub3);
         EXPORT1(scale_mul3);
         EXPORT1(scale_div3);
-
-        EXPORT1(add3);
-        EXPORT1(sub3);
-        EXPORT1(mul3);
-        EXPORT1(div3);
 
         EXPORT1(abs_add3);
         EXPORT1(abs_sub3);

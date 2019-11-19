@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_DSP_ARCH_ARM_NEON_D32_PMATH_LOG_H_
-#define INCLUDE_DSP_ARCH_ARM_NEON_D32_PMATH_LOG_H_
+#ifndef DSP_ARCH_ARM_NEON_D32_PMATH_LOG_H_
+#define DSP_ARCH_ARM_NEON_D32_PMATH_LOG_H_
 
 #ifndef DSP_ARCH_ARM_NEON_32_IMPL
     #error "This header should not be included directly"
@@ -583,4 +583,4 @@ IF_ARCH_ARM(
     }
 }
 
-#endif /* INCLUDE_DSP_ARCH_ARM_NEON_D32_PMATH_LOG_H_ */
+#endif /* DSP_ARCH_ARM_NEON_D32_PMATH_LOG_H_ */
