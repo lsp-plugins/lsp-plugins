@@ -51,6 +51,8 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/mxcsr.h>
 #include <dsp/arch/x86/sse/copy.h>
 #include <dsp/arch/x86/sse/pmath.h>
+#include <dsp/arch/x86/sse/pmath/op_kx.h>
+#include <dsp/arch/x86/sse/pmath/op_vv.h>
 #include <dsp/arch/x86/sse/hsum.h>
 #include <dsp/arch/x86/sse/mix.h>
 #include <dsp/arch/x86/sse/abs.h>
@@ -161,8 +163,10 @@ namespace sse
 
         EXPORT1(add2);
         EXPORT1(sub2);
+        EXPORT1(rsub2);
         EXPORT1(mul2);
         EXPORT1(div2);
+        EXPORT1(rdiv2);
 
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
