@@ -191,6 +191,14 @@ namespace dsp
      */
     extern void (* sub2)(float *dst, const float *src, size_t count);
 
+    /** Calculate dst[i] = src[i] - dst[i]
+     *
+     * @param dst destination array
+     * @param src source array
+     * @param count number of elements
+     */
+    extern void (* rsub2)(float *dst, const float *src, size_t count);
+
     /** Multiply: dst[i] = dst[i] * src[i]
      *
      * @param dst destination
@@ -206,6 +214,14 @@ namespace dsp
      * @param count number of elements
      */
     extern void (* div2)(float *dst, const float *src, size_t count);
+
+    /** Divide: dst[i] = src[i] / dst[i]
+     *
+     * @param dst destination
+     * @param src first source
+     * @param count number of elements
+     */
+    extern void (* rdiv2)(float *dst, const float *src, size_t count);
 
     /**
      * Add constant value to the data

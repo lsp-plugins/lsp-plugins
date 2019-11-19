@@ -176,6 +176,12 @@ namespace native
             dst[i] -= src[i];
     }
 
+    void rsub2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] - dst[i];
+    }
+
     void mul2(float *dst, const float *src, size_t count)
     {
         for (size_t i=0; i<count; ++i)
@@ -186,6 +192,12 @@ namespace native
     {
         for (size_t i=0; i<count; ++i)
             dst[i] /= src[i];
+    }
+
+    void rdiv2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] / dst[i];
     }
 
     void add_k2(float *dst, float k, size_t count)

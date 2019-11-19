@@ -118,8 +118,11 @@ namespace dsp
 
     void    (* add2)(float *dst, const float *src, size_t count) = NULL;
     void    (* sub2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rsub2)(float *dst, const float *src, size_t count) = NULL;
     void    (* mul2)(float *dst, const float *src, size_t count) = NULL;
     void    (* div2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rdiv2)(float *dst, const float *src, size_t count) = NULL;
+
     void    (* add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;

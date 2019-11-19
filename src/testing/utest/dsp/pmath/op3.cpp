@@ -5,7 +5,6 @@
  *      Author: sadko
  */
 
-
 #include <dsp/dsp.h>
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
@@ -20,11 +19,6 @@ namespace native
     void    sub3(float *dst, const float *src1, const float *src2, size_t count);
     void    mul3(float *dst, const float *src1, const float *src2, size_t count);
     void    div3(float *dst, const float *src1, const float *src2, size_t count);
-
-    void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
-    void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
-    void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
-    void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 IF_ARCH_X86(
@@ -34,11 +28,6 @@ IF_ARCH_X86(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
-
-        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
-        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
-        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
-        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -49,11 +38,16 @@ IF_ARCH_ARM(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+    }
+)
 
-        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
-        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
-        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
-        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void    add3(float *dst, const float *src1, const float *src2, size_t count);
+        void    sub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void    div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -61,7 +55,7 @@ typedef void (* func3)(float *dst, const float *src1, const float *src2, size_t 
 
 //-----------------------------------------------------------------------------
 // Unit test for simple operations
-UTEST_BEGIN("dsp.pmath", simple3)
+UTEST_BEGIN("dsp.pmath", op3)
 
     void call(const char *label, size_t align, func3 func1, func3 func2)
     {
@@ -80,9 +74,11 @@ UTEST_BEGIN("dsp.pmath", simple3)
                 FloatBuffer src1(count, align, mask & 0x01);
                 FloatBuffer src2(count, align, mask & 0x02);
                 FloatBuffer dst1(count, align, mask & 0x04);
-                FloatBuffer dst2(dst1);
+                FloatBuffer dst2(count, align, mask & 0x04);
 
                 // Call functions
+                src1.randomize_sign();
+                src2.randomize_sign();
                 func1(dst1, src1, src2, count);
                 func2(dst2, src1, src2, count);
 
@@ -112,20 +108,15 @@ UTEST_BEGIN("dsp.pmath", simple3)
         IF_ARCH_X86(call("sse:mul3", 16, native::mul3, sse::mul3));
         IF_ARCH_X86(call("sse:div3", 16, native::div3, sse::div3));
 
-        IF_ARCH_X86(call("sse:abs_add3", 16, native::abs_add3, sse::abs_add3));
-        IF_ARCH_X86(call("sse:abs_sub3", 16, native::abs_sub3, sse::abs_sub3));
-        IF_ARCH_X86(call("sse:abs_mul3", 16, native::abs_mul3, sse::abs_mul3));
-        IF_ARCH_X86(call("sse:abs_div3", 16, native::abs_div3, sse::abs_div3));
-
         IF_ARCH_ARM(call("neon_d32:add3", 16, native::add3, neon_d32::add3));
         IF_ARCH_ARM(call("neon_d32:sub3", 16, native::sub3, neon_d32::sub3));
         IF_ARCH_ARM(call("neon_d32:mul3", 16, native::mul3, neon_d32::mul3));
         IF_ARCH_ARM(call("neon_d32:div3", 16, native::div3, neon_d32::div3));
 
-        IF_ARCH_ARM(call("neon_d32:abs_add3", 16, native::abs_add3, neon_d32::abs_add3));
-        IF_ARCH_ARM(call("neon_d32:abs_sub3", 16, native::abs_sub3, neon_d32::abs_sub3));
-        IF_ARCH_ARM(call("neon_d32:abs_mul3", 16, native::abs_mul3, neon_d32::abs_mul3));
-        IF_ARCH_ARM(call("neon_d32:abs_div3", 16, native::abs_div3, neon_d32::abs_div3));
+        IF_ARCH_AARCH64(call("asimd:add3", 16, native::add3, asimd::add3));
+        IF_ARCH_AARCH64(call("asimd:sub3", 16, native::sub3, asimd::sub3));
+        IF_ARCH_AARCH64(call("asimd:mul3", 16, native::mul3, asimd::mul3));
+        IF_ARCH_AARCH64(call("asimd:div3", 16, native::div3, asimd::div3));
     }
 UTEST_END
 

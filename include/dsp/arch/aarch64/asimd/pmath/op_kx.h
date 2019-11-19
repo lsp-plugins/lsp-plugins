@@ -5,6 +5,9 @@
  *      Author: sadko
  */
 
+#ifndef DSP_ARCH_AARCH64_ASIMD_PMATH_OP_KX_H_
+#define DSP_ARCH_AARCH64_ASIMD_PMATH_OP_KX_H_
+
 namespace asimd
 {
 #define OP_DORDER(a, b)     a "," b
@@ -677,3 +680,5 @@ namespace asimd
 #undef OP_DIV2_CORE
 #undef OP_DIV3_CORE
 }
+
+#endif /* DSP_ARCH_AARCH64_ASIMD_PMATH_OP_KX_H_ */
