@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_AARCH64_ASIMD_PMATH_OP_KX_H_
 #define DSP_ARCH_AARCH64_ASIMD_PMATH_OP_KX_H_
 
+#ifndef DSP_ARCH_AARCH64_ASIMD_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_AARCH64_ASIMD_IMPL */
+
 namespace asimd
 {
 #define OP_DORDER(a, b)     a "," b

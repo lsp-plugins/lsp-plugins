@@ -47,6 +47,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void    fmadd_k3(float *dst, const float *src, float k, size_t count);
+        void    fmsub_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrsub_k3(float *dst, const float *src, float k, size_t count);
+        void    fmmul_k3(float *dst, const float *src, float k, size_t count);
+        void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
+)
+
 typedef void (* fmop_k3_t)(float *dst, const float *src, float k, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -89,31 +101,37 @@ PTEST_BEGIN("dsp.pmath", fmop_k3, 5, 1000)
             CALL(native::fmadd_k3);
             IF_ARCH_X86(CALL(sse::fmadd_k3));
             IF_ARCH_ARM(CALL(neon_d32::fmadd_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmadd_k3));
             PTEST_SEPARATOR;
 
             CALL(native::fmsub_k3);
             IF_ARCH_X86(CALL(sse::fmsub_k3));
             IF_ARCH_ARM(CALL(neon_d32::fmsub_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmsub_k3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrsub_k3);
             IF_ARCH_X86(CALL(sse::fmrsub_k3));
             IF_ARCH_ARM(CALL(neon_d32::fmrsub_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmrsub_k3));
             PTEST_SEPARATOR;
 
             CALL(native::fmmul_k3);
             IF_ARCH_X86(CALL(sse::fmmul_k3));
             IF_ARCH_ARM(CALL(neon_d32::fmmul_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmmul_k3));
             PTEST_SEPARATOR;
 
             CALL(native::fmdiv_k3);
             IF_ARCH_X86(CALL(sse::fmdiv_k3));
             IF_ARCH_ARM(CALL(neon_d32::fmdiv_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmdiv_k3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrdiv_k3);
             IF_ARCH_X86(CALL(sse::fmrdiv_k3));
             IF_ARCH_ARM(CALL(neon_d32::fmrdiv_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmrdiv_k3));
             PTEST_SEPARATOR2;
         }
 
