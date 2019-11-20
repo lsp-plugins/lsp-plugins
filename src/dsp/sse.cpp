@@ -194,8 +194,10 @@ namespace sse
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
+        EXPORT1(fmrsub_k3);
         EXPORT1(fmmul_k3);
         EXPORT1(fmdiv_k3);
+        EXPORT1(fmrdiv_k3);
 
         EXPORT1(scale_add4);
         EXPORT1(scale_sub4);

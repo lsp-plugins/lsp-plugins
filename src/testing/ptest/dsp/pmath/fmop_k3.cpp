@@ -28,10 +28,10 @@ IF_ARCH_X86(
     {
         void    fmadd_k3(float *dst, const float *src, float k, size_t count);
         void    fmsub_k3(float *dst, const float *src, float k, size_t count);
-//        void    fmrsub_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrsub_k3(float *dst, const float *src, float k, size_t count);
         void    fmmul_k3(float *dst, const float *src, float k, size_t count);
         void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
-//        void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -96,10 +96,10 @@ PTEST_BEGIN("dsp.pmath", fmop_k3, 5, 1000)
             IF_ARCH_ARM(CALL(neon_d32::fmsub_k3));
             PTEST_SEPARATOR;
 
-//            CALL(native::fmrsub_k3);
-//            IF_ARCH_X86(CALL(sse::fmrsub_k3));
-//            IF_ARCH_ARM(CALL(neon_d32::fmrsub_k3));
-//            PTEST_SEPARATOR;
+            CALL(native::fmrsub_k3);
+            IF_ARCH_X86(CALL(sse::fmrsub_k3));
+            IF_ARCH_ARM(CALL(neon_d32::fmrsub_k3));
+            PTEST_SEPARATOR;
 
             CALL(native::fmmul_k3);
             IF_ARCH_X86(CALL(sse::fmmul_k3));
@@ -111,10 +111,10 @@ PTEST_BEGIN("dsp.pmath", fmop_k3, 5, 1000)
             IF_ARCH_ARM(CALL(neon_d32::fmdiv_k3));
             PTEST_SEPARATOR;
 
-//            CALL(native::fmrdiv_k3);
-//            IF_ARCH_X86(CALL(sse::fmrdiv_k3));
-//            IF_ARCH_ARM(CALL(neon_d32::fmrdiv_k3));
-//            PTEST_SEPARATOR2;
+            CALL(native::fmrdiv_k3);
+            IF_ARCH_X86(CALL(sse::fmrdiv_k3));
+            IF_ARCH_ARM(CALL(neon_d32::fmrdiv_k3));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

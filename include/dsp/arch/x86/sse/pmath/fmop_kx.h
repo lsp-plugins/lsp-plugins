@@ -14,93 +14,87 @@
 
 namespace sse
 {
-    #define SCALE_OP3_CORE(OP, MV_SRC)  \
-        __ASM_EMIT("sub         $0x08, %[count]") \
-        __ASM_EMIT("jb          4f")    \
-        \
-        /* 8x blocks */ \
-        __ASM_EMIT("3:") \
-        __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm2") \
-        __ASM_EMIT(MV_SRC "     0x10(%[src]), %%xmm3") \
-        __ASM_EMIT("movaps      0x00(%[dst]), %%xmm4") \
-        __ASM_EMIT("movaps      0x10(%[dst]), %%xmm5") \
+    #define OP_DSEL(a, b)   a
+    #define OP_RSEL(a, b)   b
+
+    #define FMOP_K3_CORE(DST, SRC, OP, SEL) \
+        __ASM_EMIT("xor         %[off], %[off]") \
+        __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0") \
+        __ASM_EMIT("sub         $12, %[count]") \
+        __ASM_EMIT("movaps      %%xmm0, %%xmm1") \
+        __ASM_EMIT("jb          2f")    \
+        /* 12x blocks */ \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("movups      0x00(%[" SRC "], %[off]), %%xmm2") \
+        __ASM_EMIT("movups      0x10(%[" SRC "], %[off]), %%xmm3") \
+        __ASM_EMIT("movups      0x20(%[" SRC "], %[off]), %%xmm4") \
+        __ASM_EMIT("movups      0x00(%[" DST "], %[off]), %%xmm5") \
+        __ASM_EMIT("movups      0x10(%[" DST "], %[off]), %%xmm6") \
+        __ASM_EMIT("movups      0x20(%[" DST "], %[off]), %%xmm7") \
         __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
         __ASM_EMIT("mulps       %%xmm1, %%xmm3") \
-        __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
-        __ASM_EMIT(OP "ps       %%xmm3, %%xmm5") \
-        __ASM_EMIT("movaps      %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("movaps      %%xmm5, 0x10(%[dst])") \
-        __ASM_EMIT("add         $0x20, %[src]") \
-        __ASM_EMIT("add         $0x20, %[dst]") \
-        __ASM_EMIT("sub         $0x08, %[count]") \
-        __ASM_EMIT("jae         3b") \
+        __ASM_EMIT("mulps       %%xmm0, %%xmm4") \
+        __ASM_EMIT(OP "ps       " SEL("%%xmm2", "%%xmm5") ", " SEL("%%xmm5", "%%xmm2")) \
+        __ASM_EMIT(OP "ps       " SEL("%%xmm3", "%%xmm6") ", " SEL("%%xmm6", "%%xmm3")) \
+        __ASM_EMIT(OP "ps       " SEL("%%xmm4", "%%xmm7") ", " SEL("%%xmm7", "%%xmm4")) \
+        __ASM_EMIT("movups      " SEL("%%xmm5", "%%xmm2") ", 0x00(%[dst], %[off])") \
+        __ASM_EMIT("movups      " SEL("%%xmm6", "%%xmm3") ", 0x10(%[dst], %[off])") \
+        __ASM_EMIT("movups      " SEL("%%xmm7", "%%xmm4") ", 0x20(%[dst], %[off])") \
+        __ASM_EMIT("add         $0x30, %[off]") \
+        __ASM_EMIT("sub         $12, %[count]") \
+        __ASM_EMIT("jae         1b") \
+        /* 8x block */ \
+        __ASM_EMIT("2:") \
+        __ASM_EMIT("add         $4, %[count]")          /* 12 - 8 */ \
+        __ASM_EMIT("jl          4f") \
+        __ASM_EMIT("movups      0x00(%[" SRC "], %[off]), %%xmm2") \
+        __ASM_EMIT("movups      0x10(%[" SRC "], %[off]), %%xmm3") \
+        __ASM_EMIT("movups      0x00(%[" DST "], %[off]), %%xmm5") \
+        __ASM_EMIT("movups      0x10(%[" DST "], %[off]), %%xmm6") \
+        __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
+        __ASM_EMIT("mulps       %%xmm1, %%xmm3") \
+        __ASM_EMIT(OP "ps       " SEL("%%xmm2", "%%xmm5") ", " SEL("%%xmm5", "%%xmm2")) \
+        __ASM_EMIT(OP "ps       " SEL("%%xmm3", "%%xmm6") ", " SEL("%%xmm6", "%%xmm3")) \
+        __ASM_EMIT("movups      " SEL("%%xmm5", "%%xmm2") ", 0x00(%[dst], %[off])") \
+        __ASM_EMIT("movups      " SEL("%%xmm6", "%%xmm3") ", 0x10(%[dst], %[off])") \
+        __ASM_EMIT("add         $0x20, %[off]") \
+        __ASM_EMIT("sub         $8, %[count]") \
         \
         /* 4x block */ \
         __ASM_EMIT("4:") \
-        __ASM_EMIT("add         $0x08, %[count]") \
-        __ASM_EMIT("test        $0x04, %[count]") \
-        __ASM_EMIT("jz          5f") \
-        __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm2") \
-        __ASM_EMIT("movaps      0x00(%[dst]), %%xmm4") \
+        __ASM_EMIT("add         $4, %[count]")       /* 8 - 4 */ \
+        __ASM_EMIT("jl          6f") \
+        __ASM_EMIT("movups      0x00(%[" SRC "], %[off]), %%xmm2") \
+        __ASM_EMIT("movups      0x00(%[" DST "], %[off]), %%xmm5") \
         __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
-        __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
-        __ASM_EMIT("movaps      %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("add         $0x10, %[src]") \
-        __ASM_EMIT("add         $0x10, %[dst]") \
+        __ASM_EMIT(OP "ps       " SEL("%%xmm2", "%%xmm5") ", " SEL("%%xmm5", "%%xmm2")) \
+        __ASM_EMIT("movups      " SEL("%%xmm5", "%%xmm2") ", 0x00(%[dst], %[off])") \
+        __ASM_EMIT("add         $0x10, %[off]") \
+        __ASM_EMIT("sub         $4, %[count]") \
         /* 1x blocks */ \
-        __ASM_EMIT("5:") \
-        __ASM_EMIT("and         $0x03, %[count]")    \
-        __ASM_EMIT("jz          2000f")    \
         __ASM_EMIT("6:") \
-        __ASM_EMIT("movss       0x00(%[src]), %%xmm2") \
-        __ASM_EMIT("movss       0x00(%[dst]), %%xmm4") \
+        __ASM_EMIT("add         $3, %[count]")          /* 4 - 1 */ \
+        __ASM_EMIT("jl          8f")    \
+        __ASM_EMIT("7:") \
+        __ASM_EMIT("movss       0x00(%[" SRC "], %[off]), %%xmm2") \
+        __ASM_EMIT("movss       0x00(%[" DST "], %[off]), %%xmm5") \
         __ASM_EMIT("mulss       %%xmm0, %%xmm2") \
-        __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
-        __ASM_EMIT("movss       %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("add         $0x4, %[src]") \
-        __ASM_EMIT("add         $0x4, %[dst]") \
+        __ASM_EMIT(OP "ss       " SEL("%%xmm2", "%%xmm5") ", " SEL("%%xmm5", "%%xmm2")) \
+        __ASM_EMIT("movss       " SEL("%%xmm5", "%%xmm2") ", 0x00(%[dst], %[off])") \
+        __ASM_EMIT("add         $0x04, %[off]") \
         __ASM_EMIT("dec         %[count]") \
-        __ASM_EMIT("jnz         6b")
-
-    #define SCALE_OP3_ALIGN(OP)  \
-        __ASM_EMIT("1:") \
-        __ASM_EMIT("test        $0x0f, %[dst]") \
-        __ASM_EMIT("jz          2f") \
-        __ASM_EMIT("movss       0x00(%[src]), %%xmm2") \
-        __ASM_EMIT("movss       0x00(%[dst]), %%xmm4") \
-        __ASM_EMIT("mulss       %%xmm0, %%xmm2") \
-        __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
-        __ASM_EMIT("movss       %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("add         $0x4, %[src]") \
-        __ASM_EMIT("add         $0x4, %[dst]") \
-        __ASM_EMIT("dec         %[count]") \
-        __ASM_EMIT("jnz         1b") \
-        __ASM_EMIT("jmp         2000f")
+        __ASM_EMIT("jge         7b") \
+        __ASM_EMIT("8:")
 
     void fmadd_k3(float *dst, const float *src, float k, size_t count)
     {
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          2000f")
-            __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")
-
-            // Align destination
-            SCALE_OP3_ALIGN("add")
-
-            // Block operation
-            __ASM_EMIT("2:")
-            __ASM_EMIT("movaps      %%xmm0, %%xmm1")
-            __ASM_EMIT("test        $0x0f, %[src]")
-            __ASM_EMIT("jnz         1001f")
-                SCALE_OP3_CORE("add", "movaps")
-                __ASM_EMIT("jmp         2000f")
-            __ASM_EMIT("1001:")
-                SCALE_OP3_CORE("add", "movups")
-
-            __ASM_EMIT("2000:")
-
-            : [dst] "+r"(dst), [src] "+r"(src), [count] "+r" (count), [k] "+Yz"(k) :
+            FMOP_K3_CORE("dst", "src", "add", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count),
+              [k] "+Yz"(k)
+            : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -109,28 +103,30 @@ namespace sse
 
     void fmsub_k3(float *dst, const float *src, float k, size_t count)
     {
+        IF_ARCH_X86(size_t off);
+
         ARCH_X86_ASM
         (
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          2000f")
-            __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")
+            FMOP_K3_CORE("dst", "src", "sub", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count),
+              [k] "+Yz"(k)
+            : [dst] "r"(dst), [src] "r"(src)
+            : "cc", "memory",
+              "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
 
-            // Align destination
-            SCALE_OP3_ALIGN("sub")
+    void fmrsub_k3(float *dst, const float *src, float k, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
 
-            // Block operation
-            __ASM_EMIT("2:")
-            __ASM_EMIT("movaps      %%xmm0, %%xmm1")
-            __ASM_EMIT("test        $0x0f, %[src]")
-            __ASM_EMIT("jnz         1001f")
-                SCALE_OP3_CORE("sub", "movaps")
-                __ASM_EMIT("jmp         2000f")
-            __ASM_EMIT("1001:")
-                SCALE_OP3_CORE("sub", "movups")
-
-            __ASM_EMIT("2000:")
-
-            : [dst] "+r"(dst), [src] "+r"(src), [count] "+r" (count), [k] "+Yz"(k) :
+        ARCH_X86_ASM
+        (
+            FMOP_K3_CORE("dst", "src", "sub", OP_RSEL)
+            : [off] "=&r" (off), [count] "+r" (count),
+              [k] "+Yz"(k)
+            : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -139,28 +135,14 @@ namespace sse
 
     void fmmul_k3(float *dst, const float *src, float k, size_t count)
     {
+        IF_ARCH_X86(size_t off);
+
         ARCH_X86_ASM
         (
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          2000f")
-            __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")
-
-            // Align destination
-            SCALE_OP3_ALIGN("mul")
-
-            // Block operation
-            __ASM_EMIT("2:")
-            __ASM_EMIT("movaps      %%xmm0, %%xmm1")
-            __ASM_EMIT("test        $0x0f, %[src]")
-            __ASM_EMIT("jnz         1001f")
-                SCALE_OP3_CORE("mul", "movaps")
-                __ASM_EMIT("jmp         2000f")
-            __ASM_EMIT("1001:")
-                SCALE_OP3_CORE("mul", "movups")
-
-            __ASM_EMIT("2000:")
-
-            : [dst] "+r"(dst), [src] "+r"(src), [count] "+r" (count), [k] "+Yz"(k) :
+            FMOP_K3_CORE("dst", "src", "mul", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count),
+              [k] "+Yz"(k)
+            : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -169,36 +151,37 @@ namespace sse
 
     void fmdiv_k3(float *dst, const float *src, float k, size_t count)
     {
+        IF_ARCH_X86(size_t off);
+
         ARCH_X86_ASM
         (
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          2000f")
-            __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")
-
-            // Align destination
-            SCALE_OP3_ALIGN("div")
-
-            // Block operation
-            __ASM_EMIT("2:")
-            __ASM_EMIT("movaps      %%xmm0, %%xmm1")
-            __ASM_EMIT("test        $0x0f, %[src]")
-            __ASM_EMIT("jnz         1001f")
-                SCALE_OP3_CORE("div", "movaps")
-                __ASM_EMIT("jmp         2000f")
-            __ASM_EMIT("1001:")
-                SCALE_OP3_CORE("div", "movups")
-
-            __ASM_EMIT("2000:")
-
-            : [dst] "+r"(dst), [src] "+r"(src), [count] "+r" (count), [k] "+Yz"(k) :
+            FMOP_K3_CORE("dst", "src", "div", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count),
+              [k] "+Yz"(k)
+            : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
-    #undef SCALE_OP3_ALIGN
-    #undef SCALE_OP3_CORE
+    void fmrdiv_k3(float *dst, const float *src, float k, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+
+        ARCH_X86_ASM
+        (
+            FMOP_K3_CORE("dst", "src", "div", OP_RSEL)
+            : [off] "=&r" (off), [count] "+r" (count),
+              [k] "+Yz"(k)
+            : [dst] "r"(dst), [src] "r"(src)
+            : "cc", "memory",
+              "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    #undef FMOP_K3_CORE
 
 #define SCALE_OP4_CORE(OP, DST, SRC1, SRC2)  \
     __ASM_EMIT("xor         %[off], %[off]") \
@@ -315,6 +298,9 @@ namespace sse
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
+
+    #undef OP_DSEL
+    #undef OP_RSEL
 }
 
 #undef SCALE_OP4_CORE
