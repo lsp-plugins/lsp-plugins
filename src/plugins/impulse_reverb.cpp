@@ -798,8 +798,8 @@ namespace lsp
                 c->sDelay.process(c->vBuffer, c->vBuffer, to_do);
 
                 // Apply processed signal to output channels
-                dsp::scale_add3(vChannels[0].vBuffer, c->vBuffer, c->fPanOut[0], to_do);
-                dsp::scale_add3(vChannels[1].vBuffer, c->vBuffer, c->fPanOut[1], to_do);
+                dsp::fmadd_k3(vChannels[0].vBuffer, c->vBuffer, c->fPanOut[0], to_do);
+                dsp::fmadd_k3(vChannels[1].vBuffer, c->vBuffer, c->fPanOut[1], to_do);
             }
 
             // Now apply equalization, bypass control and players
@@ -812,7 +812,7 @@ namespace lsp
 
                 // Pass dry sound to output channels
                 if (nInputs == 1)
-                    dsp::scale_add3(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
+                    dsp::fmadd_k3(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
                 else
                     dsp::mix_add2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fDryPan[0], c->fDryPan[1], to_do);
 

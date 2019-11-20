@@ -1606,20 +1606,20 @@ namespace lsp
                     float gain  = (nDOMode & DM_APPLY_GAIN) ? s->fGain : 1.0f;
                     float pan   = (nDOMode & DM_APPLY_PAN) ? c->fPan : 1.0f;
                     if (s->vChannels[j].vDry != NULL)
-                        dsp::scale_add3(s->vChannels[j].vDry, tmp_outs[j], pan * gain, count);
+                        dsp::fmadd_k3(s->vChannels[j].vDry, tmp_outs[j], pan * gain, count);
                     if (s->vChannels[j^1].vDry != NULL)
-                        dsp::scale_add3(s->vChannels[j^1].vDry, tmp_outs[j], (1.0f - pan) * gain, count);
+                        dsp::fmadd_k3(s->vChannels[j^1].vDry, tmp_outs[j], (1.0f - pan) * gain, count);
 
                     // Process output
                     c->sBypass.process(tmp_outs[j], NULL, tmp_outs[j], count);
 
                     // Mix output to common sampler's bus
                     if (vChannels[j].vOut != NULL)
-                        dsp::scale_add3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
+                        dsp::fmadd_k3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
 
                     // Apply pan to the other stereo channel (if present)
                     if (vChannels[j^1].vOut != NULL)
-                        dsp::scale_add3(vChannels[j^1].vOut, tmp_outs[j], (1.0f - c->fPan) * s->fGain, count);
+                        dsp::fmadd_k3(vChannels[j^1].vOut, tmp_outs[j], (1.0f - c->fPan) * s->fGain, count);
                 }
 
                 // Post-process dry channels

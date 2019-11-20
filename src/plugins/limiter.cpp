@@ -562,7 +562,7 @@ namespace lsp
                 channel_t *c    = &vChannels[i];
 
                 // Update output signal: adjust gain
-                dsp::scale_mul3(c->vDataBuf, c->vGainBuf, out_gain, to_doxn);
+                dsp::fmmul_k3(c->vDataBuf, c->vGainBuf, out_gain, to_doxn);
 
                 // Do metering
                 c->sGraph[G_OUT].process(c->vDataBuf, to_doxn);
@@ -722,7 +722,7 @@ namespace lsp
                 // Initialize coords
                 dsp::fill(b->v[2], width, width);
                 dsp::fill(b->v[3], height, width);
-                dsp::scale_add3(b->v[2], b->v[0], dx, width);
+                dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
                 dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
                 // Draw channel

@@ -106,7 +106,7 @@ namespace dsp
      * @param k multiplier
      * @param count number of elements
      */
-    extern void (* scale_add3)(float *dst, const float *src, float k, size_t count);
+    extern void (* fmadd_k3)(float *dst, const float *src, float k, size_t count);
 
     /** Calculate dst[i] = dst[i] - src[i] * k
      *
@@ -115,7 +115,16 @@ namespace dsp
      * @param k multiplier
      * @param count number of elements
      */
-    extern void (* scale_sub3)(float *dst, const float *src, float k, size_t count);
+    extern void (* fmsub_k3)(float *dst, const float *src, float k, size_t count);
+
+    /** Calculate dst[i] = src[i] * k - dst[i]
+     *
+     * @param dst destination array
+     * @param src source array
+     * @param k multiplier
+     * @param count number of elements
+     */
+    extern void (* fmrsub_k3)(float *dst, const float *src, float k, size_t count);
 
     /** Calculate dst[i] = dst[i] * src[i] * k
      *
@@ -124,7 +133,7 @@ namespace dsp
      * @param k multiplier
      * @param count number of elements
      */
-    extern void (* scale_mul3)(float *dst, const float *src, float k, size_t count);
+    extern void (* fmmul_k3)(float *dst, const float *src, float k, size_t count);
 
     /** Calculate dst[i] = dst[i] / (src[i] * k)
      *
@@ -133,7 +142,16 @@ namespace dsp
      * @param k multiplier
      * @param count number of elements
      */
-    extern void (* scale_div3)(float *dst, const float *src, float k, size_t count);
+    extern void (* fmdiv_k3)(float *dst, const float *src, float k, size_t count);
+
+    /** Calculate dst[i] = (src[i] * k) / dst[i]
+     *
+     * @param dst destination array
+     * @param src source array
+     * @param k multiplier
+     * @param count number of elements
+     */
+    extern void (* fmrdiv_k3)(float *dst, const float *src, float k, size_t count);
 
     /** Calculate dst[i] = src1[i] + src2[i] * k
      *

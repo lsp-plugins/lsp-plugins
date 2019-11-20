@@ -1,12 +1,12 @@
 /*
- * lmath.h
+ * fmop_kx.h
  *
- *  Created on: 6 мар. 2017 г.
+ *  Created on: 20 нояб. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE_PMATH_H_
-#define DSP_ARCH_X86_SSE_PMATH_H_
+#ifndef DSP_ARCH_X86_SSE_PMATH_FMOP_KX_H_
+#define DSP_ARCH_X86_SSE_PMATH_FMOP_KX_H_
 
 #ifndef DSP_ARCH_X86_SSE_IMPL
     #error "This header should not be included directly"
@@ -77,7 +77,7 @@ namespace sse
         __ASM_EMIT("jnz         1b") \
         __ASM_EMIT("jmp         2000f")
 
-    void scale_add3(float *dst, const float *src, float k, size_t count)
+    void fmadd_k3(float *dst, const float *src, float k, size_t count)
     {
         ARCH_X86_ASM
         (
@@ -107,7 +107,7 @@ namespace sse
         );
     }
 
-    void scale_sub3(float *dst, const float *src, float k, size_t count)
+    void fmsub_k3(float *dst, const float *src, float k, size_t count)
     {
         ARCH_X86_ASM
         (
@@ -137,7 +137,7 @@ namespace sse
         );
     }
 
-    void scale_mul3(float *dst, const float *src, float k, size_t count)
+    void fmmul_k3(float *dst, const float *src, float k, size_t count)
     {
         ARCH_X86_ASM
         (
@@ -167,7 +167,7 @@ namespace sse
         );
     }
 
-    void scale_div3(float *dst, const float *src, float k, size_t count)
+    void fmdiv_k3(float *dst, const float *src, float k, size_t count)
     {
         ARCH_X86_ASM
         (
@@ -319,4 +319,5 @@ namespace sse
 
 #undef SCALE_OP4_CORE
 
-#endif /* DSP_ARCH_X86_SSE_PMATH_H_ */
+
+#endif /* DSP_ARCH_X86_SSE_PMATH_FMOP_KX_H_ */

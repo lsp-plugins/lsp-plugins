@@ -818,7 +818,7 @@ namespace lsp
 
             // Perform convolutions
             for (size_t i=0, p=0; i<pData->nSamples; i++, p += kf)
-                dsp::scale_add3(&b[p], k, src[i], k_size);
+                dsp::fmadd_k3(&b[p], k, src[i], k_size);
 
             // Copy the data to the file content
             dsp::copy(fc->vChannels[c], &b[k_center], fc->nSamples);
@@ -919,7 +919,7 @@ namespace lsp
                 // Perform convolutions
                 for (size_t j=i; j<pData->nSamples; j += src_step)
                 {
-                    dsp::scale_add3(&b[p], k, src[j], k_size);
+                    dsp::fmadd_k3(&b[p], k, src[j], k_size);
                     p   += dst_step;
                 }
             }
@@ -1023,7 +1023,7 @@ namespace lsp
                 // Perform convolutions
                 for (size_t j=i; j<pData->nSamples; j += src_step)
                 {
-                    dsp::scale_add3(&b[p], k, src[j], k_size);
+                    dsp::fmadd_k3(&b[p], k, src[j], k_size);
                     p   += dst_step;
                 }
             }

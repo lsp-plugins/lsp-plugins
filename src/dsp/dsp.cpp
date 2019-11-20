@@ -163,10 +163,12 @@ namespace dsp
     float   (* h_abs_sum)(const float *src, size_t count) = NULL;
     float   (* scalar_mul)(const float *a, const float *b, size_t count) = NULL;
 
-    void    (* scale_add3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* scale_sub3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* scale_mul3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* scale_div3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmadd_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmrsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmmul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmrdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* scale_add4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* scale_sub4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;

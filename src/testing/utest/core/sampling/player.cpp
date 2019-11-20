@@ -47,7 +47,7 @@ UTEST_BEGIN("core.sampling", player)
         dsp::copy(dptr, src, src.size());
         for (size_t i=0; i<4; ++i)
         {
-            dsp::scale_add3(&dptr[(i+1) * 11], samples[i], (i+1)*1.1f, SAMPLE_LENGTH);
+            dsp::fmadd_k3(&dptr[(i+1) * 11], samples[i], (i+1)*1.1f, SAMPLE_LENGTH);
             UTEST_ASSERT(sp.play(i, 0, (i+1) * 1.1f, (i+1) * 11));
         }
 

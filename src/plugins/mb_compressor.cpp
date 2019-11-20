@@ -1359,7 +1359,7 @@ namespace lsp
                     // Apply lo-pass filter characteristics
                     b->sPassFilter.freq_chart(vPFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mul2(vPFc, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::scale_add3(c->vTr, vPFc, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
+                    dsp::fmadd_k3(c->vTr, vPFc, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
 
                     // Apply hi-pass filter characteristics
                     b->sRejFilter.freq_chart(vRFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);

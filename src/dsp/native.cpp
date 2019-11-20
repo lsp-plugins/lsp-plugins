@@ -25,6 +25,9 @@
 #include <dsp/arch/native/graphics/interpolation.h>
 
 #include <dsp/arch/native/pmath.h>
+#include <dsp/arch/native/pmath/op_kx.h>
+#include <dsp/arch/native/pmath/op_vv.h>
+#include <dsp/arch/native/pmath/fmop_kx.h>
 #include <dsp/arch/native/search.h>
 
 #include <dsp/arch/native/filters/static.h>
@@ -148,10 +151,12 @@ namespace native
         EXPORT1(h_abs_sum);
         EXPORT1(scalar_mul);
 
-        EXPORT1(scale_add3);
-        EXPORT1(scale_sub3);
-        EXPORT1(scale_mul3);
-        EXPORT1(scale_div3);
+        EXPORT1(fmadd_k3);
+        EXPORT1(fmsub_k3);
+        EXPORT1(fmrsub_k3);
+        EXPORT1(fmmul_k3);
+        EXPORT1(fmdiv_k3);
+        EXPORT1(fmrdiv_k3);
 
         EXPORT1(scale_add4);
         EXPORT1(scale_sub4);

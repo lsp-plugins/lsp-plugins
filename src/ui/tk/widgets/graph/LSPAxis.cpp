@@ -109,8 +109,8 @@ namespace lsp
                 norm    = d / norm;
 
                 // Apply delta-vector
-                dsp::scale_add3(x, dv, norm * fDX, count);
-                dsp::scale_add3(y, dv, norm * fDY, count);
+                dsp::fmadd_k3(x, dv, norm * fDX, count);
+                dsp::fmadd_k3(y, dv, norm * fDY, count);
             }
 
             // Saturate values
