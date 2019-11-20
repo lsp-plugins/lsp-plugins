@@ -40,10 +40,10 @@ IF_ARCH_ARM(
     {
         void    fmadd_k3(float *dst, const float *src, float k, size_t count);
         void    fmsub_k3(float *dst, const float *src, float k, size_t count);
-//        void    fmrsub_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrsub_k3(float *dst, const float *src, float k, size_t count);
         void    fmmul_k3(float *dst, const float *src, float k, size_t count);
         void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
-//        void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 

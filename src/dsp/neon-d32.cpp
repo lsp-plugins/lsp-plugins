@@ -173,8 +173,10 @@ namespace neon_d32
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
+        EXPORT1(fmrsub_k3);
         EXPORT1(fmmul_k3);
         EXPORT1(fmdiv_k3);
+        EXPORT1(fmrdiv_k3);
 
         EXPORT1(abs_add3);
         EXPORT1(abs_sub3);
