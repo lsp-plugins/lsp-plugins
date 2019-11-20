@@ -53,7 +53,6 @@ namespace avx
 
             // Store the updated buffer state
             __ASM_EMIT("vmovaps         %%xmm4, " BIQUAD_D0_SOFF "(%[f])")
-            __ASM_EMIT("vzeroupper")
 
             // Exit label
             __ASM_EMIT("1:")
@@ -108,7 +107,6 @@ namespace avx
 
             // Store the updated buffer state
             __ASM_EMIT("vmovaps         %%xmm4, " BIQUAD_D0_SOFF "(%[f])")
-            __ASM_EMIT("vzeroupper")
 
             // Exit label
             __ASM_EMIT("1:")
@@ -259,7 +257,6 @@ namespace avx
             __ASM_EMIT("vmovaps         %%ymm7, " BIQUAD_D2_SOFF "(%[f])")              // *d1      = &&ymm7
 
             // Exit label
-            __ASM_EMIT("vzeroupper")
             __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [mask] "=&r"(mask), [count] "+r" (count)
@@ -401,7 +398,6 @@ namespace avx
             __ASM_EMIT("vmovaps         %%ymm7, " BIQUAD_D2_SOFF "(%[f])")              // *d1      = &&ymm7
 
             // Exit label
-            __ASM_EMIT("vzeroupper")
             __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [mask] "=&r"(mask), [count] "+r" (count)

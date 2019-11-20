@@ -146,7 +146,6 @@ namespace avx
 
             /* Exit */
             __ASM_EMIT("8:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [off] "=&r" (off),
@@ -241,7 +240,6 @@ namespace avx
 
             /* Exit */
             __ASM_EMIT("6:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [off] "=&r" (off),
@@ -312,7 +310,6 @@ namespace avx
 
             /* Exit */
             __ASM_EMIT("5:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
@@ -381,7 +378,6 @@ namespace avx
 
             /* Exit */
             __ASM_EMIT("5:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
@@ -511,7 +507,6 @@ namespace avx
 
             // End
             __ASM_EMIT("8:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count), [off] "=&r" (off)

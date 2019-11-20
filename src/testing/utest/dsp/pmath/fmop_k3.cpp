@@ -33,6 +33,20 @@ IF_ARCH_X86(
         void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
         void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
     }
+
+    namespace avx
+    {
+        void    x64_fmadd_k3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmsub_k3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmrsub_k3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmmul_k3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmrdiv_k3(float *dst, const float *src, float k, size_t count);
+
+        void    x64_fmadd_k3_fma3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmsub_k3_fma3(float *dst, const float *src, float k, size_t count);
+        void    x64_fmrsub_k3_fma3(float *dst, const float *src, float k, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -113,6 +127,16 @@ UTEST_BEGIN("dsp.pmath", fmop_k3)
         IF_ARCH_X86(call("sse::fmmul_k3", 16, native::fmmul_k3, sse::fmmul_k3));
         IF_ARCH_X86(call("sse::fmdiv_k3", 16, native::fmdiv_k3, sse::fmdiv_k3));
         IF_ARCH_X86(call("sse::fmrdiv_k3", 16, native::fmrdiv_k3, sse::fmrdiv_k3));
+
+        IF_ARCH_X86(call("avx::x64_fmadd_k3", 16, native::fmadd_k3, avx::x64_fmadd_k3));
+        IF_ARCH_X86(call("avx::x64_fmsub_k3", 16, native::fmsub_k3, avx::x64_fmsub_k3));
+        IF_ARCH_X86(call("avx::x64_fmrsub_k3", 16, native::fmrsub_k3, avx::x64_fmrsub_k3));
+        IF_ARCH_X86(call("avx::x64_fmmul_k3", 16, native::fmmul_k3, avx::x64_fmmul_k3));
+        IF_ARCH_X86(call("avx::x64_fmdiv_k3", 16, native::fmdiv_k3, avx::x64_fmdiv_k3));
+        IF_ARCH_X86(call("avx::x64_fmrdiv_k3", 16, native::fmrdiv_k3, avx::x64_fmrdiv_k3));
+        IF_ARCH_X86(call("avx::x64_fmadd_k3_fma3", 16, native::fmadd_k3, avx::x64_fmadd_k3_fma3));
+        IF_ARCH_X86(call("avx::x64_fmsub_k3_fma3", 16, native::fmsub_k3, avx::x64_fmsub_k3_fma3));
+        IF_ARCH_X86(call("avx::x64_fmrsub_k3_fma3", 16, native::fmrsub_k3, avx::x64_fmrsub_k3_fma3));
 
         IF_ARCH_ARM(call("neon_d32::fmadd_k3", 16, native::fmadd_k3, neon_d32::fmadd_k3));
         IF_ARCH_ARM(call("neon_d32::fmsub_k3", 16, native::fmsub_k3, neon_d32::fmsub_k3));

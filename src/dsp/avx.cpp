@@ -19,12 +19,11 @@
 
 #ifdef ARCH_X86_64_AVX
     #include <dsp/arch/x86/avx/const.h>
-    #include <dsp/arch/x86/avx/vector.h>
-
 #endif /* ARCH_X86_64_AVX */
 
 #include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>
+#include <dsp/arch/x86/avx/pmath/fmop_kx.h>
 #include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
@@ -49,8 +48,6 @@ namespace avx
 
         lsp_trace("Optimizing DSP for AVX instruction set");
 
-//            EXPORT1(add_multiplied);
-//            EXPORT1(biquad_process_x1);
         EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
@@ -60,6 +57,13 @@ namespace avx
         // Not tested on AMD Processors above Bulldozer family
         if (feature_check(f, FEAT_FAST_AVX))
         {
+            EXPORT2_X64(fmadd_k3, x64_fmadd_k3);
+            EXPORT2_X64(fmsub_k3, x64_fmsub_k3);
+            EXPORT2_X64(fmrsub_k3, x64_fmrsub_k3);
+            EXPORT2_X64(fmmul_k3, x64_fmmul_k3);
+            EXPORT2_X64(fmdiv_k3, x64_fmdiv_k3);
+            EXPORT2_X64(fmrdiv_k3, x64_fmrdiv_k3);
+
             EXPORT2_X64(complex_mul3, x64_complex_mul3);
             EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
             EXPORT2_X64(pcomplex_mod, x64_pcomplex_mod);
@@ -67,6 +71,13 @@ namespace avx
         }
         else
         {
+            SUPPORT_X64(x64_fmadd_k3);
+            SUPPORT_X64(x64_fmsub_k3);
+            SUPPORT_X64(x64_fmrsub_k3);
+            SUPPORT_X64(x64_fmmul_k3);
+            SUPPORT_X64(x64_fmdiv_k3);
+            SUPPORT_X64(x64_fmrdiv_k3);
+
             SUPPORT_X64(x64_pcomplex_mod);
             SUPPORT_X64(x64_complex_mul3);
             SUPPORT_X64(x64_pcomplex_mul3);
@@ -79,16 +90,23 @@ namespace avx
 
             if (f->vendor == CPU_VENDOR_INTEL)
             {
+                EXPORT2_X64(fmadd_k3, x64_fmadd_k3_fma3);
+                EXPORT2_X64(fmsub_k3, x64_fmsub_k3_fma3);
+                EXPORT2_X64(fmrsub_k3, x64_fmrsub_k3_fma3);
+
                 EXPORT2_X64(complex_mul3, x64_complex_mul3_fma3);
                 EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3_fma3)
             }
             else
             {
+                SUPPORT_X64(x64_fmadd_k3_fma3);
+                SUPPORT_X64(x64_fmsub_k3_fma3);
+                SUPPORT_X64(x64_fmrsub_k3_fma3);
+
                 SUPPORT_X64(x64_complex_mul3_fma3);
                 SUPPORT_X64(x64_pcomplex_mul3_fma3);
             }
 
-//                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;
             EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8_fma3);
             EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8_fma3);
         }

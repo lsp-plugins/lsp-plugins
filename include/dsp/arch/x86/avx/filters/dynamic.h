@@ -155,7 +155,6 @@ namespace avx
             __ASM_EMIT("vmovups         %%ymm7, 0x20(%[d])")                            // *d1      = %%ymm7
 
             // Exit label
-            __ASM_EMIT("vzeroupper")
             __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f),
@@ -299,7 +298,6 @@ namespace avx
             __ASM_EMIT("vmovups         %%ymm7, 0x20(%[d])")                            // *d1      = %%ymm7
 
             // Exit label
-            __ASM_EMIT("vzeroupper")
             __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f),

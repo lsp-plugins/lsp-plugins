@@ -106,8 +106,6 @@ namespace avx
             __ASM_EMIT("dec             %[count]")
             __ASM_EMIT("jnz             1b")
 
-            __ASM_EMIT("vzeroupper")
-
             __ASM_EMIT("100:")
             : [count] "+r" (count), [bc] "+r" (bc), [bf] "+r" (bf)
             : [ONE] "m" (ONE), [kf] "m" (kf)

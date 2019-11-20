@@ -89,7 +89,6 @@ namespace avx
             __ASM_EMIT("jge         9b")
 
             __ASM_EMIT("10:")
-            __ASM_EMIT("vzeroupper")
 
             : [src] "+r" (src), [dst] "+r"(dst),
               [count] "+r" (count), [off] "=&r" (off)

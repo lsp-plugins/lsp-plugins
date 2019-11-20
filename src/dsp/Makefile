@@ -19,7 +19,7 @@ SSE2_INSTR_SET          = -mmmx -m3dnow -msse -msse2
 SSE3_INSTR_SET          = $(SSE_INSTR_SET) -msse3 -mssse3
 SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2
 AVX_INSTR_SET           = -mavx
-AVX2_INSTR_SET          = -mavx -mavx2
+AVX2_INSTR_SET          = -mavx -mavx2 -mvzeroupper
 NEON_D32_INSTR_SET      = -mfpu=neon-vfpv4
 ASIMD_INSTR_SET      	= -march=armv8-a+simd
 
