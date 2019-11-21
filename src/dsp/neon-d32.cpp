@@ -166,11 +166,6 @@ namespace neon_d32
         EXPORT1(mul3);
         EXPORT1(div3);
 
-        EXPORT1(abs_add2);
-        EXPORT1(abs_sub2);
-        EXPORT1(abs_mul2);
-        EXPORT1(abs_div2);
-
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
         EXPORT1(fmrsub_k3);
@@ -178,15 +173,22 @@ namespace neon_d32
         EXPORT1(fmdiv_k3);
         EXPORT1(fmrdiv_k3);
 
+        EXPORT1(fmadd_k4);
+        EXPORT1(fmsub_k4);
+        EXPORT1(fmrsub_k4);
+        EXPORT1(fmmul_k4);
+        EXPORT1(fmdiv_k4);
+        EXPORT1(fmrdiv_k4);
+
+        EXPORT1(abs_add2);
+        EXPORT1(abs_sub2);
+        EXPORT1(abs_mul2);
+        EXPORT1(abs_div2);
+
         EXPORT1(abs_add3);
         EXPORT1(abs_sub3);
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
-
-        EXPORT1(scale_add4);
-        EXPORT1(scale_sub4);
-        EXPORT1(scale_mul4);
-        EXPORT1(scale_div4);
 
         EXPORT1(exp1);
         EXPORT1(exp2);
