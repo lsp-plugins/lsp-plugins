@@ -199,10 +199,12 @@ namespace sse
         EXPORT1(fmdiv_k3);
         EXPORT1(fmrdiv_k3);
 
-        EXPORT1(scale_add4);
-        EXPORT1(scale_sub4);
-        EXPORT1(scale_mul4);
-        EXPORT1(scale_div4);
+        EXPORT1(fmadd_k4);
+        EXPORT1(fmsub_k4);
+        EXPORT1(fmrsub_k4);
+        EXPORT1(fmmul_k4);
+        EXPORT1(fmdiv_k4);
+        EXPORT1(fmrdiv_k4);
 
         EXPORT1(mix2);
         EXPORT1(mix_copy2);

@@ -116,30 +116,6 @@ namespace native
         }
     }
 
-    void scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i] = src1[i] + src2[i] * k;
-    }
-
-    void scale_sub4(float *dst, const float *src1, const float *src2, float k, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i] = src1[i] - src2[i] * k;
-    }
-
-    void scale_mul4(float *dst, const float *src1, const float *src2, float k, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i] = src1[i] * src2[i] * k;
-    }
-
-    void scale_div4(float *dst, const float *src1, const float *src2, float k, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i] = src1[i] / (src2[i] * k);
-    }
-
     void integrate(float *dst, const float *src, float k, size_t count)
     {
         while (count--)

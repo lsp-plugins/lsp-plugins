@@ -45,6 +45,42 @@ namespace native
         for (size_t i=0; i<count; ++i)
             dst[i] = (src[i] * k) / dst[i];
     }
+
+    void fmadd_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] + src2[i] * k;
+    }
+
+    void fmsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] - src2[i] * k;
+    }
+
+    void fmrsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src2[i] * k - src1[i];
+    }
+
+    void fmmul_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] * src2[i] * k;
+    }
+
+    void fmdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] / (src2[i] * k);
+    }
+
+    void fmrdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = (src2[i] * k) / src1[i];
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_PMATH_FMOP_KX_H_ */

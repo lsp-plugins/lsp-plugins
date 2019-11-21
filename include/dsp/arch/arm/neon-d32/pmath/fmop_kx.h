@@ -395,7 +395,7 @@ namespace neon_d32
     __ASM_EMIT("bge         9b") \
     __ASM_EMIT("10:")
 
-    void scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    void fmadd_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
         IF_ARCH_ARM(float *pk = &k);
         ARCH_ARM_ASM
@@ -410,7 +410,7 @@ namespace neon_d32
         );
     }
 
-    void scale_sub4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    void fmsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
         IF_ARCH_ARM(float *pk = &k);
         ARCH_ARM_ASM
@@ -513,7 +513,7 @@ namespace neon_d32
     __ASM_EMIT("bge         9b") \
     __ASM_EMIT("10:")
 
-    void scale_mul4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    void fmmul_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
         IF_ARCH_ARM(float *pk = &k);
         ARCH_ARM_ASM
@@ -586,7 +586,7 @@ namespace neon_d32
     __ASM_EMIT("bge             5b") \
     __ASM_EMIT("6:")
 
-    void scale_div4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    void fmdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
         IF_ARCH_ARM(float *pk = &k);
         ARCH_ARM_ASM

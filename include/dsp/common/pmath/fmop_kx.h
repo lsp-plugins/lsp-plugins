@@ -76,7 +76,7 @@ namespace dsp
      * @param k multiplier for elements of array 2
      * @param count number of elements
      */
-    extern void (* scale_add4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+    extern void (* fmadd_k4)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
     /** Calculate dst[i] = src1[i] - src2[i] * k
      *
@@ -86,7 +86,17 @@ namespace dsp
      * @param k multiplier for elements of array 2
      * @param count number of elements
      */
-    extern void (* scale_sub4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+    extern void (* fmsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+
+    /** Calculate dst[i] = src2[i] * k - src1[i]
+     *
+     * @param dst destination array
+     * @param src1 source array 1
+     * @param src2 source array 2
+     * @param k multiplier for elements of array 2
+     * @param count number of elements
+     */
+    extern void (* fmrsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
     /** Calculate dst[i] = src1[i] * src2[i] * k
      *
@@ -96,7 +106,7 @@ namespace dsp
      * @param k multiplier for elements of array 2
      * @param count number of elements
      */
-    extern void (* scale_mul4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+    extern void (* fmmul_k4)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
     /** Calculate dst[i] = src1[i] / (src2[i] * k)
      *
@@ -106,7 +116,17 @@ namespace dsp
      * @param k multiplier for elements of array 2
      * @param count number of elements
      */
-    extern void (* scale_div4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+    extern void (* fmdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+
+    /** Calculate dst[i] = (src2[i] * k) / src1[i]
+     *
+     * @param dst destination array
+     * @param src1 source array 1
+     * @param src2 source array 2
+     * @param k multiplier for elements of array 2
+     * @param count number of elements
+     */
+    extern void (* fmrdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
 }
 

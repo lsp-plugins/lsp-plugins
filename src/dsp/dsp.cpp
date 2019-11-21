@@ -170,10 +170,12 @@ namespace dsp
     void    (* fmdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* fmrdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
-    void    (* scale_add4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
-    void    (* scale_sub4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
-    void    (* scale_mul4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
-    void    (* scale_div4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmadd_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmrsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmmul_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmrdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
 
     void    (* mix2)(float *dst, const float *src, float k1, float k2, size_t count) = NULL;
     void    (* mix_copy2)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
