@@ -32,6 +32,9 @@
 #include <dsp/common/search.h>
 #include <dsp/common/smath.h>
 #include <dsp/common/pmath.h>
+#include <dsp/common/pmath/op_kx.h>
+#include <dsp/common/pmath/op_vv.h>
+#include <dsp/common/pmath/fmop_kx.h>
 #include <dsp/common/hmath.h>
 #include <dsp/common/copy.h>
 #include <dsp/common/mix.h>
