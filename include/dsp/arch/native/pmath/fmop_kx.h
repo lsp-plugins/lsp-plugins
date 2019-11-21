@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_NATIVE_PMATH_FMOP_KX_H_
 #define DSP_ARCH_NATIVE_PMATH_FMOP_KX_H_
 
+#ifndef __DSP_NATIVE_IMPL
+    #error "This header should not be included directly"
+#endif /* __DSP_NATIVE_IMPL */
+
 namespace native
 {
     void fmadd_k3(float *dst, const float *src, float k, size_t count)

@@ -28,6 +28,7 @@
 #include <dsp/arch/native/pmath/op_kx.h>
 #include <dsp/arch/native/pmath/op_vv.h>
 #include <dsp/arch/native/pmath/fmop_kx.h>
+#include <dsp/arch/native/pmath/fmop_vv.h>
 #include <dsp/arch/native/search.h>
 
 #include <dsp/arch/native/filters/static.h>
@@ -164,6 +165,20 @@ namespace native
         EXPORT1(fmmul_k4);
         EXPORT1(fmdiv_k4);
         EXPORT1(fmrdiv_k4);
+
+        EXPORT1(fmadd3);
+        EXPORT1(fmsub3);
+        EXPORT1(fmrsub3);
+        EXPORT1(fmmul3);
+        EXPORT1(fmdiv3);
+        EXPORT1(fmrdiv3);
+
+        EXPORT1(fmadd4);
+        EXPORT1(fmsub4);
+        EXPORT1(fmrsub4);
+        EXPORT1(fmmul4);
+        EXPORT1(fmdiv4);
+        EXPORT1(fmrdiv4);
 
         EXPORT1(mix2);
         EXPORT1(mix_copy2);
