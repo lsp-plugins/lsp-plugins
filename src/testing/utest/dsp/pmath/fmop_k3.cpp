@@ -95,19 +95,20 @@ UTEST_BEGIN("dsp.pmath", fmop_k3)
 
                 FloatBuffer src(count, align, mask & 0x01);
                 FloatBuffer dst1(count, align, mask & 0x02);
+                dst1.randomize_sign();
                 FloatBuffer dst2(dst1);
 
                 // Call functions
                 src.randomize_sign();
-                func1(dst1, src, 0.5f, count);
-                func2(dst2, src, 0.5f, count);
+                func1(dst1, src, 0.4f, count);
+                func2(dst2, src, 0.4f, count);
 
                 UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_relative(dst2, 1e-4))
+                if (!dst1.equals_adaptive(dst2, 1e-4))
                 {
                     src.dump("src ");
                     dst1.dump("dst1");

@@ -33,6 +33,20 @@ IF_ARCH_X86(
         void    fmdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
         void    fmrdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
     }
+
+    namespace avx
+    {
+        void    x64_fmadd_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmrsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmmul_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmrdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+
+        void    x64_fmadd_k4_fma3(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmsub_k4_fma3(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    x64_fmrsub_k4_fma3(float *dst, const float *src1, const float *src2, float k, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -75,8 +89,8 @@ UTEST_BEGIN("dsp.pmath", fmop_k4)
                 // Call functions
                 src1.randomize_sign();
                 src2.randomize_sign();
-                func1(dst1, src1, src2, 0.5f, count);
-                func2(dst2, src1, src2, 0.5f, count);
+                func1(dst1, src1, src2, 0.4f, count);
+                func2(dst2, src1, src2, 0.4f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
@@ -84,7 +98,7 @@ UTEST_BEGIN("dsp.pmath", fmop_k4)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_relative(dst2, 1e-4))
+                if (!dst1.equals_adaptive(dst2, 1e-4))
                 {
                     src1.dump("src1");
                     src2.dump("src2");
@@ -105,6 +119,16 @@ UTEST_BEGIN("dsp.pmath", fmop_k4)
         IF_ARCH_X86(call("sse::fmmul_k4", 16, native::fmmul_k4, sse::fmmul_k4));
         IF_ARCH_X86(call("sse::fmdiv_k4", 16, native::fmdiv_k4, sse::fmdiv_k4));
         IF_ARCH_X86(call("sse::fmrdiv_k4", 16, native::fmrdiv_k4, sse::fmrdiv_k4));
+
+        IF_ARCH_X86(call("avx::x64_fmadd_k4", 16, native::fmadd_k4, avx::x64_fmadd_k4));
+        IF_ARCH_X86(call("avx::x64_fmsub_k4", 16, native::fmsub_k4, avx::x64_fmsub_k4));
+        IF_ARCH_X86(call("avx::x64_fmrsub_k4", 16, native::fmrsub_k4, avx::x64_fmrsub_k4));
+        IF_ARCH_X86(call("avx::x64_fmmul_k4", 16, native::fmmul_k4, avx::x64_fmmul_k4));
+        IF_ARCH_X86(call("avx::x64_fmdiv_k4", 16, native::fmdiv_k4, avx::x64_fmdiv_k4));
+        IF_ARCH_X86(call("avx::x64_fmrdiv_k4", 16, native::fmrdiv_k4, avx::x64_fmrdiv_k4));
+        IF_ARCH_X86(call("avx::x64_fmadd_k4_fma3", 16, native::fmadd_k4, avx::x64_fmadd_k4_fma3));
+        IF_ARCH_X86(call("avx::x64_fmsub_k4_fma3", 16, native::fmsub_k4, avx::x64_fmsub_k4_fma3));
+        IF_ARCH_X86(call("avx::x64_fmrsub_k4_fma3", 16, native::fmrsub_k4, avx::x64_fmrsub_k4_fma3));
 
         IF_ARCH_ARM(call("neon_d32::fmadd_k4", 16, native::fmadd_k4, neon_d32::fmadd_k4));
         IF_ARCH_ARM(call("neon_d32::fmsub_k4", 16, native::fmsub_k4, neon_d32::fmsub_k4));

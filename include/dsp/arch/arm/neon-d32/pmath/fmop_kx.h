@@ -17,7 +17,7 @@ namespace neon_d32
 #define OP_DSEL(a, b)       a
 #define OP_RSEL(a, b)       b
 
-#define FMADDSUB_K3_CORE(DST, SRC, OP) \
+#define FMADDSUB_KX_CORE(DST, SRC, OP) \
     __ASM_EMIT("subs        %[count], $16") \
     __ASM_EMIT("vmov        q9, q8") \
     __ASM_EMIT("blo         2f") \
@@ -70,7 +70,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vld1.f32    {d16[], d17[]}, [%[k]]")
-            FMADDSUB_K3_CORE("dst", "src", "vfma")
+            FMADDSUB_KX_CORE("dst", "src", "vfma")
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
             : [k] "r" (pk)
@@ -86,7 +86,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vld1.f32    {d16[], d17[]}, [%[k]]")
-            FMADDSUB_K3_CORE("dst", "src", "vfms")
+            FMADDSUB_KX_CORE("dst", "src", "vfms")
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
             : [k] "r" (pk)
@@ -96,9 +96,9 @@ namespace neon_d32
         );
     }
 
-#undef FMADDSUB_K3_CORE
+#undef FMADDSUB_KX_CORE
 
-#define FMOP_K3_CORE(DST, SRC, OP, SEL) \
+#define FMOP_KX_CORE(DST, SRC, OP, SEL) \
     __ASM_EMIT("subs        %[count], $16") \
     __ASM_EMIT("vmov        q9, q8") \
     __ASM_EMIT("blo         2f") \
@@ -159,7 +159,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vld1.f32    {d16[], d17[]}, [%[k]]")
-            FMOP_K3_CORE("dst", "src", "vmul", OP_DSEL)
+            FMOP_KX_CORE("dst", "src", "vmul", OP_DSEL)
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
             : [k] "r" (pk)
@@ -175,7 +175,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vld1.f32    {d16[], d17[]}, [%[k]]")
-            FMOP_K3_CORE("dst", "src", "vsub", OP_RSEL)
+            FMOP_KX_CORE("dst", "src", "vsub", OP_RSEL)
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
             : [k] "r" (pk)
@@ -185,7 +185,7 @@ namespace neon_d32
         );
     }
 
-#undef FMOP_K3_CORE
+#undef FMOP_KX_CORE
 
 #define FMDIV_K3_CORE(DST, SRC, SEL)   \
     __ASM_EMIT("subs            %[count], $16") \

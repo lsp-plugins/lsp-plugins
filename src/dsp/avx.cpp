@@ -64,6 +64,13 @@ namespace avx
             EXPORT2_X64(fmdiv_k3, x64_fmdiv_k3);
             EXPORT2_X64(fmrdiv_k3, x64_fmrdiv_k3);
 
+            EXPORT2_X64(fmadd_k4, x64_fmadd_k4);
+            EXPORT2_X64(fmsub_k4, x64_fmsub_k4);
+            EXPORT2_X64(fmrsub_k4, x64_fmrsub_k4);
+            EXPORT2_X64(fmmul_k4, x64_fmmul_k4);
+            EXPORT2_X64(fmdiv_k4, x64_fmdiv_k4);
+            EXPORT2_X64(fmrdiv_k4, x64_fmrdiv_k4);
+
             EXPORT2_X64(complex_mul3, x64_complex_mul3);
             EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
             EXPORT2_X64(pcomplex_mod, x64_pcomplex_mod);
@@ -77,6 +84,13 @@ namespace avx
             SUPPORT_X64(x64_fmmul_k3);
             SUPPORT_X64(x64_fmdiv_k3);
             SUPPORT_X64(x64_fmrdiv_k3);
+
+            SUPPORT_X64(x64_fmadd_k4);
+            SUPPORT_X64(x64_fmsub_k4);
+            SUPPORT_X64(x64_fmrsub_k4);
+            SUPPORT_X64(x64_fmmul_k4);
+            SUPPORT_X64(x64_fmdiv_k4);
+            SUPPORT_X64(x64_fmrdiv_k4);
 
             SUPPORT_X64(x64_pcomplex_mod);
             SUPPORT_X64(x64_complex_mul3);
@@ -94,6 +108,10 @@ namespace avx
                 EXPORT2_X64(fmsub_k3, x64_fmsub_k3_fma3);
                 EXPORT2_X64(fmrsub_k3, x64_fmrsub_k3_fma3);
 
+                EXPORT2_X64(fmadd_k4, x64_fmadd_k4_fma3);
+                EXPORT2_X64(fmsub_k4, x64_fmsub_k4_fma3);
+                EXPORT2_X64(fmrsub_k4, x64_fmrsub_k4_fma3);
+
                 EXPORT2_X64(complex_mul3, x64_complex_mul3_fma3);
                 EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3_fma3)
             }
@@ -102,6 +120,10 @@ namespace avx
                 SUPPORT_X64(x64_fmadd_k3_fma3);
                 SUPPORT_X64(x64_fmsub_k3_fma3);
                 SUPPORT_X64(x64_fmrsub_k3_fma3);
+
+                SUPPORT_X64(x64_fmadd_k4_fma3);
+                SUPPORT_X64(x64_fmsub_k4_fma3);
+                SUPPORT_X64(x64_fmrsub_k4_fma3);
 
                 SUPPORT_X64(x64_complex_mul3_fma3);
                 SUPPORT_X64(x64_pcomplex_mul3_fma3);
