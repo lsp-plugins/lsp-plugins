@@ -13,7 +13,7 @@ namespace avx
     #define OP_DSEL(a, b)   a
     #define OP_RSEL(a, b)   b
 
-    #define FMADDSUB_KX_CORE(DST, SRC1, SRC2, OP) \
+    #define FMADDSUB_K3_CORE(DST, SRC1, SRC2, OP) \
         __ASM_EMIT("xor         %[off], %[off]") \
         __ASM_EMIT("vbroadcastss %%xmm0, %%ymm0") \
         __ASM_EMIT("sub         $32, %[count]") \
@@ -86,7 +86,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMADDSUB_KX_CORE("dst", "dst", "src", "vfmadd231")
+            FMADDSUB_K3_CORE("dst", "dst", "src", "vfmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -102,7 +102,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMADDSUB_KX_CORE("dst", "dst", "src", "vfnmadd231")
+            FMADDSUB_K3_CORE("dst", "dst", "src", "vfnmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -118,7 +118,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMADDSUB_KX_CORE("dst", "dst", "src", "vfmsub231")
+            FMADDSUB_K3_CORE("dst", "dst", "src", "vfmsub231")
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -134,7 +134,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMADDSUB_KX_CORE("dst", "src1", "src2", "vfmadd231")
+            FMADDSUB_K3_CORE("dst", "src1", "src2", "vfmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -150,7 +150,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMADDSUB_KX_CORE("dst", "src1", "src2", "vfnmadd231")
+            FMADDSUB_K3_CORE("dst", "src1", "src2", "vfnmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -166,7 +166,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMADDSUB_KX_CORE("dst", "src1", "src2", "vfmsub231")
+            FMADDSUB_K3_CORE("dst", "src1", "src2", "vfmsub231")
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -177,9 +177,9 @@ namespace avx
         );
     }
 
-    #undef FMADDSUB_KX_CORE
+    #undef FMADDSUB_K3_CORE
 
-    #define FMOP_KX_CORE(DST, SRC1, SRC2, OP, SEL) \
+    #define FMOP_K4_CORE(DST, SRC1, SRC2, OP, SEL) \
         __ASM_EMIT("xor         %[off], %[off]") \
         __ASM_EMIT("vbroadcastss %%xmm0, %%ymm0") \
         __ASM_EMIT("sub         $32, %[count]") \
@@ -261,7 +261,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "vadd", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "vadd", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -277,7 +277,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "vsub", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "vsub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -293,7 +293,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "vsub", OP_RSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "vsub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -309,7 +309,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "vmul", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "vmul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -325,7 +325,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "vdiv", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "vdiv", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -341,7 +341,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "vdiv", OP_RSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "vdiv", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -357,7 +357,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "vadd", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "vadd", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -373,7 +373,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "vsub", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "vsub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -389,7 +389,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "vsub", OP_RSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "vsub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -405,7 +405,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "vmul", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "vmul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -421,7 +421,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "vdiv", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "vdiv", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -437,7 +437,7 @@ namespace avx
         IF_ARCH_X86_64(size_t off);
         ARCH_X86_64_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "vdiv", OP_RSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "vdiv", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
@@ -448,7 +448,7 @@ namespace avx
         );
     }
 
-    #undef FMOP_KX_CORE
+    #undef FMOP_K4_CORE
 
 
     #undef OP_DSEL

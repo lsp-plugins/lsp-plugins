@@ -90,6 +90,11 @@ namespace asimd
         EXPORT1(div2);
         EXPORT1(rdiv2);
 
+        EXPORT1(add3);
+        EXPORT1(sub3);
+        EXPORT1(mul3);
+        EXPORT1(div3);
+
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
         EXPORT1(fmrsub_k3);
@@ -97,10 +102,12 @@ namespace asimd
         EXPORT1(fmdiv_k3);
         EXPORT1(fmrdiv_k3);
 
-        EXPORT1(add3);
-        EXPORT1(sub3);
-        EXPORT1(mul3);
-        EXPORT1(div3);
+        EXPORT1(fmadd_k4);
+        EXPORT1(fmsub_k4);
+        EXPORT1(fmrsub_k4);
+        EXPORT1(fmmul_k4);
+        EXPORT1(fmdiv_k4);
+        EXPORT1(fmrdiv_k4);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);

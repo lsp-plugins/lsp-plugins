@@ -17,7 +17,7 @@ namespace sse
     #define OP_DSEL(a, b)   a
     #define OP_RSEL(a, b)   b
 
-    #define FMOP_KX_CORE(DST, SRC1, SRC2, OP, SEL) \
+    #define FMOP_K4_CORE(DST, SRC1, SRC2, OP, SEL) \
         __ASM_EMIT("xor         %[off], %[off]") \
         __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0") \
         __ASM_EMIT("sub         $12, %[count]") \
@@ -91,7 +91,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "add", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "add", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -107,7 +107,7 @@ namespace sse
 
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "sub", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "sub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -123,7 +123,7 @@ namespace sse
 
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "sub", OP_RSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "sub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -139,7 +139,7 @@ namespace sse
 
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "mul", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "mul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -155,7 +155,7 @@ namespace sse
 
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "div", OP_DSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "div", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -171,7 +171,7 @@ namespace sse
 
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "dst", "src", "div", OP_RSEL)
+            FMOP_K4_CORE("dst", "dst", "src", "div", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
@@ -186,7 +186,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "add", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "add", OP_DSEL)
             : [count] "+r" (count), [off] "=&r" (off),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src1] "r"(src1), [src2] "r"(src2)
@@ -201,7 +201,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "sub", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "sub", OP_DSEL)
             : [count] "+r" (count), [off] "=&r" (off),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src1] "r"(src1), [src2] "r"(src2)
@@ -216,7 +216,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "sub", OP_RSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "sub", OP_RSEL)
             : [count] "+r" (count), [off] "=&r" (off),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src1] "r"(src1), [src2] "r"(src2)
@@ -231,7 +231,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "mul", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "mul", OP_DSEL)
             : [count] "+r" (count), [off] "=&r" (off),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src1] "r"(src1), [src2] "r"(src2)
@@ -246,7 +246,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "div", OP_DSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "div", OP_DSEL)
             : [count] "+r" (count), [off] "=&r" (off),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src1] "r"(src1), [src2] "r"(src2)
@@ -261,7 +261,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            FMOP_KX_CORE("dst", "src1", "src2", "div", OP_RSEL)
+            FMOP_K4_CORE("dst", "src1", "src2", "div", OP_RSEL)
             : [count] "+r" (count), [off] "=&r" (off),
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src1] "r"(src1), [src2] "r"(src2)
@@ -271,7 +271,7 @@ namespace sse
         );
     }
 
-    #undef FMOP_KX_CORE
+    #undef FMOP_K4_CORE
 
     #undef OP_DSEL
     #undef OP_RSEL
