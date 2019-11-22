@@ -60,6 +60,7 @@ IF_ARCH_AARCH64(
 
 typedef void (* op_k2_t)(float *dst, float k, size_t count);
 
+//-----------------------------------------------------------------------------
 PTEST_BEGIN("dsp.pmath", op_k2, 5, 1000)
 
     void call(const char *label, float *dst, size_t count, op_k2_t func)

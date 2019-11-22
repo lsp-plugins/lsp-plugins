@@ -55,7 +55,6 @@ IF_ARCH_AARCH64(
 typedef void (* func3)(float *dst, const float *src1, const float *src2, size_t count);
 
 //-----------------------------------------------------------------------------
-// Performance test for complex multiplication
 PTEST_BEGIN("dsp.pmath", op3, 5, 1000)
 
     void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, func3 func)

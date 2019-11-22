@@ -75,8 +75,6 @@ IF_ARCH_AARCH64(
 
 typedef void (* fmop_k4_t)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
-//-----------------------------------------------------------------------------
-// Unit test for complex multiplication
 UTEST_BEGIN("dsp.pmath", fmop_k4)
 
     void call(const char *label, size_t align, fmop_k4_t func1, fmop_k4_t func2)
@@ -132,15 +130,15 @@ UTEST_BEGIN("dsp.pmath", fmop_k4)
         IF_ARCH_X86(call("sse::fmdiv_k4", 16, native::fmdiv_k4, sse::fmdiv_k4));
         IF_ARCH_X86(call("sse::fmrdiv_k4", 16, native::fmrdiv_k4, sse::fmrdiv_k4));
 
-        IF_ARCH_X86(call("avx::x64_fmadd_k4", 16, native::fmadd_k4, avx::x64_fmadd_k4));
-        IF_ARCH_X86(call("avx::x64_fmsub_k4", 16, native::fmsub_k4, avx::x64_fmsub_k4));
-        IF_ARCH_X86(call("avx::x64_fmrsub_k4", 16, native::fmrsub_k4, avx::x64_fmrsub_k4));
-        IF_ARCH_X86(call("avx::x64_fmmul_k4", 16, native::fmmul_k4, avx::x64_fmmul_k4));
-        IF_ARCH_X86(call("avx::x64_fmdiv_k4", 16, native::fmdiv_k4, avx::x64_fmdiv_k4));
-        IF_ARCH_X86(call("avx::x64_fmrdiv_k4", 16, native::fmrdiv_k4, avx::x64_fmrdiv_k4));
-        IF_ARCH_X86(call("avx::x64_fmadd_k4_fma3", 16, native::fmadd_k4, avx::x64_fmadd_k4_fma3));
-        IF_ARCH_X86(call("avx::x64_fmsub_k4_fma3", 16, native::fmsub_k4, avx::x64_fmsub_k4_fma3));
-        IF_ARCH_X86(call("avx::x64_fmrsub_k4_fma3", 16, native::fmrsub_k4, avx::x64_fmrsub_k4_fma3));
+        IF_ARCH_X86(call("avx::x64_fmadd_k4", 32, native::fmadd_k4, avx::x64_fmadd_k4));
+        IF_ARCH_X86(call("avx::x64_fmsub_k4", 32, native::fmsub_k4, avx::x64_fmsub_k4));
+        IF_ARCH_X86(call("avx::x64_fmrsub_k4", 32, native::fmrsub_k4, avx::x64_fmrsub_k4));
+        IF_ARCH_X86(call("avx::x64_fmmul_k4", 32, native::fmmul_k4, avx::x64_fmmul_k4));
+        IF_ARCH_X86(call("avx::x64_fmdiv_k4", 32, native::fmdiv_k4, avx::x64_fmdiv_k4));
+        IF_ARCH_X86(call("avx::x64_fmrdiv_k4", 32, native::fmrdiv_k4, avx::x64_fmrdiv_k4));
+        IF_ARCH_X86(call("avx::x64_fmadd_k4_fma3", 32, native::fmadd_k4, avx::x64_fmadd_k4_fma3));
+        IF_ARCH_X86(call("avx::x64_fmsub_k4_fma3", 32, native::fmsub_k4, avx::x64_fmsub_k4_fma3));
+        IF_ARCH_X86(call("avx::x64_fmrsub_k4_fma3", 32, native::fmrsub_k4, avx::x64_fmrsub_k4_fma3));
 
         IF_ARCH_ARM(call("neon_d32::fmadd_k4", 16, native::fmadd_k4, neon_d32::fmadd_k4));
         IF_ARCH_ARM(call("neon_d32::fmsub_k4", 16, native::fmsub_k4, neon_d32::fmsub_k4));

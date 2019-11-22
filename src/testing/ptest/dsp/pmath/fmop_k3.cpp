@@ -76,7 +76,6 @@ IF_ARCH_AARCH64(
 typedef void (* fmop_k3_t)(float *dst, const float *src, float k, size_t count);
 
 //-----------------------------------------------------------------------------
-// Performance test for complex multiplication
 PTEST_BEGIN("dsp.pmath", fmop_k3, 5, 1000)
 
     void call(const char *label, float *dst, const float *src, size_t count, fmop_k3_t func)

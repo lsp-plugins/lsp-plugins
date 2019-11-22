@@ -62,8 +62,6 @@ IF_ARCH_AARCH64(
 
 typedef void (* op_k2_t)(float *dst, float k, size_t count);
 
-//-----------------------------------------------------------------------------
-// Unit test for complex multiplication
 UTEST_BEGIN("dsp.pmath", op_k2)
 
     void call(const char *label, size_t align, op_k2_t func1, op_k2_t func2)
