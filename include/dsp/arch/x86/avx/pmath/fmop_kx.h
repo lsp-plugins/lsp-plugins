@@ -21,18 +21,18 @@ namespace avx
         __ASM_EMIT("jb          2f")    \
         /* 32x blocks */ \
         __ASM_EMIT("1:") \
-        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%ymm6") \
-        __ASM_EMIT("vmovups     0x020(%[" SRC1 "], %[off]), %%ymm7") \
-        __ASM_EMIT("vmovups     0x040(%[" SRC1 "], %[off]), %%ymm8") \
-        __ASM_EMIT("vmovups     0x060(%[" SRC1 "], %[off]), %%ymm9") \
-        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%ymm0, %%ymm6") \
-        __ASM_EMIT(OP "ps       0x020(%[" SRC2 "], %[off]), %%ymm1, %%ymm7") \
-        __ASM_EMIT(OP "ps       0x040(%[" SRC2 "], %[off]), %%ymm0, %%ymm8") \
-        __ASM_EMIT(OP "ps       0x060(%[" SRC2 "], %[off]), %%ymm1, %%ymm9") \
-        __ASM_EMIT("vmovups     %%ymm6, 0x000(%[" DST "], %[off])") \
-        __ASM_EMIT("vmovups     %%ymm7, 0x020(%[" DST "], %[off])") \
-        __ASM_EMIT("vmovups     %%ymm8, 0x040(%[" DST "], %[off])") \
-        __ASM_EMIT("vmovups     %%ymm9, 0x060(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%ymm4") \
+        __ASM_EMIT("vmovups     0x020(%[" SRC1 "], %[off]), %%ymm5") \
+        __ASM_EMIT("vmovups     0x040(%[" SRC1 "], %[off]), %%ymm6") \
+        __ASM_EMIT("vmovups     0x060(%[" SRC1 "], %[off]), %%ymm7") \
+        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%ymm0, %%ymm4") \
+        __ASM_EMIT(OP "ps       0x020(%[" SRC2 "], %[off]), %%ymm1, %%ymm5") \
+        __ASM_EMIT(OP "ps       0x040(%[" SRC2 "], %[off]), %%ymm0, %%ymm6") \
+        __ASM_EMIT(OP "ps       0x060(%[" SRC2 "], %[off]), %%ymm1, %%ymm7") \
+        __ASM_EMIT("vmovups     %%ymm4, 0x000(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm5, 0x020(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm6, 0x040(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm7, 0x060(%[" DST "], %[off])") \
         __ASM_EMIT("add         $0x80, %[off]") \
         __ASM_EMIT("sub         $32, %[count]") \
         __ASM_EMIT("jae         1b") \
@@ -40,21 +40,21 @@ namespace avx
         __ASM_EMIT("2:") \
         __ASM_EMIT("add         $16, %[count]")          /* 32 - 16 */ \
         __ASM_EMIT("jl          4f") \
-        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%ymm6") \
-        __ASM_EMIT("vmovups     0x020(%[" SRC1 "], %[off]), %%ymm7") \
-        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%ymm0, %%ymm6") \
-        __ASM_EMIT(OP "ps       0x020(%[" SRC2 "], %[off]), %%ymm1, %%ymm7") \
-        __ASM_EMIT("vmovups     %%ymm6, 0x000(%[" DST "], %[off])") \
-        __ASM_EMIT("vmovups     %%ymm7, 0x020(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%ymm4") \
+        __ASM_EMIT("vmovups     0x020(%[" SRC1 "], %[off]), %%ymm5") \
+        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%ymm0, %%ymm4") \
+        __ASM_EMIT(OP "ps       0x020(%[" SRC2 "], %[off]), %%ymm1, %%ymm5") \
+        __ASM_EMIT("vmovups     %%ymm4, 0x000(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm5, 0x020(%[" DST "], %[off])") \
         __ASM_EMIT("add         $0x40, %[off]") \
         __ASM_EMIT("sub         $16, %[count]") \
         /* 8x block */ \
         __ASM_EMIT("4:") \
         __ASM_EMIT("add         $8, %[count]")          /* 16 - 8 */ \
         __ASM_EMIT("jl          6f") \
-        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%ymm6") \
-        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%ymm0, %%ymm6") \
-        __ASM_EMIT("vmovups     %%ymm6, 0x000(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%ymm4") \
+        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%ymm0, %%ymm4") \
+        __ASM_EMIT("vmovups     %%ymm4, 0x000(%[" DST "], %[off])") \
         __ASM_EMIT("add         $0x20, %[off]") \
         __ASM_EMIT("sub         $8, %[count]") \
         \
@@ -62,9 +62,9 @@ namespace avx
         __ASM_EMIT("6:") \
         __ASM_EMIT("add         $4, %[count]")          /* 8 - 4 */ \
         __ASM_EMIT("jl          8f") \
-        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%xmm6") \
-        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%xmm0, %%xmm6") \
-        __ASM_EMIT("vmovups     %%xmm6, 0x000(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     0x000(%[" SRC1 "], %[off]), %%xmm4") \
+        __ASM_EMIT(OP "ps       0x000(%[" SRC2 "], %[off]), %%xmm0, %%xmm4") \
+        __ASM_EMIT("vmovups     %%xmm4, 0x000(%[" DST "], %[off])") \
         __ASM_EMIT("add         $0x10, %[off]") \
         __ASM_EMIT("sub         $4, %[count]") \
         \
@@ -73,9 +73,9 @@ namespace avx
         __ASM_EMIT("add         $3, %[count]")          /* 8 - 4 */ \
         __ASM_EMIT("jl          10f") \
         __ASM_EMIT("9:") \
-        __ASM_EMIT("vmovss      0x000(%[" SRC1 "], %[off]), %%xmm6") \
-        __ASM_EMIT(OP "ss       0x000(%[" SRC2 "], %[off]), %%xmm0, %%xmm6") \
-        __ASM_EMIT("vmovss      %%xmm6, 0x000(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovss      0x000(%[" SRC1 "], %[off]), %%xmm4") \
+        __ASM_EMIT(OP "ss       0x000(%[" SRC2 "], %[off]), %%xmm0, %%xmm4") \
+        __ASM_EMIT("vmovss      %%xmm4, 0x000(%[" DST "], %[off])") \
         __ASM_EMIT("add         $0x04, %[off]") \
         __ASM_EMIT("dec         %[count]") \
         __ASM_EMIT("jge         9b") \
@@ -91,9 +91,8 @@ namespace avx
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-              "%xmm8", "%xmm9"
+              "%xmm1",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
@@ -107,9 +106,8 @@ namespace avx
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-              "%xmm8", "%xmm9"
+              "%xmm1",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
@@ -123,9 +121,8 @@ namespace avx
               [k] "+Yz"(k)
             : [dst] "r"(dst), [src] "r"(src)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-              "%xmm8", "%xmm9"
+              "%xmm1",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
@@ -139,9 +136,8 @@ namespace avx
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-              "%xmm8", "%xmm9"
+              "%xmm1",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
@@ -155,9 +151,8 @@ namespace avx
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-              "%xmm8", "%xmm9"
+              "%xmm1",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
@@ -171,9 +166,8 @@ namespace avx
               [k] "+Yz" (k)
             : [dst] "r"(dst), [src1] "r" (src1), [src2] "r" (src2)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
-              "%xmm8", "%xmm9"
+              "%xmm1",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 

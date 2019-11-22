@@ -33,6 +33,20 @@ IF_ARCH_X86(
         void    fmdiv3(float *dst, const float *a, const float *b, size_t count);
         void    fmrdiv3(float *dst, const float *a, const float *b, size_t count);
     }
+
+    namespace avx
+    {
+        void    x64_fmadd3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmsub3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmrsub3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmmul3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmdiv3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmrdiv3(float *dst, const float *a, const float *b, size_t count);
+
+        void    x64_fmadd3_fma3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmsub3_fma3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmrsub3_fma3(float *dst, const float *a, const float *b, size_t count);
+    }
 )
 
 typedef void (* fmop3_t)(float *dst, const float *a, const float *b, size_t count);
@@ -76,26 +90,35 @@ PTEST_BEGIN("dsp.pmath", fmop3, 5, 1000)
 
             CALL(native::fmadd3);
             IF_ARCH_X86(CALL(sse::fmadd3));
+            IF_ARCH_X86(CALL(avx::x64_fmadd3));
+            IF_ARCH_X86(CALL(avx::x64_fmadd3_fma3));
             PTEST_SEPARATOR;
 
             CALL(native::fmsub3);
             IF_ARCH_X86(CALL(sse::fmsub3));
+            IF_ARCH_X86(CALL(avx::x64_fmsub3));
+            IF_ARCH_X86(CALL(avx::x64_fmsub3_fma3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrsub3);
             IF_ARCH_X86(CALL(sse::fmrsub3));
+            IF_ARCH_X86(CALL(avx::x64_fmrsub3));
+            IF_ARCH_X86(CALL(avx::x64_fmrsub3_fma3));
             PTEST_SEPARATOR;
 
             CALL(native::fmmul3);
             IF_ARCH_X86(CALL(sse::fmmul3));
+            IF_ARCH_X86(CALL(avx::x64_fmmul3));
             PTEST_SEPARATOR;
 
             CALL(native::fmdiv3);
             IF_ARCH_X86(CALL(sse::fmdiv3));
+            IF_ARCH_X86(CALL(avx::x64_fmdiv3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrdiv3);
             IF_ARCH_X86(CALL(sse::fmrdiv3));
+            IF_ARCH_X86(CALL(avx::x64_fmrdiv3));
             PTEST_SEPARATOR2;
         }
 

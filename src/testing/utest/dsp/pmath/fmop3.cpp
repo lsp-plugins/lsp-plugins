@@ -33,6 +33,20 @@ IF_ARCH_X86(
         void    fmdiv3(float *dst, const float *a, const float *b, size_t count);
         void    fmrdiv3(float *dst, const float *a, const float *b, size_t count);
     }
+
+    namespace avx
+    {
+        void    x64_fmadd3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmsub3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmrsub3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmmul3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmdiv3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmrdiv3(float *dst, const float *a, const float *b, size_t count);
+
+        void    x64_fmadd3_fma3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmsub3_fma3(float *dst, const float *a, const float *b, size_t count);
+        void    x64_fmrsub3_fma3(float *dst, const float *a, const float *b, size_t count);
+    }
 )
 
 typedef void (* fmop3_t)(float *dst, const float *a, const float *b, size_t count);
@@ -86,14 +100,25 @@ UTEST_BEGIN("dsp.pmath", fmop3)
 
     UTEST_MAIN
     {
-        #define CALL(ns, func, align) call(#ns "::" #func, align, native::func, ns::func)
+        #define CALL(native, func, align) call(#func, align, native, func)
 
-        IF_ARCH_X86(CALL(sse, fmadd3, 16));
-        IF_ARCH_X86(CALL(sse, fmsub3, 16));
-        IF_ARCH_X86(CALL(sse, fmrsub3, 16));
-        IF_ARCH_X86(CALL(sse, fmmul3, 16));
-        IF_ARCH_X86(CALL(sse, fmdiv3, 16));
-        IF_ARCH_X86(CALL(sse, fmrdiv3, 16));
+        IF_ARCH_X86(CALL(native::fmadd3, sse::fmadd3, 16));
+        IF_ARCH_X86(CALL(native::fmsub3, sse::fmsub3, 16));
+        IF_ARCH_X86(CALL(native::fmrsub3, sse::fmrsub3, 16));
+        IF_ARCH_X86(CALL(native::fmmul3, sse::fmmul3, 16));
+        IF_ARCH_X86(CALL(native::fmdiv3, sse::fmdiv3, 16));
+        IF_ARCH_X86(CALL(native::fmrdiv3, sse::fmrdiv3, 16));
+
+        IF_ARCH_X86(CALL(native::fmadd3, avx::x64_fmadd3, 32));
+        IF_ARCH_X86(CALL(native::fmsub3, avx::x64_fmsub3, 32));
+        IF_ARCH_X86(CALL(native::fmrsub3, avx::x64_fmrsub3, 32));
+        IF_ARCH_X86(CALL(native::fmmul3, avx::x64_fmmul3, 32));
+        IF_ARCH_X86(CALL(native::fmdiv3, avx::x64_fmdiv3, 32));
+        IF_ARCH_X86(CALL(native::fmrdiv3, avx::x64_fmrdiv3, 32));
+
+        IF_ARCH_X86(CALL(native::fmadd3, avx::x64_fmadd3_fma3, 32));
+        IF_ARCH_X86(CALL(native::fmsub3, avx::x64_fmsub3_fma3, 32));
+        IF_ARCH_X86(CALL(native::fmrsub3, avx::x64_fmrsub3_fma3, 32));
     }
 UTEST_END
 
