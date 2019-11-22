@@ -93,8 +93,8 @@ namespace asimd
     __ASM_EMIT("adds        %[count], %[count], #3") /* 4 - 3 */ \
     __ASM_EMIT("blt         10f") \
     __ASM_EMIT("9:") \
-    __ASM_EMIT("ld1         {v0.s}[0], [%[" SEL(DST, SRC) "]]") \
-    __ASM_EMIT("ld1         {v16.s}[0], [%[" SEL(SRC, DST) "]]") \
+    __ASM_EMIT("ld1r        {v0.4s}, [%[" SEL(DST, SRC) "]]") \
+    __ASM_EMIT("ld1r        {v16.4s}, [%[" SEL(SRC, DST) "]]") \
     __ASM_EMIT(OP "         v0.4s, v0.4s, v16.4s") \
     __ASM_EMIT("st1         {v0.s}[0], [%[" DST "]]") \
     __ASM_EMIT("subs        %[count], %[count], #1") \
@@ -243,8 +243,8 @@ namespace asimd
     __ASM_EMIT("adds        %[count], %[count], #3")            /* 4 - 3 */ \
     __ASM_EMIT("blt         8f") \
     __ASM_EMIT("7:") \
-    __ASM_EMIT("ld1         {v0.s}[0], [%[" SEL(SRC, DST) "]]") \
-    __ASM_EMIT("ld1         {v4.s}[0], [%[" SEL(DST, SRC) "]]") \
+    __ASM_EMIT("ld1r        {v0.4s}, [%[" SEL(SRC, DST) "]]") \
+    __ASM_EMIT("ld1r        {v4.4s}, [%[" SEL(DST, SRC) "]]") \
     __ASM_EMIT("frecpe      v16.4s, v0.4s")                     /* v16 = s2 */ \
     __ASM_EMIT("frecps      v24.4s, v16.4s, v0.4s")             /* v24 = (2 - R*s2) */ \
     __ASM_EMIT("fmul        v16.4s, v24.4s, v16.4s")            /* v16 = s2' = s2 * (2 - R*s2) */ \
@@ -371,8 +371,8 @@ namespace asimd
     __ASM_EMIT("adds        %[count], %[count], #3") /* 4 - 3 */ \
     __ASM_EMIT("blt         10f") \
     __ASM_EMIT("9:") \
-    __ASM_EMIT("ld1         {v0.s}[0], [%[" SRC1 "]]") \
-    __ASM_EMIT("ld1         {v16.s}[0], [%[" SRC2 "]]") \
+    __ASM_EMIT("ld1r        {v0.4s}, [%[" SRC1 "]]") \
+    __ASM_EMIT("ld1r        {v16.4s}, [%[" SRC2 "]]") \
     __ASM_EMIT(OP "         v0.4s, v0.4s, v16.4s") \
     __ASM_EMIT("st1         {v0.s}[0], [%[" DST "]]") \
     __ASM_EMIT("subs        %[count], %[count], #1") \
@@ -511,8 +511,8 @@ namespace asimd
     __ASM_EMIT("adds        %[count], %[count], #3")            /* 4 - 3 */ \
     __ASM_EMIT("blt         8f") \
     __ASM_EMIT("7:") \
-    __ASM_EMIT("ld1         {v0.s}[0], [%[" SRC2 "]]") \
-    __ASM_EMIT("ld1         {v4.s}[0], [%[" SRC1 "]]") \
+    __ASM_EMIT("ld1r        {v0.4s}, [%[" SRC2 "]]") \
+    __ASM_EMIT("ld1r        {v4.4s}, [%[" SRC1 "]]") \
     __ASM_EMIT("frecpe      v16.4s, v0.4s")                     /* v16 = s2 */ \
     __ASM_EMIT("frecps      v24.4s, v16.4s, v0.4s")             /* v24 = (2 - R*s2) */ \
     __ASM_EMIT("fmul        v16.4s, v24.4s, v16.4s")            /* v16 = s2' = s2 * (2 - R*s2) */ \

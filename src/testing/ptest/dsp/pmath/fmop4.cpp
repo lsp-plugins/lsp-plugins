@@ -61,6 +61,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void    fmadd4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmsub4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmrsub4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmmul4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmrdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
+    }
+)
+
 typedef void (* fmop4_t)(float *dst, const float *a, const float *b, const float *c, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -103,6 +115,7 @@ PTEST_BEGIN("dsp.pmath", fmop4, 5, 1000)
             IF_ARCH_X86(CALL(avx::x64_fmadd4));
             IF_ARCH_X86(CALL(avx::x64_fmadd4_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmadd4));
+            IF_ARCH_AARCH64(CALL(asimd::fmadd4));
             PTEST_SEPARATOR;
 
             CALL(native::fmsub4);
@@ -110,6 +123,7 @@ PTEST_BEGIN("dsp.pmath", fmop4, 5, 1000)
             IF_ARCH_X86(CALL(avx::x64_fmsub4));
             IF_ARCH_X86(CALL(avx::x64_fmsub4_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmsub4));
+            IF_ARCH_AARCH64(CALL(asimd::fmsub4));
             PTEST_SEPARATOR;
 
             CALL(native::fmrsub4);
@@ -117,24 +131,28 @@ PTEST_BEGIN("dsp.pmath", fmop4, 5, 1000)
             IF_ARCH_X86(CALL(avx::x64_fmrsub4));
             IF_ARCH_X86(CALL(avx::x64_fmrsub4_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmrsub4));
+            IF_ARCH_AARCH64(CALL(asimd::fmrsub4));
             PTEST_SEPARATOR;
 
             CALL(native::fmmul4);
             IF_ARCH_X86(CALL(sse::fmmul4));
             IF_ARCH_X86(CALL(avx::x64_fmmul4));
             IF_ARCH_ARM(CALL(neon_d32::fmmul4));
+            IF_ARCH_AARCH64(CALL(asimd::fmmul4));
             PTEST_SEPARATOR;
 
             CALL(native::fmdiv4);
             IF_ARCH_X86(CALL(sse::fmdiv4));
             IF_ARCH_X86(CALL(avx::x64_fmdiv4));
             IF_ARCH_ARM(CALL(neon_d32::fmdiv4));
+            IF_ARCH_AARCH64(CALL(asimd::fmdiv4));
             PTEST_SEPARATOR;
 
             CALL(native::fmrdiv4);
             IF_ARCH_X86(CALL(sse::fmrdiv4));
             IF_ARCH_X86(CALL(avx::x64_fmrdiv4));
             IF_ARCH_ARM(CALL(neon_d32::fmrdiv4));
+            IF_ARCH_AARCH64(CALL(asimd::fmrdiv4));
             PTEST_SEPARATOR2;
         }
 

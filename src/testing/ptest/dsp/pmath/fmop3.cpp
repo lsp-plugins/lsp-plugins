@@ -61,6 +61,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void    fmadd3(float *dst, const float *a, const float *b, size_t count);
+        void    fmsub3(float *dst, const float *a, const float *b, size_t count);
+        void    fmrsub3(float *dst, const float *a, const float *b, size_t count);
+        void    fmmul3(float *dst, const float *a, const float *b, size_t count);
+        void    fmdiv3(float *dst, const float *a, const float *b, size_t count);
+        void    fmrdiv3(float *dst, const float *a, const float *b, size_t count);
+    }
+)
+
 typedef void (* fmop3_t)(float *dst, const float *a, const float *b, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -105,6 +117,7 @@ PTEST_BEGIN("dsp.pmath", fmop3, 5, 1000)
             IF_ARCH_X86(CALL(avx::x64_fmadd3));
             IF_ARCH_X86(CALL(avx::x64_fmadd3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmadd3));
+            IF_ARCH_AARCH64(CALL(asimd::fmadd3));
             PTEST_SEPARATOR;
 
             CALL(native::fmsub3);
@@ -112,6 +125,7 @@ PTEST_BEGIN("dsp.pmath", fmop3, 5, 1000)
             IF_ARCH_X86(CALL(avx::x64_fmsub3));
             IF_ARCH_X86(CALL(avx::x64_fmsub3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmsub3));
+            IF_ARCH_AARCH64(CALL(asimd::fmsub3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrsub3);
@@ -119,24 +133,28 @@ PTEST_BEGIN("dsp.pmath", fmop3, 5, 1000)
             IF_ARCH_X86(CALL(avx::x64_fmrsub3));
             IF_ARCH_X86(CALL(avx::x64_fmrsub3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmrsub3));
+            IF_ARCH_AARCH64(CALL(asimd::fmrsub3));
             PTEST_SEPARATOR;
 
             CALL(native::fmmul3);
             IF_ARCH_X86(CALL(sse::fmmul3));
             IF_ARCH_X86(CALL(avx::x64_fmmul3));
             IF_ARCH_ARM(CALL(neon_d32::fmmul3));
+            IF_ARCH_AARCH64(CALL(asimd::fmmul3));
             PTEST_SEPARATOR;
 
             CALL(native::fmdiv3);
             IF_ARCH_X86(CALL(sse::fmdiv3));
             IF_ARCH_X86(CALL(avx::x64_fmdiv3));
             IF_ARCH_ARM(CALL(neon_d32::fmdiv3));
+            IF_ARCH_AARCH64(CALL(asimd::fmdiv3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrdiv3);
             IF_ARCH_X86(CALL(sse::fmrdiv3));
             IF_ARCH_X86(CALL(avx::x64_fmrdiv3));
             IF_ARCH_ARM(CALL(neon_d32::fmrdiv3));
+            IF_ARCH_AARCH64(CALL(asimd::fmrdiv3));
             PTEST_SEPARATOR2;
         }
 

@@ -61,6 +61,19 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void    fmadd3(float *dst, const float *a, const float *b, size_t count);
+        void    fmsub3(float *dst, const float *a, const float *b, size_t count);
+        void    fmrsub3(float *dst, const float *a, const float *b, size_t count);
+        void    fmmul3(float *dst, const float *a, const float *b, size_t count);
+        void    fmdiv3(float *dst, const float *a, const float *b, size_t count);
+        void    fmrdiv3(float *dst, const float *a, const float *b, size_t count);
+    }
+)
+
+
 typedef void (* fmop3_t)(float *dst, const float *a, const float *b, size_t count);
 
 UTEST_BEGIN("dsp.pmath", fmop3)
@@ -138,6 +151,13 @@ UTEST_BEGIN("dsp.pmath", fmop3)
         IF_ARCH_ARM(CALL(native::fmmul3, neon_d32::fmmul3, 16));
         IF_ARCH_ARM(CALL(native::fmdiv3, neon_d32::fmdiv3, 16));
         IF_ARCH_ARM(CALL(native::fmrdiv3, neon_d32::fmrdiv3, 16));
+
+        IF_ARCH_AARCH64(CALL(native::fmadd3, asimd::fmadd3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmsub3, asimd::fmsub3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmrsub3, asimd::fmrsub3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmmul3, asimd::fmmul3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmdiv3, asimd::fmdiv3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmrdiv3, asimd::fmrdiv3, 16));
     }
 UTEST_END
 
