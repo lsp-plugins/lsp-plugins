@@ -29,6 +29,7 @@
 #include <dsp/arch/native/pmath/op_vv.h>
 #include <dsp/arch/native/pmath/fmop_kx.h>
 #include <dsp/arch/native/pmath/fmop_vv.h>
+#include <dsp/arch/native/pmath/abs_vv.h>
 #include <dsp/arch/native/search.h>
 
 #include <dsp/arch/native/filters/static.h>
@@ -79,15 +80,20 @@ namespace native
 
         EXPORT1(abs1);
         EXPORT1(abs2);
+
         EXPORT1(abs_add2);
         EXPORT1(abs_sub2);
+        EXPORT1(abs_rsub2);
         EXPORT1(abs_mul2);
         EXPORT1(abs_div2);
+        EXPORT1(abs_rdiv2);
 
         EXPORT1(abs_add3);
         EXPORT1(abs_sub3);
+        EXPORT1(abs_rsub3);
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
+        EXPORT1(abs_rdiv3);
 
         EXPORT1(exp1);
         EXPORT1(exp2);

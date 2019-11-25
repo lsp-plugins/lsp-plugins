@@ -36,6 +36,7 @@
 #include <dsp/common/pmath/op_vv.h>
 #include <dsp/common/pmath/fmop_kx.h>
 #include <dsp/common/pmath/fmop_vv.h>
+#include <dsp/common/pmath/abs_vv.h>
 #include <dsp/common/hmath.h>
 #include <dsp/common/copy.h>
 #include <dsp/common/mix.h>

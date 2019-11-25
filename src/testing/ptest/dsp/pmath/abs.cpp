@@ -34,6 +34,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void abs1(float *src, size_t count);
+        void abs2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* abs1_t)(float *src, size_t count);
 typedef void (* abs2_t)(float *dst, const float *src, size_t count);
 
@@ -92,11 +100,13 @@ PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
             CALL("native::abs1", dst, count, native::abs1);
             IF_ARCH_X86(CALL("sse::abs1", dst, count, sse::abs1));
             IF_ARCH_ARM(CALL("neon_d32::abs1", dst, count, neon_d32::abs1));
+            IF_ARCH_AARCH64(CALL("asimd::abs1", dst, count, asimd::abs1));
             PTEST_SEPARATOR;
 
             CALL("native::abs2", dst, src, count, native::abs2);
             IF_ARCH_X86(CALL("sse::abs2", dst, src, count, sse::abs2));
             IF_ARCH_ARM(CALL("neon_d32::abs2", dst, src, count, neon_d32::abs2));
+            IF_ARCH_AARCH64(CALL("asimd::abs2", dst, src, count, asimd::abs2));
             PTEST_SEPARATOR;
         }
 

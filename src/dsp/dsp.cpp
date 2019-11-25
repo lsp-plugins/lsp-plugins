@@ -94,12 +94,16 @@ namespace dsp
     void    (* abs2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_add2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_sub2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* abs_rsub2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_mul2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_div2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* abs_rdiv2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* abs_sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* abs_rsub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* abs_mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* abs_div3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* abs_rdiv3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
 
     void    (* abs_normalized)(float *dst, const float *src, size_t count) = NULL;
     void    (* normalize)(float *dst, const float *src, size_t count) = NULL;

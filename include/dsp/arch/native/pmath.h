@@ -14,65 +14,6 @@
 
 namespace native
 {
-    void abs1(float *dst, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]      = fabs(dst[i]);
-    }
-
-    void abs2(float *dst, const float *src, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]      = fabs(src[i]);
-    }
-
-    void abs_add2(float *dst, const float *src, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]     += fabs(src[i]);
-    }
-
-    void abs_sub2(float *dst, const float *src, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]     -= fabs(src[i]);
-    }
-
-    void abs_mul2(float *dst, const float *src, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]     *= fabs(src[i]);
-    }
-
-    void abs_div2(float *dst, const float *src, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]     /= fabs(src[i]);
-    }
-
-    void abs_add3(float *dst, const float *src1, const float *src2, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]      = src1[i] + fabs(src2[i]);
-    }
-
-    void abs_sub3(float *dst, const float *src1, const float *src2, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]      = src1[i] - fabs(src2[i]);
-    }
-
-    void abs_mul3(float *dst, const float *src1, const float *src2, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]      = src1[i] * fabs(src2[i]);
-    }
-
-    void abs_div3(float *dst, const float *src1, const float *src2, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-            dst[i]      = src1[i] / fabs(src2[i]);
-    }
 
     void abs_normalized(float *dst, const float *src, size_t count)
     {

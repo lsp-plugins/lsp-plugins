@@ -31,6 +31,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void abs1(float *src, size_t count);
+        void abs2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* abs1_t)(float *src, size_t count);
 typedef void (* abs2_t)(float *dst, const float *src, size_t count);
 
@@ -38,9 +46,11 @@ typedef void (* abs2_t)(float *dst, const float *src, size_t count);
 // Unit test for complex multiplication
 UTEST_BEGIN("dsp.pmath", abs)
 
-    void call(const char *label, size_t align, abs1_t func)
+    void call(const char *label, size_t align, abs1_t func1, abs1_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -55,8 +65,8 @@ UTEST_BEGIN("dsp.pmath", abs)
                 FloatBuffer dst2(dst1);
 
                 // Call functions
-                native::abs1(dst1, count);
-                func(dst2, count);
+                func1(dst1, count);
+                func2(dst2, count);
 
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
@@ -72,9 +82,11 @@ UTEST_BEGIN("dsp.pmath", abs)
         }
     }
 
-    void call(const char *label, size_t align, abs2_t func)
+    void call(const char *label, size_t align, abs2_t func1, abs2_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -90,8 +102,8 @@ UTEST_BEGIN("dsp.pmath", abs)
                 src.randomize_sign();
 
                 // Call functions
-                native::abs2(dst1, src, count);
-                func(dst2, src, count);
+                func1(dst1, src, count);
+                func2(dst2, src, count);
 
                 UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
@@ -111,10 +123,17 @@ UTEST_BEGIN("dsp.pmath", abs)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::abs1", 16, sse::abs1));
-        IF_ARCH_X86(call("sse::abs2", 16, sse::abs2));
-        IF_ARCH_ARM(call("neon_d32::abs1", 16, neon_d32::abs1));
-        IF_ARCH_ARM(call("neon_d32::abs2", 16, neon_d32::abs2));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
+
+        IF_ARCH_X86(CALL(native::abs1, sse::abs1, 16));
+        IF_ARCH_X86(CALL(native::abs2, sse::abs2, 16));
+
+        IF_ARCH_ARM(CALL(native::abs1, neon_d32::abs1, 16));
+        IF_ARCH_ARM(CALL(native::abs2, neon_d32::abs2, 16));
+
+        IF_ARCH_AARCH64(CALL(native::abs1, asimd::abs1, 16));
+        IF_ARCH_AARCH64(CALL(native::abs2, asimd::abs2, 16));
     }
 UTEST_END
 
