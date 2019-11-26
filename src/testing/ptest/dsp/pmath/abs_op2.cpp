@@ -41,10 +41,10 @@ IF_ARCH_ARM(
     {
         void    abs_add2(float *dst, const float *src, size_t count);
         void    abs_sub2(float *dst, const float *src, size_t count);
-//        void    abs_rsub2(float *dst, const float *src, size_t count);
+        void    abs_rsub2(float *dst, const float *src, size_t count);
         void    abs_mul2(float *dst, const float *src, size_t count);
         void    abs_div2(float *dst, const float *src, size_t count);
-//        void    abs_rdiv2(float *dst, const float *src, size_t count);
+        void    abs_rdiv2(float *dst, const float *src, size_t count);
     }
 )
 

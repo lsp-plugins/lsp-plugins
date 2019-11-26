@@ -40,10 +40,10 @@ IF_ARCH_ARM(
     {
         void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
         void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_rsub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_rsub3(float *dst, const float *src1, const float *src2, size_t count);
         void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_rdiv3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_rdiv3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -114,26 +114,26 @@ UTEST_BEGIN("dsp.pmath", abs_op3)
         #define CALL(native, func, align) \
             call(#func, align, native, func);
 
-            IF_ARCH_X86(CALL(native::abs_add3, sse::abs_add3, 16));
-            IF_ARCH_X86(CALL(native::abs_sub3, sse::abs_sub3, 16));
+        IF_ARCH_X86(CALL(native::abs_add3, sse::abs_add3, 16));
+        IF_ARCH_X86(CALL(native::abs_sub3, sse::abs_sub3, 16));
 //        IF_ARCH_X86(CALL(native::abs_rsub3, sse::abs_rsub3, 16));
-            IF_ARCH_X86(CALL(native::abs_mul3, sse::abs_mul3, 16));
-            IF_ARCH_X86(CALL(native::abs_div3, sse::abs_div3, 16));
+        IF_ARCH_X86(CALL(native::abs_mul3, sse::abs_mul3, 16));
+        IF_ARCH_X86(CALL(native::abs_div3, sse::abs_div3, 16));
 //        IF_ARCH_X86(CALL(native::abs_rdiv3, sse::abs_rdiv3, 16));
 
-            IF_ARCH_ARM(CALL(native::abs_add3, neon_d33::abs_add3, 16));
-            IF_ARCH_ARM(CALL(native::abs_sub3, neon_d33::abs_sub3, 16));
-//        IF_ARCH_ARM(CALL(native::abs_rsub3, neon_d33::abs_rsub3, 16));
-            IF_ARCH_ARM(CALL(native::abs_mul3, neon_d33::abs_mul3, 16));
-            IF_ARCH_ARM(CALL(native::abs_div3, neon_d33::abs_div3, 16));
-//        IF_ARCH_ARM(CALL(native::abs_rdiv3, neon_d33::abs_rdiv3, 16));
+        IF_ARCH_ARM(CALL(native::abs_add3, neon_d32::abs_add3, 16));
+        IF_ARCH_ARM(CALL(native::abs_sub3, neon_d32::abs_sub3, 16));
+        IF_ARCH_ARM(CALL(native::abs_rsub3, neon_d32::abs_rsub3, 16));
+        IF_ARCH_ARM(CALL(native::abs_mul3, neon_d32::abs_mul3, 16));
+        IF_ARCH_ARM(CALL(native::abs_div3, neon_d32::abs_div3, 16));
+        IF_ARCH_ARM(CALL(native::abs_rdiv3, neon_d32::abs_rdiv3, 16));
 
-            IF_ARCH_AARCH64(CALL(native::abs_add3, asimd::abs_add3, 16));
-            IF_ARCH_AARCH64(CALL(native::abs_sub3, asimd::abs_sub3, 16));
-            IF_ARCH_AARCH64(CALL(native::abs_rsub3, asimd::abs_rsub3, 16));
-            IF_ARCH_AARCH64(CALL(native::abs_mul3, asimd::abs_mul3, 16));
-            IF_ARCH_AARCH64(CALL(native::abs_div3, asimd::abs_div3, 16));
-            IF_ARCH_AARCH64(CALL(native::abs_rdiv3, asimd::abs_rdiv3, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_add3, asimd::abs_add3, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_sub3, asimd::abs_sub3, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_rsub3, asimd::abs_rsub3, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_mul3, asimd::abs_mul3, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_div3, asimd::abs_div3, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_rdiv3, asimd::abs_rdiv3, 16));
     }
 UTEST_END
 
