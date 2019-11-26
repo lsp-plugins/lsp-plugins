@@ -30,10 +30,10 @@ IF_ARCH_X86(
     {
         void    abs_add2(float *dst, const float *src, size_t count);
         void    abs_sub2(float *dst, const float *src, size_t count);
-//        void    abs_rsub2(float *dst, const float *src, size_t count);
+        void    abs_rsub2(float *dst, const float *src, size_t count);
         void    abs_mul2(float *dst, const float *src, size_t count);
         void    abs_div2(float *dst, const float *src, size_t count);
-//        void    abs_rdiv2(float *dst, const float *src, size_t count);
+        void    abs_rdiv2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -119,10 +119,10 @@ UTEST_BEGIN("dsp.pmath", abs_op2)
 
         IF_ARCH_X86(CALL(native::abs_add2, sse::abs_add2, 16));
         IF_ARCH_X86(CALL(native::abs_sub2, sse::abs_sub2, 16));
-//        IF_ARCH_X86(CALL(native::abs_rsub2, sse::abs_rsub2, 16));
+        IF_ARCH_X86(CALL(native::abs_rsub2, sse::abs_rsub2, 16));
         IF_ARCH_X86(CALL(native::abs_mul2, sse::abs_mul2, 16));
         IF_ARCH_X86(CALL(native::abs_div2, sse::abs_div2, 16));
-//        IF_ARCH_X86(CALL(native::abs_rdiv2, sse::abs_rdiv2, 16));
+        IF_ARCH_X86(CALL(native::abs_rdiv2, sse::abs_rdiv2, 16));
 
         IF_ARCH_ARM(CALL(native::abs_add2, neon_d32::abs_add2, 16));
         IF_ARCH_ARM(CALL(native::abs_sub2, neon_d32::abs_sub2, 16));

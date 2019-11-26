@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE_ABS_H_
-#define DSP_ARCH_X86_SSE_ABS_H_
+#ifndef DSP_ARCH_X86_SSE_PMATH_ABS_VV_H_
+#define DSP_ARCH_X86_SSE_PMATH_ABS_VV_H_
 
 #ifndef DSP_ARCH_X86_SSE_IMPL
     #error "This header should not be included directly"
@@ -14,6 +14,9 @@
 
 namespace sse
 {
+    #define OP_DSEL(a, b)   a
+    #define OP_RSEL(a, b)   b
+
 #define ABS_CORE(DST, SRC)  \
     __ASM_EMIT("xor         %[off], %[off]") \
     __ASM_EMIT("movaps      %[X_SIGN], %%xmm0") \
@@ -125,7 +128,7 @@ namespace sse
 
 #undef ABS_CORE
 
-#define ABS_OP2_CORE(OP, DST, SRC1, SRC2)  \
+#define ABS_OP2_CORE(OP, DST, SRC1, SRC2, SEL)  \
     __ASM_EMIT("xor         %[off], %[off]") \
     __ASM_EMIT("movaps      %[X_SIGN], %%xmm0") \
     __ASM_EMIT("sub         $12, %[count]") \
@@ -133,15 +136,15 @@ namespace sse
     __ASM_EMIT("jb          2f")    \
     /* 12x blocks */ \
     __ASM_EMIT("1:") \
-    __ASM_EMIT("movups      0x00(%[" SRC2 "], %[off]), %%xmm2") \
-    __ASM_EMIT("movups      0x10(%[" SRC2 "], %[off]), %%xmm3") \
-    __ASM_EMIT("movups      0x20(%[" SRC2 "], %[off]), %%xmm4") \
-    __ASM_EMIT("movups      0x00(%[" SRC1 "], %[off]), %%xmm5") \
-    __ASM_EMIT("movups      0x10(%[" SRC1 "], %[off]), %%xmm6") \
-    __ASM_EMIT("movups      0x20(%[" SRC1 "], %[off]), %%xmm7") \
-    __ASM_EMIT("andps       %%xmm0, %%xmm2") \
-    __ASM_EMIT("andps       %%xmm1, %%xmm3") \
-    __ASM_EMIT("andps       %%xmm0, %%xmm4") \
+    __ASM_EMIT("movups      0x00(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm2") \
+    __ASM_EMIT("movups      0x10(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm3") \
+    __ASM_EMIT("movups      0x20(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm4") \
+    __ASM_EMIT("movups      0x00(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm5") \
+    __ASM_EMIT("movups      0x10(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm6") \
+    __ASM_EMIT("movups      0x20(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm7") \
+    __ASM_EMIT("andps       %%xmm0, " SEL("%%xmm2", "%%xmm5")) \
+    __ASM_EMIT("andps       %%xmm1, " SEL("%%xmm3", "%%xmm6")) \
+    __ASM_EMIT("andps       %%xmm0, " SEL("%%xmm4", "%%xmm7")) \
     __ASM_EMIT(OP "ps       %%xmm2, %%xmm5") \
     __ASM_EMIT(OP "ps       %%xmm3, %%xmm6") \
     __ASM_EMIT(OP "ps       %%xmm4, %%xmm7") \
@@ -155,12 +158,12 @@ namespace sse
     __ASM_EMIT("2:") \
     __ASM_EMIT("add         $4, %[count]") \
     __ASM_EMIT("jl          4f") \
-    __ASM_EMIT("movups      0x00(%[" SRC2 "], %[off]), %%xmm2") \
-    __ASM_EMIT("movups      0x10(%[" SRC2 "], %[off]), %%xmm3") \
-    __ASM_EMIT("movups      0x00(%[" SRC1 "], %[off]), %%xmm4") \
-    __ASM_EMIT("movups      0x10(%[" SRC1 "], %[off]), %%xmm5") \
-    __ASM_EMIT("andps       %%xmm0, %%xmm2") \
-    __ASM_EMIT("andps       %%xmm1, %%xmm3") \
+    __ASM_EMIT("movups      0x00(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm2") \
+    __ASM_EMIT("movups      0x10(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm3") \
+    __ASM_EMIT("movups      0x00(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm4") \
+    __ASM_EMIT("movups      0x10(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm5") \
+    __ASM_EMIT("andps       %%xmm0, " SEL("%%xmm2", "%%xmm4")) \
+    __ASM_EMIT("andps       %%xmm1, " SEL("%%xmm3", "%%xmm5")) \
     __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
     __ASM_EMIT(OP "ps       %%xmm3, %%xmm5") \
     __ASM_EMIT("movups      %%xmm4, 0x00(%[" DST "], %[off])") \
@@ -171,9 +174,9 @@ namespace sse
     __ASM_EMIT("4:") \
     __ASM_EMIT("add         $4, %[count]") \
     __ASM_EMIT("jl          6f") \
-    __ASM_EMIT("movups      0x00(%[" SRC2 "], %[off]), %%xmm2") \
-    __ASM_EMIT("movups      0x00(%[" SRC1 "], %[off]), %%xmm4") \
-    __ASM_EMIT("andps       %%xmm0, %%xmm2") \
+    __ASM_EMIT("movups      0x00(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm2") \
+    __ASM_EMIT("movups      0x00(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm4") \
+    __ASM_EMIT("andps       %%xmm0, " SEL("%%xmm2", "%%xmm4")) \
     __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
     __ASM_EMIT("movups      %%xmm4, 0x00(%[" DST "], %[off])") \
     __ASM_EMIT("sub         $4, %[count]") \
@@ -183,9 +186,9 @@ namespace sse
     __ASM_EMIT("add         $3, %[count]") \
     __ASM_EMIT("jl          8f") \
     __ASM_EMIT("7:") \
-    __ASM_EMIT("movss       0x00(%[" SRC2 "], %[off]), %%xmm2") \
-    __ASM_EMIT("movss       0x00(%[" SRC1 "], %[off]), %%xmm4") \
-    __ASM_EMIT("andps       %%xmm0, %%xmm2") \
+    __ASM_EMIT("movss       0x00(%[" SEL(SRC2, SRC1) "], %[off]), %%xmm2") \
+    __ASM_EMIT("movss       0x00(%[" SEL(SRC1, SRC2) "], %[off]), %%xmm4") \
+    __ASM_EMIT("andps       %%xmm0, " SEL("%%xmm2", "%%xmm4")) \
     __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
     __ASM_EMIT("movss       %%xmm4, 0x00(%[" DST "], %[off])") \
     __ASM_EMIT("add         $0x04, %[off]") \
@@ -198,7 +201,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("add", "dst", "dst", "src")
+            ABS_OP2_CORE("add", "dst", "dst", "src", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src] "r" (src),
               [X_SIGN] "m" (X_SIGN)
@@ -212,7 +215,21 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("sub", "dst", "dst", "src")
+            ABS_OP2_CORE("sub", "dst", "dst", "src", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [X_SIGN] "m" (X_SIGN)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void abs_rsub2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            ABS_OP2_CORE("sub", "dst", "dst", "src", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src] "r" (src),
               [X_SIGN] "m" (X_SIGN)
@@ -226,7 +243,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("mul", "dst", "dst", "src")
+            ABS_OP2_CORE("mul", "dst", "dst", "src", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src] "r" (src),
               [X_SIGN] "m" (X_SIGN)
@@ -240,7 +257,21 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("div", "dst", "dst", "src")
+            ABS_OP2_CORE("div", "dst", "dst", "src", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [X_SIGN] "m" (X_SIGN)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void abs_rdiv2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            ABS_OP2_CORE("div", "dst", "dst", "src", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src] "r" (src),
               [X_SIGN] "m" (X_SIGN)
@@ -254,7 +285,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("add", "dst", "src1", "src2")
+            ABS_OP2_CORE("add", "dst", "src1", "src2", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2),
               [X_SIGN] "m" (X_SIGN)
@@ -268,7 +299,21 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("sub", "dst", "src1", "src2")
+            ABS_OP2_CORE("sub", "dst", "src1", "src2", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2),
+              [X_SIGN] "m" (X_SIGN)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void abs_rsub3(float *dst, const float *src1, const float *src2, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            ABS_OP2_CORE("sub", "dst", "src1", "src2", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2),
               [X_SIGN] "m" (X_SIGN)
@@ -282,7 +327,7 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("mul", "dst", "src1", "src2")
+            ABS_OP2_CORE("mul", "dst", "src1", "src2", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2),
               [X_SIGN] "m" (X_SIGN)
@@ -296,7 +341,21 @@ namespace sse
         IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
-            ABS_OP2_CORE("div", "dst", "src1", "src2")
+            ABS_OP2_CORE("div", "dst", "src1", "src2", OP_DSEL)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2),
+              [X_SIGN] "m" (X_SIGN)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void abs_rdiv3(float *dst, const float *src1, const float *src2, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            ABS_OP2_CORE("div", "dst", "src1", "src2", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
             : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2),
               [X_SIGN] "m" (X_SIGN)
@@ -306,6 +365,9 @@ namespace sse
     }
 
 #undef ABS_OP2_CORE
+
+#undef OP_DSEL
+#undef OP_RSEL
 }
 
-#endif /* DSP_ARCH_X86_SSE_ABS_H_ */
+#endif /* DSP_ARCH_X86_SSE_PMATH_ABS_VV_H_ */

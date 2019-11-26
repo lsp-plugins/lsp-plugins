@@ -28,10 +28,10 @@ IF_ARCH_X86(
     {
         void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
         void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_rsub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_rsub3(float *dst, const float *src1, const float *src2, size_t count);
         void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_rdiv3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_rdiv3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -110,7 +110,7 @@ PTEST_BEGIN("dsp.pmath", abs_op3, 5, 1000)
             PTEST_SEPARATOR;
 
             CALL(native::abs_rsub3);
-//            IF_ARCH_X86(CALL(sse::abs_rsub3));
+            IF_ARCH_X86(CALL(sse::abs_rsub3));
             IF_ARCH_ARM(CALL(neon_d32::abs_rsub3));
             IF_ARCH_AARCH64(CALL(asimd::abs_rsub3));
             PTEST_SEPARATOR;
@@ -128,7 +128,7 @@ PTEST_BEGIN("dsp.pmath", abs_op3, 5, 1000)
             PTEST_SEPARATOR;
 
             CALL(native::abs_rdiv3);
-//            IF_ARCH_X86(CALL(sse::abs_rdiv3));
+            IF_ARCH_X86(CALL(sse::abs_rdiv3));
             IF_ARCH_ARM(CALL(neon_d32::abs_rdiv3));
             IF_ARCH_AARCH64(CALL(asimd::abs_rdiv3));
             PTEST_SEPARATOR2;

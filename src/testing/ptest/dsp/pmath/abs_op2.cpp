@@ -29,10 +29,10 @@ IF_ARCH_X86(
     {
         void    abs_add2(float *dst, const float *src, size_t count);
         void    abs_sub2(float *dst, const float *src, size_t count);
-//        void    abs_rsub2(float *dst, const float *src, size_t count);
+        void    abs_rsub2(float *dst, const float *src, size_t count);
         void    abs_mul2(float *dst, const float *src, size_t count);
         void    abs_div2(float *dst, const float *src, size_t count);
-//        void    abs_rdiv2(float *dst, const float *src, size_t count);
+        void    abs_rdiv2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -111,7 +111,7 @@ PTEST_BEGIN("dsp.pmath", abs_op2, 5, 1000)
             PTEST_SEPARATOR;
 
             CALL(native::abs_rsub2);
-//            IF_ARCH_X86(CALL(sse::abs_rsub2));
+            IF_ARCH_X86(CALL(sse::abs_rsub2));
             IF_ARCH_ARM(CALL(neon_d32::abs_rsub2));
             IF_ARCH_AARCH64(CALL(asimd::abs_rsub2));
             PTEST_SEPARATOR;
@@ -129,7 +129,7 @@ PTEST_BEGIN("dsp.pmath", abs_op2, 5, 1000)
             PTEST_SEPARATOR;
 
             CALL(native::abs_rdiv2);
-//            IF_ARCH_X86(CALL(sse::abs_rdiv2));
+            IF_ARCH_X86(CALL(sse::abs_rdiv2));
             IF_ARCH_ARM(CALL(neon_d32::abs_rdiv2));
             IF_ARCH_AARCH64(CALL(asimd::abs_rdiv2));
             PTEST_SEPARATOR2;

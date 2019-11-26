@@ -107,7 +107,7 @@ PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
             IF_ARCH_X86(CALL("sse::abs2", dst, src, count, sse::abs2));
             IF_ARCH_ARM(CALL("neon_d32::abs2", dst, src, count, neon_d32::abs2));
             IF_ARCH_AARCH64(CALL("asimd::abs2", dst, src, count, asimd::abs2));
-            PTEST_SEPARATOR;
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);
