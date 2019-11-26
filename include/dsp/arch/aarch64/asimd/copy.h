@@ -18,6 +18,8 @@ namespace asimd
     {
         ARCH_AARCH64_ASM
         (
+            __ASM_EMIT("cmp         %[dst], %[src]")
+            __ASM_EMIT("b.eq        2000f")
             __ASM_EMIT("subs        %[count], %[count], #16")
             __ASM_EMIT("b.lt        8f")
 
@@ -468,6 +470,181 @@ namespace asimd
             : [dst] "+r" (dst), [src] "=&r" (src),
               [count] "+r" (count)
             :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
+        );
+    }
+
+#define FILL_CORE(DST) \
+    __ASM_EMIT("subs        %[count], %[count], #16") \
+    __ASM_EMIT("b.lt        8f") \
+    __ASM_EMIT("mov         v2.16b, v0.16b") \
+    __ASM_EMIT("mov         v3.16b, v1.16b") \
+    __ASM_EMIT("mov         v4.16b, v0.16b") \
+    __ASM_EMIT("mov         v5.16b, v1.16b") \
+    __ASM_EMIT("mov         v6.16b, v2.16b") \
+    __ASM_EMIT("mov         v7.16b, v3.16b") \
+    \
+    /* 128x block */ \
+    __ASM_EMIT("subs        %[count], %[count], #112") \
+    __ASM_EMIT("b.lt        2f") \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x000]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x020]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x040]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x060]") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x080]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x0a0]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x0c0]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x0e0]") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x100]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x120]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x140]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x160]") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x180]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x1a0]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x1c0]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x1e0]") \
+    \
+    __ASM_EMIT("subs        %[count], %[count], #128") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x200") \
+    __ASM_EMIT("b.hs         1b") \
+    \
+    /* 64x block */ \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("adds        %[count], %[count], 64") /* 128 - 64 */ \
+    __ASM_EMIT("b.lt        4f") \
+    \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x000]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x020]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x040]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x060]") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x080]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x0a0]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x0c0]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x0e0]") \
+    \
+    __ASM_EMIT("sub         %[count], %[count], #64") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x100") \
+    \
+    /* 32x block */ \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("adds        %[count], %[count], 32") /* 64-32 */ \
+    __ASM_EMIT("b.lt        6f") \
+    \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x000]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x020]") \
+    __ASM_EMIT("stp         q4, q5, [%[" DST "], #0x040]") \
+    __ASM_EMIT("stp         q6, q7, [%[" DST "], #0x060]") \
+    \
+    __ASM_EMIT("sub         %[count], %[count], #32") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x080") \
+    \
+    /* 16x block */ \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("adds        %[count], %[count], #16") /* 32-16 */ \
+    __ASM_EMIT("b.lt        8f") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x000]") \
+    __ASM_EMIT("stp         q2, q3, [%[" DST "], #0x020]") \
+    __ASM_EMIT("sub         %[count], %[count], #16") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x040") \
+    \
+    /* 8x block */ \
+    __ASM_EMIT("8:") \
+    __ASM_EMIT("adds        %[count], %[count], #8") /* 16-8 */ \
+    __ASM_EMIT("b.lt        10f") \
+    __ASM_EMIT("stp         q0, q1, [%[" DST "], #0x000]") \
+    __ASM_EMIT("sub         %[count], %[count], #8") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x020") \
+    \
+    /* 4x block */ \
+    __ASM_EMIT("10:") \
+    __ASM_EMIT("adds        %[count], %[count], #4") /* 8-4 */ \
+    __ASM_EMIT("b.lt        12f") \
+    __ASM_EMIT("str         q0, [%[" DST "], #0x000]") \
+    __ASM_EMIT("sub         %[count], %[count], #4") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x010") \
+    \
+    /* 1x blocks */ \
+    __ASM_EMIT("12:") \
+    __ASM_EMIT("adds        %[count], %[count], #3") /* 4-1 */ \
+    __ASM_EMIT("b.lt        14f") \
+    __ASM_EMIT("13:") \
+    __ASM_EMIT("st1         {v0.s}[0], [%[" DST "]]") \
+    __ASM_EMIT("subs        %[count], %[count], #1") \
+    __ASM_EMIT("add         %[" DST "], %[" DST "], #0x004") \
+    __ASM_EMIT("b.ge        13b") \
+    \
+    /* End of copy */ \
+    __ASM_EMIT("14:")
+
+    void fill(float *dst, float k, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ld1r        {v0.4s}, [%[k]]")
+            __ASM_EMIT("mov         v1.16b, v0.16b") \
+            FILL_CORE("dst")
+            : [dst] "+r"(dst),
+              [count] "+r" (count)
+            : [k] "r" (&k)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
+        );
+    }
+
+    void fill_zero(float *dst, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("eor         v0.16b, v0.16b, v0.16b")
+            __ASM_EMIT("eor         v1.16b, v1.16b, v1.16b")
+            FILL_CORE("dst")
+            : [dst] "+r"(dst),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
+        );
+    }
+
+    IF_ARCH_AARCH64(
+        static const float fill_one_data[] __lsp_aligned16 =
+        {
+            1.0f, 1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f, 1.0f
+        };
+
+        static const float fill_minus_one_data[] __lsp_aligned16 =
+        {
+            -1.0f, -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f, -1.0f
+        };
+    )
+
+    void fill_one(float *dst, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ldp         q0, q1, [%[DATA]]")
+            FILL_CORE("dst")
+            : [dst] "+r"(dst),
+              [count] "+r" (count)
+            : [DATA] "r" (fill_one_data)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
+        );
+    }
+
+    void fill_minus_one(float *dst, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ldp         q0, q1, [%[DATA]]")
+            FILL_CORE("dst")
+            : [dst] "+r"(dst),
+              [count] "+r" (count)
+            : [DATA] "r" (fill_minus_one_data)
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
         );

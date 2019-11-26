@@ -70,6 +70,10 @@ namespace asimd
         lsp_trace("Optimizing DSP for ASIMD instruction set");
         EXPORT1(copy);
         EXPORT1(move);
+        EXPORT1(fill);
+        EXPORT1(fill_zero);
+        EXPORT1(fill_one);
+        EXPORT1(fill_minus_one);
 
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
