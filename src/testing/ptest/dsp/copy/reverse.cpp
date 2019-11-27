@@ -33,6 +33,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void reverse1(float *dst, size_t count);
+        void reverse2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_AARCH64(
     namespace asimd
     {
@@ -101,12 +109,14 @@ PTEST_BEGIN("dsp.copy", reverse, 5, 5000)
             CALL1(native::reverse1);
             IF_ARCH_X86(CALL1(sse::reverse1));
             IF_ARCH_X86(CALL1(avx::reverse1));
+            IF_ARCH_ARM(CALL1(neon_d32::reverse1));
             IF_ARCH_AARCH64(CALL1(asimd::reverse1));
             PTEST_SEPARATOR;
 
             CALL2(native::reverse2);
             IF_ARCH_X86(CALL2(sse::reverse2));
             IF_ARCH_X86(CALL2(avx::reverse2));
+            IF_ARCH_ARM(CALL2(neon_d32::reverse2));
             IF_ARCH_AARCH64(CALL2(asimd::reverse2));
             PTEST_SEPARATOR2;
         }

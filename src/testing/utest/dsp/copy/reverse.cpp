@@ -29,6 +29,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void reverse1(float *dst, size_t count);
+        void reverse2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_AARCH64(
     namespace asimd
     {
@@ -117,6 +125,9 @@ UTEST_BEGIN("dsp.copy", reverse)
         IF_ARCH_X86(CALL(native::reverse2, sse::reverse2, 16));
         IF_ARCH_X86(CALL(native::reverse1, avx::reverse1, 32));
         IF_ARCH_X86(CALL(native::reverse2, avx::reverse2, 32));
+
+        IF_ARCH_ARM(CALL(native::reverse1, neon_d32::reverse1, 16));
+        IF_ARCH_ARM(CALL(native::reverse2, neon_d32::reverse2, 16));
 
         IF_ARCH_AARCH64(CALL(native::reverse1, asimd::reverse1, 16));
         IF_ARCH_AARCH64(CALL(native::reverse2, asimd::reverse2, 16));

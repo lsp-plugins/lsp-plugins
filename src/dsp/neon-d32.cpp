@@ -96,6 +96,8 @@ namespace neon_d32
         EXPORT1(fill_zero);
         EXPORT1(fill_one);
         EXPORT1(fill_minus_one);
+        EXPORT1(reverse1);
+        EXPORT1(reverse2);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
