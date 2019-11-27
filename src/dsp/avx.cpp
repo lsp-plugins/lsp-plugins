@@ -66,6 +66,9 @@ namespace avx
         // Not tested on AMD Processors above Bulldozer family
         bool favx   = feature_check(f, FEAT_FAST_AVX);
 
+        CEXPORT2_X64(favx, reverse1, reverse1);
+        CEXPORT2_X64(favx, reverse2, reverse2);
+
         // Conditional export, depending on fast AVX implementation
         CEXPORT2_X64(favx, fmadd_k3, x64_fmadd_k3);
         CEXPORT2_X64(favx, fmsub_k3, x64_fmsub_k3);
