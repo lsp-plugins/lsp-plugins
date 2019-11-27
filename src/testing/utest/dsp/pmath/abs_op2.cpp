@@ -37,6 +37,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx
+    {
+        void    x64_abs_add2(float *dst, const float *src, size_t count);
+        void    x64_abs_sub2(float *dst, const float *src, size_t count);
+        void    x64_abs_rsub2(float *dst, const float *src, size_t count);
+        void    x64_abs_mul2(float *dst, const float *src, size_t count);
+        void    x64_abs_div2(float *dst, const float *src, size_t count);
+        void    x64_abs_rdiv2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -123,6 +135,13 @@ UTEST_BEGIN("dsp.pmath", abs_op2)
         IF_ARCH_X86(CALL(native::abs_mul2, sse::abs_mul2, 16));
         IF_ARCH_X86(CALL(native::abs_div2, sse::abs_div2, 16));
         IF_ARCH_X86(CALL(native::abs_rdiv2, sse::abs_rdiv2, 16));
+
+        IF_ARCH_X86_64(CALL(native::abs_add2, avx::x64_abs_add2, 32));
+        IF_ARCH_X86_64(CALL(native::abs_sub2, avx::x64_abs_sub2, 32));
+        IF_ARCH_X86_64(CALL(native::abs_rsub2, avx::x64_abs_rsub2, 32));
+        IF_ARCH_X86_64(CALL(native::abs_mul2, avx::x64_abs_mul2, 32));
+        IF_ARCH_X86_64(CALL(native::abs_div2, avx::x64_abs_div2, 32));
+        IF_ARCH_X86_64(CALL(native::abs_rdiv2, avx::x64_abs_rdiv2, 32));
 
         IF_ARCH_ARM(CALL(native::abs_add2, neon_d32::abs_add2, 16));
         IF_ARCH_ARM(CALL(native::abs_sub2, neon_d32::abs_sub2, 16));

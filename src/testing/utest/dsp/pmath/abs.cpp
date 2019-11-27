@@ -23,6 +23,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx
+    {
+        void x64_abs1(float *src, size_t count);
+        void x64_abs2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -128,6 +136,9 @@ UTEST_BEGIN("dsp.pmath", abs)
 
         IF_ARCH_X86(CALL(native::abs1, sse::abs1, 16));
         IF_ARCH_X86(CALL(native::abs2, sse::abs2, 16));
+
+        IF_ARCH_X86_64(CALL(native::abs1, avx::x64_abs1, 16));
+        IF_ARCH_X86_64(CALL(native::abs2, avx::x64_abs2, 16));
 
         IF_ARCH_ARM(CALL(native::abs1, neon_d32::abs1, 16));
         IF_ARCH_ARM(CALL(native::abs2, neon_d32::abs2, 16));

@@ -36,6 +36,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx
+    {
+        void    x64_abs_add2(float *dst, const float *src, size_t count);
+        void    x64_abs_sub2(float *dst, const float *src, size_t count);
+        void    x64_abs_rsub2(float *dst, const float *src, size_t count);
+        void    x64_abs_mul2(float *dst, const float *src, size_t count);
+        void    x64_abs_div2(float *dst, const float *src, size_t count);
+        void    x64_abs_rdiv2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -100,36 +112,42 @@ PTEST_BEGIN("dsp.pmath", abs_op2, 5, 1000)
 
             CALL(native::abs_add2);
             IF_ARCH_X86(CALL(sse::abs_add2));
+            IF_ARCH_X86_64(CALL(avx::x64_abs_add2));
             IF_ARCH_ARM(CALL(neon_d32::abs_add2));
             IF_ARCH_AARCH64(CALL(asimd::abs_add2));
             PTEST_SEPARATOR;
 
             CALL(native::abs_sub2);
             IF_ARCH_X86(CALL(sse::abs_sub2));
+            IF_ARCH_X86_64(CALL(avx::x64_abs_sub2));
             IF_ARCH_ARM(CALL(neon_d32::abs_sub2));
             IF_ARCH_AARCH64(CALL(asimd::abs_sub2));
             PTEST_SEPARATOR;
 
             CALL(native::abs_rsub2);
             IF_ARCH_X86(CALL(sse::abs_rsub2));
+            IF_ARCH_X86_64(CALL(avx::x64_abs_rsub2));
             IF_ARCH_ARM(CALL(neon_d32::abs_rsub2));
             IF_ARCH_AARCH64(CALL(asimd::abs_rsub2));
             PTEST_SEPARATOR;
 
             CALL(native::abs_mul2);
             IF_ARCH_X86(CALL(sse::abs_mul2));
+            IF_ARCH_X86_64(CALL(avx::x64_abs_mul2));
             IF_ARCH_ARM(CALL(neon_d32::abs_mul2));
             IF_ARCH_AARCH64(CALL(asimd::abs_mul2));
             PTEST_SEPARATOR;
 
             CALL(native::abs_div2);
             IF_ARCH_X86(CALL(sse::abs_div2));
+            IF_ARCH_X86_64(CALL(avx::x64_abs_div2));
             IF_ARCH_ARM(CALL(neon_d32::abs_div2));
             IF_ARCH_AARCH64(CALL(asimd::abs_div2));
             PTEST_SEPARATOR;
 
             CALL(native::abs_rdiv2);
             IF_ARCH_X86(CALL(sse::abs_rdiv2));
+            IF_ARCH_X86_64(CALL(avx::x64_abs_rdiv2));
             IF_ARCH_ARM(CALL(neon_d32::abs_rdiv2));
             IF_ARCH_AARCH64(CALL(asimd::abs_rdiv2));
             PTEST_SEPARATOR2;
