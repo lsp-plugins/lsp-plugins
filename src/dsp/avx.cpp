@@ -195,8 +195,8 @@ namespace avx
             CEXPORT2_X64(favx, pcomplex_mul3, x64_pcomplex_mul3_fma3)
 
             // Non-conditional export
-            EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8_fma3);
-            EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8_fma3);
+            EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
+            EXPORT2_X64(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
         }
     }
 

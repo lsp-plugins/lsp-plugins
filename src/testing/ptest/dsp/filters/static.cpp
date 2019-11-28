@@ -37,7 +37,7 @@ IF_ARCH_X86(
         namespace avx
         {
             void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
-            void x64_biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+            void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
         }
     )
 )
@@ -56,7 +56,7 @@ typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, bi
 
 //-----------------------------------------------------------------------------
 // Performance test for static biquad processing
-PTEST_BEGIN("dsp.filters", static, 30, 10000)
+PTEST_BEGIN("dsp.filters", static, 10, 1000)
 
     void process_8x1(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
     {
@@ -228,7 +228,7 @@ PTEST_BEGIN("dsp.filters", static, 30, 10000)
         IF_ARCH_X86(process_1x8("sse::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse::biquad_process_x8));
         IF_ARCH_X86_64(process_1x8("sse3::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x8));
         IF_ARCH_X86_64(process_1x8("avx::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("avx::x64_biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8_fma3));
+        IF_ARCH_X86_64(process_1x8("avx::biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::biquad_process_x8_fma3));
         IF_ARCH_ARM(process_1x8("neon_d32::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x8));
         PTEST_SEPARATOR;
 

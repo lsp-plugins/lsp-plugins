@@ -122,10 +122,8 @@ namespace avx
     // This function is tested, works and delivers high performance
     void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
     {
-    #ifdef ARCH_X86_64_AVX
-        size_t mask;
-
-        ARCH_X86_ASM
+        IF_ARCH_X86_64(size_t mask);
+        ARCH_X86_64_ASM
         (
             // Check count
             __ASM_EMIT("test            %[count], %[count]")
@@ -162,8 +160,7 @@ namespace avx
 
             // Rotate buffer, AVX has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm1, %%ymm0, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm1, %%ymm1, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
 
             // Repeat loop
@@ -171,8 +168,7 @@ namespace avx
             __ASM_EMIT("jz              4f")                                            // jump to completion
             __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                    // mask     = (mask << 1) | 1
             __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm8, %%xmm3")                         // ymm3     =  m[7]  m[4]  m[5]  m[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm3, %%ymm3")                 // ymm3     =  m[7]  m[4]  m[5]  m[6]  m[3]  m[0]  m[1]  m[2]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm8, %%ymm8, %%ymm3")                 // ymm3     =  m[7]  m[4]  m[5]  m[6]  m[3]  m[0]  m[1]  m[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm3, %%ymm8, %%ymm8")                 // ymm8     =  m[7]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("vorps           %[X_MASK], %%ymm8, %%ymm8")                     // ymm8     =  m[0]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("cmp             $0xff, %[mask]")
@@ -196,8 +192,7 @@ namespace avx
 
             // Rotate buffer, AVX2 has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm1, %%ymm0, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm1, %%ymm1, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
             __ASM_EMIT("vmovss          %%xmm1, (%[dst])")                              // *dst     = s2[7]
 
@@ -210,7 +205,6 @@ namespace avx
             __ASM_EMIT("4:")
             __ASM_EMIT("vxorps          %%ymm2, %%ymm2, %%ymm2")                        // ymm2     =  0
             __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm8, %%xmm9")                         // ymm9     =  m[7]  m[4]  m[5]  m[6] ? ? ? ?
             __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm2, %%ymm8, %%ymm8")                 // ymm8     =  0     m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("shl             $1, %[mask]")                                   // mask     = mask << 1
@@ -235,11 +229,10 @@ namespace avx
             // Rotate buffer and mask, AVX2 has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
             __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?
-            __ASM_EMIT("vxorps          %%ymm2, %%ymm2, %%ymm2")                        // ymm2     = 0
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm1, %%ymm0, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm1, %%ymm1, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vxorps          %%ymm2, %%ymm2, %%ymm2")                        // ymm2     =  0
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
+            __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm2, %%ymm8, %%ymm8")                 // ymm1     =  0     m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("test            $0x80, %[mask]")
             __ASM_EMIT("jz              6f")
@@ -264,17 +257,16 @@ namespace avx
               [f] "r" (f),
               [X_MASK] "m" (X_MASK0001)
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+              "%xmm8"
         );
-    #endif /* ARCH_X86_64_AVX */
     }
 
     // This function is FMA3 implementation of biquad_process_x8
-    void x64_biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f)
+    void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f)
     {
-    #ifdef ARCH_X86_64_AVX
-        size_t mask;
-
+        IF_ARCH_X86(size_t mask);
         ARCH_X86_ASM
         (
             // Check count
@@ -282,9 +274,9 @@ namespace avx
             __ASM_EMIT("jz              8f")
 
             // Initialize mask
-            // ymm0=tmp, ymm1={s,s2[8]}, ymm2=p1[8], ymm3=p2[8], ymm6=d0[8], ymm7=d1[8], ymm8=mask[8]
+            // ymm0=tmp, ymm1={s,s2[8]}, ymm2=p1[8], ymm3=p2[8], ymm6=d0[8], ymm7=d1[8], ymm5=mask[8]
             __ASM_EMIT("mov             $1, %[mask]")
-            __ASM_EMIT("vmovaps         %[X_MASK], %%ymm8")                             // ymm8     = m
+            __ASM_EMIT("vmovaps         %[X_MASK], %%ymm5")                             // ymm5     = m
             __ASM_EMIT("vxorps          %%ymm1, %%ymm1, %%ymm1")                        // ymm1     = 0
 
             // Load delay buffer
@@ -304,24 +296,22 @@ namespace avx
             __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
             // Update delay only by mask
-            __ASM_EMIT("vblendvps       %%ymm8, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
-            __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm5, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm5, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer, AVX has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm1, %%ymm0, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm1, %%ymm1, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
 
             // Repeat loop
             __ASM_EMIT("dec             %[count]")
             __ASM_EMIT("jz              4f")                                            // jump to completion
             __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                    // mask     = (mask << 1) | 1
-            __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm8, %%xmm3")                         // ymm3     =  m[7]  m[4]  m[5]  m[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm3, %%ymm3")                 // ymm3     =  m[7]  m[4]  m[5]  m[6]  m[3]  m[0]  m[1]  m[2]
-            __ASM_EMIT("vblendps        $0x11, %%ymm3, %%ymm8, %%ymm8")                 // ymm8     =  m[7]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vorps           %[X_MASK], %%ymm8, %%ymm8")                     // ymm8     =  m[0]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vpermilps       $0x93, %%ymm5, %%ymm5")                         // ymm5     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm5, %%ymm5, %%ymm3")                 // ymm3     =  m[7]  m[4]  m[5]  m[6]  m[3]  m[0]  m[1]  m[2]
+            __ASM_EMIT("vblendps        $0x11, %%ymm3, %%ymm5, %%ymm5")                 // ymm5     =  m[7]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vorps           %[X_MASK], %%ymm5, %%ymm5")                     // ymm5     =  m[0]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("cmp             $0xff, %[mask]")
             __ASM_EMIT("jne             1b")
 
@@ -341,8 +331,7 @@ namespace avx
 
             // Rotate buffer, AVX2 has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm1, %%ymm0, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm1, %%ymm1, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
             __ASM_EMIT("vmovss          %%xmm1, (%[dst])")                              // *dst     = s2[7]
 
@@ -354,10 +343,9 @@ namespace avx
             // Prepare last loop, shift mask
             __ASM_EMIT("4:")
             __ASM_EMIT("vxorps          %%ymm2, %%ymm2, %%ymm2")                        // ymm2     =  0
-            __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm8, %%xmm9")                         // ymm9     =  m[7]  m[4]  m[5]  m[6] ? ? ? ?
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
-            __ASM_EMIT("vblendps        $0x11, %%ymm2, %%ymm8, %%ymm8")                 // ymm8     =  0     m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vpermilps       $0x93, %%ymm5, %%ymm5")                         // ymm5     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vinsertf128     $0x01, %%xmm5, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
+            __ASM_EMIT("vblendps        $0x11, %%ymm2, %%ymm5, %%ymm5")                 // ymm5     =  0     m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("shl             $1, %[mask]")                                   // mask     = mask << 1
 
             // Process steps
@@ -370,18 +358,17 @@ namespace avx
             __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
             // Update delay only by mask
-            __ASM_EMIT("vblendvps       %%ymm8, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
-            __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm5, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm5, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer and mask, AVX2 has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
-            __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
-            __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?
-            __ASM_EMIT("vxorps          %%ymm2, %%ymm2, %%ymm2")                        // ymm2     = 0
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm1, %%ymm0, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
-            __ASM_EMIT("vinsertf128     $0x01, %%xmm8, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
+            __ASM_EMIT("vpermilps       $0x93, %%ymm5, %%ymm5")                         // ymm5     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vperm2f128      $0x01, %%ymm1, %%ymm1, %%ymm0")                 // ymm0     = s2[7] s2[4] s2[5] s2[6] s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vxorps          %%ymm2, %%ymm2, %%ymm2")                        // ymm2     =  0
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
-            __ASM_EMIT("vblendps        $0x11, %%ymm2, %%ymm8, %%ymm8")                 // ymm1     =  0     m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
+            __ASM_EMIT("vinsertf128     $0x01, %%xmm5, %%ymm2, %%ymm2")                 // ymm2     =  0     0     0     0     m[3]  m[0]  m[1]  m[2]
+            __ASM_EMIT("vblendps        $0x11, %%ymm2, %%ymm5, %%ymm5")                 // ymm1     =  0     m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
             __ASM_EMIT("test            $0x80, %[mask]")
             __ASM_EMIT("jz              6f")
             __ASM_EMIT("vmovss          %%xmm1, (%[dst])")                              // *dst     = s2[7]
@@ -407,7 +394,6 @@ namespace avx
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
-    #endif /* ARCH_X86_64_AVX */
     }
 
 
