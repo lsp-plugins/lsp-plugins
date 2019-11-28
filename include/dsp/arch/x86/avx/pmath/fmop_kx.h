@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_X86_AVX_PMATH_FMOP_KX_H_
 #define DSP_ARCH_X86_AVX_PMATH_FMOP_KX_H_
 
+#ifndef DSP_ARCH_X86_AVX_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_AVX_IMPL */
+
 namespace avx
 {
     #define OP_DSEL(a, b)   a

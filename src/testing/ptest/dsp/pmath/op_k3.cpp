@@ -32,6 +32,16 @@ IF_ARCH_X86(
         void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
     }
+
+    namespace avx
+    {
+        void    add_k3(float *dst, const float *src, float k, size_t count);
+        void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    mul_k3(float *dst, const float *src, float k, size_t count);
+        void    div_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
+        void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -89,48 +99,54 @@ PTEST_BEGIN("dsp.pmath", op_k3, 5, 1000)
             dst[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, dst, buf_size*2);
 
-        #define CALL(...) \
+        #define CALL(func) \
             dsp::copy(dst, backup, buf_size*2); \
-            call(__VA_ARGS__);
+            call(#func, dst, src, count, func);
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native::add_k3", dst, src, count, native::add_k3);
-            IF_ARCH_X86(CALL("sse::add_k3", src, dst, count, sse::add_k3));
-            IF_ARCH_ARM(CALL("neon_d32::add_k3", src, dst, count, neon_d32::add_k3));
-            IF_ARCH_AARCH64(CALL("asimd::add_k3", src, dst, count, asimd::add_k3));
+            CALL(native::add_k3);
+            IF_ARCH_X86(CALL(sse::add_k3));
+            IF_ARCH_X86(CALL(avx::add_k3));
+            IF_ARCH_ARM(CALL(neon_d32::add_k3));
+            IF_ARCH_AARCH64(CALL(asimd::add_k3));
             PTEST_SEPARATOR;
 
-            CALL("native::sub_k3", dst, src, count, native::sub_k3);
-            IF_ARCH_X86(CALL("sse::sub_k3", dst, src, count, sse::sub_k3));
-            IF_ARCH_ARM(CALL("neon_d32::sub_k3", dst, src, count, neon_d32::sub_k3));
-            IF_ARCH_AARCH64(CALL("asimd::sub_k3", src, dst, count, asimd::sub_k3));
+            CALL(native::sub_k3);
+            IF_ARCH_X86(CALL(sse::sub_k3));
+            IF_ARCH_X86(CALL(avx::sub_k3));
+            IF_ARCH_ARM(CALL(neon_d32::sub_k3));
+            IF_ARCH_AARCH64(CALL(asimd::sub_k3));
             PTEST_SEPARATOR;
 
-            CALL("native::rsub_k3", dst, src, count, native::rsub_k3);
-            IF_ARCH_X86(CALL("sse::rsub_k3", dst, src, count, sse::rsub_k3));
-            IF_ARCH_ARM(CALL("neon_d32::rsub_k3", dst, src, count, neon_d32::rsub_k3));
-            IF_ARCH_AARCH64(CALL("asimd::rsub_k3", src, dst, count, asimd::rsub_k3));
+            CALL(native::rsub_k3);
+            IF_ARCH_X86(CALL(sse::rsub_k3));
+            IF_ARCH_X86(CALL(avx::rsub_k3));
+            IF_ARCH_ARM(CALL(neon_d32::rsub_k3));
+            IF_ARCH_AARCH64(CALL(asimd::rsub_k3));
             PTEST_SEPARATOR;
 
-            CALL("native::mul_k3", dst, src, count, native::mul_k3);
-            IF_ARCH_X86(CALL("sse::mul_k3", dst, src, count, sse::mul_k3));
-            IF_ARCH_ARM(CALL("neon_d32::mul_k3", dst, src, count, neon_d32::mul_k3));
-            IF_ARCH_AARCH64(CALL("asimd::mul_k3", src, dst, count, asimd::mul_k3));
+            CALL(native::mul_k3);
+            IF_ARCH_X86(CALL(sse::mul_k3));
+            IF_ARCH_X86(CALL(avx::mul_k3));
+            IF_ARCH_ARM(CALL(neon_d32::mul_k3));
+            IF_ARCH_AARCH64(CALL(asimd::mul_k3));
             PTEST_SEPARATOR;
 
-            CALL("native::div_k3", dst, src, count, native::div_k3);
-            IF_ARCH_X86(CALL("sse::div_k3", dst, src, count, sse::div_k3));
-            IF_ARCH_ARM(CALL("neon_d32::div_k3", dst, src, count, neon_d32::div_k3));
-            IF_ARCH_AARCH64(CALL("asimd::div_k3", src, dst, count, asimd::div_k3));
+            CALL(native::div_k3);
+            IF_ARCH_X86(CALL(sse::div_k3));
+            IF_ARCH_X86(CALL(avx::div_k3));
+            IF_ARCH_ARM(CALL(neon_d32::div_k3));
+            IF_ARCH_AARCH64(CALL(asimd::div_k3));
             PTEST_SEPARATOR;
 
-            CALL("native::rdiv_k3", dst, src, count, native::rdiv_k3);
-            IF_ARCH_X86(CALL("sse::rdiv_k3", dst, src, count, sse::rdiv_k3));
-            IF_ARCH_ARM(CALL("neon_d32::rdiv_k3", dst, src, count, neon_d32::rdiv_k3));
-            IF_ARCH_AARCH64(CALL("asimd::rdiv_k3", src, dst, count, asimd::rdiv_k3));
+            CALL(native::rdiv_k3);
+            IF_ARCH_X86(CALL(sse::rdiv_k3));
+            IF_ARCH_X86(CALL(avx::rdiv_k3));
+            IF_ARCH_ARM(CALL(neon_d32::rdiv_k3));
+            IF_ARCH_AARCH64(CALL(asimd::rdiv_k3));
             PTEST_SEPARATOR2;
         }
 

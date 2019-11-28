@@ -29,6 +29,14 @@ IF_ARCH_X86(
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
     }
+
+    namespace avx
+    {
+        void    add3(float *dst, const float *src1, const float *src2, size_t count);
+        void    sub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void    div3(float *dst, const float *src1, const float *src2, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -103,20 +111,28 @@ UTEST_BEGIN("dsp.pmath", op3)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:add3", 16, native::add3, sse::add3));
-        IF_ARCH_X86(call("sse:sub3", 16, native::sub3, sse::sub3));
-        IF_ARCH_X86(call("sse:mul3", 16, native::mul3, sse::mul3));
-        IF_ARCH_X86(call("sse:div3", 16, native::div3, sse::div3));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
 
-        IF_ARCH_ARM(call("neon_d32:add3", 16, native::add3, neon_d32::add3));
-        IF_ARCH_ARM(call("neon_d32:sub3", 16, native::sub3, neon_d32::sub3));
-        IF_ARCH_ARM(call("neon_d32:mul3", 16, native::mul3, neon_d32::mul3));
-        IF_ARCH_ARM(call("neon_d32:div3", 16, native::div3, neon_d32::div3));
+        IF_ARCH_X86(CALL(native::add3, sse::add3, 16));
+        IF_ARCH_X86(CALL(native::sub3, sse::sub3, 16));
+        IF_ARCH_X86(CALL(native::mul3, sse::mul3, 16));
+        IF_ARCH_X86(CALL(native::div3, sse::div3, 16));
 
-        IF_ARCH_AARCH64(call("asimd:add3", 16, native::add3, asimd::add3));
-        IF_ARCH_AARCH64(call("asimd:sub3", 16, native::sub3, asimd::sub3));
-        IF_ARCH_AARCH64(call("asimd:mul3", 16, native::mul3, asimd::mul3));
-        IF_ARCH_AARCH64(call("asimd:div3", 16, native::div3, asimd::div3));
+        IF_ARCH_X86(CALL(native::add3, avx::add3, 32));
+        IF_ARCH_X86(CALL(native::sub3, avx::sub3, 32));
+        IF_ARCH_X86(CALL(native::mul3, avx::mul3, 32));
+        IF_ARCH_X86(CALL(native::div3, avx::div3, 32));
+
+        IF_ARCH_ARM(CALL(native::add3, neon_d33::add3, 16));
+        IF_ARCH_ARM(CALL(native::sub3, neon_d33::sub3, 16));
+        IF_ARCH_ARM(CALL(native::mul3, neon_d33::mul3, 16));
+        IF_ARCH_ARM(CALL(native::div3, neon_d33::div3, 16));
+
+        IF_ARCH_AARCH64(CALL(native::add3, asimd::add3, 16));
+        IF_ARCH_AARCH64(CALL(native::sub3, asimd::sub3, 16));
+        IF_ARCH_AARCH64(CALL(native::mul3, asimd::mul3, 16));
+        IF_ARCH_AARCH64(CALL(native::div3, asimd::div3, 16));
     }
 UTEST_END
 

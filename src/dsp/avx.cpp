@@ -23,6 +23,8 @@
 
 #include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>
+#include <dsp/arch/x86/avx/pmath/op_kx.h>
+#include <dsp/arch/x86/avx/pmath/op_vv.h>
 #include <dsp/arch/x86/avx/pmath/fmop_kx.h>
 #include <dsp/arch/x86/avx/pmath/fmop_vv.h>
 #include <dsp/arch/x86/avx/pmath/abs_vv.h>
@@ -43,11 +45,32 @@ namespace avx
     #define EXPORT2_X64(function, export)           IF_ARCH_X86_64(EXPORT2(function, export));
     #define SUPPORT_X64(function)                   IF_ARCH_X86_64(TEST_EXPORT(avx::function))
 
+    #define CEXPORT2(cond, function, export)    \
+    IF_ARCH_X86( \
+            TEST_EXPORT(avx::export); \
+            if (cond) \
+                dsp::function = avx::export; \
+        );
+
+    #define CEXPORT1(cond, export)    \
+    IF_ARCH_X86( \
+            TEST_EXPORT(avx::export); \
+            if (cond) \
+                dsp::export = avx::export; \
+        );
+
     #define CEXPORT2_X64(cond, function, export)    \
         IF_ARCH_X86_64( \
                 TEST_EXPORT(avx::export); \
                 if (cond) \
                     dsp::function = avx::export; \
+            );
+
+    #define CEXPORT1_X64(cond, export)    \
+        IF_ARCH_X86_64( \
+                TEST_EXPORT(avx::export); \
+                if (cond) \
+                    dsp::export = avx::export; \
             );
 
     void dsp_init(const cpu_features_t *f)
@@ -70,6 +93,32 @@ namespace avx
         CEXPORT2_X64(favx, reverse2, reverse2);
 
         // Conditional export, depending on fast AVX implementation
+        CEXPORT1(favx, add_k2);
+        CEXPORT1(favx, sub_k2);
+        CEXPORT1(favx, rsub_k2);
+        CEXPORT1(favx, mul_k2);
+        CEXPORT1(favx, div_k2);
+        CEXPORT1(favx, rdiv_k2);
+
+        CEXPORT1(favx, add_k3);
+        CEXPORT1(favx, sub_k3);
+        CEXPORT1(favx, rsub_k3);
+        CEXPORT1(favx, mul_k3);
+        CEXPORT1(favx, div_k3);
+        CEXPORT1(favx, rdiv_k3);
+
+        CEXPORT1(favx, add2);
+        CEXPORT1(favx, sub2);
+        CEXPORT1(favx, rsub2);
+        CEXPORT1(favx, mul2);
+        CEXPORT1(favx, div2);
+        CEXPORT1(favx, rdiv2);
+
+        CEXPORT1(favx, add3);
+        CEXPORT1(favx, sub3);
+        CEXPORT1(favx, mul3);
+        CEXPORT1(favx, div3);
+
         CEXPORT2_X64(favx, fmadd_k3, x64_fmadd_k3);
         CEXPORT2_X64(favx, fmsub_k3, x64_fmsub_k3);
         CEXPORT2_X64(favx, fmrsub_k3, x64_fmrsub_k3);

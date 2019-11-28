@@ -157,7 +157,7 @@ namespace sse
 
     void add_k2(float *dst, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             OP_K2_CORE("dst", "dst", "add")
@@ -172,7 +172,7 @@ namespace sse
 
     void sub_k2(float *dst, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             OP_K2_CORE("dst", "dst", "sub")
@@ -187,7 +187,7 @@ namespace sse
 
     void mul_k2(float *dst, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             OP_K2_CORE("dst", "dst", "mul")
@@ -207,7 +207,7 @@ namespace sse
 
     void rsub_k2(float *dst, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             ROP_K2_CORE("dst", "dst", "sub")
@@ -222,7 +222,7 @@ namespace sse
 
     void rdiv_k2(float *dst, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             ROP_K2_CORE("dst", "dst", "div")
@@ -237,7 +237,7 @@ namespace sse
 
     void add_k3(float *dst, const float *src, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             OP_K2_CORE("dst", "src", "add")
@@ -252,7 +252,7 @@ namespace sse
 
     void sub_k3(float *dst, const float *src, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             OP_K2_CORE("dst", "src", "sub")
@@ -267,7 +267,7 @@ namespace sse
 
     void mul_k3(float *dst, const float *src, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             OP_K2_CORE("dst", "src", "mul")
@@ -287,7 +287,7 @@ namespace sse
 
     void rsub_k3(float *dst, const float *src, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             ROP_K2_CORE("dst", "src", "sub")
@@ -302,7 +302,7 @@ namespace sse
 
     void rdiv_k3(float *dst, const float *src, float k, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86(size_t off);
         ARCH_X86_ASM
         (
             ROP_K2_CORE("dst", "src", "div")
