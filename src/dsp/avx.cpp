@@ -31,6 +31,7 @@
 #include <dsp/arch/x86/avx/pmath/abs_vv.h>
 
 #include <dsp/arch/x86/avx/hmath/hsum.h>
+#include <dsp/arch/x86/avx/hmath/hdotp.h>
 
 #include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
@@ -177,6 +178,10 @@ namespace avx
         CEXPORT1(favx, h_sqr_sum);
         CEXPORT1(favx, h_abs_sum);
 
+        CEXPORT1(favx, h_dotp);
+        CEXPORT1(favx, h_sqr_dotp);
+        CEXPORT1(favx, h_abs_dotp);
+
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)
         {
@@ -203,6 +208,7 @@ namespace avx
             CEXPORT2_X64(favx, pcomplex_mul3, x64_pcomplex_mul3_fma3)
 
             CEXPORT2(favx, h_sqr_sum, h_sqr_sum_fma3);
+//            CEXPORT2(favx, h_dotp_sum, h_dotp_sum_fma3);
 
             // Non-conditional export
             EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
