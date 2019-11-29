@@ -30,6 +30,10 @@
 #include <dsp/arch/native/pmath/fmop_kx.h>
 #include <dsp/arch/native/pmath/fmop_vv.h>
 #include <dsp/arch/native/pmath/abs_vv.h>
+
+#include <dsp/arch/native/hmath/hsum.h>
+#include <dsp/arch/native/hmath/hdotp.h>
+
 #include <dsp/arch/native/search.h>
 
 #include <dsp/arch/native/filters/static.h>
@@ -42,7 +46,6 @@
 #include <dsp/arch/native/resampling.h>
 #include <dsp/arch/native/msmatrix.h>
 #include <dsp/arch/native/smath.h>
-#include <dsp/arch/native/hmath.h>
 #include <dsp/arch/native/mix.h>
 #include <dsp/arch/native/3dmath.h>
 
@@ -156,7 +159,9 @@ namespace native
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);
         EXPORT1(h_abs_sum);
-        EXPORT1(scalar_mul);
+        EXPORT1(h_dotp);
+        EXPORT1(h_sqr_dotp);
+        EXPORT1(h_abs_dotp);
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);

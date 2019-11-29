@@ -165,7 +165,9 @@ namespace dsp
     float   (* h_sum)(const float *src, size_t count) = NULL;
     float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
     float   (* h_abs_sum)(const float *src, size_t count) = NULL;
-    float   (* scalar_mul)(const float *a, const float *b, size_t count) = NULL;
+    float   (* h_dotp)(const float *a, const float *b, size_t count) = NULL;
+    float   (* h_sqr_dotp)(const float *a, const float *b, size_t count) = NULL;
+    float   (* h_abs_dotp)(const float *a, const float *b, size_t count) = NULL;
 
     void    (* fmadd_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* fmsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;

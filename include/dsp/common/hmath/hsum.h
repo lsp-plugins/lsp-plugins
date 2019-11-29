@@ -1,19 +1,13 @@
 /*
- * hmath.h
+ * hsum.h
  *
- *  Created on: 10 авг. 2018 г.
+ *  Created on: 29 нояб. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_COMMON_HMATH_H_
-#define DSP_COMMON_HMATH_H_
+#ifndef INCLUDE_DSP_COMMON_HMATH_HSUM_H_
+#define INCLUDE_DSP_COMMON_HMATH_HSUM_H_
 
-#ifndef __DSP_DSP_DEFS
-    #error "This header should not be included directly"
-#endif /* __DSP_DSP_DEFS */
-
-//-----------------------------------------------------------------------
-// DSP horizontal mathematical functions
 namespace dsp
 {
     /** Calculate horizontal sum: result = sum (i) from 0 to count-1 src[i]
@@ -40,15 +34,6 @@ namespace dsp
      */
     extern float (* h_abs_sum)(const float *src, size_t count);
 
-    /** Calculate sum {from 0 to count-1} (a[i] * b[i])
-     *
-     * @param a first vector
-     * @param b second vector
-     * @param count number of elements
-     * @return scalar multiplication
-     */
-    extern float (* scalar_mul)(const float *a, const float *b, size_t count);
-
 }
 
-#endif /* DSP_COMMON_HMATH_H_ */
+#endif /* INCLUDE_DSP_COMMON_HMATH_HSUM_H_ */
