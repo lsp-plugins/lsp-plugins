@@ -58,6 +58,7 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/pmath/abs_vv.h>
 
 #include <dsp/arch/x86/sse/hmath/hsum.h>
+#include <dsp/arch/x86/sse/hmath/hdotp.h>
 
 #include <dsp/arch/x86/sse/mix.h>
 #include <dsp/arch/x86/sse/smath.h>
@@ -198,7 +199,10 @@ namespace sse
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);
         EXPORT1(h_abs_sum);
-//            EXPORT1(scalar_mul);
+
+        EXPORT1(h_dotp);
+        EXPORT1(h_sqr_dotp);
+        EXPORT1(h_abs_dotp);
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
