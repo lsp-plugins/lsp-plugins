@@ -124,10 +124,10 @@ UTEST_BEGIN("dsp.pmath", op3)
         IF_ARCH_X86(CALL(native::mul3, avx::mul3, 32));
         IF_ARCH_X86(CALL(native::div3, avx::div3, 32));
 
-        IF_ARCH_ARM(CALL(native::add3, neon_d33::add3, 16));
-        IF_ARCH_ARM(CALL(native::sub3, neon_d33::sub3, 16));
-        IF_ARCH_ARM(CALL(native::mul3, neon_d33::mul3, 16));
-        IF_ARCH_ARM(CALL(native::div3, neon_d33::div3, 16));
+        IF_ARCH_ARM(CALL(native::add3, neon_d32::add3, 16));
+        IF_ARCH_ARM(CALL(native::sub3, neon_d32::sub3, 16));
+        IF_ARCH_ARM(CALL(native::mul3, neon_d32::mul3, 16));
+        IF_ARCH_ARM(CALL(native::div3, neon_d32::div3, 16));
 
         IF_ARCH_AARCH64(CALL(native::add3, asimd::add3, 16));
         IF_ARCH_AARCH64(CALL(native::sub3, asimd::sub3, 16));

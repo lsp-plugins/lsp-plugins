@@ -64,7 +64,8 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/pmath/log.h>
 #include <dsp/arch/arm/neon-d32/pmath/pow.h>
 
-#include <dsp/arch/arm/neon-d32/hmath.h>
+#include <dsp/arch/arm/neon-d32/hmath/hsum.h>
+
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
 #include <dsp/arch/arm/neon-d32/resampling.h>
