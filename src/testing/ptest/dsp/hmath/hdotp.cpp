@@ -45,6 +45,15 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        float h_dotp(const float *a, const float *b, size_t count);
+        float h_sqr_dotp(const float *a, const float *b, size_t count);
+        float h_abs_dotp(const float *a, const float *b, size_t count);
+    }
+)
+
 typedef float (* h_dotp_t)(const float *a, const float *b, size_t count);
 
 PTEST_BEGIN("dsp.hmath", hdotp, 5, 10000)
@@ -83,18 +92,21 @@ PTEST_MAIN
         IF_ARCH_X86(CALL(sse::h_dotp));
         IF_ARCH_X86(CALL(avx::h_dotp));
         IF_ARCH_ARM(CALL(neon_d32::h_dotp));
+        IF_ARCH_AARCH64(CALL(asimd::h_dotp));
         PTEST_SEPARATOR;
 
         CALL(native::h_sqr_dotp);
         IF_ARCH_X86(CALL(sse::h_sqr_dotp));
         IF_ARCH_X86(CALL(avx::h_sqr_dotp));
         IF_ARCH_ARM(CALL(neon_d32::h_sqr_dotp));
+        IF_ARCH_AARCH64(CALL(asimd::h_sqr_dotp));
         PTEST_SEPARATOR;
 
         CALL(native::h_abs_dotp);
         IF_ARCH_X86(CALL(sse::h_abs_dotp));
         IF_ARCH_X86(CALL(avx::h_abs_dotp));
         IF_ARCH_ARM(CALL(neon_d32::h_abs_dotp));
+        IF_ARCH_AARCH64(CALL(asimd::h_abs_dotp));
         PTEST_SEPARATOR2;
     }
 

@@ -47,12 +47,16 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+
 #include <dsp/arch/aarch64/asimd/pmath/op_kx.h>
 #include <dsp/arch/aarch64/asimd/pmath/op_vv.h>
 #include <dsp/arch/aarch64/asimd/pmath/fmop_kx.h>
 #include <dsp/arch/aarch64/asimd/pmath/fmop_vv.h>
 #include <dsp/arch/aarch64/asimd/pmath/abs_vv.h>
+
 #include <dsp/arch/aarch64/asimd/hmath/hsum.h>
+#include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
+
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
 
@@ -152,6 +156,10 @@ namespace asimd
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);
         EXPORT1(h_abs_sum);
+
+        EXPORT1(h_dotp);
+        EXPORT1(h_abs_dotp);
+        EXPORT1(h_sqr_dotp);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
