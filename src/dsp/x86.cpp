@@ -486,8 +486,13 @@ namespace x86
             case FEAT_FAST_AVX:
                 if (f->vendor == CPU_VENDOR_INTEL) // Any Intel CPU is good enough with AVX
                     return true;
-                if (f->vendor == CPU_VENDOR_AMD)
+                if ((f->vendor == CPU_VENDOR_AMD) || (f->vendor == CPU_VENDOR_HYGON))
                     return (f->family >= AMD_FAMILY_ZEN); // Only starting with ZEN architecture AMD's implementation of AVX is fast enough
+                break;
+            case FEAT_FAST_FMA3:
+                if (f->vendor == CPU_VENDOR_INTEL) // Any Intel CPU is good enough with AVX
+                    return true;
+                // AMD: maybe once FMA3 will be faster
                 break;
             default:
                 break;
