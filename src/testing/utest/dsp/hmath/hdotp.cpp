@@ -37,6 +37,15 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        float h_dotp(const float *a, const float *b, size_t count);
+        float h_sqr_dotp(const float *a, const float *b, size_t count);
+        float h_abs_dotp(const float *a, const float *b, size_t count);
+    }
+)
+
 typedef float (* h_dotp_t)(const float *a, const float *b, size_t count);
 
 UTEST_BEGIN("dsp.hmath", hdotp)
@@ -92,9 +101,9 @@ UTEST_BEGIN("dsp.hmath", hdotp)
         IF_ARCH_X86(CALL(native::h_sqr_dotp, avx::h_sqr_dotp, 32));
         IF_ARCH_X86(CALL(native::h_abs_dotp, avx::h_abs_dotp, 32));
 
-//        IF_ARCH_ARM(CALL(native::h_dotp, neon_d32::h_dotp, 16));
-//        IF_ARCH_ARM(CALL(native::h_sqr_dotp, neon_d32::h_sqr_dotp, 16));
-//        IF_ARCH_ARM(CALL(native::h_abs_dotp, neon_d32::h_abs_dotp, 16));
+        IF_ARCH_ARM(CALL(native::h_dotp, neon_d32::h_dotp, 16));
+        IF_ARCH_ARM(CALL(native::h_sqr_dotp, neon_d32::h_sqr_dotp, 16));
+        IF_ARCH_ARM(CALL(native::h_abs_dotp, neon_d32::h_abs_dotp, 16));
 //
 //        IF_ARCH_AARCH64(CALL(native::h_dotp, asimd::h_dotp, 16));
 //        IF_ARCH_AARCH64(CALL(native::h_sqr_dotp, asimd::h_sqr_dotp, 16));

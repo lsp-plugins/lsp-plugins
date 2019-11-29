@@ -65,6 +65,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/pmath/pow.h>
 
 #include <dsp/arch/arm/neon-d32/hmath/hsum.h>
+#include <dsp/arch/arm/neon-d32/hmath/hdotp.h>
 
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
@@ -230,6 +231,10 @@ namespace neon_d32
         EXPORT1(h_sum);
         EXPORT1(h_abs_sum);
         EXPORT1(h_sqr_sum);
+
+        EXPORT1(h_dotp);
+        EXPORT1(h_abs_dotp);
+        EXPORT1(h_sqr_dotp);
 
         EXPORT1(saturate);
         EXPORT1(copy_saturated);
