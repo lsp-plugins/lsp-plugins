@@ -50,12 +50,15 @@ namespace sse // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse/mxcsr.h>
 #include <dsp/arch/x86/sse/copy.h>
+
 #include <dsp/arch/x86/sse/pmath/op_kx.h>
 #include <dsp/arch/x86/sse/pmath/op_vv.h>
 #include <dsp/arch/x86/sse/pmath/fmop_kx.h>
 #include <dsp/arch/x86/sse/pmath/fmop_vv.h>
 #include <dsp/arch/x86/sse/pmath/abs_vv.h>
-#include <dsp/arch/x86/sse/hsum.h>
+
+#include <dsp/arch/x86/sse/hmath/hsum.h>
+
 #include <dsp/arch/x86/sse/mix.h>
 #include <dsp/arch/x86/sse/smath.h>
 

@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE_HSUM_H_
-#define DSP_ARCH_X86_SSE_HSUM_H_
+#ifndef DSP_ARCH_X86_SSE_HMATH_HSUM_H_
+#define DSP_ARCH_X86_SSE_HMATH_HSUM_H_
 
 #ifndef DSP_ARCH_X86_SSE_IMPL
     #error "This header should not be included directly"
@@ -16,8 +16,7 @@ namespace sse
 {
     float h_sum(const float *src, size_t count)
     {
-        float result;
-
+        IF_ARCH_X86(float result);
         ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
@@ -105,8 +104,7 @@ namespace sse
 
     float h_sqr_sum(const float *src, size_t count)
     {
-        float result;
-
+        IF_ARCH_X86(float result);
         ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
@@ -208,8 +206,7 @@ namespace sse
 
     float h_abs_sum(const float *src, size_t count)
     {
-        float result;
-
+        IF_ARCH_X86(float result);
         ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
@@ -287,4 +284,4 @@ namespace sse
     }
 }
 
-#endif /* DSP_ARCH_X86_SSE_HSUM_H_ */
+#endif /* DSP_ARCH_X86_SSE_HMATH_HSUM_H_ */

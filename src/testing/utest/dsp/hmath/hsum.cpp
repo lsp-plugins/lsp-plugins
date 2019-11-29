@@ -32,6 +32,14 @@ IF_ARCH_X86(
         float h_sqr_sum(const float *src, size_t count);
         float h_abs_sum(const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        float h_sum(const float *src, size_t count);
+        float h_sqr_sum(const float *src, size_t count);
+        float h_sqr_sum_fma3(const float *src, size_t count);
+        float h_abs_sum(const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -97,6 +105,11 @@ UTEST_BEGIN("dsp.hmath", hsum)
         IF_ARCH_X86(CALL(native::h_sum, sse::h_sum, 16));
         IF_ARCH_X86(CALL(native::h_sqr_sum, sse::h_sqr_sum, 16));
         IF_ARCH_X86(CALL(native::h_abs_sum, sse::h_abs_sum, 16));
+
+        IF_ARCH_X86(CALL(native::h_sum, avx::h_sum, 32));
+        IF_ARCH_X86(CALL(native::h_sqr_sum, avx::h_sqr_sum, 32));
+        IF_ARCH_X86(CALL(native::h_sqr_sum, avx::h_sqr_sum_fma3, 32));
+        IF_ARCH_X86(CALL(native::h_abs_sum, avx::h_abs_sum, 32));
 
         IF_ARCH_ARM(CALL(native::h_sum, neon_d32::h_sum, 16));
         IF_ARCH_ARM(CALL(native::h_sqr_sum, neon_d32::h_sqr_sum, 16));
