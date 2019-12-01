@@ -178,12 +178,12 @@ UTEST_BEGIN("dsp.pmath", log)
         IF_ARCH_X86_64(CALL(native::logd1, avx2::x64_logd1, 32));
         IF_ARCH_X86_64(CALL(native::logd2, avx2::x64_logd2, 32));
 
-        IF_ARCH_X86_64(CALL(native::logb1, avx2::x64_logb1_fma3, 16));
-        IF_ARCH_X86_64(CALL(native::logb2, avx2::x64_logb2_fma3, 16));
-        IF_ARCH_X86_64(CALL(native::loge1, avx2::x64_loge1_fma3, 16));
-        IF_ARCH_X86_64(CALL(native::loge2, avx2::x64_loge2_fma3, 16));
-        IF_ARCH_X86_64(CALL(native::logd1, avx2::x64_logd1_fma3, 16));
-        IF_ARCH_X86_64(CALL(native::logd2, avx2::x64_logd2_fma3, 16));
+        IF_ARCH_X86_64(CALL(native::logb1, avx2::x64_logb1_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::logb2, avx2::x64_logb2_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::loge1, avx2::x64_loge1_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::loge2, avx2::x64_loge2_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::logd1, avx2::x64_logd1_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::logd2, avx2::x64_logd2_fma3, 32));
 
         IF_ARCH_ARM(CALL(native::logb1, neon_d32::logb1, 16));
         IF_ARCH_ARM(CALL(native::logb2, neon_d32::logb2, 16));

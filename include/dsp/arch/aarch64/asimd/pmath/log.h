@@ -62,8 +62,8 @@ IF_ARCH_AARCH64(
     __ASM_EMIT("sub             v3.4s, v3.4s, " ME ".4s") \
     __ASM_EMIT("orr             v0.16b, v0.16b, " C7 ".16b")    /* v0   = X = (x & MM) | (C7 = 1.0f) */ \
     __ASM_EMIT("orr             v1.16b, v1.16b, " C7 ".16b") \
-    __ASM_EMIT("ucvtf           v2.4s, v2.4s")                  /* v2   = R = float(r) */ \
-    __ASM_EMIT("ucvtf           v3.4s, v3.4s") \
+    __ASM_EMIT("scvtf           v2.4s, v2.4s")                  /* v2   = R = float(r) */ \
+    __ASM_EMIT("scvtf           v3.4s, v3.4s") \
     __ASM_EMIT("fadd            v4.4s, v0.4s, " C7 ".4s")       /* v4   = XB = X + (C7 = 1) */ \
     __ASM_EMIT("fadd            v5.4s, v1.4s, " C7 ".4s") \
     __ASM_EMIT("fsub            v0.4s, v0.4s, " C7 ".4s")       /* v0   = XT = X - (C7 = 1) */ \
@@ -121,7 +121,7 @@ IF_ARCH_AARCH64(
     __ASM_EMIT("and             v0.16b, v0.16b, " MM ".16b")    /* v0   = x & MM */ \
     __ASM_EMIT("sub             v2.4s, v2.4s, " ME ".4s")       /* v2   = r - ME = ilog2(x) */ \
     __ASM_EMIT("orr             v0.16b, v0.16b, " C7 ".16b")    /* v0   = X = (x & MM) | (C7 = 1.0f) */ \
-    __ASM_EMIT("ucvtf           v2.4s, v2.4s")                  /* v2   = R = float(r) */ \
+    __ASM_EMIT("scvtf           v2.4s, v2.4s")                  /* v2   = R = float(r) */ \
     __ASM_EMIT("fadd            v4.4s, v0.4s, " C7 ".4s")       /* v4   = XB = X + (C7 = 1) */ \
     __ASM_EMIT("fsub            v0.4s, v0.4s, " C7 ".4s")       /* v0   = XT = X - (C7 = 1) */ \
     __ASM_EMIT("frecpe          v6.4s, v4.4s")                  /* v6   = xb */ \
@@ -159,7 +159,7 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("ldp             q18, q19, [%[L2C], #0x20]")     /* v18  = C0, v19 = C1 */ \
             __ASM_EMIT("ldp             q20, q21, [%[L2C], #0x40]")     /* v20  = C2, v21 = C3 */ \
             __ASM_EMIT("ldp             q22, q23, [%[L2C], #0x60]")     /* v22  = C4, v23 = C5 */ \
-            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v22  = C6, v23 = C7 */ \
+            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v24  = C6, v25 = C7 */ \
             __ASM_EMIT("b.lo            2f")
             // x8 blocks
             __ASM_EMIT("1:")
@@ -233,7 +233,7 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("ldp             q18, q19, [%[L2C], #0x20]")     /* v18  = C0, v19 = C1 */ \
             __ASM_EMIT("ldp             q20, q21, [%[L2C], #0x40]")     /* v20  = C2, v21 = C3 */ \
             __ASM_EMIT("ldp             q22, q23, [%[L2C], #0x60]")     /* v22  = C4, v23 = C5 */ \
-            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v22  = C6, v23 = C7 */ \
+            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v24  = C6, v25 = C7 */ \
             __ASM_EMIT("b.lo            2f")
             // x8 blocks
             __ASM_EMIT("1:")
@@ -306,7 +306,7 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("ldp             q18, q19, [%[L2C], #0x20]")     /* v18  = C0, v19 = C1 */ \
             __ASM_EMIT("ldp             q20, q21, [%[L2C], #0x40]")     /* v20  = C2, v21 = C3 */ \
             __ASM_EMIT("ldp             q22, q23, [%[L2C], #0x60]")     /* v22  = C4, v23 = C5 */ \
-            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v22  = C6, v23 = C7 */ \
+            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v24  = C6, v25 = C7 */ \
             __ASM_EMIT("b.lo            2f")
             // x8 blocks
             __ASM_EMIT("1:")
@@ -384,7 +384,7 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("ldp             q18, q19, [%[L2C], #0x20]")     /* v18  = C0, v19 = C1 */ \
             __ASM_EMIT("ldp             q20, q21, [%[L2C], #0x40]")     /* v20  = C2, v21 = C3 */ \
             __ASM_EMIT("ldp             q22, q23, [%[L2C], #0x60]")     /* v22  = C4, v23 = C5 */ \
-            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v22  = C6, v23 = C7 */ \
+            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v24  = C6, v25 = C7 */ \
             __ASM_EMIT("b.lo            2f")
             // x8 blocks
             __ASM_EMIT("1:")
@@ -461,7 +461,7 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("ldp             q18, q19, [%[L2C], #0x20]")     /* v18  = C0, v19 = C1 */ \
             __ASM_EMIT("ldp             q20, q21, [%[L2C], #0x40]")     /* v20  = C2, v21 = C3 */ \
             __ASM_EMIT("ldp             q22, q23, [%[L2C], #0x60]")     /* v22  = C4, v23 = C5 */ \
-            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v22  = C6, v23 = C7 */ \
+            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v24  = C6, v25 = C7 */ \
             __ASM_EMIT("b.lo            2f")
             // x8 blocks
             __ASM_EMIT("1:")
@@ -539,7 +539,7 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("ldp             q18, q19, [%[L2C], #0x20]")     /* v18  = C0, v19 = C1 */ \
             __ASM_EMIT("ldp             q20, q21, [%[L2C], #0x40]")     /* v20  = C2, v21 = C3 */ \
             __ASM_EMIT("ldp             q22, q23, [%[L2C], #0x60]")     /* v22  = C4, v23 = C5 */ \
-            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v22  = C6, v23 = C7 */ \
+            __ASM_EMIT("ldp             q24, q25, [%[L2C], #0x80]")     /* v24  = C6, v25 = C7 */ \
             __ASM_EMIT("b.lo            2f")
             // x8 blocks
             __ASM_EMIT("1:")
