@@ -123,7 +123,7 @@ PTEST_BEGIN("dsp.pmath", exp, 5, 1000)
             IF_ARCH_X86_64(CALL(avx2::x64_exp2_fma3));
             IF_ARCH_ARM(CALL(neon_d32::exp2));
             IF_ARCH_AARCH64(CALL(asimd::exp2));
-            PTEST_SEPARATOR;
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

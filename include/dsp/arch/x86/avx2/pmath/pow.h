@@ -120,7 +120,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (v), [src] "=&r" (src), [count] "+r" (count),
               "+Yz" (c)
@@ -241,7 +240,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count),
               "+Yz" (c)
@@ -388,7 +386,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (c), [src] "=&r" (src), [count] "+r" (count),
               "+Yz" (v)
@@ -537,7 +534,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (c), [count] "+r" (count),
               "+Yz" (v)
@@ -692,7 +688,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (v), [x] "+r" (x), [src] "=&r" (src), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
@@ -846,7 +841,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [x] "+r" (x), [src] "+r" (v), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
@@ -970,7 +964,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (v), [src] "=&r" (src), [count] "+r" (count),
               "+Yz" (c)
@@ -1091,7 +1084,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count),
               "+Yz" (c)
@@ -1229,7 +1221,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (c), [src] "=&r" (src), [count] "+r" (count),
               "+Yz" (v)
@@ -1369,7 +1360,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (c), [count] "+r" (count),
               "+Yz" (v)
@@ -1515,7 +1505,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (v), [x] "+r" (x), [src] "=&r" (src), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
@@ -1660,7 +1649,6 @@ namespace avx2
 
             // End
             __ASM_EMIT("16:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [x] "+r" (x), [src] "+r" (v), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
