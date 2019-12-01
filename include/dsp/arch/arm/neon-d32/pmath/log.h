@@ -193,11 +193,11 @@ IF_ARCH_ARM(
             // Tail: 1x-3x block
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vldm            %[src]!, {s2}")
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {d0}")
+            __ASM_EMIT("vld1.32         {d1}, [%[src]]")
             __ASM_EMIT("8:")
 
             LOGN_CORE_X4
@@ -205,11 +205,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s10}")
+            __ASM_EMIT("vst1.32         {d4[0]}, [%[dst]]!")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d4}")
+            __ASM_EMIT("vst1.32         {d5}, [%[dst]]")
 
             // End
             __ASM_EMIT("12:")
@@ -262,11 +262,11 @@ IF_ARCH_ARM(
             // Tail: 1x-3x block
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vldm            %[src]!, {s2}")
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {d0}")
+            __ASM_EMIT("vld1.32         {d1}, [%[src]]")
             __ASM_EMIT("8:")
 
             LOGN_CORE_X4
@@ -274,11 +274,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s10}")
+            __ASM_EMIT("vst1.32         {d4[0]}, [%[dst]]!")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d4}")
+            __ASM_EMIT("vst1.32         {d5}, [%[dst]]")
 
             // End
             __ASM_EMIT("12:")
@@ -332,11 +332,11 @@ IF_ARCH_ARM(
             // Tail: 1x-3x block
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vldm            %[src]!, {s2}")
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {d0}")
+            __ASM_EMIT("vld1.32         {d1}, [%[src]]")
             __ASM_EMIT("8:")
 
             LOGN_CORE_X4
@@ -345,11 +345,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s2}")
+            __ASM_EMIT("vst1.32         {d0[0]}, [%[dst]]!")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d0}")
+            __ASM_EMIT("vst1.32         {d1}, [%[dst]]")
 
             // End
             __ASM_EMIT("12:")
@@ -405,11 +405,11 @@ IF_ARCH_ARM(
             // Tail: 1x-3x block
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vldm            %[src]!, {s2}")
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {d0}")
+            __ASM_EMIT("vld1.32         {d1}, [%[src]]")
             __ASM_EMIT("8:")
 
             LOGN_CORE_X4
@@ -418,11 +418,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s2}")
+            __ASM_EMIT("vst1.32         {d0[0]}, [%[dst]]!")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d0}")
+            __ASM_EMIT("vst1.32         {d1}, [%[dst]]")
 
             // End
             __ASM_EMIT("12:")
@@ -476,11 +476,11 @@ IF_ARCH_ARM(
             // Tail: 1x-3x block
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vldm            %[src]!, {s2}")
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {d0}")
+            __ASM_EMIT("vld1.32         {d1}, [%[src]]")
             __ASM_EMIT("8:")
 
             LOGN_CORE_X4
@@ -489,11 +489,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s2}")
+            __ASM_EMIT("vst1.32         {d0[0]}, [%[dst]]!")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d0}")
+            __ASM_EMIT("vst1.32         {d1}, [%[dst]]")
 
             // End
             __ASM_EMIT("12:")
@@ -549,11 +549,11 @@ IF_ARCH_ARM(
             // Tail: 1x-3x block
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vldm            %[src]!, {s2}")
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")
             __ASM_EMIT("6:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
-            __ASM_EMIT("vldm            %[src], {d0}")
+            __ASM_EMIT("vld1.32         {d1}, [%[src]]")
             __ASM_EMIT("8:")
 
             LOGN_CORE_X4
@@ -562,11 +562,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s2}")
+            __ASM_EMIT("vst1.32         {d0[0]}, [%[dst]]!")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d0}")
+            __ASM_EMIT("vst1.32         {d1}, [%[dst]]")
 
             // End
             __ASM_EMIT("12:")
