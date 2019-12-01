@@ -65,6 +65,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void logb1(float *dst, size_t count);
+        void logb2(float *dst, const float *src, size_t count);
+        void loge1(float *dst, size_t count);
+        void loge2(float *dst, const float *src, size_t count);
+        void logd1(float *dst, size_t count);
+        void logd2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* log1_t)(float *dst, size_t count);
 typedef void (* log2_t)(float *dst, const float *src, size_t count);
 
@@ -113,54 +125,61 @@ PTEST_BEGIN("dsp.pmath", log, 5, 1000)
             dst[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, dst, buf_size);
 
-        #define CALL(...) \
+        #define CALL(func) \
             dsp::copy(dst, backup, buf_size); \
-            call(__VA_ARGS__);
+            call(#func, dst, src, count, func);
+
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native::logb1", dst, src, count, native::logb1);
-            IF_ARCH_X86(CALL("sse2::logb1", dst, src, count, sse2::logb1));
-            IF_ARCH_X86_64(CALL("avx2::x64_logb1", dst, src, count, avx2::x64_logb1));
-            IF_ARCH_X86_64(CALL("avx2::x64_logb1_fma3", dst, src, count, avx2::x64_logb1_fma3));
-            IF_ARCH_ARM(CALL("neon_d32::logb1", dst, src, count, neon_d32::logb1));
+            CALL(native::logb1);
+            IF_ARCH_X86(CALL(sse2::logb1));
+            IF_ARCH_X86_64(CALL(avx2::x64_logb1));
+            IF_ARCH_X86_64(CALL(avx2::x64_logb1_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::logb1));
+            IF_ARCH_AARCH64(CALL(asimd::logb1));
             PTEST_SEPARATOR;
 
-            CALL("native::logb2", dst, src, count, native::logb2);
-            IF_ARCH_X86(CALL("sse2::logb2", dst, src, count, sse2::logb2));
-            IF_ARCH_X86_64(CALL("avx2::x64_logb2", dst, src, count, avx2::x64_logb2));
-            IF_ARCH_X86_64(CALL("avx2::x64_logb2_fma3", dst, src, count, avx2::x64_logb2_fma3));
-            IF_ARCH_ARM(CALL("neon_d32::logb2", dst, src, count, neon_d32::logb2));
+            CALL(native::logb2);
+            IF_ARCH_X86(CALL(sse2::logb2));
+            IF_ARCH_X86_64(CALL(avx2::x64_logb2));
+            IF_ARCH_X86_64(CALL(avx2::x64_logb2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::logb2));
+            IF_ARCH_AARCH64(CALL(asimd::logb2));
             PTEST_SEPARATOR;
 
-            CALL("native::loge1", dst, src, count, native::loge1);
-            IF_ARCH_X86(CALL("sse2::loge1", dst, src, count, sse2::loge1));
-            IF_ARCH_X86_64(CALL("avx2::x64_loge1", dst, src, count, avx2::x64_loge1));
-            IF_ARCH_X86_64(CALL("avx2::x64_loge1_fma3", dst, src, count, avx2::x64_loge1_fma3));
-            IF_ARCH_ARM(CALL("neon_d32::loge1", dst, src, count, neon_d32::loge1));
+            CALL(native::loge1);
+            IF_ARCH_X86(CALL(sse2::loge1));
+            IF_ARCH_X86_64(CALL(avx2::x64_loge1));
+            IF_ARCH_X86_64(CALL(avx2::x64_loge1_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::loge1));
+            IF_ARCH_AARCH64(CALL(asimd::loge1));
             PTEST_SEPARATOR;
 
-            CALL("native::loge2", dst, src, count, native::loge2);
-            IF_ARCH_X86(CALL("sse2::loge2", dst, src, count, sse2::loge2));
-            IF_ARCH_X86_64(CALL("avx2::x64_loge2", dst, src, count, avx2::x64_loge2));
-            IF_ARCH_X86_64(CALL("avx2::x64_loge2_fma3", dst, src, count, avx2::x64_loge2_fma3));
-            IF_ARCH_ARM(CALL("neon_d32::loge2", dst, src, count, neon_d32::loge2));
+            CALL(native::loge2);
+            IF_ARCH_X86(CALL(sse2::loge2));
+            IF_ARCH_X86_64(CALL(avx2::x64_loge2));
+            IF_ARCH_X86_64(CALL(avx2::x64_loge2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::loge2));
+            IF_ARCH_AARCH64(CALL(asimd::loge2));
             PTEST_SEPARATOR;
 
-            CALL("native::logd1", dst, src, count, native::logd1);
-            IF_ARCH_X86(CALL("sse2::logd1", dst, src, count, sse2::logd1));
-            IF_ARCH_X86_64(CALL("avx2::x64_logd1", dst, src, count, avx2::x64_logd1));
-            IF_ARCH_X86_64(CALL("avx2::x64_logd1_fma3", dst, src, count, avx2::x64_logd1_fma3));
-            IF_ARCH_ARM(CALL("neon_d32::logd1", dst, src, count, neon_d32::logd1));
+            CALL(native::logd1);
+            IF_ARCH_X86(CALL(sse2::logd1));
+            IF_ARCH_X86_64(CALL(avx2::x64_logd1));
+            IF_ARCH_X86_64(CALL(avx2::x64_logd1_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::logd1));
+            IF_ARCH_AARCH64(CALL(asimd::logd1));
             PTEST_SEPARATOR;
 
-            CALL("native::logd2", dst, src, count, native::logd2);
-            IF_ARCH_X86(CALL("sse2::logd2", dst, src, count, sse2::logd2));
-            IF_ARCH_X86_64(CALL("avx2::x64_logd2", dst, src, count, avx2::x64_logd2));
-            IF_ARCH_X86_64(CALL("avx2::x64_logd2_fma3", dst, src, count, avx2::x64_logd2_fma3));
-            IF_ARCH_ARM(CALL("neon_d32::logd2", dst, src, count, neon_d32::logd2));
+            CALL(native::logd2);
+            IF_ARCH_X86(CALL(sse2::logd2));
+            IF_ARCH_X86_64(CALL(avx2::x64_logd2));
+            IF_ARCH_X86_64(CALL(avx2::x64_logd2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::logd2));
+            IF_ARCH_AARCH64(CALL(asimd::logd2));
             PTEST_SEPARATOR2;
         }
 
