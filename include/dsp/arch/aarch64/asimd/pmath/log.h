@@ -195,7 +195,6 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            8f")
             __ASM_EMIT("ld1             {v0.d}[1], [%[src]]")
-            __ASM_EMIT("add             %[src], %[src], #0x08")
             __ASM_EMIT("8:")
             LOGN_CORE_X4("v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25")
             __ASM_EMIT("fmla            v2.4s, v0.4s, v30.4s")          // v2   = R + 2*y*L*M_LOG2E
@@ -207,7 +206,6 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            12f")
             __ASM_EMIT("st1             {v2.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             // End
             __ASM_EMIT("12:")
 
@@ -269,20 +267,18 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            8f")
             __ASM_EMIT("ld1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             __ASM_EMIT("8:")
             LOGN_CORE_X4("v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25")
             __ASM_EMIT("fmla            v2.4s, v0.4s, v30.4s")          // v2   = R + 2*y*L*M_LOG2E
-            __ASM_EMIT("sub             %[dst], %[dst], %[count], LSL #2")
             __ASM_EMIT("tst             %[count], #1")
             __ASM_EMIT("b.eq            10f")
+            __ASM_EMIT("sub             %[dst], %[dst], #0x04")
             __ASM_EMIT("st1             {v2.s}[0], [%[dst]]")
             __ASM_EMIT("add             %[dst], %[dst], #0x04")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            12f")
             __ASM_EMIT("st1             {v2.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             // End
             __ASM_EMIT("12:")
 
@@ -349,7 +345,6 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            8f")
             __ASM_EMIT("ld1             {v0.d}[1], [%[src]]")
-            __ASM_EMIT("add             %[src], %[src], #0x08")
             __ASM_EMIT("8:")
             LOGN_CORE_X4("v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25")
             __ASM_EMIT("fadd            v0.4s, v0.4s, v0.4s")           // v0 = 2*y*L
@@ -362,7 +357,6 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            12f")
             __ASM_EMIT("st1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             // End
             __ASM_EMIT("12:")
 
@@ -427,21 +421,19 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            8f")
             __ASM_EMIT("ld1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             __ASM_EMIT("8:")
             LOGN_CORE_X4("v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25")
             __ASM_EMIT("fadd            v0.4s, v0.4s, v0.4s")           // v0 = 2*y*L
             __ASM_EMIT("fmla            v0.4s, v2.4s, v30.4s")          // v0 = 2*y*L + R/log2(E)
-            __ASM_EMIT("sub             %[dst], %[dst], %[count], LSL #2")
             __ASM_EMIT("tst             %[count], #1")
             __ASM_EMIT("b.eq            10f")
+            __ASM_EMIT("sub             %[dst], %[dst], #0x04")
             __ASM_EMIT("st1             {v0.s}[0], [%[dst]]")
             __ASM_EMIT("add             %[dst], %[dst], #0x04")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            12f")
             __ASM_EMIT("st1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             // End
             __ASM_EMIT("12:")
 
@@ -508,7 +500,6 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            8f")
             __ASM_EMIT("ld1             {v0.d}[1], [%[src]]")
-            __ASM_EMIT("add             %[src], %[src], #0x08")
             __ASM_EMIT("8:")
             LOGN_CORE_X4("v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25")
             __ASM_EMIT("fmul            v0.4s, v0.4s, v30.4s")          // v0 = 2*y*L*log10(E)
@@ -521,7 +512,6 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            12f")
             __ASM_EMIT("st1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             // End
             __ASM_EMIT("12:")
 
@@ -586,21 +576,19 @@ IF_ARCH_AARCH64(
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            8f")
             __ASM_EMIT("ld1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             __ASM_EMIT("8:")
             LOGN_CORE_X4("v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25")
             __ASM_EMIT("fmul            v0.4s, v0.4s, v30.4s")          // v0 = 2*y*L*log10(E)
             __ASM_EMIT("fmla            v0.4s, v2.4s, v31.4s")          // v0 = 2*y*L*log10(E) + R/log2(10)
-            __ASM_EMIT("sub             %[dst], %[dst], %[count], LSL #2")
             __ASM_EMIT("tst             %[count], #1")
             __ASM_EMIT("b.eq            10f")
+            __ASM_EMIT("sub             %[dst], %[dst], #0x04")
             __ASM_EMIT("st1             {v0.s}[0], [%[dst]]")
             __ASM_EMIT("add             %[dst], %[dst], #0x04")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], #2")
             __ASM_EMIT("b.eq            12f")
             __ASM_EMIT("st1             {v0.d}[1], [%[dst]]")
-            __ASM_EMIT("add             %[dst], %[dst], #0x08")
             // End
             __ASM_EMIT("12:")
 
