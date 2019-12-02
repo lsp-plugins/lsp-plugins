@@ -30,6 +30,9 @@
 #include <dsp/arch/native/pmath/fmop_kx.h>
 #include <dsp/arch/native/pmath/fmop_vv.h>
 #include <dsp/arch/native/pmath/abs_vv.h>
+#include <dsp/arch/native/pmath/exp.h>
+#include <dsp/arch/native/pmath/log.h>
+#include <dsp/arch/native/pmath/pow.h>
 
 #include <dsp/arch/native/hmath/hsum.h>
 #include <dsp/arch/native/hmath/hdotp.h>
