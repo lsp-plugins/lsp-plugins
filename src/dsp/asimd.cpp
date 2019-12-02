@@ -60,6 +60,8 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/hmath/hsum.h>
 #include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
 
+#include <dsp/arch/aarch64/asimd/mix.h>
+
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
 
@@ -180,6 +182,16 @@ namespace asimd
         EXPORT1(powvc2);
         EXPORT1(powvx1);
         EXPORT1(powvx2);
+
+        EXPORT1(mix2);
+        EXPORT1(mix3);
+        EXPORT1(mix4);
+        EXPORT1(mix_copy2);
+        EXPORT1(mix_copy3);
+        EXPORT1(mix_copy4);
+        EXPORT1(mix_add2);
+        EXPORT1(mix_add3);
+        EXPORT1(mix_add4);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);

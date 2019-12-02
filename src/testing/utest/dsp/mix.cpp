@@ -59,6 +59,23 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void mix2(float *dst, const float *src, float k1, float k2, size_t count);
+        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
+        void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
+
+        void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+        void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+
+        void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+        void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    }
+)
+
 typedef void (* mix2_t)(float *dst, const float *src, float k1, float k2, size_t count);
 typedef void (* mix3_t)(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
 typedef void (* mix4_t)(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
@@ -70,9 +87,11 @@ typedef void (* mix_dst4_t)(float *dst, const float *src1, const float *src2, co
 
 UTEST_BEGIN("dsp", mix)
 
-    void call(const char *label, size_t align, mix2_t func)
+    void call(const char *label, size_t align, mix2_t func1, mix2_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
@@ -85,8 +104,8 @@ UTEST_BEGIN("dsp", mix)
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
 
-                native::mix2(dst1, src1, 2.0f, 3.0f, count);
-                func(dst2, src1, 2.0f, 3.0f, count);
+                func1(dst1, src1, 2.0f, 3.0f, count);
+                func2(dst2, src1, 2.0f, 3.0f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
@@ -141,9 +160,11 @@ UTEST_BEGIN("dsp", mix)
         }
     }
 
-    void call(const char *label, size_t align, mix3_t func)
+    void call(const char *label, size_t align, mix3_t func1, mix3_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
@@ -157,8 +178,8 @@ UTEST_BEGIN("dsp", mix)
                 FloatBuffer src1(count, align, mask & 0x02);
                 FloatBuffer src2(count, align, mask & 0x04);
 
-                native::mix3(dst1, src1, src2, 2.0f, 3.0f, 5.0f, count);
-                func(dst2, src1, src2, 2.0f, 3.0f, 5.0f, count);
+                func1(dst1, src1, src2, 2.0f, 3.0f, 5.0f, count);
+                func2(dst2, src1, src2, 2.0f, 3.0f, 5.0f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
@@ -220,9 +241,11 @@ UTEST_BEGIN("dsp", mix)
         }
     }
 
-    void call(const char *label, size_t align, mix4_t func)
+    void call(const char *label, size_t align, mix4_t func1, mix4_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
@@ -237,8 +260,8 @@ UTEST_BEGIN("dsp", mix)
                 FloatBuffer src2(count, align, mask & 0x04);
                 FloatBuffer src3(count, align, mask & 0x08);
 
-                native::mix4(dst1, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
-                func(dst2, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
+                func1(dst1, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
+                func2(dst2, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
@@ -307,27 +330,39 @@ UTEST_BEGIN("dsp", mix)
 
     UTEST_MAIN
     {
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
+
         // Do tests
-        IF_ARCH_X86(call("sse::mix2", 16, sse::mix2));
-        IF_ARCH_ARM(call("neon_d32::mix2", 16, neon_d32::mix2));
-        IF_ARCH_X86(call("sse::mix3", 16, sse::mix3));
-        IF_ARCH_ARM(call("neon_d32::mix3", 16, neon_d32::mix3));
-        IF_ARCH_X86(call("sse::mix4", 16, sse::mix4));
-        IF_ARCH_ARM(call("neon_d32::mix4", 16, neon_d32::mix4));
+        IF_ARCH_X86(CALL(native::mix2, sse::mix2, 16));
+        IF_ARCH_X86(CALL(native::mix3, sse::mix3, 16));
+        IF_ARCH_X86(CALL(native::mix4, sse::mix4, 16));
+        IF_ARCH_X86(CALL(native::mix_copy2, sse::mix_copy2, 16));
+        IF_ARCH_X86(CALL(native::mix_copy3, sse::mix_copy3, 16));
+        IF_ARCH_X86(CALL(native::mix_copy4, sse::mix_copy4, 16));
+        IF_ARCH_X86(CALL(native::mix_add2, sse::mix_add2, 16));
+        IF_ARCH_X86(CALL(native::mix_add3, sse::mix_add3, 16));
+        IF_ARCH_X86(CALL(native::mix_add4, sse::mix_add4, 16));
 
-        IF_ARCH_X86(call("sse::mix_copy2", 16, native::mix_copy2, sse::mix_copy2));
-        IF_ARCH_ARM(call("neon_d32::mix_copy2", 16, native::mix_copy2, neon_d32::mix_copy2));
-        IF_ARCH_X86(call("sse::mix_copy3", 16, native::mix_copy3, sse::mix_copy3));
-        IF_ARCH_ARM(call("neon_d32::mix_copy3", 16, native::mix_copy3, neon_d32::mix_copy3));
-        IF_ARCH_X86(call("sse::mix_copy4", 16, native::mix_copy4, sse::mix_copy4));
-        IF_ARCH_ARM(call("neon_d32::mix_copy4", 16, native::mix_copy4, neon_d32::mix_copy4));
+        IF_ARCH_ARM(CALL(native::mix2, neon_d32::mix2, 16));
+        IF_ARCH_ARM(CALL(native::mix3, neon_d32::mix3, 16));
+        IF_ARCH_ARM(CALL(native::mix4, neon_d32::mix4, 16));
+        IF_ARCH_ARM(CALL(native::mix_copy2, neon_d32::mix_copy2, 16));
+        IF_ARCH_ARM(CALL(native::mix_copy3, neon_d32::mix_copy3, 16));
+        IF_ARCH_ARM(CALL(native::mix_copy4, neon_d32::mix_copy4, 16));
+        IF_ARCH_ARM(CALL(native::mix_add2, neon_d32::mix_add2, 16));
+        IF_ARCH_ARM(CALL(native::mix_add3, neon_d32::mix_add3, 16));
+        IF_ARCH_ARM(CALL(native::mix_add4, neon_d32::mix_add4, 16));
 
-        IF_ARCH_X86(call("sse::mix_add2", 16, native::mix_add2, sse::mix_add2));
-        IF_ARCH_ARM(call("neon_d32::mix_add2", 16, native::mix_add2, neon_d32::mix_add2));
-        IF_ARCH_X86(call("sse::mix_add3", 16, native::mix_add3, sse::mix_add3));
-        IF_ARCH_ARM(call("neon_d32::mix_add3", 16, native::mix_add3, neon_d32::mix_add3));
-        IF_ARCH_X86(call("sse::mix_add4", 16, native::mix_add4, sse::mix_add4));
-        IF_ARCH_ARM(call("neon_d32::mix_add4", 16, native::mix_add4, neon_d32::mix_add4));
+        IF_ARCH_AARCH64(CALL(native::mix2, asimd::mix2, 16));
+        IF_ARCH_AARCH64(CALL(native::mix3, asimd::mix3, 16));
+        IF_ARCH_AARCH64(CALL(native::mix4, asimd::mix4, 16));
+        IF_ARCH_AARCH64(CALL(native::mix_copy2, asimd::mix_copy2, 16));
+        IF_ARCH_AARCH64(CALL(native::mix_copy3, asimd::mix_copy3, 16));
+        IF_ARCH_AARCH64(CALL(native::mix_copy4, asimd::mix_copy4, 16));
+        IF_ARCH_AARCH64(CALL(native::mix_add2, asimd::mix_add2, 16));
+        IF_ARCH_AARCH64(CALL(native::mix_add3, asimd::mix_add3, 16));
+        IF_ARCH_AARCH64(CALL(native::mix_add4, asimd::mix_add4, 16));
     }
 UTEST_END;
 
