@@ -47,26 +47,6 @@ namespace native
             dsp::copy(dst, src, count);
     }
 
-    void accumulate(float *dst, const float *src, float k, float p, size_t count)
-    {
-        while (count--)
-        {
-            *dst = (*dst) * k + (*src) * p;
-            dst++;
-            src++;
-        }
-    }
-
-    void integrate(float *dst, const float *src, float k, size_t count)
-    {
-        while (count--)
-        {
-            *dst = *dst + (*src - *dst) * k;
-            dst++;
-            src++;
-        }
-    }
-
     void exp1(float *dst, size_t count)
     {
         for (size_t i=0; i<count; ++i)
