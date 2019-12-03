@@ -16,10 +16,7 @@
 #define DSP_ARCH_X86_AVX_IMPL
 
 #include <dsp/arch/x86/avx/xcr.h>
-
-#ifdef ARCH_X86_64_AVX
-    #include <dsp/arch/x86/avx/const.h>
-#endif /* ARCH_X86_64_AVX */
+#include <dsp/arch/x86/avx/const.h>
 
 #include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>

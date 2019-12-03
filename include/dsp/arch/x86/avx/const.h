@@ -87,10 +87,6 @@ namespace avx
 
     /* Miscellaneous vectors */
     AVX_UVEC(X_MASK0001, -1, 0, 0, 0, 0, 0, 0, 0);
-
-    static inline bool __lsp_forced_inline avx_aligned(const void *ptr)         { return !(ptrdiff_t(ptr) & (AVX_ALIGN - 1));  };
-    static inline ptrdiff_t __lsp_forced_inline avx_offset(const void *ptr)     { return (ptrdiff_t(ptr) & (AVX_ALIGN - 1));   };
-    static inline size_t __lsp_forced_inline avx_multiple(size_t count)         { return count & (AVX_ALIGN - 1);              };
 }
 
 #endif /* DSP_ARCH_X86_AVX_CONST_H_ */
