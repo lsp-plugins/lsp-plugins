@@ -40,6 +40,21 @@ IF_ARCH_X86(
         void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
         void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
     }
+
+    namespace avx
+    {
+        void mix2(float *dst, const float *src, float k1, float k2, size_t count);
+        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
+        void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
+
+        void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+        void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+
+        void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+        void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -343,6 +358,16 @@ UTEST_BEGIN("dsp", mix)
         IF_ARCH_X86(CALL(native::mix_add2, sse::mix_add2, 16));
         IF_ARCH_X86(CALL(native::mix_add3, sse::mix_add3, 16));
         IF_ARCH_X86(CALL(native::mix_add4, sse::mix_add4, 16));
+
+        IF_ARCH_X86(CALL(native::mix2, avx::mix2, 16));
+        IF_ARCH_X86(CALL(native::mix3, avx::mix3, 16));
+        IF_ARCH_X86(CALL(native::mix4, avx::mix4, 16));
+        IF_ARCH_X86(CALL(native::mix_copy2, avx::mix_copy2, 16));
+        IF_ARCH_X86(CALL(native::mix_copy3, avx::mix_copy3, 16));
+        IF_ARCH_X86(CALL(native::mix_copy4, avx::mix_copy4, 16));
+        IF_ARCH_X86(CALL(native::mix_add2, avx::mix_add2, 16));
+        IF_ARCH_X86(CALL(native::mix_add3, avx::mix_add3, 16));
+        IF_ARCH_X86(CALL(native::mix_add4, avx::mix_add4, 16));
 
         IF_ARCH_ARM(CALL(native::mix2, neon_d32::mix2, 16));
         IF_ARCH_ARM(CALL(native::mix3, neon_d32::mix3, 16));

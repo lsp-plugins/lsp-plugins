@@ -30,6 +30,8 @@
 #include <dsp/arch/x86/avx/hmath/hsum.h>
 #include <dsp/arch/x86/avx/hmath/hdotp.h>
 
+#include <dsp/arch/x86/avx/mix.h>
+
 #include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
@@ -178,6 +180,16 @@ namespace avx
         CEXPORT1(favx, h_dotp);
         CEXPORT1(favx, h_sqr_dotp);
         CEXPORT1(favx, h_abs_dotp);
+
+        CEXPORT1(favx, mix2);
+        CEXPORT1(favx, mix_copy2);
+        CEXPORT1(favx, mix_add2);
+        CEXPORT1(favx, mix3);
+        CEXPORT1(favx, mix_copy3);
+        CEXPORT1(favx, mix_add3);
+        CEXPORT1(favx, mix4);
+        CEXPORT1(favx, mix_copy4);
+        CEXPORT1(favx, mix_add4);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)
