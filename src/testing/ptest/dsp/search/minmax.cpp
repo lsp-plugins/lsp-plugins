@@ -48,6 +48,19 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        float   min(const float *src, size_t count);
+        float   max(const float *src, size_t count);
+        void    minmax(const float *src, size_t count, float *min, float *max);
+
+        float   abs_min(const float *src, size_t count);
+        float   abs_max(const float *src, size_t count);
+        void    abs_minmax(const float *src, size_t count, float *min, float *max);
+    }
+)
+
 typedef float (* search1_t) (const float *src, size_t count);
 typedef void  (* search2_t) (const float *src, size_t count, float *min, float *max);
 
@@ -93,39 +106,48 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
         for (size_t i=0; i < (1 << MAX_RANK); ++i)
             in[i]          = float(rand()) / RAND_MAX;
 
+        #define CALL(func) \
+            call(#func, in, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
             //--------------
-            call("native::min", in, count, native::min);
-            IF_ARCH_X86(call("sse::min", in, count, sse::min));
-            IF_ARCH_ARM(call("neon_d32::min", in, count, neon_d32::min));
+            CALL(native::min);
+            IF_ARCH_X86(CALL(sse::min));
+            IF_ARCH_ARM(CALL(neon_d32::min));
+            IF_ARCH_AARCH64(CALL(asimd::min));
 
-            call("native::abs_min", in, count, native::abs_min);
-            IF_ARCH_X86(call("sse::abs_min", in, count, sse::abs_min));
-            IF_ARCH_ARM(call("neon_d32::abs_min", in, count, neon_d32::abs_min));
+            CALL(native::abs_min);
+            IF_ARCH_X86(CALL(sse::abs_min));
+            IF_ARCH_ARM(CALL(neon_d32::abs_min));
+            IF_ARCH_AARCH64(CALL(asimd::abs_min));
             PTEST_SEPARATOR;
 
             //--------------
-            call("native::max", in, count, native::max);
-            IF_ARCH_X86(call("sse::max", in, count, sse::max));
-            IF_ARCH_ARM(call("neon_d32::max", in, count, neon_d32::max));
+            CALL(native::max);
+            IF_ARCH_X86(CALL(sse::max));
+            IF_ARCH_ARM(CALL(neon_d32::max));
+            IF_ARCH_AARCH64(CALL(asimd::max));
 
-            call("native::abs_max", in, count, native::abs_max);
-            IF_ARCH_X86(call("sse::abs_max", in, count, sse::abs_max));
-            IF_ARCH_ARM(call("neon_d32::abx_max", in, count, neon_d32::abs_max));
+            CALL(native::abs_max);
+            IF_ARCH_X86(CALL(sse::abs_max));
+            IF_ARCH_ARM(CALL(neon_d32::abs_max));
+            IF_ARCH_AARCH64(CALL(asimd::abs_max));
             PTEST_SEPARATOR;
 
             //--------------
-            call("native::minmax", in, count, native::minmax);
-            IF_ARCH_X86(call("sse::minmax", in, count, sse::minmax));
-            IF_ARCH_ARM(call("neon_d32::minmax", in, count, neon_d32::minmax));
+            CALL(native::minmax);
+            IF_ARCH_X86(CALL(sse::minmax));
+            IF_ARCH_ARM(CALL(neon_d32::minmax));
+            IF_ARCH_AARCH64(CALL(asimd::minmax));
 
-            call("native::abs_minmax", in, count, native::abs_minmax);
-            IF_ARCH_X86(call("sse::abs_minmax", in, count, sse::abs_minmax));
-            IF_ARCH_ARM(call("neon_d32::abs_minmax", in, count, neon_d32::abs_minmax));
-            PTEST_SEPARATOR;
+            CALL(native::abs_minmax);
+            IF_ARCH_X86(CALL(sse::abs_minmax));
+            IF_ARCH_ARM(CALL(neon_d32::abs_minmax));
+            IF_ARCH_AARCH64(CALL(asimd::abs_minmax));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

@@ -47,6 +47,19 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        float   min(const float *src, size_t count);
+        float   max(const float *src, size_t count);
+        void    minmax(const float *src, size_t count, float *min, float *max);
+
+        float   abs_min(const float *src, size_t count);
+        float   abs_max(const float *src, size_t count);
+        void    abs_minmax(const float *src, size_t count, float *min, float *max);
+    }
+)
+
 typedef float (* ext_t)(const float *src, size_t count);
 typedef void  (* minmax_t)(const float *src, size_t count, float *min, float *max);
 
@@ -121,19 +134,29 @@ UTEST_BEGIN("dsp.search", minmax)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:min", 16, native::min, sse::min));
-        IF_ARCH_X86(call("sse:max", 16, native::max, sse::max));
-        IF_ARCH_X86(call("sse:minmax", 16, native::minmax, sse::minmax));
-        IF_ARCH_X86(call("sse:abs_min", 16, native::abs_min, sse::abs_min));
-        IF_ARCH_X86(call("sse:abs_max", 16, native::abs_max, sse::abs_max));
-        IF_ARCH_X86(call("sse:abs_minmax", 16, native::abs_minmax, sse::abs_minmax));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
 
-        IF_ARCH_ARM(call("neon_d32:min", 16, native::min, neon_d32::min));
-        IF_ARCH_ARM(call("neon_d32:max", 16, native::max, neon_d32::max));
-        IF_ARCH_ARM(call("neon_d32:minmax", 16, native::minmax, neon_d32::minmax));
-        IF_ARCH_ARM(call("neon_d32:abs_min", 16, native::abs_min, neon_d32::abs_min));
-        IF_ARCH_ARM(call("neon_d32:abs_max", 16, native::abs_max, neon_d32::abs_max));
-        IF_ARCH_ARM(call("neon_d32:abs_minmax", 16, native::abs_minmax, neon_d32::abs_minmax));
+        IF_ARCH_X86(CALL(native::min, sse::min, 16));
+        IF_ARCH_X86(CALL(native::max, sse::max, 16));
+        IF_ARCH_X86(CALL(native::minmax, sse::minmax, 16));
+        IF_ARCH_X86(CALL(native::abs_min, sse::abs_min, 16));
+        IF_ARCH_X86(CALL(native::abs_max, sse::abs_max, 16));
+        IF_ARCH_X86(CALL(native::abs_minmax, sse::abs_minmax, 16));
+
+        IF_ARCH_ARM(CALL(native::min, neon_d32::min, 16));
+        IF_ARCH_ARM(CALL(native::max, neon_d32::max, 16));
+        IF_ARCH_ARM(CALL(native::minmax, neon_d32::minmax, 16));
+        IF_ARCH_ARM(CALL(native::abs_min, neon_d32::abs_min, 16));
+        IF_ARCH_ARM(CALL(native::abs_max, neon_d32::abs_max, 16));
+        IF_ARCH_ARM(CALL(native::abs_minmax, neon_d32::abs_minmax, 16));
+
+        IF_ARCH_AARCH64(CALL(native::min, asimd::min, 16));
+        IF_ARCH_AARCH64(CALL(native::max, asimd::max, 16));
+        IF_ARCH_AARCH64(CALL(native::minmax, asimd::minmax, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_min, asimd::abs_min, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_max, asimd::abs_max, 16));
+        IF_ARCH_AARCH64(CALL(native::abs_minmax, asimd::abs_minmax, 16));
     }
 UTEST_END
 
