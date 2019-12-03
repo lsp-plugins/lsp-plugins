@@ -248,8 +248,10 @@
 
     #ifdef LSP_PROFILING
         #define __IF_32P(...)                       __VA_ARGS__
+        #define __ASM_EMIT32P(code)                 code "\n\t"
     #else
         #define __IF_32NP(...)                      __VA_ARGS__
+        #define __ASM_EMIT32NP(code)                code "\n\t"
     #endif /* LSP_PROFILING */
 #endif /* ARCH_32BIT */
 
@@ -257,6 +259,13 @@
     #define __ASM_EMIT64(code)                  code "\n\t"
     #define __IF_64(...)                        __VA_ARGS__
     #define __IF_32_64(a, b)                    b
+    #ifdef LSP_PROFILING
+        #define __IF_64P(...)                       __VA_ARGS__
+        #define __ASM_EMIT64P(code)                 code "\n\t"
+    #else
+        #define __IF_64NP(...)                      __VA_ARGS__
+        #define __ASM_EMIT64NP(code)                code "\n\t"
+    #endif /* LSP_PROFILING */
 #endif /* ARCH_32BIT */
 
 #ifdef LSP_PROFILING
@@ -373,11 +382,27 @@
 // Define macros that may not be previously defined
 #ifndef __ASM_EMIT32
     #define __ASM_EMIT32(code)
-#endif /* __ASM_EMIT64 */
+#endif /* __ASM_EMIT32 */
+
+#ifndef __ASM_EMIT32P
+    #define __ASM_EMIT32P(code)
+#endif /* __ASM_EMIT32P */
+
+#ifndef __ASM_EMIT32NP
+    #define __ASM_EMIT32NP(code)
+#endif /* __ASM_EMIT32NP */
 
 #ifndef __ASM_EMIT64
     #define __ASM_EMIT64(code)
 #endif /* __ASM_EMIT64 */
+
+#ifndef __ASM_EMIT64P
+    #define __ASM_EMIT64P(code)
+#endif /* __ASM_EMIT64P */
+
+#ifndef __ASM_EMIT64NP
+    #define __ASM_EMIT64NP(code)
+#endif /* __ASM_EMIT64NP */
 
 #ifndef __IF_32
     #define __IF_32(...)

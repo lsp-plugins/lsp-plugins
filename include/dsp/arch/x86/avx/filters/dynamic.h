@@ -168,7 +168,9 @@ namespace avx
         ARCH_X86_ASM
         (
             // Check count
-            __ASM_EMIT("test            %[count], %[count]")
+            __ASM_EMIT64("test          %[count], %[count]")
+            __ASM_EMIT32NP("test        %[count], %[count]")
+            __ASM_EMIT32P("cmpl         $0, %[count]")
             __ASM_EMIT("jz              8f")
 
             // Initialize mask
@@ -205,7 +207,8 @@ namespace avx
 
             // Repeat loop
             __ASM_EMIT("add          $" DYN_BIQUAD_X8_SSIZE ", %[f]")                   // f++
-            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT64("dec           %[count]")
+            __ASM_EMIT32("decl          %[count]")
             __ASM_EMIT("jz              4f")                                            // jump to completion
             __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                    // mask     = (mask << 1) | 1
             __ASM_EMIT("vpermilps       $0x93, %%ymm5, %%ymm5")                         // ymm5     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
@@ -239,7 +242,8 @@ namespace avx
 
             // Repeat loop
             __ASM_EMIT("add             $4, %[dst]")                                    // dst      ++
-            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT64("dec           %[count]")
+            __ASM_EMIT32("decl          %[count]")
             __ASM_EMIT("jnz             3b")
 
             // Prepare last loop, shift mask
@@ -290,8 +294,9 @@ namespace avx
             // Exit label
             __ASM_EMIT("8:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f),
-              [mask] "=&r"(mask)
+            : [dst] "+r" (dst), [src] "+r" (src), [f] "+r" (f),
+              [mask] "=&r"(mask),
+              [count] __ASM_ARG_RW(count)
             : [d] "r" (d),
               [X_MASK] "m" (X_MASK0001)
             : "cc", "memory",
