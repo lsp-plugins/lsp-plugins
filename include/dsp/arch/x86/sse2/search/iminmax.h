@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE2_SEARCH_H_
-#define DSP_ARCH_X86_SSE2_SEARCH_H_
+#ifndef DSP_ARCH_X86_SSE2_SEARCH_IMINMAX_H_
+#define DSP_ARCH_X86_SSE2_SEARCH_IMINMAX_H_
 
 #ifndef DSP_ARCH_X86_SSE2_IMPL
     #error "This header should not be included directly"
@@ -14,12 +14,14 @@
 
 namespace sse2
 {
-    static uint32_t indexes[] __lsp_aligned16 =
-    {
-        0, 1, 2, 3, // indexes
-        4, 4, 4, 4, // step
-        1, 1, 1, 1
-    };
+    IF_ARCH_X86(
+        static uint32_t indexes[] __lsp_aligned16 =
+        {
+            0, 1, 2, 3, // indexes
+            4, 4, 4, 4, // step
+            1, 1, 1, 1
+        };
+    )
 
     #define CMPLTPS     "$1"
     #define CMPLEPS     "$2"
@@ -572,4 +574,4 @@ namespace sse2
     #undef CMPLEPS
 }
 
-#endif /* DSP_ARCH_X86_SSE2_SEARCH_H_ */
+#endif /* DSP_ARCH_X86_SSE2_SEARCH_IMINMAX_H_ */

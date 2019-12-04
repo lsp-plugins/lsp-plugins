@@ -1,12 +1,16 @@
 /*
- * search.h
+ * minmax.h
  *
  *  Created on: 4 дек. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_AVX_SEARCH_H_
-#define DSP_ARCH_X86_AVX_SEARCH_H_
+#ifndef DSP_ARCH_X86_AVX_SEARCH_MINMAX_H_
+#define DSP_ARCH_X86_AVX_SEARCH_MINMAX_H_
+
+#ifndef DSP_ARCH_X86_AVX_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_AVX_IMPL */
 
 namespace avx
 {
@@ -413,4 +417,7 @@ namespace avx
 
 }
 
-#endif /* DSP_ARCH_X86_AVX_SEARCH_H_ */
+
+
+
+#endif /* DSP_ARCH_X86_AVX_SEARCH_MINMAX_H_ */

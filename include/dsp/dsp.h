@@ -29,8 +29,10 @@
 #include <dsp/common/pcomplex.h>
 #include <dsp/common/float.h>
 #include <dsp/common/graphics.h>
-#include <dsp/common/search.h>
 #include <dsp/common/smath.h>
+
+#include <dsp/common/search/minmax.h>
+#include <dsp/common/search/iminmax.h>
 
 #include <dsp/common/pmath/op_kx.h>
 #include <dsp/common/pmath/op_vv.h>

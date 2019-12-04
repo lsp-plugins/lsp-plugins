@@ -67,10 +67,12 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/hmath/hsum.h>
 #include <dsp/arch/arm/neon-d32/hmath/hdotp.h>
 
+#include <dsp/arch/arm/neon-d32/search/minmax.h>
+#include <dsp/arch/arm/neon-d32/search/iminmax.h>
+
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
 #include <dsp/arch/arm/neon-d32/resampling.h>
-#include <dsp/arch/arm/neon-d32/search.h>
 #include <dsp/arch/arm/neon-d32/filters/static.h>
 #include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 #include <dsp/arch/arm/neon-d32/filters/transform.h>

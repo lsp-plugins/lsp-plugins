@@ -61,13 +61,15 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/hmath/hdotp.h>
 
 #include <dsp/arch/x86/sse/mix.h>
+
+#include <dsp/arch/x86/sse/search/minmax.h>
+
 #include <dsp/arch/x86/sse/smath.h>
 
 #include <dsp/arch/x86/sse/fft.h>
 #include <dsp/arch/x86/sse/fastconv.h>
 #include <dsp/arch/x86/sse/graphics.h>
 #include <dsp/arch/x86/sse/msmatrix.h>
-#include <dsp/arch/x86/sse/search.h>
 #include <dsp/arch/x86/sse/resampling.h>
 
 #include <dsp/arch/x86/sse/complex.h>

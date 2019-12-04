@@ -1,12 +1,12 @@
 /*
- * search.h
+ * minmax.h
  *
- *  Created on: 05 окт. 2015 г.
+ *  Created on: 4 дек. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE_SEARCH_H_
-#define DSP_ARCH_X86_SSE_SEARCH_H_
+#ifndef DSP_ARCH_X86_SSE_SEARCH_MINMAX_H_
+#define DSP_ARCH_X86_SSE_SEARCH_MINMAX_H_
 
 #ifndef DSP_ARCH_X86_SSE_IMPL
     #error "This header should not be included directly"
@@ -458,4 +458,5 @@ namespace sse
     }
 }
 
-#endif /* DSP_ARCH_X86_SSE_SEARCH_H_ */
+
+#endif /* DSP_ARCH_X86_SSE_SEARCH_MINMAX_H_ */

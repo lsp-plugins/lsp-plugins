@@ -61,7 +61,8 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
 
 #include <dsp/arch/aarch64/asimd/mix.h>
-#include <dsp/arch/aarch64/asimd/search.h>
+#include <dsp/arch/aarch64/asimd/search/minmax.h>
+#include <dsp/arch/aarch64/asimd/search/iminmax.h>
 
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>

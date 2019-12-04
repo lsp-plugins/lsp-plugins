@@ -31,7 +31,7 @@
 #include <dsp/arch/x86/avx/hmath/hdotp.h>
 
 #include <dsp/arch/x86/avx/mix.h>
-#include <dsp/arch/x86/avx/search.h>
+#include <dsp/arch/x86/avx/search/minmax.h>
 
 #include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>

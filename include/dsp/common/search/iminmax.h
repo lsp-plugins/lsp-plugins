@@ -1,69 +1,19 @@
 /*
- * search.h
+ * iminmax.h
  *
- *  Created on: 10 авг. 2018 г.
+ *  Created on: 4 дек. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_COMMON_SEARCH_H_
-#define DSP_COMMON_SEARCH_H_
+#ifndef DSP_COMMON_SEARCH_IMINMAX_H_
+#define DSP_COMMON_SEARCH_IMINMAX_H_
 
 #ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
 #endif /* __DSP_DSP_DEFS */
 
-//-----------------------------------------------------------------------
-// DSP search functions
 namespace dsp
 {
-    /** Calculate min { src }
-     *
-     * @param src source vector
-     * @param count number of elements
-     * @return minimum value
-     */
-    extern float (* min)(const float *src, size_t count);
-
-    /** Calculate max { src }
-     *
-     * @param src source vector
-     * @param count number of elements
-     * @return maximum value
-     */
-    extern float (* max)(const float *src, size_t count);
-
-    /** Get absolute maximum: result = max { abs(src[i]) }
-     *
-     * @param src source array
-     * @param count number of elements
-     * @return result
-     */
-    extern float (* abs_max)(const float *src, size_t count);
-
-    /** Get absolute minimum: result = min { abs(src[i]) }
-     *
-     * @param src source array
-     * @param count number of elements
-     * @return result
-     */
-    extern float (* abs_min)(const float *src, size_t count);
-
-    /** Calculate min { src }, max { src }
-     *
-     * @param src source vector
-     * @param count number of elements
-     * @return maximum value
-     */
-    extern void (* minmax)(const float *src, size_t count, float *min, float *max);
-
-    /** Calculate min { abs(src) }, max { abs(src) }
-     *
-     * @param src source vector
-     * @param count number of elements
-     * @return maximum value
-     */
-    extern void (* abs_minmax)(const float *src, size_t count, float *min, float *max);
-
     /** Calculate @ min { src }
      *
      * @param src source vector
@@ -116,4 +66,6 @@ namespace dsp
 
 }
 
-#endif /* DSP_COMMON_SEARCH_H_ */
+
+
+#endif /* DSP_COMMON_SEARCH_IMINMAX_H_ */
