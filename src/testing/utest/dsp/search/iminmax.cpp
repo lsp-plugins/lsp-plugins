@@ -37,11 +37,11 @@ IF_ARCH_X86(
     {
         size_t  min_index(const float *src, size_t count);
         size_t  max_index(const float *src, size_t count);
-//        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
-//        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
 )
 
@@ -169,10 +169,10 @@ UTEST_BEGIN("dsp.search", iminmax)
 
         IF_ARCH_X86(CALL(native::min_index, avx2::min_index, 32));
         IF_ARCH_X86(CALL(native::max_index, avx2::max_index, 32));
-//        IF_ARCH_X86(CALL(native::minmax_index, avx2::minmax_index, 32));
+        IF_ARCH_X86(CALL(native::minmax_index, avx2::minmax_index, 32));
         IF_ARCH_X86(CALL(native::abs_min_index, avx2::abs_min_index, 32));
         IF_ARCH_X86(CALL(native::abs_max_index, avx2::abs_max_index, 32));
-//        IF_ARCH_X86(CALL(native::abs_minmax_index, avx2::abs_minmax_index, 32));
+        IF_ARCH_X86(CALL(native::abs_minmax_index, avx2::abs_minmax_index, 32));
 
         IF_ARCH_ARM(CALL(native::min_index, neon_d32::min_index, 16));
         IF_ARCH_ARM(CALL(native::max_index, neon_d32::max_index, 16));

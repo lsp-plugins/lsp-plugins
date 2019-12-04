@@ -97,10 +97,10 @@ namespace avx2
 
         CEXPORT1(favx, min_index);
         CEXPORT1(favx, max_index);
-//        CEXPORT1(favx, minmax_index);
+        CEXPORT1(favx, minmax_index);
         CEXPORT1(favx, abs_min_index);
         CEXPORT1(favx, abs_max_index);
-//        CEXPORT1(favx, abs_minmax_index);
+        CEXPORT1(favx, abs_minmax_index);
 
         if (f->features & CPU_OPTION_FMA3)
         {
