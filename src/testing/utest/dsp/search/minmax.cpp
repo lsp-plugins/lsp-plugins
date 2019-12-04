@@ -32,6 +32,17 @@ IF_ARCH_X86(
         float   abs_max(const float *src, size_t count);
         void    abs_minmax(const float *src, size_t count, float *min, float *max);
     }
+
+    namespace avx
+    {
+        float   min(const float *src, size_t count);
+        float   max(const float *src, size_t count);
+        void    minmax(const float *src, size_t count, float *min, float *max);
+
+        float   abs_min(const float *src, size_t count);
+        float   abs_max(const float *src, size_t count);
+        void    abs_minmax(const float *src, size_t count, float *min, float *max);
+    }
 )
 
 IF_ARCH_ARM(
@@ -143,6 +154,13 @@ UTEST_BEGIN("dsp.search", minmax)
         IF_ARCH_X86(CALL(native::abs_min, sse::abs_min, 16));
         IF_ARCH_X86(CALL(native::abs_max, sse::abs_max, 16));
         IF_ARCH_X86(CALL(native::abs_minmax, sse::abs_minmax, 16));
+
+        IF_ARCH_X86(CALL(native::min, avx::min, 32));
+        IF_ARCH_X86(CALL(native::max, avx::max, 32));
+        IF_ARCH_X86(CALL(native::minmax, avx::minmax, 32));
+        IF_ARCH_X86(CALL(native::abs_min, avx::abs_min, 32));
+        IF_ARCH_X86(CALL(native::abs_max, avx::abs_max, 32));
+        IF_ARCH_X86(CALL(native::abs_minmax, avx::abs_minmax, 32));
 
         IF_ARCH_ARM(CALL(native::min, neon_d32::min, 16));
         IF_ARCH_ARM(CALL(native::max, neon_d32::max, 16));

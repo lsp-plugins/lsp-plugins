@@ -31,6 +31,7 @@
 #include <dsp/arch/x86/avx/hmath/hdotp.h>
 
 #include <dsp/arch/x86/avx/mix.h>
+#include <dsp/arch/x86/avx/search.h>
 
 #include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
@@ -190,6 +191,13 @@ namespace avx
         CEXPORT1(favx, mix4);
         CEXPORT1(favx, mix_copy4);
         CEXPORT1(favx, mix_add4);
+
+        CEXPORT1(favx, min);
+        CEXPORT1(favx, max);
+        CEXPORT1(favx, minmax);
+        CEXPORT1(favx, abs_min);
+        CEXPORT1(favx, abs_max);
+        CEXPORT1(favx, abs_minmax);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)

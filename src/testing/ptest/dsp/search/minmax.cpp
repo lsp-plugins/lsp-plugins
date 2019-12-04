@@ -33,6 +33,17 @@ IF_ARCH_X86(
         float   abs_max(const float *src, size_t count);
         void    abs_minmax(const float *src, size_t count, float *min, float *max);
     }
+
+    namespace avx
+    {
+        float   min(const float *src, size_t count);
+        float   max(const float *src, size_t count);
+        void    minmax(const float *src, size_t count, float *min, float *max);
+
+        float   abs_min(const float *src, size_t count);
+        float   abs_max(const float *src, size_t count);
+        void    abs_minmax(const float *src, size_t count, float *min, float *max);
+    }
 )
 
 IF_ARCH_ARM(
@@ -116,11 +127,13 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
             //--------------
             CALL(native::min);
             IF_ARCH_X86(CALL(sse::min));
+            IF_ARCH_X86(CALL(avx::min));
             IF_ARCH_ARM(CALL(neon_d32::min));
             IF_ARCH_AARCH64(CALL(asimd::min));
 
             CALL(native::abs_min);
             IF_ARCH_X86(CALL(sse::abs_min));
+            IF_ARCH_X86(CALL(avx::abs_min));
             IF_ARCH_ARM(CALL(neon_d32::abs_min));
             IF_ARCH_AARCH64(CALL(asimd::abs_min));
             PTEST_SEPARATOR;
@@ -128,11 +141,13 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
             //--------------
             CALL(native::max);
             IF_ARCH_X86(CALL(sse::max));
+            IF_ARCH_X86(CALL(avx::max));
             IF_ARCH_ARM(CALL(neon_d32::max));
             IF_ARCH_AARCH64(CALL(asimd::max));
 
             CALL(native::abs_max);
             IF_ARCH_X86(CALL(sse::abs_max));
+            IF_ARCH_X86(CALL(avx::abs_max));
             IF_ARCH_ARM(CALL(neon_d32::abs_max));
             IF_ARCH_AARCH64(CALL(asimd::abs_max));
             PTEST_SEPARATOR;
@@ -140,11 +155,13 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
             //--------------
             CALL(native::minmax);
             IF_ARCH_X86(CALL(sse::minmax));
+            IF_ARCH_X86(CALL(avx::minmax));
             IF_ARCH_ARM(CALL(neon_d32::minmax));
             IF_ARCH_AARCH64(CALL(asimd::minmax));
 
             CALL(native::abs_minmax);
             IF_ARCH_X86(CALL(sse::abs_minmax));
+            IF_ARCH_X86(CALL(avx::abs_minmax));
             IF_ARCH_ARM(CALL(neon_d32::abs_minmax));
             IF_ARCH_AARCH64(CALL(asimd::abs_minmax));
             PTEST_SEPARATOR2;
