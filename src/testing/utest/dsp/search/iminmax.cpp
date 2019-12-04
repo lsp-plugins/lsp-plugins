@@ -32,6 +32,17 @@ IF_ARCH_X86(
         size_t  abs_max_index(const float *src, size_t count);
         void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
+
+    namespace avx2
+    {
+        size_t  min_index(const float *src, size_t count);
+        size_t  max_index(const float *src, size_t count);
+//        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+
+        size_t  abs_min_index(const float *src, size_t count);
+        size_t  abs_max_index(const float *src, size_t count);
+//        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+    }
 )
 
 IF_ARCH_ARM(
@@ -72,6 +83,12 @@ UTEST_BEGIN("dsp.search", iminmax)
         if (!UTEST_SUPPORTED(func2))
             return;
 
+// TODO
+//        static const float buf[] =
+//        {
+//            0.10880, -0.73016, -0.57528, -0.82008, -0.04362, -0.92088, 0.31343, -0.63574
+//        };
+
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
                 32, 64, 65, 100, 768, 999, 1024)
         {
@@ -81,6 +98,7 @@ UTEST_BEGIN("dsp.search", iminmax)
 
                 FloatBuffer src(count, align, mask & 0x01);
                 src.randomize_sign();
+                //src.copy(buf, sizeof(buf)/sizeof(float)); // TODO: fix sse2 implementation
 
                 // Call functions
                 size_t a = func1(src, count);
@@ -148,6 +166,13 @@ UTEST_BEGIN("dsp.search", iminmax)
         IF_ARCH_X86(CALL(native::abs_min_index, sse2::abs_min_index, 16));
         IF_ARCH_X86(CALL(native::abs_max_index, sse2::abs_max_index, 16));
         IF_ARCH_X86(CALL(native::abs_minmax_index, sse2::abs_minmax_index, 16));
+
+        IF_ARCH_X86(CALL(native::min_index, avx2::min_index, 32));
+        IF_ARCH_X86(CALL(native::max_index, avx2::max_index, 32));
+//        IF_ARCH_X86(CALL(native::minmax_index, avx2::minmax_index, 32));
+        IF_ARCH_X86(CALL(native::abs_min_index, avx2::abs_min_index, 32));
+        IF_ARCH_X86(CALL(native::abs_max_index, avx2::abs_max_index, 32));
+//        IF_ARCH_X86(CALL(native::abs_minmax_index, avx2::abs_minmax_index, 32));
 
         IF_ARCH_ARM(CALL(native::min_index, neon_d32::min_index, 16));
         IF_ARCH_ARM(CALL(native::max_index, neon_d32::max_index, 16));
