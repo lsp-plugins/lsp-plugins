@@ -201,6 +201,13 @@ namespace asimd
         EXPORT1(abs_max)
         EXPORT1(abs_minmax)
 
+        EXPORT1(min_index)
+        EXPORT1(max_index)
+        EXPORT1(minmax_index)
+        EXPORT1(abs_min_index)
+        EXPORT1(abs_max_index)
+        EXPORT1(abs_minmax_index)
+
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
         EXPORT1(complex_div2);
