@@ -147,10 +147,9 @@ namespace avx
             /* Exit */
             __ASM_EMIT("8:")
 
-            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
-              [off] "=&r" (off),
+            : [off] "=&r" (off),
               [count] "+r" (count)
-            :
+            : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
               "%xmm8", "%xmm9", "%xmm10", "%xmm12", "%xmm13", "%xmm14", "%xmm15"
@@ -241,10 +240,9 @@ namespace avx
             /* Exit */
             __ASM_EMIT("6:")
 
-            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
-              [off] "=&r" (off),
+            : [off] "=&r" (off),
               [count] "+r" (count)
-            :
+            : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
@@ -311,12 +309,11 @@ namespace avx
             /* Exit */
             __ASM_EMIT("5:")
 
-            : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
-              [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
-              [src2_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
-              [count] "+r" (count),
+            : [count] "+r" (count),
               [off] "=&r" (off)
-            :
+            : [dst_re] "r" (dst_re), [dst_im] "r" (dst_im),
+              [src1_re] "r" (src1_re), [src1_im] "r" (src1_im),
+              [src2_re] "r" (src2_re), [src2_im] "r" (src2_im)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
@@ -379,12 +376,11 @@ namespace avx
             /* Exit */
             __ASM_EMIT("5:")
 
-            : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
-              [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
-              [src2_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
-              [count] "+r" (count),
+            : [count] "+r" (count),
               [off] "=&r" (off)
-            :
+            : [dst_re] "r" (dst_re), [dst_im] "r" (dst_im),
+              [src1_re] "r" (src1_re), [src1_im] "r" (src1_im),
+              [src2_re] "r" (src2_re), [src2_im] "r" (src2_im)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
@@ -508,9 +504,8 @@ namespace avx
             // End
             __ASM_EMIT("8:")
 
-            : [dst] "+r" (dst), [src] "+r" (src),
-              [count] "+r" (count), [off] "=&r" (off)
-            :
+            : [count] "+r" (count), [off] "=&r" (off)
+            : [dst] "r" (dst), [src] "r" (src)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
               "%xmm8", "%xmm9", "%xmm10", "%xmm12", "%xmm13", "%xmm14", "%xmm15"
