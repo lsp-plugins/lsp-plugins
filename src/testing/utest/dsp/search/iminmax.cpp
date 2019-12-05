@@ -83,12 +83,6 @@ UTEST_BEGIN("dsp.search", iminmax)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-// TODO
-//        static const float buf[] =
-//        {
-//            0.10880, -0.73016, -0.57528, -0.82008, -0.04362, -0.92088, 0.31343, -0.63574
-//        };
-
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
                 32, 64, 65, 100, 768, 999, 1024)
         {
@@ -98,7 +92,6 @@ UTEST_BEGIN("dsp.search", iminmax)
 
                 FloatBuffer src(count, align, mask & 0x01);
                 src.randomize_sign();
-                //src.copy(buf, sizeof(buf)/sizeof(float)); // TODO: fix sse2 implementation
 
                 // Call functions
                 size_t a = func1(src, count);

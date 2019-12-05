@@ -28,6 +28,16 @@ namespace sse2
     #define CMPGEPS     "$5"
     #define CMPGTPS     "$6"
 
+    /* Register allocation:
+     * xmm0     = rind  - result indexes
+     * xmm1     = cind  - current indexes
+     * xmm2     = rval  - result values
+     * xmm3     = cval  - current values
+     * xmm4     = xcmp  - comparison mask
+     * xmm5     = temp
+     * xmm6     = temp
+     * xmm7     = incr  - increment
+     */
     #define SEARCH_CORE(op) \
         __ASM_EMIT("pxor            %%xmm0, %%xmm0") \
         __ASM_EMIT("test            %[count], %[count]") \
@@ -44,8 +54,8 @@ namespace sse2
         __ASM_EMIT("movaps          %%xmm2, %%xmm4")            /* x4   = s[k] */ \
         __ASM_EMIT("movups          0x00(%[src]), %%xmm3")      /* x3   = S[k] */ \
         __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4")    /* x4   = s[k] <=> S[k] */ \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0")            /* x0   = i[k] & (s[k] <=> S[k]) */ \
         __ASM_EMIT("movdqa          %%xmm4, %%xmm5")            /* x5   = s[k] <=> S[k] */ \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0")            /* x0   = i[k] & (s[k] <=> S[k]) */ \
         __ASM_EMIT("andps           %%xmm4, %%xmm2")            /* x2   = s[k] & (s[k] <=> S[k]) */ \
         __ASM_EMIT("pandn           %%xmm1, %%xmm5")            /* x5   = I[k] & !(s[k] <=> S[k]) */ \
         __ASM_EMIT("andnps          %%xmm3, %%xmm4")            /* x4   = S[k] & !(s[k] <=> S[k]) */ \
@@ -56,33 +66,33 @@ namespace sse2
         __ASM_EMIT("sub             $4, %[count]") \
         __ASM_EMIT("jae             1b") \
         /* Post-process, step 1 */ \
-        __ASM_EMIT("movdqa          %%xmm1, %%xmm6") \
-        __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
-        __ASM_EMIT("movhlps         %%xmm0, %%xmm1") \
-        __ASM_EMIT("movhlps         %%xmm2, %%xmm3") \
-        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4") \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0") \
+        __ASM_EMIT("movdqa          %%xmm0, %%xmm6")            /* x5   = rind = i0 i1 i2 i3 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm3")            /* x3   = rval = x0 x1 x2 x3 */ \
+        __ASM_EMIT("pshufd          $0x39, %%xmm6, %%xmm6")     /* x6   = cind = i1 i2 i3 i0 */ \
+        __ASM_EMIT("shufps          $0x39, %%xmm3, %%xmm3")     /* x3   = cval = x1 x2 x3 x0 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm4")            /* x4   = x0 x1 x2 x3 */ \
+        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4")    /* x4   = cmp(cval, nval) */ \
         __ASM_EMIT("movdqa          %%xmm4, %%xmm5") \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0") \
         __ASM_EMIT("andps           %%xmm4, %%xmm2") \
-        __ASM_EMIT("pandn           %%xmm1, %%xmm5") \
+        __ASM_EMIT("pandn           %%xmm6, %%xmm5") \
         __ASM_EMIT("andnps          %%xmm3, %%xmm4") \
         __ASM_EMIT("por             %%xmm5, %%xmm0") \
         __ASM_EMIT("orps            %%xmm4, %%xmm2") \
         /* Post-process, step 2 */ \
-        __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
-        __ASM_EMIT("unpcklps        %%xmm2, %%xmm2") \
-        __ASM_EMIT("unpcklps        %%xmm0, %%xmm0") \
-        __ASM_EMIT("movhlps         %%xmm2, %%xmm3") \
-        __ASM_EMIT("movhlps         %%xmm0, %%xmm1") \
-        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4") \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0") \
+        __ASM_EMIT("movdqa          %%xmm0, %%xmm6")            /* x5   = rind = i0 i1 i2 i3 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm3")            /* x3   = rval = x0 x1 x2 x3 */ \
+        __ASM_EMIT("punpckhdq       %%xmm6, %%xmm6")            /* x6   = cind = i2 i2 i3 i3 */ \
+        __ASM_EMIT("unpckhps        %%xmm3, %%xmm3")            /* x3   = cval = x2 x3 x2 x3 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm4")            /* x4   = x0 x1 x2 x3 */ \
+        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4")    /* x4   = cmp(cval, nval) */ \
         __ASM_EMIT("movdqa          %%xmm4, %%xmm5") \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0") \
         __ASM_EMIT("andps           %%xmm4, %%xmm2") \
-        __ASM_EMIT("pandn           %%xmm1, %%xmm5") \
+        __ASM_EMIT("pandn           %%xmm6, %%xmm5") \
         __ASM_EMIT("andnps          %%xmm3, %%xmm4") \
         __ASM_EMIT("por             %%xmm5, %%xmm0") \
         __ASM_EMIT("orps            %%xmm4, %%xmm2") \
-        __ASM_EMIT("movdqa          %%xmm6, %%xmm1") \
         /* x1 blocks */ \
         __ASM_EMIT("2:") \
         __ASM_EMIT("add             $3, %[count]") \
@@ -104,8 +114,7 @@ namespace sse2
         __ASM_EMIT("dec             %[count]") \
         __ASM_EMIT("jge             3b") \
         /* End */ \
-        __ASM_EMIT("4:") \
-        __ASM_EMIT("movd            %%xmm0, %[index]")
+        __ASM_EMIT("4:")
 
 
     size_t min_index(const float *src, size_t count)
@@ -113,12 +122,12 @@ namespace sse2
         uint32_t index;
 
         ARCH_X86_ASM(
-            SEARCH_CORE(CMPLTPS)
+            SEARCH_CORE(CMPLEPS)
             : [src] "+r" (src), [count] "+r" (count),
-              [index] "=&r" (index)
+              [index] "=Yz" (index)
             : [IDXS] "o" (indexes)
             : "cc",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
 
@@ -130,12 +139,12 @@ namespace sse2
         uint32_t index;
 
         ARCH_X86_ASM(
-            SEARCH_CORE(CMPGTPS)
+            SEARCH_CORE(CMPGEPS)
             : [src] "+r" (src), [count] "+r" (count),
-              [index] "=&r" (index)
+              [index] "=Yz" (index)
             : [IDXS] "o" (indexes)
             : "cc",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
 
@@ -144,6 +153,16 @@ namespace sse2
 
     #undef SEARCH_CORE
 
+    /* Register allocation:
+     * xmm0     = rind  - result indexes
+     * xmm1     = cind  - current indexes
+     * xmm2     = rval  - result values
+     * xmm3     = cval  - current values
+     * xmm4     = xcmp  - comparison mask
+     * xmm5     = temp
+     * xmm6     = sign  - sign mask
+     * xmm7     = incr  - increment
+     */
     #define ABS_SEARCH_CORE(op) \
         __ASM_EMIT("pxor            %%xmm0, %%xmm0") \
         __ASM_EMIT("test            %[count], %[count]") \
@@ -163,8 +182,8 @@ namespace sse2
         __ASM_EMIT("movups          0x00(%[src]), %%xmm3")      /* x3   = S[k] */ \
         __ASM_EMIT("andps           %%xmm6, %%xmm3")            /* x3   = abs(S[k]) */ \
         __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4")    /* x4   = s[k] <=> S[k] */ \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0")            /* x0   = i[k] & (s[k] <=> S[k]) */ \
         __ASM_EMIT("movdqa          %%xmm4, %%xmm5")            /* x5   = s[k] <=> S[k] */ \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0")            /* x0   = i[k] & (s[k] <=> S[k]) */ \
         __ASM_EMIT("andps           %%xmm4, %%xmm2")            /* x2   = s[k] & (s[k] <=> S[k]) */ \
         __ASM_EMIT("pandn           %%xmm1, %%xmm5")            /* x5   = I[k] & !(s[k] <=> S[k]) */ \
         __ASM_EMIT("andnps          %%xmm3, %%xmm4")            /* x4   = S[k] & !(s[k] <=> S[k]) */ \
@@ -175,71 +194,70 @@ namespace sse2
         __ASM_EMIT("sub             $4, %[count]") \
         __ASM_EMIT("jae             1b") \
         /* Post-process, step 1 */ \
-        __ASM_EMIT("movdqa          %%xmm1, %%xmm6") \
-        __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
-        __ASM_EMIT("movhlps         %%xmm0, %%xmm1") \
-        __ASM_EMIT("movhlps         %%xmm2, %%xmm3") \
-        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4") \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0") \
+        __ASM_EMIT("movdqa          %%xmm0, %%xmm6")            /* x5   = rind = i0 i1 i2 i3 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm3")            /* x3   = rval = x0 x1 x2 x3 */ \
+        __ASM_EMIT("pshufd          $0x39, %%xmm6, %%xmm6")     /* x6   = cind = i1 i2 i3 i0 */ \
+        __ASM_EMIT("shufps          $0x39, %%xmm3, %%xmm3")     /* x3   = cval = x1 x2 x3 x0 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm4")            /* x4   = x0 x1 x2 x3 */ \
+        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4")    /* x4   = cmp(cval, nval) */ \
         __ASM_EMIT("movdqa          %%xmm4, %%xmm5") \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0") \
         __ASM_EMIT("andps           %%xmm4, %%xmm2") \
-        __ASM_EMIT("pandn           %%xmm1, %%xmm5") \
+        __ASM_EMIT("pandn           %%xmm6, %%xmm5") \
         __ASM_EMIT("andnps          %%xmm3, %%xmm4") \
         __ASM_EMIT("por             %%xmm5, %%xmm0") \
         __ASM_EMIT("orps            %%xmm4, %%xmm2") \
         /* Post-process, step 2 */ \
-        __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
-        __ASM_EMIT("unpcklps        %%xmm2, %%xmm2") \
-        __ASM_EMIT("unpcklps        %%xmm0, %%xmm0") \
-        __ASM_EMIT("movhlps         %%xmm2, %%xmm3") \
-        __ASM_EMIT("movhlps         %%xmm0, %%xmm1") \
-        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4") \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0") \
+        __ASM_EMIT("movdqa          %%xmm0, %%xmm6")            /* x5   = rind = i0 i1 i2 i3 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm3")            /* x3   = rval = x0 x1 x2 x3 */ \
+        __ASM_EMIT("punpckhdq       %%xmm6, %%xmm6")            /* x6   = cind = i2 i2 i3 i3 */ \
+        __ASM_EMIT("unpckhps        %%xmm3, %%xmm3")            /* x3   = cval = x2 x3 x2 x3 */ \
+        __ASM_EMIT("movaps          %%xmm2, %%xmm4")            /* x4   = x0 x1 x2 x3 */ \
+        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4")    /* x4   = cmp(cval, nval) */ \
         __ASM_EMIT("movdqa          %%xmm4, %%xmm5") \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0") \
         __ASM_EMIT("andps           %%xmm4, %%xmm2") \
-        __ASM_EMIT("pandn           %%xmm1, %%xmm5") \
+        __ASM_EMIT("pandn           %%xmm6, %%xmm5") \
         __ASM_EMIT("andnps          %%xmm3, %%xmm4") \
         __ASM_EMIT("por             %%xmm5, %%xmm0") \
         __ASM_EMIT("orps            %%xmm4, %%xmm2") \
-        __ASM_EMIT("movdqa          %%xmm6, %%xmm1") \
+        __ASM_EMIT("movaps          %[X_SIGN], %%xmm6")         /* x6   = SIGN (restore) */ \
         /* x1 blocks */ \
         __ASM_EMIT("2:") \
         __ASM_EMIT("add             $3, %[count]") \
         __ASM_EMIT("jl              4f") \
         __ASM_EMIT("movdqa          0x20 + %[IDXS], %%xmm7")    /* x7   = D = 1 1 1 1 */ \
-        __ASM_EMIT("movaps          %[X_SIGN], %%xmm6")         /* x6   = SIGN */ \
         __ASM_EMIT("3:") \
         __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
         __ASM_EMIT("movss           0x00(%[src]), %%xmm3") \
         __ASM_EMIT("andps           %%xmm6, %%xmm3")            /* x3   = abs(S[k]) */ \
-        __ASM_EMIT("cmpss           " op ", %%xmm3, %%xmm4") \
-        __ASM_EMIT("pand            %%xmm4, %%xmm0") \
-        __ASM_EMIT("movdqa          %%xmm4, %%xmm5") \
-        __ASM_EMIT("andps           %%xmm4, %%xmm2") \
-        __ASM_EMIT("pandn           %%xmm1, %%xmm5") \
-        __ASM_EMIT("andnps          %%xmm3, %%xmm4") \
-        __ASM_EMIT("por             %%xmm5, %%xmm0") \
-        __ASM_EMIT("orps            %%xmm4, %%xmm2") \
-        __ASM_EMIT("paddd           %%xmm7, %%xmm1") \
+        __ASM_EMIT("cmpps           " op ", %%xmm3, %%xmm4") \
+        __ASM_EMIT("movdqa          %%xmm4, %%xmm5")            /* x5   = s[k] <=> S[k] */ \
+        __ASM_EMIT("pand            %%xmm5, %%xmm0")            /* x0   = i[k] & (s[k] <=> S[k]) */ \
+        __ASM_EMIT("andps           %%xmm4, %%xmm2")            /* x2   = s[k] & (s[k] <=> S[k]) */ \
+        __ASM_EMIT("pandn           %%xmm1, %%xmm5")            /* x5   = I[k] & !(s[k] <=> S[k]) */ \
+        __ASM_EMIT("andnps          %%xmm3, %%xmm4")            /* x4   = S[k] & !(s[k] <=> S[k]) */ \
+        __ASM_EMIT("por             %%xmm5, %%xmm0")            /* x0   = (i[k] & (s[k] <=> S[k])) | (I[k] & !(s[k] <=> S[k])) */ \
+        __ASM_EMIT("orps            %%xmm4, %%xmm2")            /* x2   = (s[k] & (s[k] <=> S[k])) | (S[k] & !(s[k] <=> S[k])) */ \
+        __ASM_EMIT("paddd           %%xmm7, %%xmm1")            /* x1   = I[k] = i[k]+D */ \
         __ASM_EMIT("add             $0x04, %[src]") \
         __ASM_EMIT("dec             %[count]") \
         __ASM_EMIT("jge             3b") \
         /* End */ \
-        __ASM_EMIT("4:") \
-        __ASM_EMIT("movd            %%xmm0, %[index]")
+        __ASM_EMIT("4:")
 
     size_t abs_min_index(const float *src, size_t count)
     {
         uint32_t index;
 
         ARCH_X86_ASM(
-            ABS_SEARCH_CORE(CMPLTPS)
+            ABS_SEARCH_CORE(CMPLEPS)
             : [src] "+r" (src), [count] "+r" (count),
-              [index] "=&r" (index)
+              [index] "=Yz" (index)
             : [IDXS] "o" (indexes),
               [X_SIGN] "m" (X_SIGN)
             : "cc",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
 
@@ -251,13 +269,13 @@ namespace sse2
         uint32_t index;
 
         ARCH_X86_ASM(
-            ABS_SEARCH_CORE(CMPGTPS)
+            ABS_SEARCH_CORE(CMPGEPS)
             : [src] "+r" (src), [count] "+r" (count),
-              [index] "=&r" (index)
+              [index] "=Yz" (index)
             : [IDXS] "o" (indexes),
               [X_SIGN] "m" (X_SIGN)
             : "cc",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
 
