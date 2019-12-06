@@ -20,6 +20,7 @@
 
 #include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>
+#include <dsp/arch/x86/avx/pcomplex.h>
 
 #include <dsp/arch/x86/avx/pmath/op_kx.h>
 #include <dsp/arch/x86/avx/pmath/op_vv.h>
@@ -33,7 +34,6 @@
 #include <dsp/arch/x86/avx/mix.h>
 #include <dsp/arch/x86/avx/search/minmax.h>
 
-#include <dsp/arch/x86/avx/pcomplex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
 #include <dsp/arch/x86/avx/filters/transform.h>
@@ -170,8 +170,11 @@ namespace avx
         CEXPORT2_X64(favx, abs2, x64_abs2);
 
         CEXPORT2_X64(favx, complex_mul3, x64_complex_mul3);
-        CEXPORT2_X64(favx, pcomplex_mul3, x64_pcomplex_mul3);
+
+        CEXPORT2(favx, pcomplex_mul2, pcomplex_mul2);
+        CEXPORT2(favx, pcomplex_mul3, pcomplex_mul3);
         CEXPORT2_X64(favx, pcomplex_mod, x64_pcomplex_mod);
+
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);
 
         CEXPORT1(favx, h_sum);
@@ -222,7 +225,9 @@ namespace avx
             CEXPORT2_X64(favx, fmrsub4, x64_fmrsub4_fma3);
 
             CEXPORT2_X64(favx, complex_mul3, x64_complex_mul3_fma3);
-            CEXPORT2_X64(favx, pcomplex_mul3, x64_pcomplex_mul3_fma3)
+
+            CEXPORT2(favx, pcomplex_mul2, pcomplex_mul2_fma3);
+            CEXPORT2(favx, pcomplex_mul3, pcomplex_mul3_fma3);
 
             CEXPORT2(favx, h_sqr_sum, h_sqr_sum_fma3);
 //            CEXPORT2(favx, h_dotp_sum, h_dotp_sum_fma3);

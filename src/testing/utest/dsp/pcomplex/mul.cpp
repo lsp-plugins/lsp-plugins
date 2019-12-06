@@ -27,6 +27,14 @@ IF_ARCH_X86(
         void pcomplex_mul2(float *dst, const float *src, size_t count);
         void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
+
+    namespace avx
+    {
+        void pcomplex_mul2(float *dst, const float *src, size_t count);
+        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void pcomplex_mul2_fma3(float *dst, const float *src, size_t count);
+        void pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count);
+    }
 )
 
 IF_ARCH_X86_64(
@@ -34,12 +42,6 @@ IF_ARCH_X86_64(
     {
         void x64_pcomplex_mul2(float *dst, const float *src, size_t count);
         void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
-    }
-
-    namespace avx
-    {
-        void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
-        void x64_pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -142,18 +144,25 @@ UTEST_BEGIN("dsp.pcomplex", mul)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::pcomplex_mul2", 16, sse::pcomplex_mul2));
-        IF_ARCH_X86(call("sse::pcomplex_mul3", 16, sse::pcomplex_mul3));
-        IF_ARCH_X86(call("sse3::pcomplex_mul2", 16, sse3::pcomplex_mul2));
-        IF_ARCH_X86(call("sse3::pcomplex_mul3", 16, sse3::pcomplex_mul3));
-        IF_ARCH_X86_64(call("sse3::x64_pcomplex_mul2", 16, sse3::x64_pcomplex_mul2));
-        IF_ARCH_X86_64(call("sse3::x64_pcomplex_mul3", 16, sse3::x64_pcomplex_mul3));
-        IF_ARCH_X86_64(call("avx::x64_pcomplex_mul3", 32, avx::x64_pcomplex_mul3));
-        IF_ARCH_X86_64(call("avx::x64_pcomplex_mul3_fma3", 32, avx::x64_pcomplex_mul3_fma3));
-        IF_ARCH_ARM(call("neon_d32::pcomplex_mul2", 16, neon_d32::pcomplex_mul2));
-        IF_ARCH_ARM(call("neon_d32::pcomplex_mul3", 16, neon_d32::pcomplex_mul3));
-        IF_ARCH_AARCH64(call("asimd::pcomplex_mul2", 16, asimd::pcomplex_mul2));
-        IF_ARCH_AARCH64(call("asimd::pcomplex_mul3", 16, asimd::pcomplex_mul3));
+        #define CALL(func, align) \
+            call(#func, align, func)
+
+        IF_ARCH_X86(CALL(sse::pcomplex_mul2, 16));
+        IF_ARCH_X86(CALL(sse::pcomplex_mul3, 16));
+        IF_ARCH_X86(CALL(sse3::pcomplex_mul2, 16));
+        IF_ARCH_X86(CALL(sse3::pcomplex_mul3, 16));
+        IF_ARCH_X86_64(CALL(sse3::x64_pcomplex_mul2, 16));
+        IF_ARCH_X86_64(CALL(sse3::x64_pcomplex_mul3, 16));
+        IF_ARCH_X86(CALL(avx::pcomplex_mul2, 32));
+        IF_ARCH_X86(CALL(avx::pcomplex_mul3, 32));
+        IF_ARCH_X86(CALL(avx::pcomplex_mul2_fma3, 32));
+        IF_ARCH_X86(CALL(avx::pcomplex_mul3_fma3, 32));
+
+        IF_ARCH_ARM(CALL(neon_d32::pcomplex_mul2, 16));
+        IF_ARCH_ARM(CALL(neon_d32::pcomplex_mul3, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::pcomplex_mul2, 16));
+        IF_ARCH_AARCH64(CALL(asimd::pcomplex_mul3, 16));
     }
 
 UTEST_END;
