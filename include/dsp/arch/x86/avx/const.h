@@ -65,6 +65,7 @@ namespace avx
 
     /* Sign Mask */
     AVX_UVEC8(X_SIGN,  0x7fffffff);
+    AVX_UVEC8(R_SIGN,  0x80000000);
     AVX_SVEC8(X_HALF,  0.5f);
     AVX_UVEC8(X_MANT,  0x007fffff);
     AVX_UVEC8(X_MMASK, 0x0000007f);

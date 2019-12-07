@@ -23,6 +23,17 @@ IF_ARCH_X86(
         void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
         void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
     }
+
+    namespace avx
+    {
+        void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
+
+        void complex_div2_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_rdiv2_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_div3_fma3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -64,8 +75,12 @@ UTEST_BEGIN("dsp.complex", div)
 
                 FloatBuffer src_re(count, align, mask & 0x01);
                 FloatBuffer src_im(count, align, mask & 0x02);
+                src_re.randomize_sign();
+                src_im.randomize_sign();
                 FloatBuffer dst1_re(count, align, mask & 0x04);
                 FloatBuffer dst1_im(count, align, mask & 0x08);
+                dst1_re.randomize_sign();
+                dst1_im.randomize_sign();
                 FloatBuffer dst2_re(dst1_re);
                 FloatBuffer dst2_im(dst1_im);
 
@@ -95,9 +110,11 @@ UTEST_BEGIN("dsp.complex", div)
         }
     }
 
-    void call(const char *text,  size_t align, complex_div3_t func)
+    void call(const char *text, size_t align, complex_div3_t func1, complex_div3_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -109,16 +126,20 @@ UTEST_BEGIN("dsp.complex", div)
 
                 FloatBuffer src1_re(count, align, mask & 0x01);
                 FloatBuffer src1_im(count, align, mask & 0x02);
+                src1_re.randomize_sign();
+                src1_im.randomize_sign();
                 FloatBuffer src2_re(count, align, mask & 0x04);
                 FloatBuffer src2_im(count, align, mask & 0x08);
+                src2_re.randomize_sign();
+                src2_im.randomize_sign();
                 FloatBuffer dst1_re(count, align, mask & 0x10);
                 FloatBuffer dst1_im(count, align, mask & 0x20);
-                FloatBuffer dst2_re(dst1_re);
-                FloatBuffer dst2_im(dst1_im);
+                FloatBuffer dst2_re(count, align, mask & 0x10);
+                FloatBuffer dst2_im(count, align, mask & 0x20);
 
                 // Call functions
-                native::complex_div3(dst1_re, dst1_im, src1_re, src1_im, src2_re, src2_im, count);
-                func(dst2_re, dst2_im, src1_re, src1_im, src2_re, src2_im, count);
+                func1(dst1_re, dst1_im, src1_re, src1_im, src2_re, src2_im, count);
+                func2(dst2_re, dst2_im, src1_re, src1_im, src2_re, src2_im, count);
 
                 UTEST_ASSERT_MSG(src1_re.valid(), "Source buffer 1 RE corrupted");
                 UTEST_ASSERT_MSG(src1_im.valid(), "Source buffer 1 IM corrupted");
@@ -148,17 +169,26 @@ UTEST_BEGIN("dsp.complex", div)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::complex_div2", 16, native::complex_div2, sse::complex_div2));
-        IF_ARCH_X86(call("sse::complex_rdiv2", 16, native::complex_rdiv2, sse::complex_rdiv2));
-        IF_ARCH_X86(call("sse::complex_div3", 16, sse::complex_div3));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
 
-        IF_ARCH_ARM(call("neon_d32::complex_div2", 16, native::complex_div2, neon_d32::complex_div2));
-        IF_ARCH_ARM(call("neon_d32::complex_rdiv2", 16, native::complex_rdiv2, neon_d32::complex_rdiv2));
-        IF_ARCH_ARM(call("neon_d32::complex_div3", 16, neon_d32::complex_div3));
+        IF_ARCH_X86(CALL(native::complex_div2, sse::complex_div2, 16));
+        IF_ARCH_X86(CALL(native::complex_rdiv2, sse::complex_rdiv2, 16));
+        IF_ARCH_X86(CALL(native::complex_div3, sse::complex_div3, 16));
+        IF_ARCH_X86(CALL(native::complex_div2, avx::complex_div2, 32));
+        IF_ARCH_X86(CALL(native::complex_rdiv2, avx::complex_rdiv2, 32));
+        IF_ARCH_X86(CALL(native::complex_div3, avx::complex_div3, 32));
+        IF_ARCH_X86(CALL(native::complex_div2, avx::complex_div2_fma3, 32));
+        IF_ARCH_X86(CALL(native::complex_rdiv2, avx::complex_rdiv2_fma3, 32));
+        IF_ARCH_X86(CALL(native::complex_div3, avx::complex_div3_fma3, 32));
 
-        IF_ARCH_AARCH64(call("asimd::complex_div2", 16, native::complex_div2, asimd::complex_div2));
-        IF_ARCH_AARCH64(call("asimd::complex_rdiv2", 16, native::complex_rdiv2, asimd::complex_rdiv2));
-        IF_ARCH_AARCH64(call("asimd::complex_div3", 16, asimd::complex_div3));
+        IF_ARCH_ARM(CALL(native::complex_div2, neon_d32::complex_div2, 16));
+        IF_ARCH_ARM(CALL(native::complex_rdiv2, neon_d32::complex_rdiv2, 16));
+        IF_ARCH_ARM(CALL(native::complex_div3, neon_d32::complex_div3, 16));
+
+        IF_ARCH_AARCH64(CALL(native::complex_div2, asimd::complex_div2, 16));
+        IF_ARCH_AARCH64(CALL(native::complex_rdiv2, asimd::complex_rdiv2, 16));
+        IF_ARCH_AARCH64(CALL(native::complex_div3, asimd::complex_div3, 16));
     }
 
 UTEST_END;
