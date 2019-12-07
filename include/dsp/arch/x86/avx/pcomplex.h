@@ -243,6 +243,212 @@ namespace avx
         );
     }
 
+    #define PCOMPLEX_DIV_CORE(DST, T, B, SEL) \
+        /* Init */ \
+        __ASM_EMIT("xor         %[off], %[off]") \
+        /* x8 block */ \
+        __ASM_EMIT("sub         $8, %[count]") \
+        __ASM_EMIT("jb          2f") \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("vmovups     0x00(%[" B "], %[off]), %%ymm6")        /* ymm6 = br0 bi0 */ \
+        __ASM_EMIT("vmovups     0x20(%[" B "], %[off]), %%ymm7") \
+        __ASM_EMIT("vmovaps     %[ONE], %%ymm3")                        /* ymm3 = 1 */ \
+        __ASM_EMIT("vmulps      %%ymm6, %%ymm6, %%ymm4")                /* ymm4 = br0*br0 bi0*bi0 */ \
+        __ASM_EMIT("vmulps      %%ymm7, %%ymm7, %%ymm5") \
+        __ASM_EMIT("vhaddps     %%ymm5, %%ymm4, %%ymm2")                /* ymm2 = R = br0*br0+bi0*bi0 */ \
+        __ASM_EMIT("vmovsldup   0x00(%[" T "], %[off]), %%ymm0")        /* ymm0 = ar0 ar0 */ \
+        __ASM_EMIT("vdivps      %%ymm2, %%ymm3, %%ymm3")                /* ymm3 = 1/R */ \
+        __ASM_EMIT("vmovsldup   0x20(%[" T "], %[off]), %%ymm1") \
+        __ASM_EMIT("vxorps      %[SIGN], %%ymm3, %%ymm5")               /* ymm5 = -1/R */ \
+        __ASM_EMIT("vmovshdup   0x00(%[" T "], %[off]), %%ymm2")        /* ymm2 = ai0 ai0 */ \
+        __ASM_EMIT("vunpcklps   %%ymm5, %%ymm3, %%ymm4")                /* ymm4 = 1/R -1/R */ \
+        __ASM_EMIT("vmulps      %%ymm6, %%ymm0, %%ymm0")                /* ymm0 = ar0*br0 ar0*bi0 */ \
+        __ASM_EMIT("vunpckhps   %%ymm5, %%ymm3, %%ymm5") \
+        __ASM_EMIT("vmulps      %%ymm7, %%ymm1, %%ymm1") \
+        __ASM_EMIT("vmovshdup   0x20(%[" T "], %[off]), %%ymm3") \
+        __ASM_EMIT("vshufps     $0xb1, %%ymm6, %%ymm6, %%ymm6")         /* ymm6 = bi0 br0 */ \
+        __ASM_EMIT("vshufps     $0xb1, %%ymm7, %%ymm7, %%ymm7") \
+        __ASM_EMIT(SEL("vmulps  %%ymm6, %%ymm2, %%ymm2", ""))           /* ymm2 = ai0*bi0 ai0*br0 */ \
+        __ASM_EMIT(SEL("vmulps  %%ymm7, %%ymm3, %%ymm3", "")) \
+        __ASM_EMIT(SEL("vaddps  %%ymm2, %%ymm0, %%ymm0", "vfmadd231ps %%ymm6, %%ymm2, %%ymm0")) /* ymm0 = r i = ar0*br0+ai0*bi0 ar0*bi0+ai0*br0 ... */ \
+        __ASM_EMIT(SEL("vaddps  %%ymm3, %%ymm1, %%ymm1", "vfmadd231ps %%ymm7, %%ymm3, %%ymm1")) \
+        __ASM_EMIT("vmulps      %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r/R -i/R */ \
+        __ASM_EMIT("vmulps      %%ymm5, %%ymm1, %%ymm1") \
+        __ASM_EMIT("vmovups     %%ymm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm1, 0x20(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x40, %[off]") \
+        __ASM_EMIT("sub         $8, %[count]") \
+        __ASM_EMIT("jae         1b") \
+        __ASM_EMIT("2:") \
+        /* x4 block */ \
+        __ASM_EMIT("add         $4, %[count]") \
+        __ASM_EMIT("jl          4f") \
+        __ASM_EMIT("vmovups     0x00(%[" B "], %[off]), %%ymm6")        /* ymm6 = br0 bi0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%ymm3")                        /* ymm3 = 1 */ \
+        __ASM_EMIT("vmulps      %%ymm6, %%ymm6, %%ymm4")                /* ymm4 = br0*br0 bi0*bi0 */ \
+        __ASM_EMIT("vhaddps     %%ymm5, %%ymm4, %%ymm2")                /* ymm2 = R = br0*br0+bi0*bi0 */ \
+        __ASM_EMIT("vdivps      %%ymm2, %%ymm3, %%ymm3")                /* ymm3 = 1/R */ \
+        __ASM_EMIT("vmovsldup   0x00(%[" T "], %[off]), %%ymm0")        /* ymm0 = ar0 ar0 */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%ymm3, %%ymm5")               /* ymm5 = -1/R */ \
+        __ASM_EMIT("vmovshdup   0x00(%[" T "], %[off]), %%ymm2")        /* ymm2 = ai0 ai0 */ \
+        __ASM_EMIT("vunpcklps   %%ymm5, %%ymm3, %%ymm4")                /* ymm4 = 1/R -1/R */ \
+        __ASM_EMIT("vmulps      %%ymm6, %%ymm0, %%ymm0")                /* ymm0 = ar0*br0 ar0*bi0 */ \
+        __ASM_EMIT("vunpckhps   %%ymm5, %%ymm3, %%ymm5") \
+        __ASM_EMIT("vshufps     $0xb1, %%ymm6, %%ymm6, %%ymm6")         /* ymm6 = bi0 br0 */ \
+        __ASM_EMIT(SEL("vmulps  %%ymm6, %%ymm2, %%ymm2", ""))           /* ymm2 = ai0*bi0 ai0*br0 */ \
+        __ASM_EMIT(SEL("vaddps  %%ymm2, %%ymm0, %%ymm0", "vfmadd231ps %%ymm6, %%ymm2, %%ymm0")) /* ymm0 = r i = ar0*br0+ai0*bi0 ar0*bi0+ai0*br0 ... */ \
+        __ASM_EMIT("vmulps      %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r/R -i/R */ \
+        __ASM_EMIT("vmovups     %%ymm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x20, %[off]") \
+        __ASM_EMIT("sub         $4, %[count]") \
+        __ASM_EMIT("4:") \
+        /* x2 block */ \
+        __ASM_EMIT("add         $2, %[count]") \
+        __ASM_EMIT("jl          6f") \
+        __ASM_EMIT("vmovups     0x00(%[" B "], %[off]), %%xmm6")        /* xmm6 = br0 bi0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%xmm3")                        /* xmm3 = 1 */ \
+        __ASM_EMIT("vmulps      %%xmm6, %%xmm6, %%xmm4")                /* xmm4 = br0*br0 bi0*bi0 */ \
+        __ASM_EMIT("vhaddps     %%xmm5, %%xmm4, %%xmm2")                /* xmm2 = R = br0*br0+bi0*bi0 */ \
+        __ASM_EMIT("vmovsldup   0x00(%[" T "], %[off]), %%xmm0")        /* xmm0 = ar0 ar0 */ \
+        __ASM_EMIT("vdivps      %%xmm2, %%xmm3, %%xmm3")                /* xmm3 = 1/R */ \
+        __ASM_EMIT("vmovshdup   0x00(%[" T "], %[off]), %%xmm2")        /* xmm2 = ai0 ai0 */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%xmm3, %%xmm5")               /* xmm5 = -1/R */ \
+        __ASM_EMIT("vmulps      %%xmm6, %%xmm0, %%xmm0")                /* xmm0 = ar0*br0 ar0*bi0 */ \
+        __ASM_EMIT("vunpcklps   %%xmm5, %%xmm3, %%xmm4")                /* xmm4 = 1/R -1/R */ \
+        __ASM_EMIT("vshufps     $0xb1, %%xmm6, %%xmm6, %%xmm6")         /* xmm6 = bi0 br0 */ \
+        __ASM_EMIT(SEL("vmulps  %%xmm6, %%xmm2, %%xmm2", ""))           /* xmm2 = ai0*bi0 ai0*br0 */ \
+        __ASM_EMIT(SEL("vaddps  %%xmm2, %%xmm0, %%xmm0", "vfmadd231ps %%xmm6, %%xmm2, %%xmm0")) /* xmm0 = r i = ar0*br0+ai0*bi0 ar0*bi0+ai0*br0 ... */ \
+        __ASM_EMIT("vmulps      %%xmm4, %%xmm0, %%xmm0")                /* xmm0 = r/R -i/R */ \
+        __ASM_EMIT("vmovups     %%xmm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x10, %[off]") \
+        __ASM_EMIT("sub         $2, %[count]") \
+        __ASM_EMIT("6:") \
+        /* x1 block */ \
+        __ASM_EMIT("add         $1, %[count]") \
+        __ASM_EMIT("jl          8f") \
+        __ASM_EMIT("vmovlps     0x00(%[" B "], %[off]), %%xmm6, %%xmm6")/* xmm6 = br0 bi0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%xmm3")                        /* xmm3 = 1 */ \
+        __ASM_EMIT("vmulps      %%xmm6, %%xmm6, %%xmm4")                /* xmm4 = br0*br0 bi0*bi0 */ \
+        __ASM_EMIT("vhaddps     %%xmm5, %%xmm4, %%xmm2")                /* xmm2 = R = br0*br0+bi0*bi0 */ \
+        __ASM_EMIT("vdivps      %%xmm2, %%xmm3, %%xmm3")                /* xmm3 = 1/R */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%xmm3, %%xmm5")               /* xmm5 = -1/R */ \
+        __ASM_EMIT("vmovlps     0x00(%[" T "], %[off]), %%xmm2, %%xmm2") \
+        __ASM_EMIT("vunpcklps   %%xmm5, %%xmm3, %%xmm4")                /* xmm4 = 1/R -1/R */ \
+        __ASM_EMIT("vmovsldup   %%xmm2, %%xmm0")                        /* xmm0 = ar0 ar0 */ \
+        __ASM_EMIT("vmovshdup   %%xmm2, %%xmm2")                        /* xmm2 = ai0 ai0 */ \
+        __ASM_EMIT("vmulps      %%xmm6, %%xmm0, %%xmm0")                /* xmm0 = ar0*br0 ar0*bi0 */ \
+        __ASM_EMIT("vshufps     $0xb1, %%xmm6, %%xmm6, %%xmm6")         /* xmm6 = bi0 br0 */ \
+        __ASM_EMIT(SEL("vmulps  %%xmm6, %%xmm2, %%xmm2", ""))           /* xmm2 = ai0*bi0 ai0*br0 */ \
+        __ASM_EMIT(SEL("vaddps  %%xmm2, %%xmm0, %%xmm0", "vfmadd231ps %%xmm6, %%xmm2, %%xmm0")) /* xmm0 = r i = ar0*br0+ai0*bi0 ar0*bi0+ai0*br0 ... */ \
+        __ASM_EMIT("vmulps      %%xmm4, %%xmm0, %%xmm0")                /* xmm0 = r/R -i/R */ \
+        __ASM_EMIT("vmovlps     %%xmm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("8:") \
+        /* end */
+
+    void pcomplex_div3(float *dst, const float *t, const float *b, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_DIV_CORE("dst", "t", "b", FMA_OFF)
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [t] "r" (t), [b] "r" (b),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void pcomplex_div2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_DIV_CORE("dst", "dst", "src", FMA_OFF)
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void pcomplex_rdiv2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_DIV_CORE("dst", "src", "dst", FMA_OFF)
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void pcomplex_div3_fma3(float *dst, const float *t, const float *b, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_DIV_CORE("dst", "t", "b", FMA_ON)
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [t] "r" (t), [b] "r" (b),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void pcomplex_div2_fma3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_DIV_CORE("dst", "dst", "src", FMA_ON)
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void pcomplex_rdiv2_fma3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_DIV_CORE("dst", "src", "dst", FMA_ON)
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    #undef PCOMPLEX_DIV_CORE
+
     #undef FMA_OFF
     #undef FMA_ON
 }

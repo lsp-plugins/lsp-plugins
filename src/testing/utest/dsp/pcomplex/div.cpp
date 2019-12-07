@@ -23,6 +23,17 @@ IF_ARCH_X86(
         void pcomplex_rdiv2(float *dst, const float *src, size_t count);
         void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
     }
+
+    namespace avx
+    {
+        void pcomplex_div2(float *dst, const float *src, size_t count);
+        void pcomplex_rdiv2(float *dst, const float *src, size_t count);
+        void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
+
+        void pcomplex_div2_fma3(float *dst, const float *src, size_t count);
+        void pcomplex_rdiv2_fma3(float *dst, const float *src, size_t count);
+        void pcomplex_div3_fma3(float *dst, const float *t, const float *b, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -86,9 +97,11 @@ UTEST_BEGIN("dsp.pcomplex", div)
         }
     }
 
-    void call(const char *text,  size_t align, pcomplex_div3_t func)
+    void call(const char *text,  size_t align, pcomplex_div3_t func1, pcomplex_div3_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -104,8 +117,8 @@ UTEST_BEGIN("dsp.pcomplex", div)
                 FloatBuffer dst2(count*2, align, mask & 0x04);
 
                 // Call functions
-                native::pcomplex_div3(dst1, src1, src2, count);
-                func(dst2, src1, src2, count);
+                func1(dst1, src1, src2, count);
+                func2(dst2, src1, src2, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1corrupted");
                 UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
@@ -127,17 +140,27 @@ UTEST_BEGIN("dsp.pcomplex", div)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::pcomplex_div2", 16, native::pcomplex_div2, sse::pcomplex_div2));
-        IF_ARCH_X86(call("sse::pcomplex_rdiv2", 16, native::pcomplex_rdiv2, sse::pcomplex_rdiv2));
-        IF_ARCH_X86(call("sse::pcomplex_div3", 16, sse::pcomplex_div3));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
 
-        IF_ARCH_ARM(call("neon_d32::pcomplex_div2", 16, native::pcomplex_div2, neon_d32::pcomplex_div2));
-        IF_ARCH_ARM(call("neon_d32::pcomplex_rdiv2", 16, native::pcomplex_rdiv2, neon_d32::pcomplex_rdiv2));
-        IF_ARCH_ARM(call("neon_d32::pcomplex_div3", 16, neon_d32::pcomplex_div3));
+        IF_ARCH_X86(CALL(native::pcomplex_div2, sse::pcomplex_div2, 16));
+        IF_ARCH_X86(CALL(native::pcomplex_rdiv2, sse::pcomplex_rdiv2, 16));
+        IF_ARCH_X86(CALL(native::pcomplex_div3, sse::pcomplex_div3, 16));
 
-        IF_ARCH_AARCH64(call("asimd::pcomplex_div2", 16, native::pcomplex_div2, asimd::pcomplex_div2));
-        IF_ARCH_AARCH64(call("asimd::pcomplex_rdiv2", 16, native::pcomplex_rdiv2, asimd::pcomplex_rdiv2));
-        IF_ARCH_AARCH64(call("asimd::pcomplex_div3", 16, asimd::pcomplex_div3));
+        IF_ARCH_X86(CALL(native::pcomplex_div2, avx::pcomplex_div2, 32));
+        IF_ARCH_X86(CALL(native::pcomplex_div2, avx::pcomplex_div2_fma3, 32));
+        IF_ARCH_X86(CALL(native::pcomplex_rdiv2, avx::pcomplex_rdiv2, 32));
+        IF_ARCH_X86(CALL(native::pcomplex_rdiv2, avx::pcomplex_rdiv2_fma3, 32));
+        IF_ARCH_X86(CALL(native::pcomplex_div3, avx::pcomplex_div3, 32));
+        IF_ARCH_X86(CALL(native::pcomplex_div3, avx::pcomplex_div3_fma3, 32));
+
+        IF_ARCH_ARM(CALL(native::pcomplex_div2, neon_d32::pcomplex_div2, 16));
+        IF_ARCH_ARM(CALL(native::pcomplex_rdiv2, neon_d32::pcomplex_rdiv2, 16));
+        IF_ARCH_ARM(CALL(native::pcomplex_div3, neon_d32::pcomplex_div3, 16));
+
+        IF_ARCH_AARCH64(CALL(native::pcomplex_div2, asimd::pcomplex_div2, 16));
+        IF_ARCH_AARCH64(CALL(native::pcomplex_rdiv2, asimd::pcomplex_rdiv2, 16));
+        IF_ARCH_AARCH64(CALL(native::pcomplex_div3, asimd::pcomplex_div3, 16));
     }
 
 UTEST_END;
