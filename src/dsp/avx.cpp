@@ -171,9 +171,9 @@ namespace avx
 
         CEXPORT2_X64(favx, complex_mul3, x64_complex_mul3);
 
-        CEXPORT2(favx, pcomplex_mul2, pcomplex_mul2);
-        CEXPORT2(favx, pcomplex_mul3, pcomplex_mul3);
-        CEXPORT2_X64(favx, pcomplex_mod, x64_pcomplex_mod);
+        CEXPORT1(favx, pcomplex_mul2);
+        CEXPORT1(favx, pcomplex_mul3);
+        CEXPORT1(favx, pcomplex_mod);
 
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);
 

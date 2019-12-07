@@ -27,7 +27,7 @@ IF_ARCH_X86(
 
     namespace avx
     {
-        void x64_pcomplex_mod(float *dst_mod, const float *src, size_t count);
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
     }
 )
 
@@ -87,12 +87,15 @@ UTEST_BEGIN("dsp.pcomplex", mod)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::pcomplex_mod", 16, sse::pcomplex_mod));
-        IF_ARCH_X86(call("sse3::pcomplex_mod", 16, sse3::pcomplex_mod));
-        IF_ARCH_X86(call("sse3::x64_pcomplex_mod", 16, sse3::x64_pcomplex_mod));
-        IF_ARCH_X86(call("avx::x64_pcomplex_mod", 32, avx::x64_pcomplex_mod));
-        IF_ARCH_ARM(call("neon_d32::pcomplex_mod", 16, neon_d32::pcomplex_mod));
-        IF_ARCH_AARCH64(call("asimd::pcomplex_mod", 16, asimd::pcomplex_mod));
+        #define CALL(func, align) \
+            call(#func, align, func)
+
+        IF_ARCH_X86(CALL(sse::pcomplex_mod, 16));
+        IF_ARCH_X86(CALL(sse3::pcomplex_mod, 16));
+        IF_ARCH_X86(CALL(sse3::x64_pcomplex_mod, 16));
+        IF_ARCH_X86(CALL(avx::pcomplex_mod, 32));
+        IF_ARCH_ARM(CALL(neon_d32::pcomplex_mod, 16));
+        IF_ARCH_AARCH64(CALL(asimd::pcomplex_mod, 16));
     }
 
 UTEST_END
