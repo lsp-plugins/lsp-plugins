@@ -22,13 +22,14 @@ IF_ARCH_X86(
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
     }
 
-    IF_ARCH_X86_64(
-        namespace avx
-        {
-            void x64_complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-            void x64_complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        }
-    )
+    namespace avx
+    {
+        void complex_mul2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_mul2_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -151,17 +152,21 @@ UTEST_BEGIN("dsp.complex", mul)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:complex_mul2", 16, sse::complex_mul2));
-        IF_ARCH_X86(call("sse:complex_mul3", 16, sse::complex_mul3));
+        #define CALL(func, align) \
+            call(#func, align, func)
 
-        IF_ARCH_X86_64(call("avx:x64_complex_mul3", 32, avx::x64_complex_mul3));
-        IF_ARCH_X86_64(call("fma3:x64_complex_mul3", 32, avx::x64_complex_mul3_fma3));
+        IF_ARCH_X86(CALL(sse::complex_mul2, 16));
+        IF_ARCH_X86(CALL(sse::complex_mul3, 16));
+        IF_ARCH_X86(CALL(avx::complex_mul2, 32));
+        IF_ARCH_X86(CALL(avx::complex_mul3, 32));
+        IF_ARCH_X86(CALL(avx::complex_mul2_fma3, 32));
+        IF_ARCH_X86(CALL(avx::complex_mul3_fma3, 32));
 
-        IF_ARCH_ARM(call("neon_d32:complex_mul2", 16, neon_d32::complex_mul2));
-        IF_ARCH_ARM(call("neon_d32:complex_mul3", 16, neon_d32::complex_mul3));
+        IF_ARCH_ARM(CALL(neon_d32::complex_mul2, 16));
+        IF_ARCH_ARM(CALL(neon_d32::complex_mul3, 16));
 
-        IF_ARCH_AARCH64(call("asimd:complex_mul2", 16, asimd::complex_mul2));
-        IF_ARCH_AARCH64(call("asimd:complex_mul3", 16, asimd::complex_mul3));
+        IF_ARCH_AARCH64(CALL(asimd::complex_mul2, 16));
+        IF_ARCH_AARCH64(CALL(asimd::complex_mul3, 16));
     }
 
 UTEST_END;

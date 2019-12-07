@@ -23,13 +23,11 @@ IF_ARCH_X86(
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
     }
 
-    IF_ARCH_X86_64(
-        namespace avx
-        {
-            void x64_complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-            void x64_complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        }
-    )
+    namespace avx
+    {
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -79,18 +77,20 @@ PTEST_BEGIN("dsp.complex", mul3, 5, 1000)
             out[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, out, buf_size * 6);
 
-        #define CALL(...) dsp::copy(out, backup, buf_size * 6); call(__VA_ARGS__)
+        #define CALL(func) \
+            dsp::copy(out, backup, buf_size * 6); \
+            call(#func, out, in1, in2, count, func)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native:complex_mul3", out, in1, in2, count, native::complex_mul3);
-            IF_ARCH_X86(CALL("sse:complex_mul3", out, in1, in2, count, sse::complex_mul3));
-            IF_ARCH_X86_64(CALL("x64_avx:complex_mul3", out, in1, in2, count, avx::x64_complex_mul3));
-            IF_ARCH_X86_64(CALL("x64_fma3:complex_mul3", out, in1, in2, count, avx::x64_complex_mul3_fma3));
-            IF_ARCH_ARM(CALL("neon_d32:complex_mul3", out, in1, in2, count, neon_d32::complex_mul3));
-            IF_ARCH_AARCH64(CALL("asimd:complex_mul3", out, in1, in2, count, asimd::complex_mul3));
+            CALL(native::complex_mul3);
+            IF_ARCH_X86(CALL(sse::complex_mul3));
+            IF_ARCH_X86(CALL(avx::complex_mul3));
+            IF_ARCH_X86_64(CALL(avx::complex_mul3_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::complex_mul3));
+            IF_ARCH_AARCH64(CALL(asimd::complex_mul3));
 
             PTEST_SEPARATOR;
         }

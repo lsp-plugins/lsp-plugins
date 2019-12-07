@@ -169,7 +169,8 @@ namespace avx
         CEXPORT2_X64(favx, abs1, x64_abs1);
         CEXPORT2_X64(favx, abs2, x64_abs2);
 
-        CEXPORT2_X64(favx, complex_mul3, x64_complex_mul3);
+        CEXPORT1(favx, complex_mul2);
+        CEXPORT1(favx, complex_mul3);
 
         CEXPORT1(favx, pcomplex_mul2);
         CEXPORT1(favx, pcomplex_mul3);
@@ -224,7 +225,8 @@ namespace avx
             CEXPORT2_X64(favx, fmsub4, x64_fmsub4_fma3);
             CEXPORT2_X64(favx, fmrsub4, x64_fmrsub4_fma3);
 
-            CEXPORT2_X64(favx, complex_mul3, x64_complex_mul3_fma3);
+            CEXPORT2(favx, complex_mul2, complex_mul2_fma3);
+            CEXPORT2(favx, complex_mul3, complex_mul3_fma3);
 
             CEXPORT2(favx, pcomplex_mul2, pcomplex_mul2_fma3);
             CEXPORT2(favx, pcomplex_mul3, pcomplex_mul3_fma3);
