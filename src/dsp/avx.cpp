@@ -171,6 +171,7 @@ namespace avx
 
         CEXPORT1(favx, complex_mul2);
         CEXPORT1(favx, complex_mul3);
+        CEXPORT1(favx, complex_mod);
 
         CEXPORT1(favx, pcomplex_mul2);
         CEXPORT1(favx, pcomplex_mul3);
@@ -227,6 +228,7 @@ namespace avx
 
             CEXPORT2(favx, complex_mul2, complex_mul2_fma3);
             CEXPORT2(favx, complex_mul3, complex_mul3_fma3);
+            CEXPORT2(favx, complex_mod, complex_mod_fma3);
 
             CEXPORT2(favx, pcomplex_mul2, pcomplex_mul2_fma3);
             CEXPORT2(favx, pcomplex_mul3, pcomplex_mul3_fma3);
