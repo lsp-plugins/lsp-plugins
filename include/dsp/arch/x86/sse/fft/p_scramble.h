@@ -6,7 +6,6 @@
  */
 
 // This is the SSE implementation of the scrambling functions for self data
-
 static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst, const float *src, size_t rank)
 {
     // Calculate number of items
@@ -214,7 +213,6 @@ static inline void FFT_SCRAMBLE_COPY_DIRECT_NAME(float *dst, const float *src, s
         // Perform 4-element butterflies
         ARCH_X86_ASM
         (
-#if 1
             /* Load data to registers */
             __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm0") /* xmm0 = r0 i0 x x     */
             __ASM_EMIT("add         %[regs], %[index]")
@@ -253,44 +251,7 @@ static inline void FFT_SCRAMBLE_COPY_DIRECT_NAME(float *dst, const float *src, s
             __ASM_EMIT("subps       %%xmm1, %%xmm2")            /* xmm2 = r0-r1 i0-i1 r2-r3 i2-i3 = r1' i1' r3' i3' */
             __ASM_EMIT("addps       %%xmm5, %%xmm4")            /* xmm4 = r4+r5 i4+i5 r6+r7 i6+i7 = r4' i4' r6' i6' */
             __ASM_EMIT("subps       %%xmm5, %%xmm6")            /* xmm6 = r4-r5 i4-i5 r6-r7 i6-i7 = r5' i5' r7' i7' */
-#else
-            /* Load data to registers */
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm0") /* xmm0 = r0 i0 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm4") /* xmm4 = r4 i4 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm2") /* xmm2 = r2 i2 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm6") /* xmm6 = r6 i6 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
 
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm1") /* xmm0 = r1 i1 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm5") /* xmm4 = r5 i5 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm3") /* xmm1 = r3 i3 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm7") /* xmm5 = r7 i7 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-
-            __ASM_EMIT("movlhps     %%xmm2, %%xmm0")                /* xmm0 = r0 i0 r2 i2   */
-            __ASM_EMIT("movlhps     %%xmm6, %%xmm4")                /* xmm4 = r4 i4 r6 i6   */
-            __ASM_EMIT("movlhps     %%xmm3, %%xmm1")                /* xmm1 = r1 i1 r3 i3   */
-            __ASM_EMIT("movlhps     %%xmm7, %%xmm5")                /* xmm5 = r5 i5 r7 i7   */
-
-            /* 1st-order 4x butterfly */
-            /* xmm0 = r0 i0 r2 i2 */
-            /* xmm4 = r4 i4 r6 i6 */
-            /* xmm1 = r1 i1 r3 i3 */
-            /* xmm5 = r5 i5 r7 i7 */
-
-            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            /* xmm2 = r0 i0 r2 i2 */
-            __ASM_EMIT("movaps      %%xmm4, %%xmm6")            /* xmm6 = r4 i4 r6 i6 */
-            __ASM_EMIT("addps       %%xmm1, %%xmm0")            /* xmm0 = r0+r1 i0+i1 r2+r3 i2+i3 = r0' i0' r2' i2' */
-            __ASM_EMIT("addps       %%xmm5, %%xmm4")            /* xmm4 = r4+r5 i4+i5 r6+r7 i6+i7 = r4' i4' r6' i6' */
-            __ASM_EMIT("subps       %%xmm1, %%xmm2")            /* xmm2 = r0-r1 i0-i1 r2-r3 i2-i3 = r1' i1' r3' i3' */
-            __ASM_EMIT("subps       %%xmm5, %%xmm6")            /* xmm6 = r4-r5 i4-i5 r6-r7 i6-i7 = r5' i5' r7' i7' */
-#endif
             /* 2nd-order 4x butterfly */
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = r0' i0' r2' i2' */
             __ASM_EMIT("movaps      %%xmm4, %%xmm5")            /* xmm5 = r4' i4' r6' i6' */
@@ -344,7 +305,6 @@ static inline void FFT_SCRAMBLE_COPY_REVERSE_NAME(float *dst, const float *src, 
         // Perform 4-element butterflies
         ARCH_X86_ASM
         (
-#if 1
             /* Load data to registers */
             __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm0") /* xmm0 = r0 i0 x x     */
             __ASM_EMIT("add         %[regs], %[index]")
@@ -384,45 +344,6 @@ static inline void FFT_SCRAMBLE_COPY_REVERSE_NAME(float *dst, const float *src, 
             __ASM_EMIT("subps       %%xmm1, %%xmm2")            /* xmm2 = r0-r1 i0-i1 r2-r3 i2-i3 = r1' i1' r3' i3' */
             __ASM_EMIT("addps       %%xmm5, %%xmm4")            /* xmm4 = r4+r5 i4+i5 r6+r7 i6+i7 = r4' i4' r6' i6' */
             __ASM_EMIT("subps       %%xmm5, %%xmm6")            /* xmm6 = r4-r5 i4-i5 r6-r7 i6-i7 = r5' i5' r7' i7' */
-
-#else
-            /* Load data to registers */
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm0") /* xmm0 = r0 i0 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm4") /* xmm4 = r4 i4 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm2") /* xmm2 = r2 i2 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm6") /* xmm6 = r6 i6 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm1") /* xmm1 = r1 i1 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm5") /* xmm5 = r5 i5 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm3") /* xmm3 = r3 i3 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-            __ASM_EMIT("movlps      (%[src], %[index], 8), %%xmm7") /* xmm7 = r7 i7 x x     */
-            __ASM_EMIT("add         %[regs], %[index]")
-
-            __ASM_EMIT("movlhps     %%xmm2, %%xmm0")                /* xmm0 = r0 i0 r2 i2   */
-            __ASM_EMIT("movlhps     %%xmm6, %%xmm4")                /* xmm4 = r4 i4 r6 i6   */
-            __ASM_EMIT("movlhps     %%xmm3, %%xmm1")                /* xmm1 = r1 i1 r3 i3   */
-            __ASM_EMIT("movlhps     %%xmm7, %%xmm5")                /* xmm5 = r5 i5 r7 i7   */
-
-            /* 1st-order 4x butterfly */
-            /* xmm0 = r0 i0 r2 i2 */
-            /* xmm4 = r4 i4 r6 i6 */
-            /* xmm1 = r1 i1 r3 i3 */
-            /* xmm5 = r5 i5 r7 i7 */
-
-            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            /* xmm2 = r0 i0 r2 i2 */
-            __ASM_EMIT("movaps      %%xmm4, %%xmm6")            /* xmm6 = r4 i4 r6 i6 */
-            __ASM_EMIT("addps       %%xmm1, %%xmm0")            /* xmm0 = r0+r1 i0+i1 r2+r3 i2+i3 = r0' i0' r2' i2' */
-            __ASM_EMIT("addps       %%xmm5, %%xmm4")            /* xmm4 = r4+r5 i4+i5 r6+r7 i6+i7 = r4' i4' r6' i6' */
-            __ASM_EMIT("subps       %%xmm1, %%xmm2")            /* xmm2 = r0-r1 i0-i1 r2-r3 i2-i3 = r1' i1' r3' i3' */
-            __ASM_EMIT("subps       %%xmm5, %%xmm6")            /* xmm6 = r4-r5 i4-i5 r6-r7 i6-i7 = r5' i5' r7' i7' */
-#endif
 
             /* 2nd-order 4x butterfly */
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = r0' i0' r2' i2' */
