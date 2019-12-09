@@ -449,6 +449,145 @@ namespace avx
 
     #undef PCOMPLEX_DIV_CORE
 
+    #define PCOMPLEX_RCP_CORE(DST, SRC) \
+        /* Init */ \
+        __ASM_EMIT("xor         %[off], %[off]") \
+        /* x16 block */ \
+        __ASM_EMIT("sub         $16, %[count]") \
+        __ASM_EMIT("jb          2f") \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("vmovups     0x00(%[" SRC "], %[off]), %%ymm0")      /* ymm0 = r0 i0 */ \
+        __ASM_EMIT("vmovups     0x20(%[" SRC "], %[off]), %%ymm1") \
+        __ASM_EMIT("vmovups     0x40(%[" SRC "], %[off]), %%ymm2") \
+        __ASM_EMIT("vmovups     0x60(%[" SRC "], %[off]), %%ymm3") \
+        __ASM_EMIT("vmulps      %%ymm0, %%ymm0, %%ymm4")                /* ymm0 = r0*r0 + i0*i0 */ \
+        __ASM_EMIT("vmulps      %%ymm1, %%ymm1, %%ymm5") \
+        __ASM_EMIT("vmulps      %%ymm2, %%ymm2, %%ymm6") \
+        __ASM_EMIT("vmulps      %%ymm3, %%ymm3, %%ymm7") \
+        __ASM_EMIT("vhaddps     %%ymm5, %%ymm4, %%ymm4")                /* ymm4 = R = r0*r0+i0*i0 */ \
+        __ASM_EMIT("vhaddps     %%ymm7, %%ymm6, %%ymm6") \
+        __ASM_EMIT("vmovaps     %[ONE], %%ymm5")                        /* ymm5 = 1 */ \
+        __ASM_EMIT("vdivps      %%ymm4, %%ymm5, %%ymm4")                /* ymm4 = 1/R */ \
+        __ASM_EMIT("vdivps      %%ymm6, %%ymm5, %%ymm6") \
+        __ASM_EMIT("vxorps      %[SIGN], %%ymm4, %%ymm5")               /* ymm5 = -1/R */ \
+        __ASM_EMIT("vunpckhps   %%ymm5, %%ymm4, %%ymm7")                /* ymm7 = 1/R -1/R */ \
+        __ASM_EMIT("vunpcklps   %%ymm5, %%ymm4, %%ymm5") \
+        __ASM_EMIT("vmulps      %%ymm5, %%ymm0, %%ymm0")                /* ymm0 = r0/R -i0/R */ \
+        __ASM_EMIT("vmulps      %%ymm7, %%ymm1, %%ymm1") \
+        __ASM_EMIT("vxorps      %[SIGN], %%ymm6, %%ymm5")               /* ymm5 = -1/R2 */ \
+        __ASM_EMIT("vunpckhps   %%ymm5, %%ymm6, %%ymm7")                /* ymm7 = 1/R2 -1/R2 */ \
+        __ASM_EMIT("vunpcklps   %%ymm5, %%ymm6, %%ymm5") \
+        __ASM_EMIT("vmulps      %%ymm5, %%ymm2, %%ymm2")                /* ymm0 = r1/R2 -i1/R2 */ \
+        __ASM_EMIT("vmulps      %%ymm7, %%ymm3, %%ymm3") \
+        __ASM_EMIT("vmovups     %%ymm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm1, 0x20(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm2, 0x40(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm3, 0x60(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x80, %[off]") \
+        __ASM_EMIT("sub         $16, %[count]") \
+        __ASM_EMIT("jae         1b") \
+        __ASM_EMIT("2:") \
+        /* x8 block */ \
+        __ASM_EMIT("add         $8, %[count]") \
+        __ASM_EMIT("jl          4f") \
+        __ASM_EMIT("vmovups     0x00(%[" SRC "], %[off]), %%ymm0")      /* ymm0 = r0 i0 */ \
+        __ASM_EMIT("vmovups     0x20(%[" SRC "], %[off]), %%ymm1") \
+        __ASM_EMIT("vmulps      %%ymm0, %%ymm0, %%ymm4")                /* ymm0 = r0*r0 + i0*i0 */ \
+        __ASM_EMIT("vmulps      %%ymm1, %%ymm1, %%ymm5") \
+        __ASM_EMIT("vhaddps     %%ymm5, %%ymm4, %%ymm4")                /* ymm4 = R = r0*r0+i0*i0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%ymm5")                        /* ymm5 = 1 */ \
+        __ASM_EMIT("vdivps      %%ymm4, %%ymm5, %%ymm4")                /* ymm4 = 1/R */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%ymm4, %%ymm5")               /* ymm5 = -1/R */ \
+        __ASM_EMIT("vunpckhps   %%ymm5, %%ymm4, %%ymm7")                /* ymm7 = 1/R -1/R */ \
+        __ASM_EMIT("vunpcklps   %%ymm5, %%ymm4, %%ymm5") \
+        __ASM_EMIT("vmulps      %%ymm5, %%ymm0, %%ymm0")                /* ymm0 = r0/R -i0/R */ \
+        __ASM_EMIT("vmulps      %%ymm7, %%ymm1, %%ymm1") \
+        __ASM_EMIT("vmovups     %%ymm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups     %%ymm1, 0x20(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x40, %[off]") \
+        __ASM_EMIT("sub         $8, %[count]") \
+        __ASM_EMIT("4:") \
+        /* x4 block */ \
+        __ASM_EMIT("add         $4, %[count]") \
+        __ASM_EMIT("jl          6f") \
+        __ASM_EMIT("vmovups     0x00(%[" SRC "], %[off]), %%ymm0")      /* ymm0 = r0 i0 */ \
+        __ASM_EMIT("vmulps      %%ymm0, %%ymm0, %%ymm4")                /* ymm0 = r0*r0 + i0*i0 */ \
+        __ASM_EMIT("vhaddps     %%ymm4, %%ymm4, %%ymm4")                /* ymm4 = R = r0*r0+i0*i0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%ymm5")                        /* ymm5 = 1 */ \
+        __ASM_EMIT("vdivps      %%ymm4, %%ymm5, %%ymm4")                /* ymm4 = 1/R */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%ymm4, %%ymm5")               /* ymm5 = -1/R */ \
+        __ASM_EMIT("vunpcklps   %%ymm5, %%ymm4, %%ymm5")                /* ymm7 = 1/R -1/R */ \
+        __ASM_EMIT("vmulps      %%ymm5, %%ymm0, %%ymm0")                /* ymm0 = r0/R -i0/R */ \
+        __ASM_EMIT("vmovups     %%ymm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x20, %[off]") \
+        __ASM_EMIT("sub         $4, %[count]") \
+        __ASM_EMIT("6:") \
+        /* x2 block */ \
+        __ASM_EMIT("add         $2, %[count]") \
+        __ASM_EMIT("jl          8f") \
+        __ASM_EMIT("vmovups     0x00(%[" SRC "], %[off]), %%xmm0")      /* xmm0 = r0 i0 */ \
+        __ASM_EMIT("vmulps      %%xmm0, %%xmm0, %%xmm4")                /* xmm0 = r0*r0 + i0*i0 */ \
+        __ASM_EMIT("vhaddps     %%xmm4, %%xmm4, %%xmm4")                /* xmm4 = R = r0*r0+i0*i0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%xmm5")                        /* xmm5 = 1 */ \
+        __ASM_EMIT("vdivps      %%xmm4, %%xmm5, %%xmm4")                /* xmm4 = 1/R */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%xmm4, %%xmm5")               /* xmm5 = -1/R */ \
+        __ASM_EMIT("vunpcklps   %%xmm5, %%xmm4, %%xmm5")                /* xmm7 = 1/R -1/R */ \
+        __ASM_EMIT("vmulps      %%xmm5, %%xmm0, %%xmm0")                /* xmm0 = r0/R -i0/R */ \
+        __ASM_EMIT("vmovups     %%xmm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("add         $0x10, %[off]") \
+        __ASM_EMIT("sub         $2, %[count]") \
+        __ASM_EMIT("8:") \
+        /* x1 block */ \
+        __ASM_EMIT("add         $1, %[count]") \
+        __ASM_EMIT("jl          10f") \
+        __ASM_EMIT("vmovlps     0x00(%[" SRC "], %[off]), %%xmm0, %%xmm0")  /* xmm0 = r0 i0 */ \
+        __ASM_EMIT("vmulps      %%xmm0, %%xmm0, %%xmm4")                /* xmm0 = r0*r0 + i0*i0 */ \
+        __ASM_EMIT("vhaddps     %%xmm4, %%xmm4, %%xmm4")                /* xmm4 = R = r0*r0+i0*i0 */ \
+        __ASM_EMIT("vmovaps     %[ONE], %%xmm5")                        /* xmm5 = 1 */ \
+        __ASM_EMIT("vdivps      %%xmm4, %%xmm5, %%xmm4")                /* xmm4 = 1/R */ \
+        __ASM_EMIT("vxorps      %[SIGN], %%xmm4, %%xmm5")               /* xmm5 = -1/R */ \
+        __ASM_EMIT("vunpcklps   %%xmm5, %%xmm4, %%xmm5")                /* xmm7 = 1/R -1/R */ \
+        __ASM_EMIT("vmulps      %%xmm5, %%xmm0, %%xmm0")                /* xmm0 = r0/R -i0/R */ \
+        __ASM_EMIT("vmovlps     %%xmm0, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("10:") \
+        /* end */
+
+    void pcomplex_rcp1(float *dst, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_RCP_CORE("dst", "dst")
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void pcomplex_rcp2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            PCOMPLEX_RCP_CORE("dst", "src")
+            : [off] "=&r" (off),
+              [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src),
+              [ONE] "m" (ONE),
+              [SIGN] "m" (R_SIGN)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    #undef PCOMPLEX_RCP_CORE
+
     #undef FMA_OFF
     #undef FMA_ON
 }
