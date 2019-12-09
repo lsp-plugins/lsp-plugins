@@ -41,7 +41,7 @@ typedef void (* packed_direct_fft_t) (float *dst, const float *src, size_t rank)
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.fft", fft, 30, 1000)
+PTEST_BEGIN("dsp.fft", fft, 10, 1000)
 
     void call(const char *label, float *fft_re, float *fft_im, const float *sig_re, const float *sig_im, size_t rank, direct_fft_t fft)
     {
@@ -88,17 +88,19 @@ PTEST_BEGIN("dsp.fft", fft, 30, 1000)
             sig_im[i]       = 0.0f;
         }
 
+        #define CALL1(func) \
+            call(#func, fft_re, fft_im, sig_re, sig_im, i, func)
+        #define CALL2(func) \
+            call(#func, fft_re, sig_re, i, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
-            call("native::direct_fft", fft_re, fft_im, sig_re, sig_im, i, native::direct_fft);
-            call("native::packed_direct_fft", fft_re, sig_re, i, native::packed_direct_fft);
-
-            IF_ARCH_X86(call("sse::direct_fft", fft_re, fft_im, sig_re, sig_im, i, sse::direct_fft));
-            IF_ARCH_X86(call("sse::packed_direct_fft", fft_re, sig_re, i, sse::packed_direct_fft));
-
-            IF_ARCH_ARM(call("neon_d32::direct_fft", fft_re, fft_im, sig_re, sig_im, i, neon_d32::direct_fft));
-            IF_ARCH_ARM(call("neon_d32::packed_direct_fft", fft_re, sig_re, i, neon_d32::packed_direct_fft));
-
+            CALL1(native::direct_fft);
+            IF_ARCH_X86(CALL1(sse::direct_fft));
+            IF_ARCH_ARM(CALL1(neon_d32::direct_fft));
+            CALL2(native::packed_direct_fft);
+            IF_ARCH_X86(CALL2(sse::packed_direct_fft));
+            IF_ARCH_ARM(CALL2(neon_d32::packed_direct_fft));
             PTEST_SEPARATOR;
         }
 

@@ -85,68 +85,6 @@
 
 #define FFT_BUTTERFLY_BODY(add_b, add_a) \
     /* Init pointers */ \
-    register float *a_re    = &dst_re[p]; \
-    register float *a_im    = &dst_im[p]; \
-    register float *b_re    = &a_re[pairs]; \
-    register float *b_im    = &a_im[pairs]; \
-    register size_t b       = blocks; \
-    \
-    ARCH_X86_ASM \
-    ( \
-        /* Start loop */ \
-        __ASM_EMIT("1:") \
-        /* Load complex values */ \
-        /* predicate: xmm6 = w_re[0..3] */ \
-        /* predicate: xmm7 = w_im[0..3] */ \
-        __ASM_EMIT(LS_RE "     (%[a_re]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
-        __ASM_EMIT(LS_IM "     (%[a_im]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
-        __ASM_EMIT(LS_RE "     (%[b_re]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
-        __ASM_EMIT(LS_IM "     (%[b_im]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
-        \
-        /* Calculate complex multiplication */ \
-        __ASM_EMIT("movaps     %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
-        __ASM_EMIT("movaps     %%xmm3, %%xmm5") /* xmm5 = b_im[0..3] */ \
-        __ASM_EMIT("mulps      %%xmm6, %%xmm2") /* xmm2 = w_re[0..3] * b_re[0..3] */ \
-        __ASM_EMIT("mulps      %%xmm6, %%xmm3") /* xmm3 = w_re[0..3] * b_im[0..3] */ \
-        __ASM_EMIT("mulps      %%xmm7, %%xmm4") /* xmm4 = w_im[0..3] * b_re[0..3] */ \
-        __ASM_EMIT("mulps      %%xmm7, %%xmm5") /* xmm5 = w_im[0..3] * b_im[0..3] */ \
-        __ASM_EMIT(add_b "     %%xmm5, %%xmm2") /* xmm2 = c_re[0..3] = w_re[0..3] * b_re[0..3] +- w_im[0..3] * b_im[0..3] */ \
-        __ASM_EMIT(add_a "     %%xmm4, %%xmm3") /* xmm3 = c_im[0..3] = w_re[0..3] * b_im[0..3] -+ w_im[0..3] * b_re[0..3] */ \
-        \
-        /* Perform butterfly */ \
-        __ASM_EMIT("movaps     %%xmm0, %%xmm4") /* xmm4 = a_re[0..3] */ \
-        __ASM_EMIT("movaps     %%xmm1, %%xmm5") /* xmm5 = a_im[0..3] */ \
-        __ASM_EMIT("subps      %%xmm2, %%xmm0") /* xmm0 = a_re[0..3] - c_re[0..3] */ \
-        __ASM_EMIT("subps      %%xmm3, %%xmm1") /* xmm1 = a_im[0..3] - c_im[0..3] */ \
-        __ASM_EMIT("addps      %%xmm4, %%xmm2") /* xmm2 = a_re[0..3] + c_re[0..3] */ \
-        __ASM_EMIT("addps      %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
-        \
-        /* Store values */ \
-        __ASM_EMIT(LS_RE "     %%xmm2, (%[a_re])") \
-        __ASM_EMIT(LS_IM "     %%xmm3, (%[a_im])") \
-        __ASM_EMIT(LS_RE "     %%xmm0, (%[b_re])") \
-        __ASM_EMIT(LS_IM "     %%xmm1, (%[b_im])") \
-        \
-        /* Update pointers */ \
-        __ASM_EMIT("lea        (%[a_re], %[pairs], 8), %[a_re]") \
-        __ASM_EMIT("lea        (%[a_im], %[pairs], 8), %[a_im]") \
-        __ASM_EMIT("lea        (%[b_re], %[pairs], 8), %[b_re]") \
-        __ASM_EMIT("lea        (%[b_im], %[pairs], 8), %[b_im]") \
-        \
-        /* Repeat loop */ \
-        __ASM_EMIT32("decl      %[b]") \
-        __ASM_EMIT64("decq      %[b]") \
-        __ASM_EMIT("jnz         1b") \
-        \
-        : [a_re] "+r"(a_re), [a_im] "+r"(a_im), [b_re] "+r"(b_re), [b_im] "+r"(b_im), [b] __ASM_ARG_RW(b) \
-        : [pairs] "r"(pairs) \
-        : "cc", "memory",  \
-        "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
-        "%xmm4", "%xmm5" \
-    );
-
-#define FFT_BUTTERFLY_BODY2(add_b, add_a) \
-    /* Init pointers */ \
     register float *a_re    = &dst_re[b*pairs*2]; \
     register float *a_im    = &dst_im[b*pairs*2]; \
     register float *b_re    = &a_re[pairs]; \
@@ -174,10 +112,10 @@
         /* Load complex values */ \
         /* predicate: xmm6 = w_re[0..3] */ \
         /* predicate: xmm7 = w_im[0..3] */ \
-        __ASM_EMIT(LS_RE "      (%[a_re]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
-        __ASM_EMIT(LS_IM "      (%[a_im]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
-        __ASM_EMIT(LS_RE "      (%[b_re]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
-        __ASM_EMIT(LS_IM "      (%[b_im]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
+        __ASM_EMIT("movups      (%[a_re]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
+        __ASM_EMIT("movups      (%[a_im]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
+        __ASM_EMIT("movups      (%[b_re]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
+        __ASM_EMIT("movups      (%[b_im]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
         \
         /* Calculate complex multiplication */ \
         __ASM_EMIT("movaps      %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
@@ -198,10 +136,10 @@
         __ASM_EMIT("addps       %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
         \
         /* Store values */ \
-        __ASM_EMIT(LS_RE "      %%xmm2, (%[a_re])") \
-        __ASM_EMIT(LS_IM "      %%xmm3, (%[a_im])") \
-        __ASM_EMIT(LS_RE "      %%xmm0, (%[b_re])") \
-        __ASM_EMIT(LS_IM "      %%xmm1, (%[b_im])") \
+        __ASM_EMIT("movups      %%xmm2, (%[a_re])") \
+        __ASM_EMIT("movups      %%xmm3, (%[a_im])") \
+        __ASM_EMIT("movups      %%xmm0, (%[b_re])") \
+        __ASM_EMIT("movups      %%xmm1, (%[b_im])") \
         \
         /* Update pointers */ \
         __ASM_EMIT("add         $0x10, %[a_re]") \
@@ -289,32 +227,34 @@
             "%xmm6", "%xmm7" \
     );
 
-static inline void FFT_BUTTERFLY_DIRECT_NAME(float *dst_re, float *dst_im, size_t rank, size_t blocks)
+namespace sse
 {
-    size_t pairs = 1 << rank;
-    rank = (rank - 2) << 4;
-
-    for (size_t b=0; b<blocks; ++b)
+    static inline void butterfly_direct(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
-        FFT_BUTTERFLY_BODY2("addps", "subps");
+        size_t pairs = 1 << rank;
+        rank = (rank - 2) << 4;
+
+        for (size_t b=0; b<blocks; ++b)
+        {
+            FFT_BUTTERFLY_BODY("addps", "subps");
+        }
     }
-}
 
-static inline void FFT_BUTTERFLY_REVERSE_NAME(float *dst_re, float *dst_im, size_t rank, size_t blocks)
-{
-    size_t pairs = 1 << rank;
-    rank = (rank - 2) << 4;
-
-    for (size_t b=0; b<blocks; ++b)
+    static inline void butterfly_reverse(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
-        FFT_BUTTERFLY_BODY2("subps", "addps");
+        size_t pairs = 1 << rank;
+        rank = (rank - 2) << 4;
+
+        for (size_t b=0; b<blocks; ++b)
+        {
+            FFT_BUTTERFLY_BODY("subps", "addps");
+        }
     }
 }
 
 #undef FFT_ANGLE_INIT
 #undef FFT_ANGLE_ROTATE
 #undef FFT_BUTTERFLY_BODY
-#undef FFT_BUTTERFLY_BODY2
 
 #undef FFT_BUTTERFLY_DIRECT_NAME
 #undef FFT_BUTTERFLY_REVERSE_NAME
