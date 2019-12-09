@@ -6,6 +6,7 @@
  */
 
 #include <dsp/dsp.h>
+#include <dsp/bits.h>
 #include <test/test.h>
 
 #include <core/types.h>
@@ -33,6 +34,8 @@
 
 #include <dsp/arch/x86/avx/mix.h>
 #include <dsp/arch/x86/avx/search/minmax.h>
+
+#include <dsp/arch/x86/avx/fft.h>
 
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
