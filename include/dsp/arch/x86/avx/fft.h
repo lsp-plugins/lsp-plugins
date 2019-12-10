@@ -64,7 +64,7 @@ namespace avx
             return;
         }
 
-        if ((dst_re == src_re) || (dst_im == src_im))
+        if ((dst_re == src_re) || (dst_im == src_im) || (rank < 4))
             scramble_self_direct(dst_re, dst_im, src_re, src_im, rank);
         else
             scramble_copy_direct(dst_re, dst_im, src_re, src_im, rank);

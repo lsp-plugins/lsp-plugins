@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        5
+#define RANK        4
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -148,7 +148,7 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
 {
     scramble_fft(dst_re, dst_im, src_re, src_im, rank);
     start_direct_fft(dst_re, dst_im, rank);
-
+#if 0
     // Prepare for butterflies
     size_t items    = 1 << rank;
 
@@ -259,10 +259,17 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
         iw_re  += 4;
         iw_im  += 4;
     }
+#endif
 }
 
 IF_ARCH_X86(
     namespace sse
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    }
+
+    namespace avx
     {
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
         void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
@@ -304,9 +311,9 @@ MTEST_BEGIN("dsp.fft", fft)
         src1r.dump("src1r");
         src1i.dump("src1i");
 
-        direct_fft(dst1r, dst1i, src1r, src1i, RANK);
-        dst1r.dump("dst1r");
-        dst1i.dump("dst1i");
+//        direct_fft(dst1r, dst1i, src1r, src1i, RANK);
+//        dst1r.dump("dst1r");
+//        dst1i.dump("dst1i");
 
         direct_fft(src1r, src1i, src1r, src1i, RANK);
         src1r.dump("src1r");
@@ -326,13 +333,24 @@ MTEST_BEGIN("dsp.fft", fft)
         );
 
         IF_ARCH_X86(
-            sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
+//            sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+//            dst2r.dump("dst2r");
+//            dst2i.dump("dst2i");
+//
+//            sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
+//            src2r.dump("src2r");
+//            src2i.dump("src2i");
 
-            sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+            if (TEST_SUPPORTED(avx::direct_fft))
+            {
+//                avx::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+//                dst2r.dump("dst2r");
+//                dst2i.dump("dst2i");
+
+                avx::direct_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
         );
 
         printf("Testing reverse FFT...\n");
