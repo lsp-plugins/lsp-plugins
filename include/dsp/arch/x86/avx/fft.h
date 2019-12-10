@@ -13,6 +13,7 @@
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
 #include <dsp/arch/x86/avx/fft/const.h>
+#include <dsp/arch/x86/avx/fft/butterfly.h>
 
 #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct8
 #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse8
@@ -86,11 +87,10 @@ namespace avx
         }
         else
         {
-            rank -= 4;
-            if (rank <= 8)
-                scramble_copy_direct8(dst_re, dst_im, src_re, src_im, rank);
+            if (rank <= 12)
+                scramble_copy_direct8(dst_re, dst_im, src_re, src_im, rank-4);
             else
-                scramble_copy_direct16(dst_re, dst_im, src_re, src_im, rank);
+                scramble_copy_direct16(dst_re, dst_im, src_re, src_im, rank-4);
         }
 //
 //        for (size_t i=2; i < rank; ++i)
@@ -153,11 +153,10 @@ namespace avx
         }
         else
         {
-            rank -= 4;
-            if (rank <= 8)
-                scramble_copy_reverse8(dst_re, dst_im, src_re, src_im, rank);
+            if (rank <= 12)
+                scramble_copy_reverse8(dst_re, dst_im, src_re, src_im, rank-4);
             else
-                scramble_copy_reverse16(dst_re, dst_im, src_re, src_im, rank);
+                scramble_copy_reverse16(dst_re, dst_im, src_re, src_im, rank-4);
         }
 //
 //        for (size_t i=2; i < rank; ++i)
