@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        4
+#define RANK        5
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -298,11 +298,11 @@ MTEST_BEGIN("dsp.fft", fft)
         FloatBuffer dst2i(BUF_SIZE, 64);
 
         // Prepare data
-        for (size_t i=0; i<BUF_SIZE; ++i)
-        {
-            src1r[i]            = i;
-            src1i[i]            = i * 0.1f;
-        }
+//        for (size_t i=0; i<BUF_SIZE; ++i)
+//        {
+//            src1r[i]            = i;
+//            src1i[i]            = i * 0.1f;
+//        }
         src2r.copy(src1r);
         src2i.copy(src1i);
 
@@ -311,9 +311,9 @@ MTEST_BEGIN("dsp.fft", fft)
         src1r.dump("src1r");
         src1i.dump("src1i");
 
-//        direct_fft(dst1r, dst1i, src1r, src1i, RANK);
-//        dst1r.dump("dst1r");
-//        dst1i.dump("dst1i");
+        direct_fft(dst1r, dst1i, src1r, src1i, RANK);
+        dst1r.dump("dst1r");
+        dst1i.dump("dst1i");
 
         direct_fft(src1r, src1i, src1r, src1i, RANK);
         src1r.dump("src1r");
@@ -343,9 +343,9 @@ MTEST_BEGIN("dsp.fft", fft)
 
             if (TEST_SUPPORTED(avx::direct_fft))
             {
-//                avx::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-//                dst2r.dump("dst2r");
-//                dst2i.dump("dst2i");
+                avx::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
 
                 avx::direct_fft(src2r, src2i, src2r, src2i, RANK);
                 src2r.dump("src2r");

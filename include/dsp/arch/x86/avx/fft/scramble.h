@@ -5,19 +5,20 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_AVX_FFT_SCRAMBLE_H_
-#define DSP_ARCH_X86_AVX_FFT_SCRAMBLE_H_
+#ifndef DSP_ARCH_X86_AVX_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_AVX_IMPL */
 
 namespace avx
 {
-    static inline void scramble_self_direct(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
         // Calculate number of items
         size_t items    = (1 << rank) - 1;
 
         for (size_t i = 1; i < items; ++i)
         {
-            size_t j = reverse_bits(i, rank);    /* Reverse the order of the bits */
+            size_t j = reverse_bits(FFT_TYPE(i), rank);    /* Reverse the order of the bits */
             if (i >= j)
                 continue;
 
@@ -135,67 +136,67 @@ namespace avx
         );
     }
 
-    static inline void scramble_copy_direct(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    static inline void FFT_SCRAMBLE_COPY_DIRECT_NAME(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
-        size_t regs     = 1 << (rank-1);
+        size_t regs     = 1 << rank;
 
         for (size_t i=0; i<regs; ++i)
         {
-            size_t index    = reverse_bits(i, rank);
+            size_t index    = reverse_bits(FFT_TYPE(i), rank);
 
             ARCH_X86_ASM
             (
                 /* Load scalar values */
-                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm0")       /* xmm0 = r0  x x x         */
-                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm2")       /* xmm2 = i0  x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm0, %%xmm0")       /* xmm0 = r0  x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm2, %%xmm2")       /* xmm2 = i0  x x x         */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm1")       /* xmm1 = r8  x x x         */
-                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm3")       /* xmm3 = i8  x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm1, %%xmm1")       /* xmm1 = r8  x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm3, %%xmm3")       /* xmm3 = i8  x x x         */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm4")       /* xmm4 = r4  x x x         */
-                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm6")       /* xmm6 = i4  x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm4, %%xmm4")       /* xmm4 = r4  x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm6, %%xmm6")       /* xmm6 = i4  x x x         */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm5")       /* xmm5 = r12 x x x         */
-                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm7")       /* xmm7 = i12 x x x         */
-                __ASM_EMIT("add             %[regs], %[index]")
-
-                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm0")       /* xmm0 = r0  x r2  x       */
-                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm2")       /* xmm2 = i0  x i2  x       */
-                __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm1")       /* xmm1 = r8  x r10 x       */
-                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm3")       /* xmm3 = i8  x i10 x       */
-                __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm4")       /* xmm4 = r4  x r6  x       */
-                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm6")       /* xmm6 = i4  x i6  x       */
-                __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm5")       /* xmm5 = r12 x r14 x       */
-                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm7")       /* xmm7 = i12 x i14 x       */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_re], %[index], 4), %%xmm5, %%xmm5")       /* xmm5 = r12 x x x         */
+                __ASM_EMIT("vinsertps       $0x00, (%[src_im], %[index], 4), %%xmm7, %%xmm7")       /* xmm7 = i12 x x x         */
                 __ASM_EMIT("add             %[regs], %[index]")
 
-                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm0")       /* xmm0 = r0  r1  r2  x     */
-                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm2")       /* xmm2 = i0  i1  i2  x     */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm0, %%xmm0")       /* xmm0 = r0  x r2  x       */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm2, %%xmm2")       /* xmm2 = i0  x i2  x       */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm1")       /* xmm1 = r8  r9  r10 x     */
-                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm3")       /* xmm3 = i8  i9  i10 x     */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm1, %%xmm1")       /* xmm1 = r8  x r10 x       */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm3, %%xmm3")       /* xmm3 = i8  x i10 x       */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm4")       /* xmm4 = r4  r5  r6  x     */
-                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm6")       /* xmm6 = i4  i5  i6  x     */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm4, %%xmm4")       /* xmm4 = r4  x r6  x       */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm6, %%xmm6")       /* xmm6 = i4  x i6  x       */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm5")       /* xmm5 = r12 r13 r14 x     */
-                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm7")       /* xmm7 = i12 i13 i14 x     */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_re], %[index], 4), %%xmm5, %%xmm5")       /* xmm5 = r12 x r14 x       */
+                __ASM_EMIT("vinsertps       $0x20, (%[src_im], %[index], 4), %%xmm7, %%xmm7")       /* xmm7 = i12 x i14 x       */
                 __ASM_EMIT("add             %[regs], %[index]")
 
-                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm0")       /* xmm0 = r0  r1  r2  r3    */
-                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm2")       /* xmm2 = i0  i1  i2  i3    */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm0, %%xmm0")       /* xmm0 = r0  r1  r2  x     */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm2, %%xmm2")       /* xmm2 = i0  i1  i2  x     */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm1")       /* xmm1 = r8  r9  r10 r11   */
-                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm3")       /* xmm3 = i8  i9  i10 i11   */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm1, %%xmm1")       /* xmm1 = r8  r9  r10 x     */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm3, %%xmm3")       /* xmm3 = i8  i9  i10 x     */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm4")       /* xmm4 = r4  r5  r6  r7    */
-                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm6")       /* xmm6 = i4  i5  i6  i7    */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm4, %%xmm4")       /* xmm4 = r4  r5  r6  x     */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm6, %%xmm6")       /* xmm6 = i4  i5  i6  x     */
                 __ASM_EMIT("add             %[regs], %[index]")
-                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm5")       /* xmm5 = r12 r13 r14 r15   */
-                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm7")       /* xmm7 = i12 i13 i14 i15   */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_re], %[index], 4), %%xmm5, %%xmm5")       /* xmm5 = r12 r13 r14 x     */
+                __ASM_EMIT("vinsertps       $0x10, (%[src_im], %[index], 4), %%xmm7, %%xmm7")       /* xmm7 = i12 i13 i14 x     */
+                __ASM_EMIT("add             %[regs], %[index]")
+
+                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm0, %%xmm0")       /* xmm0 = r0  r1  r2  r3    */
+                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm2, %%xmm2")       /* xmm2 = i0  i1  i2  i3    */
+                __ASM_EMIT("add             %[regs], %[index]")
+                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm1, %%xmm1")       /* xmm1 = r8  r9  r10 r11   */
+                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm3, %%xmm3")       /* xmm3 = i8  i9  i10 i11   */
+                __ASM_EMIT("add             %[regs], %[index]")
+                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm4, %%xmm4")       /* xmm4 = r4  r5  r6  r7    */
+                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm6, %%xmm6")       /* xmm6 = i4  i5  i6  i7    */
+                __ASM_EMIT("add             %[regs], %[index]")
+                __ASM_EMIT("vinsertps       $0x30, (%[src_re], %[index], 4), %%xmm5, %%xmm5")       /* xmm5 = r12 r13 r14 r15   */
+                __ASM_EMIT("vinsertps       $0x30, (%[src_im], %[index], 4), %%xmm7, %%xmm7")       /* xmm7 = i12 i13 i14 i15   */
                 __ASM_EMIT("add             %[regs], %[index]")
 
                 __ASM_EMIT("vinsertf128     $1, %%xmm1, %%ymm0, %%ymm0")                    /* ymm0 = r0 r1 r2 r3 ...   */
@@ -244,4 +245,8 @@ namespace avx
     }
 }
 
-#endif /* DSP_ARCH_X86_AVX_FFT_SCRAMBLE_H_ */
+#undef FFT_SCRAMBLE_SELF_DIRECT_NAME
+#undef FFT_SCRAMBLE_SELF_REVERSE_NAME
+#undef FFT_SCRAMBLE_COPY_DIRECT_NAME
+#undef FFT_SCRAMBLE_COPY_REVERSE_NAME
+#undef FFT_TYPE

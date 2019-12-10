@@ -13,6 +13,19 @@
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
 #include <dsp/arch/x86/avx/fft/const.h>
+
+#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct8
+#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse8
+#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct8
+#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse8
+#define FFT_TYPE                        uint8_t
+#include <dsp/arch/x86/avx/fft/scramble.h>
+
+#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct16
+#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse16
+#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct16
+#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse16
+#define FFT_TYPE                        uint16_t
 #include <dsp/arch/x86/avx/fft/scramble.h>
 
 namespace avx
@@ -65,9 +78,20 @@ namespace avx
         }
 
         if ((dst_re == src_re) || (dst_im == src_im) || (rank < 4))
-            scramble_self_direct(dst_re, dst_im, src_re, src_im, rank);
+        {
+            if (rank <= 8)
+                scramble_self_direct8(dst_re, dst_im, src_re, src_im, rank);
+            else
+                scramble_self_direct16(dst_re, dst_im, src_re, src_im, rank);
+        }
         else
-            scramble_copy_direct(dst_re, dst_im, src_re, src_im, rank);
+        {
+            rank -= 4;
+            if (rank <= 8)
+                scramble_copy_direct8(dst_re, dst_im, src_re, src_im, rank);
+            else
+                scramble_copy_direct16(dst_re, dst_im, src_re, src_im, rank);
+        }
 //
 //        for (size_t i=2; i < rank; ++i)
 //            butterfly_direct(dst_re, dst_im, i, 1 << (rank - i - 1));
