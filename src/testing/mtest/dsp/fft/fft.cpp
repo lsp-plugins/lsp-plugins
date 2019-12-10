@@ -148,7 +148,7 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
 {
     scramble_fft(dst_re, dst_im, src_re, src_im, rank);
     start_direct_fft(dst_re, dst_im, rank);
-#if 0
+
     // Prepare for butterflies
     size_t items    = 1 << rank;
 
@@ -158,9 +158,9 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
     const float *iw_im  = XFFT_A_IM;
 
     // Iterate butterflies
-    for (size_t n=4, bs=n << 1; n < items; n <<= 1, bs <<= 1)
+//    for (size_t n=4, bs=n << 1; n < items; n <<= 1, bs <<= 1)
     {
-//        size_t n=4, bs=n << 1;
+        size_t n=4, bs=n << 1;
 
         for (size_t p=0; p<items; p += bs)
         {
@@ -259,7 +259,6 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
         iw_re  += 4;
         iw_im  += 4;
     }
-#endif
 }
 
 IF_ARCH_X86(
@@ -298,11 +297,11 @@ MTEST_BEGIN("dsp.fft", fft)
         FloatBuffer dst2i(BUF_SIZE, 64);
 
         // Prepare data
-//        for (size_t i=0; i<BUF_SIZE; ++i)
-//        {
-//            src1r[i]            = i;
-//            src1i[i]            = i * 0.1f;
-//        }
+        for (size_t i=0; i<BUF_SIZE; ++i)
+        {
+            src1r[i]            = i;
+            src1i[i]            = i * 0.1f;
+        }
         src2r.copy(src1r);
         src2i.copy(src1i);
 

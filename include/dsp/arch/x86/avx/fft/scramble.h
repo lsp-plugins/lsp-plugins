@@ -11,7 +11,7 @@
 
 namespace avx
 {
-    static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst_re, float *dst_im, size_t rank)
     {
         // Calculate number of items
         size_t items    = (1 << rank) - 1;
@@ -34,7 +34,7 @@ namespace avx
                 __ASM_EMIT("vmovss %%xmm0, (%[dst_re], %[j], 4)")
                 __ASM_EMIT("vmovss %%xmm1, (%[dst_im], %[j], 4)")
                 :
-                : [dst_re] "r"(dst_re), [dst_im] "r"(dst_im),
+                : [dst_re] "r" (dst_re), [dst_im] "r" (dst_im),
                   [i] "r"(i), [j] "r"(j)
                 : "memory",
                   "%xmm0", "%xmm1", "%xmm2", "%xmm3"
@@ -136,7 +136,7 @@ namespace avx
         );
     }
 
-    static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst_re, float *dst_im, size_t rank)
     {
         // Calculate number of items
         size_t items    = (1 << rank) - 1;
@@ -328,7 +328,6 @@ namespace avx
                 __ASM_EMIT("vinsertf128     $1, %%xmm3, %%ymm2, %%ymm2")                    /* ymm2 = i0 i1 i2 i3 ...   */
                 __ASM_EMIT("vinsertf128     $1, %%xmm5, %%ymm4, %%ymm4")                    /* ymm4 = r4 r5 r6 r7 ...   */
                 __ASM_EMIT("vinsertf128     $1, %%xmm7, %%ymm6, %%ymm6")                    /* ymm0 = i4 i5 i6 i7 ...   */
-
                 /* 1st-order 4x butterfly */
                 __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                /* ymm1 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7' */
                 __ASM_EMIT("vhsubps         %%ymm6, %%ymm2, %%ymm3")                /* ymm3 = i0-i1 i2-i3 i4-i5 i6-i7 = i1' i3' i5' i7' */
@@ -337,17 +336,17 @@ namespace avx
                 /* 2nd-order 4x butterfly */
                 __ASM_EMIT("vblendps        $0xaa, %%ymm3, %%ymm1, %%ymm4")         /* ymm4 = r1' i3' r5' i7' */
                 __ASM_EMIT("vblendps        $0xaa, %%ymm1, %%ymm3, %%ymm5")         /* ymm5 = i1' r3' i5' r7' */
-                __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                /* ymm1 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r1" r5" */
-                __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i3" i7" */
-                __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r3" r7" */
-                __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i1" i5" */
+                __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                /* ymm1 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7" */
+                __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5" */
+                __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5" */
+                __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7" */
                 /* Reorder */
-                __ASM_EMIT("vblendps        $0xcc, %%ymm1, %%ymm0, %%ymm4")         /* ymm4 = r0" i4" r1" r5" */
-                __ASM_EMIT("vblendps        $0xcc, %%ymm0, %%ymm1, %%ymm5")         /* ymm5 = r2" r6" r3" r7" */
-                __ASM_EMIT("vshufps         $0x88, %%ymm3, %%ymm2, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
-                __ASM_EMIT("vshufps         $0xdd, %%ymm3, %%ymm2, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
-                __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
-                __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
+                __ASM_EMIT("vblendps        $0xcc, %%ymm3, %%ymm2, %%ymm4")         /* ymm4 = i0" i4" i1" i5" */
+                __ASM_EMIT("vblendps        $0xcc, %%ymm2, %%ymm3, %%ymm5")         /* ymm5 = i2" i6" i3" i7" */
+                __ASM_EMIT("vshufps         $0x88, %%ymm1, %%ymm0, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
+                __ASM_EMIT("vshufps         $0xdd, %%ymm1, %%ymm0, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
+                __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
+                __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re])")
                 __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re])")
@@ -436,26 +435,25 @@ namespace avx
                 __ASM_EMIT("vinsertf128     $1, %%xmm3, %%ymm2, %%ymm2")                    /* ymm2 = i0 i1 i2 i3 ...   */
                 __ASM_EMIT("vinsertf128     $1, %%xmm5, %%ymm4, %%ymm4")                    /* ymm4 = r4 r5 r6 r7 ...   */
                 __ASM_EMIT("vinsertf128     $1, %%xmm7, %%ymm6, %%ymm6")                    /* ymm0 = i4 i5 i6 i7 ...   */
-
                 /* 1st-order 4x butterfly */
-                __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                        /* ymm1 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7' */
-                __ASM_EMIT("vhsubps         %%ymm6, %%ymm2, %%ymm3")                        /* ymm3 = i0-i1 i2-i3 i4-i5 i6-i7 = i1' i3' i5' i7' */
-                __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                        /* ymm0 = r0+r1 r2+r3 r4+r5 r6+r7 = r0' r2' r4' r6' */
-                __ASM_EMIT("vhaddps         %%ymm6, %%ymm2, %%ymm2")                        /* ymm2 = i0+i1 i2+i3 i4+i5 i6+i7 = i0' i2' i4' i6' */
+                __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                /* ymm1 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7' */
+                __ASM_EMIT("vhsubps         %%ymm6, %%ymm2, %%ymm3")                /* ymm3 = i0-i1 i2-i3 i4-i5 i6-i7 = i1' i3' i5' i7' */
+                __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0+r1 r2+r3 r4+r5 r6+r7 = r0' r2' r4' r6' */
+                __ASM_EMIT("vhaddps         %%ymm6, %%ymm2, %%ymm2")                /* ymm2 = i0+i1 i2+i3 i4+i5 i6+i7 = i0' i2' i4' i6' */
                 /* 2nd-order 4x butterfly */
-                __ASM_EMIT("vblendps        $0xaa, %%ymm3, %%ymm1, %%ymm4")                 /* ymm4 = r1' i3' r5' i7' */
-                __ASM_EMIT("vblendps        $0xaa, %%ymm1, %%ymm3, %%ymm5")                 /* ymm5 = i1' r3' i5' r7' */
-                __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                        /* ymm1 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7" */
-                __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                        /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5" */
-                __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                        /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5" */
-                __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                        /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7" */
+                __ASM_EMIT("vblendps        $0xaa, %%ymm3, %%ymm1, %%ymm4")         /* ymm4 = r1' i3' r5' i7' */
+                __ASM_EMIT("vblendps        $0xaa, %%ymm1, %%ymm3, %%ymm5")         /* ymm5 = i1' r3' i5' r7' */
+                __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                /* ymm1 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r1" r5" */
+                __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i3" i7" */
+                __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r3" r7" */
+                __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i1" i5" */
                 /* Reorder */
-                __ASM_EMIT("vblendps        $0xcc, %%ymm3, %%ymm2, %%ymm4")                 /* ymm4 = i0" i4" i1" i5" */
-                __ASM_EMIT("vblendps        $0xcc, %%ymm2, %%ymm3, %%ymm5")                 /* ymm5 = i2" i6" i3" i7" */
-                __ASM_EMIT("vshufps         $0x88, %%ymm1, %%ymm0, %%ymm2")                 /* ymm2 = r0" r1" r2" r3" */
-                __ASM_EMIT("vshufps         $0xdd, %%ymm1, %%ymm0, %%ymm3")                 /* ymm3 = r4" r5" r6" r7" */
-                __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm6")                 /* ymm6 = i0" i1" i2" i3" */
-                __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm7")                 /* ymm7 = i4" i5" i6" i7" */
+                __ASM_EMIT("vblendps        $0xcc, %%ymm1, %%ymm0, %%ymm4")         /* ymm4 = r0" i4" r1" r5" */
+                __ASM_EMIT("vblendps        $0xcc, %%ymm0, %%ymm1, %%ymm5")         /* ymm5 = r2" r6" r3" r7" */
+                __ASM_EMIT("vshufps         $0x88, %%ymm3, %%ymm2, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
+                __ASM_EMIT("vshufps         $0xdd, %%ymm3, %%ymm2, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
+                __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
+                __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re])")
                 __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re])")
