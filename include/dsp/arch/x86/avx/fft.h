@@ -98,9 +98,8 @@ namespace avx
         size_t i=2;
         if (i++ < rank)
             butterfly_direct4(dst_re, dst_im, 1 << (rank - 3));
-//
-//        for (size_t i=2; i < rank; ++i)
-//            butterfly_direct(dst_re, dst_im, i, 1 << (rank - i - 1));
+        for (; i < rank; ++i)
+            butterfly_direct8p(dst_re, dst_im, i, 1 << (rank - i - 1));
     }
 
     // Make set of scramble implementations

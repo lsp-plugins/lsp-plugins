@@ -61,8 +61,8 @@
             __ASM_EMIT("sub             $2, %[nb]") \
             __ASM_EMIT("jae             1b") \
         __ASM_EMIT("2:") \
-        __ASM_EMIT32("add           $1, %[nb]") \
-        __ASM_EMIT32("jl            4f") \
+        __ASM_EMIT("add           $1, %[nb]") \
+        __ASM_EMIT("jl            4f") \
             __ASM_EMIT("vmovups         0x00(%[dst_re], %[off1]), %%xmm0")  /* xmm0 = a_re */ \
             __ASM_EMIT("vmovups         0x00(%[dst_re], %[off2]), %%xmm2")  /* xmm2 = b_re */ \
             __ASM_EMIT("vmovups         0x00(%[dst_im], %[off1]), %%xmm1")  /* xmm1 = a_im */ \
@@ -100,17 +100,17 @@
     ARCH_X86_ASM \
     ( \
         /* Prepare angle */ \
-        __ASM_EMIT32("mov       %[fft_a], %[ptr2]") \
-        __ASM_EMIT32("mov       %[dst_re], %[ptr1]") \
-        __ASM_EMIT("vmovaps     0x00(%[" __IF_32_64("ptr2", "fft_a") "]), %%xmm6")        /* xmm6 = x_re */ \
-        __ASM_EMIT("vmovaps     0x20(%[" __IF_32_64("ptr2", "fft_a") "]), %%xmm7")        /* xmm7 = x_im */ \
-        __ASM_EMIT32("mov       %[dst_im], %[ptr2]") \
+        __ASM_EMIT32("mov           %[fft_a], %[ptr2]") \
+        __ASM_EMIT32("mov           %[dst_re], %[ptr1]") \
+        __ASM_EMIT("vmovaps         0x00(%[" __IF_32_64("ptr2", "fft_a") "]), %%ymm6")        /* ymm6 = x_re */ \
+        __ASM_EMIT("vmovaps         0x20(%[" __IF_32_64("ptr2", "fft_a") "]), %%ymm7")        /* ymm7 = x_im */ \
+        __ASM_EMIT32("mov           %[dst_im], %[ptr2]") \
         /* Start loop */ \
         __ASM_EMIT("1:") \
-            __ASM_EMIT("vmovups     0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off1]), %%ymm0")    /* ymm0 = a_re */ \
-            __ASM_EMIT("vmovups     0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off2]), %%ymm2")    /* ymm2 = b_re */ \
-            __ASM_EMIT("vmovups     0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off1]), %%ymm1")    /* ymm1 = a_im */ \
-            __ASM_EMIT("vmovups     0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off2]), %%ymm3")    /* ymm3 = b_im */ \
+            __ASM_EMIT("vmovups         0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off1]), %%ymm0")    /* ymm0 = a_re */ \
+            __ASM_EMIT("vmovups         0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off2]), %%ymm2")    /* ymm2 = b_re */ \
+            __ASM_EMIT("vmovups         0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off1]), %%ymm1")    /* ymm1 = a_im */ \
+            __ASM_EMIT("vmovups         0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off2]), %%ymm3")    /* ymm3 = b_im */ \
             /* Calculate complex multiplication */ \
             __ASM_EMIT("vmulps          %%ymm7, %%ymm2, %%ymm4")            /* ymm4 = x_im * b_re */ \
             __ASM_EMIT("vmulps          %%ymm7, %%ymm3, %%ymm5")            /* ymm5 = x_im * b_im */ \
@@ -124,28 +124,28 @@
             __ASM_EMIT("vaddps          %%ymm5, %%ymm0, %%ymm0")            /* ymm0 = a_re + c_re */ \
             __ASM_EMIT("vaddps          %%ymm4, %%ymm1, %%ymm1")            /* ymm1 = a_im + c_im */ \
             /* Store values */ \
-            __ASM_EMIT("vmovups     %%ymm0, 0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off1])") \
-            __ASM_EMIT("vmovups     %%ymm2, 0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off2])") \
-            __ASM_EMIT("vmovups     %%ymm1, 0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off1])") \
-            __ASM_EMIT("vmovups     %%ymm3, 0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off2])") \
-            __ASM_EMIT("add         $0x20, %[off1]") \
-            __ASM_EMIT("add         $0x20, %[off2]") \
-            __ASM_EMIT32("subl      $8, %[np]") \
-            __ASM_EMIT64("subq      $8, %[np]") \
-            __ASM_EMIT("jz          2f") \
+            __ASM_EMIT("vmovups         %%ymm0, 0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off1])") \
+            __ASM_EMIT("vmovups         %%ymm2, 0x00(%[" __IF_32_64("ptr1", "dst_re") "], %[off2])") \
+            __ASM_EMIT("vmovups         %%ymm1, 0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off1])") \
+            __ASM_EMIT("vmovups         %%ymm3, 0x00(%[" __IF_32_64("ptr2", "dst_im") "], %[off2])") \
+            __ASM_EMIT("add             $0x20, %[off1]") \
+            __ASM_EMIT("add             $0x20, %[off2]") \
+            __ASM_EMIT32("subl          $8, %[np]") \
+            __ASM_EMIT64("subq          $8, %[np]") \
+            __ASM_EMIT("jz              2f") \
             /* Rotate angle */ \
-            __ASM_EMIT32("mov       %[fft_w], %[ptr2]") \
-            __ASM_EMIT("vmovaps     0x00(%[" __IF_32_64("ptr2", "fft_w") "]), %%ymm4")        /* xmm4 = w_re */ \
-            __ASM_EMIT("vmovaps     0x20(%[" __IF_32_64("ptr2", "fft_w") "]), %%ymm5")        /* xmm5 = w_im */ \
-            __ASM_EMIT32("mov       %[dst_im], %[ptr2]") \
-            __ASM_EMIT("vmulps      %%ymm4, %%ymm6, %%ymm0")            /* ymm0 = w_re * x_re */ \
-            __ASM_EMIT("vmulps      %%ymm4, %%ymm7, %%ymm1")            /* ymm1 = w_re * x_im */ \
-            __ASM_EMIT("vmulps      %%ymm5, %%ymm6, %%ymm2")            /* ymm2 = w_im * x_re */ \
-            __ASM_EMIT("vmulps      %%ymm5, %%ymm7, %%ymm3")            /* ymm3 = w_im * x_im */ \
-            __ASM_EMIT("vaddps      %%ymm2, %%ymm1, %%ymm7")            /* ymm7 = x_im' = w_re * x_im + w_im * x_re */ \
-            __ASM_EMIT("vsubps      %%ymm3, %%ymm0, %%ymm6")            /* ymm6 = x_re' = w_re * x_re - w_im * x_im */ \
+            __ASM_EMIT32("mov           %[fft_w], %[ptr2]") \
+            __ASM_EMIT("vmovaps         0x00(%[" __IF_32_64("ptr2", "fft_w") "]), %%ymm4")        /* xmm4 = w_re */ \
+            __ASM_EMIT("vmovaps         0x20(%[" __IF_32_64("ptr2", "fft_w") "]), %%ymm5")        /* xmm5 = w_im */ \
+            __ASM_EMIT32("mov           %[dst_im], %[ptr2]") \
+            __ASM_EMIT("vmulps          %%ymm4, %%ymm6, %%ymm0")            /* ymm0 = w_re * x_re */ \
+            __ASM_EMIT("vmulps          %%ymm4, %%ymm7, %%ymm1")            /* ymm1 = w_re * x_im */ \
+            __ASM_EMIT("vmulps          %%ymm5, %%ymm6, %%ymm2")            /* ymm2 = w_im * x_re */ \
+            __ASM_EMIT("vmulps          %%ymm5, %%ymm7, %%ymm3")            /* ymm3 = w_im * x_im */ \
+            __ASM_EMIT("vaddps          %%ymm2, %%ymm1, %%ymm7")            /* ymm7 = x_im' = w_re * x_im + w_im * x_re */ \
+            __ASM_EMIT("vsubps          %%ymm3, %%ymm0, %%ymm6")            /* ymm6 = x_re' = w_re * x_re - w_im * x_im */ \
             /* Repeat loop */ \
-        __ASM_EMIT("jmp         1b") \
+        __ASM_EMIT("jmp             1b") \
         __ASM_EMIT("2:") \
         \
         : __IF_32([ptr1] "=&r" (ptr1), [ptr2] "=&r" (ptr2), ) \
@@ -173,8 +173,8 @@ namespace avx
     {
         size_t pairs = 1 << rank;
         size_t off1 = 0, shift = 1 << (rank + 2);
-        const float *fft_a = &FFT_A[(rank - 2) << 5];
-        const float *fft_w = &FFT_DW[(rank - 2) << 5];
+        const float *fft_a = &FFT_A[(rank - 2) << 4];
+        const float *fft_w = &FFT_DW[(rank - 2) << 4];
 
         for (size_t b=0; b<blocks; ++b)
         {
@@ -191,8 +191,8 @@ namespace avx
     {
         size_t pairs = 1 << rank;
         size_t off1 = 0, shift = 1 << (rank + 2);
-        const float *fft_a = &FFT_A[(rank - 2) << 5];
-        const float *fft_w = &FFT_DW[(rank - 2) << 5];
+        const float *fft_a = &FFT_A[(rank - 2) << 4];
+        const float *fft_w = &FFT_DW[(rank - 2) << 4];
 
         for (size_t b=0; b<blocks; ++b)
         {
