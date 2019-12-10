@@ -218,6 +218,7 @@ namespace avx
         CEXPORT1(favx, abs_minmax);
 
         TEST_EXPORT(direct_fft);
+        TEST_EXPORT(reverse_fft);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)

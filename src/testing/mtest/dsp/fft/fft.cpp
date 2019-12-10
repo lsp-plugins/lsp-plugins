@@ -333,13 +333,16 @@ MTEST_BEGIN("dsp.fft", fft)
         );
 
         IF_ARCH_X86(
-//            sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-//            dst2r.dump("dst2r");
-//            dst2i.dump("dst2i");
-//
-//            sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
-//            src2r.dump("src2r");
-//            src2i.dump("src2i");
+            if (false)
+            {
+                sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
 
             if (TEST_SUPPORTED(avx::direct_fft))
             {
@@ -366,13 +369,27 @@ MTEST_BEGIN("dsp.fft", fft)
         );
 
         IF_ARCH_X86(
-            sse::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
+            if (false)
+            {
+                sse::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
 
-            sse::reverse_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+                sse::reverse_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
+
+            if (TEST_SUPPORTED(avx::reverse_fft))
+            {
+                avx::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                avx::reverse_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
         );
     }
 MTEST_END
