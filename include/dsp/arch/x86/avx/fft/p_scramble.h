@@ -157,6 +157,18 @@ namespace avx
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
+
+    static inline void FFT_PSCRAMBLE_SELF_REVERSE_NAME(float *dst, size_t rank)
+    {
+    }
+
+    static inline void FFT_PSCRAMBLE_COPY_DIRECT_NAME(float *dst, const float *src, size_t rank)
+    {
+    }
+
+    static inline void FFT_PSCRAMBLE_COPY_REVERSE_NAME(float *dst, const float *src, size_t rank)
+    {
+    }
 }
 
 #undef FFT_PSCRAMBLE_SELF_DIRECT_NAME

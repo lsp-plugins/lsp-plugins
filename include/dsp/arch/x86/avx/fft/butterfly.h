@@ -83,7 +83,7 @@ namespace avx
     static inline void butterfly_direct8p(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
         size_t pairs = 1 << rank;
-        size_t off1 = 0, shift = 1 << (rank + 2);
+        size_t off1 = 0, shift = 4 << rank; //1 << (rank + 2);
         const float *fft_a = &FFT_A[(rank - 2) << 4];
         const float *fft_w = &FFT_DW[(rank - 2) << 4];
 
@@ -101,7 +101,7 @@ namespace avx
     static inline void butterfly_reverse8p(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
         size_t pairs = 1 << rank;
-        size_t off1 = 0, shift = 1 << (rank + 2);
+        size_t off1 = 0, shift = 4 << rank; // 1 << (rank + 2);
         const float *fft_a = &FFT_A[(rank - 2) << 4];
         const float *fft_w = &FFT_DW[(rank - 2) << 4];
 
@@ -119,7 +119,7 @@ namespace avx
     static inline void butterfly_direct8p_fma3(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
         size_t pairs = 1 << rank;
-        size_t off1 = 0, shift = 1 << (rank + 2);
+        size_t off1 = 0, shift = 4 << rank; // 1 << (rank + 2);
         const float *fft_a = &FFT_A[(rank - 2) << 4];
         const float *fft_w = &FFT_DW[(rank - 2) << 4];
 
@@ -137,7 +137,7 @@ namespace avx
     static inline void butterfly_reverse8p_fma3(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
         size_t pairs = 1 << rank;
-        size_t off1 = 0, shift = 1 << (rank + 2);
+        size_t off1 = 0, shift = 4 << rank; // 1 << (rank + 2);
         const float *fft_a = &FFT_A[(rank - 2) << 4];
         const float *fft_w = &FFT_DW[(rank - 2) << 4];
 

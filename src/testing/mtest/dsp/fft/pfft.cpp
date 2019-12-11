@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        4
+#define RANK        3
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -82,8 +82,8 @@ static void packed_scramble_fft(float *dst, const float *src, size_t rank)
         for (size_t i = 0; i < items; i ++)
         {
             size_t j = reverse_bits(i, rank);
-            dst[i*2] = src[j*2]; \
-            dst[i*2+1] = src[j*2+1]; \
+            dst[i*2] = src[j*2];
+            dst[i*2+1] = src[j*2+1];
         }
     }
     else
@@ -452,16 +452,22 @@ static void packed_reverse_fft(float *dst, const float *src, size_t rank)
     repack_reverse_fft(dst, rank);
 }
 
-IF_ARCH_ARM(
-    namespace neon_d32
+IF_ARCH_X86(
+    namespace sse
+    {
+        void packed_direct_fft(float *dst, const float *src, size_t rank);
+        void packed_reverse_fft(float *dst, const float *src, size_t rank);
+    }
+
+    namespace avx
     {
         void packed_direct_fft(float *dst, const float *src, size_t rank);
         void packed_reverse_fft(float *dst, const float *src, size_t rank);
     }
 )
 
-IF_ARCH_X86(
-    namespace sse
+IF_ARCH_ARM(
+    namespace neon_d32
     {
         void packed_direct_fft(float *dst, const float *src, size_t rank);
         void packed_reverse_fft(float *dst, const float *src, size_t rank);
@@ -476,6 +482,7 @@ MTEST_BEGIN("dsp.fft", pfft)
         FloatBuffer src2(BUF_SIZE*2, 64);
         FloatBuffer dst1(BUF_SIZE*2, 64);
         FloatBuffer dst2(BUF_SIZE*2, 64);
+        FloatBuffer bkup(BUF_SIZE*2, 64);
 
         // Prepare data
         for (size_t i=0; i<BUF_SIZE; ++i)
@@ -483,50 +490,101 @@ MTEST_BEGIN("dsp.fft", pfft)
             src1[i*2]           = i;
             src1[i*2+1]         = i * 0.1f;
         }
-        src2.copy(src1);
 
         // Test
-        printf("Testing packed direct FFT...\n");
+        printf("Testing native packed direct FFT...\n");
+        bkup.copy(src1);
         src1.dump("src1");
         packed_direct_fft(dst1, src1, RANK);
         dst1.dump("dst1");
         packed_direct_fft(src1, src1, RANK);
         src1.dump("src1");
 
-        src2.dump("src2");
-
         IF_ARCH_ARM(
-            neon_d32::packed_direct_fft(dst2, src2, RANK);
-            dst2.dump("dst2");
-            neon_d32::packed_direct_fft(src2, src2, RANK);
-            src2.dump("src2");
+            if (TEST_SUPPORTED(neon_d32::packed_direct_fft))
+            {
+                printf("Testing NEON-optimized packed direct FFT...\n");
+                src2.copy(bkup);
+                src2.dump("src2");
+
+                neon_d32::packed_direct_fft(dst2, src2, RANK);
+                dst2.dump("dst2");
+                neon_d32::packed_direct_fft(src2, src2, RANK);
+                src2.dump("src2");
+            }
         );
 
         IF_ARCH_X86(
-            sse::packed_direct_fft(dst2, src2, RANK);
-            dst2.dump("dst2");
-            sse::packed_direct_fft(src2, src2, RANK);
-            src2.dump("src2");
+            if (false) //if (TEST_SUPPORTED(sse::packed_direct_fft))
+            {
+                printf("Testing SSE-optimized packed direct FFT...\n");
+                src2.copy(bkup);
+                src2.dump("src2");
+
+                sse::packed_direct_fft(dst2, src2, RANK);
+                dst2.dump("dst2");
+                sse::packed_direct_fft(src2, src2, RANK);
+                src2.dump("src2");
+            }
+
+            if (TEST_SUPPORTED(avx::packed_direct_fft))
+            {
+                printf("Testing AVX-optimized packed direct FFT...\n");
+                src2.copy(bkup);
+                src2.dump("src2");
+
+                avx::packed_direct_fft(dst2, src2, RANK);
+                dst2.dump("dst2");
+                avx::packed_direct_fft(src2, src2, RANK);
+                src2.dump("src2");
+            }
         );
 
-        printf("Doing packed reverse FFT...\n");
+        printf("Testing native packed reverse FFT...\n");
+        bkup.copy(src1);
         packed_reverse_fft(dst1, src1, RANK);
         dst1.dump("dst1");
         packed_reverse_fft(src1, src1, RANK);
         src1.dump("src1");
 
-        IF_ARCH_ARM(
-            neon_d32::packed_reverse_fft(dst2, src2, RANK);
-            dst2.dump("dst2");
-            neon_d32::packed_reverse_fft(src2, src2, RANK);
-            src2.dump("src2");
+        IF_ARCH_X86(
+            if (false) // if (TEST_SUPPORTED(sse::packed_reverse_fft))
+            {
+                printf("Testing SSE-optimized packed reverse FFT...\n");
+                src2.copy(bkup);
+                src2.dump("src2");
+
+                sse::packed_reverse_fft(dst2, src2, RANK);
+                dst2.dump("dst2");
+                sse::packed_reverse_fft(src2, src2, RANK);
+                src2.dump("src2");
+            }
+
+            if (TEST_SUPPORTED(avx::packed_reverse_fft))
+            {
+                printf("Testing AVX-optimized packed reverse FFT...\n");
+                src2.copy(bkup);
+                src2.dump("src2");
+
+                avx::packed_reverse_fft(dst2, src2, RANK);
+                dst2.dump("dst2");
+                avx::packed_reverse_fft(src2, src2, RANK);
+                src2.dump("src2");
+            }
         );
 
-        IF_ARCH_X86(
-            sse::packed_reverse_fft(dst2, src2, RANK);
-            dst2.dump("dst2");
-            sse::packed_reverse_fft(src2, src2, RANK);
-            src2.dump("src2");
+        IF_ARCH_ARM(
+            if (TEST_SUPPORTED(neon_d32::packed_reverse_fft))
+            {
+                printf("Testing AVX-optimized packed reverse FFT...\n");
+                src2.copy(bkup);
+                src2.dump("src2");
+
+                neon_d32::packed_reverse_fft(dst2, src2, RANK);
+                dst2.dump("dst2");
+                neon_d32::packed_reverse_fft(src2, src2, RANK);
+                src2.dump("src2");
+            }
         );
     }
 MTEST_END
