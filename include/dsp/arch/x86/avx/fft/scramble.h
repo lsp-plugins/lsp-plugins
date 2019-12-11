@@ -82,10 +82,10 @@ namespace avx
                 /* 3rd-order 8x butterfly */
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
-                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re + x_im * b_im */ \
-                __ASM_EMIT("vsubps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im - x_im * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm3, %%ymm3", ""))  /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm7, %%ymm7", ""))  /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT(FFT_FMA("vaddps  %%ymm5, %%ymm3, %%ymm5", "vfmadd231ps  0x00 + %[FFT_A], %%ymm3, %%ymm5"))       /* ymm5 = c_re = x_re * b_re + x_im * b_im */ \
+                __ASM_EMIT(FFT_FMA("vsubps  %%ymm4, %%ymm7, %%ymm4", "vfmsub231ps  0x00 + %[FFT_A], %%ymm7, %%ymm4"))       /* ymm4 = c_im = x_re * b_im - x_im * b_re */ \
                 __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
                 __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
                 __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
@@ -132,10 +132,10 @@ namespace avx
                 /* 3rd-order 8x butterfly */
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm3, %%xmm4")       /* xmm4 = x_im * b_re */ \
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm7, %%xmm5")       /* xmm5 = x_im * b_im */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm3, %%xmm3")       /* xmm3 = x_re * b_re */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm7, %%xmm7")       /* xmm7 = x_re * b_im */ \
-                __ASM_EMIT("vaddps          %%xmm5, %%xmm3, %%xmm5")                /* xmm5 = c_re = x_re * b_re + x_im * b_im */ \
-                __ASM_EMIT("vsubps          %%xmm4, %%xmm7, %%xmm4")                /* xmm4 = c_im = x_re * b_im - x_im * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%xmm3, %%xmm3", ""))  /* xmm3 = x_re * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%xmm7, %%xmm7", ""))  /* xmm7 = x_re * b_im */ \
+                __ASM_EMIT(FFT_FMA("vaddps  %%xmm5, %%xmm3, %%xmm5", "vfmadd231ps 0x00 + %[FFT_A], %%xmm3, %%xmm5"))        /* xmm5 = c_re = x_re * b_re + x_im * b_im */ \
+                __ASM_EMIT(FFT_FMA("vsubps  %%xmm4, %%xmm7, %%xmm4", "vfmsub231ps 0x00 + %[FFT_A], %%xmm7, %%xmm4"))        /* xmm4 = c_im = x_re * b_im - x_im * b_re */ \
                 __ASM_EMIT("vsubps          %%xmm5, %%xmm2, %%xmm0")                /* xmm0 = a_re - c_re */ \
                 __ASM_EMIT("vsubps          %%xmm4, %%xmm6, %%xmm1")                /* xmm1 = a_im - c_im */ \
                 __ASM_EMIT("vaddps          %%xmm5, %%xmm2, %%xmm2")                /* xmm2 = a_re + c_re */ \
@@ -227,10 +227,10 @@ namespace avx
                 /* 3rd-order 8x butterfly */
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
-                __ASM_EMIT("vsubps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re - x_im * b_im */ \
-                __ASM_EMIT("vaddps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im + x_im * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm3, %%ymm3", ""))  /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm7, %%ymm7", ""))  /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT(FFT_FMA("vsubps  %%ymm5, %%ymm3, %%ymm5", "vfmsub231ps  0x00 + %[FFT_A], %%ymm3, %%ymm5"))       /* ymm5 = c_re = x_re * b_re - x_im * b_im */ \
+                __ASM_EMIT(FFT_FMA("vaddps  %%ymm4, %%ymm7, %%ymm4", "vfmadd231ps  0x00 + %[FFT_A], %%ymm7, %%ymm4"))       /* ymm4 = c_im = x_re * b_im + x_im * b_re */ \
                 __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
                 __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
                 __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
@@ -277,10 +277,10 @@ namespace avx
                 /* 3rd-order 8x butterfly */
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm3, %%xmm4")       /* xmm4 = x_im * b_re */ \
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm7, %%xmm5")       /* xmm5 = x_im * b_im */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm3, %%xmm3")       /* xmm3 = x_re * b_re */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm7, %%xmm7")       /* xmm7 = x_re * b_im */ \
-                __ASM_EMIT("vsubps          %%xmm5, %%xmm3, %%xmm5")                /* xmm5 = c_re = x_re * b_re - x_im * b_im */ \
-                __ASM_EMIT("vaddps          %%xmm4, %%xmm7, %%xmm4")                /* xmm4 = c_im = x_re * b_im + x_im * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%xmm3, %%xmm3", ""))  /* xmm3 = x_re * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%xmm7, %%xmm7", ""))  /* xmm7 = x_re * b_im */ \
+                __ASM_EMIT(FFT_FMA("vsubps  %%xmm5, %%xmm3, %%xmm5", "vfmsub231ps  0x00 + %[FFT_A], %%xmm3, %%xmm5"))       /* xmm5 = c_re = x_re * b_re - x_im * b_im */ \
+                __ASM_EMIT(FFT_FMA("vaddps  %%xmm4, %%xmm7, %%xmm4", "vfmadd231ps  0x00 + %[FFT_A], %%xmm7, %%xmm4"))       /* xmm4 = c_im = x_re * b_im + x_im * b_re */ \
                 __ASM_EMIT("vsubps          %%xmm5, %%xmm2, %%xmm0")                /* xmm0 = a_re - c_re */ \
                 __ASM_EMIT("vsubps          %%xmm4, %%xmm6, %%xmm1")                /* xmm1 = a_im - c_im */ \
                 __ASM_EMIT("vaddps          %%xmm5, %%xmm2, %%xmm2")                /* xmm2 = a_re + c_re */ \
@@ -389,10 +389,10 @@ namespace avx
                 /* 3rd-order 8x butterfly */
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
-                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re + x_im * b_im */ \
-                __ASM_EMIT("vsubps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im - x_im * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm3, %%ymm3", ""))  /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm7, %%ymm7", ""))  /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT(FFT_FMA("vaddps  %%ymm5, %%ymm3, %%ymm5", "vfmadd231ps  0x00 + %[FFT_A], %%ymm3, %%ymm5"))       /* ymm5 = c_re = x_re * b_re + x_im * b_im */ \
+                __ASM_EMIT(FFT_FMA("vsubps  %%ymm4, %%ymm7, %%ymm4", "vfmsub231ps  0x00 + %[FFT_A], %%ymm7, %%ymm4"))       /* ymm4 = c_im = x_re * b_im - x_im * b_re */ \
                 __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
                 __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
                 __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
@@ -507,10 +507,10 @@ namespace avx
                 /* 3rd-order 8x butterfly */
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
-                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
-                __ASM_EMIT("vsubps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re - x_im * b_im */ \
-                __ASM_EMIT("vaddps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im + x_im * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm3, %%ymm3", ""))  /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT(FFT_FMA("vmulps  0x00 + %[FFT_A], %%ymm7, %%ymm7", ""))  /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT(FFT_FMA("vsubps  %%ymm5, %%ymm3, %%ymm5", "vfmsub231ps  0x00 + %[FFT_A], %%ymm3, %%ymm5"))       /* ymm5 = c_re = x_re * b_re - x_im * b_im */ \
+                __ASM_EMIT(FFT_FMA("vaddps  %%ymm4, %%ymm7, %%ymm4", "vfmadd231ps  0x00 + %[FFT_A], %%ymm7, %%ymm4"))       /* ymm4 = c_im = x_re * b_im + x_im * b_re */ \
                 __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
                 __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
                 __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
@@ -543,3 +543,5 @@ namespace avx
 #undef FFT_SCRAMBLE_COPY_DIRECT_NAME
 #undef FFT_SCRAMBLE_COPY_REVERSE_NAME
 #undef FFT_TYPE
+#undef FFT_FMA
+

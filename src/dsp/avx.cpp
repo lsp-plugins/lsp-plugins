@@ -217,8 +217,8 @@ namespace avx
         CEXPORT1(favx, abs_max);
         CEXPORT1(favx, abs_minmax);
 
-        TEST_EXPORT(direct_fft);
-        TEST_EXPORT(reverse_fft);
+        CEXPORT1(favx, direct_fft);
+        CEXPORT1(favx, reverse_fft);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)
@@ -259,6 +259,9 @@ namespace avx
 
             CEXPORT2(favx, h_sqr_sum, h_sqr_sum_fma3);
 //            CEXPORT2(favx, h_dotp_sum, h_dotp_sum_fma3);
+
+            CEXPORT2(favx, direct_fft, direct_fft_fma3);
+            CEXPORT2(favx, reverse_fft, reverse_fft_fma3);
 
             // Non-conditional export
             EXPORT2(biquad_process_x8, biquad_process_x8_fma3);

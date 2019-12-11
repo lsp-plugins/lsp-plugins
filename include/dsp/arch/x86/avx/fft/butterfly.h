@@ -12,8 +12,8 @@
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
-#define FFT_BUTTERFLY_BODY8(add_b, add_a) \
-    __IF_32(float *ptr1, *ptr1);\
+#define FFT_BUTTERFLY_BODY8(add_b, add_a, FMA_SEL) \
+    __IF_32(float *ptr1, *ptr2);\
     \
     ARCH_X86_ASM \
     ( \
@@ -32,10 +32,10 @@
             /* Calculate complex multiplication */ \
             __ASM_EMIT("vmulps          %%ymm7, %%ymm2, %%ymm4")            /* ymm4 = x_im * b_re */ \
             __ASM_EMIT("vmulps          %%ymm7, %%ymm3, %%ymm5")            /* ymm5 = x_im * b_im */ \
-            __ASM_EMIT("vmulps          %%ymm6, %%ymm2, %%ymm2")            /* ymm2 = x_re * b_re */ \
-            __ASM_EMIT("vmulps          %%ymm6, %%ymm3, %%ymm3")            /* ymm3 = x_re * b_im */ \
-            __ASM_EMIT(add_b "          %%ymm5, %%ymm2, %%ymm5")            /* ymm5 = c_re = x_re * b_re +- x_im * b_im */ \
-            __ASM_EMIT(add_a "          %%ymm4, %%ymm3, %%ymm4")            /* ymm4 = c_im = x_re * b_im -+ x_im * b_re */ \
+            __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm2, %%ymm2", ""))       /* ymm2 = x_re * b_re */ \
+            __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm3, %%ymm3", ""))       /* ymm3 = x_re * b_im */ \
+            __ASM_EMIT(FMA_SEL(add_b "  %%ymm5, %%ymm2, %%ymm5", add_b " %%ymm6, %%ymm2, %%ymm5")) /* ymm5 = c_re = x_re * b_re +- x_im * b_im */ \
+            __ASM_EMIT(FMA_SEL(add_a "  %%ymm4, %%ymm3, %%ymm4", add_a " %%ymm6, %%ymm3, %%ymm4")) /* ymm4 = c_im = x_re * b_im -+ x_im * b_re */ \
             /* Perform butterfly */ \
             __ASM_EMIT("vsubps          %%ymm5, %%ymm0, %%ymm2")            /* ymm2 = a_re - c_re */ \
             __ASM_EMIT("vsubps          %%ymm4, %%ymm1, %%ymm3")            /* ymm3 = a_im - c_im */ \
@@ -56,12 +56,12 @@
             __ASM_EMIT("vmovaps         0x00(%[" __IF_32_64("ptr2", "fft_w") "]), %%ymm4")        /* xmm4 = w_re */ \
             __ASM_EMIT("vmovaps         0x20(%[" __IF_32_64("ptr2", "fft_w") "]), %%ymm5")        /* xmm5 = w_im */ \
             __ASM_EMIT32("mov           %[dst_im], %[ptr2]") \
-            __ASM_EMIT("vmulps          %%ymm4, %%ymm6, %%ymm0")            /* ymm0 = w_re * x_re */ \
-            __ASM_EMIT("vmulps          %%ymm4, %%ymm7, %%ymm1")            /* ymm1 = w_re * x_im */ \
             __ASM_EMIT("vmulps          %%ymm5, %%ymm6, %%ymm2")            /* ymm2 = w_im * x_re */ \
             __ASM_EMIT("vmulps          %%ymm5, %%ymm7, %%ymm3")            /* ymm3 = w_im * x_im */ \
-            __ASM_EMIT("vaddps          %%ymm2, %%ymm1, %%ymm7")            /* ymm7 = x_im' = w_re * x_im + w_im * x_re */ \
-            __ASM_EMIT("vsubps          %%ymm3, %%ymm0, %%ymm6")            /* ymm6 = x_re' = w_re * x_re - w_im * x_im */ \
+            __ASM_EMIT(FMA_SEL("vmulps  %%ymm4, %%ymm6, %%ymm6", ""))       /* ymm6 = w_re * x_re */ \
+            __ASM_EMIT(FMA_SEL("vmulps  %%ymm4, %%ymm7, %%ymm7", ""))       /* ymm7 = w_re * x_im */ \
+            __ASM_EMIT(FMA_SEL("vsubps  %%ymm3, %%ymm6, %%ymm6", "vfmsub132ps %%ymm4, %%ymm3, %%ymm6")) /* ymm6 = x_re' = w_re * x_re - w_im * x_im */ \
+            __ASM_EMIT(FMA_SEL("vaddps  %%ymm2, %%ymm7, %%ymm7", "vfmadd132ps %%ymm4, %%ymm2, %%ymm7")) /* ymm7 = x_im' = w_re * x_im + w_im * x_re */ \
             /* Repeat loop */ \
         __ASM_EMIT("jmp             1b") \
         __ASM_EMIT("2:") \
@@ -77,6 +77,9 @@
 
 namespace avx
 {
+#define FMA_OFF(a, b)       a
+#define FMA_ON(a, b)        b
+
     static inline void butterfly_direct8p(float *dst_re, float *dst_im, size_t rank, size_t blocks)
     {
         size_t pairs = 1 << rank;
@@ -89,7 +92,7 @@ namespace avx
             size_t off2  = off1 + shift;
             size_t np    = pairs;
 
-            FFT_BUTTERFLY_BODY8("vaddps", "vsubps");
+            FFT_BUTTERFLY_BODY8("vaddps", "vsubps", FMA_OFF);
 
             off1        = off2;
         }
@@ -107,11 +110,50 @@ namespace avx
             size_t off2  = off1 + shift;
             size_t np    = pairs;
 
-            FFT_BUTTERFLY_BODY8("vsubps", "vaddps");
+            FFT_BUTTERFLY_BODY8("vsubps", "vaddps", FMA_OFF);
 
             off1        = off2;
         }
     }
+
+    static inline void butterfly_direct8p_fma3(float *dst_re, float *dst_im, size_t rank, size_t blocks)
+    {
+        size_t pairs = 1 << rank;
+        size_t off1 = 0, shift = 1 << (rank + 2);
+        const float *fft_a = &FFT_A[(rank - 2) << 4];
+        const float *fft_w = &FFT_DW[(rank - 2) << 4];
+
+        for (size_t b=0; b<blocks; ++b)
+        {
+            size_t off2  = off1 + shift;
+            size_t np    = pairs;
+
+            FFT_BUTTERFLY_BODY8("vfmadd231ps", "vfmsub231ps", FMA_ON);
+
+            off1        = off2;
+        }
+    }
+
+    static inline void butterfly_reverse8p_fma3(float *dst_re, float *dst_im, size_t rank, size_t blocks)
+    {
+        size_t pairs = 1 << rank;
+        size_t off1 = 0, shift = 1 << (rank + 2);
+        const float *fft_a = &FFT_A[(rank - 2) << 4];
+        const float *fft_w = &FFT_DW[(rank - 2) << 4];
+
+        for (size_t b=0; b<blocks; ++b)
+        {
+            size_t off2  = off1 + shift;
+            size_t np    = pairs;
+
+            FFT_BUTTERFLY_BODY8("vfmsub231ps", "vfmadd231ps", FMA_ON);
+
+            off1        = off2;
+        }
+    }
+
+#undef FMA_OFF
+#undef FMA_ON
 }
 
 #undef FFT_BUTTERFLY_BODY8
