@@ -164,7 +164,7 @@ namespace avx
         FFT_BUTTERFLY_BODY4("vaddps", "vsubps");
     }
 
-    static inline void butterfly_reverse4(float *dst_re, float *dst_im, size_t rank, size_t blocks)
+    static inline void butterfly_reverse4(float *dst_re, float *dst_im, size_t blocks)
     {
         FFT_BUTTERFLY_BODY4("vsubps", "vaddps");
     }

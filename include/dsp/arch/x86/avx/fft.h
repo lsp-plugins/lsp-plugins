@@ -80,8 +80,8 @@ namespace avx
 
         if ((dst_re == src_re) || (dst_im == src_im) || (rank < 4))
         {
-            dsp::copy(dst_re, src_re, 1 << rank);
-            dsp::copy(dst_im, src_im, 1 << rank);
+            dsp::move(dst_re, src_re, 1 << rank);
+            dsp::move(dst_im, src_im, 1 << rank);
             if (rank <= 8)
                 scramble_self_direct8(dst_re, dst_im, rank);
             else
@@ -151,8 +151,8 @@ namespace avx
 
         if ((dst_re == src_re) || (dst_im == src_im) || (rank < 4))
         {
-            dsp::copy(dst_re, src_re, 1 << rank);
-            dsp::copy(dst_im, src_im, 1 << rank);
+            dsp::move(dst_re, src_re, 1 << rank);
+            dsp::move(dst_im, src_im, 1 << rank);
             if (rank <= 8)
                 scramble_self_reverse8(dst_re, dst_im, rank);
             else
@@ -165,9 +165,13 @@ namespace avx
             else
                 scramble_copy_reverse16(dst_re, dst_im, src_re, src_im, rank-4);
         }
-//
-//        for (size_t i=2; i < rank; ++i)
-//            butterfly_direct(dst_re, dst_im, i, 1 << (rank - i - 1));
+
+        size_t i=2;
+        if (i++ < rank)
+            butterfly_reverse4(dst_re, dst_im, 1 << (rank - 3));
+        for (; i < rank; ++i)
+            butterfly_reverse8p(dst_re, dst_im, i, 1 << (rank - i - 1));
+
         dsp::normalize_fft2(dst_re, dst_im, rank);
     }
 }
