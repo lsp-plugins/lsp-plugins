@@ -118,9 +118,4 @@ namespace sse
     }
 }
 
-#undef FFT_ANGLE_INIT
-#undef FFT_ANGLE_ROTATE
 #undef FFT_BUTTERFLY_BODY
-
-#undef FFT_BUTTERFLY_DIRECT_NAME
-#undef FFT_BUTTERFLY_REVERSE_NAME

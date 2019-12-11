@@ -30,7 +30,8 @@ IF_ARCH_X86(
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
         void direct_fft_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 
-//        void packed_direct_fft(float *dst, const float *src, size_t rank);
+        void packed_direct_fft(float *dst, const float *src, size_t rank);
+        void packed_direct_fft_fma3(float *dst, const float *src, size_t rank);
     }
 )
 
@@ -111,7 +112,8 @@ PTEST_BEGIN("dsp.fft", fft, 10, 1000)
 
             CALL2(native::packed_direct_fft);
             IF_ARCH_X86(CALL2(sse::packed_direct_fft));
-//            IF_ARCH_X86(CALL2(avx::packed_direct_fft));
+            IF_ARCH_X86(CALL2(avx::packed_direct_fft));
+            IF_ARCH_X86(CALL2(avx::packed_direct_fft_fma3));
             IF_ARCH_ARM(CALL2(neon_d32::packed_direct_fft));
             PTEST_SEPARATOR;
         }

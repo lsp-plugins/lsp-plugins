@@ -14,6 +14,7 @@
 
 #include <dsp/arch/x86/avx/fft/const.h>
 #include <dsp/arch/x86/avx/fft/p_repack.h>
+#include <dsp/arch/x86/avx/fft/p_butterfly.h>
 
 // Scrambling functions
 #define FFT_PSCRAMBLE_SELF_DIRECT_NAME      packed_scramble_self_direct8
@@ -45,7 +46,7 @@
 #define FFT_PSCRAMBLE_COPY_DIRECT_NAME      packed_scramble_copy_direct16_fma3
 #define FFT_PSCRAMBLE_COPY_REVERSE_NAME     packed_scramble_copy_reverse16_fma3
 #define FFT_TYPE                            uint16_t
-#define FFT_FMA(a, b)                   b
+#define FFT_FMA(a, b)                       b
 #include <dsp/arch/x86/avx/fft/p_scramble.h>
 
 namespace avx
@@ -159,6 +160,9 @@ namespace avx
                 packed_scramble_copy_direct16(dst, src, rank-4);
         }
 
+        for (size_t i=3; i < rank; ++i)
+            packed_butterfly_direct8p(dst, i, 1 << (rank - i - 1));
+
         packed_fft_repack(dst, rank);
     }
 
@@ -185,6 +189,69 @@ namespace avx
             else
                 packed_scramble_copy_reverse16(dst, src, rank-4);
         }
+
+        for (size_t i=3; i < rank; ++i)
+            packed_butterfly_reverse8p(dst, i, 1 << (rank - i - 1));
+
+        packed_fft_repack_normalize(dst, rank);
+    }
+
+    void packed_direct_fft_fma3(float *dst, const float *src, size_t rank)
+    {
+        if (rank <= 2)
+        {
+            packed_small_direct_fft(dst, src, rank);
+            return;
+        }
+
+        if ((dst == src) || (rank < 4))
+        {
+            dsp::move(dst, src, 2 << rank); // 1 << rank + 1
+            if (rank <= 8)
+                packed_scramble_self_direct8_fma3(dst, rank);
+            else
+                packed_scramble_self_direct16_fma3(dst, rank);
+        }
+        else
+        {
+            if (rank <= 12)
+                packed_scramble_copy_direct8_fma3(dst, src, rank-4);
+            else
+                packed_scramble_copy_direct16_fma3(dst, src, rank-4);
+        }
+
+        for (size_t i=3; i < rank; ++i)
+            packed_butterfly_direct8p_fma3(dst, i, 1 << (rank - i - 1));
+
+        packed_fft_repack(dst, rank);
+    }
+
+    void packed_reverse_fft_fma3(float *dst, const float *src, size_t rank)
+    {
+        if (rank <= 2)
+        {
+            packed_small_reverse_fft(dst, src, rank);
+            return;
+        }
+
+        if ((dst == src) || (rank < 4))
+        {
+            dsp::move(dst, src, 2 << rank); // 1 << rank + 1
+            if (rank <= 8)
+                packed_scramble_self_reverse8_fma3(dst, rank);
+            else
+                packed_scramble_self_reverse16_fma3(dst, rank);
+        }
+        else
+        {
+            if (rank <= 12)
+                packed_scramble_copy_reverse8_fma3(dst, src, rank-4);
+            else
+                packed_scramble_copy_reverse16_fma3(dst, src, rank-4);
+        }
+
+        for (size_t i=3; i < rank; ++i)
+            packed_butterfly_reverse8p_fma3(dst, i, 1 << (rank - i - 1));
 
         packed_fft_repack_normalize(dst, rank);
     }
