@@ -73,22 +73,32 @@ namespace avx
                 __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5" */
                 __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5" */
                 __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7" */
-                /* Reorder */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm3, %%ymm2, %%ymm4")         /* ymm4 = i0" i4" i1" i5" */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm2, %%ymm3, %%ymm5")         /* ymm5 = i2" i6" i3" i7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm1, %%ymm0, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm1, %%ymm0, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
+                /* 3rd-order 8x butterfly */
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re + x_im * b_im */ \
+                __ASM_EMIT("vsubps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im - x_im * b_re */ \
+                __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
+                __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
+                __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
+                __ASM_EMIT("vaddps          %%ymm4, %%ymm6, %%ymm3")                /* ymm3 = a_im + c_im */ \
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re], %[off])")
+                __ASM_EMIT("vmovups         %%xmm0, 0x10(%[dst_re], %[off])")
                 __ASM_EMIT("vextractf128    $1, %%ymm2, 0x20(%[dst_re], %[off])")
-                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x30(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm6, 0x00(%[dst_im], %[off])")
-                __ASM_EMIT("vmovups         %%xmm7, 0x10(%[dst_im], %[off])")
-                __ASM_EMIT("vextractf128    $1, %%ymm6, 0x20(%[dst_im], %[off])")
-                __ASM_EMIT("vextractf128    $1, %%ymm7, 0x30(%[dst_im], %[off])")
+                __ASM_EMIT("vextractf128    $1, %%ymm0, 0x30(%[dst_re], %[off])")
+                __ASM_EMIT("vmovups         %%xmm3, 0x00(%[dst_im], %[off])")
+                __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst_im], %[off])")
+                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x20(%[dst_im], %[off])")
+                __ASM_EMIT("vextractf128    $1, %%ymm1, 0x30(%[dst_im], %[off])")
                 /* Move pointers and repeat*/
                 __ASM_EMIT("add             $0x40, %[off]")
                 __ASM_EMIT("sub             $2, %[items]")
@@ -113,23 +123,33 @@ namespace avx
                 __ASM_EMIT("vhsubps         %%xmm5, %%xmm2, %%xmm3")                /* xmm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5" */
                 __ASM_EMIT("vhaddps         %%xmm4, %%xmm0, %%xmm0")                /* xmm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5" */
                 __ASM_EMIT("vhaddps         %%xmm5, %%xmm2, %%xmm2")                /* xmm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7" */
-                /* Reorder */
                 __ASM_EMIT("vblendps        $0xcc, %%xmm3, %%xmm2, %%xmm4")         /* xmm4 = i0" i4" i1" i5" */
                 __ASM_EMIT("vblendps        $0xcc, %%xmm2, %%xmm3, %%xmm5")         /* xmm5 = i2" i6" i3" i7" */
                 __ASM_EMIT("vshufps         $0x88, %%xmm1, %%xmm0, %%xmm2")         /* xmm2 = r0" r1" r2" r3" */
                 __ASM_EMIT("vshufps         $0xdd, %%xmm1, %%xmm0, %%xmm3")         /* xmm3 = r4" r5" r6" r7" */
                 __ASM_EMIT("vshufps         $0x88, %%xmm5, %%xmm4, %%xmm6")         /* xmm6 = i0" i1" i2" i3" */
                 __ASM_EMIT("vshufps         $0xdd, %%xmm5, %%xmm4, %%xmm7")         /* xmm7 = i4" i5" i6" i7" */
+                /* 3rd-order 8x butterfly */
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm3, %%xmm4")       /* xmm4 = x_im * b_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm7, %%xmm5")       /* xmm5 = x_im * b_im */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm3, %%xmm3")       /* xmm3 = x_re * b_re */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm7, %%xmm7")       /* xmm7 = x_re * b_im */ \
+                __ASM_EMIT("vaddps          %%xmm5, %%xmm3, %%xmm5")                /* xmm5 = c_re = x_re * b_re + x_im * b_im */ \
+                __ASM_EMIT("vsubps          %%xmm4, %%xmm7, %%xmm4")                /* xmm4 = c_im = x_re * b_im - x_im * b_re */ \
+                __ASM_EMIT("vsubps          %%xmm5, %%xmm2, %%xmm0")                /* xmm0 = a_re - c_re */ \
+                __ASM_EMIT("vsubps          %%xmm4, %%xmm6, %%xmm1")                /* xmm1 = a_im - c_im */ \
+                __ASM_EMIT("vaddps          %%xmm5, %%xmm2, %%xmm2")                /* xmm2 = a_re + c_re */ \
+                __ASM_EMIT("vaddps          %%xmm4, %%xmm6, %%xmm3")                /* xmm3 = a_im + c_im */ \
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm6, 0x00(%[dst_im], %[off])")
-                __ASM_EMIT("vmovups         %%xmm7, 0x10(%[dst_im], %[off])")
+                __ASM_EMIT("vmovups         %%xmm0, 0x10(%[dst_re], %[off])")
+                __ASM_EMIT("vmovups         %%xmm3, 0x00(%[dst_im], %[off])")
+                __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst_im], %[off])")
             __ASM_EMIT("4:")
 
             : [dst_re] "+r"(dst_re), [dst_im] "+r"(dst_im),
               [off] "+r" (off), [items] "+r"(items)
-            :
+            : [FFT_A] "o" (FFT_A)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -198,22 +218,32 @@ namespace avx
                 __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i3" i7" */
                 __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r3" r7" */
                 __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i1" i5" */
-                /* Reorder */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm1, %%ymm0, %%ymm4")         /* ymm4 = r0" i4" r1" r5" */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm0, %%ymm1, %%ymm5")         /* ymm5 = r2" r6" r3" r7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm3, %%ymm2, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm3, %%ymm2, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
+                /* 3rd-order 8x butterfly */
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT("vsubps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re - x_im * b_im */ \
+                __ASM_EMIT("vaddps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im + x_im * b_re */ \
+                __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
+                __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
+                __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
+                __ASM_EMIT("vaddps          %%ymm4, %%ymm6, %%ymm3")                /* ymm3 = a_im + c_im */ \
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re], %[off])")
+                __ASM_EMIT("vmovups         %%xmm0, 0x10(%[dst_re], %[off])")
                 __ASM_EMIT("vextractf128    $1, %%ymm2, 0x20(%[dst_re], %[off])")
-                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x30(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm6, 0x00(%[dst_im], %[off])")
-                __ASM_EMIT("vmovups         %%xmm7, 0x10(%[dst_im], %[off])")
-                __ASM_EMIT("vextractf128    $1, %%ymm6, 0x20(%[dst_im], %[off])")
-                __ASM_EMIT("vextractf128    $1, %%ymm7, 0x30(%[dst_im], %[off])")
+                __ASM_EMIT("vextractf128    $1, %%ymm0, 0x30(%[dst_re], %[off])")
+                __ASM_EMIT("vmovups         %%xmm3, 0x00(%[dst_im], %[off])")
+                __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst_im], %[off])")
+                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x20(%[dst_im], %[off])")
+                __ASM_EMIT("vextractf128    $1, %%ymm1, 0x30(%[dst_im], %[off])")
                 /* Move pointers and repeat*/
                 __ASM_EMIT("add             $0x40, %[off]")
                 __ASM_EMIT("sub             $2, %[items]")
@@ -238,23 +268,33 @@ namespace avx
                 __ASM_EMIT("vhsubps         %%xmm5, %%xmm2, %%xmm3")                /* xmm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i3" i7" */
                 __ASM_EMIT("vhaddps         %%xmm4, %%xmm0, %%xmm0")                /* xmm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r3" r7" */
                 __ASM_EMIT("vhaddps         %%xmm5, %%xmm2, %%xmm2")                /* xmm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i1" i5" */
-                /* Reorder */
                 __ASM_EMIT("vblendps        $0xcc, %%xmm1, %%xmm0, %%xmm4")         /* xmm4 = r0" i4" r1" r5" */
                 __ASM_EMIT("vblendps        $0xcc, %%xmm0, %%xmm1, %%xmm5")         /* xmm5 = r2" r6" r3" r7" */
                 __ASM_EMIT("vshufps         $0x88, %%xmm3, %%xmm2, %%xmm6")         /* xmm6 = i0" i1" i2" i3" */
                 __ASM_EMIT("vshufps         $0xdd, %%xmm3, %%xmm2, %%xmm7")         /* xmm7 = i4" i5" i6" i7" */
                 __ASM_EMIT("vshufps         $0x88, %%xmm5, %%xmm4, %%xmm2")         /* xmm2 = r0" r1" r2" r3" */
                 __ASM_EMIT("vshufps         $0xdd, %%xmm5, %%xmm4, %%xmm3")         /* xmm3 = r4" r5" r6" r7" */
+                /* 3rd-order 8x butterfly */
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm3, %%xmm4")       /* xmm4 = x_im * b_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm7, %%xmm5")       /* xmm5 = x_im * b_im */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm3, %%xmm3")       /* xmm3 = x_re * b_re */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%xmm7, %%xmm7")       /* xmm7 = x_re * b_im */ \
+                __ASM_EMIT("vsubps          %%xmm5, %%xmm3, %%xmm5")                /* xmm5 = c_re = x_re * b_re - x_im * b_im */ \
+                __ASM_EMIT("vaddps          %%xmm4, %%xmm7, %%xmm4")                /* xmm4 = c_im = x_re * b_im + x_im * b_re */ \
+                __ASM_EMIT("vsubps          %%xmm5, %%xmm2, %%xmm0")                /* xmm0 = a_re - c_re */ \
+                __ASM_EMIT("vsubps          %%xmm4, %%xmm6, %%xmm1")                /* xmm1 = a_im - c_im */ \
+                __ASM_EMIT("vaddps          %%xmm5, %%xmm2, %%xmm2")                /* xmm2 = a_re + c_re */ \
+                __ASM_EMIT("vaddps          %%xmm4, %%xmm6, %%xmm3")                /* xmm3 = a_im + c_im */ \
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re], %[off])")
-                __ASM_EMIT("vmovups         %%xmm6, 0x00(%[dst_im], %[off])")
-                __ASM_EMIT("vmovups         %%xmm7, 0x10(%[dst_im], %[off])")
+                __ASM_EMIT("vmovups         %%xmm0, 0x10(%[dst_re], %[off])")
+                __ASM_EMIT("vmovups         %%xmm3, 0x00(%[dst_im], %[off])")
+                __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst_im], %[off])")
             __ASM_EMIT("4:")
 
             : [dst_re] "+r"(dst_re), [dst_im] "+r"(dst_im),
               [off] "+r" (off), [items] "+r"(items)
-            :
+            : [FFT_A] "o" (FFT_A)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -340,30 +380,41 @@ namespace avx
                 __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5" */
                 __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5" */
                 __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7" */
-                /* Reorder */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm3, %%ymm2, %%ymm4")         /* ymm4 = i0" i4" i1" i5" */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm2, %%ymm3, %%ymm5")         /* ymm5 = i2" i6" i3" i7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm1, %%ymm0, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm1, %%ymm0, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
+                /* 3rd-order 8x butterfly */
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re + x_im * b_im */ \
+                __ASM_EMIT("vsubps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im - x_im * b_re */ \
+                __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
+                __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
+                __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
+                __ASM_EMIT("vaddps          %%ymm4, %%ymm6, %%ymm3")                /* ymm3 = a_im + c_im */ \
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re])")
-                __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re])")
+                __ASM_EMIT("vmovups         %%xmm0, 0x10(%[dst_re])")
                 __ASM_EMIT("vextractf128    $1, %%ymm2, 0x20(%[dst_re])")
-                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x30(%[dst_re])")
-                __ASM_EMIT("vmovups         %%xmm6, 0x00(%[dst_im])")
-                __ASM_EMIT("vmovups         %%xmm7, 0x10(%[dst_im])")
-                __ASM_EMIT("vextractf128    $1, %%ymm6, 0x20(%[dst_im])")
-                __ASM_EMIT("vextractf128    $1, %%ymm7, 0x30(%[dst_im])")
+                __ASM_EMIT("vextractf128    $1, %%ymm0, 0x30(%[dst_re])")
+                __ASM_EMIT("vmovups         %%xmm3, 0x00(%[dst_im])")
+                __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst_im])")
+                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x20(%[dst_im])")
+                __ASM_EMIT("vextractf128    $1, %%ymm1, 0x30(%[dst_im])")
                 __ASM_EMIT("add             $0x40, %[dst_re]")
                 __ASM_EMIT("add             $0x40, %[dst_im]")
 
                 : [dst_re] "+r" (dst_re), [dst_im] "+r"(dst_im), [index] "+r"(index)
-                : [src_re] "r"(src_re), [src_im] "r"(src_im), [regs] __ASM_ARG_RO(regs)
+                : [src_re] "r" (src_re), [src_im] "r"(src_im), [regs] __ASM_ARG_RO(regs),
+                  [FFT_A] "o" (FFT_A)
                 : "cc", "memory",
-                    "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                    "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+                  "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+                  "%xmm4", "%xmm5", "%xmm6", "%xmm7"
             );
         }
     }
@@ -447,30 +498,41 @@ namespace avx
                 __ASM_EMIT("vhsubps         %%ymm5, %%ymm2, %%ymm3")                /* ymm3 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i3" i7" */
                 __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r3" r7" */
                 __ASM_EMIT("vhaddps         %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i1" i5" */
-                /* Reorder */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm1, %%ymm0, %%ymm4")         /* ymm4 = r0" i4" r1" r5" */
                 __ASM_EMIT("vblendps        $0xcc, %%ymm0, %%ymm1, %%ymm5")         /* ymm5 = r2" r6" r3" r7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm3, %%ymm2, %%ymm6")         /* ymm6 = i0" i1" i2" i3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm3, %%ymm2, %%ymm7")         /* ymm7 = i4" i5" i6" i7" */
                 __ASM_EMIT("vshufps         $0x88, %%ymm5, %%ymm4, %%ymm2")         /* ymm2 = r0" r1" r2" r3" */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm3")         /* ymm3 = r4" r5" r6" r7" */
+                /* 3rd-order 8x butterfly */
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm3, %%ymm4")       /* ymm4 = x_im * b_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm7, %%ymm5")       /* ymm5 = x_im * b_im */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm3, %%ymm3")       /* ymm3 = x_re * b_re */ \
+                __ASM_EMIT("vmulps          0x00 + %[FFT_A], %%ymm7, %%ymm7")       /* ymm7 = x_re * b_im */ \
+                __ASM_EMIT("vsubps          %%ymm5, %%ymm3, %%ymm5")                /* ymm5 = c_re = x_re * b_re - x_im * b_im */ \
+                __ASM_EMIT("vaddps          %%ymm4, %%ymm7, %%ymm4")                /* ymm4 = c_im = x_re * b_im + x_im * b_re */ \
+                __ASM_EMIT("vsubps          %%ymm5, %%ymm2, %%ymm0")                /* ymm0 = a_re - c_re */ \
+                __ASM_EMIT("vsubps          %%ymm4, %%ymm6, %%ymm1")                /* ymm1 = a_im - c_im */ \
+                __ASM_EMIT("vaddps          %%ymm5, %%ymm2, %%ymm2")                /* ymm2 = a_re + c_re */ \
+                __ASM_EMIT("vaddps          %%ymm4, %%ymm6, %%ymm3")                /* ymm3 = a_im + c_im */ \
                 /* Store */
                 __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst_re])")
-                __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst_re])")
+                __ASM_EMIT("vmovups         %%xmm0, 0x10(%[dst_re])")
                 __ASM_EMIT("vextractf128    $1, %%ymm2, 0x20(%[dst_re])")
-                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x30(%[dst_re])")
-                __ASM_EMIT("vmovups         %%xmm6, 0x00(%[dst_im])")
-                __ASM_EMIT("vmovups         %%xmm7, 0x10(%[dst_im])")
-                __ASM_EMIT("vextractf128    $1, %%ymm6, 0x20(%[dst_im])")
-                __ASM_EMIT("vextractf128    $1, %%ymm7, 0x30(%[dst_im])")
+                __ASM_EMIT("vextractf128    $1, %%ymm0, 0x30(%[dst_re])")
+                __ASM_EMIT("vmovups         %%xmm3, 0x00(%[dst_im])")
+                __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst_im])")
+                __ASM_EMIT("vextractf128    $1, %%ymm3, 0x20(%[dst_im])")
+                __ASM_EMIT("vextractf128    $1, %%ymm1, 0x30(%[dst_im])")
                 __ASM_EMIT("add             $0x40, %[dst_re]")
                 __ASM_EMIT("add             $0x40, %[dst_im]")
 
                 : [dst_re] "+r" (dst_re), [dst_im] "+r"(dst_im), [index] "+r"(index)
-                : [src_re] "r"(src_re), [src_im] "r"(src_im), [regs] __ASM_ARG_RO(regs)
+                : [src_re] "r"(src_re), [src_im] "r"(src_im), [regs] __ASM_ARG_RO(regs),
+                  [FFT_A] "o" (FFT_A)
                 : "cc", "memory",
-                    "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                    "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+                  "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+                  "%xmm4", "%xmm5", "%xmm6", "%xmm7"
             );
         }
     }

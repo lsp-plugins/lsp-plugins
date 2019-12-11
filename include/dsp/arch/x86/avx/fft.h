@@ -95,10 +95,7 @@ namespace avx
                 scramble_copy_direct16(dst_re, dst_im, src_re, src_im, rank-4);
         }
 
-        size_t i=2;
-        if (i++ < rank)
-            butterfly_direct4(dst_re, dst_im, 1 << (rank - 3));
-        for (; i < rank; ++i)
+        for (size_t i=3; i < rank; ++i)
             butterfly_direct8p(dst_re, dst_im, i, 1 << (rank - i - 1));
     }
 
@@ -166,10 +163,7 @@ namespace avx
                 scramble_copy_reverse16(dst_re, dst_im, src_re, src_im, rank-4);
         }
 
-        size_t i=2;
-        if (i++ < rank)
-            butterfly_reverse4(dst_re, dst_im, 1 << (rank - 3));
-        for (; i < rank; ++i)
+        for (size_t i=3; i < rank; ++i)
             butterfly_reverse8p(dst_re, dst_im, i, 1 << (rank - i - 1));
 
         dsp::normalize_fft2(dst_re, dst_im, rank);
