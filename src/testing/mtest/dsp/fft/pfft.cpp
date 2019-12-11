@@ -515,7 +515,7 @@ MTEST_BEGIN("dsp.fft", pfft)
         );
 
         IF_ARCH_X86(
-            if (false) //if (TEST_SUPPORTED(sse::packed_direct_fft))
+            if (TEST_SUPPORTED(sse::packed_direct_fft))
             {
                 printf("Testing SSE-optimized packed direct FFT...\n");
                 src2.copy(bkup);
@@ -548,7 +548,7 @@ MTEST_BEGIN("dsp.fft", pfft)
         src1.dump("src1");
 
         IF_ARCH_X86(
-            if (false) // if (TEST_SUPPORTED(sse::packed_reverse_fft))
+            if (TEST_SUPPORTED(sse::packed_reverse_fft))
             {
                 printf("Testing SSE-optimized packed reverse FFT...\n");
                 src2.copy(bkup);

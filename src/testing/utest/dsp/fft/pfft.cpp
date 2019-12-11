@@ -107,9 +107,9 @@ UTEST_BEGIN("dsp.fft", pfft)
         IF_ARCH_X86(CALL(native::packed_direct_fft, sse::packed_direct_fft, 16));
         IF_ARCH_X86(CALL(native::packed_reverse_fft, sse::packed_reverse_fft, 16));
         IF_ARCH_X86(CALL(native::packed_direct_fft, avx::packed_direct_fft, 32));
-//        IF_ARCH_X86(CALL(native::packed_reverse_fft, avx::packed_reverse_fft, 32));
+        IF_ARCH_X86(CALL(native::packed_reverse_fft, avx::packed_reverse_fft, 32));
         IF_ARCH_X86(CALL(native::packed_direct_fft, avx::packed_direct_fft_fma3, 32));
-//        IF_ARCH_X86(CALL(native::packed_reverse_fft, avx::packed_reverse_fft_fma3, 32));
+        IF_ARCH_X86(CALL(native::packed_reverse_fft, avx::packed_reverse_fft_fma3, 32));
 
         IF_ARCH_ARM(CALL(native::packed_direct_fft, neon_d32::packed_direct_fft, 16));
         IF_ARCH_ARM(CALL(native::packed_reverse_fft, neon_d32::packed_reverse_fft, 16));
