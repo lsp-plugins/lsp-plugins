@@ -36,6 +36,7 @@
 #include <dsp/arch/x86/avx/search/minmax.h>
 
 #include <dsp/arch/x86/avx/fft.h>
+#include <dsp/arch/x86/avx/pfft.h>
 
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
