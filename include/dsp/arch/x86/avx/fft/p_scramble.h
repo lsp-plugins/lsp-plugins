@@ -38,7 +38,6 @@ namespace avx
         }
 
         // Perform butterfly 8x
-        size_t off = 0;
         items = 1 << (rank - 3);
 
         // Perform 4-element butterflies
@@ -53,10 +52,10 @@ namespace avx
                 __ASM_EMIT("vmovups         0x10(%[dst]), %%xmm1")                  /* xmm1 = r2  i2  r3  i3 */
                 __ASM_EMIT("vmovups         0x20(%[dst]), %%xmm4")                  /* xmm4 = r4  i4  r5  i5 */
                 __ASM_EMIT("vmovups         0x30(%[dst]), %%xmm5")                  /* xmm5 = r6  i6  r7  i7 */
-                __ASM_EMIT("vinsertf128     $1, 0x40(%[dst_re]), %%ymm0, %%ymm0")   /* ymm0 = r0  i0  r1  i1  r8  i8  r9  i9    */
-                __ASM_EMIT("vinsertf128     $1, 0x50(%[dst_re]), %%ymm1, %%ymm1")   /* ymm1 = r2  i2  r3  r3  r10 i10 r11 i11   */
-                __ASM_EMIT("vinsertf128     $1, 0x60(%[dst_im]), %%ymm4, %%ymm4")   /* ymm4 = r4  i4  r5  i5  r12 i12 r13 i13   */
-                __ASM_EMIT("vinsertf128     $1, 0x70(%[dst_im]), %%ymm5, %%ymm5")   /* ymm5 = r6  i6  r7  i7  r14 i14 r15 i15   */
+                __ASM_EMIT("vinsertf128     $1, 0x40(%[dst]), %%ymm0, %%ymm0")      /* ymm0 = r0  i0  r1  i1  r8  i8  r9  i9    */
+                __ASM_EMIT("vinsertf128     $1, 0x50(%[dst]), %%ymm1, %%ymm1")      /* ymm1 = r2  i2  r3  r3  r10 i10 r11 i11   */
+                __ASM_EMIT("vinsertf128     $1, 0x60(%[dst]), %%ymm4, %%ymm4")      /* ymm4 = r4  i4  r5  i5  r12 i12 r13 i13   */
+                __ASM_EMIT("vinsertf128     $1, 0x70(%[dst]), %%ymm5, %%ymm5")      /* ymm5 = r6  i6  r7  i7  r14 i14 r15 i15   */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm1, %%ymm0, %%ymm2")         /* ymm2 = i0  i1  i2  i3  i8  i9  i10 i11   */
                 __ASM_EMIT("vshufps         $0x88, %%ymm1, %%ymm0, %%ymm0")         /* ymm0 = r0  r1  r2  r3  r8  r9  r10 r11   */
                 __ASM_EMIT("vshufps         $0xdd, %%ymm5, %%ymm4, %%ymm6")         /* ymm4 = i4  i5  i6  i7  i12 i13 i14 i15   */
@@ -151,7 +150,7 @@ namespace avx
                 __ASM_EMIT("vmovups         %%xmm1, 0x30(%[dst])")
             __ASM_EMIT("4:")
 
-            : [dst_re] "+r" (dst), [items] "+r" (items)
+            : [dst] "+r" (dst), [items] "+r" (items)
             : [FFT_A] "o" (FFT_A)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
@@ -159,3 +158,11 @@ namespace avx
         );
     }
 }
+
+#undef FFT_PSCRAMBLE_SELF_DIRECT_NAME
+#undef FFT_PSCRAMBLE_SELF_REVERSE_NAME
+#undef FFT_PSCRAMBLE_COPY_DIRECT_NAME
+#undef FFT_PSCRAMBLE_COPY_REVERSE_NAME
+#undef FFT_TYPE
+#undef FFT_FMA
+
