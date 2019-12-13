@@ -95,47 +95,55 @@
             __ASM_EMIT(FMA_SEL(add_b "  %%ymm3, %%ymm4, %%ymm4", add_a " %%ymm6, %%ymm3, %%ymm4")) /* ymm4 = b_re = x_re * c_re +- x_im * c_im */ \
             __ASM_EMIT(FMA_SEL(add_a "  %%ymm2, %%ymm5, %%ymm5", add_a " %%ymm6, %%ymm2, %%ymm5")) /* ymm5 = b_re = x_re * c_im -+ x_im * c_re */ \
             /* 2nd-order 8x butterfly */ \
-            /* ymm0         = r0  r1  r2  r3  r8  r9  r10 r11 */ \
-            /* ymm1         = i0  i1  i2  i3  i8  i9  i10 i11 */ \
-            /* ymm4         = r4  r5  r6  r7  r12 r13 r14 r15 */ \
-            /* ymm5         = i4  i5  i6  i7  i12 i13 i14 i15 */ \
-            __ASM_EMIT("vshufps         $0xd8, %%ymm0, %%ymm0, %%ymm0")         /* ymm0 = r0  r2  r1  r3    */ \
-            __ASM_EMIT("vshufps         $0xd8, %%ymm1, %%ymm1, %%ymm1")         /* ymm1 = i0  i2  i1  i3    */ \
-            __ASM_EMIT("vshufps         $0xd8, %%ymm4, %%ymm4, %%ymm4")         /* ymm4 = r4  r6  r5  r7    */ \
-            __ASM_EMIT("vshufps         $0xd8, %%ymm5, %%ymm5, %%ymm5")         /* ymm5 = i4  i6  i5  i7    */ \
-            __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm2")                /* ymm2 = r0-r2 r1-r3 r4-r6 r5-r7 = r1' r3' r5' r7' */ \
-            __ASM_EMIT("vhsubps         %%ymm5, %%ymm1, %%ymm3")                /* ymm3 = i0-i2 i1-i3 i4-i6 i5-i7 = i1' i3' i5' i7' */ \
-            __ASM_EMIT("vhaddps         %%ymm4, %%ymm0, %%ymm0")                /* ymm0 = r0+r2 r1+r3 r4+r6 r5+r7 = r0' r2' r4' r6' */ \
-            __ASM_EMIT("vhaddps         %%ymm5, %%ymm1, %%ymm1")                /* ymm1 = i0+i2 i1+i3 i4+i6 i5+i7 = i0' i2' i4' i6' */ \
-            /* 1st-order 8x butterfly */ \
-            __ASM_EMIT("vblendps        $0xaa, %%ymm3, %%ymm2, %%ymm4")         /* ymm4 = r1' i3' r5' i7' */ \
-            __ASM_EMIT("vblendps        $0xaa, %%ymm2, %%ymm3, %%ymm5")         /* ymm5 = i1' r3' i5' r7' */ \
-            __ASM_EMIT("vhsubps         %%ymm1, %%ymm0, %%ymm2")                /* ymm2 = r0'-r2' r4'-r6' i0'-i2' i4'-i6' = r1" r5" i1" i5" */ \
-            __ASM_EMIT("vhsubps         %%ymm4, %%ymm5, %%ymm3")                /* ymm3 = r1'-i3' r5'-i7' i1'-r3' i5'-r7' = r3" r7" i2" i6" */ \
-            __ASM_EMIT("vhaddps         %%ymm1, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4" */ \
-            __ASM_EMIT("vhaddps         %%ymm4, %%ymm5, %%ymm5")                /* ymm5 = r1'+i3' r5'+i7' i1'+r3' i5'+r7' = r2" r6" i3" i7" */ \
-            __ASM_EMIT("vunpcklps       %%ymm2, %%ymm0, %%ymm1")                /* ymm1 =  \
-            __ASM_EMIT("") \
-            __ASM_EMIT("") \
+            /* s0" = (r0 + r2) + j*(i0 + i2) + (r1 + r3) + j*(i1 + i3) */ \
+            /* s1" = (r0 + r2) + j*(i0 + i2) - (r1 + r3) - j*(i1 + i3) */ \
+            /* s2" = (r0 - r2) + j*(i0 - i2) + (i1 - i3) - j*(r1 - r3) */ \
+            /* s3" = (r0 - r2) + j*(i0 - i2) - (i1 - i3) + j*(r1 - r3) */ \
+            /* ymm0         = r0  r1  r2  r3 ... */ \
+            /* ymm1         = i0  i1  i2  i3 ... */ \
+            /* ymm4         = r4  r5  r6  r7 ... */ \
+            /* ymm5         = i4  i5  i6  i7 ... */ \
+            __ASM_EMIT("vunpcklps       %%ymm1, %%ymm0, %%ymm2")                /* ymm2 = r0 i0 r1 i1 */ \
+            __ASM_EMIT("vunpckhps       %%ymm1, %%ymm0, %%ymm3")                /* ymm3 = r2 i2 r3 i3 */ \
+            __ASM_EMIT("vunpcklps       %%ymm4, %%ymm5, %%ymm0")                /* ymm0 = r4 i4 r5 i5 */ \
+            __ASM_EMIT("vunpckhps       %%ymm4, %%ymm5, %%ymm1")                /* ymm1 = r6 i6 r7 i7 */ \
+            __ASM_EMIT("vaddps          %%ymm3, %%ymm2, %%ymm4")                /* ymm4 = r0+r2 i0+i2 r1+r3 i1+i3 = r0' i0' r2' i2' */ \
+            __ASM_EMIT("vsubps          %%ymm3, %%ymm2, %%ymm5")                /* ymm5 = r0-r2 i0-i2 r1-r3 i1-i3 = r1' i1' r3' i3' */ \
+            __ASM_EMIT("vaddps          %%ymm1, %%ymm0, %%ymm2")                /* ymm2 = r4+r6 i4+i6 r5+r7 i5+i7 = r4' i4' r6' i6' */ \
+            __ASM_EMIT("vsubps          %%ymm1, %%ymm0, %%ymm3")                /* ymm3 = r4-r6 i4-i6 r5-r7 i5-i7 = r5' i5' r7' i7' */ \
+            __ASM_EMIT("vshufps         $0xd8, %%ymm4, %%ymm4, %%ymm4")         /* ymm4 = r0' r2' i0' i2' */ \
+            __ASM_EMIT("vshufps         $0x9c, %%ymm5, %%ymm5, %%ymm5")         /* ymm5 = r1' i3' i1' r3' */ \
+            __ASM_EMIT("vshufps         $0xd8, %%ymm2, %%ymm2, %%ymm2")         /* ymm2 = r4' r6' i4' i6' */ \
+            __ASM_EMIT("vshufps         $0x9c, %%ymm3, %%ymm3, %%ymm3")         /* ymm3 = r5' i7' i5' r7' */ \
+            __ASM_EMIT("vhaddps         %%ymm5, %%ymm4, %%ymm0")                /* ymm0 = r0'+r2' i0'+i2' r1'+i3' i1'+r3' = r0" i0" r2" i3" */ \
+            __ASM_EMIT("vhsubps         %%ymm5, %%ymm4, %%ymm1")                /* ymm1 = r0'-r2' i0'-i2' r1'-i3' i1'-r3' = r1" i1" r3" i2" */ \
+            __ASM_EMIT("vhaddps         %%ymm3, %%ymm2, %%ymm4")                /* ymm4 = r4'+r6' i4'+i6' r5'+i7' i5'+r7' = r4" i4" r6" i7" */ \
+            __ASM_EMIT("vhsubps         %%ymm3, %%ymm2, %%ymm5")                /* ymm5 = r4'-r6' i4'-i6' r5'-i7' i5'-r7' = r5" i5" r7" i6" */ \
+            __ASM_EMIT("vblendps        $0x88, %%ymm1, %%ymm0, %%ymm2")         /* ymm2 = r0" i0" r2" i2" */ \
+            __ASM_EMIT("vblendps        $0x88, %%ymm0, %%ymm1, %%ymm3")         /* ymm3 = r1" i1" r3" i3" */ \
+            __ASM_EMIT("vblendps        $0x88, %%ymm5, %%ymm4, %%ymm0")         /* ymm0 = r4" i4" r6" i6" */ \
+            __ASM_EMIT("vblendps        $0x88, %%ymm4, %%ymm5, %%ymm1")         /* ymm1 = r5" i5" r7" i7" */ \
 
-//            float r0k       = dst[0] + dst[2];
-//            float r2k       = dst[1] + dst[3];
-//            float i0k       = dst[4] + dst[6];
-//            float i2k       = dst[5] + dst[7];
-//            float r1k       = dst[0] - dst[2];
-//            float r3k       = dst[1] - dst[3];
-//            float i1k       = dst[4] - dst[6];
-//            float i3k       = dst[5] - dst[7];
+//                float r0'       = r0 + r2;
+//                float i0'       = i0 + i2;
+//                float r2'       = r1 + r3;
+//                float i2'       = i1 + i3;
+
+//                float r1'       = r0 - r2;
+//                float i1'       = i0 - i2;
+//                float r3'       = r1 - r3;
+//                float i3'       = i1 - i3;
 //
-//            dst[0]          = r0k + r2k;
-//            dst[1]          = r0k - r2k;
-//            dst[2]          = r1k + i3k;
-//            dst[3]          = r1k - i3k;
+//               r0"          = r0' + r2';
+//               r1"          = r0' - r2';
+//               r2"          = r1' + i3';
+//               r3"          = r1' - i3';
 //
-//            dst[4]          = i0k + i2k;
-//            dst[5]          = i0k - i2k;
-//            dst[6]          = i1k - r3k;
-//            dst[7]          = i1k + r3k;
+//               i0"          = i0' + i2';
+//               i1"          = i0' - i2';
+//               i2"          = i1' - r3';
+//               i3"          = i1' + r3';
+
 
             /* 1st-order 4x butterfly */ \
             __ASM_EMIT("vhsubps         %%ymm4, %%ymm0, %%ymm1")                /* ymm1 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7' */ \
