@@ -37,6 +37,7 @@
 
 #include <dsp/arch/x86/avx/fft.h>
 #include <dsp/arch/x86/avx/pfft.h>
+#include <dsp/arch/x86/avx/fastconv.h>
 
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
@@ -223,6 +224,8 @@ namespace avx
 
         CEXPORT1(favx, packed_direct_fft);
         CEXPORT1(favx, packed_reverse_fft);
+
+        CEXPORT1(favx, fastconv_parse);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)

@@ -10,7 +10,7 @@
 #include <test/FloatBuffer.h>
 #include <core/debug.h>
 
-#define RANK        5
+#define RANK        4
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -177,7 +177,7 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
         dst[6]      = 0.0f;
         dst[7]      = 0.0f;
     }
-
+#if 0
     // Iterate butterflies
     for (; n > 4; n >>= 1, bs >>= 1)
     {
@@ -306,6 +306,7 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
 
     // Now all complex numbers are stored in the following rormat:
     // [r0 r1 r2 r3 i0 i1 i2 i3  r4 r5 r6 r7 i4 i5 i6 i7  ... ]
+#endif
 }
 
 static void fastconv_restore(float *dst, float *tmp, size_t rank)
@@ -562,6 +563,14 @@ IF_ARCH_X86(
         void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
         void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
     }
+
+    namespace avx
+    {
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+        void fastconv_restore(float *dst, float *tmp, size_t rank);
+        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    }
 )
 
 IF_ARCH_ARM(
@@ -591,7 +600,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         samp2.copy(samp1);
 
         // Test parse
-        printf("Testing fastconv_parse...\n");
+        printf("Testing native fastconv_parse...\n");
         samp1.dump("samp1");
         fastconv_parse(conv1, samp1, RANK);
         conv1.dump("conv1");
@@ -600,12 +609,31 @@ MTEST_BEGIN("dsp.fft", fastconv)
         MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
 
         samp2.dump("samp2");
-        IF_ARCH_X86(sse::fastconv_parse(conv2, samp2, RANK));
-        IF_ARCH_ARM(neon_d32::fastconv_parse(conv2, samp2, RANK));
-        conv2.dump("conv2");
-
-        MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
-        MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
+        IF_ARCH_X86(
+            if (false) // (TEST_SUPPORTED(sse::fastconv_parse))
+            {
+                sse::fastconv_parse(conv2, samp2, RANK);
+                conv2.dump("conv2");
+                MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
+                MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
+            }
+            if (TEST_SUPPORTED(avx::fastconv_parse))
+            {
+                avx::fastconv_parse(conv2, samp2, RANK);
+                conv2.dump("conv2");
+                MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
+                MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
+            }
+        );
+        IF_ARCH_ARM(
+            if (TEST_SUPPORTED(neon_d32::fastconv_parse))
+            {
+                neon_d32::fastconv_parse(conv2, samp2, RANK)
+                conv2.dump("conv2");
+                MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
+                MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
+            }
+        );
 
         // Test restore
         printf("\nTesting fastconv_restore...\n");
