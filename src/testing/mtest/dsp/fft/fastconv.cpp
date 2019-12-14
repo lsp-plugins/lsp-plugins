@@ -10,7 +10,7 @@
 #include <test/FloatBuffer.h>
 #include <core/debug.h>
 
-#define RANK        4
+#define RANK        3
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =

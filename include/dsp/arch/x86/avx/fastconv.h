@@ -41,6 +41,7 @@ namespace avx
             ak         -= 16;
             wk         -= 16;
         }*/
+        fastconv_direct_butterfly_last(dst, np);
     }
 
     void fastconv_restore(float *dst, float *tmp, size_t rank)
