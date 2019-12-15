@@ -10,7 +10,7 @@
 #include <test/FloatBuffer.h>
 #include <core/debug.h>
 
-#define RANK        3
+#define RANK        6
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -177,7 +177,7 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
         dst[6]      = 0.0f;
         dst[7]      = 0.0f;
     }
-#if 0
+
     // Iterate butterflies
     for (; n > 4; n >>= 1, bs >>= 1)
     {
@@ -291,6 +291,16 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
         float i2k       = dst[5] + dst[7];
         float i3k       = dst[5] - dst[7];
 
+//        dst[0]          = r0k;
+//        dst[1]          = r2k;
+//        dst[2]          = r1k;
+//        dst[3]          = i3k;
+//
+//        dst[4]          = i0k;
+//        dst[5]          = i2k;
+//        dst[6]          = i1k;
+//        dst[7]          = r3k;
+
         dst[0]          = r0k + r2k;
         dst[1]          = r0k - r2k;
         dst[2]          = r1k + i3k;
@@ -306,7 +316,6 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
 
     // Now all complex numbers are stored in the following rormat:
     // [r0 r1 r2 r3 i0 i1 i2 i3  r4 r5 r6 r7 i4 i5 i6 i7  ... ]
-#endif
 }
 
 static void fastconv_restore(float *dst, float *tmp, size_t rank)
@@ -595,8 +604,8 @@ MTEST_BEGIN("dsp.fft", fastconv)
         FloatBuffer rest2(BUF_SIZE, 64);
 
         // Prepare data
-        for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
-            samp1[i]          = i;
+//        for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
+//            samp1[i]          = i;
         samp2.copy(samp1);
 
         // Test parse

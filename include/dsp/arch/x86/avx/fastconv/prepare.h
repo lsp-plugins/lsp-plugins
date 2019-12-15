@@ -20,6 +20,9 @@
             __ASM_EMIT("vmovups             0x20(%[wk]), %%ymm5")               /* ymm5 = w_im */ \
             __ASM_EMIT("vxorps              %%ymm1, %%ymm1, %%ymm1")            /* ymm1 = a_im = 0 */ \
             /* x8 blocks */ \
+            __ASM_EMIT32("subl              $8, %[np]") \
+            __ASM_EMIT64("sub               $8, %[np]") \
+            __ASM_EMIT64("jb                2f") \
             __ASM_EMIT("1:") \
             __ASM_EMIT("vmovups             0x00(%[src]), %%ymm0")              /* ymm0 = a_re = re */ \
             __ASM_EMIT("vmulps              %%ymm0, %%ymm7, %%ymm3")            /* ymm3 = x_im * re */ \
@@ -33,8 +36,10 @@
             __ASM_EMIT("add                 $0x40, %[dst]") \
             __ASM_EMIT32("subl              $8, %[np]") \
             __ASM_EMIT64("sub               $8, %[np]") \
-            __ASM_EMIT("jbe                 2f") \
+            __ASM_EMIT("jb                  2f") \
             /* Rotate angle */ \
+            __ASM_EMIT("vmulps              %%ymm5, %%ymm6, %%ymm2")            /* ymm2 = w_im * x_re */ \
+            __ASM_EMIT("vmulps              %%ymm5, %%ymm7, %%ymm3")            /* ymm3 = w_im * x_im */ \
             __ASM_EMIT(FMA_SEL("vmulps      %%ymm4, %%ymm6, %%ymm6", ""))       /* ymm6 = w_re * x_re */ \
             __ASM_EMIT(FMA_SEL("vmulps      %%ymm4, %%ymm7, %%ymm7", ""))       /* ymm7 = w_re * x_im */ \
             __ASM_EMIT(FMA_SEL("vsubps      %%ymm3, %%ymm6, %%ymm6", "vfmsub132ps %%ymm4, %%ymm3, %%ymm6")) /* ymm6 = x_re' = w_re * x_re - w_im * x_im */ \
@@ -66,25 +71,10 @@ namespace avx
     static inline void fastconv_unpack(float *dst, const float *src, size_t np)
     {
         ARCH_X86_ASM(
-            __ASM_EMIT("vxorps          %%ymm1, %%ymm1, %%ymm1")
-            // rank 4 unpack (8 real numbers + 8 zeros)
-            __ASM_EMIT("cmp             $8, %[np]")
-            __ASM_EMIT("jb              2f")
-            __ASM_EMIT("vmovups         (%[src]), %%ymm0")
-            __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])")
-            __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst])")
-            __ASM_EMIT("vmovups         %%ymm1, 0x40(%[dst])")
-            __ASM_EMIT("vmovups         %%ymm1, 0x60(%[dst])")
-            __ASM_EMIT("jmp             4f")
-            // rank 3 unpack (4 real numbers + 4 zeros)
-            __ASM_EMIT("2:")
-            __ASM_EMIT("cmp             $4, %[np]")
-            __ASM_EMIT("jb              4f")
             __ASM_EMIT("vmovups         (%[src]), %%xmm0")
+            __ASM_EMIT("vxorps          %%ymm1, %%ymm1, %%ymm1")
             __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])")
             __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst])")
-            // End
-            __ASM_EMIT("4:")
             :
             : [dst] "r" (dst), [src] "r" (src), [np] "r" (np)
             : "%xmm0", "%xmm1"

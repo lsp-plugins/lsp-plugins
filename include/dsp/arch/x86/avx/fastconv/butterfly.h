@@ -9,6 +9,8 @@
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
+#define __SKIP(x)
+
 // c    = a - b
 // a'   = a + b
 // b'   = c * w
@@ -27,14 +29,14 @@
             __ASM_EMIT("vmovups         0x00(%[dst], %[off2]), %%ymm2")     /* ymm2 = b_re */ \
             __ASM_EMIT("vmovups         0x20(%[dst], %[off2]), %%ymm3")     /* ymm3 = b_im */ \
             /* Perform butterfly */ \
-            __ASM_EMIT("vsubps          %%ymm2, %%ymm0, %%ymm4")            /* ymm4 = c_re  = a_re - b_re */ \
-            __ASM_EMIT("vsubps          %%ymm3, %%ymm1, %%ymm5")            /* ymm5 = c_im  = a_im - b_im */ \
-            __ASM_EMIT("vaddps          %%ymm2, %%ymm0, %%ymm0")            /* ymm0 = a_re' = a_re - b_re */ \
-            __ASM_EMIT("vaddps          %%ymm3, %%ymm1, %%ymm1")            /* ymm1 = a_im' = a_im - b_im */ \
-            __ASM_EMIT("vmulps          %%ymm7, %%ymm4, %%ymm2")            /* ymm2 = x_im * c_re */ \
-            __ASM_EMIT("vmulps          %%ymm7, %%ymm5, %%ymm3")            /* ymm3 = x_im * c_im */ \
-            __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm4, %%ymm4", ""))       /* ymm4 = x_re * c_re */ \
-            __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm5, %%ymm5", ""))       /* ymm5 = x_re * c_im */ \
+            __ASM_EMIT("vsubps          %%ymm2, %%ymm0, %%ymm4")                /* ymm4 = c_re  = a_re - b_re */ \
+            __ASM_EMIT("vsubps          %%ymm3, %%ymm1, %%ymm5")                /* ymm5 = c_im  = a_im - b_im */ \
+            __ASM_EMIT("vaddps          %%ymm2, %%ymm0, %%ymm0")                /* ymm0 = a_re' = a_re + b_re */ \
+            __ASM_EMIT("vaddps          %%ymm3, %%ymm1, %%ymm1")                /* ymm1 = a_im' = a_im + b_im */ \
+            __ASM_EMIT("vmulps          %%ymm7, %%ymm4, %%ymm2")                /* ymm2 = x_im * c_re */ \
+            __ASM_EMIT("vmulps          %%ymm7, %%ymm5, %%ymm3")                /* ymm3 = x_im * c_im */ \
+            __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm4, %%ymm4", ""))           /* ymm4 = x_re * c_re */ \
+            __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm5, %%ymm5", ""))           /* ymm5 = x_re * c_im */ \
             __ASM_EMIT(FMA_SEL(add_re "  %%ymm3, %%ymm4, %%ymm4", add_re " %%ymm6, %%ymm3, %%ymm4")) /* ymm4 = b_re = x_re * c_re +- x_im * c_im */ \
             __ASM_EMIT(FMA_SEL(add_im "  %%ymm2, %%ymm5, %%ymm5", add_im " %%ymm6, %%ymm2, %%ymm5")) /* ymm5 = b_im = x_re * c_im -+ x_im * c_re */ \
             /* Store values */ \
@@ -73,7 +75,7 @@
         /* Loop 2x 4-element butterflies */ \
         __ASM_EMIT("vmovaps         0x00 + %[FFT_A], %%ymm6")       /* ymm6 = x_re */ \
         __ASM_EMIT("vmovaps         0x20 + %[FFT_A], %%ymm7")       /* ymm7 = x_im */ \
-        __ASM_EMIT("sub             $8, %[items]") \
+        __ASM_EMIT("sub             $2, %[nb]") \
         __ASM_EMIT("jb              2f") \
         __ASM_EMIT("1:") \
             /* Load data to registers */ \
@@ -88,8 +90,8 @@
             /* Perform 3rd-order butterflies */ \
             __ASM_EMIT("vsubps          %%ymm2, %%ymm0, %%ymm4")                /* ymm4 = c_re  = a_re - b_re */ \
             __ASM_EMIT("vsubps          %%ymm3, %%ymm1, %%ymm5")                /* ymm5 = c_im  = a_im - b_im */ \
-            __ASM_EMIT("vaddps          %%ymm2, %%ymm0, %%ymm0")                /* ymm0 = a_re' = a_re - b_re */ \
-            __ASM_EMIT("vaddps          %%ymm3, %%ymm1, %%ymm1")                /* ymm1 = a_im' = a_im - b_im */ \
+            __ASM_EMIT("vaddps          %%ymm2, %%ymm0, %%ymm0")                /* ymm0 = a_re' = a_re + b_re */ \
+            __ASM_EMIT("vaddps          %%ymm3, %%ymm1, %%ymm1")                /* ymm1 = a_im' = a_im + b_im */ \
             __ASM_EMIT("vmulps          %%ymm7, %%ymm4, %%ymm2")                /* ymm2 = x_im * c_re */ \
             __ASM_EMIT("vmulps          %%ymm7, %%ymm5, %%ymm3")                /* ymm3 = x_im * c_im */ \
             __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm4, %%ymm4", ""))           /* ymm4 = x_re * c_re */ \
@@ -114,10 +116,10 @@
             __ASM_EMIT("vhaddps         %%ymm1, %%ymm0, %%ymm0")                /* ymm0 = r0+r2 r1+r3 i0+i2 i1+i3 = r0' r2' i0' i2' */ \
             __ASM_EMIT("vhaddps         %%ymm5, %%ymm4, %%ymm4") \
             /* 1st-order 8x butterfly */ \
-            __ASM_EMIT("vshufps         $0xc4, %%ymm2, %%ymm0, %%ymm1")         /* ymm1 = r0' r2' r1' i3' */ \
-            __ASM_EMIT("vshufps         $0xc4, %%ymm3, %%ymm4, %%ymm5") \
-            __ASM_EMIT("vshufps         $0x6e, %%ymm2, %%ymm0, %%ymm0")         /* ymm0 = i0' i2' i1' r3' */ \
-            __ASM_EMIT("vshufps         $0x6e, %%ymm3, %%ymm4, %%ymm4") \
+            __ASM_EMIT("vshufps         $0x6e, %%ymm2, %%ymm0, %%ymm1")         /* ymm0 = i0' i2' i1' r3' */ \
+            __ASM_EMIT("vshufps         $0x6e, %%ymm3, %%ymm4, %%ymm5") \
+            __ASM_EMIT("vshufps         $0xc4, %%ymm2, %%ymm0, %%ymm0")         /* ymm1 = r0' r2' r1' i3' */ \
+            __ASM_EMIT("vshufps         $0xc4, %%ymm3, %%ymm4, %%ymm4") \
             __ASM_EMIT("vhsubps         %%ymm1, %%ymm0, %%ymm2")                /* ymm2 = r0'-r2' r1'-i3' i0'-i2' i1'-r3' = r1" r3" i1" i2" */ \
             __ASM_EMIT("vhsubps         %%ymm5, %%ymm4, %%ymm3") \
             __ASM_EMIT("vhaddps         %%ymm1, %%ymm0, %%ymm0")                /* ymm0 = r0'+r2' r1'+i3' i0'+i2' i1'+r3' = r0" r2" i0" i3" */ \
@@ -141,11 +143,11 @@
             __ASM_EMIT("vextractf128    $1, %%ymm1, 0x70(%[dst])") \
             /* Move pointers and repeat*/ \
             __ASM_EMIT("add             $0x80, %[dst]") \
-            __ASM_EMIT("sub             $2, %[items]") \
+            __ASM_EMIT("sub             $2, %[nb]") \
             __ASM_EMIT("jae             1b") \
         __ASM_EMIT("2:") \
         /* 1x 4-element butterflies */ \
-        __ASM_EMIT("add             $4, %[items]") \
+        __ASM_EMIT("add             $1, %[nb]") \
         __ASM_EMIT("jl              4f") \
             __ASM_EMIT("vmovups         0x00(%[dst]), %%xmm0")                  /* xmm0 = r0  r1  r2  r3 */ \
             __ASM_EMIT("vmovups         0x10(%[dst]), %%xmm2")                  /* xmm2 = r4  r5  r6  r7 */ \
@@ -154,8 +156,8 @@
             /* Perform 3rd-order 8x butterfly */ \
             __ASM_EMIT("vsubps          %%xmm2, %%xmm0, %%xmm4")                /* xmm4 = c_re  = a_re - b_re */ \
             __ASM_EMIT("vsubps          %%xmm3, %%xmm1, %%xmm5")                /* xmm5 = c_im  = a_im - b_im */ \
-            __ASM_EMIT("vaddps          %%xmm2, %%xmm0, %%xmm0")                /* xmm0 = a_re' = a_re - b_re */ \
-            __ASM_EMIT("vaddps          %%xmm3, %%xmm1, %%xmm1")                /* xmm1 = a_im' = a_im - b_im */ \
+            __ASM_EMIT("vaddps          %%xmm2, %%xmm0, %%xmm0")                /* xmm0 = a_re' = a_re + b_re */ \
+            __ASM_EMIT("vaddps          %%xmm3, %%xmm1, %%xmm1")                /* xmm1 = a_im' = a_im + b_im */ \
             __ASM_EMIT("vmulps          %%xmm7, %%xmm4, %%xmm2")                /* xmm2 = x_im * c_re */ \
             __ASM_EMIT("vmulps          %%xmm7, %%xmm5, %%xmm3")                /* xmm3 = x_im * c_im */ \
             __ASM_EMIT(FMA_SEL("vmulps  %%xmm6, %%xmm4, %%xmm4", ""))           /* xmm4 = x_re * c_re */ \
@@ -180,10 +182,14 @@
             __ASM_EMIT("vhaddps         %%xmm1, %%xmm0, %%xmm0")                /* xmm0 = r0+r2 r1+r3 i0+i2 i1+i3 = r0' r2' i0' i2' */ \
             __ASM_EMIT("vhaddps         %%xmm5, %%xmm4, %%xmm4") \
             /* 1st-order butterflies */ \
-            __ASM_EMIT("vshufps         $0xc4, %%xmm2, %%xmm0, %%xmm1")         /* xmm1 = r0' r2' r1' i3' */ \
-            __ASM_EMIT("vshufps         $0xc4, %%xmm3, %%xmm4, %%xmm5") \
-            __ASM_EMIT("vshufps         $0x6e, %%xmm2, %%xmm0, %%xmm0")         /* xmm0 = i0' i2' i1' r3' */ \
-            __ASM_EMIT("vshufps         $0x6e, %%xmm3, %%xmm4, %%xmm4") \
+            __ASM_EMIT("vshufps         $0x6e, %%xmm2, %%xmm0, %%xmm1")         /* xmm0 = i0' i2' i1' r3' */ \
+            __ASM_EMIT("vshufps         $0x6e, %%xmm3, %%xmm4, %%xmm5") \
+            __ASM_EMIT("vshufps         $0xc4, %%xmm2, %%xmm0, %%xmm0")         /* xmm1 = r0' r2' r1' i3' */ \
+            __ASM_EMIT("vshufps         $0xc4, %%xmm3, %%xmm4, %%xmm4") \
+            __ASM_EMIT("vmovups         %%xmm0, 0x00(%[dst])") \
+            __ASM_EMIT("vmovups         %%xmm1, 0x10(%[dst])") \
+            __ASM_EMIT("vmovups         %%xmm4, 0x20(%[dst])") \
+            __ASM_EMIT("vmovups         %%xmm5, 0x30(%[dst])") \
             __ASM_EMIT("vhsubps         %%xmm1, %%xmm0, %%xmm2")                /* xmm2 = r0'-r2' r1'-i3' i0'-i2' i1'-r3' = r1" r3" i1" i2" */ \
             __ASM_EMIT("vhsubps         %%xmm5, %%xmm4, %%xmm3") \
             __ASM_EMIT("vhaddps         %%xmm1, %%xmm0, %%xmm0")                /* xmm0 = r0'+r2' r1'+i3' i0'+i2' i1'+r3' = r0" r2" i0" i3" */ \
@@ -192,8 +198,8 @@
             __ASM_EMIT("vblendps        $0x88, %%xmm4, %%xmm3, %%xmm5") \
             __ASM_EMIT("vblendps        $0x88, %%xmm2, %%xmm0, %%xmm0")         /* xmm0 = r0" r2" i0" i2" */ \
             __ASM_EMIT("vblendps        $0x88, %%xmm3, %%xmm4, %%xmm4") \
-            __ASM_EMIT("vunpckhps       %%xmm1, %%xmm0, %%xmm3")                /* xmm3 = r0" r1" r2" r3" */ \
-            __ASM_EMIT("vunpcklps       %%xmm1, %%xmm0, %%xmm2")                /* xmm2 = i0" i1" i2" i3" */ \
+            __ASM_EMIT("vunpckhps       %%xmm1, %%xmm0, %%xmm3")                /* xmm3 = i0" i1" i2" i3" */ \
+            __ASM_EMIT("vunpcklps       %%xmm1, %%xmm0, %%xmm2")                /* xmm2 = r0" r1" r2" r3" */ \
             __ASM_EMIT("vunpckhps       %%xmm5, %%xmm4, %%xmm1") \
             __ASM_EMIT("vunpcklps       %%xmm5, %%xmm4, %%xmm0") \
             /* Store */ \
@@ -203,7 +209,7 @@
             __ASM_EMIT("vmovups         %%xmm1, 0x30(%[dst])") \
         __ASM_EMIT("4:") \
         \
-        : [dst] "+r" (dst), [items] "+r" (items) \
+        : [dst] "+r" (dst), [nb] "+r" (nb) \
         : [FFT_A] "o" (FFT_A) \
         : "cc", "memory", \
           "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
@@ -215,12 +221,14 @@ namespace avx
 #define FMA_OFF(a, b)       a
 #define FMA_ON(a, b)        b
 
-    static inline void fastconv_direct_butterfly(float *dst, const float *ak, const float *wk, size_t pairs, size_t blocks)
+    static inline void fastconv_direct_butterfly(float *dst, const float *ak, const float *wk, size_t pairs, size_t nb)
     {
         size_t off1, off2, np;
-        for (size_t i=0; i<blocks; ++i)
+        off1        = 0;
+        size_t step = pairs << 3;
+        for (size_t i=0; i<nb; ++i)
         {
-            off2        = off1 + (blocks << 2);
+            off2        = off1 + step;
             np          = pairs;
 
             FASTCONV_DIRECT_BUTTERFLY_BODY8("vaddps", "vsubps", FMA_OFF);
@@ -229,17 +237,19 @@ namespace avx
         }
     }
 
-    static inline void fastconv_direct_butterfly_last(float *dst, size_t items)
+    static inline void fastconv_direct_butterfly_last(float *dst, size_t nb)
     {
         FASTCONV_DIRECT_BUTTERFLY_LAST("vaddps", "vsubps", FMA_OFF);
     }
 
-    static inline void fastconv_direct_butterfly_fma3(float *dst, const float *ak, const float *wk, size_t pairs, size_t blocks)
+    static inline void fastconv_direct_butterfly_fma3(float *dst, const float *ak, const float *wk, size_t pairs, size_t nb)
     {
         size_t off1, off2, np;
-        for (size_t i=0; i<blocks; ++i)
+        off1        = 0;
+        size_t step = pairs << 3;
+        for (size_t i=0; i<nb; ++i)
         {
-            off2        = off1 + (blocks << 2);
+            off2        = off1 + step;
             np          = pairs;
 
             FASTCONV_DIRECT_BUTTERFLY_BODY8("vfmadd132ps", "vfmsub132ps", FMA_ON);
@@ -248,7 +258,7 @@ namespace avx
         }
     }
 
-    static inline void fastconv_direct_butterfly_last_fma3(float *dst, size_t items)
+    static inline void fastconv_direct_butterfly_last_fma3(float *dst, size_t nb)
     {
         FASTCONV_DIRECT_BUTTERFLY_LAST("vfmadd132ps", "vfmsub132ps", FMA_ON);
     }

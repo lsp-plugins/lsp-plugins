@@ -19,12 +19,12 @@ namespace avx
 {
     void fastconv_parse(float *dst, const float *src, size_t rank)
     {
-        const float *ak = &FFT_A[(rank - 2) << 4];
-        const float *wk = &FFT_DW[(rank - 2) << 4];
+        const float *ak = &FFT_A[(rank - 3) << 4];
+        const float *wk = &FFT_DW[(rank - 3) << 4];
         size_t np       = 1 << (rank - 1);
         size_t nb       = 1;
 
-        if (np > 8)
+        if (np > 4)
         {
             fastconv_prepare(dst, src, ak, wk, np);
             ak         -= 16;
@@ -34,14 +34,17 @@ namespace avx
         }
         else
             fastconv_unpack(dst, src, np);
-/*
-        for (; np > 8; np >>= 1, nb <<= 1)
+
+        while (np > 4)
         {
             fastconv_direct_butterfly(dst, ak, wk, np, nb);
             ak         -= 16;
             wk         -= 16;
-        }*/
-        fastconv_direct_butterfly_last(dst, np);
+            np        >>= 1;
+            nb        <<= 1;
+        }
+
+        fastconv_direct_butterfly_last(dst, nb);
     }
 
     void fastconv_restore(float *dst, float *tmp, size_t rank)
