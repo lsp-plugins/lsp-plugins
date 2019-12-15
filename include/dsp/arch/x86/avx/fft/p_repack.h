@@ -46,7 +46,7 @@ namespace avx
             __ASM_EMIT("jae             1b")
             __ASM_EMIT("2:")
             // 8x block
-            __ASM_EMIT("add             $9, %[blocks]")
+            __ASM_EMIT("add             $8, %[blocks]")
             __ASM_EMIT("jl              4f")
             __ASM_EMIT("vmovups         0x00(%[dst]), %%ymm0")      /* ymm0 = r0  r1  r2  r3  r4  r5  r6  r7  */
             __ASM_EMIT("vmovups         0x20(%[dst]), %%ymm1")      /* ymm1 = i0  i1  i2  i3  i4  i5  i6  i7  */
@@ -80,18 +80,14 @@ namespace avx
             __ASM_EMIT("sub             $16, %[blocks]")
             __ASM_EMIT("jb              2f")
             __ASM_EMIT("1:")
-            __ASM_EMIT("vmovups         0x00(%[dst]), %%ymm0")      /* ymm0 = r0  r1  r2  r3  r4  r5  r6  r7  */
-            __ASM_EMIT("vmovups         0x20(%[dst]), %%ymm1")      /* ymm1 = i0  i1  i2  i3  i4  i5  i6  i7  */
-            __ASM_EMIT("vmovups         0x40(%[dst]), %%ymm2")      /* ymm2 = r8  r9  r10 r11 r12 r13 r14 r15 */
-            __ASM_EMIT("vmovups         0x60(%[dst]), %%ymm3")      /* ymm3 = i8  i9  i10 i11 i12 i13 i14 i15 */
-            __ASM_EMIT("vmulps          %%ymm6, %%ymm0, %%ymm0")
-            __ASM_EMIT("vmulps          %%ymm7, %%ymm1, %%ymm1")
-            __ASM_EMIT("vmulps          %%ymm6, %%ymm2, %%ymm2")
-            __ASM_EMIT("vmulps          %%ymm7, %%ymm3, %%ymm3")
-            __ASM_EMIT("vunpcklps       %%ymm1, %%ymm0, %%ymm4")    /* ymm4 = r0  i0  r1  i1  r4  i4  r5  i5  */
-            __ASM_EMIT("vunpckhps       %%ymm1, %%ymm0, %%ymm5")    /* ymm5 = r2  i2  r3  i3  r6  i6  r7  i7  */
-            __ASM_EMIT("vunpcklps       %%ymm3, %%ymm2, %%ymm0")    /* ymm0 = r8  i8  r9  i9  r12 i12 r13 i13 */
-            __ASM_EMIT("vunpckhps       %%ymm3, %%ymm2, %%ymm1")    /* ymm1 = r10 i10 r12 i12 r14 i14 r15 i15 */
+            __ASM_EMIT("vmulps          0x00(%[dst]), %%ymm6, %%ymm0")  /* ymm0 = r0  r1  r2  r3  r4  r5  r6  r7  */
+            __ASM_EMIT("vmulps          0x20(%[dst]), %%ymm7, %%ymm1")  /* ymm1 = i0  i1  i2  i3  i4  i5  i6  i7  */
+            __ASM_EMIT("vmulps          0x40(%[dst]), %%ymm6, %%ymm2")  /* ymm2 = r8  r9  r10 r11 r12 r13 r14 r15 */
+            __ASM_EMIT("vmulps          0x60(%[dst]), %%ymm7, %%ymm3")  /* ymm3 = i8  i9  i10 i11 i12 i13 i14 i15 */
+            __ASM_EMIT("vunpcklps       %%ymm1, %%ymm0, %%ymm4")        /* ymm4 = r0  i0  r1  i1  r4  i4  r5  i5  */
+            __ASM_EMIT("vunpckhps       %%ymm1, %%ymm0, %%ymm5")        /* ymm5 = r2  i2  r3  i3  r6  i6  r7  i7  */
+            __ASM_EMIT("vunpcklps       %%ymm3, %%ymm2, %%ymm0")        /* ymm0 = r8  i8  r9  i9  r12 i12 r13 i13 */
+            __ASM_EMIT("vunpckhps       %%ymm3, %%ymm2, %%ymm1")        /* ymm1 = r10 i10 r12 i12 r14 i14 r15 i15 */
             __ASM_EMIT("vmovups         %%xmm4, 0x00(%[dst])")
             __ASM_EMIT("vmovups         %%xmm5, 0x10(%[dst])")
             __ASM_EMIT("vextractf128    $1, %%ymm4, 0x20(%[dst])")
@@ -105,14 +101,12 @@ namespace avx
             __ASM_EMIT("jae             1b")
             __ASM_EMIT("2:")
             // 8x block
-            __ASM_EMIT("add             $9, %[blocks]")
+            __ASM_EMIT("add             $8, %[blocks]")
             __ASM_EMIT("jl              4f")
-            __ASM_EMIT("vmovups         0x00(%[dst]), %%ymm0")      /* ymm0 = r0  r1  r2  r3  r4  r5  r6  r7  */
-            __ASM_EMIT("vmovups         0x20(%[dst]), %%ymm1")      /* ymm1 = i0  i1  i2  i3  i4  i5  i6  i7  */
-            __ASM_EMIT("vmulps          %%ymm6, %%ymm0, %%ymm0")
-            __ASM_EMIT("vmulps          %%ymm7, %%ymm1, %%ymm1")
-            __ASM_EMIT("vunpcklps       %%ymm1, %%ymm0, %%ymm4")    /* ymm4 = r0  i0  r1  i1  r4  i4  r5  i5  */
-            __ASM_EMIT("vunpckhps       %%ymm1, %%ymm0, %%ymm5")    /* ymm5 = r2  i2  r3  i3  r6  i6  r7  i7  */
+            __ASM_EMIT("vmulps          0x00(%[dst]), %%ymm6, %%ymm0")  /* ymm0 = r0  r1  r2  r3  r4  r5  r6  r7  */
+            __ASM_EMIT("vmulps          0x20(%[dst]), %%ymm7, %%ymm1")  /* ymm1 = i0  i1  i2  i3  i4  i5  i6  i7  */
+            __ASM_EMIT("vunpcklps       %%ymm1, %%ymm0, %%ymm4")        /* ymm4 = r0  i0  r1  i1  r4  i4  r5  i5  */
+            __ASM_EMIT("vunpckhps       %%ymm1, %%ymm0, %%ymm5")        /* ymm5 = r2  i2  r3  i3  r6  i6  r7  i7  */
             __ASM_EMIT("vmovups         %%xmm4, 0x00(%[dst])")
             __ASM_EMIT("vmovups         %%xmm5, 0x10(%[dst])")
             __ASM_EMIT("vextractf128    $1, %%ymm4, 0x20(%[dst])")
