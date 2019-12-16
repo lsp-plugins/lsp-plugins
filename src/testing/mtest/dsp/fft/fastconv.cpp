@@ -10,7 +10,7 @@
 #include <test/FloatBuffer.h>
 #include <core/debug.h>
 
-#define RANK        3
+#define RANK        6
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -595,6 +595,7 @@ IF_ARCH_ARM(
 typedef void (* fastconv_parse_t)(float *dst, const float *src, size_t rank);
 typedef void (* fastconv_restore_t)(float *dst, float *tmp, size_t rank);
 typedef void (* fastconv_apply_t)(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+typedef void (* fastconv_parse_apply_t)(float *dst, float *tmp, const float *c, const float *src, size_t rank);
 
 MTEST_BEGIN("dsp.fft", fastconv)
 
@@ -663,12 +664,45 @@ MTEST_BEGIN("dsp.fft", fastconv)
         conv2.dump("conv2");
 
         apply(rest, temp, conv1, conv2, RANK);
+        temp.dump ("temp ");
         rest.dump ("rest ");
 
         MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
         MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
         MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
         MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
+        MTEST_ASSERT_MSG(rest.valid(), "rest corrupted");
+        MTEST_ASSERT_MSG(temp.valid(), "temp corrupted");
+    }
+
+    void test_fastconv_parse_apply(const char *text,
+            fastconv_parse_t parse, fastconv_parse_apply_t papply,
+            FloatBuffer &src1, FloatBuffer &src2, FloatBuffer &dst)
+    {
+        printf("testing %s fastconv_parse + fastconv_parse_apply...\n", text);
+        FloatBuffer samp1(BUF_SIZE >> 1, 64);
+        FloatBuffer samp2(BUF_SIZE >> 1, 64);
+        FloatBuffer conv (BUF_SIZE << 1, 64);
+        FloatBuffer rest(BUF_SIZE, 64);
+        FloatBuffer temp(BUF_SIZE << 1, 64);
+
+        samp1.copy(src1);
+        samp2.copy(src2);
+        rest.copy(dst);
+        samp1.dump("samp1");
+        samp2.dump("samp2");
+        rest.dump ("dest ");
+
+        parse(conv, samp1, RANK);
+        conv.dump("conv ");
+
+        papply(rest, temp, conv, samp2, RANK);
+        temp.dump ("temp ");
+        rest.dump ("rest ");
+
+        MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
+        MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
+        MTEST_ASSERT_MSG(conv.valid(), "conv corrupted");
         MTEST_ASSERT_MSG(rest.valid(), "rest corrupted");
         MTEST_ASSERT_MSG(temp.valid(), "temp corrupted");
     }
@@ -725,7 +759,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
                 test_fatconv_restore("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_restore, src1, dst);
         );
 
-        // Test parse/apply
+        // Test parse + apply
         printf("\n");
         test_fatconv_apply("native", native::fastconv_parse, native::fastconv_apply, src1, src2, dst);
 
@@ -740,41 +774,21 @@ MTEST_BEGIN("dsp.fft", fastconv)
                 test_fatconv_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_apply, src1, src2, dst);
         );
 
-        // Test parse+apply
-        for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
-        {
-            samp1[i]        = i;
-            samp2[i]        = 0.1 * i;
-        }
+        // Test parse + parse_apply
+        printf("\n");
+        test_fastconv_parse_apply("native", native::fastconv_parse, native::fastconv_parse_apply, src1, src2, dst);
 
-        printf("\nTesting fastconv_parse_apply...\n");
-        native::fastconv_parse(conv1, samp1, RANK);
-        MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
-        MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
+        IF_ARCH_X86(
+            if (TEST_SUPPORTED(sse::fastconv_parse) && TEST_SUPPORTED(sse::fastconv_parse_apply))
+                test_fastconv_parse_apply("SSE", sse::fastconv_parse, sse::fastconv_parse_apply, src1, src2, dst);
+            if (TEST_SUPPORTED(avx::fastconv_parse) && TEST_SUPPORTED(avx::fastconv_parse_apply))
+                test_fastconv_parse_apply("AVX", avx::fastconv_parse, avx::fastconv_parse_apply, src1, src2, dst);
+        );
 
-        dsp::fill_zero(rest1, BUF_SIZE);
-        native::fastconv_parse_apply(rest1, temp, conv1, samp2, RANK);
-        MTEST_ASSERT_MSG(rest1.valid(), "rest1 corrupted");
-        MTEST_ASSERT_MSG(temp.valid(), "temp corrupted");
-        MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
-        MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
-
-        rest1.dump("rest1");
-
-        IF_ARCH_X86(sse::fastconv_parse(conv1, samp1, RANK));
-        IF_ARCH_ARM(neon_d32::fastconv_parse(conv1, samp1, RANK));
-        MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
-        MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
-
-        dsp::fill_zero(rest2, BUF_SIZE);
-        IF_ARCH_X86(sse::fastconv_parse_apply(rest2, temp, conv1, samp2, RANK));
-        IF_ARCH_ARM(neon_d32::fastconv_parse_apply(rest2, temp, conv1, samp2, RANK));
-        MTEST_ASSERT_MSG(rest2.valid(), "rest2 corrupted");
-        MTEST_ASSERT_MSG(temp.valid(), "temp corrupted");
-        MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
-        MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
-
-        rest2.dump("rest2");
+        IF_ARCH_ARM(
+            if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_parse_apply))
+                test_fatconv_parse_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply, src1, src2, dst);
+        );
     }
 MTEST_END
 

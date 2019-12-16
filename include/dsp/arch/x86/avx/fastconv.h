@@ -106,7 +106,52 @@ namespace avx
 
     void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank)
     {
-        // TODO
+        const float *ak = &FFT_A[(rank - 3) << 4];
+        const float *wk = &FFT_DW[(rank - 3) << 4];
+        size_t np       = 1 << (rank - 1);
+        size_t nb       = 1;
+
+        if (np > 4)
+        {
+            fastconv_direct_prepare(tmp, src, ak, wk, np);
+            ak         -= 16;
+            wk         -= 16;
+            np        >>= 1;
+            nb        <<= 1;
+        }
+        else
+            fastconv_direct_unpack(tmp, src);
+
+        while (np > 4)
+        {
+            fastconv_direct_butterfly(tmp, ak, wk, np, nb);
+            ak         -= 16;
+            wk         -= 16;
+            np        >>= 1;
+            nb        <<= 1;
+        }
+
+        fastconv_apply_internal(tmp, c, nb);
+
+        if ((nb >>= 1) <= 0)
+        {
+            fastconv_reverse_unpack_adding(dst, tmp, rank);
+            return;
+        }
+        ak     += 16;
+        wk     += 16;
+        np    <<= 1;
+
+        while (nb > 1)
+        {
+            fastconv_reverse_butterfly(tmp, ak, wk, np, nb);
+            ak     += 16;
+            wk     += 16;
+            np    <<= 1;
+            nb    >>= 1;
+        }
+
+        fastconv_reverse_butterfly_last_adding(dst, tmp, ak, wk, np);
     }
 }
 
