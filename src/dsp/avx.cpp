@@ -227,6 +227,7 @@ namespace avx
 
         CEXPORT1(favx, fastconv_parse);
         CEXPORT1(favx, fastconv_restore);
+        CEXPORT1(favx, fastconv_apply);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)

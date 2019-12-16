@@ -14,6 +14,7 @@
 
 #include <dsp/arch/x86/avx/fastconv/prepare.h>
 #include <dsp/arch/x86/avx/fastconv/butterfly.h>
+#include <dsp/arch/x86/avx/fastconv/apply.h>
 
 namespace avx
 {
@@ -77,7 +78,30 @@ namespace avx
 
     void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank)
     {
-        // TODO
+        size_t nb = 1 << (rank - 3), np = 4;
+        const float *ak = FFT_A;
+        const float *wk = FFT_DW;
+
+        fastconv_apply_prepare(tmp, c1, c2, nb);
+        if ((nb >>= 1) <= 0)
+        {
+            fastconv_reverse_unpack(dst, tmp, rank);
+            return;
+        }
+        ak     += 16;
+        wk     += 16;
+        np    <<= 1;
+
+        while (nb > 1)
+        {
+            fastconv_reverse_butterfly(tmp, ak, wk, np, nb);
+            ak     += 16;
+            wk     += 16;
+            np    <<= 1;
+            nb    >>= 1;
+        }
+
+        fastconv_reverse_butterfly_last_adding(dst, tmp, ak, wk, np);
     }
 
     void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank)

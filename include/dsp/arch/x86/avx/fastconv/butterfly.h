@@ -272,7 +272,7 @@
         "%xmm4", "%xmm5", "%xmm6", "%xmm7"  \
     );
 
-#define FASTCONV_REVERSE_BUTTERFLY_BODY_LAST(add_re, add_im, FMA_SEL) \
+#define FASTCONV_REVERSE_BUTTERFLY_BODY_LAST(add_re, add_im, FMA_SEL, IF_ADD) \
     size_t off; \
     float norm = 0.5f / np; \
     ARCH_X86_ASM \
@@ -299,6 +299,8 @@
             __ASM_EMIT("vmulps          %%ymm1, %%ymm2, %%ymm2") \
             __ASM_EMIT("vmulps          %%ymm1, %%ymm0, %%ymm0") \
             /* Store values */ \
+            __ASM_EMIT(IF_ADD("vaddps   0x00(%[dst]), %%ymm0, %%ymm0")) \
+            __ASM_EMIT(IF_ADD("vaddps   0x00(%[dst], %[off]), %%ymm2, %%ymm2")) \
             __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])") \
             __ASM_EMIT("vmovups         %%ymm2, 0x00(%[dst], %[off])") \
             __ASM_EMIT("add             $0x40, %[src]") \
@@ -328,6 +330,8 @@ namespace avx
 {
 #define FMA_OFF(a, b)       a
 #define FMA_ON(a, b)        b
+#define FASTCONV_SET(x)
+#define FASTCONV_ADD(x)     x
 
     static inline void fastconv_direct_butterfly(float *dst, const float *ak, const float *wk, size_t pairs, size_t nb)
     {
@@ -389,7 +393,12 @@ namespace avx
 
     static inline void fastconv_reverse_butterfly_last(float *dst, const float *src, const float *ak, const float *wk, size_t np)
     {
-        FASTCONV_REVERSE_BUTTERFLY_BODY_LAST("vsubps", "vaddps", FMA_OFF);
+        FASTCONV_REVERSE_BUTTERFLY_BODY_LAST("vsubps", "vaddps", FMA_OFF, FASTCONV_SET);
+    }
+
+    static inline void fastconv_reverse_butterfly_last_adding(float *dst, const float *src, const float *ak, const float *wk, size_t np)
+    {
+        FASTCONV_REVERSE_BUTTERFLY_BODY_LAST("vsubps", "vaddps", FMA_OFF, FASTCONV_ADD);
     }
 
     static inline void fastconv_reverse_butterfly_fma3(float *dst, const float *ak, const float *wk, size_t pairs, size_t nb)
@@ -410,13 +419,20 @@ namespace avx
 
     static inline void fastconv_reverse_butterfly_last_fma3(float *dst, const float *src, const float *ak, const float *wk, size_t np)
     {
-        FASTCONV_REVERSE_BUTTERFLY_BODY_LAST("vfmsub231ps", "vfmadd231ps", FMA_ON);
+        FASTCONV_REVERSE_BUTTERFLY_BODY_LAST("vfmsub231ps", "vfmadd231ps", FMA_ON, FASTCONV_SET);
+    }
+
+    static inline void fastconv_reverse_butterfly_last_adding_fma3(float *dst, const float *src, const float *ak, const float *wk, size_t np)
+    {
+        FASTCONV_REVERSE_BUTTERFLY_BODY_LAST("vfmsub231ps", "vfmadd231ps", FMA_ON, FASTCONV_ADD);
     }
 
 #undef FASTCONV_DIRECT_BUTTERFLY_BODY8
 #undef FASTCONV_DIRECT_BUTTERFLY_LAST
 #undef FASTCONV_REVERSE_BUTTERFLY_BODY8
 #undef FASTCONV_REVERSE_BUTTERFLY_LAST
+#undef FASTCONV_SET
+#undef FASTCONV_ADD
 #undef FMA_OFF
 #undef FMA_ON
 }

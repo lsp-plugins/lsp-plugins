@@ -59,10 +59,10 @@
             __ASM_EMIT("sub             $2, %[nb]") \
             __ASM_EMIT("jb              2f") \
             __ASM_EMIT("1:") \
-                __ASM_EMIT("vmovups         0x00(%[dst]), %%ymm0")                  /* xmm0 = r0  r1  r2  r3 */ \
-                __ASM_EMIT("vmovups         0x10(%[dst]), %%ymm4")                  /* xmm4 = r4  r5  r6  r7 */ \
-                __ASM_EMIT("vmovups         0x20(%[dst]), %%ymm2")                  /* xmm2 = i0  i1  i2  i3 */ \
-                __ASM_EMIT("vmovups         0x30(%[dst]), %%ymm6")                  /* xmm6 = i4  i5  i6  i7 */ \
+                __ASM_EMIT("vmovups         0x00(%[dst]), %%xmm0")                  /* xmm0 = r0  r1  r2  r3 */ \
+                __ASM_EMIT("vmovups         0x10(%[dst]), %%xmm4")                  /* xmm4 = r4  r5  r6  r7 */ \
+                __ASM_EMIT("vmovups         0x20(%[dst]), %%xmm2")                  /* xmm2 = i0  i1  i2  i3 */ \
+                __ASM_EMIT("vmovups         0x30(%[dst]), %%xmm6")                  /* xmm6 = i4  i5  i6  i7 */ \
                 __ASM_EMIT("vinsertf128     $1, 0x40(%[dst]), %%ymm0, %%ymm0")      /* ymm0 = r0  r1  r2  r3  r8  r9  r10 r11   */ \
                 __ASM_EMIT("vinsertf128     $1, 0x50(%[dst]), %%ymm4, %%ymm4")      /* ymm4 = r4  r5  r6  r7  r12 r13 r14 r15   */ \
                 __ASM_EMIT("vinsertf128     $1, 0x60(%[dst]), %%ymm2, %%ymm2")      /* ymm2 = i0  i1  i2  i3  i8  i9  i10 i11   */ \
