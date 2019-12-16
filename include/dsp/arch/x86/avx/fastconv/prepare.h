@@ -234,6 +234,47 @@ namespace avx
         );
     }
 
+    static inline void fastconv_reverse_unpack_adding(float *dst, const float *src, size_t rank)
+    {
+        size_t blocks = 1 << rank;
+        float norm = 1.0f / float(blocks);
+
+        // Perform 4-element butterflies
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("vbroadcastss    %%xmm0, %%ymm0")
+            // 16x blocks
+            __ASM_EMIT("sub             $16, %[blocks]")
+            __ASM_EMIT("jb              2f")
+            __ASM_EMIT("vmovaps         %%ymm0, %%ymm1")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vmulps          0x00(%[src]), %%ymm0, %%ymm2")  /* ymm2 = r0  r1  r2  r3  r4  r5  r6  r7  */
+            __ASM_EMIT("vmulps          0x40(%[src]), %%ymm1, %%ymm3")  /* ymm3 = r8  r9  r10 r11 r12 r13 r14 r15 */
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm2, %%ymm2")
+            __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm3, %%ymm3")
+            __ASM_EMIT("vmovups         %%ymm2, 0x00(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm3, 0x20(%[dst])")
+            __ASM_EMIT("add             $0x80, %[dst]")
+            __ASM_EMIT("add             $0x40, %[src]")
+            __ASM_EMIT("sub             $16, %[blocks]")
+            __ASM_EMIT("jae             1b")
+            __ASM_EMIT("2:")
+            // 8x block
+            __ASM_EMIT("add             $8, %[blocks]")
+            __ASM_EMIT("jl              4f")
+            __ASM_EMIT("vmulps          0x00(%[src]), %%ymm0, %%ymm2")  /* ymm2 = r0  r1  r2  r3  r4  r5  r6  r7  */
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm2, %%ymm2")
+            __ASM_EMIT("vmovups         %%ymm2, 0x00(%[dst])")
+            __ASM_EMIT("4:")
+
+            : [dst] "+r"(dst), [src] "+r" (src), [blocks] "+r" (blocks), [norm] "+Yz" (norm)
+            :
+            : "cc", "memory",
+              "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
 #undef FASTCONV_DIRECT_PREPARE_BODY
 #undef FASTCONV_REVERSE_PREPARE_BODY
 #undef FMA_OFF

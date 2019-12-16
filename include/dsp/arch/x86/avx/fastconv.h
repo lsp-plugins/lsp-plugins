@@ -85,7 +85,7 @@ namespace avx
         fastconv_apply_prepare(tmp, c1, c2, nb);
         if ((nb >>= 1) <= 0)
         {
-            fastconv_reverse_unpack(dst, tmp, rank);
+            fastconv_reverse_unpack_adding(dst, tmp, rank);
             return;
         }
         ak     += 16;
