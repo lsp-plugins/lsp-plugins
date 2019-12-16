@@ -55,8 +55,8 @@
 
 #define FASTCONV_REVERSE_PREPARE_BODY(FMA_SEL) \
         ARCH_X86_ASM( \
-            /* 2x 4x-butterfly loop */ \
-            __ASM_EMIT("sub             $8, %[nb]") \
+            /* 2x blocks of 4x-butterfly loop */ \
+            __ASM_EMIT("sub             $2, %[nb]") \
             __ASM_EMIT("jb              2f") \
             __ASM_EMIT("1:") \
                 __ASM_EMIT("vmovups         0x00(%[dst]), %%ymm0")                  /* xmm0 = r0  r1  r2  r3 */ \
@@ -106,11 +106,11 @@
                 __ASM_EMIT("vextractf128    $1, %%ymm3, 0x60(%[dst])") \
                 __ASM_EMIT("vextractf128    $1, %%ymm1, 0x70(%[dst])") \
             __ASM_EMIT("add             $0x80, %[dst]") \
-            __ASM_EMIT("sub             $8, %[nb]") \
+            __ASM_EMIT("sub             $2, %[nb]") \
             __ASM_EMIT("jae             1b") \
-            /* 1x 4-butterfly */ \
+            /* 1x block of 4-butterfly */ \
             __ASM_EMIT("2:") \
-            __ASM_EMIT("add             $4, %[nb]") \
+            __ASM_EMIT("add             $1, %[nb]") \
             __ASM_EMIT("jl              4f") \
                 __ASM_EMIT("vmovups         0x00(%[dst]), %%xmm0")                  /* xmm0 = r0  r1  r2  r3 */ \
                 __ASM_EMIT("vmovups         0x10(%[dst]), %%xmm4")                  /* xmm4 = r4  r5  r6  r7 */ \

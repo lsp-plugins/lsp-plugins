@@ -49,26 +49,30 @@ namespace avx
 
     void fastconv_restore(float *dst, float *tmp, size_t rank)
     {
-        size_t nb = 1 << (rank - 3), np = (1 << (rank - 1));
+        size_t nb = 1 << (rank - 3), np = 4;
+        const float *ak = FFT_A;
+        const float *wk = FFT_DW;
 
         fastconv_reverse_prepare(tmp, nb);
-        if ((nb >>=1) <= 0)
+        if ((nb >>= 1) <= 0)
         {
             fastconv_reverse_unpack(dst, tmp, rank);
             return;
         }
-        np <<= 1;
+        ak     += 16;
+        wk     += 16;
+        np    <<= 1;
 
-        const float *ak = &FFT_A[16];
-        const float *wk = &FFT_DW[16];
         while (nb > 1)
         {
-            fastconv_reverse_butterfly(dst, ak, wk, np, nb);
+            fastconv_reverse_butterfly(tmp, ak, wk, np, nb);
             ak     += 16;
             wk     += 16;
             np    <<= 1;
             nb    >>= 1;
         }
+
+        fastconv_reverse_butterfly_last(dst, tmp, ak, wk, np);
     }
 
     void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank)

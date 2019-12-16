@@ -10,7 +10,7 @@
 #include <test/FloatBuffer.h>
 #include <core/debug.h>
 
-#define RANK        3
+#define RANK        6
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -604,8 +604,8 @@ MTEST_BEGIN("dsp.fft", fastconv)
         FloatBuffer rest2(BUF_SIZE, 64);
 
         // Prepare data
-        for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
-            samp1[i]          = i;
+//        for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
+//            samp1[i]          = i;
         samp2.copy(samp1);
 
         // Test parse

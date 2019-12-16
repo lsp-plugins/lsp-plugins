@@ -279,7 +279,7 @@
     ( \
         /* Prepare angle */ \
         __ASM_EMIT("vbroadcastss    %%xmm0, %%ymm1")                    /* ymm1 = k */ \
-        __ASM_EMIT("lea             (,%[np], $8), %[off]")              /* off  = np * 8 */ \
+        __ASM_EMIT("lea             (,%[np], 4), %[off]")               /* off  = np * 8 */ \
         __ASM_EMIT("vmovaps         0x00(%[ak]), %%ymm6")               /* ymm6 = x_re */ \
         __ASM_EMIT("vmovaps         0x20(%[ak]), %%ymm7")               /* ymm7 = x_im */ \
         __ASM_EMIT("vmovaps         0x00(%[wk]), %%ymm4")               /* xmm4 = w_re */ \
@@ -294,13 +294,13 @@
             __ASM_EMIT(FMA_SEL("vmulps  %%ymm6, %%ymm2, %%ymm2", ""))       /* ymm2 = x_re * b_re */ \
             __ASM_EMIT(FMA_SEL(add_re "  %%ymm3, %%ymm2, %%ymm3", add_re " %%ymm6, %%ymm2, %%ymm3")) /* ymm3 = c_re = x_re * b_re +- x_im * b_im */ \
             /* Perform butterfly */ \
-            __ASM_EMIT("vsubps          %%ymm5, %%ymm0, %%ymm2")            /* ymm2 = a_re - c_re */ \
-            __ASM_EMIT("vaddps          %%ymm5, %%ymm0, %%ymm0")            /* ymm0 = a_re + c_re */ \
+            __ASM_EMIT("vsubps          %%ymm3, %%ymm0, %%ymm2")            /* ymm2 = a_re - c_re */ \
+            __ASM_EMIT("vaddps          %%ymm3, %%ymm0, %%ymm0")            /* ymm0 = a_re + c_re */ \
             __ASM_EMIT("vmulps          %%ymm1, %%ymm2, %%ymm2") \
             __ASM_EMIT("vmulps          %%ymm1, %%ymm0, %%ymm0") \
             /* Store values */ \
             __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])") \
-            __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst], %[off])") \
+            __ASM_EMIT("vmovups         %%ymm2, 0x00(%[dst], %[off])") \
             __ASM_EMIT("add             $0x40, %[src]") \
             __ASM_EMIT("add             $0x20, %[dst]") \
             __ASM_EMIT32("subl          $8, %[np]") \
