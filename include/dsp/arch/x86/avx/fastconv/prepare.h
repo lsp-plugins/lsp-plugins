@@ -173,7 +173,7 @@ namespace avx
         FASTCONV_REVERSE_PREPARE_BODY(FMA_OFF);
     }
 
-    static inline void fastconv_prepare_fma3(float *dst, const float *src, const float *ak, const float *wk, size_t np)
+    static inline void fastconv_direct_prepare_fma3(float *dst, const float *src, const float *ak, const float *wk, size_t np)
     {
         FASTCONV_DIRECT_PREPARE_BODY(FMA_OFF);
     }

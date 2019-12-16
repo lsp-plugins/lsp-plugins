@@ -579,6 +579,11 @@ IF_ARCH_X86(
         void fastconv_restore(float *dst, float *tmp, size_t rank);
         void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
         void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+
+        void fastconv_parse_fma3(float *dst, const float *src, size_t rank);
+        void fastconv_restore_fma3(float *dst, float *tmp, size_t rank);
+        void fastconv_apply_fma3(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+        void fastconv_parse_apply_fma3(float *dst, float *tmp, const float *c, const float *src, size_t rank);
     }
 )
 
@@ -738,6 +743,8 @@ MTEST_BEGIN("dsp.fft", fastconv)
                 test_fatconv_parse("SSE", sse::fastconv_parse, src1);
             if (TEST_SUPPORTED(avx::fastconv_parse))
                 test_fatconv_parse("AVX", avx::fastconv_parse, src1);
+            if (TEST_SUPPORTED(avx::fastconv_parse_fma3))
+                test_fatconv_parse("FMA3", avx::fastconv_parse_fma3, src1);
         );
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse))
@@ -753,6 +760,8 @@ MTEST_BEGIN("dsp.fft", fastconv)
                 test_fatconv_restore("SSE", sse::fastconv_parse, sse::fastconv_restore, src1, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse) && TEST_SUPPORTED(avx::fastconv_restore))
                 test_fatconv_restore("AVX", avx::fastconv_parse, avx::fastconv_restore, src1, dst);
+            if (TEST_SUPPORTED(avx::fastconv_parse_fma3) && TEST_SUPPORTED(avx::fastconv_restore_fma3))
+                test_fatconv_restore("FMA3", avx::fastconv_parse_fma3, avx::fastconv_restore_fma3, src1, dst);
         );
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_restore))
@@ -768,6 +777,8 @@ MTEST_BEGIN("dsp.fft", fastconv)
                 test_fatconv_apply("SSE", sse::fastconv_parse, sse::fastconv_apply, src1, src2, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse) && TEST_SUPPORTED(avx::fastconv_apply))
                 test_fatconv_apply("AVX", avx::fastconv_parse, avx::fastconv_apply, src1, src2, dst);
+            if (TEST_SUPPORTED(avx::fastconv_parse_fma3) && TEST_SUPPORTED(avx::fastconv_apply_fma3))
+                test_fatconv_apply("FMA3", avx::fastconv_parse_fma3, avx::fastconv_apply_fma3, src1, src2, dst);
         );
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_apply))
@@ -783,6 +794,8 @@ MTEST_BEGIN("dsp.fft", fastconv)
                 test_fastconv_parse_apply("SSE", sse::fastconv_parse, sse::fastconv_parse_apply, src1, src2, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse) && TEST_SUPPORTED(avx::fastconv_parse_apply))
                 test_fastconv_parse_apply("AVX", avx::fastconv_parse, avx::fastconv_parse_apply, src1, src2, dst);
+            if (TEST_SUPPORTED(avx::fastconv_parse_fma3) && TEST_SUPPORTED(avx::fastconv_parse_apply_fma3))
+                test_fastconv_parse_apply("FMA3", avx::fastconv_parse_fma3, avx::fastconv_parse_apply_fma3, src1, src2, dst);
         );
 
         IF_ARCH_ARM(

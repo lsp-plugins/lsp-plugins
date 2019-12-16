@@ -16,6 +16,7 @@ namespace avx
 {
     #define FMA_OFF(a, b)       a
     #define FMA_ON(a, b)        b
+    #define FMA_SEL1(a, b)      a
 
     #define FASTCONV_APPLY_PREPARE_CORE(FMA_SEL) \
         size_t off; \
@@ -31,18 +32,18 @@ namespace avx
                 __ASM_EMIT("vmovups         0x40(%[c1], %[off]), %%ymm4")                   /* xmm4 = r4 = r8  r12 */ \
                 __ASM_EMIT("vmovups         0x60(%[c1], %[off]), %%ymm6")                   /* xmm6 = i4 = i8  i12 */ \
                 /* Apply convolution */ \
-                __ASM_EMIT("vmulps          0x00(%[c2], %[off]), %%ymm2, %%ymm5")           /* ymm5 = i0*R */ \
-                __ASM_EMIT("vmulps          0x20(%[c2], %[off]), %%ymm2, %%ymm7")           /* ymm7 = i0*I */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[c2], %[off]), %%ymm0, %%ymm1", ""))      /* ymm1 = r0*R */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x20(%[c2], %[off]), %%ymm0, %%ymm3", ""))      /* ymm3 = r0*I */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm1, %%ymm0", "vfmsub132ps 0x00(%[c2], %[off]), %%ymm7, %%ymm0"))  /* ymm0 = r0*R - i0*I */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm3, %%ymm2", "vfmadd132ps 0x20(%[c2], %[off]), %%ymm5, %%ymm2"))  /* ymm2 = r0*I + i0*R */ \
-                __ASM_EMIT("vmulps          0x40(%[c2], %[off]), %%ymm6, %%ymm5")           /* ymm5 = i4*R */ \
-                __ASM_EMIT("vmulps          0x60(%[c2], %[off]), %%ymm6, %%ymm7")           /* ymm7 = i4*I */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x40(%[c2], %[off]), %%ymm4, %%ymm1", ""))      /* ymm1 = r4*R */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x60(%[c2], %[off]), %%ymm4, %%ymm3", ""))      /* ymm3 = r4*I */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm1, %%ymm4", "vfmsub132ps 0x40(%[c2], %[off]), %%ymm7, %%ymm4"))  /* ymm4 = r4*R - i4*I */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm3, %%ymm6", "vfmadd132ps 0x60(%[c2], %[off]), %%ymm5, %%ymm6"))  /* ymm6 = r4*I + i4*R */ \
+                __ASM_EMIT("vmulps          0x20(%[c2], %[off]), %%ymm0, %%ymm1")           /* ymm1 = r0*I */ \
+                __ASM_EMIT("vmulps          0x60(%[c2], %[off]), %%ymm4, %%ymm5")           /* ymm1 = r4*I */ \
+                __ASM_EMIT("vmulps          0x20(%[c2], %[off]), %%ymm2, %%ymm3")           /* ymm3 = i0*I */ \
+                __ASM_EMIT("vmulps          0x60(%[c2], %[off]), %%ymm6, %%ymm7")           /* ymm3 = i4*I */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[c2], %[off]), %%ymm0, %%ymm0", ""))      /* ymm0 = r0*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x40(%[c2], %[off]), %%ymm4, %%ymm4", ""))      /* ymm4 = r4*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[c2], %[off]), %%ymm2, %%ymm2", ""))      /* ymm2 = i0*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x40(%[c2], %[off]), %%ymm6, %%ymm6", ""))      /* ymm6 = i4*R */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm3, %%ymm0, %%ymm0", "vfmsub132ps 0x00(%[c2], %[off]), %%ymm3, %%ymm0")) /* ymm0 = r0*R - i0*I */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm4, %%ymm4", "vfmsub132ps 0x40(%[c2], %[off]), %%ymm7, %%ymm4")) /* ymm4 = r4*R - i4*I */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm1, %%ymm2, %%ymm2", "vfmadd132ps 0x00(%[c2], %[off]), %%ymm1, %%ymm2")) /* ymm2 = r0*I + i0*R */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm6, %%ymm6", "vfmadd132ps 0x40(%[c2], %[off]), %%ymm5, %%ymm6")) /* ymm2 = r0*I + i0*R */ \
                 /* Reshuffle */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm0, %%xmm5")                    /* xmm5 = r4 */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm2, %%xmm7")                    /* xmm7 = i4 */ \
@@ -98,12 +99,12 @@ namespace avx
                 __ASM_EMIT("vmovups         0x00(%[c1], %[off]), %%ymm0")                   /* ymm0 = r0 = r0  r4  */ \
                 __ASM_EMIT("vmovups         0x20(%[c1], %[off]), %%ymm2")                   /* ymm2 = i0 = i0  i4  */ \
                 /* Apply convolution */ \
-                __ASM_EMIT("vmulps          0x00(%[c2], %[off]), %%ymm2, %%ymm5")           /* ymm5 = i0*R */ \
-                __ASM_EMIT("vmulps          0x20(%[c2], %[off]), %%ymm2, %%ymm7")           /* ymm7 = i0*I */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[c2], %[off]), %%ymm0, %%ymm1", ""))      /* ymm1 = r0*R */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x20(%[c2], %[off]), %%ymm0, %%ymm3", ""))      /* ymm3 = r0*I */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm1, %%ymm0", "vfmsub132ps 0x00(%[c2], %[off]), %%ymm7, %%ymm0"))  /* ymm0 = r0*R - i0*I */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm3, %%ymm2", "vfmadd132ps 0x20(%[c2], %[off]), %%ymm5, %%ymm2"))  /* ymm2 = r0*I + i0*R */ \
+                __ASM_EMIT("vmulps          0x20(%[c2], %[off]), %%ymm0, %%ymm1")           /* ymm1 = r0*I */ \
+                __ASM_EMIT("vmulps          0x20(%[c2], %[off]), %%ymm2, %%ymm3")           /* ymm3 = i0*I */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[c2], %[off]), %%ymm0, %%ymm0", ""))      /* ymm0 = r0*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[c2], %[off]), %%ymm2, %%ymm2", ""))      /* ymm2 = i0*R */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm3, %%ymm0, %%ymm0", "vfmsub132ps 0x00(%[c2], %[off]), %%ymm3, %%ymm0")) /* ymm0 = r0*R - i0*I */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm1, %%ymm2, %%ymm2", "vfmadd132ps 0x00(%[c2], %[off]), %%ymm1, %%ymm2")) /* ymm2 = r0*I + i0*R */ \
                 /* Reshuffle */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm0, %%xmm4")                    /* xmm4 = r4 */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm2, %%xmm6")                    /* xmm6 = i4 */ \
@@ -176,8 +177,8 @@ namespace avx
                 __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%ymm5, %%ymm3")       /* ymm3 = x_im * c_im */ \
                 __ASM_EMIT(FMA_SEL("vmulps  0x00 + %[FFT_A], %%ymm4, %%ymm4", ""))  /* ymm4 = x_re * c_re */ \
                 __ASM_EMIT(FMA_SEL("vmulps  0x00 + %[FFT_A], %%ymm5, %%ymm5", ""))  /* ymm5 = x_re * c_im */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm3, %%ymm4, %%ymm4", "vfmadd231ps 0x00 + %[FFT_A], %%ymm3, %%ymm4")) /* ymm4 = b_re = x_re * c_re + x_im * c_im */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm2, %%ymm5, %%ymm5", "vfmsub231ps 0x00 + %[FFT_A], %%ymm2, %%ymm5")) /* ymm5 = b_im = x_re * c_im - x_im * c_re */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm3, %%ymm4, %%ymm4", "vfmadd132ps 0x00 + %[FFT_A], %%ymm3, %%ymm4")) /* ymm4 = b_re = x_re * c_re + x_im * c_im */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm2, %%ymm5, %%ymm5", "vfmsub132ps 0x00 + %[FFT_A], %%ymm2, %%ymm5")) /* ymm5 = b_im = x_re * c_im - x_im * c_re */ \
                 /* 2nd-order butterflies */ \
                 __ASM_EMIT("vshufps         $0xd8, %%ymm0, %%ymm0, %%ymm0")         /* ymm0 = r0 r2 r1 r3 */ \
                 __ASM_EMIT("vshufps         $0xd8, %%ymm1, %%ymm1, %%ymm1")         /* ymm1 = i0 i2 i1 i3 */ \
@@ -212,18 +213,18 @@ namespace avx
                 __ASM_EMIT("vinsertf128     $0, %%xmm5, %%ymm4, %%ymm4")            /* ymm4 = r4  r12 */ \
                 __ASM_EMIT("vinsertf128     $0, %%xmm7, %%ymm6, %%ymm6")            /* ymm6 = i4  i12 */ \
                 /* Apply convolution */ \
-                __ASM_EMIT("vmulps          0x00(%[conv], %[off]), %%ymm2, %%ymm5")           /* ymm5 = i0*R */ \
-                __ASM_EMIT("vmulps          0x20(%[conv], %[off]), %%ymm2, %%ymm7")           /* ymm7 = i0*I */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[conv], %[off]), %%ymm0, %%ymm1", ""))      /* ymm1 = r0*R */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x20(%[conv], %[off]), %%ymm0, %%ymm3", ""))      /* ymm3 = r0*I */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm1, %%ymm0", "vfmsub132ps 0x00(%[conv], %[off]), %%ymm7, %%ymm0"))  /* ymm0 = r0*R - i0*I */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm3, %%ymm2", "vfmadd132ps 0x20(%[conv], %[off]), %%ymm5, %%ymm2"))  /* ymm2 = r0*I + i0*R */ \
-                __ASM_EMIT("vmulps          0x40(%[conv], %[off]), %%ymm6, %%ymm5")           /* ymm5 = i4*R */ \
-                __ASM_EMIT("vmulps          0x60(%[conv], %[off]), %%ymm6, %%ymm7")           /* ymm7 = i4*I */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x40(%[conv], %[off]), %%ymm4, %%ymm1", ""))      /* ymm1 = r4*R */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x60(%[conv], %[off]), %%ymm4, %%ymm3", ""))      /* ymm3 = r4*I */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm1, %%ymm4", "vfmsub132ps 0x40(%[conv], %[off]), %%ymm7, %%ymm4"))  /* ymm4 = r4*R - i4*I */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm3, %%ymm6", "vfmadd132ps 0x60(%[conv], %[off]), %%ymm5, %%ymm6"))  /* ymm6 = r4*I + i4*R */ \
+                __ASM_EMIT("vmulps          0x20(%[conv], %[off]), %%ymm0, %%ymm1")             /* ymm1 = r0*I */ \
+                __ASM_EMIT("vmulps          0x60(%[conv], %[off]), %%ymm4, %%ymm5")             /* ymm1 = r4*I */ \
+                __ASM_EMIT("vmulps          0x20(%[conv], %[off]), %%ymm2, %%ymm3")             /* ymm3 = i0*I */ \
+                __ASM_EMIT("vmulps          0x60(%[conv], %[off]), %%ymm6, %%ymm7")             /* ymm3 = i4*I */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[conv], %[off]), %%ymm0, %%ymm0", ""))        /* ymm0 = r0*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x40(%[conv], %[off]), %%ymm4, %%ymm4", ""))        /* ymm4 = r4*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[conv], %[off]), %%ymm2, %%ymm2", ""))        /* ymm2 = i0*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x40(%[conv], %[off]), %%ymm6, %%ymm6", ""))        /* ymm6 = i4*R */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm3, %%ymm0, %%ymm0", "vfmsub132ps 0x00(%[conv], %[off]), %%ymm3, %%ymm0")) /* ymm0 = r0*R - i0*I */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm4, %%ymm4", "vfmsub132ps 0x40(%[conv], %[off]), %%ymm7, %%ymm4")) /* ymm4 = r4*R - i4*I */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm1, %%ymm2, %%ymm2", "vfmadd132ps 0x00(%[conv], %[off]), %%ymm1, %%ymm2")) /* ymm2 = r0*I + i0*R */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm6, %%ymm6", "vfmadd132ps 0x40(%[conv], %[off]), %%ymm5, %%ymm6")) /* ymm2 = r0*I + i0*R */ \
                 /* Reshuffle */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm0, %%xmm5")                    /* xmm5 = r4 */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm2, %%xmm7")                    /* xmm7 = i4 */ \
@@ -286,12 +287,12 @@ namespace avx
                 __ASM_EMIT("vsubps          %%xmm3, %%xmm1, %%xmm5")                /* xmm5 = c_im  = a_im - b_im */ \
                 __ASM_EMIT("vaddps          %%xmm2, %%xmm0, %%xmm0")                /* xmm0 = a_re' = a_re + b_re */ \
                 __ASM_EMIT("vaddps          %%xmm3, %%xmm1, %%xmm1")                /* xmm1 = a_im' = a_im + b_im */ \
-                __ASM_EMIT("vmulps          %%xmm7, %%xmm4, %%xmm2")                /* xmm2 = x_im * c_re */ \
-                __ASM_EMIT("vmulps          %%xmm7, %%xmm5, %%xmm3")                /* xmm3 = x_im * c_im */ \
-                __ASM_EMIT(FMA_SEL("vmulps  %%xmm6, %%xmm4, %%xmm4", ""))           /* xmm4 = x_re * c_re */ \
-                __ASM_EMIT(FMA_SEL("vmulps  %%xmm6, %%xmm5, %%xmm5", ""))           /* xmm5 = x_re * c_im */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%xmm3, %%xmm4, %%xmm4", "vfmadd231ps %%xmm6, %%xmm3, %%xmm4")) /* xmm4 = b_re = x_re * c_re + x_im * c_im */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%xmm2, %%xmm5, %%xmm5", "vfmsub231ps %%xmm6, %%xmm2, %%xmm5")) /* xmm5 = b_im = x_re * c_im - x_im * c_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm4, %%xmm2")       /* xmm2 = x_im * c_re */ \
+                __ASM_EMIT("vmulps          0x20 + %[FFT_A], %%xmm5, %%xmm3")       /* xmm3 = x_im * c_im */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00 + %[FFT_A], %%xmm4, %%xmm4", ""))  /* xmm4 = x_re * c_re */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00 + %[FFT_A], %%xmm5, %%xmm5", ""))  /* xmm5 = x_re * c_im */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%xmm3, %%xmm4, %%xmm4", "vfmadd132ps 0x00 + %[FFT_A], %%xmm3, %%xmm4")) /* xmm4 = b_re = x_re * c_re + x_im * c_im */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%xmm2, %%xmm5, %%xmm5", "vfmsub132ps 0x00 + %[FFT_A], %%xmm2, %%xmm5")) /* xmm5 = b_im = x_re * c_im - x_im * c_re */ \
                 /* 2nd-order butterflies */ \
                 __ASM_EMIT("vshufps         $0xd8, %%xmm0, %%xmm0, %%xmm0")         /* xmm0 = r0 r2 r1 r3 */ \
                 __ASM_EMIT("vshufps         $0xd8, %%xmm1, %%xmm1, %%xmm1")         /* xmm1 = i0 i2 i1 i3 */ \
@@ -322,12 +323,12 @@ namespace avx
                 __ASM_EMIT("vinsertf128     $1, %%xmm4, %%ymm0, %%ymm0")            /* ymm0 = r0 r4 */ \
                 __ASM_EMIT("vinsertf128     $1, %%xmm6, %%ymm2, %%ymm2")            /* ymm2 = i0 i4 */ \
                 /* Apply convolution */ \
-                __ASM_EMIT("vmulps          0x00(%[conv], %[off]), %%ymm2, %%ymm5")           /* ymm5 = i0*R */ \
-                __ASM_EMIT("vmulps          0x20(%[conv], %[off]), %%ymm2, %%ymm7")           /* ymm7 = i0*I */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[conv], %[off]), %%ymm0, %%ymm1", ""))      /* ymm1 = r0*R */ \
-                __ASM_EMIT(FMA_SEL("vmulps  0x20(%[conv], %[off]), %%ymm0, %%ymm3", ""))      /* ymm3 = r0*I */ \
-                __ASM_EMIT(FMA_SEL("vsubps  %%ymm7, %%ymm1, %%ymm0", "vfmsub132ps 0x00(%[conv], %[off]), %%ymm7, %%ymm0"))  /* ymm0 = r0*R - i0*I */ \
-                __ASM_EMIT(FMA_SEL("vaddps  %%ymm5, %%ymm3, %%ymm2", "vfmadd132ps 0x20(%[conv], %[off]), %%ymm5, %%ymm2"))  /* ymm2 = r0*I + i0*R */ \
+                __ASM_EMIT("vmulps          0x20(%[conv], %[off]), %%ymm0, %%ymm1")             /* ymm1 = r0*I */ \
+                __ASM_EMIT("vmulps          0x20(%[conv], %[off]), %%ymm2, %%ymm3")             /* ymm3 = i0*I */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[conv], %[off]), %%ymm0, %%ymm0", ""))        /* ymm0 = r0*R */ \
+                __ASM_EMIT(FMA_SEL("vmulps  0x00(%[conv], %[off]), %%ymm2, %%ymm2", ""))        /* ymm2 = i0*R */ \
+                __ASM_EMIT(FMA_SEL("vsubps  %%ymm3, %%ymm0, %%ymm0", "vfmsub132ps 0x00(%[conv], %[off]), %%ymm3, %%ymm0"))  /* ymm0 = r0*R - i0*I */ \
+                __ASM_EMIT(FMA_SEL("vaddps  %%ymm1, %%ymm2, %%ymm2", "vfmadd132ps 0x00(%[conv], %[off]), %%ymm1, %%ymm2"))  /* ymm2 = r0*I + i0*R */ \
                 /* Reshuffle */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm0, %%xmm4")                    /* xmm4 = r4 */ \
                 __ASM_EMIT("vextractf128    $1, %%ymm2, %%xmm6")                    /* xmm6 = i4 */ \

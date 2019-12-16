@@ -275,6 +275,11 @@ namespace avx
             CEXPORT2(favx, packed_direct_fft, packed_direct_fft_fma3);
             CEXPORT2(favx, packed_reverse_fft, packed_reverse_fft_fma3);
 
+            CEXPORT2(favx, fastconv_parse, fastconv_parse_fma3);
+            CEXPORT2(favx, fastconv_restore, fastconv_restore_fma3);
+            CEXPORT2(favx, fastconv_apply, fastconv_apply_fma3);
+            CEXPORT2(favx, fastconv_parse_apply, fastconv_parse_apply_fma3);
+
             // Non-conditional export
             EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
             EXPORT2_X64(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
