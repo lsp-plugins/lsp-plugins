@@ -67,6 +67,8 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
 
+#include <dsp/arch/aarch64/asimd/fft.h>
+
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
 
@@ -229,6 +231,9 @@ namespace asimd
         EXPORT1(pcomplex_r2c);
         EXPORT1(pcomplex_c2r);
         EXPORT1(pcomplex_add_r);
+
+        // TODO
+        EXPORT1(direct_fft);
     }
 }
 

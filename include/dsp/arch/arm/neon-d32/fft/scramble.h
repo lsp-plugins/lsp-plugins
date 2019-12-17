@@ -58,8 +58,6 @@ namespace neon_d32
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
                 __ASM_EMIT("blo         1b")
 
-                __ASM_EMIT("eor         %[i], %[i]")
-
                 // Perform x8 butterflies
                 __ASM_EMIT("3:")
                 __ASM_EMIT("vld2.32     {q0-q1}, [%[dst_re]]")              // q0 = r0 r2 r4 r6, q1 = r1 r3 r5 r7
