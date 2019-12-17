@@ -14,6 +14,7 @@
 
 #include <dsp/arch/x86/avx/fft/const.h>
 #include <dsp/arch/x86/avx/fft/butterfly.h>
+#include <dsp/arch/x86/avx/fft/normalize.h>
 
 #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct8
 #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse8

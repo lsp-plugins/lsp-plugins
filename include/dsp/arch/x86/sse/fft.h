@@ -15,6 +15,7 @@
 #include <dsp/arch/x86/sse/fft/const.h>
 #include <dsp/arch/x86/sse/fft/butterfly.h>
 #include <dsp/arch/x86/sse/fft/p_butterfly.h>
+#include <dsp/arch/x86/sse/fft/normalize.h>
 
 // Use 8-bit-reverse algorithm
 #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct8

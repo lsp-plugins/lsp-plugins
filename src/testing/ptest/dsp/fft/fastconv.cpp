@@ -67,6 +67,19 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void add2(float *dst, const float *src, size_t count);
+
+//        void fastconv_parse(float *dst, const float *src, size_t rank);
+//        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    }
+)
+
 typedef void (* direct_fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* reverse_fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* complex_mul3_t)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
@@ -181,6 +194,13 @@ PTEST_BEGIN("dsp.fft", fastconv, 10, 1000)
                     neon_d32::direct_fft, neon_d32::complex_mul3, neon_d32::reverse_fft, neon_d32::add2);
                 call("neon_d32::fastconv_fft", out, tmp, conv, in, cv, rank,
                     neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply);
+            )
+
+            IF_ARCH_AARCH64(
+                call("asimd::fft", out, tmp, tmp2, conv, in, cv, rank,
+                    asimd::direct_fft, asimd::complex_mul3, asimd::reverse_fft, asimd::add2);
+//                call("asimd::fastconv_fft", out, tmp, conv, in, cv, rank,
+//                    asimd::fastconv_parse, asimd::fastconv_parse_apply);
             )
 
             PTEST_SEPARATOR;

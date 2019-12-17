@@ -43,6 +43,13 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+//        void packed_direct_fft(float *dst, const float *src, size_t rank);
+    }
+)
 
 typedef void (* direct_fft_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* conv_direct_fft_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
@@ -109,12 +116,14 @@ PTEST_BEGIN("dsp.fft", fft, 10, 1000)
             IF_ARCH_X86(CALL1(avx::direct_fft));
             IF_ARCH_X86(CALL1(avx::direct_fft_fma3));
             IF_ARCH_ARM(CALL1(neon_d32::direct_fft));
+            IF_ARCH_AARCH64(CALL1(asimd::direct_fft));
 
             CALL2(native::packed_direct_fft);
             IF_ARCH_X86(CALL2(sse::packed_direct_fft));
             IF_ARCH_X86(CALL2(avx::packed_direct_fft));
             IF_ARCH_X86(CALL2(avx::packed_direct_fft_fma3));
             IF_ARCH_ARM(CALL2(neon_d32::packed_direct_fft));
+//            IF_ARCH_AARCH64(CALL2(asimd::packed_direct_fft));
             PTEST_SEPARATOR;
         }
 
