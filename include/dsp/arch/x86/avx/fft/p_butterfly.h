@@ -13,8 +13,6 @@
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
 #define FFT_BUTTERFLY_BODY8(add_b, add_a, FMA_SEL) \
-    __IF_32(float *ptr1, *ptr2);\
-    \
     ARCH_X86_ASM \
     ( \
         /* Prepare angle */ \

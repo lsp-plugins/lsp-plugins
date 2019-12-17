@@ -15,8 +15,6 @@
 // a'   = a + b
 // b'   = c * w
 #define FASTCONV_DIRECT_BUTTERFLY_BODY8(add_re, add_im, FMA_SEL) \
-    __IF_32(float *ptr1, *ptr2);\
-    \
     ARCH_X86_ASM \
     ( \
         /* Prepare angle */ \
@@ -217,8 +215,6 @@
     );
 
 #define FASTCONV_REVERSE_BUTTERFLY_BODY8(add_re, add_im, FMA_SEL) \
-    __IF_32(float *ptr1, *ptr2);\
-    \
     ARCH_X86_ASM \
     ( \
         /* Prepare angle */ \
