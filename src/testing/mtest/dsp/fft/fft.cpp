@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        3
+#define RANK        4
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -148,7 +148,7 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
 {
     scramble_fft(dst_re, dst_im, src_re, src_im, rank);
     start_direct_fft(dst_re, dst_im, rank);
-#if 0
+
     // Prepare for butterflies
     size_t items    = 1 << rank;
 
@@ -259,7 +259,6 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
         iw_re  += 4;
         iw_im  += 4;
     }
-#endif
 }
 
 namespace native

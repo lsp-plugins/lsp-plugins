@@ -12,7 +12,9 @@
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_AARCH64_ASIMD_IMPL */
 
+#include <dsp/arch/aarch64/asimd/fft/const.h>
 #include <dsp/arch/aarch64/asimd/fft/scramble.h>
+#include <dsp/arch/aarch64/asimd/fft/butterfly.h>
 
 namespace asimd
 {
@@ -72,11 +74,10 @@ namespace asimd
         else
             scramble_copy_direct(dst_re, dst_im, src_re, src_im, rank);
 
-        // TODO
-/*        direct_butterfly_rank3(dst_re, dst_im, 1 << (rank-3));
+        direct_butterfly_rank3(dst_re, dst_im, 1 << (rank-3));
 
         for (size_t i=4; i <= rank; ++i)
-            direct_butterfly_rank4p(dst_re, dst_im, i, 1 << (rank - i));*/
+            direct_butterfly_rank4p(dst_re, dst_im, i, 1 << (rank - i));
     }
 
     void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
