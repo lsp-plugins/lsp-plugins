@@ -155,8 +155,8 @@ namespace avx
     void pcomplex_mod(float *dst, const float *src, size_t count)
     {
         // Strided-load technique is used to improve performance
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xor             %[off], %[off]")
             // 16x blocks
