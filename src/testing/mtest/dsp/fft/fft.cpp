@@ -412,7 +412,7 @@ MTEST_BEGIN("dsp.fft", fft)
         );
 
         // Test reverse FFT
-        native::reverse_fft(dst1r, dst1i, src1r, src1i, RANK);
+        direct_fft(dst1r, dst1i, src1r, src1i, RANK);
         printf("\n");
 
         test_reverse_fft("native", native::reverse_fft, dst1r, dst1i);

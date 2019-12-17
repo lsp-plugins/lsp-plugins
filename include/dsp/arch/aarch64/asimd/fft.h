@@ -15,6 +15,7 @@
 #include <dsp/arch/aarch64/asimd/fft/const.h>
 #include <dsp/arch/aarch64/asimd/fft/scramble.h>
 #include <dsp/arch/aarch64/asimd/fft/butterfly.h>
+#include <dsp/arch/aarch64/asimd/fft/normalize.h>
 
 namespace asimd
 {
@@ -127,14 +128,21 @@ namespace asimd
         }
 
         // Scramble data
-        // TODO
-/*        scramble_reverse(dst_re, dst_im, src_re, src_im, rank);
+        if ((dst_re == src_re) || (dst_im == src_im))
+        {
+            dsp::move(dst_re, src_re, 1 << rank);
+            dsp::move(dst_im, src_im, 1 << rank);
+            scramble_self_reverse(dst_re, dst_im, rank);
+        }
+        else
+            scramble_copy_reverse(dst_re, dst_im, src_re, src_im, rank);
+
         reverse_butterfly_rank3(dst_re, dst_im, 1 << (rank-3));
 
         for (size_t i=4; i <= rank; ++i)
             reverse_butterfly_rank4p(dst_re, dst_im, i, 1 << (rank - i));
 
-        dsp::normalize_fft2(dst_re, dst_im, rank);*/
+        dsp::normalize_fft2(dst_re, dst_im, rank);
     }
 }
 

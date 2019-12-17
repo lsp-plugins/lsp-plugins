@@ -232,8 +232,10 @@ namespace asimd
         EXPORT1(pcomplex_c2r);
         EXPORT1(pcomplex_add_r);
 
-        // TODO
         EXPORT1(direct_fft);
+        EXPORT1(reverse_fft);
+        EXPORT1(normalize_fft2);
+        EXPORT1(normalize_fft3);
     }
 }
 
