@@ -221,6 +221,8 @@ namespace avx
 
         CEXPORT1(favx, direct_fft);
         CEXPORT1(favx, reverse_fft);
+        CEXPORT1(favx, normalize_fft2);
+        CEXPORT1(favx, normalize_fft3);
 
         CEXPORT1(favx, packed_direct_fft);
         CEXPORT1(favx, packed_reverse_fft);
