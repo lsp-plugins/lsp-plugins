@@ -110,14 +110,14 @@ namespace lsp
         {
             size_t to_do = (samples > TMP_BUF_SIZE) ? TMP_BUF_SIZE : samples;
 
-            dsp::scale3(vBuffer, in, fInGain, to_do);
+            dsp::mul_k3(vBuffer, in, fInGain, to_do);
 
             sLatencyDetector.process_in(vBuffer, vBuffer, to_do);
             if (!bFeedback)
                 dsp::fill_zero(vBuffer, to_do);
             sLatencyDetector.process_out(vBuffer, vBuffer, to_do);
 
-            dsp::scale2(vBuffer, fOutGain, to_do);
+            dsp::mul_k2(vBuffer, fOutGain, to_do);
             sBypass.process(out, in, vBuffer, to_do);
 
             in         += to_do;

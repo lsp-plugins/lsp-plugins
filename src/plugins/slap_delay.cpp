@@ -496,7 +496,7 @@ namespace lsp
 
                 // Copy dry data to rendering buffer
                 if (nInputs == 1)
-                    dsp::scale3(c->vRender, vInputs[0].vIn, c->fGain[0], to_do);
+                    dsp::mul_k3(c->vRender, vInputs[0].vIn, c->fGain[0], to_do);
                 else
                     dsp::mix_copy2(c->vRender, vInputs[0].vIn, vInputs[1].vIn, c->fGain[0], c->fGain[1], to_do);
 
@@ -513,7 +513,7 @@ namespace lsp
                         // Copy delayed signal to buffer and apply panoraming
                         size_t delay        = p->nDelay + to_do;
                         if (nInputs == 1)
-                            dsp::scale3(vTemp, vInputs[0].sBuffer.tail(delay), p->vDelay[i].fGain[0], to_do);
+                            dsp::mul_k3(vTemp, vInputs[0].sBuffer.tail(delay), p->vDelay[i].fGain[0], to_do);
                         else
                             dsp::mix_copy2(vTemp, vInputs[0].sBuffer.tail(delay), vInputs[1].sBuffer.tail(delay), p->vDelay[i].fGain[0], p->vDelay[i].fGain[1], to_do);
                     }

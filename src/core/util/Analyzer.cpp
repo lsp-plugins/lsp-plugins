@@ -128,7 +128,7 @@ namespace lsp
         if (nReconfigure & R_ENVELOPE)
         {
             envelope::reverse_noise(vEnvelope, fft_size, envelope::envelope_t(nEnvelope));
-            dsp::scale2(vEnvelope, fShift / fft_size, fft_size);
+            dsp::mul_k2(vEnvelope, fShift / fft_size, fft_size);
         }
         // Clear analysis
         if (nReconfigure & R_ANALYSIS)

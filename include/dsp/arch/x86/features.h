@@ -69,7 +69,8 @@ namespace x86
     enum feature_t
     {
         FEAT_FAST_MOVS,         // Processor implements optimized MOVS instruction
-        FEAT_FAST_AVX           // Fast AVX implementation
+        FEAT_FAST_AVX,          // Fast AVX implementation
+        FEAT_FAST_FMA3          // Fast FMA3 implementation
     };
 
     /**

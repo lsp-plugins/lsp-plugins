@@ -22,6 +22,12 @@ IF_ARCH_X86(
     {
         void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
     }
+
+    namespace avx
+    {
+        void pcomplex_div3(float *dst, const float *t, const float *b, size_t count);
+        void pcomplex_div3_fma3(float *dst, const float *t, const float *b, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -71,17 +77,20 @@ PTEST_BEGIN("dsp.pcomplex", div3, 5, 1000)
             out[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, out, buf_size * 6);
 
-        #define CALL(...) dsp::copy(out, backup, buf_size * 6); call(__VA_ARGS__)
+        #define CALL(func) \
+            dsp::copy(out, backup, buf_size * 6); \
+            call(#func, out, in1, in2, count, func)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native::pcomplex_div3", out, in1, in2, count, native::pcomplex_div3);
-            IF_ARCH_X86(CALL("sse::pcomplex_div3", out, in1, in2, count, sse::pcomplex_div3));
-            IF_ARCH_ARM(CALL("neon_d32::pcomplex_div3", out, in1, in2, count, neon_d32::pcomplex_div3));
-            IF_ARCH_AARCH64(CALL("asimd::pcomplex_div3", out, in1, in2, count, asimd::pcomplex_div3));
-
+            CALL(native::pcomplex_div3);
+            IF_ARCH_X86(CALL(sse::pcomplex_div3));
+            IF_ARCH_X86(CALL(avx::pcomplex_div3));
+            IF_ARCH_X86(CALL(avx::pcomplex_div3_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::pcomplex_div3));
+            IF_ARCH_AARCH64(CALL(asimd::pcomplex_div3));
             PTEST_SEPARATOR;
         }
 

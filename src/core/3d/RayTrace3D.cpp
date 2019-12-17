@@ -2085,7 +2085,7 @@ namespace lsp
                     continue;
 
                 // Apply the norming factor
-                dsp::scale2(s->sample->getBuffer(s->channel), max_gain, s->sample->length());
+                dsp::mul_k2(s->sample->getBuffer(s->channel), max_gain, s->sample->length());
             }
         }
     }

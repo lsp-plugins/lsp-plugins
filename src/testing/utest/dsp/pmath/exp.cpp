@@ -42,6 +42,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void exp1(float *dst, size_t count);
+        void exp2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* exp1_t)(float *dst, size_t count);
 typedef void (* exp2_t)(float *dst, const float *src, size_t count);
 
@@ -144,20 +152,26 @@ UTEST_BEGIN("dsp.pmath", exp)
 
     UTEST_MAIN
     {
-        call("native::exp1", 16, native::exp1);
-        call("native::exp2", 16, native::exp2);
+        #define CALL(func, align) \
+            call(#func, align, func)
 
-        IF_ARCH_X86(call("sse2::exp1", 16, sse2::exp1));
-        IF_ARCH_X86(call("sse2::exp2", 16, sse2::exp2));
+        CALL(native::exp1, 16);
+        CALL(native::exp2, 16);
 
-        IF_ARCH_X86_64(call("avx2::x64_exp1", 16, avx2::x64_exp1));
-        IF_ARCH_X86_64(call("avx2::x64_exp2", 16, avx2::x64_exp2));
+        IF_ARCH_X86(CALL(sse2::exp1, 16));
+        IF_ARCH_X86(CALL(sse2::exp2, 16));
 
-        IF_ARCH_X86_64(call("avx2::x64_exp1_fma3", 16, avx2::x64_exp1_fma3));
-        IF_ARCH_X86_64(call("avx2::x64_exp2_fma3", 16, avx2::x64_exp2_fma3));
+        IF_ARCH_X86_64(CALL(avx2::x64_exp1, 32));
+        IF_ARCH_X86_64(CALL(avx2::x64_exp2, 32));
 
-        IF_ARCH_ARM(call("neon_d32::exp1", 16, neon_d32::exp1));
-        IF_ARCH_ARM(call("neon_d32::exp2", 16, neon_d32::exp2));
+        IF_ARCH_X86_64(CALL(avx2::x64_exp1_fma3, 32));
+        IF_ARCH_X86_64(CALL(avx2::x64_exp2_fma3, 32));
+
+        IF_ARCH_ARM(CALL(neon_d32::exp1, 16));
+        IF_ARCH_ARM(CALL(neon_d32::exp2, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::exp1, 16));
+        IF_ARCH_AARCH64(CALL(asimd::exp2, 16));
     }
 UTEST_END
 

@@ -26,8 +26,24 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx
+    {
+        void x64_abs1(float *src, size_t count);
+        void x64_abs2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void abs1(float *src, size_t count);
+        void abs2(float *dst, const float *src, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void abs1(float *src, size_t count);
         void abs2(float *dst, const float *src, size_t count);
@@ -91,13 +107,17 @@ PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
 
             CALL("native::abs1", dst, count, native::abs1);
             IF_ARCH_X86(CALL("sse::abs1", dst, count, sse::abs1));
+            IF_ARCH_X86_64(CALL("avx::x64_abs1", dst, count, avx::x64_abs1));
             IF_ARCH_ARM(CALL("neon_d32::abs1", dst, count, neon_d32::abs1));
+            IF_ARCH_AARCH64(CALL("asimd::abs1", dst, count, asimd::abs1));
             PTEST_SEPARATOR;
 
             CALL("native::abs2", dst, src, count, native::abs2);
             IF_ARCH_X86(CALL("sse::abs2", dst, src, count, sse::abs2));
+            IF_ARCH_X86_64(CALL("avx::x64_abs2", dst, src, count, avx::x64_abs2));
             IF_ARCH_ARM(CALL("neon_d32::abs2", dst, src, count, neon_d32::abs2));
-            PTEST_SEPARATOR;
+            IF_ARCH_AARCH64(CALL("asimd::abs2", dst, src, count, asimd::abs2));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

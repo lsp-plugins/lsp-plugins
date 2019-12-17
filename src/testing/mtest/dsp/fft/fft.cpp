@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        5
+#define RANK        6
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -267,6 +267,12 @@ IF_ARCH_X86(
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
         void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
     }
+
+    namespace avx
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    }
 )
 
 IF_ARCH_ARM(
@@ -299,8 +305,8 @@ MTEST_BEGIN("dsp.fft", fft)
         src2r.copy(src1r);
         src2i.copy(src1i);
 
-        // Test
-        printf("Testing direct FFT...\n");
+        // Do native stuff
+        printf("Testing native direct FFT...\n");
         src1r.dump("src1r");
         src1i.dump("src1i");
 
@@ -311,50 +317,115 @@ MTEST_BEGIN("dsp.fft", fft)
         direct_fft(src1r, src1i, src1r, src1i, RANK);
         src1r.dump("src1r");
         src1i.dump("src1i");
-
-        src2r.dump("src2r");
-        src2i.dump("src2i");
-
-        IF_ARCH_ARM(
-            neon_d32::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
-
-            neon_d32::direct_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
-        );
+        src1r.copy(src2r);
+        src1i.copy(src2r);
 
         IF_ARCH_X86(
-            sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
+            if (TEST_SUPPORTED(sse::direct_fft))
+            {
+                printf("Testing SSE-optimized direct FFT...\n");
+                src2r.copy(src1r);
+                src2i.copy(src1i);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
 
-            sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+                sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
+
+            if (TEST_SUPPORTED(avx::direct_fft))
+            {
+                printf("Testing AVX-optimized direct FFT...\n");
+                src2r.copy(src1r);
+                src2i.copy(src1i);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+
+                avx::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                avx::direct_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
+        );
+
+        IF_ARCH_ARM(
+            if (TEST_SUPPORTED(neon_d32::direct_fft))
+            {
+                printf("Testing NEON-optimized direct FFT...\n");
+                src2r.copy(src1r);
+                src2i.copy(src1i);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+
+                neon_d32::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                neon_d32::direct_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
         );
 
         printf("Testing reverse FFT...\n");
+        src1r.copy(src2r);
+        src1i.copy(src2r);
 
         IF_ARCH_ARM(
-            neon_d32::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
+            if (TEST_SUPPORTED(neon_d32::reverse_fft))
+            {
+                printf("Testing NEON-optimized direct FFT...\n");
+                src2r.copy(src1r);
+                src2i.copy(src1i);
 
-            neon_d32::reverse_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+                neon_d32::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                neon_d32::reverse_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
         );
 
         IF_ARCH_X86(
-            sse::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
+            if (TEST_SUPPORTED(sse::reverse_fft))
+            {
+                printf("Testing SSE-optimized direct FFT...\n");
+                src2r.copy(src1r);
+                src2i.copy(src1i);
 
-            sse::reverse_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+                sse::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                sse::reverse_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
+
+            if (TEST_SUPPORTED(avx::reverse_fft))
+            {
+                printf("Testing AVX-optimized direct FFT...\n");
+                src2r.copy(src1r);
+                src2i.copy(src1i);
+
+                avx::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+                dst2r.dump("dst2r");
+                dst2i.dump("dst2i");
+
+                avx::reverse_fft(src2r, src2i, src2r, src2i, RANK);
+                src2r.dump("src2r");
+                src2i.dump("src2i");
+            }
         );
     }
 MTEST_END

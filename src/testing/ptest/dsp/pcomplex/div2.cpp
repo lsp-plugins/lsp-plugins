@@ -24,6 +24,15 @@ IF_ARCH_X86(
         void pcomplex_div2(float *dst, const float *src, size_t count);
         void pcomplex_rdiv2(float *dst, const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        void pcomplex_div2(float *dst, const float *src, size_t count);
+        void pcomplex_rdiv2(float *dst, const float *src, size_t count);
+
+        void pcomplex_div2_fma3(float *dst, const float *src, size_t count);
+        void pcomplex_rdiv2_fma3(float *dst, const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -74,22 +83,29 @@ PTEST_BEGIN("dsp.pcomplex", div2, 5, 1000)
             out[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, out, buf_size * 4);
 
-        #define CALL(...) dsp::copy(out, backup, buf_size * 4); call(__VA_ARGS__)
+        #define CALL(func) \
+            dsp::copy(out, backup, buf_size * 4); \
+            call(#func, out, in, count, func)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native::pcomplex_div2", out, in, count, native::pcomplex_div2);
-            CALL("native::pcomplex_rdiv2", out, in, count, native::pcomplex_rdiv2);
-            IF_ARCH_X86(CALL("sse::pcomplex_div2", out, in, count, sse::pcomplex_div2));
-            IF_ARCH_X86(CALL("sse::pcomplex_rdiv2", out, in, count, sse::pcomplex_rdiv2));
-            IF_ARCH_ARM(CALL("neon_d32::pcomplex_div2", out, in, count, neon_d32::pcomplex_div2));
-            IF_ARCH_ARM(CALL("neon_d32::pcomplex_rdiv2", out, in, count, neon_d32::pcomplex_rdiv2));
-            IF_ARCH_AARCH64(CALL("asimd::pcomplex_div2", out, in, count, asimd::pcomplex_div2));
-            IF_ARCH_AARCH64(CALL("asimd::pcomplex_rdiv2", out, in, count, asimd::pcomplex_rdiv2));
-
+            CALL(native::pcomplex_div2);
+            IF_ARCH_X86(CALL(sse::pcomplex_div2));
+            IF_ARCH_X86(CALL(avx::pcomplex_div2));
+            IF_ARCH_X86(CALL(avx::pcomplex_div2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::pcomplex_div2));
+            IF_ARCH_AARCH64(CALL(asimd::pcomplex_div2));
             PTEST_SEPARATOR;
+
+            CALL(native::pcomplex_rdiv2);
+            IF_ARCH_X86(CALL(sse::pcomplex_rdiv2));
+            IF_ARCH_X86(CALL(avx::pcomplex_rdiv2));
+            IF_ARCH_X86(CALL(avx::pcomplex_rdiv2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::pcomplex_rdiv2));
+            IF_ARCH_AARCH64(CALL(asimd::pcomplex_rdiv2));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

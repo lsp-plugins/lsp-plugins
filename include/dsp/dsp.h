@@ -29,10 +29,23 @@
 #include <dsp/common/pcomplex.h>
 #include <dsp/common/float.h>
 #include <dsp/common/graphics.h>
-#include <dsp/common/search.h>
 #include <dsp/common/smath.h>
-#include <dsp/common/pmath.h>
-#include <dsp/common/hmath.h>
+
+#include <dsp/common/search/minmax.h>
+#include <dsp/common/search/iminmax.h>
+
+#include <dsp/common/pmath/op_kx.h>
+#include <dsp/common/pmath/op_vv.h>
+#include <dsp/common/pmath/fmop_kx.h>
+#include <dsp/common/pmath/fmop_vv.h>
+#include <dsp/common/pmath/abs_vv.h>
+#include <dsp/common/pmath/exp.h>
+#include <dsp/common/pmath/log.h>
+#include <dsp/common/pmath/pow.h>
+
+#include <dsp/common/hmath/hsum.h>
+#include <dsp/common/hmath/hdotp.h>
+
 #include <dsp/common/copy.h>
 #include <dsp/common/mix.h>
 #include <dsp/common/misc.h>

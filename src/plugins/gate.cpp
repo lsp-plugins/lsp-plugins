@@ -508,17 +508,17 @@ namespace lsp
 
             // Prepare audio channels
             if (nMode == GM_MONO)
-                dsp::scale3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
+                dsp::mul_k3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
             else if (nMode == GM_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vIn, vChannels[1].vIn, in_buf[0], in_buf[1], to_process);
-                dsp::scale2(vChannels[0].vIn, fInGain, to_process);
-                dsp::scale2(vChannels[1].vIn, fInGain, to_process);
+                dsp::mul_k2(vChannels[0].vIn, fInGain, to_process);
+                dsp::mul_k2(vChannels[1].vIn, fInGain, to_process);
             }
             else
             {
-                dsp::scale3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
-                dsp::scale3(vChannels[1].vIn, in_buf[1], fInGain, to_process);
+                dsp::mul_k3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
+                dsp::mul_k3(vChannels[1].vIn, in_buf[1], fInGain, to_process);
             }
 
             // Perform sidechain processing for each channel
@@ -668,7 +668,7 @@ namespace lsp
                         dsp::copy(mesh->pvData[0], vCurve, gate_base_metadata::CURVE_MESH_SIZE);
                         c->sGate.curve(mesh->pvData[1], vCurve, gate_base_metadata::CURVE_MESH_SIZE, j > 0);
                         if (c->fMakeup != 1.0f)
-                            dsp::scale2(mesh->pvData[1], c->fMakeup, gate_base_metadata::CURVE_MESH_SIZE);
+                            dsp::mul_k2(mesh->pvData[1], c->fMakeup, gate_base_metadata::CURVE_MESH_SIZE);
 
                         // Mark mesh containing data
                         mesh->data(2, gate_base_metadata::CURVE_MESH_SIZE);
@@ -773,7 +773,7 @@ namespace lsp
                 }
                 c->sGate.curve(b->v[1], b->v[0], width, j > 0);
                 if (c->fMakeup != 1.0f)
-                    dsp::scale2(b->v[1], c->fMakeup, width);
+                    dsp::mul_k2(b->v[1], c->fMakeup, width);
 
                 dsp::fill(b->v[2], 0.0f, width);
                 dsp::fill(b->v[3], height, width);

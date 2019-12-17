@@ -575,15 +575,15 @@ namespace lsp
                 }
                 if (fInGain != 1.0f)
                 {
-                    dsp::scale2(vChannels[0].vBuffer, fInGain, to_process);
-                    dsp::scale2(vChannels[1].vBuffer, fInGain, to_process);
+                    dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_process);
+                    dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_process);
                 }
             }
             else if (nMode == EQ_MONO)
             {
                 vChannels[0].pInMeter->setValue(dsp::abs_max(vChannels[0].vIn, to_process));
                 if (fInGain != 1.0f)
-                    dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
                 else
                     dsp::copy(vChannels[0].vBuffer, vChannels[0].vIn, to_process);
             }
@@ -593,8 +593,8 @@ namespace lsp
                 vChannels[1].pInMeter->setValue(dsp::abs_max(vChannels[1].vIn, to_process));
                 if (fInGain != 1.0f)
                 {
-                    dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
-                    dsp::scale3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
                 }
                 else
                 {
@@ -615,7 +615,7 @@ namespace lsp
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
                 if (c->fInGain != 1.0f)
-                    dsp::scale2(c->vBuffer, c->fInGain, to_process);
+                    dsp::mul_k2(c->vBuffer, c->fInGain, to_process);
 
                 // Do FFT in 'POST'-position
                 if (fft_pos == FFTP_POST)
@@ -633,7 +633,7 @@ namespace lsp
 
                 // Apply output gain
                 if (c->fOutGain != 1.0f)
-                    dsp::scale2(c->vBuffer, c->fOutGain, to_process);
+                    dsp::mul_k2(c->vBuffer, c->fOutGain, to_process);
 
                 // Do metering
                 if (c->pOutMeter != NULL)

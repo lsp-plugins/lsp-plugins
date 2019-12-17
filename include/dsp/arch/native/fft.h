@@ -78,16 +78,16 @@ namespace native
     {
         rank            = 1 << rank;
         float k         = 1.0f / rank;
-        dsp::scale3(dst_re, src_re, k, rank);
-        dsp::scale3(dst_im, src_im, k, rank);
+        dsp::mul_k3(dst_re, src_re, k, rank);
+        dsp::mul_k3(dst_im, src_im, k, rank);
     }
 
     void normalize_fft2(float *re, float *im, size_t rank)
     {
         rank            = 1 << rank;
         float k         = 1.0f / rank;
-        dsp::scale2(re, k, rank);
-        dsp::scale2(im, k, rank);
+        dsp::mul_k2(re, k, rank);
+        dsp::mul_k2(im, k, rank);
     }
 
     static void do_normalize_fft(float *dst_re, float *dst_im, size_t rank)
@@ -723,175 +723,6 @@ namespace native
 
         // Fixup complex number presentation
         repack_fft(dst, rank);
-    }
-
-    void fd_packed_direct_fft(float *dst, const float *src, size_t rank)
-    {
-        // Check bounds
-        if (rank <= 1)
-        {
-            // TODO
-        }
-
-        // Prepare for butterflies
-        float c_re[4], c_im[4], w_re[4], w_im[4];
-        size_t items    = size_t(1) << (rank + 1);
-
-        // Unpack complex
-        for (size_t i=0; i<items; i += 8)
-        {
-            float *d        = &dst[i];
-            const float *s  = &src[i];
-
-            c_re[0] = s[1];
-            c_re[1] = s[3];
-            c_re[2] = s[5];
-            c_re[3] = s[7];
-
-            d[0]    = s[0];
-            d[1]    = s[2];
-            d[2]    = s[4];
-            d[3]    = s[6];
-
-            d[4]    = c_re[0];
-            d[5]    = c_re[1];
-            d[6]    = c_re[2];
-            d[7]    = c_re[3];
-        }
-
-        const float *dw     = &XFFT_DW[(rank - 3) << 1];
-        const float *iw_re  = &XFFT_A_RE[(rank-3) << 2];
-        const float *iw_im  = &XFFT_A_IM[(rank-3) << 2];
-
-        // Iterate butterflies
-        for (size_t bs=items, n=(bs>>1); n > 4; n >>= 1, bs >>= 1)
-        {
-            for (size_t p=0; p<items; p += bs)
-            {
-                // Set initial values of pointers
-                float *a            = &dst[p];
-                float *b            = &a[n];
-
-                w_re[0]             = iw_re[0];
-                w_re[1]             = iw_re[1];
-                w_re[2]             = iw_re[2];
-                w_re[3]             = iw_re[3];
-                w_im[0]             = iw_im[0];
-                w_im[1]             = iw_im[1];
-                w_im[2]             = iw_im[2];
-                w_im[3]             = iw_im[3];
-
-                for (size_t k=0; ;)
-                {
-                    // Calculate the output values:
-                    // c    = a - b
-                    // a'   = a + b
-                    // b'   = c * w
-                    c_re[0]         = a[0] - b[0];
-                    c_re[1]         = a[1] - b[1];
-                    c_re[2]         = a[2] - b[2];
-                    c_re[3]         = a[3] - b[3];
-
-                    c_im[0]         = a[4] - b[4];
-                    c_im[1]         = a[5] - b[5];
-                    c_im[2]         = a[6] - b[6];
-                    c_im[3]         = a[7] - b[7];
-
-                    a[0]            = a[0] + b[0];
-                    a[1]            = a[1] + b[1];
-                    a[2]            = a[2] + b[2];
-                    a[3]            = a[3] + b[3];
-
-                    a[4]            = a[4] + b[4];
-                    a[5]            = a[5] + b[5];
-                    a[6]            = a[6] + b[6];
-                    a[7]            = a[7] + b[7];
-
-                    // Calculate complex c = w * b
-                    b[0]            = w_re[0] * c_re[0] + w_im[0] * c_im[0];
-                    b[1]            = w_re[1] * c_re[1] + w_im[1] * c_im[1];
-                    b[2]            = w_re[2] * c_re[2] + w_im[2] * c_im[2];
-                    b[3]            = w_re[3] * c_re[3] + w_im[3] * c_im[3];
-
-                    b[4]            = w_re[0] * c_im[0] - w_im[0] * c_re[0];
-                    b[5]            = w_re[1] * c_im[1] - w_im[1] * c_re[1];
-                    b[6]            = w_re[2] * c_im[2] - w_im[2] * c_re[2];
-                    b[7]            = w_re[3] * c_im[3] - w_im[3] * c_re[3];
-
-                    // Update pointers
-                    a              += 8;
-                    b              += 8;
-
-                    if ((k += 8) >= n)
-                        break;
-
-                    // Rotate w vector
-                    c_re[0]         = w_re[0]*dw[0] - w_im[0]*dw[1];
-                    c_re[1]         = w_re[1]*dw[0] - w_im[1]*dw[1];
-                    c_re[2]         = w_re[2]*dw[0] - w_im[2]*dw[1];
-                    c_re[3]         = w_re[3]*dw[0] - w_im[3]*dw[1];
-
-                    c_im[0]         = w_re[0]*dw[1] + w_im[0]*dw[0];
-                    c_im[1]         = w_re[1]*dw[1] + w_im[1]*dw[0];
-                    c_im[2]         = w_re[2]*dw[1] + w_im[2]*dw[0];
-                    c_im[3]         = w_re[3]*dw[1] + w_im[3]*dw[0];
-
-                    w_re[0]         = c_re[0];
-                    w_re[1]         = c_re[1];
-                    w_re[2]         = c_re[2];
-                    w_re[3]         = c_re[3];
-
-                    w_im[0]         = c_im[0];
-                    w_im[1]         = c_im[1];
-                    w_im[2]         = c_im[2];
-                    w_im[3]         = c_im[3];
-                }
-            }
-
-            dw     -= 2;
-            iw_re  -= 4;
-            iw_im  -= 4;
-        }
-
-        // TODO: add two last stages
-        for (size_t i=0; i<items; i += 8)
-        {
-            float *d        = &dst[i];
-
-            // s0' = s0 + s2 = (r0 + r2) + j*(i0 + i2)
-            // s1' = s1 + s3 = (r1 + r3) + j*(i1 + i3)
-            // s2' = W_4_0*(s0 - s2) = 1*((r0 - r2) + j*(i0 - i2)) = (r0 - r2) + j*(i0 - i2)
-            // s3' = W_4_1*(s1 - s3) = -j*((r1 - r3) + j*(i1 - i3)) = (i1 - i3) - j*(r1 - r3)
-
-            // s0" = s0' + s1' = (r0 + r2) + j*(i0 + i2) + (r1 + r3) + j*(i1 + i3)
-            // s1" = s0' - s1' = (r0 + r2) + j*(i0 + i2) - (r1 + r3) - j*(i1 + i3)
-            // s2" = s2' + s3' = (r0 - r2) + j*(i0 - i2) + (i1 - i3) - j*(r1 - r3)
-            // s3" = s2' - s3' = (r0 - r2) + j*(i0 - i2) - (i1 - i3) + j*(r1 - r3)
-            float r0k       = d[0] + d[2];
-            float r1k       = d[0] - d[2];
-            float r2k       = d[1] + d[3];
-            float r3k       = d[1] - d[3];
-
-            float i0k       = d[4] + d[6];
-            float i1k       = d[4] - d[6];
-            float i2k       = d[5] + d[7];
-            float i3k       = d[5] - d[7];
-
-            d[0]            = r0k + r2k;
-            d[2]            = r0k - r2k;
-            d[4]            = r1k + i3k;
-            d[6]            = r1k - i3k;
-
-            d[1]            = i0k + i2k;
-            d[3]            = i0k - i2k;
-            d[5]            = i1k - r3k;
-            d[7]            = i1k + r3k;
-        }
-
-        packed_scramble_fft(dst, dst, rank);
-
-        // Fixup complex number presentation
-    //            repack_fft(dst, rank);
     }
 
     void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)

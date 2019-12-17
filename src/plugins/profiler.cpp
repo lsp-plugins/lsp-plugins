@@ -728,7 +728,7 @@ namespace lsp
 							dsp::fill_zero(c->vBuffer, to_do);
 
 						c->sLatencyDetector.process_out(c->vBuffer, c->vBuffer, to_do);
-						dsp::scale2(c->vBuffer, fLtAmplitude, to_do);
+						dsp::mul_k2(c->vBuffer, fLtAmplitude, to_do);
 
 						if (c->sLatencyDetector.latency_detected())
 						{

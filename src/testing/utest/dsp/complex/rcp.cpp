@@ -21,6 +21,15 @@ IF_ARCH_X86(
         void complex_rcp1(float *dst_re, float *dst_im, size_t count);
         void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     }
+
+    namespace avx
+    {
+        void complex_rcp1(float *dst_re, float *dst_im, size_t count);
+        void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+
+        void complex_rcp1_fma3(float *dst_re, float *dst_im, size_t count);
+        void complex_rcp2_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -130,14 +139,21 @@ UTEST_BEGIN("dsp.complex", rcp)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::complex_rcp1", 16, sse::complex_rcp1));
-        IF_ARCH_X86(call("sse::complex_rcp2", 16, sse::complex_rcp2));
+        #define CALL(func, align) \
+            call(#func, align, func)
 
-        IF_ARCH_ARM(call("neon_d32::complex_rcp1", 16, neon_d32::complex_rcp1));
-        IF_ARCH_ARM(call("neon_d32::complex_rcp2", 16, neon_d32::complex_rcp2));
+        IF_ARCH_X86(CALL(sse::complex_rcp1, 16));
+        IF_ARCH_X86(CALL(sse::complex_rcp2, 16));
+        IF_ARCH_X86(CALL(avx::complex_rcp1, 32));
+        IF_ARCH_X86(CALL(avx::complex_rcp2, 32));
+        IF_ARCH_X86(CALL(avx::complex_rcp1_fma3, 32));
+        IF_ARCH_X86(CALL(avx::complex_rcp2_fma3, 32));
 
-        IF_ARCH_AARCH64(call("asimd::complex_rcp1", 16, asimd::complex_rcp1));
-        IF_ARCH_AARCH64(call("asimd::complex_rcp2", 16, asimd::complex_rcp2));
+        IF_ARCH_ARM(CALL(neon_d32::complex_rcp1, 16));
+        IF_ARCH_ARM(CALL(neon_d32::complex_rcp2, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::complex_rcp1, 16));
+        IF_ARCH_AARCH64(CALL(asimd::complex_rcp2, 16));
     }
 
 UTEST_END;

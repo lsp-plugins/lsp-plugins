@@ -212,7 +212,6 @@ IF_ARCH_X86(
             __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst])")
 
             __ASM_EMIT("14:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
             : [eff] "r" (eff),
@@ -371,7 +370,6 @@ static const float EFF_HSLA_ALPHA_XC[] __lsp_aligned32 =
             __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst])")
 
             __ASM_EMIT("14:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
             : [eff] "r" (eff),
@@ -554,7 +552,6 @@ static const uint32_t EFF_HSLA_SAT_XC[] __lsp_aligned32 =
             __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst])")
 
             __ASM_EMIT("14:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
             : [eff] "r" (eff),
@@ -736,7 +733,6 @@ static const uint32_t EFF_HSLA_SAT_XC[] __lsp_aligned32 =
             __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst])")
 
             __ASM_EMIT("14:")
-            __ASM_EMIT("vzeroupper")
 
             : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
             : [eff] "r" (eff),

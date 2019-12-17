@@ -315,7 +315,7 @@ namespace lsp
                 {
 //                    lsp_trace("add_multiplied dst_off=%d, src_head=%d, volume=%f, count=%d", int(dst_off), int(src_head), pb->nVolume, int(count));
                     if (pb->nFadeout < 0)
-                        dsp::scale_add3(&dst[dst_off], s->getBuffer(pb->nChannel, src_head), pb->nVolume * fGain, count);
+                        dsp::fmadd_k3(&dst[dst_off], s->getBuffer(pb->nChannel, src_head), pb->nVolume * fGain, count);
                     else
                     {
                         ssize_t fade_head   = pb->nFadeOffset;

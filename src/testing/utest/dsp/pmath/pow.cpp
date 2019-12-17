@@ -62,6 +62,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void powcv1(float *v, float c, size_t count);
+        void powcv2(float *dst, const float *v, float c, size_t count);
+        void powvc1(float *c, float v, size_t count);
+        void powvc2(float *dst, const float *c, float v, size_t count);
+        void powvx1(float *v, const float *x, size_t count);
+        void powvx2(float *dst, const float *v, const float *x, size_t count);
+    }
+)
+
 typedef void (* powav1_t)(float *v, float c, size_t count);
 typedef void (* powav2_t)(float *dst, const float *v, float c, size_t count);
 typedef void (* powvx1_t)(float *v, const float *x, size_t count);
@@ -275,33 +287,43 @@ UTEST_BEGIN("dsp.pmath", pow)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse2::powcv1", 16, native::powcv1, sse2::powcv1));
-        IF_ARCH_X86(call("sse2::powcv2", 16, native::powcv2, sse2::powcv2));
-        IF_ARCH_X86(call("sse2::powvc1", 16, native::powvc1, sse2::powvc1));
-        IF_ARCH_X86(call("sse2::powvc2", 16, native::powvc2, sse2::powvc2));
-        IF_ARCH_X86(call("sse2::powvx1", 16, native::powvx1, sse2::powvx1));
-        IF_ARCH_X86(call("sse2::powvx2", 16, native::powvx2, sse2::powvx2));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
 
-        IF_ARCH_X86_64(call("avx2::x64_powcv1", 16, native::powcv1, avx2::x64_powcv1));
-        IF_ARCH_X86_64(call("avx2::x64_powcv2", 16, native::powcv2, avx2::x64_powcv2));
-        IF_ARCH_X86_64(call("avx2::x64_powvc1", 16, native::powvc1, avx2::x64_powvc1));
-        IF_ARCH_X86_64(call("avx2::x64_powvc2", 16, native::powvc2, avx2::x64_powvc2));
-        IF_ARCH_X86_64(call("avx2::x64_powvx1", 16, native::powvx1, avx2::x64_powvx1));
-        IF_ARCH_X86_64(call("avx2::x64_powvx2", 16, native::powvx2, avx2::x64_powvx2));
+        IF_ARCH_X86(CALL(native::powcv1, sse2::powcv1, 16));
+        IF_ARCH_X86(CALL(native::powcv2, sse2::powcv2, 16));
+        IF_ARCH_X86(CALL(native::powvc1, sse2::powvc1, 16));
+        IF_ARCH_X86(CALL(native::powvc2, sse2::powvc2, 16));
+        IF_ARCH_X86(CALL(native::powvx1, sse2::powvx1, 16));
+        IF_ARCH_X86(CALL(native::powvx2, sse2::powvx2, 16));
 
-        IF_ARCH_X86_64(call("avx2::x64_powcv1_fma3", 16, native::powcv1, avx2::x64_powcv1_fma3));
-        IF_ARCH_X86_64(call("avx2::x64_powcv2_fma3", 16, native::powcv2, avx2::x64_powcv2_fma3));
-        IF_ARCH_X86_64(call("avx2::x64_powvc1_fma3", 16, native::powvc1, avx2::x64_powvc1_fma3));
-        IF_ARCH_X86_64(call("avx2::x64_powvc2_fma3", 16, native::powvc2, avx2::x64_powvc2_fma3));
-        IF_ARCH_X86_64(call("avx2::x64_powvx1_fma3", 16, native::powvx1, avx2::x64_powvx1_fma3));
-        IF_ARCH_X86_64(call("avx2::x64_powvx2_fma3", 16, native::powvx2, avx2::x64_powvx2_fma3));
+        IF_ARCH_X86_64(CALL(native::powcv1, avx2::x64_powcv1, 32));
+        IF_ARCH_X86_64(CALL(native::powcv2, avx2::x64_powcv2, 32));
+        IF_ARCH_X86_64(CALL(native::powvc1, avx2::x64_powvc1, 32));
+        IF_ARCH_X86_64(CALL(native::powvc2, avx2::x64_powvc2, 32));
+        IF_ARCH_X86_64(CALL(native::powvx1, avx2::x64_powvx1, 32));
+        IF_ARCH_X86_64(CALL(native::powvx2, avx2::x64_powvx2, 32));
 
-        IF_ARCH_ARM(call("neon_d32::powcv1", 16, native::powcv1, neon_d32::powcv1));
-        IF_ARCH_ARM(call("neon_d32::powcv2", 16, native::powcv2, neon_d32::powcv2));
-        IF_ARCH_ARM(call("neon_d32::powvc1", 16, native::powvc1, neon_d32::powvc1));
-        IF_ARCH_ARM(call("neon_d32::powvc2", 16, native::powvc2, neon_d32::powvc2));
-        IF_ARCH_ARM(call("neon_d32::powvx1", 16, native::powvx1, neon_d32::powvx1));
-        IF_ARCH_ARM(call("neon_d32::powvx2", 16, native::powvx2, neon_d32::powvx2));
+        IF_ARCH_X86_64(CALL(native::powcv1, avx2::x64_powcv1_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::powcv2, avx2::x64_powcv2_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::powvc1, avx2::x64_powvc1_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::powvc2, avx2::x64_powvc2_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::powvx1, avx2::x64_powvx1_fma3, 32));
+        IF_ARCH_X86_64(CALL(native::powvx2, avx2::x64_powvx2_fma3, 32));
+
+        IF_ARCH_ARM(CALL(native::powcv1, neon_d32::powcv1, 16));
+        IF_ARCH_ARM(CALL(native::powcv2, neon_d32::powcv2, 16));
+        IF_ARCH_ARM(CALL(native::powvc1, neon_d32::powvc1, 16));
+        IF_ARCH_ARM(CALL(native::powvc2, neon_d32::powvc2, 16));
+        IF_ARCH_ARM(CALL(native::powvx1, neon_d32::powvx1, 16));
+        IF_ARCH_ARM(CALL(native::powvx2, neon_d32::powvx2, 16));
+
+        IF_ARCH_AARCH64(CALL(native::powcv1, asimd::powcv1, 16));
+        IF_ARCH_AARCH64(CALL(native::powcv2, asimd::powcv2, 16));
+        IF_ARCH_AARCH64(CALL(native::powvc1, asimd::powvc1, 16));
+        IF_ARCH_AARCH64(CALL(native::powvc2, asimd::powvc2, 16));
+        IF_ARCH_AARCH64(CALL(native::powvx1, asimd::powvx1, 16));
+        IF_ARCH_AARCH64(CALL(native::powvx2, asimd::powvx2, 16));
     }
 UTEST_END
 

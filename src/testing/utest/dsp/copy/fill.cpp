@@ -37,6 +37,16 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void fill(float *dst, float value, size_t count);
+        void fill_one(float *dst, size_t count);
+        void fill_zero(float *dst, size_t count);
+        void fill_minus_one(float *dst, size_t count);
+    }
+)
+
 typedef void (* fill_t)(float *dst, float value, size_t count);
 typedef void (* fill_value_t)(float *dst, size_t count);
 
@@ -105,15 +115,23 @@ UTEST_BEGIN("dsp.copy", fill)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:fill", 16, native::fill, sse::fill));
-        IF_ARCH_X86(call("sse:fill_one", 16, native::fill_one, sse::fill_one));
-        IF_ARCH_X86(call("sse:fill_zero", 16, native::fill_zero, sse::fill_zero));
-        IF_ARCH_X86(call("sse:fill_minus_one", 16, native::fill_minus_one, sse::fill_minus_one));
+        #define CALL(native, func, align) \
+            call(#func, align, native, func)
 
-        IF_ARCH_ARM(call("neon_d32:fill", 16, native::fill, neon_d32::fill));
-        IF_ARCH_ARM(call("neon_d32:fill_one", 16, native::fill_one, neon_d32::fill_one));
-        IF_ARCH_ARM(call("neon_d32:fill_zero", 16, native::fill_zero, neon_d32::fill_zero));
-        IF_ARCH_ARM(call("neon_d32:fill_minus_one", 16, native::fill_minus_one, neon_d32::fill_minus_one));
+        IF_ARCH_X86(CALL(native::fill, sse::fill, 16));
+        IF_ARCH_X86(CALL(native::fill_one, sse::fill_one, 16));
+        IF_ARCH_X86(CALL(native::fill_zero, sse::fill_zero, 16));
+        IF_ARCH_X86(CALL(native::fill_minus_one, sse::fill_minus_one, 16));
+
+        IF_ARCH_ARM(CALL(native::fill, neon_d32::fill, 16));
+        IF_ARCH_ARM(CALL(native::fill_one, neon_d32::fill_one, 16));
+        IF_ARCH_ARM(CALL(native::fill_zero, neon_d32::fill_zero, 16));
+        IF_ARCH_ARM(CALL(native::fill_minus_one, neon_d32::fill_minus_one, 16));
+
+        IF_ARCH_AARCH64(CALL(native::fill, asimd::fill, 16));
+        IF_ARCH_AARCH64(CALL(native::fill_one, asimd::fill_one, 16));
+        IF_ARCH_AARCH64(CALL(native::fill_zero, asimd::fill_zero, 16));
+        IF_ARCH_AARCH64(CALL(native::fill_minus_one, asimd::fill_minus_one, 16));
     }
 
 UTEST_END;

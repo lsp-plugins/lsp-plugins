@@ -26,22 +26,6 @@
 
 namespace avx
 {
-    /* Sine approximation coefficients */
-    AVX_SVEC8(S0,  1.00000000000000000000);
-    AVX_SVEC8(S1, -0.16666666666666665741);
-    AVX_SVEC8(S2,  0.00833333333333333322);
-    AVX_SVEC8(S3, -0.00019841269841269841);
-    AVX_SVEC8(S4,  0.00000275573192239859);
-    AVX_SVEC8(S5, -0.00000002505210838544);
-
-    /* Cosine approximation coefficients */
-    AVX_SVEC8(C0,  1.00000000000000000000);
-    AVX_SVEC8(C1, -0.50000000000000000000);
-    AVX_SVEC8(C2,  0.04166666666666666435);
-    AVX_SVEC8(C3, -0.00138888888888888894);
-    AVX_SVEC8(C4,  0.00002480158730158730);
-    AVX_SVEC8(C5, -0.00000027557319223986);
-
     /* Logarithm approximation coefficients */
     AVX_SVEC8(L0, 7.0376836292E-2);
     AVX_SVEC8(L1, -1.1514610310E-1);
@@ -65,6 +49,7 @@ namespace avx
 
     /* Sign Mask */
     AVX_UVEC8(X_SIGN,  0x7fffffff);
+    AVX_UVEC8(R_SIGN,  0x80000000);
     AVX_SVEC8(X_HALF,  0.5f);
     AVX_UVEC8(X_MANT,  0x007fffff);
     AVX_UVEC8(X_MMASK, 0x0000007f);
@@ -87,10 +72,6 @@ namespace avx
 
     /* Miscellaneous vectors */
     AVX_UVEC(X_MASK0001, -1, 0, 0, 0, 0, 0, 0, 0);
-
-    static inline bool __lsp_forced_inline avx_aligned(const void *ptr)         { return !(ptrdiff_t(ptr) & (AVX_ALIGN - 1));  };
-    static inline ptrdiff_t __lsp_forced_inline avx_offset(const void *ptr)     { return (ptrdiff_t(ptr) & (AVX_ALIGN - 1));   };
-    static inline size_t __lsp_forced_inline avx_multiple(size_t count)         { return count & (AVX_ALIGN - 1);              };
 }
 
 #endif /* DSP_ARCH_X86_AVX_CONST_H_ */

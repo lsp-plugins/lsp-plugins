@@ -60,12 +60,12 @@
   This allows to render the impulse response in more accurate way. However, even after some set of additional
   optimizations has been made, this yields to some performance degradation because there are much more ray
   groups required to be rendered.
-- Optimize DSP for AArch64 architecture.
+* Additional DSP optimizations for AArch64 architecture.
+* Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
 - Added multilingual support by the graphical toolkit.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
-- Additionally optimized DSP code with AVX, AVX2 and FMA3 instruction set.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
 - Added frequency-domain spectral analysis to convolver plugin series.

@@ -198,7 +198,7 @@ namespace test
     void FloatBuffer::copy(const FloatBuffer &buf)
     {
         size_t to_copy = (buf.nLength < nLength) ? buf.nLength : nLength;
-        memcpy(pBuffer, buf.pBuffer, to_copy * sizeof(float));
+        ::memcpy(pBuffer, buf.pBuffer, to_copy * sizeof(float));
         while (to_copy < nLength)
             pBuffer[to_copy++] = 0.0f;
     }
@@ -206,9 +206,15 @@ namespace test
     void FloatBuffer::copy(const float *buf, size_t count)
     {
         size_t to_copy = (count < nLength) ? count : nLength;
-        memcpy(pBuffer, buf, to_copy * sizeof(float));
+        ::memcpy(pBuffer, buf, to_copy * sizeof(float));
         while (to_copy < nLength)
             pBuffer[to_copy++] = 0.0f;
+    }
+
+    void FloatBuffer::replace(const float *buf, size_t count)
+    {
+        size_t to_copy = (count < nLength) ? count : nLength;
+        ::memcpy(pBuffer, buf, to_copy * sizeof(float));
     }
 
     void FloatBuffer::vfill(size_t off, size_t n, ...)

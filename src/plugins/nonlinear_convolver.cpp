@@ -610,7 +610,7 @@ namespace lsp
                 }
             }
 
-            dsp::scale2(vBuffer, fOutGain, to_do);
+            dsp::mul_k2(vBuffer, fOutGain, to_do);
 
             sBypass.process(out, in, vBuffer, to_do);
 

@@ -18,6 +18,12 @@ IF_ARCH_X86(
     {
         void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
     }
+
+    namespace avx
+    {
+        void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+        void complex_mod_fma3(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -80,9 +86,14 @@ UTEST_BEGIN("dsp.complex", mod)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::complex_mod", 16, sse::complex_mod));
-        IF_ARCH_ARM(call("neon_d32::complex_mod", 16, neon_d32::complex_mod));
-        IF_ARCH_AARCH64(call("asimd::complex_mod", 16, asimd::complex_mod));
+        #define CALL(func, align) \
+            call(#func, align, func)
+
+        IF_ARCH_X86(CALL(sse::complex_mod, 16));
+        IF_ARCH_X86(CALL(avx::complex_mod, 16));
+        IF_ARCH_X86(CALL(avx::complex_mod_fma3, 16));
+        IF_ARCH_ARM(CALL(neon_d32::complex_mod, 16));
+        IF_ARCH_AARCH64(CALL(asimd::complex_mod, 16));
     }
 
 UTEST_END

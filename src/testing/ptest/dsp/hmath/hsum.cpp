@@ -26,10 +26,27 @@ IF_ARCH_X86(
         float h_sqr_sum(const float *src, size_t count);
         float h_abs_sum(const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        float h_sum(const float *src, size_t count);
+        float h_sqr_sum(const float *src, size_t count);
+        float h_sqr_sum_fma3(const float *src, size_t count);
+        float h_abs_sum(const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        float h_sum(const float *src, size_t count);
+        float h_sqr_sum(const float *src, size_t count);
+        float h_abs_sum(const float *src, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         float h_sum(const float *src, size_t count);
         float h_sqr_sum(const float *src, size_t count);
@@ -64,24 +81,34 @@ PTEST_MAIN
     for (size_t i=0; i < buf_size; ++i)
         src[i]          = float(rand()) / RAND_MAX;
 
+    #define CALL(func) \
+        call(#func, src, count, func)
+
     for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
     {
         size_t count = 1 << i;
 
-        call("native:h_sum", src, count, native::h_sum);
-        IF_ARCH_X86(call("sse:h_sum", src, count, sse::h_sum));
-        IF_ARCH_ARM(call("neon_d32:h_sum", src, count, neon_d32::h_sum));
+        CALL(native::h_sum);
+        IF_ARCH_X86(CALL(sse::h_sum));
+        IF_ARCH_X86(CALL(avx::h_sum));
+        IF_ARCH_ARM(CALL(neon_d32::h_sum));
+        IF_ARCH_AARCH64(CALL(asimd::h_sum));
         PTEST_SEPARATOR;
 
-        call("native:h_sqr_sum", src, count, native::h_sqr_sum);
-        IF_ARCH_X86(call("sse:h_sqr_sum", src, count, sse::h_sqr_sum));
-        IF_ARCH_ARM(call("neon_d32:h_sqr_sum", src, count, neon_d32::h_sqr_sum));
+        CALL(native::h_sqr_sum);
+        IF_ARCH_X86(CALL(sse::h_sqr_sum));
+        IF_ARCH_X86(CALL(avx::h_sqr_sum));
+        IF_ARCH_X86(CALL(avx::h_sqr_sum_fma3));
+        IF_ARCH_ARM(CALL(neon_d32::h_sqr_sum));
+        IF_ARCH_AARCH64(CALL(asimd::h_sqr_sum));
         PTEST_SEPARATOR;
 
-        call("native:h_abs_sum", src, count, native::h_abs_sum);
-        IF_ARCH_X86(call("sse:h_abs_sum", src, count, sse::h_abs_sum));
-        IF_ARCH_ARM(call("neon_d32:h_abs_sum", src, count, neon_d32::h_abs_sum));
-        PTEST_SEPARATOR;
+        CALL(native::h_abs_sum);
+        IF_ARCH_X86(CALL(sse::h_abs_sum));
+        IF_ARCH_X86(CALL(avx::h_abs_sum));
+        IF_ARCH_ARM(CALL(neon_d32::h_abs_sum));
+        IF_ARCH_AARCH64(CALL(asimd::h_abs_sum));
+        PTEST_SEPARATOR2;
     }
 
     free_aligned(data);
