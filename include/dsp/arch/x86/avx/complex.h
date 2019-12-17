@@ -16,7 +16,8 @@ namespace avx
     #define COMPLEX_MUL3_CORE(DST, SRC1, SRC2, SEL) \
         __ASM_EMIT  ("xor           %[off], %[off]") \
         /* x8 blocks */ \
-        __ASM_EMIT  ("sub           $8, %[count]") \
+        __ASM_EMIT32("subl          $8, %[count]") \
+        __ASM_EMIT64("sub           $8, %[count]") \
         __ASM_EMIT  ("jb            2f") \
         __ASM_EMIT  ("1:") \
         __ASM_EMIT32("mov           %[" SRC1 "_re], %[ptr_re]") \
@@ -40,11 +41,13 @@ namespace avx
         __ASM_EMIT64("vmovups       %%ymm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT64("vmovups       %%ymm1, 0x00(%[" DST "_im], %[off])") \
         __ASM_EMIT  ("add           $0x20, %[off]") \
-        __ASM_EMIT  ("sub           $8, %[count]") \
+        __ASM_EMIT32("subl          $8, %[count]") \
+        __ASM_EMIT64("sub           $8, %[count]") \
         __ASM_EMIT  ("jae           1b") \
         __ASM_EMIT  ("2:") \
         /* 4x block */ \
-        __ASM_EMIT  ("add           $4, %[count]") \
+        __ASM_EMIT32("addl          $4, %[count]") \
+        __ASM_EMIT64("add           $4, %[count]") \
         __ASM_EMIT  ("jl            4f") \
         __ASM_EMIT32("mov           %[" SRC1 "_re], %[ptr_re]") \
         __ASM_EMIT32("mov           %[" SRC1 "_im], %[ptr_im]") \
@@ -67,10 +70,12 @@ namespace avx
         __ASM_EMIT64("vmovups       %%xmm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT64("vmovups       %%xmm1, 0x00(%[" DST "_im], %[off])") \
         __ASM_EMIT  ("add           $0x10, %[off]") \
-        __ASM_EMIT  ("sub           $4, %[count]") \
+        __ASM_EMIT32("subl          $4, %[count]") \
+        __ASM_EMIT64("sub           $4, %[count]") \
         __ASM_EMIT  ("4:") \
         /* 1x blocks */ \
-        __ASM_EMIT  ("add           $3, %[count]") \
+        __ASM_EMIT32("addl          $3, %[count]") \
+        __ASM_EMIT64("add           $3, %[count]") \
         __ASM_EMIT  ("jl            6f") \
         __ASM_EMIT  ("5:") \
         __ASM_EMIT32("mov           %[" SRC1 "_re], %[ptr_re]") \
@@ -94,7 +99,8 @@ namespace avx
         __ASM_EMIT64("vmovss        %%xmm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT64("vmovss        %%xmm1, 0x00(%[" DST "_im], %[off])") \
         __ASM_EMIT  ("add           $0x04, %[off]") \
-        __ASM_EMIT  ("dec           %[count]") \
+        __ASM_EMIT32("decl          %[count]") \
+        __ASM_EMIT64("dec           %[count]") \
         __ASM_EMIT  ("jge           5b") \
         __ASM_EMIT  ("6:")
 
@@ -108,7 +114,7 @@ namespace avx
             : __IF_32(
                 [ptr_re] "=&r" (ptr_re), [ptr_im] "=&r" (ptr_im),
               )
-              [count] "+r" (count), [off] "=&r" (off)
+              [count] __ASM_ARG_RW(count), [off] "=&r" (off)
             : __IF_32(
                 [dst_re] "g" (dst_re), [dst_im] "g" (dst_im),
                 [src1_re] "g" (src1_re), [src1_im] "g" (src1_im),
@@ -134,7 +140,7 @@ namespace avx
             : __IF_32(
                 [ptr_re] "=&r" (ptr_re), [ptr_im] "=&r" (ptr_im),
               )
-              [count] "+r" (count), [off] "=&r" (off)
+              [count] __ASM_ARG_RW(count), [off] "=&r" (off)
             : __IF_32(
                 [dst_re] "g" (dst_re), [dst_im] "g" (dst_im),
                 [src1_re] "g" (src1_re), [src1_im] "g" (src1_im),
@@ -348,7 +354,8 @@ namespace avx
     #define COMPLEX_DIV3_CORE(DST, SRC1, SRC2, SEL) \
         __ASM_EMIT  ("xor           %[off], %[off]") \
         /* x8 blocks */ \
-        __ASM_EMIT  ("sub           $8, %[count]") \
+        __ASM_EMIT32("subl          $8, %[count]") \
+        __ASM_EMIT64("sub           $8, %[count]") \
         __ASM_EMIT  ("jb            2f") \
         __ASM_EMIT  ("1:") \
         __ASM_EMIT32("mov           %[" SRC1 "_re], %[ptr_re]") \
@@ -380,11 +387,13 @@ namespace avx
         __ASM_EMIT64("vmovups       %%ymm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT64("vmovups       %%ymm1, 0x00(%[" DST "_im], %[off])") \
         __ASM_EMIT  ("add           $0x20, %[off]") \
-        __ASM_EMIT  ("sub           $8, %[count]") \
+        __ASM_EMIT32("subl          $8, %[count]") \
+        __ASM_EMIT64("sub           $8, %[count]") \
         __ASM_EMIT  ("jae           1b") \
         __ASM_EMIT  ("2:") \
         /* 4x block */ \
-        __ASM_EMIT  ("add           $4, %[count]") \
+        __ASM_EMIT32("addl          $4, %[count]") \
+        __ASM_EMIT64("add           $4, %[count]") \
         __ASM_EMIT  ("jl            4f") \
         __ASM_EMIT32("mov           %[" SRC1 "_re], %[ptr_re]") \
         __ASM_EMIT32("mov           %[" SRC1 "_im], %[ptr_im]") \
@@ -415,10 +424,12 @@ namespace avx
         __ASM_EMIT64("vmovups       %%xmm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT64("vmovups       %%xmm1, 0x00(%[" DST "_im], %[off])") \
         __ASM_EMIT  ("add           $0x10, %[off]") \
-        __ASM_EMIT  ("sub           $4, %[count]") \
+        __ASM_EMIT32("subl          $4, %[count]") \
+        __ASM_EMIT64("sub           $4, %[count]") \
         __ASM_EMIT  ("4:") \
         /* 1x blocks */ \
-        __ASM_EMIT  ("add           $3, %[count]") \
+        __ASM_EMIT32("addl          $3, %[count]") \
+        __ASM_EMIT64("add           $3, %[count]") \
         __ASM_EMIT  ("jl            6f") \
         __ASM_EMIT  ("5:") \
         __ASM_EMIT32("mov           %[" SRC1 "_re], %[ptr_re]") \
@@ -450,7 +461,8 @@ namespace avx
         __ASM_EMIT64("vmovss        %%xmm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT64("vmovss        %%xmm1, 0x00(%[" DST "_im], %[off])") \
         __ASM_EMIT  ("add           $0x04, %[off]") \
-        __ASM_EMIT  ("dec           %[count]") \
+        __ASM_EMIT32("decl          %[count]") \
+        __ASM_EMIT64("dec           %[count]") \
         __ASM_EMIT  ("jge           5b") \
         __ASM_EMIT  ("6:")
 
@@ -467,7 +479,7 @@ namespace avx
             : __IF_32(
                 [ptr_re] "=&r" (ptr_re), [ptr_im] "=&r" (ptr_im),
               )
-              [count] "+r" (count), [off] "=&r" (off)
+              [count] __ASM_ARG_RW(count), [off] "=&r" (off)
             : __IF_32(
                 [dst_re] "g" (dst_re), [dst_im] "g" (dst_im),
                 [src1_re] "g" (src1_re), [src1_im] "g" (src1_im),
@@ -498,7 +510,7 @@ namespace avx
             : __IF_32(
                 [ptr_re] "=&r" (ptr_re), [ptr_im] "=&r" (ptr_im),
               )
-              [count] "+r" (count), [off] "=&r" (off)
+              [count] __ASM_ARG_RW(count), [off] "=&r" (off)
             : __IF_32(
                 [dst_re] "g" (dst_re), [dst_im] "g" (dst_im),
                 [src1_re] "g" (src1_re), [src1_im] "g" (src1_im),
@@ -603,9 +615,9 @@ namespace avx
         __ASM_EMIT  ("vmulss        %%xmm6, %%xmm1, %%xmm1")                            /* xmm1 = I = -i/M */ \
         __ASM_EMIT  ("vmovss        %%xmm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT  ("vmovss        %%xmm1, 0x00(%[" DST "_im], %[off])") \
-        __ASM_EMIT32("addl          $0x04, %[off]") \
-        __ASM_EMIT64("add           $0x04, %[off]") \
-        __ASM_EMIT  ("dec           %[count]") \
+        __ASM_EMIT  ("add           $0x04, %[off]") \
+        __ASM_EMIT32("decl          %[count]") \
+        __ASM_EMIT64("dec           %[count]") \
         __ASM_EMIT  ("jge           5b") \
         __ASM_EMIT  ("6:")
 
@@ -771,9 +783,9 @@ namespace avx
         __ASM_EMIT  ("vmulss        %%xmm4, %%xmm2, %%xmm2")                            /* xmm1 = -ai/R */ \
         __ASM_EMIT  ("vmovss        %%xmm0, 0x00(%[" DST "_re], %[off])") \
         __ASM_EMIT  ("vmovss        %%xmm2, 0x00(%[" DST "_im], %[off])") \
-        __ASM_EMIT32("addl          $0x04, %[off]") \
-        __ASM_EMIT64("add           $0x04, %[off]") \
-        __ASM_EMIT  ("dec           %[count]") \
+        __ASM_EMIT  ("add           $0x04, %[off]") \
+        __ASM_EMIT32("decl          %[count]") \
+        __ASM_EMIT64("dec           %[count]") \
         __ASM_EMIT  ("jge           7b") \
         __ASM_EMIT  ("8:")
 

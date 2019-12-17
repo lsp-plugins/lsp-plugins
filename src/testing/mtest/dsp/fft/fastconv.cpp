@@ -604,7 +604,7 @@ typedef void (* fastconv_parse_apply_t)(float *dst, float *tmp, const float *c, 
 
 MTEST_BEGIN("dsp.fft", fastconv)
 
-    void test_fatconv_parse(const char *text, fastconv_parse_t parse, FloatBuffer &src)
+    void test_fastconv_parse(const char *text, fastconv_parse_t parse, FloatBuffer &src)
     {
         printf("testing %s fastconv_parse...\n", text);
         FloatBuffer samp(BUF_SIZE >> 1, 64);
@@ -619,7 +619,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         MTEST_ASSERT_MSG(conv.valid(), "conv corrupted");
     }
 
-    void test_fatconv_restore(const char *text,
+    void test_fastconv_restore(const char *text,
             fastconv_parse_t parse, fastconv_restore_t restore,
             FloatBuffer &src, FloatBuffer &dst)
     {
@@ -644,7 +644,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         MTEST_ASSERT_MSG(rest.valid(), "rest corrupted");
     }
 
-    void test_fatconv_apply(const char *text,
+    void test_fastconv_apply(const char *text,
             fastconv_parse_t parse, fastconv_apply_t apply,
             FloatBuffer &src1, FloatBuffer &src2, FloatBuffer &dst)
     {
@@ -737,52 +737,52 @@ MTEST_BEGIN("dsp.fft", fastconv)
         samp2.copy(samp1);
 
         // Test parse
-        test_fatconv_parse("native", fastconv_parse, src1);
+        test_fastconv_parse("native", fastconv_parse, src1);
         IF_ARCH_X86(
             if (TEST_SUPPORTED(sse::fastconv_parse))
-                test_fatconv_parse("SSE", sse::fastconv_parse, src1);
+                test_fastconv_parse("SSE", sse::fastconv_parse, src1);
             if (TEST_SUPPORTED(avx::fastconv_parse))
-                test_fatconv_parse("AVX", avx::fastconv_parse, src1);
+                test_fastconv_parse("AVX", avx::fastconv_parse, src1);
             if (TEST_SUPPORTED(avx::fastconv_parse_fma3))
-                test_fatconv_parse("FMA3", avx::fastconv_parse_fma3, src1);
+                test_fastconv_parse("FMA3", avx::fastconv_parse_fma3, src1);
         );
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse))
-                test_fatconv_parse("NEON-D32", neon_d32::fastconv_parse, src1);
+                test_fastconv_parse("NEON-D32", neon_d32::fastconv_parse, src1);
         );
 
         // Test parse + restore
         printf("\n");
-        test_fatconv_restore("native", fastconv_parse, fastconv_restore, src1, dst);
+        test_fastconv_restore("native", fastconv_parse, fastconv_restore, src1, dst);
 
         IF_ARCH_X86(
             if (TEST_SUPPORTED(sse::fastconv_parse) && TEST_SUPPORTED(sse::fastconv_restore))
-                test_fatconv_restore("SSE", sse::fastconv_parse, sse::fastconv_restore, src1, dst);
+                test_fastconv_restore("SSE", sse::fastconv_parse, sse::fastconv_restore, src1, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse) && TEST_SUPPORTED(avx::fastconv_restore))
-                test_fatconv_restore("AVX", avx::fastconv_parse, avx::fastconv_restore, src1, dst);
+                test_fastconv_restore("AVX", avx::fastconv_parse, avx::fastconv_restore, src1, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse_fma3) && TEST_SUPPORTED(avx::fastconv_restore_fma3))
-                test_fatconv_restore("FMA3", avx::fastconv_parse_fma3, avx::fastconv_restore_fma3, src1, dst);
+                test_fastconv_restore("FMA3", avx::fastconv_parse_fma3, avx::fastconv_restore_fma3, src1, dst);
         );
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_restore))
-                test_fatconv_restore("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_restore, src1, dst);
+                test_fastconv_restore("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_restore, src1, dst);
         );
 
         // Test parse + apply
         printf("\n");
-        test_fatconv_apply("native", native::fastconv_parse, native::fastconv_apply, src1, src2, dst);
+        test_fastconv_apply("native", native::fastconv_parse, native::fastconv_apply, src1, src2, dst);
 
         IF_ARCH_X86(
             if (TEST_SUPPORTED(sse::fastconv_parse) && TEST_SUPPORTED(sse::fastconv_apply))
-                test_fatconv_apply("SSE", sse::fastconv_parse, sse::fastconv_apply, src1, src2, dst);
+                test_fastconv_apply("SSE", sse::fastconv_parse, sse::fastconv_apply, src1, src2, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse) && TEST_SUPPORTED(avx::fastconv_apply))
-                test_fatconv_apply("AVX", avx::fastconv_parse, avx::fastconv_apply, src1, src2, dst);
+                test_fastconv_apply("AVX", avx::fastconv_parse, avx::fastconv_apply, src1, src2, dst);
             if (TEST_SUPPORTED(avx::fastconv_parse_fma3) && TEST_SUPPORTED(avx::fastconv_apply_fma3))
-                test_fatconv_apply("FMA3", avx::fastconv_parse_fma3, avx::fastconv_apply_fma3, src1, src2, dst);
+                test_fastconv_apply("FMA3", avx::fastconv_parse_fma3, avx::fastconv_apply_fma3, src1, src2, dst);
         );
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_apply))
-                test_fatconv_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_apply, src1, src2, dst);
+                test_fastconv_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_apply, src1, src2, dst);
         );
 
         // Test parse + parse_apply
@@ -800,7 +800,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
 
         IF_ARCH_ARM(
             if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_parse_apply))
-                test_fatconv_parse_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply, src1, src2, dst);
+                test_fastconv_parse_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply, src1, src2, dst);
         );
     }
 MTEST_END
