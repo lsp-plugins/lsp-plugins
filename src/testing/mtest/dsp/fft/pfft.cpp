@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        3
+#define RANK        4
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -344,7 +344,7 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
         iw_im  += 4;
     }
 
-//    repack_fft(dst, rank);
+    repack_fft(dst, rank);
 }
 
 static void packed_reverse_fft(float *dst, const float *src, size_t rank)
@@ -566,7 +566,7 @@ MTEST_BEGIN("dsp.fft", pfft)
         );
 
         printf("\n");
-        packed_reverse_fft(src2, src1, RANK);
+        packed_direct_fft(src2, src1, RANK);
         test_reverse_fft("native", packed_reverse_fft, src2);
 
         IF_ARCH_X86(

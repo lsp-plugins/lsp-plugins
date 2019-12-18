@@ -69,11 +69,11 @@ namespace asimd
         else
             packed_scramble_copy_direct(dst, src, rank);
         packed_direct_butterfly_rank3(dst, 1 << (rank-3));
-/*
+
         for (size_t i=4; i <= rank; ++i)
             packed_direct_butterfly_rank4p(dst, i, 1 << (rank - i));
 
-        packed_unscramble_direct(dst, rank);*/
+        packed_unscramble_direct(dst, rank);
     }
 
     void packed_reverse_fft(float *dst, const float *src, size_t rank)

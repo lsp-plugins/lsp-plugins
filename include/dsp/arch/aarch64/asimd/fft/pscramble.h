@@ -354,6 +354,129 @@ namespace asimd
         );
     }
 #endif
+
+    void packed_unscramble_direct(float *dst, size_t rank)
+    {
+        IF_ARCH_AARCH64(
+            size_t count = 1 << rank;
+        );
+
+        ARCH_AARCH64_ASM(
+            // 16x blocks
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("b.lo        2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ldp         q0, q16, [%[dst], #0x00]")
+            __ASM_EMIT("ldp         q2, q17, [%[dst], #0x20]")
+            __ASM_EMIT("ldp         q4, q18, [%[dst], #0x40]")
+            __ASM_EMIT("ldp         q6, q19, [%[dst], #0x60]")
+            __ASM_EMIT("zip2        v1.4s, v0.4s, v16.4s")
+            __ASM_EMIT("zip1        v0.4s, v0.4s, v16.4s")
+            __ASM_EMIT("zip2        v3.4s, v2.4s, v17.4s")
+            __ASM_EMIT("zip1        v2.4s, v2.4s, v17.4s")
+            __ASM_EMIT("zip2        v5.4s, v4.4s, v18.4s")
+            __ASM_EMIT("zip1        v4.4s, v4.4s, v18.4s")
+            __ASM_EMIT("zip2        v7.4s, v6.4s, v19.4s")
+            __ASM_EMIT("zip1        v6.4s, v6.4s, v19.4s")
+            __ASM_EMIT("stp         q0, q1, [%[dst], #0x00]")
+            __ASM_EMIT("stp         q2, q3, [%[dst], #0x20]")
+            __ASM_EMIT("stp         q4, q5, [%[dst], #0x40]")
+            __ASM_EMIT("stp         q6, q7, [%[dst], #0x60]")
+            __ASM_EMIT("subs        %[count], %[count], #32")
+            __ASM_EMIT("add         %[dst], %[dst], #0x80")
+            __ASM_EMIT("b.hs        1b")
+            __ASM_EMIT("2:")
+            // 8x block
+            __ASM_EMIT("adds        %[count], %[count], #8")
+            __ASM_EMIT("b.lt        4f")
+            __ASM_EMIT("ldp         q0, q16, [%[dst], #0x00]")
+            __ASM_EMIT("ldp         q2, q17, [%[dst], #0x20]")
+            __ASM_EMIT("zip2        v1.4s, v0.4s, v16.4s")
+            __ASM_EMIT("zip1        v0.4s, v0.4s, v16.4s")
+            __ASM_EMIT("zip2        v3.4s, v2.4s, v17.4s")
+            __ASM_EMIT("zip1        v2.4s, v2.4s, v17.4s")
+            __ASM_EMIT("stp         q0, q1, [%[dst], #0x00]")
+            __ASM_EMIT("stp         q2, q3, [%[dst], #0x20]")
+            __ASM_EMIT("4:")
+            : [dst] "+r" (dst),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "v0", "v1", "v2", "v3",
+              "v4", "v5", "v6", "v7",
+              "v16", "v17", "v18", "v19"
+        );
+    }
+
+    void packed_unscramble_reverse(float *dst, size_t rank)
+    {
+        IF_ARCH_AARCH64(
+            size_t count = 1 << rank;
+            float k = 1.0f/(1 << rank);
+        );
+
+        ARCH_AARCH64_ASM(
+            __ASM_EMIT("dup         v31.4s, %S[k].s[0]")             // v31   = k
+            // 16x blocks
+            __ASM_EMIT("subs        %[count], %[count], #16")
+            __ASM_EMIT("mov         v30.16b, v31.16b")
+            __ASM_EMIT("b.lo        2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ldp         q0, q16, [%[dst], #0x00]")
+            __ASM_EMIT("ldp         q2, q17, [%[dst], #0x20]")
+            __ASM_EMIT("ldp         q4, q18, [%[dst], #0x40]")
+            __ASM_EMIT("ldp         q6, q19, [%[dst], #0x60]")
+            __ASM_EMIT("zip2        v1.4s, v0.4s, v16.4s")
+            __ASM_EMIT("zip1        v0.4s, v0.4s, v16.4s")
+            __ASM_EMIT("fmul        v1.4s, v1.4s, v30.4s")
+            __ASM_EMIT("fmul        v0.4s, v0.4s, v31.4s")
+            __ASM_EMIT("zip2        v3.4s, v2.4s, v17.4s")
+            __ASM_EMIT("zip1        v2.4s, v2.4s, v17.4s")
+            __ASM_EMIT("fmul        v3.4s, v3.4s, v30.4s")
+            __ASM_EMIT("fmul        v2.4s, v2.4s, v31.4s")
+            __ASM_EMIT("zip2        v5.4s, v4.4s, v18.4s")
+            __ASM_EMIT("zip1        v4.4s, v4.4s, v18.4s")
+            __ASM_EMIT("fmul        v5.4s, v5.4s, v30.4s")
+            __ASM_EMIT("fmul        v4.4s, v4.4s, v31.4s")
+            __ASM_EMIT("zip2        v7.4s, v6.4s, v19.4s")
+            __ASM_EMIT("zip1        v6.4s, v6.4s, v19.4s")
+            __ASM_EMIT("fmul        v7.4s, v7.4s, v30.4s")
+            __ASM_EMIT("fmul        v6.4s, v6.4s, v31.4s")
+            __ASM_EMIT("stp         q0, q1, [%[dst], #0x00]")
+            __ASM_EMIT("stp         q2, q3, [%[dst], #0x20]")
+            __ASM_EMIT("stp         q4, q5, [%[dst], #0x40]")
+            __ASM_EMIT("stp         q6, q7, [%[dst], #0x60]")
+            __ASM_EMIT("subs        %[count], %[count], #32")
+            __ASM_EMIT("add         %[dst], %[dst], #0x80")
+            __ASM_EMIT("b.hs        1b")
+            __ASM_EMIT("2:")
+            // 8x block
+            __ASM_EMIT("adds        %[count], %[count], #8")
+            __ASM_EMIT("b.lt        4f")
+            __ASM_EMIT("ldp         q0, q16, [%[dst], #0x00]")
+            __ASM_EMIT("ldp         q2, q17, [%[dst], #0x20]")
+            __ASM_EMIT("zip2        v1.4s, v0.4s, v16.4s")
+            __ASM_EMIT("zip1        v0.4s, v0.4s, v16.4s")
+            __ASM_EMIT("fmul        v1.4s, v1.4s, v30.4s")
+            __ASM_EMIT("fmul        v0.4s, v0.4s, v31.4s")
+            __ASM_EMIT("zip2        v3.4s, v2.4s, v17.4s")
+            __ASM_EMIT("zip1        v2.4s, v2.4s, v17.4s")
+            __ASM_EMIT("fmul        v3.4s, v3.4s, v30.4s")
+            __ASM_EMIT("fmul        v2.4s, v2.4s, v31.4s")
+            __ASM_EMIT("stp         q0, q1, [%[dst], #0x00]")
+            __ASM_EMIT("stp         q2, q3, [%[dst], #0x20]")
+            __ASM_EMIT("4:")
+            : [dst] "+r" (dst),
+              [count] "+r" (count),
+              [k] "+w" (k)
+            :
+            : "cc", "memory",
+              "v0", "v1", "v2", "v3",
+              "v4", "v5", "v6", "v7",
+              "v16", "v17", "v18", "v19",
+              "v30", "v31"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_AARCH64_ASIMD_FFT_PSCRAMBLE_H_ */

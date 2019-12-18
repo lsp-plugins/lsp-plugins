@@ -118,10 +118,10 @@ namespace asimd
         /* 8x butterflies */ \
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("3:") \
-        __ASM_EMIT("ldp         q0, q1, [%[a_re], #0x00]")              /* v0   = ar1, q1 = ar2 */ \
-        __ASM_EMIT("ldp         q2, q3, [%[a_im], #0x00]")              /* v2   = ai1, q3 = ai2 */ \
-        __ASM_EMIT("ldp         q4, q5, [%[b_re], #0x00]")              /* v4   = br1, q5 = br2 */ \
-        __ASM_EMIT("ldp         q6, q7, [%[b_im], #0x00]")              /* v6   = bi2, q7 = bi2 */ \
+        __ASM_EMIT("ldp         q0, q1, [%[a_re], #0x00]")              /* v0   = ar1, v1 = ar2 */ \
+        __ASM_EMIT("ldp         q2, q3, [%[a_im], #0x00]")              /* v2   = ai1, v3 = ai2 */ \
+        __ASM_EMIT("ldp         q4, q5, [%[b_re], #0x00]")              /* v4   = br1, v5 = br2 */ \
+        __ASM_EMIT("ldp         q6, q7, [%[b_im], #0x00]")              /* v6   = bi1, v7 = bi2 */ \
         /* Calc cr and ci */ \
         __ASM_EMIT("fmul        v16.4s, v28.4s, v4.4s")                 /* v16  = wr1 * br1 */ \
         __ASM_EMIT("fmul        v17.4s, v29.4s, v5.4s")                 /* v17  = wr2 * br2 */ \
