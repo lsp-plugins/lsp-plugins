@@ -14,6 +14,7 @@
 
 #include <dsp/arch/aarch64/asimd/fft/const.h>
 #include <dsp/arch/aarch64/asimd/fft/pscramble.h>
+#include <dsp/arch/aarch64/asimd/fft/pbutterfly.h>
 
 namespace asimd
 {
@@ -67,8 +68,8 @@ namespace asimd
             packed_scramble_self_direct(dst, rank);
         else
             packed_scramble_copy_direct(dst, src, rank);
-/*        packed_direct_butterfly_rank3(dst, 1 << (rank-3));
-
+        packed_direct_butterfly_rank3(dst, 1 << (rank-3));
+/*
         for (size_t i=4; i <= rank; ++i)
             packed_direct_butterfly_rank4p(dst, i, 1 << (rank - i));
 

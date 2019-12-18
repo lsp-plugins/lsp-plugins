@@ -61,7 +61,8 @@ namespace neon_d32
     void packed_direct_butterfly_rank3(float *dst, size_t blocks) {
         ARCH_ARM_ASM(
             PBUTTERFLY_RANK3("vmla.f32", "vmls.f32")
-            : [dst] "+r" (dst), [blocks] "+r" (blocks)
+            : [dst] "+r" (dst),
+              [blocks] "+r" (blocks)
             : [XFFT_A] "r" (&XFFT_A[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
@@ -70,13 +71,9 @@ namespace neon_d32
     }
 
     void packed_reverse_butterfly_rank3(float *dst, size_t blocks) {
-        IF_ARCH_ARM(
-            const float *src = dst;
-        );
-
         ARCH_ARM_ASM(
             PBUTTERFLY_RANK3("vmls.f32", "vmla.f32")
-            : [dst] "+r" (dst), [src] "+r" (src),
+            : [dst] "+r" (dst),
               [blocks] "+r" (blocks)
             : [XFFT_A] "r" (&XFFT_A[0])
             : "cc", "memory",

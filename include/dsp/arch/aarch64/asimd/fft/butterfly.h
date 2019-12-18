@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_AARCH64_ASIMD_FFT_BUTTERFLY_H_
 #define DSP_ARCH_AARCH64_ASIMD_FFT_BUTTERFLY_H_
 
+#ifndef DSP_ARCH_AARCH64_ASIMD_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_AARCH64_ASIMD_IMPL */
+
 namespace asimd
 {
     #define BUTTERFLY_RANK3(op1, op2) \
@@ -18,10 +22,10 @@ namespace asimd
         __ASM_EMIT("b.lo        2f") \
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("1:") \
-        __ASM_EMIT("ldp         q0, q1, [%[dst_re], #0x00]")            /* v0   = ar1, q1 = br1 */ \
-        __ASM_EMIT("ldp         q2, q3, [%[dst_re], #0x20]")            /* v2   = ar2, q3 = br2 */ \
-        __ASM_EMIT("ldp         q4, q5, [%[dst_im], #0x00]")            /* v4   = ai1, q5 = bi1 */ \
-        __ASM_EMIT("ldp         q6, q7, [%[dst_im], #0x20]")            /* v6   = ai2, q7 = bi2 */ \
+        __ASM_EMIT("ldp         q0, q1, [%[dst_re], #0x00]")            /* v0   = ar1, v1 = br1 */ \
+        __ASM_EMIT("ldp         q2, q3, [%[dst_re], #0x20]")            /* v2   = ar2, v3 = br2 */ \
+        __ASM_EMIT("ldp         q4, q5, [%[dst_im], #0x00]")            /* v4   = ai1, v5 = bi1 */ \
+        __ASM_EMIT("ldp         q6, q7, [%[dst_im], #0x20]")            /* v6   = ai2, v7 = bi2 */ \
         /* Calc cr and ci */ \
         __ASM_EMIT("fmul        v16.4s, v28.4s, v1.4s")                 /* v16  = wr1 * br1 */ \
         __ASM_EMIT("fmul        v17.4s, v29.4s, v3.4s")                 /* v17  = wr2 * br2 */ \
@@ -52,8 +56,8 @@ namespace asimd
         /* 4x butterflies */ \
         __ASM_EMIT("adds        %[blocks], %[blocks], #1") \
         __ASM_EMIT("b.lo        4f") \
-        __ASM_EMIT("ldp         q0, q1, [%[dst_re], #0x00]")            /* v0   = ar1, q1 = br1 */ \
-        __ASM_EMIT("ldp         q4, q5, [%[dst_im], #0x00]")            /* v4   = ai1, q5 = bi1 */ \
+        __ASM_EMIT("ldp         q0, q1, [%[dst_re], #0x00]")            /* v0   = ar1, v1 = br1 */ \
+        __ASM_EMIT("ldp         q4, q5, [%[dst_im], #0x00]")            /* v4   = ai1, v5 = bi1 */ \
         /* Calc cr and ci */ \
         __ASM_EMIT("fmul        v16.4s, v28.4s, v1.4s")                  /* v16  = wr1 * br1 */ \
         __ASM_EMIT("fmul        v18.4s, v28.4s, v5.4s")                  /* v18  = wr1 * bi1 */ \
