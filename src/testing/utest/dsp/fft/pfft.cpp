@@ -42,6 +42,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void packed_direct_fft(float *dst, const float *src, size_t rank);
+        void packed_reverse_fft(float *dst, const float *src, size_t rank);
+    }
+)
+
 typedef void (* packed_fft_t)(float *dst, const float *src, size_t rank);
 
 UTEST_BEGIN("dsp.fft", pfft)
@@ -113,5 +121,8 @@ UTEST_BEGIN("dsp.fft", pfft)
 
         IF_ARCH_ARM(CALL(native::packed_direct_fft, neon_d32::packed_direct_fft, 16));
         IF_ARCH_ARM(CALL(native::packed_reverse_fft, neon_d32::packed_reverse_fft, 16));
+
+        IF_ARCH_AARCH64(CALL(native::packed_direct_fft, asimd::packed_direct_fft, 16));
+        IF_ARCH_AARCH64(CALL(native::packed_reverse_fft, asimd::packed_reverse_fft, 16));
     }
 UTEST_END;

@@ -68,6 +68,7 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
 
 #include <dsp/arch/aarch64/asimd/fft.h>
+#include <dsp/arch/aarch64/asimd/pfft.h>
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
@@ -236,6 +237,9 @@ namespace asimd
         EXPORT1(reverse_fft);
         EXPORT1(normalize_fft2);
         EXPORT1(normalize_fft3);
+
+        EXPORT1(packed_direct_fft);
+        EXPORT1(packed_reverse_fft);
     }
 }
 
