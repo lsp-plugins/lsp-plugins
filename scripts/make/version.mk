@@ -4,7 +4,7 @@ R3D_ARTIFACT_ID         = $(ARTIFACT_ID)-r3d
 
 # Package version
 ifndef VERSION
-  VERSION                 = 1.1.10
+  VERSION                 = 1.1.11
 endif
 
 export VERSION
