@@ -121,7 +121,7 @@ namespace lsp
 
             // Apply 'dry' control
             if (fDry > 0.0)
-                dsp::scale_add3(vBuffer, in, fDry, count);
+                dsp::fmadd_k3(vBuffer, in, fDry, count);
 
             vBypass.process(out, in, vBuffer, count);
 

@@ -85,14 +85,16 @@ namespace lsp
         //---------------------------------------------------------------------
         LSPComboGroup::LSPComboGroup(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
+            sColor(this),
             sListBox(dpy, this),
-            sFont(dpy, this)
+            sFont(this)
         {
             nRadius     = 10;
             nBorder     = 0;
-            pPopup      = NULL;
             nCBFlags    = 0;
             nMFlags     = 0;
+            pPopup      = NULL;
+            bEmbed      = false;
 
             sGroupHdr.nLeft     = 0;
             sGroupHdr.nTop      = 0;
@@ -120,18 +122,8 @@ namespace lsp
 
             sFont.init();
             sFont.set_size(12.0f);
-
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_BACKGROUND, sFont.color());
 
             // Bind slots
             ui_handler_id_t id = 0;
@@ -152,6 +144,8 @@ namespace lsp
         LSPWidget *LSPComboGroup::current_widget()
         {
             ssize_t idx = sListBox.selection()->value();
+            if (idx >= ssize_t(vWidgets.size()))
+                idx = vWidgets.size() - 1;
             LSPWidget *w = vWidgets.get(idx);
             return ((w == NULL) || (w->invisible())) ? NULL : w;
         }
@@ -164,7 +158,7 @@ namespace lsp
 
         void LSPComboGroup::query_dimensions(dimensions_t *d)
         {
-            size_t bw       = round(nRadius * M_SQRT2 * 0.5) + 1;
+            size_t bw       = (bEmbed) ? 1 : ::round(nRadius * M_SQRT2 * 0.5) + 1;
             size_t dd       = bw + nBorder + 1;
             d->nGapLeft     = dd;
             d->nGapRight    = dd;
@@ -238,8 +232,23 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
 //            lsp_trace("Rendering this=%p, force=%d", this, int(force));
             LSPWidget *current = current_widget();
+
+            // Draw child
+            if (current != NULL)
+            {
+                if ((force) || (current->redraw_pending()))
+                {
+                    current->render(s, force);
+                    current->commit_redraw();
+                }
+            }
 
             if (force)
             {
@@ -252,23 +261,30 @@ namespace lsp
 
                 // Draw background
                 if (current == NULL)
-                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 else
                 {
                     realize_t r;
                     current->get_dimensions(&r);
-                    s->fill_frame(
-                        sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
-                        r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                        sBgColor
-                    );
-//                    Color yell(1.0f, 1.0f, 0.0f);
-//                    s->wire_rect(r.nLeft, r.nTop, r.nWidth - 1, r.nHeight - 1, 1.0f, yell);
+
+                    if ((bEmbed) && (nRadius > 1))
+                        s->fill_round_frame(
+                            sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                            r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                            nRadius-1, SURFMASK_B_CORNER,
+                            bg_color
+                        );
+                    else
+                        s->fill_frame(
+                                sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                                r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                                bg_color
+                            );
                 }
 
                 // Draw frame
                 bool aa = s->set_antialiasing(true);
-                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, sColor);
+                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, color);
 
                 ssize_t bwidth      = 12;
                 sGroupHdr.nLeft     = cx;
@@ -283,48 +299,40 @@ namespace lsp
                     // Draw text border
                     font_parameters_t   fp;
                     text_parameters_t   tp;
-
                     sFont.get_parameters(s, &fp);
                     sFont.get_text_parameters(s, &tp, text);
 
                     sGroupHdr.nWidth    = 4 + nRadius + tp.Width + bwidth;
                     sGroupHdr.nHeight   = fp.Height + 4;
 
-                    s->fill_round_rect(cx - 1, cy-1, sGroupHdr.nWidth, sGroupHdr.nHeight, nRadius, 0x04, sColor);
+                    s->fill_round_rect(cx - 1, cy-1, sGroupHdr.nWidth, sGroupHdr.nHeight, nRadius, 0x04, color);
 
                     // Show text
-                    sFont.draw(s, cx + bwidth + 4 , cy + fp.Ascent + nBorder, text);
+                    Color font(sFont.raw_color());
+                    font.scale_lightness(brightness());
+
+                    sFont.draw(s, cx + bwidth + 4 , cy + fp.Ascent + nBorder, font, text);
 
                     // Draw buttons
                     ssize_t half = sGroupHdr.nTop + (fp.Height * 0.5f);
-                    Color *c = sFont.color();
+
                     s->fill_triangle(
                             cx + 2, half - 2,
                             cx + bwidth - 2, half - 2,
                             cx + bwidth*0.5f, half - 6,
-                            *c);
+                            font);
 
                     s->fill_triangle(
                             cx + 2, half + 1,
                             cx + bwidth - 2, half + 1,
                             cx + bwidth*0.5f, half + 5,
-                            *c);
+                            font);
 
                     s->set_antialiasing(false);
-                    s->line(cx + bwidth + 2, cy + 1, cx + bwidth + 2, cy + fp.Height + 1, 1, *c);
+                    s->line(cx + bwidth + 2, cy + 1, cx + bwidth + 2, cy + fp.Height + 1, 1, font);
                 }
 
                 s->set_antialiasing(aa);
-            }
-
-            // Draw child
-            if (current != NULL)
-            {
-                if ((force) || (current->redraw_pending()))
-                {
-                    current->render(s, force);
-                    current->commit_redraw();
-                }
             }
         }
 
@@ -355,6 +363,12 @@ namespace lsp
                 r->nMinWidth    = 0;
             if (r->nMinHeight < 0)
                 r->nMinHeight   = 0;
+
+            if (w != NULL)
+            {
+                r->nMinWidth   += w->padding()->horizontal();
+                r->nMinHeight  += w->padding()->vertical();
+            }
 
             dimensions_t d;
             query_dimensions(&d);
@@ -400,10 +414,10 @@ namespace lsp
             w->size_request(&sr);
 
             realize_t rc;
-            rc.nLeft    = r->nLeft   + d.nGapLeft;
-            rc.nTop     = r->nTop    + d.nGapTop;
-            rc.nWidth   = r->nWidth  - d.nGapLeft - d.nGapRight;
-            rc.nHeight  = r->nHeight - d.nGapTop - d.nGapBottom;
+            rc.nLeft    = r->nLeft   + d.nGapLeft  + w->padding()->left();
+            rc.nTop     = r->nTop    + d.nGapTop   + w->padding()->top();
+            rc.nWidth   = r->nWidth  - d.nGapLeft  - d.nGapRight   - w->padding()->horizontal();
+            rc.nHeight  = r->nHeight - d.nGapTop   - d.nGapBottom  - w->padding()->vertical();
 
             if ((sr.nMaxWidth > 0) && (sr.nMaxWidth < rc.nWidth))
             {
@@ -656,6 +670,14 @@ namespace lsp
                 nCBFlags     |= F_CIRCULAR;
             else
                 nCBFlags     &= ~F_CIRCULAR;
+        }
+
+        void LSPComboGroup::set_embed(bool embed)
+        {
+            if (bEmbed == embed)
+                return;
+            bEmbed = embed;
+            query_resize();
         }
 
         status_t LSPComboGroup::on_list_change()

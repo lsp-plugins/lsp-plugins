@@ -18,7 +18,7 @@ namespace lsp
         class InStringSequence: public IInSequence
         {
             private:
-                const LSPString    *pString;
+                LSPString          *pString;
                 size_t              nOffset;
                 bool                bDelete;
 
@@ -29,21 +29,25 @@ namespace lsp
                 InStringSequence & operator = (const InStringSequence &);
 
             public:
-                explicit InStringSequence(const LSPString *s, bool del = false);
+                explicit InStringSequence();
+                explicit InStringSequence(const LSPString *s);
+                explicit InStringSequence(LSPString *s, bool del = false);
                 virtual ~InStringSequence();
 
             public:
-                status_t            wrap(const LSPString *in, bool del);
+                status_t                wrap(const LSPString *in);
+                status_t                wrap(LSPString *in, bool del);
+                status_t                wrap(const char *s, const char *charset = NULL);
 
-                virtual ssize_t     read(lsp_wchar_t *dst, size_t count);
+                virtual ssize_t         read(lsp_wchar_t *dst, size_t count);
 
-                virtual int         read();
+                virtual lsp_swchar_t    read();
 
-                virtual status_t    read_line(LSPString *s, bool force = false);
+                virtual status_t        read_line(LSPString *s, bool force = false);
 
-                virtual ssize_t     skip(size_t count);
+                virtual ssize_t         skip(size_t count);
 
-                virtual status_t    close();
+                virtual status_t        close();
         };
     }
 } /* namespace lsp */

@@ -29,10 +29,10 @@
         /* Load complex values */ \
         /* predicate: xmm6 = w_re[0..3] */ \
         /* predicate: xmm7 = w_im[0..3] */ \
-        __ASM_EMIT(LS_RE "      0x00(%[a]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
-        __ASM_EMIT(LS_RE "      0x10(%[a]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
-        __ASM_EMIT(LS_RE "      0x00(%[b]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
-        __ASM_EMIT(LS_RE "      0x10(%[b]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
+        __ASM_EMIT("movups      0x00(%[a]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
+        __ASM_EMIT("movups      0x10(%[a]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
+        __ASM_EMIT("movups      0x00(%[b]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
+        __ASM_EMIT("movups      0x10(%[b]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
         \
         /* Calculate complex multiplication */ \
         __ASM_EMIT("movaps      %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
@@ -53,10 +53,10 @@
         __ASM_EMIT("addps       %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
         \
         /* Store values */ \
-        __ASM_EMIT(LS_RE "      %%xmm2, 0x00(%[a])") \
-        __ASM_EMIT(LS_RE "      %%xmm3, 0x10(%[a])") \
-        __ASM_EMIT(LS_RE "      %%xmm0, 0x00(%[b])") \
-        __ASM_EMIT(LS_RE "      %%xmm1, 0x10(%[b])") \
+        __ASM_EMIT("movups      %%xmm2, 0x00(%[a])") \
+        __ASM_EMIT("movups      %%xmm3, 0x10(%[a])") \
+        __ASM_EMIT("movups      %%xmm0, 0x00(%[b])") \
+        __ASM_EMIT("movups      %%xmm1, 0x10(%[b])") \
         \
         /* Update pointers */ \
         __ASM_EMIT("add         $0x20, %[a]") \
@@ -93,32 +93,29 @@
         "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
     );
 
-static inline void FFT_BUTTERFLY_DIRECT_NAME(float *dst, size_t rank, size_t blocks)
+namespace sse
 {
-    size_t pairs = 1 << (rank + 1);
-    rank = (rank - 2) << 5;
-
-    for (size_t blk=0; blk<blocks; ++blk)
+    static inline void packed_butterfly_direct(float *dst, size_t rank, size_t blocks)
     {
-        FFT_BUTTERFLY_BODY("addps", "subps");
+        size_t pairs = 1 << (rank + 1);
+        rank = (rank - 2) << 5;
+
+        for (size_t blk=0; blk<blocks; ++blk)
+        {
+            FFT_BUTTERFLY_BODY("addps", "subps");
+        }
+    }
+
+    static inline void packed_butterfly_reverse(float *dst, size_t rank, size_t blocks)
+    {
+        size_t pairs = 1 << (rank + 1);
+        rank = (rank - 2) << 5;
+
+        for (size_t blk=0; blk<blocks; ++blk)
+        {
+            FFT_BUTTERFLY_BODY("subps", "addps");
+        }
     }
 }
 
-static inline void FFT_BUTTERFLY_REVERSE_NAME(float *dst, size_t rank, size_t blocks)
-{
-    size_t pairs = 1 << (rank + 1);
-    rank = (rank - 2) << 5;
-
-    for (size_t blk=0; blk<blocks; ++blk)
-    {
-        FFT_BUTTERFLY_BODY("subps", "addps");
-    }
-}
-
-#undef FFT_ANGLE_INIT
-#undef FFT_ANGLE_ROTATE
 #undef FFT_BUTTERFLY_BODY
-
-#undef FFT_BUTTERFLY_DIRECT_NAME
-#undef FFT_BUTTERFLY_REVERSE_NAME
-#undef LS_RE

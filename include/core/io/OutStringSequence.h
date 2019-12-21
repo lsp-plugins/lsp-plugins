@@ -36,6 +36,10 @@ namespace lsp
 
                 virtual status_t    write_ascii(const char *s);
 
+                virtual status_t    write_ascii(const char *s, size_t count);
+
+                virtual status_t    writeln_ascii(const char *s);
+
                 virtual status_t    write(const LSPString *s);
 
                 virtual status_t    write(const LSPString *s, ssize_t first);

@@ -102,7 +102,7 @@ namespace lsp
 
         protected:
             ipc::IExecutor     *pExecutor;                  // Executor service
-            afile_t           **vFiles;                     // List of audio files
+            afile_t            *vFiles;                     // List of audio files
             afile_t           **vActive;                    // List of active audio files
             SamplePlayer        vChannels[TRACKS_MAX];      // List of channels
             Bypass              vBypass[TRACKS_MAX];        // List of bypasses
@@ -114,7 +114,6 @@ namespace lsp
             float              *vBuffer;                    // Buffer
             bool                bBypass;                    // Bypass flag
             bool                bReorder;                   // Reorder flag
-            bool                bFadeout;                   // Fadeout flag
             float               fFadeout;                   // Fadeout in milliseconds
             float               fDynamics;                  // Dynamics
             float               fDrift;                     // Time drifting
@@ -127,6 +126,7 @@ namespace lsp
             IPort              *pDrift;                     // Time drifting port
             IPort              *pActivity;                  // Activity port
             IPort              *pListen;                    // Listen trigger
+            uint8_t            *pData;                      // Pointer to aligned data
 
         protected:
             void        destroy_state();
@@ -143,7 +143,7 @@ namespace lsp
             void        cancel_sample(const afile_t *af, size_t fadeout, size_t delay);
 
         public:
-            sampler_kernel();
+            explicit sampler_kernel();
             virtual ~sampler_kernel();
 
         public:
@@ -152,7 +152,7 @@ namespace lsp
             virtual void trigger_stop(size_t timestamp);
 
         public:
-            void    set_fadeout(bool enabled, float length);
+            void    set_fadeout(float length);
 
         public:
             bool    init(ipc::IExecutor *executor, size_t files, size_t channels);
@@ -172,37 +172,18 @@ namespace lsp
             void    process(float **outs, const float **ins, size_t samples);
     };
 
-    class midi_trigger_kernel: public midi_trigger_kernel_metadata
-    {
-        protected:
-            ITrigger           *pHandler;       // Trigger event handler
-
-            size_t              nNote;          // Trigger note
-            size_t              nChannel;       // Channel
-            bool                bMuting;        // Muting flag
-
-            IPort              *pChannel;       // Note port
-            IPort              *pNote;          // Note port
-            IPort              *pOctave;        // Octave port
-            IPort              *pMidiNote;      // Output midi note #
-
-        public:
-            midi_trigger_kernel();
-            virtual ~midi_trigger_kernel();
-
-        public:
-            bool    init(ITrigger *handler);
-            size_t  bind(cvector<IPort> &ports, size_t port_id);
-            void    destroy();
-
-            void    update_settings();
-            void    set_muting(bool muting);
-            void    process_events(const midi_t *in, midi_t *out);
-    };
-
     class sampler_base: public plugin_t
     {
         protected:
+            static const size_t BITMASK_MAX        = ((sampler_base_metadata::INSTRUMENTS_MAX + 31) >> 5);
+
+        protected:
+            enum dm_mode_t
+            {
+                DM_APPLY_GAIN   = 1 << 0,
+                DM_APPLY_PAN    = 1 << 1
+            };
+
             typedef struct sampler_channel_t
             {
                 float      *vDry;           // Dry output
@@ -229,19 +210,31 @@ namespace lsp
             typedef struct sampler_t
             {
                 sampler_kernel      sSampler;           // Sampler
-                midi_trigger_kernel sTrigger;           // MIDI trigger
                 float               fGain;              // Overall gain
+                size_t              nNote;              // Trigger note
+                size_t              nChannel;           // Channel
+                size_t              nMuteGroup;         // Mute group
+                bool                bMuting;            // Muting flag
+                bool                bNoteOff;           // Handle note-off event
 
                 sampler_channel_t   vChannels[sampler_kernel_metadata::TRACKS_MAX];       // Sampler output channels
                 IPort              *pGain;              // Gain output port
                 IPort              *pBypass;            // Bypass port
                 IPort              *pDryBypass;         // Dry bypass port
+                IPort              *pChannel;           // Note port
+                IPort              *pNote;              // Note port
+                IPort              *pOctave;            // Octave port
+                IPort              *pMuteGroup;         // Mute group
+                IPort              *pMuting;            // Muting
+                IPort              *pMidiNote;          // Output midi note #
+                IPort              *pNoteOff;           // Note off switch
             } sampler_t;
 
         protected:
             size_t              nChannels;          // Number of channels per output
             size_t              nSamplers;          // Number of samplers
             size_t              nFiles;             // Number of files per sampler
+            size_t              nDOMode;            // Mode of direct output
             bool                bDryPorts;          // Dry ports allocated as temporary buffers
             sampler_t          *vSamplers;          // Lisf of samplers
 
@@ -262,9 +255,14 @@ namespace lsp
             IPort              *pDry;               // Dry amount port
             IPort              *pWet;               // Wet amount port
             IPort              *pGain;              // Output gain port
+            IPort              *pDOGain;            // Direct output gain flag
+            IPort              *pDOPan;             // Direct output panning flag
+
+        protected:
+            void        process_trigger_events();
 
         public:
-            sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports);
+            explicit sampler_base(const plugin_metadata_t &metadata, size_t samplers, size_t channels, size_t files, bool dry_ports);
             virtual ~sampler_base();
 
         public:

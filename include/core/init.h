@@ -11,6 +11,8 @@
 namespace lsp
 {
     void init();
+
+    void finalize();
 }
 
 #endif /* CORE_INIT_H_ */

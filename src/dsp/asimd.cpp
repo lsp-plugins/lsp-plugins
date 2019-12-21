@@ -47,8 +47,28 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+
+#include <dsp/arch/aarch64/asimd/pmath/op_kx.h>
+#include <dsp/arch/aarch64/asimd/pmath/op_vv.h>
+#include <dsp/arch/aarch64/asimd/pmath/fmop_kx.h>
+#include <dsp/arch/aarch64/asimd/pmath/fmop_vv.h>
+#include <dsp/arch/aarch64/asimd/pmath/abs_vv.h>
+#include <dsp/arch/aarch64/asimd/pmath/log.h>
+#include <dsp/arch/aarch64/asimd/pmath/exp.h>
+#include <dsp/arch/aarch64/asimd/pmath/pow.h>
+
+#include <dsp/arch/aarch64/asimd/hmath/hsum.h>
+#include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
+
+#include <dsp/arch/aarch64/asimd/mix.h>
+#include <dsp/arch/aarch64/asimd/search/minmax.h>
+#include <dsp/arch/aarch64/asimd/search/iminmax.h>
+
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
+
+#include <dsp/arch/aarch64/asimd/fft.h>
+#include <dsp/arch/aarch64/asimd/pfft.h>
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
@@ -65,6 +85,132 @@ namespace asimd
         lsp_trace("Optimizing DSP for ASIMD instruction set");
         EXPORT1(copy);
         EXPORT1(move);
+        EXPORT1(fill);
+        EXPORT1(fill_zero);
+        EXPORT1(fill_one);
+        EXPORT1(fill_minus_one);
+        EXPORT1(reverse1);
+        EXPORT1(reverse2);
+
+        EXPORT1(add_k2);
+        EXPORT1(sub_k2);
+        EXPORT1(rsub_k2);
+        EXPORT1(mul_k2);
+        EXPORT1(div_k2);
+        EXPORT1(rdiv_k2);
+
+        EXPORT1(add_k3);
+        EXPORT1(sub_k3);
+        EXPORT1(rsub_k3);
+        EXPORT1(mul_k3);
+        EXPORT1(div_k3);
+        EXPORT1(rdiv_k3);
+
+        EXPORT1(add2);
+        EXPORT1(sub2);
+        EXPORT1(rsub2);
+        EXPORT1(mul2);
+        EXPORT1(div2);
+        EXPORT1(rdiv2);
+
+        EXPORT1(add3);
+        EXPORT1(sub3);
+        EXPORT1(mul3);
+        EXPORT1(div3);
+
+        EXPORT1(abs1);
+        EXPORT1(abs2);
+
+        EXPORT1(abs_add2);
+        EXPORT1(abs_sub2);
+        EXPORT1(abs_rsub2);
+        EXPORT1(abs_mul2);
+        EXPORT1(abs_div2);
+        EXPORT1(abs_rdiv2);
+
+        EXPORT1(abs_add3);
+        EXPORT1(abs_sub3);
+        EXPORT1(abs_rsub3);
+        EXPORT1(abs_mul3);
+        EXPORT1(abs_div3);
+        EXPORT1(abs_rdiv3);
+
+        EXPORT1(fmadd_k3);
+        EXPORT1(fmsub_k3);
+        EXPORT1(fmrsub_k3);
+        EXPORT1(fmmul_k3);
+        EXPORT1(fmdiv_k3);
+        EXPORT1(fmrdiv_k3);
+
+        EXPORT1(fmadd_k4);
+        EXPORT1(fmsub_k4);
+        EXPORT1(fmrsub_k4);
+        EXPORT1(fmmul_k4);
+        EXPORT1(fmdiv_k4);
+        EXPORT1(fmrdiv_k4);
+
+        EXPORT1(fmadd3);
+        EXPORT1(fmsub3);
+        EXPORT1(fmrsub3);
+        EXPORT1(fmmul3);
+        EXPORT1(fmdiv3);
+        EXPORT1(fmrdiv3);
+
+        EXPORT1(fmadd4);
+        EXPORT1(fmsub4);
+        EXPORT1(fmrsub4);
+        EXPORT1(fmmul4);
+        EXPORT1(fmdiv4);
+        EXPORT1(fmrdiv4);
+
+        EXPORT1(h_sum);
+        EXPORT1(h_sqr_sum);
+        EXPORT1(h_abs_sum);
+
+        EXPORT1(h_dotp);
+        EXPORT1(h_abs_dotp);
+        EXPORT1(h_sqr_dotp);
+
+        EXPORT1(logb1);
+        EXPORT1(logb2);
+        EXPORT1(loge1);
+        EXPORT1(loge2);
+        EXPORT1(logd1);
+        EXPORT1(logd2);
+
+        EXPORT1(exp1);
+        EXPORT1(exp2);
+
+        EXPORT1(powcv1);
+        EXPORT1(powcv2);
+        EXPORT1(powvc1);
+        EXPORT1(powvc2);
+        EXPORT1(powvx1);
+        EXPORT1(powvx2);
+
+        EXPORT1(mix2);
+        EXPORT1(mix3);
+        EXPORT1(mix4);
+        EXPORT1(mix_copy2);
+        EXPORT1(mix_copy3);
+        EXPORT1(mix_copy4);
+        EXPORT1(mix_add2);
+        EXPORT1(mix_add3);
+        EXPORT1(mix_add4);
+
+        EXPORT1(min)
+        EXPORT1(max)
+        EXPORT1(minmax)
+        EXPORT1(abs_min)
+        EXPORT1(abs_max)
+        EXPORT1(abs_minmax)
+
+        EXPORT1(min_index)
+        EXPORT1(max_index)
+        EXPORT1(minmax_index)
+        EXPORT1(abs_min_index)
+        EXPORT1(abs_max_index)
+        EXPORT1(abs_minmax_index)
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
@@ -86,6 +232,14 @@ namespace asimd
         EXPORT1(pcomplex_r2c);
         EXPORT1(pcomplex_c2r);
         EXPORT1(pcomplex_add_r);
+
+        EXPORT1(direct_fft);
+        EXPORT1(reverse_fft);
+        EXPORT1(normalize_fft2);
+        EXPORT1(normalize_fft3);
+
+        EXPORT1(packed_direct_fft);
+        EXPORT1(packed_reverse_fft);
     }
 }
 

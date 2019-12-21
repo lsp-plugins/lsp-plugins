@@ -26,3 +26,4 @@
 **/*.gmon
 *.svg
 *.core
+*vgcore*

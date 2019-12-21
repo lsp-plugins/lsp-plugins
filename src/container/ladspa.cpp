@@ -8,6 +8,7 @@
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/ipc/NativeExecutor.h>
+#include <core/resource.h>
 #include <plugins/plugins.h>
 
 #ifdef PLATFORM_WINDOWS
@@ -18,6 +19,11 @@
 
 #include <container/ladspa/ports.h>
 #include <container/ladspa/wrapper.h>
+
+#ifndef LSP_IDE_DEBUG
+    /* LADSPA format does not require any built-in resources */
+    BUILTIN_RESOURCES_STUB
+#endif /* LSP_IDE_DEBUG */
 
 namespace lsp
 {

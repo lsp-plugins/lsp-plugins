@@ -27,7 +27,7 @@ namespace lsp
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             public:
-                IOutStream();
+                explicit IOutStream();
                 virtual ~IOutStream();
 
             public:
@@ -43,7 +43,10 @@ namespace lsp
                  */
                 virtual wssize_t    position();
 
-                /** Write the data to output stream
+                /** Write the data to output stream.
+                 * The implementation should write the most possible amount
+                 * of bytes before exit. Such behaviour will simplify the caller's
+                 * implementation.
                  *
                  * @param buf buffer to write
                  * @param count number of bytes

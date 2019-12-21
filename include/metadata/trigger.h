@@ -18,10 +18,10 @@ namespace lsp
         static const size_t SAMPLE_FILES            = 8;        // Number of sample files per trigger
         static const size_t BUFFER_SIZE             = 4096;     // Size of temporary buffer
 
-        static const float  DETECT_LEVEL_DFL        = 0.25f;    // Default detection level [G]
+        static const float  DETECT_LEVEL_DFL        = GAIN_AMP_M_12_DB;    // Default detection level [G]
 
         static const float  RELEASE_LEVEL_MIN       = 0.0f;     // Minimum relative release level
-        static const float  RELEASE_LEVEL_DFL       = 0.65f;    // Default release level [G]
+        static const float  RELEASE_LEVEL_DFL       = GAIN_AMP_M_3_DB;    // Default release level [G]
         static const float  RELEASE_LEVEL_MAX       = 0.0f;     // Maximum relative release level
         static const float  RELEASE_LEVEL_STEP      = 0.0001f;  // Release level step [G]
 

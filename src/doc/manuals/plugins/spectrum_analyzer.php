@@ -25,7 +25,7 @@
 <p><b>Controls:</b></p>
 <ul>
 	<li><b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin does not work.</li>
-	<li><b>Mode</b> Depending on operating modes, different analysis can be performed:</li>
+	<li><b>Mode</b> - depending on operating modes, different analysis can be performed:</li>
 	<ul>
     	<li><b>Analyzer</b> - performs analysis of <?= $cd ?>.</li>
     	<?php if ($nc > 2) {?>
@@ -40,6 +40,7 @@
     	<li><b>Spectralizer Stereo</b> - draws spectral analysis of <?php if ($nc > 2) {?>two selected channels<?php } else {?>stereo channel <?php }?>.</li>
     	<?php }?>
     </ul>
+    <li><b>Freeze</b> - immediately freezes all frequency graphs.</li>
 	<li><b>Spectrogram</b> - the rendering mechanism of the spectrogram in the <b>Spectralizer</b> mode:</li>
 	<ul>
 		<li><b>Rainbow</b> - each dot on a spectrogram changes it's color's hue component depending on the amplitude of the signal starting with <b>Hue</b> of the selected channel.</li>

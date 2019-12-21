@@ -40,7 +40,7 @@ IF_ARCH_X86(
         namespace avx
         {
             void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
-            void x64_dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+            void dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
         }
     )
 )
@@ -360,7 +360,7 @@ UTEST_BEGIN("dsp.filters", dynamic)
         IF_ARCH_X86(call("sse::dyn_biquad_process_x8", sse::dyn_biquad_process_x8));
         IF_ARCH_X86_64(call("sse3::x64_dyn_biquad_process_x8", sse3::x64_dyn_biquad_process_x8));
         IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8", avx::x64_dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8_fma3", avx::x64_dyn_biquad_process_x8_fma3));
+        IF_ARCH_X86_64(call("avx::dyn_biquad_process_x8_fma3", avx::dyn_biquad_process_x8_fma3));
         IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x8", neon_d32::dyn_biquad_process_x8));
     }
 

@@ -55,11 +55,6 @@ namespace lsp
                 ssize_t                     nLineID;
                 size_t                      nLines;
 
-                size_t                      nVxID;
-                size_t                      nParmVxID;
-                size_t                      nNormID;
-                size_t                      nTexVxID;
-
                 cstorage<ofp_point3d_t>     sVx;
                 cstorage<ofp_point3d_t>     sTexVx;
                 cstorage<ofp_point3d_t>     sParVx;

@@ -15,6 +15,9 @@ namespace lsp
         
         class CtlComboGroup: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlPort        *pPort;
                 float           fMin;
@@ -26,7 +29,7 @@ namespace lsp
 
                 CtlColor        sColor;
                 CtlColor        sTextColor;
-                CtlColor        sBgColor;
+                CtlExpression   sEmbed;
 
             protected:
                 static status_t slot_change(LSPWidget *sender, void *ptr, void *data);
@@ -45,7 +48,7 @@ namespace lsp
 
                 virtual void set(widget_attribute_t att, const char *value);
 
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
 
                 virtual void notify(CtlPort *port);
 

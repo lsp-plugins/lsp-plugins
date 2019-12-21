@@ -84,7 +84,7 @@ namespace lsp
             OutFileStream *f = new OutFileStream();
             if (f == NULL)
                 return set_error(STATUS_NO_MEM);
-            status_t res = f->wrap(fd, close, charset);
+            status_t res = f->wrap(fd, close);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -110,7 +110,7 @@ namespace lsp
             OutFileStream *f = new OutFileStream();
             if (f == NULL)
                 return set_error(STATUS_NO_MEM);
-            status_t res = f->wrap_native(fd, close, charset);
+            status_t res = f->wrap_native(fd, close);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -138,7 +138,7 @@ namespace lsp
             OutFileStream *f = new OutFileStream();
             if (f == NULL)
                 return set_error(STATUS_NO_MEM);
-            status_t res = f->wrap(fd, flags, charset);
+            status_t res = f->wrap(fd, flags);
             if (res != STATUS_OK)
             {
                 f->close();
@@ -201,7 +201,7 @@ namespace lsp
             OutFileStream *f = new OutFileStream();
             if (f == NULL)
                 return set_error(STATUS_NO_MEM);
-            status_t res = f->open(path, mode, charset);
+            status_t res = f->open(path, mode);
             if (res != STATUS_OK)
             {
                 f->close();

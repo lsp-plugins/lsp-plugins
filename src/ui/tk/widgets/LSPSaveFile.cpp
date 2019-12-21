@@ -21,8 +21,7 @@ namespace lsp
 
         LSPSaveFile::LSPSaveFile(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this),
-            sBgColor(this),
+            sFont(this),
             sDialog(dpy)
         {
             nState      = SFS_SELECT;
@@ -96,13 +95,11 @@ namespace lsp
 
             LSP_STATUS_ASSERT(LSPWidget::init());
 
-            init_color(C_BACKGROUND, &sBgColor);
-
             for (size_t i=0; i<SFS_TOTAL; ++i)
             {
                 const state_descr_t *sd = &initial[i];
 
-                vStates[i].pColor = new LSPWidgetColor(this);
+                vStates[i].pColor = new LSPColor(this);
                 if (vStates[i].pColor == NULL)
                     return STATUS_NO_MEM;
                 init_color(color_t(sd->color_id), vStates[i].pColor);
@@ -246,7 +243,7 @@ namespace lsp
             query_resize();
         }
 
-        ISurface *LSPSaveFile::render_disk(ISurface *s, ssize_t w, const Color &c)
+        ISurface *LSPSaveFile::render_disk(ISurface *s, ssize_t w, const Color &c, const Color &bg)
         {
 #define N 9
             static const float xx[] = { 0.5, 7, 8, 8, 7.5, 0.5, 0, 0, 0.5 };
@@ -275,7 +272,6 @@ namespace lsp
             }
 
             float aa    = pDisk->set_antialiasing(true);
-
             IGradient *gr = NULL;
 
             // Determine button parameters
@@ -336,16 +332,16 @@ namespace lsp
             // Clear canvas
             float k     = (w - b_l*2) * 0.125f;
 
-            pDisk->wire_rect(b_l + k + 0.5f, b_l + 0.5f, 5.5*k, 3.5*k - 0.5f, 1, sBgColor);
-            pDisk->fill_rect(b_l + k*2.5f, b_l, 4.0*k, 3.5*k, sBgColor);
+            pDisk->wire_rect(b_l + k + 0.5f, b_l + 0.5f, 5.5*k, 3.5*k - 0.5f, 1, bg);
+            pDisk->fill_rect(b_l + k*2.5f, b_l, 4.0*k, 3.5*k, bg);
             pDisk->fill_rect(b_l + 4.5*k, b_l + 0.5*k, k, 2.5*k, c);
-            pDisk->fill_rect(b_l + 0.5*k, b_l + 4.0*k, 7.0*k, 3.5*k, sBgColor);
+            pDisk->fill_rect(b_l + 0.5*k, b_l + 4.0*k, 7.0*k, 3.5*k, bg);
             for (size_t i=0; i<N; ++i)
             {
                 xa[i] = b_l + xx[i] * k;
                 ya[i] = b_l + yy[i] * k;
             }
-            pDisk->wire_poly(xa, ya, N, 1, sBgColor);
+            pDisk->wire_poly(xa, ya, N, 1, bg);
 
             // Output text
             LSPString *txt = &vStates[nState].sText;
@@ -367,14 +363,16 @@ namespace lsp
 
         void LSPSaveFile::draw(ISurface *s)
         {
-            // Determine current color
-            Color c;
-            c.copy(vStates[nState].pColor->color());
+            // Prepare palette
+            Color color(vStates[nState].pColor->color());
+            Color bg_color(sBgColor);
+            color.scale_lightness(brightness());
 
-            s->clear(sBgColor);
+            // Clear
+            s->clear(bg_color);
 
             // Render disk
-            ISurface *d = render_disk(s, sSize.nWidth, c);
+            ISurface *d = render_disk(s, sSize.nWidth, color, bg_color);
             if (d != NULL)
                 s->draw(d, 0, 0);
 
@@ -383,8 +381,10 @@ namespace lsp
                 size_t pw = (fProgress * sSize.nWidth * 0.01f);
                 if (pw > 0)
                 {
-                    c.copy(vStates[SFS_SAVED].pColor->color());
-                    ISurface *d = render_disk(s, sSize.nWidth, c);
+                    color.copy(vStates[SFS_SAVED].pColor->color());
+                    color.scale_lightness(brightness());
+
+                    ISurface *d = render_disk(s, sSize.nWidth, color, bg_color);
                     if (d != NULL)
                         s->draw_clipped(d, 0, 0, 0, 0, pw, sSize.nWidth);
                 }

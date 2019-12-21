@@ -42,7 +42,7 @@ static void convolve(float *dst, const float *src, const float *conv, size_t len
 static void convolve_sadd(float *dst, const float *src, const float *conv, size_t length, size_t count)
 {
     for (size_t i=0; i<count; ++i)
-        dsp::scale_add3(&dst[i], conv, src[i], length);
+        dsp::fmadd_k3(&dst[i], conv, src[i], length);
 }
 
 typedef void (* convolve_t)(float *dst, const float *src, const float *conv, size_t length, size_t count);

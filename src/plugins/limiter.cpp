@@ -77,10 +77,10 @@ namespace lsp
         size_t c_data   = LIMIT_BUFSIZE * sizeof(float);
         size_t h_data   = limiter_base_metadata::HISTORY_MESH_SIZE * sizeof(float);
         size_t allocate = c_data * 4 * nChannels + h_data;
-        pData           = new uint8_t[allocate + DEFAULT_ALIGN];
-        if (pData == NULL)
+
+        uint8_t *ptr    = alloc_aligned<uint8_t>(pData, allocate, DEFAULT_ALIGN);
+        if (ptr == NULL)
             return;
-        uint8_t *ptr    = ALIGN_PTR(pData, DEFAULT_ALIGN);
 
         vTime           = reinterpret_cast<float *>(ptr);
         ptr            += h_data;
@@ -123,6 +123,8 @@ namespace lsp
 
             // Initialize oversampler
             if (!c->sOver.init())
+                return;
+            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, limiter_base_metadata::LOOKAHEAD_MAX))
                 return;
         }
 
@@ -235,7 +237,7 @@ namespace lsp
     {
         if (pData != NULL)
         {
-            delete [] pData;
+            free_aligned(pData);
             pData = NULL;
         }
         if (vChannels != NULL)
@@ -272,7 +274,6 @@ namespace lsp
 
             c->sBypass.init(sr);
             c->sOver.set_sample_rate(sr);
-            c->sLimit.init(max_sample_rate, limiter_base_metadata::LOOKAHEAD_MAX);
             c->sLimit.set_mode(LM_HERM_THIN);
             c->sLimit.set_sample_rate(real_sample_rate);
             c->sBlink.init(sr);
@@ -395,6 +396,20 @@ namespace lsp
         return 0;
     }
 
+    void limiter_base::sync_latency()
+    {
+        channel_t *c = &vChannels[0];
+        size_t latency =
+                c->sLimit.get_latency() / c->sOver.get_oversampling()
+                + c->sOver.latency();
+//        lsp_trace("lim=%d, over=%d, o/s=%d, latency=%d",
+//                int(c->sLimit.get_latency()),
+//                int(c->sOver.latency()),
+//                int(c->sOver.get_oversampling()),
+//                int(latency));
+        set_latency(latency);
+    }
+
     void limiter_base::update_settings()
     {
         bPause                      = pPause->getValue() >= 0.5f;
@@ -454,9 +469,6 @@ namespace lsp
                 c->sGraph[j].set_period(real_samples_per_dot);
                 c->bVisible[j]  = c->pVisible[j]->getValue() >= 0.5f;
             }
-
-            if (i == 0)
-                set_latency(c->sLimit.get_latency() / c->sOver.get_oversampling());
         }
     }
 
@@ -489,7 +501,7 @@ namespace lsp
                 // Apply input gain if needed
                 if (fInGain != GAIN_AMP_0_DB)
                 {
-                    dsp::scale3(c->vOutBuf, c->vIn, fInGain, to_do);
+                    dsp::mul_k3(c->vOutBuf, c->vIn, fInGain, to_do);
                     c->sOver.upsample(c->vDataBuf, c->vOutBuf, to_do);
                 }
                 else
@@ -500,7 +512,7 @@ namespace lsp
                 {
                     if (fPreamp != GAIN_AMP_0_DB)
                     {
-                        dsp::scale3(c->vOutBuf, c->vSc, fPreamp, to_do);
+                        dsp::mul_k3(c->vOutBuf, c->vSc, fPreamp, to_do);
                         c->sOver.upsample(c->vScBuf, c->vOutBuf, to_do);
                     }
                     else
@@ -509,7 +521,7 @@ namespace lsp
                 else
                 {
                     if (fPreamp != GAIN_AMP_0_DB)
-                        dsp::scale3(c->vScBuf, c->vDataBuf, fPreamp, to_doxn);
+                        dsp::mul_k3(c->vScBuf, c->vDataBuf, fPreamp, to_doxn);
                     else
                         dsp::copy(c->vScBuf, c->vDataBuf, to_doxn);
                 }
@@ -550,7 +562,7 @@ namespace lsp
                 channel_t *c    = &vChannels[i];
 
                 // Update output signal: adjust gain
-                dsp::scale_mul3(c->vDataBuf, c->vGainBuf, out_gain, to_doxn);
+                dsp::fmmul_k3(c->vDataBuf, c->vGainBuf, out_gain, to_doxn);
 
                 // Do metering
                 c->sGraph[G_OUT].process(c->vDataBuf, to_doxn);
@@ -624,7 +636,7 @@ namespace lsp
             pWrapper->query_display_draw();
 
         // Report latency
-        set_latency(vChannels[0].sOver.latency());
+        sync_latency();
     }
     
     void limiter_base::ui_activated()
@@ -710,7 +722,7 @@ namespace lsp
                 // Initialize coords
                 dsp::fill(b->v[2], width, width);
                 dsp::fill(b->v[3], height, width);
-                dsp::scale_add3(b->v[2], b->v[0], dx, width);
+                dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
                 dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
                 // Draw channel

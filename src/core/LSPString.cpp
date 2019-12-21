@@ -7,6 +7,7 @@
 
 #include <core/types.h>
 #include <core/stdlib/stdio.h>
+#include <core/stdlib/string.h>
 
 #include <stdlib.h>
 #include <errno.h>
@@ -106,9 +107,9 @@ namespace lsp
             return;
 
         if (pTemp->pData != NULL)
-            free(pTemp->pData);
+            ::free(pTemp->pData);
 
-        free(pTemp);
+        ::free(pTemp);
         pTemp = NULL;
     }
 
@@ -131,46 +132,65 @@ namespace lsp
         pData = NULL;
     }
 
-    void LSPString::truncate(size_t size)
+    bool LSPString::truncate(size_t size)
     {
         drop_temp();
         if (size > nCapacity)
-            return;
+            return true;
         if (nLength > size)
             nLength = size;
+
+        lsp_wchar_t *v = xrealloc(pData, size);
+        if ((v == NULL) && (size > 0))
+            return false;
+
+        pData       = (size > 0) ? v : NULL;
+        nCapacity   = size;
+        return true;
+    }
+
+    size_t LSPString::set_length(size_t length)
+    {
+        if (nLength <= length)
+            return length;
+        drop_temp();
+        return nLength = length;
+    }
+
+    bool LSPString::size_reserve(size_t size)
+    {
         if (size > 0)
         {
             lsp_wchar_t *v = xrealloc(pData, size);
             if (v == NULL)
-                return;
-            pData       = v;
-            nCapacity   = size;
+                return false;
+            pData   = v;
         }
-        else
+        else if (pData != NULL)
         {
-            free(pData);
-            pData       = NULL;
-            nLength     = 0;
-            nCapacity   = 0;
+            ::free(pData);
+            pData   = NULL;
         }
-    }
 
-    bool LSPString::reserve(size_t size)
-    {
-        if (size < nCapacity)
-            return true;
-        lsp_wchar_t *v = xrealloc(pData, size);
-        if (v == NULL)
-            return false;
-
-        pData       = v;
         nCapacity   = size;
         return true;
     }
 
     inline bool LSPString::cap_reserve(size_t size)
     {
-        return reserve((size + (GRANULARITY-1)) & (~(GRANULARITY-1)));
+        size_t ncap = (size + (GRANULARITY-1)) & (~(GRANULARITY-1));
+        return (ncap > nCapacity) ? size_reserve(ncap) : true;
+    }
+
+    inline bool LSPString::cap_grow(size_t delta)
+    {
+        size_t avail = nCapacity - nLength;
+        if (delta <= avail)
+            return true;
+        avail = nCapacity >> 1;
+        if (avail < delta)
+            avail = delta;
+        return size_reserve(nCapacity + ((avail + (GRANULARITY-1)) & (~(GRANULARITY-1))));
     }
 
     void LSPString::reduce()
@@ -179,9 +199,9 @@ namespace lsp
         if (nCapacity <= nLength)
             return;
         lsp_wchar_t *v = xrealloc(pData, nLength);
-        if (v == NULL)
+        if ((v == NULL) && (nLength > 0))
             return;
-        pData       = v;
+        pData       = (nLength > 0) ? v : NULL;
         nCapacity   = nLength;
     }
 
@@ -283,6 +303,44 @@ namespace lsp
         }
         else
             s->pData        = NULL;
+
+        return s;
+    }
+
+    LSPString *LSPString::release()
+    {
+        LSPString *str = new LSPString();
+        if (str != NULL)
+            str->swap(this);
+        return str;
+    }
+
+    LSPString *LSPString::copy(ssize_t first) const
+    {
+        LSPString *s = new LSPString();
+        if (s != NULL)
+        {
+            if (!s->set(this, first))
+            {
+                delete s;
+                s = NULL;
+            }
+        }
+
+        return s;
+    }
+
+    LSPString *LSPString::copy(ssize_t first, ssize_t last) const
+    {
+        LSPString *s = new LSPString();
+        if (s != NULL)
+        {
+            if (!s->set(this, first, last))
+            {
+                delete s;
+                s = NULL;
+            }
+        }
 
         return s;
     }
@@ -407,7 +465,7 @@ namespace lsp
     {
         XSAFE_TRANS(pos, nLength, false);
 
-        if (!cap_reserve(nLength + 1))
+        if (!cap_grow(1))
             return false;
 
         ssize_t length = nLength - pos;
@@ -422,7 +480,7 @@ namespace lsp
     bool LSPString::insert(ssize_t pos, const lsp_wchar_t *arr, ssize_t n)
     {
         XSAFE_TRANS(pos, nLength, false);
-        if (!cap_reserve(nLength + n))
+        if (!cap_grow(n))
             return false;
 
         ssize_t count = nLength - pos;
@@ -440,7 +498,7 @@ namespace lsp
             return true;
 
         XSAFE_TRANS(pos, nLength, false);
-        if (!cap_reserve(nLength + src->nLength))
+        if (!cap_grow(src->nLength))
             return false;
 
         ssize_t count = nLength - pos;
@@ -460,7 +518,7 @@ namespace lsp
             return true;
 
         XSAFE_TRANS(pos, nLength, false);
-        if (!cap_reserve(nLength + length))
+        if (!cap_grow(length))
             return false;
 
         ssize_t count = nLength - pos;
@@ -481,7 +539,7 @@ namespace lsp
             return true;
 
         XSAFE_TRANS(pos, nLength, false);
-        if (!cap_reserve(nLength + length))
+        if (!cap_grow(length))
             return false;
 
         ssize_t count = nLength - pos;
@@ -495,7 +553,7 @@ namespace lsp
 
     bool LSPString::append(char ch)
     {
-        if (!cap_reserve(nLength + 1))
+        if (!cap_grow(1))
             return false;
         pData[nLength++] = uint8_t(ch);
         return true;
@@ -503,7 +561,15 @@ namespace lsp
 
     bool LSPString::append(lsp_wchar_t ch)
     {
-        if (!cap_reserve(nLength + 1))
+        if (!cap_grow(1))
+            return false;
+        pData[nLength++] = ch;
+        return true;
+    }
+
+    bool LSPString::append(lsp_swchar_t ch)
+    {
+        if (!cap_grow(1))
             return false;
         pData[nLength++] = ch;
         return true;
@@ -511,7 +577,7 @@ namespace lsp
 
     bool LSPString::append(const lsp_wchar_t *arr, size_t n)
     {
-        if (!cap_reserve(nLength + n))
+        if (!cap_grow(n))
             return false;
         xcopy(&pData[nLength], arr, n);
         nLength += n;
@@ -520,7 +586,7 @@ namespace lsp
 
     bool LSPString::append_ascii(const char *arr, size_t n)
     {
-        if (!cap_reserve(nLength + n))
+        if (!cap_grow(n))
             return false;
         acopy(&pData[nLength], arr, n);
         nLength += n;
@@ -542,7 +608,7 @@ namespace lsp
     {
         if (src->nLength <= 0)
             return true;
-        if (!cap_reserve(nLength + src->nLength))
+        if (!cap_grow(src->nLength))
             return false;
         xcopy(&pData[nLength], src->pData, src->nLength);
         nLength += src->nLength;
@@ -556,7 +622,7 @@ namespace lsp
         if (length <= 0)
             return true;
 
-        if (!cap_reserve(nLength + length))
+        if (!cap_grow(length))
             return false;
         xcopy(&pData[nLength], &src->pData[first], length);
         nLength += length;
@@ -571,7 +637,7 @@ namespace lsp
         if (length <= 0)
             return true;
 
-        if (!cap_reserve(nLength + length))
+        if (!cap_grow(length))
             return false;
         xcopy(&pData[nLength], &src->pData[first], length);
         nLength += length;
@@ -580,7 +646,7 @@ namespace lsp
 
     bool LSPString::prepend(lsp_wchar_t ch)
     {
-        if (!cap_reserve(nLength + 1))
+        if (!cap_grow(1))
             return false;
         if (nLength > 0)
             xmove(&pData[1], pData, nLength);
@@ -593,7 +659,7 @@ namespace lsp
     {
         if (n <= 0)
             return true;
-        if (!cap_reserve(nLength + n))
+        if (!cap_grow(n))
             return false;
         if (nLength > 0)
             xmove(&pData[n], pData, nLength);
@@ -606,7 +672,7 @@ namespace lsp
     {
         if (n <= 0)
             return true;
-        if (!cap_reserve(nLength + n))
+        if (!cap_grow(n))
             return false;
         if (nLength > 0)
             xmove(&pData[n], pData, nLength);
@@ -630,7 +696,7 @@ namespace lsp
     {
         if (src->nLength <= 0)
             return true;
-        if (!cap_reserve(nLength + src->nLength))
+        if (!cap_grow(src->nLength))
             return false;
         if (nLength > 0)
             xmove(&pData[src->nLength], pData, nLength);
@@ -646,7 +712,7 @@ namespace lsp
         if (length <= 0)
             return true;
 
-        if (!cap_reserve(nLength + length))
+        if (!cap_grow(length))
             return false;
         if (nLength > 0)
             xmove(&pData[length], pData, nLength);
@@ -663,7 +729,7 @@ namespace lsp
         if (length <= 0)
             return true;
 
-        if (!cap_reserve(nLength + length))
+        if (!cap_grow(length))
             return false;
         if (nLength > 0)
             xmove(&pData[length], pData, nLength);
@@ -713,11 +779,23 @@ namespace lsp
         return (nLength > 0) ? pData[0] == ch : false;
     }
 
+    bool LSPString::starts_with(lsp_wchar_t ch, size_t offset) const
+    {
+        return (offset < nLength) ? pData[offset] == ch : false;
+    }
+
     bool LSPString::starts_with_nocase(lsp_wchar_t ch) const
     {
         if (nLength <= 0)
             return false;
         return towlower(pData[0]) == towlower(ch);
+    }
+
+    bool LSPString::starts_with_nocase(lsp_wchar_t ch, size_t offset) const
+    {
+        if (offset < nLength)
+            return false;
+        return towlower(pData[offset]) == towlower(ch);
     }
 
     bool LSPString::starts_with(const LSPString *src) const
@@ -741,7 +819,31 @@ namespace lsp
             else if (c != pData[i])
                 return false;
         }
-        return false;
+        return (*str == '\0');
+    }
+
+    bool LSPString::starts_with(const LSPString *src, size_t offset) const
+    {
+        if (src->nLength <= 0)
+            return true;
+
+        if (nLength < (src->nLength + offset))
+            return false;
+
+        return xcasecmp(&pData[offset], src->pData, src->nLength) == 0;
+    }
+
+    bool LSPString::starts_with_ascii(const char *str, size_t offset) const
+    {
+        for (size_t i=offset, n=nLength; (i < n); ++i)
+        {
+            lsp_wchar_t c = uint8_t(*(str++));
+            if (c == 0)
+                return true;
+            else if (c != pData[i])
+                return false;
+        }
+        return (*str == '\0');
     }
 
     bool LSPString::starts_with_nocase(const LSPString *src) const
@@ -753,6 +855,43 @@ namespace lsp
             return false;
 
         return xcasecmp(pData, src->pData, src->nLength) == 0;
+    }
+
+    bool LSPString::starts_with_nocase(const LSPString *src, size_t offset) const
+    {
+        if (src->nLength <= 0)
+            return true;
+
+        if (nLength < (offset + src->nLength))
+            return false;
+
+        return xcasecmp(&pData[offset], src->pData, src->nLength) == 0;
+    }
+
+    bool LSPString::starts_with_ascii_nocase(const char *str) const
+    {
+        for (size_t i=0, n=nLength; (i < n); ++i)
+        {
+            lsp_wchar_t c = uint8_t(*(str++));
+            if (c == 0)
+                return true;
+            else if (towlower(c) != towlower(pData[i]))
+                return false;
+        }
+        return (*str == '\0');
+    }
+
+    bool LSPString::starts_with_ascii_nocase(const char *str, size_t offset) const
+    {
+        for (size_t i=offset, n=nLength; (i < n); ++i)
+        {
+            lsp_wchar_t c = uint8_t(*(str++));
+            if (c == 0)
+                return true;
+            else if (towlower(c) != towlower(pData[i]))
+                return false;
+        }
+        return (*str == '\0');
     }
 
     bool LSPString::remove()
@@ -782,6 +921,14 @@ namespace lsp
             xmove(&pData[first], &pData[last], count);
 
         nLength -= length;
+        return true;
+    }
+
+    bool LSPString::remove_last()
+    {
+        if (nLength <= 0)
+            return false;
+        --nLength;
         return true;
     }
 
@@ -1213,11 +1360,31 @@ namespace lsp
         size_t i=0;
         for ( ; i<nLength; ++i)
         {
-            int retval = lsp_swchar_t(pData[i]) - uint8_t(src[i]);
+            if (src[i] == '\0')
+                return pData[i];
+            int retval = int(pData[i]) - uint8_t(src[i]);
             if (retval != 0)
                 return retval;
-            else if (src[i] == '\0')
-                return nLength - i - 1;
+        }
+        return -int(uint8_t(src[i]));
+    }
+
+    int LSPString::compare_to_utf8(const char *src) const
+    {
+        LSPString tmp;
+        return (tmp.set_utf8(src)) ? compare_to(&tmp) : 0;
+    }
+
+    int LSPString::compare_to_ascii_nocase(const char *src) const
+    {
+        size_t i=0;
+        for ( ; i<nLength; ++i)
+        {
+            if (src[i] == '\0')
+                return pData[i];
+            int retval = int(::towlower(pData[i])) - ::towlower(uint8_t(src[i]));
+            if (retval != 0)
+                return retval;
         }
         return -int(uint8_t(src[i]));
     }
@@ -1229,7 +1396,7 @@ namespace lsp
 
         while (n--)
         {
-            int retval = int(towlower(*(a++))) - int(towlower(*(b++)));
+            int retval = int(::towlower(*(a++))) - int(::towlower(*(b++)));
             if (retval != 0)
                 return retval;
         }
@@ -1240,6 +1407,12 @@ namespace lsp
             return -int(*b);
 
         return 0;
+    }
+
+    int LSPString::compare_to_utf8_nocase(const char *src) const
+    {
+        LSPString tmp;
+        return (tmp.set_utf8(src)) ? compare_to_nocase(&tmp) : 0;
     }
 
     size_t LSPString::tolower()
@@ -1575,16 +1748,20 @@ namespace lsp
         return reinterpret_cast<lsp_utf16_t *>(pTemp->pData);
     }
 
-    const char *LSPString::get_ascii() const
+    const char *LSPString::get_ascii(ssize_t first, ssize_t last) const
     {
-        if (!resize_temp(nLength + 1))
+        XSAFE_TRANS(first, nLength, NULL);
+        XSAFE_TRANS(last, nLength, NULL);
+        if (first >= last)
+            return (last == first) ? "" : NULL;
+
+        if (!resize_temp(last - first + 1))
             return NULL;
 
-        lsp_wchar_t *p  = pData;
-        size_t n        = nLength;
+        lsp_wchar_t *p  = &pData[first];
         char *dst       = pTemp->pData;
 
-        while (n--)
+        for (; first < last; ++first)
         {
             lsp_wchar_t c   = *(p++);
             *(dst++)        = (c <= 0x7f) ? c : 0xff;
@@ -1719,6 +1896,46 @@ namespace lsp
         return pTemp->pData;
     }
 #endif /* PLATFORM_WINDOWS */
+
+    char *LSPString::clone_utf8(size_t *bytes, ssize_t first, ssize_t last) const
+    {
+        const char *utf8 = get_utf8(first, last);
+        size_t offset = (pTemp != NULL) ? pTemp->nOffset : 0;
+        char *ptr = (utf8 != NULL) ? reinterpret_cast<char *>(lsp_memdup(utf8, offset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? offset : 0;
+        return ptr;
+    }
+
+    lsp_utf16_t *LSPString::clone_utf16(size_t *bytes, ssize_t first, ssize_t last) const
+    {
+        const lsp_utf16_t *utf16 = get_utf16(first, last);
+        size_t offset = (pTemp != NULL) ? pTemp->nOffset : 0;
+        lsp_utf16_t *ptr = (utf16 != NULL) ? reinterpret_cast<lsp_utf16_t *>(lsp_memdup(utf16, offset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? offset : 0;
+        return ptr;
+    }
+
+    char *LSPString::clone_ascii(size_t *bytes, ssize_t first, ssize_t last) const
+    {
+        const char *ascii = get_ascii(first, last);
+        size_t offset = (pTemp != NULL) ? pTemp->nOffset : 0;
+        char *ptr = (ascii != NULL) ? reinterpret_cast<char *>(lsp_memdup(ascii, offset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? offset : 0;
+        return ptr;
+    }
+
+    char *LSPString::clone_native(size_t *bytes, ssize_t first, ssize_t last, const char *charset) const
+    {
+        const char *native = get_native(first, last, charset);
+        size_t offset = (pTemp != NULL) ? pTemp->nOffset : 0;
+        char *ptr = (native != NULL) ? reinterpret_cast<char *>(lsp_memdup(native, offset)) : NULL;
+        if (bytes != NULL)
+            *bytes = (ptr != NULL) ? offset : 0;
+        return ptr;
+    }
 
     bool LSPString::append_temp(const char *p, size_t n) const
     {

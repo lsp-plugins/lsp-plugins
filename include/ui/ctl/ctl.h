@@ -54,6 +54,7 @@ namespace lsp
             WC_HGRID,
             WC_HLINK,
             WC_HSBAR,
+            WC_HSBOX,
             WC_HSEP,
             WC_INDICATOR,
             WC_KNOB,
@@ -72,6 +73,7 @@ namespace lsp
             WC_SAMPLE,
             WC_SAVE,
             WC_SBAR,
+            WC_SBOX,
             WC_SEP,
             WC_SOURCE3D,
             WC_STATUS,
@@ -84,6 +86,7 @@ namespace lsp
             WC_VGRID,
             WC_VIEWER3D,
             WC_VSBAR,
+            WC_VSBOX,
             WC_VSEP,
             WC_WINDOW
         };
@@ -106,6 +109,7 @@ namespace lsp
             A_BIND,
             A_BORDER,
             A_BORDER_COLOR,
+            A_BRIGHT,
             A_CENTER,
             A_COLOR,
             A_COLOR2,
@@ -119,6 +123,7 @@ namespace lsp
             A_DISTANCE_ID,
             A_DURATION_ID,
             A_EDITABLE,
+            A_EMBED,
             A_EXPAND,
             A_FADEIN_ID,
             A_FADEOUT_ID,
@@ -136,6 +141,7 @@ namespace lsp
             A_HPOS,
             A_HPOS_ID,
             A_HSCALE,
+            A_HSCROLL,
             A_HSPACING,
             A_HUE2_ID,
             A_HUE_ID,
@@ -153,8 +159,12 @@ namespace lsp
             A_LOGARITHMIC,
             A_MAX,
             A_MAX_DURATION_ID,
+            A_MAX_HEIGHT,
+            A_MAX_WIDTH,
             A_MESH_ID,
             A_MIN,
+            A_MIN_HEIGHT,
+            A_MIN_WIDTH,
             A_MODE,
             A_MODE_ID,
             A_OFFSET,
@@ -215,16 +225,25 @@ namespace lsp
             A_VPOS,
             A_VPOS_ID,
             A_VSCALE,
+            A_VSCROLL,
             A_VSPACING,
             A_WIDTH,
+            A_X_INDEX,
             A_XPOS_ID,
             A_XSCALE_ID,
+            A_Y_INDEX,
             A_YAW_ID,
             A_YPOS_ID,
             A_YSCALE_ID,
             A_ZPOS_ID,
             A_ZSCALE_ID
         };
+
+        typedef struct ctl_class_t
+        {
+            const char         *name;
+            const ctl_class_t  *parent;
+        } ctl_class_t;
 
         // Helper functions
         /** Decode widget type to enum
@@ -254,12 +273,20 @@ namespace lsp
          * @return attribute name or NULL if not found
          */
         const char *widget_attribute(widget_attribute_t type);
+
+        /**
+         * Get widget scrolling
+         * @param value value representing scrolling
+         * @return scrolling type
+         */
+        scrolling_t widget_scroll(const char *value);
     }
 }
 
 // Core headers
 #include <ui/ctl/CtlRegistry.h>
 #include <ui/ctl/CtlPortListener.h>
+#include <ui/ctl/CtlPortResolver.h>
 #include <ui/ctl/CtlPort.h>
 #include <ui/ctl/CtlExpression.h>
 #include <ui/ctl/CtlColor.h>
@@ -273,6 +300,7 @@ namespace lsp
 #include <ui/ctl/CtlWidget.h>
 #include <ui/ctl/CtlPluginWindow.h>
 #include <ui/ctl/CtlBox.h>
+#include <ui/ctl/CtlScrollBox.h>
 #include <ui/ctl/CtlGrid.h>
 #include <ui/ctl/CtlButton.h>
 #include <ui/ctl/CtlSwitch.h>

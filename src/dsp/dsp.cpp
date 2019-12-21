@@ -11,33 +11,6 @@
 #include <core/debug.h>
 #include <dsp/dsp.h>
 
-////-------------------------------------------------------------------------
-//// Constants definition
-//#define DSP_F32VEC4(name, v)        const float name[] __lsp_aligned16          = { v, v, v, v }
-//#define DSP_U32VEC4(name, v)        const uint32_t name[] __lsp_aligned16       = { uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v) }
-//
-//#define DSP_F32VECX4(name, a, b, c, d)  const float name[] __lsp_aligned16      = { a, b, c, d }
-//#define DSP_U32VECX4(name, a, b, c, d)  const uint32_t name[] __lsp_aligned16   = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
-//
-//#define DSP_F32REP4(v)              v, v, v, v
-//#define DSP_U32REP4(v)              uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v)
-//
-//#define DSP_F32ARRAY(name, ...)     const float name[] __lsp_aligned16          = { __VA_ARGS__ }
-//
-//#include <dsp/common/const/const16.h>
-//
-//#undef DSP_F32ARRAY_IMPL
-//#undef DSP_F32ARRAY
-//
-//#undef DSP_U32REP4
-//#undef DSP_F32REP4
-//
-//#undef DSP_U32VECX4
-//#undef DSP_F32VECX4
-//
-//#undef DSP_U32VEC4
-//#undef DSP_F32VEC4
-
 //-------------------------------------------------------------------------
 // Native DSP initialization, always present
 namespace native
@@ -94,12 +67,16 @@ namespace dsp
     void    (* abs2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_add2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_sub2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* abs_rsub2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_mul2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_div2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* abs_rdiv2)(float *dst, const float *src, size_t count) = NULL;
     void    (* abs_add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* abs_sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* abs_rsub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* abs_mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* abs_div3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* abs_rdiv3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
 
     void    (* abs_normalized)(float *dst, const float *src, size_t count) = NULL;
     void    (* normalize)(float *dst, const float *src, size_t count) = NULL;
@@ -118,14 +95,29 @@ namespace dsp
 
     void    (* add2)(float *dst, const float *src, size_t count) = NULL;
     void    (* sub2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rsub2)(float *dst, const float *src, size_t count) = NULL;
     void    (* mul2)(float *dst, const float *src, size_t count) = NULL;
     void    (* div2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rdiv2)(float *dst, const float *src, size_t count) = NULL;
+
     void    (* add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* div3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
-    void    (* scale2)(float *dst, float k, size_t count) = NULL;
-    void    (* scale3)(float *dst, const float *src, float k, size_t count) = NULL;
+
+    void    (* add_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* sub_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* rsub_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* div_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* rdiv_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* mul_k2)(float *dst, float k, size_t count) = NULL;
+
+    void    (* add_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* sub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* rsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* div_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* rdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* mul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* exp1)(float *dst, size_t count) = NULL;
     void    (* exp2)(float *dst, const float *src, size_t count) = NULL;
@@ -146,17 +138,37 @@ namespace dsp
     float   (* h_sum)(const float *src, size_t count) = NULL;
     float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
     float   (* h_abs_sum)(const float *src, size_t count) = NULL;
-    float   (* scalar_mul)(const float *a, const float *b, size_t count) = NULL;
+    float   (* h_dotp)(const float *a, const float *b, size_t count) = NULL;
+    float   (* h_sqr_dotp)(const float *a, const float *b, size_t count) = NULL;
+    float   (* h_abs_dotp)(const float *a, const float *b, size_t count) = NULL;
 
-    void    (* scale_add3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* scale_sub3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* scale_mul3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* scale_div3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmadd_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmrsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmmul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmrdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
-    void    (* scale_add4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
-    void    (* scale_sub4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
-    void    (* scale_mul4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
-    void    (* scale_div4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmadd_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmrsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmmul_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmrdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+
+    void    (* fmadd3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmsub3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmrsub3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmmul3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmdiv3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmrdiv3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+
+    void    (* fmadd4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmsub4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmrsub4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmmul4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmrdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
 
     void    (* mix2)(float *dst, const float *src, float k1, float k2, size_t count) = NULL;
     void    (* mix_copy2)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
@@ -204,7 +216,10 @@ namespace dsp
     void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
     void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
+    void    (* complex_arg)(float *dst, const float *re, const float *im, size_t count) = NULL;
     void    (* pcomplex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
+    void    (* pcomplex_arg)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_modarg)(float *mod, float *arg, const float *src, size_t count) = NULL;
 
     void    (* pcomplex_c2r_add2)(float *dst, const float *src, size_t count) = NULL;
     void    (* pcomplex_c2r_sub2)(float *dst, const float *src, size_t count) = NULL;

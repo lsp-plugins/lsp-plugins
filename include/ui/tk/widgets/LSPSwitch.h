@@ -25,10 +25,10 @@ namespace lsp
                     S_TOGGLED   = (1 << 1)
                 };
 
-                Color           sColor;
-                Color           sTextColor;
-                Color           sBorderColor;
-                Color           sBgColor;
+                LSPColor        sColor;
+                LSPColor        sTextColor;
+                LSPColor        sBorderColor;
+                LSPColor        sHoleColor;
 
                 size_t          nSize;
                 size_t          nBorder;
@@ -54,13 +54,13 @@ namespace lsp
 
                 inline bool is_up() const       { return !(nState & S_TOGGLED); }
 
-                inline Color *color()           { return &sColor; }
+                inline LSPColor *color()        { return &sColor; }
 
-                inline Color *bg_color()        { return &sBgColor; }
+                inline LSPColor *text_color()   { return &sTextColor; }
 
-                inline Color *text_color()      { return &sTextColor; }
+                inline LSPColor *border_color() { return &sBorderColor; }
 
-                inline Color *border_color()    { return &sBorderColor; }
+                inline LSPColor *hole_color()   { return &sHoleColor; }
 
                 inline ssize_t size() const     { return nSize; }
 

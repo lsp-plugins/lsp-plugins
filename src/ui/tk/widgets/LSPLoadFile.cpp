@@ -6,12 +6,45 @@
  */
 
 #include <ui/tk/tk.h>
+#include <core/files/url.h>
 
 namespace lsp
 {
     namespace tk
     {
         const w_class_t LSPLoadFile::metadata = { "LSPLoadFile", &LSPWidget::metadata };
+
+        LSPLoadFile::LoadFileSink::LoadFileSink(LSPLoadFile *w): LSPUrlSink("file://")
+        {
+            pWidget     = w;
+        }
+
+        LSPLoadFile::LoadFileSink::~LoadFileSink()
+        {
+            pWidget     = NULL;
+        }
+
+        void LSPLoadFile::LoadFileSink::unbind()
+        {
+            pWidget     = NULL;
+        }
+
+        status_t LSPLoadFile::LoadFileSink::commit_url(const LSPString *url)
+        {
+            LSPString decoded;
+            status_t res = (url->starts_with_ascii("file://")) ?
+                    url_decode(&decoded, url, 7) :
+                    url_decode(&decoded, url);
+
+            if (res != STATUS_OK)
+                return res;
+
+            lsp_trace("Set file path to %s", decoded.get_native());
+            pWidget->sPath.swap(&decoded);
+            pWidget->slots()->execute(LSPSLOT_SUBMIT, pWidget, NULL);
+
+            return STATUS_OK;
+        }
 
         typedef struct state_descr_t
         {
@@ -22,7 +55,6 @@ namespace lsp
         LSPLoadFile::LSPLoadFile(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(dpy, this),
-            sBgColor(this),
             sDialog(dpy)
         {
             nState      = LFS_SELECT;
@@ -31,6 +63,7 @@ namespace lsp
             nBtnState   = 0;
             pDisk       = NULL;
             nSize       = -1;
+            pSink       = NULL;
 
             for (size_t i=0; i<LFS_SELECT; ++i)
                 vStates[i].pColor   = NULL;
@@ -96,13 +129,16 @@ namespace lsp
 
             LSP_STATUS_ASSERT(LSPWidget::init());
 
-            init_color(C_BACKGROUND, &sBgColor);
+            pSink       = new LoadFileSink(this);
+            if (pSink == NULL)
+                return STATUS_NO_MEM;
+            pSink->acquire();
 
             for (size_t i=0; i<LFS_TOTAL; ++i)
             {
                 const state_descr_t *sd = &initial[i];
 
-                vStates[i].pColor = new LSPWidgetColor(this);
+                vStates[i].pColor = new LSPColor(this);
                 if (vStates[i].pColor == NULL)
                     return STATUS_NO_MEM;
                 init_color(color_t(sd->color_id), vStates[i].pColor);
@@ -143,6 +179,14 @@ namespace lsp
                     delete vStates[i].pColor;
                     vStates[i].pColor = NULL;
                 }
+
+            // Destroy sink
+            if (pSink != NULL)
+            {
+                pSink->unbind();
+                pSink->release();
+                pSink   = NULL;
+            }
 
             LSPWidget::destroy();
         }
@@ -245,7 +289,7 @@ namespace lsp
             query_resize();
         }
 
-        ISurface *LSPLoadFile::render_disk(ISurface *s, ssize_t w, const Color &c)
+        ISurface *LSPLoadFile::render_disk(ISurface *s, ssize_t w, const Color &c, const Color &bg)
         {
 #define N 9
             static const float xx[] = { 0.5, 7, 8, 8, 7.5, 0.5, 0, 0, 0.5 };
@@ -335,16 +379,16 @@ namespace lsp
             // Clear canvas
             float k     = (w - b_l*2) * 0.125f;
 
-            pDisk->wire_rect(b_l + k + 0.5f, b_l + 0.5f, 5.5*k, 3.5*k - 0.5f, 1, sBgColor);
-            pDisk->fill_rect(b_l + k*2.5f, b_l, 4.0*k, 3.5*k, sBgColor);
+            pDisk->wire_rect(b_l + k + 0.5f, b_l + 0.5f, 5.5*k, 3.5*k - 0.5f, 1, bg);
+            pDisk->fill_rect(b_l + k*2.5f, b_l, 4.0*k, 3.5*k, bg);
             pDisk->fill_rect(b_l + 4.5*k, b_l + 0.5*k, k, 2.5*k, c);
-            pDisk->fill_rect(b_l + 0.5*k, b_l + 4.0*k, 7.0*k, 3.5*k, sBgColor);
+            pDisk->fill_rect(b_l + 0.5*k, b_l + 4.0*k, 7.0*k, 3.5*k, bg);
             for (size_t i=0; i<N; ++i)
             {
                 xa[i] = b_l + xx[i] * k;
                 ya[i] = b_l + yy[i] * k;
             }
-            pDisk->wire_poly(xa, ya, N, 1, sBgColor);
+            pDisk->wire_poly(xa, ya, N, 1, bg);
 
             // Output text
             LSPString *txt = &vStates[nState].sText;
@@ -366,14 +410,16 @@ namespace lsp
 
         void LSPLoadFile::draw(ISurface *s)
         {
-            // Determine current color
-            Color c;
-            c.copy(vStates[nState].pColor->color());
+            // Prepare palette
+            Color color(vStates[nState].pColor->color());
+            Color bg_color(sBgColor);
+            color.scale_lightness(brightness());
 
-            s->clear(sBgColor);
+            // Clear
+            s->clear(bg_color);
 
             // Render disk
-            ISurface *d = render_disk(s, sSize.nWidth, c);
+            ISurface *d = render_disk(s, sSize.nWidth, color, bg_color);
             if (d != NULL)
                 s->draw(d, 0, 0);
 
@@ -382,8 +428,9 @@ namespace lsp
                 size_t pw = (fProgress * sSize.nWidth * 0.01f);
                 if (pw > 0)
                 {
-                    c.copy(vStates[LFS_LOADED].pColor->color());
-                    ISurface *d = render_disk(s, sSize.nWidth, c);
+                    color.copy(vStates[LFS_LOADED].pColor->color());
+                    color.scale_lightness(brightness());
+                    ISurface *d = render_disk(s, sSize.nWidth, color, bg_color);
                     if (d != NULL)
                         s->draw_clipped(d, 0, 0, 0, 0, pw, sSize.nWidth);
                 }
@@ -520,6 +567,16 @@ namespace lsp
 
         status_t LSPLoadFile::on_close()
         {
+            return STATUS_OK;
+        }
+
+        status_t LSPLoadFile::on_drag_request(const ws_event_t *e, const char * const *ctype)
+        {
+            ssize_t idx = pSink->select_mime_type(ctype);
+            if (idx >= 0)
+                pDisplay->accept_drag(pSink, DRAG_COPY, true, &sSize);
+            else
+                pDisplay->reject_drag();
             return STATUS_OK;
         }
     } /* namespace tk */

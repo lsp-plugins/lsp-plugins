@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        5
+#define RANK        4
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -261,11 +261,26 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
     }
 }
 
+namespace native
+{
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+}
+
 IF_ARCH_X86(
     namespace sse
     {
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
         void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    }
+
+    namespace avx
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        void direct_fft_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
     }
 )
 
@@ -277,18 +292,95 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    }
+)
+
+typedef void (* direct_fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+typedef void (* reverse_fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
 MTEST_BEGIN("dsp.fft", fft)
+
+    void test_direct_fft(const char *text, direct_fft_t direct, const FloatBuffer &x_r, const FloatBuffer &x_i)
+    {
+        FloatBuffer src_r(BUF_SIZE, 64);
+        FloatBuffer src_i(BUF_SIZE, 64);
+        FloatBuffer dst1r(BUF_SIZE, 64);
+        FloatBuffer dst1i(BUF_SIZE, 64);
+        FloatBuffer dst2r(BUF_SIZE, 64);
+        FloatBuffer dst2i(BUF_SIZE, 64);
+        src_r.copy(x_r);
+        src_i.copy(x_i);
+        dst2r.copy(x_r);
+        dst2i.copy(x_i);
+
+        printf("Testing %s direct FFT...\n", text);
+        src_r.dump("src_r");
+        src_i.dump("src_i");
+
+        direct(dst1r, dst1i, src_r, src_i, RANK);
+        dst1r.dump("dst1r");
+        dst1i.dump("dst1i");
+
+        direct(dst2r, dst2i, dst2r, dst2i, RANK);
+        dst1r.dump("dst2r");
+        dst1i.dump("dst2i");
+
+        MTEST_ASSERT_MSG(x_r.valid(), "x_r corrupted");
+        MTEST_ASSERT_MSG(x_i.valid(), "x_i corrupted");
+        MTEST_ASSERT_MSG(src_r.valid(), "src_r corrupted");
+        MTEST_ASSERT_MSG(src_i.valid(), "src_i corrupted");
+        MTEST_ASSERT_MSG(dst1r.valid(), "dst1r corrupted");
+        MTEST_ASSERT_MSG(dst1i.valid(), "dst1i corrupted");
+        MTEST_ASSERT_MSG(dst2r.valid(), "dst2r corrupted");
+        MTEST_ASSERT_MSG(dst2i.valid(), "dst2i corrupted");
+    }
+
+    void test_reverse_fft(const char *text, reverse_fft_t direct, const FloatBuffer &x_r, const FloatBuffer &x_i)
+    {
+        FloatBuffer src_r(BUF_SIZE, 64);
+        FloatBuffer src_i(BUF_SIZE, 64);
+        FloatBuffer dst1r(BUF_SIZE, 64);
+        FloatBuffer dst1i(BUF_SIZE, 64);
+        FloatBuffer dst2r(BUF_SIZE, 64);
+        FloatBuffer dst2i(BUF_SIZE, 64);
+        src_r.copy(x_r);
+        src_i.copy(x_i);
+        dst2r.copy(x_r);
+        dst2i.copy(x_i);
+
+        printf("Testing %s reverse FFT...\n", text);
+        src_r.dump("src_r");
+        src_i.dump("src_i");
+
+        direct(dst1r, dst1i, src_r, src_i, RANK);
+        dst1r.dump("dst1r");
+        dst1i.dump("dst1i");
+
+        direct(dst2r, dst2i, dst2r, dst2i, RANK);
+        dst1r.dump("dst2r");
+        dst1i.dump("dst2i");
+
+        MTEST_ASSERT_MSG(x_r.valid(), "x_r corrupted");
+        MTEST_ASSERT_MSG(x_i.valid(), "x_i corrupted");
+        MTEST_ASSERT_MSG(src_r.valid(), "src_r corrupted");
+        MTEST_ASSERT_MSG(src_i.valid(), "src_i corrupted");
+        MTEST_ASSERT_MSG(dst1r.valid(), "dst1r corrupted");
+        MTEST_ASSERT_MSG(dst1i.valid(), "dst1i corrupted");
+        MTEST_ASSERT_MSG(dst2r.valid(), "dst2r corrupted");
+        MTEST_ASSERT_MSG(dst2i.valid(), "dst2i corrupted");
+    }
 
     MTEST_MAIN
     {
         FloatBuffer src1r(BUF_SIZE, 64);
         FloatBuffer src1i(BUF_SIZE, 64);
-        FloatBuffer src2r(BUF_SIZE, 64);
-        FloatBuffer src2i(BUF_SIZE, 64);
         FloatBuffer dst1r(BUF_SIZE, 64);
         FloatBuffer dst1i(BUF_SIZE, 64);
-        FloatBuffer dst2r(BUF_SIZE, 64);
-        FloatBuffer dst2i(BUF_SIZE, 64);
 
         // Prepare data
         for (size_t i=0; i<BUF_SIZE; ++i)
@@ -296,65 +388,53 @@ MTEST_BEGIN("dsp.fft", fft)
             src1r[i]            = i;
             src1i[i]            = i * 0.1f;
         }
-        src2r.copy(src1r);
-        src2i.copy(src1i);
 
-        // Test
-        printf("Testing direct FFT...\n");
-        src1r.dump("src1r");
-        src1i.dump("src1i");
+        // Test direct FFT
+        test_direct_fft("native", direct_fft, src1r, src1i);
 
+        IF_ARCH_X86(
+            if (TEST_SUPPORTED(sse::direct_fft))
+                test_direct_fft("SSE", sse::direct_fft, src1r, src1i);
+            if (TEST_SUPPORTED(avx::direct_fft))
+                test_direct_fft("AVX", avx::direct_fft, src1r, src1i);
+            if (TEST_SUPPORTED(avx::direct_fft))
+                test_direct_fft("FMA3", avx::direct_fft_fma3, src1r, src1i);
+        );
+
+        IF_ARCH_ARM(
+            if (TEST_SUPPORTED(neon_d32::direct_fft))
+                test_direct_fft("NEON-D32", neon_d32::direct_fft, src1r, src1i);
+        );
+
+        IF_ARCH_AARCH64(
+            if (TEST_SUPPORTED(asimd::direct_fft))
+                test_direct_fft("ASIMD", asimd::direct_fft, src1r, src1i);
+        );
+
+        // Test reverse FFT
         direct_fft(dst1r, dst1i, src1r, src1i, RANK);
-        dst1r.dump("dst1r");
-        dst1i.dump("dst1i");
+        printf("\n");
 
-        direct_fft(src1r, src1i, src1r, src1i, RANK);
-        src1r.dump("src1r");
-        src1i.dump("src1i");
-
-        src2r.dump("src2r");
-        src2i.dump("src2i");
-
-        IF_ARCH_ARM(
-            neon_d32::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
-
-            neon_d32::direct_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
-        );
+        test_reverse_fft("native", native::reverse_fft, dst1r, dst1i);
 
         IF_ARCH_X86(
-            sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
-
-            sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+            if (TEST_SUPPORTED(sse::reverse_fft))
+                test_reverse_fft("SSE", sse::reverse_fft, dst1r, dst1i);
+            if (TEST_SUPPORTED(avx::reverse_fft))
+                test_reverse_fft("AVX", avx::reverse_fft, dst1r, dst1i);
+            if (TEST_SUPPORTED(avx::reverse_fft))
+                test_reverse_fft("FMA3", avx::reverse_fft_fma3, dst1r, dst1i);
         );
-
-        printf("Testing reverse FFT...\n");
 
         IF_ARCH_ARM(
-            neon_d32::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
-
-            neon_d32::reverse_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+            if (TEST_SUPPORTED(neon_d32::reverse_fft))
+                test_reverse_fft("NEON-D32", neon_d32::reverse_fft, dst1r, dst1i);
         );
 
-        IF_ARCH_X86(
-            sse::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
-            dst2r.dump("dst2r");
-            dst2i.dump("dst2i");
-
-            sse::reverse_fft(src2r, src2i, src2r, src2i, RANK);
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+        IF_ARCH_AARCH64(
+            if (TEST_SUPPORTED(asimd::reverse_fft))
+                test_reverse_fft("ASIMD", asimd::reverse_fft, dst1r, dst1i);
         );
+
     }
 MTEST_END

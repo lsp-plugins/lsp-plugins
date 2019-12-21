@@ -21,6 +21,9 @@ namespace lsp
          */
         class CtlViewer3D: public CtlWidget, public CtlKvtListener
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 typedef struct pov_angles_t
                 {
@@ -31,7 +34,6 @@ namespace lsp
 
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlColor        sBaseColor;
                 CtlPadding      sPadding;
 
@@ -110,7 +112,7 @@ namespace lsp
 
                 virtual void notify(CtlPort *port);
 
-                virtual status_t add(LSPWidget *child);
+                virtual status_t add(CtlWidget *child);
 
                 virtual bool changed(KVTStorage *kvt, const char *id, const kvt_param_t *value);
         };

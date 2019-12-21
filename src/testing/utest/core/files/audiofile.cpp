@@ -25,7 +25,7 @@ UTEST_BEGIN("core.files", audiofile)
         // Create sample
         UTEST_ASSERT(source.init(2, DEFAULT_SAMPLE_RATE, DEFAULT_SAMPLE_RATE));
         float phase = 0.0f;
-        
+
         for (size_t ch=0; ch<2; ++ch) {
             float *dst = source.getBuffer(ch);
             UTEST_ASSERT(dst != NULL);

@@ -3,7 +3,6 @@
 		<group text="Oscillator Function" expand="true" fill="true">
 			<vbox>
 				<align vpos="0">
-					<!-- <hbox><combo id="scf" /><value id="scf" /></hbox-->
 					<combo id="scf" />
 				</align>
 				

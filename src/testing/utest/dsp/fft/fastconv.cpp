@@ -10,18 +10,8 @@
 #include <dsp/dsp.h>
 
 #define MIN_RANK    6
-
-#ifdef ARCH_ARM
-    #define MAX_RANK    12
-#else
-    #define MAX_RANK    16
-#endif
-
-#if (defined(ARCH_I386)) || (defined(ARCH_ARM))
-    #define TOLERANCE       5e-2
-#else
-    #define TOLERANCE       1e-4
-#endif
+#define MAX_RANK    12
+#define TOLERANCE   5e-2
 
 namespace native
 {
@@ -38,6 +28,19 @@ IF_ARCH_X86(
         void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
         void fastconv_restore(float *dst, float *src, size_t rank);
         void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    }
+
+    namespace avx
+    {
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+        void fastconv_restore(float *dst, float *src, size_t rank);
+        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+
+        void fastconv_parse_fma3(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply_fma3(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+        void fastconv_restore_fma3(float *dst, float *src, size_t rank);
+        void fastconv_apply_fma3(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
     }
 )
 
@@ -112,8 +115,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                     dst2.dump("dst2");
 
                     ssize_t diff = dst2.last_diff();
-                    UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f)",
-                            label, int(diff), dst1.get(diff), dst2.get(diff));
+                    UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f), rank=%d",
+                            label, int(diff), dst1.get(diff), dst2.get(diff), int(rank));
                 }
             }
         }
@@ -189,8 +192,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                     dst2.dump("dst2");
 
                     ssize_t diff = dst2.last_diff();
-                    UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f)",
-                            label, int(diff), dst1.get(diff), dst2.get(diff));
+                    UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f), rank=%d",
+                            label, int(diff), dst1.get(diff), dst2.get(diff), int(rank));
                 }
             }
         }
@@ -259,8 +262,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                     dst2.dump("dst2");
 
                     ssize_t diff = dst2.last_diff();
-                    UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f)",
-                            label, int(diff), dst1.get(diff), dst2.get(diff));
+                    UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f), rank=%d",
+                            label, int(diff), dst1.get(diff), dst2.get(diff), int(rank));
                 }
             }
         }
@@ -270,12 +273,18 @@ UTEST_BEGIN("dsp.fft", fastconv)
     {
         // Do tests
         IF_ARCH_X86(call_pr("sse::fastconv_parse + sse::fastconv_restore", 16, sse::fastconv_parse, sse::fastconv_restore));
+        IF_ARCH_X86(call_pr("avx::fastconv_parse + avx::fastconv_restore", 32, avx::fastconv_parse, avx::fastconv_restore));
+        IF_ARCH_X86(call_pr("avx::fastconv_parse_fma3 + avx::fastconv_restore_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_restore_fma3));
         IF_ARCH_ARM(call_pr("neon_d32::fastconv_parse + neon_d32::fastconv_restore", 16, neon_d32::fastconv_parse, neon_d32::fastconv_restore));
 
         IF_ARCH_X86(call_pa("sse::fastconv_parse + sse::fastconv_apply", 16, sse::fastconv_parse, sse::fastconv_apply));
+        IF_ARCH_X86(call_pa("avx::fastconv_parse + avx::fastconv_apply", 32, avx::fastconv_parse, avx::fastconv_apply));
+        IF_ARCH_X86(call_pa("avx::fastconv_parse_fma3 + avx::fastconv_apply_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_apply_fma3));
         IF_ARCH_ARM(call_pa("neon_d32::fastconv_parse + neon_d32::fastconv_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_apply));
 
         IF_ARCH_X86(call_pap("sse::fastconv_parse + sse::fastconv_parse_apply", 16, sse::fastconv_parse, sse::fastconv_parse_apply));
+        IF_ARCH_X86(call_pap("avx::fastconv_parse + avx::fastconv_parse_apply", 32, avx::fastconv_parse, avx::fastconv_parse_apply));
+        IF_ARCH_X86(call_pap("avx::fastconv_parse_fma3 + avx::fastconv_parse_apply_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_parse_apply_fma3));
         IF_ARCH_ARM(call_pap("neon_d32::fastconv_parse + neon_d32::fastconv_parse_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply));
     }
 UTEST_END;

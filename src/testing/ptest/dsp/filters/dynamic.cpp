@@ -37,7 +37,7 @@ IF_ARCH_X86(
         namespace avx
         {
             void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
-            void x64_dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+            void dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
         }
     )
 )
@@ -64,7 +64,7 @@ static biquad_x1_t bq_normal = {
 
 //-----------------------------------------------------------------------------
 // Performance test for dynamic biquad processing
-PTEST_BEGIN("dsp.filters", dynamic, 30, 10000)
+PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
 
     void process_8x1(const char *text, float *out, const float *in, size_t count, dyn_biquad_process_x1_t process)
     {
@@ -231,7 +231,7 @@ PTEST_BEGIN("dsp.filters", dynamic, 30, 10000)
         IF_ARCH_X86(process_1x8("sse::dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse::dyn_biquad_process_x8));
         IF_ARCH_X86_64(process_1x8("sse3::x64_dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse3::x64_dyn_biquad_process_x8));
         IF_ARCH_X86_64(process_1x8("avx::x64_dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_dyn_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("avx::x64_dyn_biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::x64_dyn_biquad_process_x8_fma3));
+        IF_ARCH_X86_64(process_1x8("avx::dyn_biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::dyn_biquad_process_x8_fma3));
         IF_ARCH_ARM(process_1x8("neon_d32::dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, neon_d32::dyn_biquad_process_x8));
         PTEST_SEPARATOR;
 

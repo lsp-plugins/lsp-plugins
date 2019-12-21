@@ -306,7 +306,7 @@ namespace lsp
             if (pHandler != NULL)
                 pHandler->process(0, out, in, samples);
             else
-                dsp::scale3(out, in, vBands[0].fAmp, samples);
+                dsp::mul_k3(out, in, vBands[0].fAmp, samples);
 
             // And return
             return;
@@ -347,7 +347,7 @@ namespace lsp
             {
                 dsp::fill_zero(out, to_process);
                 for (size_t i=0; i<nBands; ++i)
-                    dsp::scale_add3(out, vBands[i].vBuffer, vBands[i].fAmp, to_process);
+                    dsp::fmadd_k3(out, vBands[i].vBuffer, vBands[i].fAmp, to_process);
 
                 out        += to_process;
             }
@@ -410,8 +410,8 @@ namespace lsp
             {
                 band_t *b       = &vBands[i];
 
-                dsp::scale_add3(re, b->vBuffer, b->fAmp, to_process);
-                dsp::scale_add3(im, &b->vBuffer[max_items], b->fAmp, to_process);
+                dsp::fmadd_k3(re, b->vBuffer, b->fAmp, to_process);
+                dsp::fmadd_k3(im, &b->vBuffer[max_items], b->fAmp, to_process);
             }
 
             // Decrement counter and update pointers

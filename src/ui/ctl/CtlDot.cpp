@@ -11,15 +11,18 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlDot::metadata = { "CtlDot", &CtlWidget::metadata };
+
         CtlDot::CtlDot(CtlRegistry *src, LSPDot *dot): CtlWidget(src, dot)
         {
-            pTop        = NULL;
-            pLeft       = NULL;
-            pScroll     = NULL;
-            nFlags      = 0;
-            fTop        = 0.0f;
-            fLeft       = 0.0f;
-            bEditable   = false;
+            pClass          = &metadata;
+            pTop            = NULL;
+            pLeft           = NULL;
+            pScroll         = NULL;
+            nFlags          = 0;
+            fTop            = 0.0f;
+            fLeft           = 0.0f;
+            bEditable       = false;
         }
 
         CtlDot::~CtlDot()

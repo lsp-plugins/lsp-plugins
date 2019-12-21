@@ -16,7 +16,6 @@ namespace lsp
         LSPProgressBar::LSPProgressBar(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(this),
-            sBgColor(this),
             sColor(this),
             sSelColor(this)
         {
@@ -46,15 +45,12 @@ namespace lsp
                 // Get theme
                 LSPTheme *theme = pDisplay->theme();
                 if (theme != NULL)
-                {
                     sFont.init(theme->font());
-
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_KNOB_SCALE, &sSelColor);
-                }
             }
+
+            init_color(C_BACKGROUND, sFont.color());
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             return STATUS_OK;
         }
@@ -124,10 +120,20 @@ namespace lsp
             size_t h    = sSize.nHeight;
             size_t dw   = sSize.nWidth - 4;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            Color sel_color(sSelColor);
+            Color font(sFont.raw_color());
+
+            color.scale_lightness(brightness());
+            sel_color.scale_lightness(brightness());
+            font.scale_lightness(brightness());
+
             // Draw the entire control
-            s->clear(sBgColor);
+            s->clear(bg_color);
             bool aa = s->set_antialiasing(true);
-            s->fill_round_rect(0.5f, 0.5f, w-1, h-1, 4.0f, SURFMASK_ALL_CORNER, sColor);
+            s->fill_round_rect(0.5f, 0.5f, w-1, h-1, 4.0f, SURFMASK_ALL_CORNER, color);
             s->set_antialiasing(aa);
 
             font_parameters_t fp;
@@ -136,7 +142,7 @@ namespace lsp
             {
                 sFont.get_parameters(s, &fp);
                 sFont.get_text_parameters(s, &tp, &sText);
-                sFont.draw(s, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, &sText);
+                sFont.draw(s, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, font, &sText);
             }
 
             // Need to draw the value over?
@@ -153,13 +159,13 @@ namespace lsp
                 if (xs == NULL)
                     return;
 
-                xs->clear(sBgColor);
+                xs->clear(bg_color);
                 aa = xs->set_antialiasing(true);
-                xs->fill_round_rect(0.5f, 0.5f, w-1, h-1, 4.0f, SURFMASK_ALL_CORNER, sSelColor);
+                xs->fill_round_rect(0.5f, 0.5f, w-1, h-1, 4.0f, SURFMASK_ALL_CORNER, sel_color);
                 xs->set_antialiasing(aa);
 
                 if (!sText.is_empty())
-                    sFont.draw(xs, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, sColor, &sText);
+                    sFont.draw(xs, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, color, &sText);
                 s->draw(xs, 0, 0);
 
                 xs->destroy();
@@ -168,8 +174,8 @@ namespace lsp
 
             // Finally, draw frames
             aa = s->set_antialiasing(true);
-            s->wire_round_rect(1.5f, 1.5f, w - 3, h - 3, 4.0f, SURFMASK_ALL_CORNER, 1.0f, sBgColor);
-            s->wire_round_rect(0.5f, 0.5f, w - 1, h - 1, 4.0f, SURFMASK_ALL_CORNER, 1.0f, sColor);
+            s->wire_round_rect(1.5f, 1.5f, w - 3, h - 3, 4.0f, SURFMASK_ALL_CORNER, 1.0f, bg_color);
+            s->wire_round_rect(0.5f, 0.5f, w - 1, h - 1, 4.0f, SURFMASK_ALL_CORNER, 1.0f, color);
             s->set_antialiasing(aa);
         }
 

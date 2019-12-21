@@ -13,8 +13,9 @@ namespace lsp
     {
         const w_class_t LSPScrollBar::metadata = { "LSPScrollBar", &LSPWidget::metadata };
 
-        LSPScrollBar::LSPScrollBar(LSPDisplay *dpy, bool horizontal):
-            LSPWidget(dpy)
+        LSPScrollBar::LSPScrollBar(LSPDisplay *dpy, bool horizontal): LSPWidget(dpy),
+            sColor(this),
+            sSelColor(this)
         {
             fMin            = 0.0f;
             fMax            = 1.0f;
@@ -46,17 +47,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_KNOB_SCALE, &sSelColor);
-                }
-            }
+            init_color(C_LABEL_TEXT, &sColor);
+            init_color(C_KNOB_SCALE, &sSelColor);
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());
@@ -133,6 +125,7 @@ namespace lsp
                 return;
 
             fValue      = value;
+            sSlots.execute(LSPSLOT_CHANGE, this);
             query_draw();
         }
 
@@ -597,7 +590,8 @@ namespace lsp
 
         float LSPScrollBar::get_normalized_value()
         {
-            return (fValue - fMin) / (fMax - fMin);
+            float delta = fMax - fMin;
+            return (delta != 0.0f) ? (fValue - fMin) / (fMax - fMin) : 0.0f;
         }
 
         void LSPScrollBar::update()
@@ -634,10 +628,18 @@ namespace lsp
 
         void LSPScrollBar::draw(ISurface *s)
         {
-            // Draw background
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
             Color quarter(sSelColor, 0.25f);
-            Color half(sSelColor, 0.5f);//(sColor, 0.5f);
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            Color half(sSelColor, 0.5f);
+
+            color.scale_lightness(brightness());
+            quarter.scale_lightness(brightness());
+            half.scale_lightness(brightness());
+
+            // Draw background
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             float value     = get_normalized_value();
             float aa        = s->set_antialiasing(true);
@@ -663,21 +665,21 @@ namespace lsp
                 {
                     float top = r.nTop + r.nHeight - nSize + 0.5f;
                     s->fill_round_rect(r.nLeft, r.nTop + r.nHeight - nSize + 1, r.nWidth + 1, nSize - 1, 3.0f, SURFMASK_B_CORNER, half);
-                    s->line(r.nLeft + 0.5f, top, r.nLeft + r.nWidth + 0.5f, top, 1.0f, sColor);
+                    s->line(r.nLeft + 0.5f, top, r.nLeft + r.nWidth + 0.5f, top, 1.0f, color);
                     s->fill_triangle(
                             r.nLeft + 0.2f*w, r.nTop + r.nHeight + 1 - size3*2,
                             r.nLeft + 0.5f*w, r.nTop + r.nHeight + 1 - size3,
                             r.nLeft + 0.8f*w, r.nTop + r.nHeight + 1 - size3*2,
-                            sColor);
+                            color);
                 }
                 else
                 {
-                    s->fill_round_rect(r.nLeft, r.nTop + r.nHeight - nSize, r.nWidth + 1, nSize, 3.0f, SURFMASK_B_CORNER, sColor);
+                    s->fill_round_rect(r.nLeft, r.nTop + r.nHeight - nSize, r.nWidth + 1, nSize, 3.0f, SURFMASK_B_CORNER, color);
                     s->fill_triangle(
                             r.nLeft + 0.2f*w, r.nTop + r.nHeight + 1 - size3*2,
                             r.nLeft + 0.5f*w, r.nTop + r.nHeight + 1 - size3,
                             r.nLeft + 0.8f*w, r.nTop + r.nHeight + 1 - size3*2,
-                            sBgColor);
+                            bg_color);
                 }
 
                 // Draw button down
@@ -686,21 +688,21 @@ namespace lsp
                     float top = r.nTop + nSize + 0.5f;
 //                    s->fill_rect(r.nLeft + 2, 2, nSize - 3, nSize - 3, sColor);
                     s->fill_round_rect(r.nLeft, r.nTop+1, r.nWidth + 1, nSize-1, 3.0f, SURFMASK_T_CORNER, half);
-                    s->line(r.nLeft + 0.5f, top, r.nLeft + r.nWidth + 0.5f, top, 1.0f, sColor);
+                    s->line(r.nLeft + 0.5f, top, r.nLeft + r.nWidth + 0.5f, top, 1.0f, color);
                     s->fill_triangle(
                             r.nLeft + 0.2f*w, r.nTop + size3*2,
                             r.nLeft + 0.5f*w, r.nTop + size3,
                             r.nLeft + 0.8f*w, r.nTop + size3*2,
-                            sColor);
+                            color);
                 }
                 else
                 {
-                    s->fill_round_rect(r.nLeft, r.nTop+1, r.nWidth + 1, nSize, 3.0f, SURFMASK_T_CORNER, sColor);
+                    s->fill_round_rect(r.nLeft, r.nTop+1, r.nWidth + 1, nSize, 3.0f, SURFMASK_T_CORNER, color);
                     s->fill_triangle(
                             r.nLeft + 0.2f*w, r.nTop + size3*2,
                             r.nLeft + 0.5f*w, r.nTop + size3,
                             r.nLeft + 0.8f*w, r.nTop + size3*2,
-                            sBgColor);
+                            bg_color);
                 }
 
                 ssize_t spare_space     = r.nHeight - ((nSize + 1) << 1) - nSize - 1;
@@ -710,11 +712,11 @@ namespace lsp
                 // Draw slider
                 if (nFlags & F_SLIDER_ACTIVE)
                 {
-                    s->wire_rect(r.nLeft + 2.5f, r.nTop + nSize + spare_up_size + 2.5f, r.nWidth - 4, nSize - 1, 1.0f, sColor);
+                    s->wire_rect(r.nLeft + 2.5f, r.nTop + nSize + spare_up_size + 2.5f, r.nWidth - 4, nSize - 1, 1.0f, color);
                     s->fill_rect(r.nLeft + 3, r.nTop + nSize + spare_up_size + 3, r.nWidth - 5, nSize - 2, quarter);
                 }
                 else
-                    s->fill_rect(r.nLeft + 2, r.nTop + nSize + spare_up_size + 2, r.nWidth - 3, nSize, sColor);
+                    s->fill_rect(r.nLeft + 2, r.nTop + nSize + spare_up_size + 2, r.nWidth - 3, nSize, color);
 
                 // Draw spares
                 if ((nFlags & F_SPARE_UP_ACTIVE) && (spare_down_size > 0))
@@ -724,7 +726,7 @@ namespace lsp
                     s->fill_rect(r.nLeft + 2, r.nTop + nSize + 2, r.nWidth - 3, spare_up_size - 1, quarter);
 
                 // Draw binding
-                s->wire_round_rect(r.nLeft + 0.5f, r.nTop + 0.5f, r.nWidth, r.nHeight, 3, SURFMASK_ALL_CORNER, 1.0f, sColor);
+                s->wire_round_rect(r.nLeft + 0.5f, r.nTop + 0.5f, r.nWidth, r.nHeight, 3, SURFMASK_ALL_CORNER, 1.0f, color);
             }
             else // Horizontal
             {
@@ -741,21 +743,21 @@ namespace lsp
                 {
                     float left = r.nLeft + r.nWidth - nSize + 0.5f;
                     s->fill_round_rect(r.nLeft + r.nWidth - nSize + 1, r.nTop+1, nSize, r.nHeight, 3.0f, SURFMASK_R_CORNER, half);
-                    s->line(left, r.nTop + 0.5f, left, r.nTop + r.nWidth + 0.5f, 1.0f, sColor);
+                    s->line(left, r.nTop + 0.5f, left, r.nTop + r.nWidth + 0.5f, 1.0f, color);
                     s->fill_triangle(
                             r.nLeft + r.nWidth + 1 - size3*2, r.nTop + 0.2f*w,
                             r.nLeft + r.nWidth + 1 - size3,   r.nTop + 0.5f*w,
                             r.nLeft + r.nWidth + 1 - size3*2, r.nTop + 0.8f*w,
-                            sColor);
+                            color);
                 }
                 else
                 {
-                    s->fill_round_rect(r.nLeft + r.nWidth - nSize, r.nTop+1, nSize+1, r.nHeight, 3.0f, SURFMASK_R_CORNER, sColor);
+                    s->fill_round_rect(r.nLeft + r.nWidth - nSize, r.nTop+1, nSize+1, r.nHeight, 3.0f, SURFMASK_R_CORNER, color);
                     s->fill_triangle(
                             r.nLeft + r.nWidth + 1 - size3*2, r.nTop + 0.2f*w,
                             r.nLeft + r.nWidth + 1 - size3,   r.nTop + 0.5f*w,
                             r.nLeft + r.nWidth + 1 - size3*2, r.nTop + 0.8f*w,
-                            sBgColor);
+                            bg_color);
                 }
 
                 // Draw button down
@@ -763,21 +765,21 @@ namespace lsp
                 {
                     float left = r.nLeft + nSize + 0.5f;
                     s->fill_round_rect(r.nLeft, r.nTop, nSize, r.nHeight, 3.0f, SURFMASK_L_CORNER, half);
-                    s->line(left, r.nTop + 0.5f, left, r.nLeft + r.nHeight + 0.5f, 1.0f, sColor);
+                    s->line(left, r.nTop + 0.5f, left, r.nLeft + r.nHeight + 0.5f, 1.0f, color);
                     s->fill_triangle(
                             r.nLeft + size3*2, r.nTop + 0.2f*w,
                             r.nLeft + size3,   r.nTop + 0.5f*w,
                             r.nLeft + size3*2, r.nTop + 0.8f*w,
-                            sColor);
+                            color);
                 }
                 else
                 {
-                    s->fill_round_rect(r.nLeft+1, r.nTop, nSize, r.nHeight, 3.0f, SURFMASK_L_CORNER, sColor);
+                    s->fill_round_rect(r.nLeft+1, r.nTop, nSize, r.nHeight, 3.0f, SURFMASK_L_CORNER, color);
                     s->fill_triangle(
                             r.nLeft + size3*2, r.nTop + 0.2f*w,
                             r.nLeft + size3,   r.nTop + 0.5f*w,
                             r.nLeft + size3*2, r.nTop + 0.8f*w,
-                            sBgColor);
+                            bg_color);
                 }
 
                 ssize_t spare_space     = r.nWidth - ((nSize + 1) << 1) - nSize - 1;
@@ -787,11 +789,11 @@ namespace lsp
                 // Draw slider
                 if (nFlags & F_SLIDER_ACTIVE)
                 {
-                    s->wire_rect(r.nLeft + nSize + spare_down_size + 2.5f, r.nTop + 2.5f, nSize - 1, r.nHeight - 4, 1.0f, sColor);
+                    s->wire_rect(r.nLeft + nSize + spare_down_size + 2.5f, r.nTop + 2.5f, nSize - 1, r.nHeight - 4, 1.0f, color);
                     s->fill_rect(r.nLeft + nSize + spare_down_size + 3, r.nTop + 3, nSize - 2, r.nHeight - 5, quarter);
                 }
                 else
-                    s->fill_rect(r.nLeft + nSize + spare_down_size + 2, r.nTop + 2, nSize, r.nHeight - 3, sColor);
+                    s->fill_rect(r.nLeft + nSize + spare_down_size + 2, r.nTop + 2, nSize, r.nHeight - 3, color);
 
                 // Draw spares
                 if ((nFlags & F_SPARE_UP_ACTIVE) && (spare_up_size > 0))
@@ -801,7 +803,7 @@ namespace lsp
                     s->fill_rect(r.nLeft + nSize + 2, r.nTop + 2, spare_down_size - 1, r.nHeight - 3, quarter);
 
                 // Draw binding
-                s->wire_round_rect(r.nLeft + 0.5f, r.nTop + 0.5f, r.nWidth, r.nHeight, 3, SURFMASK_ALL_CORNER, 1.0f, sColor);
+                s->wire_round_rect(r.nLeft + 0.5f, r.nTop + 0.5f, r.nWidth, r.nHeight, 3, SURFMASK_ALL_CORNER, 1.0f, color);
             }
 
             s->set_antialiasing(aa);

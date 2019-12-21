@@ -1,0 +1,30 @@
+Filter Settings file
+
+Room EQ V5.19
+Dated: 09.09.2019 19:53:38
+
+Notes:test notes
+
+Equaliser: Generic
+No measurement
+Filter  1: ON  PK       Fc     100 Hz  Gain  10.0 dB  Q 0.710
+Filter  2: ON  LS       Fc    1000 Hz  Gain  10.0 dB
+Filter  3: ON  HS       Fc    1000 Hz  Gain -10.0 dB
+Filter  4: ON  PK       Fc   10000 Hz  Gain -10.0 dB  Q 0.710
+Filter  5: ON  HS       Fc     321 Hz  Gain   0.0 dB
+Filter  6: ON  None   
+Filter  7: ON  PK       Fc     100 Hz  Gain   0.0 dB  Q 10.000
+Filter  8: ON  Modal    Fc     100 Hz  Gain   0.0 dB  Q 13.643  T60 target   300 ms
+Filter  9: ON  LP       Fc     100 Hz
+Filter 10: ON  HP       Fc     100 Hz
+Filter 11: ON  LPQ      Fc     100 Hz  Q  0.707
+Filter 12: ON  HPQ      Fc     100 Hz  Q  0.707
+Filter 13: ON  LS       Fc     100 Hz  Gain   0.0 dB
+Filter 14: ON  HS       Fc     100 Hz  Gain   0.0 dB
+Filter 15: ON  LS 6dB   Fc     100 Hz  Gain   0.0 dB
+Filter 16: ON  HS 6dB   Fc     100 Hz  Gain   0.0 dB
+Filter 17: ON  LS 12dB  Fc     100 Hz  Gain   0.0 dB
+Filter 18: ON  HS 12dB  Fc     100 Hz  Gain   0.0 dB
+Filter 19: OFF NO       Fc     100 Hz
+Filter 20: ON  AP       Fc     100 Hz  Q  0.707
+

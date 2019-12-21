@@ -32,14 +32,6 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-            }
-
             return STATUS_OK;
         }
 
@@ -144,39 +136,42 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Estimate palette
+            Color bg_color(sBgColor);
+
             // Render child widgets
             size_t visible = visible_items();
 
             // Draw background if needed
             if ((!visible) && (force))
             {
-                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 return;
             }
 
             // Draw items
-//            Color red(1.0, 0.0, 0.0);
             for (size_t i=0; i<items; ++i)
             {
-                cell_t *w = vItems.at(i);
-                if (hidden_widget(w))
+                cell_t *wc = vItems.at(i);
+                if (hidden_widget(wc))
                     continue;
 
-                if ((force) || (w->pWidget->redraw_pending()))
+                LSPWidget *w = wc->pWidget;
+
+                if ((force) || (w->redraw_pending()))
                 {
                     // Fill unused space with background
                     if (force)
                     {
+                        bg_color.copy(w->bg_color()->color());
                         s->fill_frame(
-                            w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight,
-                            w->s.nLeft, w->s.nTop, w->s.nWidth, w->s.nHeight,
-                            sBgColor
+                            wc->a.nLeft, wc->a.nTop, wc->a.nWidth, wc->a.nHeight,
+                            wc->s.nLeft, wc->s.nTop, wc->s.nWidth, wc->s.nHeight,
+                            bg_color
                         );
-//                        s->wire_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, 1, red);
                     }
-//                    lsp_trace("Rendering this=%p, tgt=%p, force=%d", this, w->pWidget, int(force));
-                    w->pWidget->render(s, force);
-                    w->pWidget->commit_redraw();
+                    w->render(s, force);
+                    w->commit_redraw();
                 }
             }
         }
@@ -215,10 +210,36 @@ namespace lsp
             {
                 cell_t *cell        = vItems.at(i);
                 if (cell->pWidget == child)
-                    return (vItems.remove(i)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
+                {
+                    if (!vItems.remove(i))
+                        return STATUS_UNKNOWN_ERR;
+                    query_resize();
+                    child->set_parent(NULL);
+                    return STATUS_OK;
+                }
             }
 
             return STATUS_NOT_FOUND;
+        }
+
+        status_t LSPBox::remove_all()
+        {
+            if (vItems.size() <= 0)
+                return STATUS_OK;
+
+            cstorage<cell_t> tmp;
+            vItems.swap(&tmp);
+
+            for (size_t i=0, n=vItems.size(); i<n; ++i)
+            {
+                cell_t *cell        = vItems.at(i);
+                if (cell->pWidget != NULL)
+                    cell->pWidget->set_parent(NULL);
+            }
+
+            tmp.flush();
+            query_resize();
+            return STATUS_OK;
         }
 
         void LSPBox::realize(const realize_t *r)

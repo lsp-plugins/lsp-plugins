@@ -45,14 +45,14 @@ MOD_PLUGIN(trigger_midi_mono, plugin_ui)
 MOD_PLUGIN(trigger_midi_stereo, plugin_ui)
 
 // Parametric Equalizer
-MOD_PLUGIN(para_equalizer_x16_mono, plugin_ui)
-MOD_PLUGIN(para_equalizer_x32_mono, plugin_ui)
-MOD_PLUGIN(para_equalizer_x16_stereo, plugin_ui)
-MOD_PLUGIN(para_equalizer_x32_stereo, plugin_ui)
-MOD_PLUGIN(para_equalizer_x16_lr, plugin_ui)
-MOD_PLUGIN(para_equalizer_x32_lr, plugin_ui)
-MOD_PLUGIN(para_equalizer_x16_ms, plugin_ui)
-MOD_PLUGIN(para_equalizer_x32_ms, plugin_ui)
+MOD_PLUGIN(para_equalizer_x16_mono, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x32_mono, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x16_stereo, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x32_stereo, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x16_lr, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x32_lr, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x16_ms, para_equalizer_ui)
+MOD_PLUGIN(para_equalizer_x32_ms, para_equalizer_ui)
 
 // Graphic Equalizer
 MOD_PLUGIN(graph_equalizer_x16_mono, plugin_ui)
@@ -152,6 +152,9 @@ MOD_PLUGIN(room_builder_stereo, room_builder_ui)
 
     // Test plugin
     MOD_PLUGIN(test_plugin, test_plugin_ui)
+
+    // Test plugin
+    MOD_PLUGIN(filter_analyzer, plugin_ui)
 #endif
 
 // Undefine capabilities

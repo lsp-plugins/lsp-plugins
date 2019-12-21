@@ -17,7 +17,7 @@ namespace lsp
         /** Event handler type
          *
          * @param sender the widget that initiated an event
-         * @param ptr additional pointer
+         * @param ptr additional pointer passed as an argument to the bind()
          * @param data data structure to process (handle)
          * @return status of operation
          */

@@ -15,7 +15,11 @@ namespace lsp
         
         const w_class_t LSPSwitch::metadata = { "LSPSwitch", &LSPWidget::metadata };
 
-        LSPSwitch::LSPSwitch(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPSwitch::LSPSwitch(LSPDisplay *dpy): LSPWidget(dpy),
+            sColor(this),
+            sTextColor(this),
+            sBorderColor(this),
+            sHoleColor(this)
         {
             nSize       = 24;
             nBorder     = 8;
@@ -32,18 +36,11 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
+            init_color(C_KNOB_CAP, &sColor);
+            init_color(C_LABEL_TEXT, &sTextColor);
+            init_color(C_KNOB_CAP, &sBorderColor);
 
-                if (theme != NULL)
-                {
-                    theme->get_color(C_KNOB_CAP, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sTextColor);
-                    theme->get_color(C_KNOB_CAP, &sBorderColor);
-                }
-            }
+            sHoleColor.bind("hole_color");
 
             if (!sSlots.add(LSPSLOT_CHANGE))
                 return STATUS_NO_MEM;
@@ -57,13 +54,23 @@ namespace lsp
 
         void LSPSwitch::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color border(sBorderColor);
+            Color bcl(sColor);
+            Color font(sTextColor);
+
+            border.scale_lightness(brightness());
+            font.scale_lightness(brightness());
+            bcl.scale_lightness(brightness());
+
             // Get resource
             IGradient *cp;
 
             bool aa     = s->set_antialiasing(true);
 
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Get dimensions
             ssize_t w = 0, h = 0;
@@ -82,7 +89,7 @@ namespace lsp
 
                 for (ssize_t i=0; (i<b_r) && (i < ssize_t(nBorder)); ++i)
                 {
-                    Color bc(sBorderColor);
+                    Color bc(border);
                     float bright = (i + 1.0) / b_r;
                     bc.lightness(bc.lightness() + bright);
 
@@ -90,8 +97,8 @@ namespace lsp
                         left + w - (b_r << 1), top + (b_r << 1), delta * 0.5,
                         left + w - (b_r << 1), top + (b_r << 1), delta * 2.0 / (bright + 1.0)
                     );
-                    cp->add_color(0.0, sBorderColor.red() * bright, sBorderColor.green() * bright, sBorderColor.blue() * bright);
-                    cp->add_color(1.0, 0.5 * sBorderColor.red(), 0.5 *  sBorderColor.green(), 0.5 * sBorderColor.blue());
+                    cp->add_color(0.0, border.red() * bright, border.green() * bright, border.blue() * bright);
+                    cp->add_color(1.0, 0.5 * border.red(), 0.5 *  border.green(), 0.5 * border.blue());
                     s->fill_rect(left + i, top + i, w - (i << 1), h - (i << 1), cp);
                     delete cp;
                 }
@@ -103,14 +110,14 @@ namespace lsp
                         left + w - (b_r << 1), top + (b_r << 1), delta * 0.5,
                         left + w - (b_r << 1), top + (b_r << 1), delta * 1.0
                     );
-                    cp->add_color(0.0, sBorderColor);
-                    cp->add_color(1.0, 0.5 * sBorderColor.red(), 0.5 *  sBorderColor.green(), 0.5 * sBorderColor.blue());
+                    cp->add_color(0.0, border);
+                    cp->add_color(1.0, 0.5 * border.red(), 0.5 * border.green(), 0.5 * border.blue());
                     s->fill_rect(left + b_r, top + b_r, w - (b_r << 1), h - (b_r << 1), cp);
                     delete cp;
                 }
 
                 // Draw hole
-                Color hole(sBorderColor);
+                Color hole(border);
                 hole.darken(0.75);
 
                 cp = s->radial_gradient(
@@ -135,7 +142,6 @@ namespace lsp
                 pos     = 2 - pos;
 
             // Draw button
-            Color bcl(sColor);
             size_t l    = left + nBorder + 1;
             size_t bw   = w - ((nBorder + 1) << 1);
             size_t t    = top + nBorder + 1;
@@ -199,32 +205,31 @@ namespace lsp
             }
 
             // Draw symbols
-            bcl.copy(sTextColor);
-            bc          = bcl.lightness();
+            bc          = font.lightness();
             b1          = bc - ((2 - pos) * 0.1);
             b2          = bc - (pos * 0.1);
             wid        -= dw1 + dw2;
             float s1    = (wid >> 3);
             float s2    = (wid >> 3);
 
-            bcl.lightness((nAngle & 2) ? b2 : b1);
+            font.lightness((nAngle & 2) ? b2 : b1);
             if (nAngle & 1)
-                s->wire_arc(left + (w >> 1), t + cx + (nAngle - 2) * (wid >> 2), s1, 0, M_PI * 2.0, 2.0f, bcl);
+                s->wire_arc(left + (w >> 1), t + cx + (nAngle - 2) * (wid >> 2), s1, 0, M_PI * 2.0, 2.0f, font);
             else
-                s->wire_arc(l + cx + (nAngle - 1) * (wid >> 2), top + (h >> 1), s1, 0, M_PI * 2.0, 2.0f, bcl);
+                s->wire_arc(l + cx + (nAngle - 1) * (wid >> 2), top + (h >> 1), s1, 0, M_PI * 2.0, 2.0f, font);
 
-            bcl.lightness((nAngle & 2) ? b1 : b2);
+            font.lightness((nAngle & 2) ? b1 : b2);
             if (nAngle & 1)
                 s->line(
                     left + (w >> 1), t + cx - (nAngle - 2) * (wid >> 2) + s2,
                     left + (w >> 1), t + cx - (nAngle - 2) * (wid >> 2) - s2,
-                    2.0f, bcl
+                    2.0f, font
                 );
             else
                 s->line(
                     l + cx - (nAngle - 1) * (wid >> 2) + s2, top + (h >> 1),
                     l + cx - (nAngle - 1) * (wid >> 2) - s2, top + (h >> 1),
-                    2.0f, bcl
+                    2.0f, font
                 );
 
             s->set_antialiasing(aa);

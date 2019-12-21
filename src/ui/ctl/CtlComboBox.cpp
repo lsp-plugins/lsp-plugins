@@ -11,13 +11,16 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlComboBox::metadata = { "CtlComboBox", &CtlWidget::metadata };
+
         CtlComboBox::CtlComboBox(CtlRegistry *src, LSPComboBox *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            fMin        = 0.0f;
-            fMax        = 0.0f;
-            fStep       = 0.0f;
-            idChange    = -1;
+            pClass          = &metadata;
+            pPort           = NULL;
+            fMin            = 0.0f;
+            fMax            = 0.0f;
+            fStep           = 0.0f;
+            idChange        = -1;
         }
 
         CtlComboBox::~CtlComboBox()
@@ -35,7 +38,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, cbox, cbox->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, cbox, cbox->bg_color(), A_BG_COLOR);
 
             // Bind slots
             idChange = cbox->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
@@ -104,10 +106,8 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sBgColor.set(att, value);
-                    set |= sColor.set(att, value);
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

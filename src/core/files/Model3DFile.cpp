@@ -94,16 +94,14 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            virtual status_t add_vertex(const point3d_t *p)
+            virtual ssize_t add_vertex(const point3d_t *p)
             {
-                ssize_t idx = pScene->add_vertex(p);
-                return (idx < 0)? status_t(-idx) : STATUS_OK;
+                return pScene->add_vertex(p);
             }
 
-            virtual status_t add_normal(const vector3d_t *v)
+            virtual ssize_t add_normal(const vector3d_t *v)
             {
-                ssize_t idx = pScene->add_normal(v);
-                return (idx < 0)? status_t(-idx) : STATUS_OK;
+                return pScene->add_normal(v);
             }
 
             virtual status_t add_face(const ssize_t *vv, const ssize_t *vn, const ssize_t *vt, size_t n)
@@ -119,11 +117,11 @@ namespace lsp
                 // Prepare structure
                 for (size_t i=0; i<n; ++i)
                 {
-                    vx[i].ip            = *(vv++);
+                    vx[i].ip            = vv[i];
                     vx[i].p             = (vx[i].ip >= 0) ? pScene->vertex(vx[i].ip) : NULL;
                     if (vx[i].p == NULL)
                         return STATUS_BAD_STATE;
-                    vx[i].in            = *(vn++);
+                    vx[i].in            = vn[i];
                     vx[i].n             = (vx[i].in >= 0) ? pScene->normal(vx[i].in) : NULL;
                 }
 

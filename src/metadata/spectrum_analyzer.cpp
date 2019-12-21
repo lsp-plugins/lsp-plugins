@@ -114,7 +114,7 @@ namespace lsp
         { "on_" #x, "Analyse " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, (x == 0) ? 1.0f : 0.0f, 0, NULL    }, \
         { "solo_" #x, "Solo " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
         { "frz_" #x, "Freeze " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
-        { "hue_" #x, "Hue " #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
+        { "hue_" #x, "Hue " #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
         AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f), \
         MESH("spc_" #x, "Spectrum " #x, 2, spectrum_analyzer_base_metadata::MESH_POINTS)
 
@@ -249,7 +249,7 @@ namespace lsp
         "spectrum_analyzer_x1",
         "qtez",
         LSP_SPECTRUM_ANALYZER_BASE + 0,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         spectrum_analyzer_classes,
         E_INLINE_DISPLAY,
         spectrum_analyzer_x1_ports,
@@ -267,7 +267,7 @@ namespace lsp
         "spectrum_analyzer_x2",
         "aw7r",
         LSP_SPECTRUM_ANALYZER_BASE + 1,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         spectrum_analyzer_classes,
         E_INLINE_DISPLAY,
         spectrum_analyzer_x2_ports,
@@ -285,7 +285,7 @@ namespace lsp
         "spectrum_analyzer_x4",
         "xzgo",
         LSP_SPECTRUM_ANALYZER_BASE + 2,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         spectrum_analyzer_classes,
         E_INLINE_DISPLAY,
         spectrum_analyzer_x4_ports,
@@ -303,7 +303,7 @@ namespace lsp
         "spectrum_analyzer_x8",
         "e5hb",
         LSP_SPECTRUM_ANALYZER_BASE + 3,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         spectrum_analyzer_classes,
         E_INLINE_DISPLAY,
         spectrum_analyzer_x8_ports,
@@ -321,7 +321,7 @@ namespace lsp
         "spectrum_analyzer_x12",
         "tj3l",
         LSP_SPECTRUM_ANALYZER_BASE + 4,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         spectrum_analyzer_classes,
         E_INLINE_DISPLAY,
         spectrum_analyzer_x12_ports,
@@ -339,7 +339,7 @@ namespace lsp
         "spectrum_analyzer_x16",
         "nuzi",
         LSP_SPECTRUM_ANALYZER_BASE + 5,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         spectrum_analyzer_classes,
         E_INLINE_DISPLAY,
         spectrum_analyzer_x16_ports,

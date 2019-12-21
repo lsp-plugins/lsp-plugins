@@ -14,7 +14,6 @@
 
 //-----------------------------------------------------------------------
 // Digital filtering
-#pragma pack(push, 1)
 /*
   DIGITAL FILTER BASICS
 
@@ -290,6 +289,8 @@
 
 #define BIQUAD_D_ITEMS      16
 #define BIQUAD_ALIGN        0x40
+
+#pragma pack(push, 1)
 
 // Analog filter cascade
 typedef struct f_cascade_t

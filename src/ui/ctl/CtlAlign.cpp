@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAlign::metadata = { "CtlAlign", &CtlWidget::metadata };
+
         CtlAlign::CtlAlign(CtlRegistry *src, LSPAlign *widget): CtlWidget(src, widget)
         {
+            pClass          = &metadata;
         }
 
         CtlAlign::~CtlAlign()
@@ -58,12 +61,12 @@ namespace lsp
             }
         }
 
-        status_t CtlAlign::add(LSPWidget *child)
+        status_t CtlAlign::add(CtlWidget *child)
         {
             LSPAlign *align     = widget_cast<LSPAlign>(pWidget);
             if (align == NULL)
                 return STATUS_BAD_STATE;
-            return align->add(child);
+            return align->add(child->widget());
         }
     } /* namespace ctl */
 } /* namespace lsp */

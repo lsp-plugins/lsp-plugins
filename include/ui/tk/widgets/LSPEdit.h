@@ -8,6 +8,8 @@
 #ifndef UI_TK_WIDGETS_LSPEDIT_H_
 #define UI_TK_WIDGETS_LSPEDIT_H_
 
+#include <core/io/OutMemoryStream.h>
+
 namespace lsp
 {
     namespace tk
@@ -28,7 +30,7 @@ namespace lsp
                         virtual void on_change();
 
                     public:
-                        TextSelection(LSPEdit *widget);
+                        explicit TextSelection(LSPEdit *widget);
                         virtual ~TextSelection();
                 };
 
@@ -43,7 +45,7 @@ namespace lsp
                         virtual void on_blink();
 
                     public:
-                        TextCursor(LSPEdit *widget);
+                        explicit TextCursor(LSPEdit *widget);
                         virtual ~TextCursor();
                 };
 
@@ -53,22 +55,41 @@ namespace lsp
                         LSPEdit     *pEdit;
 
                     public:
-                        KeyboardInput(LSPEdit *widget);
+                        explicit KeyboardInput(LSPEdit *widget);
                         virtual ~KeyboardInput();
 
                     public:
                         virtual status_t on_key_press(const ws_event_t *e);
                 };
 
+                class DataSink: public IDataSink
+                {
+                    protected:
+                        LSPEdit            *pEdit;
+                        io::OutMemoryStream sOS;
+                        char               *pMime;
+
+                    public:
+                        explicit DataSink(LSPEdit *widget);
+                        virtual ~DataSink();
+
+                    public:
+                        void unbind();
+
+                    public:
+                        virtual ssize_t     open(const char * const *mime_types);
+                        virtual status_t    write(const void *buf, size_t count);
+                        virtual status_t    close(status_t code);
+                };
+
             protected:
                 LSPString       sText;
                 TextSelection   sSelection;
                 TextCursor      sCursor;
-                LSPWidgetFont   sFont;
+                LSPFont         sFont;
                 KeyboardInput   sInput;
-                Color           sBgColor;
-                Color           sColor;
-                Color           sSelColor;
+                LSPColor        sColor;
+                LSPColor        sSelColor;
                 ssize_t         sTextPos;
                 ssize_t         nMinWidth;
                 size_t          nMBState;
@@ -77,6 +98,7 @@ namespace lsp
                 LSPMenu         sStdPopup;
                 LSPMenuItem    *vStdItems[3];
                 LSPMenu        *pPopup;
+                DataSink       *pDataSink;
 
             protected:
                 static status_t timer_handler(timestamp_t time, void *arg);
@@ -90,6 +112,7 @@ namespace lsp
                 status_t        cut_data(size_t bufid);
                 status_t        copy_data(size_t bufid);
                 status_t        paste_data(size_t bufid);
+                void            paste_clipboard(const LSPString *data);
 
                 static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_popup_cut_action(LSPWidget *sender, void *ptr, void *data);
@@ -110,9 +133,8 @@ namespace lsp
                 inline const char         *text() const        { return sText.get_native(); }
                 inline status_t            get_text(LSPString *dst) const { return dst->set(&sText) ? STATUS_OK : STATUS_NO_MEM; };
                 inline const ssize_t       min_width() const   { return nMinWidth;     }
-                inline Color              *bg_color()          { return &sBgColor;     }
-                inline Color              *sel_color()         { return &sSelColor;    }
-                inline Color              *color()             { return &sColor;       }
+                inline LSPColor           *sel_color()         { return &sSelColor;    }
+                inline LSPColor           *color()             { return &sColor;       }
                 inline LSPMenu            *get_popup()         { return pPopup;        }
 
             public:

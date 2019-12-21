@@ -34,7 +34,7 @@
 					<mesh id="icg" width="2" color="middle_channel_in" visibility_id="ilv" />
 					<mesh id="ocg" width="2" color="middle_channel" visibility_id="olv" />
 					<mesh id="scg" width="2" color="bright_green" visibility_id="slv" />
-					<mesh id="evg" width="2" color="bright_magenta" hue="0.044" visibility_id="elv" />
+					<mesh id="evg" width="2" color="bright_magenta" visibility_id="elv" />
 					<mesh id="grg" width="2" color="bright_blue" visibility_id="grv" />
 					
 					<!-- Markers -->

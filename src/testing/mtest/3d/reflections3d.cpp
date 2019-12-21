@@ -197,12 +197,12 @@ MTEST_BEGIN("3d", reflections)
                         break;
                     }
 
-                    case XK_Home:
+                    case XK_End:
                         nTrace++;
                         lsp_trace("Set trace breakpoint to %d", int(nTrace));
                         update_view();
                         break;
-                    case XK_End:
+                    case XK_Home:
                         if (nTrace >= 0)
                         {
                             nTrace--;
@@ -318,7 +318,7 @@ MTEST_BEGIN("3d", reflections)
                 // Perform raytrace
                 RayTrace3D trace;
                 res     = perform_trace(&trace, &global);
-                if (res == STATUS_BREAKPOINT)
+                if (res == STATUS_BREAK_POINT)
                 {
                     pView->swap(&global.trace);
                     res         = STATUS_OK;

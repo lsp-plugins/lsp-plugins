@@ -31,10 +31,9 @@ namespace lsp
                 };
 
             protected:
-                Color               sColor;
-                Color               sBgColor;
+                LSPColor            sColor;
                 LSPString           sTitle;
-                LSPWidgetFont       sFont;
+                LSPFont             sFont;
 
                 size_t              nWidth;
                 size_t              nHeight;
@@ -57,28 +56,26 @@ namespace lsp
                 static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
-                inline bool     is_trigger() const      { return nState & S_TRIGGER; }
-                inline bool     is_toggle() const       { return nState & S_TOGGLE; }
-                inline bool     is_normal() const       { return !(nState & (S_TOGGLE | S_TRIGGER)); }
-                inline bool     is_down() const         { return nState & S_DOWN; }
-                inline bool     is_led() const          { return nState & S_LED; }
-                inline bool     is_editable() const     { return nState & S_EDITABLE; }
-                inline Color   *color()                 { return &sColor; }
-                inline Color   *bg_color()              { return &sBgColor; }
-                inline LSPFont *font()                  { return &sFont; }
+                inline bool         is_trigger() const      { return nState & S_TRIGGER; }
+                inline bool         is_toggle() const       { return nState & S_TOGGLE; }
+                inline bool         is_normal() const       { return !(nState & (S_TOGGLE | S_TRIGGER)); }
+                inline bool         is_down() const         { return nState & S_DOWN; }
+                inline bool         is_led() const          { return nState & S_LED; }
+                inline bool         is_editable() const     { return nState & S_EDITABLE; }
+                inline LSPColor    *color()                 { return &sColor; }
+                inline LSPColor    *bg_color()              { return &sBgColor; }
+                inline LSPFont     *font()                  { return &sFont; }
 
-                inline size_t   min_width() const       { return nMinWidth; }
-                inline size_t   min_height() const      { return nMinHeight; }
-                inline status_t get_title(LSPString *dst) const { return dst->set(&sTitle) ? STATUS_OK : STATUS_NO_MEM; };
-                inline const char *title() const        { return sTitle.get_native(); }
+                inline size_t       min_width() const       { return nMinWidth; }
+                inline size_t       min_height() const      { return nMinHeight; }
+                inline status_t     get_title(LSPString *dst) const { return dst->set(&sTitle) ? STATUS_OK : STATUS_NO_MEM; };
+                inline const char  *title() const           { return sTitle.get_native(); }
 
             public:
                 void            set_trigger();
                 void            set_toggle();
                 void            set_normal();
                 void            set_editable(bool value = true);
-                void            set_color(const Color *c);
-                void            set_bg_color(const Color *c);
                 void            set_down(bool value = true);
                 void            set_led(bool value = true);
                 void            set_min_width(size_t value);

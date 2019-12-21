@@ -32,6 +32,7 @@ namespace lsp
             "hgrid",
             "hlink",
             "hsbar",
+            "hsbox",
             "hsep",
             "indicator",
             "knob",
@@ -50,6 +51,7 @@ namespace lsp
             "sample",
             "save",
             "sbar",
+            "sbox",
             "sep",
             "source3d",
             "status",
@@ -62,6 +64,7 @@ namespace lsp
             "vgrid",
             "viewer3d",
             "vsbar",
+            "vsbox",
             "vsep",
             "window"
         };
@@ -82,6 +85,7 @@ namespace lsp
             "bind",
             "border",
             "border_color",
+            "bright",
             "center",
             "color",
             "color2",
@@ -95,6 +99,7 @@ namespace lsp
             "distance_id",
             "duration_id",
             "editable",
+            "embed",
             "expand",
             "fadein_id",
             "fadeout_id",
@@ -112,6 +117,7 @@ namespace lsp
             "hpos",
             "hpos_id",
             "hscale",
+            "hscroll",
             "hspacing",
             "hue2_id",
             "hue_id",
@@ -129,8 +135,12 @@ namespace lsp
             "logarithmic",
             "max",
             "max_duration_id",
+            "max_height",
+            "max_width",
             "mesh_id",
             "min",
+            "min_height",
+            "min_width",
             "mode",
             "mode_id",
             "offset",
@@ -191,10 +201,13 @@ namespace lsp
             "vpos",
             "vpos_id",
             "vscale",
+            "vscroll",
             "vspacing",
             "width",
+            "x_index",
             "xpos_id",
             "xscale_id",
+            "y_index",
             "yaw_id",
             "ypos_id",
             "yscale_id",
@@ -248,6 +261,22 @@ namespace lsp
         const char *widget_attribute(widget_attribute_t type)
         {
             return (type != A_UNKNOWN) ? widget_attributes[type] : NULL;
+        }
+
+        scrolling_t widget_scroll(const char *value)
+        {
+            if ((!::strcmp(value, "1")) ||
+                (!::strcasecmp(value, "optional")) ||
+                (!::strcasecmp(value, "o")))
+                return SCROLL_OPTIONAL;
+            if ((!::strcmp(value, "2")) ||
+                (!::strcasecmp(value, "always")) ||
+                (!::strcasecmp(value, "a")) ||
+                (!::strcasecmp(value, "true")) ||
+                (!::strcasecmp(value, "t")))
+                return SCROLL_ALWAYS;
+
+            return SCROLL_NONE;
         }
     }
 }

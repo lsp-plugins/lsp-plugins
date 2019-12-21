@@ -13,7 +13,10 @@ namespace lsp
     {
         const w_class_t LSPLed::metadata = { "LSPLed", &LSPWidget::metadata };
 
-        LSPLed::LSPLed(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPLed::LSPLed(LSPDisplay *dpy):
+            LSPWidget(dpy),
+            sColor(this),
+            sHoleColor(this)
         {
             nSize       = 8;
             bOn         = false;
@@ -30,16 +33,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GREEN, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            sHoleColor.bind("hole_color");
+            init_color(C_GREEN, &sColor);
 
             return STATUS_OK;
         }
@@ -74,20 +69,24 @@ namespace lsp
         {
             IGradient *cp;
 
+            // Estimate palette
+            Color bg_color(sBgColor);
+            Color hole(sHoleColor);
+            Color col(sColor);
+            Color glass(sGlassColor);
+
+            col.scale_lightness(brightness());
+            glass.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Move to center of the led
             ssize_t cx = (sSize.nWidth >> 1);
             ssize_t cy = (sSize.nHeight >> 1);
 
             // Draw hole
-            Color hole;
-            pDisplay->theme()->get_color(C_HOLE, &hole);
-
             s->fill_circle(cx, cy, (nSize >> 1) + 1, hole);
-
-            Color col(sColor);
 
             bool aa = s->set_antialiasing(true);
 
@@ -120,16 +119,12 @@ namespace lsp
             else
             {
                 Color c;
-                pDisplay->theme()->get_color(C_GLASS, &c);
-
-                float r=c.red() + (col.red() - c.red()) * 0.4;
-                float g=c.green() + (col.green() - c.green()) * 0.4;
-                float b=c.blue() + (col.blue() - c.blue()) * 0.4;
+                c.blend(col, glass, 0.4);
 
                 // Draw led glass
                 cp = s->radial_gradient(cx, cy, nSize >> 3, cx, cy, nSize >> 1);
-                cp->add_color(0.0, r, g, b);
-                cp->add_color(1.0, c);
+                cp->add_color(0.0, col);
+                cp->add_color(1.0, glass);
                 s->fill_circle(cx, cy, (nSize >> 1)+1, cp);
                 delete cp;
 

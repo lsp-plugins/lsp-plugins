@@ -22,16 +22,17 @@ namespace lsp
                 {
                     F_MOUSE_IN      = 1 << 0,
                     F_MOUSE_DOWN    = 1 << 1,
-                    F_MOUSE_IGN     = 1 << 2
+                    F_MOUSE_IGN     = 1 << 2,
                 };
 
             protected:
-                Color           sHoverColor;
+                LSPColor        sHoverColor;
                 LSPString       sUrl;
                 size_t          nMFlags;
+                bool            bFollow;
                 size_t          nState;
                 LSPMenu         sStdMenu;
-                LSPMenuItem    *vStdItems[3];
+                LSPMenuItem    *vStdItems[2];
                 LSPMenu        *pPopup;
 
             protected:
@@ -47,17 +48,24 @@ namespace lsp
                 virtual void destroy();
 
             public:
-                inline const char      *url() const { return sUrl.get_native(); }
+                inline const char      *url() const         { return sUrl.get_native(); }
                 inline status_t         get_url(LSPString *dst) const { return (dst->set(&sUrl)) ? STATUS_OK : STATUS_NO_MEM; };
-                inline Color           *hover() { return &sHoverColor; }
-                LSPMenu                *get_popup()         { return pPopup;        }
+                inline LSPColor        *hover()             { return &sHoverColor; }
+                inline bool             follow() const      { return bFollow;       }
+                LSPMenu                *popup()             { return pPopup;        }
 
             public:
                 status_t set_url(const char *url);
 
                 status_t set_url(const LSPString *url);
 
-                inline void set_popup(LSPMenu *popup)   { pPopup = popup; }
+                void set_follow(bool follow = true);
+
+                status_t follow_url();
+
+                status_t copy_url(clipboard_id_t cb);
+
+                inline void set_popup(LSPMenu *popup)       { pPopup = popup; }
 
             public:
                 virtual void draw(ISurface *s);

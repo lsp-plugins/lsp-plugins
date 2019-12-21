@@ -12,23 +12,34 @@ namespace lsp
 {
     namespace tk
     {
+        class LSPWidget;
+
         class LSPFont
         {
             protected:
                 LSPDisplay         *pDisplay;
+                LSPWidget          *pWidget;
+
                 Font                sFont;
-                Color               sColor;
+                LSPColor            sColor;
+
                 mutable font_parameters_t   sFP;
 
             private:
                 inline bool sync_font_parameters() const;
                 inline bool sync_font_parameters(ISurface *s) const;
+                inline void construct(LSPDisplay *dpy, LSPWidget *widget);
 
             protected:
-                virtual void on_change();
+                virtual void    on_change();
+
+                void            trigger_change();
 
             public:
                 explicit LSPFont(LSPDisplay *dpy);
+                explicit LSPFont(LSPWidget *widget);
+                explicit LSPFont(LSPDisplay *dpy, LSPWidget *widget);
+                explicit LSPFont(LSPWidget *widget, LSPDisplay *dpy);
                 virtual ~LSPFont();
 
                 void init();
@@ -45,7 +56,8 @@ namespace lsp
                 float height() const;
                 float max_x_advance() const;
                 float max_y_advance() const;
-                Color *color()                      { return &sColor; }
+                inline LSPColor *color()            { return &sColor; }
+                inline const Color *raw_color() const { return sColor.color(); }
 
             public:
                 void set_bold(bool b = true);

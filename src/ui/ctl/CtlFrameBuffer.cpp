@@ -12,11 +12,13 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlFrameBuffer::metadata = { "CtlFrameBuffer", &CtlWidget::metadata };
         
         CtlFrameBuffer::CtlFrameBuffer(CtlRegistry *src, LSPFrameBuffer *fb): CtlWidget(src, fb)
         {
-            pPort       = NULL;
-            nRowID      = 0;
+            pClass          = &metadata;
+            pPort           = NULL;
+            nRowID          = 0;
         }
         
         CtlFrameBuffer::~CtlFrameBuffer()
@@ -34,7 +36,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, fb, fb->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, fb, fb->bg_color(), A_BG_COLOR);
             sMode.init(pRegistry, this);
         }
 
@@ -86,7 +87,6 @@ namespace lsp
                 default:
                 {
                     sColor.set(att, value);
-                    sBgColor.set(att, value);
                     CtlWidget::set(att, value);
                     break;
                 }

@@ -113,7 +113,7 @@ namespace dsp
     /** Convert real+imaginary complex number to polar form
      *
      * @param dst_mod module of the complex number
-     * @param dst_arg argument of the complex number
+     * @param dst_arg argument of the complex number in range of [-PI, +PI]
      * @param src_re real part of complex number
      * @param src_im imaginary part of complex number
      * @param count number of elements to process
@@ -137,6 +137,14 @@ namespace dsp
             size_t count
         );
 
+    /** Get argument for complex numbers in range of [-PI; +PI]
+     *
+     * @param dst array to sore argument
+     * @param src packed complex number data
+     * @param count count number of elements to process
+     */
+    extern void (* complex_arg)(float *dst, const float *re, const float *im, size_t count);
+
     /** Get module for complex numbers
      *
      * @param dst_mod array to sore module
@@ -144,6 +152,23 @@ namespace dsp
      * @param count count number of elements to process
      */
     extern void (* pcomplex_mod)(float *dst_mod, const float *src, size_t count);
+
+    /** Convert packed complex number to polar form
+     *
+     * @param mod module of the complex number
+     * @param arg argument of the complex number in range of [-PI, +PI]
+     * @param src packed complex number data
+     * @param count number of elements to process
+     */
+    extern void (* pcomplex_modarg)(float *mod, float *arg, const float *src, size_t count);
+
+    /** Get argument for complex numbers in range of [-PI; +PI]
+     *
+     * @param dst array to sore argument
+     * @param src packed complex number data
+     * @param count count number of elements to process
+     */
+    extern void (* pcomplex_arg)(float *dst, const float *src, size_t count);
 
     /** Convert polar-form of complex number to real+imaginary
      *

@@ -2,6 +2,83 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Mute Groups in MultiSamplers ====
+  KozmykJ
+    Is there a way to set Mute Groups as in Hi-Hat open vs closed ?
+
+  LSP Project
+    Standard MIDI mapping describes Closed Hi-Hat as MIDI note 42, Opened Hi-Hat as MIDI
+    note 46 which are mapped independently.
+    Do I right understand that under 'mute group' you mean a case when playback of note 42
+    becomes muted when note 46 triggers and vice verse?
+
+  KozmykJ
+    Yes that's what I was wondering. Hi-Hat is just the most obvious case. Of course there are
+    other uses. 
+
+==== Bookmarks in File dialogs ====
+  funkmuscle:
+    Also the older versions, you could of bookmarked the dir where IR files are. I can't seem to figure out
+    how to do it with the version.
+  
+  sadko4u:
+    Currently because all dialogs were written from scratch, there are no bookmarks currently.
+
+==== Analyzer ====
+
+Sciurius:
+  Using the LSP multichannel (x2, x4, …) Spectrumanalyzer I can hold (freeze the graph) of each
+  of the channels. But how can I hold all channels simultanesously?
+  
+  https://discourse.ardour.org/t/spectrumanalyzer-hold-multiple-channels/88489
+
+==== Equalizer ====
+
+unfa:
+  Add a knob that allows to simultaneously shift frequency for all active filters in the EQ.
+
+==== Parameter entering ====
+  In other subject, it would be great to be able to enter numerical values by double clicking
+  on the DB value under the knobs.
+
+==== Equalizer tuning ====
+  Jan Lentfer
+    it would be very cool if the parametric EQs could import settings exported from "Room EQ Wizard".
+    That would make life so much easier :D
+    https://www.roomeqwizard.com/
+    Thanks and keep up the great work!
+    
+    The content of a text exported file looks like this:
+    Filter Settings file
+    Room EQ V5.18
+    Dated: 10.01.2018 18:58:28
+    Notes:
+    Equaliser: Generic
+    Average 1
+    Filter  1: ON  PK       Fc    42.0 Hz  Gain  -6.5 dB  Q 13.20
+    Filter  2: ON  PK       Fc    47.6 Hz  Gain  -3.3 dB  Q 16.77
+    Filter  3: ON  PK       Fc    62.0 Hz  Gain   9.0 dB  Q  5.41
+    Filter  4: ON  PK       Fc    67.1 Hz  Gain -12.3 dB  Q  5.02
+    Filter  5: ON  PK       Fc    86.2 Hz  Gain -15.4 dB  Q  3.01
+    Filter  6: ON  PK       Fc     122 Hz  Gain   6.3 dB  Q 15.03
+    Filter  7: ON  PK       Fc     132 Hz  Gain  -9.1 dB  Q  6.77
+    Filter  8: ON  PK       Fc     150 Hz  Gain  -8.5 dB  Q 10.00
+    Filter  9: ON  PK       Fc     165 Hz  Gain   4.3 dB  Q 26.53
+    Filter 10: ON  PK       Fc     190 Hz  Gain -19.7 dB  Q  5.03
+    Filter 11: ON  PK       Fc     202 Hz  Gain   9.0 dB  Q  5.00
+    Filter 12: ON  PK       Fc     247 Hz  Gain  -9.2 dB  Q  5.00
+    Filter 13: ON  PK       Fc     258 Hz  Gain   9.0 dB  Q  5.00
+    Filter 14: ON  PK       Fc    2073 Hz  Gain  -4.2 dB  Q  5.00
+    Filter 15: ON  PK       Fc   10879 Hz  Gain  -3.8 dB  Q  5.00
+    Filter 16: ON  None  
+    Filter 17: ON  None  
+    Filter 18: ON  None  
+    Filter 19: ON  None  
+    Filter 20: ON  None  
+
+    I thought about an option to "just" read in such a file and set the Freq, Gain and Q values from this file. As far as I understood,
+    these are just peak filters. 
+
 ==== Spectrum Analyzer ====
   Quirq:
     Back to the main topic, I'd dearly love to see a usable spectrum analyser that looked and behaved like Voxengo's SPAN:

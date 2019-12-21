@@ -448,14 +448,14 @@ namespace sse3
             __ASM_EMIT("mulps       %[x3], %[x1]")          /* xmm1 = p1 * pl = sx1 sy1 sz1 sw1 */
             __ASM_EMIT("mulps       %[x3], %[x2]")          /* xmm2 = p2 * pl = sx2 sy2 sz2 sw2 */
             __ASM_EMIT("haddps      %[x1], %[x0]")          /* xmm0 = sx0+sy0 sz0+sw0 sx1+sy1 sz1+sw1 */
-            __ASM_EMIT("haddps      %[x3], %[x2]")          /* xmm2 = sx2+sy2 sz2+sw2 ? ? */
-            __ASM_EMIT("haddps      %[x2], %[x0]")          /* xmm0 = sx0+sy0+sz0+sw0 sx1+sy1+sz1+sw1 sx2+sy2+sz2+sw2 ? = k0 k1 k2 ? */
-            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 ? */
+            __ASM_EMIT("haddps      %[x2], %[x2]")          /* xmm2 = sx2+sy2 sz2+sw2 sx2+sy2 sz2+sw2 */
+            __ASM_EMIT("haddps      %[x2], %[x0]")          /* xmm0 = sx0+sy0+sz0+sw0 sx1+sy1+sz1+sw1 sx2+sy2+sz2+sw2 sx2+sy2+sz2+sw2 = k0 k1 k2 k2 */
+            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 k2 */
             __ASM_EMIT("movaps      %[x0], %[k]")           /* *k   = xmm0 */
-            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
-            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
-            __ASM_EMIT("pand        %[ICULL3], %[x0]")      /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
-            __ASM_EMIT("pand        %[ICULL3], %[x1]")      /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL k2 <= +TOL */
+            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL k2 < -TOL */
+            __ASM_EMIT("pand        %[ICULL3], %[x0]")      /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] 0 */
+            __ASM_EMIT("pand        %[ICULL3], %[x1]")      /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] 0 */
             __ASM_EMIT("paddd       %[x1], %[x0]")          /* xmm0 = x0 x1 x2 0 */
             __ASM_EMIT("movdqa      %[x0], %[x2]")          /* xmm2 = x0 x1 x2 0 */
             __ASM_EMIT("movdqa      %[x0], %[x1]")          /* xmm1 = x0 x1 x2 0 */
@@ -806,14 +806,14 @@ namespace sse3
             __ASM_EMIT("mulps       %[x3], %[x1]")          /* xmm1 = p1 * pl = sx1 sy1 sz1 sw1 */
             __ASM_EMIT("mulps       %[x3], %[x2]")          /* xmm2 = p2 * pl = sx2 sy2 sz2 sw2 */
             __ASM_EMIT("haddps      %[x1], %[x0]")          /* xmm0 = sx0+sy0 sz0+sw0 sx1+sy1 sz1+sw1 */
-            __ASM_EMIT("haddps      %[x3], %[x2]")          /* xmm2 = sx2+sy2 sz2+sw2 ? ? */
-            __ASM_EMIT("haddps      %[x2], %[x0]")          /* xmm0 = sx0+sy0+sz0+sw0 sx1+sy1+sz1+sw1 sx2+sy2+sz2+sw2 ? = k0 k1 k2 ? */
-            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 ? */
+            __ASM_EMIT("haddps      %[x2], %[x2]")          /* xmm2 = sx2+sy2 sz2+sw2 sx2+sy2 sz2+sw2 */
+            __ASM_EMIT("haddps      %[x2], %[x0]")          /* xmm0 = sx0+sy0+sz0+sw0 sx1+sy1+sz1+sw1 sx2+sy2+sz2+sw2 sx2+sy2+sz2+sw2 = k0 k1 k2 k2 */
+            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 k2 */
             __ASM_EMIT("movaps      %[x0], %[k]")           /* *k   = xmm0 */
-            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
-            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
-            __ASM_EMIT("pand        %[ICULL3], %[x0]")      /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
-            __ASM_EMIT("pand        %[ICULL3], %[x1]")      /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL k2 <= +TOL */
+            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL k2 < -TOL */
+            __ASM_EMIT("pand        %[ICULL3], %[x0]")      /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] 0 */
+            __ASM_EMIT("pand        %[ICULL3], %[x1]")      /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] 0 */
             __ASM_EMIT("paddd       %[x1], %[x0]")          /* xmm0 = x0 x1 x2 0 */
             __ASM_EMIT("movdqa      %[x0], %[x2]")          /* xmm2 = x0 x1 x2 0 */
             __ASM_EMIT("movdqa      %[x0], %[x1]")          /* xmm1 = x0 x1 x2 0 */

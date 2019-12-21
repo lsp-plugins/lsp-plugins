@@ -11,6 +11,7 @@
 #include <core/resource.h>
 #include <core/parse.h>
 #include <stdio.h>
+#include <core/stdlib/string.h>
 #include <locale.h>
 #include <errno.h>
 #include <dsp/dsp.h>
@@ -957,7 +958,7 @@ namespace lsp
 
         status_t deserialize(const LSPString *cfg, IConfigHandler *h)
         {
-            io::InStringSequence sis(cfg, false);
+            io::InStringSequence sis(cfg);
             status_t res = load(&sis, h);
             if (res != STATUS_OK)
             {

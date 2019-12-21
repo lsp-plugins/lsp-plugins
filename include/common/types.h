@@ -49,12 +49,20 @@
 // Detect bitness of architecture
 #if defined(__WORDSIZE) && (__WORDSIZE == 64)
     #define ARCH_64BIT
+    typedef uint64_t            umword_t;
+    typedef int64_t             smword_t;
 #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 64)
     #define ARCH_64BIT
+    typedef uint64_t            umword_t;
+    typedef int64_t             smword_t;
 #elif defined(__WORDSIZE) && (__WORDSIZE == 32)
     #define ARCH_32BIT
+    typedef uint32_t            umword_t;
+    typedef int32_t             smword_t;
 #elif defined(__SIZE_WIDTH__) && (__SIZE_WIDTH__ == 32)
     #define ARCH_32BIT
+    typedef uint32_t            umword_t;
+    typedef int32_t             smword_t;
 #else
     #warning "Unsupported architecture bitness"
 #endif /* __WORDSIZE, __SIZE_WIDTH__ */
@@ -96,10 +104,12 @@
         #define ARCH_ARM7
         #define ARCH_STRING             "armv7a"
         #define IF_ARCH_ARM7(...)        __VA_ARGS__
+        #define IF_ARCH_LEAST_ARM7(...)  __VA_ARGS__
     #elif (__ARM_ARCH == 6)
         #define ARCH_ARM6
         #define ARCH_STRING             "armv6a"
         #define IF_ARCH_ARM6(...)        __VA_ARGS__
+        #define IF_ARCH_LEAST_ARM6(...)  __VA_ARGS__
     #else
         #define ARCH_STRING             "arm-generic"
     #endif
@@ -238,8 +248,10 @@
 
     #ifdef LSP_PROFILING
         #define __IF_32P(...)                       __VA_ARGS__
+        #define __ASM_EMIT32P(code)                 code "\n\t"
     #else
         #define __IF_32NP(...)                      __VA_ARGS__
+        #define __ASM_EMIT32NP(code)                code "\n\t"
     #endif /* LSP_PROFILING */
 #endif /* ARCH_32BIT */
 
@@ -247,6 +259,13 @@
     #define __ASM_EMIT64(code)                  code "\n\t"
     #define __IF_64(...)                        __VA_ARGS__
     #define __IF_32_64(a, b)                    b
+    #ifdef LSP_PROFILING
+        #define __IF_64P(...)                       __VA_ARGS__
+        #define __ASM_EMIT64P(code)                 code "\n\t"
+    #else
+        #define __IF_64NP(...)                      __VA_ARGS__
+        #define __ASM_EMIT64NP(code)                code "\n\t"
+    #endif /* LSP_PROFILING */
 #endif /* ARCH_32BIT */
 
 #ifdef LSP_PROFILING
@@ -305,6 +324,7 @@
 #define __lsp_aligned16                     __attribute__ ((aligned (16)))
 #define __lsp_aligned32                     __attribute__ ((aligned (32)))
 #define __lsp_aligned64                     __attribute__ ((aligned (64)))
+#define __lsp_packed                        __attribute__ ((__packed__))
 #define __lsp_aligned(bytes)                __attribute__ ((aligned (bytes)))
 
 //-----------------------------------------------------------------------------
@@ -362,11 +382,27 @@
 // Define macros that may not be previously defined
 #ifndef __ASM_EMIT32
     #define __ASM_EMIT32(code)
-#endif /* __ASM_EMIT64 */
+#endif /* __ASM_EMIT32 */
+
+#ifndef __ASM_EMIT32P
+    #define __ASM_EMIT32P(code)
+#endif /* __ASM_EMIT32P */
+
+#ifndef __ASM_EMIT32NP
+    #define __ASM_EMIT32NP(code)
+#endif /* __ASM_EMIT32NP */
 
 #ifndef __ASM_EMIT64
     #define __ASM_EMIT64(code)
 #endif /* __ASM_EMIT64 */
+
+#ifndef __ASM_EMIT64P
+    #define __ASM_EMIT64P(code)
+#endif /* __ASM_EMIT64P */
+
+#ifndef __ASM_EMIT64NP
+    #define __ASM_EMIT64NP(code)
+#endif /* __ASM_EMIT64NP */
 
 #ifndef __IF_32
     #define __IF_32(...)
@@ -406,9 +442,17 @@
     #define IF_ARCH_ARM6(...)
 #endif /* IF_ARCH_ARM6 */
 
+#ifndef IF_ARCH_LEAST_ARM6
+    #define IF_ARCH_LEAST_ARM6(...)
+#endif /* IF_ARCH_LEAST_ARM6 */
+
 #ifndef IF_ARCH_ARM7
     #define IF_ARCH_ARM7(...)
 #endif /* IF_ARCH_ARM7 */
+
+#ifndef IF_ARCH_LEAST_ARM7
+    #define IF_ARCH_LEAST_ARM7(...)
+#endif /* IF_ARCH_LEAST_ARM7 */
 
 #ifndef IF_ARCH_ARM8
     #define IF_ARCH_ARM8(...)
@@ -470,12 +514,32 @@
 
 //-----------------------------------------------------------------------------
 // Optimizations
-#ifdef ARCH_X86
+#ifdef ARCH_I386
     #define DEFAULT_ALIGN                   0x10
+    #define MINIMUM_ALIGN                   0x08
 #endif /* ARCH_X86 */
+
+#ifdef ARCH_X86_64
+    #define DEFAULT_ALIGN                   0x10
+    #define MINIMUM_ALIGN                   0x08
+#endif /* ARCH_X86 */
+
+#ifdef ARCH_ARCH_ARM
+    #define DEFAULT_ALIGN                   0x10
+    #define MINIMUM_ALIGN                   0x08
+#endif /* ARCH_ARM */
+
+#ifdef ARCH_ARCH_AARCH64
+    #define DEFAULT_ALIGN                   0x10
+    #define MINIMUM_ALIGN                   0x08
+#endif /* ARCH_ARM */
 
 #ifndef DEFAULT_ALIGN
     #define DEFAULT_ALIGN                   0x10
+#endif /* DEFAULT_ALIGN */
+
+#ifndef MINIMUM_ALIGN
+    #define MINIMUM_ALIGN                   DEFAULT_ALIGN
 #endif /* DEFAULT_ALIGN */
 
 //-----------------------------------------------------------------------------

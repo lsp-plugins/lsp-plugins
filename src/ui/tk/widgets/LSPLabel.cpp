@@ -37,7 +37,6 @@ namespace lsp
 
             sFont.init();
             init_color(C_LABEL_TEXT, sFont.color());
-            init_color(C_BACKGROUND, &sBgColor);
 
             return STATUS_OK;
         }
@@ -73,11 +72,14 @@ namespace lsp
 
         void LSPLabel::draw(ISurface *s)
         {
+            // Initialize palette
+            Color bg_color(sBgColor);
+            Color font_color(sFont.raw_color());
+
+            font_color.scale_lightness(brightness());
+
             // Draw background
-//            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
-            s->clear(sBgColor);
-//            Color red(1, 0, 0);
-//            s->clear(&red);
+            s->clear(bg_color);
 
             // Get text parameters
             font_parameters_t fp;
@@ -91,8 +93,6 @@ namespace lsp
 
             // Estimate text size
             ssize_t last = 0, curr = 0, tail = 0, len = sText.length();
-
-//            Color red(1.0f, 0.0f, 0.0f), yellow(1.0f, 1.0f, 0.0f);
 
             while (curr < len)
             {
@@ -116,7 +116,7 @@ namespace lsp
                 ssize_t x   = nBorder + dx * fHAlign - tp.XBearing;
                 y          += fp.Height;
 
-                sFont.draw(s, x, y, &sText, last, tail);
+                sFont.draw(s, x, y, font_color, &sText, last, tail);
                 last    = curr + 1;
 
 //                s->line(x - 3, y - 3, x + 3, y + 3, 1, red);

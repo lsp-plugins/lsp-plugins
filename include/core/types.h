@@ -72,12 +72,20 @@ typedef int32_t         lsp_swchar_t;
 
 namespace lsp
 {
-    enum lsp_wrap_flatgs_t
+    enum lsp_wrap_flags_t
     {
         WRAP_NONE       = 0,
 
         WRAP_CLOSE      = 1 << 0,
         WRAP_DELETE     = 1 << 1
+    };
+
+    enum lsp_memdrop_t
+    {
+        MEMDROP_NONE,
+        MEMDROP_FREE,
+        MEMDROP_DELETE,
+        MEMDROP_ARR_DELETE
     };
 
     typedef struct float_buffer_t

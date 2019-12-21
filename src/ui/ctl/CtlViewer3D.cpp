@@ -15,6 +15,8 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlViewer3D::metadata = { "CtlViewer3D", &CtlWidget::metadata };
+
         static const v_point3d_t axis_lines[] =
         {
             // X axis (red)
@@ -28,19 +30,11 @@ namespace lsp
             { { 0.0f, 0.0f, 0.25f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
         };
 
-//        static const color3d_t *colors[] =
-//        {
-//            &C3D_RED,
-//            &C3D_GREEN,
-//            &C3D_BLUE,
-//            &C3D_CYAN,
-//            &C3D_MAGENTA,
-//            &C3D_YELLOW
-//        };
-        
         CtlViewer3D::CtlViewer3D(CtlRegistry *src, LSPArea3D *widget):
             CtlWidget(src, widget)
         {
+            pClass          = &metadata;
+
             widget->slots()->bind(LSPSLOT_DRAW3D, slot_on_draw3d, this);
             widget->slots()->bind(LSPSLOT_RESIZE, slot_resize, this);
             widget->slots()->bind(LSPSLOT_MOUSE_DOWN, slot_mouse_down, this);
@@ -306,8 +300,7 @@ namespace lsp
             LSPArea3D *r3d    = widget_cast<LSPArea3D>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl2(pRegistry, r3d, r3d->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic2(pRegistry, r3d, r3d->bg_color(), A_BG_COLOR);
+            sColor.init_hsl(pRegistry, r3d, r3d->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             sPadding.init(r3d->padding());
         }
 
@@ -408,12 +401,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sPadding.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sPadding.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
@@ -442,10 +432,11 @@ namespace lsp
             pWidget->query_draw();
         }
 
-        status_t CtlViewer3D::add(LSPWidget *child)
+        status_t CtlViewer3D::add(CtlWidget *child)
         {
             LSPArea3D *r3d  = widget_cast<LSPArea3D>(pWidget);
-            return (r3d != NULL) ? r3d->add(child) : STATUS_NOT_IMPLEMENTED;
+            LSPWidget *w = child->widget();
+            return (r3d != NULL) ? r3d->add(w) : STATUS_NOT_IMPLEMENTED;
         }
 
         void CtlViewer3D::sync_angle_change(float *dst, CtlPort *port, CtlPort *psrc)

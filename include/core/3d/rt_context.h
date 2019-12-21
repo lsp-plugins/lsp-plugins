@@ -30,7 +30,6 @@ namespace lsp
     enum rt_context_state_t
     {
         S_SCAN_OBJECTS,
-//        S_CULL_VIEW,
         S_SPLIT,
         S_CULL_BACK,
         S_REFLECT
@@ -38,6 +37,9 @@ namespace lsp
 
     typedef struct rt_context_t
     {
+        private:
+            rt_context_t & operator = (const rt_context_t &);
+
         protected:
             typedef struct rt_triangle_sort_t
             {
@@ -61,7 +63,9 @@ namespace lsp
         protected:
             static int      compare_triangles(const void *p1, const void *p2);
             status_t        add_triangle(const rtm_triangle_t *t);
-            status_t        add_edge(rtm_edge_t *e);
+            status_t        add_triangle(const rt_triangle_t *t);
+            status_t        add_edge(const rtm_edge_t *e);
+            status_t        add_edge(const rtx_edge_t *e);
 
         public:
             // Construction/destruction
@@ -128,6 +132,25 @@ namespace lsp
              * @return status of operation
              */
             status_t        fetch_objects(rt_mesh_t *src, size_t n, const size_t *mask);
+
+            /**
+             * Add opaque object for capturing data. Edges of opaque object will not be
+             * added to the split plan.
+             *
+             * @param vt array of raw triangles
+             * @param n number of triangles
+             */
+            status_t        add_opaque_object(const rt_triangle_t *vt, size_t n);
+
+            /**
+             * Add object for capturing data.
+             * @param vt array of raw triangles
+             * @param ve array of edges that should be added to plan
+             * @param nt number of raw triangles
+             * @param ne number of edges that should be added to plan
+             * @return status of operation
+             */
+            status_t        add_object(rtx_triangle_t *vt, rtx_edge_t *ve, size_t nt, size_t ne);
 
             /**
              * Cull view with the view planes

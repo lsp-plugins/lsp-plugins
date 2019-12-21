@@ -92,6 +92,8 @@ namespace lsp
         if ((path != NULL) && (path->pending()))
         {
             const char *fname = path->get_path();
+            lsp_trace("Submitted file name: %s", fname);
+
             size_t len = strlen(fname);
             if (len < 4)
                 nStatus     = (len > 0) ? STATUS_BAD_ARGUMENTS : STATUS_UNSPECIFIED;
@@ -104,14 +106,13 @@ namespace lsp
                     nStatus     = STATUS_BAD_ARGUMENTS;
                 else if ((fname[2] != 'a') && (fname[2] != 'A'))
                     nStatus     = STATUS_BAD_ARGUMENTS;
-                else if ((fname[3] != 'v') && (fname[3] != 'v'))
+                else if ((fname[3] != 'v') && (fname[3] != 'V'))
                     nStatus     = STATUS_BAD_ARGUMENTS;
                 else
                     nStatus     = STATUS_OK;
             }
 
             path->accept();
-            path->commit();
         }
     }
 
@@ -159,7 +160,7 @@ namespace lsp
 
             // dsp::scale - optimized version for
             //  *(out++) = *(in++) * fGain    x   samples times
-            dsp::scale3(out, in, fGain, samples);
+            dsp::mul_k3(out, in, fGain, samples);
         }
 
         size_t out_status = pOutStatus->getValue();
@@ -332,6 +333,161 @@ namespace lsp
 
 
         return true;
+    }
+
+    filter_analyzer::filter_analyzer(): plugin_t(metadata)
+    {
+        pIn     = NULL;
+        pOut    = NULL;
+        pGraph  = NULL;
+    }
+
+    filter_analyzer::~filter_analyzer()
+    {
+        for (size_t i=0; i<2; ++i)
+            vFilters[i].sFilter.destroy();
+    }
+
+    void filter_analyzer::init(IWrapper *wrapper)
+    {
+        plugin_t::init(wrapper);
+
+        // Initialize filters
+        for (size_t i=0; i<2; ++i)
+        {
+            pfilter_t *pf   = &vFilters[i];
+            pf->sFP.nType   = FLT_NONE;
+            pf->sFP.fFreq   = FREQ_DFL;
+            pf->sFP.fFreq2  = FREQ_DFL * 10.0f;
+            pf->sFP.fGain   = GAIN_DFL;
+            pf->sFP.nSlope  = 1;
+            pf->sFP.fQuality= QUALITY_DFL;
+
+            pf->sFilter.init(NULL);
+            pf->nOp         = 0;
+        }
+
+        // Bind ports
+        size_t port_id = 0;
+        pIn             = vPorts[port_id++];
+        pOut            = vPorts[port_id++];
+        ++port_id;  // skip 'area'
+        pGraph          = vPorts[port_id++];
+
+        for (size_t i=0; i<2; ++i)
+        {
+            pfilter_t *pf   = &vFilters[i];
+
+            pf->pType       = vPorts[port_id++];
+            pf->pSlope      = vPorts[port_id++];
+            pf->pOp         = vPorts[port_id++];
+            pf->pFreqLo     = vPorts[port_id++];
+            pf->pFreqHi     = vPorts[port_id++];
+            pf->pGain       = vPorts[port_id++];
+            pf->pQuality    = vPorts[port_id++];
+        }
+    }
+
+    void filter_analyzer::process(size_t samples)
+    {
+        // Bypass signal
+        dsp::copy(pOut->getBuffer<float>(), pIn->getBuffer<float>(), samples);
+
+        // Render the output
+        mesh_t *m = pGraph->getBuffer<mesh_t>();
+        if ((m != NULL) && (m->isEmpty()))
+        {
+            // Generate list of frequencies, cleanup other buffers
+            float zp[2], tzp[2];
+            float *f = m->pvData[0];
+            float fstep     = logf(FREQ_MAX/FREQ_MIN) / (MESH_POINTS - 1);
+            for (size_t i=0; i<MESH_POINTS; ++i)
+                f[i]    = FREQ_MIN * expf(i * fstep);
+            dsp::fill_zero(m->pvData[1], MESH_POINTS);
+            dsp::fill_zero(m->pvData[2], MESH_POINTS);
+
+            // Compute transfer function of the system
+            size_t nf   = 0;
+            dsp::fill_zero(vChart, MESH_POINTS*2);
+            for (size_t i=0; i<2; ++i)
+            {
+                pfilter_t *pf   = &vFilters[i];
+                if (pf->nOp == 0)
+                    continue;
+                ++nf;
+                pf->sFilter.freq_chart(vTmpBuf, m->pvData[0], MESH_POINTS);
+                pf->sFilter.freq_chart(tzp, m->pvData[0], 1);
+                if (pf->nOp == 1) // add
+                {
+                    dsp::add2(vChart, vTmpBuf, MESH_POINTS * 2);
+                    dsp::add2(tzp, zp, 2);
+                }
+                else if (pf->nOp == 2) // sub
+                {
+                    dsp::sub2(vChart, vTmpBuf, MESH_POINTS * 2);
+                    dsp::sub2(tzp, zp, 2);
+                }
+            }
+
+            // No active filters?
+            if (nf <= 0)
+                dsp::pcomplex_fill_ri(vChart, 1.0f, 0.0f, MESH_POINTS);
+
+            // Compute transfer function (amplitude and phase)
+            dsp::pcomplex_modarg(m->pvData[1], m->pvData[2], vChart, MESH_POINTS);
+            dsp::pcomplex_modarg(&zp[0], &zp[1], zp, 1);
+            dsp::mul_k2(m->pvData[2], 180.0f / M_PI, MESH_POINTS);
+
+            // Patch the phase
+            f = m->pvData[2];
+            if (f[0] > 1e-3)
+                dsp::sub_k2(f, 360.0f - f[0], MESH_POINTS);
+            for (size_t i=1; i<MESH_POINTS; ++i)
+            {
+                float a = f[i-1], b=f[i];
+                if (fabs(a-b) < 90.0f) // Detect jump over PI*2
+                    continue;
+
+                // Patch the curve
+                if (b > a)
+                    dsp::sub_k2(&f[i], 360.0f, MESH_POINTS-i);
+                else
+                    dsp::add_k2(&f[i], 360.0f, MESH_POINTS-i);
+            }
+
+            // Notify
+            m->data(3, MESH_POINTS);
+        }
+    }
+
+    void filter_analyzer::update_settings()
+    {
+        // Update filters
+        for (size_t i=0; i<2; ++i)
+        {
+            pfilter_t *pf   = &vFilters[i];
+
+            pf->sFP.nType   = pf->pType->getValue();
+            pf->sFP.fFreq   = pf->pFreqLo->getValue();
+            pf->sFP.fFreq2  = pf->pFreqHi->getValue();
+            pf->sFP.fGain   = pf->pGain->getValue();
+            pf->sFP.nSlope  = pf->pSlope->getValue() + 1;
+            pf->sFP.fQuality= pf->pQuality->getValue();
+
+            pf->sFilter.update(fSampleRate, &pf->sFP);
+            pf->sFilter.rebuild();
+
+            pf->nOp         = pf->pOp->getValue();
+        }
+    }
+
+    void filter_analyzer::set_sample_rate(long sr)
+    {
+        plugin_t::set_sample_rate(sr);
+
+        // Update filter parameters
+        for (size_t i=0; i<2; ++i)
+            vFilters[i].sFilter.update(sr, &vFilters[i].sFP);
     }
 #endif
 }

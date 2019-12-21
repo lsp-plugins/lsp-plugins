@@ -14,11 +14,43 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlAudioFile::metadata = { "CtlAudioFile", &CtlWidget::metadata };
         
+        CtlAudioFile::DataSink::DataSink(CtlAudioFile *file)
+        {
+            pFile       = file;
+        }
+
+        CtlAudioFile::DataSink::~DataSink()
+        {
+            unbind();
+        }
+
+        status_t CtlAudioFile::DataSink::on_complete(status_t code, const LSPString *data)
+        {
+            if ((code != STATUS_OK) || (pFile == NULL))
+                return STATUS_OK;
+
+            // Apply configuration
+            CtlConfigHandler dst;
+            LSP_STATUS_ASSERT(pFile->bind_ports(&dst));
+            LSP_STATUS_ASSERT(config::deserialize(data, &dst));
+
+            return STATUS_OK;
+        }
+
+        void CtlAudioFile::DataSink::unbind()
+        {
+            if (pFile != NULL)
+                pFile->pDataSink    = NULL;
+            pFile   = NULL;
+        }
+
         CtlAudioFile::CtlAudioFile(CtlRegistry *src, LSPAudioFile *af):
             CtlWidget(src, af),
             sMenu(af->display())
         {
+            pClass          = &metadata;
             pFile           = NULL;
             pMesh           = NULL;
             pPathID         = NULL;
@@ -30,6 +62,7 @@ namespace lsp
             pFadeIn         = NULL;
             pFadeOut        = NULL;
             pPath           = NULL;
+            pDataSink       = NULL;
 
             for (size_t i=0; i<N_MENU_ITEMS; ++i)
                 vMenuItems[i]   = NULL;
@@ -65,7 +98,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_basic(pRegistry, af, af->color(), A_COLOR);
-            sBgColor.init_basic(pRegistry, af, af->bg_color(), A_BG_COLOR);
             sPadding.init(af->padding());
 
             af->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
@@ -142,7 +174,7 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint("Click to load");
+                af->set_hint("Click or drag to load");
             }
             else if (status == STATUS_LOADING)
             {
@@ -306,12 +338,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sPadding.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sPadding.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
@@ -384,16 +413,17 @@ namespace lsp
             lsp_trace("Serialized config: \n%s", str.get_native());
 
             // Copy data to clipboard
-            LSPTextClipboard *cb = new LSPTextClipboard();
-            if (cb == NULL)
+            LSPTextDataSource *ds = new LSPTextDataSource();
+            if (ds == NULL)
                 return STATUS_NO_MEM;
+            ds->acquire();
 
-            status_t result = cb->update_text(&str);
+            status_t result = ds->set_text(&str);
             if (result == STATUS_OK)
-                af->display()->write_clipboard(CBUF_CLIPBOARD, cb);
-            cb->close();
+                af->display()->set_clipboard(CBUF_CLIPBOARD, ds);
+            ds->release();
 
-            return STATUS_OK;
+            return result;
         }
 
         status_t CtlAudioFile::slot_popup_paste_action(LSPWidget *sender, void *ptr, void *data)
@@ -405,30 +435,18 @@ namespace lsp
             if (af == NULL)
                 return STATUS_BAD_STATE;
 
-            return af->display()->fetch_clipboard(CBUF_CLIPBOARD, "UTF8_STRING", clipboard_handler, ctl);
-        }
+            // Fetch data from clipboard
+            DataSink *ds = new DataSink(ctl);
+            if (ds == NULL)
+                return STATUS_NO_MEM;
+            if (ctl->pDataSink != NULL)
+                ctl->pDataSink->unbind();
+            ctl->pDataSink = ds;
 
-        status_t CtlAudioFile::clipboard_handler(void *arg, status_t s, io::IInStream *is)
-        {
-            if (s != STATUS_OK)
-                return s;
-            else if (is == NULL)
-                return STATUS_BAD_STATE;
-
-            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(arg);
-            if (ctl == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
-            if (af == NULL)
-                return STATUS_BAD_STATE;
-
-            LSPString str;
-            CtlConfigHandler dst;
-
-            LSP_STATUS_ASSERT(ctl->bind_ports(&dst));
-            LSP_STATUS_ASSERT(config::load(is, &dst));
-
-            return STATUS_OK;
+            ds->acquire();
+            status_t res = af->display()->get_clipboard(CBUF_CLIPBOARD, ds);
+            ds->release();
+            return res;
         }
 
         status_t CtlAudioFile::bind_ports(CtlPortHandler *h)

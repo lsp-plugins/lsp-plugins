@@ -1,7 +1,9 @@
 <theme>
 	<colors>
 		<!-- Plugin basic colors -->
-		<background value="#1b1c22" />
+		<bg value="#1b1c22" />
+		<bg2 value="#2f3037" />
+		<bg3 value="#45464d" />
 		<glass value="#101010" />
 		<hole value="#000000" />
 		
@@ -50,6 +52,7 @@
 		
 		<!-- Label colors -->
 		<label_text value="#dae0ff" />
+		<invalid_input value="#880000" />
 		
 		<!-- Button colors -->
 		<button_face value="#ffffff" />
@@ -80,6 +83,7 @@
 		<g_magenta value="#ff00ff" />
 		<g_red value="#ff0000" />
 		<g_blue value="#0000ff" />
+		<g_orange value="#ff8800" />
 		
 		<!-- Channel colors -->
 		<left_channel value="#ff0000" />

@@ -85,6 +85,18 @@ template <class T>
         b = tmp;
     }
 
+template <class A, class B>
+    inline A lsp_max(A a, B b)
+    {
+        return (a > b) ? a : b;
+    }
+
+template <class A, class B>
+    inline A lsp_min(A a, B b)
+    {
+        return (a <= b) ? a : b;
+    }
+
 /** Free aligned pointer and write NULL to it
  *
  * @param ptr pointer to free

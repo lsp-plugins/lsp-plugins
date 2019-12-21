@@ -39,6 +39,16 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void fill(float *dst, float value, size_t count);
+        void fill_one(float *dst, size_t count);
+        void fill_zero(float *dst, size_t count);
+        void fill_minus_one(float *dst, size_t count);
+    }
+)
+
 typedef void (* fill_t)(float *dst, size_t count);
 typedef void (* fill_value_t)(float *dst, float value, size_t count);
 
@@ -81,29 +91,36 @@ PTEST_BEGIN("dsp.copy", fill, 5, 5000)
 
         float *out       = alloc_aligned<float>(data, buf_size, 64);
 
+        #define CALL(func) \
+            call(#func, out, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native::fill", out, count, native::fill);
-            IF_ARCH_X86(call("sse::fill", out, count, sse::fill));
-            IF_ARCH_ARM(call("neon_d32::fill", out, count, neon_d32::fill));
+            CALL(native::fill);
+            IF_ARCH_X86(CALL(sse::fill));
+            IF_ARCH_ARM(CALL(neon_d32::fill));
+            IF_ARCH_AARCH64(CALL(asimd::fill));
             PTEST_SEPARATOR;
 
-            call("native::fill_zero", out, count, native::fill_zero);
-            IF_ARCH_X86(call("sse::fill_zero", out, count, sse::fill_zero));
-            IF_ARCH_ARM(call("neon_d32::fill_zero", out, count, neon_d32::fill_zero));
+            CALL(native::fill_zero);
+            IF_ARCH_X86(CALL(sse::fill_zero));
+            IF_ARCH_ARM(CALL(neon_d32::fill_zero));
+            IF_ARCH_AARCH64(CALL(asimd::fill_zero));
             PTEST_SEPARATOR;
 
-            call("native::fill_one", out, count, native::fill_one);
-            IF_ARCH_X86(call("sse::fill_one", out, count, sse::fill_one));
-            IF_ARCH_ARM(call("neon_d32::fill_one", out, count, neon_d32::fill_one));
+            CALL(native::fill_one);
+            IF_ARCH_X86(CALL(sse::fill_one));
+            IF_ARCH_ARM(CALL(neon_d32::fill_one));
+            IF_ARCH_AARCH64(CALL(asimd::fill_one));
             PTEST_SEPARATOR;
 
-            call("native::fill_minus_one", out, count, native::fill_minus_one);
-            IF_ARCH_X86(call("sse::fill_minus_one", out, count, sse::fill_minus_one));
-            IF_ARCH_ARM(call("neon_d32::fill_minus_one", out, count, neon_d32::fill_minus_one));
-            PTEST_SEPARATOR;
+            CALL(native::fill_minus_one);
+            IF_ARCH_X86(CALL(sse::fill_minus_one));
+            IF_ARCH_ARM(CALL(neon_d32::fill_minus_one));
+            IF_ARCH_AARCH64(CALL(asimd::fill_minus_one));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

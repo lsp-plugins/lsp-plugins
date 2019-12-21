@@ -13,7 +13,8 @@ namespace lsp
     {
         const w_class_t LSPCenter::metadata = { "LSPCenter", &LSPGraphItem::metadata };
 
-        LSPCenter::LSPCenter(LSPDisplay *dpy): LSPGraphItem(dpy)
+        LSPCenter::LSPCenter(LSPDisplay *dpy): LSPGraphItem(dpy),
+            sColor(this)
         {
             fLeft       = 0.0f;
             fTop        = 0.0f;
@@ -68,11 +69,15 @@ namespace lsp
             if (cv == NULL)
                 return;
 
+            // Generate palette
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw circle
             float x=0.0, y=0.0;
             cv->center(this, &x, &y);
             bool aa = s->set_antialiasing(bSmooth);
-            s->fill_circle(x, y, fRadius, sColor);
+            s->fill_circle(x, y, fRadius, color);
             s->set_antialiasing(aa);
         }
     } /* namespace tk */

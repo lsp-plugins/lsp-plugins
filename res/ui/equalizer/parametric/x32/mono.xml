@@ -2,6 +2,32 @@
 	<vbox spacing="4">
 		<hbox spacing="4" expand="true">
 			<vbox spacing="4" expand="true">
+				<!-- Signal meters -->
+				<hbox fill="true">
+					<align hpos="0">
+						<hbox spacing="2" fill="false">
+							<meter id="im" angle="0"
+							    type="rms_peak"
+								min="-36 db" max="+6 db" 
+								color="middle_channel"
+							/>
+							<label text="Input (dB)" />
+						</hbox>
+					</align>
+					
+					<align hpos="1">
+						<hbox spacing="2" fill="false">	
+							<label text="Output (dB)" />
+							<meter id="sm" angle="0"
+							    type="rms_peak"
+								min="-36 db" max="+6 db" 
+								color="middle_channel"
+							/>
+						</hbox>
+					</align>
+				</hbox>
+				
+				<!-- Graph -->
 				<graph width="640" height="340" expand="true" fill="true">
 					<center hpos="-1" vpos="-1" visible="false" />
 					
@@ -89,8 +115,6 @@
 					<text text="-9" coord="10;-9 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 				</graph>
 				<hbox spacing="8">
-					<label text="Filters" />
-					<combo id="fsel" />
 					<label text="Mode" />
 					<combo id="mode" />
 					<align pad_right="4" hpos="1"  expand="true"><label text="SPECTRUM GRAPH" /></align>
@@ -103,18 +127,24 @@
 			</vbox>
 			<vbox spacing="4">
 				<group text="Signal" expand="true">
-					<grid rows="6" cols="2" transpose="true">
-						<label text="Input" />
-						<knob id="g_in" expand="true" />
-						<value id="g_in" />
-						<label text="Output" expand="true" />
-						<knob id="g_out" />
-						<value id="g_out" />
+					<grid rows="3" cols="2" hspacing="4">
+						<knob id="g_in" />
+						<vbox vfill="false">
+							<label text="Input" halign="0" />
+							<value id="g_in" same_line="true" halign="0" />
+						</vbox>
 						
-						<cell rows="5">
-							<meter id="sm" angle="1" type="rms_peak" height="128" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
-						</cell>
-						<label text="Out" color="middle_channel" font_size="9" />
+						<knob id="g_out" />
+						<vbox vfill="false">
+							<label text="Output" expand="true" halign="0" />
+							<value id="g_out" same_line="true" halign="0" />
+						</vbox>
+						
+						<knob id="frqs" scale_color="middle_channel" />
+						<vbox vfill="false">
+							<label text="Pitch" halign="0" />
+							<value id="frqs" same_line="true" halign="0" />
+						</vbox>
 					</grid>
 				</group>
 				<group text="Analysis" expand="true">
@@ -122,180 +152,68 @@
 						<label text="FFT" halign="0" />
 						<combo id="fft" fill="true" />
 						
-						<grid rows="3" cols="3" transpose="true" expand="true" >
-							<label text="Reactivity" />
+						<grid rows="2" cols="2" transpose="false" expand="true" hspacing="4" >
 							<knob id="react" size="20" />
-							<value id="react" />
+							<vbox vfill="false">
+								<label text="Reactivity" halign="0" />
+								<value id="react" same_line="true" halign="0" />
+							</vbox>
 							
-							<label text="Shift" />
 							<knob id="shift" size="20" />
-							<value id="shift" />
+							<vbox vfill="false">
+								<label text="Shift" halign="0" />
+								<value id="shift" same_line="true" halign="0" />
+							</vbox>
 						</grid>
 					</vbox>
 				</group>
 			</vbox>
 		</hbox>
 		<hbox spacing="4">
-			<group text="Filters 0-7" expand="true" visibility_id="fsel" visibility_key="0">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
-					<label text="#" fill="true" halign="0" />
-					<label text="Filter" fill="true" halign="0" />
-					<label text="Mode" fill="true" halign="0" />
-					<label text="Slope" fill="true" halign="0" />
-					<vbox fill="true" valign="0.5">
-						<label text="Freq," halign="0" />
-						<label text="Gain" halign="0" />
-					</vbox>
-					<label text="(Hz), (dB)" fill="true" halign="0" />
-					<vbox fill="true">
-						<label text="Q," halign="0" />
-						<label text="Hue" halign="0" />
-					</vbox>
-					<label />
-					
-					<!-- Filters -->
-					<ui:for id="i" first="0" last="7">
-						<cell cols="2"><label text="${i}" /></cell>
-						<cell cols="2" fill="true" pad_bottom="1"><combo id="ft_${i}"  fill="true" /></cell>
-						<cell cols="2" fill="true" ><combo id="fm_${i}"  fill="true" /></cell>
-						<combo id="s_${i}" fill="true" />
-						<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="f_${i}" detailed="false" precision="1" />
-						<knob id="q_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="q_${i}" detailed="false" />
-						<grid rows="2" cols="2" fill="false">
-							<button id="xs_${i}" led="true" size="12" color="green" />
-							<button id="xm_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="8" />
-							<label text="M" font_size="8" />
-						</grid>
-						<knob id="g_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="g_${i}" detailed="false" />
-						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="16" />
-						<value id="hue_${i}" detailed="false" />
-					</ui:for>
-				</grid>
-			</group>
-			<group text="Filters 8-15" expand="true" visibility_id="fsel" visibility_key="1">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
-					<label text="#" fill="true" halign="0" />
-					<label text="Filter" fill="true" halign="0" />
-					<label text="Mode" fill="true" halign="0" />
-					<label text="Slope" fill="true" halign="0" />
-					<vbox fill="true" valign="0.5">
-						<label text="Freq," halign="0" />
-						<label text="Gain" halign="0" />
-					</vbox>
-					<label text="(Hz), (dB)" fill="true" halign="0" />
-					<vbox fill="true">
-						<label text="Q," halign="0" />
-						<label text="Hue" halign="0" />
-					</vbox>
-					<label />
-					
-					<!-- Filters -->
-					<ui:for id="i" first="8" last="15">
-						<cell cols="2"><label text="${i}" /></cell>
-						<cell cols="2" fill="true" pad_bottom="1"><combo id="ft_${i}"  fill="true" /></cell>
-						<cell cols="2" fill="true" ><combo id="fm_${i}"  fill="true" /></cell>
-						<combo id="s_${i}" fill="true" />
-						<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="f_${i}" detailed="false" precision="1" />
-						<knob id="q_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="q_${i}" detailed="false" />
-						<grid rows="2" cols="2" fill="false">
-							<button id="xs_${i}" led="true" size="12" color="green" />
-							<button id="xm_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="8" />
-							<label text="M" font_size="8" />
-						</grid>
-						<knob id="g_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="g_${i}" detailed="false" />
-						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="16" />
-						<value id="hue_${i}" detailed="false" />
-					</ui:for>
-				</grid>
-			</group>
-			<group text="Filters 16-23" expand="true" visibility_id="fsel" visibility_key="2">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
-					<label text="#" fill="true" halign="0" />
-					<label text="Filter" fill="true" halign="0" />
-					<label text="Mode" fill="true" halign="0" />
-					<label text="Slope" fill="true" halign="0" />
-					<vbox fill="true" valign="0.5">
-						<label text="Freq," halign="0" />
-						<label text="Gain" halign="0" />
-					</vbox>
-					<label text="(Hz), (dB)" fill="true" halign="0" />
-					<vbox fill="true">
-						<label text="Q," halign="0" />
-						<label text="Hue" halign="0" />
-					</vbox>
-					<label />
-					
-					<!-- Filters -->
-					<ui:for id="i" first="16" last="23">
-						<cell cols="2"><label text="${i}" /></cell>
-						<cell cols="2" fill="true" pad_bottom="1"><combo id="ft_${i}"  fill="true" /></cell>
-						<cell cols="2" fill="true" ><combo id="fm_${i}"  fill="true" /></cell>
-						<combo id="s_${i}" fill="true" />
-						<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="f_${i}" detailed="false" precision="1" />
-						<knob id="q_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="q_${i}" detailed="false" />
-						<grid rows="2" cols="2" fill="false">
-							<button id="xs_${i}" led="true" size="12" color="green" />
-							<button id="xm_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="8" />
-							<label text="M" font_size="8" />
-						</grid>
-						<knob id="g_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="g_${i}" detailed="false" />
-						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="16" />
-						<value id="hue_${i}" detailed="false" />
-					</ui:for>
-				</grid>
-			</group>
-			<group text="Filters 24-31" expand="true" visibility_id="fsel" visibility_key="3">
-				<grid transpose="true" rows="8" cols="17" hspacing="2">
-					<label text="#" fill="true" halign="0" />
-					<label text="Filter" fill="true" halign="0" />
-					<label text="Mode" fill="true" halign="0" />
-					<label text="Slope" fill="true" halign="0" />
-					<vbox fill="true" valign="0.5">
-						<label text="Freq," halign="0" />
-						<label text="Gain" halign="0" />
-					</vbox>
-					<label text="(Hz), (dB)" fill="true" halign="0" />
-					<vbox fill="true">
-						<label text="Q," halign="0" />
-						<label text="Hue" halign="0" />
-					</vbox>
-					<label />
-					
-					<!-- Filters -->
-					<ui:for id="i" first="24" last="31">
-						<cell cols="2"><label text="${i}" /></cell>
-						<cell cols="2" fill="true" pad_bottom="1"><combo id="ft_${i}"  fill="true" /></cell>
-						<cell cols="2" fill="true" ><combo id="fm_${i}"  fill="true" /></cell>
-						<combo id="s_${i}" fill="true" />
-						<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="f_${i}" detailed="false" precision="1" />
-						<knob id="q_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="q_${i}" detailed="false" />
-						<grid rows="2" cols="2" fill="false">
-							<button id="xs_${i}" led="true" size="12" color="green" />
-							<button id="xm_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="8" />
-							<label text="M" font_size="8" />
-						</grid>
-						<knob id="g_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="g_${i}" detailed="false" />
-						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="16" />
-						<value id="hue_${i}" detailed="false" />
-					</ui:for>
-				</grid>
-			</group>
+			<cgroup id="fsel">
+				<!-- 4 blocks of filters -->
+				<ui:for id="f" first="0" last="3">
+					<grid transpose="true" rows="8" cols="17" hspacing="2">
+						<label text="#" fill="true" halign="0" />
+						<label text="Filter" fill="true" halign="0" />
+						<label text="Mode" fill="true" halign="0" />
+						<label text="Slope" fill="true" halign="0" />
+						<vbox fill="true" valign="0.5">
+							<label text="Freq," halign="0" />
+							<label text="Gain" halign="0" />
+						</vbox>
+						<label text="(Hz), (dB)" fill="true" halign="0" />
+						<vbox fill="true">
+							<label text="Q," halign="0" />
+							<label text="Hue" halign="0" />
+						</vbox>
+						<label />
+						
+						<!-- Filters -->
+						<ui:for id="i" first="${:f*8}" last="${:f*8+7}">
+							<ui:set id="ch" value="_${i}" />
+							<cell cols="2"><label text="${i}" /></cell>
+							<cell cols="2" fill="true" pad_bottom="1"><combo id="ft${ch}"  fill="true" /></cell>
+							<cell cols="2" fill="true" ><combo id="fm${ch}"  fill="true" /></cell>
+							<combo id="s${ch}" fill="true" />
+							<knob id="f${ch}" scale_hue_id="hue${ch}" size="20" />
+							<value id="f${ch}" detailed="false" precision="1" />
+							<knob id="q${ch}" scale_hue_id="hue${ch}" size="20" />
+							<value id="q${ch}" detailed="false" />
+							<grid rows="2" cols="2" fill="false">
+								<button id="xs${ch}" led="true" size="12" color="green" />
+								<button id="xm${ch}" led="true" size="12" color="red" />
+								<label text="S" font_size="8" />
+								<label text="M" font_size="8" />
+							</grid>
+							<knob id="g${ch}" scale_hue_id="hue${ch}" size="20" />
+							<value id="g${ch}" detailed="false" />
+							<knob id="hue${ch}" scale_hue_id="hue${ch}" size="16" />
+							<value id="hue${ch}" detailed="false" />
+						</ui:for>
+					</grid>
+				</ui:for>
+			</cgroup>
 		</hbox>
 	</vbox>
 </plugin>

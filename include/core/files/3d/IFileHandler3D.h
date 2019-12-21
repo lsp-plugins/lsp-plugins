@@ -49,31 +49,31 @@ namespace lsp
              *
              * @param idx index
              * @param p vertex to add
-             * @return status of operation
+             * @return number of added vertex or negative error code
              */
-            virtual status_t add_vertex(const point3d_t *p);
+            virtual ssize_t add_vertex(const point3d_t *p);
 
             /** Add parameter vertex
              *
              * @param idx index
              * @param p vertex to add
-             * @return status of operation
+             * @return number of added vertex or negative error code
              */
-            virtual status_t add_parameter_vertex(const point3d_t *p);
+            virtual ssize_t add_parameter_vertex(const point3d_t *p);
 
             /** Add normal
              *
              * @param v normal vector to add
-             * @return status of operation
+             * @return number of added normal or negative error code
              */
-            virtual status_t add_normal(const vector3d_t *v);
+            virtual ssize_t add_normal(const vector3d_t *v);
 
             /** Add texture vertex
              *
              * @param v texture vector to add
-             * @return status of operation
+             * @return number of added texture vertex or negative error code
              */
-            virtual status_t add_texture_vertex(const point3d_t *v);
+            virtual ssize_t add_texture_vertex(const point3d_t *v);
 
             /** Add face
              *

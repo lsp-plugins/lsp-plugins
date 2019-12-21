@@ -11,14 +11,17 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlComboGroup::metadata = { "CtlComboGroup", &CtlWidget::metadata };
+
         CtlComboGroup::CtlComboGroup(CtlRegistry *src, LSPComboGroup *widget): CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            fMin        = 0.0f;
-            fMax        = 0.0f;
-            fStep       = 0.0f;
-            idChange    = -1;
-            pText       = NULL;
+            pClass          = &metadata;
+            pPort           = NULL;
+            fMin            = 0.0f;
+            fMax            = 0.0f;
+            fStep           = 0.0f;
+            idChange        = -1;
+            pText           = NULL;
         }
 
         CtlComboGroup::~CtlComboGroup()
@@ -27,6 +30,8 @@ namespace lsp
 
         void CtlComboGroup::do_destroy()
         {
+            sEmbed.destroy();
+
             LSPComboGroup *grp = widget_cast<LSPComboGroup>(pWidget);
             if (grp == NULL)
                 return;
@@ -47,6 +52,7 @@ namespace lsp
         void CtlComboGroup::destroy()
         {
             CtlWidget::destroy();
+            sEmbed.destroy();
             do_destroy();
         }
 
@@ -87,11 +93,13 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, grp, grp->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, grp, grp->bg_color(), A_BG_COLOR);
             sTextColor.init_basic(pRegistry, grp, grp->font()->color(), A_TEXT_COLOR);
 
             // Bind slots
             idChange = grp->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+
+            // Init embed expression
+            sEmbed.init(pRegistry, this);
         }
 
         void CtlComboGroup::set(widget_attribute_t att, const char *value)
@@ -114,44 +122,61 @@ namespace lsp
                 case A_TEXT:
                     PARSE_STRING(value, pText);
                     break;
+                case A_EMBED:
+                    BIND_EXPR(sEmbed, value);
+                    break;
                 default:
                 {
-                    bool set = sColor.set(att, value);
-                    set |= sBgColor.set(att, value);
-                    set |= sTextColor.set(att, value);
-
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sTextColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }
         }
 
-        status_t CtlComboGroup::add(LSPWidget *child)
+        status_t CtlComboGroup::add(CtlWidget *child)
         {
             LSPComboGroup *grp     = widget_cast<LSPComboGroup>(pWidget);
-            return (grp != NULL) ? grp->add(child) : STATUS_BAD_STATE;
+            return (grp != NULL) ? grp->add(child->widget()) : STATUS_BAD_STATE;
         }
     
         void CtlComboGroup::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
 
+            LSPComboGroup *cgroup = widget_cast<LSPComboGroup>(pWidget);
+            if (cgroup == NULL)
+                return;
+
             if (pPort == port)
             {
                 ssize_t index = (pPort->get_value() - fMin) / fStep;
+                cgroup->set_selected(index);
+            }
 
-                LSPComboGroup *cgroup = widget_cast<LSPComboGroup>(pWidget);
-                if (cgroup != NULL)
-                    cgroup->set_selected(index);
+            if (sEmbed.valid())
+            {
+                float value = sEmbed.evaluate();
+                cgroup->set_embed(value >= 0.5f);
             }
         }
 
         void CtlComboGroup::end()
         {
+            LSPComboGroup *cbox = widget_cast<LSPComboGroup>(pWidget);
+            if (cbox == NULL)
+                return;
+
+            // Evaluate expression
+            if (sEmbed.valid())
+            {
+                float value = sEmbed.evaluate();
+                cbox->set_embed(value >= 0.5f);
+            }
+
             if (pWidget != NULL)
             {
-                LSPComboGroup *cbox = widget_cast<LSPComboGroup>(pWidget);
                 const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
 
                 if (p != NULL)

@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <core/ipc/Process.h>
 
 namespace lsp
 {
@@ -19,11 +20,13 @@ namespace lsp
 
         LSPHyperlink::LSPHyperlink(LSPDisplay *dpy):
             LSPLabel(dpy),
+            sHoverColor(this),
             sStdMenu(dpy)
         {
             pClass      = &metadata;
             nMFlags     = 0;
             nState      = 0;
+            bFollow     = true;
             pPopup      = &sStdMenu;
 
             vStdItems[0]    = NULL;
@@ -42,6 +45,7 @@ namespace lsp
 
             init_color(C_HLINK_TEXT, sFont.color());
             init_color(C_HLINK_HOVER, &sHoverColor);
+
             set_cursor(MP_HAND); // Initialize pointer
             sFont.set_underline();
 
@@ -72,6 +76,8 @@ namespace lsp
 
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0) return -id;
+            sSlots.add(LSPSLOT_BEFORE_POPUP);
+            sSlots.add(LSPSLOT_POPUP);
 
             return STATUS_OK;
         }
@@ -82,46 +88,67 @@ namespace lsp
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
+        void LSPHyperlink::set_follow(bool follow)
+        {
+            bFollow     = follow;
+        }
+
         status_t LSPHyperlink::slot_copy_link_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPHyperlink *_this = widget_ptrcast<LSPHyperlink>(ptr);
             if (_this == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
-            LSPTextClipboard *cb = new LSPTextClipboard();
-            if (cb == NULL)
+            return _this->copy_url(CBUF_CLIPBOARD);
+        }
+
+        status_t LSPHyperlink::follow_url()
+        {
+            #ifdef PLATFORM_WINDOWS
+                ::ShellExecuteW(
+                    NULL,               // Not associated with window
+                    L"open",            // Open hyperlink
+                    sUrl.get_utf16(),   // The file to execute
+                    NULL,               // Parameters
+                    NULL,               // Directory
+                    SW_SHOWNORMAL       // Show command
+                );
+            #else
+                status_t res;
+                ipc::Process p;
+
+                if ((res = p.set_command("xdg-open")) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.add_arg(&sUrl)) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.launch()) != STATUS_OK)
+                    return STATUS_OK;
+                p.wait();
+            #endif /* PLATFORM_WINDOWS */
+
+            return STATUS_OK;
+        }
+
+        status_t LSPHyperlink::copy_url(clipboard_id_t cb)
+        {
+            // Copy data to clipboard
+            LSPTextDataSource *src = new LSPTextDataSource();
+            if (src == NULL)
                 return STATUS_NO_MEM;
-            status_t result = cb->update_text(&_this->sUrl);
+            src->acquire();
+
+            status_t result = src->set_text(&sUrl);
             if (result == STATUS_OK)
-                _this->pDisplay->write_clipboard(CBUF_CLIPBOARD, cb);
-            return cb->close();
+                pDisplay->set_clipboard(cb, src);
+            src->release();
+
+            return result;
         }
 
         status_t LSPHyperlink::on_submit()
         {
             lsp_trace("hyperlink submitted");
-
-            int status = 0;
-            const char *url = sUrl.get_native();
-
-            pid_t pid = fork();
-            if (pid == 0)
-            {
-                lsp_trace("url is: %s", url);
-                execlp("xdg-open", "xdg-open", url, NULL);
-                exit(1);
-            }
-            else if (pid < 0)
-            {
-                lsp_trace("bad fork");
-            }
-            else
-            {
-                waitpid(pid, &status, WNOHANG);
-                lsp_trace("Child process exted with status %d", status);
-            }
-
-            return STATUS_OK;
+            return (bFollow) ? follow_url() : STATUS_OK;
         }
 
         void LSPHyperlink::destroy()
@@ -134,7 +161,9 @@ namespace lsp
                     vStdItems[i] = NULL;
                 }
 
+            sStdMenu.destroy();
             LSPLabel::destroy();
+            pPopup = NULL;
         }
 
         status_t LSPHyperlink::set_url(const char *url)
@@ -149,8 +178,13 @@ namespace lsp
 
         void LSPHyperlink::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color font((nState & F_MOUSE_IN) ? sHoverColor.color() : sFont.color()->color());
+            font.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Get text parameters
             font_parameters_t fp;
@@ -161,9 +195,6 @@ namespace lsp
             ssize_t n_lines = 1 + sText.count('\n');
             ssize_t dy      = sSize.nHeight - fp.Height*n_lines - (nBorder << 1);
             ssize_t y       = nBorder - fp.Descent + dy * fVAlign;
-
-            // Determine which color to use
-            Color *cl       = (nState & F_MOUSE_IN) ? &sHoverColor : sFont.color();
 
             // Estimate text size
             ssize_t last = 0, curr = 0, tail = 0, len = sText.length();
@@ -190,7 +221,7 @@ namespace lsp
                 ssize_t x   = nBorder + dx * fHAlign - tp.XBearing;
                 y          += fp.Height;
 
-                sFont.draw(s, x, y, *cl, &sText, last, tail);
+                sFont.draw(s, x, y, font, &sText, last, tail);
                 last    = curr + 1;
             }
         }
@@ -294,7 +325,11 @@ namespace lsp
                 if ((flags == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT))
                     sSlots.execute(LSPSLOT_SUBMIT, this);
                 else if ((flags == (1 << MCB_RIGHT)) && (e->nCode == MCB_RIGHT) && (pPopup != NULL))
+                {
+                    sSlots.execute(LSPSLOT_BEFORE_POPUP, this, pPopup->self());
                     pPopup->show(this, e);
+                    sSlots.execute(LSPSLOT_POPUP, this, pPopup->self());
+                }
             }
 
             return STATUS_OK;

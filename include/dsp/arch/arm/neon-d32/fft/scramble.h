@@ -31,7 +31,13 @@ namespace neon_d32
                 __ASM_EMIT("mov         %[i], $1")                          // i = 1
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("add         %[src_re], $4")
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
                 __ASM_EMIT("add         %[src_im], $4")
@@ -51,8 +57,6 @@ namespace neon_d32
                 __ASM_EMIT("add         %[i], $1")                          // i++
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
                 __ASM_EMIT("blo         1b")
-
-                __ASM_EMIT("eor         %[i], %[i]")
 
                 // Perform x8 butterflies
                 __ASM_EMIT("3:")
@@ -79,13 +83,9 @@ namespace neon_d32
                 // q1 = i2" i6" i1" i5"
                 // q2 = r0" r4" r1" r5"
                 // q3 = r2" r6" r3" r7"
+                __ASM_EMIT("vswp        d1, d3")                            // q0 = i0" i4" i1" i5", q1 = i2" i6" i3" i7"
                 __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-
-                __ASM_EMIT("vrev64.32   q0, q0")                            // q0 = i3" i0" i1" i2"
-                __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
-                __ASM_EMIT("vext.32     q0, q0, q0, $1")                    // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i1" i2" i3", q1 = i4" i5" i6" i7"
 
                 __ASM_EMIT("vst1.32     {q2-q3}, [%[dst_re]]!")
                 __ASM_EMIT("subs        %[count], $8")                      // i <=> count
@@ -98,7 +98,7 @@ namespace neon_d32
                   [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
                   [count] "+r" (count)
-                :
+                : IF_ARCH_ARM6([masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -116,7 +116,13 @@ namespace neon_d32
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
 
                 __ASM_EMIT("add         %[s_re], %[src_re], %[j], LSL $2")  // s_re = &src_re[i]
@@ -181,13 +187,9 @@ namespace neon_d32
                 // q1 = i2" i6" i1" i5"
                 // q2 = r0" r4" r1" r5"
                 // q3 = r2" r6" r3" r7"
+                __ASM_EMIT("vswp        d1, d3")                            // q0 = i0" i4" i1" i5", q1 = i2" i6" i3" i7"
                 __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-
-                __ASM_EMIT("vrev64.32   q0, q0")                            // q0 = i3" i0" i1" i2"
-                __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
-                __ASM_EMIT("vext.32     q0, q0, q0, $1")                    // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i1" i2" i3", q1 = i4" i5" i6" i7"
 
                 __ASM_EMIT("vst1.32     {q2-q3}, [%[dst_re]]!")
                 __ASM_EMIT("cmp         %[i], %[regs]")
@@ -199,6 +201,7 @@ namespace neon_d32
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
                 : [src_re] "r" (src_re), [src_im] "r" (src_im),
                   [regs] "r" (regs)
+                  IF_ARCH_ARM6(, [masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -222,7 +225,13 @@ namespace neon_d32
                 __ASM_EMIT("mov         %[i], $1")                          // i = 1
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("add         %[src_re], $4")
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
                 __ASM_EMIT("add         %[src_im], $4")
@@ -270,15 +279,9 @@ namespace neon_d32
                 // q1 = i2" i6" i3" i7"
                 // q2 = r0" r4" r3" r7"
                 // q3 = r2" r6" r1" r5"
-                __ASM_EMIT("vswp        d1, d3")                            // q0 = i0" i4" i3" i7", q1 = i2" i6" i1" i5"
                 __ASM_EMIT("vswp        d5, d7")                            // q2 = r0" r4" r1" r5", q3 = r2" r6" r3" r7"
                 __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-
-                __ASM_EMIT("vrev64.32   q0, q0")                            // q0 = i3" i0" i1" i2"
-                __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
-                __ASM_EMIT("vext.32     q0, q0, q0, $1")                    // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i1" i2" i3", q1 = i4" i5" i6" i7"
 
                 __ASM_EMIT("vst1.32     {q2-q3}, [%[dst_re]]!")
                 __ASM_EMIT("subs        %[count], $8")                      // i <=> count
@@ -291,7 +294,7 @@ namespace neon_d32
                   [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
                   [count] "+r" (count)
-                :
+                : IF_ARCH_ARM6([masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -309,7 +312,13 @@ namespace neon_d32
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
 
                 __ASM_EMIT("1:")
+#if defined(ARCH_ARM6)
+                __ASM_EMIT("push        {%[dst_re], %[dst_im]}")
+                ARMV6_MV_RBIT32("%[j]", "%[i]", "%[dst_re]", "%[dst_im]", "%[masks]") // j = reverse_bits(i)
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im]}")
+#else
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
+#endif
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
 
                 __ASM_EMIT("add         %[s_re], %[src_re], %[j], LSL $2")  // s_re = &src_re[i]
@@ -374,15 +383,9 @@ namespace neon_d32
                 // q1 = i2" i6" i3" i7"
                 // q2 = r0" r4" r3" r7"
                 // q3 = r2" r6" r1" r5"
-                __ASM_EMIT("vswp        d1, d3")                            // q0 = i0" i4" i3" i7", q1 = i2" i6" i1" i5"
                 __ASM_EMIT("vswp        d5, d7")                            // q2 = r0" r4" r1" r5", q3 = r2" r6" r3" r7"
                 __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-
-                __ASM_EMIT("vrev64.32   q0, q0")                            // q0 = i3" i0" i1" i2"
-                __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
-                __ASM_EMIT("vext.32     q0, q0, q0, $1")                    // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i1" i2" i3", q1 = i4" i5" i6" i7"
 
                 __ASM_EMIT("vst1.32     {q2-q3}, [%[dst_re]]!")
                 __ASM_EMIT("cmp         %[i], %[regs]")
@@ -394,6 +397,7 @@ namespace neon_d32
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
                 : [src_re] "r" (src_re), [src_im] "r" (src_im),
                   [regs] "r" (regs)
+                  IF_ARCH_ARM6(, [masks] "r" (__rb_masks))
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );

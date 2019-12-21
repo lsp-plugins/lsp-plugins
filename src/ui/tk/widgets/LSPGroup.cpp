@@ -15,11 +15,13 @@ namespace lsp
 
         LSPGroup::LSPGroup(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
-            sFont(dpy, this)
+            sColor(this),
+            sFont(this)
         {
             nRadius     = 10;
             nBorder     = 0;
             pWidget     = NULL;
+            bEmbed      = false;
 
             pClass      = &metadata;
         }
@@ -43,11 +45,11 @@ namespace lsp
                 {
                     sFont.init(theme->font());
                     sFont.set_size(12.0f);
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, sFont.color());
-                    theme->get_color(C_BACKGROUND, &sBgColor);
+                    init_color(C_BACKGROUND, sFont.color());
                 }
             }
+
+            init_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }
@@ -67,7 +69,7 @@ namespace lsp
 
         void LSPGroup::query_dimensions(dimensions_t *d)
         {
-            size_t bw       = round(nRadius * M_SQRT2 * 0.5) + 1;
+            size_t bw       = (bEmbed) ? 1 : ::round(nRadius * M_SQRT2 * 0.5) + 1;
             size_t dd       = bw + nBorder + 1;
             d->nGapLeft     = dd;
             d->nGapRight    = dd;
@@ -142,12 +144,34 @@ namespace lsp
             query_resize();
         }
 
+        void LSPGroup::set_embed(bool embed)
+        {
+            if (bEmbed == embed)
+                return;
+            bEmbed = embed;
+            query_resize();
+        }
+
         void LSPGroup::render(ISurface *s, bool force)
         {
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
 //            lsp_trace("Rendering this=%p, force=%d", this, int(force));
+            // Draw child
+            if (pWidget != NULL)
+            {
+                if ((force) || (pWidget->redraw_pending()))
+                {
+                    pWidget->render(s, force);
+                    pWidget->commit_redraw();
+                }
+            }
 
             if (force)
             {
@@ -160,23 +184,30 @@ namespace lsp
 
                 // Draw background
                 if (pWidget == NULL)
-                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+                    s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
                 else
                 {
                     realize_t r;
                     pWidget->get_dimensions(&r);
-                    s->fill_frame(
-                        sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
-                        r.nLeft, r.nTop, r.nWidth, r.nHeight,
-                        sBgColor
-                    );
-//                    Color yell(1.0f, 1.0f, 0.0f);
-//                    s->wire_rect(r.nLeft, r.nTop, r.nWidth - 1, r.nHeight - 1, 1.0f, yell);
+//                    Color red(1.0f, 0.0f, 0.0f);
+                    if ((bEmbed) && (nRadius > 1))
+                        s->fill_round_frame(
+                            sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                            r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                            nRadius-1, SURFMASK_B_CORNER,
+                            bg_color
+                        );
+                    else
+                        s->fill_frame(
+                                sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight,
+                                r.nLeft, r.nTop, r.nWidth, r.nHeight,
+                                bg_color
+                            );
                 }
 
                 // Draw frame
                 bool aa = s->set_antialiasing(true);
-                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, sColor);
+                s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, color);
 
                 // Draw text frame
                 if (sText.length() > 0)
@@ -188,23 +219,15 @@ namespace lsp
                     sFont.get_parameters(s, &fp);
                     sFont.get_text_parameters(s, &tp, &sText);
 
-                    s->fill_round_rect(cx-1, cy-1, 4 + nRadius + tp.Width, fp.Height + 4, nRadius, 0x04, sColor);
+                    s->fill_round_rect(cx-1, cy-1, 4 + nRadius + tp.Width, fp.Height + 4, nRadius, 0x04, color);
 
                     // Show text
-                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, &sText);
+                    Color font(sFont.raw_color());
+                    font.scale_lightness(brightness());
+                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, font, &sText);
                 }
 
                 s->set_antialiasing(aa);
-            }
-
-            // Draw child
-            if (pWidget != NULL)
-            {
-                if ((force) || (pWidget->redraw_pending()))
-                {
-                    pWidget->render(s, force);
-                    pWidget->commit_redraw();
-                }
             }
         }
 
@@ -239,6 +262,12 @@ namespace lsp
                 r->nMinWidth    = 0;
             if (r->nMinHeight < 0)
                 r->nMinHeight   = 0;
+
+            if (pWidget != NULL)
+            {
+                r->nMinWidth   += pWidget->padding()->horizontal();
+                r->nMinHeight  += pWidget->padding()->vertical();
+            }
 
             dimensions_t d;
             query_dimensions(&d);
@@ -283,10 +312,10 @@ namespace lsp
             pWidget->size_request(&sr);
 
             realize_t rc;
-            rc.nLeft    = r->nLeft   + d.nGapLeft;
-            rc.nTop     = r->nTop    + d.nGapTop;
-            rc.nWidth   = r->nWidth  - d.nGapLeft - d.nGapRight;
-            rc.nHeight  = r->nHeight - d.nGapTop - d.nGapBottom;
+            rc.nLeft    = r->nLeft   + d.nGapLeft  + pWidget->padding()->left();
+            rc.nTop     = r->nTop    + d.nGapTop   + pWidget->padding()->top();
+            rc.nWidth   = r->nWidth  - d.nGapLeft  - d.nGapRight   - pWidget->padding()->horizontal();
+            rc.nHeight  = r->nHeight - d.nGapTop   - d.nGapBottom  - pWidget->padding()->vertical();
 
             if ((sr.nMaxWidth > 0) && (sr.nMaxWidth < rc.nWidth))
             {

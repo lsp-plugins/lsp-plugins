@@ -510,16 +510,21 @@ namespace lsp
 
         void LSPComboBox::draw(ISurface *s)
         {
-            Color *bg = sListBox.bg_color();
-            Color *col = sListBox.color();
-            s->clear(*bg);
+            // Prepare palette
+            Color bg(sListBox.bg_color()->color());
+            Color col(sListBox.color()->color());
+
+            col.scale_lightness(brightness());
+
+            // Draw background
+            s->clear(bg);
 
             // Draw body
             font_parameters_t fp;
             text_parameters_t tp;
 
             bool aa = s->set_antialiasing(true);
-            s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, *col);
+            s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, col);
 
             // Get text to print
             const char *text = "----------------";
@@ -537,16 +542,16 @@ namespace lsp
 
             size_t padding = 3;
             s->set_antialiasing(aa);
-            sFont.draw(s, padding, padding + (sSize.nHeight - padding * 2 - fp.Height)*0.5f + fp.Ascent, *bg, text);
+            sFont.draw(s, padding, padding + (sSize.nHeight - padding * 2 - fp.Height)*0.5f + fp.Ascent, bg, text);
 
             // Additionally wire around
             ssize_t bwidth = 12;
             s->set_antialiasing(true);
             float bleft = sSize.nWidth - bwidth;
-            s->wire_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, 1, *col);
-            s->fill_round_rect(bleft, 0.0f, 10, sSize.nHeight - 1, 4, SURFMASK_R_CORNER, *col);
+            s->wire_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, 1, col);
+            s->fill_round_rect(bleft, 0.0f, 10, sSize.nHeight - 1, 4, SURFMASK_R_CORNER, col);
             s->set_antialiasing(false);
-            s->line(bleft, 1, bleft, sSize.nHeight - 2, 1, *bg);
+            s->line(bleft, 1, bleft, sSize.nHeight - 2, 1, bg);
             s->set_antialiasing(true);
 
             // Draw buttons
@@ -555,13 +560,13 @@ namespace lsp
                     bleft + 2, half - 2,
                     sSize.nWidth - 2, half - 2,
                     (bleft + sSize.nWidth)*0.5f, half - 6,
-                    *bg);
+                    bg);
 
             s->fill_triangle(
                     bleft + 2, half + 1,
                     sSize.nWidth - 2, half + 1,
                     (bleft + sSize.nWidth)*0.5f, half + 5,
-                    *bg);
+                    bg);
 
             s->set_antialiasing(aa);
         }

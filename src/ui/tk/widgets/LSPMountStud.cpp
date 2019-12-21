@@ -19,7 +19,7 @@ namespace lsp
 
         LSPMountStud::LSPMountStud(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sFont(this)
         {
             pClass      = &metadata;
             nAngle      = 0;
@@ -42,7 +42,6 @@ namespace lsp
             sFont.set_size(16);
             sFont.set_bold(true);
 
-            init_color(C_BACKGROUND, &sBgColor);
             init_color(C_LOGO_FACE, &sColor);
             init_color(C_LOGO_TEXT, sFont.color());
 
@@ -165,16 +164,22 @@ namespace lsp
             font_parameters_t fp;
             text_parameters_t tp;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color logo(sColor);
+            Color font(sFont.raw_color());
+
+            logo.scale_lightness(brightness());
+            font.scale_lightness(brightness());
+
             // Draw background
-            s->clear(sBgColor);
+            s->clear(bg_color);
 
             bool pressed    = bPressed;
             float aa        = s->set_antialiasing(true);
 
             sFont.get_parameters(s, &fp);
             sFont.get_text_parameters(s, &tp, &sText);
-
-            Color logo(sColor);
 
             // Draw screws
             if (nAngle & 0x02)
@@ -219,14 +224,14 @@ namespace lsp
             }
 
             // Draw logo text
-            logo.copy(sFont.color());
-            if (pressed)
-                logo.darken(0.5f);
+//            if (pressed)
+//                font.darken(0.5f);
 
             // Output text
             sFont.draw(s,
                     l_x + ((sLogo.nWidth - tp.Width) * 0.5f),
                     l_y + ((sLogo.nHeight - fp.Height) * 0.5f) + fp.Ascent,
+                    font,
                     &sText);
             s->set_antialiasing(aa);
         }

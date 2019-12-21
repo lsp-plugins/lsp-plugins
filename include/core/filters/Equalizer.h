@@ -23,6 +23,9 @@ namespace lsp
 
     class Equalizer
     {
+        private:
+            Equalizer & operator = (const Equalizer &);
+
         protected:
             enum eq_flags_t
             {
@@ -54,7 +57,7 @@ namespace lsp
             void                reconfigure();
 
         public:
-            Equalizer();
+            explicit Equalizer();
             ~Equalizer();
 
         public:

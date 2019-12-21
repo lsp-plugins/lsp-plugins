@@ -384,7 +384,7 @@ enum AEffectOpcodes
 
     /** Set program chunk
      * @param ptr pointer to chunk data
-     * @param value the size of byte
+     * @param value the size in bytes
      * @param index type of the chunk: 0 for bank, 1 for program
      */
     effSetChunk,

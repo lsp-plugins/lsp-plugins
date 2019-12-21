@@ -517,17 +517,17 @@ namespace lsp
 
             // Prepare audio channels
             if (nMode == CM_MONO)
-                dsp::scale3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
+                dsp::mul_k3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
             else if (nMode == CM_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vIn, vChannels[1].vIn, in_buf[0], in_buf[1], to_process);
-                dsp::scale2(vChannels[0].vIn, fInGain, to_process);
-                dsp::scale2(vChannels[1].vIn, fInGain, to_process);
+                dsp::mul_k2(vChannels[0].vIn, fInGain, to_process);
+                dsp::mul_k2(vChannels[1].vIn, fInGain, to_process);
             }
             else
             {
-                dsp::scale3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
-                dsp::scale3(vChannels[1].vIn, in_buf[1], fInGain, to_process);
+                dsp::mul_k3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
+                dsp::mul_k3(vChannels[1].vIn, in_buf[1], fInGain, to_process);
             }
 
             // Process meters
@@ -761,7 +761,7 @@ namespace lsp
                     dsp::copy(mesh->pvData[0], vCurve, compressor_base_metadata::CURVE_MESH_SIZE);
                     c->sComp.curve(mesh->pvData[1], vCurve, compressor_base_metadata::CURVE_MESH_SIZE);
                     if (c->fMakeup != 1.0f)
-                        dsp::scale2(mesh->pvData[1], c->fMakeup, compressor_base_metadata::CURVE_MESH_SIZE);
+                        dsp::mul_k2(mesh->pvData[1], c->fMakeup, compressor_base_metadata::CURVE_MESH_SIZE);
 
                     // Mark mesh containing data
                     mesh->data(2, compressor_base_metadata::CURVE_MESH_SIZE);
@@ -864,7 +864,7 @@ namespace lsp
             }
             c->sComp.curve(b->v[1], b->v[0], width);
             if (c->fMakeup != 1.0f)
-                dsp::scale2(b->v[1], c->fMakeup, width);
+                dsp::mul_k2(b->v[1], c->fMakeup, width);
 
             dsp::fill(b->v[2], 0.0f, width);
             dsp::fill(b->v[3], height, width);

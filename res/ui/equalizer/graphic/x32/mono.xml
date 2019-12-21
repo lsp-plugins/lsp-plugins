@@ -2,6 +2,32 @@
 	<vbox spacing="4">
 		<hbox>
 			<vbox>
+				<!-- Signal meters -->
+				<hbox fill="true">
+					<align hpos="0">
+						<hbox spacing="2" fill="false">
+							<meter id="im" angle="0"
+							    type="rms_peak"
+								min="-36 db" max="+6 db" 
+								color="middle_channel"
+							/>
+							<label text="Input (dB)" />
+						</hbox>
+					</align>
+					
+					<align hpos="1">
+						<hbox spacing="2" fill="false">	
+							<label text="Output (dB)" />
+							<meter id="sm" angle="0"
+							    type="rms_peak"
+								min="-36 db" max="+6 db" 
+								color="middle_channel"
+							/>
+						</hbox>
+					</align>
+				</hbox>
+				
+				<!-- Graph -->
 				<align expand="true" pad_bottom="4">
 					<graph width="640" height="340" expand="true" fill="true">
 						<center hpos="-1" vpos="-1" visible="false" />
@@ -42,40 +68,42 @@
 						<mesh id="ag" width="3" color="middle_channel" fill="0.8" smooth="true" />
 						
 						<!-- Dots -->
-						<dot hpos="16" vpos_id="g_0" visibility_id="fv_0" editable="true" color="middle_channel" />
-						<dot hpos="20" vpos_id="g_1" visibility_id="fv_1" editable="true" color="middle_channel" />
-						<dot hpos="25" vpos_id="g_2" visibility_id="fv_2" editable="true" color="middle_channel" />
-						<dot hpos="31.5" vpos_id="g_3" visibility_id="fv_3" editable="true" color="middle_channel" />
-						<dot hpos="40" vpos_id="g_4" visibility_id="fv_4" editable="true" color="middle_channel" />
-						<dot hpos="50" vpos_id="g_5" visibility_id="fv_5" editable="true" color="middle_channel" />
-						<dot hpos="63" vpos_id="g_6" visibility_id="fv_6" editable="true" color="middle_channel" />
-						<dot hpos="80" vpos_id="g_7" visibility_id="fv_7" editable="true" color="middle_channel" />
-						<dot hpos="100" vpos_id="g_8" visibility_id="fv_8" editable="true" color="middle_channel" />
-						<dot hpos="125" vpos_id="g_9" visibility_id="fv_9" editable="true" color="middle_channel" />
-						<dot hpos="160" vpos_id="g_10" visibility_id="fv_10" editable="true" color="middle_channel" />
-						<dot hpos="200" vpos_id="g_11" visibility_id="fv_11" editable="true" color="middle_channel" />
-						<dot hpos="250" vpos_id="g_12" visibility_id="fv_12" editable="true" color="middle_channel" />
-						<dot hpos="315" vpos_id="g_13" visibility_id="fv_13" editable="true" color="middle_channel" />
-						<dot hpos="400" vpos_id="g_14" visibility_id="fv_14" editable="true" color="middle_channel" />
-						<dot hpos="500" vpos_id="g_15" visibility_id="fv_15" editable="true" color="middle_channel" />
-						<dot hpos="630" vpos_id="g_16" visibility_id="fv_16" editable="true" color="middle_channel" />
-						<dot hpos="800" vpos_id="g_17" visibility_id="fv_17" editable="true" color="middle_channel" />
-						<dot hpos="1000" vpos_id="g_18" visibility_id="fv_18" editable="true" color="middle_channel" />
-						<dot hpos="1250" vpos_id="g_19" visibility_id="fv_19" editable="true" color="middle_channel" />
-						<dot hpos="1600" vpos_id="g_20" visibility_id="fv_20" editable="true" color="middle_channel" />
-						<dot hpos="2000" vpos_id="g_21" visibility_id="fv_21" editable="true" color="middle_channel" />
-						<dot hpos="2500" vpos_id="g_22" visibility_id="fv_22" editable="true" color="middle_channel" />
-						<dot hpos="3150" vpos_id="g_23" visibility_id="fv_23" editable="true" color="middle_channel" />
-						<dot hpos="4000" vpos_id="g_24" visibility_id="fv_24" editable="true" color="middle_channel" />
-						<dot hpos="5000" vpos_id="g_25" visibility_id="fv_25" editable="true" color="middle_channel" />
-						<dot hpos="6300" vpos_id="g_26" visibility_id="fv_26" editable="true" color="middle_channel" />
-						<dot hpos="8000" vpos_id="g_27" visibility_id="fv_27" editable="true" color="middle_channel" />
-						<dot hpos="10000" vpos_id="g_28" visibility_id="fv_28" editable="true" color="middle_channel" />
-						<dot hpos="12500" vpos_id="g_29" visibility_id="fv_29" editable="true" color="middle_channel" />
-						<dot hpos="16000" vpos_id="g_30" visibility_id="fv_30" editable="true" color="middle_channel" />
-						<dot hpos="20000" vpos_id="g_31" visibility_id="fv_31" editable="true" color="middle_channel" />
+						<ui:attributes editable="true" color="middle_channel" border="8" padding="8">
+							<dot hpos="16" vpos_id="g_0" visibility_id="fv_0" />
+							<dot hpos="20" vpos_id="g_1" visibility_id="fv_1" />
+							<dot hpos="25" vpos_id="g_2" visibility_id="fv_2" />
+							<dot hpos="31.5" vpos_id="g_3" visibility_id="fv_3" />
+							<dot hpos="40" vpos_id="g_4" visibility_id="fv_4" />
+							<dot hpos="50" vpos_id="g_5" visibility_id="fv_5" />
+							<dot hpos="63" vpos_id="g_6" visibility_id="fv_6" />
+							<dot hpos="80" vpos_id="g_7" visibility_id="fv_7" />
+							<dot hpos="100" vpos_id="g_8" visibility_id="fv_8" />
+							<dot hpos="125" vpos_id="g_9" visibility_id="fv_9" />
+							<dot hpos="160" vpos_id="g_10" visibility_id="fv_10" />
+							<dot hpos="200" vpos_id="g_11" visibility_id="fv_11" />
+							<dot hpos="250" vpos_id="g_12" visibility_id="fv_12" />
+							<dot hpos="315" vpos_id="g_13" visibility_id="fv_13" />
+							<dot hpos="400" vpos_id="g_14" visibility_id="fv_14" />
+							<dot hpos="500" vpos_id="g_15" visibility_id="fv_15" />
+							<dot hpos="630" vpos_id="g_16" visibility_id="fv_16" />
+							<dot hpos="800" vpos_id="g_17" visibility_id="fv_17" />
+							<dot hpos="1000" vpos_id="g_18" visibility_id="fv_18" />
+							<dot hpos="1250" vpos_id="g_19" visibility_id="fv_19" />
+							<dot hpos="1600" vpos_id="g_20" visibility_id="fv_20" />
+							<dot hpos="2000" vpos_id="g_21" visibility_id="fv_21" />
+							<dot hpos="2500" vpos_id="g_22" visibility_id="fv_22" />
+							<dot hpos="3150" vpos_id="g_23" visibility_id="fv_23" />
+							<dot hpos="4000" vpos_id="g_24" visibility_id="fv_24" />
+							<dot hpos="5000" vpos_id="g_25" visibility_id="fv_25" />
+							<dot hpos="6300" vpos_id="g_26" visibility_id="fv_26" />
+							<dot hpos="8000" vpos_id="g_27" visibility_id="fv_27" />
+							<dot hpos="10000" vpos_id="g_28" visibility_id="fv_28" />
+							<dot hpos="12500" vpos_id="g_29" visibility_id="fv_29" />
+							<dot hpos="16000" vpos_id="g_30" visibility_id="fv_30" />
+							<dot hpos="20000" vpos_id="g_31" visibility_id="fv_31" />
+						</ui:attributes>
 						
-												<!-- Boundaries -->
+						<!-- Boundaries -->
 						<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
 						<marker value="24000" color="g_white" basis="0" parallel="1" />
 						
@@ -112,8 +140,6 @@
 					</graph>
 				</align>
 				<hbox spacing="8">
-					<label text="Bands" />
-					<combo id="fsel" />
 					<label text="Mode" />
 					<combo id="slope" />
 					<combo id="mode" />
@@ -127,18 +153,18 @@
 			</vbox>
 			<vbox spacing="4">
 				<group text="Signal" expand="true">
-					<grid rows="6" cols="2" transpose="true">
-						<label text="Input" />
-						<knob id="g_in" expand="true" />
-						<value id="g_in" />
-						<label text="Output" expand="true" />
-						<knob id="g_out" />
-						<value id="g_out" />
+					<grid rows="2" cols="2" hspacing="4">
+						<knob id="g_in" />
+						<vbox vfill="false">
+							<label text="Input" halign="0" />
+							<value id="g_in" same_line="true" halign="0" />
+						</vbox>
 						
-						<cell rows="5">
-							<meter id="sm" angle="1" type="rms_peak" height="128" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
-						</cell>
-						<label text="Out" color="middle_channel" font_size="8" />
+						<knob id="g_out" />
+						<vbox vfill="false">
+							<label text="Output" expand="true" halign="0" />
+							<value id="g_out" same_line="true" halign="0" />
+						</vbox>
 					</grid>
 				</group>
 				<group text="Analysis" expand="true">
@@ -146,100 +172,89 @@
 						<label text="FFT" halign="0" />
 						<combo id="fft" fill="true" />
 						
-						<grid rows="3" cols="3" transpose="true" expand="true" >
-							<label text="Reactivity" />
+						<grid rows="2" cols="2" transpose="false" expand="true" hspacing="4" >
 							<knob id="react" size="20" />
-							<value id="react" />
+							<vbox vfill="false">
+								<label text="Reactivity" halign="0" />
+								<value id="react" same_line="true" halign="0" />
+							</vbox>
 							
-							<label text="Shift" />
 							<knob id="shift" size="20" />
-							<value id="shift" />
+							<vbox vfill="false">
+								<label text="Shift" halign="0" />
+								<value id="shift" same_line="true" halign="0" />
+							</vbox>
 						</grid>
 					</vbox>
 				</group>
 			</vbox>
 		</hbox>
 		<hbox spacing="4">
-			<group text="Bands" expand="true" visibility_id="fsel" visibility_key="0">
-				<grid rows="5" cols="17">
-					<label text="Hz" fill="true" halign="0" />
-
-					<label text="16" />
-					<label text="20" />
-					<label text="25" />
-					<label text="31.5" />
-					<label text="40" />
-					<label text="50" />
-					<label text="63" />
-					<label text="80" />
-					<label text="100" />
-					<label text="125" />
-					<label text="160" />
-					<label text="200" />
-					<label text="250" />
-					<label text="315" />
-					<label text="400" />
-					<label text="500" />
-					
-					<label text="Ctl" />
-					<ui:for id="i" first="0" last="15">
-						<grid rows="3" cols="2" fill="false">
-							<button id="xe_${i}" led="true" size="12" color="yellow" />
-							<label text="On" font_size="9" />
-							<button id="xs_${i}" led="true" size="12" color="green" />
-							<button id="xm_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="9" />
-							<label text="M" font_size="9" />
-						</grid>
-					</ui:for>
-					
-					<label text="Gain" />
-					<ui:for id="i" first="0" last="15"><knob id="g_${i}"  size="20" scale_color="middle_channel" /></ui:for>
-					
-					<label text="(dB)" />
-					<ui:for id="i" first="0" last="15"><value id="g_${i}" detailed="false" /></ui:for>
-				</grid>
-			</group>
-			<group text="Bands" expand="true" visibility_id="fsel" visibility_key="1">
-				<grid rows="5" cols="17">
-					<label text="Hz" fill="true" halign="0" />
-
-					<label text="630" />
-					<label text="800" />
-					<label text="1K" />
-					<label text="1.25K" />
-					<label text="1.6K" />
-					<label text="2K" />
-					<label text="2.5K" />
-					<label text="3.15K" />
-					<label text="4K" />
-					<label text="5K" />
-					<label text="6.3K" />
-					<label text="8K" />
-					<label text="10K" />
-					<label text="12.5K" />
-					<label text="16K" />
-					<label text="20K" />
-					
-					<label text="Ctl" />
-					<ui:for id="i" first="16" last="31">
-						<grid rows="3" cols="2" fill="false">
-							<button id="xe_${i}" led="true" size="12" color="yellow" />
-							<label text="On" font_size="9" />
-							<button id="xs_${i}" led="true" size="12" color="green" />
-							<button id="xm_${i}" led="true" size="12" color="red" />
-							<label text="S" font_size="9" />
-							<label text="M" font_size="9" />
-						</grid>
-					</ui:for>
-					
-					<label text="Gain" />
-					<ui:for id="i" first="16" last="31"><knob id="g_${i}"  size="20" scale_color="middle_channel" /></ui:for>
-					
-					<label text="(dB)" />
-					<ui:for id="i" first="16" last="31"><value id="g_${i}" detailed="false" /></ui:for>
-				</grid>
-			</group>
+			<cgroup id="fsel">
+				<ui:for id="f" first="0" last="1">
+					<grid rows="5" cols="17">
+						<label text="Hz" fill="true" halign="0" />
+						<ui:if test="${:f ieq 0}">
+							<label text="16" />
+							<label text="20" />
+							<label text="25" />
+							<label text="31.5" />
+							<label text="40" />
+							<label text="50" />
+							<label text="63" />
+							<label text="80" />
+							<label text="100" />
+							<label text="125" />
+							<label text="160" />
+							<label text="200" />
+							<label text="250" />
+							<label text="315" />
+							<label text="400" />
+							<label text="500" />
+						</ui:if>
+						<ui:if test="${:f ieq 1}">
+							<label text="630" />
+							<label text="800" />
+							<label text="1K" />
+							<label text="1.25K" />
+							<label text="1.6K" />
+							<label text="2K" />
+							<label text="2.5K" />
+							<label text="3.15K" />
+							<label text="4K" />
+							<label text="5K" />
+							<label text="6.3K" />
+							<label text="8K" />
+							<label text="10K" />
+							<label text="12.5K" />
+							<label text="16K" />
+							<label text="20K" />
+						</ui:if>
+						
+						<label text="Ctl" halign="0" />
+						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
+							<grid rows="3" cols="2" fill="false">
+								<button id="xe_${i}" led="true" size="12" color="yellow" />
+								<label text="On" font_size="9" />
+								<button id="xs_${i}" led="true" size="12" color="green" />
+								<button id="xm_${i}" led="true" size="12" color="red" />
+								<label text="S" font_size="9" />
+								<label text="M" font_size="9" />
+							</grid>
+						</ui:for>
+						
+						<label text="Gain" halign="0" />
+						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
+							<knob id="g_${i}"  size="20" scale_color="middle_channel" />
+						</ui:for>
+						
+						<label text="(dB)" halign="0" />
+						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
+							<value id="g_${i}" detailed="false" />
+						</ui:for>
+					</grid>
+				</ui:for>
+			</cgroup>
 		</hbox>
 	</vbox>
 </plugin>

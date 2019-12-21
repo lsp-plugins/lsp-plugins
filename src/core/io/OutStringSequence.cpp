@@ -77,6 +77,24 @@ namespace lsp
             return set_error((pOut->append_ascii(s)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
+        status_t OutStringSequence::writeln_ascii(const char *s)
+        {
+            if (pOut == NULL)
+                return set_error(STATUS_CLOSED);
+            bool res = pOut->append_ascii(s);
+            if (res)
+                res = pOut->append('\n');
+            return set_error((res) ? STATUS_OK : STATUS_NO_MEM);
+        }
+
+        status_t OutStringSequence::write_ascii(const char *s, size_t count)
+        {
+            if (pOut == NULL)
+                return set_error(STATUS_CLOSED);
+
+            return set_error((pOut->append_ascii(s, count)) ? STATUS_OK : STATUS_NO_MEM);
+        }
+
         status_t OutStringSequence::write(const LSPString *s)
         {
             if (pOut == NULL)

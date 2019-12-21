@@ -21,6 +21,7 @@
 	<li><b>Label</b> - label with text information.</li>
 	<li><b>Led</b> - LED.</li>
 	<li><b>Meter</b> - metering control.</li>
+	<li><b>Parameter</b> - the value of controllable parameter.</li>
 	<li><b>Progress Bar</b> - progress control.</li>
 	<li><b>Rack</b> - Rack ears with menu and mounting studs.</li>
 	<li><b>Sample Editor</b> - sample editor.</li>
@@ -246,13 +247,11 @@ clockwise/counter-clockwise.</p>
 </div>
 
 <h2>Label</h2>
-<p>Labels are widgets that display text information. They may be static or dynamic. Dynamic labels mosly
-accompany knobs to display the actual value of parameters that they control and (in most cases) units.<p>
+<p>Labels are widgets that display static text information.<p>
 
 <p>Example of label widgets:</p>
 <div class="images">
 	<img src="<?= $CTL ?>labels.png">
-	<img src="<?= $CTL ?>params.png">
 </div>
 
 <h2>Led</h2>
@@ -271,6 +270,14 @@ and red zones. They respectivelly show that signal exceeds -6dB and 0dB levels.<
 	<img src="<?= $CTL ?>vu_meters.png">
 	<img src="<?= $CTL ?>vu_meters_red.png">
 </div>
+
+<h2>Parameter</h2>
+<p>Parameters are widgets that display the actual value and measuring units of some controlled parameter.
+It is possible do double-click the parameter and enter it's value manually in the popup window.
+<p>
+	<img src="<?= $CTL ?>params.png">
+	<img src="<?= $CTL ?>param_enter.png">
+</p>
 
 <h2>Progress Bar</h2>
 <p>

@@ -233,6 +233,23 @@ namespace lsp
         return STATUS_NO_DATA;
     }
 
+    plugin_ui::ConfigSink::~ConfigSink()
+    {
+        unbind();
+    }
+
+    void plugin_ui::ConfigSink::unbind()
+    {
+        if (pUI != NULL)
+            pUI->pConfigSink = NULL;
+        pUI = NULL;
+    }
+
+    status_t plugin_ui::ConfigSink::on_complete(status_t code, const LSPString *data)
+    {
+        return ((code == STATUS_OK) && (pUI != NULL)) ? pUI->paste_from_clipboard(data) : STATUS_OK;
+    }
+
 
     //--------------------------------------------------------------------------------------------------------
 
@@ -243,6 +260,7 @@ namespace lsp
         PATH(UI_DLG_SAMPLE_PATH_ID, "Dialog path for selecting sample files"),
         PATH(UI_DLG_IR_PATH_ID, "Dialog path for selecting impulse response files"),
         PATH(UI_DLG_CONFIG_PATH_ID, "Dialog path for saving/loading configuration files"),
+        PATH(UI_DLG_REW_PATH_ID, "Dialog path for importing REW settings files"),
         PATH(UI_DLG_MODEL3D_PATH_ID, "Dialog for saving/loading 3D model files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
@@ -270,6 +288,7 @@ namespace lsp
         pRoot           = NULL;
         pRootCtl        = NULL;
         pRootWidget     = root_widget;
+        pConfigSink     = NULL;
     }
 
     plugin_ui::~plugin_ui()
@@ -279,6 +298,13 @@ namespace lsp
 
     void plugin_ui::destroy()
     {
+        // Unbind sink
+        if (pConfigSink != NULL)
+        {
+            pConfigSink->unbind();
+            pConfigSink = NULL;
+        }
+
         // Destroy registry
         CtlRegistry::destroy();
 
@@ -418,6 +444,27 @@ namespace lsp
                 vWidgets.add(box);
                 return new CtlBox(this, box);
             }
+            case WC_HSBOX:
+            {
+                LSPScrollBox *box = new LSPScrollBox(&sDisplay, true);
+                box->init();
+                vWidgets.add(box);
+                return new CtlScrollBox(this, box, O_HORIZONTAL);
+            }
+            case WC_VSBOX:
+            {
+                LSPScrollBox *box = new LSPScrollBox(&sDisplay, false);
+                box->init();
+                vWidgets.add(box);
+                return new CtlScrollBox(this, box, O_VERTICAL);
+            }
+            case WC_SBOX:
+            {
+                LSPScrollBox *box = new LSPScrollBox(&sDisplay);
+                box->init();
+                vWidgets.add(box);
+                return new CtlScrollBox(this, box);
+            }
             case WC_HGRID:
             {
                 LSPGrid *grid = new LSPGrid(&sDisplay, true);
@@ -440,12 +487,7 @@ namespace lsp
                 return new CtlGrid(this, grid);
             }
             case WC_CELL:
-            {
-                LSPCell *cell = new LSPCell(&sDisplay);
-                cell->init();
-                vWidgets.add(cell);
-                return new CtlCell(this, cell);
-            }
+                return new CtlCell(this);
             case WC_ALIGN:
             {
                 LSPAlign *align = new LSPAlign(&sDisplay);
@@ -1020,28 +1062,17 @@ namespace lsp
     status_t plugin_ui::build()
     {
         status_t result;
-        char path[PATH_MAX + 1];
+        LSPString path;
 
         // Load theme
         LSPTheme *theme = sDisplay.theme();
         if (theme == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        #ifdef LSP_BUILTIN_RESOURCES
-            ::strncpy(path, "ui/theme.xml", PATH_MAX);
-        #else
-            ::strncpy(path, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "theme.xml", PATH_MAX);
-        #endif /* LSP_BUILTIN_RESOURCES */
-
-        lsp_trace("Loading theme from file %s", path);
-        result = load_theme(sDisplay.theme(), path);
+        lsp_trace("Loading theme");
+        result = load_theme(theme, "ui/theme.xml");
         if (result != STATUS_OK)
             return result;
-
-        // Final tuning of the theme
-        theme->get_color(C_LABEL_TEXT, theme->font()->color());
-        font_parameters_t fp;
-        theme->font()->get_parameters(&fp); // Cache font parameters for further user
 
         // Read global configuration
         result = load_global_config();
@@ -1049,19 +1080,16 @@ namespace lsp
             lsp_error("Error while loading global configuration file");
 
         // Generate path to UI schema
-        #ifdef LSP_BUILTIN_RESOURCES
-            ::snprintf(path, PATH_MAX, "ui/%s", pMetadata->ui_resource);
-        #else
-            ::snprintf(path, PATH_MAX, "res" FILE_SEPARATOR_S "ui" FILE_SEPARATOR_S "%s", pMetadata->ui_resource);
-        #endif /* LSP_BUILTIN_RESOURCES */
-        lsp_trace("Generating UI from file %s", path);
-
         ui_builder bld(this);
-        if (!bld.build(path))
+        if (!path.fmt_utf8("ui/%s", pMetadata->ui_resource))
+            return STATUS_NO_MEM;
+        lsp_trace("Generating UI from URI %s", path.get_utf8());
+        if ((result = bld.build(&path)) != STATUS_OK)
         {
-            lsp_error("Could not build UI from file %s", path);
-            return STATUS_UNKNOWN_ERR;
+            lsp_error("Could not build UI from URI %s", path.get_utf8());
+            return result;
         }
+        lsp_trace("UI has been generated");
 
         // Fetch main menu
         LSPMenu *menu       = widget_cast<LSPMenu>(resolve(WUID_MAIN_MENU));
@@ -1228,10 +1256,8 @@ namespace lsp
         return NULL;
     }
 
-    status_t plugin_ui::export_settings(const char *filename)
+    void plugin_ui::build_config_header(LSPString &c)
     {
-        LSPString c;
-
         c.append_utf8       ("This file contains configuration of the audio plugin.\n");
         c.fmt_append_utf8   ("  Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
         c.fmt_append_utf8   ("  Plugin version:      %d.%d.%d\n",
@@ -1248,7 +1274,14 @@ namespace lsp
         c.append            ('\n');
         c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
         c.append_utf8       ("  " LSP_BASE_URI " \n");
+    }
 
+    status_t plugin_ui::export_settings(const char *filename)
+    {
+        LSPString c;
+        build_config_header(c);
+
+        // Serialize data to file
         KVTStorage *kvt = kvt_lock();
         ConfigSource cfg(this, vPorts, kvt, &c);
         status_t res = config::save(filename, &cfg, true);
@@ -1258,8 +1291,72 @@ namespace lsp
         return res;
     }
 
+    status_t plugin_ui::export_settings_to_clipboard()
+    {
+        LSPString c, data;
+        build_config_header(c);
+
+        // Serialize data to string
+        KVTStorage *kvt = kvt_lock();
+        ConfigSource cfg(this, vPorts, kvt, &c);
+        status_t res = config::serialize(&data, &cfg, true);
+        kvt->gc();
+        kvt_release();
+
+        if (res != STATUS_OK)
+            return res;
+
+        // Put data to clipboard
+        LSPTextDataSource *ds = new LSPTextDataSource();
+        if (ds == NULL)
+            return STATUS_NO_MEM;
+        ds->acquire();
+        res = ds->set_text(&data);
+        if (res == STATUS_OK)
+            res = sDisplay.set_clipboard(CBUF_CLIPBOARD, ds);
+        ds->release();
+
+        return res;
+    }
+
+    status_t plugin_ui::import_settings_from_clipboard()
+    {
+        // Unbind previous
+        ConfigSink *ds = new ConfigSink(this);
+        if (ds == NULL)
+            return STATUS_NO_MEM;
+
+        if (pConfigSink != NULL)
+            pConfigSink->unbind();
+        pConfigSink = ds;
+
+        // Request clipboard data
+        ds->acquire();
+        status_t res = sDisplay.get_clipboard(CBUF_CLIPBOARD, pConfigSink);
+        ds->release();
+
+        return res;
+    }
+
+    status_t plugin_ui::paste_from_clipboard(const LSPString *data)
+    {
+        // Deserialize configuration data
+        KVTStorage *kvt = kvt_lock();
+        ConfigHandler handler(this, vPorts, kvt, false);
+        status_t res = config::deserialize(data, &handler);
+        handler.notify_all();
+        if (kvt != NULL)
+        {
+            kvt->gc();
+            kvt_release();
+        }
+
+        return res;
+    }
+
     status_t plugin_ui::import_settings(const char *filename, bool preset)
     {
+        // Load configuration data
         KVTStorage *kvt = kvt_lock();
         ConfigHandler handler(this, vPorts, kvt, preset);
         status_t res = config::load(filename, &handler);
@@ -1331,6 +1428,17 @@ namespace lsp
         return false;
     }
 
+    static int port_cmp(const void *va, const void *vb)
+    {
+        const CtlPort *const *a = reinterpret_cast<const CtlPort *const *>(va);
+        const CtlPort *const *b = reinterpret_cast<const CtlPort *const *>(vb);
+
+        const port_t *am    = (*a)->metadata();
+        const port_t *bm    = (*b)->metadata();
+
+        return ::strcmp(am->id, bm->id);
+    }
+
     size_t plugin_ui::rebuild_sorted_ports()
     {
         size_t count = vPorts.size();
@@ -1339,26 +1447,14 @@ namespace lsp
         for (size_t i=0; i<count; ++i)
             vSortedPorts.add(vPorts.at(i));
 
-        count   = vSortedPorts.size();
+        if (count <= 1)
+            return count;
 
-        // Sort by port ID
-        if (count >= 2)
-        {
-            for (size_t i=0; i<(count-1); ++i)
-                for (size_t j=i+1; j<count; ++j)
-                {
-                    CtlPort *a  = vSortedPorts.at(i);
-                    CtlPort *b  = vSortedPorts.at(j);
-                    if ((a == NULL) || (b == NULL))
-                        continue;
-                    const port_t *am    = a->metadata();
-                    const port_t *bm    = b->metadata();
-                    if ((am == NULL) || (bm == NULL))
-                        continue;
-                    if (strcmp(am->id, bm->id) > 0)
-                        vSortedPorts.swap_unsafe(i, j);
-                }
-        }
+        count           = vSortedPorts.size();
+        CtlPort **vp    = vSortedPorts.get_array();
+
+        // Sort by port's ID
+        ::qsort(vp, count, sizeof(CtlPort *), port_cmp);
 
 //        #ifdef LSP_TRACE
 //            for (size_t i=0; i<count; ++i)

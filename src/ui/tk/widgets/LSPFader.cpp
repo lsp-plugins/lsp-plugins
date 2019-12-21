@@ -15,8 +15,7 @@ namespace lsp
         
         LSPFader::LSPFader(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sColor(this),
-            sBgColor(this)
+            sColor(this)
         {
             fMin            = 0.0f;
             fMax            = 1.0f;
@@ -47,16 +46,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_LABEL_TEXT, &sColor);
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());
@@ -313,8 +303,9 @@ namespace lsp
 
         float LSPFader::get_normalized_value()
         {
-            size_t a      = nAngle & 3;
-            float v = (fMax == fMin) ? 0.5f : (fValue - fMin) / (fMax - fMin);
+            size_t a        = nAngle & 3;
+            float delta     = fMax - fMin;
+            float v         = (delta == 0.0f) ? 0.5f : (fValue - fMin) / delta;
             return ((a == 1) || (a == 2)) ? 1.0f - v : v;
         }
 
@@ -394,8 +385,13 @@ namespace lsp
 
         void LSPFader::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Clear surface
-            s->clear(sBgColor);
+            s->clear(bg_color);
             ssize_t l, t;
 
             if (nAngle & 1) // Vertical
@@ -411,7 +407,7 @@ namespace lsp
 
             // Draw the hole
             bool aa = s->set_antialiasing(true);
-            Color hole(sBgColor);
+            Color hole(bg_color);
             float hlb = hole.lightness() + 0.5f;
             float hld = 0;
             float r = (nAngle & 1) ? sqrtf(sSize.nHeight*sSize.nHeight + 64) : sqrtf(sSize.nWidth*sSize.nWidth + 64);
@@ -467,7 +463,7 @@ namespace lsp
 
                 IGradient *gr = s->radial_gradient(bl, bt + rh, b_rad * 0.25f, bl, bt + rh, b_rad * 3.0f);
 
-                Color cl(sColor);
+                Color cl(color);
                 cl.lightness(bright);
                 gr->add_color(0.0f, cl);
                 cl.darken(0.9f);

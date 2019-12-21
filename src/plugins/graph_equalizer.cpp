@@ -128,7 +128,8 @@ namespace lsp
             c->pTrAmp           = NULL;
             c->pFft             = NULL;
             c->pVisible         = NULL;
-            c->pMeter           = NULL;
+            c->pInMeter         = NULL;
+            c->pOutMeter        = NULL;
 
             // Initialize equalizer
             c->sEqualizer.init(nBands, graph_equalizer_base_metadata::FFT_RANK);
@@ -230,7 +231,9 @@ namespace lsp
                 vChannels[i].pTrAmp     =   vPorts[port_id++];
             }
             TRACE_PORT(vPorts[port_id]);
-            vChannels[i].pMeter     =   vPorts[port_id++];
+            vChannels[i].pInMeter   =   vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pOutMeter  =   vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             vChannels[i].pFft       =   vPorts[port_id++];
             if (channels > 1)
@@ -559,26 +562,39 @@ namespace lsp
             // Pre-process data
             if (nMode == EQ_MID_SIDE)
             {
+                if (!bListen)
+                {
+                    vChannels[0].pInMeter->setValue(dsp::abs_max(vChannels[0].vIn, to_process));
+                    vChannels[1].pInMeter->setValue(dsp::abs_max(vChannels[1].vIn, to_process));
+                }
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_process);
+                if (bListen)
+                {
+                    vChannels[0].pInMeter->setValue(dsp::abs_max(vChannels[0].vBuffer, to_process));
+                    vChannels[1].pInMeter->setValue(dsp::abs_max(vChannels[1].vBuffer, to_process));
+                }
                 if (fInGain != 1.0f)
                 {
-                    dsp::scale2(vChannels[0].vBuffer, fInGain, to_process);
-                    dsp::scale2(vChannels[1].vBuffer, fInGain, to_process);
+                    dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_process);
+                    dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_process);
                 }
             }
             else if (nMode == EQ_MONO)
             {
+                vChannels[0].pInMeter->setValue(dsp::abs_max(vChannels[0].vIn, to_process));
                 if (fInGain != 1.0f)
-                    dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
                 else
                     dsp::copy(vChannels[0].vBuffer, vChannels[0].vIn, to_process);
             }
             else
             {
+                vChannels[0].pInMeter->setValue(dsp::abs_max(vChannels[0].vIn, to_process));
+                vChannels[1].pInMeter->setValue(dsp::abs_max(vChannels[1].vIn, to_process));
                 if (fInGain != 1.0f)
                 {
-                    dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
-                    dsp::scale3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
+                    dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_process);
                 }
                 else
                 {
@@ -599,7 +615,7 @@ namespace lsp
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
                 if (c->fInGain != 1.0f)
-                    dsp::scale2(c->vBuffer, c->fInGain, to_process);
+                    dsp::mul_k2(c->vBuffer, c->fInGain, to_process);
 
                 // Do FFT in 'POST'-position
                 if (fft_pos == FFTP_POST)
@@ -617,11 +633,11 @@ namespace lsp
 
                 // Apply output gain
                 if (c->fOutGain != 1.0f)
-                    dsp::scale2(c->vBuffer, c->fOutGain, to_process);
+                    dsp::mul_k2(c->vBuffer, c->fOutGain, to_process);
 
                 // Do metering
-                if (c->pMeter != NULL)
-                    c->pMeter->setValue(dsp::abs_max(c->vBuffer, to_process));
+                if (c->pOutMeter != NULL)
+                    c->pOutMeter->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Process via bypass
                 c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);

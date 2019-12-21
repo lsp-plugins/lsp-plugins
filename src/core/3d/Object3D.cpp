@@ -122,7 +122,7 @@ namespace lsp
         if (!vTriangles.add(t))
             return STATUS_NO_MEM;
 
-        // Commit tirangle edges
+        // Commit triangle edges
         if (first)
         {
             for (size_t i=0; i<8; ++i)

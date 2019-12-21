@@ -31,7 +31,7 @@ IF_ARCH_X86(
 
     namespace avx
     {
-        void x64_pcomplex_mod(float *dst_mod, const float *src, size_t count);
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
     }
 )
 
@@ -81,19 +81,21 @@ PTEST_BEGIN("dsp.pcomplex", mod, 5, 1000)
             out[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, out, buf_size * 3);
 
-        #define CALL(...) dsp::copy(out, backup, buf_size * 3); call(__VA_ARGS__)
+        #define CALL(func) \
+            dsp::copy(out, backup, buf_size * 3); \
+            call(#func, out, in, count, func)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native::pcomplex_mod", out, in, count, native::pcomplex_mod);
-            IF_ARCH_X86(CALL("sse::pcomplex_mod", out, in, count, sse::pcomplex_mod));
-            IF_ARCH_X86(CALL("sse3::pcomplex_mod", out, in, count, sse3::pcomplex_mod));
-            IF_ARCH_X86_64(CALL("sse3::x64_pcomplex_mod", out, in, count, sse3::x64_pcomplex_mod));
-            IF_ARCH_X86_64(CALL("avx::x64_pcomplex_mod", out, in, count, avx::x64_pcomplex_mod));
-            IF_ARCH_ARM(CALL("neon_d32::pcomplex_mod", out, in, count, neon_d32::pcomplex_mod));
-            IF_ARCH_AARCH64(CALL("asimd::pcomplex_mod", out, in, count, asimd::pcomplex_mod));
+            CALL(native::pcomplex_mod);
+            IF_ARCH_X86(CALL(sse::pcomplex_mod));
+            IF_ARCH_X86(CALL(sse3::pcomplex_mod));
+            IF_ARCH_X86_64(CALL(sse3::x64_pcomplex_mod));
+            IF_ARCH_X86(CALL(avx::pcomplex_mod));
+            IF_ARCH_ARM(CALL(neon_d32::pcomplex_mod));
+            IF_ARCH_AARCH64(CALL(asimd::pcomplex_mod));
 
             PTEST_SEPARATOR;
         }

@@ -34,12 +34,17 @@ Also each instrument has it's own stereo output that makes possible to record in
 	<li><b>Listen</b> - forces the corresponding instrument to trigger the Note On event.</li>
 </ul>
 
-<p><b>'Instrument Setup' section:</b></p>
+<p><b>'Instrument' section:</b></p>
 <ul>
-	<li><b>Instrument #</b> - the selector of the currently viewed/edited intrument.</li>
 	<li><b>Channel</b> - the MIDI channel to trigger notes by the selected instrument.</li>
 	<li><b>Note</b> - the note and the octave of the note to trigger for the selected instrument.</li>
 	<li><b>MIDI #</b> - the MIDI number of the note for the selected instrument.</li>
+	<li><b>Group</b> - The group assigned to the instrument. The sample playback will be stopped for all
+	instruments in the same group except the one's that has triggered the Note On event.</li>
+	<li><b>Muting</b> - when enabled, turns off sample playback for selected instrument 
+	when the Channel Control MIDI message is received.</li>
+	<li><b>Note off</b> - when enabled, turns off sample playback for selected channel when the Note Off
+	MIDI message is received. The sample fade-out time can be controlled by the corresponding knob.</li>
 	<li><b>Dynamics</b> - allows to randomize the output gain of the selected instrument.</li>
 	<li><b>Time drifting</b> - allows to randomize the time delay between the MIDI Note On event and the start of the sample's playback for the selected instrument.</li>
 </ul>
@@ -66,10 +71,11 @@ Also each instrument has it's own stereo output that makes possible to record in
 </ul>
 <p><b>'Audio channel' section:</b></p>
 <ul>
-	<li><b>Muting</b> - when enabled, turns off any playback when the Channel Control MIDI message is received.</li>
-	<li><b>Note off</b> - when enabled, turns off any playback for this channel when the Note Off MIDI message is received. The sample fade-out time can be controlled by the corresponding knob.</li>
+	<li><b>Muting</b> - when enabled, turns off any sample playback when the Channel Control MIDI message is received.</li>
+	<li><b>Note off</b> - when enabled, turns off any sample playback when the Note Off MIDI message is received. 
+	The sample fade-out time can be controlled by the corresponding knob.</li>
 	<li><b>Dry amount</b> - the gain of the input signal passed to the audio inputs of the plugin.</li>
 	<li><b>Wet amount</b> - the gain of the processed signal.</li>
 	<li><b>Output gain</b> - the overall output gain of the plugin.</li>
-	<li><b>Mute</b> - the button that forces the sample playback to turn off.</li>
+	<li><b>Mute</b> - the button that forces any sample playback to turn off.</li>
 </ul>

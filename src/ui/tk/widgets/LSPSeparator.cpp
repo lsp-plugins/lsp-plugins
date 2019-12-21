@@ -13,7 +13,8 @@ namespace lsp
     {
         const w_class_t LSPSeparator::metadata = { "LSPSeparator", &LSPWidget::metadata };
 
-        LSPSeparator::LSPSeparator(LSPDisplay *dpy, bool horizontal): LSPWidget(dpy)
+        LSPSeparator::LSPSeparator(LSPDisplay *dpy, bool horizontal): LSPWidget(dpy),
+            sColor(this)
         {
             nSize           = -1;
             nBorder         = 2;
@@ -33,16 +34,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_LABEL_TEXT, &sColor);
 
             return STATUS_OK;
         }
@@ -92,8 +84,13 @@ namespace lsp
 
         void LSPSeparator::render(ISurface *s, bool force)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Draw separator
             ssize_t width   = sSize.nWidth - nBorder * 2;
@@ -104,14 +101,14 @@ namespace lsp
                 ssize_t length  = (nSize >= 0) ? nSize : width - nPadding * 2;
                 if (length < ssize_t(nLineWidth))
                     length      = nLineWidth;
-                s->fill_rect(sSize.nLeft + ((sSize.nWidth - length) >> 1), sSize.nTop + ((sSize.nHeight - nLineWidth) >> 1), length, nLineWidth, sColor);
+                s->fill_rect(sSize.nLeft + ((sSize.nWidth - length) >> 1), sSize.nTop + ((sSize.nHeight - nLineWidth) >> 1), length, nLineWidth, color);
             }
             else
             {
                 ssize_t length  = (nSize >= 0) ? nSize : height - nPadding * 2;
                 if (length < ssize_t(nLineWidth))
                     length      = nLineWidth;
-                s->fill_rect(sSize.nLeft + ((sSize.nWidth - nLineWidth) >> 1), sSize.nTop + ((sSize.nHeight - length) >> 1), nLineWidth, length, sColor);
+                s->fill_rect(sSize.nLeft + ((sSize.nWidth - nLineWidth) >> 1), sSize.nTop + ((sSize.nHeight - length) >> 1), nLineWidth, length, color);
             }
         }
 

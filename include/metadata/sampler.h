@@ -32,10 +32,7 @@ namespace lsp
         static const size_t MESH_SIZE               = 320;      // Maximum mesh size
         static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
         static const float ACTIVITY_LIGHTING        = 0.1f;     // Activity lighting (seconds)
-    };
 
-    struct midi_trigger_kernel_metadata
-    {
         static const size_t CHANNEL_DFL             = 0;        // Default channel
         static const size_t NOTE_DFL                = 9;        // A
         static const size_t OCTAVE_DFL              = 4;        // 4th octave
@@ -56,6 +53,8 @@ namespace lsp
         static const size_t PLAYBACKS_MAX           = 8192;     // Maximum number of simultaneously playing samples
         static const size_t SAMPLE_FILES            = 8;        // Number of sample files
         static const size_t BUFFER_SIZE             = 4096;     // Size of temporary buffer
+
+        static const size_t INSTRUMENTS_MAX         = 64;       // Maximum supported instruments
     };
 
     // Single samplers

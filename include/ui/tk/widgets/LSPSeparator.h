@@ -18,8 +18,7 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                Color           sColor;
-                Color           sBgColor;
+                LSPColor        sColor;
                 ssize_t         nSize;
                 size_t          nBorder;
                 size_t          nPadding;
@@ -33,9 +32,7 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                inline Color       *color()             { return &sColor; }
-
-                inline Color       *bg_color()          { return &sBgColor; }
+                inline LSPColor    *color()             { return &sColor; }
 
                 inline ssize_t      size() const        { return nSize; }
 

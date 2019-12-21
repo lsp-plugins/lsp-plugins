@@ -35,9 +35,23 @@ namespace lsp
             protected:
                 typedef struct state_t
                 {
-                    LSPWidgetColor *pColor;
+                    LSPColor       *pColor;
                     LSPString       sText;
                 } state_t;
+
+            protected:
+                class LoadFileSink: public LSPUrlSink
+                {
+                    protected:
+                        LSPLoadFile         *pWidget;
+
+                    public:
+                        explicit LoadFileSink(LSPLoadFile *w);
+                        virtual ~LoadFileSink();
+
+                        void unbind();
+                        virtual status_t    commit_url(const LSPString *url);
+                };
 
             protected:
                 load_file_state_t   nState;
@@ -46,14 +60,14 @@ namespace lsp
                 size_t              nButtons;
                 size_t              nBtnState;
                 ssize_t             nSize;
-                LSPWidgetFont       sFont;
-                LSPWidgetColor      sBgColor;
+                LoadFileSink       *pSink;
+                LSPFont             sFont;
                 LSPFileDialog       sDialog;
                 ISurface           *pDisk;
                 LSPString           sPath;
 
             protected:
-                ISurface   *render_disk(ISurface *s, ssize_t w, const Color &c);
+                ISurface           *render_disk(ISurface *s, ssize_t w, const Color &c, const Color &bg);
                 static status_t     slot_on_activate(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_submit(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_close(LSPWidget *sender, void *ptr, void *data);
@@ -76,7 +90,6 @@ namespace lsp
                 const char                 *file_name() const;
                 status_t                    get_file_name(LSPString *dst);
                 inline LSPFont             *font() { return &sFont; }
-                inline LSPColor            *bg_color() { return &sBgColor; }
                 inline LSPFileFilter       *filter() { return sDialog.filter(); }
                 inline status_t             get_path(LSPString *dst) const { return (dst->set(&sPath)) ? STATUS_OK : STATUS_NO_MEM; }
                 inline const char          *get_path() const { return sPath.get_native(); }
@@ -100,6 +113,7 @@ namespace lsp
                 virtual status_t on_activate();
                 virtual status_t on_submit();
                 virtual status_t on_close();
+                virtual status_t on_drag_request(const ws_event_t *e, const char * const *ctype);
         };
     
     } /* namespace tk */

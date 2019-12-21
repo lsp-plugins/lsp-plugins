@@ -11,17 +11,22 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlEdit::metadata = { "CtlEdit", &CtlWidget::metadata };
+
         CtlEdit::CtlEdit(CtlRegistry *src, LSPEdit *widget): CtlWidget(src, widget)
         {
-            pDialog = NULL;
+            pClass          = &metadata;
+            pDialog         = NULL;
 
             char str[40];
             LSPMenu *menu = new LSPMenu(widget->display());
+            vWidgets.add(menu);
             menu->init();
 
             for (size_t i=0; i<50; ++i)
             {
                 LSPMenuItem *item = new LSPMenuItem(widget->display());
+                vWidgets.add(item);
                 item->init();
                 sprintf(str, "Menu item %d", int(i));
                 item->set_text(str);
@@ -31,6 +36,7 @@ namespace lsp
                 if ((i%5) == 4)
                 {
                     item = new LSPMenuItem(widget->display());
+                    vWidgets.add(item);
                     item->init();
                     item->set_separator(true);
                     menu->add(item);
@@ -42,6 +48,16 @@ namespace lsp
         
         CtlEdit::~CtlEdit()
         {
+            for (size_t i=0, n=vWidgets.size(); i<n; ++i)
+            {
+                LSPWidget *w = vWidgets.at(i);
+                if (w != NULL)
+                {
+                    w->destroy();
+                    delete w;
+                }
+            }
+            vWidgets.clear();
         }
 
         status_t CtlEdit::slot_on_submit(LSPWidget *sender, void *ptr, void *data)

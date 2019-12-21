@@ -46,6 +46,9 @@
 #define KNOB(id, label, units, min, max, dfl, step) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         min, max, dfl, step, NULL, NULL }
+#define CKNOB(id, label, units, min, max, dfl, step) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, \
+        min, max, dfl, step, NULL, NULL }
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }

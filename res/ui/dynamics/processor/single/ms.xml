@@ -37,8 +37,8 @@
 					<mesh id="osg_s" width="2" color="side_channel" visibility_id="olv_s" />
 					<mesh id="scg_m" width="2" color="bright_green" visibility_id="slv_m" />
 					<mesh id="scg_s" width="2" color="bright_green" visibility_id="slv_s" />
-					<mesh id="evg_m" width="2" color="bright_magenta" hue="0.044" visibility_id="elv_m" />
-					<mesh id="evg_s" width="2" color="bright_magenta" hue="0.044" visibility_id="elv_s" />
+					<mesh id="evg_m" width="2" color="bright_magenta" visibility_id="elv_m" />
+					<mesh id="evg_s" width="2" color="bright_magenta" visibility_id="elv_s" />
 					<mesh id="grg_m" width="2" color="bright_blue" visibility_id="grv_m" />
 					<mesh id="grg_s" width="2" color="bright_blue" visibility_id="grv_s" />
 					
@@ -62,8 +62,6 @@
 			
 			<!-- Graph buttons -->
 			<hbox expand="true" spacing="4">
-				<label text="Processor: " />
-				<combo id="psel" />
 				<button id="pause" size="16" color="green" led="true" />
 				<label text="Pause" />
 				<button id="clear" size="16" color="red" led="true" />
@@ -165,30 +163,30 @@
 					
 					<!-- Markers -->
 					<ui:for id="i" first="0" last="3">
-						<marker id="al${i}_m" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility=":cmv_m &amp; :ae${i}_m" />
-						<text text="${i}M" coord=":al${i}_m;15.84893" color="magenta" halign="-1" valign="-1" visibility=":cmv_m &amp; :ae${i}_m" />
-						<marker id="al${i}_s" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility=":cmv_s &amp; :ae${i}_s" />
-						<text text="${i}S" coord=":al${i}_s;15.84893" color="magenta" halign="1" valign="-1" visibility=":cmv_s &amp; :ae${i}_s" />
+						<marker id="al${i}_m" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility=":cmv_m and :ae${i}_m" />
+						<text text="${i}M" coord=":al${i}_m;15.84893" color="magenta" halign="-1" valign="-1" visibility=":cmv_m and :ae${i}_m" />
+						<marker id="al${i}_s" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility=":cmv_s and :ae${i}_s" />
+						<text text="${i}S" coord=":al${i}_s;15.84893" color="magenta" halign="1" valign="-1" visibility=":cmv_s and :ae${i}_s" />
 					</ui:for>
 					<ui:for id="i" first="0" last="3">
-						<marker id="rl${i}_m" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility=":cmv_m &amp; :re${i}_m" />
-						<text text="${i}M" coord=":rl${i}_m;0.00025" color="orange" halign="-1" valign="1" visibility=":cmv_m &amp; :re${i}_m" />
-						<marker id="rl${i}_s" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility=":cmv_s &amp; :re${i}_s" />
-						<text text="${i}S" coord=":rl${i}_s;0.00025" color="orange" halign="1" valign="1" visibility=":cmv_s &amp; :re${i}_s" />
+						<marker id="rl${i}_m" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility=":cmv_m and :re${i}_m" />
+						<text text="${i}M" coord=":rl${i}_m;0.00025" color="g_orange" halign="-1" valign="1" visibility=":cmv_m and :re${i}_m" />
+						<marker id="rl${i}_s" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility=":cmv_s and :re${i}_s" />
+						<text text="${i}S" coord=":rl${i}_s;0.00025" color="g_orange" halign="1" valign="1" visibility=":cmv_s and :re${i}_s" />
 					</ui:for>
 					
 					<!-- Dots -->
 					<ui:for id="i" first="0" last="3">
 						<dot hpos_id="tl${i}_m" vpos_id="gl${i}_m" scroll_id="kn${i}_m"
-							editable="true" color="middle_channel" visibility=":cmv_m &amp; :pe${i}_m"
+							editable="true" color="middle_channel" visibility=":cmv_m and :pe${i}_m"
 						/>
 						<dot hpos_id="tl${i}_s" vpos_id="gl${i}_s" scroll_id="kn${i}_s"
-							editable="true" color="side_channel" visibility=":cmv_s &amp; :pe${i}_s"
+							editable="true" color="side_channel" visibility=":cmv_s and :pe${i}_s"
 						/>
 					</ui:for>
 					<ui:for id="i" first="0" last="3">
-						<text text="${i}M" coord=":tl${i}_m;:gl${i}_m" color="middle_channel" halign="-1" valign="1" visibility=":cmv_m &amp; :pe${i}_m" />
-						<text text="${i}S" coord=":tl${i}_s;:gl${i}_s" color="side_channel" halign="1" valign="-1" visibility=":cmv_s &amp; :pe${i}_s" />
+						<text text="${i}M" coord=":tl${i}_m;:gl${i}_m" color="middle_channel" halign="-1" valign="1" visibility=":cmv_m and :pe${i}_m" />
+						<text text="${i}S" coord=":tl${i}_s;:gl${i}_s" color="side_channel" halign="1" valign="-1" visibility=":cmv_s and :pe${i}_s" />
 					</ui:for>
 					
 					<dot hpos_id="elm_m" vpos_id="clm_m" color="middle_channel" led="true" visibility=":cmv_m" />
@@ -260,225 +258,123 @@
 			<label text="Out" />
 		</grid>
 		<hbox spacing="4">
-			<!-- Middle processing -->
-			<group text="Processor Middle" visibility_id="psel" visibility_key="0">
-				<hbox expand="true" fill="true">
-					<grid rows="8" cols="3" expand="true" fill="true">
-						<label text="Type" fill="true" halign="0" />
-						<label />
-						<hbox fill="false">
-							<button id="scl_m" size="16" color="middle_channel" led="true" />
-							<label text="Listen" />
-						</hbox>
-						<cell cols="3" fill="true">
-							<align vpos="-1" hscale="1">
-								<vbox spacing="1" fill="true">
-									<combo id="sct_m" fill="true" />
-									<combo id="scm_m" fill="true" />
-									<combo id="scs_m" fill="true" />
-								</vbox>
-							</align>
-						</cell>
-						
-						<label text="Preamp" />
-						<label text="Reactivity" />
-						<label text="Lookahead" />
-						
-						<knob id="scp_m" />
-						<knob id="scr_m" />
-						<knob id="sla_m" />
-						
-						<value id="scp_m" />
-						<value id="scr_m" />
-						<value id="sla_m" />
-					</grid>
-					<vsep />
-					<grid rows="9" cols="1" expand="true" fill="true">
-						<label text="Ratio low" />
-						<knob id="llr_m" size="20" scale_color="middle_channel" />
-						<value id="llr_m" />
-						<label text="Attack" />
-						<knob id="atd_m" size="20" scale_color="magenta" />
-						<value id="atd_m" />
-						<label text="Makeup" />
-						<knob id="omk_m" size="20" scale_color="middle_channel" />
-						<value id="omk_m" />
-					</grid>
-					<vsep />
-					<grid rows="9" cols="9" transpose="true" expand="true" fill="true">
-						<label text="Ranges" />
-						<label text="Thresh, Gain" />
-						<label text="(dB), (dB)"/>
-						<label text="Knee" />
-						<label text="(dB)"/>
-						<label text="Attack" />
-						<label text="(dB), (ms)"/>
-						<label text="Release" />
-						<label text="(dB), (ms)"/>
-						
-						<ui:for id="i" first="0" last="3">
-							<cell cols="2"><label text="${i}M" /></cell>
-							<knob id="tl${i}_m" size="20" scale_color="middle_channel" />
-							<value id="tl${i}_m" detailed="false" />
-							<knob id="kn${i}_m" size="20" scale_color="middle_channel" />
-							<value id="kn${i}_m" detailed="false" />
-							<knob id="al${i}_m" size="20" scale_color="magenta" />
-							<value id="al${i}_m" detailed="false" />
-							<knob id="rl${i}_m" size="20" scale_color="orange" />
-							<value id="rl${i}_m" detailed="false" />
+			<!-- Processors -->
+			<cgroup id="psel" text="Processor ">
+				<ui:for id="p" first="0" last="1">
+					<ui:set id="chn" value="${(:p mod 2) ? 'S' : 'M'}" />
+					<ui:set id="ch" value="${(:p mod 2) ? '_s' : '_m'}" />
+					<ui:set id="chc" value="${(:p mod 2) ? 'side_channel' : 'middle_channel'}" />
+					
+					<hbox expand="true" fill="true">
+						<grid rows="8" cols="3" expand="true" fill="true">
+							<label text="Type" fill="true" halign="0" />
+							<label />
+							<hbox fill="false">
+								<button id="scl${ch}" size="16" color="${chc}" led="true" />
+								<label text="Listen" />
+							</hbox>
+							<cell cols="3" fill="true">
+								<align vpos="-1" hscale="1">
+									<vbox spacing="1" fill="true">
+										<combo id="sct${ch}" fill="true" />
+										<combo id="scm${ch}" fill="true" />
+										<combo id="scs${ch}" fill="true" />
+									</vbox>
+								</align>
+							</cell>
 							
-							<knob id="gl${i}_m" size="20" scale_color="middle_channel" />
-							<value id="gl${i}_m" detailed="false" />
-							<cell rows="2" fill="false">
-								<grid rows="3" cols="2" transpose="true" fill="false">
-									<button id="pe${i}_m" led="true" size="12" color="middle_channel" />
-									<button id="ae${i}_m" led="true" size="12" color="magenta" />
-									<button id="re${i}_m" led="true" size="12" color="orange" />
+							<label text="Preamp" />
+							<label text="Reactivity" />
+							<label text="Lookahead" />
+							
+							<knob id="scp${ch}" />
+							<knob id="scr${ch}" />
+							<knob id="sla${ch}" />
+							
+							<value id="scp${ch}" />
+							<value id="scr${ch}" />
+							<value id="sla${ch}" />
+						</grid>
+						<vsep />
+						<grid rows="9" cols="1" expand="true" fill="true">
+							<label text="Ratio low" />
+							<knob id="llr${ch}" size="20" scale_color="${chc}" />
+							<value id="llr${ch}" />
+							<label text="Attack" />
+							<knob id="atd${ch}" size="20" scale_color="magenta" />
+							<value id="atd${ch}" />
+							<label text="Makeup" />
+							<knob id="omk${ch}" size="20" scale_color="${chc}" />
+							<value id="omk${ch}" />
+						</grid>
+						<vsep />
+						<grid rows="9" cols="9" transpose="true" expand="true" fill="true">
+							<label text="Ranges" />
+							<label text="Thresh, Gain" />
+							<label text="(dB), (dB)"/>
+							<label text="Knee" />
+							<label text="(dB)"/>
+							<label text="Attack" />
+							<label text="(dB), (ms)"/>
+							<label text="Release" />
+							<label text="(dB), (ms)"/>
+							
+							<ui:for id="c" first="0" last="3">
+								<ui:set id="i" value="${c}${ch}" />
+								
+								<cell cols="2"><label text="${c}${chn}" /></cell>
+								<knob id="tl${i}" size="20" scale_color="${chc}" />
+								<value id="tl${i}" detailed="false" />
+								<knob id="kn${i}" size="20" scale_color="${chc}" />
+								<value id="kn${i}" detailed="false" />
+								<knob id="al${i}" size="20" scale_color="magenta" />
+								<value id="al${i}" detailed="false" />
+								<knob id="rl${i}" size="20" scale_color="orange" />
+								<value id="rl${i}" detailed="false" />
+								
+								<knob id="gl${i}" size="20" scale_color="${chc}" />
+								<value id="gl${i}" detailed="false" />
+								<cell rows="2" fill="false">
+									<grid rows="3" cols="2" transpose="true" fill="false">
+										<button id="pe${i}" led="true" size="12" color="${chc}" />
+										<button id="ae${i}" led="true" size="12" color="magenta" />
+										<button id="re${i}" led="true" size="12" color="orange" />
+										
+										<label text="Thr" font_size="9" detailed="false" />
+										<label text="Att" font_size="9" detailed="false" />
+										<label text="Rel" font_size="9" detailed="false" />
+									</grid>
+								</cell>
+								<knob id="at${i}" size="20" scale_color="magenta" />
+								<value id="at${i}" detailed="false" />
+								<knob id="rt${i}" size="20" scale_color="orange" />
+								<value id="rt${i}" detailed="false" />
+							</ui:for>
+						</grid>
+						<vsep />
+						<grid rows="9" cols="1" fill="true">
+							<label text="Ratio high" />
+							<knob id="hlr${ch}" size="20" scale_color="${chc}" />
+							<value id="hlr${ch}" />
+							<label text="Release" />
+							<knob id="rtd${ch}" size="20" scale_color="orange" />
+							<value id="rtd${ch}" />
+							<cell rows="3" expand="true">
+								<grid rows="3" cols="2" expand="true">
+									<label text="Dry" />
+									<label text="Wet" />
 									
-									<label text="Thr" font_size="9" detailed="false" />
-									<label text="Att" font_size="9" detailed="false" />
-									<label text="Rel" font_size="9" detailed="false" />
+									<knob id="cdr${ch}" scale_color="yellow" size="20" />
+									<knob id="cwt${ch}" scale_color="yellow" size="20" />
+									
+									<value id="cdr${ch}" />
+									<value id="cwt${ch}" />
 								</grid>
 							</cell>
-							<knob id="at${i}_m" size="20" scale_color="magenta" />
-							<value id="at${i}_m" detailed="false" />
-							<knob id="rt${i}_m" size="20" scale_color="orange" />
-							<value id="rt${i}_m" detailed="false" />
-						</ui:for>
-					</grid>
-					<vsep />
-					<grid rows="9" cols="1" fill="true">
-						<label text="Ratio high" />
-						<knob id="hlr_m" size="20" scale_color="middle_channel" />
-						<value id="hlr_m" />
-						<label text="Release" />
-						<knob id="rtd_m" size="20" scale_color="orange" />
-						<value id="rtd_m" />
-						<cell rows="3" expand="true">
-							<grid rows="3" cols="2" expand="true">
-								<label text="Dry" />
-								<label text="Wet" />
-								
-								<knob id="cdr_m" scale_color="yellow" size="20" />
-								<knob id="cwt_m" scale_color="yellow" size="20" />
-								
-								<value id="cdr_m" />
-								<value id="cwt_m" />
-							</grid>
-						</cell>
-					</grid>
-				</hbox>
-			</group>
-			
-			<!-- Side processing -->
-			<group text="Processor Side" visibility_id="psel" visibility_key="1">
-				<hbox fill="true" >
-					<grid rows="8" cols="3" expand="true" fill="true">
-						<label text="Type" fill="true" halign="0" />
-						<label />
-						<hbox fill="false">
-							<button id="scl_s" size="16" color="side_channel" led="true" />
-							<label text="Listen" />
-						</hbox>
-						<cell cols="3" fill="true">
-							<align vpos="-1" hscale="1">
-								<vbox spacing="1" fill="true">
-									<combo id="sct_s" fill="true" />
-									<combo id="scm_s" fill="true" />
-									<combo id="scs_s" fill="true" />
-								</vbox>
-							</align>
-						</cell>
-						
-						<label text="Preamp" />
-						<label text="Reactivity" />
-						<label text="Lookahead" />
-						
-						<knob id="scp_s" />
-						<knob id="scr_s" />
-						<knob id="sla_s" />
-						
-						<value id="scp_s" />
-						<value id="scr_s" />
-						<value id="sla_s" />
-					</grid>
-					<vsep />
-					<grid rows="9" cols="1" expand="true" fill="true">
-						<label text="Ratio low" />
-						<knob id="llr_s" size="20" scale_color="side_channel" />
-						<value id="llr_s" />
-						<label text="Attack" />
-						<knob id="atd_s" size="20" scale_color="magenta" />
-						<value id="atd_s" />
-						<label text="Makeup" />
-						<knob id="omk_s" size="20" scale_color="side_channel" />
-						<value id="omk_s" />
-					</grid>
-					<vsep />
-					<grid rows="9" cols="9" transpose="true" expand="true" fill="true">
-						<label text="Ranges" />
-						<label text="Thresh, Gain" />
-						<label text="(dB), (dB)"/>
-						<label text="Knee" />
-						<label text="(dB)"/>
-						<label text="Attack" />
-						<label text="(dB), (ms)"/>
-						<label text="Release" />
-						<label text="(dB), (ms)"/>
-						
-						<ui:for id="i" first="0" last="3">
-							<cell cols="2"><label text="${i}S" /></cell>
-							<knob id="tl${i}_s" size="20" scale_color="side_channel" />
-							<value id="tl${i}_s" detailed="false" />
-							<knob id="kn${i}_s" size="20" scale_color="side_channel" />
-							<value id="kn${i}_s" detailed="false" />
-							<knob id="al${i}_s" size="20" scale_color="magenta" />
-							<value id="al${i}_s" detailed="false" />
-							<knob id="rl${i}_s" size="20" scale_color="orange" />
-							<value id="rl${i}_s" detailed="false" />
-							
-							<knob id="gl${i}_s" size="20" scale_color="side_channel" />
-							<value id="gl${i}_s" detailed="false" />
-							<cell rows="2" fill="false">
-								<grid rows="3" cols="2" transpose="true" fill="false">
-									<button id="pe${i}_s" led="true" size="12" color="side_channel" />
-									<button id="ae${i}_s" led="true" size="12" color="magenta" />
-									<button id="re${i}_s" led="true" size="12" color="orange" />
-									
-									<label text="Thr" font_size="9" detailed="false" />
-									<label text="Att" font_size="9" detailed="false" />
-									<label text="Rel" font_size="9" detailed="false" />
-								</grid>
-							</cell>
-							<knob id="at${i}_s" size="20" scale_color="magenta" />
-							<value id="at${i}_s" detailed="false" />
-							<knob id="rt${i}_s" size="20" scale_color="orange" />
-							<value id="rt${i}_s" detailed="false" />
-						</ui:for>
-					</grid>
-					<vsep />
-					<grid rows="9" cols="1" fill="true">
-						<label text="Ratio high" />
-						<knob id="hlr_s" size="20" scale_color="side_channel" />
-						<value id="hlr_s" />
-						<label text="Release" />
-						<knob id="rtd_s" size="20" scale_color="orange" />
-						<value id="rtd_s" />
-						<cell rows="3" expand="true">
-							<grid rows="3" cols="2" expand="true">
-								<label text="Dry" />
-								<label text="Wet" />
-								
-								<knob id="cdr_s" scale_color="yellow" size="20" />
-								<knob id="cwt_s" scale_color="yellow" size="20" />
-								
-								<value id="cdr_s" />
-								<value id="cwt_s" />
-							</grid>
-						</cell>
-					</grid>
-				</hbox>
-			</group>
+						</grid>
+					</hbox>
+				</ui:for>
+			</cgroup>
 			
 			<!-- Signal control -->
 			<group text="Signal">

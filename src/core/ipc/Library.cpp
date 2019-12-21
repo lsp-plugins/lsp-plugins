@@ -87,7 +87,7 @@ namespace lsp
             }
 
             #ifdef PLATFORM_WINDOWS
-                void *ptr   = ::GetProcAddress(hDlSym, name);
+                void *ptr   = reinterpret_cast<void *>(::GetProcAddress(hDlSym, name));
             #else
                 void *ptr   = ::dlsym(hDlSym, name);
             #endif
@@ -141,7 +141,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
 #ifdef PLATFORM_WINDOWS
-            WCHAR *path = reinterpret_cast<WCHAR *>(::malloc((PATH_MAX + 1) * sizeof(WCHAR)));
+            WCHAR *xpath = reinterpret_cast<WCHAR *>(::malloc((PATH_MAX + 1) * sizeof(WCHAR)));
             if (path == NULL)
                 return STATUS_NO_MEM;
 
@@ -154,17 +154,17 @@ namespace lsp
                     &hm)
                )
             {
-                ::free(path);
+                ::free(xpath);
                 return STATUS_NOT_FOUND;
             }
 
-            if (::GetModuleFileNameW(hm, path, sizeof(path)) == 0)
+            if (::GetModuleFileNameW(hm, xpath, sizeof(path)) == 0)
             {
-                ::free(path);
+                ::free(xpath);
                 return STATUS_NOT_FOUND;
             }
 
-            if (!path->set_utf16(path))
+            if (!path->set_utf16(xpath))
             {
                 ::free(path);
                 return STATUS_NO_MEM;

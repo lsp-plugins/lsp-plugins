@@ -16,6 +16,9 @@ namespace lsp
         class CtlFrameBuffer: public CtlWidget
         {
             public:
+                static const ctl_class_t metadata;
+
+            public:
                 explicit CtlFrameBuffer(CtlRegistry *src, LSPFrameBuffer *fb);
                 virtual ~CtlFrameBuffer();
 
@@ -23,7 +26,6 @@ namespace lsp
                 CtlPort        *pPort;
                 size_t          nRowID;
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlExpression   sMode;
 
             public:

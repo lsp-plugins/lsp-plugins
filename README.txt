@@ -27,14 +27,25 @@ For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
-Current matrix of architecture and platform support is:
-  ┌──────────┬──────┬────────┬──────────┬─────────┬───────┬───────┐
-  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │ ppc64 │ s390x │
-  ╞══════════╪══════╪════════╪══════════╪═════════╪═══════╪═══════╡
-  │GNU/Linux │  F   │   F    │    E     │    E    │   C   │   C   │
-  ├──────────┼──────┼────────┼──────────┼─────────┼───────┼───────┤
-  │FreeBSD   │  E   │   E    │    E     │    U    │   U   │   U   │
-  └──────────┴──────┴────────┴──────────┴─────────┴───────┴───────┘
+Current matrix of hardware architecture and platform (OS) support is:
+  ┌───────────┬───────────┬─────────┐
+  │Arch / OS  │ GNU/Linux │ FreeBSD │
+  ╞═══════════╪═══════════╪═════════╡
+  │i586       │     F     │    E    │
+  ├───────────┼───────────┼─────────┤
+  │x86_64     │     F     │    E    │
+  ├───────────┼───────────┼─────────┤
+  │armv6-a    │     E     │    E    │
+  ├───────────┼───────────┼─────────┤
+  │armv7-ar   │     E     │    E    │
+  ├───────────┼───────────┼─────────┤
+  │aarch64    │     E     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │ppc64      │     C     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │s390x      │     C     │    U    │
+  └───────────┴───────────┴─────────┘
+  
     F - Full support.
     C - The code does compile, not enough knowledge about it's correct work.
     E - Experimental support, not enough feedback from users.
@@ -43,8 +54,9 @@ Current matrix of architecture and platform support is:
 
 Details about architectures supported in experimental mode:
   * ARMv7-AR support has been tested on:
-    * Raspbian @ Raspberry Pi 3 B.
-    * Raspbian @ Raspberry Pi 2 B+ v1.2.
+    * Raspbian buster @ Raspberry Pi 4 B.
+    * Raspbian stretch @ Raspberry Pi 3 B.
+    * Raspbian stretch @ Raspberry Pi 2 B+ v1.2.
     * TinkerOS @ TinkerBoard S.
     There is not enough feedback from users about correct work of all plugins.
   * AArch64 support has been tested on:
@@ -189,7 +201,6 @@ For successful build you need the following packages to be installed:
   * jack-devel >= 1.9.5
   * lv2-devel >= 1.10
   * ladspa-devel >= 1.13
-  * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14

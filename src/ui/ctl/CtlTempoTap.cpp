@@ -12,14 +12,16 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlTempoTap::metadata = { "CtlTempoTap", &CtlWidget::metadata };
         
         CtlTempoTap::CtlTempoTap(CtlRegistry *src, LSPButton *widget):
             CtlWidget(src, widget)
         {
-            pPort       = NULL;
-            nThresh     = 1000;
-            nLastTap    = 0;
-            fTempo      = 0.0f;
+            pClass          = &metadata;
+            pPort           = NULL;
+            nThresh         = 1000;
+            nLastTap        = 0;
+            fTempo          = 0.0f;
         }
         
         CtlTempoTap::~CtlTempoTap()
@@ -91,7 +93,6 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, btn, btn->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sBgColor.init_basic(pRegistry, btn, btn->bg_color(), A_BG_COLOR);
             sTextColor.init_basic(pRegistry, btn, btn->font()->color(), A_TEXT_COLOR);
 
             // Bind slots
@@ -130,11 +131,9 @@ namespace lsp
                     break;
                 default:
                 {
-                    bool set = sBgColor.set(att, value);
-                    set |= sColor.set(att, value);
-                    set |= sTextColor.set(att, value);
-                    if (!set)
-                        CtlWidget::set(att, value);
+                    sColor.set(att, value);
+                    sTextColor.set(att, value);
+                    CtlWidget::set(att, value);
                     break;
                 }
             }

@@ -49,9 +49,8 @@ namespace lsp
                     ssize_t     precision;
                 } item_t;
 
-                Color               sColor;
-                Color               sTextColor;
-                Color               sBgColor;
+                LSPColor            sColor;
+                LSPColor            sTextColor;
                 float               fValue;
 
                 // Format
@@ -63,7 +62,7 @@ namespace lsp
 
             private:
                 bool    parse_format(const char *format);
-                void    draw_digit(ISurface *s, int x, int y, char ch, char mod);
+                void    draw_digit(ISurface *s, int x, int y, char ch, char mod, const Color &on, const Color &off);
 
                 bool    fmt_time(buffer_t *buf, double value);
                 bool    fmt_float(buffer_t *buf, double value);
@@ -87,11 +86,9 @@ namespace lsp
             // Properties
             public:
 
-                inline Color           *color()         { return &sColor; }
+                inline LSPColor        *color()         { return &sColor; }
 
-                inline Color           *text_color()    { return &sTextColor; }
-
-                inline Color           *bg_color()      { return &sBgColor; }
+                inline LSPColor        *text_color()    { return &sTextColor; }
 
                 inline float            value() const   { return fValue; }
 

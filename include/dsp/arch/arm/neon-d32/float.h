@@ -94,7 +94,7 @@ namespace neon_d32
     /* x1 blocks */ \
     /* +NAN, +INF */ \
     __ASM_EMIT("5:") \
-    __ASM_EMIT("vldm            %[src]!, {s0}")                 /* q0 = s */ \
+    __ASM_EMIT("vld1.32         d0[0], [%[src]]!")              /* q0 = s */ \
     __ASM_EMIT("vcgt.s32        q2, q0, q8")                    /* q2 = [ s > +inf ] */ \
     __ASM_EMIT("vceq.s32        q4, q0, q8")                    /* q4 = [ s == +inf ] */ \
     __ASM_EMIT("vclt.s32        q6, q0, q8")                    /* q6 = [ s < +inf ] */ \
@@ -113,7 +113,7 @@ namespace neon_d32
     __ASM_EMIT("vorr            q2, q2, q4")                    /* q2 = X_N_NAN * [ s > -inf ] | X_N_INF * [ s == -inf] */ \
     __ASM_EMIT("vorr            q0, q2, q6")                    /* q0 = s * [ s < +inf] | q2 = X_N_NAN * [ s > -inf ] | X_N_INF * [ s == -inf] */ \
     __ASM_EMIT("subs            %[count], $1") \
-    __ASM_EMIT("vstm            %[dst]!, {s0}") \
+    __ASM_EMIT("vst1.32         d0[0], [%[dst]]!") \
     __ASM_EMIT("bge             5b") \
     \
     __ASM_EMIT("6:")
@@ -236,7 +236,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("6:") \
     __ASM_EMIT("tst             %[count], $1") \
     __ASM_EMIT("beq             8f") \
-    __ASM_EMIT("vldm            %[src], {s0}") \
+    __ASM_EMIT("vld1.32         d0[0], [%[src]]") \
     __ASM_EMIT("8:") \
     LIMIT_SAT_BODY_X4 \
     __ASM_EMIT("tst             %[count], $2") \
@@ -352,7 +352,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("6:") \
     __ASM_EMIT("tst             %[count], $1") \
     __ASM_EMIT("beq             8f") \
-    __ASM_EMIT("vldm            %[src], {s0}") \
+    __ASM_EMIT("vld1.32         d0[0], [%[src]]") \
     __ASM_EMIT("8:") \
     LIMIT_BODY_X4 \
     __ASM_EMIT("tst             %[count], $2") \

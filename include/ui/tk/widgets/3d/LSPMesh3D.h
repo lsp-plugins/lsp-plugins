@@ -37,8 +37,8 @@ namespace lsp
                 } mesh_layer_t;
 
             protected:
-                LSPWidgetColor  sColor;
-                LSPWidgetColor  sLineColor;
+                LSPColor        sColor;
+                LSPColor        sLineColor;
                 matrix3d_t      sMatrix;
 
                 point3d_t       sPov;

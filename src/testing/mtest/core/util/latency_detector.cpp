@@ -12,13 +12,13 @@
 #include <core/alloc.h>
 #include <data/cvector.h>
 
-#include <plugins/plugins.h>
-#include <container/jack/defs.h>
 #include <core/envelope.h>
 #include <math.h>
 #include <core/util/LatencyDetector.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include <dsp/dsp.h>
 
 #define LATENCYDETECTOR_BUFFER_SIZE 1024
 #define LATENCYDETECTOR_SAMPLE_RATE 96000
@@ -84,7 +84,7 @@ MTEST_BEGIN("core.util", latency_detector)
             dsp::copy(bak, &out[buf_count - *delay_exact], *delay_exact);
 
             // Do Scaling (opposite phase with negative sign).
-            dsp::scale2(in, -1.0f, buf_count);
+            dsp::mul_k2(in, -1.0f, buf_count);
         }
 
         // Now latency is detected:

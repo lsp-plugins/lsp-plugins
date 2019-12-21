@@ -53,7 +53,7 @@ namespace lsp
             {
                 float      *vBuffer;        // FFT buffer
                 float      *vAmp;           // FFT amplitude
-                size_t      nCounter;       // FFT trigger counter
+                ssize_t     nCounter;       // FFT trigger counter
                 bool        bFreeze;        // Freeze analysis
                 bool        bActive;        // Enable analysis
             } channel_t;
@@ -64,7 +64,7 @@ namespace lsp
             size_t      nRank;
             size_t      nSampleRate;
             size_t      nBufSize;
-            size_t      nFftPeriod;
+            ssize_t     nFftPeriod;
             float       fReactivity;
             float       fTau;
             float       fRate;

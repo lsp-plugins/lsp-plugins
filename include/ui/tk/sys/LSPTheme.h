@@ -15,6 +15,7 @@ namespace lsp
         class LSPFont;
         class LSPDisplay;
         class LSPColor;
+        class LSPStyle;
 
         class LSPTheme
         {
@@ -28,6 +29,11 @@ namespace lsp
             private:
                 cstorage<color_data_t>  sColors;
                 LSPFont                *pFont;
+                LSPStyle                sStyle;
+                LSPColor                sBgColor;
+                LSPColor                sHoleColor;
+                LSPColor                sGlassColor;
+                LSPFloat                sBrightness;
 
             private:
                 bool find_color(const char *name, Color *dst);
@@ -42,8 +48,34 @@ namespace lsp
 
                 void init(LSPDisplay *dpy);
 
+                status_t after_load();
+
             public:
                 inline LSPFont          *font() { return pFont; }
+
+                /**
+                 * Get root style
+                 * @return root style
+                 */
+                inline LSPStyle         *root() { return &sStyle; }
+
+                /**
+                 * Get default background color for widgets
+                 * @return default background color for widgets
+                 */
+                inline LSPColor         *bg_color() { return &sBgColor; }
+
+                /**
+                 * Get color of hole (space not containing anything)
+                 * @return color of hole
+                 */
+                inline LSPColor         *hole_color() { return &sHoleColor; }
+
+                /**
+                 * Get default brightness for widgets
+                 * @return default brightness for widgets
+                 */
+                inline LSPFloat         *brightness() { return &sBrightness; }
 
             public:
                 /** Add color to theme
@@ -117,6 +149,7 @@ namespace lsp
                  * @return false if default color was used
                  */
                 bool get_color(color_t color, LSPColor *dst);
+
         };
     
     } /* namespace tk */

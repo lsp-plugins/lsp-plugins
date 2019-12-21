@@ -128,7 +128,7 @@ namespace lsp
         if (nReconfigure & R_ENVELOPE)
         {
             envelope::reverse_noise(vEnvelope, fft_size, envelope::envelope_t(nEnvelope));
-            dsp::scale2(vEnvelope, fShift / fft_size, fft_size);
+            dsp::mul_k2(vEnvelope, fShift / fft_size, fft_size);
         }
         // Clear analysis
         if (nReconfigure & R_ANALYSIS)
@@ -205,12 +205,15 @@ namespace lsp
                 // Limit number of samples to be processed
                 if (to_process > ssize_t(samples))
                     to_process      = samples;
+                // Add limitation of processed data according to the FFT window size
+                if (to_process > ssize_t(fft_size))
+                    to_process      = fft_size;
 
                 // Move data in the buffer
                 dsp::move(c->vBuffer, &c->vBuffer[to_process], fft_size - to_process);
                 dsp::copy(&c->vBuffer[fft_size - to_process], in, to_process);
 
-                // Update counters
+                // Update counter and pointers
                 c->nCounter        += to_process;
                 in                 += to_process;
                 samples            -= to_process;

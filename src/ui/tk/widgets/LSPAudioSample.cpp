@@ -29,7 +29,6 @@ namespace lsp
 
         LSPAudioSample::LSPAudioSample(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sBgColor(this),
             sColor(this),
             sAxisColor(this),
             sFont(this),
@@ -73,7 +72,6 @@ namespace lsp
             sHintFont.set_size(16);
             sHintFont.set_bold(true);
 
-            init_color(C_BACKGROUND, &sBgColor);
             init_color(C_GLASS, &sColor);
             init_color(C_GRAPH_LINE, &sAxisColor);
             init_color(C_GRAPH_TEXT, sFont.color());
@@ -440,6 +438,14 @@ namespace lsp
             if ((c->vSamples == NULL) || (c->nSamples <= 0) || (w <= 0))
                 return;
 
+            // Prepare palette
+            Color color(c->sColor);
+            Color line_col(c->sLineColor);
+            Color fade_col(c->sFadeColor);
+            color.scale_lightness(brightness());
+            line_col.scale_lightness(brightness());
+            fade_col.scale_lightness(brightness());
+
             // Start and end points
             vDecimY[0]      = 0.0f;
             vDecimY[w+1]    = 0.0f;
@@ -482,7 +488,7 @@ namespace lsp
                 vDecimY[i] = y + vDecimY[i] * h;
 
             // Draw
-            s->draw_poly(vDecimX, vDecimY, w+2, 1.0f, c->sColor, c->sLineColor);
+            s->draw_poly(vDecimX, vDecimY, w+2, 1.0f, color, line_col);
 
             // What's with fade-in
             if (c->nFadeIn > 0)
@@ -495,7 +501,7 @@ namespace lsp
                 vDecimY[3] = y;
                 vDecimY[4] = y + h;
                 vDecimY[5] = y + h;
-                s->draw_poly(&vDecimY[0], &vDecimY[3], 3, 1.0f, fill, c->sFadeColor);
+                s->draw_poly(&vDecimY[0], &vDecimY[3], 3, 1.0f, fill, fade_col);
             }
             if (c->nFadeOut > 0)
             {
@@ -507,7 +513,7 @@ namespace lsp
                 vDecimY[3] = y;
                 vDecimY[4] = y + h;
                 vDecimY[5] = y + h;
-                s->draw_poly(&vDecimY[0], &vDecimY[3], 3, 1.0f, fill, c->sFadeColor);
+                s->draw_poly(&vDecimY[0], &vDecimY[3], 3, 1.0f, fill, fade_col);
             }
         }
 
@@ -545,8 +551,14 @@ namespace lsp
                     return NULL;
             }
 
+            // Prepare palette
+            Color color(sColor);
+            Color axis_color(sAxisColor);
+            color.scale_lightness(brightness());
+            axis_color.scale_lightness(brightness());
+
             // Clear canvas
-            pGraph->clear(sColor);
+            pGraph->clear(color);
             float aa = pGraph->get_antialiasing();
 
             // Init decimation buffer
@@ -593,7 +605,7 @@ namespace lsp
                     ++ci;
 
                     pGraph->set_antialiasing(false);
-                    pGraph->line(0.0f, yc, w, yc, 1.0f, sAxisColor);
+                    pGraph->line(0.0f, yc, w, yc, 1.0f, axis_color);
                 }
 
                 // Draw time information
@@ -617,9 +629,7 @@ namespace lsp
                     sFont.get_parameters(pGraph, &fp);
                     sFont.get_text_parameters(pGraph, &tp, &text);
 
-                    Color cl(sColor, 0.25f);
-//                    Color cl;
-//                    cl.set_rgb(1.0f, 0.0f, 0.0f);
+                    Color cl(color, 0.25f);
                     size_t bw = 4;
                     pGraph->set_antialiasing(true);
                     pGraph->fill_round_rect(pGraph->width() - tp.Width - bw*2, h - bw - fp.Height, tp.Width + bw * 2, fp.Height + bw, bw, SURFMASK_ALL_CORNER, cl);
@@ -660,13 +670,18 @@ namespace lsp
 
             ssize_t xbw = nBorder;
 
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw background
             s->fill_frame(
                     0, 0, sSize.nWidth, sSize.nHeight,
                     bl + xbw, bt + xbw, bw - xbw*2, bh - xbw*2,
-                    sBgColor);
+                    bg_color);
 
-            s->fill_round_rect(bl, bt, bw, bh, nRadius, SURFMASK_ALL_CORNER, sColor);
+            s->fill_round_rect(bl, bt, bw, bh, nRadius, SURFMASK_ALL_CORNER, color);
 
             // Draw main contents
             if ((gw > 0) && (gh > 0))
@@ -677,7 +692,7 @@ namespace lsp
             }
 
             // Draw the glass and the border
-            ISurface *cv = create_border_glass(s, &pGlass, bw, bh, nBorder, nRadius, SURFMASK_ALL_CORNER, sColor);
+            ISurface *cv = create_border_glass(s, &pGlass, bw, bh, nBorder, nRadius, SURFMASK_ALL_CORNER, color);
             if (cv != NULL)
                 s->draw(cv, bl, bt);
         }

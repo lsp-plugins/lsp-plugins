@@ -24,6 +24,26 @@ namespace lsp
         {
         }
 
+        ssize_t LSPSizeConstraints::max_width() const
+        {
+            return ((sSize.nMaxWidth >= 0) && (sSize.nMinWidth > sSize.nMaxWidth)) ?
+                    sSize.nMinWidth : sSize.nMaxWidth;
+        }
+
+        ssize_t LSPSizeConstraints::max_height() const
+        {
+            return ((sSize.nMaxHeight >= 0) && (sSize.nMinHeight > sSize.nMaxHeight)) ?
+                    sSize.nMinHeight : sSize.nMaxHeight;
+        }
+
+        void LSPSizeConstraints::get(size_request_t *dst) const
+        {
+            dst->nMinWidth  = sSize.nMinWidth;
+            dst->nMinHeight = sSize.nMinHeight;
+            dst->nMaxWidth  = max_width();
+            dst->nMaxHeight = max_height();
+        }
+
         void LSPSizeConstraints::set_min_width(ssize_t value)
         {
             if (sSize.nMinWidth == value)

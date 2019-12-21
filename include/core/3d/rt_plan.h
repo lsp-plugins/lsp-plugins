@@ -18,6 +18,9 @@ namespace lsp
      */
     typedef struct rt_plan_t
     {
+        private:
+            rt_plan_t & operator = (const rt_plan_t &);
+
         public:
             Allocator3D<rt_split_t>     items;
 

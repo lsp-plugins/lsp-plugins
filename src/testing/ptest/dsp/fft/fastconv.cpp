@@ -34,6 +34,24 @@ IF_ARCH_X86(
         void fastconv_parse(float *dst, const float *src, size_t rank);
         void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
     }
+
+    namespace avx
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void add2(float *dst, const float *src, size_t count);
+
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+
+        void direct_fft_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+
+        void fastconv_parse_fma3(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply_fma3(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    }
 )
 
 IF_ARCH_ARM(
@@ -49,6 +67,19 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void add2(float *dst, const float *src, size_t count);
+
+//        void fastconv_parse(float *dst, const float *src, size_t rank);
+//        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    }
+)
+
 typedef void (* direct_fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* reverse_fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* complex_mul3_t)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
@@ -59,7 +90,7 @@ typedef void (* fastconv_parse_apply_t)(float *dst, float *tmp, const float *c, 
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
+PTEST_BEGIN("dsp.fft", fastconv, 10, 1000)
 
     void call(
             const char *label,
@@ -145,8 +176,17 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
             IF_ARCH_X86(
                 call("sse::fft", out, tmp, tmp2, conv, in, cv, rank,
                     sse::direct_fft, sse::complex_mul3, sse::reverse_fft, sse::add2);
+                call("avx::fft", out, tmp, tmp2, conv, in, cv, rank,
+                    avx::direct_fft, avx::complex_mul3, avx::reverse_fft, avx::add2);
+                call("avx::fft_fma3", out, tmp, tmp2, conv, in, cv, rank,
+                    avx::direct_fft_fma3, avx::complex_mul3_fma3, avx::reverse_fft_fma3, avx::add2);
+
                 call("sse::fastconv_fft", out, tmp, conv, in, cv, rank,
                     sse::fastconv_parse, sse::fastconv_parse_apply);
+                call("avx::fastconv_fft", out, tmp, conv, in, cv, rank,
+                    avx::fastconv_parse, avx::fastconv_parse_apply);
+                call("avx::fastconv_fft_fma3", out, tmp, conv, in, cv, rank,
+                    avx::fastconv_parse_fma3, avx::fastconv_parse_apply_fma3);
             )
 
             IF_ARCH_ARM(
@@ -154,6 +194,13 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
                     neon_d32::direct_fft, neon_d32::complex_mul3, neon_d32::reverse_fft, neon_d32::add2);
                 call("neon_d32::fastconv_fft", out, tmp, conv, in, cv, rank,
                     neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply);
+            )
+
+            IF_ARCH_AARCH64(
+                call("asimd::fft", out, tmp, tmp2, conv, in, cv, rank,
+                    asimd::direct_fft, asimd::complex_mul3, asimd::reverse_fft, asimd::add2);
+//                call("asimd::fastconv_fft", out, tmp, conv, in, cv, rank,
+//                    asimd::fastconv_parse, asimd::fastconv_parse_apply);
             )
 
             PTEST_SEPARATOR;

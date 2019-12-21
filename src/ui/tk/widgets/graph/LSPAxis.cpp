@@ -19,7 +19,8 @@ namespace lsp
     {
         const w_class_t LSPAxis::metadata = { "LSPAxis", &LSPGraphItem::metadata };
 
-        LSPAxis::LSPAxis(LSPDisplay *dpy): LSPGraphItem(dpy)
+        LSPAxis::LSPAxis(LSPDisplay *dpy): LSPGraphItem(dpy),
+            sColor(this)
         {
             nFlags          = F_BASIS;
             fAngle          = 0.0f;
@@ -108,8 +109,8 @@ namespace lsp
                 norm    = d / norm;
 
                 // Apply delta-vector
-                dsp::scale_add3(x, dv, norm * fDX, count);
-                dsp::scale_add3(y, dv, norm * fDY, count);
+                dsp::fmadd_k3(x, dv, norm * fDX, count);
+                dsp::fmadd_k3(y, dv, norm * fDY, count);
             }
 
             // Saturate values
@@ -290,6 +291,11 @@ namespace lsp
             if (cv == NULL)
                 return;
 
+            // Prepare palette
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
+            // Draw
             float cx = 0.0f, cy = 0.0f;
             cv->center(nCenter, &cx, &cy);
 
@@ -298,7 +304,7 @@ namespace lsp
                 return;
 
             bool aa = s->set_antialiasing(bSmooth);
-            s->parametric_line(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), nWidth, sColor);
+            s->parametric_line(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), nWidth, color);
             s->set_antialiasing(aa);
         }
     } /* namespace tk */

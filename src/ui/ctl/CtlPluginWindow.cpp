@@ -15,24 +15,26 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlPluginWindow::metadata = { "CtlPluginWindow", &CtlWidget::metadata };
         
         CtlPluginWindow::CtlPluginWindow(plugin_ui *src, LSPWindow *wnd):
             CtlWidget(src, wnd)
         {
-            pWnd        = wnd;
-            pMessage    = NULL;
-            bResizable  = true;
-            nVisible    = 1;
-            pUI         = src;
-            pBox        = NULL;
-            pMenu       = NULL;
-            pImport     = NULL;
-            pExport     = NULL;
-            pPMStud     = NULL;
-            pPVersion   = NULL;
-            pPBypass    = NULL;
-            pPath       = NULL;
-            pR3DBackend = NULL;
+            pClass          = &metadata;
+            pWnd            = wnd;
+            pMessage        = NULL;
+            bResizable      = true;
+            nVisible        = 1;
+            pUI             = src;
+            pBox            = NULL;
+            pMenu           = NULL;
+            pImport         = NULL;
+            pExport         = NULL;
+            pPMStud         = NULL;
+            pPVersion       = NULL;
+            pPBypass        = NULL;
+            pPath           = NULL;
+            pR3DBackend     = NULL;
         }
         
         CtlPluginWindow::~CtlPluginWindow()
@@ -105,21 +107,76 @@ namespace lsp
                 vWidgets.add(pMenu);
                 pMenu->init();
 
-                    // Initialize menu items
+                // Initialize menu items
+                {
+                    // Create export menu
+                    LSPMenu *submenu = new LSPMenu(dpy);
+                    vWidgets.add(submenu);
+                    submenu->init();
+                    submenu->set_unique_id(WUID_EXPORT_MENU);
+
                     LSPMenuItem *itm = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
-                    itm->set_text("Export settings...");
-                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_export_settings, this);
+                    itm->set_text("Export");
+                    itm->set_submenu(submenu);
                     pMenu->add(itm);
 
+                    // Create export menu items
+                    {
+                        LSPMenuItem *child = new LSPMenuItem(dpy);
+                        vWidgets.add(child);
+                        child->init();
+                        child->set_text("Settings to file...");
+                        child->slots()->bind(LSPSLOT_SUBMIT, slot_export_settings_to_file, this);
+                        submenu->add(child);
+
+                        child = new LSPMenuItem(dpy);
+                        vWidgets.add(child);
+                        child->init();
+                        child->set_text("Settings to clipboard");
+                        child->slots()->bind(LSPSLOT_SUBMIT, slot_export_settings_to_clipboard, this);
+                        submenu->add(child);
+                    }
+
+                    // Create import menu
+                    submenu = new LSPMenu(dpy);
+                    vWidgets.add(submenu);
+                    submenu->init();
+                    submenu->set_unique_id(WUID_IMPORT_MENU);
+
+                    itm = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->set_text("Import");
+                    itm->set_submenu(submenu);
+                    pMenu->add(itm);
+
+                    // Create import menu items
+                    {
+                        LSPMenuItem *child = new LSPMenuItem(dpy);
+                        vWidgets.add(child);
+                        child->init();
+                        child->set_text("Settings from file...");
+                        child->slots()->bind(LSPSLOT_SUBMIT, slot_import_settings_from_file, this);
+                        submenu->add(child);
+
+                        child = new LSPMenuItem(dpy);
+                        vWidgets.add(child);
+                        child->init();
+                        child->set_text("Settings from clipboard");
+                        child->slots()->bind(LSPSLOT_SUBMIT, slot_import_settings_from_clipboard, this);
+                        submenu->add(child);
+                    }
+
+                    // Add separator
                     itm     = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
-                    itm->set_text("Import settings...");
-                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_import_settings, this);
+                    itm->set_separator(true);
                     pMenu->add(itm);
 
+                    // Create 'Toggle rack mount' menu item
                     itm     = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
@@ -130,6 +187,7 @@ namespace lsp
                     // Add support of 3D rendering backend switch
                     if (meta->extensions & E_3D_BACKEND)
                         init_r3d_support(pMenu);
+                }
 
                 // Initialize main grid
                 LSPGrid *grd = new LSPGrid(dpy);
@@ -432,16 +490,16 @@ namespace lsp
             return CtlWidget::resolve(uid);
         }
 
-        status_t CtlPluginWindow::add(LSPWidget *child)
+        status_t CtlPluginWindow::add(CtlWidget *child)
         {
             // Check widget pointer
             if (pBox == NULL)
                 return STATUS_BAD_STATE;
 
-            return pBox->add(child);
+            return pBox->add(child->widget());
         }
 
-        status_t CtlPluginWindow::slot_export_settings(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlPluginWindow::slot_export_settings_to_file(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             LSPFileDialog *dlg = __this->pExport;
@@ -460,7 +518,7 @@ namespace lsp
                 LSPFileFilter *f = dlg->filter();
                 f->add("*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg");
                 f->add("*", "All files (*.*)", "");
-                dlg->bind_action(slot_call_export_settings, ptr);
+                dlg->bind_action(slot_call_export_settings_to_file, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
             }
@@ -468,7 +526,7 @@ namespace lsp
             return dlg->show(__this->pWnd);
         }
 
-        status_t CtlPluginWindow::slot_import_settings(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlPluginWindow::slot_import_settings_from_file(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             LSPFileDialog *dlg = __this->pImport;
@@ -486,7 +544,7 @@ namespace lsp
                 LSPFileFilter *f = dlg->filter();
                 f->add("*.cfg", "Configuration file (*.cfg)", ".cfg");
                 f->add("*", "All files (*.*)", "");
-                dlg->bind_action(slot_call_import_settings, ptr);
+                dlg->bind_action(slot_call_import_settings_to_file, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
             }
@@ -538,17 +596,31 @@ namespace lsp
             return pMenu->show(actor);
         }
 
-        status_t CtlPluginWindow::slot_call_export_settings(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlPluginWindow::slot_call_export_settings_to_file(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             __this->pUI->export_settings(__this->pExport->selected_file());
             return STATUS_OK;
         }
 
-        status_t CtlPluginWindow::slot_call_import_settings(LSPWidget *sender, void *ptr, void *data)
+        status_t CtlPluginWindow::slot_call_import_settings_to_file(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             __this->pUI->import_settings(__this->pImport->selected_file(), false);
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_export_settings_to_clipboard(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
+            __this->pUI->export_settings_to_clipboard();
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_import_settings_from_clipboard(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
+            __this->pUI->import_settings_from_clipboard();
             return STATUS_OK;
         }
 

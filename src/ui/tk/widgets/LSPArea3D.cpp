@@ -18,7 +18,6 @@ namespace lsp
         LSPArea3D::LSPArea3D(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
             sColor(this),
-            sBgColor(this),
             sIPadding(this)
         {
             pClass          = &metadata;
@@ -50,15 +49,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
+            init_color(C_GLASS, &sColor);
 
             ui_handler_id_t id = 0;
 
@@ -242,12 +233,18 @@ namespace lsp
         {
             lsp_trace("left=%d, top=%d, width=%d, height=%d",
                     int(sSize.nLeft), int(sSize.nTop), int(sSize.nWidth), int(sSize.nHeight));
+
+            // Get palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            color.scale_lightness(brightness());
+
             // Draw background part
             ssize_t pr = (nBorder + 1) >> 1;
             s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
                     pr, pr, sSize.nWidth - 2*pr, sSize.nHeight - 2*pr,
-                    sBgColor);
-            s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, sColor);
+                    bg_color);
+            s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, color);
 
             // Estimate the size of the graph
             size_t bs   = nBorder * M_SQRT2 * 0.5;
@@ -300,11 +297,11 @@ namespace lsp
             else
             {
                 lsp_trace("r3d context is not valid");
-                s->fill_rect(bs, bs, sContext.nWidth, sContext.nHeight, sColor);
+                s->fill_rect(bs, bs, sContext.nWidth, sContext.nHeight, color);
             }
 
             // Draw glass
-            ISurface *cv = create_border_glass(s, &pGlass, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, sColor);
+            ISurface *cv = create_border_glass(s, &pGlass, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, color);
             if (cv != NULL)
                 s->draw(cv, 0, 0);
         }

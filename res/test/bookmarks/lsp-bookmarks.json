@@ -1,0 +1,30 @@
+/*
+	This is example bookmark file
+*/
+[
+	// Simple path provided by LSP
+	{
+		"path": "/path1",
+		"name": "PATH1",
+		"origin": [ "lsp" ]
+	},
+	// Simple path provided by LSP, GTK and QT
+	{
+		"path": "/some/another/path",
+		"name": "Another path",
+		"origin": [ "lsp", "gtk3", "qt5" ]
+	},
+	// This bookmark was originally provided by LSP but has not been garbage-collected (empty origin)
+	{
+		"path": "/some/another/path2",
+		"name": "Another path 2",
+		"origin": [ ]
+	},
+	// This is invalid bookmark but JSON permits it
+	{
+		"garbage": { "key1": [], "value1": "this is garbage" },
+		"path": "",
+		"name": "",
+		"origin": [ ]
+	}
+]

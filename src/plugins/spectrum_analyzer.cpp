@@ -556,7 +556,7 @@ namespace lsp
         float gain = (flags & F_BOOST) ?
                 vChannels[channel].fGain * spectrum_analyzer_base_metadata::SPECTRALIZER_BOOST:
                 vChannels[channel].fGain ;
-        dsp::scale2(dst, gain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
+        dsp::mul_k2(dst, gain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
 
         // Apply log scale if necessary
         if (flags & F_LOG_SCALE)
@@ -609,7 +609,6 @@ namespace lsp
 
                 // Bypass signal
                 dsp::copy(c->vOut, c->vIn, count);
-                sAnalyzer.process(i, c->vIn, count);  // Process the data
 
                 if (bBypass)
                 {
@@ -623,6 +622,9 @@ namespace lsp
                 }
                 else
                 {
+                    // Process the data
+                    sAnalyzer.process(i, c->vIn, count);
+
                     // Copy data to output channel
                     if (data_request)
                     {
@@ -771,7 +773,7 @@ namespace lsp
 
             sAnalyzer.get_spectrum(i, b->v[1], idx, width);
 
-            dsp::scale2(b->v[1], c->fGain * fPreamp, width);
+            dsp::mul_k2(b->v[1], c->fGain * fPreamp, width);
 
             dsp::fill(b->v[2], 0.0f, width);
             dsp::fill(b->v[3], height, width);

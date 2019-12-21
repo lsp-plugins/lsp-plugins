@@ -565,6 +565,12 @@ namespace lsp
                         float ix, float iy, float iw, float ih,
                         const Color &color);
 
+                virtual void fill_round_frame(
+                        float fx, float fy, float fw, float fh,
+                        float ix, float iy, float iw, float ih,
+                        float radius, size_t flags,
+                        const Color &color);
+
                 /** Draw polygon
                  *
                  * @param x array of x point coordinates
@@ -621,6 +627,20 @@ namespace lsp
                  * @param g gradient
                  */
                 virtual void fill_circle(float x, float y, float r, IGradient *g);
+
+                /**
+                 * Begin clipping of the rectangle area
+                 * @param x left-top corner X coordinate
+                 * @param y left-top corner Y coordinate
+                 * @param w width
+                 * @param h height
+                 */
+                virtual void clip_begin(float x, float y, float w, float h);
+
+                /**
+                 * End clipping
+                 */
+                virtual void clip_end();
 
                 /** Get anti-aliasing
                  *

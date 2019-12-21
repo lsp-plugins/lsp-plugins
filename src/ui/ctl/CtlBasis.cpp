@@ -11,8 +11,11 @@ namespace lsp
 {
     namespace ctl
     {
+        const ctl_class_t CtlBasis::metadata = { "CtlBasis", &CtlWidget::metadata };
+
         CtlBasis::CtlBasis(CtlRegistry *src, LSPBasis *base): CtlWidget(src, base)
         {
+            pClass          = &metadata;
         }
 
         CtlBasis::~CtlBasis()

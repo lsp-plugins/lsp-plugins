@@ -24,6 +24,15 @@ IF_ARCH_X86(
         void complex_rcp1(float *dst_re, float *dst_im, size_t count);
         void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     }
+
+    namespace avx
+    {
+        void complex_rcp1(float *dst_re, float *dst_im, size_t count);
+        void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+
+        void complex_rcp1_fma3(float *dst_re, float *dst_im, size_t count);
+        void complex_rcp2_fma3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -89,22 +98,33 @@ PTEST_BEGIN("dsp.complex", rcp, 5, 1000)
             out[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, out, buf_size * 4);
 
-        #define CALL(...) dsp::copy(out, backup, buf_size * 4); call(__VA_ARGS__)
+        #define CALL1(func) \
+            dsp::copy(out, backup, buf_size * 4); \
+            call(#func, out, count, func)
+
+        #define CALL2(func) \
+            dsp::copy(out, backup, buf_size * 4); \
+            call(#func, out, in, count, func)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            CALL("native::complex_rcp1", out, count, native::complex_rcp1);
-            CALL("native::complex_rcp2", out, in, count, native::complex_rcp2);
-            IF_ARCH_X86(CALL("sse::complex_rcp1", out, count, sse::complex_rcp1));
-            IF_ARCH_X86(CALL("sse::complex_rcp2", out, in, count, sse::complex_rcp2));
-            IF_ARCH_ARM(CALL("neon_d32::complex_rcp1", out, count, neon_d32::complex_rcp1));
-            IF_ARCH_ARM(CALL("neon_d32::complex_rcp2", out, in, count, neon_d32::complex_rcp2));
-            IF_ARCH_AARCH64(CALL("asimd::complex_rcp1", out, count, asimd::complex_rcp1));
-            IF_ARCH_AARCH64(CALL("asimd::complex_rcp2", out, in, count, asimd::complex_rcp2));
-
+            CALL1(native::complex_rcp1);
+            IF_ARCH_X86(CALL1(sse::complex_rcp1));
+            IF_ARCH_X86(CALL1(avx::complex_rcp1));
+            IF_ARCH_X86(CALL1(avx::complex_rcp1_fma3));
+            IF_ARCH_ARM(CALL1(neon_d32::complex_rcp1));
+            IF_ARCH_AARCH64(CALL1(asimd::complex_rcp1));
             PTEST_SEPARATOR;
+
+            CALL2(native::complex_rcp2);
+            IF_ARCH_X86(CALL2(sse::complex_rcp2));
+            IF_ARCH_X86(CALL2(avx::complex_rcp2));
+            IF_ARCH_X86(CALL2(avx::complex_rcp2_fma3));
+            IF_ARCH_ARM(CALL2(neon_d32::complex_rcp2));
+            IF_ARCH_AARCH64(CALL2(asimd::complex_rcp2));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

@@ -102,6 +102,16 @@ ifeq ($(BUILD_PROFILE),armv7a)
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
+ifeq ($(BUILD_PROFILE),armv7ve)
+  CC_ARCH          = -march=armv7ve -marm
+  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
+ifeq ($(BUILD_PROFILE),arm32)
+  CC_ARCH          = -marm
+  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
 ifeq ($(BUILD_PROFILE),armv8a)
   CC_ARCH          = -march=armv7-a -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
@@ -111,6 +121,7 @@ ifeq ($(BUILD_PROFILE),aarch64)
   CC_ARCH          = -march=armv8-a
   LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
+
 
 export CC_ARCH
 export LD_ARCH
@@ -130,8 +141,6 @@ else
   export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
   export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
   export XLIB_LIBS        = $(shell pkg-config --libs x11)
-  export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
-  export EXPAT_LIBS       = $(shell pkg-config --libs expat)
   export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
   export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
   export JACK_HEADERS     = $(shell pkg-config --cflags jack)

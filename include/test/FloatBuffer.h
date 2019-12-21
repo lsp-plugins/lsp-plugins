@@ -41,6 +41,7 @@ namespace test
             void fill_zero();
             void copy(const FloatBuffer &buf);
             void copy(const float *buf, size_t count);
+            void replace(const float *buf, size_t count);
             void vfill(size_t off, size_t n, ...);
 
             bool validate() const;

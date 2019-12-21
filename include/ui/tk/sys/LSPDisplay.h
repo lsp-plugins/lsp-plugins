@@ -29,13 +29,18 @@ namespace lsp
                 } item_t;
 
             protected:
-                cstorage<item_t>        sWidgets;
+                cvector<item_t>         sWidgets;
+                cvector<LSPWidget>      vGarbage;
+                cvector<char>           vAtoms;
                 LSPSlotSet              sSlots;
                 LSPTheme                sTheme;
                 IDisplay               *pDisplay;
 
             protected:
                 void    do_destroy();
+
+            protected:
+                static status_t     main_task_handler(ws::timestamp_t time, void *arg);
 
             //---------------------------------------------------------------------------------
             // Construction and destruction
@@ -52,11 +57,20 @@ namespace lsp
 
                 /** Initialize display
                  *
-                 * @param argc
-                 * @param argv
+                 * @param argc number of additional arguments
+                 * @param argv list of additional arguments
                  * @return status of operation
                  */
                 status_t init(int argc, const char **argv);
+
+                /** Initialize display
+                 *
+                 * @param dpy underlying display object
+                 * @param argc number of additional arguments
+                 * @param argv list of additional arguments
+                 * @return status of operation
+                 */
+                status_t init(ws::IDisplay *dpy, int argc, const char **argv);
 
                 /** Destroy display
                  *
@@ -166,24 +180,57 @@ namespace lsp
                  */
                 inline LSPTheme *theme()                    { return &sTheme; }
 
-                /** Fetch clipboard object
-                 *
-                 * @param id clipboard identifier
-                 * @param ctype content type
-                 * @param handler callback handler
-                 * @param arg argument for callback handler
-                 * @return
+                /**
+                 * Get atom identifier by name
+                 * @param name atom name
+                 * @return atom identifier or negative error code
                  */
-                virtual status_t fetch_clipboard(size_t id, const char *ctype, clipboard_handler_t handler, void *arg = NULL);
+                ui_atom_t atom_id(const char *name);
 
-                /** Get clipboard by it's identifier
-                 *
-                 * @param wnd the window that is owner of the clipboard
-                 * @param id clipboard identifier
-                 * @param c the clipboard data holder object
-                 * @return pointer to clipboard or NULL if not present
+                /**
+                 * Get atom name by identifier
+                 * @param name atom name or NULL
+                 * @return atom identifier
                  */
-                virtual status_t write_clipboard(size_t id, IClipboard *c);
+                const char *atom_name(ui_atom_t id);
+
+                /**
+                 * Get clipboard data
+                 * @param id clipboard identifier
+                 * @param sink data sink
+                 * @return status of operation
+                 */
+                status_t get_clipboard(size_t id, IDataSink *sink);
+
+                /**
+                 * Set clipboard data
+                 * @param id clipboard identifier
+                 * @param src data source
+                 * @return status of operation
+                 */
+                status_t set_clipboard(size_t id, IDataSource *src);
+
+                /**
+                 * Reject drag event
+                 * @return status of operation
+                 */
+                status_t reject_drag();
+
+                /**
+                 * Accept drag request
+                 * @param sink the sink that will handle data transfer
+                 * @param action drag action
+                 * @param internal true if we want to receive notifications inside of the drag rectangle
+                 * @param r parameters of the drag rectangle, can be NULL
+                 * @return status of operation
+                 */
+                status_t accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
+
+                /**
+                 * Get NULL-terminated list of provided MIME types for a drag
+                 * @return NULL-terminated list of strings
+                 */
+                const char * const *get_drag_mime_types();
 
                 /** Get screen size
                  *
@@ -201,6 +248,17 @@ namespace lsp
                  * @return pointer to created surface or NULL
                  */
                 ISurface *create_surface(size_t width, size_t height);
+
+                /**
+                 * Queue widget for removal. Because all widget operations are done in the
+                 * main event loop, it's unsafe to destroy widget immediately in callback
+                 * handlers. This method allows to put the widget to the garbage queue that
+                 * will be recycled at the end of the event loop iteration.
+                 *
+                 * @param widget widget to be queued for destroy
+                 * @return status of operation
+                 */
+                status_t queue_destroy(LSPWidget *widget);
         };
     }
 

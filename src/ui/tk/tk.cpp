@@ -13,7 +13,8 @@ namespace lsp
     {
         static const char *color_names[] =
         {
-            "background",
+            "bg",
+            "bg2",
             "hole",
             "glass",
 
@@ -53,6 +54,8 @@ namespace lsp
             "status_warn",
             "status_error",
 
+            "invalid_input",
+
             NULL
         };
 
@@ -60,18 +63,15 @@ namespace lsp
         {
             size_t id = 0;
             for (const char **c = color_names; *c != NULL; ++c, ++id)
-                if (!strcmp(*c, name))
+                if (!::strcmp(*c, name))
                     return color_t(id);
             return C_UNKNOWN;
         }
 
         const char *color_name(color_t color)
         {
-            for (ssize_t id=0; id <= color; ++id)
-            {
-                if (color_names[id] == NULL)
-                    return NULL;
-            }
+            if ((color < 0) || (color >= ssize_t(sizeof(color_names)/sizeof(const char *))))
+                return NULL;
 
             return color_names[color];
         }

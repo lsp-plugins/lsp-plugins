@@ -10,20 +10,15 @@
 - Review implementation of multiband compressor according to the article:
   https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
-=== 1.1.11 ===
-
+=== 1.1.12 ===
+- Additional DSP optimizations for AArch64 architecture.
+- Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
+- Added multilingual support by the graphical toolkit.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
-- Implemented sampler plugin series with stereo outputs.
-- Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
-- Optimize DSP for AArch64 architecture.
-- Additionally optimized DSP code with AVX, AVX2 and FMA3 instruction set.
-- Added possibility to double-click the parameter's value number and enter it manually with keyboard.
-- Added bookmarks to file opening dialog.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
-- Implement drag&drop function for the file dialog/file widget.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
  
@@ -161,13 +156,6 @@ Tobbe:
   ufug:
     LSP offers the most tweakable one, but it does not seem to have a browser for easily auditioning your
     collection of impulse responses (as far as I can see)
-    
-  funkmuscle:
-    Also the older versions, you could of bookmarked the dir where IR files are. I can't seem to figure out
-    how to do it with the version.
-  
-  sadko4u:
-    Currently because all dialogs were written from scratch, there are no bookmarks currently.
 
 ==== UI ====
   tom-:
@@ -191,44 +179,6 @@ Tobbe:
 	Magic AB 2 new version comes with new features and powerful workflow improvements including two new referencing
 	modes, RAM-bypass mode, drag and drop files, Mono/Stereo switching – Compare stereo mixes or flip to mono
 	to check mono compatibility, also it features up to four programmable Cue and Loop point per track and many more.
-
-==== Equalizer tuning ====
-  Jan Lentfer
-    it would be very cool if the parametric EQs could import settings exported from "Room EQ Wizard".
-    That would make life so much easier :D
-    https://www.roomeqwizard.com/
-    Thanks and keep up the great work!
-    
-    The content of a text exported file looks like this:
-    Filter Settings file
-    Room EQ V5.18
-    Dated: 10.01.2018 18:58:28
-    Notes:
-    Equaliser: Generic
-    Average 1
-    Filter  1: ON  PK       Fc    42.0 Hz  Gain  -6.5 dB  Q 13.20
-    Filter  2: ON  PK       Fc    47.6 Hz  Gain  -3.3 dB  Q 16.77
-    Filter  3: ON  PK       Fc    62.0 Hz  Gain   9.0 dB  Q  5.41
-    Filter  4: ON  PK       Fc    67.1 Hz  Gain -12.3 dB  Q  5.02
-    Filter  5: ON  PK       Fc    86.2 Hz  Gain -15.4 dB  Q  3.01
-    Filter  6: ON  PK       Fc     122 Hz  Gain   6.3 dB  Q 15.03
-    Filter  7: ON  PK       Fc     132 Hz  Gain  -9.1 dB  Q  6.77
-    Filter  8: ON  PK       Fc     150 Hz  Gain  -8.5 dB  Q 10.00
-    Filter  9: ON  PK       Fc     165 Hz  Gain   4.3 dB  Q 26.53
-    Filter 10: ON  PK       Fc     190 Hz  Gain -19.7 dB  Q  5.03
-    Filter 11: ON  PK       Fc     202 Hz  Gain   9.0 dB  Q  5.00
-    Filter 12: ON  PK       Fc     247 Hz  Gain  -9.2 dB  Q  5.00
-    Filter 13: ON  PK       Fc     258 Hz  Gain   9.0 dB  Q  5.00
-    Filter 14: ON  PK       Fc    2073 Hz  Gain  -4.2 dB  Q  5.00
-    Filter 15: ON  PK       Fc   10879 Hz  Gain  -3.8 dB  Q  5.00
-    Filter 16: ON  None  
-    Filter 17: ON  None  
-    Filter 18: ON  None  
-    Filter 19: ON  None  
-    Filter 20: ON  None  
-
-    I thought about an option to "just" read in such a file and set the Freq, Gain and Q values from this file. As far as I understood,
-    these are just peak filters. 
 
 ==== Noise reduction ====
   <unknown>:
@@ -326,7 +276,8 @@ Tobbe:
 
 ====
   rghvdberg:
-    The reduction meter on the compressors. I think they are a bit to fast to read out. It's also talked about in the lm forum.
+    The reduction meter on the compressors. I think they are a bit to fast to read out. It's also talked about
+    in the lm forum.
 
 ==== Feedback Destroyer ====
   mattpepin:
@@ -465,10 +416,6 @@ Tobbe:
 
   There is no LV2 implementation of this plugin to my knowlege. Outside of LV2, the free
   Nova Dynamic EQ vst plugin is an example of this implemented elsewhere.
-
-==== Parameter entering ====
-  In other subject, it would be great to be able to enter numerical values by double clicking
-  on the DB value under the knobs.
 
 ==== Music stuff ====
   i plan on switching completely to linux for my mixing and mastering needs, i like the calf plugins,

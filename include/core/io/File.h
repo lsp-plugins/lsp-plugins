@@ -59,7 +59,8 @@ namespace lsp
                  * Read binary file
                  * @param dst target buffer to perform read
                  * @param count amount of bytes to read
-                 * @return number of bytes read or negative status of operation
+                 * @return number of bytes read or negative status of operation,
+                 *   on end of file -STATUS_EOF is returned
                  */
                 virtual ssize_t read(void *dst, size_t count);
 
@@ -73,7 +74,10 @@ namespace lsp
                 virtual ssize_t pread(wsize_t pos, void *dst, size_t count);
 
                 /**
-                 * Write binary file
+                 * Write binary file.
+                 * The implementation should write the most possible amount
+                 * of bytes before exit. Such behaviour will simplify the caller's
+                 * implementation.
                  * @param dst source buffer to perform write
                  * @param count number of bytes to write
                  * @return status of operation

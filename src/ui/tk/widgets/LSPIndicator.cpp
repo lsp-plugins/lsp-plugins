@@ -36,7 +36,9 @@ namespace lsp
         
         const w_class_t LSPIndicator::metadata = { "LSPIndicator", &LSPWidget::metadata };
 
-        LSPIndicator::LSPIndicator(LSPDisplay *dpy): LSPWidget(dpy)
+        LSPIndicator::LSPIndicator(LSPDisplay *dpy): LSPWidget(dpy),
+            sColor(this),
+            sTextColor(this)
         {
             fValue      = 0.0f;
             sFormat     = NULL;
@@ -57,17 +59,8 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-
-                if (theme != NULL)
-                {
-                    theme->get_color(C_GLASS, &sColor);
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                    theme->get_color(C_LABEL_TEXT, &sTextColor);
-                }
-            }
+            init_color(C_GLASS, &sColor);
+            init_color(C_LABEL_TEXT, &sTextColor);
 
             return STATUS_OK;
         }
@@ -250,12 +243,8 @@ namespace lsp
             return false;
         }
 
-        void LSPIndicator::draw_digit(ISurface *s, int x, int y, char ch, char mod)
+        void LSPIndicator::draw_digit(ISurface *s, int x, int y, char ch, char mod, const Color &front, const Color &back)
         {
-            Color front(sTextColor);
-            Color back(sTextColor);
-            back.blend(sColor, 0.05f);
-
             size_t  sm = 0;
             switch (ch)
             {
@@ -822,14 +811,24 @@ namespace lsp
 
         void LSPIndicator::draw(ISurface *s)
         {
+            // Prepare palette
+            Color bg_color(sBgColor);
+            Color color(sColor);
+            Color front(sTextColor);
+            Color back(sTextColor);
+
+            back.blend(color, 0.05f);
+            back.scale_lightness(brightness());
+            color.scale_lightness(brightness());
+
             // Draw background
-            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, sBgColor);
+            s->fill_rect(0, 0, sSize.nWidth, sSize.nHeight, bg_color);
 
             // Draw glass
             size_t width = ((15 + 1) * sDigits) + 2, height = 18 + 4;
             size_t left  = (sSize.nWidth - width) >> 1, top = (sSize.nHeight - height) >> 1;
 
-            s->fill_rect(left, top, width, height, sColor);
+            s->fill_rect(left, top, width, height, color);
 
             buffer_t buf;
             init_buf(&buf, 128);
@@ -860,7 +859,7 @@ namespace lsp
                 }
 
                 // Draw digit with character and modifier
-                draw_digit(s, x, top, c, m);
+                draw_digit(s, x, top, c, m, front, back);
             }
 
             s->set_antialiasing(aa);

@@ -37,15 +37,6 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            if (pDisplay != NULL)
-            {
-                LSPTheme *theme = pDisplay->theme();
-                if (theme != NULL)
-                {
-                    theme->get_color(C_BACKGROUND, &sBgColor);
-                }
-            }
-
             return STATUS_OK;
         }
 
@@ -121,9 +112,9 @@ namespace lsp
                 h[k].nSize ++;
         }
 
-        void LSPGrid::distribute_size(header_t *h, size_t items, size_t rq_size, size_t spacing)
+        void LSPGrid::distribute_size(cstorage<header_t> &vh, size_t idx, size_t items, size_t rq_size)
         {
-            ssize_t size    = estimate_size(h, items, spacing);
+            ssize_t size    = estimate_size(vh, idx, items, NULL);
             ssize_t left    = rq_size - size;
 
             if (left <= 0)
@@ -131,8 +122,11 @@ namespace lsp
 
             size_t expanded = 0;
             for (size_t k=0; k<items; ++k)
-                if (h[k].bExpand)
+            {
+                header_t *h     = vh.at(idx + k);
+                if (h->bExpand)
                     expanded ++;
+            }
 
             // Distribute size between expanded first
             if (expanded > 0)
@@ -140,10 +134,11 @@ namespace lsp
                 ssize_t total = 0;
                 for (size_t k=0; (k<items); ++k)
                 {
-                    if (!h[k].bExpand)
+                    header_t *h     = vh.at(idx + k);
+                    if (!h->bExpand)
                         continue;
-                    size_t delta    = (h[k].nSize * left) / size;
-                    h[k].nSize     += delta;
+                    size_t delta    = (h->nSize * left) / size;
+                    h->nSize       += delta;
                     total          += delta;
                 }
                 left           -= total;
@@ -156,9 +151,10 @@ namespace lsp
                     {
                         for (size_t k=0; k < items; ++k)
                         {
-                            if (!h[k].bExpand)
+                            header_t *h     = vh.at(idx + k);
+                            if (!h->bExpand)
                                 continue;
-                            h[k].nSize += delta;
+                            h->nSize   += delta;
                             left       -= delta;
                         }
                     }
@@ -169,9 +165,10 @@ namespace lsp
                 {
                     for (size_t k=0; left > 0; k = (k+1) % items)
                     {
-                        if (!h[k].bExpand)
+                        header_t *h     = vh.at(idx + k);
+                        if (!h->bExpand)
                             continue;
-                        h[k].nSize ++;
+                        h->nSize ++;
                         left --;
                     }
                 }
@@ -184,8 +181,9 @@ namespace lsp
                     ssize_t total = 0;
                     for (size_t k=0; (k<items); ++k)
                     {
-                        size_t delta    = (h[k].nSize * left) / size;
-                        h[k].nSize     += delta;
+                        header_t *h     = vh.at(idx + k);
+                        size_t delta    = (h->nSize * left) / size;
+                        h->nSize       += delta;
                         total          += delta;
                     }
                     left           -= total;
@@ -198,7 +196,10 @@ namespace lsp
                     if (delta > 0)
                     {
                         for (size_t k=0; k < items; ++k)
-                            h[k].nSize += delta;
+                        {
+                            header_t *h     = vh.at(idx + k);
+                            h->nSize       += delta;
+                        }
                         left       -= items * delta;
                     }
                 }
@@ -208,22 +209,28 @@ namespace lsp
                 {
                     for (size_t k=0; left > 0; k = (k+1) % items)
                     {
-                        h[k].nSize ++;
+                        header_t *h     = vh.at(idx + k);
+                        h->nSize ++;
                         left --;
                     }
                 }
             }
         }
 
-        size_t LSPGrid::estimate_size(header_t *h, size_t items, size_t spacing)
+        size_t LSPGrid::estimate_size(cstorage<header_t> &vh, size_t idx, size_t items, size_t *spacing)
         {
-            size_t size     = 0;
+            size_t size = 0, last = 0;
 
-            for (size_t k=0; k < items; ++k)
-                size   += h[k].nSize + h[k].nSpacing;
+            for (size_t i=0, k=idx; i < items; ++i, ++k)
+            {
+                header_t *h = vh.at(k);
+                size       += h->nSize + last;
+                last        = h->nSpacing;
+            }
 
-            if (size >= spacing) // Remove last spacing
-                size -= spacing;
+            if (spacing != NULL)
+                *spacing = last;
+
             return size;
         }
 
@@ -327,13 +334,6 @@ namespace lsp
                 // Add extra column headers
                 if (!vCols.append_n(n))
                     return STATUS_NO_MEM;
-
-//                for (size_t i=0; i<vCells.size(); ++i)
-//                {
-//                    cell_t *c = vCells.at(i);
-//                    lsp_trace("cell[%d] = %p { widget=%p, main=%p, rows=%d, cols=%d }",
-//                        int(i), c, c->pWidget, c->pMain, c->
-//                }
             }
 
             // Reset iterator
@@ -378,7 +378,7 @@ namespace lsp
         status_t LSPGrid::set_spacing(size_t hor, size_t vert)
         {
             nHSpacing       = hor;
-            nHSpacing       = vert;
+            nVSpacing       = vert;
             query_resize();
             return STATUS_OK;
         }
@@ -391,9 +391,10 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
-            // Render nested widgets
-//            Color red(1, 0, 0);
+            // Estimate palette
+            Color bg_color;
 
+            // Render nested widgets
             size_t visible = 0;
             for (size_t i=0; i<items; ++i)
             {
@@ -402,7 +403,11 @@ namespace lsp
                     continue;
                 if (hidden_widget(w))
                 {
-                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, sBgColor);
+                    if (w->pWidget != NULL)
+                        bg_color.copy(w->pWidget->bg_color()->color());
+                    else
+                        bg_color.copy(sBgColor);
+                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, bg_color);
                     continue;
                 }
 
@@ -414,11 +419,11 @@ namespace lsp
 //                            int(force), int(w->pWidget->redraw_pending()));
                     if (force)
                     {
+                        bg_color.copy(w->pWidget->bg_color()->color());
                         s->fill_frame(
                             w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight,
                             w->s.nLeft, w->s.nTop, w->s.nWidth, w->s.nHeight,
-//                            red
-                            sBgColor
+                            bg_color
                         );
 //                        s->wire_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, 1, red);
                     }
@@ -431,7 +436,10 @@ namespace lsp
 
             // Draw background if needed
             if ((!visible) && (force))
-                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, sBgColor);
+            {
+                bg_color.copy(sBgColor);
+                s->fill_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, bg_color);
+            }
 
 //            s->wire_rect(sSize.nLeft, sSize.nTop, sSize.nWidth, sSize.nHeight, 1, red);
         }
@@ -519,35 +527,7 @@ namespace lsp
 
         status_t LSPGrid::add(LSPWidget *widget)
         {
-            // Allocate cell
-            cell_t *cell    = alloc_cell();
-            if (cell == NULL)
-                return STATUS_OVERFLOW;
-
-            if (cell->pWidget != NULL)
-            {
-                unlink_widget(cell->pWidget);
-                cell->pWidget       = NULL;
-            }
-
-            LSPCell *w      = widget_cast<LSPCell>(widget);
-            if (w != NULL)
-            {
-                cell->nRows     = w->rowspan();
-                cell->nCols     = w->colspan();
-                cell->pWidget   = w->unwrap();
-            }
-            else
-            {
-                cell->nRows     = 1;
-                cell->nCols     = 1;
-                cell->pWidget   = widget;
-            }
-
-            if (cell->pWidget != NULL)
-                cell->pWidget->set_parent(this);
-
-            return tag_cell(cell, false);
+            return add(widget, 1, 1);
         }
 
         status_t LSPGrid::add(LSPWidget *widget, size_t rowspan, size_t colspan)
@@ -563,19 +543,9 @@ namespace lsp
                 cell->pWidget       = NULL;
             }
 
-            LSPCell *w      = widget_cast<LSPCell>(widget);
-            if (w != NULL)
-            {
-                cell->nRows     = w->rowspan();
-                cell->nCols     = w->colspan();
-                cell->pWidget   = w->unwrap();
-            }
-            else
-            {
-                cell->nRows     = rowspan;
-                cell->nCols     = colspan;
-                cell->pWidget   = widget;
-            }
+            cell->nRows     = rowspan;
+            cell->nCols     = colspan;
+            cell->pWidget   = widget;
 
             if (cell->pWidget != NULL)
                 cell->pWidget->set_parent(this);
@@ -605,30 +575,15 @@ namespace lsp
         {
             cell_t *w;
             header_t *h, *v;
+            size_t hs = 0, vs = 0;
+            realize_t alloc;
 
             size_t n_rows   = vRows.size();
             size_t n_cols   = vCols.size();
             
-// Debug output
-//            for (size_t i=0; i<n_rows; ++i)
-//            {
-//                h               = vRows.get(i);
-//                h->nSize        = h->nMinSize;
-//                lsp_trace("row[%d] = %p { min_size=%d, spacing=%d }",
-//                        int(i), h, h->nMinSize, h->nSpacing);
-//            }
-//            for (size_t i=0; i<n_cols; ++i)
-//            {
-//                v               = vCols.get(i);
-//                v->nSize        = v->nMinSize;
-//
-//                lsp_trace("col[%d] = %p { min_size=%d, spacing=%d }",
-//                        int(i), v, v->nMinSize, v->nSpacing);
-//            }
-
             // Distribute size between cells
-            distribute_size(vRows.get_array(), n_rows, r->nHeight, nVSpacing);
-            distribute_size(vCols.get_array(), n_cols, r->nWidth, nHSpacing);
+            distribute_size(vRows, 0, n_rows, r->nHeight);
+            distribute_size(vCols, 0, n_cols, r->nWidth);
 
             assign_coords(vRows.get_array(), n_rows, r->nTop);
             assign_coords(vCols.get_array(), n_cols, r->nLeft);
@@ -646,21 +601,26 @@ namespace lsp
                     if ((w->nRows <= 0) || (w->nCols <= 0))
                         continue;
 
+                    if (w->pWidget == NULL)
+                        lsp_trace("break");
+
                     w->a.nLeft      = v->nOffset;
                     w->a.nTop       = h->nOffset;
-                    w->a.nWidth     = estimate_size(v, w->nCols, nHSpacing);
-                    w->a.nHeight    = estimate_size(h, w->nRows, nVSpacing);
+                    w->a.nWidth     = estimate_size(vCols, j, w->nCols, &hs);
+                    w->a.nHeight    = estimate_size(vRows, i, w->nRows, &vs);
+
+                    alloc           = w->a;
+                    if ((j + w->nCols) < n_cols)
+                        w->a.nWidth    += hs;
+                    if ((i + w->nRows) < n_rows)
+                        w->a.nHeight   += vs;
 
                     if (hidden_widget(w))
                         continue;
 
-                    w->s            = w->a; // Copy cell parameters to cell size attributes
+                    w->s            = alloc; // Copy cell parameters to cell size attributes
                     w->s.nWidth    -= w->p.nLeft + w->p.nRight;
                     w->s.nHeight   -= w->p.nTop  + w->p.nBottom;
-                    if ((i + w->nRows) < n_rows)
-                        w->a.nHeight   += nVSpacing;
-                    if ((j + w->nCols) < n_cols)
-                        w->a.nWidth    += nHSpacing;
 
                     // Do not fill horizontally
                     if (!w->pWidget->hfill())
@@ -820,14 +780,14 @@ namespace lsp
                         ssize_t space   = w->p.nTop + w->p.nBottom;
                         if (w->r.nMinHeight >= 0)
                             space          += space;
-                        distribute_size(h, w->nRows, space, nVSpacing);
+                        distribute_size(vRows, i, w->nRows, space);
                     }
                     if (w->nCols > 1)
                     {
                         ssize_t space   = w->p.nLeft + w->p.nRight;
                         if (w->r.nMinWidth >= 0)
                             space          += w->r.nMinWidth;
-                        distribute_size(v, w->nCols, space, nHSpacing);
+                        distribute_size(vCols, j, w->nCols, space);
                     }
                 }
             }
@@ -849,8 +809,8 @@ namespace lsp
             }
 
             // Calculate the size of table
-            r->nMinHeight  += estimate_size(vRows.get_array(), n_rows, nVSpacing);
-            r->nMinWidth   += estimate_size(vCols.get_array(), n_cols, nHSpacing);
+            r->nMinHeight  += estimate_size(vRows, 0, n_rows, NULL);
+            r->nMinWidth   += estimate_size(vCols, 0, n_cols, NULL);
             for (size_t i=0; i<n_rows; ++i)
             {
                 h   = vRows.at(i);

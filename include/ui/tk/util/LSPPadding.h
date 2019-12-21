@@ -37,9 +37,12 @@ namespace lsp
                 size_t set_top(size_t value);
                 size_t set_bottom(size_t value);
                 void   set_all(size_t value);
+                void   set_horizontal(size_t left, size_t right);
+                void   set_vertical(size_t top, size_t bottom);
 
                 void set(size_t left, size_t right, size_t top, size_t bottom);
                 void set(const padding_t *p);
+                void set(const LSPPadding *p);
         };
     
     } /* namespace tk */

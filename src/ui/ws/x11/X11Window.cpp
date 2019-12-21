@@ -139,8 +139,12 @@ namespace lsp
 
                     // Get protocols
                     lsp_trace("Issuing XSetWMProtocols");
-                    Atom atom_close = pX11Display->atoms().X11_WM_DELETE_WINDOW;
+                    Atom atom_close     = pX11Display->atoms().X11_WM_DELETE_WINDOW;
+                    Atom dnd_version    = 4;
                     XSetWMProtocols(dpy, wnd, &atom_close, 1);
+                    XChangeProperty(dpy, wnd, pX11Display->atoms().X11_XdndAware, XA_ATOM, 32, PropModeReplace,
+                                    reinterpret_cast<unsigned char *>(&dnd_version), 1);
+
                     pX11Display->flush();
 
                     // Now create X11Window instance
@@ -338,9 +342,9 @@ namespace lsp
 
                     case UIE_REDRAW:
                     {
-                        lsp_trace("redraw location = %d x %d, size = %d x %d",
-                                int(ev->nLeft), int(ev->nTop),
-                                int(ev->nWidth), int(ev->nHeight));
+//                        lsp_trace("redraw location = %d x %d, size = %d x %d",
+//                                int(ev->nLeft), int(ev->nTop),
+//                                int(ev->nWidth), int(ev->nHeight));
                         break;
                     }
 
@@ -492,6 +496,8 @@ namespace lsp
                         break;
 
                     case BS_COMBO:
+                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_MENU;
+                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_POPUP_MENU;
                         atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_COMBO;
                         break;
 
@@ -701,13 +707,13 @@ namespace lsp
 
                 int x, y;
                 Window child;
-                XWindowAttributes xwa;
                 Display *dpy = pX11Display->x11display();
-                XGetWindowAttributes(dpy, hWindow, &xwa);
-                XTranslateCoordinates(dpy, hWindow, xwa.root, 0, 0, &x, &y, &child);
+                // We do not trust XGetWindowAttributes since it can always return (0, 0) coordinates
+                XTranslateCoordinates(dpy, hWindow, pX11Display->hRootWnd, 0, 0, &x, &y, &child);
+                lsp_trace("xy = {%d, %d}", int(x), int(y));
 
-                realize->nLeft      = x - xwa.x;
-                realize->nTop       = y - xwa.y;
+                realize->nLeft      = x;
+                realize->nTop       = y;
                 realize->nWidth     = sSize.nWidth;
                 realize->nHeight    = sSize.nHeight;
 

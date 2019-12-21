@@ -7,7 +7,7 @@
 				(strpos($PAGE, '_lr') > 0) ? 'lr' : (
 				(strpos($PAGE, '_ms') > 0) ? 'ms' : '?'
 				)));
-	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
+	$cc     =   ($m == 'm') ? 'mono' : 'stereo';
 ?>
 <?php require_once("${DOC_BASE}/manuals/common/filters.php"); ?>
 <p>
@@ -16,14 +16,26 @@
 	elseif ($m == 'lr') echo " by applying individual equalization to left and right channels separately";
 	?>. Up to <?= $nf ?> frequency bands are available for correction in range of 72 dB (-36..+36 dB).
 </p>
+<p><b>Meters:</b></p>
+<ul>
+	<?php if ($m == 'ms') { ?>
+		<li><b>Input</b> - the level meter for left and right channels of the input signal.
+		If <b>Listen</b> button is pressed, it shows the level of middle and side channels of the input signal respectively.</li>
+		<li><b>Output</b> - the level meter for left and right channels of the output signal.
+		If <b>Listen</b> button is pressed, it shows the level of middle and side channels of the output signal respectively.</li>
+	<?php } elseif ($m != 'm') { ?>
+		<li><b>Input</b> - the level meter for left and right channels of the input signal.</li>
+		<li><b>Output</b> - the level meter for left and right channels of the output signal.</li>
+	<?php } else { ?>
+		<li><b>Input</b> - the level meter of the input mono signal.</li>
+		<li><b>Output</b> - the level meter of the output mono signal.</li>
+	<?php } ?>
+</ul>
 <p><b>Controls:</b></p>
 <ul>
 	<li>
 		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin bypasses signal.
 	</li>
-	<?php if ($nf  > 16) { ?>
-	<li><b>Bands</b> - band selection.</li>
-	<?php } ?>
 	<li><b>Mode</b> - equalizer slope and working mode, enables the following settings:</li>
 	<ul>
 		<li><b>BT48</b> - Filters with 48dB/oct slope, bilinear Z-transform.</li>
@@ -52,18 +64,7 @@
 	<li><b>Output</b> - output signal amplification.</li>
 	<?php if ($m != 'm') { ?>
 	<li><b>Balance</b> - balance between left and right output signal.</li>
-		<?php if ($m == 'ms') { ?>
-		<li><b>L</b> - the measured level of the output signal for the left channel, visible only when <b>Listen</b> button is off.</li>
-		<li><b>R</b> - the measured level of the output signal for the right channel, visible only when <b>Listen</b> button is off.</li>
-		<li><b>M</b> - the measured level of the output signal for the middle channel, visible only when <b>Listen</b> button is on.</li>
-		<li><b>S</b> - the measured level of the output signal for the side channel, visible only when <b>Listen</b> button is on</li>
-		<?php } else { ?>
-		<li><b>L</b> - the measured level of the output signal for the left channel.</li>
-		<li><b>R</b> - the measured level of the output signal for the right channel.</li>
-		<?php }?>
-	<?php } else { ?>
-	<li><b>Signal</b> - the measured level of the output signal.</li>
-	<?php } ?>
+	<?php }?>
 </ul>
 <p><b>'Analysis' section:</b></p>
 <ul>

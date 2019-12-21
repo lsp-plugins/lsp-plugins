@@ -147,6 +147,11 @@ namespace lsp
             nFlags                 |= FF_CLEAR;
     }
 
+    void Filter::set_sample_rate(size_t sr)
+    {
+        update(sr, &sParams);
+    }
+
     void Filter::get_params(filter_params_t *params)
     {
         if (params != NULL)
@@ -203,6 +208,8 @@ namespace lsp
             case FLT_BT_RLC_BELL:
             case FLT_BT_RLC_RESONANCE:
             case FLT_BT_RLC_NOTCH:
+            case FLT_BT_RLC_ALLPASS:
+            case FLT_BT_RLC_ALLPASS2:
             case FLT_BT_RLC_LADDERPASS:
             case FLT_BT_RLC_LADDERREJ:
             case FLT_BT_RLC_BANDPASS:
@@ -223,6 +230,8 @@ namespace lsp
             case FLT_MT_RLC_BELL:
             case FLT_MT_RLC_RESONANCE:
             case FLT_MT_RLC_NOTCH:
+            case FLT_MT_RLC_ALLPASS:
+            case FLT_MT_RLC_ALLPASS2:
             case FLT_MT_RLC_LADDERPASS:
             case FLT_MT_RLC_LADDERREJ:
             case FLT_MT_RLC_BANDPASS:
@@ -243,6 +252,7 @@ namespace lsp
             case FLT_BT_BWC_LADDERPASS:
             case FLT_BT_BWC_LADDERREJ:
             case FLT_BT_BWC_BANDPASS:
+            case FLT_BT_BWC_ALLPASS:
             {
                 // Calculate filter parameters
                 fp.fFreq2           = bilinear_relative(fp.fFreq, fp.fFreq2);    // Normalize frequency
@@ -259,6 +269,7 @@ namespace lsp
             case FLT_MT_BWC_LADDERPASS:
             case FLT_MT_BWC_LADDERREJ:
             case FLT_MT_BWC_BANDPASS:
+            case FLT_MT_BWC_ALLPASS:
             {
                 // Calculate filter parameters
                 fp.fFreq2           = fp.fFreq / fp.fFreq2;    // Normalize frequency
@@ -275,6 +286,7 @@ namespace lsp
             case FLT_BT_LRX_LADDERPASS:
             case FLT_BT_LRX_LADDERREJ:
             case FLT_BT_LRX_BANDPASS:
+            case FLT_BT_LRX_ALLPASS:
             {
                 // Calculate filter parameters
                 fp.fFreq2           = bilinear_relative(fp.fFreq, fp.fFreq2);    // Normalize frequency
@@ -291,6 +303,7 @@ namespace lsp
             case FLT_MT_LRX_LADDERPASS:
             case FLT_MT_LRX_LADDERREJ:
             case FLT_MT_LRX_BANDPASS:
+            case FLT_MT_LRX_ALLPASS:
             {
                 // Calculate filter parameters
                 fp.fFreq2           = fp.fFreq / fp.fFreq2;    // Normalize frequency
@@ -309,6 +322,16 @@ namespace lsp
             case FLT_DR_APO_HISHELF:
             {
                 calc_apo_filter(sParams.nType, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
+            case FLT_DR_APO_ALLPASS2:
+            {
+                calc_apo_filter(FLT_DR_APO_ALLPASS, &fp);
+                fp.fFreq            = sParams.fFreq2;
+                fp.fGain            = 1.0f;
+                calc_apo_filter(FLT_DR_APO_ALLPASS, &fp);
                 nMode               = FM_APO;
                 break;
             }
@@ -796,6 +819,79 @@ namespace lsp
                 break;
             }
 
+            case FLT_BT_RLC_ALLPASS:
+            {
+                // Single all-pass filter
+                size_t i        = fp->nSlope & 1;
+                if (i)
+                {
+                    c                       = add_cascade();
+                    c->t[0]                 = -1.0;
+                    c->t[1]                 = 1.0;
+                    c->t[2]                 = 0.0;
+
+                    c->b[0]                 = 1.0;
+                    c->b[1]                 = 1.0;
+                    c->b[2]                 = 0.0;
+                }
+
+                // 2x all-pass filters in one cascade
+                for (size_t j=i; j < fp->nSlope; j += 2)
+                {
+                    c                       = add_cascade();
+                    // Create transfer function
+                    c->t[0]                 = 1.0;
+                    c->t[1]                 = -2.0;
+                    c->t[2]                 = 1.0;
+
+                    // Bottom polynom
+                    c->b[0]                 = 1.0;
+                    c->b[1]                 = 2.0;
+                    c->b[2]                 = 1.0;
+                }
+
+                // Adjust gain for the last cascade
+                if (c != NULL)
+                {
+                    c->t[0]    *= fp->fGain;
+                    c->t[1]    *= fp->fGain;
+                    c->t[2]    *= fp->fGain;
+                }
+
+                break;
+            }
+
+            case FLT_BT_RLC_ALLPASS2:
+            {
+                double kf               = fp->fFreq2;
+                double kfp1             = 1.0 + kf;
+
+                // 2x all-pass filters in one cascade
+                for (size_t j=0; j < fp->nSlope; j++)
+                {
+                    c                       = add_cascade();
+                    // Create transfer function
+                    c->t[0]                 = 1.0;
+                    c->t[1]                 = -kfp1;
+                    c->t[2]                 = kf;
+
+                    // Bottom polynom
+                    c->b[0]                 = 1.0;
+                    c->b[1]                 = kfp1;
+                    c->b[2]                 = kf;
+                }
+
+                // Adjust gain for the last cascade
+                if (c != NULL)
+                {
+                    c->t[0]    *= fp->fGain;
+                    c->t[1]    *= fp->fGain;
+                    c->t[2]    *= fp->fGain;
+                }
+
+                break;
+            }
+
             case FLT_BT_RLC_ENVELOPE:
             {
                 size_t slope    = fp->nSlope;
@@ -892,6 +988,56 @@ namespace lsp
                         c->b[0]         = 1.0;
                         c->b[1]         = 2.0 * k * tcos / kf;
                         c->b[2]         = 1.0 / kf;
+                    }
+                }
+
+                break;
+            }
+
+            case FLT_BT_BWC_ALLPASS:
+            {
+                double k    = 1.0f / (1.0f + fp->fQuality);
+                size_t i    = fp->nSlope & 1;
+                if (i)
+                {
+                    c           = add_cascade();
+                    c->t[0]     = -fp->fGain;
+                    c->t[1]     = fp->fGain;
+                    c->t[2]     = 0.0;
+
+                    c->b[0]     = 1.0;
+                    c->b[1]     = 1.0;
+                    c->b[2]     = 0.0;
+
+                    if (type == FLT_BT_BWC_LOPASS)
+                        c->t[0]     = fp->fGain;
+                    else
+                        c->t[1]     = fp->fGain;
+                }
+
+                for (size_t j=i; j < fp->nSlope; j += 2)
+                {
+                    double theta    = ((j - i + 1)*M_PI_2)/fp->nSlope;
+                    double tsin     = sin(theta);
+                    double tcos     = sqrt(1.0 - tsin*tsin);
+                    float kf        = tsin*tsin + k*k * tcos*tcos;
+
+                    c               = add_cascade();
+
+                    // Tranfer function
+                    c->t[0]         = 1.0;
+                    c->t[1]         = -2.0 * tcos;
+                    c->t[2]         = 1.0;
+
+                    c->b[0]         = 1.0 / kf;
+                    c->b[1]         = 2.0 * k * tcos / kf;
+                    c->b[2]         = 1.0;
+
+                    if (j == 0)
+                    {
+                        c->t[0]        *= fp->fGain;
+                        c->t[1]        *= fp->fGain;
+                        c->t[2]        *= fp->fGain;
                     }
                 }
 
@@ -1113,6 +1259,8 @@ namespace lsp
 
     void Filter::calc_lrx_filter(size_t type, const filter_params_t *fp)
     {
+        cascade_t *c1, *c2;
+
         // LRX filter is just twice repeated BWC filter
         // Calculate the same chain twice
         switch (type)
@@ -1141,6 +1289,51 @@ namespace lsp
             case FLT_BT_LRX_LADDERREJ:
                 type = FLT_BT_BWC_LADDERREJ;
                 break;
+            case FLT_BT_LRX_ALLPASS:
+            {
+                double k    = 1.0f / (1.0f + fp->fQuality);
+                size_t i    = sParams.nSlope * 2;
+
+                // Emit 2x butterworth filters
+                for (size_t j=0; j < i; j += 2)
+                {
+                    double theta    = ((j+1) * M_PI_2)/i;
+                    double tsin     = sin(theta);
+                    double tcos     = sqrt(1.0 - tsin*tsin);
+                    float kf        = tsin*tsin + k*k * tcos*tcos;
+
+                    c1              = add_cascade();
+                    c2              = add_cascade();
+
+                    // Top part
+                    double xeta     = ((j+0.5) * M_PI)/i;
+                    c1->t[0]        = 1.0;
+                    c1->t[1]        = -2.0 * cos(xeta);
+                    c1->t[2]        = 1.0;
+
+                    xeta            = ((j+1.5) * M_PI)/i;
+                    c2->t[0]        = 1.0;
+                    c2->t[1]        = -2.0 * cos(xeta);
+                    c2->t[2]        = 1.0;
+
+                    // Bottom part
+                    c1->b[0]        = 1.0 / kf;
+                    c1->b[1]        = 2.0 * k * tcos / kf;
+                    c1->b[2]        = 1.0;
+
+                    c2->b[0]        = c1->b[0];
+                    c2->b[1]        = c1->b[1];
+                    c2->b[2]        = c1->b[2];
+
+                    if (j == 0)
+                    {
+                        c1->t[0]       *= fp->fGain;
+                        c1->t[1]       *= fp->fGain;
+                        c1->t[2]       *= fp->fGain;
+                    }
+                }
+                return;
+            }
             default:
                 nMode           = FM_BYPASS;
                 return;

@@ -14,9 +14,11 @@ namespace lsp
     {
         class CtlAudioSample: public CtlWidget
         {
+            public:
+                static const ctl_class_t metadata;
+
             protected:
                 CtlColor        sColor;
-                CtlColor        sBgColor;
                 CtlPadding      sPadding;
 
                 CtlPort        *pMesh;
