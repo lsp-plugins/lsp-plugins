@@ -60,7 +60,6 @@ export RELEASES
 # Configure compiler and linker flags
 LD_ARCH         =
 CC_ARCH         =
-LD_PATH         =
 
 # Build profile
 ifeq ($(BUILD_PROFILE),i586)
@@ -71,7 +70,6 @@ ifeq ($(BUILD_PROFILE),i586)
   ifeq ($(BUILD_PLATFORM), BSD)
     LD_ARCH          = -m elf_i386_fbsd
   endif
-  LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),x86_64)
@@ -82,44 +80,39 @@ ifeq ($(BUILD_PROFILE),x86_64)
   ifeq ($(BUILD_PLATFORM), BSD)
     LD_ARCH          = -m elf_x86_64_fbsd
   endif
-  LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PLATFORM), BSD)
   ifeq ($(BUILD_PROFILE),arm)
     CC_ARCH          = -marm -Wl,-rpath=/usr/local/lib/gcc8
-    LD_PATH          = /usr/local/lib/gcc8
+    ifneq ($(LD_PATH),)
+      CC_ARCH          += -Wl,-rpath=$(LD_PATH)
+    endif
   endif
 endif
 
 ifeq ($(BUILD_PROFILE),armv6a)
   CC_ARCH          = -march=armv6-a -marm
-  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7a)
   CC_ARCH          = -march=armv7-a -marm
-  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7ve)
   CC_ARCH          = -march=armv7ve -marm
-  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),arm32)
   CC_ARCH          = -marm
-  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv8a)
   CC_ARCH          = -march=armv7-a -marm
-  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),aarch64)
   CC_ARCH          = -march=armv8-a
-  LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 
