@@ -19,6 +19,7 @@ namespace lsp
         protected:
             CtlPort            *pRewPath;
             LSPFileDialog      *pRewImport;
+            const char        **fmtStrings;
 
         protected:
             static status_t slot_start_import_rew_file(LSPWidget *sender, void *ptr, void *data);

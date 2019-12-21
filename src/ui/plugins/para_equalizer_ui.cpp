@@ -15,18 +15,34 @@ namespace lsp
     static const char *fmt_strings[] =
     {
         "%s_%d",
+        NULL
+    };
+
+    static const char *fmt_strings_lr[] =
+    {
         "%sl_%d",
         "%sr_%d",
+        NULL
+    };
+    
+    static const char *fmt_strings_ms[] =
+    {
         "%sm_%d",
         "%ss_%d",
         NULL
     };
-    
+
     para_equalizer_ui::para_equalizer_ui(const plugin_metadata_t *mdata, void *root_widget):
         plugin_ui(mdata, root_widget)
     {
         pRewImport  = NULL;
         pRewPath    = NULL;
+        fmtStrings  = fmt_strings;
+
+        if (::strstr(mdata->lv2_uid, "_lr") != NULL)
+            fmtStrings      = fmt_strings_lr;
+        else if (::strstr(mdata->lv2_uid, "_ms") != NULL)
+            fmtStrings      = fmt_strings_ms;
     }
     
     para_equalizer_ui::~para_equalizer_ui()
@@ -135,7 +151,7 @@ namespace lsp
     {
         char port_id[32];
 
-        for (const char **fmt = fmt_strings; *fmt != NULL; ++fmt)
+        for (const char **fmt = fmtStrings; *fmt != NULL; ++fmt)
         {
             ::snprintf(port_id, sizeof(port_id)/sizeof(char), *fmt, base, int(id));
             CtlPort *p = port(port_id);

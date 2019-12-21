@@ -6,6 +6,7 @@
  */
 
 #include <ui/tk/tk.h>
+#include <core/files/url.h>
 
 namespace lsp
 {
@@ -30,12 +31,16 @@ namespace lsp
 
         status_t LSPLoadFile::LoadFileSink::commit_url(const LSPString *url)
         {
-            if (url->starts_with_ascii("file://"))
-                pWidget->sPath.set(url, 7, url->length());
-            else
-                pWidget->sPath.set(url);
+            LSPString decoded;
+            status_t res = (url->starts_with_ascii("file://")) ?
+                    url_decode(&decoded, url, 7) :
+                    url_decode(&decoded, url);
 
-            lsp_trace("Set URL to %s", pWidget->sPath.get_native());
+            if (res != STATUS_OK)
+                return res;
+
+            lsp_trace("Set file path to %s", decoded.get_native());
+            pWidget->sPath.swap(&decoded);
             pWidget->slots()->execute(LSPSLOT_SUBMIT, pWidget, NULL);
 
             return STATUS_OK;

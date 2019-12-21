@@ -6,6 +6,7 @@
  */
 
 #include <ui/tk/helpers/mime.h>
+#include <core/files/url.h>
 #include <core/io/InStringSequence.h>
 #include <core/io/InSequence.h>
 #include <core/io/InMemoryStream.h>
@@ -85,6 +86,7 @@ namespace lsp
                     break;
             }
 
+            // URL-decode the string
             line.swap(dst);
             return STATUS_OK;
         }

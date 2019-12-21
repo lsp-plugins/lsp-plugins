@@ -5,25 +5,25 @@
 === 1.1.11 ===
 
 * Source code now compiles for the ARMv6A architecture.
-* Implemented incoming drag & drop events support for the sample loading widget.
+* Implemented incoming drag & drop events support for sample loading and file loading widgets.
 * Added possibility to double-click the parameter's value and enter it manually with keyboard.
 * Added bookmark support by file opening/saving dialogs. Bookmarks are also automatically imported from
   GNOME/KDE desktop environments' configuration files.
 * Refactored UI of the Parameteric Equalizer plugin series.
+* Added allpass filters to Parametric Equalizer plugin.
+* Added knobs that allow to simultaneously shift frequency for all active filters
+  in the Parametric Equalizer plugin series.
+* Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 * Refactored UI of the Graphic Equalizer plugin series.
 * Updated UI of the Multiband Compressor plugin series.
 * Implemented allpass filters that add phase compensation for the classic mode of the Multiband compressor
   and allow to achieve flat frequency response.
-* Added knobs that allow to simultaneously shift frequency for all active filters
-  in the Parametric Equalizer plugin series.
 * Changed reverb simulation algorithm for the Room Builder plugin: the algorithm now handles capture objects as opaque
   objects, not part of the 3D scene. So the number and location of the captures does not impact the audio simulations.
   This allows to render the impulse response in more accurate way. However, even after some set of additional
   optimizations has been made, this yields to some performance degradation because there are much more ray
   groups required to be processed.
-* Added allpass filters to Parametric Equalizer plugin.
 * Added possibility to export state to clipboard and import state from clipboard from the UI of any plugin.
-* Added support of RoomEQ Wizard configuration file format import by Parametric Equalizer plugin series.
 * Added possibility to freeze all graphs in the Spectrum Analyzer simultaneously.
 * Added MIDI groups to Multisampler plugin series.
 * Added possibility to control how panning and gain controls affect the signal passed to the direct output tracks

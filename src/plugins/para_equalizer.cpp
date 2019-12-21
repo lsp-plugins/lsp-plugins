@@ -302,11 +302,15 @@ namespace lsp
             case FLT_MT_BWC_LOPASS:
             case FLT_BT_BWC_HIPASS:
             case FLT_MT_BWC_HIPASS:
+            case FLT_BT_BWC_ALLPASS:
+            case FLT_MT_BWC_ALLPASS:
 
             case FLT_BT_LRX_LOPASS:
             case FLT_MT_LRX_LOPASS:
             case FLT_BT_LRX_HIPASS:
             case FLT_MT_LRX_HIPASS:
+            case FLT_BT_LRX_ALLPASS:
+            case FLT_MT_LRX_ALLPASS:
 
             // Disable gain adjust for several APO filters, too
             case FLT_DR_APO_NOTCH:
