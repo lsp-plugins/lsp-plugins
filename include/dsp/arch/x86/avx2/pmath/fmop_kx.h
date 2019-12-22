@@ -1,12 +1,12 @@
 /*
- * fmop_k3.h
+ * fmop_kx.h
  *
  *  Created on: 23 нояб. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_AVX_PMATH_FMOP_KX_H_
-#define DSP_ARCH_X86_AVX_PMATH_FMOP_KX_H_
+#ifndef DSP_ARCH_X86_AVX2_PMATH_FMOP_KX_H_
+#define DSP_ARCH_X86_AVX2_PMATH_FMOP_KX_H_
 
 #ifndef DSP_ARCH_X86_AVX2_IMPL
     #error "This header should not be included directly"
@@ -87,8 +87,8 @@ namespace avx2
 
     void fmadd_k3_fma3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_K3_CORE("dst", "dst", "src", "vfmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
@@ -102,8 +102,8 @@ namespace avx2
 
     void fmsub_k3_fma3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_K3_CORE("dst", "dst", "src", "vfnmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
@@ -117,8 +117,8 @@ namespace avx2
 
     void fmrsub_k3_fma3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_K3_CORE("dst", "dst", "src", "vfmsub231")
             : [off] "=&r" (off), [count] "+r" (count),
@@ -132,8 +132,8 @@ namespace avx2
 
     void fmadd_k4_fma3(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_K3_CORE("dst", "src1", "src2", "vfmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
@@ -147,8 +147,8 @@ namespace avx2
 
     void fmsub_k4_fma3(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_K3_CORE("dst", "src1", "src2", "vfnmadd231")
             : [off] "=&r" (off), [count] "+r" (count),
@@ -162,8 +162,8 @@ namespace avx2
 
     void fmrsub_k4_fma3(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_K3_CORE("dst", "src1", "src2", "vfmsub231")
             : [off] "=&r" (off), [count] "+r" (count),
@@ -252,8 +252,8 @@ namespace avx2
 
     void fmadd_k3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "dst", "src", "vadd", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -267,8 +267,8 @@ namespace avx2
 
     void fmsub_k3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "dst", "src", "vsub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -282,8 +282,8 @@ namespace avx2
 
     void fmrsub_k3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "dst", "src", "vsub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -297,8 +297,8 @@ namespace avx2
 
     void fmmul_k3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "dst", "src", "vmul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -312,8 +312,8 @@ namespace avx2
 
     void fmdiv_k3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "dst", "src", "vdiv", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -327,8 +327,8 @@ namespace avx2
 
     void fmrdiv_k3(float *dst, const float *src, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "dst", "src", "vdiv", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -342,8 +342,8 @@ namespace avx2
 
     void fmadd_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "src1", "src2", "vadd", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -357,8 +357,8 @@ namespace avx2
 
     void fmsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "src1", "src2", "vsub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -372,8 +372,8 @@ namespace avx2
 
     void fmrsub_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "src1", "src2", "vsub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -387,8 +387,8 @@ namespace avx2
 
     void fmmul_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "src1", "src2", "vmul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -402,8 +402,8 @@ namespace avx2
 
     void fmdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "src1", "src2", "vdiv", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -417,8 +417,8 @@ namespace avx2
 
     void fmrdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_K4_CORE("dst", "src1", "src2", "vdiv", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count),
@@ -437,4 +437,4 @@ namespace avx2
     #undef OP_RSEL
 }
 
-#endif /* DSP_ARCH_X86_AVX_PMATH_FMOP_KX_H_ */
+#endif /* DSP_ARCH_X86_AVX2_PMATH_FMOP_KX_H_ */

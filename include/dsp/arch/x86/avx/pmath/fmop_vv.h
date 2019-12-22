@@ -92,10 +92,10 @@ namespace avx
         __ASM_EMIT("jge         9b") \
         __ASM_EMIT("10:")
 
-    void x64_fmadd3_fma3(float *dst, const float *a, const float *b, size_t count)
+    void fmadd3_fma3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_VV_CORE("dst", "dst", "a", "b", "vfmadd231")
             : [off] "=&r" (off), [count] "+r" (count)
@@ -106,10 +106,10 @@ namespace avx
         );
     }
 
-    void x64_fmsub3_fma3(float *dst, const float *a, const float *b, size_t count)
+    void fmsub3_fma3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_VV_CORE("dst", "dst", "a", "b", "vfnmadd231")
             : [off] "=&r" (off), [count] "+r" (count)
@@ -120,10 +120,10 @@ namespace avx
         );
     }
 
-    void x64_fmrsub3_fma3(float *dst, const float *a, const float *b, size_t count)
+    void fmrsub3_fma3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_VV_CORE("dst", "dst", "a", "b", "vfmsub231")
             : [off] "=&r" (off), [count] "+r" (count)
@@ -134,10 +134,10 @@ namespace avx
         );
     }
 
-    void x64_fmadd4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmadd4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_VV_CORE("dst", "a", "b", "c", "vfmadd231")
             : [off] "=&r" (off), [count] "+r" (count)
@@ -148,10 +148,10 @@ namespace avx
         );
     }
 
-    void x64_fmsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_VV_CORE("dst", "a", "b", "c", "vfnmadd231")
             : [off] "=&r" (off), [count] "+r" (count)
@@ -162,10 +162,10 @@ namespace avx
         );
     }
 
-    void x64_fmrsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmrsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMADDSUB_VV_CORE("dst", "a", "b", "c", "vfmsub231")
             : [off] "=&r" (off), [count] "+r" (count)
@@ -180,9 +180,7 @@ namespace avx
 
     #define FMOP_VV_CORE(DST, A, B, C, OP, SEL) \
         __ASM_EMIT("xor         %[off], %[off]") \
-        __ASM_EMIT("vbroadcastss %%xmm0, %%ymm0") \
         __ASM_EMIT("sub         $32, %[count]") \
-        __ASM_EMIT("vmovaps     %%ymm0, %%ymm1") \
         __ASM_EMIT("jb          2f")    \
         /* 32x blocks */ \
         __ASM_EMIT("1:") \
@@ -264,10 +262,10 @@ namespace avx
         __ASM_EMIT("jge         9b") \
         __ASM_EMIT("10:")
 
-    void x64_fmadd3(float *dst, const float *a, const float *b, size_t count)
+    void fmadd3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "dst", "a", "b", "vadd", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -278,10 +276,10 @@ namespace avx
         );
     }
 
-    void x64_fmsub3(float *dst, const float *a, const float *b, size_t count)
+    void fmsub3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "dst", "a", "b", "vsub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -292,10 +290,10 @@ namespace avx
         );
     }
 
-    void x64_fmrsub3(float *dst, const float *a, const float *b, size_t count)
+    void fmrsub3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "dst", "a", "b", "vsub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -306,10 +304,10 @@ namespace avx
         );
     }
 
-    void x64_fmmul3(float *dst, const float *a, const float *b, size_t count)
+    void fmmul3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "dst", "a", "b", "vmul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -320,10 +318,10 @@ namespace avx
         );
     }
 
-    void x64_fmdiv3(float *dst, const float *a, const float *b, size_t count)
+    void fmdiv3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "dst", "a", "b", "vdiv", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -334,10 +332,10 @@ namespace avx
         );
     }
 
-    void x64_fmrdiv3(float *dst, const float *a, const float *b, size_t count)
+    void fmrdiv3(float *dst, const float *a, const float *b, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "dst", "a", "b", "vdiv", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -348,10 +346,10 @@ namespace avx
         );
     }
 
-    void x64_fmadd4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmadd4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "a", "b", "c", "vadd", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -362,10 +360,10 @@ namespace avx
         );
     }
 
-    void x64_fmsub4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmsub4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "a", "b", "c", "vsub", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -376,10 +374,10 @@ namespace avx
         );
     }
 
-    void x64_fmrsub4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmrsub4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "a", "b", "c", "vsub", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -390,10 +388,10 @@ namespace avx
         );
     }
 
-    void x64_fmmul4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmmul4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "a", "b", "c", "vmul", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -404,10 +402,10 @@ namespace avx
         );
     }
 
-    void x64_fmdiv4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmdiv4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "a", "b", "c", "vdiv", OP_DSEL)
             : [off] "=&r" (off), [count] "+r" (count)
@@ -418,10 +416,10 @@ namespace avx
         );
     }
 
-    void x64_fmrdiv4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    void fmrdiv4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
-        IF_ARCH_X86_64(size_t off);
-        ARCH_X86_64_ASM
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
         (
             FMOP_VV_CORE("dst", "a", "b", "c", "vdiv", OP_RSEL)
             : [off] "=&r" (off), [count] "+r" (count)
