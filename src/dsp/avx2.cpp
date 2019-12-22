@@ -21,6 +21,8 @@
 #include <dsp/arch/x86/avx2/pmath/log.h>
 #include <dsp/arch/x86/avx2/pmath/pow.h>
 
+#include <dsp/arch/x86/avx2/fft/normalize.h>
+
 #include <dsp/arch/x86/avx2/search/iminmax.h>
 
 #include <dsp/arch/x86/avx2/graphics/transpose.h>
@@ -124,6 +126,9 @@ namespace avx2
         CEXPORT2_X64(favx, eff_hsla_sat, x64_eff_hsla_sat);
         CEXPORT2_X64(favx, eff_hsla_light, x64_eff_hsla_light);
         CEXPORT2_X64(favx, eff_hsla_alpha, x64_eff_hsla_alpha);
+
+        CEXPORT1(favx, normalize_fft2);
+        CEXPORT1(favx, normalize_fft3);
 
         if (f->features & CPU_OPTION_FMA3)
         {
