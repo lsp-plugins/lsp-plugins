@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-compressor-ms
+GenericName=Mid-Side Stereo Compressor
+Comment=Performs compression of stereo input signal in Mid-Side mode.
+Exec=lsp-plugins-compressor-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

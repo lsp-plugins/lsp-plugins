@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-compressor-stereo
+GenericName=Stereo Compressor
+Comment=Performs compression of stereo input signal.
+Exec=lsp-plugins-compressor-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

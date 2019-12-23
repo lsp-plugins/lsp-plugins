@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-multisampler-x48-do
+GenericName=Direct out 48 Instrument Sample Player
+Comment=Implements 48-instrument MIDI sample player with stereo input and stereo output.
+Exec=lsp-plugins-multisampler-x48-do
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

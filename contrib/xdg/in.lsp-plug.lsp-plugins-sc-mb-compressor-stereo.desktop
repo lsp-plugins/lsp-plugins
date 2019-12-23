@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sc-mb-compressor-stereo
+GenericName=Stereo Sidechain Multiband Compressor
+Comment=Performs multiband compression of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Exec=lsp-plugins-sc-mb-compressor-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-para-equalizer-x32-stereo
+GenericName=Stereo 32 Band Parametric Equalizer
+Comment=Performs parametric equalization of stereo channel. Up to 32 filters are available for signal processing simultaneously.
+Exec=lsp-plugins-para-equalizer-x32-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

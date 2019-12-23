@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-expander-ms
+GenericName=Mid-Side Stereo Expander
+Comment=Performs increasing of dynamic range of stereo input signal in Mid-Side mode.
+Exec=lsp-plugins-expander-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

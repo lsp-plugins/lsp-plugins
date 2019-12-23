@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-slap-delay-stereo
+GenericName=Stereo Slap Delay
+Comment=Allows to add set of short delays of the original (stereo) signal to the output mix. Each delay can be used to simulate the early reflections of the signal from walls.
+Exec=lsp-plugins-slap-delay-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

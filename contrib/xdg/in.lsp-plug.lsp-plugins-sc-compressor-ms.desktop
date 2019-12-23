@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sc-compressor-ms
+GenericName=Mid-Side Stero Sidechain Compressor
+Comment=Performs compression of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Exec=lsp-plugins-sc-compressor-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-spectrum-analyzer-x12
+GenericName=12 Channel Spectrum Analyzer
+Comment=Performs spectral analysis of 12 independent channels simultaneously. Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
+Exec=lsp-plugins-spectrum-analyzer-x12
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

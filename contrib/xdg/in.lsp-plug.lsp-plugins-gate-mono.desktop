@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-gate-mono
+GenericName=Mono Gate
+Comment=Performs gating of mono input signal.
+Exec=lsp-plugins-gate-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

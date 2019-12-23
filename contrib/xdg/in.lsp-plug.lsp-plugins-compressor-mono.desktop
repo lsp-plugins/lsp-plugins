@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-compressor-mono
+GenericName=Mono Compressor
+Comment=Performs compression of mono input signal.
+Exec=lsp-plugins-compressor-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

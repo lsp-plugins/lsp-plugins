@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-phase-detector
+GenericName=Phase Detector
+Comment=Allows to detect phase between two sources.
+Exec=lsp-plugins-phase-detector
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

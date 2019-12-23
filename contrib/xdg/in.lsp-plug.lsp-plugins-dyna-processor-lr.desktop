@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-dyna-processor-lr
+GenericName=Split Stereo Dynamic Processor
+Comment=Performs dynamic processing of stereo input signal by applying individual processing to left and right channels separately.
+Exec=lsp-plugins-dyna-processor-lr
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

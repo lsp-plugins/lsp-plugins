@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-trigger-mono
+GenericName=Mono Audio Trigger
+Comment=Implements trigger with mono input and mono output.
+Exec=lsp-plugins-trigger-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

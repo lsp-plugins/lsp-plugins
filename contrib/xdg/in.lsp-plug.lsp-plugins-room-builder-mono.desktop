@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-room-builder-mono
+GenericName=Mono Room Impulse Response Builder
+Comment=Allows to simulate mono impulse response of any modelled room or space.
+Exec=lsp-plugins-room-builder-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

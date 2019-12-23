@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-dyna-processor-stereo
+GenericName=Stereo Dynamic Processor
+Comment=Performs dynamic processing of stereo input signal.
+Exec=lsp-plugins-dyna-processor-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;
