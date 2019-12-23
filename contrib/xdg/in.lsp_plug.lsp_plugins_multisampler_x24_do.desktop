@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-multisampler-x24-do
+GenericName=Direct Out 24 Instrument Sample Player
+Comment=Implements 1-instrument MIDI sample player with stereo input and stereo output.
+Exec=lsp-plugins-multisampler-x24-do
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

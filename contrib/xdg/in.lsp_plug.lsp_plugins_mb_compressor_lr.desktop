@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-mb-compressor-lr
+GenericName=Split Stereo Multiband Compressor
+Comment=Performs multiband compression of stereo input signal by applying individual processing to left and right channels separately.
+Exec=lsp-plugins-mb-compressor-lr
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

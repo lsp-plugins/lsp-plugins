@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-impulse-responses-mono
+GenericName=Mono Convolution
+Comment=Performs highly optimized real time zero-latency convolution to the input signal. It can be used as a cabinet emulator, some sort of equalizer or as a reverb simulation.
+Exec=lsp-plugins-impulse-responses-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-gate-lr
+GenericName=Split Stereo Gate
+Comment=Performs gating of stereo input signal by applying individual processing to left and right channels separately.
+Exec=lsp-plugins-gate-lr
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

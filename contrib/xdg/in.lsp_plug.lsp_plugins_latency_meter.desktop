@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-latency-meter
+GenericName=Latency Meter
+Comment=Allows to measure the latency of a transmission line by using chirp - inverse filter convolution. Latency is determined as the lag of the convolution peak.
+Exec=lsp-plugins-latency-meter
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

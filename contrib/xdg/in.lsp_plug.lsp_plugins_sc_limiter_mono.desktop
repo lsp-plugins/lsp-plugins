@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sc-limiter-mono
+GenericName=Mono Sidechain Limiter
+Comment=Implements a brick-wall limiter with flexible configuration. It prevents input monosignal from raising over the specified Threshold. Additional sidechain inputs are provided for better use.
+Exec=lsp-plugins-sc-limiter-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;
