@@ -22,7 +22,7 @@ LD                       ?= $(TOOL_LD)
 MAKE_OPTS                 = -s
 CFLAGS                   += $(CC_ARCH) -std=c++98 -fdata-sections -pthread -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
 CXXFLAGS                 += $(CC_ARCH) -std=c++98 -fdata-sections -pthread -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
-SO_FLAGS                  = $(CC_ARCH) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
+SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 MERGE_FLAGS               = $(LD_ARCH) -r
 EXE_TEST_FLAGS            = $(LDFLAGS) $(CC_ARCH)
 EXE_FLAGS                 = $(LDFLAGS) $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections
