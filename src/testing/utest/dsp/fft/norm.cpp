@@ -30,6 +30,12 @@ IF_ARCH_X86(
         void normalize_fft3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
         void normalize_fft2(float *dst_re, float *dst_im, size_t rank);
     }
+
+    namespace avx2
+    {
+        void normalize_fft3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void normalize_fft2(float *dst_re, float *dst_im, size_t rank);
+    }
 )
 
 IF_ARCH_ARM(
@@ -175,8 +181,12 @@ UTEST_BEGIN("dsp.fft", norm)
         // Do tests
         IF_ARCH_X86(CALL(native::normalize_fft2, sse::normalize_fft2, 16));
         IF_ARCH_X86(CALL(native::normalize_fft3, sse::normalize_fft3, 16));
+
         IF_ARCH_X86(CALL(native::normalize_fft2, avx::normalize_fft2, 32));
         IF_ARCH_X86(CALL(native::normalize_fft3, avx::normalize_fft3, 32));
+
+        IF_ARCH_X86(CALL(native::normalize_fft2, avx2::normalize_fft2, 32));
+        IF_ARCH_X86(CALL(native::normalize_fft3, avx2::normalize_fft3, 32));
 
         IF_ARCH_ARM(CALL(native::normalize_fft2, neon_d32::normalize_fft2, 16));
         IF_ARCH_ARM(CALL(native::normalize_fft3, neon_d32::normalize_fft3, 16));

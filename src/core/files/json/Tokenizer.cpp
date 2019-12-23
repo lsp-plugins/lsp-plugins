@@ -6,7 +6,7 @@
  */
 
 #include <wctype.h>
-#include <math.h>
+#include <core/stdlib/math.h>
 #include <core/files/json/Tokenizer.h>
 
 namespace lsp

@@ -74,7 +74,7 @@ namespace avx
         // Perform 4-element butterflies
         ARCH_X86_ASM
         (
-            __ASM_EMIT("vbroadcastss    %%xmm0, %%ymm6")
+            __ASM_EMIT("vbroadcastss    %[norm], %%ymm6")
             __ASM_EMIT("vmovaps         %%ymm6, %%ymm7")
             // 16x blocks
             __ASM_EMIT("sub             $16, %[blocks]")
@@ -113,10 +113,10 @@ namespace avx
             __ASM_EMIT("vextractf128    $1, %%ymm5, 0x30(%[dst])")
             __ASM_EMIT("4:")
 
-            : [dst] "+r"(dst), [blocks] "+r" (blocks), [norm] "+Yz" (norm)
-            :
+            : [dst] "+r"(dst), [blocks] "+r" (blocks)
+            : [norm] "o" (norm)
             : "cc", "memory",
-              "%xmm1", "%xmm2", "%xmm3",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }

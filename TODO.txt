@@ -10,7 +10,8 @@
 - Review implementation of multiband compressor according to the article:
   https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
-=== 1.1.12 ===
+=== 1.1.14 ===
+
 - Additional DSP optimizations for AArch64 architecture.
 - Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
 - Added multilingual support by the graphical toolkit.

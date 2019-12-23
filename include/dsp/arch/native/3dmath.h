@@ -1871,6 +1871,7 @@ namespace native
             n->dy      *= l;
             n->dz      *= l;
         }
+        n->dw       = 0.0f;
     }
 
     void calc_normal3d_vv(vector3d_t *n, const vector3d_t *vv)
@@ -1888,6 +1889,7 @@ namespace native
             n->dy      *= l;
             n->dz      *= l;
         }
+        n->dw       = 0.0f;
     }
 
     void calc_normal3d_p3(vector3d_t *n, const point3d_t *p1, const point3d_t *p2, const point3d_t *p3)

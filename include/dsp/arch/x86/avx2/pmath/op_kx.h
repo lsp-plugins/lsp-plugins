@@ -1,25 +1,25 @@
 /*
  * op_kx.h
  *
- *  Created on: 28 нояб. 2019 г.
+ *  Created on: 23 дек. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_AVX_PMATH_OP_KX_H_
-#define DSP_ARCH_X86_AVX_PMATH_OP_KX_H_
+#ifndef DSP_ARCH_X86_AVX2_PMATH_OP_KX_H_
+#define DSP_ARCH_X86_AVX2_PMATH_OP_KX_H_
 
-#ifndef DSP_ARCH_X86_AVX_IMPL
+#ifndef DSP_ARCH_X86_AVX2_IMPL
     #error "This header should not be included directly"
-#endif /* DSP_ARCH_X86_AVX_IMPL */
+#endif /* DSP_ARCH_X86_AVX2_IMPL */
 
-namespace avx
+namespace avx2
 {
     #define OP_DSEL(a, b)   a
     #define OP_RSEL(a, b)   b
 
     #define OP_K4_CORE(DST, SRC, OP, SEL) \
         __ASM_EMIT("xor         %[off], %[off]") \
-        __ASM_EMIT("vbroadcastss %[k], %%ymm0") \
+        __ASM_EMIT("vbroadcastss %%xmm0, %%ymm0") \
         __ASM_EMIT("sub         $32, %[count]") \
         __ASM_EMIT("vmovaps     %%ymm0, %%ymm1") \
         __ASM_EMIT("jb          2f")    \
@@ -91,11 +91,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "dst", "vadd", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -106,11 +106,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "dst", "vsub", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -121,11 +121,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "dst", "vsub", OP_RSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -136,11 +136,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "dst", "vmul", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -156,11 +156,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "dst", "vdiv", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -171,11 +171,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "src", "vadd", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst), [src] "r" (src),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst), [src] "r" (src)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -186,11 +186,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "src", "vsub", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst), [src] "r" (src),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst), [src] "r" (src)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -201,11 +201,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "src", "vsub", OP_RSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst), [src] "r" (src),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst), [src] "r" (src)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -216,11 +216,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "src", "vmul", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst), [src] "r" (src),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst), [src] "r" (src)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -236,11 +236,11 @@ namespace avx
         ARCH_X86_ASM
         (
             OP_K4_CORE("dst", "src", "vdiv", OP_DSEL)
-            : [count] "+r" (count), [off] "=&r" (off)
-            : [dst] "r" (dst), [src] "r" (src),
-              [k] "o" (k)
+            : [count] "+r" (count), [off] "=&r" (off),
+              [k] "+Yz" (k)
+            : [dst] "r" (dst), [src] "r" (src)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -250,4 +250,4 @@ namespace avx
 #undef OP_RSEL
 }
 
-#endif /* DSP_ARCH_X86_AVX_PMATH_OP_KX_H_ */
+#endif /* DSP_ARCH_X86_AVX2_PMATH_OP_KX_H_ */

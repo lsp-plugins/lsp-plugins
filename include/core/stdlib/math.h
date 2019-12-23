@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_STDLIB_MATH_H_
-#define INCLUDE_CORE_STDLIB_MATH_H_
+#ifndef CORE_STDLIB_MATH_H_
+#define CORE_STDLIB_MATH_H_
 
 #include <math.h>
 
@@ -62,4 +62,4 @@
     #define M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 #endif
 
-#endif /* INCLUDE_CORE_STDLIB_MATH_H_ */
+#endif /* CORE_STDLIB_MATH_H_ */
