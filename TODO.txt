@@ -13,6 +13,7 @@
 === 1.1.13 ===
 
 * Fixed improper utilization of AVX2 instruction when the CPU provides only AVX instruction set.
+* Fixed some unit tests.
 
 === 1.1.14 ===
 
