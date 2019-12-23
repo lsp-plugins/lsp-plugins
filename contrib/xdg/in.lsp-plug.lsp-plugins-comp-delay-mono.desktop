@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-comp-delay-mono
+GenericName=Mono Delay Compensator
+Comment=Add short delay to the mono channel to compensate the phase offset relatively to other channels.
+Exec=lsp-plugins-comp-delay-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

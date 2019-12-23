@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-oscillator-mono
+GenericName=Mono Signal Generator
+Comment=Implements a simple yet flexible utility signal generator. It can be used to provide reference waves in replacement, additive and multiplicative (modulation) Mode.
+Exec=lsp-plugins-oscillator-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

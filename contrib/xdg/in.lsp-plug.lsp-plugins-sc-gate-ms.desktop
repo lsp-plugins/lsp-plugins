@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sc-gate-ms
+GenericName=Mid-Side Stereo Sidechain Gate
+Comment=Performs gating of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Exec=lsp-plugins-sc-gate-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

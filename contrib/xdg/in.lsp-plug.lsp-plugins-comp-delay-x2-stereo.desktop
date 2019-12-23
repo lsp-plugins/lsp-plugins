@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-comp-delay-x2-stereo
+GenericName=Split Stereo Delay Compensator
+Comment=Add short delay to each individual channel of the stereo channel to compensate the phase offset relatively to other channels.
+Exec=lsp-plugins-comp-delay-x2-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

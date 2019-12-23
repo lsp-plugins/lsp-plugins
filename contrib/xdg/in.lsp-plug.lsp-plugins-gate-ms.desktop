@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-gate-ms
+GenericName=Mid-Side Stereo Gate
+Comment=Performs gating of stereo input signal in Mid-Side mode.
+Exec=lsp-plugins-gate-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

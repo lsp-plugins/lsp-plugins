@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sc-expander-lr
+GenericName=Split Stereo Sidechain Expander
+Comment=Performs increasing of dynamic range of stereo input signal by applying individual processing to left and right channels separately. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Exec=lsp-plugins-sc-expander-lr
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

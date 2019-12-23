@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-graph-equalizer-x32-mono
+GenericName=Mono 16 Band Graphic Equalizer
+Comment=Performs graphic equalization of mono channel. Up to 32 frequency bands are available for correction in range of 72 dB (-36..+36 dB).
+Exec=lsp-plugins-graph-equalizer-x32-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-profiler-stereo
+GenericName=Stereo Audio Profiler
+Comment=Allows to profile audio systems (stereo) based on the Synchronized Swept Sine method by Antonin Novak.
+Exec=lsp-plugins-profiler-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

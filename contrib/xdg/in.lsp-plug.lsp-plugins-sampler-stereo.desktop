@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sampler-stereo
+GenericName=Stereo MIDI Sample Player
+Comment=Implements single-note MIDI sample player with stereo input and stereo output.
+Exec=lsp-plugins-sampler-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

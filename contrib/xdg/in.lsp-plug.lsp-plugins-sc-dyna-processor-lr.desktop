@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-sc-dyna-processor-lr
+GenericName=Split Stereo Dynamic Sidechain Processor
+Comment=Performs dynamic processing of stereo input signal by applying individual processing to left and right channels separately. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Exec=lsp-plugins-sc-dyna-processor-lr
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

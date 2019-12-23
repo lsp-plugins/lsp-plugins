@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=lsp-plugins-mb-compressor-mono
+GenericName=Mono Multiband Compressor
+Comment=Performs multiband compression of mono input signal.
+Exec=lsp-plugins-mb-compressor-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;
