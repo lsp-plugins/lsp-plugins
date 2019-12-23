@@ -6,6 +6,11 @@ TOOL_PHP                = php
 
 # Setup preferred flags
 FLAG_RELRO              = -Wl,-z,relro,-z,now
+FLAG_VERSION            = -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
+FLAG_CTUNE              = -std=c++98 \
+                          -fno-exceptions -fno-rtti \
+                          -fdata-sections -ffunction-sections -fno-asynchronous-unwind-tables \
+                          -pipe -Wall
 
 # Patch flags and tools
 ifeq ($(BUILD_PLATFORM),Solaris)
@@ -20,8 +25,8 @@ PHP                      ?= $(TOOL_PHP)
 LD                       ?= $(TOOL_LD)
 
 MAKE_OPTS                 = -s
-CFLAGS                   += $(CC_ARCH) -std=c++98 -fdata-sections -pthread -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
-CXXFLAGS                 += $(CC_ARCH) -std=c++98 -fdata-sections -pthread -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
+CFLAGS                   += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
+CXXFLAGS                 += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
 SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 MERGE_FLAGS               = $(LD_ARCH) -r
 EXE_TEST_FLAGS            = $(LDFLAGS) $(CC_ARCH)
