@@ -10,12 +10,6 @@
 - Review implementation of multiband compressor according to the article:
   https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
-=== 1.1.13 ===
-
-* Fixed improper utilization of AVX2 instruction when the CPU provides only AVX instruction set.
-* Fixed some unit tests.
-* Removed strict RPATH dependency in build scripts.
-
 === 1.1.14 ===
 
 - Additional DSP optimizations for AArch64 architecture.

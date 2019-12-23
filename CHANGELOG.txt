@@ -2,6 +2,12 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.13 ===
+
+* Fixed improper utilization of AVX2 instruction when the CPU provides only AVX instruction set.
+* Fixed some unit tests.
+* Removed strict RPATH dependency in build scripts.
+
 === 1.1.11 ===
 
 * Source code now compiles for the ARMv6A architecture.
