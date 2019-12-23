@@ -244,42 +244,22 @@
 					
 					<grid rows="5" cols="17">
 						<label text="Hz" fill="true" halign="0" />
-						<ui:if test="${:f ieq 0}">
-							<label text="16" />
-							<label text="20" />
-							<label text="25" />
-							<label text="31.5" />
-							<label text="40" />
-							<label text="50" />
-							<label text="63" />
-							<label text="80" />
-							<label text="100" />
-							<label text="125" />
-							<label text="160" />
-							<label text="200" />
-							<label text="250" />
-							<label text="315" />
-							<label text="400" />
-							<label text="500" />
-						</ui:if>
-						<ui:if test="${:f ieq 1}">
-							<label text="630" />
-							<label text="800" />
-							<label text="1K" />
-							<label text="1.25K" />
-							<label text="1.6K" />
-							<label text="2K" />
-							<label text="2.5K" />
-							<label text="3.15K" />
-							<label text="4K" />
-							<label text="5K" />
-							<label text="6.3K" />
-							<label text="8K" />
-							<label text="10K" />
-							<label text="12.5K" />
-							<label text="16K" />
-							<label text="20K" />
-						</ui:if>
+						<label text="16" />
+						<label text="25" />
+						<label text="40" />
+						<label text="63" />
+						<label text="100" />
+						<label text="160" />
+						<label text="250" />
+						<label text="400" />
+						<label text="630" />
+						<label text="1K" />
+						<label text="1.6K" />
+						<label text="2.5K" />
+						<label text="4K" />
+						<label text="6.3K" />
+						<label text="10K" />
+						<label text="16K" />
 						
 						<label text="Ctl" halign="0" />
 						<ui:for id="i" first="${:f*16}" last="${:f*16+15}">
