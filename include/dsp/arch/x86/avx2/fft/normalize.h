@@ -1,18 +1,18 @@
 /*
  * normalize.h
  *
- *  Created on: 18 дек. 2019 г.
+ *  Created on: 23 дек. 2019 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_AVX_FFT_NORMALIZE_H_
-#define DSP_ARCH_X86_AVX_FFT_NORMALIZE_H_
+#ifndef DSP_ARCH_X86_AVX2_FFT_NORMALIZE_H_
+#define DSP_ARCH_X86_AVX2_FFT_NORMALIZE_H_
 
-#ifndef DSP_ARCH_X86_AVX_IMPL
+#ifndef DSP_ARCH_X86_AVX2_IMPL
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
-namespace avx
+namespace avx2
 {
     void normalize_fft3(float *dre, float *dim, const float *re, const float *im, size_t rank)
     {
@@ -22,7 +22,7 @@ namespace avx
         );
         ARCH_X86_ASM(
             // x16 blocks
-            __ASM_EMIT  ("vbroadcastss  %[k], %%ymm0")                 // ymm0   = k
+            __ASM_EMIT  ("vbroadcastss  %%xmm0, %%ymm0")                 // ymm0   = k
             __ASM_EMIT32("subl          $16, %[count]")
             __ASM_EMIT64("sub           $16, %[count]")
             __ASM_EMIT  ("vmovaps       %%ymm0, %%ymm1")
@@ -50,12 +50,12 @@ namespace avx
             __ASM_EMIT  ("vmovups       %%ymm4, 0x00(%[d_re], %[off])")
             __ASM_EMIT  ("vmovups       %%ymm6, 0x00(%[d_im], %[off])")
             __ASM_EMIT  ("4:")
-            : [off] "+r" (off), [count] __ASM_ARG_RW(count)
+            : [off] "+r" (off), [count] __ASM_ARG_RW(count),
+              [k] "+Yz" (k)
             : [s_re] "r" (re), [s_im] "r" (im),
-              [d_re] "r" (dre), [d_im] "r" (dim),
-              [k] "o" (k)
+              [d_re] "r" (dre), [d_im] "r" (dim)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
@@ -68,7 +68,7 @@ namespace avx
         );
         ARCH_X86_ASM(
             // x16 blocks
-            __ASM_EMIT  ("vbroadcastss  %[k], %%ymm0")                 // ymm0   = k
+            __ASM_EMIT  ("vbroadcastss  %%xmm0, %%ymm0")                 // ymm0   = k
             __ASM_EMIT32("subl          $16, %[count]")
             __ASM_EMIT64("sub           $16, %[count]")
             __ASM_EMIT  ("vmovaps       %%ymm0, %%ymm1")
@@ -96,15 +96,15 @@ namespace avx
             __ASM_EMIT  ("vmovups       %%ymm4, 0x00(%[d_re], %[off])")
             __ASM_EMIT  ("vmovups       %%ymm6, 0x00(%[d_im], %[off])")
             __ASM_EMIT  ("4:")
-            : [off] "+r" (off), [count] "+r" (count)
-            : [d_re] "r" (re), [d_im] "r" (im),
-              [k] "o" (k)
+            : [off] "+r" (off), [count] "+r" (count),
+              [k] "+Yz" (k)
+            : [d_re] "r" (re), [d_im] "r" (im)
             : "cc", "memory",
-              "%xmm0", "%xmm1",
+              "%xmm1",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 }
 
 
-#endif /* DSP_ARCH_X86_AVX_FFT_NORMALIZE_H_ */
+#endif /* DSP_ARCH_X86_AVX2_FFT_NORMALIZE_H_ */

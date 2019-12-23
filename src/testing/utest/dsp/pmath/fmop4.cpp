@@ -37,16 +37,16 @@ IF_ARCH_X86(
 
     namespace avx
     {
-        void    x64_fmadd4(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmsub4(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmrsub4(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmmul4(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmrdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmadd4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmsub4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmrsub4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmmul4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmrdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
 
-        void    x64_fmadd4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count);
-        void    x64_fmrsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmadd4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmrsub4_fma3(float *dst, const float *a, const float *b, const float *c, size_t count);
     }
 )
 
@@ -136,16 +136,16 @@ UTEST_BEGIN("dsp.pmath", fmop4)
         IF_ARCH_X86(CALL(native::fmdiv4, sse::fmdiv4, 16));
         IF_ARCH_X86(CALL(native::fmrdiv4, sse::fmrdiv4, 16));
 
-        IF_ARCH_X86(CALL(native::fmadd4, avx::x64_fmadd4, 32));
-        IF_ARCH_X86(CALL(native::fmsub4, avx::x64_fmsub4, 32));
-        IF_ARCH_X86(CALL(native::fmrsub4, avx::x64_fmrsub4, 32));
-        IF_ARCH_X86(CALL(native::fmmul4, avx::x64_fmmul4, 32));
-        IF_ARCH_X86(CALL(native::fmdiv4, avx::x64_fmdiv4, 32));
-        IF_ARCH_X86(CALL(native::fmrdiv4, avx::x64_fmrdiv4, 32));
+        IF_ARCH_X86(CALL(native::fmadd4, avx::fmadd4, 32));
+        IF_ARCH_X86(CALL(native::fmsub4, avx::fmsub4, 32));
+        IF_ARCH_X86(CALL(native::fmrsub4, avx::fmrsub4, 32));
+        IF_ARCH_X86(CALL(native::fmmul4, avx::fmmul4, 32));
+        IF_ARCH_X86(CALL(native::fmdiv4, avx::fmdiv4, 32));
+        IF_ARCH_X86(CALL(native::fmrdiv4, avx::fmrdiv4, 32));
 
-        IF_ARCH_X86(CALL(native::fmadd4, avx::x64_fmadd4_fma3, 32));
-        IF_ARCH_X86(CALL(native::fmsub4, avx::x64_fmsub4_fma3, 32));
-        IF_ARCH_X86(CALL(native::fmrsub4, avx::x64_fmrsub4_fma3, 32));
+        IF_ARCH_X86(CALL(native::fmadd4, avx::fmadd4_fma3, 32));
+        IF_ARCH_X86(CALL(native::fmsub4, avx::fmsub4_fma3, 32));
+        IF_ARCH_X86(CALL(native::fmrsub4, avx::fmrsub4_fma3, 32));
 
         IF_ARCH_ARM(CALL(native::fmadd4, neon_d32::fmadd4, 16));
         IF_ARCH_ARM(CALL(native::fmsub4, neon_d32::fmsub4, 16));

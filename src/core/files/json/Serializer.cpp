@@ -11,6 +11,7 @@
 #include <core/io/OutSequence.h>
 #include <core/files/json/Tokenizer.h>
 #include <core/files/json/Serializer.h>
+#include <core/stdlib/math.h>
 
 namespace lsp
 {
@@ -365,9 +366,9 @@ namespace lsp
             if (pOut == NULL)
                 return STATUS_BAD_STATE;
 
-            if (::isnan(value))
+            if (isnan(value))
                 return write_raw("NaN", 3);
-            else if (::isinf(value))
+            else if (isinf(value))
                 return (value < 0.0) ? write_raw("-Infinity", 9) : write_raw("Infinity", 8);
 
             char buf[0x20];
@@ -380,9 +381,9 @@ namespace lsp
             if (pOut == NULL)
                 return STATUS_BAD_STATE;
 
-            if (::isnan(value))
+            if (isnan(value))
                 return write_raw("NaN", 3);
-            else if (::isinf(value))
+            else if (isinf(value))
                 return (value < 0.0) ? write_raw("-Infinity", 9) : write_raw("Infinity", 8);
 
             char *buf = NULL;

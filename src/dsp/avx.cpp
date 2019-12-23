@@ -129,33 +129,33 @@ namespace avx
         CEXPORT1(favx, mul3);
         CEXPORT1(favx, div3);
 
-        CEXPORT2_X64(favx, fmadd_k3, x64_fmadd_k3);
-        CEXPORT2_X64(favx, fmsub_k3, x64_fmsub_k3);
-        CEXPORT2_X64(favx, fmrsub_k3, x64_fmrsub_k3);
-        CEXPORT2_X64(favx, fmmul_k3, x64_fmmul_k3);
-        CEXPORT2_X64(favx, fmdiv_k3, x64_fmdiv_k3);
-        CEXPORT2_X64(favx, fmrdiv_k3, x64_fmrdiv_k3);
+        CEXPORT1(favx, fmadd_k3);
+        CEXPORT1(favx, fmsub_k3);
+        CEXPORT1(favx, fmrsub_k3);
+        CEXPORT1(favx, fmmul_k3);
+        CEXPORT1(favx, fmdiv_k3);
+        CEXPORT1(favx, fmrdiv_k3);
 
-        CEXPORT2_X64(favx, fmadd_k4, x64_fmadd_k4);
-        CEXPORT2_X64(favx, fmsub_k4, x64_fmsub_k4);
-        CEXPORT2_X64(favx, fmrsub_k4, x64_fmrsub_k4);
-        CEXPORT2_X64(favx, fmmul_k4, x64_fmmul_k4);
-        CEXPORT2_X64(favx, fmdiv_k4, x64_fmdiv_k4);
-        CEXPORT2_X64(favx, fmrdiv_k4, x64_fmrdiv_k4);
+        CEXPORT1(favx, fmadd_k4);
+        CEXPORT1(favx, fmsub_k4);
+        CEXPORT1(favx, fmrsub_k4);
+        CEXPORT1(favx, fmmul_k4);
+        CEXPORT1(favx, fmdiv_k4);
+        CEXPORT1(favx, fmrdiv_k4);
 
-        CEXPORT2_X64(favx, fmadd3, x64_fmadd3);
-        CEXPORT2_X64(favx, fmsub3, x64_fmsub3);
-        CEXPORT2_X64(favx, fmrsub3, x64_fmrsub3);
-        CEXPORT2_X64(favx, fmmul3, x64_fmmul3);
-        CEXPORT2_X64(favx, fmdiv3, x64_fmdiv3);
-        CEXPORT2_X64(favx, fmrdiv3, x64_fmrdiv3);
+        CEXPORT1(favx, fmadd3);
+        CEXPORT1(favx, fmsub3);
+        CEXPORT1(favx, fmrsub3);
+        CEXPORT1(favx, fmmul3);
+        CEXPORT1(favx, fmdiv3);
+        CEXPORT1(favx, fmrdiv3);
 
-        CEXPORT2_X64(favx, fmadd4, x64_fmadd4);
-        CEXPORT2_X64(favx, fmsub4, x64_fmsub4);
-        CEXPORT2_X64(favx, fmrsub4, x64_fmrsub4);
-        CEXPORT2_X64(favx, fmmul4, x64_fmmul4);
-        CEXPORT2_X64(favx, fmdiv4, x64_fmdiv4);
-        CEXPORT2_X64(favx, fmrdiv4, x64_fmrdiv4);
+        CEXPORT1(favx, fmadd4);
+        CEXPORT1(favx, fmsub4);
+        CEXPORT1(favx, fmrsub4);
+        CEXPORT1(favx, fmmul4);
+        CEXPORT1(favx, fmdiv4);
+        CEXPORT1(favx, fmrdiv4);
 
         CEXPORT2_X64(favx, abs_add2, x64_abs_add2);
         CEXPORT2_X64(favx, abs_sub2, x64_abs_sub2);
@@ -238,21 +238,21 @@ namespace avx
             lsp_trace("Optimizing DSP for FMA3 instruction set");
 
             // Conditional export, depending on fast AVX implementation
-            CEXPORT2_X64(favx, fmadd_k3, x64_fmadd_k3_fma3);
-            CEXPORT2_X64(favx, fmsub_k3, x64_fmsub_k3_fma3);
-            CEXPORT2_X64(favx, fmrsub_k3, x64_fmrsub_k3_fma3);
+            CEXPORT2_X64(favx, fmadd_k3, fmadd_k3_fma3);
+            CEXPORT2_X64(favx, fmsub_k3, fmsub_k3_fma3);
+            CEXPORT2_X64(favx, fmrsub_k3, fmrsub_k3_fma3);
 
-            CEXPORT2_X64(favx, fmadd_k4, x64_fmadd_k4_fma3);
-            CEXPORT2_X64(favx, fmsub_k4, x64_fmsub_k4_fma3);
-            CEXPORT2_X64(favx, fmrsub_k4, x64_fmrsub_k4_fma3);
+            CEXPORT2_X64(favx, fmadd_k4, fmadd_k4_fma3);
+            CEXPORT2_X64(favx, fmsub_k4, fmsub_k4_fma3);
+            CEXPORT2_X64(favx, fmrsub_k4, fmrsub_k4_fma3);
 
-            CEXPORT2_X64(favx, fmadd3, x64_fmadd3_fma3);
-            CEXPORT2_X64(favx, fmsub3, x64_fmsub3_fma3);
-            CEXPORT2_X64(favx, fmrsub3, x64_fmrsub3_fma3);
+            CEXPORT2_X64(favx, fmadd3, fmadd3_fma3);
+            CEXPORT2_X64(favx, fmsub3, fmsub3_fma3);
+            CEXPORT2_X64(favx, fmrsub3, fmrsub3_fma3);
 
-            CEXPORT2_X64(favx, fmadd4, x64_fmadd4_fma3);
-            CEXPORT2_X64(favx, fmsub4, x64_fmsub4_fma3);
-            CEXPORT2_X64(favx, fmrsub4, x64_fmrsub4_fma3);
+            CEXPORT2_X64(favx, fmadd4, fmadd4_fma3);
+            CEXPORT2_X64(favx, fmsub4, fmsub4_fma3);
+            CEXPORT2_X64(favx, fmrsub4, fmrsub4_fma3);
 
             CEXPORT2(favx, complex_mul2, complex_mul2_fma3);
             CEXPORT2(favx, complex_mul3, complex_mul3_fma3);

@@ -141,7 +141,7 @@ namespace lsp
 
     status_t XMLPlaybackNode::playback()
     {
-        status_t res;
+        status_t res = STATUS_OK;
         XMLHandler h(pHandler);
 
         for (size_t i=0, n=vEvents.size(); i<n; ++i)

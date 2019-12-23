@@ -15,9 +15,13 @@
 
 #define DSP_ARCH_X86_AVX2_IMPL
 
+#include <dsp/arch/x86/avx2/pmath/op_kx.h>
+#include <dsp/arch/x86/avx2/pmath/fmop_kx.h>
 #include <dsp/arch/x86/avx2/pmath/exp.h>
 #include <dsp/arch/x86/avx2/pmath/log.h>
 #include <dsp/arch/x86/avx2/pmath/pow.h>
+
+#include <dsp/arch/x86/avx2/fft/normalize.h>
 
 #include <dsp/arch/x86/avx2/search/iminmax.h>
 
@@ -73,6 +77,34 @@ namespace avx2
 
         bool favx   = feature_check(f, FEAT_FAST_AVX);
 
+        CEXPORT1(favx, add_k2);
+        CEXPORT1(favx, sub_k2);
+        CEXPORT1(favx, rsub_k2);
+        CEXPORT1(favx, mul_k2);
+        CEXPORT1(favx, div_k2);
+        CEXPORT1(favx, rdiv_k2);
+
+        CEXPORT1(favx, add_k3);
+        CEXPORT1(favx, sub_k3);
+        CEXPORT1(favx, rsub_k3);
+        CEXPORT1(favx, mul_k3);
+        CEXPORT1(favx, div_k3);
+        CEXPORT1(favx, rdiv_k3);
+
+        CEXPORT1(favx, fmadd_k3);
+        CEXPORT1(favx, fmsub_k3);
+        CEXPORT1(favx, fmrsub_k3);
+        CEXPORT1(favx, fmmul_k3);
+        CEXPORT1(favx, fmdiv_k3);
+        CEXPORT1(favx, fmrdiv_k3);
+
+        CEXPORT1(favx, fmadd_k4);
+        CEXPORT1(favx, fmsub_k4);
+        CEXPORT1(favx, fmrsub_k4);
+        CEXPORT1(favx, fmmul_k4);
+        CEXPORT1(favx, fmdiv_k4);
+        CEXPORT1(favx, fmrdiv_k4);
+
         CEXPORT2_X64(favx, exp1, x64_exp1);
         CEXPORT2_X64(favx, exp2, x64_exp2);
 
@@ -95,15 +127,19 @@ namespace avx2
         CEXPORT2_X64(favx, eff_hsla_light, x64_eff_hsla_light);
         CEXPORT2_X64(favx, eff_hsla_alpha, x64_eff_hsla_alpha);
 
-        CEXPORT1(favx, min_index);
-        CEXPORT1(favx, max_index);
-        CEXPORT1(favx, minmax_index);
-        CEXPORT1(favx, abs_min_index);
-        CEXPORT1(favx, abs_max_index);
-        CEXPORT1(favx, abs_minmax_index);
+        CEXPORT1(favx, normalize_fft2);
+        CEXPORT1(favx, normalize_fft3);
 
         if (f->features & CPU_OPTION_FMA3)
         {
+            CEXPORT2_X64(favx, fmadd_k3, fmadd_k3_fma3);
+            CEXPORT2_X64(favx, fmsub_k3, fmsub_k3_fma3);
+            CEXPORT2_X64(favx, fmrsub_k3, fmrsub_k3_fma3);
+
+            CEXPORT2_X64(favx, fmadd_k4, fmadd_k4_fma3);
+            CEXPORT2_X64(favx, fmsub_k4, fmsub_k4_fma3);
+            CEXPORT2_X64(favx, fmrsub_k4, fmrsub_k4_fma3);
+
             CEXPORT2_X64(favx, exp1, x64_exp1_fma3);
             CEXPORT2_X64(favx, exp2, x64_exp2_fma3);
 

@@ -187,13 +187,13 @@ UTEST_BEGIN("core.files.json", tokenizer)
         ck_float(t, 2E+1);
 
         UTEST_ASSERT(t.get_token(true) == JT_DOUBLE);
-        UTEST_ASSERT(::isinf(t.float_value()) && (t.float_value() > 0.0));
+        UTEST_ASSERT(isinf(t.float_value()) && (t.float_value() > 0.0));
         UTEST_ASSERT(t.get_token(true) == JT_DOUBLE);
-        UTEST_ASSERT(::isinf(t.float_value()) && (t.float_value() < 0.0));
+        UTEST_ASSERT(isinf(t.float_value()) && (t.float_value() < 0.0));
         UTEST_ASSERT(t.get_token(true) == JT_DOUBLE);
-        UTEST_ASSERT(::isnan(t.float_value()));
+        UTEST_ASSERT(isnan(t.float_value()));
         UTEST_ASSERT(t.get_token(true) == JT_DOUBLE);
-        UTEST_ASSERT(::isnan(t.float_value()));
+        UTEST_ASSERT(isnan(t.float_value()));
 
         UTEST_ASSERT(t.get_token(true) == JT_EOF);
     }

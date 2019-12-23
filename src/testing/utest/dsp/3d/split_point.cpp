@@ -82,7 +82,7 @@ UTEST_BEGIN("dsp.3d", split_point)
             fn(&sp[1], &pv[0], &pv[1], &pl);
 
             // Compare
-            if (!point3d_ack(&sp[0], &sp[1], 1e-4))
+            if (!point3d_ack(&sp[0], &sp[1], 1e-3))
             {
                 dump_vector("pl", &pl);
                 dump_point("p[0]", &pv[0]);
@@ -136,7 +136,7 @@ UTEST_BEGIN("dsp.3d", split_point)
             fn(&sp[1], pv, &pl);
 
             // Compare
-            if (!point3d_ack(&sp[0], &sp[1], 1e-4))
+            if (!point3d_ack(&sp[0], &sp[1], 1e-3))
             {
                 dump_vector("pl", &pl);
                 dump_point("p[0]", &pv[0]);

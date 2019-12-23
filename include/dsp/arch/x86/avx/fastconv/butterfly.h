@@ -274,7 +274,7 @@
     ARCH_X86_ASM \
     ( \
         /* Prepare angle */ \
-        __ASM_EMIT("vbroadcastss    %%xmm0, %%ymm1")                    /* ymm1 = k */ \
+        __ASM_EMIT("vbroadcastss    %[norm], %%ymm1")                   /* ymm1 = k */ \
         __ASM_EMIT("lea             (,%[np], 4), %[off]")               /* off  = np * 8 */ \
         __ASM_EMIT("vmovaps         0x00(%[ak]), %%ymm6")               /* ymm6 = x_re */ \
         __ASM_EMIT("vmovaps         0x20(%[ak]), %%ymm7")               /* ymm7 = x_im */ \
@@ -315,11 +315,12 @@
         __ASM_EMIT("jmp             1b") \
         __ASM_EMIT("2:") \
         \
-        : [off] "=&r" (off), [norm] "+Yz" (norm), [np] __ASM_ARG_RW(np) \
-        : [dst] "r" (dst), [src] "r" (src), [ak] "r" (ak), [wk] "r" (wk) \
+        : [off] "=&r" (off), [np] __ASM_ARG_RW(np) \
+        : [dst] "r" (dst), [src] "r" (src), [ak] "r" (ak), [wk] "r" (wk), \
+          [norm] "o" (norm) \
         : "cc", "memory",  \
-        "%xmm1", "%xmm2", "%xmm3", \
-        "%xmm4", "%xmm5", "%xmm6", "%xmm7"  \
+          "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
+          "%xmm4", "%xmm5", "%xmm6", "%xmm7"  \
     );
 
 namespace avx
