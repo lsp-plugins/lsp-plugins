@@ -12,16 +12,19 @@
 
 === 1.1.14 ===
 
+- Implemented Multiband expander plugin series.
+- Implemented Multiband gate plugin series.
+- Refactored and optimized dynamic filter processing.
+- Decomposition of core modules into submodules.
+- Additional code updates to get compatibility with WindowsNT platform. 
+- Added multilingual support by the graphical toolkit.
+- Added frequency-domain spectral analysis to convolver plugin series.
+- Added frequency-domain spectral analysis to profiler plugin series.
 - Additional DSP optimizations for AArch64 architecture.
 - Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
-- Added multilingual support by the graphical toolkit.
-- Decomposition of core modules into submodules.
-- Additional code updates to get compatibility with WindowsNT platform.
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
-- Added frequency-domain spectral analysis to convolver plugin series.
-- Added frequency-domain spectral analysis to profiler plugin series.
  
 
 *******************************************************************************
