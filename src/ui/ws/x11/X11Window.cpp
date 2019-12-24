@@ -157,7 +157,7 @@ namespace lsp
 
                     // Now select input for new handle
                     lsp_trace("Issuing XSelectInput");
-                    XSelectInput(dpy, wnd,
+                    ::XSelectInput(dpy, wnd,
                         KeyPressMask |
                         KeyReleaseMask |
                         ButtonPressMask |
@@ -184,6 +184,11 @@ namespace lsp
                         ColormapChangeMask |
                         OwnerGrabButtonMask
                     );
+                    if (hParent > 0)
+                    {
+                        ::XSelectInput(dpy, hParent, PropertyChangeMask);
+                    }
+
                     pX11Display->flush();
 
                     sMotif.flags        = MWM_HINTS_FUNCTIONS | MWM_HINTS_DECORATIONS | MWM_HINTS_INPUT_MODE | MWM_HINTS_STATUS;

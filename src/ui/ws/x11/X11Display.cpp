@@ -1439,6 +1439,22 @@ namespace lsp
                 if (ev->type > LASTEvent)
                     return;
 
+                #if 0
+                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
+                    int(ev->type), event_name(ev->type), long(ev->xany.serial), int(ev->xany.window));
+
+
+                if (ev->type == PropertyNotify)
+                {
+                    XPropertyEvent *pe = &ev->xproperty;
+                    #ifdef LSP_TRACE
+                    char *name = ::XGetAtomName(pDisplay, pe->atom);
+                    lsp_trace("Received PropertyNotifyEvent: property=%s, state=%lx", name, (long)pe->state);
+                    ::XFree(name);
+                    #endif
+                }
+                #endif
+
                 // Special case for buffers
                 if (handle_clipboard_event(ev))
                 {
@@ -1451,9 +1467,6 @@ namespace lsp
                     complete_async_tasks();
                     return;
                 }
-
-//                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
-//                    int(ev->type), event_name(ev->type), long(ev->xany.serial), int(ev->xany.window));
 
                 // Find the target window
                 X11Window *target = NULL;
