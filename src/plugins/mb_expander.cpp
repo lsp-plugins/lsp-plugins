@@ -8,12 +8,47 @@
 #include <core/debug.h>
 #include <plugins/mb_expander.h>
 
+#define MBE_BUFFER_SIZE         0x1000
+#define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
+
 namespace lsp
 {
     mb_expander_base::mb_expander_base(const plugin_metadata_t &metadata, bool sc, size_t mode):
         plugin_t(metadata)
     {
-        // TODO
+        nMode           = mode;
+        bSidechain      = sc;
+        bEnvUpdate      = true;
+        bModern         = true;
+        nEnvBoost       = mb_expander_base_metadata::FB_DEFAULT;
+        vChannels       = NULL;
+        fInGain         = GAIN_AMP_0_DB;
+        fDryGain        = GAIN_AMP_M_INF_DB;
+        fWetGain        = GAIN_AMP_0_DB;
+        fZoom           = GAIN_AMP_0_DB;
+        pData           = NULL;
+        vTr             = NULL;
+        vPFc             = NULL;
+        vRFc            = NULL;
+        vFreqs          = NULL;
+        vCurve          = NULL;
+        vIndexes        = NULL;
+        pIDisplay       = NULL;
+        vSc[0]          = NULL;
+        vSc[1]          = NULL;
+        vBuffer         = NULL;
+        vEnv            = NULL;
+
+        pBypass         = NULL;
+        pMode           = NULL;
+        pInGain         = NULL;
+        pDryGain        = NULL;
+        pWetGain        = NULL;
+        pOutGain        = NULL;
+        pReactivity     = NULL;
+        pShiftGain      = NULL;
+        pZoom           = NULL;
+        pEnvBoost       = NULL;
     }
 
     mb_expander_base::~mb_expander_base()
@@ -23,11 +58,211 @@ namespace lsp
 
     void mb_expander_base::init(IWrapper *wrapper)
     {
+        // Initialize plugin
         plugin_t::init(wrapper);
+
+        // Determine number of channels
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+
+        // Allocate channels
+        vChannels       = new channel_t[channels];
+        if (vChannels == NULL)
+            return;
+
+        // Initialize analyzer
+        size_t an_cid       = 0;
+        if (!sAnalyzer.init(2*channels, mb_expander_base_metadata::FFT_RANK))
+            return;
+
+        sAnalyzer.set_rank(mb_expander_base_metadata::FFT_RANK);
+        sAnalyzer.set_activity(false);
+        sAnalyzer.set_envelope(envelope::WHITE_NOISE);
+        sAnalyzer.set_window(mb_expander_base_metadata::FFT_WINDOW);
+        sAnalyzer.set_rate(mb_expander_base_metadata::FFT_REFRESH_RATE);
+
+        size_t filter_mesh_size = ALIGN_SIZE(mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float), DEFAULT_ALIGN);
+
+        // Allocate float buffer data
+        size_t to_alloc =
+                // Global buffers
+                2 * filter_mesh_size + // vTr (both complex and real)
+                2 * filter_mesh_size + // vFc (both complex and real)
+                2 * filter_mesh_size + // vSig (both complex and real)
+                mb_expander_base_metadata::CURVE_MESH_SIZE * sizeof(float) + // Curve
+                mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float) + // vFreqs array
+                mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
+                MBE_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
+                MBE_BUFFER_SIZE * sizeof(float)  // Global vEnv for band signal processing
+                ;
+
+        uint8_t *ptr    = alloc_aligned<uint8_t>(pData, to_alloc);
+        if (ptr == NULL)
+            return;
+        lsp_guard_assert(uint8_t *save   = ptr);
+
+        // Remember the pointer to frequencies buffer
+        vTr             = reinterpret_cast<float *>(ptr);
+        ptr            += filter_mesh_size * 2;
+        vPFc             = reinterpret_cast<float *>(ptr);
+        ptr            += filter_mesh_size * 2;
+        vRFc            = reinterpret_cast<float *>(ptr);
+        ptr            += filter_mesh_size * 2;
+        vFreqs          = reinterpret_cast<float *>(ptr);
+        ptr            += mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float);
+        vCurve          = reinterpret_cast<float *>(ptr);
+        ptr            += mb_expander_base_metadata::CURVE_MESH_SIZE * sizeof(float);
+        vIndexes        = reinterpret_cast<uint32_t *>(ptr);
+        ptr            += mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t);
+        vSc[0]          = reinterpret_cast<float *>(ptr);
+        ptr            += MBE_BUFFER_SIZE * sizeof(float);
+        if (channels > 1)
+        {
+            vSc[1]          = reinterpret_cast<float *>(ptr);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+        }
+        else
+            vSc[1]          = NULL;
+        vBuffer         = reinterpret_cast<float *>(ptr);
+        ptr            += MBE_BUFFER_SIZE * sizeof(float);
+        vEnv            = reinterpret_cast<float *>(ptr);
+        ptr            += MBE_BUFFER_SIZE * sizeof(float);
+
+        // Initialize filters according to number of bands
+        if (sFilters.init(mb_expander_base_metadata::BANDS_MAX * channels) != STATUS_OK)
+            return;
+        size_t filter_cid = 0;
+
+        // Initialize channels
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+
+            c->pIn          = NULL;
+            c->pOut         = NULL;
+            c->pScIn        = NULL;
+        }
+
+        lsp_assert(ptr <= &save[to_alloc]);
+
+        // Bind ports
+        size_t port_id              = 0;
+
+        // Input ports
+        lsp_trace("Binding input ports");
+        for (size_t i=0; i<channels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pIn        =   vPorts[port_id++];
+        }
+
+        // Input ports
+        lsp_trace("Binding output ports");
+        for (size_t i=0; i<channels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pOut       =   vPorts[port_id++];
+        }
+
+        // Input ports
+        if (bSidechain)
+        {
+            lsp_trace("Binding sidechain ports");
+            for (size_t i=0; i<channels; ++i)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[i].pScIn      =   vPorts[port_id++];
+            }
+        }
+
+        // Common ports
+        lsp_trace("Binding common ports");
+        TRACE_PORT(vPorts[port_id]);
+        pBypass                 = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pMode                   = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pInGain                 = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pOutGain                = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDryGain                = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pWetGain                = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pReactivity             = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pShiftGain              = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pZoom                   = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pEnvBoost               = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        port_id++;         // Skip band selector
+
+        lsp_trace("Binding channel ports");
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            // TODO
+        }
+
+        lsp_trace("Binding meters");
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            // TODO
+        }
+
+        // Split frequencies
+        lsp_trace("Binding split frequencies");
+        for (size_t i=0; i<channels; ++i)
+        {
+            // TODO
+        }
+
+        // Compressor bands
+        lsp_trace("Binding expander bands");
+        for (size_t i=0; i<channels; ++i)
+        {
+            // TODO
+        }
+
+        // Initialize curve (logarithmic) in range of -72 .. +24 db
+        float delta = (mb_expander_base_metadata::CURVE_DB_MAX - mb_expander_base_metadata::CURVE_DB_MIN) / (mb_expander_base_metadata::CURVE_MESH_SIZE-1);
+        for (size_t i=0; i<mb_expander_base_metadata::CURVE_MESH_SIZE; ++i)
+            vCurve[i]   = db_to_gain(mb_expander_base_metadata::CURVE_DB_MIN + delta * i);
     }
 
     void mb_expander_base::destroy()
     {
+        // Determine number of channels
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+
+        // Destroy channels
+        if (vChannels != NULL)
+        {
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c    = &vChannels[i];
+
+                // TODO
+            }
+
+            delete [] vChannels;
+            vChannels       = NULL;
+        }
+
+        // Destroy dynamic filters
+        sFilters.destroy();
+
+        // Destroy data
+        if (pData != NULL)
+            free_aligned(pData);
+
+        // Destroy analyzer
+        sAnalyzer.destroy();
+
+        // Destroy plugin
         plugin_t::destroy();
     }
 
