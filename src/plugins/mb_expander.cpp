@@ -92,8 +92,20 @@ namespace lsp
                 mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float) + // vFreqs array
                 mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
                 MBE_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
-                MBE_BUFFER_SIZE * sizeof(float)  // Global vEnv for band signal processing
-                ;
+                MBE_BUFFER_SIZE * sizeof(float) + // Global vEnv for band signal processing
+                (
+                    MBE_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
+                    2 * filter_mesh_size + // vTr of each channel
+                    filter_mesh_size + // vTrMem of each channel
+                    MBE_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
+                    MBE_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
+                    ((bSidechain) ? MBE_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
+                    // Band buffers
+                    (
+                        MBE_BUFFER_SIZE * sizeof(float) + // vVCA of each band
+                        mb_expander_base_metadata::FFT_MESH_POINTS * 2 * sizeof(float) // vTr transfer function for each band
+                    ) * mb_expander_base_metadata::BANDS_MAX
+                );
 
         uint8_t *ptr    = alloc_aligned<uint8_t>(pData, to_alloc);
         if (ptr == NULL)
@@ -137,9 +149,135 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
+            if (!c->sEnvBoost[0].init(NULL))
+                return;
+            if (bSidechain)
+            {
+                if (!c->sEnvBoost[1].init(NULL))
+                    return;
+            }
+
+            c->nPlanSize    = 0;
+            c->vIn          = NULL;
+            c->vOut         = NULL;
+            c->vScIn        = NULL;
+
+            c->vBuffer      = reinterpret_cast<float *>(ptr);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            c->vScBuffer    = reinterpret_cast<float *>(ptr);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            c->vExtScBuffer = NULL;
+            if (bSidechain)
+            {
+                c->vExtScBuffer = reinterpret_cast<float *>(ptr);
+                ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            }
+            c->vTr          = reinterpret_cast<float *>(ptr);
+            ptr            += 2 * filter_mesh_size;
+            c->vTrMem       = reinterpret_cast<float *>(ptr);
+            ptr            += filter_mesh_size;
+
+            c->nAnInChannel = an_cid++;
+            c->nAnOutChannel= an_cid++;
+            c->bInFft       = false;
+            c->bOutFft      = false;
+
             c->pIn          = NULL;
             c->pOut         = NULL;
             c->pScIn        = NULL;
+            c->pFftIn       = NULL;
+            c->pFftInSw     = NULL;
+            c->pFftOut      = NULL;
+            c->pFftOutSw    = NULL;
+
+            c->pAmpGraph    = NULL;
+            c->pInLvl       = NULL;
+            c->pOutLvl      = NULL;
+
+            // Initialize bands
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
+            {
+                exp_band_t *b  = &c->vBands[j];
+
+                if (!b->sSC.init(channels, mb_expander_base_metadata::REACTIVITY_MAX))
+                    return;
+                if (!b->sPassFilter.init(NULL))
+                    return;
+                if (!b->sRejFilter.init(NULL))
+                    return;
+                if (!b->sAllFilter.init(NULL))
+                    return;
+
+                // Initialize sidechain equalizers
+                b->sEQ[0].init(2, 6);
+                b->sEQ[0].set_mode(EQM_IIR);
+                if (channels > 1)
+                {
+                    b->sEQ[1].init(2, 6);
+                    b->sEQ[1].set_mode(EQM_IIR);
+                }
+
+                b->vVCA         = reinterpret_cast<float *>(ptr);
+                ptr            += MBE_BUFFER_SIZE * sizeof(float);
+                b->vTr          = reinterpret_cast<float *>(ptr);
+                ptr            += mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float) * 2;
+
+                b->fScPreamp    = GAIN_AMP_0_DB;
+
+                b->fFreqStart   = 0.0f;
+                b->fFreqEnd     = 0.0f;
+
+                b->fFreqHCF     = 0.0f;
+                b->fFreqLCF     = 0.0f;
+                b->fMakeup      = GAIN_AMP_0_DB;
+                b->fEnvLevel    = GAIN_AMP_0_DB;
+                b->fGainLevel   = GAIN_AMP_0_DB;
+                b->bEnabled     = j < mb_expander_base_metadata::BANDS_DFL;
+                b->bCustHCF     = false;
+                b->bCustLCF     = false;
+                b->bMute        = false;
+                b->bSolo        = false;
+                b->bExtSc       = false;
+                b->nFilterID    = filter_cid++;
+
+                b->pExtSc       = NULL;
+                b->pScSource    = NULL;
+                b->pScMode      = NULL;
+                b->pScLook      = NULL;
+                b->pScReact     = NULL;
+                b->pScPreamp    = NULL;
+                b->pScLpfOn     = NULL;
+                b->pScHpfOn     = NULL;
+                b->pScLcfFreq   = NULL;
+                b->pScHcfFreq   = NULL;
+                b->pScFreqChart = NULL;
+
+                b->pMode        = NULL;
+                b->pEnable      = NULL;
+                b->pSolo        = NULL;
+                b->pMute        = NULL;
+                b->pAttLevel    = NULL;
+                b->pRelLevel    = NULL;
+                b->pRelTime     = NULL;
+                b->pRatio       = NULL;
+                b->pKnee        = NULL;
+                b->pMakeup      = NULL;
+                b->pFreqEnd     = NULL;
+                b->pEnvLvl      = NULL;
+                b->pCurveLvl    = NULL;
+            }
+
+            // Initialize split
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX-1; ++j)
+            {
+                split_t *s      = &c->vSplit[j];
+
+                s->bEnabled     = false;
+                s->fFreq        = 0.0f;
+
+                s->pEnabled     = NULL;
+                s->pFreq        = NULL;
+            }
         }
 
         lsp_assert(ptr <= &save[to_alloc]);
@@ -220,7 +358,7 @@ namespace lsp
             // TODO
         }
 
-        // Compressor bands
+        // Expander bands
         lsp_trace("Binding expander bands");
         for (size_t i=0; i<channels; ++i)
         {
@@ -245,7 +383,25 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
 
-                // TODO
+                c->sEnvBoost[0].destroy();
+                c->sEnvBoost[1].destroy();
+                c->sDelay.destroy();
+
+                c->vBuffer      = NULL;
+
+                for (size_t i=0; i<mb_expander_base_metadata::BANDS_MAX; ++i)
+                {
+                    exp_band_t *b  = &c->vBands[i];
+
+                    b->sEQ[0].destroy();
+                    b->sEQ[1].destroy();
+                    b->sSC.destroy();
+                    b->sDelay.destroy();
+
+                    b->sPassFilter.destroy();
+                    b->sRejFilter.destroy();
+                    b->sAllFilter.destroy();
+                }
             }
 
             delete [] vChannels;
@@ -273,12 +429,58 @@ namespace lsp
 
     void mb_expander_base::update_sample_rate(long sr)
     {
-        // TODO
+        // Determine number of channels
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t max_delay    = millis_to_samples(sr, expander_base_metadata::LOOKAHEAD_MAX);
+
+        // Update analyzer's sample rate
+        sAnalyzer.set_sample_rate(sr);
+        sFilters.set_sample_rate(sr);
+        bEnvUpdate          = true;
+
+        // Update channels
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c = &vChannels[i];
+            c->sBypass.init(sr);
+            c->sDelay.init(max_delay);
+
+            // Update bands
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
+            {
+                exp_band_t *b   = &c->vBands[j];
+
+                b->sSC.set_sample_rate(sr);
+                b->sExp.set_sample_rate(sr);
+                b->sDelay.init(max_delay);
+
+                b->sPassFilter.set_sample_rate(sr);
+                b->sRejFilter.set_sample_rate(sr);
+                b->sAllFilter.set_sample_rate(sr);
+
+                b->sEQ[0].set_sample_rate(sr);
+                if (channels > 1)
+                    b->sEQ[1].set_sample_rate(sr);
+            }
+
+            c->nPlanSize        = 0; // Force to rebuild plan
+        }
     }
 
     void mb_expander_base::ui_activated()
     {
-        // TODO
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+
+            for (size_t j=0; j<c->nPlanSize; ++j)
+            {
+                exp_band_t *b       = c->vPlan[j];
+                b->nSync            = S_ALL;
+            }
+        }
     }
 
     void mb_expander_base::process(size_t samples)
@@ -293,7 +495,7 @@ namespace lsp
     }
 
     //-------------------------------------------------------------------------
-    // Compressor derivatives
+    // Expander derivatives
     mb_expander_mono::mb_expander_mono() : mb_expander_base(metadata, false, MBEM_MONO)
     {
     }

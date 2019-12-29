@@ -15,6 +15,7 @@
 #include <core/util/MeterGraph.h>
 #include <core/util/MeterGraph.h>
 #include <core/util/Analyzer.h>
+#include <core/dynamics/Expander.h>
 #include <core/filters/DynamicFilters.h>
 #include <core/filters/Equalizer.h>
 #include <core/plugin.h>
@@ -32,11 +33,123 @@ namespace lsp
                 MBEM_MS
             };
 
+            enum sync_t
+            {
+                S_COMP_CURVE    = 1 << 0,
+                S_EQ_CURVE      = 1 << 1,
+
+                S_ALL           = S_COMP_CURVE | S_EQ_CURVE
+            };
+
+            typedef struct exp_band_t
+            {
+                Sidechain       sSC;                // Sidechain module
+                Equalizer       sEQ[2];             // Sidechain equalizers
+                Expander        sExp;               // Expander
+                Filter          sPassFilter;        // Passing filter for 'classic' mode
+                Filter          sRejFilter;         // Rejection filter for 'classic' mode
+                Filter          sAllFilter;         // All-pass filter for phase compensation
+                Delay           sDelay;             // Delay for lookahead purpose
+
+                float          *vTr;                // Transfer function
+                float          *vVCA;               // Voltage-controlled amplification value for each band
+                float           fScPreamp;          // Sidechain preamp
+
+                float           fFreqStart;
+                float           fFreqEnd;
+
+                float           fFreqHCF;           // Cutoff frequency for low-pass filter
+                float           fFreqLCF;           // Cutoff frequency for high-pass filter
+                float           fMakeup;            // Makeup gain
+                float           fEnvLevel;          // Envelope level
+                float           fGainLevel;         // Gain adjustment level
+                size_t          nLookahead;         // Lookahead amount
+
+                bool            bEnabled;           // Enabled flag
+                bool            bCustHCF;           // Custom frequency for high-cut filter
+                bool            bCustLCF;           // Custom frequency for low-cut filter
+                bool            bMute;              // Mute channel
+                bool            bSolo;              // Solo channel
+                bool            bExtSc;             // External sidechain
+                size_t          nSync;              // Synchronize output data flags
+                size_t          nFilterID;          // Identifier of the filter
+
+                IPort          *pExtSc;             // External sidechain
+                IPort          *pScSource;          // Sidechain source
+                IPort          *pScMode;            // Sidechain mode
+                IPort          *pScLook;            // Sidechain lookahead
+                IPort          *pScReact;           // Sidechain reactivity
+                IPort          *pScPreamp;          // Sidechain preamp
+                IPort          *pScLpfOn;           // Sidechain low-pass on
+                IPort          *pScHpfOn;           // Sidechain hi-pass on
+                IPort          *pScLcfFreq;         // Sidechain low-cut frequency
+                IPort          *pScHcfFreq;         // Sidechain hi-cut frequency
+                IPort          *pScFreqChart;       // Sidechain band frequency chart
+
+                IPort          *pMode;              // Expander mode
+                IPort          *pEnable;            // Enable compressor
+                IPort          *pSolo;              // Soloing
+                IPort          *pMute;              // Muting
+                IPort          *pAttLevel;          // Attack level
+                IPort          *pAttTime;           // Attack time
+                IPort          *pRelLevel;          // Release level
+                IPort          *pRelTime;           // Release time
+                IPort          *pRatio;             // Ratio
+                IPort          *pKnee;              // Knee
+                IPort          *pMakeup;            // Makeup gain
+                IPort          *pFreqEnd;           // Frequency range end
+                IPort          *pCurveGraph;        // Compressor curve graph
+                IPort          *pRelLevelOut;       // Release level out
+                IPort          *pEnvLvl;            // Envelope level meter
+                IPort          *pCurveLvl;          // Reduction curve level meter
+                IPort          *pMeterGain;         // Reduction gain meter
+            } exp_band_t;
+
+            typedef struct split_t
+            {
+                bool            bEnabled;           // Split band is enabled
+                float           fFreq;              // Split band frequency
+
+                IPort          *pEnabled;           // Enable port
+                IPort          *pFreq;              // Split frequency
+            } split_t;
+
             typedef struct channel_t
             {
+                Bypass          sBypass;            // Bypass
+                Filter          sEnvBoost[2];       // Envelope boost filter
+                Delay           sDelay;             // Delay for lookahead purpose
+
+                exp_band_t      vBands[mb_expander_base_metadata::BANDS_MAX];       // Expander bands
+                split_t         vSplit[mb_expander_base_metadata::BANDS_MAX-1];     // Split bands
+                exp_band_t     *vPlan[mb_expander_base_metadata::BANDS_MAX];        // Execution plan (band indexes)
+                size_t          nPlanSize;              // Plan size
+
+                float          *vIn;                // Input data buffer
+                float          *vOut;               // Output data buffer
+                float          *vScIn;              // Sidechain data buffer (if present)
+
+                float          *vBuffer;            // Common data processing buffer
+                float          *vScBuffer;          // Sidechain buffer
+                float          *vExtScBuffer;       // External sidechain buffer
+                float          *vTr;                // Transfer function
+                float          *vTrMem;             // Transfer buffer (memory)
+
+                size_t          nAnInChannel;       // Analyzer channel used for input signal analysis
+                size_t          nAnOutChannel;      // Analyzer channel used for output signal analysis
+                bool            bInFft;             // Input signal FFT enabled
+                bool            bOutFft;            // Output signal FFT enabled
+
                 IPort          *pIn;                // Input
                 IPort          *pOut;               // Output
                 IPort          *pScIn;              // Sidechain
+                IPort          *pFftIn;             // Pre-processing FFT analysis data
+                IPort          *pFftInSw;           // Pre-processing FFT analysis control port
+                IPort          *pFftOut;            // Post-processing FFT analysis data
+                IPort          *pFftOutSw;          // Post-processing FFT analysis controlport
+                IPort          *pAmpGraph;          // Compressor's amplitude graph
+                IPort          *pInLvl;             // Input level meter
+                IPort          *pOutLvl;            // Output level meter
             } channel_t;
 
         protected:

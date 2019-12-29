@@ -25,6 +25,10 @@ namespace lsp
         static const size_t         SC_SOURCE_DFL       = 0;
         static const size_t         SC_TYPE_DFL         = 0;
 
+        static const float          REACTIVITY_MIN      = 0.000;    // Minimum reactivity [ms]
+        static const float          REACTIVITY_MAX      = 250;      // Maximum reactivity [ms]
+        static const float          REACTIVITY_DFL      = 10;       // Default reactivity [ms]
+        static const float          REACTIVITY_STEP     = 0.025;    // Reactivity step
 
         static const float          ZOOM_MIN            = GAIN_AMP_M_18_DB;
         static const float          ZOOM_MAX            = GAIN_AMP_0_DB;

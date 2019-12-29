@@ -31,7 +31,7 @@ namespace lsp
         fZoom           = GAIN_AMP_0_DB;
         pData           = NULL;
         vTr             = NULL;
-        vPFc             = NULL;
+        vPFc            = NULL;
         vRFc            = NULL;
         vFreqs          = NULL;
         vCurve          = NULL;
@@ -167,6 +167,7 @@ namespace lsp
                     return;
             }
 
+            c->nPlanSize    = 0;
             c->vIn          = NULL;
             c->vOut         = NULL;
             c->vScIn        = NULL;
@@ -188,6 +189,8 @@ namespace lsp
 
             c->nAnInChannel = an_cid++;
             c->nAnOutChannel= an_cid++;
+            c->bInFft       = false;
+            c->bOutFft      = false;
 
             c->pIn          = NULL;
             c->pOut         = NULL;
@@ -197,6 +200,7 @@ namespace lsp
             c->pFftOut      = NULL;
             c->pFftOutSw    = NULL;
 
+            c->pAmpGraph    = NULL;
             c->pInLvl       = NULL;
             c->pOutLvl      = NULL;
 
@@ -1067,7 +1071,7 @@ namespace lsp
             for (size_t j=0; j<c->nPlanSize; ++j)
             {
                 comp_band_t *b      = c->vPlan[j];
-                b->nSync            = S_EQ_CURVE | S_COMP_CURVE;
+                b->nSync            = S_ALL;
             }
         }
     }
