@@ -252,7 +252,6 @@ namespace lsp
                 b->pScHcfFreq   = NULL;
                 b->pScFreqChart = NULL;
 
-                b->pMode        = NULL;
                 b->pEnable      = NULL;
                 b->pSolo        = NULL;
                 b->pMute        = NULL;
@@ -341,28 +340,176 @@ namespace lsp
         for (size_t i=0; i<channels; ++i)
         {
             channel_t *c    = &vChannels[i];
-            // TODO
+
+            if ((i > 0) && (nMode == MBEM_STEREO))
+            {
+                channel_t *sc           = &vChannels[0];
+                c->pAmpGraph            = sc->pAmpGraph;
+            }
+            else
+            {
+                TRACE_PORT(vPorts[port_id]);
+                port_id++;         // Skip filter switch
+                TRACE_PORT(vPorts[port_id]);
+                c->pAmpGraph            = vPorts[port_id++];
+            }
         }
 
         lsp_trace("Binding meters");
         for (size_t i=0; i<channels; ++i)
         {
             channel_t *c    = &vChannels[i];
-            // TODO
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pFftInSw             = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pFftOutSw            = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pFftIn               = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pFftOut              = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pInLvl               = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pOutLvl              = vPorts[port_id++];
         }
 
         // Split frequencies
         lsp_trace("Binding split frequencies");
         for (size_t i=0; i<channels; ++i)
         {
-            // TODO
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX-1; ++j)
+            {
+                split_t *s      = &vChannels[i].vSplit[j];
+
+                if ((i > 0) && (nMode == MBEM_STEREO))
+                {
+                    split_t *sc     = &vChannels[0].vSplit[j];
+                    s->pEnabled     = sc->pEnabled;
+                    s->pFreq        = sc->pFreq;
+                }
+                else
+                {
+                    TRACE_PORT(vPorts[port_id]);
+                    s->pEnabled     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    s->pFreq        = vPorts[port_id++];
+                }
+            }
         }
 
         // Expander bands
         lsp_trace("Binding expander bands");
         for (size_t i=0; i<channels; ++i)
         {
-            // TODO
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
+            {
+                exp_band_t *b   = &vChannels[i].vBands[j];
+
+                if ((i > 0) && (nMode == MBEM_STEREO))
+                {
+                    exp_band_t *sb  = &vChannels[0].vBands[j];
+
+                    b->pExtSc       = sb->pExtSc;
+                    b->pScSource    = sb->pScSource;
+                    b->pScMode      = sb->pScMode;
+                    b->pScLook      = sb->pScLook;
+                    b->pScReact     = sb->pScReact;
+                    b->pScPreamp    = sb->pScPreamp;
+                    b->pScLpfOn     = sb->pScLpfOn;
+                    b->pScHpfOn     = sb->pScHpfOn;
+                    b->pScLcfFreq   = sb->pScLcfFreq;
+                    b->pScHcfFreq   = sb->pScHcfFreq;
+                    b->pScFreqChart = sb->pScFreqChart;
+
+                    b->pEnable      = sb->pEnable;
+                    b->pSolo        = sb->pSolo;
+                    b->pMute        = sb->pMute;
+                    b->pAttLevel    = sb->pAttLevel;
+                    b->pAttTime     = sb->pAttTime;
+                    b->pRelLevel    = sb->pRelLevel;
+                    b->pRelTime     = sb->pRelTime;
+                    b->pRatio       = sb->pRatio;
+                    b->pKnee        = sb->pKnee;
+                    b->pMakeup      = sb->pMakeup;
+
+                    b->pFreqEnd     = sb->pFreqEnd;
+                    b->pCurveGraph  = sb->pCurveGraph;
+                    b->pRelLevelOut = sb->pRelLevelOut;
+                    b->pEnvLvl      = sb->pEnvLvl;
+                    b->pCurveLvl    = sb->pCurveLvl;
+                    b->pMeterGain   = sb->pMeterGain;
+                }
+                else
+                {
+                    if (bSidechain)
+                    {
+                        TRACE_PORT(vPorts[port_id]);
+                        b->pExtSc       = vPorts[port_id++];
+                    }
+                    if (nMode != MBEM_MONO)
+                    {
+                        TRACE_PORT(vPorts[port_id]);
+                        b->pScSource    = vPorts[port_id++];
+                    }
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScMode      = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScLook      = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScReact     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScPreamp    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScLpfOn     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScHpfOn     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScLcfFreq   = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScHcfFreq   = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pScFreqChart = vPorts[port_id++];
+
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pEnable      = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pSolo        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pMute        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pAttLevel    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pAttTime     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pRelLevel    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pRelTime     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pRatio       = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pKnee        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pMakeup      = vPorts[port_id++];
+
+                    // Skip hue
+                    TRACE_PORT(vPorts[port_id]);
+                    port_id ++;
+
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pFreqEnd     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pCurveGraph  = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pRelLevelOut = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pEnvLvl      = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pCurveLvl    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pMeterGain   = vPorts[port_id++];
+                }
+            }
         }
 
         // Initialize curve (logarithmic) in range of -72 .. +24 db

@@ -124,15 +124,13 @@ namespace lsp
     #define MB_MONO_BAND(id, label, x, total, fe, fs) \
             COMBO("scm" id, "Sidechain mode" label, mb_compressor_base_metadata::SC_MODE_DFL, comp_sc_modes), \
             CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, mb_compressor_base_metadata::LOOKAHEAD), \
-            LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, compressor_base_metadata::REACTIVITY), \
+            LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, mb_compressor_base_metadata::REACTIVITY), \
             AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
             SWITCH("sclc" id, "Sidechain custom lo-cut" label, 0), \
             SWITCH("schc" id, "Sidechain custom hi-cut" label, 0), \
             LOG_CONTROL_DFL("sclf" id, "Sidechain lo-cut frequency" label, U_HZ, mb_compressor_base_metadata::FREQ, fe), \
             LOG_CONTROL_DFL("schf" id, "Sidechain hi-cut frequency" label, U_HZ, mb_compressor_base_metadata::FREQ, fs), \
             MESH("bfc" id, "Side-chain band frequency chart" label, 2, mb_compressor_base_metadata::FILTER_MESH_POINTS), \
-            /*SWITCH("bfft" id, "Side-chain band FFT chart enable" label, 1), */ \
-            /* MESH("bfg" id, "Side-chain band FFT chart" label, 2, mb_compressor_base_metadata::FFT_MESH_POINTS), */ \
             \
             COMBO("cm" id, "Compression mode" label, mb_compressor_base_metadata::CM_DEFAULT, mb_comp_modes), \
             SWITCH("ce" id, "Compressor enable" label, 1.0f), \
@@ -145,7 +143,7 @@ namespace lsp
             LOG_CONTROL("cr" id, "Ratio" label, U_NONE, mb_compressor_base_metadata::RATIO), \
             LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_compressor_base_metadata::KNEE), \
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_compressor_base_metadata::MAKEUP), \
-            { "hue" id, "Hue " label, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
+            HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
             MESH("ccg" id, "Compression curve graph" label, 2, mb_compressor_base_metadata::CURVE_MESH_SIZE), \
             METER_OUT_GAIN("rl" id, "Release level" label, 20.0f), \
@@ -172,7 +170,6 @@ namespace lsp
     #define MB_FFT_METERS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
-            /* SWITCH("sfe" id, "Sidechain FFT graph enable" label, 1.0f), */ \
             MESH("ifg" id, "Input FFT graph" label, 2, mb_compressor_base_metadata::FFT_MESH_POINTS), \
             MESH("ofg" id, "Output FFT graph" label, 2, mb_compressor_base_metadata::FFT_MESH_POINTS)
 

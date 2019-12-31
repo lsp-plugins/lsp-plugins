@@ -86,7 +86,6 @@ namespace lsp
                 IPort          *pScHcfFreq;         // Sidechain hi-cut frequency
                 IPort          *pScFreqChart;       // Sidechain band frequency chart
 
-                IPort          *pMode;              // Expander mode
                 IPort          *pEnable;            // Enable compressor
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
