@@ -213,7 +213,7 @@
 					<ui:for id="i" first="0" last="7">
 						<cell cols="2" fill="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}) ? 1 : 0.5" >
 							<grid rows="2" cols="4" fill="false" hspacing="2" >
-								<button id="ce_${i}" size="12" color="red" hue_id="hue_${i}" led="true" />
+								<button id="ee_${i}" size="12" color="red" hue_id="hue_${i}" led="true" />
 								<button id="bs_${i}" size="12" color="green" led="true" />
 								<button id="bm_${i}" size="12" color="red" led="true" />
 								<button id="sce_${i}" size="12" color="yellow" led="true" visibility="ex :sce_${i}" />
@@ -332,7 +332,7 @@
 							<align hpos="0">
 								<hbox spacing="4">
 									<label text="Expander" />
-									<button id="ce_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
+									<button id="ee_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
 									<label text="On" />
 									<button id="bs_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
 									<label text="Solo" />
@@ -352,7 +352,7 @@
 								<label text="Level" />
 								<label text="Time" />
 								
-								<knob id="cr_${i}" scale_hue_id="hue_${i}" />
+								<knob id="er_${i}" scale_hue_id="hue_${i}" />
 								<knob id="kn_${i}" scale_hue_id="hue_${i}" />
 								<knob id="mk_${i}" scale_hue_id="hue_${i}" />
 								<knob id="al_${i}" scale_color="magenta" />
@@ -361,7 +361,7 @@
 								<knob id="rt_${i}" scale_hue_id="hue_${i}" />
 								
 								<hbox fill="false">
-									<value id="cr_${i}" size="16" detailed="false" />
+									<value id="er_${i}" size="16" detailed="false" />
 									<label text=":"/>
 									<label text="1"/>
 								</hbox>

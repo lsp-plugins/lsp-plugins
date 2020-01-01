@@ -101,6 +101,7 @@ namespace lsp
                 mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
                 MBE_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
                 MBE_BUFFER_SIZE * sizeof(float) + // Global vEnv for band signal processing
+                // Channel buffers
                 (
                     MBE_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
                     2 * filter_mesh_size + // vTr of each channel
@@ -113,7 +114,7 @@ namespace lsp
                         MBE_BUFFER_SIZE * sizeof(float) + // vVCA of each band
                         mb_expander_base_metadata::FFT_MESH_POINTS * 2 * sizeof(float) // vTr transfer function for each band
                     ) * mb_expander_base_metadata::BANDS_MAX
-                );
+                ) * channels;
 
         uint8_t *ptr    = alloc_aligned<uint8_t>(pData, to_alloc);
         if (ptr == NULL)
@@ -712,7 +713,7 @@ namespace lsp
                 bool cust_lcf   = b->pScLpfOn->getValue() >= 0.5f;
                 bool cust_hcf   = b->pScHpfOn->getValue() >= 0.5f;
                 float sc_gain   = b->pScPreamp->getValue();
-                bool mute       = (enabled) && (b->pMute->getValue() >= 0.5f);
+                bool mute       = (b->pMute->getValue() >= 0.5f);
                 bool solo       = (enabled) && (b->pSolo->getValue() >= 0.5f);
 
                 b->pRelLevelOut->setValue(release);
@@ -1152,7 +1153,7 @@ namespace lsp
                     }
                     else
                     {
-                        dsp::fill(b->vVCA, GAIN_AMP_0_DB, to_process);
+                        dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
                         b->fEnvLevel    = GAIN_AMP_0_DB;
                         b->fGainLevel   = GAIN_AMP_0_DB;
                     }

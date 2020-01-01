@@ -139,14 +139,14 @@ namespace lsp
         LOG_CONTROL_DFL("schf" id, "Sidechain hi-cut frequency" label, U_HZ, mb_expander_base_metadata::FREQ, fs), \
         MESH("bfc" id, "Side-chain band frequency chart" label, 2, mb_expander_base_metadata::FILTER_MESH_POINTS), \
         \
-        SWITCH("ce" id, "Expander enable" label, 1.0f), \
+        SWITCH("ee" id, "Expander enable" label, 1.0f), \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
         LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, mb_expander_base_metadata::ATTACK_LVL), \
         LOG_CONTROL("at" id, "Attack time" label, U_MSEC, mb_expander_base_metadata::ATTACK_TIME), \
         LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, mb_expander_base_metadata::RELEASE_LVL), \
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, mb_expander_base_metadata::RELEASE_TIME), \
-        LOG_CONTROL("cr" id, "Ratio" label, U_NONE, mb_expander_base_metadata::RATIO), \
+        LOG_CONTROL("er" id, "Ratio" label, U_NONE, mb_expander_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_expander_base_metadata::KNEE), \
         LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_expander_base_metadata::MAKEUP), \
         HUE_CTL("hue" id, "Hue " label, (float(x) / float(total))), \

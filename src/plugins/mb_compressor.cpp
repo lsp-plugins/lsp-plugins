@@ -720,7 +720,7 @@ namespace lsp
                 bool cust_lcf   = b->pScLpfOn->getValue() >= 0.5f;
                 bool cust_hcf   = b->pScHpfOn->getValue() >= 0.5f;
                 float sc_gain   = b->pScPreamp->getValue();
-                bool mute       = (enabled) && (b->pMute->getValue() >= 0.5f);
+                bool mute       = (b->pMute->getValue() >= 0.5f);
                 bool solo       = (enabled) && (b->pSolo->getValue() >= 0.5f);
 
                 b->pRelLevelOut->setValue(release);
@@ -1207,7 +1207,7 @@ namespace lsp
                     }
                     else
                     {
-                        dsp::fill(b->vVCA, GAIN_AMP_0_DB, to_process);
+                        dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
                         b->fEnvLevel    = GAIN_AMP_0_DB;
                         b->fGainLevel   = GAIN_AMP_0_DB;
                     }
