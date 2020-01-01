@@ -48,7 +48,7 @@ namespace lsp
             bool        bUpdate;
 
         public:
-            Compressor();
+            explicit Compressor();
             ~Compressor();
 
         public:

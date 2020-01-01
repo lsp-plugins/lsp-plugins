@@ -187,6 +187,9 @@ namespace lsp
             IPort          *pZoom;                  // Zoom port
             IPort          *pEnvBoost;              // Envelope adjust
 
+        protected:
+            static bool compare_bands_for_sort(const exp_band_t *b1, const exp_band_t *b2);
+
         public:
             explicit mb_expander_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
             virtual ~mb_expander_base();

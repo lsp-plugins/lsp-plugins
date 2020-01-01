@@ -91,6 +91,9 @@ namespace lsp
         static const float          CURVE_DB_MIN        = -72;
         static const float          CURVE_DB_MAX        = +24;
 
+        static const float          FREQ_BOOST_MIN      = 10.0f;
+        static const float          FREQ_BOOST_MAX      = 20000.0f;
+
         static const size_t         FFT_RANK            = 13;
         static const size_t         FFT_ITEMS           = 1 << FFT_RANK;
         static const size_t         FFT_MESH_POINTS     = MESH_POINTS;

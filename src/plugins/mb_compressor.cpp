@@ -1024,7 +1024,7 @@ namespace lsp
     {
         // Determine number of channels
         size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
-        size_t max_delay    = millis_to_samples(sr, compressor_base_metadata::LOOKAHEAD_MAX);
+        size_t max_delay    = millis_to_samples(sr, mb_compressor_base_metadata::LOOKAHEAD_MAX);
 
         // Update analyzer's sample rate
         sAnalyzer.set_sample_rate(sr);
