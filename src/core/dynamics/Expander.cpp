@@ -71,7 +71,11 @@ namespace lsp
         {
             float s         = *(in++);
 
-            fEnvelope       += (s > fEnvelope) ? fTauAttack * (s - fEnvelope) : fTauRelease * (s - fEnvelope);
+            if (fEnvelope > fReleaseThresh)
+                fEnvelope       += (s > fEnvelope) ? fTauAttack * (s - fEnvelope) : fTauRelease * (s - fEnvelope);
+            else
+                fEnvelope       += fTauAttack * (s - fEnvelope);
+
             out[i]          = fEnvelope;
         }
 

@@ -12,7 +12,7 @@
 ?>
 
 <p>
-	This plugin performs multiband compression of <?= $cc ?> input signal<?php 
+	This plugin performs multiband increasing of dynamic range of <?= $cc ?> input signal<?php 
 	if ($m == 'ms') echo " in Mid-Side mode";
 	elseif ($m == 'lr') echo " by applying individual processing to left and right channels separately";
 	?>. Flexible sidechain-control configuration <?php
@@ -20,26 +20,26 @@
 			echo " and additional sidechain input" . (($m == 'm') ? '' : 's') . " are ";
 		else
 			echo " is";
-	?>provided.
+	?>provided. Additional dry/wet control allows to mix processed and unprocessed signal together. 
 </p>
 <p>
-	As opposite to most available multiband compressors, this compressor provides numerous special functions listed below:
+	As opposite to most available multiband expanders, this expander provides numerous special functions listed below:
 </p>
 <ul>
-	<li><b>Modern operating mode</b> - special operating mode that allows to look different at <b>classic</b> crossover-based compressors.
-	Crossiver-based compressors use crossover filters for splitting the original signal into independent frequency bands, then process
-	each band independently by it's individual compressor. Finally, all bands become phase-compensated using all-pass filers and then
+	<li><b>Modern operating mode</b> - special operating mode that allows to look different at <b>classic</b> crossover-based devices.
+	Crossiver-based devices use crossover filters for splitting the original signal into independent frequency bands, then process
+	each band independently by it's individual expander. Finally, all bands become phase-compensated using all-pass filers and then
 	summarized, so the output signal is formed.
 	In <b>Modern</b> mode, each band is processed by pair of dynamic shelving filters. This allows the better control the gain of each band.
 	</li>
 	<li><b>Sidechain boost</b> - special mode for assigning the same weight for higher frequencies opposite to lower frequencies.
-	In usual case, the frequency band is processed by compressor 'as is'. By the other side, the usual audio signal has 3 db/octave
+	In usual case, the frequency band is processed by expander 'as is'. By the other side, the usual audio signal has 3 db/octave
 	falloff in the frequency domain and could be compared with the pink noise. So the lower frequencies take more
-	effect on compressor rather than higher frequencies. <b>Sidechain boost</b> feature allows to compensate the -3 dB/octave falloff
+	effect on expander rather than higher frequencies. <b>Sidechain boost</b> feature allows to compensate the -3 dB/octave falloff
 	of the signal spectrum and, even more, make the signal spectrum growing +3 dB/octave in the almost fully audible frequency range.
 	This is done by specially designed +3 db/oct and +6 db/oct shelving filters.
 	</li>
-	<li><b>Lookahead option</b> - each band of compressor can work with some prediction, the lookahead time can be set for each channel independently.
+	<li><b>Lookahead option</b> - each band of expander can work with some prediction, the lookahead time can be set for each channel independently.
 	To avoid phase distortions, all other bands automatically become delayed for a individually calculated period of time. The overall delay time
 	of the input signal is reported to the host by the plugin as a latency.
 	</li>
@@ -94,9 +94,9 @@
 	<li><b>Band</b> - allows to enable the corresponding band, band #0 is <b>always</b> enabled.</li>
 	<li><b>Hue</b> - allows to control the hue of the color assigned to the band.</li>
 	<li><b>Range</b> - allows to adjust the start frequency of the frequency range controlled by the band.</li>
-	<li><b>Controls</b> - set of buttons that control the behaviour of the compressor:</li>
+	<li><b>Controls</b> - set of buttons that control the behaviour of the expander:</li>
 	<ul>
-		<li><b>On</b> - enables compressor assigned to the corresponding frequency band.</li>
+		<li><b>On</b> - enables expander assigned to the corresponding frequency band.</li>
 		<li><b>S</b> - turns on soloing mode to the selected band by applying -36 dB gain to non-soloing bands</li>
 		<li><b>M</b> - turns on muting mode to the selected band by applying -36 dB gain to it</li>
 		<?php if ($sc) { ?>
@@ -104,19 +104,19 @@
 		<?php } ?>
 	</ul>
 	<li><b>SC Preamp</b> - applies additional gain to the sidechain band.</li>
-	<li><b>Makeup</b> - applies additional gain to the output of the corresponding compressor.</li>
-	<li><b>Ratio</b> - the compression ratio for the corresponding band.</li>
-	<li><b>Knee</b> - the compression knee for the corresponding band.</li>
-	<li><b>Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
-	<li><b>Attack Time</b> - attack time of the compressor.</li>
+	<li><b>Makeup</b> - applies additional gain to the output of the corresponding expander.</li>
+	<li><b>Ratio</b> - the expannder ratio for the corresponding band.</li>
+	<li><b>Knee</b> - the expander knee for the corresponding band.</li>
+	<li><b>Attack Level</b> - threshold of the expander, placed in the middle of the knee.</li>
+	<li><b>Attack Time</b> - attack time of the expander.</li>
 	<li><b>Release Level</b> - relative to the <b>Attack Level</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
-	<li><b>Release Time</b> - release time of the compressor.</li>
+	<li><b>Release Time</b> - release time of the expander.</li>
 </ul>
 <?php if ($m == 'lr') {?>
-	<p><b>'Band N' section</b> - allows to simultaneously control all parameters of compressors of Left and Right
+	<p><b>'Band N' section</b> - allows to simultaneously control all parameters of expanders of Left and Right
 	channels assigned to the selected frequency band:</p>
 <?php } elseif ($m == 'ms') {?>
-	<p><b>'Band N' section</b> - allows to simultaneously control all parameters of compressors of Middle and Side
+	<p><b>'Band N' section</b> - allows to simultaneously control all parameters of expanders of Middle and Side
 	channels assigned to the selected frequency band:</p>
 <?php } else {?>
 	<p><b>'Band N' section</b> - allows to control all parameters for the selected frequency band:</p>
@@ -144,16 +144,16 @@
 	<li><b>Sidechain LCF</b> - button turns on the low-cut filter for the sidechain signal and knob allows to control the frequency of the filter.</li>
 	<li><b>Sidechain HCF</b> - button turns on the high-cut filter for the sidechain signal and knob allows to control the frequency of the filter.</li>
 	
-	<li><b>Compressor Solo</b> - turns on soloing mode to the selected band by applying -36 dB gain to non-soloing bands</li>
-	<li><b>Compressor Mute</b> - turns on muting mode to the selected band by applying -36 dB gain to it</li>
-	<li><b>Compressor Mode</b> - compression mode: <b>Upward (Up)</b> or <b>Downward (Down)</b>.</li>
-	<li><b>Compressor On</b> - enables compressor assigned to the corresponding frequency band.</li>
-	<li><b>Compressor Ratio</b> - compression ratio.</li>
-	<li><b>Compressor Knee</b> - size of compression knee.</li>
-	<li><b>Compressor Makeup</b> - additional amplification gain after compression stage.</li>
-	<li><b>Compressor Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
-	<li><b>Compressor Attack Time</b> - attack time of the compressor.</li>
-	<li><b>Compressor Release Level</b> - relative to the <b>Attack Level</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
-	<li><b>Compressor Release Time</b> - release time of the compressor.</li>
-	<li><b>Gain</b> - the amount of gain applied to frequency band by the compression curve.</li>
+	<li><b>Expander Solo</b> - turns on soloing mode to the selected band by applying -36 dB gain to non-soloing bands</li>
+	<li><b>Expander Mute</b> - turns on muting mode to the selected band by applying -36 dB gain to it</li>
+	<li><b>Expander On</b> - enables expander assigned to the corresponding frequency band.</li>
+	<li><b>Expander Ratio</b> - expander ratio.</li>
+	<li><b>Expander Knee</b> - size of expander knee.</li>
+	<li><b>Expander Makeup</b> - additional amplification gain after processing stage.</li>
+	<li><b>Expander Attack Level</b> - threshold of the expander, placed in the middle of the knee.</li>
+	<li><b>Expander Attack Time</b> - attack time of the expander.</li>
+	<li><b>Expander Release Level</b> - relative to the <b>Attack Level</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
+	<li><b>Expander Release Time</b> - release time of the expander.</li>
+	<li><b>Gain</b> - the amount of gain applied to frequency band by the expander curve.</li>
 </ul>
+

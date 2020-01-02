@@ -1,7 +1,7 @@
 /*
- * compressor.cpp
+ * mb_expander.cpp
  *
- *  Created on: 30 янв. 2018 г.
+ *  Created on: 27 дек. 2019 г.
  *      Author: sadko
  */
 
@@ -15,17 +15,10 @@
 namespace lsp
 {
     //-------------------------------------------------------------------------
-    // Multiband compressor
-    static const int mb_compressor_classes[] = { C_COMPRESSOR, -1 };
+    // Multiband expander
+    static const int mb_expander_classes[] = { C_EXPANDER, -1 };
 
-    static const char *mb_comp_modes[] =
-    {
-        "Down",
-        "Up",
-        NULL
-    };
-
-    static const char *comp_sc_modes[] =
+    static const char *exp_sc_modes[] =
     {
         "Peak",
         "RMS",
@@ -34,7 +27,7 @@ namespace lsp
         NULL
     };
 
-    static const char *comp_sc_source[] =
+    static const char *exp_sc_source[] =
     {
         "Mid",
         "Side",
@@ -43,7 +36,24 @@ namespace lsp
         NULL
     };
 
-    static const char *comp_sc_bands[] =
+    static const char *exp_sc_boost[] =
+    {
+        "None",
+        "Pink BT",
+        "Pink MT",
+        "Brown BT",
+        "Brown MT",
+        NULL
+    };
+
+    static const char *global_exp_modes[] =
+    {
+        "Classic",
+        "Modern",
+        NULL
+    };
+
+    static const char *exp_sc_bands[] =
     {
         "Split",
         "Band 0",
@@ -57,7 +67,7 @@ namespace lsp
         NULL
     };
 
-    static const char *comp_sc_lr_bands[] =
+    static const char *exp_sc_lr_bands[] =
     {
         "Split Left",
         "Split Right",
@@ -72,7 +82,7 @@ namespace lsp
         NULL
     };
 
-    static const char *comp_sc_ms_bands[] =
+    static const char *exp_sc_ms_bands[] =
     {
         "Split Mid",
         "Split Side",
@@ -87,112 +97,82 @@ namespace lsp
         NULL
     };
 
-    static const char *comp_sc_boost[] =
-    {
-        "None",
-        "Pink BT",
-        "Pink MT",
-        "Brown BT",
-        "Brown MT",
-        NULL
-    };
-
-    static const char *global_comp_modes[] =
-    {
-        "Classic",
-        "Modern",
-        NULL
-    };
-
     #define MB_COMMON(bands) \
-            BYPASS, \
-            COMBO("mode", "Compressor mode", 1, global_comp_modes), \
-            AMP_GAIN("g_in", "Input gain", mb_compressor_base_metadata::IN_GAIN_DFL, 10.0f), \
-            AMP_GAIN("g_out", "Output gain", mb_compressor_base_metadata::OUT_GAIN_DFL, 10.0f), \
-            AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
-            AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
-            LOG_CONTROL("react", "FFT reactivity", U_MSEC, mb_compressor_base_metadata::REACT_TIME), \
-            AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
-            LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, mb_compressor_base_metadata::ZOOM), \
-            COMBO("envb", "Envelope boost", mb_compressor_base_metadata::FB_DEFAULT, comp_sc_boost), \
-            COMBO("bsel", "Band selection", mb_compressor_base_metadata::SC_BAND_DFL, bands)
-
-    #define MB_SPLIT(id, label, enable, freq) \
-            SWITCH("cbe" id, "Compression band enable" label, enable), \
-            LOG_CONTROL_DFL("sf" id, "Split frequency" label, U_HZ, mb_compressor_base_metadata::FREQ, freq)
-
-    #define MB_MONO_BAND(id, label, x, total, fe, fs) \
-            COMBO("scm" id, "Sidechain mode" label, mb_compressor_base_metadata::SC_MODE_DFL, comp_sc_modes), \
-            CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, mb_compressor_base_metadata::LOOKAHEAD), \
-            LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, mb_compressor_base_metadata::REACTIVITY), \
-            AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
-            SWITCH("sclc" id, "Sidechain custom lo-cut" label, 0), \
-            SWITCH("schc" id, "Sidechain custom hi-cut" label, 0), \
-            LOG_CONTROL_DFL("sclf" id, "Sidechain lo-cut frequency" label, U_HZ, mb_compressor_base_metadata::FREQ, fe), \
-            LOG_CONTROL_DFL("schf" id, "Sidechain hi-cut frequency" label, U_HZ, mb_compressor_base_metadata::FREQ, fs), \
-            MESH("bfc" id, "Side-chain band frequency chart" label, 2, mb_compressor_base_metadata::FILTER_MESH_POINTS), \
-            \
-            COMBO("cm" id, "Compression mode" label, mb_compressor_base_metadata::CM_DEFAULT, mb_comp_modes), \
-            SWITCH("ce" id, "Compressor enable" label, 1.0f), \
-            SWITCH("bs" id, "Solo band" label, 0.0f), \
-            SWITCH("bm" id, "Mute band" label, 0.0f), \
-            LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, mb_compressor_base_metadata::ATTACK_LVL), \
-            LOG_CONTROL("at" id, "Attack time" label, U_MSEC, mb_compressor_base_metadata::ATTACK_TIME), \
-            LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, mb_compressor_base_metadata::RELEASE_LVL), \
-            LOG_CONTROL("rt" id, "Release time" label, U_MSEC, mb_compressor_base_metadata::RELEASE_TIME), \
-            LOG_CONTROL("cr" id, "Ratio" label, U_NONE, mb_compressor_base_metadata::RATIO), \
-            LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_compressor_base_metadata::KNEE), \
-            LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_compressor_base_metadata::MAKEUP), \
-            HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
-            METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
-            MESH("ccg" id, "Compression curve graph" label, 2, mb_compressor_base_metadata::CURVE_MESH_SIZE), \
-            METER_OUT_GAIN("rl" id, "Release level" label, 20.0f), \
-            METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_24_DB), \
-            METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_24_DB), \
-            METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
-
-    #define MB_STEREO_BAND(id, label, x, total, fe, fs) \
-            COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, comp_sc_source), \
-            MB_MONO_BAND(id, label, x, total, fe, fs)
-
-    #define MB_SC_MONO_BAND(id, label, x, total, fe, fs) \
-            SWITCH("sce" id, "External sidechain enable" label, 0.0f), \
-            MB_MONO_BAND(id, label, x, total, fe, fs)
-
-    #define MB_SC_STEREO_BAND(id, label, x, total, fe, fs) \
-            SWITCH("sce" id, "External sidechain enable" label, 0.0f), \
-            MB_STEREO_BAND(id, label, x, total, fe, fs)
+        BYPASS, \
+        COMBO("mode", "Expander mode", 1, global_exp_modes), \
+        AMP_GAIN("g_in", "Input gain", mb_expander_base_metadata::IN_GAIN_DFL, 10.0f), \
+        AMP_GAIN("g_out", "Output gain", mb_expander_base_metadata::OUT_GAIN_DFL, 10.0f), \
+        AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
+        AMP_GAIN("g_wet", "Wet gain", 1.0f, 10.0f), \
+        LOG_CONTROL("react", "FFT reactivity", U_MSEC, mb_expander_base_metadata::FFT_REACT_TIME), \
+        AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+        LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, mb_expander_base_metadata::ZOOM), \
+        COMBO("envb", "Envelope boost", mb_expander_base_metadata::FB_DEFAULT, exp_sc_boost), \
+        COMBO("bsel", "Band selection", mb_expander_base_metadata::SC_BAND_DFL, bands)
 
     #define MB_CHANNEL(id, label) \
-            SWITCH("flt" id, "Band filter curves" label, 1.0f), \
-            MESH("ag" id, "Compressor amplitude graph " label, 2, mb_compressor_base_metadata::FFT_MESH_POINTS)
+        SWITCH("flt" id, "Band filter curves" label, 1.0f), \
+        MESH("ag" id, "Expander amplitude graph " label, 2, mb_expander_base_metadata::FFT_MESH_POINTS)
 
     #define MB_FFT_METERS(id, label) \
-            SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
-            SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
-            MESH("ifg" id, "Input FFT graph" label, 2, mb_compressor_base_metadata::FFT_MESH_POINTS), \
-            MESH("ofg" id, "Output FFT graph" label, 2, mb_compressor_base_metadata::FFT_MESH_POINTS)
+        SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
+        SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
+        MESH("ifg" id, "Input FFT graph" label, 2, mb_expander_base_metadata::FFT_MESH_POINTS), \
+        MESH("ofg" id, "Output FFT graph" label, 2, mb_expander_base_metadata::FFT_MESH_POINTS)
 
     #define MB_CHANNEL_METERS(id, label) \
-            METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
-            METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_24_DB)
+        METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
+        METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_24_DB)
 
+    #define MB_SPLIT(id, label, enable, freq) \
+        SWITCH("cbe" id, "Expander band enable" label, enable), \
+        LOG_CONTROL_DFL("sf" id, "Split frequency" label, U_HZ, mb_expander_base_metadata::FREQ, freq)
 
-/*
- List of frequencies:
- 40
- 100,3960576873
- 251,984209979
- 632,4555320337
- 1587,4010519682
- 3984,2201896585
- 10000
- */
+    #define MB_MONO_BAND(id, label, x, total, fe, fs) \
+        COMBO("scm" id, "Sidechain mode" label, mb_expander_base_metadata::SC_MODE_DFL, exp_sc_modes), \
+        CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, mb_expander_base_metadata::LOOKAHEAD), \
+        LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, mb_expander_base_metadata::REACTIVITY), \
+        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
+        SWITCH("sclc" id, "Sidechain custom lo-cut" label, 0), \
+        SWITCH("schc" id, "Sidechain custom hi-cut" label, 0), \
+        LOG_CONTROL_DFL("sclf" id, "Sidechain lo-cut frequency" label, U_HZ, mb_expander_base_metadata::FREQ, fe), \
+        LOG_CONTROL_DFL("schf" id, "Sidechain hi-cut frequency" label, U_HZ, mb_expander_base_metadata::FREQ, fs), \
+        MESH("bfc" id, "Side-chain band frequency chart" label, 2, mb_expander_base_metadata::FILTER_MESH_POINTS), \
+        \
+        SWITCH("ee" id, "Expander enable" label, 1.0f), \
+        SWITCH("bs" id, "Solo band" label, 0.0f), \
+        SWITCH("bm" id, "Mute band" label, 0.0f), \
+        LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, mb_expander_base_metadata::ATTACK_LVL), \
+        LOG_CONTROL("at" id, "Attack time" label, U_MSEC, mb_expander_base_metadata::ATTACK_TIME), \
+        LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, mb_expander_base_metadata::RELEASE_LVL), \
+        LOG_CONTROL("rt" id, "Release time" label, U_MSEC, mb_expander_base_metadata::RELEASE_TIME), \
+        LOG_CONTROL("er" id, "Ratio" label, U_NONE, mb_expander_base_metadata::RATIO), \
+        LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_expander_base_metadata::KNEE), \
+        LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_expander_base_metadata::MAKEUP), \
+        HUE_CTL("hue" id, "Hue " label, (float(x) / float(total))), \
+        METER("fre" id, "Frequency range end" label, U_HZ,  mb_expander_base_metadata::OUT_FREQ), \
+        MESH("ccg" id, "Expander curve graph" label, 2, mb_expander_base_metadata::CURVE_MESH_SIZE), \
+        METER_OUT_GAIN("rl" id, "Release level" label, 20.0f), \
+        METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_24_DB), \
+        METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_24_DB), \
+        METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
 
-    static const port_t mb_compressor_mono_ports[] =
+    #define MB_STEREO_BAND(id, label, x, total, fe, fs) \
+        COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, exp_sc_source), \
+        MB_MONO_BAND(id, label, x, total, fe, fs)
+
+    #define MB_SC_MONO_BAND(id, label, x, total, fe, fs) \
+        SWITCH("sce" id, "External sidechain enable" label, 0.0f), \
+        MB_MONO_BAND(id, label, x, total, fe, fs)
+
+    #define MB_SC_STEREO_BAND(id, label, x, total, fe, fs) \
+        SWITCH("sce" id, "External sidechain enable" label, 0.0f), \
+        MB_STEREO_BAND(id, label, x, total, fe, fs)
+
+    static const port_t mb_expander_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(exp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("", ""),
         MB_CHANNEL_METERS("", ""),
@@ -217,10 +197,10 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t mb_compressor_stereo_ports[] =
+    static const port_t mb_expander_stereo_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(exp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("_l", " Left"),
         MB_CHANNEL_METERS("_l", " Left"),
@@ -247,10 +227,10 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t mb_compressor_lr_ports[] =
+    static const port_t mb_expander_lr_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        MB_COMMON(comp_sc_lr_bands),
+        MB_COMMON(exp_sc_lr_bands),
         MB_CHANNEL("_l", " Left"),
         MB_CHANNEL("_r", " Right"),
         MB_FFT_METERS("_l", " Left"),
@@ -295,10 +275,10 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t mb_compressor_ms_ports[] =
+    static const port_t mb_expander_ms_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        MB_COMMON(comp_sc_ms_bands),
+        MB_COMMON(exp_sc_ms_bands),
         MB_CHANNEL("_m", " Mid"),
         MB_CHANNEL("_s", " Side"),
         MB_FFT_METERS("_m", " Mid"),
@@ -343,11 +323,11 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t sc_mb_compressor_mono_ports[] =
+    static const port_t sc_mb_expander_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
         PORTS_MONO_SIDECHAIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(exp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("", ""),
         MB_CHANNEL_METERS("", ""),
@@ -372,11 +352,11 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t sc_mb_compressor_stereo_ports[] =
+    static const port_t sc_mb_expander_stereo_ports[] =
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(exp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("_l", " Left"),
         MB_CHANNEL_METERS("_l", " Left"),
@@ -403,11 +383,11 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t sc_mb_compressor_lr_ports[] =
+    static const port_t sc_mb_expander_lr_ports[] =
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        MB_COMMON(comp_sc_lr_bands),
+        MB_COMMON(exp_sc_lr_bands),
         MB_CHANNEL("_l", " Left"),
         MB_CHANNEL("_r", " Right"),
         MB_FFT_METERS("_l", " Left"),
@@ -452,11 +432,11 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t sc_mb_compressor_ms_ports[] =
+    static const port_t sc_mb_expander_ms_ports[] =
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        MB_COMMON(comp_sc_ms_bands),
+        MB_COMMON(exp_sc_ms_bands),
         MB_CHANNEL("_m", " Mid"),
         MB_CHANNEL("_s", " Side"),
         MB_FFT_METERS("_m", " Mid"),
@@ -501,150 +481,150 @@ namespace lsp
         PORTS_END
     };
 
-    // Multiband Compressor
-    const plugin_metadata_t  mb_compressor_mono_metadata::metadata =
+    // Multiband expander
+    const plugin_metadata_t  mb_expander_mono_metadata::metadata =
     {
-        "Multi-band Kompressor Mono x8",
-        "Multiband Compressor Mono x8",
-        "MBK8M",
+        "Multi-band Expander Mono x8",
+        "Multiband Expander Mono x8",
+        "MBE8M",
         &developers::v_sadovnikov,
-        "mb_compressor_mono",
-        "fdiu",
-        LSP_MB_COMPRESSOR_BASE + 0,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "mb_expander_mono",
+        "----",
+        LSP_MB_EXPANDER_BASE + 0,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        mb_compressor_mono_ports,
-        "dynamics/compressor/multiband/mono.xml",
+        mb_expander_mono_ports,
+        "dynamics/expander/multiband/mono.xml",
         NULL,
         mono_plugin_port_groups
     };
 
-    const plugin_metadata_t  mb_compressor_stereo_metadata::metadata =
+    const plugin_metadata_t  mb_expander_stereo_metadata::metadata =
     {
-        "Multi-band Kompressor Stereo x8",
-        "Multiband Compressor Stereo x8",
-        "MBK8S",
+        "Multi-band Expander Stereo x8",
+        "Multiband Expander Stereo x8",
+        "MBE8S",
         &developers::v_sadovnikov,
-        "mb_compressor_stereo",
-        "gjsn",
-        LSP_MB_COMPRESSOR_BASE + 1,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "mb_expander_stereo",
+        "----",
+        LSP_MB_EXPANDER_BASE + 1,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        mb_compressor_stereo_ports,
-        "dynamics/compressor/multiband/stereo.xml",
+        mb_expander_stereo_ports,
+        "dynamics/expander/multiband/stereo.xml",
         NULL,
         stereo_plugin_port_groups
     };
 
-    const plugin_metadata_t  mb_compressor_lr_metadata::metadata =
+    const plugin_metadata_t  mb_expander_lr_metadata::metadata =
     {
-        "Multi-band Kompressor LeftRight x8",
-        "Multiband Compressor LeftRight x8",
-        "MBK8LR",
+        "Multi-band Expander LeftRight x8",
+        "Multiband Expander LeftRight x8",
+        "MBE8LR",
         &developers::v_sadovnikov,
-        "mb_compressor_lr",
-        "0egf",
-        LSP_MB_COMPRESSOR_BASE + 2,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "mb_expander_lr",
+        "----",
+        LSP_MB_EXPANDER_BASE + 2,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        mb_compressor_lr_ports,
-        "dynamics/compressor/multiband/lr.xml",
+        mb_expander_lr_ports,
+        "dynamics/expander/multiband/lr.xml",
         NULL,
         stereo_plugin_port_groups
     };
 
-    const plugin_metadata_t  mb_compressor_ms_metadata::metadata =
+    const plugin_metadata_t  mb_expander_ms_metadata::metadata =
     {
-        "Multi-band Kompressor MidSide x8",
-        "Multiband Compressor MidSide x8",
-        "MBK8MS",
+        "Multi-band Expander MidSide x8",
+        "Multiband Expander MidSide x8",
+        "MBE8MS",
         &developers::v_sadovnikov,
-        "mb_compressor_ms",
-        "vhci",
-        LSP_MB_COMPRESSOR_BASE + 3,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "mb_expander_ms",
+        "----",
+        LSP_MB_EXPANDER_BASE + 3,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        mb_compressor_ms_ports,
-        "dynamics/compressor/multiband/ms.xml",
+        mb_expander_ms_ports,
+        "dynamics/expander/multiband/ms.xml",
         NULL,
         stereo_plugin_port_groups
     };
 
 
-    const plugin_metadata_t  sc_mb_compressor_mono_metadata::metadata =
+    const plugin_metadata_t  sc_mb_expander_mono_metadata::metadata =
     {
-        "Sidechain Multi-band Kompressor Mono x8",
-        "Sidechain Multiband Compressor Mono x8",
-        "SCMBK8M",
+        "Sidechain Multi-band Expander Mono x8",
+        "Sidechain Multiband Expander Mono x8",
+        "SCMBE8M",
         &developers::v_sadovnikov,
-        "sc_mb_compressor_mono",
-        "vv0m",
-        LSP_MB_COMPRESSOR_BASE + 4,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "sc_mb_expander_mono",
+        "----",
+        LSP_MB_EXPANDER_BASE + 4,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        sc_mb_compressor_mono_ports,
-        "dynamics/compressor/multiband/mono.xml",
+        sc_mb_expander_mono_ports,
+        "dynamics/expander/multiband/mono.xml",
         NULL,
         mono_plugin_sidechain_port_groups
     };
 
-    const plugin_metadata_t  sc_mb_compressor_stereo_metadata::metadata =
+    const plugin_metadata_t  sc_mb_expander_stereo_metadata::metadata =
     {
-        "Sidechain Multi-band Kompressor Stereo x8",
-        "Sidechain Multiband Compressor Stereo x8",
-        "SCMBK8S",
+        "Sidechain Multi-band Expander Stereo x8",
+        "Sidechain Multiband Expander Stereo x8",
+        "SCMBE8S",
         &developers::v_sadovnikov,
-        "sc_mb_compressor_stereo",
-        "zqrn",
-        LSP_MB_COMPRESSOR_BASE + 5,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "sc_mb_expander_stereo",
+        "----",
+        LSP_MB_EXPANDER_BASE + 5,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        sc_mb_compressor_stereo_ports,
-        "dynamics/compressor/multiband/stereo.xml",
+        sc_mb_expander_stereo_ports,
+        "dynamics/expander/multiband/stereo.xml",
         NULL,
         stereo_plugin_sidechain_port_groups
     };
 
-    const plugin_metadata_t  sc_mb_compressor_lr_metadata::metadata =
+    const plugin_metadata_t  sc_mb_expander_lr_metadata::metadata =
     {
-        "Sidechain Multi-band Kompressor LeftRight x8",
-        "Sidechain Multiband Compressor LeftRight x8",
-        "SCMBK8LR",
+        "Sidechain Multi-band Expander LeftRight x8",
+        "Sidechain Multiband Expander LeftRight x8",
+        "SCMBE8LR",
         &developers::v_sadovnikov,
-        "sc_mb_compressor_lr",
-        "kvxe",
-        LSP_MB_COMPRESSOR_BASE + 6,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "sc_mb_expander_lr",
+        "----",
+        LSP_MB_EXPANDER_BASE + 6,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        sc_mb_compressor_lr_ports,
-        "dynamics/compressor/multiband/lr.xml",
+        sc_mb_expander_lr_ports,
+        "dynamics/expander/multiband/lr.xml",
         NULL,
         stereo_plugin_sidechain_port_groups
     };
 
-    const plugin_metadata_t  sc_mb_compressor_ms_metadata::metadata =
+    const plugin_metadata_t  sc_mb_expander_ms_metadata::metadata =
     {
-        "Sidechain Multi-band Kompressor MidSide x8",
-        "Sidechain Multiband Compressor MidSide x8",
-        "SCMBK8MS",
+        "Sidechain Multi-band Expander MidSide x8",
+        "Sidechain Multiband Expander MidSide x8",
+        "SCMBE8MS",
         &developers::v_sadovnikov,
-        "sc_mb_compressor_ms",
-        "hjdp",
-        LSP_MB_COMPRESSOR_BASE + 7,
-        LSP_VERSION(1, 0, 1),
-        mb_compressor_classes,
+        "sc_mb_expander_ms",
+        "----",
+        LSP_MB_EXPANDER_BASE + 7,
+        LSP_VERSION(1, 0, 0),
+        mb_expander_classes,
         E_INLINE_DISPLAY,
-        sc_mb_compressor_ms_ports,
-        "dynamics/compressor/multiband/ms.xml",
+        sc_mb_expander_ms_ports,
+        "dynamics/expander/multiband/ms.xml",
         NULL,
         stereo_plugin_sidechain_port_groups
     };
-
 }
+

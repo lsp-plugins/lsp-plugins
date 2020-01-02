@@ -1,37 +1,36 @@
 /*
- * mb_compressor.h
+ * mb_expander.h
  *
- *  Created on: 30 янв. 2018 г.
+ *  Created on: 27 дек. 2019 г.
  *      Author: sadko
  */
 
-#ifndef PLUGINS_MB_COMPRESSOR_H_
-#define PLUGINS_MB_COMPRESSOR_H_
+#ifndef PLUGINS_MB_EXPANDER_H_
+#define PLUGINS_MB_EXPANDER_H_
 
 #include <metadata/plugins.h>
-
-#include <core/plugin.h>
 #include <core/util/Bypass.h>
 #include <core/util/Sidechain.h>
 #include <core/util/Delay.h>
 #include <core/util/MeterGraph.h>
 #include <core/util/MeterGraph.h>
 #include <core/util/Analyzer.h>
+#include <core/dynamics/Expander.h>
 #include <core/filters/DynamicFilters.h>
 #include <core/filters/Equalizer.h>
-#include <core/dynamics/Compressor.h>
+#include <core/plugin.h>
 
 namespace lsp
 {
-    class mb_compressor_base: public plugin_t
+    class mb_expander_base: public plugin_t
     {
         protected:
             enum c_mode_t
             {
-                MBCM_MONO,
-                MBCM_STEREO,
-                MBCM_LR,
-                MBCM_MS
+                MBEM_MONO,
+                MBEM_STEREO,
+                MBEM_LR,
+                MBEM_MS
             };
 
             enum sync_t
@@ -42,11 +41,11 @@ namespace lsp
                 S_ALL           = S_COMP_CURVE | S_EQ_CURVE
             };
 
-            typedef struct comp_band_t
+            typedef struct exp_band_t
             {
                 Sidechain       sSC;                // Sidechain module
                 Equalizer       sEQ[2];             // Sidechain equalizers
-                Compressor      sComp;              // Compressor
+                Expander        sExp;               // Expander
                 Filter          sPassFilter;        // Passing filter for 'classic' mode
                 Filter          sRejFilter;         // Rejection filter for 'classic' mode
                 Filter          sAllFilter;         // All-pass filter for phase compensation
@@ -87,7 +86,6 @@ namespace lsp
                 IPort          *pScHcfFreq;         // Sidechain hi-cut frequency
                 IPort          *pScFreqChart;       // Sidechain band frequency chart
 
-                IPort          *pMode;              // Compressor mode
                 IPort          *pEnable;            // Enable compressor
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
@@ -104,7 +102,7 @@ namespace lsp
                 IPort          *pEnvLvl;            // Envelope level meter
                 IPort          *pCurveLvl;          // Reduction curve level meter
                 IPort          *pMeterGain;         // Reduction gain meter
-            } comp_band_t;
+            } exp_band_t;
 
             typedef struct split_t
             {
@@ -121,9 +119,9 @@ namespace lsp
                 Filter          sEnvBoost[2];       // Envelope boost filter
                 Delay           sDelay;             // Delay for lookahead purpose
 
-                comp_band_t     vBands[mb_compressor_base_metadata::BANDS_MAX];     // Compressor bands
-                split_t         vSplit[mb_compressor_base_metadata::BANDS_MAX-1];   // Split bands
-                comp_band_t    *vPlan[mb_compressor_base_metadata::BANDS_MAX];      // Execution plan (band indexes)
+                exp_band_t      vBands[mb_expander_base_metadata::BANDS_MAX];       // Expander bands
+                split_t         vSplit[mb_expander_base_metadata::BANDS_MAX-1];     // Split bands
+                exp_band_t     *vPlan[mb_expander_base_metadata::BANDS_MAX];        // Execution plan (band indexes)
                 size_t          nPlanSize;              // Plan size
 
                 float          *vIn;                // Input data buffer
@@ -156,12 +154,12 @@ namespace lsp
         protected:
             Analyzer        sAnalyzer;              // Analyzer
             DynamicFilters  sFilters;               // Dynamic filters for each band in 'modern' mode
-            size_t          nMode;                  // Compressor mode
+            size_t          nMode;                  // Expander channel mode
             bool            bSidechain;             // External side chain
             bool            bEnvUpdate;             // Envelope filter update
             bool            bModern;                // Modern mode
             size_t          nEnvBoost;              // Envelope boost
-            channel_t      *vChannels;              // Compressor channels
+            channel_t      *vChannels;              // Expander channels
             float           fInGain;                // Input gain
             float           fDryGain;               // Dry gain
             float           fWetGain;               // Wet gain
@@ -179,7 +177,7 @@ namespace lsp
             float_buffer_t *pIDisplay;              // Inline display buffer
 
             IPort          *pBypass;                // Bypass port
-            IPort          *pMode;                  // Global mode
+            IPort          *pMode;                  // Global operating mode
             IPort          *pInGain;                // Input gain port
             IPort          *pOutGain;               // Output gain port
             IPort          *pDryGain;               // Dry gain port
@@ -190,11 +188,11 @@ namespace lsp
             IPort          *pEnvBoost;              // Envelope adjust
 
         protected:
-            static bool compare_bands_for_sort(const comp_band_t *b1, const comp_band_t *b2);
+            static bool compare_bands_for_sort(const exp_band_t *b1, const exp_band_t *b2);
 
         public:
-            explicit mb_compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
-            virtual ~mb_compressor_base();
+            explicit mb_expander_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
+            virtual ~mb_expander_base();
 
         public:
             virtual void init(IWrapper *wrapper);
@@ -209,55 +207,54 @@ namespace lsp
     };
 
     //-------------------------------------------------------------------------
-    // Different compressor implementations
-    class mb_compressor_mono: public mb_compressor_base, public mb_compressor_mono_metadata
+    // Different expander implementations
+    class mb_expander_mono: public mb_expander_base, public mb_expander_mono_metadata
     {
         public:
-            mb_compressor_mono();
+            mb_expander_mono();
     };
 
-    class mb_compressor_stereo: public mb_compressor_base, public mb_compressor_stereo_metadata
+    class mb_expander_stereo: public mb_expander_base, public mb_expander_stereo_metadata
     {
         public:
-            mb_compressor_stereo();
+            mb_expander_stereo();
     };
 
-    class mb_compressor_lr: public mb_compressor_base, public mb_compressor_lr_metadata
+    class mb_expander_lr: public mb_expander_base, public mb_expander_lr_metadata
     {
         public:
-            mb_compressor_lr();
+            mb_expander_lr();
     };
 
-    class mb_compressor_ms: public mb_compressor_base, public mb_compressor_ms_metadata
+    class mb_expander_ms: public mb_expander_base, public mb_expander_ms_metadata
     {
         public:
-            mb_compressor_ms();
+            mb_expander_ms();
     };
 
-    class sc_mb_compressor_mono: public mb_compressor_base, public sc_mb_compressor_mono_metadata
+    class sc_mb_expander_mono: public mb_expander_base, public sc_mb_expander_mono_metadata
     {
         public:
-            sc_mb_compressor_mono();
+            sc_mb_expander_mono();
     };
 
-    class sc_mb_compressor_stereo: public mb_compressor_base, public sc_mb_compressor_stereo_metadata
+    class sc_mb_expander_stereo: public mb_expander_base, public sc_mb_expander_stereo_metadata
     {
         public:
-            sc_mb_compressor_stereo();
+            sc_mb_expander_stereo();
     };
 
-    class sc_mb_compressor_lr: public mb_compressor_base, public sc_mb_compressor_lr_metadata
+    class sc_mb_expander_lr: public mb_expander_base, public sc_mb_expander_lr_metadata
     {
         public:
-            sc_mb_compressor_lr();
+            sc_mb_expander_lr();
     };
 
-    class sc_mb_compressor_ms: public mb_compressor_base, public sc_mb_compressor_ms_metadata
+    class sc_mb_expander_ms: public mb_expander_base, public sc_mb_expander_ms_metadata
     {
         public:
-            sc_mb_compressor_ms();
+            sc_mb_expander_ms();
     };
-
 }
 
-#endif /* PLUGINS_COMPRESSOR_H_ */
+#endif /* PLUGINS_MB_EXPANDER_H_ */

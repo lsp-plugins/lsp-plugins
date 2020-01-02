@@ -44,7 +44,7 @@ namespace lsp
             bool        bUpward;
 
         public:
-            Expander();
+            explicit Expander();
             ~Expander();
 
         public:

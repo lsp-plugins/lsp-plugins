@@ -10,7 +10,7 @@
 
 === 1.1.14 ===
 
-- Implemented Multiband expander plugin series.
+* Implemented Multiband expander plugin series.
 - Implemented Multiband gate plugin series.
 - Refactored and optimized dynamic filter processing.
 - Decomposition of core modules into submodules.

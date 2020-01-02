@@ -1,29 +1,28 @@
 /*
- * mb_compressor.cpp
+ * mb_expander.cpp
  *
- *  Created on: 30 янв. 2018 г.
+ *  Created on: 27 дек. 2019 г.
  *      Author: sadko
  */
 
 #include <core/debug.h>
 #include <core/colors.h>
 #include <core/util/Color.h>
-#include <plugins/mb_compressor.h>
+#include <plugins/mb_expander.h>
 
-#define MBC_BUFFER_SIZE         0x1000
+#define MBE_BUFFER_SIZE         0x1000
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
 {
-    //-------------------------------------------------------------------------
-    // Multiband compressor base class
-    mb_compressor_base::mb_compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode): plugin_t(metadata)
+    mb_expander_base::mb_expander_base(const plugin_metadata_t &metadata, bool sc, size_t mode):
+        plugin_t(metadata)
     {
         nMode           = mode;
         bSidechain      = sc;
         bEnvUpdate      = true;
         bModern         = true;
-        nEnvBoost       = mb_compressor_base_metadata::FB_DEFAULT;
+        nEnvBoost       = mb_expander_base_metadata::FB_DEFAULT;
         vChannels       = NULL;
         fInGain         = GAIN_AMP_0_DB;
         fDryGain        = GAIN_AMP_M_INF_DB;
@@ -31,7 +30,7 @@ namespace lsp
         fZoom           = GAIN_AMP_0_DB;
         pData           = NULL;
         vTr             = NULL;
-        vPFc            = NULL;
+        vPFc             = NULL;
         vRFc            = NULL;
         vFreqs          = NULL;
         vCurve          = NULL;
@@ -54,24 +53,24 @@ namespace lsp
         pEnvBoost       = NULL;
     }
 
-    mb_compressor_base::~mb_compressor_base()
+    mb_expander_base::~mb_expander_base()
     {
     }
 
-    bool mb_compressor_base::compare_bands_for_sort(const comp_band_t *b1, const comp_band_t *b2)
+    bool mb_expander_base::compare_bands_for_sort(const exp_band_t *b1, const exp_band_t *b2)
     {
         if (b1->fFreqStart != b2->fFreqStart)
             return (b1->fFreqStart > b2->fFreqStart);
         return b1 < b2;
     }
 
-    void mb_compressor_base::init(IWrapper *wrapper)
+    void mb_expander_base::init(IWrapper *wrapper)
     {
         // Initialize plugin
         plugin_t::init(wrapper);
 
         // Determine number of channels
-        size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
 
         // Allocate channels
         vChannels       = new channel_t[channels];
@@ -80,16 +79,16 @@ namespace lsp
 
         // Initialize analyzer
         size_t an_cid       = 0;
-        if (!sAnalyzer.init(2*channels, mb_compressor_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(2*channels, mb_expander_base_metadata::FFT_RANK))
             return;
 
-        sAnalyzer.set_rank(mb_compressor_base_metadata::FFT_RANK);
+        sAnalyzer.set_rank(mb_expander_base_metadata::FFT_RANK);
         sAnalyzer.set_activity(false);
         sAnalyzer.set_envelope(envelope::WHITE_NOISE);
-        sAnalyzer.set_window(mb_compressor_base_metadata::FFT_WINDOW);
-        sAnalyzer.set_rate(mb_compressor_base_metadata::REFRESH_RATE);
+        sAnalyzer.set_window(mb_expander_base_metadata::FFT_WINDOW);
+        sAnalyzer.set_rate(mb_expander_base_metadata::FFT_REFRESH_RATE);
 
-        size_t filter_mesh_size = ALIGN_SIZE(mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(float), DEFAULT_ALIGN);
+        size_t filter_mesh_size = ALIGN_SIZE(mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float), DEFAULT_ALIGN);
 
         // Allocate float buffer data
         size_t to_alloc =
@@ -97,24 +96,24 @@ namespace lsp
                 2 * filter_mesh_size + // vTr (both complex and real)
                 2 * filter_mesh_size + // vFc (both complex and real)
                 2 * filter_mesh_size + // vSig (both complex and real)
-                mb_compressor_base_metadata::CURVE_MESH_SIZE * sizeof(float) + // Curve
-                mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(float) + // vFreqs array
-                mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
-                MBC_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
-                MBC_BUFFER_SIZE * sizeof(float) + // Global vEnv for band signal processing
+                mb_expander_base_metadata::CURVE_MESH_SIZE * sizeof(float) + // Curve
+                mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float) + // vFreqs array
+                mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
+                MBE_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
+                MBE_BUFFER_SIZE * sizeof(float) + // Global vEnv for band signal processing
                 // Channel buffers
                 (
-                    MBC_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
+                    MBE_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
                     2 * filter_mesh_size + // vTr of each channel
                     filter_mesh_size + // vTrMem of each channel
-                    MBC_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
-                    MBC_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
-                    ((bSidechain) ? MBC_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
+                    MBE_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
+                    MBE_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
+                    ((bSidechain) ? MBE_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
                     // Band buffers
                     (
-                        MBC_BUFFER_SIZE * sizeof(float) + // vVCA of each band
-                        mb_compressor_base_metadata::FFT_MESH_POINTS * 2 * sizeof(float) // vTr transfer function for each band
-                    ) * mb_compressor_base_metadata::BANDS_MAX
+                        MBE_BUFFER_SIZE * sizeof(float) + // vVCA of each band
+                        mb_expander_base_metadata::FFT_MESH_POINTS * 2 * sizeof(float) // vTr transfer function for each band
+                    ) * mb_expander_base_metadata::BANDS_MAX
                 ) * channels;
 
         uint8_t *ptr    = alloc_aligned<uint8_t>(pData, to_alloc);
@@ -130,27 +129,27 @@ namespace lsp
         vRFc            = reinterpret_cast<float *>(ptr);
         ptr            += filter_mesh_size * 2;
         vFreqs          = reinterpret_cast<float *>(ptr);
-        ptr            += mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(float);
+        ptr            += mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float);
         vCurve          = reinterpret_cast<float *>(ptr);
-        ptr            += mb_compressor_base_metadata::CURVE_MESH_SIZE * sizeof(float);
+        ptr            += mb_expander_base_metadata::CURVE_MESH_SIZE * sizeof(float);
         vIndexes        = reinterpret_cast<uint32_t *>(ptr);
-        ptr            += mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t);
+        ptr            += mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t);
         vSc[0]          = reinterpret_cast<float *>(ptr);
-        ptr            += MBC_BUFFER_SIZE * sizeof(float);
+        ptr            += MBE_BUFFER_SIZE * sizeof(float);
         if (channels > 1)
         {
             vSc[1]          = reinterpret_cast<float *>(ptr);
-            ptr            += MBC_BUFFER_SIZE * sizeof(float);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
         }
         else
             vSc[1]          = NULL;
         vBuffer         = reinterpret_cast<float *>(ptr);
-        ptr            += MBC_BUFFER_SIZE * sizeof(float);
+        ptr            += MBE_BUFFER_SIZE * sizeof(float);
         vEnv            = reinterpret_cast<float *>(ptr);
-        ptr            += MBC_BUFFER_SIZE * sizeof(float);
+        ptr            += MBE_BUFFER_SIZE * sizeof(float);
 
         // Initialize filters according to number of bands
-        if (sFilters.init(mb_compressor_base_metadata::BANDS_MAX * channels) != STATUS_OK)
+        if (sFilters.init(mb_expander_base_metadata::BANDS_MAX * channels) != STATUS_OK)
             return;
         size_t filter_cid = 0;
 
@@ -173,14 +172,14 @@ namespace lsp
             c->vScIn        = NULL;
 
             c->vBuffer      = reinterpret_cast<float *>(ptr);
-            ptr            += MBC_BUFFER_SIZE * sizeof(float);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
             c->vScBuffer    = reinterpret_cast<float *>(ptr);
-            ptr            += MBC_BUFFER_SIZE * sizeof(float);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
             c->vExtScBuffer = NULL;
             if (bSidechain)
             {
                 c->vExtScBuffer = reinterpret_cast<float *>(ptr);
-                ptr            += MBC_BUFFER_SIZE * sizeof(float);
+                ptr            += MBE_BUFFER_SIZE * sizeof(float);
             }
             c->vTr          = reinterpret_cast<float *>(ptr);
             ptr            += 2 * filter_mesh_size;
@@ -205,11 +204,11 @@ namespace lsp
             c->pOutLvl      = NULL;
 
             // Initialize bands
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b  = &c->vBands[j];
+                exp_band_t *b  = &c->vBands[j];
 
-                if (!b->sSC.init(channels, mb_compressor_base_metadata::REACTIVITY_MAX))
+                if (!b->sSC.init(channels, mb_expander_base_metadata::REACTIVITY_MAX))
                     return;
                 if (!b->sPassFilter.init(NULL))
                     return;
@@ -228,9 +227,9 @@ namespace lsp
                 }
 
                 b->vVCA         = reinterpret_cast<float *>(ptr);
-                ptr            += MBC_BUFFER_SIZE * sizeof(float);
+                ptr            += MBE_BUFFER_SIZE * sizeof(float);
                 b->vTr          = reinterpret_cast<float *>(ptr);
-                ptr            += mb_compressor_base_metadata::FFT_MESH_POINTS * sizeof(float) * 2;
+                ptr            += mb_expander_base_metadata::FFT_MESH_POINTS * sizeof(float) * 2;
 
                 b->fScPreamp    = GAIN_AMP_0_DB;
 
@@ -242,13 +241,12 @@ namespace lsp
                 b->fMakeup      = GAIN_AMP_0_DB;
                 b->fEnvLevel    = GAIN_AMP_0_DB;
                 b->fGainLevel   = GAIN_AMP_0_DB;
-                b->bEnabled     = j < mb_compressor_base_metadata::BANDS_DFL;
+                b->bEnabled     = j < mb_expander_base_metadata::BANDS_DFL;
                 b->bCustHCF     = false;
                 b->bCustLCF     = false;
                 b->bMute        = false;
                 b->bSolo        = false;
                 b->bExtSc       = false;
-                b->nSync        = S_ALL;
                 b->nFilterID    = filter_cid++;
 
                 b->pExtSc       = NULL;
@@ -263,7 +261,6 @@ namespace lsp
                 b->pScHcfFreq   = NULL;
                 b->pScFreqChart = NULL;
 
-                b->pMode        = NULL;
                 b->pEnable      = NULL;
                 b->pSolo        = NULL;
                 b->pMute        = NULL;
@@ -279,7 +276,7 @@ namespace lsp
             }
 
             // Initialize split
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX-1; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX-1; ++j)
             {
                 split_t *s      = &c->vSplit[j];
 
@@ -353,7 +350,7 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
-            if ((i > 0) && (nMode == MBCM_STEREO))
+            if ((i > 0) && (nMode == MBEM_STEREO))
             {
                 channel_t *sc           = &vChannels[0];
                 c->pAmpGraph            = sc->pAmpGraph;
@@ -390,11 +387,11 @@ namespace lsp
         lsp_trace("Binding split frequencies");
         for (size_t i=0; i<channels; ++i)
         {
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX-1; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX-1; ++j)
             {
                 split_t *s      = &vChannels[i].vSplit[j];
 
-                if ((i > 0) && (nMode == MBCM_STEREO))
+                if ((i > 0) && (nMode == MBEM_STEREO))
                 {
                     split_t *sc     = &vChannels[0].vSplit[j];
                     s->pEnabled     = sc->pEnabled;
@@ -410,17 +407,17 @@ namespace lsp
             }
         }
 
-        // Compressor bands
-        lsp_trace("Binding compressor bands");
+        // Expander bands
+        lsp_trace("Binding expander bands");
         for (size_t i=0; i<channels; ++i)
         {
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b  = &vChannels[i].vBands[j];
+                exp_band_t *b   = &vChannels[i].vBands[j];
 
-                if ((i > 0) && (nMode == MBCM_STEREO))
+                if ((i > 0) && (nMode == MBEM_STEREO))
                 {
-                    comp_band_t *sb     = &vChannels[0].vBands[j];
+                    exp_band_t *sb  = &vChannels[0].vBands[j];
 
                     b->pExtSc       = sb->pExtSc;
                     b->pScSource    = sb->pScSource;
@@ -434,7 +431,6 @@ namespace lsp
                     b->pScHcfFreq   = sb->pScHcfFreq;
                     b->pScFreqChart = sb->pScFreqChart;
 
-                    b->pMode        = sb->pMode;
                     b->pEnable      = sb->pEnable;
                     b->pSolo        = sb->pSolo;
                     b->pMute        = sb->pMute;
@@ -460,7 +456,7 @@ namespace lsp
                         TRACE_PORT(vPorts[port_id]);
                         b->pExtSc       = vPorts[port_id++];
                     }
-                    if (nMode != MBCM_MONO)
+                    if (nMode != MBEM_MONO)
                     {
                         TRACE_PORT(vPorts[port_id]);
                         b->pScSource    = vPorts[port_id++];
@@ -484,8 +480,6 @@ namespace lsp
                     TRACE_PORT(vPorts[port_id]);
                     b->pScFreqChart = vPorts[port_id++];
 
-                    TRACE_PORT(vPorts[port_id]);
-                    b->pMode        = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pEnable      = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
@@ -528,15 +522,15 @@ namespace lsp
         }
 
         // Initialize curve (logarithmic) in range of -72 .. +24 db
-        float delta = (mb_compressor_base_metadata::CURVE_DB_MAX - mb_compressor_base_metadata::CURVE_DB_MIN) / (mb_compressor_base_metadata::CURVE_MESH_SIZE-1);
-        for (size_t i=0; i<mb_compressor_base_metadata::CURVE_MESH_SIZE; ++i)
-            vCurve[i]   = db_to_gain(mb_compressor_base_metadata::CURVE_DB_MIN + delta * i);
+        float delta = (mb_expander_base_metadata::CURVE_DB_MAX - mb_expander_base_metadata::CURVE_DB_MIN) / (mb_expander_base_metadata::CURVE_MESH_SIZE-1);
+        for (size_t i=0; i<mb_expander_base_metadata::CURVE_MESH_SIZE; ++i)
+            vCurve[i]   = db_to_gain(mb_expander_base_metadata::CURVE_DB_MIN + delta * i);
     }
 
-    void mb_compressor_base::destroy()
+    void mb_expander_base::destroy()
     {
         // Determine number of channels
-        size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
 
         // Destroy channels
         if (vChannels != NULL)
@@ -551,9 +545,9 @@ namespace lsp
 
                 c->vBuffer      = NULL;
 
-                for (size_t i=0; i<mb_compressor_base_metadata::BANDS_MAX; ++i)
+                for (size_t i=0; i<mb_expander_base_metadata::BANDS_MAX; ++i)
                 {
-                    comp_band_t *b  = &c->vBands[i];
+                    exp_band_t *b  = &c->vBands[i];
 
                     b->sEQ[0].destroy();
                     b->sEQ[1].destroy();
@@ -584,12 +578,12 @@ namespace lsp
         plugin_t::destroy();
     }
 
-    void mb_compressor_base::update_settings()
+    void mb_expander_base::update_settings()
     {
         filter_params_t fp;
 
         // Determine number of channels
-        size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
         int active_channels = 0;
         size_t env_boost    = pEnvBoost->getValue();
 
@@ -618,7 +612,7 @@ namespace lsp
             c->sBypass.set_bypass(pBypass->getValue());
 
             // Update frequency split bands
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX-1; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX-1; ++j)
             {
                 split_t *s      = &c->vSplit[j];
 
@@ -648,30 +642,30 @@ namespace lsp
             // Update envelope boost filters
             if ((env_boost != nEnvBoost) || (bEnvUpdate))
             {
-                fp.fFreq        = mb_compressor_base_metadata::FREQ_BOOST_MIN;
+                fp.fFreq        = mb_expander_base_metadata::FREQ_BOOST_MIN;
                 fp.fFreq2       = 0.0f;
                 fp.fGain        = 1.0f;
                 fp.fQuality     = 0.0f;
 
                 switch (env_boost)
                 {
-                    case mb_compressor_base_metadata::FB_BT_3DB:
+                    case mb_expander_base_metadata::FB_BT_3DB:
                         fp.nType        = FLT_BT_RLC_ENVELOPE;
                         fp.nSlope       = 1;
                         break;
-                    case mb_compressor_base_metadata::FB_MT_3DB:
+                    case mb_expander_base_metadata::FB_MT_3DB:
                         fp.nType        = FLT_MT_RLC_ENVELOPE;
                         fp.nSlope       = 1;
                         break;
-                    case mb_compressor_base_metadata::FB_BT_6DB:
+                    case mb_expander_base_metadata::FB_BT_6DB:
                         fp.nType        = FLT_BT_RLC_ENVELOPE;
                         fp.nSlope       = 2;
                         break;
-                    case mb_compressor_base_metadata::FB_MT_6DB:
+                    case mb_expander_base_metadata::FB_MT_6DB:
                         fp.nType        = FLT_MT_RLC_ENVELOPE;
                         fp.nSlope       = 2;
                         break;
-                    case mb_compressor_base_metadata::FB_OFF:
+                    case mb_expander_base_metadata::FB_OFF:
                     default:
                         fp.nType        = FLT_NONE;
                         fp.nSlope       = 1;
@@ -705,15 +699,14 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
-            // Update compressor bands
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            // Update expander bands
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b  = &c->vBands[j];
+                exp_band_t *b   = &c->vBands[j];
 
                 float attack    = b->pAttLevel->getValue();
                 float release   = b->pRelLevel->getValue() * attack;
                 float makeup    = b->pMakeup->getValue();
-                float mode      = b->pMode->getValue();
                 bool enabled    = b->pEnable->getValue() >= 0.5f;
                 if (enabled && (j > 0))
                     enabled         = c->vSplit[j-1].bEnabled;
@@ -729,7 +722,7 @@ namespace lsp
 
                 b->sSC.set_mode(b->pScMode->getValue());
                 b->sSC.set_reactivity(b->pScReact->getValue());
-                b->sSC.set_stereo_mode((nMode == MBCM_MS) ? SCSM_MIDSIDE : SCSM_STEREO);
+                b->sSC.set_stereo_mode((nMode == MBEM_MS) ? SCSM_MIDSIDE : SCSM_STEREO);
                 b->sSC.set_source((b->pScSource != NULL) ? b->pScSource->getValue() : SCS_MIDDLE);
 
                 if (sc_gain != b->fScPreamp)
@@ -738,15 +731,14 @@ namespace lsp
                     b->nSync       |= S_EQ_CURVE;
                 }
 
-                b->sComp.set_mode((mode >= 1.0f) ? CM_UPWARD : CM_DOWNWARD);
-                b->sComp.set_threshold(attack, release);
-                b->sComp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
-                b->sComp.set_ratio(b->pRatio->getValue());
-                b->sComp.set_knee(b->pKnee->getValue());
+                b->sExp.set_threshold(attack, release);
+                b->sExp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
+                b->sExp.set_ratio(b->pRatio->getValue());
+                b->sExp.set_knee(b->pKnee->getValue());
 
-                if (b->sComp.modified())
+                if (b->sExp.modified())
                 {
-                    b->sComp.update_settings();
+                    b->sExp.update_settings();
                     b->nSync       |= S_COMP_CURVE;
                 }
                 if (b->fMakeup != makeup)
@@ -815,9 +807,9 @@ namespace lsp
             channel_t *c    = &vChannels[i];
 
             // Check muting option
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b      = &c->vBands[j];
+                exp_band_t *b      = &c->vBands[j];
                 if ((!b->bMute) && (solo_on))
                     b->bMute    = !b->bSolo;
             }
@@ -829,9 +821,9 @@ namespace lsp
                 c->vBands[0].fFreqStart     = 0;
                 c->vPlan[c->nPlanSize++]    = &c->vBands[0];
 
-                for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX-1; ++j)
+                for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX-1; ++j)
                 {
-                    comp_band_t *b      = &c->vBands[j+1];
+                    exp_band_t *b       = &c->vBands[j+1];
                     b->fFreqStart       = c->vSplit[j].fFreq;
 
                     if (c->vSplit[j].bEnabled)
@@ -846,7 +838,7 @@ namespace lsp
                         for (size_t sj=si+1; sj < c->nPlanSize; ++sj)
                             if (compare_bands_for_sort(c->vPlan[si], c->vPlan[sj]))
                             {
-                                comp_band_t *tmp = c->vPlan[si];
+                                exp_band_t *tmp = c->vPlan[si];
                                 c->vPlan[si]    = c->vPlan[sj];
                                 c->vPlan[sj]    = tmp;
                             }
@@ -860,13 +852,9 @@ namespace lsp
                 lsp_trace("Reordered bands according to frequency grow");
                 for (size_t j=0; j<c->nPlanSize; ++j)
                 {
-                    comp_band_t *b  = c->vPlan[j];
+                    exp_band_t *b   = c->vPlan[j];
                     b->pFreqEnd->setValue(b->fFreqEnd);
                     b->nSync       |= S_EQ_CURVE;
-
-//                    lsp_trace("plan[%d] start=%f, end=%f, fft=%s",
-//                            int(j), b->fFreqStart, b->fFreqEnd,
-//                            (b->bFFT) ? "true" : "false");
 
                     lsp_trace("plan[%d] start=%f, end=%f", int(j), b->fFreqStart, b->fFreqEnd);
 
@@ -880,7 +868,7 @@ namespace lsp
                         fp.fQuality     = 0.0f;
                         fp.fGain        = 1.0f;
                         fp.fQuality     = 0.0f;
-                        fp.nSlope       = 2; // TODO
+                        fp.nSlope       = 2;
 
                         b->sEQ[k].set_params(0, &fp);
 
@@ -891,16 +879,16 @@ namespace lsp
                         fp.fQuality     = 0.0f;
                         fp.fGain        = 1.0f;
                         fp.fQuality     = 0.0f;
-                        fp.nSlope       = 2; // TODO
+                        fp.nSlope       = 2;
 
                         b->sEQ[k].set_params(1, &fp);
                     }
 
                     // Update transfer function for equalizer
-                    b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mod(b->vTr, b->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(b->vTr, vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mod(b->vTr, b->vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
 
                     // Update filter parameters, depending on operating mode
                     if (bModern)
@@ -926,7 +914,7 @@ namespace lsp
                         }
 
                         fp.fGain        = 1.0f;
-                        fp.nSlope       = 2; // TODO
+                        fp.nSlope       = 2;
                         fp.fQuality     = 0.0;
 
                         lsp_trace("Filter type=%d, from=%f, to=%f", int(fp.nType), fp.fFreq, fp.fFreq2);
@@ -936,10 +924,10 @@ namespace lsp
                     else
                     {
                         fp.fGain        = 1.0f;
-                        fp.nSlope       = 2; // TODO
+                        fp.nSlope       = 2;
                         fp.fQuality     = 0.0;
-                        fp.fFreq    	= b->fFreqEnd;
-                        fp.fFreq2   	= b->fFreqEnd;
+                        fp.fFreq        = b->fFreqEnd;
+                        fp.fFreq2       = b->fFreqEnd;
 
                         // We're going from low frequencies to high frequencies
                         if (j >= (c->nPlanSize - 1))
@@ -963,16 +951,16 @@ namespace lsp
             } // nPlanSize
 
             // Enable/disable dynamic filters
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b  = &c->vBands[j];
+                exp_band_t *b   = &c->vBands[j];
                 sFilters.set_filter_active(b->nFilterID, b->bEnabled);
             }
 
             // Calculate latency
             for (size_t j=0; j<c->nPlanSize; ++j)
             {
-                comp_band_t *b  = c->vPlan[j];
+                exp_band_t *b   = c->vPlan[j];
 
                 if (latency < b->nLookahead)
                     latency = b->nLookahead;
@@ -988,43 +976,20 @@ namespace lsp
             // Update latency
             for (size_t j=0; j<c->nPlanSize; ++j)
             {
-                comp_band_t *b  = c->vPlan[j];
+                exp_band_t *b   = c->vPlan[j];
                 b->sDelay.set_delay(latency - b->nLookahead);
             }
         }
-
-        // Debug:
-#ifdef LSP_TRACE
-        for (size_t i=0; i<channels; ++i)
-        {
-            channel_t *c    = &vChannels[i];
-
-            for (size_t j=0; j<c->nPlanSize; ++j)
-            {
-                comp_band_t *b  = c->vPlan[j];
-                filter_params_t fp;
-                sFilters.get_params(b->nFilterID, &fp);
-
-                lsp_trace("plan[%d, %d] start=%f, end=%f, filter={id=%d, type=%d, slope=%d}, solo=%s, mute=%s",
-                        int(i), int(j),
-                        b->fFreqStart, b->fFreqEnd,
-                        int(b->nFilterID), int(fp.nType), int(fp.nSlope),
-                        (b->bSolo) ? "true" : "false",
-                        (b->bMute) ? "true" : "false"
-                    );
-            }
-        }
-#endif /* LSP_TRACE */
 
         nEnvBoost       = env_boost;
         bEnvUpdate      = false;
     }
 
-    void mb_compressor_base::update_sample_rate(long sr)
+    void mb_expander_base::update_sample_rate(long sr)
     {
         // Determine number of channels
-        size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
-        size_t max_delay    = millis_to_samples(sr, mb_compressor_base_metadata::LOOKAHEAD_MAX);
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t max_delay    = millis_to_samples(sr, mb_expander_base_metadata::LOOKAHEAD_MAX);
 
         // Update analyzer's sample rate
         sAnalyzer.set_sample_rate(sr);
@@ -1039,12 +1004,12 @@ namespace lsp
             c->sDelay.init(max_delay);
 
             // Update bands
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b  = &c->vBands[j];
+                exp_band_t *b   = &c->vBands[j];
 
                 b->sSC.set_sample_rate(sr);
-                b->sComp.set_sample_rate(sr);
+                b->sExp.set_sample_rate(sr);
                 b->sDelay.init(max_delay);
 
                 b->sPassFilter.set_sample_rate(sr);
@@ -1060,9 +1025,9 @@ namespace lsp
         }
     }
 
-    void mb_compressor_base::ui_activated()
+    void mb_expander_base::ui_activated()
     {
-        size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -1070,34 +1035,15 @@ namespace lsp
 
             for (size_t j=0; j<c->nPlanSize; ++j)
             {
-                comp_band_t *b      = c->vPlan[j];
+                exp_band_t *b       = c->vPlan[j];
                 b->nSync            = S_ALL;
             }
         }
     }
 
-    /*
-         The overall schema of signal processing in 'classic' mode for 4 bands:
-
-
-        s   ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐  s'
-       ──┬─►│LPF 1│────►│VCA 1│────►│APF 2│────►│  +  │────►│APF 3│────►│  +  │────►│  +  │────►
-         │  └─────┘     └─────┘     └─────┘     └─────┘     └─────┘     └─────┘     └─────┘
-         │                                         ▲                       ▲           ▲
-         │                                         │                       │           │
-         │  ┌─────┐                 ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐        │
-         └─►│HPF 1│──────────────┬─►│LPF 2│────►│VCA 2│  ┌─►│LPF 3│────►│VCA 3│        │
-            └─────┘              │  └─────┘     └─────┘  │  └─────┘     └─────┘        │
-                                 │                       │                             │
-                                 │                       │                             │
-                                 │  ┌─────┐              │  ┌─────┐     ┌─────┐        │
-                                 └─►│HPF 2│──────────────┴─►│HPF 3│────►│VCA 4│────────┘
-                                    └─────┘                 └─────┘     └─────┘
-     */
-
-    void mb_compressor_base::process(size_t samples)
+    void mb_expander_base::process(size_t samples)
     {
-        size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
 
         // Bind input signal
         for (size_t i=0; i<channels; ++i)
@@ -1113,7 +1059,7 @@ namespace lsp
         while (samples > 0)
         {
             // Determine buffer size for processing
-            size_t to_process   = (samples > MBC_BUFFER_SIZE) ? MBC_BUFFER_SIZE : samples;
+            size_t to_process   = (samples > MBE_BUFFER_SIZE) ? MBE_BUFFER_SIZE : samples;
 
             // Measure input signal level
             for (size_t i=0; i<channels; ++i)
@@ -1124,13 +1070,13 @@ namespace lsp
             }
 
             // Pre-process channel data
-            if (nMode == MBCM_MS)
+            if (nMode == MBEM_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_process);
                 dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_process);
                 dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_process);
             }
-            else if (nMode == MBCM_MONO)
+            else if (nMode == MBEM_MONO)
                 dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
             else
             {
@@ -1139,13 +1085,13 @@ namespace lsp
             }
             if (bSidechain)
             {
-                if (nMode == MBCM_MS)
+                if (nMode == MBEM_MS)
                 {
                     dsp::lr_to_ms(vChannels[0].vExtScBuffer, vChannels[1].vExtScBuffer, vChannels[0].vScIn, vChannels[1].vScIn, to_process);
                     dsp::mul_k2(vChannels[0].vExtScBuffer, fInGain, to_process);
                     dsp::mul_k2(vChannels[1].vExtScBuffer, fInGain, to_process);
                 }
-                else if (nMode == MBCM_MONO)
+                else if (nMode == MBEM_MONO)
                     dsp::mul_k3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
                 else
                 {
@@ -1174,7 +1120,7 @@ namespace lsp
 
                 for (size_t j=0; j<c->nPlanSize; ++j)
                 {
-                    comp_band_t *b      = c->vPlan[j];
+                    exp_band_t *b       = c->vPlan[j];
 
                     // Prepare sidechain signal with band equalizers
                     b->sEQ[0].process(vSc[0], (b->bExtSc) ? vChannels[0].vExtScBuffer : vChannels[0].vScBuffer, to_process);
@@ -1187,14 +1133,14 @@ namespace lsp
 
                     if (b->bEnabled)
                     {
-                        b->sComp.process(b->vVCA, vEnv, vBuffer, to_process); // Output
+                        b->sExp.process(b->vVCA, vEnv, vBuffer, to_process); // Output
                         dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
                         // Output curve level
                         float lvl = dsp::abs_max(vEnv, to_process);
                         b->pEnvLvl->setValue(lvl);
-                        b->pMeterGain->setValue(b->sComp.reduction(lvl));
-                        lvl = b->sComp.curve(lvl) * b->fMakeup;
+                        b->pMeterGain->setValue(b->sExp.amplification(lvl));
+                        lvl = b->sExp.curve(lvl) * b->fMakeup;
                         b->pCurveLvl->setValue(lvl);
 
                         // Remember last envelope level and buffer level
@@ -1213,10 +1159,10 @@ namespace lsp
                     }
                 }
 
-                // Output curve parameters for disabled compressors
-                for (size_t i=0; i<mb_compressor_base_metadata::BANDS_MAX; ++i)
+                // Output curve parameters for disabled expanders
+                for (size_t i=0; i<mb_expander_base_metadata::BANDS_MAX; ++i)
                 {
-                    comp_band_t *b      = &c->vBands[i];
+                    exp_band_t *b       = &c->vBands[i];
                     if (b->bEnabled)
                         continue;
 
@@ -1237,7 +1183,7 @@ namespace lsp
 
                     for (size_t j=0; j<c->nPlanSize; ++j)
                     {
-                        comp_band_t *b      = c->vPlan[j];
+                        exp_band_t *b       = c->vPlan[j];
                         sFilters.process(b->nFilterID, c->vBuffer, c->vBuffer, b->vVCA, to_process);
                     }
                 }
@@ -1255,7 +1201,7 @@ namespace lsp
 
                     for (size_t j=0; j<c->nPlanSize; ++j)
                     {
-                        comp_band_t *b      = c->vPlan[j];
+                        exp_band_t *b       = c->vPlan[j];
 
                         b->sAllFilter.process(c->vBuffer, c->vBuffer, to_process); // Process the signal with all-pass
                         b->sPassFilter.process(vEnv, vBuffer, to_process); // Filter frequencies from input
@@ -1276,7 +1222,7 @@ namespace lsp
             }
 
             // Post-process data (if needed)
-            if (nMode == MBCM_MS)
+            if (nMode == MBEM_MS)
                 dsp::ms_to_lr(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, to_process);
 
             // Final metering
@@ -1304,49 +1250,49 @@ namespace lsp
         {
             channel_t *c     = &vChannels[i];
 
-            // Calculate transfer function for the compressor
+            // Calculate transfer function for the expander
             if (bModern)
             {
-                dsp::pcomplex_fill_ri(c->vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                dsp::pcomplex_fill_ri(c->vTr, 1.0f, 0.0f, mb_expander_base_metadata::FFT_MESH_POINTS);
 
                 // Calculate transfer function
                 for (size_t j=0; j<c->nPlanSize; ++j)
                 {
-                    comp_band_t *b      = c->vPlan[j];
-                    sFilters.freq_chart(b->nFilterID, vTr, vFreqs, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(c->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    exp_band_t *b       = c->vPlan[j];
+                    sFilters.freq_chart(b->nFilterID, vTr, vFreqs, b->fGainLevel, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(c->vTr, vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
                 }
             }
             else
             {
-                dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);   // vBuffer
-                dsp::fill_zero(c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS*2);                 // c->vBuffer
+                dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, mb_expander_base_metadata::FFT_MESH_POINTS);   // vBuffer
+                dsp::fill_zero(c->vTr, mb_expander_base_metadata::FFT_MESH_POINTS*2);                 // c->vBuffer
 
                 // Calculate transfer function
                 for (size_t j=0; j<c->nPlanSize; ++j)
                 {
-                    comp_band_t *b      = c->vPlan[j];
+                    exp_band_t *b       = c->vPlan[j];
 
                     // Apply all-pass characteristics
-                    b->sAllFilter.freq_chart(vPFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(c->vTr, vPFc, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sAllFilter.freq_chart(vPFc, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(c->vTr, vPFc, mb_expander_base_metadata::FFT_MESH_POINTS);
 
                     // Apply lo-pass filter characteristics
-                    b->sPassFilter.freq_chart(vPFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(vPFc, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::fmadd_k3(c->vTr, vPFc, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
+                    b->sPassFilter.freq_chart(vPFc, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(vPFc, vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::fmadd_k3(c->vTr, vPFc, b->fGainLevel, mb_expander_base_metadata::FFT_MESH_POINTS*2);
 
                     // Apply hi-pass filter characteristics
-                    b->sRejFilter.freq_chart(vRFc, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::pcomplex_mul2(vTr, vRFc, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sRejFilter.freq_chart(vRFc, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul2(vTr, vRFc, mb_expander_base_metadata::FFT_MESH_POINTS);
                 }
             }
-            dsp::pcomplex_mod(c->vTrMem, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+            dsp::pcomplex_mod(c->vTrMem, c->vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
 
             // Output FFT curve, compression curve and FFT spectrogram for each band
-            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
+            for (size_t j=0; j<mb_expander_base_metadata::BANDS_MAX; ++j)
             {
-                comp_band_t *b      = &c->vBands[j];
+                exp_band_t *b       = &c->vBands[j];
 
                 // FFT spectrogram
                 mesh_t *mesh        = NULL;
@@ -1364,9 +1310,9 @@ namespace lsp
                         mesh->pvData[1][para_equalizer_base_metadata::MESH_POINTS+1] = 0.0f;
 
                         // Fill mesh
-                        dsp::copy(&mesh->pvData[0][1], vFreqs, mb_compressor_base_metadata::MESH_POINTS);
-                        dsp::mul_k3(&mesh->pvData[1][1], b->vTr, b->fScPreamp, mb_compressor_base_metadata::MESH_POINTS);
-                        mesh->data(2, mb_compressor_base_metadata::FILTER_MESH_POINTS);
+                        dsp::copy(&mesh->pvData[0][1], vFreqs, mb_expander_base_metadata::MESH_POINTS);
+                        dsp::mul_k3(&mesh->pvData[1][1], b->vTr, b->fScPreamp, mb_expander_base_metadata::MESH_POINTS);
+                        mesh->data(2, mb_expander_base_metadata::FILTER_MESH_POINTS);
 
                         // Mark mesh as synchronized
                         b->nSync           &= ~S_EQ_CURVE;
@@ -1382,13 +1328,13 @@ namespace lsp
                         if (b->bEnabled)
                         {
                             // Copy frequency points
-                            dsp::copy(mesh->pvData[0], vCurve, mb_compressor_base_metadata::CURVE_MESH_SIZE);
-                            b->sComp.curve(mesh->pvData[1], vCurve, mb_compressor_base_metadata::CURVE_MESH_SIZE);
+                            dsp::copy(mesh->pvData[0], vCurve, mb_expander_base_metadata::CURVE_MESH_SIZE);
+                            b->sExp.curve(mesh->pvData[1], vCurve, mb_expander_base_metadata::CURVE_MESH_SIZE);
                             if (b->fMakeup != GAIN_AMP_0_DB)
-                                dsp::mul_k2(mesh->pvData[1], b->fMakeup, compressor_base_metadata::CURVE_MESH_SIZE);
+                                dsp::mul_k2(mesh->pvData[1], b->fMakeup, expander_base_metadata::CURVE_MESH_SIZE);
 
                             // Mark mesh containing data
-                            mesh->data(2, mb_compressor_base_metadata::CURVE_MESH_SIZE);
+                            mesh->data(2, mb_expander_base_metadata::CURVE_MESH_SIZE);
                         }
                         else
                             mesh->data(2, 0);
@@ -1406,11 +1352,11 @@ namespace lsp
                 if (c->bInFft)
                 {
                     // Copy frequency points
-                    dsp::copy(mesh->pvData[0], vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vIndexes, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::copy(mesh->pvData[0], vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vIndexes, mb_expander_base_metadata::FFT_MESH_POINTS);
 
                     // Mark mesh containing data
-                    mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    mesh->data(2, mb_expander_base_metadata::FFT_MESH_POINTS);
                 }
                 else
                     mesh->data(2, 0);
@@ -1423,11 +1369,11 @@ namespace lsp
                 if (sAnalyzer.channel_active(c->nAnOutChannel))
                 {
                     // Copy frequency points
-                    dsp::copy(mesh->pvData[0], vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vIndexes, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::copy(mesh->pvData[0], vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vIndexes, mb_expander_base_metadata::FFT_MESH_POINTS);
 
                     // Mark mesh containing data
-                    mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    mesh->data(2, mb_expander_base_metadata::FFT_MESH_POINTS);
                 }
                 else
                     mesh->data(2, 0);
@@ -1438,9 +1384,9 @@ namespace lsp
             if ((mesh != NULL) && (mesh->isEmpty()))
             {
                 // Calculate amplitude (modulo)
-                dsp::copy(mesh->pvData[0], vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                dsp::copy(mesh->pvData[1], c->vTrMem, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                dsp::copy(mesh->pvData[0], vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                dsp::copy(mesh->pvData[1], c->vTrMem, mb_expander_base_metadata::FFT_MESH_POINTS);
+                mesh->data(2, mb_expander_base_metadata::FFT_MESH_POINTS);
             }
         } // for channel
 
@@ -1449,7 +1395,7 @@ namespace lsp
             pWrapper->query_display_draw();
     }
 
-    bool mb_compressor_base::inline_display(ICanvas *cv, size_t width, size_t height)
+    bool mb_expander_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
         // Check proportions
         if (height > (R_GOLDEN_RATIO * width))
@@ -1507,7 +1453,7 @@ namespace lsp
         b->v[3][0]          = 1.0f;
         b->v[3][width+1]    = 1.0f;
 
-        size_t channels = ((nMode == MBCM_MONO) || (nMode == MBCM_STEREO)) ? 1 : 2;
+        size_t channels = ((nMode == MBEM_MONO) || (nMode == MBEM_STEREO)) ? 1 : 2;
         static uint32_t c_colors[] = {
                 CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
                 CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
@@ -1524,7 +1470,7 @@ namespace lsp
 
             for (size_t j=0; j<width; ++j)
             {
-                size_t k        = (j*mb_compressor_base_metadata::MESH_POINTS)/width;
+                size_t k        = (j*mb_expander_base_metadata::MESH_POINTS)/width;
                 b->v[0][j+1]    = vFreqs[k];
                 b->v[3][j+1]    = c->vTrMem[k];
             }
@@ -1545,38 +1491,37 @@ namespace lsp
     }
 
     //-------------------------------------------------------------------------
-    // Compressor derivatives
-    mb_compressor_mono::mb_compressor_mono() : mb_compressor_base(metadata, false, MBCM_MONO)
+    // Expander derivatives
+    mb_expander_mono::mb_expander_mono() : mb_expander_base(metadata, false, MBEM_MONO)
     {
     }
 
-    mb_compressor_stereo::mb_compressor_stereo() : mb_compressor_base(metadata, false, MBCM_STEREO)
+    mb_expander_stereo::mb_expander_stereo() : mb_expander_base(metadata, false, MBEM_STEREO)
     {
     }
 
-    mb_compressor_lr::mb_compressor_lr() : mb_compressor_base(metadata, false, MBCM_LR)
+    mb_expander_lr::mb_expander_lr() : mb_expander_base(metadata, false, MBEM_LR)
     {
     }
 
-    mb_compressor_ms::mb_compressor_ms() : mb_compressor_base(metadata, false, MBCM_MS)
+    mb_expander_ms::mb_expander_ms() : mb_expander_base(metadata, false, MBEM_MS)
     {
     }
 
-    sc_mb_compressor_mono::sc_mb_compressor_mono() : mb_compressor_base(metadata, true, MBCM_MONO)
+    sc_mb_expander_mono::sc_mb_expander_mono() : mb_expander_base(metadata, true, MBEM_MONO)
     {
     }
 
-    sc_mb_compressor_stereo::sc_mb_compressor_stereo() : mb_compressor_base(metadata, true, MBCM_STEREO)
+    sc_mb_expander_stereo::sc_mb_expander_stereo() : mb_expander_base(metadata, true, MBEM_STEREO)
     {
     }
 
-    sc_mb_compressor_lr::sc_mb_compressor_lr() : mb_compressor_base(metadata, true, MBCM_LR)
+    sc_mb_expander_lr::sc_mb_expander_lr() : mb_expander_base(metadata, true, MBEM_LR)
     {
     }
 
-    sc_mb_compressor_ms::sc_mb_compressor_ms() : mb_compressor_base(metadata, true, MBCM_MS)
+    sc_mb_expander_ms::sc_mb_expander_ms() : mb_expander_base(metadata, true, MBEM_MS)
     {
     }
 }
-
 
