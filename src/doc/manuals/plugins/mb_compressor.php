@@ -105,7 +105,7 @@
 	</ul>
 	<li><b>SC Preamp</b> - applies additional gain to the sidechain band.</li>
 	<li><b>Makeup</b> - applies additional gain to the output of the corresponding compressor.</li>
-	<li><b>Ratio</b> - the compression ration for the corresponding band.</li>
+	<li><b>Ratio</b> - the compression ratio for the corresponding band.</li>
 	<li><b>Knee</b> - the compression knee for the corresponding band.</li>
 	<li><b>Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
 	<li><b>Attack Time</b> - attack time of the compressor.</li>
