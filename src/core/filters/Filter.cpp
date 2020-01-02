@@ -463,14 +463,14 @@ namespace lsp
             case FM_BILINEAR:
             {
                 float nf    = M_PI / float(nSampleRate);
-                float kf    = 1.0/tan(sParams.fFreq * nf);
+                float kf    = 1.0/tanf(sParams.fFreq * nf);
                 float lf    = nSampleRate * 0.499;
 
                 while (count--)
                 {
                     // Cyclic frequency
                     float w     = *(f++);
-                    w           = tan((w > lf ? lf : w) * nf) * kf;
+                    w           = tanf((w > lf ? lf : w) * nf) * kf;
 
                     complex_transfer_calc(re++, im++, w);
                 }
@@ -517,14 +517,14 @@ namespace lsp
             case FM_BILINEAR:
             {
                 float nf    = M_PI / float(nSampleRate);
-                float kf    = 1.0/tan(sParams.fFreq * nf);
+                float kf    = 1.0/tanf(sParams.fFreq * nf);
                 float lf    = nSampleRate * 0.499;
 
                 while (count--)
                 {
                     // Cyclic frequency
                     float w     = *(f++);
-                    w           = tan((w > lf ? lf : w) * nf) * kf;
+                    w           = tanf((w > lf ? lf : w) * nf) * kf;
 
                     complex_transfer_calc(c, &c[1], w);
                     c += 2;
@@ -646,7 +646,7 @@ namespace lsp
             {
                 size_t slope            = fp->nSlope * 2;
                 float gain              = sqrtf(fp->fGain);
-                float fg                = expf(log(gain)/slope);
+                float fg                = expf(logf(gain)/slope);
 
                 for (size_t j=0; j < fp->nSlope; j++)
                 {
@@ -780,7 +780,7 @@ namespace lsp
             // Resonance filter
             case FLT_BT_RLC_RESONANCE:
             {
-                float angle             = atanf(expf(log(fp->fGain) / fp->nSlope));
+                float angle             = atanf(expf(logf(fp->fGain) / fp->nSlope));
                 float k                 = 2.0 / (1.0 + fp->fQuality);
                 float kt                = k * sinf(angle);
                 float kb                = k * cosf(angle);
@@ -1048,7 +1048,7 @@ namespace lsp
             case FLT_BT_BWC_LOSHELF:
             {
                 float gain              = sqrtf(fp->fGain);
-                float fg                = expf(log(gain)/(2.0*fp->nSlope));
+                float fg                = expf(logf(gain)/(2.0*fp->nSlope));
                 float k                 = 1.0f / (1.0 + fp->fQuality * (1.0 - expf(2.0 - gain - 1.0/gain)));
 
                 for (size_t j=0; j < fp->nSlope; ++j)
@@ -1154,7 +1154,7 @@ namespace lsp
 
             case FLT_BT_BWC_BELL:
             {
-                float fg                = expf(log(fp->fGain)/float(2*fp->nSlope));
+                float fg                = expf(logf(fp->fGain)/float(2*fp->nSlope));
                 float k                 = 1.0f / (1.0 + fp->fQuality);
 
                 for (size_t j=0; j < fp->nSlope; ++j)
@@ -1308,12 +1308,12 @@ namespace lsp
                     // Top part
                     float xeta      = ((j+0.5) * M_PI)/i;
                     c1->t[0]        = 1.0;
-                    c1->t[1]        = -2.0 * cos(xeta);
+                    c1->t[1]        = -2.0 * cosf(xeta);
                     c1->t[2]        = 1.0;
 
                     xeta            = ((j+1.5) * M_PI)/i;
                     c2->t[0]        = 1.0;
-                    c2->t[1]        = -2.0 * cos(xeta);
+                    c2->t[1]        = -2.0 * cosf(xeta);
                     c2->t[2]        = 1.0;
 
                     // Bottom part
@@ -1438,7 +1438,7 @@ namespace lsp
 
             case FLT_DR_APO_PEAKING:
             {
-                float A     = sqrt(fp->fGain);
+                float A     = sqrtf(fp->fGain);
 
                 a0 = 1.0 + alpha * A;
                 a1 = -2.0 * cc;
@@ -1452,8 +1452,8 @@ namespace lsp
 
             case FLT_DR_APO_LOSHELF:
             {
-                float A     = sqrt(fp->fGain);
-                float beta  = 2.0 * alpha * sqrt(A);
+                float A     = sqrtf(fp->fGain);
+                float beta  = 2.0 * alpha * sqrtf(A);
 
                 a0 = A * ((A + 1.0) - (A - 1.0) * cc + beta);
                 a1 = 2.0 * A * ((A - 1.0) - (A + 1.0) * cc);
@@ -1467,8 +1467,8 @@ namespace lsp
 
             case FLT_DR_APO_HISHELF:
             {
-                float A     = sqrt(fp->fGain);
-                float beta  = 2.0 * alpha * sqrt(A);
+                float A     = sqrtf(fp->fGain);
+                float beta  = 2.0 * alpha * sqrtf(A);
 
                 a0 = A * ((A + 1.0) + (A - 1.0) * cc + beta);
                 a1 = -2.0 * A * ((A - 1.0) + (A + 1.0) * cc);
@@ -1543,7 +1543,7 @@ namespace lsp
 
     void Filter::bilinear_transform()
     {
-        float kf        = 1.0/tan(sParams.fFreq * M_PI / float(nSampleRate));
+        float kf        = 1.0/tanf(sParams.fFreq * M_PI / float(nSampleRate));
         float kf2       = kf * kf;
         float T[4], B[4], N;
         size_t chains   = 0;
@@ -1645,7 +1645,7 @@ namespace lsp
                         float k     = p[1]/f;
                         float R     = -p[0]/k;
                         P[0]        = k;
-                        P[1]        = -k * exp(R*TD);
+                        P[1]        = -k * expf(R*TD);
                     }
                 }
                 else
@@ -1665,24 +1665,24 @@ namespace lsp
                         // Has real roots R0 and R1
                         // Transformed form is:
                         //   P[z] = k*(1 - (exp(R0*T) + exp(R1*T))*z^-1 + exp((R0+R1)*T)*z^-2)
-                        D           = sqrt(D);
+                        D           = sqrtf(D);
                         float R0    = (-b - D)/(2.0*a);
                         float R1    = (-b + D)/(2.0*a);
                         P[0]        = k;
-                        P[1]        = -k * (exp(R0*TD) + exp(R1*TD));
-                        P[2]        = k * exp((R0+R1)*TD);
+                        P[1]        = -k * (expf(R0*TD) + expf(R1*TD));
+                        P[2]        = k * expf((R0+R1)*TD);
                     }
                     else
                     {
                         // Has complex roots R+j*K and R-j*K
                         // Transformed form is:
                         //   P[z] = k*(1 - 2*exp(R*T)*cos(K*T)*z^-1 + exp(2*R*T)*z^-2)
-                        D           = sqrt(-D);
+                        D           = sqrtf(-D);
                         float R     = -b / (2.0*a);
                         float K     = D / (2.0*a);
                         P[0]        = k;
-                        P[1]        = -2.0 * k * exp(R*TD) * cos(K*TD);
-                        P[2]        = k * exp(2.0*R*TD);
+                        P[1]        = -2.0 * k * expf(R*TD) * cosf(K*TD);
+                        P[2]        = k * expf(2.0*R*TD);
                     }
                 }
 
@@ -1696,15 +1696,15 @@ namespace lsp
 
                 // Calculate the discrete transfer function part at specified frequency
                 float w     = M_PI * 0.2 * sParams.fFreq / nSampleRate;
-                float re    = P[0]*cos(2*w) + P[1]*cos(w) + P[2];
-                float im    = P[0]*sin(2*w) + P[1]*sin(w);
-                A[i]        = sqrt(re*re + im*im);
+                float re    = P[0]*cosf(2*w) + P[1]*cosf(w) + P[2];
+                float im    = P[0]*sinf(2*w) + P[1]*sinf(w);
+                A[i]        = sqrtf(re*re + im*im);
 
                 // Calculate the continuous transfer function part at 1 Hz
                 w           = 0.1;
                 re          = p[0] - p[2]*w*w;
                 im          = p[1]*w;
-                I[i]        = sqrt(re*re + im*im);
+                I[i]        = sqrtf(re*re + im*im);
             }
 
             // Now calculate the convolution for the new polynom:
