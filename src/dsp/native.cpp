@@ -42,6 +42,7 @@
 #include <dsp/arch/native/filters/static.h>
 #include <dsp/arch/native/filters/dynamic.h>
 #include <dsp/arch/native/filters/transform.h>
+#include <dsp/arch/native/filters/transfer.h>
 
 #include <dsp/arch/native/fft.h>
 #include <dsp/arch/native/fastconv.h>
@@ -273,6 +274,9 @@ namespace native
         EXPORT1(dyn_biquad_process_x2);
         EXPORT1(dyn_biquad_process_x4);
         EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_calc_pc);
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);

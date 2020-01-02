@@ -2051,68 +2051,11 @@ namespace lsp
         return nc;
     }
 
-    void DynamicFilters::complex_transfer_calc(float *re, float *im, double f, size_t nc)
-    {
-        double f2       = f * f; // f ^ 2
-
-        f_cascade_t *c  = vCascades;
-
-        for (size_t i=0; i<nc; ++i)
-        {
-            // Calculate top and bottom transfer parts
-            double t_re     = c->t[0] - f2 * c->t[2];
-            double t_im     = c->t[1]*f;
-            double b_re     = c->b[0] - f2 * c->b[2];
-            double b_im     = c->b[1]*f;
-
-            // Calculate top / bottom
-            double w        = 1.0 / (b_re * b_re + b_im * b_im);
-            double w_re     = (t_re * b_re + t_im * b_im) * w;
-            double w_im     = (t_im * b_re - t_re * b_im) * w;
-
-            // Update transfer function
-            b_re            = (*re)*w_re - (*im)*w_im;
-            b_im            = (*re)*w_im + (*im)*w_re;
-
-            // Commit result
-            *re             = b_re;
-            *im             = b_im;
-
-            // Move cascade pointer diagonally in a filter bank
-            c              += (nc + 1);
-        }
-    }
-
     void DynamicFilters::vcomplex_transfer_calc(float *re, float *im, const f_cascade_t *c, const float *freq, size_t nc, size_t nf)
     {
         for (size_t i=0; i<nc; ++i)
         {
-            for (size_t j=0; j<nf; ++j)
-            {
-                float f         = freq[j];
-                float f2        = f * f;
-
-                // Calculate top and bottom transfer parts
-                float t_re      = c->t[0] - f2 * c->t[2];
-                float t_im      = c->t[1]*f;
-                float b_re      = c->b[0] - f2 * c->b[2];
-                float b_im      = c->b[1]*f;
-
-                // Calculate top / bottom
-                float w         = 1.0 / (b_re * b_re + b_im * b_im);
-                float w_re      = (t_re * b_re + t_im * b_im) * w;
-                float w_im      = (t_im * b_re - t_re * b_im) * w;
-
-                // Update transfer function
-                b_re            = re[j]*w_re - im[j]*w_im;
-                b_im            = re[j]*w_im + im[j]*w_re;
-
-                // Commit result
-                re[j]           = b_re;
-                im[j]           = b_im;
-            }
-
-            // Move cascade pointer diagonally in a filter bank
+            dsp::filter_transfer_calc_ri(re, im, c, freq, nf);
             c              += (nc + 1);
         }
     }
@@ -2121,33 +2064,7 @@ namespace lsp
     {
         for (size_t i=0; i<nc; ++i)
         {
-            for (size_t j=0; j<nf; ++j)
-            {
-                float f         = freq[j];
-                float *x        = &dst[j << 1];
-                float f2        = f * f;
-
-                // Calculate top and bottom transfer parts
-                float t_re      = c->t[0] - f2 * c->t[2];
-                float t_im      = c->t[1]*f;
-                float b_re      = c->b[0] - f2 * c->b[2];
-                float b_im      = c->b[1]*f;
-
-                // Calculate top / bottom
-                float w         = 1.0 / (b_re * b_re + b_im * b_im);
-                float w_re      = (t_re * b_re + t_im * b_im) * w;
-                float w_im      = (t_im * b_re - t_re * b_im) * w;
-
-                // Update transfer function
-                b_re            = x[0]*w_re - x[1]*w_im;
-                b_im            = x[0]*w_im + x[1]*w_re;
-
-                // Commit result
-                x[0]            = b_re;
-                x[1]            = b_im;
-            }
-
-            // Move cascade pointer diagonally in a filter bank
+            dsp::filter_transfer_calc_pc(dst, c, freq, nf);
             c              += (nc + 1);
         }
     }
@@ -2165,13 +2082,14 @@ namespace lsp
         if (fp->nType == FLT_NONE)
             return true;
 
+        float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
+
         // Process the filter
         if (fp->nType & 1) // Bilinear
         {
             float nf    = M_PI / float(nSampleRate);
             float kf    = 1.0/tan(fp->fFreq * nf);
             float lf    = nSampleRate * 0.499f;
-            float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
 
             // Process frequency chart
             while (count > 0)
@@ -2207,26 +2125,33 @@ namespace lsp
         }
         else
         {
-            size_t cj   = 0;
-            double kf   = 1.0 / fp->fFreq;
+            float kf        = 1.0 / fp->fFreq;
 
-            // Process all cascades
-            while (true)
+            while (count > 0)
             {
-                // Generate cascades
-                size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
-                if (nj <= 0)
-                    break;
+                size_t fcount   = (count > FBUF_SIZE) ? FBUF_SIZE : count;
+                size_t cj       = 0;
 
-                for (size_t i=0; i<count; ++i)
+                // Generate set of frequencies
+                dsp::mul_k3(tf, f, kf, fcount);
+
+                // Estimate transfer function
+                while (true)
                 {
-                    // Cyclic frequency
-                    double w    = *(f++) * kf;
-                    complex_transfer_calc(&re[i], &im[i], w, nj);
+                    // Generate cascades
+                    size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
+                    if (nj <= 0)
+                        break;
+
+                    vcomplex_transfer_calc(re, im, vCascades, tf, nj, fcount);
+                    cj                     += nj;
                 }
 
-                // Update counters and pointers
-                cj                     += nj;
+                // Update counter and pointers
+                count          -= fcount;
+                f              += fcount;
+                re             += fcount;
+                im             += fcount;
             }
         }
 
@@ -2257,13 +2182,14 @@ namespace lsp
                 break;
         }
 
+        float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
+
         // Process the filter
         if (fp->nType & 1) // Bilinear
         {
             float nf    = M_PI / float(nSampleRate);
             float kf    = 1.0/tan(fp->fFreq * nf);
             float lf    = nSampleRate * 0.499f;
-            float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
 
             // Process frequency chart
             while (count > 0)
@@ -2298,27 +2224,33 @@ namespace lsp
         }
         else
         {
-            size_t cj   = 0;
-            count     <<= 1;
-            double kf   = 1.0 / fp->fFreq;
+            float kf        = 1.0 / fp->fFreq;
 
-            // Process all cascades
-            while (true)
+            // Process frequency chart
+            while (count > 0)
             {
-                // Generate cascades
-                size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
-                if (nj <= 0)
-                    break;
+                size_t fcount   = (count > FBUF_SIZE) ? FBUF_SIZE : count;
+                size_t cj       = 0;
 
-                for (size_t i=0; i<count; i+=2)
+                // Generate set of frequencies
+                dsp::mul_k3(tf, f, kf, fcount);
+
+                // Estimate transfer function
+                while (true)
                 {
-                    // Cyclic frequency
-                    double w    = *(f++) * kf;
-                    complex_transfer_calc(&dst[i], &dst[i+1], w, nj);
+                    // Generate cascades
+                    size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
+                    if (nj <= 0)
+                        break;
+
+                    vcomplex_transfer_calc(dst, vCascades, tf, nj, fcount);
+                    cj                     += nj;
                 }
 
-                // Update counters and pointers
-                cj                     += nj;
+                // Update counter and pointers
+                count          -= fcount;
+                f              += fcount;
+                dst            += (fcount << 1);
             }
         }
 

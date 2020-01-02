@@ -435,6 +435,28 @@ namespace dsp
     extern void (* dyn_biquad_process_x8)(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
 
     //---------------------------------------------------------------------------------------
+    // Transfer function calculation
+    //---------------------------------------------------------------------------------------
+    /**
+     * Compute filter transfer function, computes complex dst = dst * H(f)
+     * @param re destination to apply transfer function (real value)
+     * @param im destination to apply transfer function (imaginary value)
+     * @param c filter cascade
+     * @param freq normalized frequency array
+     * @param count size of frequency array
+     */
+    extern void (* filter_transfer_calc_ri)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+
+    /**
+     * Compute filter transfer function, computes complex dst = dst * H(f)
+     * @param dst destination to apply transfer function (packed complex value)
+     * @param c filter cascade
+     * @param freq normalized frequency array
+     * @param count size of frequency array
+     */
+    extern void (* filter_transfer_calc_pc)(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+
+    //---------------------------------------------------------------------------------------
     // Bilinear transformation of dynamic filters
     //---------------------------------------------------------------------------------------
     /** Perform bilinear transformation of one filter bank

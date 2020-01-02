@@ -60,8 +60,6 @@ namespace lsp
             size_t              precalc_lrx_ladder_filter_bank(f_cascade_t *dst, const filter_params_t *fp, size_t cj, const float *sfg, size_t samples);
             void                calc_lrx_ladder_filter_bank(f_cascade_t *dst, const filter_params_t *fp, size_t cj, size_t samples, size_t ftype, size_t nc);
 
-            void                complex_transfer_calc(float *re, float *im, double f, size_t nc);
-
             void                vcomplex_transfer_calc(float *re, float *im, const f_cascade_t *fc, const float *freq, size_t nc, size_t nf);
             void                vcomplex_transfer_calc(float *dst, const f_cascade_t *fc, const float *freq, size_t nc, size_t nf);
 

@@ -462,14 +462,14 @@ namespace lsp
         {
             case FM_BILINEAR:
             {
-                double nf   = M_PI / double(nSampleRate);
-                double kf   = 1.0/tan(sParams.fFreq * nf);
-                double lf   = nSampleRate * 0.499;
+                float nf    = M_PI / double(nSampleRate);
+                float kf    = 1.0/tan(sParams.fFreq * nf);
+                float lf    = nSampleRate * 0.499;
 
                 while (count--)
                 {
                     // Cyclic frequency
-                    double w    = *(f++);
+                    float w     = *(f++);
                     w           = tan((w > lf ? lf : w) * nf) * kf;
 
                     complex_transfer_calc(re++, im++, w);
@@ -479,12 +479,12 @@ namespace lsp
 
             case FM_MATCHED:
             {
-                double kf   = 1.0 / sParams.fFreq;
+                float kf    = 1.0 / sParams.fFreq;
 
                 while (count--)
                 {
                     // Cyclic frequency
-                    double w    = *(f++) * kf;
+                    float w    = *(f++) * kf;
 
                     complex_transfer_calc(re++, im++, w);
                 }
@@ -516,14 +516,14 @@ namespace lsp
         {
             case FM_BILINEAR:
             {
-                double nf   = M_PI / double(nSampleRate);
-                double kf   = 1.0/tan(sParams.fFreq * nf);
-                double lf   = nSampleRate * 0.499;
+                float nf    = M_PI / double(nSampleRate);
+                float kf    = 1.0/tan(sParams.fFreq * nf);
+                float lf    = nSampleRate * 0.499;
 
                 while (count--)
                 {
                     // Cyclic frequency
-                    double w    = *(f++);
+                    float w     = *(f++);
                     w           = tan((w > lf ? lf : w) * nf) * kf;
 
                     complex_transfer_calc(c, &c[1], w);
@@ -534,12 +534,12 @@ namespace lsp
 
             case FM_MATCHED:
             {
-                double kf   = 1.0 / sParams.fFreq;
+                float kf    = 1.0 / sParams.fFreq;
 
                 while (count--)
                 {
                     // Cyclic frequency
-                    double w    = *(f++) * kf;
+                    float w     = *(f++) * kf;
                     complex_transfer_calc(c, &c[1], w);
                     c += 2;
                 }
