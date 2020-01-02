@@ -228,6 +228,49 @@ namespace lsp
             return homedir->set(&path);
         }
 
+        status_t get_user_config_path(LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString upath;
+
+#ifdef PLATFORM_WINDOWS
+            status_t res = get_env_var("LOCALAPPDATA", &upath);
+            if (res != STATUS_OK)
+            {
+                res = get_env_var("APPDATA", &upath);
+                if (res != STATUS_OK)
+                {
+                    res = get_home_directory(upath);
+                    if (res != STATUS_OK)
+                        return res;
+                    if (!upath.append_ascii(FILE_SEPARATOR_S ".config"))
+                        return STATUS_NO_MEM;
+                }
+            }
+#else
+            status_t res = get_env_var("HOME", &upath);
+            if (res != STATUS_OK)
+                return res;
+            if (!upath.append_ascii(FILE_SEPARATOR_S ".config"))
+                return STATUS_NO_MEM;
+#endif /* PLATFORM_WINDOWS */
+
+            path->swap(&upath);
+            return STATUS_OK;
+        }
+
+        status_t get_user_config_path(io::Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString upath;
+            status_t res = get_user_config_path(&upath);
+            if (res != STATUS_OK)
+                return res;
+            return path->set(&upath);
+        }
+
 #ifdef PLATFORM_WINDOWS
         void get_time(time_t *time)
         {

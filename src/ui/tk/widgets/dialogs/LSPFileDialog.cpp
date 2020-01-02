@@ -1265,7 +1265,7 @@ namespace lsp
         status_t LSPFileDialog::read_lsp_bookmarks(cvector<bookmark_t> &vbm)
         {
             io::Path path;
-            status_t res = system::get_home_directory(&path);
+            status_t res = system::get_user_config_path(&path);
             if (res != STATUS_OK)
                 return res;
             if ((res = path.append_child(LSP_BOOKMARK_PATH)) != STATUS_OK)
@@ -1315,7 +1315,7 @@ namespace lsp
             io::Path path, parent;
             cvector<bookmark_t> tmp;
 
-            status_t res = system::get_home_directory(&path);
+            status_t res = system::get_user_config_path(&path);
             if (res != STATUS_OK)
                 return res;
             if ((res = path.append_child(LSP_BOOKMARK_PATH)) != STATUS_OK)

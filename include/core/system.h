@@ -95,6 +95,20 @@ namespace lsp
         status_t get_home_directory(io::Path *homedir);
 
         /**
+         * Get user's local configuration path
+         * @param path string to store user's configuration path
+         * @return status of operation
+         */
+        status_t get_user_config_path(LSPString *path);
+
+        /**
+         * Get user's local configuration path
+         * @param path string to store user's configuration path
+         * @return status of operation
+         */
+        status_t get_user_config_path(io::Path *path);
+
+        /**
          * Get current high-precision time
          * @param time pointer to structure to store time value
          */
