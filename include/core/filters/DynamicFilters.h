@@ -20,6 +20,9 @@ namespace lsp
      */
     class DynamicFilters
     {
+        private:
+            DynamicFilters & operator = (const DynamicFilters &);
+
         protected:
             typedef struct filter_t
             {
@@ -59,8 +62,11 @@ namespace lsp
 
             void                complex_transfer_calc(float *re, float *im, double f, size_t nc);
 
+            void                vcomplex_transfer_calc(float *re, float *im, const f_cascade_t *fc, const float *freq, size_t nc, size_t nf);
+            void                vcomplex_transfer_calc(float *dst, const f_cascade_t *fc, const float *freq, size_t nc, size_t nf);
+
         public:
-            DynamicFilters();
+            explicit DynamicFilters();
             ~DynamicFilters();
 
         public:

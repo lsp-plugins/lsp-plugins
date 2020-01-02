@@ -42,7 +42,6 @@ namespace lsp
             size_t              nFftRank;           // FFT rank
             size_t              nLatency;           // Equalizer latency
             size_t              nBufSize;           // Buffer size
-//            size_t              nActiveFilters;     // Number of active filters
             equalizer_mode_t    nMode;              // Equalizer mode
             float              *vFftRe;             // FFT buffer (real part)
             float              *vFftIm;             // FFT buffer (imaginary part)

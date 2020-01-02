@@ -14,6 +14,9 @@ namespace lsp
 {
     class FilterBank
     {
+        private:
+            FilterBank & operator = (const FilterBank &);
+
         protected:
             biquad_t           *vFilters;   // Optimized list of filters
             biquad_x1_t        *vChains;    // List of biquad banks
@@ -27,7 +30,7 @@ namespace lsp
             void        clear_delays();
 
         public:
-            FilterBank();
+            explicit FilterBank();
             ~FilterBank();
 
         public:
