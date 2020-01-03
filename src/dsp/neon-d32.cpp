@@ -73,9 +73,12 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
 #include <dsp/arch/arm/neon-d32/resampling.h>
+
 #include <dsp/arch/arm/neon-d32/filters/static.h>
 #include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 #include <dsp/arch/arm/neon-d32/filters/transform.h>
+#include <dsp/arch/arm/neon-d32/filters/transfer.h>
+
 #include <dsp/arch/arm/neon-d32/fft.h>
 #include <dsp/arch/arm/neon-d32/fastconv.h>
 #include <dsp/arch/arm/neon-d32/mix.h>
@@ -288,6 +291,11 @@ namespace neon_d32
         EXPORT1(dyn_biquad_process_x2);
         EXPORT1(dyn_biquad_process_x4);
         EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_apply_ri);
+//        EXPORT1(filter_transfer_calc_pc);
+//        EXPORT1(filter_transfer_apply_pc);
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);
