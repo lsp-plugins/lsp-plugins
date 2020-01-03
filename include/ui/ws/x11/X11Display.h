@@ -188,7 +188,7 @@ namespace lsp
                     status_t        handle_drag_leave(dnd_recv_t *task, XClientMessageEvent *ev);
                     status_t        handle_drag_position(dnd_recv_t *task, XClientMessageEvent *ev);
                     status_t        handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev);
-                    void            complete_dnd_transfer(dnd_recv_t *task);
+                    void            complete_dnd_transfer(dnd_recv_t *task, bool success);
                     void            reject_dnd_transfer(dnd_recv_t *task);
 
                     dnd_recv_t     *current_drag_task();

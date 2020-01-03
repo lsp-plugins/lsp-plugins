@@ -140,11 +140,10 @@ namespace lsp
                     // Get protocols
                     lsp_trace("Issuing XSetWMProtocols");
                     Atom atom_close     = pX11Display->atoms().X11_WM_DELETE_WINDOW;
-                    Atom dnd_version    = 4;
+                    Atom dnd_version    = 5;    // Version 5 of protocol is supported
                     XSetWMProtocols(dpy, wnd, &atom_close, 1);
                     XChangeProperty(dpy, wnd, pX11Display->atoms().X11_XdndAware, XA_ATOM, 32, PropModeReplace,
                                     reinterpret_cast<unsigned char *>(&dnd_version), 1);
-
                     pX11Display->flush();
 
                     // Now create X11Window instance

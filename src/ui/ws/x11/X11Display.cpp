@@ -956,7 +956,7 @@ namespace lsp
                                     task->pSink->release();
                                     task->pSink     = NULL;
 
-                                    complete_dnd_transfer(task);
+                                    complete_dnd_transfer(task, true);
                                     task->bComplete = true;
                                 }
                                 else if (type == task->hType)
@@ -966,7 +966,10 @@ namespace lsp
                                     ::XFlush(pDisplay);
                                 }
                                 else
+                                {
+                                    complete_dnd_transfer(task, false);
                                     res     = STATUS_UNSUPPORTED_FORMAT;
+                                }
                             }
                         }
 
@@ -1180,11 +1183,14 @@ namespace lsp
                                 if (bytes > 0)
                                     res = task->pSink->write(data, bytes);
 
-                                complete_dnd_transfer(task);
+                                complete_dnd_transfer(task, true);
                                 task->bComplete = true;
                             }
                             else
+                            {
+                                complete_dnd_transfer(task, false);
                                 res     = STATUS_UNSUPPORTED_FORMAT;
+                            }
                         }
 
                         break;
@@ -1204,7 +1210,7 @@ namespace lsp
                                 ::XFlush(pDisplay);
 
                                 // Notify source about end of transfer
-                                complete_dnd_transfer(task);
+                                complete_dnd_transfer(task, true);
                                 task->bComplete = true;
                             }
                             else if (type == task->hType)
@@ -1214,7 +1220,10 @@ namespace lsp
                                 res     = task->pSink->write(data, bytes); // Append data to the sink
                             }
                             else
+                            {
+                                complete_dnd_transfer(task, false);
                                 res     = STATUS_UNSUPPORTED_FORMAT;
+                            }
                         }
 
                         break;
@@ -2056,7 +2065,6 @@ namespace lsp
                 ::XTranslateCoordinates(pDisplay, hRootWnd, task->hTarget, x, y, &x, &y, &child);
                 ::XSync(pDisplay, False);
                 task->enState       = DND_RECV_POSITION; // Allow specific state changes
-                task->hAction       = act;
 
                 // Form the notification event
                 ws_event_t ue;
@@ -2115,7 +2123,7 @@ namespace lsp
                     return STATUS_PROTOCOL_ERROR;
                 if (task->pSink == NULL)
                 {
-                    complete_dnd_transfer(task);
+                    complete_dnd_transfer(task, false);
                     return STATUS_UNSUPPORTED_FORMAT;
                 }
 
@@ -2123,7 +2131,7 @@ namespace lsp
                 X11Window *tgt  = find_window(task->hTarget);
                 if (tgt == NULL)
                 {
-                    complete_dnd_transfer(task);
+                    complete_dnd_transfer(task, false);
                     return STATUS_NOT_FOUND;
                 }
 
@@ -2166,12 +2174,12 @@ namespace lsp
                 // Release sink and complete transfer
                 task->pSink->release();
                 task->pSink = NULL;
-                complete_dnd_transfer(task);
+                complete_dnd_transfer(task, res == STATUS_OK);
 
                 return res;
             }
 
-            void X11Display::complete_dnd_transfer(dnd_recv_t *task)
+            void X11Display::complete_dnd_transfer(dnd_recv_t *task, bool success)
             {
                 // Send end of transfer if status is bad
                 lsp_trace("Sending XdndFinished");
@@ -2207,8 +2215,8 @@ namespace lsp
                 xe->message_type    = sAtoms.X11_XdndFinished;
                 xe->format          = 32;
                 xe->data.l[0]       = task->hTarget;
-                xe->data.l[1]       = 0;
-                xe->data.l[2]       = None;
+                xe->data.l[1]       = (success) ? 1 : 0;
+                xe->data.l[2]       = (success) ? task->hAction : None;
                 xe->data.l[3]       = 0;
                 xe->data.l[4]       = 0;
 
@@ -2962,6 +2970,7 @@ namespace lsp
                     task->pSink->release();
                 task->pSink     = sink;
                 task->enState   = DND_RECV_ACCEPT;
+                task->hAction   = act;
 
                 // Send the response
                 ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
