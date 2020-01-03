@@ -294,8 +294,8 @@ namespace neon_d32
 
         EXPORT1(filter_transfer_calc_ri);
         EXPORT1(filter_transfer_apply_ri);
-//        EXPORT1(filter_transfer_calc_pc);
-//        EXPORT1(filter_transfer_apply_pc);
+        EXPORT1(filter_transfer_calc_pc);
+        EXPORT1(filter_transfer_apply_pc);
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);

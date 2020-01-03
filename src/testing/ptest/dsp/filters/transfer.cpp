@@ -47,6 +47,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+    }
+)
+
 typedef void (* filter_transfer_calc_ri_t)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
 typedef void (* filter_transfer_calc_pc_t)(float *dst, const f_cascade_t *c, const float *freq, size_t count);
 
@@ -118,24 +128,28 @@ PTEST_BEGIN("dsp.filters", transfer, 5, 1000)
             IF_ARCH_X86(CALL1(sse::filter_transfer_calc_ri));
             IF_ARCH_X86(CALL1(avx::filter_transfer_calc_ri));
             IF_ARCH_X86(CALL1(avx::filter_transfer_calc_ri_fma3));
+            IF_ARCH_ARM(CALL1(neon_d32::filter_transfer_calc_ri));
             PTEST_SEPARATOR;
 
             CALL1(native::filter_transfer_apply_ri);
             IF_ARCH_X86(CALL1(sse::filter_transfer_apply_ri));
             IF_ARCH_X86(CALL1(avx::filter_transfer_apply_ri));
             IF_ARCH_X86(CALL1(avx::filter_transfer_apply_ri_fma3));
+            IF_ARCH_ARM(CALL1(neon_d32::filter_transfer_apply_ri));
             PTEST_SEPARATOR;
 
             CALL2(native::filter_transfer_calc_pc);
             IF_ARCH_X86(CALL2(sse::filter_transfer_calc_pc));
             IF_ARCH_X86(CALL2(avx::filter_transfer_calc_pc));
             IF_ARCH_X86(CALL2(avx::filter_transfer_calc_pc_fma3));
+            IF_ARCH_ARM(CALL2(neon_d32::filter_transfer_calc_pc));
             PTEST_SEPARATOR;
 
             CALL2(native::filter_transfer_apply_pc);
             IF_ARCH_X86(CALL2(sse::filter_transfer_apply_pc));
             IF_ARCH_X86(CALL2(avx::filter_transfer_apply_pc));
             IF_ARCH_X86(CALL2(avx::filter_transfer_apply_pc_fma3));
+            IF_ARCH_ARM(CALL2(neon_d32::filter_transfer_apply_pc));
             PTEST_SEPARATOR2;
         }
 
