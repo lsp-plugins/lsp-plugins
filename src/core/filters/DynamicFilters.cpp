@@ -2051,20 +2051,36 @@ namespace lsp
         return nc;
     }
 
-    void DynamicFilters::vcomplex_transfer_calc(float *re, float *im, const f_cascade_t *c, const float *freq, size_t nc, size_t nf)
+    void DynamicFilters::vcomplex_transfer_calc(float *re, float *im, const f_cascade_t *c, const float *freq, size_t cj, size_t nc, size_t nf)
     {
-        for (size_t i=0; i<nc; ++i)
+        size_t i=0;
+        if (!cj)
         {
             dsp::filter_transfer_calc_ri(re, im, c, freq, nf);
+            c              += (nc + 1);
+            ++i;
+        }
+
+        for (size_t i=0; i<nc; ++i)
+        {
+            dsp::filter_transfer_apply_ri(re, im, c, freq, nf);
             c              += (nc + 1);
         }
     }
 
-    void DynamicFilters::vcomplex_transfer_calc(float *dst, const f_cascade_t *c, const float *freq, size_t nc, size_t nf)
+    void DynamicFilters::vcomplex_transfer_calc(float *dst, const f_cascade_t *c, const float *freq, size_t cj, size_t nc, size_t nf)
     {
-        for (size_t i=0; i<nc; ++i)
+        size_t i=0;
+        if (!cj)
         {
             dsp::filter_transfer_calc_pc(dst, c, freq, nf);
+            c              += (nc + 1);
+            ++i;
+        }
+
+        for (; i<nc; ++i)
+        {
+            dsp::filter_transfer_apply_pc(dst, c, freq, nf);
             c              += (nc + 1);
         }
     }
@@ -2077,10 +2093,22 @@ namespace lsp
         filter_params_t *fp = &vFilters[id].sParams;
 
         // Initialize values
-        dsp::fill_one(re, count);
-        dsp::fill_zero(im, count);
-        if (fp->nType == FLT_NONE)
-            return true;
+        switch (fp->nType)
+        {
+            case FLT_NONE:
+                dsp::fill_one(re, count);
+                dsp::fill_zero(im, count);
+                return true;
+
+            case FLT_BT_AMPLIFIER:
+            case FLT_MT_AMPLIFIER:
+                dsp::fill(re, gain, count);
+                dsp::fill_zero(im, count);
+                return true;
+
+            default:
+                break;
+        }
 
         float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
 
@@ -2112,7 +2140,7 @@ namespace lsp
                     if (nj <= 0)
                         break;
 
-                    vcomplex_transfer_calc(re, im, vCascades, tf, nj, fcount);
+                    vcomplex_transfer_calc(re, im, vCascades, tf, cj, nj, fcount);
                     cj                     += nj;
                 }
 
@@ -2143,7 +2171,7 @@ namespace lsp
                     if (nj <= 0)
                         break;
 
-                    vcomplex_transfer_calc(re, im, vCascades, tf, nj, fcount);
+                    vcomplex_transfer_calc(re, im, vCascades, tf, cj, nj, fcount);
                     cj                     += nj;
                 }
 
@@ -2178,7 +2206,6 @@ namespace lsp
                 return true;
 
             default:
-                dsp::pcomplex_fill_ri(dst, 1.0f, 0.0f, count);
                 break;
         }
 
@@ -2212,7 +2239,7 @@ namespace lsp
                     if (nj <= 0)
                         break;
 
-                    vcomplex_transfer_calc(dst, vCascades, tf, nj, fcount);
+                    vcomplex_transfer_calc(dst, vCascades, tf, cj, nj, fcount);
                     cj                     += nj;
                 }
 
@@ -2243,7 +2270,7 @@ namespace lsp
                     if (nj <= 0)
                         break;
 
-                    vcomplex_transfer_calc(dst, vCascades, tf, nj, fcount);
+                    vcomplex_transfer_calc(dst, vCascades, tf, cj, nj, fcount);
                     cj                     += nj;
                 }
 
