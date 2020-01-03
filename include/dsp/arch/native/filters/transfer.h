@@ -29,6 +29,26 @@ namespace native
 
             // Calculate top / bottom
             float w         = 1.0 / (b_re * b_re + b_im * b_im);
+            re[i]           = (t_re * b_re + t_im * b_im) * w;
+            im[i]           = (t_im * b_re - t_re * b_im) * w;
+        }
+    }
+
+    void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float f         = freq[i];
+            float f2        = f * f;
+
+            // Calculate top and bottom transfer parts
+            float t_re      = c->t[0] - f2 * c->t[2];
+            float t_im      = c->t[1]*f;
+            float b_re      = c->b[0] - f2 * c->b[2];
+            float b_im      = c->b[1]*f;
+
+            // Calculate top / bottom
+            float w         = 1.0 / (b_re * b_re + b_im * b_im);
             float w_re      = (t_re * b_re + t_im * b_im) * w;
             float w_im      = (t_im * b_re - t_re * b_im) * w;
 
@@ -43,6 +63,27 @@ namespace native
     }
 
     void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float f         = freq[i];
+            float *x        = &dst[i << 1];
+            float f2        = f * f;
+
+            // Calculate top and bottom transfer parts
+            float t_re      = c->t[0] - f2 * c->t[2];
+            float t_im      = c->t[1]*f;
+            float b_re      = c->b[0] - f2 * c->b[2];
+            float b_im      = c->b[1]*f;
+
+            // Calculate top / bottom
+            float w         = 1.0 / (b_re * b_re + b_im * b_im);
+            x[0]            = (t_re * b_re + t_im * b_im) * w;
+            x[1]            = (t_im * b_re - t_re * b_im) * w;
+        }
+    }
+
+    void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count)
     {
         for (size_t i=0; i<count; ++i)
         {

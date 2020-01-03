@@ -96,6 +96,59 @@ namespace sse
             __ASM_EMIT("1:")
             __ASM_EMIT("movups      0x00(%[f]), %%xmm3")        // x3   = f
             HF_CORE
+            __ASM_EMIT("movups      %%xmm0, 0x00(%[re])")
+            __ASM_EMIT("movups      %%xmm1, 0x00(%[im])")
+            F_LOAD
+            __ASM_EMIT("add         $0x10, %[f]")
+            __ASM_EMIT("add         $0x10, %[re]")
+            __ASM_EMIT("add         $0x10, %[im]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         1b")
+            __ASM_EMIT("2:")
+            // x2 block
+            __ASM_EMIT("add         $2, %[count]")
+            __ASM_EMIT("jl          4f")
+            __ASM_EMIT("movlps      0x00(%[f]), %%xmm3")        // x3   = f
+            HF_CORE
+            __ASM_EMIT("movlps      %%xmm0, 0x00(%[re])")
+            __ASM_EMIT("movlps      %%xmm1, 0x00(%[im])")
+            F_LOAD
+            __ASM_EMIT("sub         $2, %[count]")
+            __ASM_EMIT("add         $0x08, %[f]")
+            __ASM_EMIT("add         $0x08, %[re]")
+            __ASM_EMIT("add         $0x08, %[im]")
+            __ASM_EMIT("4:")
+            // x1 block
+            __ASM_EMIT("add         $1, %[count]")
+            __ASM_EMIT("jl          6f")
+            __ASM_EMIT("movss       0x00(%[f]), %%xmm3")        // x3   = f
+            HF_CORE
+            __ASM_EMIT("movss       %%xmm0, 0x00(%[re])")
+            __ASM_EMIT("movss       %%xmm1, 0x00(%[im])")
+            __ASM_EMIT("6:")
+
+            : [re] "+r" (re), [im] "+r" (im), [f] "+r" (freq), [count] "+r" (count)
+            : [c] "r" (c),
+              [fp] "o" (fp)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count)
+    {
+        IF_ARCH_X86( float fp[6*4] __lsp_aligned16; );
+
+        ARCH_X86_ASM(
+            // Unpack filter params
+            F_UNPACK
+            // x4 blocks
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jb          2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups      0x00(%[f]), %%xmm3")        // x3   = f
+            HF_CORE
             __ASM_EMIT("movups      0x00(%[re]), %%xmm2")       // x2   = b_re
             __ASM_EMIT("movups      0x00(%[im]), %%xmm3")       // x3   = b_im
             HF_APPLY
@@ -189,6 +242,61 @@ namespace sse
         __ASM_EMIT("unpckhps    %%xmm1, %%xmm2")            /* x2   = r2 i2 r3 i3 */
 
     void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count)
+    {
+        IF_ARCH_X86( float fp[6*4] __lsp_aligned16; );
+
+        ARCH_X86_ASM(
+            // Unpack filter params
+            F_UNPACK
+            // x4 block
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jb          2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups      0x00(%[f]), %%xmm3")        // x3   = f
+            PHF_CORE
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            // x2   = re
+            __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            // x0   = r0 i0 r1 i1
+            __ASM_EMIT("unpckhps    %%xmm1, %%xmm2")            // x2   = r2 i2 r3 i3
+            __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("movups      %%xmm2, 0x10(%[dst])")
+            // Load filter params and repeat loop
+            F_LOAD
+            __ASM_EMIT("add         $0x10, %[f]")
+            __ASM_EMIT("add         $0x20, %[dst]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         1b")
+            __ASM_EMIT("2:")
+            // x2 block
+            __ASM_EMIT("add         $2, %[count]")
+            __ASM_EMIT("jl          4f")
+            __ASM_EMIT("movlps      0x00(%[f]), %%xmm3")        // x3   = f
+            PHF_CORE
+            __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            // x0   = r0 i0 r1 i1
+            __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
+            F_LOAD
+            __ASM_EMIT("sub         $2, %[count]")
+            __ASM_EMIT("add         $0x08, %[f]")
+            __ASM_EMIT("add         $0x10, %[dst]")
+            __ASM_EMIT("4:")
+            // x1 block
+            __ASM_EMIT("add         $1, %[count]")
+            __ASM_EMIT("jl          6f")
+            __ASM_EMIT("movss       0x00(%[f]), %%xmm3")        // x3   = f
+            PHF_CORE
+            __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            // x0   = r0 i0 r1 i1
+            __ASM_EMIT("movlps      %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("6:")
+
+            : [dst] "+r" (dst), [f] "+r" (freq), [count] "+r" (count)
+            : [c] "r" (c),
+              [fp] "o" (fp)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count)
     {
         IF_ARCH_X86( float fp[6*4] __lsp_aligned16; );
 

@@ -252,7 +252,9 @@ namespace dsp
     void    (* dyn_biquad_process_x8)(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f) = NULL;
 
     void    (* filter_transfer_calc_ri)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count) = NULL;
+    void    (* filter_transfer_apply_ri)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count) = NULL;
     void    (* filter_transfer_calc_pc)(float *dst, const f_cascade_t *c, const float *freq, size_t count) = NULL;
+    void    (* filter_transfer_apply_pc)(float *dst, const f_cascade_t *c, const float *freq, size_t count) = NULL;
 
     void    (* bilinear_transform_x1)(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count) = NULL;
     void    (* bilinear_transform_x2)(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count) = NULL;

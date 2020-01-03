@@ -17,23 +17,31 @@
 namespace native
 {
     void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+    void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
     void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+    void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
         void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
         void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
     }
 
     namespace avx
     {
         void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
         void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
 
         void filter_transfer_calc_ri_fma3(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_ri_fma3(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
         void filter_transfer_calc_pc_fma3(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_apply_pc_fma3(float *dst, const f_cascade_t *c, const float *freq, size_t count);
     }
 )
 
@@ -155,11 +163,19 @@ UTEST_BEGIN("dsp.filters", transfer)
             call(#func, native, func, &fc, align)
 
         IF_ARCH_X86(CALL(native::filter_transfer_calc_ri, sse::filter_transfer_calc_ri, 16));
+        IF_ARCH_X86(CALL(native::filter_transfer_apply_ri, sse::filter_transfer_apply_ri, 16));
         IF_ARCH_X86(CALL(native::filter_transfer_calc_pc, sse::filter_transfer_calc_pc, 16));
+        IF_ARCH_X86(CALL(native::filter_transfer_apply_pc, sse::filter_transfer_apply_pc, 16));
+
         IF_ARCH_X86(CALL(native::filter_transfer_calc_ri, avx::filter_transfer_calc_ri, 32));
+        IF_ARCH_X86(CALL(native::filter_transfer_apply_ri, avx::filter_transfer_apply_ri, 32));
         IF_ARCH_X86(CALL(native::filter_transfer_calc_pc, avx::filter_transfer_calc_pc, 32));
+        IF_ARCH_X86(CALL(native::filter_transfer_apply_pc, avx::filter_transfer_apply_pc, 32));
+
         IF_ARCH_X86(CALL(native::filter_transfer_calc_ri, avx::filter_transfer_calc_ri_fma3, 32));
+        IF_ARCH_X86(CALL(native::filter_transfer_apply_ri, avx::filter_transfer_apply_ri_fma3, 32));
         IF_ARCH_X86(CALL(native::filter_transfer_calc_pc, avx::filter_transfer_calc_pc_fma3, 32));
+        IF_ARCH_X86(CALL(native::filter_transfer_apply_pc, avx::filter_transfer_apply_pc_fma3, 32));
     }
 
 UTEST_END
