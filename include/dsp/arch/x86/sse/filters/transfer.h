@@ -59,8 +59,8 @@ namespace sse
         __ASM_EMIT("movaps      %%xmm5, %%xmm3")            /* x3   = b_im */ \
         __ASM_EMIT("movaps      %%xmm4, %%xmm2")            /* x2   = b_re */ \
         __ASM_EMIT("mulps       %%xmm3, %%xmm3")            /* x3   = b_im * b_im */ \
-        __ASM_EMIT("mulps       %%xmm2, %%xmm2")            /* x2   = t_im * t_im */ \
-        __ASM_EMIT("addps       %%xmm2, %%xmm3")            /* x3   = W = t_im * t_im + b_im * b_im */ \
+        __ASM_EMIT("mulps       %%xmm2, %%xmm2")            /* x2   = b_re * b_re */ \
+        __ASM_EMIT("addps       %%xmm2, %%xmm3")            /* x3   = W = b_re * b_re + b_im * b_im */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm6")            /* x6   = t_re */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm7")            /* x7   = t_im */ \
         __ASM_EMIT("mulps       %%xmm4, %%xmm0")            /* x0   = t_re * b_re */ \
@@ -161,8 +161,8 @@ namespace sse
         __ASM_EMIT("movaps      %%xmm5, %%xmm3")            /* x3   = b_im */ \
         __ASM_EMIT("movaps      %%xmm4, %%xmm2")            /* x2   = b_re */ \
         __ASM_EMIT("mulps       %%xmm3, %%xmm3")            /* x3   = b_im * b_im */ \
-        __ASM_EMIT("mulps       %%xmm2, %%xmm2")            /* x2   = t_im * t_im */ \
-        __ASM_EMIT("addps       %%xmm2, %%xmm3")            /* x3   = W = t_im * t_im + b_im * b_im */ \
+        __ASM_EMIT("mulps       %%xmm2, %%xmm2")            /* x2   = b_re * b_re */ \
+        __ASM_EMIT("addps       %%xmm2, %%xmm3")            /* x3   = W = b_re * b_re + b_im * b_im */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm6")            /* x6   = t_re */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm7")            /* x7   = t_im */ \
         __ASM_EMIT("mulps       %%xmm4, %%xmm0")            /* x0   = t_re * b_re */ \

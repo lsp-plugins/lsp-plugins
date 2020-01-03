@@ -42,6 +42,7 @@
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
 #include <dsp/arch/x86/avx/filters/transform.h>
+#include <dsp/arch/x86/avx/filters/transfer.h>
 
 #undef DSP_ARCH_X86_AVX_IMPL
 
@@ -231,6 +232,9 @@ namespace avx
         CEXPORT1(favx, fastconv_restore);
         CEXPORT1(favx, fastconv_apply);
         CEXPORT1(favx, fastconv_parse_apply);
+
+        CEXPORT1(favx, filter_transfer_calc_ri);
+        CEXPORT1(favx, filter_transfer_calc_pc);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)

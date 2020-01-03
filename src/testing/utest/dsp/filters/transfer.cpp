@@ -26,6 +26,12 @@ IF_ARCH_X86(
         void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
         void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
     }
+
+    namespace avx
+    {
+        void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+    }
 )
 
 typedef void (* filter_transfer_calc_ri_t)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
@@ -40,7 +46,7 @@ UTEST_BEGIN("dsp.filters", transfer)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        UTEST_FOREACH(count, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0x1f, 0x40, 0x1ff)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0x1f, 0x40, 0x1ff)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
@@ -145,8 +151,10 @@ UTEST_BEGIN("dsp.filters", transfer)
         #define CALL(native, func, align) \
             call(#func, native, func, &fc, align)
 
-        CALL(native::filter_transfer_calc_ri, sse::filter_transfer_calc_ri, 16);
-        CALL(native::filter_transfer_calc_pc, sse::filter_transfer_calc_pc, 16);
+        IF_ARCH_X86(CALL(native::filter_transfer_calc_ri, sse::filter_transfer_calc_ri, 16));
+        IF_ARCH_X86(CALL(native::filter_transfer_calc_pc, sse::filter_transfer_calc_pc, 16));
+        IF_ARCH_X86(CALL(native::filter_transfer_calc_ri, avx::filter_transfer_calc_ri, 32));
+        IF_ARCH_X86(CALL(native::filter_transfer_calc_pc, avx::filter_transfer_calc_pc, 32));
     }
 
 UTEST_END

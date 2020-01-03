@@ -28,6 +28,12 @@ IF_ARCH_X86(
         void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
         void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
     }
+
+    namespace avx
+    {
+        void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
+    }
 )
 
 typedef void (* filter_transfer_calc_ri_t)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
@@ -99,10 +105,12 @@ PTEST_BEGIN("dsp.filters", transfer, 5, 1000)
 
             CALL1(native::filter_transfer_calc_ri);
             IF_ARCH_X86(CALL1(sse::filter_transfer_calc_ri));
+            IF_ARCH_X86(CALL1(avx::filter_transfer_calc_ri));
             PTEST_SEPARATOR;
 
             CALL2(native::filter_transfer_calc_pc);
             IF_ARCH_X86(CALL2(sse::filter_transfer_calc_pc));
+            IF_ARCH_X86(CALL2(avx::filter_transfer_calc_pc));
             PTEST_SEPARATOR2;
         }
 
