@@ -243,7 +243,7 @@ namespace asimd
         EXPORT1(packed_direct_fft);
         EXPORT1(packed_reverse_fft);
 
-//        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_calc_ri);
         EXPORT1(filter_transfer_apply_ri);
 //        EXPORT1(filter_transfer_calc_pc);
 //        EXPORT1(filter_transfer_apply_pc);

@@ -58,7 +58,7 @@ IF_ARCH_ARM(
 IF_ARCH_AARCH64(
     namespace asimd
     {
-//        void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
+        void filter_transfer_calc_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
         void filter_transfer_apply_ri(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count);
 //        void filter_transfer_calc_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
 //        void filter_transfer_apply_pc(float *dst, const f_cascade_t *c, const float *freq, size_t count);
@@ -202,7 +202,7 @@ UTEST_BEGIN("dsp.filters", transfer)
         IF_ARCH_ARM(CALL(native::filter_transfer_calc_pc, neon_d32::filter_transfer_calc_pc, 16));
         IF_ARCH_ARM(CALL(native::filter_transfer_apply_pc, neon_d32::filter_transfer_apply_pc, 16));
 
-//        IF_ARCH_AARCH64(CALL(native::filter_transfer_calc_ri, asimd::filter_transfer_calc_ri, 16));
+        IF_ARCH_AARCH64(CALL(native::filter_transfer_calc_ri, asimd::filter_transfer_calc_ri, 16));
         IF_ARCH_AARCH64(CALL(native::filter_transfer_apply_ri, asimd::filter_transfer_apply_ri, 16));
 //        IF_ARCH_AARCH64(CALL(native::filter_transfer_calc_pc, asimd::filter_transfer_calc_pc, 16));
 //        IF_ARCH_AARCH64(CALL(native::filter_transfer_apply_pc, asimd::filter_transfer_apply_pc, 16));
