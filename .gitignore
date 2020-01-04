@@ -27,3 +27,5 @@
 *.svg
 *.core
 *vgcore*
+*perf.data*
+

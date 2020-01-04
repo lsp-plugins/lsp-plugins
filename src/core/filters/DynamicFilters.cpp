@@ -10,6 +10,7 @@
 
 #define BLD_BUF_SIZE    8
 #define BUF_SIZE        0x400       /* 1024 samples at one time */
+#define FBUF_SIZE       ((BLD_BUF_SIZE * (BUF_SIZE - BLD_BUF_SIZE) * sizeof(f_cascade_t)) / sizeof(float))
 
 namespace lsp
 {
@@ -42,8 +43,8 @@ namespace lsp
         // Determine how many bytes to allocate
         size_t b_per_filter_t       = ALIGN_SIZE(sizeof(filter_t) * filters, ALIGN64);
         size_t b_per_memory         = FILTER_CHAINS_MAX * 2 * filters * sizeof(float);
-        size_t b_per_cascades       = ALIGN_SIZE(8 * (BUF_SIZE + 8) * sizeof(f_cascade_t), ALIGN64);
-        size_t b_per_biquad         = sizeof(biquad_x8_t) * (BUF_SIZE + 8);
+        size_t b_per_cascades       = ALIGN_SIZE(BLD_BUF_SIZE * (BUF_SIZE + BLD_BUF_SIZE) * sizeof(f_cascade_t), ALIGN64);
+        size_t b_per_biquad         = sizeof(biquad_x8_t) * (BUF_SIZE + BLD_BUF_SIZE);
 
         size_t to_alloc             = b_per_filter_t + b_per_memory + b_per_cascades + b_per_biquad;
 
@@ -146,8 +147,8 @@ namespace lsp
         // Tranform second frequency
         if (fp->nType & 1) // Bilinear transform
         {
-            double nf   = M_PI / double(nSampleRate);
-            fp->fFreq2  = tan(fp->fFreq * nf) / tan(fp->fFreq2 * nf);
+            float nf    = M_PI / float(nSampleRate);
+            fp->fFreq2  = tanf(fp->fFreq * nf) / tanf(fp->fFreq2 * nf);
         }
         else // Matched transform
         {
@@ -199,7 +200,7 @@ namespace lsp
         float kf =
                 (f->sParams.nType <= FLT_MT_AMPLIFIER) ? 0.95f :
                 (f->sParams.nType & 1) ?
-                1.0/tan(f->sParams.fFreq * M_PI / double(nSampleRate)) : // bilinear transform coefficient
+                1.0/tanf(f->sParams.fFreq * M_PI / float(nSampleRate)) : // bilinear transform coefficient
                 2.0*M_PI / nSampleRate; // Matched transfomr coefficient
 
         // Filter memory
@@ -1060,8 +1061,8 @@ namespace lsp
                     // Generate cascades
                     for (size_t i=0; i<samples; ++i)
                     {
-                        double gain         = sqrt(sfg[i]);
-                        double fg           = exp(log(gain)/slope);
+                        float gain          = sqrtf(sfg[i]);
+                        float fg            = expf(logf(gain)/slope);
 
                         float *t            = (ftype == FLT_BT_RLC_LOSHELF) ? c->t : c->b;
                         float *b            = (ftype == FLT_BT_RLC_LOSHELF) ? c->b : c->t;
@@ -1108,7 +1109,7 @@ namespace lsp
                 if (nc <= 0)
                     return nc;
 
-                double kf               = fp->fFreq2;
+                float kf                = fp->fFreq2;
 
                 for (size_t j=0; j < nc; j++)
                 {
@@ -1120,8 +1121,8 @@ namespace lsp
                     {
                         for (size_t i=0; i<samples; ++i)
                         {
-                            double gain         = (ftype == FLT_BT_RLC_LADDERREJ) ? sqrt(sfg[i]) : sqrt(1.0/sfg[i]);
-                            double fg           = exp(log(gain)/slope);
+                            float gain          = (ftype == FLT_BT_RLC_LADDERREJ) ? sqrtf(sfg[i]) : sqrtf(1.0/sfg[i]);
+                            float fg            = expf(logf(gain)/slope);
 
                             // Second shelf cascade, hi-shelf always
                             float *t            = c->b;
@@ -1152,10 +1153,10 @@ namespace lsp
                         // Even shelf cascade, lo-shelf for LADDERREJ, hi-shelf for LADDERPASS
                         for (size_t i=0; i<samples; ++i)
                         {
-                            double gain1        = (ftype == FLT_BT_RLC_LADDERREJ) ? sqrt(1.0/sfg[i]) : sqrt(sfg[i]);
-                            double gain2        = (ftype == FLT_BT_RLC_LADDERREJ) ? sqrt(sfg[i]) : sqrt(1.0/sfg[i]);
-                            double fg           = (ftype == FLT_BT_RLC_LADDERREJ) ? exp(log(gain2)/slope) : exp(log(gain1)/slope);
-                            double gain         = (ftype == FLT_BT_RLC_LADDERREJ) ? gain2 : gain1;
+                            float gain1         = (ftype == FLT_BT_RLC_LADDERREJ) ? sqrtf(1.0/sfg[i]) : sqrtf(sfg[i]);
+                            float gain2         = (ftype == FLT_BT_RLC_LADDERREJ) ? sqrtf(sfg[i]) : sqrtf(1.0/sfg[i]);
+                            float fg            = (ftype == FLT_BT_RLC_LADDERREJ) ? expf(logf(gain2)/slope) : expf(logf(gain1)/slope);
+                            float gain          = (ftype == FLT_BT_RLC_LADDERREJ) ? gain2 : gain1;
 
                             float *t            = (ftype == FLT_BT_RLC_LADDERREJ) ? c->t : c->b;
                             float *b            = (ftype == FLT_BT_RLC_LADDERREJ) ? c->b : c->t;
@@ -1194,8 +1195,8 @@ namespace lsp
                 if (nc <= 0)
                     return nc;
 
-                double f2               = 1.0 / fp->fFreq2;
-                double k                = (1.0 + f2)/(1.0 + fp->fQuality);
+                float f2                = 1.0 / fp->fFreq2;
+                float k                 = (1.0 + f2)/(1.0 + fp->fQuality);
 
                 // Intialize pointers
                 for (size_t j=0; j < nc; j++)
@@ -1205,7 +1206,7 @@ namespace lsp
                     for (size_t i=0; i<samples; ++i)
                     {
                         c->t[0]             = 0.0;
-                        c->t[1]             = (cj == 0) ? exp(fp->nSlope * log(k)) * sfg[i] : 1.0;
+                        c->t[1]             = (cj == 0) ? expf(fp->nSlope * logf(k)) * sfg[i] : 1.0;
                         c->t[2]             = 0.0;
 
                         c->b[0]             = f2;
@@ -1236,11 +1237,11 @@ namespace lsp
                     // Generate cascades
                     for (size_t i=0; i<samples; ++i)
                     {
-                        double fg           = exp(log(sfg[i])/fp->nSlope);
-                        double angle        = atan(fg);
-                        double tsin         = sin(angle);
-                        double tcos         = sqrt(1.0 - tsin*tsin);
-                        double k            = 2.0 * (1.0/fg + fg) / (1.0 + (2.0 * fp->fQuality) / fp->nSlope);
+                        float fg            = expf(logf(sfg[i])/fp->nSlope);
+                        float angle         = atanf(fg);
+                        float tsin          = sinf(angle);
+                        float tcos          = sqrtf(1.0 - tsin*tsin);
+                        float k             = 2.0 * (1.0/fg + fg) / (1.0 + (2.0 * fp->fQuality) / fp->nSlope);
 
                         // Create transfer function
                         c->t[0]             = 1.0;
@@ -1274,14 +1275,14 @@ namespace lsp
                     f_cascade_t *c      = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double k            = 2.0 / (1.0 + fp->fQuality);
+                    float k             = 2.0 / (1.0 + fp->fQuality);
 
                     // Generate cascades
                     for (size_t i=0; i<samples; ++i)
                     {
-                        double angle        = atan(exp(log(sfg[i]) / fp->nSlope));
-                        double tsin         = sin(angle);
-                        double tcos         = sqrt(1.0 - tsin*tsin);
+                        float angle         = atanf(expf(logf(sfg[i]) / fp->nSlope));
+                        float tsin          = sinf(angle);
+                        float tcos          = sqrtf(1.0 - tsin*tsin);
 
                         // Create transfer function
                         c->t[0]             = 1.0;
@@ -1433,7 +1434,7 @@ namespace lsp
                     j++;
                 }
 
-                double k    = 1.0f / (1.0f + fp->fQuality);
+                float k     = 1.0f / (1.0f + fp->fQuality);
 
                 // Add additional cascades
                 for (; j<nc; j++)
@@ -1441,9 +1442,9 @@ namespace lsp
                     f_cascade_t *c      = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta    = ((2*(cj - (fp->nSlope & 1)) + 1)*M_PI_2)/fp->nSlope;
-                    double tsin     = sin(theta);
-                    double tcos     = sqrt(1.0 - tsin*tsin);
+                    float theta     = ((2*(cj - (fp->nSlope & 1)) + 1)*M_PI_2)/fp->nSlope;
+                    float tsin      = sinf(theta);
+                    float tcos      = sqrtf(1.0 - tsin*tsin);
                     float kf1       = 1.0 / (tsin*tsin + k*k * tcos*tcos);
 
                     // Generate cascades
@@ -1496,17 +1497,17 @@ namespace lsp
                     f_cascade_t *c          = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta        = ((2*cj + 1)*M_PI_2)/(2*fp->nSlope);
-                    double tsin         = sin(theta);
-                    double tcos         = sqrt(1.0 - tsin*tsin);
+                    float theta         = ((2*cj + 1)*M_PI_2)/(2*fp->nSlope);
+                    float tsin          = sinf(theta);
+                    float tcos          = sqrtf(1.0 - tsin*tsin);
 
                     // Generate cascades
                     for (size_t i=0; i<samples; ++i)
                     {
-                        double gain         = sqrt(sfg[i]);
-                        double fg           = exp(log(gain)/(2.0*fp->nSlope));
-                        double k            = 1.0 / (1.0 + fp->fQuality * (1.0 - exp(2.0 - gain - 1.0/gain)));
-                        double kf           = tsin*tsin + k*k * tcos*tcos;
+                        float gain          = sqrtf(sfg[i]);
+                        float fg            = expf(logf(gain)/(2.0*fp->nSlope));
+                        float k             = 1.0 / (1.0 + fp->fQuality * (1.0 - expf(2.0 - gain - 1.0/gain)));
+                        float kf            = tsin*tsin + k*k * tcos*tcos;
 
                         float *t            = (ftype == FLT_BT_BWC_HISHELF) ? c->t : c->b;
                         float *b            = (ftype == FLT_BT_BWC_HISHELF) ? c->b : c->t;
@@ -1670,21 +1671,21 @@ namespace lsp
                 for (size_t j=0; j<nc; ++j)
                 {
                     // Intialize pointers
-                    f_cascade_t *c          = &dst[(nc+1)*j];       // target cascade pointer
+                    f_cascade_t *c      = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta        = (((cj&(~1)) + 1)*M_PI_2)/(slope);
-                    double tsin         = sin(theta);
-                    double tcos         = sqrt(1.0 - tsin*tsin);
+                    float theta         = (((cj&(~1)) + 1)*M_PI_2)/(slope);
+                    float tsin          = sinf(theta);
+                    float tcos          = sqrtf(1.0 - tsin*tsin);
                     float k             = 1.0f / (1.0 + fp->fQuality);
-                    double kf           = tsin*tsin + k*k * tcos*tcos;
+                    float kf            = tsin*tsin + k*k * tcos*tcos;
 
                     if (cj & 1) // Second cascade
                     {
                         // Generate cascades
                         for (size_t i=0; i<samples; ++i)
                         {
-                            double fg           = exp(log(sfg[i])/slope);
+                            float fg            = expf(logf(sfg[i])/slope);
 
                             // Transfer function
                             if (sfg[i] >= 1.0)
@@ -1717,7 +1718,7 @@ namespace lsp
                         // Generate cascades
                         for (size_t i=0; i<samples; ++i)
                         {
-                            double fg           = exp(log(sfg[i])/slope);
+                            float fg            = expf(logf(sfg[i])/slope);
 
                             // Transfer function
                             if (sfg[i] >= 1.0)
@@ -1761,8 +1762,8 @@ namespace lsp
                 if (nc <= 0)
                     return nc;
 
-                double f2               = fp->fFreq2;
-                double k                = 1.0f / (1.0f + fp->fQuality);
+                float f2                = fp->fFreq2;
+                float k                 = 1.0f / (1.0f + fp->fQuality);
 
                 // Create cascades
                 for (size_t j=0; j<nc; ++j)
@@ -1771,10 +1772,10 @@ namespace lsp
                     f_cascade_t *c          = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta        = (((cj&(~1)) + 1)*M_PI_2)/slope;
-                    double tsin         = sin(theta);
-                    double tcos         = sqrt(1.0 - tsin*tsin);
-                    double kf1          = 1.0/(tsin*tsin + k*k * tcos*tcos);
+                    float theta         = (((cj&(~1)) + 1)*M_PI_2)/slope;
+                    float tsin          = sinf(theta);
+                    float tcos          = sqrtf(1.0 - tsin*tsin);
+                    float kf1           = 1.0/(tsin*tsin + k*k * tcos*tcos);
 
                     if (cj & 1) // Hi-pass cascade
                     {
@@ -1826,7 +1827,7 @@ namespace lsp
                 if (nc <= 0)
                     return nc;
 
-                double k    = 1.0f / (1.0f + fp->fQuality);
+                float k     = 1.0f / (1.0f + fp->fQuality);
 
                 // Add additional cascades
                 for (size_t j=0; j<nc; j++)
@@ -1834,9 +1835,9 @@ namespace lsp
                     f_cascade_t *c      = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta    = (((cj & (~1)) + 1)*M_PI_2)/(fp->nSlope*2); // The number of cascades is just doubled
-                    double tsin     = sin(theta);
-                    double tcos     = sqrt(1.0 - tsin*tsin);
+                    float theta     = (((cj & (~1)) + 1)*M_PI_2)/(fp->nSlope*2); // The number of cascades is just doubled
+                    float tsin      = sinf(theta);
+                    float tcos      = sqrtf(1.0 - tsin*tsin);
                     float kf1       = 1.0 / (tsin*tsin + k*k * tcos*tcos);
 
                     // Generate cascades
@@ -1897,18 +1898,18 @@ namespace lsp
                     f_cascade_t *c          = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta        = (((cj&(~3)) + 2)*M_PI_2)/(slope);
-                    double tsin         = sin(theta);
-                    double tcos         = sqrt(1.0 - tsin*tsin);
+                    float theta         = (((cj&(~3)) + 2)*M_PI_2)/(slope);
+                    float tsin          = sinf(theta);
+                    float tcos          = sqrtf(1.0 - tsin*tsin);
                     float k             = 1.0f / (1.0 + fp->fQuality);
-                    double kf           = tsin*tsin + k*k * tcos*tcos;
+                    float kf            = tsin*tsin + k*k * tcos*tcos;
 
                     if (cj & 1) // Second cascade
                     {
                         // Generate cascades
                         for (size_t i=0; i<samples; ++i)
                         {
-                            double fg           = exp(log(sfg[i])/slope);
+                            float fg            = expf(logf(sfg[i])/slope);
 
                             // Transfer function
                             if (sfg[i] >= 1.0)
@@ -1941,7 +1942,7 @@ namespace lsp
                         // Generate cascades
                         for (size_t i=0; i<samples; ++i)
                         {
-                            double fg           = exp(log(sfg[i])/slope);
+                            float fg            = expf(logf(sfg[i])/slope);
 
                             // Transfer function
                             if (sfg[i] >= 1.0)
@@ -1985,8 +1986,8 @@ namespace lsp
                 if (nc <= 0)
                     return nc;
 
-                double f2               = fp->fFreq2;
-                double k                = 1.0f / (1.0f + fp->fQuality);
+                float f2                = fp->fFreq2;
+                float k                 = 1.0f / (1.0f + fp->fQuality);
 
                 // Create cascades
                 for (size_t j=0; j<nc; ++j)
@@ -1995,10 +1996,10 @@ namespace lsp
                     f_cascade_t *c          = &dst[(nc+1)*j];       // target cascade pointer
 
                     // Pre-calculate filter parameters
-                    double theta        = (((cj&(~3)) + 2)*M_PI_2)/slope;
-                    double tsin         = sin(theta);
-                    double tcos         = sqrt(1.0 - tsin*tsin);
-                    double kf1          = 1.0/(tsin*tsin + k*k * tcos*tcos);
+                    float theta         = (((cj&(~3)) + 2)*M_PI_2)/slope;
+                    float tsin          = sinf(theta);
+                    float tcos          = sqrtf(1.0 - tsin*tsin);
+                    float kf1           = 1.0/(tsin*tsin + k*k * tcos*tcos);
 
                     if (cj & 1) // Hi-pass cascade
                     {
@@ -2050,34 +2051,36 @@ namespace lsp
         return nc;
     }
 
-    void DynamicFilters::complex_transfer_calc(float *re, float *im, double f, size_t nc)
+    void DynamicFilters::vcomplex_transfer_calc(float *re, float *im, const f_cascade_t *c, const float *freq, size_t cj, size_t nc, size_t nf)
     {
-        double f2       = f * f; // f ^ 2
-
-        f_cascade_t *c  = vCascades;
+        size_t i=0;
+        if (!cj)
+        {
+            dsp::filter_transfer_calc_ri(re, im, c, freq, nf);
+            c              += (nc + 1);
+            ++i;
+        }
 
         for (size_t i=0; i<nc; ++i)
         {
-            // Calculate top and bottom transfer parts
-            double t_re     = c->t[0] - f2 * c->t[2];
-            double t_im     = c->t[1]*f;
-            double b_re     = c->b[0] - f2 * c->b[2];
-            double b_im     = c->b[1]*f;
+            dsp::filter_transfer_apply_ri(re, im, c, freq, nf);
+            c              += (nc + 1);
+        }
+    }
 
-            // Calculate top / bottom
-            double w        = 1.0 / (b_re * b_re + b_im * b_im);
-            double w_re     = (t_re * b_re + t_im * b_im) * w;
-            double w_im     = (t_im * b_re - t_re * b_im) * w;
+    void DynamicFilters::vcomplex_transfer_calc(float *dst, const f_cascade_t *c, const float *freq, size_t cj, size_t nc, size_t nf)
+    {
+        size_t i=0;
+        if (!cj)
+        {
+            dsp::filter_transfer_calc_pc(dst, c, freq, nf);
+            c              += (nc + 1);
+            ++i;
+        }
 
-            // Update transfer function
-            b_re            = (*re)*w_re - (*im)*w_im;
-            b_im            = (*re)*w_im + (*im)*w_re;
-
-            // Commit result
-            *re             = b_re;
-            *im             = b_im;
-
-            // Move cascade pointer diagonally in a filter bank
+        for (; i<nc; ++i)
+        {
+            dsp::filter_transfer_apply_pc(dst, c, freq, nf);
             c              += (nc + 1);
         }
     }
@@ -2086,65 +2089,97 @@ namespace lsp
     {
         if (id >= nFilters)
             return false;
+
         filter_params_t *fp = &vFilters[id].sParams;
 
         // Initialize values
-        dsp::fill_one(re, count);
-        dsp::fill_zero(im, count);
-        if (fp->nType == FLT_NONE)
-            return true;
+        switch (fp->nType)
+        {
+            case FLT_NONE:
+                dsp::fill_one(re, count);
+                dsp::fill_zero(im, count);
+                return true;
+
+            case FLT_BT_AMPLIFIER:
+            case FLT_MT_AMPLIFIER:
+                dsp::fill(re, gain, count);
+                dsp::fill_zero(im, count);
+                return true;
+
+            default:
+                break;
+        }
+
+        float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
 
         // Process the filter
-        size_t cj   = 0;
-
         if (fp->nType & 1) // Bilinear
         {
-            double nf   = M_PI / double(nSampleRate);
-            double kf   = 1.0/tan(fp->fFreq * nf);
-            double lf   = nSampleRate * 0.499;
+            float nf    = M_PI / float(nSampleRate);
+            float kf    = 1.0/tanf(fp->fFreq * nf);
+            float lf    = nSampleRate * 0.499f;
 
-            // Process all cascades
-            while (true)
+            // Process frequency chart
+            while (count > 0)
             {
-                // Generate cascades
-                size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
-                if (nj <= 0)
-                    break;
+                size_t fcount   = (count > FBUF_SIZE) ? FBUF_SIZE : count;
+                size_t cj       = 0;
 
-                for (size_t i=0; i<count; ++i)
+                // Generate set of frequencies
+                for (size_t i=0; i<fcount; ++i)
                 {
-                    // Cyclic frequency
-                    double w    = *(f++);
-                    w           = tan((w > lf ? lf : w) * nf) * kf;
-
-                    complex_transfer_calc(&re[i], &im[i], w, nj);
+                    float w     = f[i];
+                    tf[i]       = tanf((w > lf ? lf : w) * nf) * kf;
                 }
 
-                // Update counters and pointers
-                cj                     += nj;
+                // Estimate transfer function
+                while (true)
+                {
+                    // Generate cascades
+                    size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
+                    if (nj <= 0)
+                        break;
+
+                    vcomplex_transfer_calc(re, im, vCascades, tf, cj, nj, fcount);
+                    cj                     += nj;
+                }
+
+                // Update counter and pointers
+                count          -= fcount;
+                f              += fcount;
+                re             += fcount;
+                im             += fcount;
             }
         }
         else
         {
-            double kf   = 1.0 / fp->fFreq;
+            float kf        = 1.0 / fp->fFreq;
 
-            // Process all cascades
-            while (true)
+            while (count > 0)
             {
-                // Generate cascades
-                size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
-                if (nj <= 0)
-                    break;
+                size_t fcount   = (count > FBUF_SIZE) ? FBUF_SIZE : count;
+                size_t cj       = 0;
 
-                for (size_t i=0; i<count; ++i)
+                // Generate set of frequencies
+                dsp::mul_k3(tf, f, kf, fcount);
+
+                // Estimate transfer function
+                while (true)
                 {
-                    // Cyclic frequency
-                    double w    = *(f++) * kf;
-                    complex_transfer_calc(&re[i], &im[i], w, nj);
+                    // Generate cascades
+                    size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
+                    if (nj <= 0)
+                        break;
+
+                    vcomplex_transfer_calc(re, im, vCascades, tf, cj, nj, fcount);
+                    cj                     += nj;
                 }
 
-                // Update counters and pointers
-                cj                     += nj;
+                // Update counter and pointers
+                count          -= fcount;
+                f              += fcount;
+                re             += fcount;
+                im             += fcount;
             }
         }
 
@@ -2171,62 +2206,78 @@ namespace lsp
                 return true;
 
             default:
-                dsp::pcomplex_fill_ri(dst, 1.0f, 0.0f, count);
                 break;
         }
 
-        // Process the filter
-        size_t cj   = 0;
-        count     <<= 1;
+        float *tf   = vCascades[BLD_BUF_SIZE * BLD_BUF_SIZE * 2].t;  // Use cascades as a temporary frequency buffer
 
+        // Process the filter
         if (fp->nType & 1) // Bilinear
         {
-            double nf   = M_PI / double(nSampleRate);
-            double kf   = 1.0/tan(fp->fFreq * nf);
-            double lf   = nSampleRate * 0.499;
+            float nf    = M_PI / float(nSampleRate);
+            float kf    = 1.0/tanf(fp->fFreq * nf);
+            float lf    = nSampleRate * 0.499f;
 
-            // Process all cascades
-            while (true)
+            // Process frequency chart
+            while (count > 0)
             {
-                // Generate cascades
-                size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
-                if (nj <= 0)
-                    break;
+                size_t fcount   = (count > FBUF_SIZE) ? FBUF_SIZE : count;
+                size_t cj       = 0;
 
-                for (size_t i=0; i<count; i+=2)
+                // Generate set of frequencies
+                for (size_t i=0; i<fcount; ++i)
                 {
-                    // Cyclic frequency
-                    double w    = *(f++);
-                    w           = tan((w > lf ? lf : w) * nf) * kf;
-
-                    complex_transfer_calc(&dst[i], &dst[i+1], w, nj);
+                    float w     = f[i];
+                    tf[i]       = tanf((w > lf ? lf : w) * nf) * kf;
                 }
 
-                // Update counters and pointers
-                cj                     += nj;
+                // Estimate transfer function
+                while (true)
+                {
+                    // Generate cascades
+                    size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
+                    if (nj <= 0)
+                        break;
+
+                    vcomplex_transfer_calc(dst, vCascades, tf, cj, nj, fcount);
+                    cj                     += nj;
+                }
+
+                // Update counter and pointers
+                count          -= fcount;
+                f              += fcount;
+                dst            += (fcount << 1);
             }
         }
         else
         {
-            double kf   = 1.0 / fp->fFreq;
+            float kf        = 1.0 / fp->fFreq;
 
-            // Process all cascades
-            while (true)
+            // Process frequency chart
+            while (count > 0)
             {
-                // Generate cascades
-                size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
-                if (nj <= 0)
-                    break;
+                size_t fcount   = (count > FBUF_SIZE) ? FBUF_SIZE : count;
+                size_t cj       = 0;
 
-                for (size_t i=0; i<count; i+=2)
+                // Generate set of frequencies
+                dsp::mul_k3(tf, f, kf, fcount);
+
+                // Estimate transfer function
+                while (true)
                 {
-                    // Cyclic frequency
-                    double w    = *(f++) * kf;
-                    complex_transfer_calc(&dst[i], &dst[i+1], w, nj);
+                    // Generate cascades
+                    size_t nj               = build_filter_bank(vCascades, fp, cj, &gain, 1);
+                    if (nj <= 0)
+                        break;
+
+                    vcomplex_transfer_calc(dst, vCascades, tf, cj, nj, fcount);
+                    cj                     += nj;
                 }
 
-                // Update counters and pointers
-                cj                     += nj;
+                // Update counter and pointers
+                count          -= fcount;
+                f              += fcount;
+                dst            += (fcount << 1);
             }
         }
 

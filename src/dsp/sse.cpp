@@ -80,6 +80,7 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/filters/static.h>
 #include <dsp/arch/x86/sse/filters/dynamic.h>
 #include <dsp/arch/x86/sse/filters/transform.h>
+#include <dsp/arch/x86/sse/filters/transfer.h>
 
 #include <dsp/arch/x86/sse/3dmath.h>
 
@@ -300,6 +301,11 @@ namespace sse
         EXPORT1(dyn_biquad_process_x2);
         EXPORT1(dyn_biquad_process_x4);
         EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_apply_ri);
+        EXPORT1(filter_transfer_calc_pc);
+        EXPORT1(filter_transfer_apply_pc);
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);

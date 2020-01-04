@@ -20,14 +20,6 @@ namespace lsp
             Filter & operator = (const Filter &);
 
         protected:
-            #pragma pack(push, 16)
-            typedef struct cascade_t
-            {
-                double      t[4];       // Top part of polynom (zeros)
-                double      b[4];       // Bottom part of polynom (poles)
-            } cascade_t;
-            #pragma pack(pop)
-
             enum filter_mode_t
             {
                 FM_BYPASS,          // Bypass filter
@@ -49,16 +41,16 @@ namespace lsp
             size_t              nSampleRate;    // Sample rate
             filter_mode_t       nMode;          // Filter mode
             size_t              nItems;         // Number of cascades
-            cascade_t          *vItems;         // Filter cascades
+            f_cascade_t        *vItems;         // Filter cascades
             uint8_t            *vData;          // Allocated data
             size_t              nFlags;         // Filter flags
             size_t              nLatency;       // Filter latency
 
         protected:
 
-            void complex_transfer_calc(float *re, float *im, double f);
-            void apo_complex_transfer_calc(float *re, float *im, double f);
-            cascade_t *add_cascade();
+            void complex_transfer_calc(float *re, float *im, float f);
+            void apo_complex_transfer_calc(float *re, float *im, float f);
+            f_cascade_t *add_cascade();
 
             void calc_rlc_filter(size_t type, const filter_params_t *fp);
             void calc_bwc_filter(size_t type, const filter_params_t *fp);
