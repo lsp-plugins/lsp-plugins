@@ -14,6 +14,7 @@
 * Fixed bug in trigger that caused notes to be immediately cancelled.
 * Implemented support of LV2 state:mapPath extension.
 - Implemented Multiband gate plugin series.
+- Fixe problem with matched Z transform caused by filter characteristics optimizations.
 - Refactored and optimized dynamic filter processing.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform. 
@@ -24,7 +25,7 @@
 - Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
-- Added subsystem for loading missed files. 
+- Added subsystem for loading missed files.
  
 
 *******************************************************************************
