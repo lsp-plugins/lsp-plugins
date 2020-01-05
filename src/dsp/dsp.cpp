@@ -108,16 +108,20 @@ namespace dsp
     void    (* add_k2)(float *dst, float k, size_t count) = NULL;
     void    (* sub_k2)(float *dst, float k, size_t count) = NULL;
     void    (* rsub_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* mul_k2)(float *dst, float k, size_t count) = NULL;
     void    (* div_k2)(float *dst, float k, size_t count) = NULL;
     void    (* rdiv_k2)(float *dst, float k, size_t count) = NULL;
-    void    (* mul_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* mod_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* rmod_k2)(float *dst, float k, size_t count) = NULL;
 
     void    (* add_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* sub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* rsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* mul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* div_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* rdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* mul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* mod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* rmod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* exp1)(float *dst, size_t count) = NULL;
     void    (* exp2)(float *dst, const float *src, size_t count) = NULL;

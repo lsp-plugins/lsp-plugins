@@ -53,6 +53,7 @@ namespace sse2 // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse2/graphics.h>
 #include <dsp/arch/x86/sse2/graphics/effects.h>
 
+#include <dsp/arch/x86/sse2/pmath/fmop_kx.h>
 #include <dsp/arch/x86/sse2/pmath/exp.h>
 #include <dsp/arch/x86/sse2/pmath/log.h>
 #include <dsp/arch/x86/sse2/pmath/pow.h>
