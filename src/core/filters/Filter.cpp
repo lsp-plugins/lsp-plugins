@@ -1695,13 +1695,13 @@ namespace lsp
                 // For the normalized continuous transfer function it will be always 0.1
 
                 // Calculate the discrete transfer function part at specified frequency
-                float w     = M_PI * 0.2 * sParams.fFreq / nSampleRate;
+                float w     = M_PI * 1.8 * sParams.fFreq / nSampleRate;
                 float re    = P[0]*cosf(2*w) + P[1]*cosf(w) + P[2];
                 float im    = P[0]*sinf(2*w) + P[1]*sinf(w);
                 A[i]        = sqrtf(re*re + im*im);
 
                 // Calculate the continuous transfer function part at 1 Hz
-                w           = 0.1;
+                w           = 0.9;
                 re          = p[0] - p[2]*w*w;
                 im          = p[1]*w;
                 I[i]        = sqrtf(re*re + im*im);
