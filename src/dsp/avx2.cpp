@@ -83,6 +83,8 @@ namespace avx2
         CEXPORT1(favx, mul_k2);
         CEXPORT1(favx, div_k2);
         CEXPORT1(favx, rdiv_k2);
+        CEXPORT1(favx, mod_k2);
+        CEXPORT1(favx, rmod_k2);
 
         CEXPORT1(favx, add_k3);
         CEXPORT1(favx, sub_k3);
@@ -90,6 +92,8 @@ namespace avx2
         CEXPORT1(favx, mul_k3);
         CEXPORT1(favx, div_k3);
         CEXPORT1(favx, rdiv_k3);
+        CEXPORT1(favx, mod_k3);
+        CEXPORT1(favx, rmod_k3);
 
         CEXPORT1(favx, fmadd_k3);
         CEXPORT1(favx, fmsub_k3);
@@ -132,6 +136,12 @@ namespace avx2
 
         if (f->features & CPU_OPTION_FMA3)
         {
+            CEXPORT2_X64(favx, mod_k2, mod_k2_fma3);
+            CEXPORT2_X64(favx, rmod_k2, rmod_k2_fma3);
+
+            CEXPORT2_X64(favx, mod_k3, mod_k3_fma3);
+            CEXPORT2_X64(favx, rmod_k3, rmod_k3_fma3);
+
             CEXPORT2_X64(favx, fmadd_k3, fmadd_k3_fma3);
             CEXPORT2_X64(favx, fmsub_k3, fmsub_k3_fma3);
             CEXPORT2_X64(favx, fmrsub_k3, fmrsub_k3_fma3);
