@@ -1856,8 +1856,9 @@ namespace lsp
                    the source cannot know what the target prefers.
                 */
 
-                lsp_trace("Received XdndEnter: wnd=0x%lx, ext=%s",
+                lsp_trace("Received XdndEnter: src_wnd=0x%lx, dst_wnd=0x%lx, ext=%s",
                         long(ev->data.l[0]),
+                        long(ev->window),
                         ((ev->data.l[1] & 1) ? "true" : "false")
                     );
 
@@ -1870,7 +1871,10 @@ namespace lsp
                 // Find target window
                 X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
+                {
+                    lsp_trace("Target window 0x%lx not found", long(ev->window));
                     return STATUS_NOT_FOUND;
+                }
 
                 // There are more than 3 mime types?
                 if (ev->data.l[1] & 1)
@@ -1880,9 +1884,15 @@ namespace lsp
                             sAtoms.X11_XdndTypeList, sAtoms.X11_XA_ATOM,
                             &data, &bytes, &type);
                     if (res != STATUS_OK)
+                    {
+                        lsp_trace("Could not read proprty XdndTypeList");
                         return res;
+                    }
                     else if (type != sAtoms.X11_XA_ATOM)
+                    {
+                        lsp_trace("Could proprty XdndTypeList is not of XA_ATOM type");
                         return STATUS_BAD_TYPE;
+                    }
 
                     // Decode MIME types
                     uint32_t *atoms = reinterpret_cast<uint32_t *>(data);
@@ -2039,9 +2049,15 @@ namespace lsp
 
                 // Validate current state
                 if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
+                {
+                    lsp_trace("Window IDs do not match");
                     return STATUS_PROTOCOL_ERROR;
+                }
                 if (task->enState != DND_RECV_PENDING)
+                {
+                    lsp_trace("Invalid recv task state, should be DND_RECV_PENDING");
                     return STATUS_PROTOCOL_ERROR;
+                }
 
                 // Decode the event
                 int x = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
@@ -2058,7 +2074,10 @@ namespace lsp
                 // Find target window
                 X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
+                {
+                    lsp_trace("Could not find target window 0x%lx", long(ev->window));
                     return STATUS_NOT_FOUND;
+                }
 
                 Window child        = None;
                 ::XSync(pDisplay, False);
@@ -2098,7 +2117,10 @@ namespace lsp
 
                 // Did the handler properly process the event?
                 if ((task->enState != DND_RECV_ACCEPT) && (task->enState != DND_RECV_REJECT))
+                {
+                    lsp_trace("Rejecting DnD transfer");
                     reject_dnd_transfer(task);
+                }
 
                 // Return state back
                 task->enState   = DND_RECV_PENDING;
