@@ -50,6 +50,28 @@ namespace native
             dst[i] = src[i] / dst[i];
     }
 
+    void mod2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = dst[i];
+            float s     = src[i];
+            int32_t r   = v / s;
+            dst[i]      = v - s * r;
+        }
+    }
+
+    void rmod2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = src[i];
+            float s     = dst[i];
+            int32_t r   = v / s;
+            dst[i]      = v - s * r;
+        }
+    }
+
     void add3(float *dst, const float *src1, const float *src2, size_t count)
     {
         for (size_t i=0; i<count; ++i)
@@ -72,6 +94,17 @@ namespace native
     {
         for (size_t i=0; i<count; ++i)
             dst[i] = src1[i] / src2[i];
+    }
+
+    void mod3(float *dst, const float *src1, const float *src2, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = src1[i];
+            float s     = src2[i];
+            int32_t r   = v / s;
+            dst[i]      = v - s * r;
+        }
     }
 }
 

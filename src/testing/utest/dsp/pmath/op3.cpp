@@ -19,6 +19,7 @@ namespace native
     void    sub3(float *dst, const float *src1, const float *src2, size_t count);
     void    mul3(float *dst, const float *src1, const float *src2, size_t count);
     void    div3(float *dst, const float *src1, const float *src2, size_t count);
+    void    mod3(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 IF_ARCH_X86(
@@ -30,12 +31,19 @@ IF_ARCH_X86(
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 
+    namespace sse2
+    {
+        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
+    }
+
     namespace avx
     {
         void    add3(float *dst, const float *src1, const float *src2, size_t count);
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mod3_fma3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -46,6 +54,7 @@ IF_ARCH_ARM(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -56,6 +65,7 @@ IF_ARCH_AARCH64(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -96,7 +106,7 @@ UTEST_BEGIN("dsp.pmath", op3)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_relative(dst2, 1e-4))
+                if (!dst1.equals_absolute(dst2, 1e-4))
                 {
                     src1.dump("src1");
                     src2.dump("src2");
@@ -118,21 +128,26 @@ UTEST_BEGIN("dsp.pmath", op3)
         IF_ARCH_X86(CALL(native::sub3, sse::sub3, 16));
         IF_ARCH_X86(CALL(native::mul3, sse::mul3, 16));
         IF_ARCH_X86(CALL(native::div3, sse::div3, 16));
+        IF_ARCH_X86(CALL(native::mod3, sse2::mod3, 16));
 
         IF_ARCH_X86(CALL(native::add3, avx::add3, 32));
         IF_ARCH_X86(CALL(native::sub3, avx::sub3, 32));
         IF_ARCH_X86(CALL(native::mul3, avx::mul3, 32));
         IF_ARCH_X86(CALL(native::div3, avx::div3, 32));
+        IF_ARCH_X86(CALL(native::mod3, avx::mod3, 32));
+        IF_ARCH_X86(CALL(native::mod3, avx::mod3_fma3, 32));
 
         IF_ARCH_ARM(CALL(native::add3, neon_d32::add3, 16));
         IF_ARCH_ARM(CALL(native::sub3, neon_d32::sub3, 16));
         IF_ARCH_ARM(CALL(native::mul3, neon_d32::mul3, 16));
         IF_ARCH_ARM(CALL(native::div3, neon_d32::div3, 16));
+//        IF_ARCH_ARM(CALL(native::mod3, neon_d32::mod3, 16));
 
         IF_ARCH_AARCH64(CALL(native::add3, asimd::add3, 16));
         IF_ARCH_AARCH64(CALL(native::sub3, asimd::sub3, 16));
         IF_ARCH_AARCH64(CALL(native::mul3, asimd::mul3, 16));
         IF_ARCH_AARCH64(CALL(native::div3, asimd::div3, 16));
+//        IF_ARCH_AARCH64(CALL(native::mod3, asimd::mod3, 16));
     }
 UTEST_END
 

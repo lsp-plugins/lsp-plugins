@@ -128,11 +128,14 @@ namespace avx
         CEXPORT1(favx, mul2);
         CEXPORT1(favx, div2);
         CEXPORT1(favx, rdiv2);
+        CEXPORT1(favx, mod2);
+        CEXPORT1(favx, rmod2);
 
         CEXPORT1(favx, add3);
         CEXPORT1(favx, sub3);
         CEXPORT1(favx, mul3);
         CEXPORT1(favx, div3);
+        CEXPORT1(favx, mod3);
 
         CEXPORT1(favx, fmadd_k3);
         CEXPORT1(favx, fmsub_k3);
@@ -248,6 +251,11 @@ namespace avx
             lsp_trace("Optimizing DSP for FMA3 instruction set");
 
             // Conditional export, depending on fast AVX implementation
+            CEXPORT2_X64(favx, mod2, mod2_fma3);
+            CEXPORT2_X64(favx, rmod2, rmod2_fma3);
+
+            CEXPORT2_X64(favx, mod3, mod3_fma3);
+
             CEXPORT2_X64(favx, mod_k2, mod_k2_fma3);
             CEXPORT2_X64(favx, rmod_k2, rmod_k2_fma3);
 

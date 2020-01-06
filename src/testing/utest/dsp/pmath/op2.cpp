@@ -22,6 +22,8 @@ namespace native
     void    mul2(float *dst, const float *src, size_t count);
     void    div2(float *dst, const float *src, size_t count);
     void    rdiv2(float *dst, const float *src, size_t count);
+    void    mod2(float *dst, const float *src, size_t count);
+    void    rmod2(float *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
@@ -35,6 +37,12 @@ IF_ARCH_X86(
         void    rdiv2(float *dst, const float *src, size_t count);
     }
 
+    namespace sse2
+    {
+        void    mod2(float *dst, const float *src, size_t count);
+        void    rmod2(float *dst, const float *src, size_t count);
+    }
+
     namespace avx
     {
         void    add2(float *dst, const float *src, size_t count);
@@ -43,6 +51,10 @@ IF_ARCH_X86(
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
         void    rdiv2(float *dst, const float *src, size_t count);
+        void    mod2(float *dst, const float *src, size_t count);
+        void    rmod2(float *dst, const float *src, size_t count);
+        void    mod2_fma3(float *dst, const float *src, size_t count);
+        void    rmod2_fma3(float *dst, const float *src, size_t count);
     }
 )
 
@@ -55,6 +67,8 @@ IF_ARCH_ARM(
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
         void    rdiv2(float *dst, const float *src, size_t count);
+//        void    mod2(float *dst, const float *src, size_t count);
+//        void    rmod2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -67,6 +81,8 @@ IF_ARCH_AARCH64(
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
         void    rdiv2(float *dst, const float *src, size_t count);
+//        void    mod2(float *dst, const float *src, size_t count);
+//        void    rmod2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -104,7 +120,7 @@ UTEST_BEGIN("dsp.pmath", op2)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_relative(dst2, 1e-4))
+                if (!dst1.equals_absolute(dst2, 1e-4))
                 {
                     src.dump("src");
                     dst1.dump("dst1");
@@ -127,6 +143,8 @@ UTEST_BEGIN("dsp.pmath", op2)
         IF_ARCH_X86(CALL(native::mul2, sse::mul2, 16));
         IF_ARCH_X86(CALL(native::div2, sse::div2, 16));
         IF_ARCH_X86(CALL(native::rdiv2, sse::rdiv2, 16));
+        IF_ARCH_X86(CALL(native::mod2, sse2::mod2, 16));
+        IF_ARCH_X86(CALL(native::rmod2, sse2::rmod2, 16));
 
         IF_ARCH_X86(CALL(native::add2, avx::add2, 32));
         IF_ARCH_X86(CALL(native::sub2, avx::sub2, 32));
@@ -134,6 +152,10 @@ UTEST_BEGIN("dsp.pmath", op2)
         IF_ARCH_X86(CALL(native::mul2, avx::mul2, 32));
         IF_ARCH_X86(CALL(native::div2, avx::div2, 32));
         IF_ARCH_X86(CALL(native::rdiv2, avx::rdiv2, 32));
+        IF_ARCH_X86(CALL(native::mod2, avx::mod2, 32));
+        IF_ARCH_X86(CALL(native::rmod2, avx::rmod2, 32));
+        IF_ARCH_X86(CALL(native::mod2, avx::mod2_fma3, 32));
+        IF_ARCH_X86(CALL(native::rmod2, avx::rmod2_fma3, 32));
 
         IF_ARCH_ARM(CALL(native::add2, neon_d32::add2, 16));
         IF_ARCH_ARM(CALL(native::sub2, neon_d32::sub2, 16));
@@ -141,6 +163,8 @@ UTEST_BEGIN("dsp.pmath", op2)
         IF_ARCH_ARM(CALL(native::mul2, neon_d32::mul2, 16));
         IF_ARCH_ARM(CALL(native::div2, neon_d32::div2, 16));
         IF_ARCH_ARM(CALL(native::rdiv2, neon_d32::rdiv2, 16));
+//        IF_ARCH_ARM(CALL(native::mod2, neon_d32::mod2, 16));
+//        IF_ARCH_ARM(CALL(native::rmod2, neon_d32::rmod2, 16));
 
         IF_ARCH_AARCH64(CALL(native::add2, asimd::add2, 16));
         IF_ARCH_AARCH64(CALL(native::sub2, asimd::sub2, 16));
@@ -148,6 +172,8 @@ UTEST_BEGIN("dsp.pmath", op2)
         IF_ARCH_AARCH64(CALL(native::mul2, asimd::mul2, 16));
         IF_ARCH_AARCH64(CALL(native::div2, asimd::div2, 16));
         IF_ARCH_AARCH64(CALL(native::rdiv2, asimd::rdiv2, 16));
+//        IF_ARCH_AARCH64(CALL(native::mod2, asimd::mod2, 16));
+//        IF_ARCH_AARCH64(CALL(native::rmod2, asimd::rmod2, 16));
     }
 UTEST_END
 

@@ -240,6 +240,166 @@ namespace avx
     }
 
     #undef OP_VV_CORE
+
+    #define FMA_OFF(a, b)   a
+    #define FMA_ON(a, b)    b
+
+    #define FMOD_VV_CORE(DST, SRC1, SRC2, FMA_SEL) \
+        __ASM_EMIT("xor                 %[off], %[off]") \
+        /* x16 blocks */ \
+        __ASM_EMIT("sub                 $16, %[count]") \
+        __ASM_EMIT("jb                  2f") \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("vmovups             0x00(%[" SRC1 "], %[off]), %%ymm2") \
+        __ASM_EMIT("vmovups             0x20(%[" SRC1 "], %[off]), %%ymm3") \
+        __ASM_EMIT("vmovups             0x00(%[" SRC2 "], %[off]), %%ymm0") \
+        __ASM_EMIT("vmovups             0x20(%[" SRC2 "], %[off]), %%ymm1") \
+        __ASM_EMIT("vdivps              %%ymm0, %%ymm2, %%ymm4") \
+        __ASM_EMIT("vdivps              %%ymm1, %%ymm3, %%ymm5") \
+        __ASM_EMIT("vcvttps2dq          %%ymm4, %%ymm4") \
+        __ASM_EMIT("vcvttps2dq          %%ymm5, %%ymm5") \
+        __ASM_EMIT("vcvtdq2ps           %%ymm4, %%ymm4") \
+        __ASM_EMIT("vcvtdq2ps           %%ymm5, %%ymm5") \
+        __ASM_EMIT(FMA_SEL("vmulps      %%ymm0, %%ymm4, %%ymm4", "")) \
+        __ASM_EMIT(FMA_SEL("vmulps      %%ymm1, %%ymm5, %%ymm5", "")) \
+        __ASM_EMIT(FMA_SEL("vsubps      %%ymm4, %%ymm2, %%ymm2", "vfnmadd231ps  %%ymm0, %%ymm4, %%ymm2")) \
+        __ASM_EMIT(FMA_SEL("vsubps      %%ymm5, %%ymm3, %%ymm3", "vfnmadd231ps  %%ymm1, %%ymm5, %%ymm3")) \
+        __ASM_EMIT("vmovups             %%ymm2, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups             %%ymm3, 0x20(%[" DST "], %[off])") \
+        __ASM_EMIT("add                 $0x40, %[off]") \
+        __ASM_EMIT("sub                 $16, %[count]") \
+        __ASM_EMIT("jae                 1b") \
+        __ASM_EMIT("2:") \
+        /* x8 block */ \
+        __ASM_EMIT("add                 $8, %[count]") \
+        __ASM_EMIT("jl                  4f") \
+        __ASM_EMIT("vmovups             0x00(%[" SRC1 "], %[off]), %%xmm2") \
+        __ASM_EMIT("vmovups             0x10(%[" SRC1 "], %[off]), %%xmm3") \
+        __ASM_EMIT("vmovups             0x00(%[" SRC2 "], %[off]), %%xmm0") \
+        __ASM_EMIT("vmovups             0x10(%[" SRC2 "], %[off]), %%xmm1") \
+        __ASM_EMIT("vdivps              %%xmm0, %%xmm2, %%xmm4") \
+        __ASM_EMIT("vdivps              %%xmm1, %%xmm3, %%xmm5") \
+        __ASM_EMIT("vcvttps2dq          %%xmm4, %%xmm4") \
+        __ASM_EMIT("vcvttps2dq          %%xmm5, %%xmm5") \
+        __ASM_EMIT("vcvtdq2ps           %%xmm4, %%xmm4") \
+        __ASM_EMIT("vcvtdq2ps           %%xmm5, %%xmm5") \
+        __ASM_EMIT(FMA_SEL("vmulps      %%xmm0, %%xmm4, %%xmm4", "")) \
+        __ASM_EMIT(FMA_SEL("vmulps      %%xmm1, %%xmm5, %%xmm5", "")) \
+        __ASM_EMIT(FMA_SEL("vsubps      %%xmm4, %%xmm2, %%xmm2", "vfnmadd231ps  %%xmm0, %%xmm4, %%xmm2")) \
+        __ASM_EMIT(FMA_SEL("vsubps      %%xmm5, %%xmm3, %%xmm3", "vfnmadd231ps  %%xmm1, %%xmm5, %%xmm3")) \
+        __ASM_EMIT("vmovups             %%xmm2, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("vmovups             %%xmm3, 0x10(%[" DST "], %[off])") \
+        __ASM_EMIT("sub                 $8, %[count]") \
+        __ASM_EMIT("add                 $0x20, %[off]") \
+        __ASM_EMIT("4:") \
+        /* x4 block */ \
+        __ASM_EMIT("add                 $4, %[count]") \
+        __ASM_EMIT("jl                  6f") \
+        __ASM_EMIT("vmovups             0x00(%[" SRC1 "], %[off]), %%xmm2") \
+        __ASM_EMIT("vmovups             0x00(%[" SRC2 "], %[off]), %%xmm0") \
+        __ASM_EMIT("vdivps              %%xmm0, %%xmm2, %%xmm4") \
+        __ASM_EMIT("vcvttps2dq          %%xmm4, %%xmm4") \
+        __ASM_EMIT("vcvtdq2ps           %%xmm4, %%xmm4") \
+        __ASM_EMIT(FMA_SEL("vmulps      %%xmm0, %%xmm4, %%xmm4", "")) \
+        __ASM_EMIT(FMA_SEL("vsubps      %%xmm4, %%xmm2, %%xmm2", "vfnmadd231ps  %%xmm0, %%xmm4, %%xmm2")) \
+        __ASM_EMIT("vmovups             %%xmm2, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("sub                 $4, %[count]") \
+        __ASM_EMIT("add                 $0x10, %[off]") \
+        __ASM_EMIT("6:") \
+        /* x1 blocks */ \
+        __ASM_EMIT("add                 $3, %[count]") \
+        __ASM_EMIT("jl                  8f") \
+        __ASM_EMIT("7:") \
+        __ASM_EMIT("vmovss              0x00(%[" SRC1 "], %[off]), %%xmm2") \
+        __ASM_EMIT("vmovss              0x00(%[" SRC2 "], %[off]), %%xmm0") \
+        __ASM_EMIT("vdivps              %%xmm0, %%xmm2, %%xmm4") \
+        __ASM_EMIT("vcvttps2dq          %%xmm4, %%xmm4") \
+        __ASM_EMIT("vcvtdq2ps           %%xmm4, %%xmm4") \
+        __ASM_EMIT(FMA_SEL("vmulps      %%xmm0, %%xmm4, %%xmm4", "")) \
+        __ASM_EMIT(FMA_SEL("vsubps      %%xmm4, %%xmm2, %%xmm2", "vfnmadd231ps  %%xmm0, %%xmm4, %%xmm2")) \
+        __ASM_EMIT("vmovss              %%xmm2, 0x00(%[" DST "], %[off])") \
+        __ASM_EMIT("add                 $0x04, %[off]") \
+        __ASM_EMIT("dec                 %[count]") \
+        __ASM_EMIT("jge                 7b") \
+        __ASM_EMIT("8:")
+
+    void mod2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            FMOD_VV_CORE("dst", "dst", "src", FMA_OFF)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5"
+        );
+    }
+
+    void mod2_fma3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            FMOD_VV_CORE("dst", "dst", "src", FMA_ON)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5"
+        );
+    }
+
+    void rmod2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            FMOD_VV_CORE("dst", "src", "dst", FMA_OFF)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5"
+        );
+    }
+
+    void rmod2_fma3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            FMOD_VV_CORE("dst", "src", "dst", FMA_ON)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5"
+        );
+    }
+
+    void mod3(float *dst, const float *src1, const float *src2, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            FMOD_VV_CORE("dst", "src1", "src2", FMA_OFF)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5"
+        );
+    }
+
+    void mod3_fma3(float *dst, const float *src1, const float *src2, size_t count)
+    {
+        IF_ARCH_X86(size_t off);
+        ARCH_X86_ASM
+        (
+            FMOD_VV_CORE("dst", "src1", "src2", FMA_ON)
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [dst] "r" (dst), [src1] "r" (src1), [src2] "r" (src2)
+            : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_X86_AVX_PMATH_OP_VV_H_ */

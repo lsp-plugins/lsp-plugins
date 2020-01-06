@@ -158,11 +158,14 @@ namespace native
         EXPORT1(mul2);
         EXPORT1(div2);
         EXPORT1(rdiv2);
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
 
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
+        EXPORT1(mod3);
 
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);

@@ -54,6 +54,7 @@ namespace sse2 // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse2/graphics/effects.h>
 
 #include <dsp/arch/x86/sse2/pmath/op_kx.h>
+#include <dsp/arch/x86/sse2/pmath/op_vv.h>
 #include <dsp/arch/x86/sse2/pmath/exp.h>
 #include <dsp/arch/x86/sse2/pmath/log.h>
 #include <dsp/arch/x86/sse2/pmath/pow.h>
@@ -85,6 +86,10 @@ namespace sse2
         EXPORT1(rmod_k2);
         EXPORT1(mod_k3);
         EXPORT1(rmod_k3);
+
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
+        EXPORT1(mod3);
 
         EXPORT1(exp1);
         EXPORT1(exp2);
