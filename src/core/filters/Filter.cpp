@@ -1695,16 +1695,16 @@ namespace lsp
                 // For the normalized continuous transfer function it will be always 0.1
 
                 // Calculate the discrete transfer function part at specified frequency
-                float w     = M_PI * 1.8 * sParams.fFreq / nSampleRate;
-                float re    = P[0]*cosf(2*w) + P[1]*cosf(w) + P[2];
-                float im    = P[0]*sinf(2*w) + P[1]*sinf(w);
-                A[i]        = sqrtf(re*re + im*im);
+                double w    = M_PI * 0.2 * sParams.fFreq / nSampleRate;
+                double re   = P[0]*cos(2*w) + P[1]*cos(w) + P[2];
+                double im   = P[0]*sin(2*w) + P[1]*sin(w);
+                A[i]        = sqrt(re*re + im*im);
 
                 // Calculate the continuous transfer function part at 1 Hz
-                w           = 0.9;
+                w           = 0.1;
                 re          = p[0] - p[2]*w*w;
                 im          = p[1]*w;
-                I[i]        = sqrtf(re*re + im*im);
+                I[i]        = sqrt(re*re + im*im);
             }
 
             // Now calculate the convolution for the new polynom:
@@ -1714,8 +1714,8 @@ namespace lsp
                        B[0] + B[1]*z^-1 + B[2]*z^-2
 
              */
-            float AN        = (A[1]*I[0]) / (A[0]*I[1]); // Normalizing factor for the amplitude to match the analog filter
-            float N         = 1.0 / B[0];
+            double AN       = (A[1]*I[0]) / (A[0]*I[1]); // Normalizing factor for the amplitude to match the analog filter
+            double N        = 1.0 / B[0];
 
             // Initialize filter parameters
             if ((++chains) > FILTER_CHAINS_MAX)
