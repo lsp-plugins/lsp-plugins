@@ -21,6 +21,8 @@ namespace native
     void    fmmul_k3(float *dst, const float *src, float k, size_t count);
     void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
     void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
+    void    fmmod_k3(float *dst, const float *src, float k, size_t count);
+    void    fmrmod_k3(float *dst, const float *src, float k, size_t count);
 }
 
 IF_ARCH_X86(
@@ -32,6 +34,12 @@ IF_ARCH_X86(
         void    fmmul_k3(float *dst, const float *src, float k, size_t count);
         void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
         void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
+
+    namespace sse2
+    {
+        void    fmmod_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrmod_k3(float *dst, const float *src, float k, size_t count);
     }
 
     namespace avx
@@ -143,6 +151,8 @@ UTEST_BEGIN("dsp.pmath", fmop_k3)
         IF_ARCH_X86(CALL(native::fmmul_k3, sse::fmmul_k3, 16));
         IF_ARCH_X86(CALL(native::fmdiv_k3, sse::fmdiv_k3, 16));
         IF_ARCH_X86(CALL(native::fmrdiv_k3, sse::fmrdiv_k3, 16));
+        IF_ARCH_X86(CALL(native::fmmod_k3, sse2::fmmod_k3, 16));
+        IF_ARCH_X86(CALL(native::fmrmod_k3, sse2::fmrmod_k3, 16));
 
         IF_ARCH_X86(CALL(native::fmadd_k3, avx::fmadd_k3, 32));
         IF_ARCH_X86(CALL(native::fmsub_k3, avx::fmsub_k3, 32));

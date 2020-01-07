@@ -155,6 +155,8 @@ namespace dsp
     void    (* fmmul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* fmdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* fmrdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmmod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmrmod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* fmadd_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* fmsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
@@ -162,6 +164,8 @@ namespace dsp
     void    (* fmmul_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* fmdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* fmrdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmmod_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmrmod_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
 
     void    (* fmadd3)(float *dst, const float *a, const float *b, size_t count) = NULL;
     void    (* fmsub3)(float *dst, const float *a, const float *b, size_t count) = NULL;
