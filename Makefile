@@ -81,6 +81,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
+.DEFAULT_GOAL          := all
 .PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
 .PHONY: compile_info
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
