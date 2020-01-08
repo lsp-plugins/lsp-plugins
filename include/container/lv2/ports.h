@@ -540,9 +540,31 @@ namespace lsp
 
             virtual void save()
             {
-                lsp_trace("save port id=%s, urid=%d (%s), value=%s", pMetadata->id, urid, get_uri(), sPath.sPath);
-                if (strlen(sPath.sPath) > 0)
-                    pExt->store_value(urid, pExt->uridPathType, sPath.sPath, strlen(sPath.sPath) + sizeof(char));
+                const char *path = sPath.sPath;
+
+                lsp_trace("save port id=%s, urid=%d (%s), value=%s", pMetadata->id, urid, get_uri(), path);
+
+                if (::strlen(path) > 0)
+                {
+                    char *mapped = NULL;
+
+                    // We need to translate absolute path to relative path?
+                    if ((pExt->mapPath != NULL) && (::strstr(path, LSP_BUILTIN_PREFIX) != path))
+                    {
+                        mapped = pExt->mapPath->abstract_path(pExt->mapPath->handle, path);
+                        if (mapped != NULL)
+                        {
+                            lsp_trace("mapped path: %s -> %s", path, mapped);
+                            path = mapped;
+                        }
+                    }
+
+                    // Store the actual value of the path
+                    pExt->store_value(urid, pExt->uridPathType, path, ::strlen(path) + sizeof(char));
+
+                    if (mapped != NULL)
+                        ::free(mapped);
+                }
             }
 
             void tx_request()
@@ -558,6 +580,7 @@ namespace lsp
                 uint32_t type           = -1;
 
                 const char *path        = reinterpret_cast<const char *>(pExt->retrieve_value(urid, &type, &count));
+                char *mapped            = NULL;
                 if (path != NULL)
                 {
                     if (type == pExt->forge.URID)
@@ -565,7 +588,7 @@ namespace lsp
                         const LV2_URID *urid    = reinterpret_cast<const LV2_URID *>(path);
                         path                = pExt->unmap_urid(*urid);
                         if (path != NULL)
-                            count               = strnlen(path, PATH_MAX);
+                            count               = ::strnlen(path, PATH_MAX-1);
                     }
                     else if ((type != pExt->uridPathType) && (type != pExt->forge.String))
                     {
@@ -576,10 +599,34 @@ namespace lsp
                 }
 
                 if ((path != NULL) && (count > 0))
+                {
+                    // Save path as temporary variable
+                    char tmp_path[PATH_MAX];
+                    ::strncpy(tmp_path, path, count);
+                    tmp_path[count] = '\0';
+                    path        = tmp_path;
+
+                    // We need to translate relative path to absolute path?
+                    if ((pExt->mapPath != NULL) && (::strstr(path, LSP_BUILTIN_PREFIX) != path))
+                    {
+                        mapped = pExt->mapPath->absolute_path(pExt->mapPath->handle, path);
+                        if (mapped != NULL)
+                        {
+                            lsp_trace("unmapped path: %s -> %s", path, mapped);
+                            path  = mapped;
+                            count = ::strnlen(path, PATH_MAX-1);
+                        }
+                    }
+
+                    // Restore the actual value of the path
                     set_string(path, count, PF_STATE_IMPORT);
+                }
                 else
                     set_string("", 0, PF_STATE_IMPORT);
                 tx_request();
+
+                if (mapped != NULL)
+                    ::free(mapped);
             }
 
             virtual bool tx_pending()

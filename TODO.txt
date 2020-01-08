@@ -12,6 +12,7 @@
 
 * Implemented Multiband expander plugin series.
 * Fixed bug in trigger that caused notes to be immediately cancelled.
+* Implemented support of LV2 state:mapPath extension.
 - Implemented Multiband gate plugin series.
 - Refactored and optimized dynamic filter processing.
 - Decomposition of core modules into submodules.

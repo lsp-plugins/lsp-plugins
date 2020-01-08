@@ -49,8 +49,9 @@ namespace lsp
         REQ_IDISPLAY    = 1 << 10,
         REQ_OSC_IN      = 1 << 11,
         REQ_OSC_OUT     = 1 << 12,
+        REQ_MAP_PATH    = 1 << 13,
 
-        REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_WORKER | REQ_PATCH_WR,
+        REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_MAP_PATH | REQ_WORKER | REQ_PATCH_WR,
         REQ_MIDI        = REQ_MIDI_IN | REQ_MIDI_OUT
     };
 
@@ -426,7 +427,7 @@ namespace lsp
         fprintf(out, "@prefix rsz:       <" LV2_RESIZE_PORT_PREFIX "> .\n");
         if (requirements & REQ_PATCH)
             fprintf(out, "@prefix patch:     <" LV2_PATCH_PREFIX "> .\n");
-        if (requirements & REQ_STATE)
+        if (requirements & (REQ_STATE | REQ_MAP_PATH))
             fprintf(out, "@prefix state:     <" LV2_STATE_PREFIX "> .\n");
         if (requirements & REQ_MIDI)
             fprintf(out, "@prefix midi:      <" LV2_MIDI_PREFIX "> .\n");
@@ -554,6 +555,7 @@ namespace lsp
             fprintf(out, "\tlv2:optionalFeature lv2:hardRTCapable");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_WORKER, "work:schedule");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_IDISPLAY, "hcid:queue_draw");
+            LSP_LV2_EMIT_OPTION(count, requirements & REQ_MAP_PATH, "state:mapPath");
             fprintf(out, " ;\n");
         }
 
