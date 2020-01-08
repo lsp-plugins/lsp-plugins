@@ -90,6 +90,7 @@ namespace lsp
             LV2_URID_Unmap         *unmap;
             LV2_Worker_Schedule    *sched;
             LV2_Inline_Display     *iDisplay;
+            LV2_State_Map_Path     *mapPath;
             LV2UI_Resize           *ui_resize;
             LV2Wrapper             *pWrapper;
 
@@ -194,6 +195,7 @@ namespace lsp
                 ui_resize           = NULL;
                 sched               = NULL;
                 iDisplay            = NULL;
+                mapPath             = NULL;
                 pParentWindow       = NULL;
                 pWrapper            = NULL;
                 fUIRefreshRate      = MESH_REFRESH_RATE;
@@ -570,6 +572,15 @@ namespace lsp
                 hStore          = store;
                 hRetrieve       = retrieve;
                 hHandle         = handle;
+
+                for (size_t i=0; features[i]; ++i)
+                {
+                    const LV2_Feature *f = features[i];
+                    lsp_trace("Host reported state extension uri=%s, data=%p", f->URI, f->data);
+
+                    if (!::strcmp(f->URI, LV2_STATE__mapPath))
+                        mapPath = reinterpret_cast<LV2_State_Map_Path *>(f->data);
+                }
             }
 
             inline void store_value(LV2_URID urid, LV2_URID type, const void *data, size_t size)
@@ -610,6 +621,7 @@ namespace lsp
                 hStore          = NULL;
                 hRetrieve       = NULL;
                 hHandle         = NULL;
+                mapPath         = NULL;
             }
 
             inline bool ui_create_atom_transport(size_t port, size_t buf_size)

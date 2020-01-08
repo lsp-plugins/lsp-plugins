@@ -8,6 +8,7 @@
 #ifndef CONTAINER_LV2_UI_PORTS_H_
 #define CONTAINER_LV2_UI_PORTS_H_
 
+#include <core/resource.h>
 
 namespace lsp
 {
@@ -551,7 +552,7 @@ namespace lsp
                 if ((str != NULL) && (len > 0))
                 {
                     size_t copy     = (len >= PATH_MAX) ? PATH_MAX-1 : len;
-                    memcpy(sPath, str, len);
+                    ::memcpy(sPath, str, len);
                     sPath[copy]     = '\0';
                 }
                 else
@@ -564,13 +565,39 @@ namespace lsp
                 // Read path value
                 const LV2_Atom *atom = reinterpret_cast<const LV2_Atom *>(data);
                 set_string(reinterpret_cast<const char *>(atom + 1), atom->size);
+
+                lsp_trace("mapPath = %p, path = %s", pExt->mapPath, sPath);
+                if ((pExt->mapPath != NULL) && (::strstr(sPath, LSP_BUILTIN_PREFIX) != sPath))
+                {
+                    char *unmapped_path = pExt->mapPath->absolute_path(pExt->mapPath->handle, sPath);
+                    if (unmapped_path != NULL)
+                    {
+                        lsp_trace("unmapped path: %s -> %s", sPath, unmapped_path);
+                        set_string(unmapped_path, ::strlen(unmapped_path));
+                        ::free(unmapped_path);
+                    }
+                }
             }
 
             virtual LV2_URID        get_type_urid() const   { return pExt->uridPathType; };
 
             virtual void serialize()
             {
-                pExt->forge_path(sPath);
+                lsp_trace("mapPath = %p, path = %s", pExt->mapPath, sPath);
+                if ((pExt->mapPath != NULL) && (::strstr(sPath, LSP_BUILTIN_PREFIX) != sPath))
+                {
+                    char* mapped_path = pExt->mapPath->abstract_path(pExt->mapPath->handle, sPath);
+                    if (mapped_path != NULL)
+                    {
+                        lsp_trace("mapped path: %s -> %s", sPath, mapped_path);
+                        pExt->forge_path(mapped_path);
+                        ::free(mapped_path);
+                    }
+                    else
+                        pExt->forge_path(sPath);
+                }
+                else
+                    pExt->forge_path(sPath);
             }
 
             virtual void write(const void* buffer, size_t size, size_t flags)
