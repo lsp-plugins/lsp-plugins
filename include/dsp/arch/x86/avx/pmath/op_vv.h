@@ -400,6 +400,10 @@ namespace avx
               "%xmm4", "%xmm5"
         );
     }
+
+    #undef FMOD_VV_CORE
+    #undef FMA_ON
+    #undef FMA_OFF
 }
 
 #endif /* DSP_ARCH_X86_AVX_PMATH_OP_VV_H_ */

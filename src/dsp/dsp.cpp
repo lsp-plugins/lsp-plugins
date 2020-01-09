@@ -173,6 +173,8 @@ namespace dsp
     void    (* fmmul3)(float *dst, const float *a, const float *b, size_t count) = NULL;
     void    (* fmdiv3)(float *dst, const float *a, const float *b, size_t count) = NULL;
     void    (* fmrdiv3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmmod3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmrmod3)(float *dst, const float *a, const float *b, size_t count) = NULL;
 
     void    (* fmadd4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
     void    (* fmsub4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
@@ -180,6 +182,8 @@ namespace dsp
     void    (* fmmul4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
     void    (* fmdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
     void    (* fmrdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmmod4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmrmod4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
 
     void    (* mix2)(float *dst, const float *src, float k1, float k2, size_t count) = NULL;
     void    (* mix_copy2)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;

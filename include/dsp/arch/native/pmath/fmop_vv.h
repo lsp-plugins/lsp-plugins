@@ -50,6 +50,28 @@ namespace native
             dst[i] = (a[i] * b[i]) / dst[i];
     }
 
+    void fmmod3(float *dst, const float *a, const float *b, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = dst[i];
+            float d     = a[i] * b[i];
+            int32_t r   = v / d;
+            dst[i]      = v - d * r;
+        }
+    }
+
+    void fmrmod3(float *dst, const float *a, const float *b, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = a[i] * b[i];
+            float d     = dst[i];
+            int32_t r   = v / d;
+            dst[i]      = v - d * r;
+        }
+    }
+
     void fmadd4(float *dst, const float *a, const float *b, const float *c, size_t count)
     {
         for (size_t i=0; i<count; ++i)
@@ -84,6 +106,28 @@ namespace native
     {
         for (size_t i=0; i<count; ++i)
             dst[i] = (b[i] * c[i]) / a[i];
+    }
+
+    void fmmod4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = a[i];
+            float d     = b[i] * c[i];
+            int32_t r   = v / d;
+            dst[i]      = v - d * r;
+        }
+    }
+
+    void fmrmod4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = b[i] * c[i];
+            float d     = a[i];
+            int32_t r   = v / d;
+            dst[i]      = v - d * r;
+        }
     }
 }
 

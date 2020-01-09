@@ -56,6 +56,7 @@ namespace sse2 // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse2/pmath/op_kx.h>
 #include <dsp/arch/x86/sse2/pmath/op_vv.h>
 #include <dsp/arch/x86/sse2/pmath/fmop_kx.h>
+#include <dsp/arch/x86/sse2/pmath/fmop_vv.h>
 #include <dsp/arch/x86/sse2/pmath/exp.h>
 #include <dsp/arch/x86/sse2/pmath/log.h>
 #include <dsp/arch/x86/sse2/pmath/pow.h>
