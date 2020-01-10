@@ -192,7 +192,7 @@ PTEST_BEGIN("dsp.pmath", op_k3, 5, 1000)
             IF_ARCH_X86(CALL(avx2::mod_k3));
             IF_ARCH_X86(CALL(avx2::mod_k3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::mod_k3));
-            IF_ARCH_AARCH64(CALL(asimd::mod_k3));
+//            IF_ARCH_AARCH64(CALL(asimd::mod_k3));
             PTEST_SEPARATOR;
 
             CALL(native::rmod_k3);
@@ -201,7 +201,7 @@ PTEST_BEGIN("dsp.pmath", op_k3, 5, 1000)
             IF_ARCH_X86(CALL(avx::rmod_k3_fma3));
             IF_ARCH_X86(CALL(avx2::rmod_k3));
             IF_ARCH_X86(CALL(avx2::rmod_k3_fma3));
-//            IF_ARCH_ARM(CALL(neon_d32::rmod_k3));
+            IF_ARCH_ARM(CALL(neon_d32::rmod_k3));
 //            IF_ARCH_AARCH64(CALL(asimd::rmod_k3));
             PTEST_SEPARATOR2;
         }

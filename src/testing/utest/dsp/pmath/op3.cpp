@@ -54,7 +54,7 @@ IF_ARCH_ARM(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -141,7 +141,7 @@ UTEST_BEGIN("dsp.pmath", op3)
         IF_ARCH_ARM(CALL(native::sub3, neon_d32::sub3, 16));
         IF_ARCH_ARM(CALL(native::mul3, neon_d32::mul3, 16));
         IF_ARCH_ARM(CALL(native::div3, neon_d32::div3, 16));
-//        IF_ARCH_ARM(CALL(native::mod3, neon_d32::mod3, 16));
+        IF_ARCH_ARM(CALL(native::mod3, neon_d32::mod3, 16));
 
         IF_ARCH_AARCH64(CALL(native::add3, asimd::add3, 16));
         IF_ARCH_AARCH64(CALL(native::sub3, asimd::sub3, 16));
