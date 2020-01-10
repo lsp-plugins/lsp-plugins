@@ -629,6 +629,194 @@ namespace neon_d32
 
 #undef FMDIV4_CORE
 
+#define FMMOD_VV_CORE(DST, A, INCA, B, INCB, C, INCC, SEL)   \
+    __ASM_EMIT("subs            %[count], $16") \
+    __ASM_EMIT("blo             2f") \
+    /* 16x blocks */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("vldm            %[" C "]" INCC ", {q12-q15}") \
+    __ASM_EMIT("vldm            %[" SEL(B, A) "]" SEL(INCB, INCA) ", {q4-q7}") \
+    __ASM_EMIT(SEL("vmul.f32    q4, q4, q12", ""))                  /* q4 = d */ \
+    __ASM_EMIT(SEL("vmul.f32    q5, q5, q13", "")) \
+    __ASM_EMIT(SEL("vmul.f32    q6, q6, q14", "")) \
+    __ASM_EMIT(SEL("vmul.f32    q7, q7, q15", "")) \
+    __ASM_EMIT("vrecpe.f32      q8, q4")                            /* q8 = s2 */ \
+    __ASM_EMIT("vrecpe.f32      q9, q5") \
+    __ASM_EMIT("vrecpe.f32      q10, q6") \
+    __ASM_EMIT("vrecpe.f32      q11, q7") \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2) */ \
+    __ASM_EMIT("vrecps.f32      q1, q9, q5") \
+    __ASM_EMIT("vrecps.f32      q2, q10, q6") \
+    __ASM_EMIT("vrecps.f32      q3, q11, q7") \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("vmul.f32        q9, q1, q9") \
+    __ASM_EMIT("vmul.f32        q10, q2, q10") \
+    __ASM_EMIT("vmul.f32        q11, q3, q11") \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2') */ \
+    __ASM_EMIT("vrecps.f32      q1, q9, q5") \
+    __ASM_EMIT("vrecps.f32      q2, q10, q6") \
+    __ASM_EMIT("vrecps.f32      q3, q11, q7") \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("vmul.f32        q9, q1, q9") \
+    __ASM_EMIT("vmul.f32        q10, q2, q10") \
+    __ASM_EMIT("vmul.f32        q11, q3, q11") \
+    __ASM_EMIT("vldm            %[" SEL(A, B) "]" SEL(INCA, INCB) ", {q0-q3}") \
+    __ASM_EMIT(SEL("", "vmul.f32    q0, q0, q12"))                  /* q0 = s */ \
+    __ASM_EMIT(SEL("", "vmul.f32    q1, q1, q13"))\
+    __ASM_EMIT(SEL("", "vmul.f32    q2, q2, q14")) \
+    __ASM_EMIT(SEL("", "vmul.f32    q3, q3, q15")) \
+    __ASM_EMIT("vmul.f32        q8, q8, q0")                        /* q8 = s/d */ \
+    __ASM_EMIT("vmul.f32        q9, q9, q1") \
+    __ASM_EMIT("vmul.f32        q10, q10, q2") \
+    __ASM_EMIT("vmul.f32        q11, q11, q3") \
+    __ASM_EMIT("vcvt.s32.f32    q8, q8") \
+    __ASM_EMIT("vcvt.s32.f32    q9, q9") \
+    __ASM_EMIT("vcvt.s32.f32    q10, q10") \
+    __ASM_EMIT("vcvt.s32.f32    q11, q11") \
+    __ASM_EMIT("vcvt.f32.s32    q8, q8") \
+    __ASM_EMIT("vcvt.f32.s32    q9, q9") \
+    __ASM_EMIT("vcvt.f32.s32    q10, q10") \
+    __ASM_EMIT("vcvt.f32.s32    q11, q11") \
+    __ASM_EMIT("vmls.f32        q0, q4, q8")                        /* q0 = s - d*int(s/d) */ \
+    __ASM_EMIT("vmls.f32        q1, q5, q9") \
+    __ASM_EMIT("vmls.f32        q2, q6, q10") \
+    __ASM_EMIT("vmls.f32        q3, q7, q11") \
+    __ASM_EMIT("vstm            %[" DST "]!, {q0-q3}") \
+    __ASM_EMIT("subs            %[count], $16") \
+    __ASM_EMIT("bhs             1b") \
+    /* 8x block */ \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("adds            %[count], $8") \
+    __ASM_EMIT("blt             4f") \
+    __ASM_EMIT("vldm            %[" C "]" INCC ", {q12-q13}") \
+    __ASM_EMIT("vldm            %[" SEL(B, A) "]" SEL(INCB, INCA) ", {q4-q5}") \
+    __ASM_EMIT(SEL("vmul.f32    q4, q4, q12", ""))                  /* q4 = d */ \
+    __ASM_EMIT(SEL("vmul.f32    q5, q5, q13", "")) \
+    __ASM_EMIT("vrecpe.f32      q8, q4")                            /* q8 = s2 */ \
+    __ASM_EMIT("vrecpe.f32      q9, q5") \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2) */ \
+    __ASM_EMIT("vrecps.f32      q1, q9, q5") \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("vmul.f32        q9, q1, q9") \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2') */ \
+    __ASM_EMIT("vrecps.f32      q1, q9, q5") \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("vmul.f32        q9, q1, q9") \
+    __ASM_EMIT("vldm            %[" SEL(A, B) "]" SEL(INCA, INCB) ", {q0-q1}") \
+    __ASM_EMIT(SEL("", "vmul.f32    q0, q0, q12"))                  /* q0 = s */ \
+    __ASM_EMIT(SEL("", "vmul.f32    q1, q1, q13"))\
+    __ASM_EMIT("vmul.f32        q8, q8, q0")                        /* q8 = s/d */ \
+    __ASM_EMIT("vmul.f32        q9, q9, q1") \
+    __ASM_EMIT("vcvt.s32.f32    q8, q8") \
+    __ASM_EMIT("vcvt.s32.f32    q9, q9") \
+    __ASM_EMIT("vcvt.f32.s32    q8, q8") \
+    __ASM_EMIT("vcvt.f32.s32    q9, q9") \
+    __ASM_EMIT("vmls.f32        q0, q4, q8")                        /* q0 = s - d*int(s/d) */ \
+    __ASM_EMIT("vmls.f32        q1, q5, q9") \
+    __ASM_EMIT("vstm            %[" DST "]!, {q0-q1}") \
+    __ASM_EMIT("sub             %[count], $8") \
+    /* 4x blocks */ \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("adds            %[count], $4") \
+    __ASM_EMIT("blt             6f") \
+    __ASM_EMIT("vldm            %[" C "]" INCC ", {q12}") \
+    __ASM_EMIT("vldm            %[" SEL(B, A) "]" SEL(INCB, INCA) ", {q4}") \
+    __ASM_EMIT(SEL("vmul.f32    q4, q4, q12", ""))                  /* q4 = d */ \
+    __ASM_EMIT("vrecpe.f32      q8, q4")                            /* q8 = s2 */ \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2) */ \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2') */ \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("vldm            %[" SEL(A, B) "]" SEL(INCA, INCB) ", {q0}") \
+    __ASM_EMIT(SEL("", "vmul.f32    q0, q0, q12"))                  /* q0 = s */ \
+    __ASM_EMIT("vmul.f32        q8, q8, q0")                        /* q8 = s/d */ \
+    __ASM_EMIT("vcvt.s32.f32    q8, q8") \
+    __ASM_EMIT("vcvt.f32.s32    q8, q8") \
+    __ASM_EMIT("vmls.f32        q0, q4, q8")                        /* q0 = s - d*int(s/d) */ \
+    __ASM_EMIT("vstm            %[" DST "]!, {q0}") \
+    __ASM_EMIT("sub             %[count], $4") \
+    /* 1x blocks */ \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("adds            %[count], $3") \
+    __ASM_EMIT("blt             8f") \
+    __ASM_EMIT("7:") \
+    __ASM_EMIT("vld1.32         {d24[], d25[]}, [%[" C "]]" INCC) \
+    __ASM_EMIT("vld1.32         {d8[], d9[]}, [%[" SEL(B, A) "]]" SEL(INCB, INCA)) \
+    __ASM_EMIT(SEL("vmul.f32    q4, q4, q12", ""))                  /* q4 = d */ \
+    __ASM_EMIT("vrecpe.f32      q8, q4")                            /* q8 = s2 */ \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2) */ \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("vrecps.f32      q0, q8, q4")                        /* q0 = (2 - R*s2') */ \
+    __ASM_EMIT("vmul.f32        q8, q0, q8")                        /* q8 = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("vld1.32         {d0[], d1[]}, [%[" SEL(A, B) "]]" SEL(INCA, INCB)) \
+    __ASM_EMIT(SEL("", "vmul.f32    q0, q0, q12"))                  /* q0 = s */ \
+    __ASM_EMIT("vmul.f32        q8, q8, q0")                        /* q8 = s/d */ \
+    __ASM_EMIT("vcvt.s32.f32    q8, q8") \
+    __ASM_EMIT("vcvt.f32.s32    q8, q8") \
+    __ASM_EMIT("vmls.f32        q0, q4, q8")                        /* q0 = s - d*int(s/d) */ \
+    __ASM_EMIT("vst1.32         {d0[0]}, [%[" DST "]]!") \
+    __ASM_EMIT("subs            %[count], $1") \
+    __ASM_EMIT("bge             7b") \
+    __ASM_EMIT("8:")
+
+    void fmmod3(float *dst, const float *a, const float *b, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            FMMOD_VV_CORE("dst", "dst", "", "a", "!", "b", "!", OP_DSEL)
+            : [dst] "+r" (dst), [a] "+r" (a), [b] "+r" (b),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void fmrmod3(float *dst, const float *a, const float *b, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            FMMOD_VV_CORE("dst", "dst", "", "a", "!", "b", "!", OP_RSEL)
+            : [dst] "+r" (dst), [a] "+r" (a), [b] "+r" (b),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void fmmod4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            FMMOD_VV_CORE("dst", "a", "!", "b", "!", "c", "!", OP_DSEL)
+            : [dst] "+r" (dst), [a] "+r" (a), [b] "+r" (b), [c] "+r" (c),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void fmrmod4(float *dst, const float *a, const float *b, const float *c, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            FMMOD_VV_CORE("dst", "a", "!", "b", "!", "c", "!", OP_RSEL)
+            : [dst] "+r" (dst), [a] "+r" (a), [b] "+r" (b), [c] "+r" (c),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+#undef FMMOD_VV_CORE
+
 #undef OP_DSEL
 #undef OP_RSEL
 }

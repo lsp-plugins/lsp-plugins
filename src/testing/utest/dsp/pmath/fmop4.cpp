@@ -71,8 +71,8 @@ IF_ARCH_ARM(
         void    fmmul4(float *dst, const float *a, const float *b, const float *c, size_t count);
         void    fmdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
         void    fmrdiv4(float *dst, const float *a, const float *b, const float *c, size_t count);
-//        void    fmmod4(float *dst, const float *a, const float *b, const float *c, size_t count);
-//        void    fmrmod4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmmod4(float *dst, const float *a, const float *b, const float *c, size_t count);
+        void    fmrmod4(float *dst, const float *a, const float *b, const float *c, size_t count);
     }
 )
 
@@ -130,8 +130,8 @@ UTEST_BEGIN("dsp.pmath", fmop4)
                 if (!dst1.equals_adaptive(dst2, 1e-4))
                 {
                     a.dump("a   ");
-                    a.dump("b   ");
-                    a.dump("c   ");
+                    b.dump("b   ");
+                    c.dump("c   ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     printf("index=%d, %.6f vs %.6f\n", dst1.last_diff(), dst1.get_diff(), dst2.get_diff());
@@ -174,8 +174,8 @@ UTEST_BEGIN("dsp.pmath", fmop4)
         IF_ARCH_ARM(CALL(native::fmmul4, neon_d32::fmmul4, 16));
         IF_ARCH_ARM(CALL(native::fmdiv4, neon_d32::fmdiv4, 16));
         IF_ARCH_ARM(CALL(native::fmrdiv4, neon_d32::fmrdiv4, 16));
-//        IF_ARCH_ARM(CALL(native::fmmod4, neon_d32::fmmod4, 16));
-//        IF_ARCH_ARM(CALL(native::fmrmod4, neon_d32::fmrmod4, 16));
+        IF_ARCH_ARM(CALL(native::fmmod4, neon_d32::fmmod4, 16));
+        IF_ARCH_ARM(CALL(native::fmrmod4, neon_d32::fmrmod4, 16));
 
         IF_ARCH_AARCH64(CALL(native::fmadd4, asimd::fmadd4, 16));
         IF_ARCH_AARCH64(CALL(native::fmsub4, asimd::fmsub4, 16));
