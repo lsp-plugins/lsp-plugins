@@ -176,14 +176,14 @@ PTEST_BEGIN("dsp.pmath", fmop4, 5, 1000)
             IF_ARCH_X86(CALL(avx::fmmod4));
             IF_ARCH_X86(CALL(avx::fmmod4_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmmod4));
-            IF_ARCH_AARCH64(CALL(asimd::fmmod4));
+//            IF_ARCH_AARCH64(CALL(asimd::fmmod4));
             PTEST_SEPARATOR;
 
             CALL(native::fmrmod4);
             IF_ARCH_X86(CALL(sse2::fmrmod4));
             IF_ARCH_X86(CALL(avx::fmrmod4));
             IF_ARCH_X86(CALL(avx::fmrmod4_fma3));
-//            IF_ARCH_ARM(CALL(neon_d32::fmrmod4));
+            IF_ARCH_ARM(CALL(neon_d32::fmrmod4));
 //            IF_ARCH_AARCH64(CALL(asimd::fmrmod4));
             PTEST_SEPARATOR2;
         }

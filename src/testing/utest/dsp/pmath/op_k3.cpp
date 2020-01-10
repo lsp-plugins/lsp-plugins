@@ -95,8 +95,8 @@ IF_ARCH_AARCH64(
         void    mul_k3(float *dst, const float *src, float k, size_t count);
         void    div_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
-//        void    mod_k3(float *dst, const float *src, float k, size_t count);
-//        void    rmod_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -194,8 +194,8 @@ UTEST_BEGIN("dsp.pmath", op_k3)
         IF_ARCH_AARCH64(CALL(native::mul_k3, asimd::mul_k3, 16));
         IF_ARCH_AARCH64(CALL(native::div_k3, asimd::div_k3, 16));
         IF_ARCH_AARCH64(CALL(native::rdiv_k3, asimd::rdiv_k3, 16));
-//        IF_ARCH_AARCH64(CALL(native::mod_k3, asimd::mod_k3, 16));
-//        IF_ARCH_AARCH64(CALL(native::rmod_k3, asimd::rmod_k3, 16));
+        IF_ARCH_AARCH64(CALL(native::mod_k3, asimd::mod_k3, 16));
+        IF_ARCH_AARCH64(CALL(native::rmod_k3, asimd::rmod_k3, 16));
     }
 UTEST_END
 

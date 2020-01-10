@@ -100,6 +100,8 @@ namespace asimd
         EXPORT1(mul_k2);
         EXPORT1(div_k2);
         EXPORT1(rdiv_k2);
+        EXPORT1(mod_k2);
+        EXPORT1(rmod_k2);
 
         EXPORT1(add_k3);
         EXPORT1(sub_k3);
@@ -107,6 +109,8 @@ namespace asimd
         EXPORT1(mul_k3);
         EXPORT1(div_k3);
         EXPORT1(rdiv_k3);
+        EXPORT1(mod_k3);
+        EXPORT1(rmod_k3);
 
         EXPORT1(add2);
         EXPORT1(sub2);
