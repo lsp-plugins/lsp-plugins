@@ -88,8 +88,8 @@ IF_ARCH_ARM(
         void    fmmul_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
         void    fmdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
         void    fmrdiv_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
-//        void    fmmod_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
-//        void    fmrmod_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    fmmod_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    fmrmod_k4(float *dst, const float *src1, const float *src2, float k, size_t count);
     }
 )
 
@@ -203,8 +203,8 @@ UTEST_BEGIN("dsp.pmath", fmop_k4)
         IF_ARCH_ARM(CALL(native::fmmul_k4, neon_d32::fmmul_k4, 16));
         IF_ARCH_ARM(CALL(native::fmdiv_k4, neon_d32::fmdiv_k4, 16));
         IF_ARCH_ARM(CALL(native::fmrdiv_k4, neon_d32::fmrdiv_k4, 16));
-//        IF_ARCH_ARM(CALL(native::fmmod_k4, neon_d32::fmmod_k4, 16));
-//        IF_ARCH_ARM(CALL(native::fmrmod_k4, neon_d32::fmrmod_k4, 16));
+        IF_ARCH_ARM(CALL(native::fmmod_k4, neon_d32::fmmod_k4, 16));
+        IF_ARCH_ARM(CALL(native::fmrmod_k4, neon_d32::fmrmod_k4, 16));
 
         IF_ARCH_AARCH64(CALL(native::fmadd_k4, asimd::fmadd_k4, 16));
         IF_ARCH_AARCH64(CALL(native::fmsub_k4, asimd::fmsub_k4, 16));
