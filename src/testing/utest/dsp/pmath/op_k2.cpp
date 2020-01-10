@@ -82,8 +82,8 @@ IF_ARCH_ARM(
         void    mul_k2(float *dst, float k, size_t count);
         void    div_k2(float *dst, float k, size_t count);
         void    rdiv_k2(float *dst, float k, size_t count);
-//        void    mod_k2(float *dst, float k, size_t count);
-//        void    rmod_k2(float *dst, float k, size_t count);
+        void    mod_k2(float *dst, float k, size_t count);
+        void    rmod_k2(float *dst, float k, size_t count);
     }
 )
 
@@ -186,8 +186,8 @@ UTEST_BEGIN("dsp.pmath", op_k2)
         IF_ARCH_ARM(CALL(native::mul_k2, neon_d32::mul_k2, 16));
         IF_ARCH_ARM(CALL(native::div_k2, neon_d32::div_k2, 16));
         IF_ARCH_ARM(CALL(native::rdiv_k2, neon_d32::rdiv_k2, 16));
-//        IF_ARCH_ARM(CALL(native::mod_k2, neon_d32::mod_k2, 16));
-//        IF_ARCH_ARM(CALL(native::rmod_k2, neon_d32::rmod_k2, 16));
+        IF_ARCH_ARM(CALL(native::mod_k2, neon_d32::mod_k2, 16));
+        IF_ARCH_ARM(CALL(native::rmod_k2, neon_d32::rmod_k2, 16));
 
         IF_ARCH_AARCH64(CALL(native::sub_k2, asimd::sub_k2, 16));
         IF_ARCH_AARCH64(CALL(native::add_k2, asimd::add_k2, 16));

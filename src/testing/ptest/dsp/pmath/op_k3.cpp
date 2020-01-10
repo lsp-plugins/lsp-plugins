@@ -79,8 +79,8 @@ IF_ARCH_ARM(
         void    mul_k3(float *dst, const float *src, float k, size_t count);
         void    div_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
-//        void    mod_k3(float *dst, const float *src, float k, size_t count);
-//        void    rmod_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -191,8 +191,8 @@ PTEST_BEGIN("dsp.pmath", op_k3, 5, 1000)
             IF_ARCH_X86(CALL(avx::mod_k3_fma3));
             IF_ARCH_X86(CALL(avx2::mod_k3));
             IF_ARCH_X86(CALL(avx2::mod_k3_fma3));
-//            IF_ARCH_ARM(CALL(neon_d32::mod_k3));
-//            IF_ARCH_AARCH64(CALL(asimd::mod_k3));
+            IF_ARCH_ARM(CALL(neon_d32::mod_k3));
+            IF_ARCH_AARCH64(CALL(asimd::mod_k3));
             PTEST_SEPARATOR;
 
             CALL(native::rmod_k3);
