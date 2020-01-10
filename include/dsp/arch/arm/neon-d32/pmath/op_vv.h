@@ -621,6 +621,8 @@ namespace neon_d32
         );
     }
 
+#undef FMOD_VV_CORE
+
 #undef OP_DSEL
 #undef OP_RSEL
 }

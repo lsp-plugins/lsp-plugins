@@ -118,28 +118,14 @@ namespace asimd
         EXPORT1(mul2);
         EXPORT1(div2);
         EXPORT1(rdiv2);
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
 
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
-
-        EXPORT1(abs1);
-        EXPORT1(abs2);
-
-        EXPORT1(abs_add2);
-        EXPORT1(abs_sub2);
-        EXPORT1(abs_rsub2);
-        EXPORT1(abs_mul2);
-        EXPORT1(abs_div2);
-        EXPORT1(abs_rdiv2);
-
-        EXPORT1(abs_add3);
-        EXPORT1(abs_sub3);
-        EXPORT1(abs_rsub3);
-        EXPORT1(abs_mul3);
-        EXPORT1(abs_div3);
-        EXPORT1(abs_rdiv3);
+        EXPORT1(mod3);
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
@@ -168,6 +154,23 @@ namespace asimd
         EXPORT1(fmmul4);
         EXPORT1(fmdiv4);
         EXPORT1(fmrdiv4);
+
+        EXPORT1(abs1);
+        EXPORT1(abs2);
+
+        EXPORT1(abs_add2);
+        EXPORT1(abs_sub2);
+        EXPORT1(abs_rsub2);
+        EXPORT1(abs_mul2);
+        EXPORT1(abs_div2);
+        EXPORT1(abs_rdiv2);
+
+        EXPORT1(abs_add3);
+        EXPORT1(abs_sub3);
+        EXPORT1(abs_rsub3);
+        EXPORT1(abs_mul3);
+        EXPORT1(abs_div3);
+        EXPORT1(abs_rdiv3);
 
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);

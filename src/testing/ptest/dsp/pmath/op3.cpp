@@ -66,7 +66,7 @@ IF_ARCH_AARCH64(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mod3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -140,7 +140,7 @@ PTEST_BEGIN("dsp.pmath", op3, 5, 1000)
             IF_ARCH_X86(CALL(avx::mod3));
             IF_ARCH_X86(CALL(avx::mod3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::mod3));
-//            IF_ARCH_AARCH64(CALL(asimd::mod3));
+            IF_ARCH_AARCH64(CALL(asimd::mod3));
             PTEST_SEPARATOR2;
         }
 
