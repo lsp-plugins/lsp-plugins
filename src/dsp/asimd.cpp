@@ -133,6 +133,8 @@ namespace asimd
         EXPORT1(fmmul_k3);
         EXPORT1(fmdiv_k3);
         EXPORT1(fmrdiv_k3);
+        EXPORT1(fmmod_k3);
+        EXPORT1(fmrmod_k3);
 
         EXPORT1(fmadd_k4);
         EXPORT1(fmsub_k4);
@@ -140,6 +142,8 @@ namespace asimd
         EXPORT1(fmmul_k4);
         EXPORT1(fmdiv_k4);
         EXPORT1(fmrdiv_k4);
+        EXPORT1(fmmod_k4);
+        EXPORT1(fmrmod_k4);
 
         EXPORT1(fmadd3);
         EXPORT1(fmsub3);

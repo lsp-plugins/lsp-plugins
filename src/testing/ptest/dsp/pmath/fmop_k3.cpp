@@ -102,8 +102,8 @@ IF_ARCH_AARCH64(
         void    fmmul_k3(float *dst, const float *src, float k, size_t count);
         void    fmdiv_k3(float *dst, const float *src, float k, size_t count);
         void    fmrdiv_k3(float *dst, const float *src, float k, size_t count);
-//        void    fmmod_k3(float *dst, const float *src, float k, size_t count);
-//        void    fmrmod_k3(float *dst, const float *src, float k, size_t count);
+        void    fmmod_k3(float *dst, const float *src, float k, size_t count);
+        void    fmrmod_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -206,7 +206,7 @@ PTEST_BEGIN("dsp.pmath", fmop_k3, 5, 1000)
             IF_ARCH_X86(CALL(avx2::fmmod_k3));
             IF_ARCH_X86(CALL(avx2::fmmod_k3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmmod_k3));
-//            IF_ARCH_AARCH64(CALL(asimd::fmmod_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmmod_k3));
             PTEST_SEPARATOR;
 
             CALL(native::fmrmod_k3);
@@ -216,7 +216,7 @@ PTEST_BEGIN("dsp.pmath", fmop_k3, 5, 1000)
             IF_ARCH_X86(CALL(avx2::fmrmod_k3));
             IF_ARCH_X86(CALL(avx2::fmrmod_k3_fma3));
             IF_ARCH_ARM(CALL(neon_d32::fmrmod_k3));
-//            IF_ARCH_AARCH64(CALL(asimd::fmrmod_k3));
+            IF_ARCH_AARCH64(CALL(asimd::fmrmod_k3));
             PTEST_SEPARATOR2;
         }
 
