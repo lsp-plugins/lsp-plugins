@@ -84,8 +84,8 @@ IF_ARCH_AARCH64(
         void    fmmul3(float *dst, const float *a, const float *b, size_t count);
         void    fmdiv3(float *dst, const float *a, const float *b, size_t count);
         void    fmrdiv3(float *dst, const float *a, const float *b, size_t count);
-//        void    fmmod3(float *dst, const float *a, const float *b, size_t count);
-//        void    fmrmod3(float *dst, const float *a, const float *b, size_t count);
+        void    fmmod3(float *dst, const float *a, const float *b, size_t count);
+        void    fmrmod3(float *dst, const float *a, const float *b, size_t count);
     }
 )
 
@@ -181,8 +181,8 @@ UTEST_BEGIN("dsp.pmath", fmop3)
         IF_ARCH_AARCH64(CALL(native::fmmul3, asimd::fmmul3, 16));
         IF_ARCH_AARCH64(CALL(native::fmdiv3, asimd::fmdiv3, 16));
         IF_ARCH_AARCH64(CALL(native::fmrdiv3, asimd::fmrdiv3, 16));
-//        IF_ARCH_AARCH64(CALL(native::fmmod3, asimd::fmmod3, 16));
-//        IF_ARCH_AARCH64(CALL(native::fmrmod3, asimd::fmrmod3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmmod3, asimd::fmmod3, 16));
+        IF_ARCH_AARCH64(CALL(native::fmrmod3, asimd::fmrmod3, 16));
     }
 UTEST_END
 
