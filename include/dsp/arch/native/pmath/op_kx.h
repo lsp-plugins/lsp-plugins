@@ -32,6 +32,12 @@ namespace native
             dst[i] = k - dst[i];
     };
 
+    void mul_k2(float *dst, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] *= k;
+    };
+
     void div_k2(float *dst, float k, size_t count)
     {
         k = 1.0f / k;
@@ -45,11 +51,25 @@ namespace native
             dst[i] = k / dst[i];
     };
 
-    void mul_k2(float *dst, float k, size_t count)
+    void mod_k2(float *dst, float k, size_t count)
     {
         for (size_t i=0; i<count; ++i)
-            dst[i] *= k;
-    };
+        {
+            float v     = dst[i];
+            int32_t r   = v / k;
+            dst[i]      = v - k * r;
+        }
+    }
+
+    void rmod_k2(float *dst, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = dst[i];
+            int32_t r   = k / v;
+            dst[i]      = k - v * r;
+        }
+    }
 
     void add_k3(float *dst, const float *src, float k, size_t count)
     {
@@ -69,6 +89,12 @@ namespace native
             dst[i] = k - src[i];
     };
 
+    void mul_k3(float *dst, const float *src, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] * k;
+    };
+
     void div_k3(float *dst, const float *src, float k, size_t count)
     {
         k = 1.0f / k;
@@ -82,12 +108,25 @@ namespace native
             dst[i] = k / src[i];
     };
 
-    void mul_k3(float *dst, const float *src, float k, size_t count)
+    void mod_k3(float *dst, const float *src, float k, size_t count)
     {
         for (size_t i=0; i<count; ++i)
-            dst[i] = src[i] * k;
-    };
+        {
+            float v     = src[i];
+            int32_t r   = v / k;
+            dst[i]      = v - k * r;
+        }
+    }
 
+    void rmod_k3(float *dst, const float *src, float k, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float v     = src[i];
+            int32_t r   = k / v;
+            dst[i]      = k - v * r;
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_PMATH_OP_KX_H_ */

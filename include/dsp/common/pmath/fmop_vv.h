@@ -68,6 +68,24 @@ namespace dsp
      */
     extern void (* fmrdiv3)(float *dst, const float *a, const float *b, size_t count);
 
+    /**
+     * Calculate remainder: dst[i] = dst[i] - (a[i]*b[i]) * int(dst[i] / (a[i] * b[i]))
+     * @param dst destination array
+     * @param a first argument array
+     * @param b second argument array
+     * @param count number of elements to process
+     */
+    extern void (* fmmod3)(float *dst, const float *a, const float *b, size_t count);
+
+    /**
+     * Calculate reverse remainder: dst[i] = a[i]*b[i] - dst[i] * int((a[i] * b[i]) / dst[i])
+     * @param dst destination array
+     * @param a first argument array
+     * @param b second argument array
+     * @param count number of elements to process
+     */
+    extern void (* fmrmod3)(float *dst, const float *a, const float *b, size_t count);
+
     /** Calculate dst[i] = a[i] + b[i] * c[i]
      *
      * @param dst destination array
@@ -128,6 +146,25 @@ namespace dsp
      */
     extern void (* fmrdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count);
 
+    /**
+     * Calculate remainder: dst[i] = a[i] - (b[i]*c[i]) * int(a[i] / (b[i] * c[i]))
+     * @param dst destination array
+     * @param a first argument array
+     * @param b second argument array
+     * @param c third argument array
+     * @param count number of elements to process
+     */
+    extern void (* fmmod4)(float *dst, const float *a, const float *b, const float *c, size_t count);
+
+    /**
+     * Calculate reverse remainder: dst[i] = (b[i]*c[i]) - a[i] * int((b[i] * c[i]) / a[i])
+     * @param dst destination array
+     * @param a first argument array
+     * @param b second argument array
+     * @param c third argument array
+     * @param count number of elements to process
+     */
+    extern void (* fmrmod4)(float *dst, const float *a, const float *b, const float *c, size_t count);
 }
 
 

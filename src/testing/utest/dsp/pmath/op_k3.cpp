@@ -18,10 +18,12 @@ namespace native
 {
     void    add_k3(float *dst, const float *src, float k, size_t count);
     void    sub_k3(float *dst, const float *src, float k, size_t count);
+    void    rsub_k3(float *dst, const float *src, float k, size_t count);
     void    mul_k3(float *dst, const float *src, float k, size_t count);
     void    div_k3(float *dst, const float *src, float k, size_t count);
-    void    rsub_k3(float *dst, const float *src, float k, size_t count);
     void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+    void    mod_k3(float *dst, const float *src, float k, size_t count);
+    void    rmod_k3(float *dst, const float *src, float k, size_t count);
 }
 
 IF_ARCH_X86(
@@ -29,20 +31,30 @@ IF_ARCH_X86(
     {
         void    add_k3(float *dst, const float *src, float k, size_t count);
         void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    mul_k3(float *dst, const float *src, float k, size_t count);
         void    div_k3(float *dst, const float *src, float k, size_t count);
-        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+    }
+
+    namespace sse2
+    {
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
     }
 
     namespace avx
     {
         void    add_k3(float *dst, const float *src, float k, size_t count);
         void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    mul_k3(float *dst, const float *src, float k, size_t count);
         void    div_k3(float *dst, const float *src, float k, size_t count);
-        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3_fma3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3_fma3(float *dst, const float *src, float k, size_t count);
     }
 
     namespace avx2
@@ -53,6 +65,10 @@ IF_ARCH_X86(
         void    div_k3(float *dst, const float *src, float k, size_t count);
         void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3_fma3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3_fma3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -61,10 +77,12 @@ IF_ARCH_ARM(
     {
         void    add_k3(float *dst, const float *src, float k, size_t count);
         void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    mul_k3(float *dst, const float *src, float k, size_t count);
         void    div_k3(float *dst, const float *src, float k, size_t count);
-        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -73,10 +91,12 @@ IF_ARCH_AARCH64(
     {
         void    add_k3(float *dst, const float *src, float k, size_t count);
         void    sub_k3(float *dst, const float *src, float k, size_t count);
+        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    mul_k3(float *dst, const float *src, float k, size_t count);
         void    div_k3(float *dst, const float *src, float k, size_t count);
-        void    rsub_k3(float *dst, const float *src, float k, size_t count);
         void    rdiv_k3(float *dst, const float *src, float k, size_t count);
+        void    mod_k3(float *dst, const float *src, float k, size_t count);
+        void    rmod_k3(float *dst, const float *src, float k, size_t count);
     }
 )
 
@@ -111,7 +131,7 @@ UTEST_BEGIN("dsp.pmath", op_k3)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_relative(dst2, 1e-4))
+                if (!dst1.equals_adaptive(dst2, 1e-4))
                 {
                     src.dump("src ");
                     dst1.dump("dst1");
@@ -134,6 +154,8 @@ UTEST_BEGIN("dsp.pmath", op_k3)
         IF_ARCH_X86(CALL(native::mul_k3, sse::mul_k3, 16));
         IF_ARCH_X86(CALL(native::div_k3, sse::div_k3, 16));
         IF_ARCH_X86(CALL(native::rdiv_k3, sse::rdiv_k3, 16));
+        IF_ARCH_X86(CALL(native::mod_k3, sse2::mod_k3, 16));
+        IF_ARCH_X86(CALL(native::rmod_k3, sse2::rmod_k3, 16));
 
         IF_ARCH_X86(CALL(native::add_k3, avx::add_k3, 32));
         IF_ARCH_X86(CALL(native::sub_k3, avx::sub_k3, 32));
@@ -141,6 +163,10 @@ UTEST_BEGIN("dsp.pmath", op_k3)
         IF_ARCH_X86(CALL(native::mul_k3, avx::mul_k3, 32));
         IF_ARCH_X86(CALL(native::div_k3, avx::div_k3, 32));
         IF_ARCH_X86(CALL(native::rdiv_k3, avx::rdiv_k3, 32));
+        IF_ARCH_X86(CALL(native::mod_k3, avx::mod_k3, 32));
+        IF_ARCH_X86(CALL(native::rmod_k3, avx::rmod_k3, 32));
+        IF_ARCH_X86(CALL(native::mod_k3, avx::mod_k3_fma3, 32));
+        IF_ARCH_X86(CALL(native::rmod_k3, avx::rmod_k3_fma3, 32));
 
         IF_ARCH_X86(CALL(native::add_k3, avx2::add_k3, 32));
         IF_ARCH_X86(CALL(native::sub_k3, avx2::sub_k3, 32));
@@ -148,6 +174,10 @@ UTEST_BEGIN("dsp.pmath", op_k3)
         IF_ARCH_X86(CALL(native::mul_k3, avx2::mul_k3, 32));
         IF_ARCH_X86(CALL(native::div_k3, avx2::div_k3, 32));
         IF_ARCH_X86(CALL(native::rdiv_k3, avx2::rdiv_k3, 32));
+        IF_ARCH_X86(CALL(native::mod_k3, avx2::mod_k3, 32));
+        IF_ARCH_X86(CALL(native::rmod_k3, avx2::rmod_k3, 32));
+        IF_ARCH_X86(CALL(native::mod_k3, avx2::mod_k3_fma3, 32));
+        IF_ARCH_X86(CALL(native::rmod_k3, avx2::rmod_k3_fma3, 32));
 
         IF_ARCH_ARM(CALL(native::add_k3, neon_d32::add_k3, 16));
         IF_ARCH_ARM(CALL(native::sub_k3, neon_d32::sub_k3, 16));
@@ -155,6 +185,8 @@ UTEST_BEGIN("dsp.pmath", op_k3)
         IF_ARCH_ARM(CALL(native::mul_k3, neon_d32::mul_k3, 16));
         IF_ARCH_ARM(CALL(native::div_k3, neon_d32::div_k3, 16));
         IF_ARCH_ARM(CALL(native::rdiv_k3, neon_d32::rdiv_k3, 16));
+        IF_ARCH_ARM(CALL(native::mod_k3, neon_d32::mod_k3, 16));
+        IF_ARCH_ARM(CALL(native::rmod_k3, neon_d32::rmod_k3, 16));
 
         IF_ARCH_AARCH64(CALL(native::add_k3, asimd::add_k3, 16));
         IF_ARCH_AARCH64(CALL(native::sub_k3, asimd::sub_k3, 16));
@@ -162,6 +194,8 @@ UTEST_BEGIN("dsp.pmath", op_k3)
         IF_ARCH_AARCH64(CALL(native::mul_k3, asimd::mul_k3, 16));
         IF_ARCH_AARCH64(CALL(native::div_k3, asimd::div_k3, 16));
         IF_ARCH_AARCH64(CALL(native::rdiv_k3, asimd::rdiv_k3, 16));
+        IF_ARCH_AARCH64(CALL(native::mod_k3, asimd::mod_k3, 16));
+        IF_ARCH_AARCH64(CALL(native::rmod_k3, asimd::rmod_k3, 16));
     }
 UTEST_END
 
