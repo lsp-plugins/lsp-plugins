@@ -54,6 +54,16 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+//        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+//        void fastconv_restore(float *dst, float *src, size_t rank);
+//        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    }
+)
+
 typedef void (* fastconv_parse_t)(float *dst, const float *src, size_t rank);
 
 typedef void (* fastconv_parse_apply_t)(float *dst, float *tmp, const float *c, const float *src, size_t rank);

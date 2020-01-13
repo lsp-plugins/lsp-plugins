@@ -257,6 +257,7 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32    q0, q0, q4")            // q0   = r0'+r2' r1'+i3' i0'+i2' i1'+r3' = r0" r2" i0" i3"
             __ASM_EMIT("vadd.f32    q2, q2, q5")            // q2   = r4'+r6' r5'+i7' i4'+i6' i5'+r7' = r4" r6" i4" i7"
 
+            // TODO: fix it!
             __ASM_EMIT("vmov        s16, s7")               // s16  = i2"
             __ASM_EMIT("vmov        s17, s15")              // s17  = i6"
             __ASM_EMIT("vmov        s7, s3")                // q1   = r1" r3" i1" i3"
