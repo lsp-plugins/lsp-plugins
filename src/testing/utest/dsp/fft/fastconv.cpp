@@ -59,7 +59,7 @@ IF_ARCH_AARCH64(
     {
         void fastconv_parse(float *dst, const float *src, size_t rank);
 //        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
-//        void fastconv_restore(float *dst, float *src, size_t rank);
+        void fastconv_restore(float *dst, float *src, size_t rank);
 //        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
     }
 )
@@ -286,16 +286,19 @@ UTEST_BEGIN("dsp.fft", fastconv)
         IF_ARCH_X86(call_pr("avx::fastconv_parse + avx::fastconv_restore", 32, avx::fastconv_parse, avx::fastconv_restore));
         IF_ARCH_X86(call_pr("avx::fastconv_parse_fma3 + avx::fastconv_restore_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_restore_fma3));
         IF_ARCH_ARM(call_pr("neon_d32::fastconv_parse + neon_d32::fastconv_restore", 16, neon_d32::fastconv_parse, neon_d32::fastconv_restore));
+        IF_ARCH_AARCH64(call_pr("asimd::fastconv_parse + asimd::fastconv_restore", 16, asimd::fastconv_parse, asimd::fastconv_restore));
 
         IF_ARCH_X86(call_pa("sse::fastconv_parse + sse::fastconv_apply", 16, sse::fastconv_parse, sse::fastconv_apply));
         IF_ARCH_X86(call_pa("avx::fastconv_parse + avx::fastconv_apply", 32, avx::fastconv_parse, avx::fastconv_apply));
         IF_ARCH_X86(call_pa("avx::fastconv_parse_fma3 + avx::fastconv_apply_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_apply_fma3));
         IF_ARCH_ARM(call_pa("neon_d32::fastconv_parse + neon_d32::fastconv_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_apply));
+//        IF_ARCH_AARCH64(call_pa("asimd::fastconv_parse + asimd::fastconv_apply", 16, asimd::fastconv_parse, asimd::fastconv_apply));
 
         IF_ARCH_X86(call_pap("sse::fastconv_parse + sse::fastconv_parse_apply", 16, sse::fastconv_parse, sse::fastconv_parse_apply));
         IF_ARCH_X86(call_pap("avx::fastconv_parse + avx::fastconv_parse_apply", 32, avx::fastconv_parse, avx::fastconv_parse_apply));
         IF_ARCH_X86(call_pap("avx::fastconv_parse_fma3 + avx::fastconv_parse_apply_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_parse_apply_fma3));
         IF_ARCH_ARM(call_pap("neon_d32::fastconv_parse + neon_d32::fastconv_parse_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply));
+//        IF_ARCH_AARCH64(call_pap("asimd::fastconv_parse + asimd::fastconv_parse_apply", 16, asimd::fastconv_parse, asimd::fastconv_parse_apply));
     }
 UTEST_END;
 
