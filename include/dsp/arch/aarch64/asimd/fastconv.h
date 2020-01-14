@@ -16,5 +16,6 @@
 #include <dsp/arch/aarch64/asimd/fastconv/const.h>
 #include <dsp/arch/aarch64/asimd/fastconv/parse.h>
 #include <dsp/arch/aarch64/asimd/fastconv/restore.h>
+#include <dsp/arch/aarch64/asimd/fastconv/apply.h>
 
 #endif /* DSP_ARCH_AARCH64_ASIMD_FASTCONV_H_ */

@@ -261,6 +261,8 @@ namespace asimd
 
         EXPORT1(fastconv_parse);
         EXPORT1(fastconv_restore);
+        EXPORT1(fastconv_apply);
+//        EXPORT1(fastconv_parse_apply);
 
         EXPORT1(filter_transfer_calc_ri);
         EXPORT1(filter_transfer_apply_ri);

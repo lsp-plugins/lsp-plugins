@@ -602,7 +602,7 @@ IF_ARCH_AARCH64(
     {
         void fastconv_parse(float *dst, const float *src, size_t rank);
         void fastconv_restore(float *dst, float *tmp, size_t rank);
-//        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
 //        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
     }
 )
@@ -803,10 +803,10 @@ MTEST_BEGIN("dsp.fft", fastconv)
             if (TEST_SUPPORTED(neon_d32::fastconv_parse) && TEST_SUPPORTED(neon_d32::fastconv_apply))
                 test_fastconv_apply("NEON-D32", neon_d32::fastconv_parse, neon_d32::fastconv_apply, src1, src2, dst);
         );
-//        IF_ARCH_AARCH64(
-//            if (TEST_SUPPORTED(asimd::fastconv_parse) && TEST_SUPPORTED(asimd::fastconv_apply))
-//                test_fastconv_apply("ASIMD", asimd::fastconv_parse, asimd::fastconv_apply, src1, src2, dst);
-//        );
+        IF_ARCH_AARCH64(
+            if (TEST_SUPPORTED(asimd::fastconv_parse) && TEST_SUPPORTED(asimd::fastconv_apply))
+                test_fastconv_apply("ASIMD", asimd::fastconv_parse, asimd::fastconv_apply, src1, src2, dst);
+        );
 
         // Test parse + parse_apply
         printf("\n");
