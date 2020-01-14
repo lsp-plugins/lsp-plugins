@@ -58,7 +58,7 @@ IF_ARCH_AARCH64(
     namespace asimd
     {
         void fastconv_parse(float *dst, const float *src, size_t rank);
-//        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
         void fastconv_restore(float *dst, float *src, size_t rank);
         void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
     }
@@ -298,7 +298,7 @@ UTEST_BEGIN("dsp.fft", fastconv)
         IF_ARCH_X86(call_pap("avx::fastconv_parse + avx::fastconv_parse_apply", 32, avx::fastconv_parse, avx::fastconv_parse_apply));
         IF_ARCH_X86(call_pap("avx::fastconv_parse_fma3 + avx::fastconv_parse_apply_fma3", 32, avx::fastconv_parse_fma3, avx::fastconv_parse_apply_fma3));
         IF_ARCH_ARM(call_pap("neon_d32::fastconv_parse + neon_d32::fastconv_parse_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply));
-//        IF_ARCH_AARCH64(call_pap("asimd::fastconv_parse + asimd::fastconv_parse_apply", 16, asimd::fastconv_parse, asimd::fastconv_parse_apply));
+        IF_ARCH_AARCH64(call_pap("asimd::fastconv_parse + asimd::fastconv_parse_apply", 16, asimd::fastconv_parse, asimd::fastconv_parse_apply));
     }
 UTEST_END;
 
