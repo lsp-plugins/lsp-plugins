@@ -44,6 +44,8 @@
 #include <dsp/arch/x86/avx/filters/transform.h>
 #include <dsp/arch/x86/avx/filters/transfer.h>
 
+#include <dsp/arch/x86/avx/msmatrix.h>
+
 #undef DSP_ARCH_X86_AVX_IMPL
 
 namespace avx
@@ -234,6 +236,13 @@ namespace avx
         CEXPORT1(favx, abs_min);
         CEXPORT1(favx, abs_max);
         CEXPORT1(favx, abs_minmax);
+
+        CEXPORT1(favx, lr_to_ms);
+        CEXPORT1(favx, lr_to_mid);
+        CEXPORT1(favx, lr_to_side);
+        CEXPORT1(favx, ms_to_lr);
+        CEXPORT1(favx, ms_to_left);
+        CEXPORT1(favx, ms_to_right);
 
         CEXPORT1(favx, direct_fft);
         CEXPORT1(favx, reverse_fft);
