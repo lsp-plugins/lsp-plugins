@@ -34,38 +34,38 @@ namespace neon_d32
                 __ASM_EMIT("add         %[b], %[a], %[n], LSL $3")      // b    = &a[n*2]
                 __ASM_EMIT("mov         %[k], %[n]")
                 __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
+                __ASM_EMIT("vldm        %[XFFT_DW], {q12-q13}")         // q12  = dr, q13 = di
+                __ASM_EMIT("veor        q3, q3")                        // q3   = 0
 
                 // 8x butterflies
                 __ASM_EMIT("1:")
                 __ASM_EMIT("vldm        %[src]!, {q0-q1}")              // q0   = ar0, q1 = ar1
-                __ASM_EMIT("veor        q2, q2")                        // q2   = 0
-                __ASM_EMIT("veor        q3, q3")                        // q3   = 0
-                __ASM_EMIT("vswp        q2, q1")                        // q1   = 0, q2 = ar1
+                __ASM_EMIT("vmov        q2, q1")                        // q2   = ar1
                 __ASM_EMIT("vmul.f32    q5, q0, q10")                   // q5   = ar0 * wi0
-                __ASM_EMIT("vmul.f32    q4, q0, q8")                    // q4   = ar0 * wr0 = br0
-                __ASM_EMIT("vneg.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
                 __ASM_EMIT("vmul.f32    q7, q2, q11")                   // q7   = ar1 * wi1
+                __ASM_EMIT("veor        q1, q1")                        // q1   = 0
+                __ASM_EMIT("vmul.f32    q4, q0, q8")                    // q4   = ar0 * wr0 = br0
                 __ASM_EMIT("vmul.f32    q6, q2, q9")                    // q6   = ar1 * wr1 = br1
+                __ASM_EMIT("vneg.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
                 __ASM_EMIT("vneg.f32    q7, q7")                        // q7   = - ar1 * wi1 = bi1
+                __ASM_EMIT("subs        %[k], $8")
                 __ASM_EMIT("vstm        %[a]!, {q0-q3}")
                 __ASM_EMIT("vstm        %[b]!, {q4-q7}")
-                __ASM_EMIT("subs        %[k], $8")
                 __ASM_EMIT("bls         2f")
 
                 // Rotate angle
-                __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_DW]]")         // q0   = dr, q1 = di
-                __ASM_EMIT("vmul.f32    q12, q8, q1")                   // q12  = wr0 * di
-                __ASM_EMIT("vmul.f32    q13, q9, q1")                   // q13  = wr1 * di
-                __ASM_EMIT("vmul.f32    q14, q10, q1")                  // q14  = wi0 * di
-                __ASM_EMIT("vmul.f32    q15, q11, q1")                  // q15  = wi1 * di
-                __ASM_EMIT("vmul.f32    q8, q8, q0")                    // q8   = wr0 * dr
-                __ASM_EMIT("vmul.f32    q9, q9, q0")                    // q9   = wr1 * dr
-                __ASM_EMIT("vmul.f32    q10, q10, q0")                  // q10  = wi0 * dr
-                __ASM_EMIT("vmul.f32    q11, q11, q0")                  // q11  = wi1 * dr
-                __ASM_EMIT("vsub.f32    q8, q8, q14")                   // q8   = wr0*dr - wi0*di
-                __ASM_EMIT("vsub.f32    q9, q9, q15")                   // q9   = wr1*dr - wi1*di
-                __ASM_EMIT("vadd.f32    q10, q10, q12")                 // q10  = wi0*dr + wr0*di
-                __ASM_EMIT("vadd.f32    q11, q11, q13")                 // q11  = wi1*dr + wr1*di
+                __ASM_EMIT("vmul.f32    q4, q8, q13")                   // q4   = wr0 * di
+                __ASM_EMIT("vmul.f32    q5, q9, q13")                   // q5   = wr1 * di
+                __ASM_EMIT("vmul.f32    q6, q10, q13")                  // q6   = wi0 * di
+                __ASM_EMIT("vmul.f32    q7, q11, q13")                  // q7   = wi1 * di
+                __ASM_EMIT("vmul.f32    q8, q8, q12")                   // q8   = wr0 * dr
+                __ASM_EMIT("vmul.f32    q9, q9, q12")                   // q9   = wr1 * dr
+                __ASM_EMIT("vmul.f32    q10, q10, q12")                 // q10  = wi0 * dr
+                __ASM_EMIT("vmul.f32    q11, q11, q12")                 // q11  = wi1 * dr
+                __ASM_EMIT("vsub.f32    q8, q8, q6")                    // q8   = wr0*dr - wi0*di
+                __ASM_EMIT("vsub.f32    q9, q9, q7")                    // q9   = wr1*dr - wi1*di
+                __ASM_EMIT("vadd.f32    q10, q10, q4")                  // q10  = wi0*dr + wr0*di
+                __ASM_EMIT("vadd.f32    q11, q11, q5")                  // q11  = wi1*dr + wr1*di
                 __ASM_EMIT("b           1b")
 
                 // Post-process
@@ -123,7 +123,7 @@ namespace neon_d32
                         __ASM_EMIT("subs        %[k], $8")
                         __ASM_EMIT("bls         6f")
                         // Rotate angle & repeat loop
-                        __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_DW]]")         // q0   = dr, q1 = di
+                        __ASM_EMIT("vldm        %[XFFT_DW], {q0-q1}")           // q0   = dr, q1 = di
                         __ASM_EMIT("vmul.f32    q12, q8, q1")                   // q12  = wr0 * di
                         __ASM_EMIT("vmul.f32    q13, q9, q1")                   // q13  = wr1 * di
                         __ASM_EMIT("vmul.f32    q14, q10, q1")                  // q14  = wi0 * di
@@ -194,9 +194,9 @@ namespace neon_d32
         {
             ARCH_ARM_ASM
             (
-                __ASM_EMIT("vld1.32     {q0}, [%[src]]")
+                __ASM_EMIT("vldm        %[src], {q0}")
                 __ASM_EMIT("veor        q1, q1")
-                __ASM_EMIT("vst1.32     {q0-q1}, [%[dst]]")
+                __ASM_EMIT("vstm        %[dst], {q0-q1}")
                 :
                 : [src] "r" (src), [dst] "r" (tmp)
                 : "memory",
@@ -238,7 +238,6 @@ namespace neon_d32
             __ASM_EMIT("vrev64.32   q1, q1")                // q1   = r7' r6' i7' i6'
             __ASM_EMIT("vext.32     q0, q0, $1")            // q0   = r2' i3' i2' r3'
             __ASM_EMIT("vext.32     q1, q1, $1")            // q1   = r6' i7' i6' r7'
-
             // q4 = r0' r1' i0' i1'
             // q6 = r4' r5' i4' i5'
             // q0 = r2' i3' i2' r3'
@@ -247,18 +246,16 @@ namespace neon_d32
             __ASM_EMIT("vsub.f32    q7, q6, q1")            // q7   = r4'-r6' r5'-i7' i4'-i6' i5'-r7' = r5" r7" i5" i6"
             __ASM_EMIT("vadd.f32    q4, q4, q0")            // q4   = r0'+r2' r1'+i3' i0'+i2' i1'+r3' = r0" r2" i0" i3"
             __ASM_EMIT("vadd.f32    q6, q6, q1")            // q6   = r4'+r6' r5'+i7' i4'+i6' i5'+r7' = r4" r6" i4" i7"
-
-            __ASM_EMIT("vmov        s0, s23")               // s0   = i2"
-            __ASM_EMIT("vmov        s1, s31")               // s1   = i6"
-            __ASM_EMIT("vmov        s23, s19")              // q5   = r1" r3" i1" i3"
-            __ASM_EMIT("vmov        s31, s27")              // q7   = r5" r7" i5" i7"
-            __ASM_EMIT("vmov        s19, s0")               // q4   = r0" r2" i0" i2"
-            __ASM_EMIT("vmov        s27, s1")               // q6   = r4" r6" i4" i6"
-
-            __ASM_EMIT("vldm        %[conv]!, {q12-q15}")   // q12 = br0, q13 = bi0, q14 = br1, q15 = bi1
-            __ASM_EMIT("vzip.32     q4, q5")                // q4   = r0" r1" r2" r3", q5 = i0" i1" i2" i3"
-            __ASM_EMIT("vzip.32     q6, q7")                // q6   = r4" r5" r6" r7", q7 = i4" i5" i6" i7"
-
+            // q4 = r0" r2" i0" i3"
+            // q5 = r1" r3" i1" i2"
+            // q6 = r4" r6" i4" i7"
+            // q7 = r5" r7" i5" i6"
+            __ASM_EMIT("vzip.32     q4, q5")                // q4   = r0" r1" r2" r3", q5 = i0" i1" i3" i2"
+            __ASM_EMIT("vzip.32     q6, q7")                // q6   = r4" r5" r6" r7", q7 = i4" i5" i7" i6"
+            __ASM_EMIT("vswp        d11, d14")              // q5   = i0" i1" i4" i5", q6 = i3" i2" i7" i6"
+            __ASM_EMIT("vldm        %[conv]!, {q12-q15}")   // q12  = br0, q13 = bi0, q14 = br1, q15 = bi1
+            __ASM_EMIT("vrev64.32   q7, q7")                // q7   = i2" i3" i6" i7"
+            __ASM_EMIT("vswp        d11, d14")              // q5   = i0" i1" i2" i3", q7 = i4" i5" i6" i7"
             // q4 = ar0, q5 = ai0, q6 = ar1, q7 = ai1
             // q12 = br0, q13 = bi0, q14 = br1, q15 = bi1
             __ASM_EMIT("vmul.f32    q0, q4, q12")           // q0 = ar0 * br0
@@ -431,7 +428,7 @@ namespace neon_d32
                     __ASM_EMIT("vstm        %[a]!, {q0-q3}")
                     __ASM_EMIT("beq         4f")
                     // Prepare next loop: rotate angle
-                    __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          // q0   = dr, q1 = di
+                    __ASM_EMIT("vldm        %[XFFT_W], {q0-q1}")            // q0   = dr, q1 = di
                     __ASM_EMIT("vmul.f32    q12, q8, q1")                   // q12  = wr1 * di
                     __ASM_EMIT("vmul.f32    q13, q9, q1")                   // q13  = wr2 * di
                     __ASM_EMIT("vmul.f32    q14, q10, q1")                  // q14  = wi1 * di
@@ -499,7 +496,7 @@ namespace neon_d32
             __ASM_EMIT("vstm        %[db]!, {q2-q3}")
             __ASM_EMIT("beq         2f")
             // Prepare next loop: rotate angle
-            __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          // q0   = dr, q1 = di
+            __ASM_EMIT("vldm        %[XFFT_W], {q0-q1}")            // q0   = dr, q1 = di
             __ASM_EMIT("vmul.f32    q2, q8, q1")                    // q2   = wr1 * di
             __ASM_EMIT("vmul.f32    q3, q9, q1")                    // q3   = wr2 * di
             __ASM_EMIT("vmul.f32    q4, q10, q1")                   // q4   = wi1 * di
