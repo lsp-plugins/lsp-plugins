@@ -69,6 +69,7 @@ namespace asimd // TODO: make constants common for all architectures
 
 #include <dsp/arch/aarch64/asimd/fft.h>
 #include <dsp/arch/aarch64/asimd/pfft.h>
+#include <dsp/arch/aarch64/asimd/fastconv.h>
 
 #include <dsp/arch/aarch64/asimd/filters/transfer.h>
 
@@ -257,6 +258,11 @@ namespace asimd
 
         EXPORT1(packed_direct_fft);
         EXPORT1(packed_reverse_fft);
+
+        EXPORT1(fastconv_parse);
+        EXPORT1(fastconv_restore);
+        EXPORT1(fastconv_apply);
+        EXPORT1(fastconv_parse_apply);
 
         EXPORT1(filter_transfer_calc_ri);
         EXPORT1(filter_transfer_apply_ri);

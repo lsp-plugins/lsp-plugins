@@ -75,8 +75,8 @@ IF_ARCH_AARCH64(
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
         void add2(float *dst, const float *src, size_t count);
 
-//        void fastconv_parse(float *dst, const float *src, size_t rank);
-//        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
     }
 )
 
@@ -199,8 +199,8 @@ PTEST_BEGIN("dsp.fft", fastconv, 10, 1000)
             IF_ARCH_AARCH64(
                 call("asimd::fft", out, tmp, tmp2, conv, in, cv, rank,
                     asimd::direct_fft, asimd::complex_mul3, asimd::reverse_fft, asimd::add2);
-//                call("asimd::fastconv_fft", out, tmp, conv, in, cv, rank,
-//                    asimd::fastconv_parse, asimd::fastconv_parse_apply);
+                call("asimd::fastconv_fft", out, tmp, conv, in, cv, rank,
+                    asimd::fastconv_parse, asimd::fastconv_parse_apply);
             )
 
             PTEST_SEPARATOR;
