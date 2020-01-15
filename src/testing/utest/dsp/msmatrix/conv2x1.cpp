@@ -52,10 +52,10 @@ IF_ARCH_ARM(
 IF_ARCH_AARCH64(
     namespace asimd
     {
-//        void    lr_to_mid(float *m, const float *l, const float *r, size_t count);
-//        void    lr_to_side(float *s, const float *l, const float *r, size_t count);
-//        void    ms_to_left(float *l, const float *m, const float *s, size_t count);
-//        void    ms_to_right(float *r, const float *m, const float *s, size_t count);
+        void    lr_to_mid(float *m, const float *l, const float *r, size_t count);
+        void    lr_to_side(float *s, const float *l, const float *r, size_t count);
+        void    ms_to_left(float *l, const float *m, const float *s, size_t count);
+        void    ms_to_right(float *r, const float *m, const float *s, size_t count);
     }
 )
 
@@ -128,10 +128,10 @@ UTEST_BEGIN("dsp.msmatrix", conv2x1)
         IF_ARCH_ARM(CALL(native::ms_to_left, neon_d32::ms_to_left, 16));
         IF_ARCH_ARM(CALL(native::ms_to_right, neon_d32::ms_to_right, 16));
 
-//        IF_ARCH_AARCH64(CALL(native::lr_to_mid, asimd::lr_to_mid, 16));
-//        IF_ARCH_AARCH64(CALL(native::lr_to_side, asimd::lr_to_side, 16));
-//        IF_ARCH_AARCH64(CALL(native::ms_to_left, asimd::ms_to_left, 16));
-//        IF_ARCH_AARCH64(CALL(native::ms_to_right, asimd::ms_to_right, 16));
+        IF_ARCH_AARCH64(CALL(native::lr_to_mid, asimd::lr_to_mid, 16));
+        IF_ARCH_AARCH64(CALL(native::lr_to_side, asimd::lr_to_side, 16));
+        IF_ARCH_AARCH64(CALL(native::ms_to_left, asimd::ms_to_left, 16));
+        IF_ARCH_AARCH64(CALL(native::ms_to_right, asimd::ms_to_right, 16));
     }
 UTEST_END
 

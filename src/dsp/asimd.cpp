@@ -61,6 +61,7 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
 
 #include <dsp/arch/aarch64/asimd/mix.h>
+#include <dsp/arch/aarch64/asimd/msmatrix.h>
 #include <dsp/arch/aarch64/asimd/search/minmax.h>
 #include <dsp/arch/aarch64/asimd/search/iminmax.h>
 
@@ -215,6 +216,13 @@ namespace asimd
         EXPORT1(mix_add2);
         EXPORT1(mix_add3);
         EXPORT1(mix_add4);
+
+        EXPORT1(lr_to_ms);
+        EXPORT1(lr_to_mid);
+        EXPORT1(lr_to_side);
+        EXPORT1(ms_to_lr);
+        EXPORT1(ms_to_left);
+        EXPORT1(ms_to_right);
 
         EXPORT1(min)
         EXPORT1(max)

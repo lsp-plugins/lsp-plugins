@@ -43,8 +43,8 @@ IF_ARCH_ARM(
 IF_ARCH_AARCH64(
     namespace asimd
     {
-//        void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
-//        void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
+        void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
+        void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
     }
 )
 
@@ -90,14 +90,14 @@ PTEST_BEGIN("dsp.msmatrix", conv2, 5, 1000)
             IF_ARCH_X86(CALL(sse::lr_to_ms));
             IF_ARCH_X86(CALL(avx::lr_to_ms));
             IF_ARCH_ARM(CALL(neon_d32::lr_to_ms));
-//            IF_ARCH_AARCH64(CALL(asimd::lr_to_ms));
+            IF_ARCH_AARCH64(CALL(asimd::lr_to_ms));
             PTEST_SEPARATOR;
 
             CALL(native::ms_to_lr);
             IF_ARCH_X86(CALL(sse::ms_to_lr));
             IF_ARCH_X86(CALL(avx::ms_to_lr));
             IF_ARCH_ARM(CALL(neon_d32::ms_to_lr));
-//            IF_ARCH_AARCH64(CALL(asimd::ms_to_lr));
+            IF_ARCH_AARCH64(CALL(asimd::ms_to_lr));
             PTEST_SEPARATOR2;
         }
 
