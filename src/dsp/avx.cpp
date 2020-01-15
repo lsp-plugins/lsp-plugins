@@ -45,6 +45,7 @@
 #include <dsp/arch/x86/avx/filters/transfer.h>
 
 #include <dsp/arch/x86/avx/msmatrix.h>
+#include <dsp/arch/x86/avx/resampling.h>
 
 #undef DSP_ARCH_X86_AVX_IMPL
 
@@ -261,6 +262,8 @@ namespace avx
         CEXPORT1(favx, filter_transfer_apply_ri);
         CEXPORT1(favx, filter_transfer_calc_pc);
         CEXPORT1(favx, filter_transfer_apply_pc);
+
+        CEXPORT1(favx, lanczos_resample_2x2);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)
