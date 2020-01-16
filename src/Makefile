@@ -1,4 +1,4 @@
-SUBDIRS                 = core metadata utils rendering 
+SUBDIRS                 = core metadata utils 
 MODULES                 = $(SUBDIRS)
 CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES)
 UTL_DEPS                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
@@ -40,12 +40,12 @@ endif
 
 ifeq ($(NEED_PLUGINS), 1)
   SUBDIRS                += dsp plugins container
-  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS) rendering
+  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS)
 endif
 ifeq ($(NEED_UI),1)
-  SUBDIRS                += ui
+  SUBDIRS                += ui rendering
   MODULES                += ui
-  CONTAINER_DEPS         += $(OBJ_UI_CORE) $(OBJ_RES_CORE)
+  CONTAINER_DEPS         += $(OBJ_UI_CORE) $(OBJ_RES_CORE) rendering
 endif
 
 .PHONY: all $(MODULES)
