@@ -268,6 +268,7 @@ namespace avx
         CEXPORT1(favx, lanczos_resample_3x2);
         CEXPORT1(favx, lanczos_resample_3x3);
         CEXPORT1(favx, lanczos_resample_4x2);
+        CEXPORT1(favx, lanczos_resample_4x3);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)
