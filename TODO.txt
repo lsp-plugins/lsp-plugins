@@ -28,6 +28,9 @@
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files.
+- Implement equal loudness compensation plugin according to ISO 226:2003
+  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
+  topic: https://linuxmusicians.com/viewtopic.php?p=113835
  
 
 *******************************************************************************
