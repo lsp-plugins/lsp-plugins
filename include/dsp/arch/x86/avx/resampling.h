@@ -33,27 +33,27 @@ namespace avx
             __ASM_EMIT("1:")
             __ASM_EMIT("vmovss          0x00(%[src]), %%xmm0")          // xmm0 = s0
             __ASM_EMIT("vmovss          0x04(%[src]), %%xmm1")          // xmm1 = s1
-            __ASM_EMIT("vaddss          0x10(%[dst]), %%xmm0, %%xmm2")  // xmm2 = d4 + s0
-            __ASM_EMIT("vaddss          0x18(%[dst]), %%xmm1, %%xmm3")  // xmm3 = d6 + s1
-            __ASM_EMIT("vmovss          %%xmm2, 0x10(%[dst])")          // d4  += s0
-            __ASM_EMIT("vmovss          %%xmm3, 0x18(%[dst])")          // d6  += s1
-            __ASM_EMIT("vmulss          %%xmm0, %%xmm7, %%xmm2")        // xmm2 = k1*s0
-            __ASM_EMIT("vmulss          %%xmm1, %%xmm7, %%xmm3")        // xmm3 = k1*s1
-            __ASM_EMIT("vmulss          %%xmm0, %%xmm6, %%xmm4")        // xmm4 = k0*s0
-            __ASM_EMIT("vmulss          %%xmm1, %%xmm6, %%xmm5")        // xmm5 = k0*s1
-            __ASM_EMIT("vaddss          0x04(%[dst]), %%xmm2, %%xmm0")  // xmm0 = d1 + k1*s0
-            __ASM_EMIT("vaddss          0x24(%[dst]), %%xmm3, %%xmm1")  // xmm1 = d9 + k1*s1
-            __ASM_EMIT("vmovss          %%xmm0, 0x04(%[dst])")          // d1  += k1*s0
-            __ASM_EMIT("vmovss          %%xmm1, 0x24(%[dst])")          // d9  += k1*s1
-            __ASM_EMIT("vaddss          %%xmm4, %%xmm3, %%xmm0")        // xmm0 = k0*s0 + k1*s1
-            __ASM_EMIT("vaddss          %%xmm4, %%xmm5, %%xmm1")        // xmm1 = k0*s0 + k0*s1
+            __ASM_EMIT("vmulss          %%xmm7, %%xmm0, %%xmm2")        // xmm2 = k1*s0
+            __ASM_EMIT("vmulss          %%xmm7, %%xmm1, %%xmm3")        // xmm3 = k1*s1
+            __ASM_EMIT("vaddss          0x04(%[dst]), %%xmm2, %%xmm4")  // xmm4 = k1*s0 + d1
+            __ASM_EMIT("vaddss          0x24(%[dst]), %%xmm3, %%xmm5")  // xmm5 = k1*s1 + d9
+            __ASM_EMIT("vmovss          %%xmm4, 0x04(%[dst])")          // d1  += k1*s0
+            __ASM_EMIT("vmovss          %%xmm5, 0x24(%[dst])")          // d9  += k1*s1
+            __ASM_EMIT("vmulss          %%xmm6, %%xmm0, %%xmm4")        // xmm4 = k0*s0
+            __ASM_EMIT("vmulss          %%xmm6, %%xmm1, %%xmm5")        // xmm5 = k0*s1
+            __ASM_EMIT("vaddss          %%xmm4, %%xmm3, %%xmm3")        // xmm3 = k1*s1 + k0*s0
             __ASM_EMIT("vaddss          %%xmm5, %%xmm2, %%xmm2")        // xmm2 = k1*s0 + k0*s1
-            __ASM_EMIT("vaddss          0x0c(%[dst]), %%xmm0, %%xmm0")  // xmm0 = d3 + k0*s0 + k1*s1
-            __ASM_EMIT("vaddss          0x14(%[dst]), %%xmm1, %%xmm1")  // xmm1 = d5 + k0*s0 + k0*s1
-            __ASM_EMIT("vaddss          0x1c(%[dst]), %%xmm2, %%xmm2")  // xmm2 = d7 + k1*s0 + k0*s1
-            __ASM_EMIT("vmovss          %%xmm0, 0x0c(%[dst])")          // d3  += k0*s0 + k1*s1
-            __ASM_EMIT("vmovss          %%xmm1, 0x14(%[dst])")          // d5  += k0*s0 + k0*s1
+            __ASM_EMIT("vaddss          0x0c(%[dst]), %%xmm3, %%xmm3")  // xmm3 = k1*s1 + k0*s0 + d3
+            __ASM_EMIT("vaddss          0x1c(%[dst]), %%xmm2, %%xmm2")  // xmm2 = k1*s0 + k0*s1 + d7
+            __ASM_EMIT("vmovss          %%xmm3, 0x0c(%[dst])")          // d3  += k1*s1 + k0*s0
             __ASM_EMIT("vmovss          %%xmm2, 0x1c(%[dst])")          // d7  += k1*s0 + k0*s1
+            __ASM_EMIT("vaddss          %%xmm5, %%xmm4, %%xmm4")        // xmm4 = k0*s0 + k0*s1
+            __ASM_EMIT("vaddss          0x10(%[dst]), %%xmm0, %%xmm0")  // xmm0 = s0 + d4
+            __ASM_EMIT("vaddss          0x18(%[dst]), %%xmm1, %%xmm1")  // xmm1 = s1 + d6
+            __ASM_EMIT("vaddss          0x14(%[dst]), %%xmm4, %%xmm4")  // xmm4 = k0*s0 + k0*s1 + d5
+            __ASM_EMIT("vmovss          %%xmm0, 0x10(%[dst])")          // d4  += s0
+            __ASM_EMIT("vmovss          %%xmm4, 0x14(%[dst])")          // d5  += k0*s0 + k0*s1
+            __ASM_EMIT("vmovss          %%xmm1, 0x18(%[dst])")          // d6  += s1
             __ASM_EMIT("add             $0x08, %[src]")
             __ASM_EMIT("add             $0x10, %[dst]")
             __ASM_EMIT("sub             $2, %[count]")
@@ -96,41 +96,47 @@ namespace avx
     {
         ARCH_X86_ASM (
             // 2x blocks
+            __ASM_EMIT("vmovss          0x04 + %[k], %%xmm6")           // xmm6 = k0
+            __ASM_EMIT("vmovss          0x08 + %[k], %%xmm7")           // xmm7 = k1
             __ASM_EMIT("sub             $2, %[count]")
             __ASM_EMIT("jb              2f")
             __ASM_EMIT(".align          16")
             __ASM_EMIT("1:")
             __ASM_EMIT("vmovss          0x00(%[src]), %%xmm0")          // xmm0 = s0
             __ASM_EMIT("vmovss          0x04(%[src]), %%xmm1")          // xmm1 = s1
-            __ASM_EMIT("vmulss          0x00 + %[k], %%xmm0, %%xmm6")   // xmm6 = k2*s0
-            __ASM_EMIT("vmulss          0x00 + %[k], %%xmm1, %%xmm7")   // xmm7 = k2*s1
-            __ASM_EMIT("vmulss          0x04 + %[k], %%xmm0, %%xmm2")   // xmm2 = k0*s0
-            __ASM_EMIT("vmulss          0x04 + %[k], %%xmm1, %%xmm3")   // xmm3 = k0*s1
-            __ASM_EMIT("vaddss          0x04(%[dst]), %%xmm6, %%xmm4")  // xmm4 = d1 + k2*s0
-            __ASM_EMIT("vaddss          0x34(%[dst]), %%xmm7, %%xmm5")  // xmm5 = d13 + k2*s1
-            __ASM_EMIT("vmovss          %%xmm4, 0x04(%[dst])")
-            __ASM_EMIT("vmovss          %%xmm5, 0x34(%[dst])")
-            __ASM_EMIT("vmulss          0x08 + %[k], %%xmm0, %%xmm4")   // xmm4 = k1*s0
-            __ASM_EMIT("vmulss          0x08 + %[k], %%xmm1, %%xmm5")   // xmm5 = k1*s1
-            __ASM_EMIT("vaddss          0x18(%[dst]), %%xmm0, %%xmm0")  // xmm0 = d6 + s0
-            __ASM_EMIT("vaddss          0x20(%[dst]), %%xmm1, %%xmm1")  // xmm1 = d8 + s1
-            __ASM_EMIT("vmovss          %%xmm0, 0x18(%[dst])")
-            __ASM_EMIT("vmovss          %%xmm1, 0x20(%[dst])")
-            __ASM_EMIT("vaddss          %%xmm7, %%xmm4, %%xmm0")        // xmm0 = k1*s0 + k2*s1
-            __ASM_EMIT("vaddss          %%xmm6, %%xmm5, %%xmm1")        // xmm1 = k2*s0 + k1*s1
-            __ASM_EMIT("vaddss          0x0c(%[dst]), %%xmm0, %%xmm0")  // xmm0 = d3 + k1*s0 + k2*s1
-            __ASM_EMIT("vaddss          0x2c(%[dst]), %%xmm1, %%xmm1")  // xmm1 = d11 + k2*s0 + k1*s1
-            __ASM_EMIT("vmovss          %%xmm0, 0x0c(%[dst])")
-            __ASM_EMIT("vmovss          %%xmm1, 0x2c(%[dst])")
-            __ASM_EMIT("vaddss          %%xmm2, %%xmm5, %%xmm0")        // xmm0 = k0*s0 + k1*s1
-            __ASM_EMIT("vaddss          %%xmm2, %%xmm3, %%xmm1")        // xmm1 = k0*s0 + k0*s1
-            __ASM_EMIT("vaddss          %%xmm3, %%xmm4, %%xmm2")        // xmm2 = k1*s0 + k0*s1
-            __ASM_EMIT("vaddss          0x14(%[dst]), %%xmm0, %%xmm0")  // xmm0 = d5 + k0*s0 + k1*s1
-            __ASM_EMIT("vaddss          0x1c(%[dst]), %%xmm1, %%xmm1")  // xmm1 = d7 + k0*s0 + k0*s1
-            __ASM_EMIT("vaddss          0x24(%[dst]), %%xmm2, %%xmm2")  // xmm2 = d9 + k1*s0 + k0*s1
-            __ASM_EMIT("vmovss          %%xmm0, 0x14(%[dst])")
-            __ASM_EMIT("vmovss          %%xmm1, 0x1c(%[dst])")
-            __ASM_EMIT("vmovss          %%xmm2, 0x24(%[dst])")
+
+            __ASM_EMIT("vmulss          %[k], %%xmm0, %%xmm2")          // xmm2 = k2*s0
+            __ASM_EMIT("vmulss          %[k], %%xmm1, %%xmm3")          // xmm3 = k2*s1
+            __ASM_EMIT("vaddss          0x04(%[dst]), %%xmm2, %%xmm4")  // xmm4 = k2*s0 + d1
+            __ASM_EMIT("vaddss          0x34(%[dst]), %%xmm3, %%xmm5")  // xmm5 = k2*s1 + d13
+            __ASM_EMIT("vmovss          %%xmm4, 0x04(%[dst])")          // d1  += k2*s0
+            __ASM_EMIT("vmovss          %%xmm5, 0x34(%[dst])")          // d13 += k2*s1
+
+            __ASM_EMIT("vmulss          %%xmm7, %%xmm0, %%xmm4")        // xmm4 = k1*s0
+            __ASM_EMIT("vmulss          %%xmm7, %%xmm1, %%xmm5")        // xmm5 = k1*s1
+            __ASM_EMIT("vaddss          %%xmm4, %%xmm3, %%xmm3")        // xmm3 = k2*s1 + k1*s0
+            __ASM_EMIT("vaddss          %%xmm5, %%xmm2, %%xmm2")        // xmm2 = k2*s0 + k1*s1
+            __ASM_EMIT("vaddss          0x0c(%[dst]), %%xmm3, %%xmm3")  // xmm3 = k2*s1 + k1*s0 + d3
+            __ASM_EMIT("vaddss          0x2c(%[dst]), %%xmm2, %%xmm2")  // xmm2 = k2*s0 + k1*s1 + d11
+            __ASM_EMIT("vmovss          %%xmm3, 0x0c(%[dst])")          // d3  += k2*s1 + k1*s0
+            __ASM_EMIT("vmovss          %%xmm2, 0x2c(%[dst])")          // d11 += k2*s0 + k1*s1
+
+            __ASM_EMIT("vmulss          %%xmm6, %%xmm0, %%xmm2")        // xmm2 = k0*s0
+            __ASM_EMIT("vmulss          %%xmm6, %%xmm1, %%xmm3")        // xmm3 = k0*s1
+            __ASM_EMIT("vaddss          %%xmm2, %%xmm5, %%xmm5")        // xmm5 = k1*s1 + k0*s0
+            __ASM_EMIT("vaddss          %%xmm3, %%xmm4, %%xmm4")        // xmm4 = k1*s0 + k0*s1
+            __ASM_EMIT("vaddss          0x14(%[dst]), %%xmm5, %%xmm5")  // xmm5 = k1*s1 + k0*s0 + d5
+            __ASM_EMIT("vaddss          0x24(%[dst]), %%xmm4, %%xmm4")  // xmm4 = k1*s0 + k0*s1 + d9
+            __ASM_EMIT("vmovss          %%xmm5, 0x14(%[dst])")          // d5  += k1*s1 + k0*s0
+            __ASM_EMIT("vmovss          %%xmm4, 0x24(%[dst])")          // d9  += k1*s0 + k0*s1
+
+            __ASM_EMIT("vaddss          %%xmm3, %%xmm2, %%xmm2")        // xmm2 = k0*s0 + k0*s1
+            __ASM_EMIT("vaddss          0x18(%[dst]), %%xmm0, %%xmm0")  // xmm0 = s0 + d6
+            __ASM_EMIT("vaddss          0x20(%[dst]), %%xmm1, %%xmm1")  // xmm1 = s1 + d8
+            __ASM_EMIT("vaddss          0x1c(%[dst]), %%xmm2, %%xmm2")  // xmm2 = k0*s0 + k0*s1 + d7
+            __ASM_EMIT("vmovss          %%xmm0, 0x18(%[dst])")          // d6  += s0
+            __ASM_EMIT("vmovss          %%xmm2, 0x1c(%[dst])")          // d7  += k0*s0 + k0*s1
+            __ASM_EMIT("vmovss          %%xmm1, 0x20(%[dst])")          // d8  += s1
             __ASM_EMIT("add             $0x08, %[src]")
             __ASM_EMIT("add             $0x10, %[dst]")
             __ASM_EMIT("sub             $2, %[count]")
