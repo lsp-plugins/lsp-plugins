@@ -120,7 +120,7 @@ UTEST_BEGIN("dsp.resampling", oversampling)
 
     UTEST_MAIN
     {
-        #define CALL(native, func, order, align) \
+        #define CALL(native, func, align, order) \
             call(order, #func, align, native, func)
 
         // Do tests
@@ -143,8 +143,8 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         IF_ARCH_X86(CALL(native::lanczos_resample_4x3, avx::lanczos_resample_4x3, 32, 4));
         IF_ARCH_X86(CALL(native::lanczos_resample_6x2, avx::lanczos_resample_6x2, 32, 6));
         IF_ARCH_X86(CALL(native::lanczos_resample_6x3, avx::lanczos_resample_6x3, 32, 6));
-        IF_ARCH_X86(CALL(native::lanczos_resample_8x2, avx::lanczos_resample_8x2, 32, 6));
-        IF_ARCH_X86(CALL(native::lanczos_resample_8x3, avx::lanczos_resample_8x3, 32, 6));
+        IF_ARCH_X86(CALL(native::lanczos_resample_8x2, avx::lanczos_resample_8x2, 32, 8));
+        IF_ARCH_X86(CALL(native::lanczos_resample_8x3, avx::lanczos_resample_8x3, 32, 8));
 
         IF_ARCH_ARM(CALL(native::lanczos_resample_2x2, neon_d32::lanczos_resample_2x2, 16, 2));
         IF_ARCH_ARM(CALL(native::lanczos_resample_2x3, neon_d32::lanczos_resample_2x3, 16, 2));
