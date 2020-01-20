@@ -27,6 +27,15 @@ IF_ARCH_X86(
         void downsample_6x(float *dst, const float *src, size_t count);
         void downsample_8x(float *dst, const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        void downsample_2x(float *dst, const float *src, size_t count);
+        void downsample_3x(float *dst, const float *src, size_t count);
+        void downsample_4x(float *dst, const float *src, size_t count);
+        void downsample_6x(float *dst, const float *src, size_t count);
+        void downsample_8x(float *dst, const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -52,7 +61,7 @@ UTEST_BEGIN("dsp.resampling", downsampling)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 100, 999)
+                32, 63, 64, 100, 999)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -84,18 +93,27 @@ UTEST_BEGIN("dsp.resampling", downsampling)
 
     UTEST_MAIN
     {
-        // Do tests
-        IF_ARCH_X86(call(2, "sse:downsample_2x", 16, native::downsample_2x, sse::downsample_2x));
-        IF_ARCH_X86(call(3, "sse:downsample_3x", 16, native::downsample_3x, sse::downsample_3x));
-        IF_ARCH_X86(call(4, "sse:downsample_4x", 16, native::downsample_4x, sse::downsample_4x));
-        IF_ARCH_X86(call(6, "sse:downsample_6x", 16, native::downsample_6x, sse::downsample_6x));
-        IF_ARCH_X86(call(8, "sse:downsample_8x", 16, native::downsample_8x, sse::downsample_8x));
+        #define CALL(native, func, align, order) \
+            call(order, #func, align, native, func)
 
-        IF_ARCH_ARM(call(2, "neon_d32:downsample_2x", 16, native::downsample_2x, neon_d32::downsample_2x));
-        IF_ARCH_ARM(call(3, "neon_d32:downsample_3x", 16, native::downsample_3x, neon_d32::downsample_3x));
-        IF_ARCH_ARM(call(4, "neon_d32:downsample_4x", 16, native::downsample_4x, neon_d32::downsample_4x));
-        IF_ARCH_ARM(call(6, "neon_d32:downsample_6x", 16, native::downsample_6x, neon_d32::downsample_6x));
-        IF_ARCH_ARM(call(8, "neon_d32:downsample_8x", 16, native::downsample_8x, neon_d32::downsample_8x));
+        // Do tests
+        IF_ARCH_X86(CALL(native::downsample_2x, sse::downsample_2x, 16, 2));
+        IF_ARCH_X86(CALL(native::downsample_3x, sse::downsample_3x, 16, 3));
+        IF_ARCH_X86(CALL(native::downsample_4x, sse::downsample_4x, 16, 4));
+        IF_ARCH_X86(CALL(native::downsample_6x, sse::downsample_6x, 16, 6));
+        IF_ARCH_X86(CALL(native::downsample_8x, sse::downsample_8x, 16, 8));
+
+        IF_ARCH_X86(CALL(native::downsample_2x, avx::downsample_2x, 16, 2));
+        IF_ARCH_X86(CALL(native::downsample_3x, avx::downsample_3x, 16, 3));
+        IF_ARCH_X86(CALL(native::downsample_4x, avx::downsample_4x, 16, 4));
+        IF_ARCH_X86(CALL(native::downsample_6x, avx::downsample_6x, 16, 6));
+        IF_ARCH_X86(CALL(native::downsample_8x, avx::downsample_8x, 16, 8));
+
+        IF_ARCH_ARM(CALL(native::downsample_2x, neon_d32::downsample_2x, 16, 2));
+        IF_ARCH_ARM(CALL(native::downsample_3x, neon_d32::downsample_3x, 16, 3));
+        IF_ARCH_ARM(CALL(native::downsample_4x, neon_d32::downsample_4x, 16, 4));
+        IF_ARCH_ARM(CALL(native::downsample_6x, neon_d32::downsample_6x, 16, 6));
+        IF_ARCH_ARM(CALL(native::downsample_8x, neon_d32::downsample_8x, 16, 8));
     }
 UTEST_END;
 
