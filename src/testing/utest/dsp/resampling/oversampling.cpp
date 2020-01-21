@@ -80,8 +80,8 @@ IF_ARCH_AARCH64(
         void lanczos_resample_4x3(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
-//        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
-//        void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x3(float *dst, const float *src, size_t count);
     }
 )
 
@@ -181,7 +181,7 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_4x3, asimd::lanczos_resample_4x3, 16, 4));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_6x2, asimd::lanczos_resample_6x2, 16, 6));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_6x3, asimd::lanczos_resample_6x3, 16, 6));
-//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x2, asimd::lanczos_resample_8x2, 16, 8));
-//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x3, asimd::lanczos_resample_8x3, 16, 8));
+        IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x2, asimd::lanczos_resample_8x2, 16, 8));
+        IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x3, asimd::lanczos_resample_8x3, 16, 8));
     }
 UTEST_END;

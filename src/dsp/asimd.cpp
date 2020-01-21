@@ -286,7 +286,8 @@ namespace asimd
         EXPORT1(lanczos_resample_4x3);
         EXPORT1(lanczos_resample_6x2);
         EXPORT1(lanczos_resample_6x3);
-
+        EXPORT1(lanczos_resample_8x2);
+        EXPORT1(lanczos_resample_8x3);
     }
 }
 
