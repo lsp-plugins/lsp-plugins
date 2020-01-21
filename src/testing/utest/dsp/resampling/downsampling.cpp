@@ -49,6 +49,17 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void downsample_2x(float *dst, const float *src, size_t count);
+//        void downsample_3x(float *dst, const float *src, size_t count);
+//        void downsample_4x(float *dst, const float *src, size_t count);
+//        void downsample_6x(float *dst, const float *src, size_t count);
+//        void downsample_8x(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* downsample_t)(float *dst, const float *src, size_t count);
 
 UTEST_BEGIN("dsp.resampling", downsampling)
@@ -114,6 +125,12 @@ UTEST_BEGIN("dsp.resampling", downsampling)
         IF_ARCH_ARM(CALL(native::downsample_4x, neon_d32::downsample_4x, 16, 4));
         IF_ARCH_ARM(CALL(native::downsample_6x, neon_d32::downsample_6x, 16, 6));
         IF_ARCH_ARM(CALL(native::downsample_8x, neon_d32::downsample_8x, 16, 8));
+
+        IF_ARCH_AARCH64(CALL(native::downsample_2x, asimd::downsample_2x, 16, 2));
+//        IF_ARCH_AARCH64(CALL(native::downsample_3x, asimd::downsample_3x, 16, 3));
+//        IF_ARCH_AARCH64(CALL(native::downsample_4x, asimd::downsample_4x, 16, 4));
+//        IF_ARCH_AARCH64(CALL(native::downsample_6x, asimd::downsample_6x, 16, 6));
+//        IF_ARCH_AARCH64(CALL(native::downsample_8x, asimd::downsample_8x, 16, 8));
     }
 UTEST_END;
 

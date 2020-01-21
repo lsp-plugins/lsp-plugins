@@ -50,6 +50,17 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void downsample_2x(float *dst, const float *src, size_t count);
+//        void downsample_3x(float *dst, const float *src, size_t count);
+//        void downsample_4x(float *dst, const float *src, size_t count);
+//        void downsample_6x(float *dst, const float *src, size_t count);
+//        void downsample_8x(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* downsample_t)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -85,30 +96,35 @@ PTEST_BEGIN("dsp.resampling", downsampling, 5, 1000)
         IF_ARCH_X86(CALL(sse::downsample_2x, 2));
         IF_ARCH_X86(CALL(avx::downsample_2x, 2));
         IF_ARCH_ARM(CALL(neon_d32::downsample_2x, 2));
+        IF_ARCH_AARCH64(CALL(asimd::downsample_2x, 2));
         PTEST_SEPARATOR;
 
         CALL(native::downsample_3x, 3);
         IF_ARCH_X86(CALL(sse::downsample_3x, 3));
         IF_ARCH_X86(CALL(avx::downsample_3x, 3));
         IF_ARCH_ARM(CALL(neon_d32::downsample_3x, 3));
+//        IF_ARCH_AARCH64(CALL(asimd::downsample_3x, 3));
         PTEST_SEPARATOR;
 
         CALL(native::downsample_4x, 4);
         IF_ARCH_X86(CALL(sse::downsample_4x, 4));
         IF_ARCH_X86(CALL(avx::downsample_4x, 4));
         IF_ARCH_ARM(CALL(neon_d32::downsample_4x, 4));
+//        IF_ARCH_AARCH64(CALL(asimd::downsample_4x, 4));
         PTEST_SEPARATOR;
 
         CALL(native::downsample_6x, 6);
         IF_ARCH_X86(CALL(sse::downsample_6x, 6));
         IF_ARCH_X86(CALL(avx::downsample_6x, 6));
         IF_ARCH_ARM(CALL(neon_d32::downsample_6x, 6));
+//        IF_ARCH_AARCH64(CALL(asimd::downsample_6x, 6));
         PTEST_SEPARATOR;
 
         CALL(native::downsample_8x, 8);
         IF_ARCH_X86(CALL(sse::downsample_8x, 8));
         IF_ARCH_X86(CALL(avx::downsample_8x, 8));
         IF_ARCH_ARM(CALL(neon_d32::downsample_8x, 8));
+//        IF_ARCH_AARCH64(CALL(asimd::downsample_8x, 8));
         PTEST_SEPARATOR;
 
         delete [] out;

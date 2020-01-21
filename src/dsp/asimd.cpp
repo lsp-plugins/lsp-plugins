@@ -64,7 +64,7 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/msmatrix.h>
 #include <dsp/arch/aarch64/asimd/search/minmax.h>
 #include <dsp/arch/aarch64/asimd/search/iminmax.h>
-#include <dsp/arch/aarch64/asimd/resample.h>
+#include <dsp/arch/aarch64/asimd/resampling.h>
 
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
@@ -288,6 +288,8 @@ namespace asimd
         EXPORT1(lanczos_resample_6x3);
         EXPORT1(lanczos_resample_8x2);
         EXPORT1(lanczos_resample_8x3);
+
+        EXPORT1(downsample_2x);
     }
 }
 
