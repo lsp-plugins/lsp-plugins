@@ -51,8 +51,10 @@ namespace lsp
     {
         // Off by default
         float length= sample_rate * time;
+        if (length < 1.0f)
+            length      = 1.0f;
         nState      = S_OFF;
-        fDelta      = 1.0 / (length + 1);
+        fDelta      = 1.0 / length;
         fGain       = 1.0;
     }
 
