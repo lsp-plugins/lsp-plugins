@@ -1499,6 +1499,89 @@ namespace asimd
               "q20", "q21", "q22", "q23"
         );
     }
+
+    void downsample_3x(float *dst, const float *src, size_t count)
+    {
+        ARCH_AARCH64_ASM(
+            __ASM_EMIT("subs            %[count], %[count], #16")
+            __ASM_EMIT("b.lo            2f")
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ldp             q0, q1, [%[src], #0x00]")       // v0  = s0  ?   ?   s1 , v1  = ?   ?   s2  ?
+            __ASM_EMIT("ldp             q2, q3, [%[src], #0x20]")       // v2  = ?   s3  ?   ?  , v3  = s4  ?   ?   s5
+            __ASM_EMIT("ldp             q4, q5, [%[src], #0x40]")       // v4  = ?   ?   s6  ?  , v5  = ?   s7  ?   ?
+            __ASM_EMIT("ldp             q6, q7, [%[src], #0x60]")       // v6  = s8  ?   ?   s9 , v7  = ?   ?   s10 ?
+            __ASM_EMIT("ldp             q8, q9, [%[src], #0x80]")       // v8  = ?   s11 ?   ?  , v9  = s12 ?   ?   s13
+            __ASM_EMIT("ldp             q10, q11, [%[src], #0xa0]")     // v10 = ?   ?   s14 ?  , v11 = ?   s15 ?   ?
+            __ASM_EMIT("mov             v0.s[1], v0.s[3]")              // v0  = s0  s1  ?   s1
+            __ASM_EMIT("mov             v1.s[3], v2.s[1]")              // v1  = ?   ?   s2  s3
+            __ASM_EMIT("mov             v3.s[1], v3.s[3]")
+            __ASM_EMIT("mov             v4.s[3], v5.s[1]")
+            __ASM_EMIT("mov             v6.s[1], v6.s[3]")
+            __ASM_EMIT("mov             v7.s[3], v8.s[1]")
+            __ASM_EMIT("mov             v9.s[1], v9.s[3]")
+            __ASM_EMIT("mov             v10.s[3], v11.s[1]")
+            __ASM_EMIT("mov             v0.d[1], v1.d[1]")              // v0  = s0  s1  s2  s3
+            __ASM_EMIT("mov             v3.d[1], v4.d[1]")
+            __ASM_EMIT("mov             v6.d[1], v7.d[1]")
+            __ASM_EMIT("mov             v9.d[1], v10.d[1]")
+            __ASM_EMIT("stp             q0, q3, [%[dst], #0x00]")
+            __ASM_EMIT("stp             q6, q9, [%[dst], #0x20]")
+            __ASM_EMIT("subs            %[count], %[count], #16")
+            __ASM_EMIT("add             %[src], %[src], #0xc0")
+            __ASM_EMIT("add             %[dst], %[dst], #0x40")
+            __ASM_EMIT("b.hs            1b")
+            __ASM_EMIT("2:")
+            // x8 block
+            __ASM_EMIT("adds            %[count], %[count], #8")
+            __ASM_EMIT("b.lt            4f")
+            __ASM_EMIT("ldp             q0, q1, [%[src], #0x00]")       // v0  = s0  ?   ?   s1 , v1  = ?   ?   s2  ?
+            __ASM_EMIT("ldp             q2, q3, [%[src], #0x20]")       // v2  = ?   s3  ?   ?  , v3  = s4  ?   ?   s5
+            __ASM_EMIT("ldp             q4, q5, [%[src], #0x40]")       // v4  = ?   ?   s6  ?  , v5  = ?   s7  ?   ?
+            __ASM_EMIT("mov             v0.s[1], v0.s[3]")              // v0  = s0  s1  ?   s1
+            __ASM_EMIT("mov             v1.s[3], v2.s[1]")              // v1  = ?   ?   s2  s3
+            __ASM_EMIT("mov             v3.s[1], v3.s[3]")
+            __ASM_EMIT("mov             v4.s[3], v5.s[1]")
+            __ASM_EMIT("mov             v0.d[1], v1.d[1]")              // v0  = s0  s1  s2  s3
+            __ASM_EMIT("mov             v3.d[1], v4.d[1]")
+            __ASM_EMIT("stp             q0, q3, [%[dst], #0x00]")
+            __ASM_EMIT("sub             %[count], %[count], #8")
+            __ASM_EMIT("add             %[src], %[src], #0x60")
+            __ASM_EMIT("add             %[dst], %[dst], #0x20")
+            __ASM_EMIT("4:")
+            // x4 block
+            __ASM_EMIT("adds            %[count], %[count], #4")
+            __ASM_EMIT("b.lt            6f")
+            __ASM_EMIT("ldp             q0, q1, [%[src], #0x00]")       // v0  = s0  ?   ?   s1 , v1  = ?   ?   s2  ?
+            __ASM_EMIT("ldr             q2, [%[src], #0x20]")           // v2  = ?   s3  ?   ?
+            __ASM_EMIT("mov             v0.s[1], v0.s[3]")              // v0  = s0  s1  ?   s1
+            __ASM_EMIT("mov             v1.s[3], v2.s[1]")              // v1  = ?   ?   s2  s3
+            __ASM_EMIT("mov             v0.d[1], v1.d[1]")              // v0  = s0  s1  s2  s3
+            __ASM_EMIT("str             q0, [%[dst]]")
+            __ASM_EMIT("sub             %[count], %[count], #4")
+            __ASM_EMIT("add             %[src], %[src], #0x30")
+            __ASM_EMIT("add             %[dst], %[dst], #0x10")
+            __ASM_EMIT("6:")
+            // x1 blocks
+            __ASM_EMIT("adds            %[count], %[count], #3")
+            __ASM_EMIT("b.lt            8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("ld1             {v0.s}[0], [%[src]]")
+            __ASM_EMIT("st1             {v0.s}[0], [%[dst]]")
+            __ASM_EMIT("subs            %[count], %[count], #1")
+            __ASM_EMIT("add             %[src], %[src], #0x0c")
+            __ASM_EMIT("add             %[dst], %[dst], #0x04")
+            __ASM_EMIT("b.hs            7b")
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
+        );
+    }
 }
 
 

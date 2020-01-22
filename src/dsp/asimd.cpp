@@ -290,6 +290,7 @@ namespace asimd
         EXPORT1(lanczos_resample_8x3);
 
         EXPORT1(downsample_2x);
+        EXPORT1(downsample_3x);
     }
 }
 
