@@ -57,7 +57,7 @@ IF_ARCH_AARCH64(
         void downsample_3x(float *dst, const float *src, size_t count);
         void downsample_4x(float *dst, const float *src, size_t count);
         void downsample_6x(float *dst, const float *src, size_t count);
-//        void downsample_8x(float *dst, const float *src, size_t count);
+        void downsample_8x(float *dst, const float *src, size_t count);
     }
 )
 
@@ -124,7 +124,7 @@ PTEST_BEGIN("dsp.resampling", downsampling, 5, 1000)
         IF_ARCH_X86(CALL(sse::downsample_8x, 8));
         IF_ARCH_X86(CALL(avx::downsample_8x, 8));
         IF_ARCH_ARM(CALL(neon_d32::downsample_8x, 8));
-//        IF_ARCH_AARCH64(CALL(asimd::downsample_8x, 8));
+        IF_ARCH_AARCH64(CALL(asimd::downsample_8x, 8));
         PTEST_SEPARATOR;
 
         delete [] out;
