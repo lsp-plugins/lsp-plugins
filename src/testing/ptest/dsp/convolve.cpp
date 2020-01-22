@@ -30,19 +30,29 @@ IF_ARCH_ARM(
     }
 )
 
-static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
-{
-    for (size_t i=0; i<count; ++i)
+IF_ARCH_AARCH64(
+    namespace asimd
     {
-        for (size_t j=0; j<length; ++j)
-            dst[i+j] += src[i] * conv[j];
+        void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
     }
-}
+)
 
-static void convolve_sadd(float *dst, const float *src, const float *conv, size_t length, size_t count)
+namespace test
 {
-    for (size_t i=0; i<count; ++i)
-        dsp::fmadd_k3(&dst[i], conv, src[i], length);
+    static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            for (size_t j=0; j<length; ++j)
+                dst[i+j] += src[i] * conv[j];
+        }
+    }
+
+    static void convolve_sadd(float *dst, const float *src, const float *conv, size_t length, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dsp::fmadd_k3(&dst[i], conv, src[i], length);
+    }
 }
 
 typedef void (* convolve_t)(float *dst, const float *src, const float *conv, size_t length, size_t count);
@@ -78,27 +88,32 @@ PTEST_BEGIN("dsp", convolve, 5, 1000)
             out[i]          = float(rand()) / RAND_MAX;
         dsp::copy(backup, out, buf_size * 4);
 
-        #define CALL(...) dsp::copy(out, backup, buf_size * 4); call(__VA_ARGS__)
+        #define CALL(r1, r2, func) \
+            dsp::copy(out, backup, buf_size * 4); \
+            call(#func, out, in, conv, r1, r2, func)
 
-        TEST_EXPORT(convolve);
-        TEST_EXPORT(convolve_sadd);
+        TEST_EXPORT(test::convolve);
+        TEST_EXPORT(test::convolve_sadd);
+
         for (size_t i=MIN_RANK; i<=MAX_RANK; ++i)
             for (size_t j=MIN_RANK; j<=MAX_RANK; ++j)
             {
-                CALL("static:convolve", out, in, conv, (1 << j), (1 << i), convolve);
-                CALL("static:convolve_sadd", out, in, conv, (1 << j), (1 << i), convolve_sadd);
-                CALL("native:convolve", out, in, conv, (1 << j), (1 << i), native::convolve);
-                IF_ARCH_X86(CALL("sse:convolve", out, in, conv, (1 << j), (1 << i), sse::convolve));
-                IF_ARCH_ARM(CALL("neon_d32:convolve", out, in, conv, (1 << j), (1 << i), neon_d32::convolve));
+                CALL((1 << j), (1 << i), test::convolve);
+                CALL((1 << j), (1 << i), test::convolve_sadd);
+                CALL((1 << j), (1 << i), native::convolve);
+                IF_ARCH_X86(CALL((1 << j), (1 << i), sse::convolve));
+                IF_ARCH_ARM(CALL((1 << j), (1 << i), neon_d32::convolve));
+                IF_ARCH_AARCH64(CALL((1 << j), (1 << i), asimd::convolve));
 
                 PTEST_SEPARATOR;
             }
 
-        CALL("static:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, convolve);
-        CALL("static:convolve_sadd", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, convolve_sadd);
-        CALL("native:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, native::convolve);
-        IF_ARCH_X86(CALL("sse:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, sse::convolve));
-        IF_ARCH_ARM(CALL("neon_d32:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, neon_d32::convolve));
+        CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, test::convolve);
+        CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, test::convolve_sadd);
+        CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, native::convolve);
+        IF_ARCH_X86(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, sse::convolve));
+        IF_ARCH_ARM(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, neon_d32::convolve));
+        IF_ARCH_AARCH64(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, asimd::convolve));
 
         PTEST_SEPARATOR;
     }

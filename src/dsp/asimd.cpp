@@ -65,6 +65,7 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/search/minmax.h>
 #include <dsp/arch/aarch64/asimd/search/iminmax.h>
 #include <dsp/arch/aarch64/asimd/resampling.h>
+#include <dsp/arch/aarch64/asimd/convolution.h>
 
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
@@ -294,6 +295,8 @@ namespace asimd
         EXPORT1(downsample_4x);
         EXPORT1(downsample_6x);
         EXPORT1(downsample_8x);
+
+        EXPORT1(convolve);
     }
 }
 
