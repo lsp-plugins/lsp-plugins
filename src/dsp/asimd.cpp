@@ -291,6 +291,7 @@ namespace asimd
 
         EXPORT1(downsample_2x);
         EXPORT1(downsample_3x);
+        EXPORT1(downsample_4x);
     }
 }
 

@@ -1582,6 +1582,89 @@ namespace asimd
               "q8", "q9", "q10", "q11"
         );
     }
+
+    void downsample_4x(float *dst, const float *src, size_t count)
+    {
+        ARCH_AARCH64_ASM(
+            __ASM_EMIT("subs            %[count], %[count], #16")
+            __ASM_EMIT("b.lo            2f")
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ldp             q0, q1, [%[src], #0x00]")
+            __ASM_EMIT("ldp             q2, q3, [%[src], #0x20]")
+            __ASM_EMIT("ldp             q4, q5, [%[src], #0x40]")
+            __ASM_EMIT("ldp             q6, q7, [%[src], #0x60]")
+            __ASM_EMIT("ldp             q16, q17, [%[src], #0x80]")
+            __ASM_EMIT("ldp             q18, q19, [%[src], #0xa0]")
+            __ASM_EMIT("ldp             q20, q21, [%[src], #0xc0]")
+            __ASM_EMIT("ldp             q22, q23, [%[src], #0xe0]")
+            __ASM_EMIT("mov             v0.s[1], v1.s[0]")
+            __ASM_EMIT("mov             v2.s[1], v3.s[0]")
+            __ASM_EMIT("mov             v4.s[1], v5.s[0]")
+            __ASM_EMIT("mov             v6.s[1], v7.s[0]")
+            __ASM_EMIT("mov             v16.s[1], v17.s[0]")
+            __ASM_EMIT("mov             v18.s[1], v19.s[0]")
+            __ASM_EMIT("mov             v20.s[1], v21.s[0]")
+            __ASM_EMIT("mov             v22.s[1], v23.s[0]")
+            __ASM_EMIT("mov             v0.d[1], v2.d[0]")
+            __ASM_EMIT("mov             v4.d[1], v6.d[0]")
+            __ASM_EMIT("mov             v16.d[1], v18.d[0]")
+            __ASM_EMIT("mov             v20.d[1], v22.d[0]")
+            __ASM_EMIT("stp             q0, q4, [%[dst], #0x00]")
+            __ASM_EMIT("stp             q16, q20, [%[dst], #0x20]")
+            __ASM_EMIT("subs            %[count], %[count], #16")
+            __ASM_EMIT("add             %[src], %[src], #0x100")
+            __ASM_EMIT("add             %[dst], %[dst], #0x40")
+            __ASM_EMIT("b.hs            1b")
+            __ASM_EMIT("2:")
+            // x8 block
+            __ASM_EMIT("adds            %[count], %[count], #8")
+            __ASM_EMIT("b.lt            4f")
+            __ASM_EMIT("ldp             q0, q1, [%[src], #0x00]")
+            __ASM_EMIT("ldp             q2, q3, [%[src], #0x20]")
+            __ASM_EMIT("ldp             q4, q5, [%[src], #0x40]")
+            __ASM_EMIT("ldp             q6, q7, [%[src], #0x60]")
+            __ASM_EMIT("mov             v0.s[1], v1.s[0]")
+            __ASM_EMIT("mov             v2.s[1], v3.s[0]")
+            __ASM_EMIT("mov             v4.s[1], v5.s[0]")
+            __ASM_EMIT("mov             v6.s[1], v7.s[0]")
+            __ASM_EMIT("mov             v0.d[1], v2.d[0]")
+            __ASM_EMIT("mov             v4.d[1], v6.d[0]")
+            __ASM_EMIT("stp             q0, q4, [%[dst], #0x00]")
+            __ASM_EMIT("sub             %[count], %[count], #8")
+            __ASM_EMIT("add             %[src], %[src], #0x80")
+            __ASM_EMIT("add             %[dst], %[dst], #0x20")
+            __ASM_EMIT("4:")
+            // x4 block
+            __ASM_EMIT("adds            %[count], %[count], #4")
+            __ASM_EMIT("b.lt            6f")
+            __ASM_EMIT("ld4             {v0.4s, v1.4s, v2.4s, v3.4s}, [%[src]]")
+            __ASM_EMIT("str             q0, [%[dst]]")
+            __ASM_EMIT("sub             %[count], %[count], #4")
+            __ASM_EMIT("add             %[src], %[src], #0x40")
+            __ASM_EMIT("add             %[dst], %[dst], #0x10")
+            __ASM_EMIT("6:")
+            // x1 blocks
+            __ASM_EMIT("adds            %[count], %[count], #3")
+            __ASM_EMIT("b.lt            8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("ld1             {v0.s}[0], [%[src]]")
+            __ASM_EMIT("subs            %[count], %[count], #1")
+            __ASM_EMIT("st1             {v0.s}[0], [%[dst]]")
+            __ASM_EMIT("add             %[src], %[src], #0x10")
+            __ASM_EMIT("add             %[dst], %[dst], #0x04")
+            __ASM_EMIT("b.ge            7b")
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19",
+              "q20", "q21", "q22", "q23"
+        );
+    }
 }
 
 
