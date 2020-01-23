@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include <dsp/arch/aarch64/features.h>
+#include <dsp/arch/aarch64/fpcr.h>
 
 namespace asimd
 {
@@ -283,6 +284,27 @@ IF_ARCH_AARCH64(
         return res;
     }
 
+    static dsp::start_t     dsp_start       = NULL;
+    static dsp::finish_t    dsp_finish      = NULL;
+
+    void start(dsp::context_t *ctx)
+    {
+        dsp_start(ctx);
+        uint64_t fpcr           = read_fpcr();
+        ctx->data[ctx->top++]   = uint32_t(fpcr);
+        ctx->data[ctx->top++]   = uint32_t(fpcr >> 32);
+        write_fpcr(fpcr | FPCR_FZ | FPCR_DN | FPCR_FZ16);
+    }
+
+    void finish(dsp::context_t *ctx)
+    {
+        uint64_t lo, hi;
+        hi = ctx->data[--ctx->top];
+        lo = ctx->data[--ctx->top];
+        write_fpcr(lo | (hi << 32));
+        dsp_finish(ctx);
+    }
+
 #define EXPORT2(function, export)           dsp::function = aarch64::export; TEST_EXPORT(aarch64::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
 
@@ -290,6 +312,17 @@ IF_ARCH_AARCH64(
     {
         cpu_features_t f;
         detect_cpu_features(&f);
+
+        if (f.hwcap & HWCAP_AARCH64_ASIMD)
+        {
+            // Save previous entry points
+            dsp_start                       = dsp::start;
+            dsp_finish                      = dsp::finish;
+
+            // Export routines
+            EXPORT1(start);
+            EXPORT1(finish);
+        }
 
         // Export functions
         EXPORT1(info);

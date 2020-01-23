@@ -61,8 +61,11 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
 
 #include <dsp/arch/aarch64/asimd/mix.h>
+#include <dsp/arch/aarch64/asimd/msmatrix.h>
 #include <dsp/arch/aarch64/asimd/search/minmax.h>
 #include <dsp/arch/aarch64/asimd/search/iminmax.h>
+#include <dsp/arch/aarch64/asimd/resampling.h>
+#include <dsp/arch/aarch64/asimd/convolution.h>
 
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
@@ -216,6 +219,13 @@ namespace asimd
         EXPORT1(mix_add3);
         EXPORT1(mix_add4);
 
+        EXPORT1(lr_to_ms);
+        EXPORT1(lr_to_mid);
+        EXPORT1(lr_to_side);
+        EXPORT1(ms_to_lr);
+        EXPORT1(ms_to_left);
+        EXPORT1(ms_to_right);
+
         EXPORT1(min)
         EXPORT1(max)
         EXPORT1(minmax)
@@ -268,6 +278,25 @@ namespace asimd
         EXPORT1(filter_transfer_apply_ri);
         EXPORT1(filter_transfer_calc_pc);
         EXPORT1(filter_transfer_apply_pc);
+
+        EXPORT1(lanczos_resample_2x2);
+        EXPORT1(lanczos_resample_2x3);
+        EXPORT1(lanczos_resample_3x2);
+        EXPORT1(lanczos_resample_3x3);
+        EXPORT1(lanczos_resample_4x2);
+        EXPORT1(lanczos_resample_4x3);
+        EXPORT1(lanczos_resample_6x2);
+        EXPORT1(lanczos_resample_6x3);
+        EXPORT1(lanczos_resample_8x2);
+        EXPORT1(lanczos_resample_8x3);
+
+        EXPORT1(downsample_2x);
+        EXPORT1(downsample_3x);
+        EXPORT1(downsample_4x);
+        EXPORT1(downsample_6x);
+        EXPORT1(downsample_8x);
+
+        EXPORT1(convolve);
     }
 }
 

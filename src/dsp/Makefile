@@ -14,10 +14,10 @@ ARM_IMPL                = $(OBJDIR)/arm.o
 AARCH64_IMPL            = $(OBJDIR)/aarch64.o
 ASIMD_IMPL              = $(OBJDIR)/asimd.o
 
-SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
-SSE2_INSTR_SET          = -mmmx -m3dnow -msse -msse2
-SSE3_INSTR_SET          = $(SSE_INSTR_SET) -msse3 -mssse3
-SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2
+SSE_INSTR_SET           = -mmmx -m3dnow -msse
+SSE2_INSTR_SET          = $(SSE_INSTR_SET) -msse2
+SSE3_INSTR_SET          = $(SSE2_INSTR_SET) -msse3 -mssse3
+SSE4_INSTR_SET          = $(SSE3_INSTR_SET) -msse4.1 -msse4.2
 AVX_INSTR_SET           = -mavx -mvzeroupper
 AVX2_INSTR_SET          = $(AVX_INSTR_SET) -mavx2
 NEON_D32_INSTR_SET      = -mfpu=neon-vfpv4

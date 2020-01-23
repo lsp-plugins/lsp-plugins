@@ -15,6 +15,7 @@
 * Implemented support of LV2 state:mapPath extension.
 * Removed strict requirement to build UI for LADSPA version of plugins.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
+- Add delay compensation feature between bands for spectrum analyzer plugin. 
 - Implemented Multiband gate plugin series.
 - Fixe problem with matched Z transform caused by filter characteristics optimizations.
 - Refactored and optimized dynamic filter processing.

@@ -324,8 +324,8 @@ IF_ARCH_ARM(
         // Export functions
         EXPORT1(info);
 
+        // Initialize support of NEON functions with D-32 registers
         neon_d32::dsp_init(&f);
-
     }
 }
 
