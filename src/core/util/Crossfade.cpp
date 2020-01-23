@@ -18,7 +18,7 @@ namespace lsp
         fDelta      = 0.0f;
         fGain       = 1.0f;
     }
-    
+
     Crossfade::~Crossfade()
     {
     }
@@ -56,7 +56,7 @@ namespace lsp
 
         if (fade_out == NULL)
         {
-            if (fade_in == 0)
+            if (fade_in == NULL)
             {
                 size_t delta    = (nCounter < count) ? nCounter : count;
                 nCounter       -= delta;
@@ -87,7 +87,7 @@ namespace lsp
         }
         else
         {
-            if (fade_in == 0)
+            if (fade_in == NULL)
             {
                 // Perform crossfade
                 while (nCounter > 0)
@@ -96,7 +96,7 @@ namespace lsp
                     fGain          += fDelta;
 
                     --nCounter;
-                    ++fade_in;
+                    ++fade_out;
                     ++dst;
                     if ((--count) <= 0)
                         return;
@@ -118,6 +118,7 @@ namespace lsp
 
                     --nCounter;
                     ++fade_in;
+                    ++fade_out;
                     ++dst;
                     if ((--count) <= 0)
                         return;
