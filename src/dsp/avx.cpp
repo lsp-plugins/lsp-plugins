@@ -46,6 +46,7 @@
 
 #include <dsp/arch/x86/avx/msmatrix.h>
 #include <dsp/arch/x86/avx/resampling.h>
+#include <dsp/arch/x86/avx/convolution.h>
 
 #undef DSP_ARCH_X86_AVX_IMPL
 
@@ -280,6 +281,8 @@ namespace avx
         CEXPORT1(favx, downsample_6x);
         CEXPORT1(favx, downsample_8x);
 
+        CEXPORT1(favx, convolve);
+
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)
         {
@@ -353,6 +356,8 @@ namespace avx
             CEXPORT2(favx, filter_transfer_apply_ri, filter_transfer_apply_ri_fma3);
             CEXPORT2(favx, filter_transfer_calc_pc, filter_transfer_calc_pc_fma3);
             CEXPORT2(favx, filter_transfer_apply_pc, filter_transfer_apply_pc_fma3);
+
+            CEXPORT2(favx, convolve, convolve_fma3);
 
             // Non-conditional export
             EXPORT2(biquad_process_x8, biquad_process_x8_fma3);

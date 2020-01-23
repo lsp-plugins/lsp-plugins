@@ -21,6 +21,12 @@ IF_ARCH_X86(
     {
         void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
     }
+
+    namespace avx
+    {
+        void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
+        void convolve_fma3(float *dst, const float *src, const float *conv, size_t length, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -102,6 +108,8 @@ PTEST_BEGIN("dsp", convolve, 5, 1000)
                 CALL((1 << j), (1 << i), test::convolve_sadd);
                 CALL((1 << j), (1 << i), native::convolve);
                 IF_ARCH_X86(CALL((1 << j), (1 << i), sse::convolve));
+                IF_ARCH_X86(CALL((1 << j), (1 << i), avx::convolve));
+                IF_ARCH_X86(CALL((1 << j), (1 << i), avx::convolve_fma3));
                 IF_ARCH_ARM(CALL((1 << j), (1 << i), neon_d32::convolve));
                 IF_ARCH_AARCH64(CALL((1 << j), (1 << i), asimd::convolve));
 
@@ -112,6 +120,8 @@ PTEST_BEGIN("dsp", convolve, 5, 1000)
         CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, test::convolve_sadd);
         CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, native::convolve);
         IF_ARCH_X86(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, sse::convolve));
+        IF_ARCH_X86(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, avx::convolve));
+        IF_ARCH_X86(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, avx::convolve_fma3));
         IF_ARCH_ARM(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, neon_d32::convolve));
         IF_ARCH_AARCH64(CALL((1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, asimd::convolve));
 
