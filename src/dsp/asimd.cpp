@@ -47,6 +47,7 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+#include <dsp/arch/aarch64/asimd/float.h>
 
 #include <dsp/arch/aarch64/asimd/pmath/op_kx.h>
 #include <dsp/arch/aarch64/asimd/pmath/op_vv.h>
@@ -97,6 +98,9 @@ namespace asimd
         EXPORT1(fill_minus_one);
         EXPORT1(reverse1);
         EXPORT1(reverse2);
+
+        EXPORT1(saturate);
+        EXPORT1(copy_saturated);
 
         EXPORT1(add_k2);
         EXPORT1(sub_k2);

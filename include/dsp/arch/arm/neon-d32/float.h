@@ -15,9 +15,10 @@
 namespace neon_d32
 {
 #define MULTIPLE_SATURATION_BODY(dst, src) \
-    __ASM_EMIT("vld1.32         {q8-q9}, [%[X_IARGS]]!")        /* q8 = +inf, q9 = -inf */ \
-    __ASM_EMIT("vld1.32         {q10-q11}, [%[X_IARGS]]!")      /* q10 = X_P_NAN, q11 = X_P_INF */ \
-    __ASM_EMIT("vld1.32         {q12-q13}, [%[X_IARGS]]")       /* q12 = X_N_NAN, q13 = X_N_INF */ \
+    __ASM_EMIT("vldm            [%[X_IARGS]], {q8-q13}") \
+    /* q8 = +inf, q9 = -inf */ \
+    /* q10 = X_P_NAN, q11 = X_P_INF */ \
+    /* q12 = X_N_NAN, q13 = X_N_INF */ \
     __ASM_EMIT("subs            %[count], $8") \
     __ASM_EMIT("blo             2f") \
     \
@@ -120,15 +121,11 @@ namespace neon_d32
 
     void copy_saturated(float *dst, const float *src, size_t count)
     {
-        IF_ARCH_ARM(const uint32_t *X_IARGS = &SAT_IARGS[4]);
-
-        ARCH_ARM_ASM
-        (
+        ARCH_ARM_ASM (
             MULTIPLE_SATURATION_BODY("dst", "src")
             : [dst] "+r" (dst), [src] "+r" (src),
-              [count] "+r" (count),
-              [X_IARGS] "+r" (X_IARGS)
-            :
+              [count] "+r" (count)
+            : [X_IARGS] "r" (&SAT_IARGS[4])
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13"
@@ -138,17 +135,14 @@ namespace neon_d32
     void saturate(float *dst, size_t count)
     {
         IF_ARCH_ARM(
-            const uint32_t *X_IARGS = &SAT_IARGS[4];
             const float *src = dst;
         )
 
-        ARCH_ARM_ASM
-        (
+        ARCH_ARM_ASM(
             MULTIPLE_SATURATION_BODY("dst", "src")
             : [dst] "+r" (dst), [src] "+r" (src),
-              [count] "+r" (count),
-              [X_IARGS] "+r" (X_IARGS)
-            :
+              [count] "+r" (count)
+            : [X_IARGS] "r" (&SAT_IARGS[4])
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13"

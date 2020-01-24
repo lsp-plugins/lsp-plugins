@@ -1,0 +1,120 @@
+/*
+ * float.h
+ *
+ *  Created on: 24 янв. 2020 г.
+ *      Author: sadko
+ */
+
+#ifndef DSP_ARCH_AARCH64_ASIMD_FLOAT_H_
+#define DSP_ARCH_AARCH64_ASIMD_FLOAT_H_
+
+#ifndef DSP_ARCH_AARCH64_ASIMD_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_AARCH64_ASIMD_IMPL */
+
+namespace asimd
+{
+    #define SEL_DST(a, b)       a
+    #define SEL_NODST(a, b)     b
+
+    #define MULTIPLE_SAT_BODY(DST, SRC, SEL) \
+        __ASM_EMIT("ldp             q16, q17, [%[IARGS], #0x00]")       /* v16 = +inf, v17 = -inf */ \
+        __ASM_EMIT("ldp             q18, q19, [%[IARGS], #0x20]")       /* v18 = X_P_NAN, v19 = X_P_INF */ \
+        __ASM_EMIT("ldp             q20, q21, [%[IARGS], #0x40]")       /* v20 = X_N_NAN, v21 = X_N_INF */ \
+        /* x8 blocks */ \
+        __ASM_EMIT("subs            %[count], %[count], #8") \
+        __ASM_EMIT("b.lo             2f") \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("ldp             q0, q1, [%[" SRC "]]")              /* v0   = s0..s3, v1 = s4..s7 */ \
+        __ASM_EMIT("cmgt            v2.4s, v0.4s, v16.4s")              /* v2   = [s > +inf] */ \
+        __ASM_EMIT("cmgt            v3.4s, v1.4s, v16.4s") \
+        __ASM_EMIT("cmeq            v4.4s, v0.4s, v16.4s")              /* v4   = [s == +inf] */ \
+        __ASM_EMIT("cmeq            v5.4s, v1.4s, v16.4s") \
+        __ASM_EMIT("bit             v0.16b, v18.16b, v2.16b")           /* v0   = s' = X_P_NAN * [s > +inf] | s * [s <= +inf] */ \
+        __ASM_EMIT("bit             v1.16b, v18.16b, v3.16b") \
+        __ASM_EMIT("bit             v0.16b, v19.16b, v4.16b")           /* v0   = X_P_INF * [s == +inf] | s' * [s != +inf] */ \
+        __ASM_EMIT("bit             v1.16b, v19.16b, v5.16b") \
+        __ASM_EMIT("cmhi            v2.4s, v0.4s, v17.4s")              /* v2   = [s > -inf] */ \
+        __ASM_EMIT("cmhi            v3.4s, v1.4s, v17.4s") \
+        __ASM_EMIT("cmeq            v4.4s, v0.4s, v17.4s")              /* v4   = [s == -inf] */ \
+        __ASM_EMIT("cmeq            v5.4s, v1.4s, v17.4s") \
+        __ASM_EMIT("bit             v0.16b, v20.16b, v2.16b")           /* v0   = s' = X_N_NAN * [s > -inf] | s * [s <= -inf] */ \
+        __ASM_EMIT("bit             v1.16b, v20.16b, v3.16b") \
+        __ASM_EMIT("bit             v0.16b, v21.16b, v4.16b")           /* v0   = X_N_INF * [s == +inf] | s' * [s != +inf] */ \
+        __ASM_EMIT("bit             v1.16b, v21.16b, v5.16b") \
+        __ASM_EMIT("stp             q0, q1, [%[" DST "]]") \
+        __ASM_EMIT("subs            %[count], %[count], #8") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x20") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x20", "")) \
+        __ASM_EMIT("b.hs            1b") \
+        /* x4 block */ \
+        __ASM_EMIT("2:") \
+        __ASM_EMIT("adds            %[count], %[count], #4") \
+        __ASM_EMIT("b.lt            4f") \
+        __ASM_EMIT("ldr             q0, [%[" SRC "]]")                  /* v0   = s0..s3 */ \
+        __ASM_EMIT("cmgt            v2.4s, v0.4s, v16.4s")              /* v2   = [s > +inf] */ \
+        __ASM_EMIT("cmeq            v4.4s, v0.4s, v16.4s")              /* v4   = [s == +inf] */ \
+        __ASM_EMIT("bit             v0.16b, v18.16b, v2.16b")           /* v0   = s' = X_P_NAN * [s > +inf] | s * [s <= +inf] */ \
+        __ASM_EMIT("bit             v0.16b, v19.16b, v4.16b")           /* v0   = X_P_INF * [s == +inf] | s' * [s != +inf] */ \
+        __ASM_EMIT("cmhi            v2.4s, v0.4s, v17.4s")              /* v2   = [s > -inf] */ \
+        __ASM_EMIT("cmeq            v4.4s, v0.4s, v17.4s")              /* v4   = [s == -inf] */ \
+        __ASM_EMIT("bit             v0.16b, v20.16b, v2.16b")           /* v0   = s' = X_N_NAN * [s > -inf] | s * [s <= -inf] */ \
+        __ASM_EMIT("bit             v0.16b, v21.16b, v4.16b")           /* v0   = X_N_INF * [s == +inf] | s' * [s != +inf] */ \
+        __ASM_EMIT("str             q0, [%[" DST "]]") \
+        __ASM_EMIT("sub             %[count], %[count], #4") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x10") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x10", "")) \
+        __ASM_EMIT("4:") \
+        /* x1 blocks */ \
+        __ASM_EMIT("adds            %[count], %[count], #3") \
+        __ASM_EMIT("b.lt            6f") \
+        __ASM_EMIT("5:") \
+        __ASM_EMIT("ld1r            {v0.4s}, [%[" SRC "]]")             /* v0   = s */ \
+        __ASM_EMIT("cmgt            v2.4s, v0.4s, v16.4s")              /* v2   = [s > +inf] */ \
+        __ASM_EMIT("cmeq            v4.4s, v0.4s, v16.4s")              /* v4   = [s == +inf] */ \
+        __ASM_EMIT("bit             v0.16b, v18.16b, v2.16b")           /* v0   = s' = X_P_NAN * [s > +inf] | s * [s <= +inf] */ \
+        __ASM_EMIT("bit             v0.16b, v19.16b, v4.16b")           /* v0   = X_P_INF * [s == +inf] | s' * [s != +inf] */ \
+        __ASM_EMIT("cmhi            v2.4s, v0.4s, v17.4s")              /* v2   = [s > -inf] */ \
+        __ASM_EMIT("cmeq            v4.4s, v0.4s, v17.4s")              /* v4   = [s == -inf] */ \
+        __ASM_EMIT("bit             v0.16b, v20.16b, v2.16b")           /* v0   = s' = X_N_NAN * [s > -inf] | s * [s <= -inf] */ \
+        __ASM_EMIT("bit             v0.16b, v21.16b, v4.16b")           /* v0   = X_N_INF * [s == +inf] | s' * [s != +inf] */ \
+        __ASM_EMIT("st1             {v0.s}[0], [%[" DST "]]") \
+        __ASM_EMIT("subs            %[count], %[count], #1") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x04") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x04", "")) \
+        __ASM_EMIT("b.ge            5b") \
+        __ASM_EMIT("6:")
+
+    void copy_saturated(float *dst, const float *src, size_t count)
+    {
+        ARCH_AARCH64_ASM (
+                MULTIPLE_SAT_BODY("dst", "src", SEL_DST)
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [IARGS] "r" (&SAT_IARGS[4])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5",
+              "q16", "q17", "q18", "q19",
+              "q20", "q21"
+        );
+    }
+
+    void saturate(float *dst, size_t count)
+    {
+        ARCH_AARCH64_ASM(
+                MULTIPLE_SAT_BODY("dst", "dst", SEL_NODST)
+            : [dst] "+r" (dst), [count] "+r" (count)
+            : [IARGS] "r" (&SAT_IARGS[4])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5",
+              "q16", "q17", "q18", "q19",
+              "q20", "q21"
+        );
+    }
+
+    #undef MULTIPLE_SAT_BODY
+}
+
+#endif /* DSP_ARCH_AARCH64_ASIMD_FLOAT_H_ */
