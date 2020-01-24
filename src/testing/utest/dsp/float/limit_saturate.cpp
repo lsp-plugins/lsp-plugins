@@ -31,6 +31,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void limit_saturate1(float *dst, size_t count);
+        void limit_saturate2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* limit_saturate1_t)(float *dst, size_t count);
 typedef void (* limit_saturate2_t)(float *dst, const float *src, size_t count);
 
@@ -128,6 +136,7 @@ UTEST_BEGIN("dsp.float", limit_saturate)
                 FloatBuffer dst1(count, align, mask & 0x02);
                 init_buf(dst1);
                 FloatBuffer dst2(dst1);
+                FloatBuffer src(dst1);
 
                 // Call functions
                 native::limit_saturate1(dst1, count);
@@ -139,6 +148,7 @@ UTEST_BEGIN("dsp.float", limit_saturate)
                 // Compare buffers
                 if (!dst1.equals_relative(dst2, 1e-5))
                 {
+                    dst1.dump("src ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
@@ -149,11 +159,17 @@ UTEST_BEGIN("dsp.float", limit_saturate)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse2::limit_saturate1", 16, sse2::limit_saturate1));
-        IF_ARCH_ARM(call("neon_d32::limit_saturate1", 16, neon_d32::limit_saturate1));
+        #define CALL(func, align) \
+            call(#func, align, func)
 
-        IF_ARCH_X86(call("sse2::limit_saturate2", 16, sse2::limit_saturate2));
-        IF_ARCH_ARM(call("neon_d32::limit_saturate2", 16, neon_d32::limit_saturate2));
+        IF_ARCH_X86(CALL(sse2::limit_saturate1, 16));
+        IF_ARCH_X86(CALL(sse2::limit_saturate2, 16));
+
+        IF_ARCH_ARM(CALL(neon_d32::limit_saturate1, 16));
+        IF_ARCH_ARM(CALL(neon_d32::limit_saturate2, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::limit_saturate1, 16));
+        IF_ARCH_AARCH64(CALL(asimd::limit_saturate2, 16));
     }
 
 UTEST_END;
