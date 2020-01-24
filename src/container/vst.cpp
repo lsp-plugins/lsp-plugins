@@ -528,9 +528,13 @@ namespace lsp
             case effVendorSpecific:
             case effProcessVarIo:
             case effSetSpeakerArrangement:
-            case effSetBypass:
             case effGetTailSize:
                 break;
+
+            case effSetBypass:
+                w->set_bypass(v);
+                break;
+
             case effCanDo:
             {
                 const char *text    = reinterpret_cast<const char *>(ptr);
@@ -545,6 +549,8 @@ namespace lsp
                         v = 1;
                     else if (!strcmp(text, "sendVstMidiEvent"))
                         v = 1;
+                    else if (!strcmp(text, "bypass"))
+                        v = w->has_bypass();
                 }
                 break;
             }

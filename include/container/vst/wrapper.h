@@ -124,6 +124,9 @@ namespace lsp
             void resize_ui(const realize_t *r);
             ERect *get_ui_rect();
 
+            inline bool has_bypass() const { return false; } // TODO
+            inline void set_bypass(bool bypass) {} // TODO
+
             virtual ipc::IExecutor *get_executor()
             {
                 lsp_trace("executor = %p", reinterpret_cast<void *>(pExecutor));
