@@ -177,7 +177,7 @@ namespace asimd
         __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x04") \
         __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x04", "")) \
         __ASM_EMIT("b.ge            5b") \
-        __ASM_EMIT("6:") \
+        __ASM_EMIT("6:")
 
         #define U4VEC(x)        x, x, x, x
         IF_ARCH_AARCH64(
@@ -217,6 +217,116 @@ namespace asimd
                   "q16", "q17", "q18", "q19"
             );
         }
+
+    #undef LIMIT_SAT_BODY
+
+    #define LIMIT_BODY(DST, SRC, SEL) \
+        __ASM_EMIT("dup             v16.4s, %S[min].s[0]")          /* v16  = min */ \
+        __ASM_EMIT("dup             v17.4s, %S[max].s[0]")          /* v17  = max */ \
+        /* x16 blocks */ \
+        __ASM_EMIT("subs            %[count], %[count], #16") \
+        __ASM_EMIT("b.lo            2f") \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("ldp             q0, q1, [%[" SRC "], #0x00]")   /* v0 = s0, v1 = s1 */ \
+        __ASM_EMIT("ldp             q2, q3, [%[" SRC "], #0x20]")   /* v0 = s0, v1 = s1 */ \
+        __ASM_EMIT("fcmge           v4.4s, v0.4s, v16.4s")          /* v4 = c = [ (s >= min) && (!isnan(s)) ] */ \
+        __ASM_EMIT("fcmge           v5.4s, v1.4s, v16.4s") \
+        __ASM_EMIT("fcmge           v6.4s, v2.4s, v16.4s") \
+        __ASM_EMIT("fcmge           v7.4s, v3.4s, v16.4s") \
+        __ASM_EMIT("bif             v0.16b, v16.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("bif             v1.16b, v16.16b, v5.16b") \
+        __ASM_EMIT("bif             v2.16b, v16.16b, v6.16b") \
+        __ASM_EMIT("bif             v3.16b, v16.16b, v7.16b") \
+        __ASM_EMIT("fcmge           v4.4s, v17.4s, v0.4s")          /* v4 = c = [ (s <= max) && (!isnan(s)) ] */ \
+        __ASM_EMIT("fcmge           v5.4s, v17.4s, v1.4s") \
+        __ASM_EMIT("fcmge           v6.4s, v17.4s, v2.4s") \
+        __ASM_EMIT("fcmge           v7.4s, v17.4s, v3.4s") \
+        __ASM_EMIT("bif             v0.16b, v17.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("bif             v1.16b, v17.16b, v5.16b") \
+        __ASM_EMIT("bif             v2.16b, v17.16b, v6.16b") \
+        __ASM_EMIT("bif             v3.16b, v17.16b, v7.16b") \
+        __ASM_EMIT("stp             q0, q1, [%[" DST "], #0x00]") \
+        __ASM_EMIT("stp             q2, q3, [%[" DST "], #0x20]") \
+        __ASM_EMIT("subs            %[count], %[count], #16") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x40") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x40", "")) \
+        __ASM_EMIT("b.hs            1b") \
+        __ASM_EMIT("2:") \
+        /* x8 block */ \
+        __ASM_EMIT("adds            %[count], %[count], #8") \
+        __ASM_EMIT("b.lt            4f") \
+        __ASM_EMIT("ldp             q0, q1, [%[" SRC "], #0x00]")   /* v0 = s0, v1 = s1 */ \
+        __ASM_EMIT("fcmge           v4.4s, v0.4s, v16.4s")          /* v4 = c = [ (s >= min) && (!isnan(s)) ] */ \
+        __ASM_EMIT("fcmge           v5.4s, v1.4s, v16.4s") \
+        __ASM_EMIT("bif             v0.16b, v16.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("bif             v1.16b, v16.16b, v5.16b") \
+        __ASM_EMIT("fcmge           v4.4s, v17.4s, v0.4s")          /* v4 = c = [ (s <= max) && (!isnan(s)) ] */ \
+        __ASM_EMIT("fcmge           v5.4s, v17.4s, v1.4s") \
+        __ASM_EMIT("bif             v0.16b, v17.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("bif             v1.16b, v17.16b, v5.16b") \
+        __ASM_EMIT("stp             q0, q1, [%[" DST "], #0x00]") \
+        __ASM_EMIT("sub             %[count], %[count], #8") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x20") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x20", "")) \
+        __ASM_EMIT("4:") \
+        /* x4 block */ \
+        __ASM_EMIT("adds            %[count], %[count], #4") \
+        __ASM_EMIT("b.lt            6f") \
+        __ASM_EMIT("ldr             q0, [%[" SRC "]]")              /* v0 = s0 */ \
+        __ASM_EMIT("fcmge           v4.4s, v0.4s, v16.4s")          /* v4 = c = [ (s >= min) && (!isnan(s)) ] */ \
+        __ASM_EMIT("bif             v0.16b, v16.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("fcmge           v4.4s, v17.4s, v0.4s")          /* v4 = c = [ (s <= max) && (!isnan(s)) ] */ \
+        __ASM_EMIT("bif             v0.16b, v17.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("str             q0, [%[" DST "]]") \
+        __ASM_EMIT("sub             %[count], %[count], #4") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x10") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x10", "")) \
+        __ASM_EMIT("6:") \
+        /* 1x blocks */ \
+        __ASM_EMIT("adds            %[count], %[count], #3") \
+        __ASM_EMIT("b.lt            8f") \
+        __ASM_EMIT("7:") \
+        __ASM_EMIT("ld1r            {v0.4s}, [%[" SRC "]]")         /* v0 = s0 */ \
+        __ASM_EMIT("fcmge           v4.4s, v0.4s, v16.4s")          /* v4 = c = [ (s >= min) && (!isnan(s)) ] */ \
+        __ASM_EMIT("bif             v0.16b, v16.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("fcmge           v4.4s, v17.4s, v0.4s")          /* v4 = c = [ (s <= max) && (!isnan(s)) ] */ \
+        __ASM_EMIT("bif             v0.16b, v17.16b, v4.16b")       /* v0 = s*c | min*(!c) */ \
+        __ASM_EMIT("st1             {v0.s}[0], [%[" DST "]]") \
+        __ASM_EMIT("subs            %[count], %[count], #1") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x04") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x04", "")) \
+        __ASM_EMIT("b.ge            7b") \
+        __ASM_EMIT("8:")
+
+    void limit1(float *dst, float min, float max, size_t count)
+    {
+        ARCH_AARCH64_ASM(
+            LIMIT_BODY("dst", "dst", SEL_NODST)
+            : [dst] "+r" (dst), [count] "+r" (count),
+              [min] "+w" (min), [max] "+w" (max)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17"
+        );
+    }
+
+    void limit2(float *dst, const float *src, float min, float max, size_t count)
+    {
+        ARCH_AARCH64_ASM(
+            LIMIT_BODY("dst", "src", SEL_DST)
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
+              [min] "+w" (min), [max] "+w" (max)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17"
+        );
+    }
+
+    #undef LIMIT_BODY
 
     #undef SEL_DST
     #undef SEL_NODST

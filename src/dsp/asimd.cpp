@@ -103,6 +103,8 @@ namespace asimd
         EXPORT1(copy_saturated);
         EXPORT1(limit_saturate1);
         EXPORT1(limit_saturate2);
+        EXPORT1(limit1);
+        EXPORT1(limit2);
 
         EXPORT1(add_k2);
         EXPORT1(sub_k2);

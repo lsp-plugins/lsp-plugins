@@ -34,6 +34,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void limit1(float *dst, float min, float max, size_t count);
+        void limit2(float *dst, const float *src, float min, float max, size_t count);
+    }
+)
+
 typedef void (* limit1_t)(float *dst, float min, float max, size_t count);
 typedef void (* limit2_t)(float *dst, const float *src, float min, float max, size_t count);
 
@@ -91,20 +99,24 @@ PTEST_BEGIN("dsp.float", limit, 5, 10000)
             }
         }
 
+        #define CALL(func) \
+            call(#func, dst, src, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native::limit1", dst, src, count, native::limit1);
-            call("native::limit2", dst, src, count, native::limit2);
-
-            IF_ARCH_X86(call("sse2::limit1", dst, src, count, sse2::limit1));
-            IF_ARCH_X86(call("sse2::limit2", dst, src, count, sse2::limit2));
-
-            IF_ARCH_ARM(call("neon_d32::limit1", dst, src, count, neon_d32::limit1));
-            IF_ARCH_ARM(call("neon_d32::limit2", dst, src, count, neon_d32::limit2));
-
+            CALL(native::limit1);
+            IF_ARCH_X86(CALL(sse2::limit1));
+            IF_ARCH_ARM(CALL(neon_d32::limit1));
+            IF_ARCH_AARCH64(CALL(asimd::limit1));
             PTEST_SEPARATOR;
+
+            CALL(native::limit2);
+            IF_ARCH_X86(CALL(sse2::limit2));
+            IF_ARCH_ARM(CALL(neon_d32::limit2));
+            IF_ARCH_AARCH64(CALL(asimd::limit2));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

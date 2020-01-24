@@ -78,18 +78,6 @@ namespace native
         }
     }
 
-    void avoid_denormals(float *dst, const float *src, size_t count)
-    {
-        const uint32_t *si  = reinterpret_cast<const uint32_t *>(src);
-        uint32_t *di        = reinterpret_cast<uint32_t *>(dst);
-
-        while (count--)
-        {
-            uint32_t s          = *(si++);
-            *(di++)             = ((s & 0x80000000) < 0x00800000) ? 0 : s;
-        }
-    }
-
     void limit1(float *dst, float min, float max, size_t count)
     {
         while (count--)

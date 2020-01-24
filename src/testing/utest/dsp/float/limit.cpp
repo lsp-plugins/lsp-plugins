@@ -31,6 +31,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void limit1(float *dst, float min, float max, size_t count);
+        void limit2(float *dst, const float *src, float min, float max, size_t count);
+    }
+)
+
 typedef void (* limit1_t)(float *dst, float min, float max, size_t count);
 typedef void (* limit2_t)(float *dst, const float *src, float min, float max, size_t count);
 
@@ -149,11 +157,17 @@ UTEST_BEGIN("dsp.float", limit)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse2::limit1", 16, sse2::limit1));
-        IF_ARCH_ARM(call("neon_d32::limit1", 16, neon_d32::limit1));
+        #define CALL(func, align) \
+            call(#func, align, func)
 
-        IF_ARCH_X86(call("sse2::limit2", 16, sse2::limit2));
-        IF_ARCH_ARM(call("neon_d32::limit2", 16, neon_d32::limit2));
+        IF_ARCH_X86(CALL(sse2::limit1, 16));
+        IF_ARCH_X86(CALL(sse2::limit2, 16));
+
+        IF_ARCH_ARM(CALL(neon_d32::limit1, 16));
+        IF_ARCH_ARM(CALL(neon_d32::limit2, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::limit1, 16));
+        IF_ARCH_AARCH64(CALL(asimd::limit2, 16));
     }
 
 UTEST_END;
