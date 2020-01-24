@@ -20,6 +20,7 @@
 #include <dsp/arch/x86/avx/const.h>
 
 #include <dsp/arch/x86/avx/copy.h>
+#include <dsp/arch/x86/avx/float.h>
 #include <dsp/arch/x86/avx/complex.h>
 #include <dsp/arch/x86/avx/pcomplex.h>
 
@@ -106,6 +107,9 @@ namespace avx
 
         CEXPORT2_X64(favx, reverse1, reverse1);
         CEXPORT2_X64(favx, reverse2, reverse2);
+
+        CEXPORT1(favx, limit1);
+        CEXPORT1(favx, limit2);
 
         // Conditional export, depending on fast AVX implementation
         CEXPORT1(favx, add_k2);

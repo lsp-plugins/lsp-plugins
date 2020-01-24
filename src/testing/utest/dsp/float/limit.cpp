@@ -21,6 +21,12 @@ IF_ARCH_X86(
         void limit1(float *dst, float min, float max, size_t count);
         void limit2(float *dst, const float *src, float min, float max, size_t count);
     }
+
+    namespace avx
+    {
+        void limit1(float *dst, float min, float max, size_t count);
+        void limit2(float *dst, const float *src, float min, float max, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -136,6 +142,7 @@ UTEST_BEGIN("dsp.float", limit)
                 FloatBuffer dst1(count, align, mask & 0x02);
                 init_buf(dst1);
                 FloatBuffer dst2(dst1);
+                FloatBuffer src(dst1);
 
                 // Call functions
                 native::limit1(dst1, -1.0f, 1.0f, count);
@@ -147,6 +154,7 @@ UTEST_BEGIN("dsp.float", limit)
                 // Compare buffers
                 if (!dst1.equals_relative(dst2, 1e-5))
                 {
+                    src.dump("src ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
@@ -162,6 +170,9 @@ UTEST_BEGIN("dsp.float", limit)
 
         IF_ARCH_X86(CALL(sse2::limit1, 16));
         IF_ARCH_X86(CALL(sse2::limit2, 16));
+
+        IF_ARCH_X86(CALL(avx::limit1, 32));
+        IF_ARCH_X86(CALL(avx::limit2, 32));
 
         IF_ARCH_ARM(CALL(neon_d32::limit1, 16));
         IF_ARCH_ARM(CALL(neon_d32::limit2, 16));

@@ -24,6 +24,12 @@ IF_ARCH_X86(
         void limit1(float *dst, float min, float max, size_t count);
         void limit2(float *dst, const float *src, float min, float max, size_t count);
     }
+
+    namespace avx
+    {
+        void limit1(float *dst, float min, float max, size_t count);
+        void limit2(float *dst, const float *src, float min, float max, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -108,12 +114,14 @@ PTEST_BEGIN("dsp.float", limit, 5, 10000)
 
             CALL(native::limit1);
             IF_ARCH_X86(CALL(sse2::limit1));
+            IF_ARCH_X86(CALL(avx::limit1));
             IF_ARCH_ARM(CALL(neon_d32::limit1));
             IF_ARCH_AARCH64(CALL(asimd::limit1));
             PTEST_SEPARATOR;
 
             CALL(native::limit2);
             IF_ARCH_X86(CALL(sse2::limit2));
+            IF_ARCH_X86(CALL(avx::limit2));
             IF_ARCH_ARM(CALL(neon_d32::limit2));
             IF_ARCH_AARCH64(CALL(asimd::limit2));
             PTEST_SEPARATOR2;
