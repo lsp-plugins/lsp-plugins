@@ -26,8 +26,8 @@ namespace avx2
         __ASM_EMIT("vandps              0x20 + %[XC], %%ymm0, %%ymm6")          /* ymm6 = abs(s) */ \
         __ASM_EMIT("vmovaps             %%ymm2, %%ymm3") \
         __ASM_EMIT("vandps              0x20 + %[XC], %%ymm1, %%ymm7") \
-        __ASM_EMIT("vcmpps              $5, %%ymm6, %%ymm2, %%ymm2")            /* ymm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
-        __ASM_EMIT("vcmpps              $5, %%ymm7, %%ymm3, %%ymm3") \
+        __ASM_EMIT("vcmpps              $2, %%ymm2, %%ymm6, %%ymm2")            /* ymm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
+        __ASM_EMIT("vcmpps              $2, %%ymm3, %%ymm7, %%ymm3") \
         __ASM_EMIT("vandps              0x40 + %[XC], %%ymm0, %%ymm4")          /* ymm4 = sign(s) */ \
         __ASM_EMIT("vandps              0x40 + %[XC], %%ymm1, %%ymm5") \
         __ASM_EMIT("vpcmpgtd            0x60 + %[XC], %%ymm6, %%ymm6")          /* ymm6 = [ abs(s) > +Inf ] */ \
@@ -36,8 +36,8 @@ namespace avx2
         __ASM_EMIT("vorps               0x00 + %[XC], %%ymm5, %%ymm5") \
         __ASM_EMIT("vandnps             %%ymm4, %%ymm6, %%ymm4")                /* ymm4 = r = +1 * sign(s) & [ abs(s) <= +Inf ] */ \
         __ASM_EMIT("vandnps             %%ymm5, %%ymm7, %%ymm5") \
-        __ASM_EMIT("vblendvps           %%ymm2, %%ymm4, %%ymm0, %%ymm0")        /* ymm0 = (s & c) | (r & !c) */ \
-        __ASM_EMIT("vblendvps           %%ymm3, %%ymm5, %%ymm1, %%ymm1") \
+        __ASM_EMIT("vblendvps           %%ymm2, %%ymm0, %%ymm4, %%ymm0")        /* ymm0 = (s & c) | (r & !c) */ \
+        __ASM_EMIT("vblendvps           %%ymm3, %%ymm1, %%ymm5, %%ymm1") \
         __ASM_EMIT("vmovups             %%ymm0, 0x00(%[" DST "], %[off])") \
         __ASM_EMIT("vmovups             %%ymm1, 0x20(%[" DST "], %[off])") \
         __ASM_EMIT("add                 $0x40, %[off]") \
@@ -53,8 +53,8 @@ namespace avx2
         __ASM_EMIT("vandps              0x20 + %[XC], %%xmm0, %%xmm6")          /* xmm6 = abs(s) */ \
         __ASM_EMIT("vmovaps             %%xmm2, %%xmm3") \
         __ASM_EMIT("vandps              0x20 + %[XC], %%xmm1, %%xmm7") \
-        __ASM_EMIT("vcmpps              $5, %%xmm6, %%xmm2, %%xmm2")            /* xmm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
-        __ASM_EMIT("vcmpps              $5, %%xmm7, %%xmm3, %%xmm3") \
+        __ASM_EMIT("vcmpps              $2, %%xmm2, %%xmm6, %%xmm2")            /* xmm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
+        __ASM_EMIT("vcmpps              $2, %%xmm3, %%xmm7, %%xmm3") \
         __ASM_EMIT("vandps              0x40 + %[XC], %%xmm0, %%xmm4")          /* xmm4 = sign(s) */ \
         __ASM_EMIT("vandps              0x40 + %[XC], %%xmm1, %%xmm5") \
         __ASM_EMIT("vpcmpgtd            0x60 + %[XC], %%xmm6, %%xmm6")          /* xmm6 = [ abs(s) > +Inf ] */ \
@@ -63,8 +63,8 @@ namespace avx2
         __ASM_EMIT("vorps               0x00 + %[XC], %%xmm5, %%xmm5") \
         __ASM_EMIT("vandnps             %%xmm4, %%xmm6, %%xmm4")                /* xmm4 = r = +1 * sign(s) & [ abs(s) <= +Inf ] */ \
         __ASM_EMIT("vandnps             %%xmm5, %%xmm7, %%xmm5") \
-        __ASM_EMIT("vblendvps           %%xmm2, %%xmm4, %%xmm0, %%xmm0")        /* xmm0 = (s & c) | (r & !c) */ \
-        __ASM_EMIT("vblendvps           %%xmm3, %%xmm5, %%xmm1, %%xmm1") \
+        __ASM_EMIT("vblendvps           %%xmm2, %%xmm0, %%xmm4, %%xmm0")        /* xmm0 = (s & c) | (r & !c) */ \
+        __ASM_EMIT("vblendvps           %%xmm3, %%xmm1, %%xmm5, %%xmm1") \
         __ASM_EMIT("vmovups             %%xmm0, 0x00(%[" DST "], %[off])") \
         __ASM_EMIT("vmovups             %%xmm1, 0x10(%[" DST "], %[off])") \
         __ASM_EMIT("sub                 $8, %[count]") \
@@ -76,12 +76,12 @@ namespace avx2
         __ASM_EMIT("vmovups             0x00(%[" SRC "], %[off]), %%xmm0")      /* xmm0 = s */ \
         __ASM_EMIT("vmovaps             0x00 + %[XC], %%xmm2")                  /* xmm2 = +1 */ \
         __ASM_EMIT("vandps              0x20 + %[XC], %%xmm0, %%xmm6")          /* xmm6 = abs(s) */ \
-        __ASM_EMIT("vcmpps              $5, %%xmm6, %%xmm2, %%xmm2")            /* xmm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
+        __ASM_EMIT("vcmpps              $2, %%xmm2, %%xmm6, %%xmm2")            /* xmm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
         __ASM_EMIT("vandps              0x40 + %[XC], %%xmm0, %%xmm4")          /* xmm4 = sign(s) */ \
         __ASM_EMIT("vpcmpgtd            0x60 + %[XC], %%xmm6, %%xmm6")          /* xmm6 = [ abs(s) > +Inf ] */ \
         __ASM_EMIT("vorps               0x00 + %[XC], %%xmm4, %%xmm4")          /* xmm4 = +1 * sign(s) */ \
         __ASM_EMIT("vandnps             %%xmm4, %%xmm6, %%xmm4")                /* xmm4 = r = +1 * sign(s) & [ abs(s) <= +Inf ] */ \
-        __ASM_EMIT("vblendvps           %%xmm2, %%xmm4, %%xmm0, %%xmm0")        /* xmm0 = (s & c) | (r & !c) */ \
+        __ASM_EMIT("vblendvps           %%xmm2, %%xmm0, %%xmm4, %%xmm0")        /* xmm0 = (s & c) | (r & !c) */ \
         __ASM_EMIT("vmovups             %%xmm0, 0x00(%[" DST "], %[off])") \
         __ASM_EMIT("sub                 $4, %[count]") \
         __ASM_EMIT("add                 $0x10, %[off]") \
@@ -93,12 +93,12 @@ namespace avx2
         __ASM_EMIT("vmovss              0x00(%[" SRC "], %[off]), %%xmm0")      /* xmm0 = s */ \
         __ASM_EMIT("vmovaps             0x00 + %[XC], %%xmm2")                  /* xmm2 = +1 */ \
         __ASM_EMIT("vandps              0x20 + %[XC], %%xmm0, %%xmm6")          /* xmm6 = abs(s) */ \
-        __ASM_EMIT("vcmpps              $5, %%xmm6, %%xmm2, %%xmm2")            /* xmm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
+        __ASM_EMIT("vcmpps              $2, %%xmm2, %%xmm6, %%xmm2")            /* xmm2 = c = [ (abs(s) <= +1) & !isnan(s) ] */ \
         __ASM_EMIT("vandps              0x40 + %[XC], %%xmm0, %%xmm4")          /* xmm4 = sign(s) */ \
         __ASM_EMIT("vpcmpgtd            0x60 + %[XC], %%xmm6, %%xmm6")          /* xmm6 = [ abs(s) > +Inf ] */ \
         __ASM_EMIT("vorps               0x00 + %[XC], %%xmm4, %%xmm4")          /* xmm4 = +1 * sign(s) */ \
         __ASM_EMIT("vandnps             %%xmm4, %%xmm6, %%xmm4")                /* xmm4 = r = +1 * sign(s) & [ abs(s) <= +Inf ] */ \
-        __ASM_EMIT("vblendvps           %%xmm2, %%xmm4, %%xmm0, %%xmm0")        /* xmm0 = (s & c) | (r & !c) */ \
+        __ASM_EMIT("vblendvps           %%xmm2, %%xmm0, %%xmm4, %%xmm0")        /* xmm0 = (s & c) | (r & !c) */ \
         __ASM_EMIT("vmovss              %%xmm0, 0x00(%[" DST "], %[off])") \
         __ASM_EMIT("add                 $0x04, %[off]") \
         __ASM_EMIT("dec                 %[count]") \

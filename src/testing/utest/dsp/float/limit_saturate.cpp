@@ -118,7 +118,6 @@ UTEST_BEGIN("dsp.float", limit_saturate)
                 if (!dst1.equals_relative(dst2, 1e-5))
                 {
                     src.dump("src ");
-                    src.dump_hex("srch");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
@@ -154,7 +153,7 @@ UTEST_BEGIN("dsp.float", limit_saturate)
                 // Compare buffers
                 if (!dst1.equals_relative(dst2, 1e-5))
                 {
-                    dst1.dump("src ");
+                    src.dump("src ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
