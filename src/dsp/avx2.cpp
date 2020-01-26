@@ -81,6 +81,8 @@ namespace avx2
 
         CEXPORT1(favx, limit_saturate1);
         CEXPORT1(favx, limit_saturate2);
+        CEXPORT1(favx, copy_saturated);
+        CEXPORT1(favx, saturate);
 
         CEXPORT1(favx, add_k2);
         CEXPORT1(favx, sub_k2);

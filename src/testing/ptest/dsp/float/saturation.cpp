@@ -33,6 +33,12 @@ IF_ARCH_X86(
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
     }
+
+    namespace avx2
+    {
+        void copy_saturated(float *dst, const float *src, size_t count);
+        void saturate(float *dst, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -119,6 +125,7 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
             IF_ARCH_X86(CALL(x86::saturate));
             IF_ARCH_X86(CALL(x86::saturate_cmov));
             IF_ARCH_X86(CALL(sse2::saturate));
+            IF_ARCH_X86(CALL(avx2::saturate));
             IF_ARCH_ARM(CALL(neon_d32::saturate));
             IF_ARCH_AARCH64(CALL(asimd::saturate));
             PTEST_SEPARATOR;
@@ -127,6 +134,7 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
             IF_ARCH_X86(CALL(x86::copy_saturated));
             IF_ARCH_X86(CALL(x86::copy_saturated_cmov));
             IF_ARCH_X86(CALL(sse2::copy_saturated));
+            IF_ARCH_X86(CALL(avx2::copy_saturated));
             IF_ARCH_ARM(CALL(neon_d32::copy_saturated));
             IF_ARCH_AARCH64(CALL(asimd::copy_saturated));
             PTEST_SEPARATOR2;
