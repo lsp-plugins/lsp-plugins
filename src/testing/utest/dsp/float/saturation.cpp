@@ -17,15 +17,6 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace x86
-    {
-        void copy_saturated(float *dst, const float *src, size_t count);
-        void saturate(float *dst, size_t count);
-
-        void copy_saturated_cmov(float *dst, const float *src, size_t count);
-        void saturate_cmov(float *dst, size_t count);
-    }
-
     namespace sse2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
@@ -165,10 +156,6 @@ UTEST_BEGIN("dsp.float", saturation)
         #define CALL(func, align) \
             call(#func, align, func)
 
-        IF_ARCH_X86(CALL(x86::saturate, 16));
-        IF_ARCH_X86(CALL(x86::copy_saturated, 16));
-        IF_ARCH_X86(CALL(x86::saturate_cmov, 16));
-        IF_ARCH_X86(CALL(x86::copy_saturated_cmov, 16));
         IF_ARCH_X86(CALL(sse2::saturate, 16));
         IF_ARCH_X86(CALL(sse2::copy_saturated, 16));
         IF_ARCH_X86(CALL(avx2::saturate, 32));

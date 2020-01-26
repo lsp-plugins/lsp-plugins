@@ -19,15 +19,6 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace x86
-    {
-        void copy_saturated(float *dst, const float *src, size_t count);
-        void saturate(float *dst, size_t count);
-
-        void copy_saturated_cmov(float *dst, const float *src, size_t count);
-        void saturate_cmov(float *dst, size_t count);
-    }
-
     namespace sse2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
@@ -122,8 +113,6 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
             size_t count = 1 << i;
 
             CALL(native::saturate);
-            IF_ARCH_X86(CALL(x86::saturate));
-            IF_ARCH_X86(CALL(x86::saturate_cmov));
             IF_ARCH_X86(CALL(sse2::saturate));
             IF_ARCH_X86(CALL(avx2::saturate));
             IF_ARCH_ARM(CALL(neon_d32::saturate));
@@ -131,8 +120,6 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
             PTEST_SEPARATOR;
 
             CALL(native::copy_saturated);
-            IF_ARCH_X86(CALL(x86::copy_saturated));
-            IF_ARCH_X86(CALL(x86::copy_saturated_cmov));
             IF_ARCH_X86(CALL(sse2::copy_saturated));
             IF_ARCH_X86(CALL(avx2::copy_saturated));
             IF_ARCH_ARM(CALL(neon_d32::copy_saturated));
