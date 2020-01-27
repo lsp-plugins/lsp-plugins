@@ -50,6 +50,7 @@ namespace sse // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse/mxcsr.h>
 #include <dsp/arch/x86/sse/copy.h>
+#include <dsp/arch/x86/sse/float.h>
 
 #include <dsp/arch/x86/sse/pmath/op_kx.h>
 #include <dsp/arch/x86/sse/pmath/op_vv.h>
@@ -146,6 +147,8 @@ namespace sse
         EXPORT1(fill_one);
         EXPORT1(fill_zero);
         EXPORT1(fill_minus_one);
+        EXPORT1(limit1);
+        EXPORT1(limit2);
 
         EXPORT1(ipowf);
         EXPORT1(irootf);

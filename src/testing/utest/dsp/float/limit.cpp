@@ -16,7 +16,7 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace sse2
+    namespace sse
     {
         void limit1(float *dst, float min, float max, size_t count);
         void limit2(float *dst, const float *src, float min, float max, size_t count);
@@ -168,8 +168,8 @@ UTEST_BEGIN("dsp.float", limit)
         #define CALL(func, align) \
             call(#func, align, func)
 
-        IF_ARCH_X86(CALL(sse2::limit1, 16));
-        IF_ARCH_X86(CALL(sse2::limit2, 16));
+        IF_ARCH_X86(CALL(sse::limit1, 16));
+        IF_ARCH_X86(CALL(sse::limit2, 16));
 
         IF_ARCH_X86(CALL(avx::limit1, 32));
         IF_ARCH_X86(CALL(avx::limit2, 32));
