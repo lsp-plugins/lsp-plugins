@@ -20,7 +20,7 @@ IF_ARCH_X86(
         void rgba32_to_bgra32(void *dst, const void *src, size_t count);
     }
 
-    namespace sse
+    namespace sse2
     {
         void rgba32_to_bgra32(void *dst, const void *src, size_t count);
     }
@@ -86,10 +86,15 @@ UTEST_BEGIN("dsp.graphics", rgba)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("x86:rgba32_to_bgra32", 16, x86::rgba32_to_bgra32));
-        IF_ARCH_X86(call("sse:rgba32_to_bgra32", 16, sse::rgba32_to_bgra32));
-        IF_ARCH_X86_64(call("sse3:x64_rgba32_to_bgra32", 16, sse3::x64_rgba32_to_bgra32));
-        IF_ARCH_ARM(call("neon_d32:rgba32_to_bgra32", 16, neon_d32::rgba32_to_bgra32));
+        #define CALL(func, align) \
+            call(#func, align, func)
+
+        IF_ARCH_X86(CALL(x86::rgba32_to_bgra32, 16));
+        IF_ARCH_X86(CALL(sse2::rgba32_to_bgra32, 16));
+
+        IF_ARCH_X86_64(CALL(sse3::x64_rgba32_to_bgra32, 16));
+
+        IF_ARCH_ARM(CALL(neon_d32::rgba32_to_bgra32, 16));
     }
 
 UTEST_END;

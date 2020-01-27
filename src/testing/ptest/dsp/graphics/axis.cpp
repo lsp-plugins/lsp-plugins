@@ -19,7 +19,7 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace sse
+    namespace sse2
     {
         void axis_apply_log1(float *x, const float *v, float zero, float norm_x, size_t count);
         void axis_apply_log2(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
@@ -90,23 +90,26 @@ PTEST_BEGIN("dsp.graphics", axis, 5, 1000)
         for (size_t i=0; i<buf_size; ++i)
              v[i]          = (float(rand()) / RAND_MAX) + 0.0f;
 
+        #define CALL1(func) \
+            call(#func, x, v, count, func)
+        #define CALL2(func) \
+            call(#func, x, y, v, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native:axis_apply_log1", x, v, count, native::axis_apply_log1);
-            IF_ARCH_X86(call("sse:axis_apply_log1", x, v, count, sse::axis_apply_log1));
-            IF_ARCH_X86_64(call("sse3:x64_axis_apply_log1", x, v, count, sse3::x64_axis_apply_log1));
-            IF_ARCH_ARM(call("neon_d32:axis_apply_log1", x, v, count, neon_d32::axis_apply_log1));
-
+            CALL1(native::axis_apply_log1);
+            IF_ARCH_X86(CALL1(sse2::axis_apply_log1));
+            IF_ARCH_X86_64(CALL1(sse3::x64_axis_apply_log1));
+            IF_ARCH_ARM(CALL1(neon_d32::axis_apply_log1));
             PTEST_SEPARATOR;
 
-            call("native:axis_apply_log2", x, y, v, count, native::axis_apply_log2);
-            IF_ARCH_X86(call("sse:axis_apply_log2", x, y, v, count, sse::axis_apply_log2));
-            IF_ARCH_X86_64(call("sse3:x64_axis_apply_log2", x, y, v, count, sse3::x64_axis_apply_log2));
-            IF_ARCH_ARM(call("neon_d32:axis_apply_log2", x, y, v, count, neon_d32::axis_apply_log2));
-
-            PTEST_SEPARATOR;
+            CALL2(native::axis_apply_log2);
+            IF_ARCH_X86(CALL2(sse2::axis_apply_log2));
+            IF_ARCH_X86_64(CALL2(sse3::x64_axis_apply_log2));
+            IF_ARCH_ARM(CALL2(neon_d32::axis_apply_log2));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);
