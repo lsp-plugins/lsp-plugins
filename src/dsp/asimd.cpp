@@ -76,6 +76,7 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/fastconv.h>
 
 #include <dsp/arch/aarch64/asimd/filters/static.h>
+#include <dsp/arch/aarch64/asimd/filters/dynamic.h>
 #include <dsp/arch/aarch64/asimd/filters/transfer.h>
 
 
@@ -285,6 +286,14 @@ namespace asimd
         EXPORT1(fastconv_parse_apply);
 
         EXPORT1(biquad_process_x1);
+//        EXPORT1(biquad_process_x2);
+//        EXPORT1(biquad_process_x4);
+//        EXPORT1(biquad_process_x8);
+
+        EXPORT1(dyn_biquad_process_x1);
+//        EXPORT1(dyn_biquad_process_x2);
+//        EXPORT1(dyn_biquad_process_x4);
+//        EXPORT1(dyn_biquad_process_x8);
 
         EXPORT1(filter_transfer_calc_ri);
         EXPORT1(filter_transfer_apply_ri);
