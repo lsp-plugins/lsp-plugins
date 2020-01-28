@@ -80,6 +80,82 @@ namespace asimd
               "q20", "q21", "q22", "q23"
         );
     }
+
+    void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f)
+    {
+        // s'    = a0*s + d0;
+        // d0'   = d1 + a1*s + b1*s';
+        // d1'   = a2*s + b2*s';
+        ARCH_AARCH64_ASM(
+            // Check count
+            __ASM_EMIT("cbz             %[count], 6f")
+            __ASM_EMIT("ldp             q0, q1, [%[d], #0x00]")                             // v0   = d0 d1 0 0, v1 = e0 e1 0 0
+            __ASM_EMIT("trn1            v24.4s, v0.4s, v1.4s")                              // v24  = d0 e0 0 0
+            __ASM_EMIT("trn2            v25.4s, v0.4s, v1.4s")                              // v25  = d1 e1 0 0
+            // x1 head block
+            __ASM_EMIT("ld4             {v16.2s, v17.2s, v18.2s, v19.2s}, [%[f]], #0x20")   // v16  = a0, v17 = a0, v18  = a1, v19 = a2
+            __ASM_EMIT("ld1             {v0.s}[0], [%[src]]")                   // v0   = s0
+            __ASM_EMIT("fmul            v1.2s, v16.2s, v0.2s")                  // v1   = a0*s0
+            __ASM_EMIT("fadd            v4.2s, v24.2s, v1.2s")                  // v4   = s' = d0+a0*s0
+            __ASM_EMIT("fmul            v2.2s, v18.2s, v0.2s")                  // v2   = a1*s0
+            __ASM_EMIT("ld4             {v20.2s, v21.2s, v22.2s, v23.2s}, [%[f]], #0x20")   // v20  = b1, v21 = b2, v22 = 0, v23 = 0
+            __ASM_EMIT("fadd            v5.2s, v25.2s, v2.2s")                  // v5   = d1+a1*s0
+            __ASM_EMIT("fmul            v6.2s, v19.2s, v0.2s")                  // v6   = a2*s0
+            __ASM_EMIT("fmla            v5.2s, v20.2s, v4.2s")                  // v5   = d0' = d1+a1*s0+b1*s'
+            __ASM_EMIT("fmla            v6.2s, v21.2s, v4.2s")                  // v6   = d1' = a2*s0+b2*s'
+            __ASM_EMIT("add             %[src], %[src], #0x04")
+            __ASM_EMIT("mov             v0.s[1], v4.s[0]")                      // shift
+            __ASM_EMIT("mov             v24.s[0], v5.s[0]")                     // update d0
+            __ASM_EMIT("mov             v25.s[0], v6.s[0]")                     // update d1
+            // x2 blocks
+            __ASM_EMIT("subs            %[count], %[count], #1")
+            __ASM_EMIT("b.ls            2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ld4             {v16.2s, v17.2s, v18.2s, v19.2s}, [%[f]], #0x20")   // v16  = a0, v17 = a0, v18  = a1, v19 = a2
+            __ASM_EMIT("ld1             {v0.s}[0], [%[src]]")                   // v0   = s0 j0
+            __ASM_EMIT("fmul            v1.2s, v16.2s, v0.2s")                  // v1   = a0*s0 a0*j0
+            __ASM_EMIT("fadd            v4.2s, v24.2s, v1.2s")                  // v4   = s' j' = d0+a0*s0 e0+a0*j0
+            __ASM_EMIT("fmul            v2.2s, v18.2s, v0.2s")                  // v2   = a1*s0 a1*j0
+            __ASM_EMIT("ld4             {v20.2s, v21.2s, v22.2s, v23.2s}, [%[f]], #0x20")   // v20  = b1, v21 = b2, v22 = 0, v23 = 0
+            __ASM_EMIT("fadd            v24.2s, v25.2s, v2.2s")                 // v24  = d1+a1*s0 e1+a1*j0
+            __ASM_EMIT("st1             {v4.s}[1], [%[dst]]")
+            __ASM_EMIT("fmul            v25.2s, v19.2s, v0.2s")                 // v25  = a2*s0 a2*j0
+            __ASM_EMIT("fmla            v24.2s, v20.2s, v4.2s")                 // v24  = d0' e0' = d1+a1*s0+b1*s' e1+a1*j0+b1*j'
+            __ASM_EMIT("fmla            v25.2s, v21.2s, v4.2s")                 // v25  = d1' e1' = a2*s0+b2*s' a2*j0 b2*j'
+            __ASM_EMIT("mov             v0.s[1], v4.s[0]")                      // shift
+            __ASM_EMIT("subs            %[count], %[count], #1")
+            __ASM_EMIT("add             %[src], %[src], #0x04")
+            __ASM_EMIT("add             %[dst], %[dst], #0x04")
+            __ASM_EMIT("b.hi            1b")
+            __ASM_EMIT("2:")
+            // x1 tail block:
+            __ASM_EMIT("ld4             {v16.2s, v17.2s, v18.2s, v19.2s}, [%[f]], #0x20")   // v16  = a0, v17 = a0, v18  = a1, v19 = a2
+            __ASM_EMIT("trn1            v6.4s, v24.4s, v25.4s")                 // v24  = d0 d1 0 0
+            __ASM_EMIT("fmul            v1.2s, v16.2s, v0.2s")                  // v1   = a0*j0
+            __ASM_EMIT("str             d6, [%[d], #0x00]")
+            __ASM_EMIT("fadd            v4.2s, v24.2s, v1.2s")                  // v4   = s' = e0 + a0*j0
+            __ASM_EMIT("fmul            v2.2s, v18.2s, v0.2s")                  // v2   = a1*j0
+            __ASM_EMIT("ld4             {v20.2s, v21.2s, v22.2s, v23.2s}, [%[f]], #0x20")   // v20  = b1, v21 = b2, v22 = 0, v23 = 0
+            __ASM_EMIT("fadd            v24.2s, v25.2s, v2.2s")                 // v24  = e1 + a1*j0
+            __ASM_EMIT("st1             {v4.s}[1], [%[dst]]")
+            __ASM_EMIT("fmul            v25.2s, v19.2s, v0.2s")                 // v25  = a2*j0
+            __ASM_EMIT("fmla            v24.2s, v20.2s, v4.2s")                 // v24  = d0' = e1 + a1*j0 + b1*j'
+            __ASM_EMIT("fmla            v25.2s, v21.2s, v4.2s")                 // v25  = d1' = a2*j0 + b2*j'
+            __ASM_EMIT("trn2            v6.4s, v24.4s, v25.4s")                 // v24  = e0 e1 0 0
+            __ASM_EMIT("str             d6, [%[d], #0x10]")
+            __ASM_EMIT("6:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
+              [f] "+r" (f)
+            : [d] "r" (d)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19",
+              "q20", "q21", "q22", "q23",
+              "q24", "q25"
+        );
+    }
 }
 
 

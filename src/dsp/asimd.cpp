@@ -286,12 +286,12 @@ namespace asimd
         EXPORT1(fastconv_parse_apply);
 
         EXPORT1(biquad_process_x1);
-//        EXPORT1(biquad_process_x2);
+        EXPORT1(biquad_process_x2);
 //        EXPORT1(biquad_process_x4);
 //        EXPORT1(biquad_process_x8);
 
         EXPORT1(dyn_biquad_process_x1);
-//        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x2);
 //        EXPORT1(dyn_biquad_process_x4);
 //        EXPORT1(dyn_biquad_process_x8);
 

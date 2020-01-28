@@ -11,6 +11,7 @@
 #include <test/FloatBuffer.h>
 
 #define BUF_SIZE        1024
+#define BUF_STEP        16
 #define TOLERANCE       1e-3f
 
 namespace native
@@ -59,7 +60,7 @@ IF_ARCH_AARCH64(
     namespace asimd
     {
         void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
-//        void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
 //        void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f);
 //        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
     }
@@ -129,9 +130,9 @@ UTEST_BEGIN("dsp.filters", static)
             FloatBuffer src(count);
             FloatBuffer dst1(count);
             FloatBuffer dst2(count);
-            //src.randomize_sign();
-            for (size_t i=0; i<count; ++i)
-                src[i] = (i & 1) ? -ssize_t(i+1) : ssize_t(i+1);
+            src.randomize_sign();
+//            for (size_t i=0; i<count; ++i)
+//                src[i] = (i & 1) ? -ssize_t(i+1) : ssize_t(i+1);
 
             printf("Testing %s on input buffer size=%d...\n", label, int(count));
 
@@ -178,8 +179,17 @@ UTEST_BEGIN("dsp.filters", static)
         FloatBuffer dst1(BUF_SIZE);
         FloatBuffer dst2(BUF_SIZE);
 
-        func1(dst1, src, BUF_SIZE, &f1);
-        func2(dst2, src, BUF_SIZE, &f2);
+//        for (size_t i=0; i<BUF_SIZE; ++i)
+//            src[i] = (i & 1) ? -0.001 * float(i+1) : 0.001 * float(i+1);
+
+        for (size_t i=0; i<BUF_SIZE; i += BUF_STEP)
+        {
+            size_t count = BUF_SIZE - i;
+            if (count > BUF_STEP)
+                count = BUF_STEP;
+            func1(dst1.data(i), src.data(i), count, &f1);
+            func2(dst2.data(i), src.data(i), count, &f2);
+        }
 
         UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
         UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
@@ -193,12 +203,12 @@ UTEST_BEGIN("dsp.filters", static)
                     label, int(dst1.last_diff()), dst1.get_diff(), dst2.get_diff());
         }
 
-        for (size_t i=0; i<BIQUAD_D_ITEMS; ++i)
+        for (size_t j=0; j<BIQUAD_D_ITEMS; ++j)
         {
-            if (float_equals_absolute(f1.d[i], f2.d[i], TOLERANCE))
+            if (float_equals_absolute(f1.d[j], f2.d[j], TOLERANCE))
                 continue;
             UTEST_FAIL_MSG("Filter memory items #%d for test '%s' differ: %.6f vs %.6f",
-                    int(i), label, f1.d[i], f2.d[i]);
+                    int(j), label, f1.d[j], f2.d[j]);
         }
     }
 
@@ -218,7 +228,7 @@ UTEST_BEGIN("dsp.filters", static)
         IF_ARCH_X86(CALL(sse::biquad_process_x2, 2));
         IF_ARCH_X86_64(CALL(sse3::x64_biquad_process_x2, 2));
         IF_ARCH_ARM(CALL(neon_d32::biquad_process_x2, 2));
-//        IF_ARCH_AARCH64(CALL(asimd::biquad_process_x2, 2));
+        IF_ARCH_AARCH64(CALL(asimd::biquad_process_x2, 2));
 
         CALL(native::biquad_process_x4, 4);
         IF_ARCH_X86(CALL(sse::biquad_process_x4, 4));
@@ -280,7 +290,7 @@ UTEST_BEGIN("dsp.filters", static)
         IF_ARCH_X86(CALL(native::biquad_process_x2, sse::biquad_process_x2));
         IF_ARCH_X86_64(CALL(native::biquad_process_x2, sse3::x64_biquad_process_x2));
         IF_ARCH_ARM(CALL(native::biquad_process_x2, neon_d32::biquad_process_x2));
-//        IF_ARCH_AARCH64(CALL(native::biquad_process_x2, asimd::biquad_process_x2));
+        IF_ARCH_AARCH64(CALL(native::biquad_process_x2, asimd::biquad_process_x2));
 
         // Prepare 8 zero, 8 pole shelving filter
         biquad_x4_t *x4 = &bq.x4;
