@@ -147,6 +147,111 @@ namespace asimd
               "q20", "q21", "q22", "q23"
         );
     }
+
+    static const uint32_t biquad_x4_mask[8] __lsp_aligned16 =
+    {
+        0x00000000, 0x00000000, 0x00000000, 0x00000000,
+        0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+    };
+
+    void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
+    {
+        IF_ARCH_AARCH64(
+            biquad_x4_t *fx4 = &f->x4;
+            size_t mask;
+        );
+
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("cbz         %[count], 10f")
+            // Prepare
+            __ASM_EMIT("ldp         q16, q17, [%[FD]]")                     // q16  = d0, q17 = d1
+            __ASM_EMIT("ldp         q18, q19, [%[FX4], #0x00]")             // q18  = a0, q19 = a1
+            __ASM_EMIT("ldp         q20, q21, [%[FX4], #0x20]")             // q20  = a1, q21 = b1
+            __ASM_EMIT("ldr         q22, [%[FX4], #0x40]")                  // q22  = b2
+            __ASM_EMIT("ldp         q24, q25, [%[X_MASK]]")                 // q24  = vmask, q25 = 1
+            __ASM_EMIT("mov         %[mask], #1")                           // mask = 0
+
+            // Do pre-loop
+            __ASM_EMIT("1:")
+            __ASM_EMIT("orr         %[mask], %[mask], %[mask], LSL #1")     // mask = (mask << 1) | 1
+            __ASM_EMIT("ld1         {v0.s}[0], [%[src]]")                   // v0   = s
+            __ASM_EMIT("ext         v24.16b, v25.16b, v24.16b, #12")        // v24  = (vmask << 1) | 1
+            __ASM_EMIT("fmul        v1.4s, v18.4s, v0.4s")                  // v1   = a0*s
+            __ASM_EMIT("fmul        v2.4s, v19.4s, v0.4s")                  // v2   = a1*s
+            __ASM_EMIT("fmul        v3.4s, v20.4s, v0.4s")                  // v3   = a2*s
+            __ASM_EMIT("fadd        v0.4s, v1.4s, v16.4s")                  // v0   = a0*s + d0 = s'
+            __ASM_EMIT("fmla        v2.4s, v21.4s, v0.4s")                  // v2   = a1*s + b1*s'
+            __ASM_EMIT("fmla        v3.4s, v22.4s, v0.4s")                  // v3   = d1' = a2*s + b2*s'
+            __ASM_EMIT("fadd        v2.4s, v2.4s, v17.4s")                  // v2   = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("bit         v17.16b, v3.16b, v24.16b")              // q9   = (d1 & ~vmask) | (d1' & vmask)
+            __ASM_EMIT("bit         v16.16b, v2.16b, v24.16b")              // q8   = (d0 & ~vmask) | (d0' & vmask)
+            __ASM_EMIT("ext         v0.16b, v0.16b, v0.16b, #12")           // v0   = s' = s[3] s[0] s[1] s[2]
+            __ASM_EMIT("subs        %[count], %[count], #1")
+            __ASM_EMIT("add         %[src], %[src], #0x04")
+            __ASM_EMIT("b.eq        6f")
+            __ASM_EMIT("cmp         %[mask], #0x0f")
+            __ASM_EMIT("b.ne        1b")
+
+            // Do main loop
+            __ASM_EMIT("5:")
+            __ASM_EMIT("ld1         {v0.s}[0], [%[src]]")
+            __ASM_EMIT("fmul        v1.4s, v18.4s, v0.4s")                  // v1   = a0*s
+            __ASM_EMIT("fmul        v2.4s, v19.4s, v0.4s")                  // v2   = a1*s
+            __ASM_EMIT("fmul        v3.4s, v20.4s, v0.4s")                  // v3   = a2*s
+            __ASM_EMIT("fadd        v0.4s, v1.4s, v16.4s")                  // v0   = a0*s + d0 = s'
+            __ASM_EMIT("fmla        v2.4s, v21.4s, v0.4s")                  // v2   = a1*s + b1*s'
+            __ASM_EMIT("fmla        v3.4s, v22.4s, v0.4s")                  // v3   = d1' = a2*s + b2*s'
+            __ASM_EMIT("ext         v0.16b, v0.16b, v0.16b, #12")           // v0   = s' = s[3] s[0] s[1] s[2]
+            __ASM_EMIT("fadd        v16.4s, v2.4s, v17.4s")                 // v16  = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("mov         v17.16b, v3.16b")                       // v17  = d1'
+            __ASM_EMIT("st1         {v0.s}[0], [%[dst]]")
+            __ASM_EMIT("subs        %[count], %[count], #1")
+            __ASM_EMIT("add         %[src], %[src], #0x04")
+            __ASM_EMIT("add         %[dst], %[dst], #0x04")
+            __ASM_EMIT("b.ne        5b")
+
+            // Do post-loop
+            __ASM_EMIT("6:")
+            __ASM_EMIT("eor         %[mask], %[mask], #1")                  // reset bit
+            __ASM_EMIT("eor         v25.16b, v25.16b, v25.16b")             // v25  = 0
+            __ASM_EMIT("7:")
+            __ASM_EMIT("lsl         %[mask], %[mask], #1")                  // mask  = mask << 1
+            __ASM_EMIT("ext         v24.16b, v25.16b, v24.16b, #12")        // v24  = (vmask << 1) | 0
+            __ASM_EMIT("fmul        v1.4s, v18.4s, v0.4s")                  // v1   = a0*s
+            __ASM_EMIT("fmul        v2.4s, v19.4s, v0.4s")                  // v2   = a1*s
+            __ASM_EMIT("fmul        v3.4s, v20.4s, v0.4s")                  // v3   = a2*s
+            __ASM_EMIT("fadd        v0.4s, v1.4s, v16.4s")                  // v0   = a0*s + d0 = s'
+            __ASM_EMIT("fmla        v2.4s, v21.4s, v0.4s")                  // v2   = a1*s + b1*s'
+            __ASM_EMIT("fmla        v3.4s, v22.4s, v0.4s")                  // v3   = d1' = a2*s + b2*s'
+            __ASM_EMIT("fadd        v2.4s, v2.4s, v17.4s")                  // v2   = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("bit         v17.16b, v3.16b, v24.16b")              // q9   = (d1 & ~vmask) | (d1' & vmask)
+            __ASM_EMIT("bit         v16.16b, v2.16b, v24.16b")              // q8   = (d0 & ~vmask) | (d0' & vmask)
+            __ASM_EMIT("ext         v0.16b, v0.16b, v0.16b, #12")           // v0   = s' = s[3] s[0] s[1] s[2]
+            __ASM_EMIT("tst         %[mask], #0x10")                        // Need to emit?
+            __ASM_EMIT("b.eq        8f")
+            __ASM_EMIT("st1         {v0.s}[0], [%[dst]]")
+            __ASM_EMIT("add         %[dst], %[dst], #0x04")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("tst         %[mask], #0x0e")
+            __ASM_EMIT("b.ne        7b")
+
+            // Store memory
+            __ASM_EMIT("stp         q16, q17, [%[FD]]")
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
+              [mask] "=&r" (mask)
+            : [FD] "r" (&f->d[0]), [FX4] "r" (fx4),
+              [X_MASK] "r" (&biquad_x4_mask[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19",
+              "q20", "q21", "q22", "q23",
+              "q24", "q25"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_AARCH64_ASIMD_FILTERS_STATIC_H_ */
