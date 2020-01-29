@@ -139,7 +139,8 @@ namespace lsp
         R_PATH,                 // Path to the local file
         R_MIDI,                 // MIDI events
         R_PORT_SET,             // Set of ports
-        R_OSC                   // OSC events
+        R_OSC,                  // OSC events
+        R_BYPASS                // Bypass
     };
 
     enum flags_t

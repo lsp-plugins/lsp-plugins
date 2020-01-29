@@ -31,6 +31,7 @@ namespace lsp
             vst_chunk_t                 sChunk;
             bool                        bUpdateSettings;
             float                       fLatency;
+            VSTPort                    *pBypass;
 
             cvector<VSTAudioPort>       vInputs;        // List of input audio ports
             cvector<VSTAudioPort>       vOutputs;       // List of output audio ports
@@ -79,6 +80,7 @@ namespace lsp
                 sRect.bottom    = 0;
                 sRect.right     = 0;
                 fLatency        = 0.0f;
+                pBypass         = NULL;
                 bUpdateSettings = true;
 
                 position_t::init(&sPosition);
@@ -124,8 +126,12 @@ namespace lsp
             void resize_ui(const realize_t *r);
             ERect *get_ui_rect();
 
-            inline bool has_bypass() const { return false; } // TODO
-            inline void set_bypass(bool bypass) {} // TODO
+            inline bool has_bypass() const
+            {
+                return pBypass != NULL;
+            }
+
+            inline void set_bypass(bool bypass);
 
             virtual ipc::IExecutor *get_executor()
             {
@@ -227,6 +233,7 @@ namespace lsp
 
             case R_CONTROL:
             case R_METER:
+            case R_BYPASS:
                 // VST specifies only INPUT parameters, output should be read in different way
                 if (IS_OUT_PORT(port))
                 {
@@ -238,6 +245,8 @@ namespace lsp
                     vp      = new VSTParameterPort(port, pEffect, pMaster);
                     vup     = new VSTUIParameterPort(port, static_cast<VSTParameterPort *>(vp));
                 }
+                if (port->role == R_BYPASS)
+                    pBypass     = vp;
                 break;
 
             case R_PORT_SET:
@@ -319,6 +328,7 @@ namespace lsp
                     break;
 
                 case R_CONTROL:
+                case R_BYPASS:
                 case R_METER:
                     pPlugin->add_port(vp);
                     if (IS_IN_PORT(meta)) // VST specifies only INPUT parameters, output should be read in different way
@@ -1476,6 +1486,11 @@ namespace lsp
             sKVT.gc();
             sKVTMutex.unlock();
         }
+    }
+
+    void VSTWrapper::set_bypass(bool bypass)
+    {
+        pBypass->writeValue((bypass) ? 1.0f : 0.0f);
     }
 
     ICanvas *VSTWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)

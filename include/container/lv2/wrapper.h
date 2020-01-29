@@ -304,6 +304,13 @@ namespace lsp
                     result      = new LV2InputPort(p, pExt);
                 break;
 
+            case R_BYPASS:
+                if (IS_OUT_PORT(p))
+                    result      = new LV2Port(p, pExt);
+                else
+                    result      = new LV2BypassPort(p, pExt);
+                break;
+
             default:
                 break;
         }
@@ -359,6 +366,14 @@ namespace lsp
                     vPluginPorts.add(p);
                     vExtPorts.add(p);
                     lsp_trace("Added external port id=%s, external_id=%d", p->metadata()->id, int(vExtPorts.size() - 1));
+                    break;
+
+                case R_BYPASS:
+                    p->set_id(pPlugin->ports_count());
+                    pPlugin->add_port(p);
+                    vPluginPorts.add(p);
+                    vExtPorts.add(p);
+                    lsp_trace("Added bypass port id=%s, external_id=%d", p->metadata()->id, int(vExtPorts.size() - 1));
                     break;
 
                 default:
@@ -1349,7 +1364,7 @@ namespace lsp
             // Pre-process data in port
             if (port->pre_process(samples))
             {
-                lsp_trace("port changed: %s", port->metadata()->id);
+                lsp_trace("port changed: %s, value=%f", port->metadata()->id, port->getValue());
                 bUpdateSettings = true;
             }
         }

@@ -654,6 +654,7 @@ namespace lsp
                     fprintf(out, "lv2:AudioPort ;\n");
                     break;
                 case R_CONTROL:
+                case R_BYPASS:
                 case R_METER:
                     fprintf(out, "lv2:ControlPort ;\n");
                     break;
@@ -662,8 +663,10 @@ namespace lsp
             }
 
             fprintf(out, "\t\tlv2:index %d ;\n", (int)port_id);
-            fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p->id);
-            fprintf(out, "\t\tlv2:name \"%s\" ;\n", p->name);
+            fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", (p->role == R_BYPASS) ? "enabled" : p->id);
+            fprintf(out, "\t\tlv2:name \"%s\" ;\n", (p->role == R_BYPASS) ? "Enabled" : p->name);
+            if (p->role == R_BYPASS)
+                fprintf(out, "\t\tlv2:designation lv2:enabled ;\n");
 
             print_units(out, p->unit);
 
@@ -684,7 +687,7 @@ namespace lsp
 //                    fprintf(out, "\t\tlv2:portProperty pp:trigger ;\n");
                 fprintf(out, "\t\tlv2:minimum %d ;\n", 0);
                 fprintf(out, "\t\tlv2:maximum %d ;\n", 1);
-                fprintf(out, "\t\tlv2:default %d ;\n", int(p->start));
+                fprintf(out, "\t\tlv2:default %d ;\n", (p->role == R_BYPASS) ? (1 - int(p->start)) : int(p->start));
             }
             else if (p->unit == U_ENUM)
             {

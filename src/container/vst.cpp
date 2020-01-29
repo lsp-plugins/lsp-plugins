@@ -538,18 +538,18 @@ namespace lsp
             case effCanDo:
             {
                 const char *text    = reinterpret_cast<const char *>(ptr);
-                lsp_trace("can_do request: %s\n", text);
+                lsp_trace("effCanDo request: %s\n", text);
                 if (e->flags & effFlagsIsSynth)
                 {
-                    if (!strcmp(text, "receiveVstEvents"))
+                    if (!::strcmp(text, canDoReceiveVstEvents))
                         v = 1;
-                    else if (!strcmp(text, "receiveVstMidiEvent"))
+                    else if (!::strcmp(text, canDoReceiveVstMidiEvent))
                         v = 1;
-                    else if (!strcmp(text, "sendVstEvents"))
+                    else if (!::strcmp(text, canDoSendVstEvents))
                         v = 1;
-                    else if (!strcmp(text, "sendVstMidiEvent"))
+                    else if (!::strcmp(text, canDoSendVstMidiEvent))
                         v = 1;
-                    else if (!strcmp(text, "bypass"))
+                    else if (!::strcmp(text, canDoBypass))
                         v = w->has_bypass();
                 }
                 break;

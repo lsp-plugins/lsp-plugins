@@ -529,6 +529,9 @@ namespace lsp
             case R_CONTROL:
                 result = new LV2UIFloatPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                 break;
+            case R_BYPASS:
+                result = new LV2UIBypassPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
+                break;
             case R_METER:
                 result = new LV2UIPeakPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                 break;
@@ -633,6 +636,7 @@ namespace lsp
                 case R_AUDIO:
                 case R_METER:
                 case R_CONTROL:
+                case R_BYPASS:
                 {
                     pUI->add_port(p);
                     vUIPorts.add(p);
