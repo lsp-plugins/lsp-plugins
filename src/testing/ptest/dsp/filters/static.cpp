@@ -58,7 +58,7 @@ IF_ARCH_AARCH64(
         void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f);
-//        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
     }
 )
 
@@ -243,7 +243,7 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
         IF_ARCH_X86_64(process_1x8("avx::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
         IF_ARCH_X86_64(process_1x8("avx::biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::biquad_process_x8_fma3));
         IF_ARCH_ARM(process_1x8("neon_d32::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x8));
-//        IF_ARCH_AARCH64(process_1x8("asimd::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, asimd::biquad_process_x8));
+        IF_ARCH_AARCH64(process_1x8("asimd::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, asimd::biquad_process_x8));
         PTEST_SEPARATOR;
 
         delete [] out;

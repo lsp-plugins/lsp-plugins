@@ -61,7 +61,7 @@ IF_ARCH_AARCH64(
         void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
         void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
         void dyn_biquad_process_x4(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f);
-//        void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+        void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
     }
 )
 
@@ -378,7 +378,7 @@ UTEST_BEGIN("dsp.filters", dynamic)
         IF_ARCH_X86_64(CALL(avx::x64_dyn_biquad_process_x8));
         IF_ARCH_X86_64(CALL(avx::dyn_biquad_process_x8_fma3));
         IF_ARCH_ARM(CALL(neon_d32::dyn_biquad_process_x8));
-//        IF_ARCH_AARCH64(CALL(asimd::dyn_biquad_process_x8));
+        IF_ARCH_AARCH64(CALL(asimd::dyn_biquad_process_x8));
     }
 
 UTEST_END

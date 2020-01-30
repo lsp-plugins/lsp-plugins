@@ -148,11 +148,13 @@ namespace asimd
         );
     }
 
-    static const uint32_t biquad_x4_mask[8] __lsp_aligned16 =
-    {
-        0x00000000, 0x00000000, 0x00000000, 0x00000000,
-        0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
-    };
+    IF_ARCH_AARCH64(
+        static const uint32_t biquad_x4_mask[8] __lsp_aligned16 =
+        {
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+        };
+    )
 
     void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
     {
@@ -250,6 +252,174 @@ namespace asimd
               "q16", "q17", "q18", "q19",
               "q20", "q21", "q22", "q23",
               "q24", "q25"
+        );
+    }
+
+    IF_ARCH_AARCH64(
+        static const uint32_t biquad_x8_mask[16] __lsp_aligned16 =
+        {
+            0xffffffff, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+        };
+    )
+
+    void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
+    {
+        IF_ARCH_AARCH64(
+            float *fx8 = f->x8.a0;
+            size_t mask;
+        );
+
+        /* Register allocation:
+         * v0-v1    - samples
+         * v2-v3    - temporary
+         * v4-v5    - temporary
+         * v6-v7    - temporary
+         * v8-v9    - d0
+         * v10-v11  - d1
+         * v16-v17  - a0
+         * v18-v19  - a1
+         * v20-v21  - a2
+         * v22-v23  - b1
+         * v24-v25  - b2
+         * v26-v27  - vmask
+         * v28-v29  - vshift
+         */
+
+        ARCH_AARCH64_ASM
+        (
+            // Prepare
+            __ASM_EMIT("cbz             %[count], 8f")
+            __ASM_EMIT("ldp             q8, q9, [%[FD], #0x00]")                    // v8-v9    = d0
+            __ASM_EMIT("ldp             q10, q11, [%[FD], #0x20]")                  // v10-v11  = d1
+            __ASM_EMIT("mov             %[mask], #1")                               // mask     = 1
+            __ASM_EMIT("ldp             q26, q27, [%[X_MASK], #0x00]")              // v26-v27  = vmask
+            __ASM_EMIT("ldp             q28, q29, [%[X_MASK], #0x20]")              // v28-v29  = vshift = 1
+            __ASM_EMIT("ldp             q16, q17, [%[FX8], #0x00]")                 // q16-q17  = a0
+            __ASM_EMIT("ldp             q18, q19, [%[FX8], #0x20]")                 // q18-q19  = a1
+            __ASM_EMIT("ldp             q20, q21, [%[FX8], #0x40]")                 // q20-q21  = a2
+            __ASM_EMIT("ldp             q22, q23, [%[FX8], #0x60]")                 // q22-q23  = b1
+            __ASM_EMIT("ldp             q24, q25, [%[FX8], #0x80]")                 // q24-q25  = b2
+            // Do pre-loop
+            __ASM_EMIT("1:")
+            __ASM_EMIT("ld1             {v0.s}[0], [%[src]]")                       // q0       = s
+            __ASM_EMIT("fmul            v2.4s, v16.4s, v0.4s")                      // v2       = a0*s
+            __ASM_EMIT("fmul            v3.4s, v17.4s, v1.4s")
+            __ASM_EMIT("fmul            v4.4s, v18.4s, v0.4s")                      // v4       = a1*s
+            __ASM_EMIT("fmul            v5.4s, v19.4s, v1.4s")
+            __ASM_EMIT("fmul            v6.4s, v20.4s, v0.4s")                      // v6       = a2*s
+            __ASM_EMIT("fmul            v7.4s, v21.4s, v1.4s")
+            __ASM_EMIT("fadd            v0.4s, v2.4s, v8.4s")                       // v0       = a0*s + d0 = s'
+            __ASM_EMIT("fadd            v1.4s, v3.4s, v9.4s")
+            __ASM_EMIT("fmla            v4.4s, v22.4s, v0.4s")                      // v4       = a1*s + b1*s'
+            __ASM_EMIT("fmla            v5.4s, v23.4s, v1.4s")
+            __ASM_EMIT("fmla            v6.4s, v24.4s, v0.4s")                      // v6       = d1' = a2*s + b2*s'
+            __ASM_EMIT("fmla            v7.4s, v25.4s, v1.4s")
+            __ASM_EMIT("fadd            v4.4s, v4.4s, v10.4s")                      // v4       = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("fadd            v5.4s, v5.4s, v11.4s")
+
+            __ASM_EMIT("ext             v1.16b, v0.16b, v1.16b, #12")               // v1       = s2[3] s2[4] s2[5] s2[6]
+            __ASM_EMIT("ext             v0.16b, v0.16b, v0.16b, #12")               // v0       = s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("bit             v8.16b, v4.16b, v26.16b")                   // v8       = (d0 & ~vmask) | (d0' & vmask)
+            __ASM_EMIT("bit             v9.16b, v5.16b, v27.16b")
+            __ASM_EMIT("bit             v10.16b, v6.16b, v26.16b")                  // v9       = (d1 & ~vmask) | (d1' & vmask)
+            __ASM_EMIT("bit             v11.16b, v7.16b, v27.16b")
+            __ASM_EMIT("add             %[src], %[src], #0x04")                     // ++src
+            __ASM_EMIT("subs            %[count], %[count], #1")
+            __ASM_EMIT("b.eq            4f")
+            __ASM_EMIT("ext             v27.16b, v26.16b, v27.16b, #12")            // vmask    = vmask << 1
+            __ASM_EMIT("orr             %[mask], %[mask], %[mask], LSL #1")         // mask     = (mask << 1) | 1
+            __ASM_EMIT("ext             v26.16b, v28.16b, v26.16b, #12")            // vmask    = (vmask << 1) | 1
+            __ASM_EMIT("cmp             %[mask], #0xff")
+            __ASM_EMIT("b.ne            1b")
+
+            // Do main loop
+            __ASM_EMIT("3:")
+            __ASM_EMIT("ld1             {v0.s}[0], [%[src]]")                       // q0       = s
+            __ASM_EMIT("fmul            v2.4s, v16.4s, v0.4s")                      // v2       = a0*s
+            __ASM_EMIT("fmul            v3.4s, v17.4s, v1.4s")
+            __ASM_EMIT("fmul            v4.4s, v18.4s, v0.4s")                      // v4       = a1*s
+            __ASM_EMIT("fmul            v5.4s, v19.4s, v1.4s")
+            __ASM_EMIT("fmul            v6.4s, v20.4s, v0.4s")                      // v6       = a2*s
+            __ASM_EMIT("fmul            v7.4s, v21.4s, v1.4s")
+            __ASM_EMIT("fadd            v0.4s, v2.4s, v8.4s")                       // v0       = a0*s + d0 = s'
+            __ASM_EMIT("fadd            v1.4s, v3.4s, v9.4s")
+            __ASM_EMIT("fmla            v4.4s, v22.4s, v0.4s")                      // v4       = a1*s + b1*s'
+            __ASM_EMIT("fmla            v5.4s, v23.4s, v1.4s")
+            __ASM_EMIT("fmla            v6.4s, v24.4s, v0.4s")                      // v6       = d1' = a2*s + b2*s'
+            __ASM_EMIT("fmla            v7.4s, v25.4s, v1.4s")
+            __ASM_EMIT("fadd            v8.4s, v4.4s, v10.4s")                      // v8       = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("fadd            v9.4s, v5.4s, v11.4s")
+            __ASM_EMIT("st1             {v1.s}[3], [%[dst]]")                       // *dst     = s'[7]
+            __ASM_EMIT("mov             v10.16b, v6.16b")                           // v10      = d1'
+            __ASM_EMIT("mov             v11.16b, v7.16b")
+            __ASM_EMIT("ext             v1.16b, v0.16b, v1.16b, #12")               // v1       = s2[3] s2[4] s2[5] s2[6]
+            __ASM_EMIT("ext             v0.16b, v0.16b, v0.16b, #12")               // v0       = s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("subs            %[count], %[count], #1")
+            __ASM_EMIT("add             %[src], %[src], #0x04")                     // ++src
+            __ASM_EMIT("add             %[dst], %[dst], #0x04")                     // ++dst
+            __ASM_EMIT("b.ne            3b")
+
+            // Do post-loop
+            __ASM_EMIT("4:")
+            __ASM_EMIT("ext             v27.16b, v26.16b, v27.16b, #12")            // vmask    = vmask << 1
+            __ASM_EMIT("lsl             %[mask], %[mask], #1")                      // mask     = mask << 1
+            __ASM_EMIT("ext             v26.16b, v29.16b, v26.16b, #12")            // vmask    = vmask << 1
+
+            __ASM_EMIT("5:")
+            __ASM_EMIT("fmul            v2.4s, v16.4s, v0.4s")                      // v2       = a0*s
+            __ASM_EMIT("fmul            v3.4s, v17.4s, v1.4s")
+            __ASM_EMIT("fmul            v4.4s, v18.4s, v0.4s")                      // v4       = a1*s
+            __ASM_EMIT("fmul            v5.4s, v19.4s, v1.4s")
+            __ASM_EMIT("fmul            v6.4s, v20.4s, v0.4s")                      // v6       = a2*s
+            __ASM_EMIT("fmul            v7.4s, v21.4s, v1.4s")
+            __ASM_EMIT("fadd            v0.4s, v2.4s, v8.4s")                       // v0       = a0*s + d0 = s'
+            __ASM_EMIT("fadd            v1.4s, v3.4s, v9.4s")
+            __ASM_EMIT("fmla            v4.4s, v22.4s, v0.4s")                      // v4       = a1*s + b1*s'
+            __ASM_EMIT("fmla            v5.4s, v23.4s, v1.4s")
+            __ASM_EMIT("fmla            v6.4s, v24.4s, v0.4s")                      // v6       = d1' = a2*s + b2*s'
+            __ASM_EMIT("fmla            v7.4s, v25.4s, v1.4s")
+            __ASM_EMIT("fadd            v4.4s, v4.4s, v10.4s")                      // v4       = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("fadd            v5.4s, v5.4s, v11.4s")
+
+            __ASM_EMIT("tst             %[mask], #0x80")
+            __ASM_EMIT("b.eq            6f")
+            __ASM_EMIT("st1             {v1.s}[3], [%[dst]]")                       // *dst     = s'[7]
+            __ASM_EMIT("add             %[dst], %[dst], #0x04")                     // ++dst
+            __ASM_EMIT("6:")
+            __ASM_EMIT("ext             v1.16b, v0.16b, v1.16b, #12")               // v1       = s2[3] s2[4] s2[5] s2[6]
+            __ASM_EMIT("ext             v0.16b, v0.16b, v0.16b, #12")               // v0       = s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("bit             v8.16b, v4.16b, v26.16b")                   // v8       = (d0 & ~vmask) | (d0' & vmask)
+            __ASM_EMIT("bit             v9.16b, v5.16b, v27.16b")
+            __ASM_EMIT("bit             v10.16b, v6.16b, v26.16b")                  // v9       = (d1 & ~vmask) | (d1' & vmask)
+            __ASM_EMIT("bit             v11.16b, v7.16b, v27.16b")
+            __ASM_EMIT("ext             v27.16b, v26.16b, v27.16b, #12")            // vmask    = vmask << 1
+            __ASM_EMIT("lsl             %[mask], %[mask], #1")                      // mask     = mask << 1
+            __ASM_EMIT("ext             v26.16b, v29.16b, v26.16b, #12")            // vmask    = vmask << 1
+            __ASM_EMIT("tst             %[mask], #0xff")                            // mask  == 0 ?
+            __ASM_EMIT("b.ne            5b")
+
+            // Store memory
+            __ASM_EMIT("6:")
+            __ASM_EMIT("stp             q8, q9, [%[FD], #0x00]")                    // v8-v9    = d0
+            __ASM_EMIT("stp             q10, q11, [%[FD], #0x20]")                  // v10-v11  = d1
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
+              [mask] "=&r" (mask)
+            : [FD] "r" (&f->d[0]),
+              [FX8] "r" (fx8),
+              [X_MASK] "r" (&biquad_x8_mask[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11",
+              "q16", "q17", "q18", "q19",
+              "q20", "q21", "q22", "q23",
+              "q24", "q25", "q26", "q27",
+              "q28", "q29"
         );
     }
 }
