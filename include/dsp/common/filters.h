@@ -295,14 +295,23 @@
 
 #pragma pack(push, 1)
 
-// Analog filter cascade
+/**
+ * Analog filter cascade transfer function:
+ *
+ *              t0 + t1*s + t2*s^2
+ *     H[s] = ──────────────────────
+ *              b0 + b1*s + b2*s^2
+ */
 typedef struct f_cascade_t
 {
     float       t[4];       // Top part of polynom (zeros): T[p] = t[0] + t[1] * p + t[2] * p^2
     float       b[4];       // Bottom part of polynom (poles): B[p] = b[0] + b[1] * p + b[2] * p^2
 } f_cascade_t;
 
-// Biquad filter banks
+/**
+ * Biquad filter bank for 1 digital biquad filter
+ * Non-used elements should be filled with zeros
+ */
 typedef struct biquad_x1_t
 {
     float   a0, a1, a2;     //  a0 a1 a2
@@ -310,12 +319,19 @@ typedef struct biquad_x1_t
     float   p0, p1, p2;     //  padding (not used), SHOULD be zero
 } biquad_x1_t;
 
+/**
+ * Biquad filter bank for 2 digital biquad filters
+ * Non-used elements should be filled with zeros
+ */
 typedef struct biquad_x2_t
 {
     float   a[8];  //  a0 a0 a1 a2 i0 i1 i2 i3
     float   b[8];  //  b1 b2 0  0  j1 j2 0  0
 } biquad_x2_t;
 
+/**
+ * Biquad filter bank for 4 digital biquad filters
+ */
 typedef struct biquad_x4_t
 {
     float   a0[4];
@@ -325,6 +341,9 @@ typedef struct biquad_x4_t
     float   b2[4];
 } biquad_x4_t;
 
+/**
+ * Biquad filter bank for 8 digital biquad filters
+ */
 typedef struct biquad_x8_t
 {
     float   a0[8];
@@ -334,9 +353,12 @@ typedef struct biquad_x8_t
     float   b2[8];
 } biquad_x8_t;
 
-// This is main filter structure with memory
-// It should be aligned at least to 16-byte boundary
-// For best purposes it should be aligned to 64-byte boundary
+/**
+ * This is main filter structure with memory elements
+ * It should be aligned at least to 16-byte boundary due to
+ * alignment restrictions of some different hardware architectures
+ * For best purpose it should be aligned to 64-byte boundary
+ */
 typedef struct biquad_t
 {
     float   d[BIQUAD_D_ITEMS];
