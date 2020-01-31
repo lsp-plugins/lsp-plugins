@@ -14,6 +14,106 @@
 
 namespace avx
 {
+    void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)
+    {
+        IF_ARCH_X86(size_t off);
+
+        ARCH_X86_ASM
+        (
+            // Check count
+            __ASM_EMIT32("cmp               $0, %[count]")
+            __ASM_EMIT64("test              %[count], %[count]")
+            __ASM_EMIT("jz                  2f")
+
+            // Load permanent data
+            __ASM_EMIT("vmovss              0x00(%[d]), %%xmm6")                                // xmm6 = d0
+            __ASM_EMIT("xor                 %[off], %[off]")
+            __ASM_EMIT("vmovss              0x04(%[d]), %%xmm7")                                // xmm7 = d1
+
+            // Start loop
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vmovss              (%[src], %[off], 4), %%xmm0")                       // xmm0 = s ? ? ?
+            __ASM_EMIT("vmulss              0x00(%[f]), %%xmm0, %%xmm1")                        // xmm1 = a0*s
+            __ASM_EMIT("vmulss              0x04(%[f]), %%xmm0, %%xmm2")                        // xmm2 = a1*s
+            __ASM_EMIT("vmulss              0x08(%[f]), %%xmm0, %%xmm3")                        // xmm3 = a2*s
+            __ASM_EMIT("vaddss              %%xmm6, %%xmm1, %%xmm0")                            // xmm0 = s' = d0 + a0*s
+            __ASM_EMIT("vaddss              %%xmm7, %%xmm2, %%xmm2")                            // xmm2 = d1 + a1*s
+            __ASM_EMIT("vmulss              0x10(%[f]), %%xmm0, %%xmm4")                        // xmm4 = b1*s'
+            __ASM_EMIT("vmulss              0x14(%[f]), %%xmm0, %%xmm5")                        // xmm5 = b2*s'
+            __ASM_EMIT("vmovss              %%xmm0, (%[dst], %[off], 4)")                       // *dst = s'
+            __ASM_EMIT("add                 $0x20, %[f]")
+            __ASM_EMIT("vaddss              %%xmm4, %%xmm2, %%xmm6")                            // xmm6 = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("add                 $1, %[off]")
+            __ASM_EMIT("vaddss              %%xmm5, %%xmm3, %%xmm7")                            // xmm7 = d1' = a2*s + b2*s'
+            __ASM_EMIT("cmp                 %[count], %[off]")
+            __ASM_EMIT("jb                  1b")
+
+            // Store the updated buffer state
+            __ASM_EMIT("vmovss              %%xmm6, 0x00(%[d])")
+            __ASM_EMIT("vmovss              %%xmm7, 0x04(%[d])")
+
+            // Exit label
+            __ASM_EMIT("2:")
+
+            : [off] "=&r"(off), [f] "+r" (f)
+            : [dst] "r" (dst), [src] "r" (src),
+              [count] "r" (count),
+              [d] "r" (d)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void dyn_biquad_process_x1_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)
+    {
+        IF_ARCH_X86(size_t off);
+
+        ARCH_X86_ASM
+        (
+            // Check count
+            __ASM_EMIT32("cmp               $0, %[count]")
+            __ASM_EMIT64("test              %[count], %[count]")
+            __ASM_EMIT("jz                  2f")
+
+            // Load permanent data
+            __ASM_EMIT("vmovss              0x00(%[d]), %%xmm6")                                // xmm6 = d0
+            __ASM_EMIT("xor                 %[off], %[off]")
+            __ASM_EMIT("vmovss              0x04(%[d]), %%xmm7")                                // xmm7 = d1
+
+            // Start loop
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vmovss              (%[src], %[off], 4), %%xmm0")                       // xmm0 = s ? ? ?
+            __ASM_EMIT("vmovaps             %%xmm7, %%xmm5")                                    // xmm5 = d1
+            __ASM_EMIT("vmulss              0x04(%[f]), %%xmm0, %%xmm2")                        // xmm2 = a1*s
+            __ASM_EMIT("vmulss              0x08(%[f]), %%xmm0, %%xmm7")                        // xmm7 = a2*s
+            __ASM_EMIT("vfmadd132ss         0x00(%[f]), %%xmm6, %%xmm0")                        // xmm0 = s' = d0 + a0*s
+            __ASM_EMIT("vfmadd231ss         0x10(%[f]), %%xmm0, %%xmm2")                        // xmm2 = a1*s + b1*s'
+            __ASM_EMIT("vmovss              %%xmm0, (%[dst], %[off], 4)")                       // *dst = s'
+            __ASM_EMIT("vfmadd231ss         0x14(%[f]), %%xmm0, %%xmm7")                        // xmm7 = d1' = a2*s + b2*s'
+            __ASM_EMIT("add                 $1, %[off]")
+            __ASM_EMIT("add                 $0x20, %[f]")
+            __ASM_EMIT("vaddss              %%xmm5, %%xmm2, %%xmm6")                            // xmm6 = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("cmp                 %[count], %[off]")
+            __ASM_EMIT("jb                  1b")
+
+            // Store the updated buffer state
+            __ASM_EMIT("vmovss              %%xmm6, 0x00(%[d])")
+            __ASM_EMIT("vmovss              %%xmm7, 0x04(%[d])")
+
+            // Exit label
+            __ASM_EMIT("2:")
+
+            : [off] "=&r"(off), [f] "+r" (f)
+            : [dst] "r" (dst), [src] "r" (src),
+              [count] "r" (count),
+              [d] "r" (d)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
     // This function is tested, works and delivers high performance
     void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f)
     {

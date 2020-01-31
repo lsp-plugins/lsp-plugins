@@ -96,9 +96,6 @@ namespace avx
 
         lsp_trace("Optimizing DSP for AVX instruction set");
 
-        EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
-        EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
-
         TEST_EXPORT(avx::copy);
 
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
@@ -216,7 +213,12 @@ namespace avx
         CEXPORT1(favx, pcomplex_rcp1);
         CEXPORT1(favx, pcomplex_rcp2);
 
+        CEXPORT1(favx, biquad_process_x1);
+        CEXPORT1(favx, dyn_biquad_process_x1);
+
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);
+        EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
+        EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
         CEXPORT1(favx, h_sum);
         CEXPORT1(favx, h_sqr_sum);
@@ -362,6 +364,9 @@ namespace avx
             CEXPORT2(favx, filter_transfer_apply_pc, filter_transfer_apply_pc_fma3);
 
             CEXPORT2(favx, convolve, convolve_fma3);
+
+            CEXPORT2(favx, biquad_process_x1, biquad_process_x1_fma3);
+            CEXPORT2(favx, dyn_biquad_process_x1, dyn_biquad_process_x1_fma3);
 
             // Non-conditional export
             EXPORT2(biquad_process_x8, biquad_process_x8_fma3);

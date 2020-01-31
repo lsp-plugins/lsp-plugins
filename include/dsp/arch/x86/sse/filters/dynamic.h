@@ -48,8 +48,7 @@ namespace sse
             __ASM_EMIT("addss       %%xmm3, %%xmm2")                        // xmm2 = a1*s + b1*s'
             __ASM_EMIT("addss       %%xmm0, %%xmm1")                        // xmm3 = d1' = a2*s + b2*s'
             __ASM_EMIT("add         $0x20, %[f]")
-            __ASM_EMIT32("cmpl      %[count], %[off]")
-            __ASM_EMIT64("cmp       %[count], %[off]")
+            __ASM_EMIT("cmp         %[count], %[off]")
             __ASM_EMIT("addss       %%xmm2, %%xmm6")                        // xmm6 = d0' = d1 + a1*s + b1*s'
             __ASM_EMIT("movaps      %%xmm1, %%xmm7")                        // xmm7 = d1'
             __ASM_EMIT("jb          1b")
