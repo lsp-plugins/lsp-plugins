@@ -231,6 +231,9 @@
 #define BIQUAD_D3_OFF           0x30
 #define BIQUAD_D3_SOFF          "0x30"
 
+#define BIQUAD_XN_OFF           0x40
+#define BIQUAD_XN_SOFF          "0x40"
+
 #define DYN_BIQUAD_X8_A0_OFF    0x00
 #define DYN_BIQUAD_X8_A0_SOFF   "0x00"
 #define DYN_BIQUAD_X8_I0_OFF    0x10
@@ -302,7 +305,7 @@ typedef struct f_cascade_t
 // Biquad filter banks
 typedef struct biquad_x1_t
 {
-    float   a[4];  //  a0 a0 a1 a2
+    float   a[4];  //  a0 a1 a2 0
     float   b[4];  //  b1 b2 0  0
 } biquad_x1_t;
 

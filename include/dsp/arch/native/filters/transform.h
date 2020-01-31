@@ -39,9 +39,9 @@ namespace native
 
             // Initialize filter parameters
             bf->a[0]        = (T[0] + T[1] + T[2]) * N;
-            bf->a[1]        = bf->a[0];
-            bf->a[2]        = 2.0 * (T[0] - T[2]) * N;
-            bf->a[3]        = (T[0] - T[1] + T[2]) * N;
+            bf->a[1]        = 2.0 * (T[0] - T[2]) * N;
+            bf->a[2]        = (T[0] - T[1] + T[2]) * N;
+            bf->a[3]        = 0.0f;
 
             bf->b[0]        = 2.0 * (B[2] - B[0]) * N;  // Sign negated
             bf->b[1]        = (B[1] - B[2] - B[0]) * N; // Sign negated

@@ -68,7 +68,7 @@ typedef void (* dyn_biquad_process_x4_t)(float *dst, const float *src, float *d,
 typedef void (* dyn_biquad_process_x8_t)(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
 
 static biquad_x1_t bq_normal = {
-    { 1.0, 1.0, 2.0, 1.0 },
+    { 1.0, 2.0, 1.0, 0.0 },
     {-2.0, -1.0, 0.0, 0.0 }
 };
 
@@ -121,13 +121,13 @@ PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
         for (size_t i=0; i<(count+1); ++i)
         {
             f[i].a[0]   = bq_normal.a[0];
-            f[i].a[1]   = bq_normal.a[1];
-            f[i].a[2]   = bq_normal.a[2];
-            f[i].a[3]   = bq_normal.a[3];
+            f[i].a[1]   = bq_normal.a[0];
+            f[i].a[2]   = bq_normal.a[1];
+            f[i].a[3]   = bq_normal.a[2];
             f[i].a[4]   = bq_normal.a[0];
-            f[i].a[5]   = bq_normal.a[1];
-            f[i].a[6]   = bq_normal.a[2];
-            f[i].a[7]   = bq_normal.a[3];
+            f[i].a[5]   = bq_normal.a[0];
+            f[i].a[6]   = bq_normal.a[1];
+            f[i].a[7]   = bq_normal.a[2];
 
             f[i].b[0]   = bq_normal.b[0];
             f[i].b[1]   = bq_normal.b[1];

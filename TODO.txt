@@ -14,6 +14,8 @@
 * Fixed bug in trigger that caused notes to be immediately cancelled.
 * Implemented support of LV2 state:mapPath extension.
 * Removed strict requirement to build UI for LADSPA version of plugins.
+- Rework structure of x1 and x2 filters
+- Rework filters and equalizers for proper work with x1 and x2 filters
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
 - Implemented Multiband gate plugin series.

@@ -19,11 +19,11 @@ namespace native
         for (size_t i=0; i<count; ++i)
         {
             float s     = src[i];
-            //   a: a0 a0 a1 a2
+            //   a: a0 a1 a2 0
             //   b: b1 b2 0  0
             float s2    = f->x1.a[0]*s + f->d[0];
-            float p1    = f->x1.a[2]*s + f->x1.b[0]*s2;
-            float p2    = f->x1.a[3]*s + f->x1.b[1]*s2;
+            float p1    = f->x1.a[1]*s + f->x1.b[0]*s2;
+            float p2    = f->x1.a[2]*s + f->x1.b[1]*s2;
 
             dst[i]      = s2;
 

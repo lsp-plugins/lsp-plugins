@@ -78,7 +78,7 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
         biquad_t f __lsp_aligned64;
 
         f.x1.a[0]      = 1.0f;
-        f.x1.a[1]      = 1.0f;
+        f.x1.a[1]      = 0.0f;
         f.x1.a[2]      = 0.0f;
         f.x1.a[3]      = 0.0f;
         f.x1.b[0]      = 0.0f;
