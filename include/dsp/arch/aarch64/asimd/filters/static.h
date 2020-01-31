@@ -22,9 +22,9 @@ namespace asimd
         ARCH_AARCH64_ASM(
             // Check count
             __ASM_EMIT("cbz             %[count], 6f")
-            __ASM_EMIT("ldp             s16, s17, [%[FX1], #0x00]")             // v16  = a0, v17 = a0
-            __ASM_EMIT("ldp             s18, s19, [%[FX1], #0x08]")             // v18  = a1, v19 = a2
-            __ASM_EMIT("ldp             s20, s21, [%[FX1], #0x10]")             // v20  = b1, v21 = b2
+            __ASM_EMIT("ldp             s16, s18, [%[FX1], #0x00]")             // v16  = a0, v18  = a1
+            __ASM_EMIT("ldp             s19, s20, [%[FX1], #0x08]")             // v19 = a2, v20  = b1
+            __ASM_EMIT("ldr             s21, [%[FX1], #0x10]")                  // v21 = b2
             __ASM_EMIT("ldp             s22, s23, [%[FD]]")                     // v22  = d0, v23 = d1
             // x2 blocks
             __ASM_EMIT("subs            %[count], %[count], #2")

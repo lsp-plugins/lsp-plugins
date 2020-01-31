@@ -29,9 +29,9 @@ namespace asimd
             __ASM_EMIT("b.lt            2f")
             __ASM_EMIT("1:")
             __ASM_EMIT("ldp             s0, s1, [%[src]]")                      // v0   = s0, v1 = s1
-            __ASM_EMIT("ldp             s16, s17, [%[f], #0x00]")               // v16  = a0, v17 = a0
-            __ASM_EMIT("ldp             s18, s19, [%[f], #0x08]")               // v18  = a1, v19 = a2
-            __ASM_EMIT("ldp             s20, s21, [%[f], #0x10]")               // v20  = b1, v21 = b2
+            __ASM_EMIT("ldp             s16, s18, [%[f], #0x00]")               // v16  = a0, v18  = a1
+            __ASM_EMIT("ldp             s19, s20, [%[f], #0x08]")               // v19  = a2, v20 = b1
+            __ASM_EMIT("ldr             s21, [%[f], #0x10]")                    // v21  = b2
             __ASM_EMIT("fmadd           s2, s16, s0, s22")                      // v2   = s' = a0*s0+d0
             __ASM_EMIT("fmul            s4, s18, s0")                           // v4   = a1*s0
             __ASM_EMIT("fmadd           s6, s20, s2, s23")                      // v6   = b1*s' + d1
@@ -55,9 +55,9 @@ namespace asimd
             __ASM_EMIT("adds            %[count], %[count], #1")
             __ASM_EMIT("b.lt            4f")
             __ASM_EMIT("ldr             s0, [%[src]]")                          // v0   = s0
-            __ASM_EMIT("ldp             s16, s17, [%[f], #0x00]")               // v16  = a0, v17 = a0
-            __ASM_EMIT("ldp             s18, s19, [%[f], #0x08]")               // v18  = a1, v19 = a2
-            __ASM_EMIT("ldp             s20, s21, [%[f], #0x10]")               // v20  = b1, v21 = b2
+            __ASM_EMIT("ldp             s16, s18, [%[f], #0x00]")               // v16  = a0, v18  = a1
+            __ASM_EMIT("ldp             s19, s20, [%[f], #0x08]")               // v19  = a2, v20 = b1
+            __ASM_EMIT("ldr             s21, [%[f], #0x10]")                    // v21  = b2
             __ASM_EMIT("fmadd           s2, s16, s0, s22")                      // v2   = s' = a0*s0+d0
             __ASM_EMIT("fmul            s4, s18, s0")                           // v4   = a1*s0
             __ASM_EMIT("fmadd           s6, s20, s2, s23")                      // v6   = b1*s' + d1
