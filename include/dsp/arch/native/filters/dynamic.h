@@ -21,9 +21,9 @@ namespace native
             float s     = *(src++);
             //   a: a0 a1 a2 0
             //   b: b1 b2 0  0
-            float s2    = f->a[0]*s + d[0];
-            float p1    = f->a[1]*s + f->b[0]*s2;
-            float p2    = f->a[2]*s + f->b[1]*s2;
+            float s2    = f->a0*s + d[0];
+            float p1    = f->a1*s + f->b1*s2;
+            float p2    = f->a2*s + f->b2*s2;
 
             // Shift buffer
             d[0]        = d[1] + p1;

@@ -70,6 +70,12 @@ IF_ARCH_AARCH64(
 
 typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, biquad_t *f);
 
+static biquad_x1_t bq_normal = {
+    1.0, 2.0, 1.0,
+    -2.0, -1.0,
+    0.0, 0.0, 0.0
+};
+
 //-----------------------------------------------------------------------------
 // Performance test for static biquad processing
 PTEST_BEGIN("dsp.filters", static, 10, 1000)
@@ -83,14 +89,7 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
 
         biquad_t f __lsp_aligned64;
 
-        f.x1.a[0]      = 1.0f;
-        f.x1.a[1]      = 0.0f;
-        f.x1.a[2]      = 0.0f;
-        f.x1.a[3]      = 0.0f;
-        f.x1.b[0]      = 0.0f;
-        f.x1.b[1]      = 0.0f;
-        f.x1.b[2]      = 0.0f;
-        f.x1.b[3]      = 0.0f;
+        f.x1 = bq_normal;
 
         PTEST_LOOP(text,
             process(out, in, count, &f);
@@ -113,22 +112,22 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
         biquad_t f __lsp_aligned64;
 
         // Filter 1
-        f.x2.a[0]      = 1.0f;
-        f.x2.a[1]      = 1.0f;
-        f.x2.a[2]      = 0.0f;
-        f.x2.a[3]      = 0.0f;
-        f.x2.b[0]      = 0.0f;
-        f.x2.b[1]      = 0.0f;
+        f.x2.a[0]      = bq_normal.a0;
+        f.x2.a[1]      = bq_normal.a0;
+        f.x2.a[2]      = bq_normal.a1;
+        f.x2.a[3]      = bq_normal.a2;
+        f.x2.b[0]      = bq_normal.b1;
+        f.x2.b[1]      = bq_normal.b2;
         f.x2.b[2]      = 0.0f;
         f.x2.b[3]      = 0.0f;
 
         // Filter 2
-        f.x2.a[4]      = 1.0f;
-        f.x2.a[5]      = 1.0f;
-        f.x2.a[6]      = 0.0f;
-        f.x2.a[7]      = 0.0f;
-        f.x2.b[4]      = 0.0f;
-        f.x2.b[5]      = 0.0f;
+        f.x2.a[4]      = bq_normal.a0;
+        f.x2.a[5]      = bq_normal.a0;
+        f.x2.a[6]      = bq_normal.a1;
+        f.x2.a[7]      = bq_normal.a2;
+        f.x2.b[4]      = bq_normal.b1;
+        f.x2.b[5]      = bq_normal.b2;
         f.x2.b[6]      = 0.0f;
         f.x2.b[7]      = 0.0f;
 
@@ -152,30 +151,14 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
         biquad_t f __lsp_aligned64;
 
         // Filters x 4
-        f.x4.a0[0]     = 1.0f;
-        f.x4.a0[1]     = 1.0f;
-        f.x4.a0[2]     = 1.0f;
-        f.x4.a0[3]     = 1.0f;
-
-        f.x4.a1[0]     = 0.0f;
-        f.x4.a1[1]     = 0.0f;
-        f.x4.a1[2]     = 0.0f;
-        f.x4.a1[3]     = 0.0f;
-
-        f.x4.a2[0]     = 0.0f;
-        f.x4.a2[1]     = 0.0f;
-        f.x4.a2[2]     = 0.0f;
-        f.x4.a2[3]     = 0.0f;
-
-        f.x4.b1[0]     = 0.0f;
-        f.x4.b1[1]     = 0.0f;
-        f.x4.b1[2]     = 0.0f;
-        f.x4.b1[3]     = 0.0f;
-
-        f.x4.b2[0]     = 0.0f;
-        f.x4.b2[1]     = 0.0f;
-        f.x4.b2[2]     = 0.0f;
-        f.x4.b2[3]     = 0.0f;
+        for (size_t i=0; i<4; ++i)
+        {
+            f.x4.a0[i]     = bq_normal.a0;
+            f.x4.a1[i]     = bq_normal.a1;
+            f.x4.a2[i]     = bq_normal.a2;
+            f.x4.b1[i]     = bq_normal.b1;
+            f.x4.b2[i]     = bq_normal.b2;
+        }
 
         for (size_t i=0; i<8; ++i)
             f.d[i]          = 0.0f;
@@ -193,17 +176,15 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
         printf("Testing %s static filters on input buffer of %d samples ...\n", text, int(count));
 
         biquad_t f __lsp_aligned64;
-        memset(&f, 0, sizeof(biquad_t));
-
         // Filters x 8
-        f.x8.a0[0]     = 1.0f;
-        f.x8.a0[1]     = 1.0f;
-        f.x8.a0[2]     = 1.0f;
-        f.x8.a0[3]     = 1.0f;
-        f.x8.a0[4]     = 1.0f;
-        f.x8.a0[5]     = 1.0f;
-        f.x8.a0[6]     = 1.0f;
-        f.x8.a0[7]     = 1.0f;
+        for (size_t i=0; i<8; ++i)
+        {
+            f.x8.a0[i]     = bq_normal.a0;
+            f.x8.a1[i]     = bq_normal.a1;
+            f.x8.a2[i]     = bq_normal.a2;
+            f.x8.b1[i]     = bq_normal.b1;
+            f.x8.b2[i]     = bq_normal.b2;
+        }
 
         for (size_t i=0; i<8; ++i)
             f.d[i]          = 0.0f;

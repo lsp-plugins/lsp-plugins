@@ -36,7 +36,7 @@ namespace sse
             __ASM_EMIT("movss       0x00(%[f]), %%xmm1")                    // xmm1 = a0
             __ASM_EMIT("movss       0x04(%[f]), %%xmm2")                    // xmm2 = a1
             __ASM_EMIT("mulss       %%xmm0, %%xmm1")                        // xmm1 = a0*s
-            __ASM_EMIT("movss       0x10(%[f]), %%xmm3")                    // xmm3 = b1
+            __ASM_EMIT("movss       0x0c(%[f]), %%xmm3")                    // xmm3 = b1
             __ASM_EMIT("mulss       %%xmm0, %%xmm2")                        // xmm2 = a1*s
             __ASM_EMIT("addss       %%xmm6, %%xmm1")                        // xmm1 = s' = a0*s + d0
             __ASM_EMIT("mulss       0x08(%[f]), %%xmm0")                    // xmm0 = a2*s
@@ -44,7 +44,7 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm7, %%xmm6")                        // xmm6 = d1
             __ASM_EMIT("mulss       %%xmm1, %%xmm3")                        // xmm3 = b1*s'
             __ASM_EMIT("add         $1, %[off]")
-            __ASM_EMIT("mulss       0x14(%[f]), %%xmm1")                    // xmm1 = b2*s'
+            __ASM_EMIT("mulss       0x10(%[f]), %%xmm1")                    // xmm1 = b2*s'
             __ASM_EMIT("addss       %%xmm3, %%xmm2")                        // xmm2 = a1*s + b1*s'
             __ASM_EMIT("addss       %%xmm0, %%xmm1")                        // xmm3 = d1' = a2*s + b2*s'
             __ASM_EMIT("add         $0x20, %[f]")

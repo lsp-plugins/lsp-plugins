@@ -305,8 +305,9 @@ typedef struct f_cascade_t
 // Biquad filter banks
 typedef struct biquad_x1_t
 {
-    float   a[4];  //  a0 a1 a2 0
-    float   b[4];  //  b1 b2 0  0
+    float   a0, a1, a2;     //  a0 a1 a2
+    float   b1, b2;         //  b1 b2
+    float   p0, p1, p2;     //  padding (not used), SHOULD be zero
 } biquad_x1_t;
 
 typedef struct biquad_x2_t

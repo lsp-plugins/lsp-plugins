@@ -85,49 +85,48 @@ UTEST_BEGIN("dsp.filters", static)
 
         // Initialize biquad filter
         biquad_x1_t *x1 = &f1.x1;
-        x1->a[0]    = 0.992303491f;
-        x1->a[1]    = -1.98460698f;
-        x1->a[2]    = 0.992303491f;
-        x1->a[3]    = 0.0f;
-
-        x1->b[0]    = 1.98398674f;
-        x1->b[1]    = -0.985227287f;
-        x1->b[2]    = 0.0f;
-        x1->b[3]    = 0.0f;
+        x1->a0      = 0.992303491f;
+        x1->a1      = -1.98460698f;
+        x1->a2      = 0.992303491f;
+        x1->b1      = 1.98398674f;
+        x1->b2      = -0.985227287f;
+        x1->p0      = 0.0f;
+        x1->p1      = 0.0f;
+        x1->p2      = 0.0f;
 
         if (n == 1)
             f2.x1       = f1.x1;
         else if (n == 2)
         {
             biquad_x2_t *x2 = &f2.x2;
-            x2->a[0]    = x1->a[0];
-            x2->a[1]    = x1->a[0];
-            x2->a[2]    = x1->a[1];
-            x2->a[3]    = x1->a[2];
-            x2->a[4]    = x1->a[0];
-            x2->a[5]    = x1->a[0];
-            x2->a[6]    = x1->a[1];
-            x2->a[7]    = x1->a[2];
+            x2->a[0]    = x1->a0;
+            x2->a[1]    = x1->a0;
+            x2->a[2]    = x1->a1;
+            x2->a[3]    = x1->a2;
+            x2->a[4]    = x1->a0;
+            x2->a[5]    = x1->a0;
+            x2->a[6]    = x1->a1;
+            x2->a[7]    = x1->a2;
 
-            x2->b[0]    = x1->b[0];
-            x2->b[1]    = x1->b[1];
-            x2->b[2]    = x1->b[2];
-            x2->b[3]    = x1->b[3];
-            x2->b[4]    = x1->b[0];
-            x2->b[5]    = x1->b[1];
-            x2->b[6]    = x1->b[2];
-            x2->b[7]    = x1->b[3];
+            x2->b[0]    = x1->b1;
+            x2->b[1]    = x1->b2;
+            x2->b[2]    = x1->p0;
+            x2->b[3]    = x1->p0;
+            x2->b[4]    = x1->b1;
+            x2->b[5]    = x1->b2;
+            x2->b[6]    = x1->p0;
+            x2->b[7]    = x1->p0;
         }
         else if (n == 4)
         {
             biquad_x4_t *x4 = &f2.x4;
             for (size_t i=0; i<n; ++i)
             {
-                x4->a0[i]   = x1->a[0];
-                x4->a1[i]   = x1->a[1];
-                x4->a2[i]   = x1->a[2];
-                x4->b1[i]   = x1->b[0];
-                x4->b2[i]   = x1->b[1];
+                x4->a0[i]   = x1->a0;
+                x4->a1[i]   = x1->a1;
+                x4->a2[i]   = x1->a2;
+                x4->b1[i]   = x1->b1;
+                x4->b2[i]   = x1->b2;
             }
         }
         else if (n == 8)
@@ -135,11 +134,11 @@ UTEST_BEGIN("dsp.filters", static)
             biquad_x8_t *x8 = &f2.x8;
             for (size_t i=0; i<n; ++i)
             {
-                x8->a0[i]   = x1->a[0];
-                x8->a1[i]   = x1->a[1];
-                x8->a2[i]   = x1->a[2];
-                x8->b1[i]   = x1->b[0];
-                x8->b2[i]   = x1->b[1];
+                x8->a0[i]   = x1->a0;
+                x8->a1[i]   = x1->a1;
+                x8->a2[i]   = x1->a2;
+                x8->b1[i]   = x1->b1;
+                x8->b2[i]   = x1->b2;
             }
         }
 
@@ -274,15 +273,14 @@ UTEST_BEGIN("dsp.filters", static)
 
         // Prepare 2 zero, 2 pole hi-pass filter
         biquad_x1_t *x1 = &bq.x1;
-        x1->a[0]    = 0.992303491f;
-        x1->a[1]    = -1.98460698f;
-        x1->a[2]    = 0.992303491f;
-        x1->a[3]    = 0.0f;
-
-        x1->b[0]    = 1.98398674f;
-        x1->b[1]    = -0.985227287f;
-        x1->b[2]    = 0.0f;
-        x1->b[3]    = 0.0f;
+        x1->a0      = 0.992303491f;
+        x1->a1      = -1.98460698f;
+        x1->a2      = 0.992303491f;
+        x1->b1      = 1.98398674f;
+        x1->b2      = -0.985227287f;
+        x1->p0      = 0.0f;
+        x1->p1      = 0.0f;
+        x1->p2      = 0.0f;
 
         IF_ARCH_X86(CALL(native::biquad_process_x1, sse::biquad_process_x1));
         IF_ARCH_X86(CALL(native::biquad_process_x1, avx::biquad_process_x1));

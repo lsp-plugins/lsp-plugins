@@ -74,8 +74,9 @@ typedef void (* dyn_biquad_process_x4_t)(float *dst, const float *src, float *d,
 typedef void (* dyn_biquad_process_x8_t)(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
 
 static biquad_x1_t bq_normal = {
-    { 1.0, 2.0, 1.0, 0.0 },
-    {-2.0, -1.0, 0.0, 0.0 }
+    1.0, 2.0, 1.0,
+    -2.0, -1.0,
+    0.0, 0.0, 0.0
 };
 
 //-----------------------------------------------------------------------------
@@ -126,23 +127,23 @@ PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
         biquad_x2_t *f = alloc_aligned<biquad_x2_t>(ptr, count+1, 64);
         for (size_t i=0; i<(count+1); ++i)
         {
-            f[i].a[0]   = bq_normal.a[0];
-            f[i].a[1]   = bq_normal.a[0];
-            f[i].a[2]   = bq_normal.a[1];
-            f[i].a[3]   = bq_normal.a[2];
-            f[i].a[4]   = bq_normal.a[0];
-            f[i].a[5]   = bq_normal.a[0];
-            f[i].a[6]   = bq_normal.a[1];
-            f[i].a[7]   = bq_normal.a[2];
+            f[i].a[0]   = bq_normal.a0;
+            f[i].a[1]   = bq_normal.a0;
+            f[i].a[2]   = bq_normal.a1;
+            f[i].a[3]   = bq_normal.a2;
+            f[i].a[4]   = bq_normal.a0;
+            f[i].a[5]   = bq_normal.a0;
+            f[i].a[6]   = bq_normal.a1;
+            f[i].a[7]   = bq_normal.a2;
 
-            f[i].b[0]   = bq_normal.b[0];
-            f[i].b[1]   = bq_normal.b[1];
-            f[i].b[2]   = bq_normal.b[2];
-            f[i].b[3]   = bq_normal.b[3];
-            f[i].b[4]   = bq_normal.b[0];
-            f[i].b[5]   = bq_normal.b[1];
-            f[i].b[6]   = bq_normal.b[2];
-            f[i].b[7]   = bq_normal.b[3];
+            f[i].b[0]   = bq_normal.b1;
+            f[i].b[1]   = bq_normal.b2;
+            f[i].b[2]   = bq_normal.p0;
+            f[i].b[3]   = bq_normal.p0;
+            f[i].b[4]   = bq_normal.b1;
+            f[i].b[5]   = bq_normal.b2;
+            f[i].b[6]   = bq_normal.p0;
+            f[i].b[7]   = bq_normal.p0;
         }
 
         PTEST_LOOP(text,
@@ -169,11 +170,11 @@ PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
         biquad_x4_t *f = alloc_aligned<biquad_x4_t>(ptr, count+3, 64);
         for (size_t i=0; i<(count+3); ++i)
         {
-            f[i].a0[0]  = f[i].a0[1] = f[i].a0[2] = f[i].a0[3] = bq_normal.a[0];
-            f[i].a1[0]  = f[i].a1[1] = f[i].a1[2] = f[i].a1[3] = bq_normal.a[1];
-            f[i].a2[0]  = f[i].a2[1] = f[i].a2[2] = f[i].a2[3] = bq_normal.a[2];
-            f[i].b1[0]  = f[i].b1[1] = f[i].b1[2] = f[i].b1[3] = bq_normal.b[1];
-            f[i].b2[0]  = f[i].b2[1] = f[i].b2[2] = f[i].b2[3] = bq_normal.b[2];
+            f[i].a0[0]  = f[i].a0[1] = f[i].a0[2] = f[i].a0[3] = bq_normal.a0;
+            f[i].a1[0]  = f[i].a1[1] = f[i].a1[2] = f[i].a1[3] = bq_normal.a1;
+            f[i].a2[0]  = f[i].a2[1] = f[i].a2[2] = f[i].a2[3] = bq_normal.a2;
+            f[i].b1[0]  = f[i].b1[1] = f[i].b1[2] = f[i].b1[3] = bq_normal.b1;
+            f[i].b2[0]  = f[i].b2[1] = f[i].b2[2] = f[i].b2[3] = bq_normal.b2;
         }
 
         PTEST_LOOP(text,
@@ -199,15 +200,15 @@ PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
         for (size_t i=0; i<(count+7); ++i)
         {
             f[i].a0[0]  = f[i].a0[1] = f[i].a0[2] = f[i].a0[3] =
-            f[i].a0[4]  = f[i].a0[5] = f[i].a0[6] = f[i].a0[7] = bq_normal.a[0];
+            f[i].a0[4]  = f[i].a0[5] = f[i].a0[6] = f[i].a0[7] = bq_normal.a0;
             f[i].a1[0]  = f[i].a1[1] = f[i].a1[2] = f[i].a1[3] =
-            f[i].a1[4]  = f[i].a1[5] = f[i].a1[6] = f[i].a1[7] = bq_normal.a[1];
+            f[i].a1[4]  = f[i].a1[5] = f[i].a1[6] = f[i].a1[7] = bq_normal.a1;
             f[i].a2[0]  = f[i].a2[1] = f[i].a2[2] = f[i].a2[3] =
-            f[i].a2[4]  = f[i].a2[5] = f[i].a2[6] = f[i].a2[7] = bq_normal.a[2];
+            f[i].a2[4]  = f[i].a2[5] = f[i].a2[6] = f[i].a2[7] = bq_normal.a2;
             f[i].b1[0]  = f[i].b1[1] = f[i].b1[2] = f[i].b1[3] =
-            f[i].b1[4]  = f[i].b1[5] = f[i].b1[6] = f[i].b1[7] = bq_normal.b[1];
+            f[i].b1[4]  = f[i].b1[5] = f[i].b1[6] = f[i].b1[7] = bq_normal.b1;
             f[i].b2[0]  = f[i].b2[1] = f[i].b2[2] = f[i].b2[3] =
-            f[i].b2[4]  = f[i].b2[5] = f[i].b2[6] = f[i].b2[7] = bq_normal.b[2];
+            f[i].b2[4]  = f[i].b2[5] = f[i].b2[6] = f[i].b2[7] = bq_normal.b2;
         }
 
         PTEST_LOOP(text,
