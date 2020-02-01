@@ -14,6 +14,8 @@
 * Fixed bug in trigger that caused notes to be immediately cancelled.
 * Implemented support of LV2 state:mapPath extension.
 * Removed strict requirement to build UI for LADSPA version of plugins.
+* Bypass button now supports LV2:enabled designation, that makes plugin to work more smooth with the host.
+* Bypass button now handles effSetBypass VST event, that makes plugin to work more smooth with the host.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
 - Implemented Multiband gate plugin series.
