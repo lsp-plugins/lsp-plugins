@@ -43,7 +43,7 @@ namespace lsp
 
     class LV2UIPortGroup: public LV2UIPort
     {
-        private:
+        protected:
             size_t      nRows;
             size_t      nCols;
             size_t      nCurrRow;
@@ -196,6 +196,59 @@ namespace lsp
                             pPort->metadata()->id, fValue);
                 #endif
                 return synced;
+            }
+    };
+
+    class LV2UIBypassPort: public LV2UIFloatPort
+    {
+        public:
+            explicit LV2UIBypassPort(const port_t *meta, LV2Extensions *ext, LV2Port *port) :
+                LV2UIFloatPort(meta, ext, port)
+            {
+            }
+
+            virtual ~LV2UIBypassPort() { };
+
+        public:
+            virtual void set_value(float value)
+            {
+                fValue      = limit_value(pMetadata, value);
+                if (nID >= 0)
+                {
+                    // Use standard mechanism to access port
+                    float value = pMetadata->max - fValue;
+                    lsp_trace("write(%d, %d, %d, %f)", int(nID), int(sizeof(float)), int(0), value);
+                    pExt->write_data(nID, sizeof(float), 0, &value);
+                }
+                else
+                {
+                    if (pPort != NULL)
+                    {
+                        lsp_trace("Directly writing float port id=%s, value=%f",
+                            pPort->metadata()->id, fValue);
+                        pPort->setValue(fValue);
+                    }
+                    else if (urid > 0)
+                        pExt->ui_write_state(this);
+                }
+            }
+
+            virtual void serialize()
+            {
+                pExt->forge_float(pMetadata->max - fValue);
+            };
+
+            virtual void deserialize(const void *data)
+            {
+                const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
+                fValue      = limit_value(pMetadata, pMetadata->max - atom->body);
+            }
+
+            virtual void notify(const void *buffer, size_t protocol, size_t size)
+            {
+                if (size == sizeof(float))
+                    fValue = limit_value(pMetadata, pMetadata->max - *(reinterpret_cast<const float *>(buffer)));
+                lsp_trace("set value of port %s = %f", pMetadata->id, fValue);
             }
     };
 
