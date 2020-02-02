@@ -157,7 +157,7 @@ namespace lsp
                 return;
             Color &c = pColor->sColor;
 
-            char buf[16];
+            char buf[32];
             style->begin();
 
             // R, G, B components
