@@ -16,6 +16,8 @@
 * Removed strict requirement to build UI for LADSPA version of plugins.
 * Bypass button now supports LV2:enabled designation, that makes plugin to work more smooth with the host.
 * Bypass button now handles effSetBypass VST event, that makes plugin to work more smooth with the host.
+* Denied use of -ffast-math compiler option since it may provide incorrect behaviour of standard C
+  library functions like isnan() and isinf().
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
 - Implemented Multiband gate plugin series.
