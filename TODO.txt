@@ -18,6 +18,7 @@
 * Bypass button now handles effSetBypass VST event, that makes plugin to work more smooth with the host.
 * Denied use of -ffast-math compiler option since it may provide incorrect behaviour of standard C
   library functions like isnan() and isinf().
+* Fixed stack corruption bug when working with UI styles and colors.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
 - Implemented Multiband gate plugin series.
