@@ -166,7 +166,7 @@ UTEST_BEGIN("dsp.filters", dynamic)
                 f1[i]       = bq_normal;
             for (size_t i=0; i<(count+1); ++i)
             {
-                for (size_t j=0; j<8; ++j)
+                for (size_t j=0; j<2; ++j)
                 {
                     f2[i].a0[j] = bq_normal.a0;
                     f2[i].a1[j] = bq_normal.a1;

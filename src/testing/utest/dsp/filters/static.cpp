@@ -135,7 +135,6 @@ UTEST_BEGIN("dsp.filters", static)
         }
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0x1f, 0x40, 0x1ff)
-//        size_t count = 4;
         {
             FloatBuffer src(count);
             FloatBuffer dst1(count);
