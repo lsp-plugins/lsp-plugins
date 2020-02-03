@@ -325,8 +325,12 @@ typedef struct biquad_x1_t
  */
 typedef struct biquad_x2_t
 {
-    float   a[8];  //  a0 a0 a1 a2 i0 i1 i2 i3
-    float   b[8];  //  b1 b2 0  0  j1 j2 0  0
+    float   a0[2];
+    float   a1[2];
+    float   a2[2];
+    float   b1[2];
+    float   b2[2];
+    float   p[2];           // padding (not used), SHOULD be zero
 } biquad_x2_t;
 
 /**

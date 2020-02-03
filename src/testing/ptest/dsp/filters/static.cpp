@@ -111,25 +111,16 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
 
         biquad_t f __lsp_aligned64;
 
-        // Filter 1
-        f.x2.a[0]      = bq_normal.a0;
-        f.x2.a[1]      = bq_normal.a0;
-        f.x2.a[2]      = bq_normal.a1;
-        f.x2.a[3]      = bq_normal.a2;
-        f.x2.b[0]      = bq_normal.b1;
-        f.x2.b[1]      = bq_normal.b2;
-        f.x2.b[2]      = 0.0f;
-        f.x2.b[3]      = 0.0f;
-
-        // Filter 2
-        f.x2.a[4]      = bq_normal.a0;
-        f.x2.a[5]      = bq_normal.a0;
-        f.x2.a[6]      = bq_normal.a1;
-        f.x2.a[7]      = bq_normal.a2;
-        f.x2.b[4]      = bq_normal.b1;
-        f.x2.b[5]      = bq_normal.b2;
-        f.x2.b[6]      = 0.0f;
-        f.x2.b[7]      = 0.0f;
+        // Filters x 2
+        for (size_t i=0; i<2; ++i)
+        {
+            f.x2.a0[i]      = bq_normal.a0;
+            f.x2.a1[i]      = bq_normal.a1;
+            f.x2.a2[i]      = bq_normal.a2;
+            f.x2.b1[i]      = bq_normal.b1;
+            f.x2.b2[i]      = bq_normal.b2;
+            f.x2.p[i]       = 0.0f;
+        }
 
         for (size_t i=0; i<8; ++i)
             f.d[i]          = 0.0f;
