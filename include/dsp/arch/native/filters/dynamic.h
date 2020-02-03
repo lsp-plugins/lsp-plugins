@@ -51,15 +51,15 @@ namespace native
         p1          = f->a1[0]*s + f->b1[0]*s2;
         p2          = f->a2[0]*s + f->b2[0]*s2;
         r           = s2;
-        d[0]        = d[1] + p1;
-        d[1]        = p2;
+        d[0]        = d[2] + p1;
+        d[2]        = p2;
         f           ++;
 
         // Both filters
         for (size_t i=1; i<count; ++i)
         {
             s           = *(src++);
-            r2          = f->a0[1]*r + d[2];
+            r2          = f->a0[1]*r + d[1];
             s2          = f->a0[0]*s + d[0];
 
             q1          = f->a1[1]*r + f->b1[1]*r2;
@@ -71,20 +71,20 @@ namespace native
             *(dst++)    = r2;
 
             // Shift buffers
-            d[2]        = d[3] + q1;
-            d[0]        = d[1] + p1;
+            d[1]        = d[3] + q1;
+            d[0]        = d[2] + p1;
             d[3]        = q2;
-            d[1]        = p2;
+            d[2]        = p2;
 
             f           ++;
         }
 
         // Second filter only
-        r2          = f->a0[1]*r + d[2];
+        r2          = f->a0[1]*r + d[1];
         q1          = f->a1[1]*r + f->b1[1]*r2;
         q2          = f->a2[1]*r + f->b2[1]*r2;
         *dst        = r2;
-        d[2]        = d[3] + q1;
+        d[1]        = d[3] + q1;
         d[3]        = q2;
     }
 

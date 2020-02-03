@@ -25,30 +25,30 @@ namespace sse
             __ASM_EMIT("jz          2f")
 
             // Load permanent data
-            __ASM_EMIT("movss       0x00(%[f]), %%xmm6")                    // xmm6 = d0
+            __ASM_EMIT("movss       0x00(%[f]), %%xmm6")                            // xmm6 = d0
             __ASM_EMIT("xor         %[off], %[off]")
-            __ASM_EMIT("movss       0x04(%[f]), %%xmm7")                    // xmm7 = d1
+            __ASM_EMIT("movss       0x04(%[f]), %%xmm7")                            // xmm7 = d1
 
             // Start loop
             __ASM_EMIT("1:")
-            __ASM_EMIT("movss       (%[src], %[off], 4), %%xmm0")           // xmm0 = s ? ? ?
-            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm1")                    // xmm1 = a0
-            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x04(%[f]), %%xmm2")                    // xmm2 = a1
-            __ASM_EMIT("mulss       %%xmm0, %%xmm1")                        // xmm1 = a0*s
-            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x0c(%[f]), %%xmm3")                    // xmm3 = b1
-            __ASM_EMIT("mulss       %%xmm0, %%xmm2")                        // xmm2 = a1*s
-            __ASM_EMIT("addss       %%xmm6, %%xmm1")                        // xmm1 = s' = a0*s + d0
-            __ASM_EMIT("mulss       " BIQUAD_XN_SOFF " + 0x08(%[f]), %%xmm0")                    // xmm0 = a2*s
-            __ASM_EMIT("movss       %%xmm1, (%[dst], %[off], 4)")           // *dst = s'
-            __ASM_EMIT("movaps      %%xmm7, %%xmm6")                        // xmm6 = d1
-            __ASM_EMIT("mulss       %%xmm1, %%xmm3")                        // xmm3 = b1*s'
+            __ASM_EMIT("movss       (%[src], %[off], 4), %%xmm0")                   // xmm0 = s ? ? ?
+            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm1")       // xmm1 = a0
+            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x04(%[f]), %%xmm2")       // xmm2 = a1
+            __ASM_EMIT("mulss       %%xmm0, %%xmm1")                                // xmm1 = a0*s
+            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x0c(%[f]), %%xmm3")       // xmm3 = b1
+            __ASM_EMIT("mulss       %%xmm0, %%xmm2")                                // xmm2 = a1*s
+            __ASM_EMIT("addss       %%xmm6, %%xmm1")                                // xmm1 = s' = a0*s + d0
+            __ASM_EMIT("mulss       " BIQUAD_XN_SOFF " + 0x08(%[f]), %%xmm0")       // xmm0 = a2*s
+            __ASM_EMIT("movss       %%xmm1, (%[dst], %[off], 4)")                   // *dst = s'
+            __ASM_EMIT("movaps      %%xmm7, %%xmm6")                                // xmm6 = d1
+            __ASM_EMIT("mulss       %%xmm1, %%xmm3")                                // xmm3 = b1*s'
             __ASM_EMIT("add         $1, %[off]")
-            __ASM_EMIT("mulss       " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm1")                    // xmm1 = b2*s'
-            __ASM_EMIT("addss       %%xmm3, %%xmm2")                        // xmm2 = a1*s + b1*s'
-            __ASM_EMIT("addss       %%xmm0, %%xmm1")                        // xmm3 = d1' = a2*s + b2*s'
+            __ASM_EMIT("mulss       " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm1")       // xmm1 = b2*s'
+            __ASM_EMIT("addss       %%xmm3, %%xmm2")                                // xmm2 = a1*s + b1*s'
+            __ASM_EMIT("addss       %%xmm0, %%xmm1")                                // xmm3 = d1' = a2*s + b2*s'
             __ASM_EMIT("cmp         %[count], %[off]")
-            __ASM_EMIT("addss       %%xmm2, %%xmm6")                        // xmm6 = d0' = d1 + a1*s + b1*s'
-            __ASM_EMIT("movaps      %%xmm1, %%xmm7")                        // xmm7 = d1'
+            __ASM_EMIT("addss       %%xmm2, %%xmm6")                                // xmm6 = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("movaps      %%xmm1, %%xmm7")                                // xmm7 = d1'
             __ASM_EMIT("jb          1b")
 
             // Store the updated buffer state
@@ -80,16 +80,15 @@ namespace sse
             __ASM_EMIT("movss       (%[src]), %%xmm0")                          // xmm0 = s ? ? ?
             __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm1")   // xmm1 = a0
             __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x08(%[f]), %%xmm2")   // xmm2 = a1
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm3")   // xmm3 = a2
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x18(%[f]), %%xmm4")   // xmm4 = b1
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x20(%[f]), %%xmm5")   // xmm5 = b2
             __ASM_EMIT("mulss       %%xmm0, %%xmm1")                            // xmm1 = a0*s
+            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm3")   // xmm3 = a2
             __ASM_EMIT("mulss       %%xmm0, %%xmm2")                            // xmm2 = a1*s
+            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x18(%[f]), %%xmm4")   // xmm4 = b1
             __ASM_EMIT("addss       0x00(%[f]), %%xmm1")                        // xmm1 = s' = a0*s + d0
             __ASM_EMIT("mulss       %%xmm0, %%xmm3")                            // xmm3 = a2*s
             __ASM_EMIT("mulss       %%xmm1, %%xmm4")                            // xmm4 = b1*s'
             __ASM_EMIT("movaps      %%xmm1, %%xmm0")                            // xmm0 = s'
-            __ASM_EMIT("mulss       %%xmm5, %%xmm1")                            // xmm1 = b2*s'
+            __ASM_EMIT("mulss       " BIQUAD_XN_SOFF " + 0x20(%[f]), %%xmm1")   // xmm1 = b2*s'
             __ASM_EMIT("shufps      $0xb1, %%xmm0, %%xmm0")                     // shift
             __ASM_EMIT("addss       %%xmm4, %%xmm2")                            // xmm2 = a1*s + b1*s'
             __ASM_EMIT("addss       %%xmm3, %%xmm1")                            // xmm1 = d1' = a2*s + b2*s'
@@ -100,51 +99,45 @@ namespace sse
             __ASM_EMIT("movss       %%xmm1, 0x08(%[f])")
             __ASM_EMIT("jz          2f")
             // x2 loop
-            __ASM_EMIT("movlps      0x00(%[f]), %%xmm6")                        // xmm6 = d0
-            __ASM_EMIT("movlps      0x08(%[f]), %%xmm7")                        // xmm7 = d1
+            __ASM_EMIT("movaps      0x00(%[f]), %%xmm6")                        // xmm6 = d0 e0 d1 e1
+            __ASM_EMIT("xorps       %%xmm7, %%xmm7")                            // xmm7 = 0 0 0 0
             __ASM_EMIT(".align      16")
             __ASM_EMIT("1:")
-            __ASM_EMIT("movss       (%[src]), %%xmm4")                          // xmm4 = s1
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm1")   // xmm1 = a0
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x08(%[f]), %%xmm2")   // xmm2 = a1
+            __ASM_EMIT("movss       (%[src]), %%xmm4")                          // xmm4 = s0
+            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm1")   // xmm1 = a0 i0
             __ASM_EMIT("movss       %%xmm4, %%xmm0")                            // xmm0 = s0 s1
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm3")   // xmm3 = a2
-            __ASM_EMIT("movlps      " BIQUAD_XN_SOFF " + 0x18(%[f]), %%xmm4")   // xmm4 = b1
-            __ASM_EMIT("mulps       %%xmm0, %%xmm1")                            // xmm1 = a0*s
-            __ASM_EMIT("mulps       %%xmm0, %%xmm2")                            // xmm2 = a1*s
-            __ASM_EMIT("addps       %%xmm6, %%xmm1")                            // xmm1 = s' = a0*s + d0
-            __ASM_EMIT("mulps       %%xmm0, %%xmm3")                            // xmm3 = a2*s
-            __ASM_EMIT("mulps       %%xmm1, %%xmm4")                            // xmm4 = b1*s'
-            __ASM_EMIT("movaps      %%xmm1, %%xmm0")                            // xmm0 = s'
-            __ASM_EMIT("movaps      %%xmm7, %%xmm6")                            // xmm6 = d1
-            __ASM_EMIT("mulps       %%xmm5, %%xmm1")                            // xmm1 = b2*s'
+            __ASM_EMIT("movups      " BIQUAD_XN_SOFF " + 0x08(%[f]), %%xmm2")   // xmm2 = a1 i1 a2 i2
+            __ASM_EMIT("movlhps     %%xmm0, %%xmm0")                            // xmm0 = s0 s1 s0 s1
+            __ASM_EMIT("movups      " BIQUAD_XN_SOFF " + 0x18(%[f]), %%xmm3")   // xmm3 = b1 j1 b2 j2
+            __ASM_EMIT("mulps       %%xmm0, %%xmm2")                            // xmm2 = a1*s0 i1*s1 a2*s0 i2*s1
+            __ASM_EMIT("mulps       %%xmm1, %%xmm0")                            // xmm0 = a0*s0 i0*s1
+            __ASM_EMIT("addps       %%xmm6, %%xmm0")                            // xmm0 = s0' s1' = d0+a0*s0 e0+i0*s1
+            __ASM_EMIT("shufps      $0x0e, %%xmm7, %%xmm6")                     // xmm6 = d1 e1 0 0
+            __ASM_EMIT("movlhps     %%xmm0, %%xmm0")                            // xmm0 = s0' s1' s0' s1'
+            __ASM_EMIT("addps       %%xmm2, %%xmm6")                            // xmm6 = d1+a1*s0 e1+i1*s1 a2*s0 i2*s1
+            __ASM_EMIT("mulps       %%xmm0, %%xmm3")                            // xmm3 = b1*s0' j1*s1' b2*s0' j2*s1'
             __ASM_EMIT("shufps      $0xb1, %%xmm0, %%xmm0")                     // shift
-            __ASM_EMIT("addps       %%xmm4, %%xmm2")                            // xmm2 = a1*s + b1*s'
-            __ASM_EMIT("addps       %%xmm3, %%xmm1")                            // xmm1 = d1' = a2*s + b2*s'
-            __ASM_EMIT("addps       %%xmm2, %%xmm6")                            // xmm6 = d0' = d1 + a1*s + b1*s'
-            __ASM_EMIT("movaps      %%xmm1, %%xmm7")                            // xmm7 = d1'
+            __ASM_EMIT("addps       %%xmm3, %%xmm6")                            // xmm6 = d0' e0' d1' e1' = d1+a1*s0+b1*s0' e1+i1*s1+j1*s1' a2*s0+b2*s0' i2*s1+j2*s1'
             __ASM_EMIT("movss       %%xmm0, (%[dst])")
             __ASM_EMIT("add         $0x04, %[src]")
             __ASM_EMIT("add         $0x04, %[dst]")
             __ASM_EMIT("dec         %[count]")
             __ASM_EMIT("jnz         1b")
-            __ASM_EMIT("movlps      %%xmm6, 0x00(%[f])")
-            __ASM_EMIT("movlps      %%xmm7, 0x08(%[f])")
+            __ASM_EMIT("movaps      %%xmm6, 0x00(%[f])")
             // Last step
             __ASM_EMIT("2:")
             __ASM_EMIT("shufps      $0xb1, %%xmm0, %%xmm0")                     // shift
             __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x04(%[f]), %%xmm1")   // xmm1 = a0
             __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x0c(%[f]), %%xmm2")   // xmm2 = a1
-            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x14(%[f]), %%xmm3")   // xmm3 = a2
-            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x1c(%[f]), %%xmm4")   // xmm4 = b1
-            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x24(%[f]), %%xmm5")   // xmm5 = b2
             __ASM_EMIT("mulss       %%xmm0, %%xmm1")                            // xmm1 = a0*s
+            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x14(%[f]), %%xmm3")   // xmm3 = a2
             __ASM_EMIT("mulss       %%xmm0, %%xmm2")                            // xmm2 = a1*s
+            __ASM_EMIT("movss       " BIQUAD_XN_SOFF " + 0x1c(%[f]), %%xmm4")   // xmm4 = b1
             __ASM_EMIT("addss       0x04(%[f]), %%xmm1")                        // xmm1 = s' = a0*s + d0
             __ASM_EMIT("mulss       %%xmm0, %%xmm3")                            // xmm3 = a2*s
             __ASM_EMIT("mulss       %%xmm1, %%xmm4")                            // xmm4 = b1*s'
             __ASM_EMIT("movaps      %%xmm1, %%xmm0")                            // xmm0 = s'
-            __ASM_EMIT("mulss       %%xmm5, %%xmm1")                            // xmm1 = b2*s'
+            __ASM_EMIT("mulss      " BIQUAD_XN_SOFF " + 0x24(%[f]), %%xmm1")    // xmm1 = b2*s'
             __ASM_EMIT("movss       %%xmm0, (%[dst])")
             __ASM_EMIT("addps       %%xmm4, %%xmm2")                            // xmm2 = a1*s + b1*s'
             __ASM_EMIT("addps       %%xmm3, %%xmm1")                            // xmm3 = d1' = a2*s + b2*s'
