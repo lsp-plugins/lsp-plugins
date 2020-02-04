@@ -20,9 +20,6 @@ namespace asimd
         // d0'   = d1 + a1*s + b1*s';
         // d1'   = a2*s + b2*s';
         ARCH_AARCH64_ASM(
-            // Check count
-            __ASM_EMIT("cbz             %[count], 6f")
-
             __ASM_EMIT("ld3             {v16.s, v17.s, v18.s}[0], [%[FX1]]")    // v16  = a0, v17 = a1, v18 = a2
             __ASM_EMIT("ldp             s19, s20, [%[FX1], #0x0c]")             // v19  = b1, v20 = b2
             __ASM_EMIT("ldp             s22, s23, [%[FD]]")                     // v22  = d0, v23 = d1
@@ -63,7 +60,6 @@ namespace asimd
             __ASM_EMIT("4:")
             // Store the updated buffer state
             __ASM_EMIT("stp             s22, s23, [%[FD]]")
-            __ASM_EMIT("6:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             : [FD] "r" (&f->d[0]), [FX1] "r" (&f->x1)

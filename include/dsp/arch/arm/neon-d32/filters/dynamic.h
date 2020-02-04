@@ -72,7 +72,6 @@ namespace neon_d32
             __ASM_EMIT("4:")
             // Store the updated buffer state
             __ASM_EMIT("vstm            %[d],  {s14-s15}")
-            __ASM_EMIT("6:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
               [f] "+r" (f)
@@ -87,98 +86,62 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             // Check count
-            __ASM_EMIT("tst         %[count], %[count]")
-            __ASM_EMIT("beq         6f")
-
-            // Load permanent data
-            __ASM_EMIT("vld1.32     {q2-q3}, [%[d]]")                       // q2-q3    = { d0 d1 0 0, e0 e1 0 0 }
-
-            // Peform 1x single A filter processing
-            __ASM_EMIT("vldm        %[f]!, {q4-q7}")                        // q4-q7    = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
-            __ASM_EMIT("vext.f32    q8, q2, q2, $3")                        // q8       = 0 d0 d1 0
-            __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
-            __ASM_EMIT("vdup.32     d16, d16[1]")                           // q8       = d0 d0 d1 0
-            __ASM_EMIT("vmla.f32    q8, q0, q4")                            // q8       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
-            __ASM_EMIT("vdup.32     q1, d16[0]")                            // q1       = s*a0+d0 = r
-            __ASM_EMIT("vmul.f32    q2, q8, q6")                            // q2       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-            __ASM_EMIT("vadd.f32    d4, d17")                               // q2       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
-            __ASM_EMIT("subs        %[count], $1")
-            __ASM_EMIT("bls         4f")
-
-            // Perform 2x A+B filter processing (loop unrolling)
-            __ASM_EMIT("subs        %[count], $2")
-            __ASM_EMIT("blt         2f")
+            __ASM_EMIT("tst             %[count], %[count]")
+            __ASM_EMIT("beq             6f")
+            // x1 head block
+            __ASM_EMIT("vldm            %[d], {d14-d15}")                       // d14  = d0 e0, d15 = d1 e1
+            __ASM_EMIT("vldm            %[f]!, {d8-d13}")                       // d8   = a0, d9 = a1, d10 = a2, d11 = b1, d12 = b2, d13 = 0
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")                    // d0   = s0
+            __ASM_EMIT("vmul.f32        d1, d8, d0")                            // d1   = a0*s0
+            __ASM_EMIT("vadd.f32        d4, d14, d1")                           // d4   = s' = d0+a0*s0
+            __ASM_EMIT("vmul.f32        d2, d9, d0")                            // d2   = a1*s0
+            __ASM_EMIT("vadd.f32        d5, d15, d2")                           // d5   = d1+a1*s0
+            __ASM_EMIT("vmul.f32        d6, d10, d0")                           // d6   = a2*s0
+            __ASM_EMIT("vmla.f32        d5, d11, d4")                           // d5   = d0' = d1+a1*s0+b1*s'
+            __ASM_EMIT("vmla.f32        d6, d12, d4")                           // d6   = d1' = a2*s0+b2*s'
+            __ASM_EMIT("vext.32         d0, d0, d4, $1")                        // shift
+            __ASM_EMIT("vmov            s28, s10")                              // update d0
+            __ASM_EMIT("vmov            s30, s12")                              // update d1
+            // x2 blocks
+            __ASM_EMIT("subs            %[count], %[count], $1")
+            __ASM_EMIT("bls             2f")
             __ASM_EMIT("1:")
-
-            __ASM_EMIT("vldm        %[f]!, {q4-q7}")                        // q4-q7    = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
-            __ASM_EMIT("vext.f32    q8, q2, q2, $3")                        // q8       = 0 d0 d1 0
-            __ASM_EMIT("vext.f32    q9, q3, q3, $3")                        // q9       = 0 j0 j1 0
-            __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
-            __ASM_EMIT("vdup.32     d16, d16[1]")                           // q8       = d0 d0 d1 0
-            __ASM_EMIT("vdup.32     d18, d18[1]")                           // q9       = j0 j0 j1 0
-            __ASM_EMIT("vmla.f32    q8, q0, q4")                            // q8       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
-            __ASM_EMIT("vmla.f32    q9, q1, q5")                            // q9       = r*i0+e0 r*i0+e0 r*i1+e1 r*i2
-            __ASM_EMIT("vdup.32     q1, d16[0]")                            // q1       = s*a0+d0 = r
-            __ASM_EMIT("vst1.32     d18[0], [%[dst]]!")                     // *dst++   = r*i0+e0
-            __ASM_EMIT("vmul.f32    q2, q8, q6")                            // q2       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-            __ASM_EMIT("vmul.f32    q3, q9, q7")                            // q3       = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
-            __ASM_EMIT("vadd.f32    d4, d17")                               // q2       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
-            __ASM_EMIT("vadd.f32    d6, d19")                               // q3       = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
-
-            __ASM_EMIT("vext.f32    q8, q2, q2, $3")                        // q8       = 0 d0 d1 0
-            __ASM_EMIT("vext.f32    q9, q3, q3, $3")                        // q9       = 0 j0 j1 0
-            __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
-            __ASM_EMIT("vdup.32     d16, d16[1]")                           // q8       = d0 d0 d1 0
-            __ASM_EMIT("vdup.32     d18, d18[1]")                           // q9       = j0 j0 j1 0
-            __ASM_EMIT("vmla.f32    q8, q0, q4")                            // q8       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
-            __ASM_EMIT("vmla.f32    q9, q1, q5")                            // q9       = r*i0+e0 r*i0+e0 r*i1+e1 r*i2
-            __ASM_EMIT("vdup.32     q1, d16[0]")                            // q1       = s*a0+d0 = r
-            __ASM_EMIT("vst1.32     d18[0], [%[dst]]!")                     // *dst++   = r*i0+e0
-            __ASM_EMIT("vmul.f32    q2, q8, q6")                            // q2       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-            __ASM_EMIT("vmul.f32    q3, q9, q7")                            // q3       = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
-            __ASM_EMIT("vadd.f32    d4, d17")                               // q2       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
-            __ASM_EMIT("vadd.f32    d6, d19")                               // q3       = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
-
-            __ASM_EMIT("subs        %[count], $2")
-            __ASM_EMIT("bge         1b")
-
-            // Perform A+B filter processing
+            __ASM_EMIT("vldm            %[f]!, {d8-d13}")                       // d8   = a0, d9 = a1, d10 = a2, d11 = b1, d12 = b2, d13 = 0
+            __ASM_EMIT("vld1.32         {d0[0]}, [%[src]]!")                    // d0   = s0 j0
+            __ASM_EMIT("vmul.f32        d1, d8, d0")                            // d1   = a0*s0 a0*j0
+            __ASM_EMIT("vadd.f32        d4, d14, d1")                           // d4   = s' j' = d0+a0*s0 e0+a0*j0
+            __ASM_EMIT("vmul.f32        d2, d9, d0")                            // d2   = a1*s0 a1*j0
+            __ASM_EMIT("vst1.32         {d4[1]}, [%[dst]]!")
+            __ASM_EMIT("vadd.f32        d14, d15, d2")                          // d15  = d1+a1*s0 e1+a1*j0
+            __ASM_EMIT("vmul.f32        d15, d10, d0")                          // d23  = a2*s0 a2*j0
+            __ASM_EMIT("vmla.f32        d14, d11, d4")                          // d22  = d0' e0' = d1+a1*s0+b1*s' e1+a1*j0+b1*j'
+            __ASM_EMIT("vmla.f32        d15, d12, d4")                          // d23  = d1' e1' = a2*s0+b2*s' a2*j0 b2*j'
+            __ASM_EMIT("subs            %[count], %[count], $1")
+            __ASM_EMIT("vext.32         d0, d0, d4, $1")                        // shift
+            __ASM_EMIT("bhi             1b")
             __ASM_EMIT("2:")
-            __ASM_EMIT("adds        %[count], $1")
-            __ASM_EMIT("blt         4f")
-            __ASM_EMIT("vext.f32    q8, q2, q2, $3")                        // q8       = 0 d0 d1 0
-            __ASM_EMIT("vext.f32    q9, q3, q3, $3")                        // q9       = 0 j0 j1 0
-            __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0       = s s s s
-            __ASM_EMIT("vdup.32     d16, d16[1]")                           // q8       = d0 d0 d1 0
-            __ASM_EMIT("vdup.32     d18, d18[1]")                           // q9       = j0 j0 j1 0
-            __ASM_EMIT("vmla.f32    q8, q0, q4")                            // q8       = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
-            __ASM_EMIT("vmla.f32    q9, q1, q5")                            // q9       = r*i0+e0 r*i0+e0 r*i1+e1 r*i2
-            __ASM_EMIT("vdup.32     q1, d16[0]")                            // q1       = s*a0+d0 = r
-            __ASM_EMIT("vst1.32     d18[0], [%[dst]]!")                     // *dst++   = r*i0+e0
-            __ASM_EMIT("vmul.f32    q2, q8, q6")                            // q2       = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-            __ASM_EMIT("vmul.f32    q3, q9, q7")                            // q3       = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
-            __ASM_EMIT("vadd.f32    d4, d17")                               // q2       = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
-            __ASM_EMIT("vadd.f32    d6, d19")                               // q3       = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
-
-            // Peform 1x single B filter processing
-            __ASM_EMIT("4:")
-            __ASM_EMIT("vldm        %[f]!, {q4-q7}")                        // q4-q7    = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
-            __ASM_EMIT("vext.f32    q9, q3, q3, $3")                        // q9       = 0 j0 j1 0
-            __ASM_EMIT("vdup.32     d18, d18[1]")                           // q9       = j0 j0 j1 0
-            __ASM_EMIT("vmla.f32    q9, q1, q5")                            // q9       = r*i0+e0 r*i0+e0 r*i1+e1 r*i2
-            __ASM_EMIT("vst1.32     d18[0], [%[dst]]!")                     // *dst++   = r*i0+e0
-            __ASM_EMIT("vmul.f32    q3, q9, q7")                            // q3       = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
-            __ASM_EMIT("vadd.f32    d6, d19")                               // q3       = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
-
+            // x1 tail block
+            __ASM_EMIT("vldm            %[f], {d8-d13}")                        // d8   = a0, d9 = a1, d10 = a2, d11 = b1, d12 = b2, d13 = 0
+            __ASM_EMIT("vmul.f32        d1, d8, d0")                            // v1   = a0*j0
+            __ASM_EMIT("vadd.f32        d4, d14, d1")                           // v4   = s' = e0 + a0*j0
+            __ASM_EMIT("vmul.f32        d2, d9, d0")                            // v2   = a1*j0
+            __ASM_EMIT("vadd.f32        d5, d15, d2")                           // v5   = e1 + a1*j0
+            __ASM_EMIT("vst1.32         {d4[1]}, [%[dst]]")
+            __ASM_EMIT("vmul.f32        d6, d10, d0")                           // v6   = a2*j0
+            __ASM_EMIT("vmla.f32        d5, d11, d4")                           // v5   = d0' = e1 + a1*j0 + b1*j'
+            __ASM_EMIT("vmla.f32        d6, d12, d4")                           // v6   = d1' = a2*j0 + b2*j'
+            __ASM_EMIT("vmov            s29, s11")                              // update d0
+            __ASM_EMIT("vmov            s31, s13")                              // update d1
             // Store the updated buffer state
-            __ASM_EMIT("vst1.32     {q2-q3}, [%[d]]")
+            __ASM_EMIT("vstm            %[d], {d14-d15}")
             __ASM_EMIT("6:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f)
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count), [f] "+r" (f)
             : [d] "r" (d)
             : "cc", "memory",
-              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
-              "q8", "q9", "q10", "q11", "q12"
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7"
         );
     }
 
