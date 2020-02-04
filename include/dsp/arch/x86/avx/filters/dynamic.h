@@ -114,6 +114,81 @@ namespace avx
         );
     }
 
+    void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f)
+    {
+        ARCH_X86_ASM
+        (
+            // Check count
+            __ASM_EMIT("test                %[count], %[count]")
+            __ASM_EMIT("jz                  4f")
+
+            // Start loop
+            __ASM_EMIT("vmovss              (%[src]), %%xmm0")                                  // xmm0 = s ? ? ?
+            __ASM_EMIT("vmulss              0x00(%[f]), %%xmm0, %%xmm1")                        // xmm1 = a0*s
+            __ASM_EMIT("vmulss              0x08(%[f]), %%xmm0, %%xmm2")                        // xmm2 = a1*s
+            __ASM_EMIT("vmulss              0x10(%[f]), %%xmm0, %%xmm3")                        // xmm3 = a2*s
+            __ASM_EMIT("vaddss              0x00(%[d]), %%xmm1, %%xmm0")                        // xmm0 = s' = a0*s + d0
+            __ASM_EMIT("vaddss              0x08(%[d]), %%xmm2, %%xmm2")                        // xmm2 = d1 + a1*s
+            __ASM_EMIT("vmulss              0x18(%[f]), %%xmm0, %%xmm4")                        // xmm4 = b1*s'
+            __ASM_EMIT("vmulss              0x20(%[f]), %%xmm0, %%xmm5")                        // xmm5 = b2*s'
+            __ASM_EMIT("vaddss              %%xmm4, %%xmm2, %%xmm6")                            // xmm6 = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("vaddss              %%xmm5, %%xmm3, %%xmm7")                            // xmm7 = d1' = a2*s + b2*s'
+            __ASM_EMIT("vshufps             $0xb1, %%xmm0, %%xmm0, %%xmm0")                     // shift
+            __ASM_EMIT("add                 $0x04, %[src]")                                     // src++
+            __ASM_EMIT("add                 $0x30, %[f]")
+            __ASM_EMIT("dec                 %[count]")
+            __ASM_EMIT("vmovss              %%xmm6, 0x00(%[d])")
+            __ASM_EMIT("vmovss              %%xmm7, 0x08(%[d])")
+            __ASM_EMIT("jz                  2f")
+            // x2 loop
+            __ASM_EMIT("vmovaps             0x00(%[d]), %%xmm6")                                // xmm6 = d0 e0 d1 e1
+            __ASM_EMIT("vxorps              %%xmm7, %%xmm7, %%xmm7")                            // xmm7 = 0 0 0 0
+            __ASM_EMIT(".align              16")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vinsertps           $0xc0, (%[src]), %%xmm0, %%xmm0")                   // xmm0 = s0 s1
+            __ASM_EMIT("vmovlhps            %%xmm0, %%xmm0, %%xmm0")                            // xmm0 = s0 s1 s0 s1
+            __ASM_EMIT("vmulps              0x08(%[f]), %%xmm0, %%xmm2")                        // xmm2 = a1*s0 i1*s1 a2*s0 i2*s1
+            __ASM_EMIT("vmulps              0x00(%[f]), %%xmm0, %%xmm0")                        // xmm0 = a0*s0 i0*s1
+            __ASM_EMIT("vaddps              %%xmm6, %%xmm0, %%xmm0")                            // xmm0 = s0' s1' = d0+a0*s0 e0+i0*s1
+            __ASM_EMIT("vshufps             $0x0e, %%xmm7, %%xmm6, %%xmm6")                     // xmm6 = d1 e1 0 0
+            __ASM_EMIT("vmovlhps            %%xmm0, %%xmm0, %%xmm0")                            // xmm0 = s0' s1' s0' s1'
+            __ASM_EMIT("vaddps              %%xmm2, %%xmm6, %%xmm6")                            // xmm6 = d1+a1*s0 e1+i1*s1 a2*s0 i2*s1
+            __ASM_EMIT("vmulps              0x18(%[f]), %%xmm0, %%xmm3")                        // xmm3 = b1*s0' j1*s1' b2*s0' j2*s1'
+            __ASM_EMIT("vshufps             $0xb1, %%xmm0, %%xmm0, %%xmm0")                     // shift
+            __ASM_EMIT("vaddps              %%xmm3, %%xmm6, %%xmm6")                            // xmm6 = d0' e0' d1' e1' = d1+a1*s0+b1*s0' e1+i1*s1+j1*s1' a2*s0+b2*s0' i2*s1+j2*s1'
+            __ASM_EMIT("vmovss              %%xmm0, (%[dst])")
+            __ASM_EMIT("add                 $0x04, %[src]")
+            __ASM_EMIT("add                 $0x04, %[dst]")
+            __ASM_EMIT("add                 $0x30, %[f]")
+            __ASM_EMIT("dec                 %[count]")
+            __ASM_EMIT("jnz                 1b")
+            __ASM_EMIT("vmovaps             %%xmm6, 0x00(%[d])")
+            // Last step
+            __ASM_EMIT("2:")
+            __ASM_EMIT("vshufps             $0xb1, %%xmm0, %%xmm0, %%xmm0")                     // shift
+            __ASM_EMIT("vmulss              0x04(%[f]), %%xmm0, %%xmm1")                        // xmm1 = a0*s
+            __ASM_EMIT("vmulss              0x0c(%[f]), %%xmm0, %%xmm2")                        // xmm2 = a1*s
+            __ASM_EMIT("vmulss              0x14(%[f]), %%xmm0, %%xmm3")                        // xmm3 = a2*s
+            __ASM_EMIT("vaddss              0x04(%[d]), %%xmm1, %%xmm0")                        // xmm0 = s' = a0*s + d0
+            __ASM_EMIT("vaddss              0x0c(%[d]), %%xmm2, %%xmm2")                        // xmm2 = d1 + a1*s
+            __ASM_EMIT("vmulss              0x1c(%[f]), %%xmm0, %%xmm4")                        // xmm4 = b1*s'
+            __ASM_EMIT("vmulss              0x24(%[f]), %%xmm0, %%xmm5")                        // xmm5 = b2*s'
+            __ASM_EMIT("vaddss              %%xmm4, %%xmm2, %%xmm6")                            // xmm6 = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("vaddss              %%xmm5, %%xmm3, %%xmm7")                            // xmm7 = d1' = a2*s + b2*s'
+            __ASM_EMIT("vmovss              %%xmm0, (%[dst])")
+            __ASM_EMIT("vmovss              %%xmm6, 0x04(%[d])")
+            __ASM_EMIT("vmovss              %%xmm7, 0x0c(%[d])")
+            // Exit label
+            __ASM_EMIT("4:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [f] "+r" (f)
+            : [count] "r" (count), [d] "r" (d)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
     // This function is tested, works and delivers high performance
     void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f)
     {

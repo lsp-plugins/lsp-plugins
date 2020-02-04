@@ -92,7 +92,7 @@ namespace sse
             __ASM_EMIT("shufps      $0xb1, %%xmm0, %%xmm0")                     // shift
             __ASM_EMIT("addss       %%xmm4, %%xmm2")                            // xmm2 = a1*s + b1*s'
             __ASM_EMIT("addss       %%xmm3, %%xmm1")                            // xmm1 = d1' = a2*s + b2*s'
-            __ASM_EMIT("addss       0x08(%[f]), %%xmm2")                        // xmm6 = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("addss       0x08(%[f]), %%xmm2")                        // xmm2 = d0' = d1 + a1*s + b1*s'
             __ASM_EMIT("add         $0x04, %[src]")                             // src++
             __ASM_EMIT("dec         %[count]")
             __ASM_EMIT("movss       %%xmm2, 0x00(%[f])")

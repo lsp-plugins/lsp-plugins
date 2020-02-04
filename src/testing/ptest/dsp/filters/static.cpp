@@ -30,7 +30,6 @@ IF_ARCH_X86(
     IF_ARCH_X86_64(
         namespace sse3
         {
-            void x64_biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
             void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
         }
 
@@ -45,6 +44,7 @@ IF_ARCH_X86(
     {
         void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x1_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
     }
 )
 
@@ -206,7 +206,7 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
 
         process_4x2("native::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, native::biquad_process_x2);
         IF_ARCH_X86(process_4x2("sse::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, sse::biquad_process_x2));
-        IF_ARCH_X86_64(process_4x2("sse3::x64_biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x2));
+        IF_ARCH_X86(process_4x2("avx::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, avx::biquad_process_x2));
         IF_ARCH_ARM(process_4x2("neon_d32::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x2));
         IF_ARCH_AARCH64(process_4x2("asimd::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, asimd::biquad_process_x2));
         PTEST_SEPARATOR;

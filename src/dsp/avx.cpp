@@ -101,6 +101,7 @@ namespace avx
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
         bool favx   = feature_check(f, FEAT_FAST_AVX);
+        bool ffma   = favx && feature_check(f, FEAT_FAST_FMA3);
 
         CEXPORT2_X64(favx, reverse1, reverse1);
         CEXPORT2_X64(favx, reverse2, reverse2);
@@ -214,11 +215,14 @@ namespace avx
         CEXPORT1(favx, pcomplex_rcp2);
 
         CEXPORT1(favx, biquad_process_x1);
+        CEXPORT1(favx, biquad_process_x2);
+        EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
+
         CEXPORT1(favx, dyn_biquad_process_x1);
+        CEXPORT1(favx, dyn_biquad_process_x2);
+        EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);
-        EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
-        EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
         CEXPORT1(favx, h_sum);
         CEXPORT1(favx, h_sqr_sum);
@@ -366,11 +370,9 @@ namespace avx
             CEXPORT2(favx, convolve, convolve_fma3);
 
             CEXPORT2(favx, biquad_process_x1, biquad_process_x1_fma3);
-            CEXPORT2(favx, dyn_biquad_process_x1, dyn_biquad_process_x1_fma3);
-
-            // Non-conditional export
-            EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
-            EXPORT2_X64(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
+            CEXPORT2(ffma, dyn_biquad_process_x1, dyn_biquad_process_x1_fma3);
+            CEXPORT2(ffma, biquad_process_x8, biquad_process_x8_fma3);
+            CEXPORT2_X64(ffma, dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
         }
     }
 
