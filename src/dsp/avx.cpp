@@ -216,10 +216,12 @@ namespace avx
 
         CEXPORT1(favx, biquad_process_x1);
         CEXPORT1(favx, biquad_process_x2);
+        CEXPORT1(favx, biquad_process_x4);
         EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
 
         CEXPORT1(favx, dyn_biquad_process_x1);
         CEXPORT1(favx, dyn_biquad_process_x2);
+        CEXPORT1(favx, dyn_biquad_process_x4);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);

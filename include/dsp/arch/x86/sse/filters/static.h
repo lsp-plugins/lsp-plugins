@@ -158,8 +158,10 @@ namespace sse
 
     void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
     {
-        float   MASK[4] __lsp_aligned16;
-        size_t  mask;
+        IF_ARCH_X86(
+            float   MASK[4] __lsp_aligned16;
+            size_t  mask;
+        )
 
         ARCH_X86_ASM
         (
@@ -299,11 +301,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm5, %%xmm7")                            // xmm7     = d1 & ~MASK
 
             // Repeat loop
-            __ASM_EMIT("xorps       %%xmm2, %%xmm2")                            // xmm2     = 0 0 0 0
             __ASM_EMIT("shl         $1, %[mask]")                               // mask     = mask << 1
             __ASM_EMIT("shufps      $0x90, %%xmm0, %%xmm0")                     // xmm0     = m[0] m[0] m[1] m[2]
             __ASM_EMIT("and         $0x0f, %[mask]")                            // mask     = (mask << 1) & 0x0f
-            __ASM_EMIT("movss       %%xmm2, %%xmm0")                            // xmm0     = 0 m[0] m[1] m[2]
             __ASM_EMIT("jnz         5b")                                        // check that mask is not zero
 
             // Store delay buffer
@@ -326,14 +326,18 @@ namespace sse
 
     void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
     {
-        float   MASK[4] __lsp_aligned16;
-        size_t mask;
+        IF_ARCH_X86(
+            float   MASK[4] __lsp_aligned16;
+            size_t mask;
+        )
 
 #pragma pack(push)
-        struct {
-            float  *dst;
-            size_t  count;
-        } context;
+        IF_ARCH_X86(
+            struct {
+                float  *dst;
+                size_t  count;
+            } context;
+        )
 #pragma pack(pop)
 
         ARCH_X86_ASM

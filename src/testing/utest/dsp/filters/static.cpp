@@ -44,6 +44,8 @@ IF_ARCH_X86(
         void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x2_fma3(float *dst, const float *src, size_t count, biquad_t *f);
 
+        void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f);
+
         void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
     }
@@ -132,7 +134,7 @@ UTEST_BEGIN("dsp.filters", static)
         }
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0x1f, 0x40, 0x1ff)
-//        size_t count=3;
+//        size_t count=4;
         {
             FloatBuffer src(count);
             FloatBuffer dst1(count);
@@ -242,6 +244,7 @@ UTEST_BEGIN("dsp.filters", static)
 
         CALL(native::biquad_process_x4, 4);
         IF_ARCH_X86(CALL(sse::biquad_process_x4, 4));
+        IF_ARCH_X86(CALL(avx::biquad_process_x4, 4));
         IF_ARCH_ARM(CALL(neon_d32::biquad_process_x4, 4));
         IF_ARCH_AARCH64(CALL(asimd::biquad_process_x4, 4));
 
@@ -329,6 +332,7 @@ UTEST_BEGIN("dsp.filters", static)
         x4->b2[3]   = -0.942126751;
 
         IF_ARCH_X86(CALL(native::biquad_process_x4, sse::biquad_process_x4));
+        IF_ARCH_X86(CALL(native::biquad_process_x4, avx::biquad_process_x4));
         IF_ARCH_ARM(CALL(native::biquad_process_x4, neon_d32::biquad_process_x4));
         IF_ARCH_AARCH64(CALL(native::biquad_process_x4, asimd::biquad_process_x4));
 

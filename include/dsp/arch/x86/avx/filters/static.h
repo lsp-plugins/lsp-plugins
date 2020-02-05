@@ -251,6 +251,134 @@ namespace avx
         );
     }
 
+    static const uint32_t BQ_X4MASK[4] __lsp_aligned16 =
+    {
+        0xffffffff, 0, 0, 0
+    };
+
+    void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
+    {
+        IF_ARCH_X86(
+            float   MASK[4] __lsp_aligned16;
+            size_t  mask;
+        )
+
+        ARCH_X86_ASM
+        (
+            // Check count
+            __ASM_EMIT("test                %[count], %[count]")
+            __ASM_EMIT("jz                  8f")
+
+            // Initialize mask
+            // xmm0=tmp, xmm1={s,s2[4]}, xmm2=p1[4], xmm3=p2[4], xmm6=d0[4], xmm7=d1[4]
+            __ASM_EMIT("mov                 $1, %[mask]")
+            __ASM_EMIT("vmovaps             %[X_MASK], %%xmm5")
+            __ASM_EMIT("xorps               %%xmm1, %%xmm1")
+            __ASM_EMIT("vmovaps             %%xmm5, %[MASK]")
+
+            // Load delay buffer
+            __ASM_EMIT("vmovaps             0x00(%[f]), %%xmm6")                                // xmm6     = d0
+            __ASM_EMIT("vmovaps             0x10(%[f]), %%xmm7")                                // xmm7     = d1
+
+            // Process first 3 steps
+            __ASM_EMIT(".align 16")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vinsertps           $0x00, (%[src]), %%xmm0, %%xmm0")                   // xmm0     = s = *src
+            __ASM_EMIT("add                 $4, %[src]")                                        // src      ++
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm0, %%xmm1")   // xmm1     = a0*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm0, %%xmm2")   // xmm2     = a1*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x20(%[f]), %%xmm0, %%xmm3")   // xmm3     = a2*s
+            __ASM_EMIT("vaddps              %%xmm6, %%xmm1, %%xmm0")                            // xmm0     = s' = a0*s + d0
+            __ASM_EMIT("vaddps              %%xmm7, %%xmm2, %%xmm2")                            // xmm2     = d1 + a1*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x30(%[f]), %%xmm0, %%xmm4")   // xmm4     = b1*s'
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x40(%[f]), %%xmm0, %%xmm5")   // xmm5     = b2*s'
+            __ASM_EMIT("vaddps              %%xmm4, %%xmm2, %%xmm2")                            // xmm2     = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("vaddps              %%xmm5, %%xmm3, %%xmm3")                            // xmm3     = d1' = a2*s + b2*s'
+            __ASM_EMIT("vmovaps             %[MASK], %%xmm5")                                   // xmm5     = mask
+            __ASM_EMIT("vshufps             $0x90, %%xmm0, %%xmm0, %%xmm0")                     // xmm0     = s2[0] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vblendvps           %%xmm5, %%xmm2, %%xmm6, %%xmm6")                    // xmm6     = (d0') & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps           %%xmm5, %%xmm3, %%xmm7, %%xmm7")                    // xmm7     = (d1') & MASK | (d0 & ~MASK)
+            __ASM_EMIT("dec                 %[count]")
+            __ASM_EMIT("jz                  4f")                                                // jump to completion
+            __ASM_EMIT("vshufps             $0x90, %%xmm5, %%xmm5, %%xmm5")                     // xmm5     = m[0] m[0] m[1] m[2]
+            __ASM_EMIT("lea                 0x01(,%[mask], 2), %[mask]")                        // mask     = (mask << 1) | 1
+            __ASM_EMIT("vmovaps             %%xmm5, %[MASK]")                                   // store mask
+            __ASM_EMIT("cmp                 $0x0f, %[mask]")
+            __ASM_EMIT("jne                 1b")
+
+            // 4x filter processing without mask
+            __ASM_EMIT(".align 16")
+            __ASM_EMIT("3:")
+            __ASM_EMIT("vinsertps           $0x00, (%[src]), %%xmm0, %%xmm0")                   // xmm0     = *src
+            __ASM_EMIT("add                 $4, %[src]")                                        // src      ++
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm0, %%xmm1")   // xmm1     = a0*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm0, %%xmm2")   // xmm2     = a1*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x20(%[f]), %%xmm0, %%xmm3")   // xmm3     = a2*s
+            __ASM_EMIT("vaddps              %%xmm6, %%xmm1, %%xmm0")                            // xmm0     = s' = a0*s + d0
+            __ASM_EMIT("vaddps              %%xmm7, %%xmm2, %%xmm2")                            // xmm2     = d1 + a1*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x30(%[f]), %%xmm0, %%xmm4")   // xmm4     = b1*s'
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x40(%[f]), %%xmm0, %%xmm5")   // xmm5     = b2*s'
+            __ASM_EMIT("vaddps              %%xmm4, %%xmm2, %%xmm6")                            // xmm6     = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("vshufps             $0x93, %%xmm0, %%xmm0, %%xmm0")                     // xmm0     = s2[0] s2[0] s2[1] s2[2]
+            __ASM_EMIT("vaddps              %%xmm5, %%xmm3, %%xmm7")                            // xmm7     = d1' = a2*s + b2*s'
+            __ASM_EMIT("vmovss              %%xmm0, (%[dst])")                                  // *dst     = s2[3]
+            __ASM_EMIT("add                 $4, %[dst]")                                        // dst      ++
+            __ASM_EMIT("dec                 %[count]")
+            __ASM_EMIT("jnz                 3b")
+            __ASM_EMIT("4:")
+            // Prepare last loop
+            __ASM_EMIT("vmovaps             %[MASK], %%xmm5")                                   // xmm5     = m[0] m[1] m[2] m[3]
+            __ASM_EMIT("vxorps              %%xmm2, %%xmm2, %%xmm2")                            // xmm2     = 0 0 0 0
+            __ASM_EMIT("vshufps             $0x90, %%xmm5, %%xmm5, %%xmm5")                     // xmm5     = m[0] m[0] m[1] m[2]
+            __ASM_EMIT("shl                 $1, %[mask]")                                       // mask     = mask << 1
+            __ASM_EMIT("vmovss              %%xmm2, %%xmm5, %%xmm5")                            // xmm0     = 0 m[0] m[1] m[2]
+            __ASM_EMIT("and                 $0x0f, %[mask]")                                    // mask     = (mask << 1) & 0x0f
+            __ASM_EMIT("vmovaps             %%xmm5, %[MASK]")
+
+            // Process steps
+            __ASM_EMIT(".align 16")
+            __ASM_EMIT("5:")
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x00(%[f]), %%xmm0, %%xmm1")   // xmm1     = a0*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x10(%[f]), %%xmm0, %%xmm2")   // xmm2     = a1*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x20(%[f]), %%xmm0, %%xmm3")   // xmm3     = a2*s
+            __ASM_EMIT("vaddps              %%xmm6, %%xmm1, %%xmm0")                            // xmm0     = s' = a0*s + d0
+            __ASM_EMIT("vaddps              %%xmm7, %%xmm2, %%xmm2")                            // xmm2     = d1 + a1*s
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x30(%[f]), %%xmm0, %%xmm4")   // xmm4     = b1*s'
+            __ASM_EMIT("vmulps              " BIQUAD_XN_SOFF " + 0x40(%[f]), %%xmm0, %%xmm5")   // xmm5     = b2*s'
+            __ASM_EMIT("vaddps              %%xmm4, %%xmm2, %%xmm2")                            // xmm2     = d0' = d1 + a1*s + b1*s'
+            __ASM_EMIT("vaddps              %%xmm5, %%xmm3, %%xmm3")                            // xmm3     = d1' = a2*s + b2*s'
+            __ASM_EMIT("vmovaps             %[MASK], %%xmm5")                                   // xmm5     = mask
+            __ASM_EMIT("vshufps             $0x93, %%xmm0, %%xmm0, %%xmm0")                     // xmm0     = s2[3] s2[0] s2[1] s2[2]
+            __ASM_EMIT("test                $0x8, %[mask]")
+            __ASM_EMIT("jz                  7f")
+            __ASM_EMIT("vmovss              %%xmm0, (%[dst])")                                  // *dst     = s2[3]
+            __ASM_EMIT("add                 $4, %[dst]")                                        // dst      ++
+            __ASM_EMIT("7:")
+            __ASM_EMIT("vblendvps           %%xmm5, %%xmm2, %%xmm6, %%xmm6")                    // xmm6     = (d0') & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps           %%xmm5, %%xmm3, %%xmm7, %%xmm7")                    // xmm7     = (d1') & MASK | (d0 & ~MASK)
+            // Repeat loop
+            __ASM_EMIT("shl                 $1, %[mask]")                                       // mask     = mask << 1
+            __ASM_EMIT("vshufps             $0x90, %%xmm5, %%xmm5, %%xmm5")                     // xmm0     = m[0] m[0] m[1] m[2]
+            __ASM_EMIT("and                 $0x0f, %[mask]")                                    // mask     = (mask << 1) & 0x0f
+            __ASM_EMIT("vmovaps             %%xmm5, %[MASK]")
+            __ASM_EMIT("jnz                 5b")                                                // check that mask is not zero
+
+            // Store delay buffer
+            __ASM_EMIT("vmovaps             %%xmm6, 0x00(%[f])")                                // xmm6     = d0
+            __ASM_EMIT("vmovaps             %%xmm7, 0x10(%[f])")                                // xmm7     = d1
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [mask] "=&r"(mask), [count] "+r" (count)
+            : [f] "r" (f),
+              [X_MASK] "m" (BQ_X4MASK),
+              [MASK] "m" (MASK)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
     // This function is tested, works and delivers high performance
     void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
     {

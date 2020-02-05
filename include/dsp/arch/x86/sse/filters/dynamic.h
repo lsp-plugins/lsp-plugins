@@ -312,11 +312,9 @@ namespace sse
 
             // Repeat loop
             __ASM_EMIT("add         $0x50, %[f]")                               // f++
-            __ASM_EMIT("xorps       %%xmm2, %%xmm2")                            // xmm2     = 0 0 0 0
             __ASM_EMIT("shl         $1, %[mask]")                               // mask     = mask << 1
             __ASM_EMIT("shufps      $0x90, %%xmm0, %%xmm0")                     // xmm0     = m[0] m[0] m[1] m[2]
             __ASM_EMIT("and         $0x0f, %[mask]")                            // mask     = (mask << 1) & 0x0f
-            __ASM_EMIT("movss       %%xmm2, %%xmm0")                            // xmm0     = 0 m[0] m[1] m[2]
             __ASM_EMIT("jnz         5b")                                        // check that mask is not zero
 
             // Store delay buffer
