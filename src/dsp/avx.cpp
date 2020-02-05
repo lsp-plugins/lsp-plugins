@@ -369,10 +369,14 @@ namespace avx
 
             CEXPORT2(favx, convolve, convolve_fma3);
 
+
             CEXPORT2(favx, biquad_process_x1, biquad_process_x1_fma3);
-            CEXPORT2(ffma, dyn_biquad_process_x1, dyn_biquad_process_x1_fma3);
+            CEXPORT2(favx, biquad_process_x2, biquad_process_x2_fma3);
             CEXPORT2(ffma, biquad_process_x8, biquad_process_x8_fma3);
-            CEXPORT2_X64(ffma, dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
+
+            CEXPORT2(ffma, dyn_biquad_process_x1, dyn_biquad_process_x1_fma3);
+            CEXPORT2(favx, dyn_biquad_process_x2, dyn_biquad_process_x2_fma3);
+            CEXPORT2(ffma, dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
         }
     }
 
