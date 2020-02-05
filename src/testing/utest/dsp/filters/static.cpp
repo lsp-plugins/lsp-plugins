@@ -31,11 +31,13 @@ IF_ARCH_X86(
         void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
     }
 
+    namespace sse3
+    {
+        void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+    }
+
     IF_ARCH_X86_64(
-        namespace sse3
-        {
-            void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
-        }
+
 
         namespace avx
         {
@@ -251,7 +253,7 @@ UTEST_BEGIN("dsp.filters", static)
 
         CALL(native::biquad_process_x8, 8);
         IF_ARCH_X86(CALL(sse::biquad_process_x8, 8));
-        IF_ARCH_X86_64(CALL(sse3::x64_biquad_process_x8, 8));
+        IF_ARCH_X86(CALL(sse3::x64_biquad_process_x8, 8));
         IF_ARCH_X86_64(CALL(avx::x64_biquad_process_x8, 8));
         IF_ARCH_X86_64(CALL(avx::biquad_process_x8_fma3, 8));
         IF_ARCH_ARM(CALL(neon_d32::biquad_process_x8, 8));
