@@ -45,6 +45,7 @@ IF_ARCH_X86(
         void biquad_process_x2_fma3(float *dst, const float *src, size_t count, biquad_t *f);
 
         void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x4_fma3(float *dst, const float *src, size_t count, biquad_t *f);
 
         void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
@@ -245,6 +246,7 @@ UTEST_BEGIN("dsp.filters", static)
         CALL(native::biquad_process_x4, 4);
         IF_ARCH_X86(CALL(sse::biquad_process_x4, 4));
         IF_ARCH_X86(CALL(avx::biquad_process_x4, 4));
+        IF_ARCH_X86(CALL(avx::biquad_process_x4_fma3, 4));
         IF_ARCH_ARM(CALL(neon_d32::biquad_process_x4, 4));
         IF_ARCH_AARCH64(CALL(asimd::biquad_process_x4, 4));
 
@@ -333,6 +335,7 @@ UTEST_BEGIN("dsp.filters", static)
 
         IF_ARCH_X86(CALL(native::biquad_process_x4, sse::biquad_process_x4));
         IF_ARCH_X86(CALL(native::biquad_process_x4, avx::biquad_process_x4));
+        IF_ARCH_X86(CALL(native::biquad_process_x4, avx::biquad_process_x4_fma3));
         IF_ARCH_ARM(CALL(native::biquad_process_x4, neon_d32::biquad_process_x4));
         IF_ARCH_AARCH64(CALL(native::biquad_process_x4, asimd::biquad_process_x4));
 
