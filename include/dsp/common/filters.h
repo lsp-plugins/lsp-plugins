@@ -175,123 +175,14 @@
 
 */
 
-// These constants should be redefined if structure of biquad_t changes
-#define BIQUAD_X8_A0_OFF        0x40
-#define BIQUAD_X8_A0_SOFF       "0x40"
-#define BIQUAD_X8_I0_OFF        0x50
-#define BIQUAD_X8_I0_SOFF       "0x50"
-#define BIQUAD_X8_A1_OFF        0x60
-#define BIQUAD_X8_A1_SOFF       "0x60"
-#define BIQUAD_X8_I1_OFF        0x70
-#define BIQUAD_X8_I1_SOFF       "0x70"
-#define BIQUAD_X8_A2_OFF        0x80
-#define BIQUAD_X8_A2_SOFF       "0x80"
-#define BIQUAD_X8_I2_OFF        0x90
-#define BIQUAD_X8_I2_SOFF       "0x90"
-#define BIQUAD_X8_B1_OFF        0xa0
-#define BIQUAD_X8_B1_SOFF       "0xa0"
-#define BIQUAD_X8_J1_OFF        0xb0
-#define BIQUAD_X8_J1_SOFF       "0xb0"
-#define BIQUAD_X8_B2_OFF        0xc0
-#define BIQUAD_X8_B2_SOFF       "0xc0"
-#define BIQUAD_X8_J2_OFF        0xd0
-#define BIQUAD_X8_J2_SOFF       "0xd0"
-
-#define BIQUAD_X4_A0_OFF        BIQUAD_X8_A0_OFF
-#define BIQUAD_X4_A0_SOFF       BIQUAD_X8_A0_SOFF
-#define BIQUAD_X4_A1_OFF        BIQUAD_X8_I0_OFF
-#define BIQUAD_X4_A1_SOFF       BIQUAD_X8_I0_SOFF
-#define BIQUAD_X4_A2_OFF        BIQUAD_X8_A1_OFF
-#define BIQUAD_X4_A2_SOFF       BIQUAD_X8_A1_SOFF
-#define BIQUAD_X4_B1_OFF        BIQUAD_X8_I1_OFF
-#define BIQUAD_X4_B1_SOFF       BIQUAD_X8_I1_SOFF
-#define BIQUAD_X4_B2_OFF        BIQUAD_X8_A2_OFF
-#define BIQUAD_X4_B2_SOFF       BIQUAD_X8_A2_SOFF
-
-#define BIQUAD_X2_A_OFF         BIQUAD_X4_A0_OFF
-#define BIQUAD_X2_A_SOFF        BIQUAD_X4_A0_SOFF
-#define BIQUAD_X2_I_OFF         BIQUAD_X4_A1_OFF
-#define BIQUAD_X2_I_SOFF        BIQUAD_X4_A1_SOFF
-#define BIQUAD_X2_B_OFF         BIQUAD_X4_A2_OFF
-#define BIQUAD_X2_B_SOFF        BIQUAD_X4_A2_SOFF
-#define BIQUAD_X2_J_OFF         BIQUAD_X4_B1_OFF
-#define BIQUAD_X2_J_SOFF        BIQUAD_X4_B1_SOFF
-
-#define BIQUAD_X1_A_OFF         BIQUAD_X4_A0_OFF
-#define BIQUAD_X1_A_SOFF        BIQUAD_X4_A0_SOFF
-#define BIQUAD_X1_B_OFF         BIQUAD_X4_A1_OFF
-#define BIQUAD_X1_B_SOFF        BIQUAD_X4_A1_SOFF
-
-#define BIQUAD_D0_OFF           0x00
-#define BIQUAD_D0_SOFF          "0x00"
-#define BIQUAD_D1_OFF           0x10
-#define BIQUAD_D1_SOFF          "0x10"
-#define BIQUAD_D2_OFF           0x20
-#define BIQUAD_D2_SOFF          "0x20"
-#define BIQUAD_D3_OFF           0x30
-#define BIQUAD_D3_SOFF          "0x30"
-
+/**
+ * These constants define the offset of filter constants relative to the memory in biquad_t structure,
+ * filter alignment and maximum number of memory elements
+ */
 #define BIQUAD_XN_OFF           0x40
 #define BIQUAD_XN_SOFF          "0x40"
-
-#define DYN_BIQUAD_X8_A0_OFF    0x00
-#define DYN_BIQUAD_X8_A0_SOFF   "0x00"
-#define DYN_BIQUAD_X8_I0_OFF    0x10
-#define DYN_BIQUAD_X8_I0_SOFF   "0x10"
-#define DYN_BIQUAD_X8_A1_OFF    0x20
-#define DYN_BIQUAD_X8_A1_SOFF   "0x20"
-#define DYN_BIQUAD_X8_I1_OFF    0x30
-#define DYN_BIQUAD_X8_I1_SOFF   "0x30"
-#define DYN_BIQUAD_X8_A2_OFF    0x40
-#define DYN_BIQUAD_X8_A2_SOFF   "0x40"
-#define DYN_BIQUAD_X8_I2_OFF    0x50
-#define DYN_BIQUAD_X8_I2_SOFF   "0x50"
-#define DYN_BIQUAD_X8_B1_OFF    0x60
-#define DYN_BIQUAD_X8_B1_SOFF   "0x60"
-#define DYN_BIQUAD_X8_J1_OFF    0x70
-#define DYN_BIQUAD_X8_J1_SOFF   "0x70"
-#define DYN_BIQUAD_X8_B2_OFF    0x80
-#define DYN_BIQUAD_X8_B2_SOFF   "0x80"
-#define DYN_BIQUAD_X8_J2_OFF    0x90
-#define DYN_BIQUAD_X8_J2_SOFF   "0x90"
-#define DYN_BIQUAD_X8_SIZE      0xa0
-#define DYN_BIQUAD_X8_SSIZE     "0xa0"
-#define DYN_BIQUAD_X8_X4SIZE    0x280
-#define DYN_BIQUAD_X8_X4SSIZE   "0x280"
-
-#define DYN_BIQUAD_X4_A0_OFF    DYN_BIQUAD_X8_A0_OFF
-#define DYN_BIQUAD_X4_A0_SOFF   DYN_BIQUAD_X8_A0_SOFF
-#define DYN_BIQUAD_X4_A1_OFF    DYN_BIQUAD_X8_I0_OFF
-#define DYN_BIQUAD_X4_A1_SOFF   DYN_BIQUAD_X8_I0_SOFF
-#define DYN_BIQUAD_X4_A2_OFF    DYN_BIQUAD_X8_A1_OFF
-#define DYN_BIQUAD_X4_A2_SOFF   DYN_BIQUAD_X8_A1_SOFF
-#define DYN_BIQUAD_X4_B1_OFF    DYN_BIQUAD_X8_I1_OFF
-#define DYN_BIQUAD_X4_B1_SOFF   DYN_BIQUAD_X8_I1_SOFF
-#define DYN_BIQUAD_X4_B2_OFF    DYN_BIQUAD_X8_A2_OFF
-#define DYN_BIQUAD_X4_B2_SOFF   DYN_BIQUAD_X8_A2_SOFF
-#define DYN_BIQUAD_X4_SIZE      0x50
-#define DYN_BIQUAD_X4_SSIZE     "0x50"
-
-#define DYN_BIQUAD_X2_A_OFF     DYN_BIQUAD_X4_A0_OFF
-#define DYN_BIQUAD_X2_A_SOFF    DYN_BIQUAD_X4_A0_SOFF
-#define DYN_BIQUAD_X2_I_OFF     DYN_BIQUAD_X4_A1_OFF
-#define DYN_BIQUAD_X2_I_SOFF    DYN_BIQUAD_X4_A1_SOFF
-#define DYN_BIQUAD_X2_B_OFF     DYN_BIQUAD_X4_A2_OFF
-#define DYN_BIQUAD_X2_B_SOFF    DYN_BIQUAD_X4_A2_SOFF
-#define DYN_BIQUAD_X2_J_OFF     DYN_BIQUAD_X4_B1_OFF
-#define DYN_BIQUAD_X2_J_SOFF    DYN_BIQUAD_X4_B1_SOFF
-#define DYN_BIQUAD_X2_SIZE      0x40
-#define DYN_BIQUAD_X2_SSIZE     "0x40"
-
-#define DYN_BIQUAD_X1_A_OFF     DYN_BIQUAD_X2_A_OFF
-#define DYN_BIQUAD_X1_A_SOFF    DYN_BIQUAD_X2_A_SOFF
-#define DYN_BIQUAD_X1_B_OFF     DYN_BIQUAD_X2_I_OFF
-#define DYN_BIQUAD_X1_B_SOFF    DYN_BIQUAD_X2_I_SOFF
-#define DYN_BIQUAD_X1_SIZE      0x20
-#define DYN_BIQUAD_X1_SSIZE     "0x20"
-
-#define BIQUAD_D_ITEMS      16
-#define BIQUAD_ALIGN        0x40
+#define BIQUAD_ALIGN            0x40
+#define BIQUAD_D_ITEMS          16
 
 #pragma pack(push, 1)
 
