@@ -28,12 +28,10 @@ IF_ARCH_X86(
         void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
     }
 
-    IF_ARCH_X86_64(
-        namespace sse3
-        {
-            void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
-        }
-    )
+    namespace sse3
+    {
+        void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+    }
 
     namespace avx
     {
@@ -222,7 +220,6 @@ PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
             out[i]              = 0.0f;
         }
 
-
         process_8x1("native::dyn_biquad_process_x1 x8", out, in, FTEST_BUF_SIZE, native::dyn_biquad_process_x1);
         IF_ARCH_X86(process_8x1("sse::dyn_biquad_process_x1 x8", out, in, FTEST_BUF_SIZE, sse::dyn_biquad_process_x1));
         IF_ARCH_X86(process_8x1("avx::dyn_biquad_process_x1 x8", out, in, FTEST_BUF_SIZE, avx::dyn_biquad_process_x1));
@@ -247,7 +244,7 @@ PTEST_BEGIN("dsp.filters", dynamic, 10, 1000)
 
         process_1x8("native::dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, native::dyn_biquad_process_x8);
         IF_ARCH_X86(process_1x8("sse::dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse::dyn_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("sse3::x64_dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse3::x64_dyn_biquad_process_x8));
+        IF_ARCH_X86(process_1x8("sse3::x64_dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse3::x64_dyn_biquad_process_x8));
         IF_ARCH_X86(process_1x8("avx::x64_dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_dyn_biquad_process_x8));
         IF_ARCH_X86(process_1x8("avx::dyn_biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::dyn_biquad_process_x8_fma3));
         IF_ARCH_ARM(process_1x8("neon_d32::dyn_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, neon_d32::dyn_biquad_process_x8));
