@@ -123,6 +123,28 @@
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
 
+==== OSC-Send Plugin ====
+
+https://discourse.ardour.org/t/feature-request-osc-send-plugin/102649
+
+Hi Paul,
+
+it would be great to control external osc receivers via plugin from Ardourmixer:
+
+| n sends | 127.0.0.1 |
+| Q | M | /osc/message/1 |
+| Q | M | /osc/message/2 |
+| Q | M | /osc/message/3 |
+
+Q = Poti
+M = Mute
+
+Also a xy-pad just sending osc.
+And recording / playback osc.
+
+Does it already exists?
+Cheers
+
 ==== FFT analysis of the Profiler and Convolver ====
 
 Could it be possible to add a frequency-domain display mode? 
