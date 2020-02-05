@@ -36,22 +36,16 @@ IF_ARCH_X86(
         void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
     }
 
-    IF_ARCH_X86_64(
-
-
-        namespace avx
-        {
-            void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
-            void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
-        }
-    )
-
     namespace avx
     {
         void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x1_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+
         void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x2_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+
+        void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
     }
 )
 
@@ -254,8 +248,8 @@ UTEST_BEGIN("dsp.filters", static)
         CALL(native::biquad_process_x8, 8);
         IF_ARCH_X86(CALL(sse::biquad_process_x8, 8));
         IF_ARCH_X86(CALL(sse3::x64_biquad_process_x8, 8));
-        IF_ARCH_X86_64(CALL(avx::x64_biquad_process_x8, 8));
-        IF_ARCH_X86_64(CALL(avx::biquad_process_x8_fma3, 8));
+        IF_ARCH_X86(CALL(avx::x64_biquad_process_x8, 8));
+        IF_ARCH_X86(CALL(avx::biquad_process_x8_fma3, 8));
         IF_ARCH_ARM(CALL(neon_d32::biquad_process_x8, 8));
         IF_ARCH_AARCH64(CALL(asimd::biquad_process_x8, 8));
 
@@ -387,9 +381,9 @@ UTEST_BEGIN("dsp.filters", static)
         x8->b2[7]   = -0.97324127f;
 
         IF_ARCH_X86(CALL(native::biquad_process_x8, sse::biquad_process_x8));
-        IF_ARCH_X86_64(CALL(native::biquad_process_x8, sse3::x64_biquad_process_x8));
-        IF_ARCH_X86_64(CALL(native::biquad_process_x8, avx::x64_biquad_process_x8));
-        IF_ARCH_X86_64(CALL(native::biquad_process_x8, avx::biquad_process_x8_fma3));
+        IF_ARCH_X86(CALL(native::biquad_process_x8, sse3::x64_biquad_process_x8));
+        IF_ARCH_X86(CALL(native::biquad_process_x8, avx::x64_biquad_process_x8));
+        IF_ARCH_X86(CALL(native::biquad_process_x8, avx::biquad_process_x8_fma3));
         IF_ARCH_ARM(CALL(native::biquad_process_x8, neon_d32::biquad_process_x8));
         IF_ARCH_AARCH64(CALL(native::biquad_process_x8, asimd::biquad_process_x8));
     }

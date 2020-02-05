@@ -32,20 +32,16 @@ IF_ARCH_X86(
         void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
     }
 
-    IF_ARCH_X86_64(
-        namespace avx
-        {
-            void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
-            void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
-        }
-    )
-
     namespace avx
     {
         void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x1_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+
         void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x2_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+
+        void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
     }
 )
 
@@ -222,8 +218,8 @@ PTEST_BEGIN("dsp.filters", static, 10, 1000)
         process_1x8("native::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, native::biquad_process_x8);
         IF_ARCH_X86(process_1x8("sse::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse::biquad_process_x8));
         IF_ARCH_X86(process_1x8("sse3::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("avx::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("avx::biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::biquad_process_x8_fma3));
+        IF_ARCH_X86(process_1x8("avx::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
+        IF_ARCH_X86(process_1x8("avx::biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::biquad_process_x8_fma3));
         IF_ARCH_ARM(process_1x8("neon_d32::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x8));
         IF_ARCH_AARCH64(process_1x8("asimd::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, asimd::biquad_process_x8));
         PTEST_SEPARATOR;
