@@ -308,25 +308,18 @@ namespace sse
             FIL_BILINEAR_X4_BOTTOM("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]", "[ONE]")
 
             // Now we need to transpose it back
-            // x3 = N[k]
-            // x4 = fb1[0] fb1[1] fb1[2] fb1[3]
-            // x5 = fb0[0] fb0[1] fb0[2] fb0[3]
+            // x3 = N[k], x4 = fb1[k], x5 = fb0[k]
+            // x5 = a0 a1 a2 a3
+            // x4 = b0 b1 b2 b3
             __ASM_EMIT("movaps      %[x3], %[N]")               // store N
-            __ASM_EMIT("movaps      %[x5], %[x6]")              // x6 = fb0[0] fb0[1] fb0[2] fb0[3]
-            __ASM_EMIT("unpcklps    %[x4], %[x5]")              // x5 = fb0[0] fb1[0] fb0[1] fb1[1]
-            __ASM_EMIT("unpckhps    %[x4], %[x6]")              // x6 = fb0[2] fb1[2] fb0[3] fb1[3]
             __ASM_EMIT("xorps       %[x2], %[x2]")              // x2 = 0 0 0 0
-            __ASM_EMIT("xorps       %[x3], %[x3]")              // x3 = 0 0 0 0
-            __ASM_EMIT("movhlps     %[x5], %[x2]")              // x2 = fb0[1] fb1[1] 0 0
-            __ASM_EMIT("movhlps     %[x6], %[x3]")              // x3 = fb0[3] fb1[3] 0 0
-            __ASM_EMIT("shufps      $0xf4, %[x2], %[x5]")       // x5 = fb0[0] fb1[0] 0 0
-            __ASM_EMIT("shufps      $0xf4, %[x3], %[x6]")       // x6 = fb0[2] fb1[2] 0 0
-
-            // Store bottom part of filters
-            __ASM_EMIT("movaps      %[x5], 0x20(%[bf])")
-            __ASM_EMIT("movaps      %[x2], 0x30(%[bf])")
-            __ASM_EMIT("movaps      %[x6], 0x60(%[bf])")
-            __ASM_EMIT("movaps      %[x3], 0x70(%[bf])")
+            __ASM_EMIT("movlps      %[x5], 0x18(%[bf])")
+            __ASM_EMIT("xorps       %[x7], %[x7]")              // x7 = 0 0 0 0
+            __ASM_EMIT("movhlps     %[x4], %[x2]")              // x2 = b2 b3 0 0
+            __ASM_EMIT("movhps      %[x5], 0x48(%[bf])")
+            __ASM_EMIT("movlhps     %[x7], %[x4]")              // x4 = b0 b1 0 0
+            __ASM_EMIT("movaps      %[x4], 0x20(%[bf])")
+            __ASM_EMIT("movaps      %[x2], 0x50(%[bf])")
 
             // Load Top part of cascade and transpose
             __ASM_EMIT("movaps      0x00(%[bc]), %[x2]")        // x2 = a0[0] a1[0] a2[0] ?
@@ -340,28 +333,23 @@ namespace sse
             __ASM_EMIT("movaps      %[N], %[x7]")               // load N
             FIL_BILINEAR_X4_TOP("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x6]", "[x7]")
 
-            // Now we need to transpose data
-            // x2 = fa3[k], x3 = fa2[k], x4 = fa0[k]
-            __ASM_EMIT("movaps      %[x3], %[x5]")              // x5 = fa2[0] fa2[1] fa2[2] fa2[3]
-            __ASM_EMIT("unpcklps    %[x2], %[x3]")              // x3 = fa2[0] fa3[0] fa2[1] fa3[1]
-            __ASM_EMIT("movaps      %[x4], %[x6]")              // x6 = fa0[0] fa0[1] fa0[2] fa0[3]
-            __ASM_EMIT("unpckhps    %[x2], %[x5]")              // x5 = fa2[2] fa3[2] fa2[3] fa3[3]
-            __ASM_EMIT("movaps      %[x6], %[x7]")              // x7 = fa0[0] fa0[1] fa0[2] fa0[3]
-            __ASM_EMIT("movaps      %[x4], %[x2]")              // x2 = fa0[0] fa0[1] fa0[2] fa0[3]
-            __ASM_EMIT("shufps      $0x4a, %[x5], %[x6]")       // x6 = fa0[2] fa0[2] fa2[2] fa3[2]
-            __ASM_EMIT("shufps      $0x40, %[x3], %[x4]")       // x4 = fa0[0] fa0[0] fa2[0] fa3[0]
-            __ASM_EMIT("shufps      $0xef, %[x5], %[x7]")       // x7 = fa0[3] fa0[3] fa2[3] fa3[3]
-            __ASM_EMIT("shufps      $0xe5, %[x3], %[x2]")       // x2 = fa0[1] fa0[1] fa2[1] fa3[1]
+            // Now we need to store top part
+            // x2 = fa2[k], x3 = fa1[k], x4 = fa0[k]
+            // x4 = a0 a1 a2 a3
+            // x3 = b0 b1 b2 b3
+            // x2 = c0 c1 c2 c3
+            __ASM_EMIT("movaps      %[x4], %[x5]")              // x5 = a0 a1 a2 a3
+            __ASM_EMIT("movlhps     %[x3], %[x4]")              // x4 = a0 a1 b0 b1
+            __ASM_EMIT("movhlps     %[x5], %[x3]")              // x3 = a2 a3 b2 b3
 
-            // Store top part of filters
             __ASM_EMIT("movaps      %[x4], 0x00(%[bf])")
-            __ASM_EMIT("movaps      %[x2], 0x10(%[bf])")
-            __ASM_EMIT("movaps      %[x6], 0x40(%[bf])")
-            __ASM_EMIT("movaps      %[x7], 0x50(%[bf])")
+            __ASM_EMIT("movlps      %[x2], 0x10(%[bf])")
+            __ASM_EMIT("movaps      %[x3], 0x30(%[bf])")
+            __ASM_EMIT("movhps      %[x2], 0x40(%[bf])")
 
             // Update pointers and repeat loop
             __ASM_EMIT("add         $0x80, %[bc]")
-            __ASM_EMIT("add         $0x80, %[bf]")
+            __ASM_EMIT("add         $0x60, %[bf]")
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jae         1b")
 
@@ -375,47 +363,40 @@ namespace sse
             // Load data
             __ASM_EMIT("movaps      0x10(%[bc]), %[x2]")        // x2 = b0[0] b1[0] b2[0] ?
             __ASM_EMIT("movaps      0x30(%[bc]), %[x3]")        // x3 = b0[1] b1[1] b2[1] ?
-
             __ASM_EMIT("movaps      %[x2], %[x6]")              // x6 = b0[0] b1[0] b2[0] ?
-            __ASM_EMIT("unpckhps    %[x3], %[x6]")              // x6 = b2[0] b2[1] ? ?
             __ASM_EMIT("unpcklps    %[x3], %[x2]")              // x2 = b0[0] b0[1] b1[0] b1[1]
+            __ASM_EMIT("unpckhps    %[x3], %[x6]")              // x6 = b2[0] b2[1] ? ?
             __ASM_EMIT("movhlps     %[x2], %[x4]")              // x4 = b1[0] b1[1] ? ?
 
             // x2 = b0[0..1], x4=b1[0..1], x6=b2[0..1]
             FIL_BILINEAR_X4_BOTTOM("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]", "[ONE]")
 
-            // Now we need to transpose it back
+            // Store computed data
             // x3 = N[0] N[1]
             // x4 = fb1[0] fb1[1]
             // x5 = fb0[0] fb0[1]
-            __ASM_EMIT("movaps      %[x3], %[x7]")              // x7 = N
             __ASM_EMIT("xorps       %[x6], %[x6]")              // x6 = 0
-            __ASM_EMIT("unpcklps    %[x4], %[x5]")              // x5 = fb0[0] fb1[0] fb0[1] fb1[1]
-            __ASM_EMIT("movhlps     %[x5], %[x6]")              // x6 = fb0[1] fb1[1] 0 0
-            __ASM_EMIT("shufps      $0xf4, %[x6], %[x5]")       // x5 = fb0[0] fb1[0] 0 0
-            __ASM_EMIT("movaps      %[x5], 0x20(%[bf])")
-            __ASM_EMIT("movaps      %[x6], 0x30(%[bf])")
+            __ASM_EMIT("movlhps     %[x4], %[x5]")              // x5 = fb0[0] fb0[1] fb1[0] fb1[1]
+            __ASM_EMIT("movaps      %[x3], %[x7]")              // x7 = N
+            __ASM_EMIT("movups      %[x5], 0x18(%[bf])")
+            __ASM_EMIT("movlps      %[x6], 0x28(%[bf])")
 
             // Calculate top part
             __ASM_EMIT("movaps      0x00(%[bc]), %[x2]")        // x2 = a0[0] a1[0] a2[0] ?
             __ASM_EMIT("movaps      0x20(%[bc]), %[x3]")        // x3 = a0[1] a1[1] a2[1] ?
-
-            __ASM_EMIT("movaps      %[x2], %[x6]")              // x6 = a0[0] a1[0] a2[0] ?
-            __ASM_EMIT("unpckhps    %[x3], %[x6]")              // x6 = a2[0] a2[1] ? ?
+            __ASM_EMIT("movaps      %[x2], %[x6]")              // x6 = a0[1] a1[1] a2[1] ?
             __ASM_EMIT("unpcklps    %[x3], %[x2]")              // x2 = a0[0] a0[1] a1[0] a1[1]
+            __ASM_EMIT("unpckhps    %[x3], %[x6]")              // x6 = a2[0] a2[1] ? ?
             __ASM_EMIT("movhlps     %[x2], %[x4]")              // x4 = a1[0] a1[1] ? ?
 
             // x2 = a0[0..3], x4=a1[0..3], x6=a2[0..4], x7=N
             FIL_BILINEAR_X4_TOP("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x6]", "[x7]")
 
-            // Now we need to transpose data
-            // x2 = fa3[k], x3 = fa2[k], x4 = fa0[k]
-            __ASM_EMIT("movlhps     %[x3], %[x2]")              // x2 = fa2[0] fa2[1] fa3[0] fa3[1]
-            __ASM_EMIT("movaps      %[x4], %[x5]")              // x5 = fa0[0] fa0[1]
-            __ASM_EMIT("shufps      $0x20, %[x2], %[x4]")       // x4 = fa0[0] fa0[0] fa2[0] fa3[0]
-            __ASM_EMIT("shufps      $0x75, %[x2], %[x5]")       // x5 = fa0[1] fa0[1] fa2[1] fa3[1]
+            // Now we need to store data
+            // x2 = fa2[k], x3 = fa1[k], x4 = fa0[k]
+            __ASM_EMIT("movlhps     %[x3], %[x4]")
             __ASM_EMIT("movaps      %[x4], 0x00(%[bf])")
-            __ASM_EMIT("movaps      %[x5], 0x10(%[bf])")
+            __ASM_EMIT("movlps      %[x2], 0x10(%[bf])")
 
             __ASM_EMIT("100:")
             : [x0] "+x" (kf), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
@@ -507,8 +488,7 @@ namespace sse
     void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count)
     {
         float x1, x2, x3, x4, x5, x6, x7;
-        float N1[4] __lsp_aligned16;
-        float N2[4] __lsp_aligned16;
+        float N[4] __lsp_aligned16;
 
         // Same ad bilinear_tranform_x1 but number of cycles is doubled
         ARCH_X86_ASM
@@ -522,8 +502,10 @@ namespace sse
             __ASM_EMIT("mulps       %[x1], %[x1]")              // x1 = kf*kf kf*kf kf*kf kf*kf = kf2 kf2 kf2 kf2
 
             //---------------------------------------------------------------------
-            // Load bottom part of cascade and transpose
+            // x8 block
             __ASM_EMIT("1:")
+            // Group 1
+            // Load bottom part of cascade and transpose
             __ASM_EMIT("movaps      0x10(%[bc]), %[x2]")        // x2 = b0[0] b1[0] b2[0] ?
             __ASM_EMIT("movaps      0x30(%[bc]), %[x3]")        // x3 = b0[1] b1[1] b2[1] ?
             __ASM_EMIT("movaps      0x50(%[bc]), %[x4]")        // x4 = b0[2] b1[2] b2[2] ?
@@ -532,21 +514,9 @@ namespace sse
             FIL_TRANSPOSE("[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]")
             FIL_BILINEAR_X4_BOTTOM("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]", "[ONE]")
 
-            __ASM_EMIT("movaps      %[x3], %[N1]")
+            __ASM_EMIT("movaps      %[x3], %[N]")
             __ASM_EMIT("movaps      %[x5], 0x60(%[bf])")
             __ASM_EMIT("movaps      %[x4], 0x80(%[bf])")
-
-            __ASM_EMIT("movaps      0x90(%[bc]), %[x2]")        // x2 = b0[0] b1[0] b2[0] ?
-            __ASM_EMIT("movaps      0xb0(%[bc]), %[x3]")        // x3 = b0[1] b1[1] b2[1] ?
-            __ASM_EMIT("movaps      0xd0(%[bc]), %[x4]")        // x4 = b0[2] b1[2] b2[2] ?
-            __ASM_EMIT("movaps      0xf0(%[bc]), %[x5]")        // x5 = b0[3] b1[3] b2[3] ?
-
-            FIL_TRANSPOSE("[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]")
-            FIL_BILINEAR_X4_BOTTOM("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]", "[ONE]")
-
-            __ASM_EMIT("movaps      %[x3], %[N2]")
-            __ASM_EMIT("movaps      %[x5], 0x70(%[bf])")
-            __ASM_EMIT("movaps      %[x4], 0x90(%[bf])")
 
             // Load Top part of cascade and transpose
             __ASM_EMIT("movaps      0x00(%[bc]), %[x2]")        // x2 = a0[0] a1[0] a2[0] ?
@@ -555,12 +525,26 @@ namespace sse
             __ASM_EMIT("movaps      0x60(%[bc]), %[x5]")        // x5 = a0[3] a1[3] a2[3] ?
 
             FIL_TRANSPOSE("[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]")
-            __ASM_EMIT("movaps      %[N1], %[x7]")              // load N
+            __ASM_EMIT("movaps      %[N], %[x7]")               // load N
             FIL_BILINEAR_X4_TOP("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x6]", "[x7]")
 
             __ASM_EMIT("movaps      %[x4], 0x00(%[bf])")
             __ASM_EMIT("movaps      %[x3], 0x20(%[bf])")
             __ASM_EMIT("movaps      %[x2], 0x40(%[bf])")
+
+            // Group 2
+            // Load bottom part of cascade and transpose
+            __ASM_EMIT("movaps      0x90(%[bc]), %[x2]")        // x2 = b0[0] b1[0] b2[0] ?
+            __ASM_EMIT("movaps      0xb0(%[bc]), %[x3]")        // x3 = b0[1] b1[1] b2[1] ?
+            __ASM_EMIT("movaps      0xd0(%[bc]), %[x4]")        // x4 = b0[2] b1[2] b2[2] ?
+            __ASM_EMIT("movaps      0xf0(%[bc]), %[x5]")        // x5 = b0[3] b1[3] b2[3] ?
+
+            FIL_TRANSPOSE("[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]")
+            FIL_BILINEAR_X4_BOTTOM("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]", "[ONE]")
+
+            __ASM_EMIT("movaps      %[x3], %[N]")
+            __ASM_EMIT("movaps      %[x5], 0x70(%[bf])")
+            __ASM_EMIT("movaps      %[x4], 0x90(%[bf])")
 
             __ASM_EMIT("movaps      0x80(%[bc]), %[x2]")        // x2 = a0[0] a1[0] a2[0] ?
             __ASM_EMIT("movaps      0xa0(%[bc]), %[x3]")        // x3 = a0[1] a1[1] a2[1] ?
@@ -568,7 +552,7 @@ namespace sse
             __ASM_EMIT("movaps      0xe0(%[bc]), %[x5]")        // x5 = a0[3] a1[3] a2[3] ?
 
             FIL_TRANSPOSE("[x2]", "[x3]", "[x4]", "[x5]", "[x6]", "[x7]")
-            __ASM_EMIT("movaps      %[N2], %[x7]")              // load N
+            __ASM_EMIT("movaps      %[N], %[x7]")               // load N
             FIL_BILINEAR_X4_TOP("[x0]", "[x1]", "[x2]", "[x3]", "[x4]", "[x6]", "[x7]")
 
             __ASM_EMIT("movaps      %[x4], 0x10(%[bf])")
@@ -588,8 +572,7 @@ namespace sse
               [bc] "+r" (bc),
               [bf] "+r" (bf)
             : [ONE] "m" (ONE),
-              [N1] "m" (N1),
-              [N2] "m" (N2)
+              [N] "o" (N)
             : "cc", "memory"
         );
     }
