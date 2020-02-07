@@ -224,6 +224,7 @@ namespace avx
         CEXPORT1(favx, dyn_biquad_process_x4);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
+        CEXPORT1(favx, bilinear_transform_x1);
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);
 
         CEXPORT1(favx, h_sum);

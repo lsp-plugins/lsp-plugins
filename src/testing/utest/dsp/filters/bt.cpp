@@ -37,12 +37,13 @@ IF_ARCH_X86(
         {
             void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
         }
-
-        namespace avx
-        {
-            void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        }
     )
+
+    namespace avx
+    {
+        void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -236,19 +237,23 @@ UTEST_BEGIN("dsp.filters", bt)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse::bilinear_transform_x1", native::bilinear_transform_x1, sse::bilinear_transform_x1));
-        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x1", native::bilinear_transform_x1, neon_d32::bilinear_transform_x1));
+        #define CALL(native, func) \
+            call(#func, native, func)
 
-        IF_ARCH_X86(call("sse::bilinear_transform_x2", native::bilinear_transform_x2, sse::bilinear_transform_x2));
-        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x2", native::bilinear_transform_x2, neon_d32::bilinear_transform_x2));
+        IF_ARCH_X86(CALL(native::bilinear_transform_x1, sse::bilinear_transform_x1));
+        IF_ARCH_X86(CALL(native::bilinear_transform_x1, avx::bilinear_transform_x1));
+        IF_ARCH_ARM(CALL(native::bilinear_transform_x1, neon_d32::bilinear_transform_x1));
 
-        IF_ARCH_X86(call("sse::bilinear_transform_x4", native::bilinear_transform_x4, sse::bilinear_transform_x4));
-        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x4", native::bilinear_transform_x4, neon_d32::bilinear_transform_x4));
+        IF_ARCH_X86(CALL(native::bilinear_transform_x2, sse::bilinear_transform_x2));
+        IF_ARCH_ARM(CALL(native::bilinear_transform_x2, neon_d32::bilinear_transform_x2));
 
-        IF_ARCH_X86(call("sse::bilinear_transform_x8", native::bilinear_transform_x8, sse::bilinear_transform_x8));
-        IF_ARCH_X86_64(call("sse3::x64_bilinear_transform_x8", native::bilinear_transform_x8, sse3::x64_bilinear_transform_x8));
-        IF_ARCH_X86_64(call("avx::x64_bilinear_transform_x8", native::bilinear_transform_x8, avx::x64_bilinear_transform_x8));
-        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x8", native::bilinear_transform_x8, neon_d32::bilinear_transform_x8));
+        IF_ARCH_X86(CALL(native::bilinear_transform_x4, sse::bilinear_transform_x4));
+        IF_ARCH_ARM(CALL(native::bilinear_transform_x4, neon_d32::bilinear_transform_x4));
+
+        IF_ARCH_X86(CALL(native::bilinear_transform_x8, sse::bilinear_transform_x8));
+        IF_ARCH_X86_64(CALL(native::bilinear_transform_x8, sse3::x64_bilinear_transform_x8));
+        IF_ARCH_X86(CALL(native::bilinear_transform_x8, avx::x64_bilinear_transform_x8));
+        IF_ARCH_ARM(CALL(native::bilinear_transform_x8, neon_d32::bilinear_transform_x8));
     }
 
 UTEST_END;
