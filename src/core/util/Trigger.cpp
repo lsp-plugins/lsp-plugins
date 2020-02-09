@@ -61,6 +61,9 @@ namespace lsp
 
     void Trigger::update_settings()
     {
+        if (!bSync)
+            return;
+
         prepare_memory();
         nPostTriggerCounter = 0;
 

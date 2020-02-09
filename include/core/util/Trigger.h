@@ -88,6 +88,11 @@ namespace lsp
                 bSync = true;
             }
 
+            inline trg_state_t get_trigger_state() const
+            {
+                return enTriggerState;
+            }
+
             void single_sample_processor(float value);
     };
 }
