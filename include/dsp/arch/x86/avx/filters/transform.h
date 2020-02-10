@@ -339,12 +339,21 @@ namespace avx
         );
     }
 
+#if 0
+    static const float bt_one_x4[] __lsp_aligned32 =
+    {
+        1.0f, 1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f, -1.0f
+    };
+#endif
+
     void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count)
     {
         float DATA[4] __lsp_aligned16;
 
         ARCH_X86_ASM
         (
+#if 1
             // Initialize
             __ASM_EMIT("vbroadcastss        %[kf], %%xmm0")             // xmm0 = kf
             __ASM_EMIT("vmulps              %%xmm0, %%xmm0, %%xmm1")    // xmm1 = kf*kf = kf2
@@ -435,6 +444,70 @@ namespace avx
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+#else
+              // Initialize
+              __ASM_EMIT("vbroadcastss        %[kf], %%ymm0")             // ymm0 = kf
+              __ASM_EMIT("vmulps              %%ymm0, %%ymm0, %%ymm1")    // ymm1 = kf*kf = kf2
+
+              // Perform x4 blocks
+              __ASM_EMIT("sub                 $1, %[count]")
+              __ASM_EMIT("jb                  2f")
+              __ASM_EMIT("1:")
+
+              // Load bottom part of cascade and transpose
+              __ASM_EMIT("vmovups             0x00(%[bc]), %%ymm2")       // ymm2 = t00 t10 t20 ? b00 b10 b20 ?
+              __ASM_EMIT("vmovups             0x20(%[bc]), %%ymm3")       // ymm3 = t01 t11 t21 ? b01 b11 b21 ?
+              __ASM_EMIT("vmovups             0x40(%[bc]), %%ymm4")       // ymm4 = t02 t12 t22 ? b02 b12 b22 ?
+              __ASM_EMIT("vmovups             0x60(%[bc]), %%ymm5")       // ymm5 = t03 t13 t23 ? b03 b13 b23 ?
+
+              __ASM_EMIT("vunpckhps           %%ymm5, %%ymm3, %%ymm7")
+              __ASM_EMIT("vunpcklps           %%ymm5, %%ymm3, %%ymm6")
+              __ASM_EMIT("vunpckhps           %%ymm4, %%ymm2, %%ymm5")
+              __ASM_EMIT("vunpcklps           %%ymm4, %%ymm2, %%ymm3")
+              __ASM_EMIT("vunpcklps           %%ymm6, %%ymm3, %%ymm2")
+              __ASM_EMIT("vunpckhps           %%ymm6, %%ymm3, %%ymm3")
+              __ASM_EMIT("vunpcklps           %%ymm7, %%ymm5, %%ymm4")
+
+              // Compute bottom part
+              // ymm2 = t0 b0 = T0 B0
+              // ymm3 = t1 b1
+              // ymm4 = t2 b2
+              __ASM_EMIT("vmovaps             %[FONE], %%ymm7")               // ymm7 = 1 -1
+              __ASM_EMIT("vmulps              %%ymm1, %%ymm4, %%ymm6")        // ymm6 = T2 B2 = t2*kf2 b2*kf2
+              __ASM_EMIT("vmulps              %%ymm0, %%ymm3, %%ymm5")        // ymm5 = T1 B1 = t1*kf b1*kf
+              __ASM_EMIT("vaddps              %%ymm6, %%ymm2, %%ymm4")        // ymm4 = T0+T2 B0+B2
+              __ASM_EMIT("vsubps              %%ymm6, %%ymm2, %%ymm3")        // ymm3 = T0-T2 B0-B2
+              __ASM_EMIT("vaddps              %%ymm5, %%ymm4, %%ymm2")        // ymm2 = T0+T1+T2 B0+B1+B2
+              __ASM_EMIT("vperm2f128          $0x01, %%ymm2, %%ymm2, %%ymm6") // ymm6 = B0+B1+B2 T0+T1+T2
+              __ASM_EMIT("vinsertf128         $1, %%xmm6, %%ymm6, %%ymm6")    // ymm6 = B0+B1+B2 B0+B1+B2
+              __ASM_EMIT("vdivps              %%ymm6, %%ymm7, %%ymm7")        // ymm7 = 1/(B0+B1+B2) -1/(B0+B1+B2) = N -N
+              __ASM_EMIT("vaddps              %%ymm3, %%ymm3, %%ymm3")        // ymm3 = 2*(T0-T2) 2*(B0-B2)
+              __ASM_EMIT("vsubps              %%ymm5, %%ymm4, %%ymm4")        // ymm4 = T0-T1+T2 B0-B1+B2
+              __ASM_EMIT("vmulps              %%ymm7, %%ymm2, %%ymm2")        // ymm2 = a0' b0' = (T0+T1+T2)*N -(B0+B1+B2)*N
+              __ASM_EMIT("vmulps              %%ymm7, %%ymm3, %%ymm3")        // ymm3 = a1' b1' = 2*(T0-T2)*N -2*(B0-B2)*N
+              __ASM_EMIT("vmulps              %%ymm7, %%ymm4, %%ymm4")        // ymm4 = a2' b2' = (T0-T1+T2)*N -(B0-B1+B2)*N
+
+              __ASM_EMIT("vmovups             %%xmm2, 0x00(%[bf])")
+              __ASM_EMIT("vmovups             %%xmm3, 0x10(%[bf])")
+              __ASM_EMIT("vmovups             %%xmm4, 0x20(%[bf])")
+              __ASM_EMIT("vextractf128        $1, %%ymm3, 0x30(%[bf])")
+              __ASM_EMIT("vextractf128        $1, %%ymm4, 0x40(%[bf])")
+
+              __ASM_EMIT("add                 $0x80, %[bc]")
+              __ASM_EMIT("add                 $0x50, %[bf]")
+              __ASM_EMIT("sub                 $1, %[count]")
+              __ASM_EMIT("jae                 1b")
+
+              // Update pointers and repeat loop
+              __ASM_EMIT("2:")
+
+              : [bc] "+r" (bc), [bf] "+r" (bf), [count] "+r" (count)
+              : [FONE] "m" (bt_one_x4),
+                [kf] "o" (kf)
+              : "cc", "memory",
+                "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+                "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+#endif
         );
     }
 

@@ -164,17 +164,17 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
         #define CALL(func) \
             call(#func, PERF_BUF_SIZE, func)
 
-        CALL(native::bilinear_transform_x1);
-        IF_ARCH_X86(CALL(sse::bilinear_transform_x1));
-        IF_ARCH_X86(CALL(avx::bilinear_transform_x1));
-        IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x1));
-        PTEST_SEPARATOR;
-
-        CALL(native::bilinear_transform_x2);
-        IF_ARCH_X86(CALL(sse::bilinear_transform_x2));
-        IF_ARCH_X86(CALL(avx::bilinear_transform_x2));
-        IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x2));
-        PTEST_SEPARATOR;
+//        CALL(native::bilinear_transform_x1);
+//        IF_ARCH_X86(CALL(sse::bilinear_transform_x1));
+//        IF_ARCH_X86(CALL(avx::bilinear_transform_x1));
+//        IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x1));
+//        PTEST_SEPARATOR;
+//
+//        CALL(native::bilinear_transform_x2);
+//        IF_ARCH_X86(CALL(sse::bilinear_transform_x2));
+//        IF_ARCH_X86(CALL(avx::bilinear_transform_x2));
+//        IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x2));
+//        PTEST_SEPARATOR;
 
         CALL(native::bilinear_transform_x4);
         IF_ARCH_X86(CALL(sse::bilinear_transform_x4));
@@ -182,12 +182,12 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
         IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x4));
         PTEST_SEPARATOR;
 
-        CALL(native::bilinear_transform_x8);
-        IF_ARCH_X86(CALL(sse::bilinear_transform_x8));
-        IF_ARCH_X86_64(CALL(sse3::x64_bilinear_transform_x8));
-        IF_ARCH_X86_64(CALL(avx::x64_bilinear_transform_x8));
-        IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x8));
-        PTEST_SEPARATOR;
+//        CALL(native::bilinear_transform_x8);
+//        IF_ARCH_X86(CALL(sse::bilinear_transform_x8));
+//        IF_ARCH_X86_64(CALL(sse3::x64_bilinear_transform_x8));
+//        IF_ARCH_X86_64(CALL(avx::x64_bilinear_transform_x8));
+//        IF_ARCH_ARM(CALL(neon_d32::bilinear_transform_x8));
+//        PTEST_SEPARATOR;
     }
 
 PTEST_END
