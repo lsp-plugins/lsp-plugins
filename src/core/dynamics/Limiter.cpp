@@ -421,7 +421,7 @@ namespace lsp
     {
         if (comp->fEnvelope < comp->fKS)
             return 1.0f;
-        else if (comp->fEnvelope > comp->fKE)
+        else if (comp->fEnvelope >= comp->fKE)
             return fThreshold / comp->fEnvelope;
 
         float lx    = logf(comp->fEnvelope);

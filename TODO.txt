@@ -35,6 +35,7 @@
 * Additional DSP optimizations for AArch64 architecture.
 * Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
 * Fixed problem with matched Z transform caused by filter characteristics optimizations.
+* Fixed bug with producing NaNs by dynamic processors in some cases when knee has zero length
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
 - Add delay compensation feature between bands for spectrum analyzer plugin. 

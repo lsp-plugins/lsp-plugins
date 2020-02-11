@@ -118,10 +118,10 @@ namespace lsp
                 if (x < FLOAT_SAT_N_INF)
                     x       = FLOAT_SAT_N_INF;
 
-                if (x <= fKE)
+                if (x < fKE)
                 {
                     float lx    = logf(x);
-                    *out = (x < fKS) ?
+                    *out = (x <= fKS) ?
                             expf(fXRatio*(lx - fLogTH) + fLogTH) :
                             expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
                 }
@@ -137,10 +137,10 @@ namespace lsp
                 float x     = *(in++);
                 if (x < 0.0f)
                     x       = -x;
-                if (x >= fKS)
+                if (x > fKS)
                 {
                     float lx    = logf(x);
-                    x   = (x > fKE) ?
+                    x   = (x >= fKE) ?
                         expf(fXRatio*(lx - fLogTH) + fLogTH) :
                         expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
                     *out        = x;
@@ -161,20 +161,20 @@ namespace lsp
             if (in < FLOAT_SAT_N_INF)
                 in      = FLOAT_SAT_N_INF;
 
-            if (in <= fKE)
+            if (in < fKE)
             {
                 float lx    = logf(in);
-                return (in < fKS) ?
+                return (in <= fKS) ?
                     expf(fXRatio*(lx - fLogTH) + fLogTH) :
                     expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
             }
         }
         else
         {
-            if (in >= fKS)
+            if (in > fKS)
             {
                 float lx    = logf(in);
-                return (in > fKE) ?
+                return (in >= fKE) ?
                     expf(fXRatio*(lx - fLogTH) + fLogTH) :
                     expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
             }
@@ -195,10 +195,10 @@ namespace lsp
                 if (x < FLOAT_SAT_N_INF)
                     x       = FLOAT_SAT_N_INF;
 
-                if (x <= fKE)
+                if (x < fKE)
                 {
                     float lx    = logf(x);
-                    x   = (x < fKS) ?
+                    x   = (x <= fKS) ?
                             expf((fXRatio-1.0f)*(lx-fLogTH)) :
                             expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
                     *out        = x;
@@ -215,10 +215,10 @@ namespace lsp
                 float x     = *(in++);
                 if (x < 0.0f)
                     x       = -x;
-                if (x >= fKS)
+                if (x > fKS)
                 {
                     float lx    = logf(x);
-                    *out = (x > fKE) ?
+                    *out = (x >= fKE) ?
                         expf((fXRatio-1.0f)*(lx-fLogTH)) :
                         expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
                 }
@@ -238,20 +238,20 @@ namespace lsp
             if (in < FLOAT_SAT_N_INF)
                 in      = FLOAT_SAT_N_INF;
 
-            if (in <= fKE)
+            if (in < fKE)
             {
                 float lx    = logf(in);
-                return (in < fKS) ?
+                return (in <= fKS) ?
                     expf((fXRatio-1.0f)*(lx-fLogTH)) :
                     expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
             }
         }
         else
         {
-            if (in >= fKS)
+            if (in > fKS)
             {
                 float lx    = logf(in);
-                return (in > fKE) ?
+                return (in >= fKE) ?
                     expf((fXRatio-1.0f)*(lx-fLogTH)) :
                     expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
             }
