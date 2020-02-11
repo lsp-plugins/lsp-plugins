@@ -31,22 +31,39 @@ IF_ARCH_X86(
         void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
     }
 
-    IF_ARCH_X86_64(
-        namespace sse3
-        {
-            void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
-        }
+    namespace sse3
+    {
+        void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+    }
 
-        namespace avx
-        {
-            void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
-            void dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
-        }
-    )
+    namespace avx
+    {
+        void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
+        void dyn_biquad_process_x1_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
+
+        void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
+        void dyn_biquad_process_x2_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
+
+        void dyn_biquad_process_x4(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f);
+        void dyn_biquad_process_x4_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f);
+
+        void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+        void dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+    }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
+        void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
+        void dyn_biquad_process_x4(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f);
+        void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
         void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
@@ -62,8 +79,9 @@ typedef void (* dyn_biquad_process_x8_t)(float *dst, const float *src, float *d,
 
 static biquad_x1_t bq_normal =
 {
-    { 0.992303491f, 0.992303491f, -1.98460698f, 0.992303491f },
-    { 1.98398674f, -0.985227287f, 0.0f, 0.0f }
+    0.992303491f, -1.98460698f, 0.992303491f, // a0 - a2
+    1.98398674f, -0.985227287f, // b1-b2
+    0.0f, 0.0f, 0.0f // padding
 };
 
 UTEST_BEGIN("dsp.filters", dynamic)
@@ -149,23 +167,15 @@ UTEST_BEGIN("dsp.filters", dynamic)
                 f1[i]       = bq_normal;
             for (size_t i=0; i<(count+1); ++i)
             {
-                f2[i].a[0]  = bq_normal.a[0];
-                f2[i].a[1]  = bq_normal.a[1];
-                f2[i].a[2]  = bq_normal.a[2];
-                f2[i].a[3]  = bq_normal.a[3];
-                f2[i].a[4]  = bq_normal.a[0];
-                f2[i].a[5]  = bq_normal.a[1];
-                f2[i].a[6]  = bq_normal.a[2];
-                f2[i].a[7]  = bq_normal.a[3];
-
-                f2[i].b[0]  = bq_normal.b[0];
-                f2[i].b[1]  = bq_normal.b[1];
-                f2[i].b[2]  = bq_normal.b[2];
-                f2[i].b[3]  = bq_normal.b[3];
-                f2[i].b[4]  = bq_normal.b[0];
-                f2[i].b[5]  = bq_normal.b[1];
-                f2[i].b[6]  = bq_normal.b[2];
-                f2[i].b[7]  = bq_normal.b[3];
+                for (size_t j=0; j<2; ++j)
+                {
+                    f2[i].a0[j] = bq_normal.a0;
+                    f2[i].a1[j] = bq_normal.a1;
+                    f2[i].a2[j] = bq_normal.a2;
+                    f2[i].b1[j] = bq_normal.b1;
+                    f2[i].b2[j] = bq_normal.b2;
+                    f2[i].p[j]  = 0.0f;
+                }
             }
 
             // Apply processing
@@ -223,11 +233,14 @@ UTEST_BEGIN("dsp.filters", dynamic)
                 f1[i]       = bq_normal;
             for (size_t i=0; i<(count+3); ++i)
             {
-                f2[i].a0[0]  = f2[i].a0[1] = f2[i].a0[2] = f2[i].a0[3] = bq_normal.a[1];
-                f2[i].a1[0]  = f2[i].a1[1] = f2[i].a1[2] = f2[i].a1[3] = bq_normal.a[2];
-                f2[i].a2[0]  = f2[i].a2[1] = f2[i].a2[2] = f2[i].a2[3] = bq_normal.a[3];
-                f2[i].b1[0]  = f2[i].b1[1] = f2[i].b1[2] = f2[i].b1[3] = bq_normal.b[0];
-                f2[i].b2[0]  = f2[i].b2[1] = f2[i].b2[2] = f2[i].b2[3] = bq_normal.b[1];
+                for (size_t j=0; j<4; ++j)
+                {
+                    f2[i].a0[j] = bq_normal.a0;
+                    f2[i].a1[j] = bq_normal.a1;
+                    f2[i].a2[j] = bq_normal.a2;
+                    f2[i].b1[j] = bq_normal.b1;
+                    f2[i].b2[j] = bq_normal.b2;
+                }
             }
 
             // Apply processing
@@ -289,16 +302,14 @@ UTEST_BEGIN("dsp.filters", dynamic)
                 f1[i]       = bq_normal;
             for (size_t i=0; i<(count+7); ++i)
             {
-                f2[i].a0[0]  = f2[i].a0[1] = f2[i].a0[2] = f2[i].a0[3] =
-                f2[i].a0[4]  = f2[i].a0[5] = f2[i].a0[6] = f2[i].a0[7] = bq_normal.a[1];
-                f2[i].a1[0]  = f2[i].a1[1] = f2[i].a1[2] = f2[i].a1[3] =
-                f2[i].a1[4]  = f2[i].a1[5] = f2[i].a1[6] = f2[i].a1[7] = bq_normal.a[2];
-                f2[i].a2[0]  = f2[i].a2[1] = f2[i].a2[2] = f2[i].a2[3] =
-                f2[i].a2[4]  = f2[i].a2[5] = f2[i].a2[6] = f2[i].a2[7] = bq_normal.a[3];
-                f2[i].b1[0]  = f2[i].b1[1] = f2[i].b1[2] = f2[i].b1[3] =
-                f2[i].b1[4]  = f2[i].b1[5] = f2[i].b1[6] = f2[i].b1[7] = bq_normal.b[0];
-                f2[i].b2[0]  = f2[i].b2[1] = f2[i].b2[2] = f2[i].b2[3] =
-                f2[i].b2[4]  = f2[i].b2[5] = f2[i].b2[6] = f2[i].b2[7] = bq_normal.b[1];
+                for (size_t j=0; j<8; ++j)
+                {
+                    f2[i].a0[j] = bq_normal.a0;
+                    f2[i].a1[j] = bq_normal.a1;
+                    f2[i].a2[j] = bq_normal.a2;
+                    f2[i].b1[j] = bq_normal.b1;
+                    f2[i].b2[j] = bq_normal.b2;
+                }
             }
 
             // Apply processing
@@ -343,25 +354,38 @@ UTEST_BEGIN("dsp.filters", dynamic)
 
     UTEST_MAIN
     {
+        #define CALL(func) \
+            call(#func, func)
+
         // Do overall check
-        call("native::dyn_biquad_process_x1", native::dyn_biquad_process_x1);
-        IF_ARCH_X86(call("sse::dyn_biquad_process_x1", sse::dyn_biquad_process_x1));
-        IF_ARCH_ARM(call("neon_d32::biquad_process_x1", neon_d32::dyn_biquad_process_x1));
+        CALL(native::dyn_biquad_process_x1);
+        IF_ARCH_X86(CALL(sse::dyn_biquad_process_x1));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x1));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x1_fma3));
+        IF_ARCH_ARM(CALL(neon_d32::dyn_biquad_process_x1));
+        IF_ARCH_AARCH64(CALL(asimd::dyn_biquad_process_x1));
 
-        call("native::dyn_biquad_process_x2", native::dyn_biquad_process_x2);
-        IF_ARCH_X86(call("sse::dyn_biquad_process_x2", sse::dyn_biquad_process_x2));
-        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x2", neon_d32::dyn_biquad_process_x2));
+        CALL( native::dyn_biquad_process_x2);
+        IF_ARCH_X86(CALL(sse::dyn_biquad_process_x2));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x2));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x2_fma3));
+        IF_ARCH_ARM(CALL(neon_d32::dyn_biquad_process_x2));
+        IF_ARCH_AARCH64(CALL(asimd::dyn_biquad_process_x2));
 
-        call("native::dyn_biquad_process_x4", native::dyn_biquad_process_x4);
-        IF_ARCH_X86(call("sse::dyn_biquad_process_x4", sse::dyn_biquad_process_x4));
-        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x4", neon_d32::dyn_biquad_process_x4));
+        CALL( native::dyn_biquad_process_x4);
+        IF_ARCH_X86(CALL(sse::dyn_biquad_process_x4));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x4));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x4_fma3));
+        IF_ARCH_ARM(CALL(neon_d32::dyn_biquad_process_x4));
+        IF_ARCH_AARCH64(CALL(asimd::dyn_biquad_process_x4));
 
-        call("native::dyn_biquad_process_x8", native::dyn_biquad_process_x8);
-        IF_ARCH_X86(call("sse::dyn_biquad_process_x8", sse::dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("sse3::x64_dyn_biquad_process_x8", sse3::x64_dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8", avx::x64_dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("avx::dyn_biquad_process_x8_fma3", avx::dyn_biquad_process_x8_fma3));
-        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x8", neon_d32::dyn_biquad_process_x8));
+        CALL(native::dyn_biquad_process_x8);
+        IF_ARCH_X86(CALL(sse::dyn_biquad_process_x8));
+        IF_ARCH_X86(CALL(sse3::x64_dyn_biquad_process_x8));
+        IF_ARCH_X86(CALL(avx::x64_dyn_biquad_process_x8));
+        IF_ARCH_X86(CALL(avx::dyn_biquad_process_x8_fma3));
+        IF_ARCH_ARM(CALL(neon_d32::dyn_biquad_process_x8));
+        IF_ARCH_AARCH64(CALL(asimd::dyn_biquad_process_x8));
     }
 
 UTEST_END

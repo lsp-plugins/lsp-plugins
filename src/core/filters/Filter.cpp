@@ -1488,24 +1488,23 @@ namespace lsp
             return;
 
         // Storing with appropriate normalisation and sign as required by biquad_process_x1().
-        f->a[0] = a0 / b0;
-        f->a[1] = f->a[0];
-        f->a[2] = a1 / b0;
-        f->a[3] = a2 / b0;
-
-        f->b[0] = -b1 / b0;
-        f->b[1] = -b2 / b0;
-        f->b[2] = 0.0f;
-        f->b[3] = 0.0f;
+        f->a0   = a0 / b0;
+        f->a1   = a1 / b0;
+        f->a2   = a2 / b0;
+        f->b1   = -b1 / b0;
+        f->b2   = -b2 / b0;
+        f->p0   = 0.0f;
+        f->p1   = 0.0f;
+        f->p2   = 0.0f;
 
         // Storing the coefficient for plotting
         f_cascade_t *c  = add_cascade();
-        c->t[0] = f->a[0];
-        c->t[1] = f->a[2];
-        c->t[2] = f->a[3];
+        c->t[0] = f->a0;
+        c->t[1] = f->a1;
+        c->t[2] = f->a2;
         c->b[0] = 1.0;
-        c->b[1] = -f->b[0];
-        c->b[2] = -f->b[1];
+        c->b[1] = -f->b1;
+        c->b[2] = -f->b2;
     }
 
     /*
@@ -1574,15 +1573,14 @@ namespace lsp
             if (f == NULL)
                 break;
 
-            f->a[0]         = (T[0] + T[1] + T[2]) * N;
-            f->a[1]         = f->a[0];
-            f->a[2]         = 2.0 * (T[0] - T[2]) * N;
-            f->a[3]         = (T[0] - T[1] + T[2]) * N;
-
-            f->b[0]         = 2.0 * (B[2] - B[0]) * N; // Sign negated
-            f->b[1]         = (B[1] - B[2] - B[0]) * N; // Sign negated
-            f->b[2]         = 0.0f;
-            f->b[3]         = 0.0f;
+            f->a0           = (T[0] + T[1] + T[2]) * N;
+            f->a1           = 2.0 * (T[0] - T[2]) * N;
+            f->a2           = (T[0] - T[1] + T[2]) * N;
+            f->b1           = 2.0 * (B[2] - B[0]) * N; // Sign negated
+            f->b2           = (B[1] - B[2] - B[0]) * N; // Sign negated
+            f->p0           = 0.0f;
+            f->p1           = 0.0f;
+            f->p2           = 0.0f;
         }
     }
 
@@ -1724,15 +1722,14 @@ namespace lsp
             if (f == NULL)
                 break;
 
-            f->a[0]         = T[0] * N * AN;
-            f->a[1]         = f->a[0];
-            f->a[2]         = T[1] * N * AN;
-            f->a[3]         = T[2] * N * AN;
-
-            f->b[0]         = -B[1] * N; // Sign negated
-            f->b[1]         = -B[2] * N; // Sign negated
-            f->b[2]         = 0.0f;
-            f->b[3]         = 0.0f;
+            f->a0           = T[0] * N * AN;
+            f->a1           = T[1] * N * AN;
+            f->a2           = T[2] * N * AN;
+            f->b1           = -B[1] * N; // Sign negated
+            f->b2           = -B[2] * N; // Sign negated
+            f->p0           = 0.0f;
+            f->p1           = 0.0f;
+            f->p2           = 0.0f;
         }
     }
 

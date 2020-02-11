@@ -20,6 +20,7 @@
 #include <dsp/arch/x86/avx/const.h>
 
 #include <dsp/arch/x86/avx/copy.h>
+#include <dsp/arch/x86/avx/float.h>
 #include <dsp/arch/x86/avx/complex.h>
 #include <dsp/arch/x86/avx/pcomplex.h>
 
@@ -95,17 +96,18 @@ namespace avx
 
         lsp_trace("Optimizing DSP for AVX instruction set");
 
-        EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
-        EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
-
         TEST_EXPORT(avx::copy);
 
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
         bool favx   = feature_check(f, FEAT_FAST_AVX);
+        bool ffma   = favx && feature_check(f, FEAT_FAST_FMA3);
 
         CEXPORT2_X64(favx, reverse1, reverse1);
         CEXPORT2_X64(favx, reverse2, reverse2);
+
+        CEXPORT1(favx, limit1);
+        CEXPORT1(favx, limit2);
 
         // Conditional export, depending on fast AVX implementation
         CEXPORT1(favx, add_k2);
@@ -212,6 +214,19 @@ namespace avx
         CEXPORT1(favx, pcomplex_rcp1);
         CEXPORT1(favx, pcomplex_rcp2);
 
+        CEXPORT1(favx, biquad_process_x1);
+        CEXPORT1(favx, biquad_process_x2);
+        CEXPORT1(favx, biquad_process_x4);
+        EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
+
+        CEXPORT1(favx, dyn_biquad_process_x1);
+        CEXPORT1(favx, dyn_biquad_process_x2);
+        CEXPORT1(favx, dyn_biquad_process_x4);
+        EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
+
+        CEXPORT1(favx, bilinear_transform_x1);
+        CEXPORT1(favx, bilinear_transform_x2);
+        CEXPORT1(favx, bilinear_transform_x4);
         CEXPORT2_X64(favx, bilinear_transform_x8, x64_bilinear_transform_x8);
 
         CEXPORT1(favx, h_sum);
@@ -359,9 +374,16 @@ namespace avx
 
             CEXPORT2(favx, convolve, convolve_fma3);
 
-            // Non-conditional export
-            EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
-            EXPORT2_X64(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
+
+            CEXPORT2(favx, biquad_process_x1, biquad_process_x1_fma3);
+            CEXPORT2(favx, biquad_process_x2, biquad_process_x2_fma3);
+            CEXPORT2(favx, biquad_process_x4, biquad_process_x4_fma3);
+            CEXPORT2(ffma, biquad_process_x8, biquad_process_x8_fma3);
+
+            CEXPORT2(ffma, dyn_biquad_process_x1, dyn_biquad_process_x1_fma3);
+            CEXPORT2(favx, dyn_biquad_process_x2, dyn_biquad_process_x2_fma3);
+            CEXPORT2(favx, dyn_biquad_process_x4, dyn_biquad_process_x4_fma3);
+            CEXPORT2(ffma, dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
         }
     }
 

@@ -18,7 +18,7 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace sse
+    namespace sse2
     {
         void axis_apply_log1(float *x, const float *v, float zero, float norm_x, size_t count);
         void axis_apply_log2(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
@@ -132,12 +132,16 @@ UTEST_BEGIN("dsp.graphics", axis)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:axis_apply_log1", 16, sse::axis_apply_log1));
-        IF_ARCH_X86(call("sse:axis_apply_log2", 16, sse::axis_apply_log2));
-        IF_ARCH_X86_64(call("sse3:x64_axis_apply_log1", 16, sse3::x64_axis_apply_log1));
-        IF_ARCH_X86_64(call("sse3:x64_axis_apply_log2", 16, sse3::x64_axis_apply_log2));
-        IF_ARCH_ARM(call("neon_d32:axis_apply_log1", 16, neon_d32::axis_apply_log1));
-        IF_ARCH_ARM(call("neon_d32:axis_apply_log2", 16, neon_d32::axis_apply_log2));
+        #define CALL(func, align) \
+            call(#func, align, func)
+
+        IF_ARCH_X86(CALL(sse2::axis_apply_log1, 16));
+        IF_ARCH_X86(CALL(sse2::axis_apply_log2, 16));
+        IF_ARCH_X86_64(CALL(sse3::x64_axis_apply_log1, 16));
+        IF_ARCH_X86_64(CALL(sse3::x64_axis_apply_log2, 16));
+
+        IF_ARCH_ARM(CALL(neon_d32::axis_apply_log1, 16));
+        IF_ARCH_ARM(CALL(neon_d32::axis_apply_log2, 16));
     }
 
 UTEST_END;

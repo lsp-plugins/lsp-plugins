@@ -19,16 +19,13 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace x86
+    namespace sse2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
-
-        void copy_saturated_cmov(float *dst, const float *src, size_t count);
-        void saturate_cmov(float *dst, size_t count);
     }
 
-    namespace sse2
+    namespace avx2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
@@ -37,6 +34,14 @@ IF_ARCH_X86(
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void copy_saturated(float *dst, const float *src, size_t count);
+        void saturate(float *dst, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
@@ -100,26 +105,26 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
             }
         }
 
+        #define CALL(func) \
+            call(#func, dst, src, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native::sat", dst, src, count, native::saturate);
-            call("native::copy_sat", dst, src, count, native::copy_saturated);
-
-            IF_ARCH_X86(call("x86::sat", dst, src, count, x86::saturate));
-            IF_ARCH_X86(call("x86::copy_sat", dst, src, count, x86::copy_saturated));
-
-            IF_ARCH_X86(call("x86::sat_cmov", dst, src, count, x86::saturate_cmov));
-            IF_ARCH_X86(call("x86::copy_sat_cmov", dst, src, count, x86::copy_saturated_cmov));
-
-            IF_ARCH_X86(call("sse2::sat", dst, src, count, sse2::saturate));
-            IF_ARCH_X86(call("sse2::copy_sat", dst, src, count, sse2::copy_saturated));
-
-            IF_ARCH_ARM(call("neon_d32::sat", dst, src, count, neon_d32::saturate));
-            IF_ARCH_ARM(call("neon_d32::copy_sat", dst, src, count, neon_d32::copy_saturated));
-
+            CALL(native::saturate);
+            IF_ARCH_X86(CALL(sse2::saturate));
+            IF_ARCH_X86(CALL(avx2::saturate));
+            IF_ARCH_ARM(CALL(neon_d32::saturate));
+            IF_ARCH_AARCH64(CALL(asimd::saturate));
             PTEST_SEPARATOR;
+
+            CALL(native::copy_saturated);
+            IF_ARCH_X86(CALL(sse2::copy_saturated));
+            IF_ARCH_X86(CALL(avx2::copy_saturated));
+            IF_ARCH_ARM(CALL(neon_d32::copy_saturated));
+            IF_ARCH_AARCH64(CALL(asimd::copy_saturated));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

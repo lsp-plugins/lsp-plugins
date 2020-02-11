@@ -278,7 +278,6 @@ namespace native
         EXPORT1(ms_to_lr);
         EXPORT1(ms_to_left);
         EXPORT1(ms_to_right);
-        EXPORT1(avoid_denormals);
 
         EXPORT1(biquad_process_x1);
         EXPORT1(biquad_process_x2);

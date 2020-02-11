@@ -23,7 +23,7 @@ IF_ARCH_X86(
         void rgba32_to_bgra32(void *dst, const void *src, size_t count);
     }
 
-    namespace sse
+    namespace sse2
     {
         void rgba32_to_bgra32(void *dst, const void *src, size_t count);
     }
@@ -73,15 +73,18 @@ PTEST_BEGIN("dsp.graphics", rgba, 5, 1000)
         for (size_t i=0; i<buf_size*2; ++i)
              src[i]             = uint8_t(rand());
 
+        #define CALL(func) \
+            call(#func, dst, src, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native:rgba32_to_bgra32", dst, src, count, native::rgba32_to_bgra32);
-            IF_ARCH_X86(call("x86:rgba32_to_bgra32", dst, src, count, x86::rgba32_to_bgra32));
-            IF_ARCH_X86(call("sse:rgba32_to_bgra32", dst, src, count, sse::rgba32_to_bgra32));
-            IF_ARCH_X86_64(call("sse3:x64_rgba32_to_bgra32", dst, src, count, sse3::x64_rgba32_to_bgra32));
-            IF_ARCH_ARM(call("neon_d32:rgba32_to_bgra32", dst, src, count, neon_d32::rgba32_to_bgra32));
+            CALL(native::rgba32_to_bgra32);
+            IF_ARCH_X86(CALL(x86::rgba32_to_bgra32));
+            IF_ARCH_X86(CALL(sse2::rgba32_to_bgra32));
+            IF_ARCH_X86_64(CALL(sse3::x64_rgba32_to_bgra32));
+            IF_ARCH_ARM(CALL(neon_d32::rgba32_to_bgra32));
 
             PTEST_SEPARATOR;
         }

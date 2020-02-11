@@ -17,16 +17,13 @@ namespace native
 }
 
 IF_ARCH_X86(
-    namespace x86
+    namespace sse2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
-
-        void copy_saturated_cmov(float *dst, const float *src, size_t count);
-        void saturate_cmov(float *dst, size_t count);
     }
 
-    namespace sse2
+    namespace avx2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
@@ -35,6 +32,14 @@ IF_ARCH_X86(
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void copy_saturated(float *dst, const float *src, size_t count);
+        void saturate(float *dst, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
@@ -148,15 +153,19 @@ UTEST_BEGIN("dsp.float", saturation)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("x86::copy_sat", 16, x86::copy_saturated));
-        IF_ARCH_X86(call("x86::copy_sat_cmov", 16, x86::copy_saturated_cmov));
-        IF_ARCH_X86(call("sse2::copy_sat", 16, sse2::copy_saturated));
-        IF_ARCH_ARM(call("neon_d32::copy_sat", 16, neon_d32::copy_saturated));
+        #define CALL(func, align) \
+            call(#func, align, func)
 
-        IF_ARCH_X86(call("x86::sat", 16, x86::saturate));
-        IF_ARCH_X86(call("x86::sat_cmov", 16, x86::saturate_cmov));
-        IF_ARCH_X86(call("sse2::sat", 16, sse2::saturate));
-        IF_ARCH_ARM(call("neon_d32::sat", 16, neon_d32::saturate));
+        IF_ARCH_X86(CALL(sse2::saturate, 16));
+        IF_ARCH_X86(CALL(sse2::copy_saturated, 16));
+        IF_ARCH_X86(CALL(avx2::saturate, 32));
+        IF_ARCH_X86(CALL(avx2::copy_saturated, 32));
+
+        IF_ARCH_ARM(CALL(neon_d32::saturate, 16));
+        IF_ARCH_ARM(CALL(neon_d32::copy_saturated, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::saturate, 16));
+        IF_ARCH_AARCH64(CALL(asimd::copy_saturated, 16));
     }
 
 UTEST_END;

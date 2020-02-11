@@ -59,14 +59,6 @@ namespace dsp
      */
     extern void (* limit_saturate2)(float *dst, const float *src, size_t count);
 
-    /** Avoid denormal values
-     *
-     * @param dst destination buffer
-     * @param src source buffer
-     * @param count number of samples
-     */
-    extern void (* avoid_denormals)(float *dst, const float *src, size_t count);
-
     /**
      * Limit floating-point data in buffer
      * Replace +Inf with max, -Inf, +NaN, -NaN with min
