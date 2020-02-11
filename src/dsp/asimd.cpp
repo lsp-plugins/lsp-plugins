@@ -309,7 +309,7 @@ namespace asimd
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);
         EXPORT1(bilinear_transform_x4);
-//        EXPORT1(bilinear_transform_x8);
+        EXPORT1(bilinear_transform_x8);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);
