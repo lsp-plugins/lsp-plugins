@@ -78,6 +78,7 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/filters/static.h>
 #include <dsp/arch/aarch64/asimd/filters/dynamic.h>
 #include <dsp/arch/aarch64/asimd/filters/transfer.h>
+#include <dsp/arch/aarch64/asimd/filters/transform.h>
 
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
@@ -299,6 +300,16 @@ namespace asimd
         EXPORT1(filter_transfer_apply_ri);
         EXPORT1(filter_transfer_calc_pc);
         EXPORT1(filter_transfer_apply_pc);
+
+        EXPORT1(dyn_biquad_process_x1);
+        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x4);
+        EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(bilinear_transform_x1);
+//        EXPORT1(bilinear_transform_x2);
+//        EXPORT1(bilinear_transform_x4);
+//        EXPORT1(bilinear_transform_x8);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);
