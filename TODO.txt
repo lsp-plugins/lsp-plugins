@@ -8,33 +8,34 @@
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
+=== 1.1.16 ===
+- Added frequency-domain spectral analysis to convolver plugin series.
+- Added frequency-domain spectral analysis to profiler plugin series.
+- Research the work of plugins under Audacity.
+- Added audio preview to file open dialog.
+- Added subsystem for loading missed files.
+- Implemented equal loudness compensation plugin according to ISO 226:2003
+  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
+  topic: https://linuxmusicians.com/viewtopic.php?p=113835
+  
 === 1.1.14 ===
 
 * Implemented Multiband expander plugin series.
 * Fixed bug in trigger that caused notes to be immediately cancelled.
 * Implemented support of LV2 state:mapPath extension.
 * Removed strict requirement to build UI for LADSPA version of plugins.
-- Rework structure of x1 and x2 filters
-- Rework filters and equalizers for proper work with x1 and x2 filters
+* Reworked and additionally optimized structure of all filter chains.
+* Refactored and optimized dynamic filter processing.
+* Additional DSP optimizations for AArch64 architecture.
+* Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
+* Fixed problem with matched Z transform caused by filter characteristics optimizations.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
 - Implemented Multiband gate plugin series.
-- Fixe problem with matched Z transform caused by filter characteristics optimizations.
-- Refactored and optimized dynamic filter processing.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform. 
 - Added multilingual support by the graphical toolkit.
-- Added frequency-domain spectral analysis to convolver plugin series.
-- Added frequency-domain spectral analysis to profiler plugin series.
-- Additional DSP optimizations for AArch64 architecture.
-- Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
-- Research the work of plugins under Audacity.
-- Added audio preview to file open dialog.
-- Added subsystem for loading missed files.
-- Implement equal loudness compensation plugin according to ISO 226:2003
-  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
-  topic: https://linuxmusicians.com/viewtopic.php?p=113835
- 
+
 
 *******************************************************************************
 * Release steps
