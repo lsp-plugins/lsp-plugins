@@ -169,7 +169,7 @@ namespace lsp
             void            init_sat(sat_t *sat);
             void            init_exp(exp_t *exp);
             void            init_line(line_t *line);
-            void            init_comp(comp_t *comp, float time);
+            void            init_comp(comp_t *comp);
 
             void            process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples);
 //            void            process_hermite(float *dst, float *gain, const float *src, const float *sc, size_t samples);
@@ -225,7 +225,7 @@ namespace lsp
 
             /** Change current sample rate of processor
              *
-             * @param sr
+             * @param sr sample rate to set
              */
             inline void set_sample_rate(size_t sr)
             {
@@ -294,12 +294,17 @@ namespace lsp
                 nUpdate    |= UP_LK;
             }
 
-            /** Set knee
+            /** Set knee, the value not greater than 1.0
+             * If value is 1.0, there is no knee at all
+             * Other values indicate gain offset below the threshold.
+             * The same offset above threshold will be automatically calculated.
              *
-             * @param knee knee
+             * @param knee knee, 1.0 means no knee
              */
             inline void set_knee(float knee)
             {
+                if (knee > 1.0f)
+                    knee = 1.0f;
                 if (fKnee == knee)
                     return;
                 fKnee       = knee;
@@ -324,6 +329,7 @@ namespace lsp
              * @param samples number of samples to process
              */
             void process(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+
     };
 
 } /* namespace lsp */

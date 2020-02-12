@@ -135,7 +135,7 @@ namespace lsp
      */
     inline float samples_to_millis(float sr, float samples)
     {
-        return samples_to_seconds(sr, samples) * 1000.0f;
+        return (samples / sr) * 1000.0f;
     }
 
     /** Convert samples [samp] to distance [m]
@@ -159,7 +159,7 @@ namespace lsp
      */
     inline float samples_to_centimeters(float sr, float speed, float samples)
     {
-        return samples_to_meters(sr, speed, samples) * 100.0f;
+        return ((samples * speed) / sr) * 100.0f;
     }
 
     /** Convert time [ms] to samples [samp]
@@ -170,7 +170,7 @@ namespace lsp
      */
     inline float millis_to_samples(float sr, float time)
     {
-        return seconds_to_samples(sr, time * 0.001f);
+        return (time * 0.001f) * sr;
     }
 
     /** Convert decibels to gain value

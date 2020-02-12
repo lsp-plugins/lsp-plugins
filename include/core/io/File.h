@@ -38,7 +38,9 @@ namespace lsp
                     FM_TRUNC    = 1 << 3,       // Truncate file
                     FM_DIRECT   = 1 << 4,       // Do not use buffered input/output if possible
 
-                    FM_READWRITE = FM_READ | FM_WRITE
+                    FM_READWRITE = FM_READ | FM_WRITE,
+                    FM_WRITE_NEW = FM_CREATE | FM_WRITE | FM_TRUNC,
+                    FM_READWRITE_NEW = FM_CREATE | FM_READ | FM_WRITE | FM_TRUNC
                 };
 
             protected:
