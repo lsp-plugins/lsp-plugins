@@ -15,18 +15,22 @@ namespace lsp
 {
     Trigger::Trigger()
     {
-        enTriggerType       = TRG_TYPE_NONE;
-        enTriggerState      = TRG_STATE_WAITING;
+        enTriggerType           = TRG_TYPE_NONE;
+        enTriggerState          = TRG_STATE_WAITING;
 
-        nPostTrigger        = 0;
-        nPostTriggerCounter = 0;
+        nPostTrigger            = 0;
+        nPostTriggerCounter     = 0;
 
-        fThreshold          = 0.0f;
+        fThreshold              = 0.0f;
 
-        vMemory             = NULL;
-        pData               = NULL;
+        nExternalTriggerCounter = 0;
 
-        bSync               = true;
+        nMemoryHead             = 0;
+
+        vMemory                 = NULL;
+        pData                   = NULL;
+
+        bSync                   = true;
     }
 
     Trigger::~Trigger()
@@ -66,6 +70,7 @@ namespace lsp
 
         prepare_memory();
         nPostTriggerCounter = 0;
+        nMemoryHead = 0;
 
         bSync = false;
     }
@@ -75,22 +80,22 @@ namespace lsp
         dsp::fill_zero(vMemory, MEM_LIM_SIZE);
     }
 
-    void Trigger::shift_memory()
-    {
-        dsp::move(vMemory, vMemory + 1, MEM_LIM_SIZE - 1);
-    }
-
     void Trigger::single_sample_processor(float value)
     {
-        shift_memory();
-        vMemory[MEM_LIM_SIZE] = value;
-        ++nPostTriggerCounter;
+        vMemory[nMemoryHead] = value;
 
         switch (enTriggerType)
         {
             case TRG_TYPE_SIMPLE_RISING_EDGE:
             {
-                float diff = vMemory[MEM_LIM_SIZE] - vMemory[MEM_LIM_SIZE - 1];
+                size_t previous_sample_idx = 0;
+
+                if (nMemoryHead == 0)
+                    previous_sample_idx = MEM_LIM_SIZE;
+                else
+                    previous_sample_idx = nMemoryHead - 1;
+
+                float diff = vMemory[nMemoryHead] - vMemory[previous_sample_idx];
 
                 if (diff > 0.0f)
                     enTriggerState = TRG_STATE_ARMED;
@@ -112,7 +117,14 @@ namespace lsp
             }
             case TRG_TYPE_SIMPLE_FALLING_EDGE:
             {
-                float diff = vMemory[MEM_LIM_SIZE] - vMemory[MEM_LIM_SIZE - 1];
+                size_t previous_sample_idx = 0;
+
+                if (nMemoryHead == 0)
+                    previous_sample_idx = MEM_LIM_SIZE;
+                else
+                    previous_sample_idx = nMemoryHead - 1;
+
+                float diff = vMemory[nMemoryHead] - vMemory[previous_sample_idx];
 
                 if (diff < 0.0f)
                     enTriggerState = TRG_STATE_ARMED;
@@ -132,10 +144,30 @@ namespace lsp
 
                 break;
             }
-            case TRG_TYPE_NONE:
             case TRG_TYPE_EXTERNAL:
+            {
+                if ((enTriggerState == TRG_STATE_ARMED) && (nExternalTriggerCounter == 0))
+                {
+                    enTriggerState = TRG_STATE_FIRED;
+                    nPostTriggerCounter = 0;
+                }
+                else if (enTriggerState == TRG_STATE_FIRED)
+                {
+                    enTriggerState = TRG_STATE_WAITING;
+                }
+                else
+                {
+                    --nExternalTriggerCounter;
+                }
+
+                break;
+            }
+            case TRG_TYPE_NONE:
             default:
                 return;
         }
+
+        ++nPostTriggerCounter;
+        nMemoryHead = (nMemoryHead + 1) % MEM_LIM_SIZE;
     }
 }

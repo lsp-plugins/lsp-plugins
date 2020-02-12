@@ -28,11 +28,12 @@ namespace lsp
     {
         OSC_STATE_ACQUIRING,
         OSC_STATE_SWEEPING,
-        OSC_STATE_MAX
     };
 
     class Oscilloscope
     {
+        private:
+            Oscilloscope & operator = (const Oscilloscope &);
 
         protected:
 
@@ -64,6 +65,7 @@ namespace lsp
         private:
 
             size_t              nSampleRate;
+            size_t              nOverSampleRate;
 
             Trigger             sTrigger;
             trg_type_t          enTriggerType;
@@ -88,7 +90,7 @@ namespace lsp
 
         public:
 
-            Oscilloscope();
+            explicit Oscilloscope();
             ~Oscilloscope();
 
         protected:
@@ -148,6 +150,10 @@ namespace lsp
                 bSync       = true;
             }
 
+            /** Set the output mode of the oscilloscope.
+             *
+             * @param mode oscilloscope output mode.
+             */
             inline void set_output_mode(osc_output_mode_t mode)
             {
                 if ((mode == enOutputMode) || (mode <= OSC_OUTPUT_MODE_MUTED) || (mode >= OSC_OUTPUT_MODE_MAX))
@@ -156,6 +162,10 @@ namespace lsp
                 enOutputMode = mode;
             }
 
+            /** Set the pre-trigger time that will be included in the sweeping buffer.
+             *
+             * @param preTriggerTime pre-trigger time, in seconds.
+             */
             inline void set_pre_trigger_time(float preTriggerTime)
             {
                 if ((preTriggerTime == sSweepParams.fPreTrigger) || (preTriggerTime <= 0.0f))
@@ -165,6 +175,10 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Set the post-trigger time that will be included in the sweeping buffer.
+             *
+             * @param postTriggerTime post-trigger time, in seconds.
+             */
             inline void set_post_trigger_time(float posTriggerTime)
             {
                 if ((posTriggerTime == sSweepParams.fPostTrigger) || (posTriggerTime <= 0.0f))
@@ -174,6 +188,10 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Set symmetric pre and post trigger times.
+             *
+             * @param sweepTime sweep time that will be assigned as pre and post time, seconds.
+             */
             inline void set_symmetric_sweep_times(float sweepTime)
             {
                 if (((sweepTime == sSweepParams.fPreTrigger) && (sweepTime == sSweepParams.fPostTrigger)) || (sweepTime <= 0.0f))
@@ -184,6 +202,10 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Set trigger type.
+             *
+             * @param type trigger type.
+             */
             inline void set_trigger_type(trg_type_t type)
             {
                 if (type == enTriggerType)
@@ -195,6 +217,10 @@ namespace lsp
 
             void process(float *dst, float *src, size_t count);
 
+            /** If the sweep is complete, return true.
+             *
+             * @return true if the sweep is complete.
+             */
             inline bool get_sweep_complete()
             {
                 return sSweepParams.bSweepComplete;

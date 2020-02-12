@@ -15,6 +15,7 @@ namespace lsp
     Oscilloscope::Oscilloscope()
     {
         nSampleRate                 = -1;
+        nOverSampleRate             = -1;
 
         enTriggerType               = TRG_TYPE_NONE;
 
@@ -92,17 +93,18 @@ namespace lsp
         if (sOver.modified())
             sOver.update_settings();
         nOversampling = sOver.get_oversampling();
+        nOverSampleRate = nOversampling * nSampleRate;
 
         size_t minBufSize = (CAPTURE_BUFFER_LIMIT_SIZE < SWEEP_BUFFER_LIMIT_SIZE) ? CAPTURE_BUFFER_LIMIT_SIZE : SWEEP_BUFFER_LIMIT_SIZE;
 
-        sSweepParams.nPreTrigger = seconds_to_samples(nOversampling * nSampleRate, sSweepParams.fPreTrigger);
+        sSweepParams.nPreTrigger = seconds_to_samples(nOverSampleRate, sSweepParams.fPreTrigger);
         sSweepParams.nPreTrigger = (sSweepParams.nPreTrigger < minBufSize) ? sSweepParams.nPreTrigger : minBufSize;
-        sSweepParams.fPreTrigger = samples_to_seconds(nOversampling * nSampleRate, sSweepParams.nPreTrigger);
+        sSweepParams.fPreTrigger = samples_to_seconds(nOverSampleRate, sSweepParams.nPreTrigger);
 
         size_t availableForPost = SWEEP_BUFFER_LIMIT_SIZE - sSweepParams.nPreTrigger;
-        sSweepParams.nPostTrigger = seconds_to_samples(nOversampling * nSampleRate, sSweepParams.fPostTrigger);
+        sSweepParams.nPostTrigger = seconds_to_samples(nOverSampleRate, sSweepParams.fPostTrigger);
         sSweepParams.nPostTrigger = (sSweepParams.nPostTrigger < availableForPost) ? sSweepParams.nPostTrigger : availableForPost;
-        sSweepParams.fPostTrigger = samples_to_seconds(nOversampling * nSampleRate, sSweepParams.nPostTrigger);
+        sSweepParams.fPostTrigger = samples_to_seconds(nOverSampleRate, sSweepParams.nPostTrigger);
 
         sSweepParams.nLimit = sSweepParams.nPreTrigger + sSweepParams.nPostTrigger;
         sSweepParams.nHead = 0;
