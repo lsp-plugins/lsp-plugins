@@ -20,6 +20,9 @@ namespace lsp
     
     class Expander
     {
+        private:
+            Expander & operator = (const Expander &);
+
         protected:
             // Basic parameters
             float       fAttackThresh;
