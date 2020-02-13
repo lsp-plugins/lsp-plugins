@@ -17,7 +17,7 @@ namespace lsp
         // Basic parameters
         fAttackThresh   = 0.0f;
         fReleaseThresh  = 0.0f;
-        fBoostThresh    = GAIN_AMP_M_48_DB;
+        fBoostThresh    = GAIN_AMP_M_72_DB;
         fAttack         = 0.0f;
         fRelease        = 0.0f;
         fKnee           = 0.0f;
@@ -80,8 +80,8 @@ namespace lsp
             float log_bks   = logf(fBKS);
             float log_bke   = logf(fBKE);
 
-            interpolation::hermite_quadratic(vHermite, log_ke, log_ke, 1.0f, log_ks, fXRatio);
-            interpolation::hermite_quadratic(vBHermite, log_bks, log_bks + boost, 1.0f, log_bke, fXRatio);
+            interpolation::hermite_quadratic(vHermite, log_ks, log_ks, 1.0f, log_ke, 2.0f - fXRatio);
+            interpolation::hermite_quadratic(vBHermite, log_bks, log_bks, 1.0f, log_bke, fXRatio);
         }
         else
             interpolation::hermite_quadratic(vHermite, log_ks, log_ks, 1.0f, log_ke, fXRatio);
@@ -136,88 +136,81 @@ namespace lsp
         {
             for (size_t i=0; i<dots; ++i)
             {
-                float x     = *(in++);
-                if (x < 0.0f)
-                    x       = -x;
+                float x     = fabs(in[i]);
+                float lx    = logf(x);
+                float g1    = 1.0f, g2 = 1.0f;
+                if (x > fBKS)
+                {
+                    g1  = (x >= fBKE) ?
+                        expf((fXRatio - 1.0f)*(lx-fBLogTH)) :
+                        expf((vBHermite[0]*lx + vBHermite[1] - 1.0f)*lx + vBHermite[2]);
+                }
 
-                if (x <= fBKS)
-                    *out        = x*fBoost;
-                else if (x < fBKE)
+                if (x > fKS)
                 {
-                    float lx    = logf(x);
-                    if ((fBKE > fKS) && (x > fKS))
-                    {
-                        float a = (vHermite[0]*lx + vHermite[1])*lx + vHermite[2];
-                        float b = (vBHermite[0]*lx + vBHermite[1])*lx + vBHermite[2];
-                        float k = (lx-logf(fKS))/logf(fBKE/fKS);
-                        *out = expf(a*k + b*(1.0-k));
-                    }
-                    else
-                        *out = expf((vBHermite[0]*lx + vBHermite[1])*lx + vBHermite[2]);
+                    g2  = (x >= fKE) ?
+                        expf((1.0f - fXRatio)*(lx-fLogTH)) :
+                        expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
                 }
-                else if (x < fKE)
-                {
-                    float lx    = logf(x);
-                    *out = (x <= fKS) ?
-                            expf(fXRatio*(lx - fLogTH) + fLogTH) :
-                            expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
-                }
-                else
-                    *out        = x;
-                out++;
+
+                out[i]      = x * g1 * g2 * fBoost;
             }
         }
         else
         {
             for (size_t i=0; i<dots; ++i)
             {
-                float x     = *(in++);
-                if (x < 0.0f)
-                    x       = -x;
+                float x     = fabs(in[i]);
+
                 if (x > fKS)
                 {
                     float lx    = logf(x);
-                    x   = (x >= fKE) ?
+                    out[i]      = (x >= fKE) ?
                         expf(fXRatio*(lx - fLogTH) + fLogTH) :
                         expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
-                    *out        = x;
                 }
                 else
-                    *out        = x;
-                out++;
+                    out[i]      = x;
             }
         }
     }
 
     float Compressor::curve(float in)
     {
-        if (in < 0.0f)
-            in      = -in;
+        float x     = fabs(in);
+
         if (bUpward)
         {
-            if (in < FLOAT_SAT_N_INF)
-                in      = FLOAT_SAT_N_INF;
-
-            if (in < fKE)
+            float lx    = logf(x);
+            float g1    = 1.0f, g2 = 1.0f;
+            if (x > fBKS)
             {
-                float lx    = logf(in);
-                return (in <= fKS) ?
-                    expf(fXRatio*(lx - fLogTH) + fLogTH) :
-                    expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
+                g1  = (x >= fBKE) ?
+                    expf((fXRatio - 1.0f)*(lx-fBLogTH)) :
+                    expf((vBHermite[0]*lx + vBHermite[1] - 1.0f)*lx + vBHermite[2]);
             }
+
+            if (x > fKS)
+            {
+                g2  = (x >= fKE) ?
+                    expf((1.0f - fXRatio)*(lx-fLogTH)) :
+                    expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
+            }
+
+            return x * g1 * g2 * fBoost;
         }
         else
         {
-            if (in > fKS)
+            if (x > fKS)
             {
-                float lx    = logf(in);
-                return (in >= fKE) ?
+                float lx    = logf(x);
+                return (x >= fKE) ?
                     expf(fXRatio*(lx - fLogTH) + fLogTH) :
                     expf((vHermite[0]*lx + vHermite[1])*lx + vHermite[2]);
             }
         }
 
-        return in;
+        return x;
     }
 
     void Compressor::reduction(float *out, const float *in, size_t dots)
@@ -226,74 +219,74 @@ namespace lsp
         {
             for (size_t i=0; i<dots; ++i)
             {
-                float x     = *(in++);
-                if (x < 0.0f)
-                    x       = -x;
-                if (x < FLOAT_SAT_N_INF)
-                    x       = FLOAT_SAT_N_INF;
-
-                if (x < fKE)
+                float x     = fabs(in[i]);
+                float lx    = logf(x);
+                float g1    = 1.0f, g2 = 1.0f;
+                if (x > fBKS)
                 {
-                    float lx    = logf(x);
-                    x   = (x <= fKS) ?
-                            expf((fXRatio-1.0f)*(lx-fLogTH)) :
-                            expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
-                    *out        = x;
+                    g1  = (x >= fBKE) ?
+                        expf((fXRatio - 1.0f)*(lx-fBLogTH)) :
+                        expf((vBHermite[0]*lx + vBHermite[1] - 1.0f)*lx + vBHermite[2]);
                 }
-                else
-                    *out        = 1.0f;
 
-//                if (isinf(*out))
-//                {
-//                    lsp_trace("debug");
-//                }
-                out++;
+                if (x > fKS)
+                {
+                    g2  = (x >= fKE) ?
+                        expf((1.0f - fXRatio)*(lx-fLogTH)) :
+                        expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
+                }
+
+                out[i]      = g1 * g2 * fBoost;
             }
         }
         else
         {
             for (size_t i=0; i<dots; ++i)
             {
-                float x     = *(in++);
-                if (x < 0.0f)
-                    x       = -x;
+                float x     = fabs(in[i]);
                 if (x > fKS)
                 {
                     float lx    = logf(x);
-                    *out = (x >= fKE) ?
+                    out[i]  = (x >= fKE) ?
                         expf((fXRatio-1.0f)*(lx-fLogTH)) :
                         expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
                 }
                 else
-                    *out        = 1.0f;
-                out++;
+                    out[i]      = 1.0f;
             }
         }
     }
 
     float Compressor::reduction(float in)
     {
-        if (in < 0.0f)
-            in      = -in;
+        float x     = fabs(in);
+
         if (bUpward)
         {
-            if (in < FLOAT_SAT_N_INF)
-                in      = FLOAT_SAT_N_INF;
-
-            if (in < fKE)
+            float lx    = logf(x);
+            float g1    = 1.0f, g2 = 1.0f;
+            if (x > fBKS)
             {
-                float lx    = logf(in);
-                return (in <= fKS) ?
-                    expf((fXRatio-1.0f)*(lx-fLogTH)) :
+                g1  = (x >= fBKE) ?
+                    expf((fXRatio - 1.0f)*(lx-fBLogTH)) :
+                    expf((vBHermite[0]*lx + vBHermite[1] - 1.0f)*lx + vBHermite[2]);
+            }
+
+            if (x > fKS)
+            {
+                g2  = (x >= fKE) ?
+                    expf((1.0f - fXRatio)*(lx-fLogTH)) :
                     expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
             }
+
+            return g1 * g2 * fBoost;
         }
         else
         {
-            if (in > fKS)
+            if (x > fKS)
             {
-                float lx    = logf(in);
-                return (in >= fKE) ?
+                float lx    = logf(x);
+                return (x >= fKE) ?
                     expf((fXRatio-1.0f)*(lx-fLogTH)) :
                     expf((vHermite[0]*lx + vHermite[1] - 1.0f)*lx + vHermite[2]);
             }
