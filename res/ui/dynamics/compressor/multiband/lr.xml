@@ -511,17 +511,18 @@
 									<button id="bm_${i}r" size="16" color="right_channel" led="true" />
 								</hbox>
 							</align>
-							<grid rows="7" cols="8" hspacing="4">
+							<grid rows="7" cols="9" hspacing="4">
 								<cell rows="2"><label text="Mode" /></cell>
 								<cell rows="2"><label text="Ratio" /></cell>
 								<cell rows="2"><label text="Knee" /></cell>
 								<cell rows="2"><label text="Makeup" /></cell>
+								<cell rows="2"><label text="Boost" bright="((:cm_${i}l ieq 1) or (:cm_${i}r ieq 1)) ? 1 : 0.5" /></cell>
 								<cell cols="2"><label text="Attack" /></cell>
 								<cell cols="2"><label text="Release" /></cell>
 								
-								<cell><label text="Level" /></cell>
+								<cell><label text="Thresh" /></cell>
 								<cell><label text="Time" /></cell>
-								<cell><label text="Level" /></cell>
+								<cell><label text="Thresh" /></cell>
 								<cell><label text="Time" /></cell>
 								
 								<cell rows="2">
@@ -538,6 +539,7 @@
 								<knob id="cr_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="kn_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="mk_${i}l" size="16" scale_hue_id="hue_${i}l" />
+								<knob id="bth_${i}l" size="16" scale_hue_id="hue_${i}l" bright="(:cm_${i}l ieq 1) ? 1 : 0.5" />
 								<knob id="al_${i}l" size="16" scale_color="magenta" />
 								<knob id="at_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="rrl_${i}l" size="16" scale_color="magenta" />
@@ -550,13 +552,14 @@
 								</hbox>
 								<value id="kn_${i}l" same_line="true" />
 								<value id="mk_${i}l" same_line="true" />
+								<value id="bth_${i}l" same_line="true" bright="(:cm_${i}l ieq 1) ? 1 : 0.5" />
 								<value id="al_${i}l" same_line="true" />
 								<value id="at_${i}l" same_line="true" />
 								<value id="rrl_${i}l" same_line="true" />
 								<value id="rt_${i}l" same_line="true" />
 								
 								<label />
-								<cell cols="7" fill="true">
+								<cell cols="8" fill="true">
 									<hsep />
 								</cell>
 								
@@ -574,6 +577,7 @@
 								<knob id="cr_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="kn_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="mk_${i}r" size="16" scale_hue_id="hue_${i}r" />
+								<knob id="bth_${i}r" size="16" scale_hue_id="hue_${i}r" bright="(:cm_${i}r ieq 1) ? 1 : 0.5" />
 								<knob id="al_${i}r" size="16" scale_color="magenta" />
 								<knob id="at_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="rrl_${i}r" size="16" scale_color="magenta" />
@@ -586,6 +590,7 @@
 								</hbox>
 								<value id="kn_${i}r" same_line="true" />
 								<value id="mk_${i}r" same_line="true" />
+								<value id="bth_${i}r" same_line="true" bright="(:cm_${i}r ieq 1) ? 1 : 0.5" />
 								<value id="al_${i}r" same_line="true" />
 								<value id="at_${i}r" same_line="true" />
 								<value id="rrl_${i}r" same_line="true" />

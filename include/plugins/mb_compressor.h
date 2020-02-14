@@ -97,6 +97,7 @@ namespace lsp
                 IPort          *pRelTime;           // Release time
                 IPort          *pRatio;             // Ratio
                 IPort          *pKnee;              // Knee
+                IPort          *pBThresh;           // Boost threshold
                 IPort          *pMakeup;            // Makeup gain
                 IPort          *pFreqEnd;           // Frequency range end
                 IPort          *pCurveGraph;        // Compressor curve graph
