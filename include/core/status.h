@@ -70,6 +70,7 @@ namespace lsp
         STATUS_BAD_PATH,
         STATUS_PROTOCOL_ERROR,
         STATUS_BAD_TOKEN,
+        STATUS_NO_GRAB,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

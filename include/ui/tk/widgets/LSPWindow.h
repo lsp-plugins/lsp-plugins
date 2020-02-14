@@ -245,7 +245,9 @@ namespace lsp
 
                 status_t point_child(LSPWidget *focus);
 
-                status_t grab_events();
+                status_t                grab_events(grab_t grab);
+
+                status_t                ungrab_events();
 
                 void                    set_border(size_t border);
 

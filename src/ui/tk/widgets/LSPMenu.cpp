@@ -646,12 +646,12 @@ namespace lsp
             realize(&wr);
             nSelected       = SEL_NONE;
 
-            pWindow->show();
+            pWindow->show(w);
 
             // Need to perform grabbing?
             pParentMenu = widget_cast<LSPMenu>(w);
             if (pParentMenu == NULL)
-                pWindow->grab_events();
+                pWindow->grab_events(GRAB_MENU);
 
             return LSPWidgetContainer::show();
         }
