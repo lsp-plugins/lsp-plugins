@@ -273,94 +273,84 @@
 			</group>
 		
 			<group text="Compressor" expand="true">
-				<vbox expand="true" fill="true">
-					<hbox expand="true" fill="true">
-						<grid rows="6" cols="4" expand="true">
-							<label text="Mode" />
-							<label text="Ratio" />
-							<vbox><label text="Knee" /><label text="(dB)" /></vbox>
-							<vbox><label text="Makeup" /><label text="(dB)" /></vbox>
-							
-							<combo id="cm_m" />
-							<knob id="cr_m" />
-							<knob id="kn_m" />
-							<knob id="mk_m" />
-							
-							<label />
-							<hbox fill="false">
-								<value id="cr_m" detailed="false"/>
-								<label text=":"/>
-								<label text="1"/>
-							</hbox>
-							<value id="kn_m" detailed="false" />
-							<value id="mk_m" detailed="false" />
-							
-							<combo id="cm_s" />
-							<knob id="cr_s" />
-							<knob id="kn_s" />
-							<knob id="mk_s" />
-							
-							<label />
-							<hbox><value id="cr_s" detailed="false"/><label text=":"/><label text="1"/></hbox>
-							<value id="kn_s" detailed="false" />
-							<value id="mk_s" detailed="false" />
-						</grid>
-						<vsep />
-						<grid rows="6" cols="2" expand="true">
-							<cell cols="2"><label text="Attack" /></cell>
-							<vbox><label text="Level" /><label text="(dB)" /></vbox>
-							<vbox><label text="Time" /><label text="(ms)" /></vbox>
-							
-							<knob id="al_m" scale_color="magenta" size="20" />
-							<knob id="at_m" size="20" />
-							
-							<value id="al_m" detailed="false" />
-							<value id="at_m" detailed="false" />
-							
-							<knob id="al_s" scale_color="blue" size="20" />
-							<knob id="at_s" size="20" />
-							
-							<value id="al_s" detailed="false" />
-							<value id="at_s" detailed="false" />
-						</grid>
-						<vsep />
-						<grid rows="6" cols="2" expand="true">
-							<cell cols="2"><label text="Release" /></cell>
-							<vbox><label text="Level" /><label text="(dB)" /></vbox>
-							<vbox><label text="Time" /><label text="(ms)" /></vbox>
-							
-							<knob id="rrl_m" scale_color="magenta" size="20" />
-							<knob id="rt_m" size="20" />
-							
-							<value id="rrl_m" detailed="false" />
-							<value id="rt_m" detailed="false" />
-							
-							<knob id="rrl_s" scale_color="blue" size="20" />
-							<knob id="rt_s" size="20" />
-							
-							<value id="rrl_s" detailed="false" />
-							<value id="rt_s" detailed="false" />
-						</grid>
-						<vsep />
-						<grid rows="6" cols="2" expand="true">
-							<cell cols="2"><label text="Mix" /></cell>
-							<vbox><label text="Dry" /><label text="(dB)" /></vbox>
-							<vbox><label text="Wet" /><label text="(dB)" /></vbox>
-							
-							<knob id="cdr_m" scale_color="yellow" size="20" />
-							<knob id="cwt_m" scale_color="yellow" size="20" />
-							
-							<value id="cdr_m" detailed="false" />
-							<value id="cwt_m" detailed="false" />
-							
-							<knob id="cdr_s" scale_color="yellow" size="20" />
-							<knob id="cwt_s" scale_color="yellow" size="20" />
-							
-							<value id="cdr_s" detailed="false" />
-							<value id="cwt_s" detailed="false" />
-						</grid>
+				<grid rows="6" cols="14" expand="true">
+					<cell rows="2"><label text="Mode" /></cell>
+					<cell rows="2"><label text="Ratio" /></cell>
+					<label text="Knee" />
+					<label text="Makeup" />
+					<cell rows="2"><label text="Boost" bright="((:cm_m ieq 1) or (:cm_s ieq 1)) ? 1 : 0.5" /></cell>
+					<cell rows="6"><vsep /></cell>
+					<cell cols="2"><label text="Attack" /></cell>
+					<cell rows="6"><vsep /></cell>
+					<cell cols="2"><label text="Release" /></cell>
+					<cell rows="6"><vsep /></cell>
+					<cell cols="2"><label text="Mix" /></cell>
+					
+					<label text="(dB)" />
+					<label text="(dB)" />
+					<vbox><label text="Level" /><label text="(dB)" /></vbox>
+					<vbox><label text="Time" /><label text="(ms)" /></vbox>
+					<vbox><label text="Level" /><label text="(dB)" /></vbox>
+					<vbox><label text="Time" /><label text="(ms)" /></vbox>
+					<vbox><label text="Dry" /><label text="(dB)" /></vbox>
+					<vbox><label text="Wet" /><label text="(dB)" /></vbox>
+					
+					<combo id="cm_m" scale_color="middle_channel" />
+					<knob id="cr_m" scale_color="middle_channel" />
+					<knob id="kn_m" scale_color="middle_channel" />
+					<knob id="mk_m" scale_color="middle_channel" />
+					<knob id="bth_m" scale_color="middle_channel" bright="(:cm_m ieq 1) ? 1 : 0.5" />
+					<knob id="al_m" scale_color="magenta" size="20" />
+					<knob id="at_m" scale_color="middle_channel" size="20" />
+					<knob id="rrl_m" scale_color="magenta" size="20" />
+					<knob id="rt_m" scale_color="middle_channel" size="20" />
+					<knob id="cdr_m" scale_color="yellow" size="20" />
+					<knob id="cwt_m" scale_color="yellow" size="20" />
+
+					<label />
+					<hbox fill="false">
+						<value id="cr_m" detailed="false"/>
+						<label text=":"/>
+						<label text="1"/>
 					</hbox>
-				</vbox>
+					<value id="kn_m" detailed="false" />
+					<value id="mk_m" detailed="false" />
+					<value id="bth_m" detailed="false" bright="(:cm_m ieq 1) ? 1 : 0.5" />
+					<value id="al_m" detailed="false" />
+					<value id="at_m" detailed="false" />
+					<value id="rrl_m" detailed="false" />
+					<value id="rt_m" detailed="false" />
+					<value id="cdr_m" detailed="false" />
+					<value id="cwt_m" detailed="false" />
+					
+					<combo id="cm_s" scale_color="side_channel" />
+					<knob id="cr_s" scale_color="side_channel" />
+					<knob id="kn_s" scale_color="side_channel" />
+					<knob id="mk_s" scale_color="side_channel" />
+					<knob id="bth_s" scale_color="side_channel" bright="(:cm_s ieq 1) ? 1 : 0.5" />
+					<knob id="al_s" scale_color="blue" size="20" />
+					<knob id="at_s" scale_color="side_channel" size="20" />
+					<knob id="rrl_s" scale_color="blue" size="20" />
+					<knob id="rt_s" scale_color="side_channel" size="20" />
+					<knob id="cdr_s" scale_color="yellow" size="20" />
+					<knob id="cwt_s" scale_color="yellow" size="20" />
+					
+					<label />
+					<hbox fill="false">
+						<value id="cr_s" detailed="false"/>
+						<label text=":"/>
+						<label text="1"/>
+					</hbox>
+					<value id="kn_s" detailed="false" />
+					<value id="mk_s" detailed="false" />
+					<value id="bth_s" detailed="false" bright="(:cm_s ieq 1) ? 1 : 0.5" />
+					<value id="al_s" detailed="false" />
+					<value id="at_s" detailed="false" />
+					<value id="rrl_s" detailed="false" />
+					<value id="rt_s" detailed="false" />
+					<value id="cdr_s" detailed="false" />
+					<value id="cwt_s" detailed="false" />
+				</grid>
 			</group>
 			
 			<!-- Signal control -->

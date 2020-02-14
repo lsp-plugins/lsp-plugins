@@ -124,6 +124,7 @@ namespace lsp
             c->pReleaseTime     = NULL;
             c->pRatio           = NULL;
             c->pKnee            = NULL;
+            c->pBThresh         = NULL;
             c->pMakeup          = NULL;
             c->pDryGain         = NULL;
             c->pWetGain         = NULL;
@@ -238,6 +239,7 @@ namespace lsp
                 c->pReleaseTime     = sc->pReleaseTime;
                 c->pRatio           = sc->pRatio;
                 c->pKnee            = sc->pKnee;
+                c->pBThresh         = sc->pBThresh;
                 c->pMakeup          = sc->pMakeup;
                 c->pDryGain         = sc->pDryGain;
                 c->pWetGain         = sc->pWetGain;
@@ -258,6 +260,8 @@ namespace lsp
                 c->pRatio           =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pKnee            =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pBThresh         =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pMakeup          =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
@@ -418,6 +422,7 @@ namespace lsp
             c->sComp.set_timings(c->pAttackTime->getValue(), c->pReleaseTime->getValue());
             c->sComp.set_ratio(c->pRatio->getValue());
             c->sComp.set_knee(c->pKnee->getValue());
+            c->sComp.set_boost_threshold(c->pBThresh->getValue());
             c->sComp.set_mode((upward) ? CM_UPWARD : CM_DOWNWARD);
             if (c->pReleaseOut != NULL)
                 c->pReleaseOut->setValue(release);

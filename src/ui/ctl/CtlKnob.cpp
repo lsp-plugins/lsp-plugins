@@ -205,6 +205,9 @@ namespace lsp
 
         void CtlKnob::end()
         {
+            // Call parent controller
+            CtlWidget::end();
+
             // Ensure that widget is set
             if (pWidget == NULL)
                 return;
@@ -227,8 +230,10 @@ namespace lsp
                 float max       = (p->flags & F_UPPER) ? p->max : GAIN_AMP_P_12_DB;
 
                 double step     = base * log((p->flags & F_STEP) ? p->step + 1.0f : 1.01f) * 0.1f;
-                double db_min   = (fabs(min) < GAIN_AMP_M_80_DB) ? (base * log(GAIN_AMP_M_80_DB) - step) : (base * log(min));
-                double db_max   = (fabs(max) < GAIN_AMP_M_80_DB) ? (base * log(GAIN_AMP_M_80_DB) - step) : (base * log(max));
+                double thresh   = ((p->flags & F_EXT) ? GAIN_AMP_M_140_DB : GAIN_AMP_M_80_DB);
+
+                double db_min   = (fabs(min) < thresh) ? (base * log(thresh) - step) : (base * log(min));
+                double db_max   = (fabs(max) < thresh) ? (base * log(thresh) - step) : (base * log(max));
 
                 knob->set_min_value(db_min);
                 knob->set_max_value(db_max);

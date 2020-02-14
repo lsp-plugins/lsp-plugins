@@ -282,12 +282,13 @@ namespace lsp
 
     void format_decibels(char *buf, size_t len, const port_t *meta, float value, ssize_t precision)
     {
-        double mul       = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
+        double mul      = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
         if (value < 0.0f)
             value           = - value;
 
         value = mul * log(value) / M_LN10;
-        if (value <= -80.0)
+        float thresh    = (meta->flags & F_EXT) ? -140.0f : -80.0f;
+        if (value <= thresh)
         {
             strcpy(buf, "-inf");
             return;

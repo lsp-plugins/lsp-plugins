@@ -39,6 +39,11 @@ namespace lsp
         static const float  KNEE_DFL                = GAIN_AMP_M_6_DB;
         static const float  KNEE_STEP               = 0.01f;
 
+        static const float  BTH_MIN                 = GAIN_AMP_M_120_DB;
+        static const float  BTH_MAX                 = GAIN_AMP_M_60_DB;
+        static const float  BTH_DFL                 = GAIN_AMP_M_72_DB;
+        static const float  BTH_STEP                = 0.05f;
+
         static const float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;
         static const float  MAKEUP_MAX              = GAIN_AMP_P_60_DB;
         static const float  MAKEUP_DFL              = GAIN_AMP_0_DB;

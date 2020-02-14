@@ -72,6 +72,9 @@
 #define LOG_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define EXT_LOG_CONTROL(id, label, units, limits) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG | F_EXT, \
+        limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
 #define LOG_CONTROL_DFL(id, label, units, limits, dfl) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
         limits ## _MIN, limits ## _MAX, dfl, limits ## _STEP, NULL, NULL }

@@ -197,6 +197,13 @@ namespace lsp
                 if (pWidget != NULL)
                     pWidget->set_visible(value >= 0.5f);
             }
+
+            // Evaluate brightness
+            if (sBright.valid())
+            {
+                float value = sBright.evaluate();
+                pWidget->set_brightness(value);
+            }
         }
 
         void CtlWidget::notify(CtlPort *port)

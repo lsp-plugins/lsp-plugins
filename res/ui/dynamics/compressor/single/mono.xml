@@ -218,61 +218,51 @@
 							<combo id="cm" />
 						</hbox>
 					</align>
-					<hbox expand="true">
-						<grid rows="3" cols="3" expand="true">
-							<label text="Ratio" />
-							<label text="Knee" />
-							<label text="Makeup" />
-							
-							<knob id="cr" />
-							<knob id="kn" />
-							<knob id="mk" />
-							
-							<hbox fill="false">
-								<value id="cr" detailed="false"/>
-								<label text=":"/>
-								<label text="1"/>
-							</hbox>
-							<value id="kn" />
-							<value id="mk" />
-						</grid>
-						<vsep />
-						<grid rows="4" cols="2" expand="true">
-							<cell cols="2"><label text="Attack" /></cell>
-							<label text="Level" />
-							<label text="Time" />
-							
-							<knob id="al" scale_color="magenta" size="20" />
-							<knob id="at" size="20" />
-							
-							<value id="al" />
-							<value id="at" />
-						</grid>
-						<vsep />
-						<grid rows="4" cols="2" expand="true">
-							<cell cols="2"><label text="Release" /></cell>
-							<label text="Level" />
-							<label text="Time" />
-							
-							<knob id="rrl" scale_color="magenta" size="20" />
-							<knob id="rt" size="20" />
-							
-							<value id="rrl" />
-							<value id="rt" />
-						</grid>
-						<vsep />
-						<grid rows="4" cols="2" expand="true">
-							<cell cols="2"><label text="Mix" /></cell>
-							<label text="Dry" />
-							<label text="Wet" />
-							
-							<knob id="cdr" scale_color="yellow" size="20" />
-							<knob id="cwt" scale_color="yellow" size="20" />
-							
-							<value id="cdr" />
-							<value id="cwt" />
-						</grid>
-					</hbox>
+					<grid rows="4" cols="13" expand="true">
+						<cell rows="2"><label text="Ratio" /></cell>
+						<cell rows="2"><label text="Knee" /></cell>
+						<cell rows="2"><label text="Makeup" /></cell>
+						<cell rows="2"><label text="Boost" bright="(:cm ieq 1) ? 1 : 0.5" /></cell>
+						<cell rows="4"><vsep /></cell>
+						<cell cols="2"><label text="Attack" /></cell>
+						<cell rows="4"><vsep /></cell>
+						<cell cols="2"><label text="Release" /></cell>
+						<cell rows="4"><vsep /></cell>
+						<cell cols="2"><label text="Mix" /></cell>
+						
+						<label text="Thresh" />
+						<label text="Time" />
+						<label text="Thresh" />
+						<label text="Time" />
+						<label text="Dry" />
+						<label text="Wet" />
+						
+						<knob id="cr" />
+						<knob id="kn" />
+						<knob id="mk" />
+						<knob id="bth" bright="(:cm ieq 1) ? 1 : 0.5" />
+						<knob id="al" scale_color="magenta" size="20" />
+						<knob id="at" size="20" />
+						<knob id="rrl" scale_color="magenta" size="20" />
+						<knob id="rt" size="20" />
+						<knob id="cdr" scale_color="yellow" size="20" />
+						<knob id="cwt" scale_color="yellow" size="20" />
+						
+						<hbox fill="false">
+							<value id="cr" detailed="false"/>
+							<label text=":"/>
+							<label text="1"/>
+						</hbox>
+						<value id="kn" />
+						<value id="mk" />
+						<value id="bth" bright="(:cm ieq 1) ? 1 : 0.5" />
+						<value id="al" />
+						<value id="at" />
+						<value id="rrl" />
+						<value id="rt" />
+						<value id="cdr" />
+						<value id="cwt" />
+					</grid>
 				</vbox>
 			</group>
 			

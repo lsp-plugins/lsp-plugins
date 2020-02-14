@@ -99,6 +99,7 @@ namespace lsp
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, compressor_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("cr" id, "Ratio" label, U_NONE, compressor_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, compressor_base_metadata::KNEE), \
+        EXT_LOG_CONTROL("bth" id, "Boost threshold" label, U_GAIN_AMP, compressor_base_metadata::BTH), \
         LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, compressor_base_metadata::MAKEUP), \
         AMP_GAIN10("cdr" id, "Dry gain" label, GAIN_AMP_M_INF_DB),     \
         AMP_GAIN10("cwt" id, "Wet gain" label, GAIN_AMP_0_DB), \
