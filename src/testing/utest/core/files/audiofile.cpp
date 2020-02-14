@@ -40,9 +40,23 @@ UTEST_BEGIN("core.files", audiofile)
 
         // Save to audio file
         AudioFile af;
+        io::Path ipath;
         UTEST_ASSERT(path.fmt_utf8("tmp/utest-%s.wav", this->full_name()));
+        UTEST_ASSERT(ipath.set(&path) == STATUS_OK);
         UTEST_ASSERT(af.create(&source, DEFAULT_SAMPLE_RATE) == STATUS_OK);
+
+        UTEST_ASSERT(af.store_samples(&path, af.samples()) == STATUS_OK);
+        UTEST_ASSERT(af.store_samples(path.get_utf8(), af.samples()) == STATUS_OK);
+        UTEST_ASSERT(af.store_samples(&ipath, af.samples()) == STATUS_OK);
+
+        UTEST_ASSERT(af.store_samples(&path, 0, af.samples()) == STATUS_OK);
+        UTEST_ASSERT(af.store_samples(path.get_utf8(), 0, af.samples()) == STATUS_OK);
+        UTEST_ASSERT(af.store_samples(&ipath, 0, af.samples()) == STATUS_OK);
+
+        UTEST_ASSERT(af.store(path.get_utf8()) == STATUS_OK)
+        UTEST_ASSERT(af.store(&ipath) == STATUS_OK);
         UTEST_ASSERT(af.store(&path) == STATUS_OK);
+
         af.destroy();
         UTEST_ASSERT(af.channels() == 0);
 

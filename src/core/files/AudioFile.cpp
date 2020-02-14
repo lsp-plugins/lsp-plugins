@@ -589,7 +589,7 @@ namespace lsp
         LSPString spath;
         if (!spath.set_utf8(path))
             return STATUS_NO_MEM;
-        return store_samples(path, from, max_count);
+        return store_samples(&spath, from, max_count);
     }
 
     status_t AudioFile::store_samples(const char *path, size_t max_count)
