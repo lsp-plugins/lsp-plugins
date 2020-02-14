@@ -288,9 +288,9 @@
 					
 					<label text="(dB)" />
 					<label text="(dB)" />
-					<vbox><label text="Level" /><label text="(dB)" /></vbox>
+					<vbox><label text="Thresh" /><label text="(dB)" /></vbox>
 					<vbox><label text="Time" /><label text="(ms)" /></vbox>
-					<vbox><label text="Level" /><label text="(dB)" /></vbox>
+					<vbox><label text="Thresh" /><label text="(dB)" /></vbox>
 					<vbox><label text="Time" /><label text="(ms)" /></vbox>
 					<vbox><label text="Dry" /><label text="(dB)" /></vbox>
 					<vbox><label text="Wet" /><label text="(dB)" /></vbox>
