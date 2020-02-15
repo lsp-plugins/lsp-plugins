@@ -164,7 +164,7 @@ namespace lsp
                     *flags  = config::SF_TYPE_I32;
                     break;
                 case KVT_UINT32:
-                    fmt = value->fmt_ascii("%lu", (unsigned long)(p->u32));
+                    fmt     = value->fmt_ascii("%lu", (unsigned long)(p->u32));
                     *flags  = config::SF_TYPE_U32;
                     break;
                 case KVT_INT64:
