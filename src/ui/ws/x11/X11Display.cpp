@@ -143,10 +143,28 @@ namespace lsp
                 }
 
                 // Get Root window and screen
+                size_t screens  = ScreenCount(pDisplay);
                 hRootWnd        = DefaultRootWindow(pDisplay);
                 int dfl         = DefaultScreen(pDisplay);
                 nBlackColor     = BlackPixel(pDisplay, dfl);
                 nWhiteColor     = WhitePixel(pDisplay, dfl);
+
+                for (size_t i=0; i<screens; ++i)
+                {
+                    x11_screen_t *s     = vScreens.add();
+                    if (s == NULL)
+                        return STATUS_NO_MEM;
+                    s->id           = i;
+                    s->grabs        = 0;
+                    s->width        = DisplayWidth(pDisplay, i);
+                    s->height       = DisplayHeight(pDisplay, i);
+                    s->mm_width     = DisplayWidthMM(pDisplay, i);
+                    s->mm_height    = DisplayHeightMM(pDisplay, i);
+
+                    lsp_trace("Added display #%d: %ldx%ld (%ldx%ld mm)", int(i),
+                            long(s->width), long(s->height), long(s->mm_width), long(s->mm_height));
+                }
+
 
                 // Allocate I/O buffer
                 nIOBufSize      = ::XExtendedMaxRequestSize(pDisplay) / 4;
@@ -280,7 +298,8 @@ namespace lsp
 
                 vWindows.flush();
                 sPending.flush();
-                sGrab.clear();
+                for (size_t i=0; i<__GRAB_TOTAL; ++i)
+                    vGrab[i].clear();
                 sTargets.clear();
                 drop_mime_types(&vDndMimeTypes);
 
@@ -1638,26 +1657,42 @@ namespace lsp
                         case UIE_KEY_DOWN:
                         case UIE_KEY_UP:
                         {
-                            // Check if there is grab enabled
-                            if (sGrab.size() > 0)
+                            // Check if there is grab enabled and obtain list of receivers
+                            bool has_grab = false;
+                            for (ssize_t i=__GRAB_TOTAL-1; i>=0; --i)
                             {
+                                cvector<X11Window> &g = vGrab[i];
+                                if (g.size() <= 0)
+                                    continue;
+
                                 // Add listeners from grabbing windows
-                                for (size_t i=0, nwnd = vWindows.size(); i<nwnd; ++i)
+                                for (size_t i=0; i<g.size();)
                                 {
-                                    X11Window *wnd = vWindows.at(i);
-                                    if (wnd == NULL)
+                                    X11Window *wnd = g.at(i);
+                                    if ((wnd == NULL) || (vWindows.index_of(wnd) < 0))
+                                    {
+                                        g.remove(i, false);
                                         continue;
-                                    if (sGrab.index_of(wnd) < 0)
-                                        continue;
+                                    }
                                     sTargets.add(wnd);
-//                                    lsp_trace("Grabbing window: %p", wnd);
+                                    ++i;
                                 }
 
+                                // Finally, break if there are target windows
+                                if (sTargets.size() > 0)
+                                {
+                                    has_grab = true;
+                                    break;
+                                }
+                            }
+
+                            if (has_grab)
+                            {
                                 // Allow event replay
                                 if ((se.nType == UIE_KEY_DOWN) || (se.nType == UIE_KEY_UP))
-                                    XAllowEvents(pDisplay, ReplayKeyboard, CurrentTime);
+                                    ::XAllowEvents(pDisplay, ReplayKeyboard, CurrentTime);
                                 else if (se.nType != UIE_CLOSE)
-                                    XAllowEvents(pDisplay, ReplayPointer, CurrentTime);
+                                    ::XAllowEvents(pDisplay, ReplayPointer, CurrentTime);
                             }
                             else if (target != NULL)
                                 sTargets.add(target);
@@ -2274,34 +2309,40 @@ namespace lsp
                 #undef E
             }
 
-            status_t X11Display::grab_events(X11Window *wnd)
+            status_t X11Display::grab_events(X11Window *wnd, grab_t group)
             {
-                if (sGrab.index_of(wnd) >= 0)
-                {
-                    lsp_trace("grab duplicated");
-                    return STATUS_DUPLICATED;
-                }
+                // Check validity of argument
+                if (group >= __GRAB_TOTAL)
+                    return STATUS_BAD_ARGUMENTS;
 
-                size_t screen = wnd->screen();
-                bool set_grab = true;
-                size_t n = sGrab.size();
-                for (size_t i=0; i<n; ++i)
+                // Check that window does not belong to any active grab group
+                for (size_t i=0; i<__GRAB_TOTAL; ++i)
                 {
-                    X11Window *wnd = sGrab.get(i);
-                    if (wnd->screen() == screen)
+                    cvector<X11Window> &g = vGrab[i];
+                    if (g.index_of(wnd) >= 0)
                     {
-                        set_grab = false;
-                        break;
+                        lsp_warn("Grab duplicated for window %p (id=%lx)", wnd, (long)wnd->hWindow);
+                        return STATUS_DUPLICATED;
                     }
                 }
 
-                if (!sGrab.add(wnd))
+                // Get the screen to obtain a grap
+                x11_screen_t *s = vScreens.get(wnd->screen());
+                if (s == NULL)
+                {
+                    lsp_warn("Invalid screen index");
+                    return STATUS_BAD_STATE;
+                }
+
+                // Add a grab
+                if (!vGrab[group].add(wnd))
                     return STATUS_NO_MEM;
 
-                if (set_grab)
+                // Obtain a grab if necessary
+                if (!(s->grabs++))
                 {
-                    lsp_trace("setting grab for screen=%d", int(screen));
-                    Window root     = RootWindow(pDisplay, screen);
+                    lsp_trace("Setting grab for screen=%d", int(s->id));
+                    Window root     = RootWindow(pDisplay, s->id);
                     ::XGrabPointer(pDisplay, root, True, PointerMotionMask | ButtonPressMask | ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
                     ::XGrabKeyboard(pDisplay, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
@@ -2387,34 +2428,48 @@ namespace lsp
 
             status_t X11Display::ungrab_events(X11Window *wnd)
             {
-                size_t screen = wnd->screen();
-                bool kill_grab = true;
+                bool found = false;
 
-                if (!sGrab.remove(wnd))
+                // Obtain a screen object
+                x11_screen_t *s = vScreens.get(wnd->screen());
+                if (s == NULL)
                 {
-                    lsp_trace("grab window not found");
-                    return STATUS_NOT_FOUND;
+                    lsp_warn("No screen object found for window %p (%lx)", wnd, long(wnd->hWindow));
+                    return STATUS_BAD_STATE;
                 }
 
-                size_t n = sGrab.size();
-                for (size_t i=0; i<n; ++i)
+                // Check that window does belong to any active grab group
+                for (size_t i=0; i<__GRAB_TOTAL; ++i)
                 {
-                    X11Window *wnd = sGrab.get(i);
-                    if (wnd->screen() == screen)
+                    cvector<X11Window> &g = vGrab[i];
+                    if (g.remove(wnd, false))
                     {
-                        kill_grab = false;
+                        found = true;
                         break;
                     }
                 }
 
-                if (kill_grab)
+                // Return error if not found
+                if (!found)
                 {
-                    lsp_trace("removing grab for screen=%d", int(screen));
-                    XUngrabPointer(pDisplay, CurrentTime);
-                    XUngrabKeyboard(pDisplay, CurrentTime);
+                    lsp_trace("No grab found for window %p (%lx)", wnd, long(wnd->hWindow));
+                    return STATUS_NO_GRAB;
+                }
+                else if (s->grabs <= 0)
+                {
+                    lsp_trace("Grab for screen #%d has already been released", int(s->id));
+                    return STATUS_BAD_STATE;
+                }
 
-                    XFlush(pDisplay);
-//                    XSync(pDisplay, False);
+                // Need to release X11 grab?
+                if (!(--s->grabs))
+                {
+                    lsp_trace("Releasing grab for screen=%d", int(s->id));
+                    ::XUngrabPointer(pDisplay, CurrentTime);
+                    ::XUngrabKeyboard(pDisplay, CurrentTime);
+
+                    ::XFlush(pDisplay);
+//                    ::XSync(pDisplay, False);
                 }
 
                 return STATUS_OK;

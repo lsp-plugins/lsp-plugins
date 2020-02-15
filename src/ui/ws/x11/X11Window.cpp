@@ -724,8 +724,6 @@ namespace lsp
             {
                 if (hWindow == 0)
                     return STATUS_BAD_STATE;
-                if (pSurface == NULL)
-                    return STATUS_OK;
 
                 Display *dpy = pX11Display->x11display();
                 if (nFlags & F_GRABBING)
@@ -739,16 +737,25 @@ namespace lsp
                     nFlags &= ~F_LOCKING;
                 }
 
-                XUnmapWindow(dpy, hWindow);
+                if (pSurface != NULL)
+                    ::XUnmapWindow(dpy, hWindow);
+
                 pX11Display->flush();
                 return STATUS_OK;
             }
 
-            status_t X11Window::grab_events()
+            status_t X11Window::ungrab_events()
+            {
+                if (!(nFlags & F_GRABBING))
+                    return STATUS_NO_GRAB;
+                return pX11Display->ungrab_events(this);
+            }
+
+            status_t X11Window::grab_events(grab_t group)
             {
                 if (!(nFlags & F_GRABBING))
                 {
-                    pX11Display->grab_events(this);
+                    pX11Display->grab_events(this, group);
                     nFlags |= F_GRABBING;
                 }
                 return STATUS_OK;
@@ -761,15 +768,19 @@ namespace lsp
                 if (pSurface != NULL)
                     return STATUS_OK;
 
+                ::Window transient_for = None;
                 X11Window *wnd = NULL;
                 if (over != NULL)
                 {
                     wnd = static_cast<X11Window *>(over);
                     if (wnd->hWindow > 0)
-                        XSetTransientForHint(pX11Display->x11display(), hWindow, wnd->hWindow);
+                        transient_for = wnd->hWindow;
                 }
 
-                XMapWindow(pX11Display->x11display(), hWindow);
+                lsp_trace("Showing window %lx as transient for %lx", hWindow, transient_for);
+                ::XSetTransientForHint(pX11Display->x11display(), hWindow, transient_for);
+                ::XRaiseWindow(pX11Display->x11display(), hWindow);
+                ::XMapWindow(pX11Display->x11display(), hWindow);
                 pX11Display->flush();
 //                XWindowAttributes atts;
 //                XGetWindowAttributes(pX11Display->x11display(), hWindow, &atts);

@@ -68,6 +68,7 @@ namespace lsp
         "Bad path",
         "Protocol error",
         "Bad token",
+        "No grab is currently obtained",
 
         NULL
     };

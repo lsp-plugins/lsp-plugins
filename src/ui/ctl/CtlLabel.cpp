@@ -432,7 +432,7 @@ namespace lsp
 
             popup->move(r.nLeft + lbl->left(), r.nTop + lbl->top());
             popup->show(lbl);
-            popup->grab_events();
+            popup->grab_events(GRAB_NORMAL);
 
             // Set focus
             popup->sValue.take_focus();

@@ -345,9 +345,14 @@ namespace lsp
             return MP_DEFAULT;
         }
 
-        status_t INativeWindow::grab_events()
+        status_t INativeWindow::grab_events(grab_t grab)
         {
-            return STATUS_OK;
+            return STATUS_NOT_IMPLEMENTED;
+        }
+
+        status_t INativeWindow::ungrab_events()
+        {
+            return STATUS_NO_GRAB;
         }
     } /* namespace ws */
 } /* namespace lsp */

@@ -110,6 +110,16 @@ namespace lsp
                         };
                     } x11_async_t;
 
+                    typedef struct x11_screen_t
+                    {
+                        size_t              id;
+                        size_t              grabs;          // Number of grab owners
+                        size_t              width;          // Width of display
+                        size_t              height;         // Height of display
+                        size_t              mm_width;       // Width of display in mm
+                        size_t              mm_height;      // Height of display in mm
+                    } x11_screen_t;
+
                 private:
                     static volatile atomic_t    hLock;
                     static X11Display          *pHandlers;
@@ -131,8 +141,9 @@ namespace lsp
                     IDataSource    *pCbOwner[_CBUF_TOTAL];
 
                     cstorage<dtask_t>       sPending;
+                    cstorage<x11_screen_t>  vScreens;
                     cvector<X11Window>      vWindows;
-                    cvector<X11Window>      sGrab;
+                    cvector<X11Window>      vGrab[__GRAB_TOTAL];
                     cvector<X11Window>      sTargets;
                     cstorage<wnd_lock_t>    sLocks;
                     cstorage<x11_async_t>   sAsync;
@@ -225,7 +236,7 @@ namespace lsp
 
                     size_t              get_screen(Window root);
 
-                    status_t            grab_events(X11Window *wnd);
+                    status_t            grab_events(X11Window *wnd, grab_t group);
                     status_t            ungrab_events(X11Window *wnd);
 
                     status_t            lock_events(X11Window *wnd, X11Window *lock);

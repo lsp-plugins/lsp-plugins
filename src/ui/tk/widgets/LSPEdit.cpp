@@ -137,7 +137,7 @@ namespace lsp
             if (mime == NULL)
                 return -STATUS_UNSUPPORTED_FORMAT;
             pMime   = ::strdup(mime);
-            lsp_trace("selected mime type: %s, index=%d", pMime, int(idx));
+            lsp_trace("Selected mime type: %s, index=%d", pMime, int(idx));
             return (pMime != NULL) ? idx : -STATUS_NO_MEM;
         }
 
@@ -147,11 +147,13 @@ namespace lsp
                 return STATUS_CANCELLED;
             if (pMime == NULL)
                 return STATUS_CLOSED;
-            return sOS.write(buf, count);
+            ssize_t written = sOS.write(buf, count);
+            return (written >= ssize_t(count)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
         }
 
         status_t LSPEdit::DataSink::close(status_t code)
         {
+            lsp_trace("code: %x", int(code));
             if ((pMime == NULL) || (pEdit == NULL))
             {
                 unbind();

@@ -658,7 +658,7 @@ namespace lsp
             sListBox.show();
             sListBox.set_focus();
             pPopup->show(this);
-            pPopup->grab_events();
+            pPopup->grab_events(GRAB_DROPDOWN);
             nCBFlags |= F_OPENED;
 
             return STATUS_OK;

@@ -344,9 +344,14 @@ namespace lsp
             query_resize();
         }
 
-        status_t LSPWindow::grab_events()
+        status_t LSPWindow::grab_events(grab_t grab)
         {
-            return (pWindow != NULL) ? pWindow->grab_events() : STATUS_BAD_STATE;
+            return (pWindow != NULL) ? pWindow->grab_events(grab) : STATUS_BAD_STATE;
+        }
+
+        status_t LSPWindow::ungrab_events()
+        {
+            return (pWindow != NULL) ? pWindow->ungrab_events() : STATUS_BAD_STATE;
         }
 
         void LSPWindow::set_policy(window_poilicy_t policy)
