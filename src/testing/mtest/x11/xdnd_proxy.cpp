@@ -18,8 +18,13 @@
 
 #include <core/stdlib/string.h>
 #include <plugins/plugins.h>
+#include <core/ipc/Thread.h>
 
 using namespace lsp;
+
+namespace {
+    Window  child_wnd = 0;
+}
 
 #if defined(LSP_TESTING)
     void patch_xdnd_proxy_window(const void *wparent, const void *wchild)
@@ -51,10 +56,95 @@ using namespace lsp;
         XSync(dpy, True);
 
         XCloseDisplay(dpy);
+
+        child_wnd = child.wnd;
     }
 #endif
 
 MTEST_BEGIN("x11", xdnd_proxy)
+    class X11Thread: public ipc::Thread
+    {
+        private:
+            Display    *pDisplay;
+            Window      hWindow;
+            test::Test *pTest;
+
+        public:
+            explicit X11Thread(Display *dpy, Window win, test::Test *test)
+            {
+                pDisplay = dpy;
+                hWindow = win;
+                pTest = test;
+            }
+
+            virtual status_t run()
+            {
+                XEvent xev;
+
+                Atom aDeleteWnd     = XInternAtom(pDisplay, "WM_DELETE_WINDOW", False);
+                Atom aWmProtocols   = XInternAtom(pDisplay, "WM_PROTOCOLS", False);
+                Atom aClose         = XInternAtom(pDisplay, "WM_DELETE_WINDOW", False);
+                XSetWMProtocols(pDisplay, hWindow, &aClose, 1);
+
+                if (child_wnd != 0)
+                    XSelectInput(pDisplay, child_wnd, StructureNotifyMask);
+                XSelectInput(pDisplay, hWindow, SubstructureNotifyMask);
+                XFlush(pDisplay);
+
+                do
+                {
+                    // Next event
+                    XNextEvent(pDisplay, &xev);
+
+                    // Decode event
+                    switch (xev.type)
+                    {
+                        case ClientMessage:
+                        {
+                            XClientMessageEvent *ce = &xev.xclient;
+                            Atom type = ce->message_type;
+
+                            if ((type == aWmProtocols) && (ce->data.l[0] == long(aDeleteWnd)) && (ce->window == hWindow))
+                            {
+                                if (child_wnd != 0)
+                                {
+                                    XEvent sev;
+                                    XClientMessageEvent &send = sev.xclient;
+                                    send.type = ClientMessage;
+                                    send.serial = 0;
+                                    send.send_event = True;
+                                    send.display = pDisplay;
+                                    send.window = child_wnd;
+                                    send.message_type = aWmProtocols;
+                                    send.format = 32;
+                                    send.data.l[0] = aDeleteWnd;
+                                    XSendEvent(pDisplay, child_wnd, True, NoEventMask, &sev);
+                                    XFlush(pDisplay);
+                                }
+
+                                Thread::cancel();
+                            }
+
+                            break;
+                        }
+
+                        case ConfigureNotify:
+                        {
+                            XConfigureEvent *ce = &xev.xconfigure;
+                            if (ce->window == child_wnd)
+                                XResizeWindow(pDisplay, hWindow, ce->width, ce->height);
+
+                            break;
+                        }
+
+                        default:
+                            break;
+                    }
+                } while (!Thread::is_cancelled());
+
+                return STATUS_OK;
+            }
+    };
 
     void plugin_not_found(const char *id)
     {
@@ -85,6 +175,8 @@ MTEST_BEGIN("x11", xdnd_proxy)
 
     MTEST_MAIN
     {
+        XInitThreads();
+
         if (argc <= 0)
             plugin_not_found(NULL);
 
@@ -103,6 +195,9 @@ MTEST_BEGIN("x11", xdnd_proxy)
         ::XMapWindow(dpy, hWnd);
         XFlush(dpy);
         XSync(dpy, True);
+
+        X11Thread handler(dpy, hWnd, this);
+        handler.start();
 
         char proxy_id[32];
         ::snprintf(proxy_id, sizeof(proxy_id), "%lx", long(hWnd));
@@ -126,6 +221,9 @@ MTEST_BEGIN("x11", xdnd_proxy)
         // Call the main function
         int result = JACK_MAIN_FUNCTION(argv[0], xargc, args);
         MTEST_ASSERT(result == 0);
+
+        // Wait for main thread
+        handler.join();
     }
 MTEST_END
 
