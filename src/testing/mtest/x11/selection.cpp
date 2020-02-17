@@ -5,8 +5,11 @@
  *      Author: sadko
  */
 
-#include <test/mtest.h>
+#include <core/types.h>
 
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_BSD)
+
+#include <test/mtest.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -81,4 +84,4 @@ MTEST_BEGIN("x11", selection)
     }
 MTEST_END
 
-
+#endif /* PLATFORM_LINUX || PLATFORM_BSD */
