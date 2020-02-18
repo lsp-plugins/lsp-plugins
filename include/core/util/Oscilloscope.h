@@ -48,7 +48,7 @@ namespace lsp
             float   fVertOffset;
             float   fHorOffset;
 
-            size_t  nLimit;
+            size_t  nSweepLength;
 
             size_t  nHead;
 
@@ -215,6 +215,15 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Get the length of the sweep.
+             *
+             * @return sweep length in samples.
+             */
+            inline size_t get_sweep_length()
+            {
+                return sSweepParams.nSweepLength;
+            }
+
             void process(float *dst, float *src, size_t count);
 
             /** If the sweep is complete, return true.
@@ -224,6 +233,24 @@ namespace lsp
             inline bool get_sweep_complete()
             {
                 return sSweepParams.bSweepComplete;
+            }
+
+            /** Get a pointer to the internal sweep buffer.
+             *
+             * @return pointer to the internal sweep buffer.
+             */
+            inline float * get_sweep_buffer()
+            {
+                return vSweepBuffer;
+            }
+
+            /** Get the sweep buffer length.
+             *
+             * @return sweep buffer length.
+             */
+            inline size_t get_sweep_buffer_length()
+            {
+                return sSweepParams.nSweepLength;
             }
     };
 }
