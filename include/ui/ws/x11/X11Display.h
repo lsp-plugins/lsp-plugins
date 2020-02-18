@@ -34,7 +34,8 @@ namespace lsp
                     {
                         X11ASYNC_CB_RECV,
                         X11ASYNC_CB_SEND,
-                        X11ASYNC_DND_RECV
+                        X11ASYNC_DND_RECV,
+                        X11ASYNC_DND_PROXY
                     };
 
                     enum x11_cb_recv_states
@@ -97,6 +98,14 @@ namespace lsp
                         Atom                hAction;
                     } dnd_recv_t;
 
+                    typedef struct dnd_proxy_t: public cb_common_t
+                    {
+                        Window              hTarget;        // The target window which has XDndProxy attribute
+                        Window              hSource;        // The source window
+                        Window              hCurrent;       // The current window that receives proxy events
+                        long                enter[4];       // XDndEnter headers
+                    } dnd_proxy_t;
+
                     typedef struct x11_async_t
                     {
                         x11_async_types     type;
@@ -107,6 +116,7 @@ namespace lsp
                             cb_recv_t           cb_recv;
                             cb_send_t           cb_send;
                             dnd_recv_t          dnd_recv;
+                            dnd_proxy_t         dnd_proxy;
                         };
                     } x11_async_t;
 
@@ -190,6 +200,12 @@ namespace lsp
                     status_t        handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev);
                     void            complete_dnd_transfer(dnd_recv_t *task, bool success);
                     void            reject_dnd_transfer(dnd_recv_t *task);
+
+                    status_t        proxy_drag_leave(dnd_proxy_t *task, XClientMessageEvent *ev);
+                    status_t        proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev);
+//                    status_t        proxy_drag_enter(x11_async_t *task, XClientMessageEvent *ev);
+
+                    x11_async_t    *lookup_dnd_proxy_task();
 
                     dnd_recv_t     *current_drag_task();
                     void            complete_async_tasks();

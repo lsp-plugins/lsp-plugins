@@ -1799,10 +1799,19 @@ namespace lsp
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                        if (task->cb_common.bComplete)
                             continue;
-                        task->result        = handle_drag_leave(&task->dnd_recv, ce);
-                        task->cb_common.bComplete = true;
+                        if ((task->type == X11ASYNC_DND_PROXY) &&
+                            (task->dnd_proxy.hTarget = ce->window))
+                        {
+                            task->result        = handle_drag_leave(&task->dnd_recv, ce);
+                            task->cb_common.bComplete = true;
+                        }
+                        else if (task->type == X11ASYNC_DND_RECV)
+                        {
+                            task->result        = handle_drag_leave(&task->dnd_recv, ce);
+                            task->cb_common.bComplete = true;
+                        }
                     }
 
                     return true;
@@ -1813,11 +1822,22 @@ namespace lsp
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
+                        if (task->cb_common.bComplete)
                             continue;
-                        task->result        = handle_drag_position(&task->dnd_recv, ce);
-                        if (task->result != STATUS_OK)
-                            task->cb_common.bComplete   = true;
+
+                        if ((task->type == X11ASYNC_DND_PROXY) &&
+                            (task->dnd_proxy.hTarget == ce->window))
+                        {
+                            task->result        = proxy_drag_position(&task->dnd_proxy, ce);
+                            if (task->result != STATUS_OK)
+                                task->cb_common.bComplete   = true;
+                        }
+                        if (task->type == X11ASYNC_DND_RECV)
+                        {
+                            task->result        = handle_drag_position(&task->dnd_recv, ce);
+                            if (task->result != STATUS_OK)
+                                task->cb_common.bComplete   = true;
+                        }
                     }
                     return true;
                 }
@@ -1838,6 +1858,214 @@ namespace lsp
 
                 return false;
             }
+
+            X11Display::x11_async_t *X11Display::lookup_dnd_proxy_task()
+            {
+                // Lookup for DnD task
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+                    if ((task->type == X11ASYNC_DND_PROXY) && (!task->cb_common.bComplete))
+                        return task;
+                }
+
+                return NULL;
+            }
+
+            status_t X11Display::proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev)
+            {
+                Window root = None, parent = None, *children = NULL, child = None;
+                unsigned int nchildren = 0;
+
+                /**
+                    data.l[0] contains the XID of the source window.
+                    data.l[1] is reserved for future use (flags).
+                    data.l[2] contains the coordinates of the mouse position relative to the root window.
+                        data.l[2] = (x << 16) | y
+                    data.l[3] contains the time stamp for retrieving the data. (new in version 1)
+                    data.l[4] contains the action requested by the user. (new in version 2)
+                 */
+
+
+                int x = (ev->data.l[2] >> 16) & 0xffff;
+                int y = ev->data.l[2] & 0xffff;
+
+                // Determine the target window to send data
+                ::XQueryTree(pDisplay, task->hTarget, &root, &parent, &children, &nchildren);
+
+                lsp_trace("target=%lx, root = %lx, parent = %lx, children = %d",
+                        long(task->hTarget), long(root), long(parent), int(nchildren));
+                for (size_t i=0; i<nchildren; ++i)
+                {
+                    XWindowAttributes xwa;
+                    Window wnd = children[i];
+                    ::XGetWindowAttributes(pDisplay, wnd, &xwa);
+
+                    lsp_trace("  child #%d = %lx located at x=%d, y=%d, w=%d, h=%d",
+                            int(i), long(wnd),
+                            int(xwa.x), int(xwa.y), int(xwa.width), int(xwa.height)
+                    );
+                }
+
+                // Release children
+                if (children != NULL)
+                    ::XFree(children);
+
+                // Translate coordinates
+                int cx = -1, cy = -1;
+                ::XTranslateCoordinates(pDisplay, root, task->hTarget, x, y, &cx, &cy, &child);
+                lsp_trace(" found child %lx pointer location: x=%d, y=%d -> cx=%d, cy=%d",
+                        long(child), x, y, cx, cy
+                );
+
+                // Replace child with target if not found
+                if (child == None)
+                {
+                    child = task->hTarget;
+                    lsp_trace("Empty child window replaced with parent %lx", long(child));
+                }
+
+                // Test for XdndAware property
+                {
+                    // Get XdndAware property
+                    uint8_t *data       = NULL;
+                    size_t size         = 0;
+                    Atom xtype          = None;
+
+                    // We require support of at least version 4 of XDnD protocol
+                    status_t res    = read_property(child, sAtoms.X11_XdndAware, XA_ATOM, &data, &size, &xtype);
+                    lsp_trace("xDndAware res=%d, xtype=%d, size=%d", int(res), int(xtype), int(size));
+                    if ((res != STATUS_OK) || (xtype == None) || (size < 1) || (data[0] < 4))
+                    {
+                        lsp_trace("Selected window %lx does not support XDnD Protocol version >= 4", long(child));
+                        child = None;
+                    }
+                    if (data != NULL)
+                        ::free(data);
+                }
+
+                if (task->hCurrent != child)
+                {
+                    // Need to send XDndLeave?
+                    if (task->hCurrent != None)
+                    {
+                        XEvent xe;
+                        XClientMessageEvent *xev = &xe.xclient;
+
+                        xev->type           = ClientMessage;
+                        xev->serial         = ev->serial;
+                        xev->send_event     = True;
+                        xev->display        = pDisplay;
+                        xev->window         = task->hCurrent;
+                        xev->message_type   = sAtoms.X11_XdndLeave;
+                        xev->format         = 32;
+                        xev->data.l[0]      = task->hSource;
+                        xev->data.l[1]      = 0;
+                        xev->data.l[2]      = 0;
+                        xev->data.l[3]      = 0;
+                        xev->data.l[4]      = 0;
+
+                        lsp_trace("Sending XdndLeave to %lx", long(task->hCurrent));
+                        ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                    }
+
+                    // Update current window
+                    task->hCurrent = child;
+
+                    // Need to send XDndEnter?
+                    if (task->hCurrent != None)
+                    {
+                        XEvent xe;
+                        XClientMessageEvent *xev = &xe.xclient;
+
+                        xev->type           = ClientMessage;
+                        xev->serial         = ev->serial;
+                        xev->send_event     = True;
+                        xev->display        = pDisplay;
+                        xev->window         = task->hCurrent;
+                        xev->message_type   = sAtoms.X11_XdndEnter;
+                        xev->format         = 32;
+                        xev->data.l[0]      = task->hSource;
+                        xev->data.l[1]      = task->enter[0];
+                        xev->data.l[2]      = task->enter[1];
+                        xev->data.l[3]      = task->enter[2];
+                        xev->data.l[4]      = task->enter[3];
+
+                        lsp_trace("Sending XdndEnter to %lx", long(task->hCurrent));
+                        ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                    }
+                }
+
+                // Need to send XDndPosition now
+                if (task->hCurrent != None)
+                {
+                    XEvent xe;
+                    XClientMessageEvent *xev = &xe.xclient;
+                    xev->type           = ClientMessage;
+                    xev->serial         = ev->serial;
+                    xev->send_event     = True;
+                    xev->display        = pDisplay;
+                    xev->window         = task->hCurrent;
+                    xev->message_type   = sAtoms.X11_XdndPosition;
+                    xev->format         = 32;
+                    xev->data.l[0]      = task->hSource;
+                    xev->data.l[1]      = ev->data.l[1];
+                    xev->data.l[2]      = ev->data.l[2];
+                    xev->data.l[3]      = ev->data.l[3];
+                    xev->data.l[4]      = ev->data.l[4];
+
+                    lsp_trace("Sending XdndPosition to %lx", long(task->hCurrent));
+                    ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                }
+                else // Need to send XDndStatus message with reject
+                {
+                    XEvent xe;
+                    XClientMessageEvent *xev = &xe.xclient;
+
+                    xev->type           = ClientMessage;
+                    xev->serial         = ev->serial;
+                    xev->send_event     = True;
+                    xev->display        = pDisplay;
+                    xev->window         = task->hSource;
+                    xev->message_type   = sAtoms.X11_XdndStatus;
+                    xev->format         = 32;
+                    xev->data.l[0]      = task->hTarget;
+                    xev->data.l[1]      = (1 << 1);
+                    xev->data.l[2]      = 0;
+                    xev->data.l[3]      = 0;
+                    xev->data.l[4]      = None;
+
+                    lsp_trace("Sending XdndReject to %lx", long(task->hSource));
+                    ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xe);
+                }
+
+                // Flush display
+                ::XFlush(pDisplay);
+
+                return STATUS_OK;
+            }
+
+//            status_t X11Display::proxy_drag_enter(x11_async_t *task, XClientMessageEvent *ev)
+//            {
+//                dnd_proxy_t *dnd = &task->dnd_proxy;
+//                Window root = None, parent = None, *children = NULL;
+//                unsigned int nchildren;
+//
+//                // Determine the target window to send data
+//                ::XQueryTree(pDisplay, dnd->hTarget, &root, &parent, &children, &nchildren);
+//
+//                lsp_trace("root = %lx, parent = %lx", long(root), long(parent));
+//                for (size_t i=0; i<nchildren; ++i)
+//                {
+//                    lsp_trace("  child #%d = %lx", int(i), long(children[i]));
+//                }
+//
+//                // Release children
+//                if (children != NULL)
+//                    ::XFree(children);
+//
+//                return STATUS_OK;
+//            }
 
             status_t X11Display::handle_drag_enter(XClientMessageEvent *ev)
             {
@@ -1872,8 +2100,46 @@ namespace lsp
                 X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
                 {
-                    lsp_trace("Target window 0x%lx not found", long(ev->window));
-                    return STATUS_NOT_FOUND;
+                    lsp_trace("Target window 0x%lx not found, acting as a XDnD proxy", long(ev->window));
+                    x11_async_t *task   = lookup_dnd_proxy_task();
+                    if ((task != NULL) && (task->dnd_proxy.hTarget != Window(ev->window)))
+                    {
+                        lsp_trace("Target window does not match current proxy task, dropping task");
+                        task->cb_common.bComplete   = true;
+                        task                        = NULL;
+                    }
+
+                    if (task == NULL)
+                    {
+                        // Create task
+                        if ((task = sAsync.add()) == NULL)
+                        {
+                            if (data != NULL)
+                                ::free(data);
+                            return STATUS_NO_MEM;
+                        }
+
+                        lsp_trace("Created new XDnD proxy task");
+
+                        task->type          = X11ASYNC_DND_PROXY;
+                        task->result        = STATUS_OK;
+                        dnd_proxy_t *dnd    = &task->dnd_proxy;
+
+                        dnd->bComplete      = false;
+                        dnd->hProperty      = None;
+                        dnd->hTarget        = ev->window;
+                        dnd->hSource        = ev->data.l[0];
+                        dnd->hCurrent       = None;
+                        dnd->enter[0]       = ev->data.l[1];
+                        dnd->enter[1]       = ev->data.l[2];
+                        dnd->enter[2]       = ev->data.l[3];
+                        dnd->enter[3]       = ev->data.l[4];
+
+                        if (data != NULL)
+                            ::free(data);
+                    }
+
+                    return STATUS_OK;
                 }
 
                 // There are more than 3 mime types?
@@ -1999,6 +2265,12 @@ namespace lsp
                 return tgt->handle_event(&ue);
             }
 
+            status_t X11Display::proxy_drag_leave(dnd_proxy_t *task, XClientMessageEvent *ev)
+            {
+                // TODO
+                return STATUS_OK;
+            }
+
             status_t X11Display::handle_drag_leave(dnd_recv_t *task, XClientMessageEvent *ev)
             {
                 /**
@@ -2118,7 +2390,7 @@ namespace lsp
                 // Did the handler properly process the event?
                 if ((task->enState != DND_RECV_ACCEPT) && (task->enState != DND_RECV_REJECT))
                 {
-                    lsp_trace("Rejecting DnD transfer");
+                    lsp_trace("Rejecting DnD transfer (task state=%d)", int(task->enState));
                     reject_dnd_transfer(task);
                 }
 
@@ -2836,7 +3108,7 @@ namespace lsp
                         should be sent if the drop will not be accepted. (new in version 2)
                  */
                 // Send end of transfer if status is bad
-                lsp_trace("Sending XdndStatus (reject)");
+                lsp_trace("Sending XdndStatus (reject) from %lx to %lx", long(task->hTarget), long(task->hSource));
                 
                 XWindowAttributes xwa;
                 Window child = None;
@@ -2854,7 +3126,7 @@ namespace lsp
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
                 ev->data.l[0]       = task->hTarget;
-                ev->data.l[1]       = 0;
+                ev->data.l[1]       = (1 << 1);
                 ev->data.l[2]       = 0;
                 ev->data.l[3]       = 0;
 //                ev->data.l[1]       = (1 << 1);
