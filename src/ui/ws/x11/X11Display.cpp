@@ -1829,8 +1829,8 @@ namespace lsp
                     }
                     else
                     {
-                        task->result        = proxy_drag_leave(&task->dnd_proxy, ce);
                         task->cb_common.bComplete = true;
+                        task->result        = proxy_drag_leave(&task->dnd_proxy, ce);
                     }
 
                     return true;
@@ -2359,7 +2359,31 @@ namespace lsp
 
             status_t X11Display::proxy_drag_leave(dnd_proxy_t *task, XClientMessageEvent *ev)
             {
-                // TODO
+                // Need to send XDndLeave?
+                if (task->hCurrent == None)
+                    return STATUS_OK;
+
+                XEvent xe;
+                XClientMessageEvent *xev = &xe.xclient;
+
+                xev->type           = ClientMessage;
+                xev->serial         = ev->serial;
+                xev->send_event     = True;
+                xev->display        = pDisplay;
+                xev->window         = task->hCurrent;
+                xev->message_type   = sAtoms.X11_XdndLeave;
+                xev->format         = 32;
+                xev->data.l[0]      = task->hSource;
+                xev->data.l[1]      = 0;
+                xev->data.l[2]      = 0;
+                xev->data.l[3]      = 0;
+                xev->data.l[4]      = 0;
+
+                lsp_trace("Sending XdndLeave to %lx", long(task->hCurrent));
+                send_immediate(task->hCurrent, True, NoEventMask, &xe);
+
+                task->hCurrent      = None;
+
                 return STATUS_OK;
             }
 
