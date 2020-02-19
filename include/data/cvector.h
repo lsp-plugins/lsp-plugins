@@ -294,11 +294,27 @@ namespace lsp
             public:
                 inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
 
+                inline const T * const *get_const_array() const { return (nItems > 0) ? reinterpret_cast<const T * const *>(pvItems) : NULL; }
+
                 inline bool add(T *item) { return basic_vector::add_item(item); }
 
-                inline bool add_all(const T * const *items, size_t count) { return basic_vector::add_all(items, count); }
+                inline bool add_all(const T * const *items, size_t count) {
+                    union {
+                        const T * const *titems;
+                        const void * const *vitems;
+                    } x;
+                    x.titems = items;
+                    return basic_vector::add_all(x.vitems, count);
+                }
 
-                inline bool add_all(const cvector<T> *items) { return basic_vector::add_all(items->get_array(), items->size()); }
+                inline bool add_all(const cvector<T> *items) {
+                    union {
+                        const T * const *titems;
+                        const void * const *vitems;
+                    } x;
+                    x.titems = items->get_const_array();
+                    return basic_vector::add_all(x.vitems, items->size());
+                }
 
                 inline bool push(T *item) { return basic_vector::add_item(item); }
 

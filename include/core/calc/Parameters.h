@@ -39,7 +39,13 @@ namespace lsp
             protected:
                 param_t            *lookup_by_name(const LSPString *name);
                 ssize_t             lookup_idx_by_name(const LSPString *name);
-                param_t            *lookup_by_name(const LSPString *name, size_t *idx);
+                param_t             *lookup_by_name(const LSPString *name, size_t *idx);
+                static param_t     *allocate();
+                static param_t     *allocate(const lsp_wchar_t *name, ssize_t len);
+                static param_t     *clone(const param_t *src);
+                inline static param_t *allocate(const LSPString *name) { return allocate(name->characters(), name->length()); };
+
+                static void         destroy_params(cvector<param_t> &params);
 
             public:
                 explicit Parameters();
@@ -51,8 +57,9 @@ namespace lsp
                 virtual status_t    resolve(value_t *value, const LSPString *name, size_t num_indexes = 0, const ssize_t *indexes = NULL);
 
             public:
-                inline size_t       size() const    { return vParams.size(); }
-                void                clear();
+                inline size_t       size() const            { return vParams.size(); }
+                inline void         swap(Parameters *src)   { vParams.swap_data(&src->vParams); }
+                inline void         clear()                 { destroy_params(vParams); };
 
                 // Adding: add parameter to the end of list.
                 status_t            add_int(const char *name, ssize_t value);
@@ -81,7 +88,7 @@ namespace lsp
                 status_t            add_null();
                 status_t            add_undef();
 
-                status_t            add(const Parameters *p, size_t off = 0, ssize_t count = -1);
+                status_t            add(const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 
                 // Inserting
                 status_t            insert_int(size_t index, const char *name, ssize_t value);
@@ -110,7 +117,7 @@ namespace lsp
                 status_t            insert_null(size_t index);
                 status_t            insert_undef(size_t index);
 
-                status_t            insert(size_t index, const Parameters *p, size_t off = 0, ssize_t count = -1);
+                status_t            insert(size_t index, const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 
                 // Getting
                 status_t            get_int(size_t index, ssize_t *value);
@@ -164,7 +171,7 @@ namespace lsp
                 status_t            set_null(size_t index);
                 status_t            set_undef(size_t index);
 
-                status_t            set(const Parameters *p, size_t off = 0, ssize_t count = -1);
+                status_t            set(const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 
                 // Removing
                 status_t            remove_int(size_t index, ssize_t *value = NULL);

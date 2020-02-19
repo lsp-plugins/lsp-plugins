@@ -69,6 +69,7 @@ namespace lsp
         "Protocol error",
         "Bad token",
         "No grab is currently obtained",
+        "Underflow",
 
         NULL
     };
