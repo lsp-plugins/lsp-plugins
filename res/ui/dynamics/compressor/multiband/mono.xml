@@ -338,17 +338,18 @@
 									<label text="Mute" />
 								</hbox>
 							</align>
-							<grid rows="4" cols="8" hspacing="4">
+							<grid rows="4" cols="9" hspacing="4">
 								<cell rows="2"><label text="Mode" /></cell>
 								<cell rows="2"><label text="Ratio" /></cell>
 								<cell rows="2"><label text="Knee" /></cell>
 								<cell rows="2"><label text="Makeup" /></cell>
+								<cell rows="2"><label text="Boost" bright="(:cm_${i} ieq 1) ? 1 : 0.5" /></cell>
 								<cell cols="2"><label text="Attack" /></cell>
 								<cell cols="2"><label text="Release" /></cell>
 								
-								<label text="Level" />
+								<label text="Thresh" />
 								<label text="Time" />
-								<label text="Level" />
+								<label text="Thresh" />
 								<label text="Time" />
 								
 								<vbox>
@@ -363,6 +364,7 @@
 								<knob id="cr_${i}" scale_hue_id="hue_${i}" />
 								<knob id="kn_${i}" scale_hue_id="hue_${i}" />
 								<knob id="mk_${i}" scale_hue_id="hue_${i}" />
+								<knob id="bth_${i}" scale_hue_id="hue_${i}" bright="(:cm_${i} ieq 1) ? 1 : 0.5" />
 								<knob id="al_${i}" scale_color="magenta" />
 								<knob id="at_${i}" scale_hue_id="hue_${i}" />
 								<knob id="rrl_${i}" scale_color="magenta" />
@@ -376,6 +378,7 @@
 								</hbox>
 								<value id="kn_${i}" />
 								<value id="mk_${i}" />
+								<value id="bth_${i}" bright="(:cm_${i} ieq 1) ? 1 : 0.5" />
 								<value id="al_${i}" />
 								<value id="at_${i}" />
 								<value id="rrl_${i}" />

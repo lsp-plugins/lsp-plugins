@@ -157,6 +157,7 @@ namespace lsp
         F_LOWERING      = (1 << 8),     // Proportionally lowering default value (for port sets)
         F_PEAK          = (1 << 9),     // Peak flag
         F_CYCLIC        = (1 << 10),    // Cyclic flag
+        F_EXT           = (1 << 11),    // Extended range
     };
 
     #define IS_OUT_PORT(p)      ((p)->flags & F_OUT)

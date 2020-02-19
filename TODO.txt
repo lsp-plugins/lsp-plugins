@@ -37,6 +37,10 @@
 * Fixed problem with matched Z transform caused by filter characteristics optimizations.
 * Fixed bug in Profiler plugin that caused crash on saving files to WAV format.
 * Fixed bug with pop-up menus in parameter's editing popup window that caused user interface to lock.
+* Fixed bug with producing NaNs by dynamic processors in some cases when knee has zero length.
+* Updated behaviour of limiter in classic mode.
+* Fixed upward compressor behaviour: now upward compressor has additional compensation knee that prevents from
+  infinite gain boost on low-level input signals.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
 - Add delay compensation feature between bands for spectrum analyzer plugin. 

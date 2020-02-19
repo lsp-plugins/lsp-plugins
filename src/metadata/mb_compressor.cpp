@@ -142,6 +142,7 @@ namespace lsp
             LOG_CONTROL("rt" id, "Release time" label, U_MSEC, mb_compressor_base_metadata::RELEASE_TIME), \
             LOG_CONTROL("cr" id, "Ratio" label, U_NONE, mb_compressor_base_metadata::RATIO), \
             LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_compressor_base_metadata::KNEE), \
+            EXT_LOG_CONTROL("bth" id, "Boost threshold" label, U_GAIN_AMP, mb_compressor_base_metadata::BTH), \
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_compressor_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \

@@ -112,6 +112,7 @@ namespace lsp
                 IPort          *pReleaseTime;       // Release time
                 IPort          *pRatio;             // Ratio
                 IPort          *pKnee;              // Knee
+                IPort          *pBThresh;           // Boost threshold
                 IPort          *pMakeup;            // Makeup
 
                 IPort          *pDryGain;           // Dry gain
@@ -147,7 +148,7 @@ namespace lsp
             void            process_non_feedback(channel_t *c, float **in, size_t samples);
 
         public:
-            compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
+            explicit compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);
             virtual ~compressor_base();
 
         public:
