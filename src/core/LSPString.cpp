@@ -84,6 +84,14 @@ namespace lsp
     }
 #endif /* ARCH_LE */
 
+    inline size_t LSPString::xlen(const lsp_wchar_t *s)
+    {
+        const lsp_wchar_t *p = s;
+        while (*p != '\0')
+            ++p;
+        return p - s;
+    }
+
     int LSPString::xcasecmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n)
     {
         while (n--)
@@ -386,6 +394,11 @@ namespace lsp
 
         nLength     = 1;
         return true;
+    }
+
+    bool LSPString::set(const lsp_wchar_t *arr)
+    {
+        return set(arr, xlen(arr));
     }
 
     bool LSPString::set(const lsp_wchar_t *arr, size_t n)
@@ -1335,10 +1348,15 @@ namespace lsp
         return s;
     }
 
-    int LSPString::compare_to(const LSPString *src) const
+    int LSPString::compare_to(const lsp_wchar_t *src) const
     {
-        ssize_t n = (nLength > src->nLength) ? src->nLength : nLength;
-        const lsp_wchar_t *a = pData, *b = src->pData;
+        return compare_to(src, xlen(src));
+    }
+
+    int LSPString::compare_to(const lsp_wchar_t *src, size_t len) const
+    {
+        ssize_t n = (nLength > len) ? len : nLength;
+        const lsp_wchar_t *a = pData, *b = src;
 
         while (n--)
         {
@@ -1349,7 +1367,7 @@ namespace lsp
 
         if (a < &pData[nLength])
             return int(*a);
-        else if (b < &src->pData[src->nLength])
+        else if (b < &src[len])
             return -int(*b);
 
         return 0;
@@ -1389,10 +1407,10 @@ namespace lsp
         return -int(uint8_t(src[i]));
     }
 
-    int LSPString::compare_to_nocase(const LSPString *src) const
+    int LSPString::compare_to_nocase(const lsp_wchar_t *src, size_t len) const
     {
-        ssize_t n = (nLength > src->nLength) ? src->nLength : nLength;
-        const lsp_wchar_t *a = pData, *b = src->pData;
+        ssize_t n = (nLength > len) ? len : nLength;
+        const lsp_wchar_t *a = pData, *b = src;
 
         while (n--)
         {
@@ -1403,10 +1421,15 @@ namespace lsp
 
         if (a < &pData[nLength])
             return int(*a);
-        else if (b < &src->pData[src->nLength])
+        else if (b < &src[len])
             return -int(*b);
 
         return 0;
+    }
+
+    int LSPString::compare_to_nocase(const lsp_wchar_t *src) const
+    {
+        return compare_to_nocase(src, xlen(src));
     }
 
     int LSPString::compare_to_utf8_nocase(const char *src) const
@@ -1483,22 +1506,27 @@ namespace lsp
         return n;
     }
 
-    bool LSPString::equals(const LSPString *src) const
+    bool LSPString::equals(const lsp_wchar_t *src, size_t len) const
     {
-        if (nLength != src->nLength)
+        if (nLength != len)
             return false;
         if (nLength <= 0)
             return true;
 
-        return xcmp(pData, src->pData, nLength) == 0;
+        return xcmp(pData, src, nLength) == 0;
     }
 
-    bool LSPString::equals_nocase(const LSPString *src) const
+    bool LSPString::equals(const lsp_wchar_t *src) const
     {
-        if (nLength != src->nLength)
+        return equals(src, xlen(src));
+    }
+
+    bool LSPString::equals_nocase(const lsp_wchar_t *src, size_t len) const
+    {
+        if (nLength != len)
             return false;
 
-        const lsp_wchar_t *a = pData, *b = src->pData;
+        const lsp_wchar_t *a = pData, *b = src;
         for (size_t i=nLength; i>0; --i)
         {
             if (towlower(*(a++)) != towlower(*(b++)))
@@ -1506,6 +1534,11 @@ namespace lsp
         }
 
         return true;
+    }
+
+    bool LSPString::equals_nocase(const lsp_wchar_t *src) const
+    {
+        return equals_nocase(src, xlen(src));
     }
 
     bool LSPString::set_utf8(const char *s, size_t n)

@@ -100,6 +100,30 @@ namespace lsp
             return set(&key, &v);
         }
 
+        status_t Variables::set_string(const char *name, const LSPString *value)
+        {
+            if (name == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString key;
+            if (!key.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            if (value != NULL)
+            {
+                v.type      = VT_STRING;
+                v.v_str     = const_cast<LSPString *>(value);
+            }
+            else
+            {
+                v.type      = VT_NULL;
+                v.v_str     = NULL;
+            }
+
+            return set(&key, &v);
+        }
+
         status_t Variables::set_null(const char *name)
         {
             if (name == NULL)

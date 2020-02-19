@@ -46,6 +46,7 @@ namespace lsp
             static inline void xfree(lsp_wchar_t *ptr) { ::free(ptr); }
             static inline void xmove(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { ::memmove(dst, src, n * sizeof(lsp_wchar_t)); }
             static inline void xcopy(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { ::memcpy(dst, src, n * sizeof(lsp_wchar_t)); }
+            static inline size_t xlen(const lsp_wchar_t *s);
 
 #ifdef ARCH_LE
             static inline int xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n) { return ::memcmp(a, b, n * sizeof(lsp_wchar_t)); }
@@ -241,6 +242,7 @@ namespace lsp
             inline bool set(char ch)        { return set(lsp_wchar_t(uint8_t(ch))); };
             bool set(ssize_t pos, lsp_wchar_t ch);
             inline bool set_at(ssize_t pos, lsp_wchar_t ch) { return set(pos, ch); }
+            bool set(const lsp_wchar_t *arr);
             bool set(const lsp_wchar_t *arr, size_t n);
             bool set(const LSPString *src);
             bool set(const LSPString *src, ssize_t first);
@@ -423,11 +425,15 @@ namespace lsp
              * @param src string to compare to
              * @return result of comparison
              */
-            int compare_to(const LSPString *src) const;
+            int compare_to(const lsp_wchar_t *src) const;
+            int compare_to(const lsp_wchar_t *src, size_t n) const;
+            inline int compare_to(const LSPString *src) const { return compare_to(src->pData, src->nLength); };
             int compare_to_ascii(const char *src) const;
             int compare_to_utf8(const char *src) const;
 
-            int compare_to_nocase(const LSPString *src) const;
+            int compare_to_nocase(const lsp_wchar_t *src) const;
+            int compare_to_nocase(const lsp_wchar_t *src, size_t n) const;
+            inline int compare_to_nocase(const LSPString *src) const { return compare_to_nocase(src->pData, src->nLength); };
             int compare_to_ascii_nocase(const char *src) const;
             int compare_to_utf8_nocase(const char *src) const;
 
@@ -444,8 +450,13 @@ namespace lsp
              * @param src string to compare
              * @return true if equals
              */
-            bool equals(const LSPString *src) const;
-            bool equals_nocase(const LSPString *src) const;
+            bool equals(const lsp_wchar_t *src) const;
+            bool equals(const lsp_wchar_t *src, size_t len) const;
+            inline bool equals(const LSPString *src) const { return equals(src->pData, src->nLength); };
+
+            bool equals_nocase(const lsp_wchar_t *src) const;
+            bool equals_nocase(const lsp_wchar_t *src, size_t len) const;
+            inline bool equals_nocase(const LSPString *src) const { return equals_nocase(src->pData, src->nLength); };
 
             inline bool equals_ascii(const char *src) const { return compare_to_ascii(src) == 0; };
             inline bool equals_ascii_nocase(const char *src) const { return compare_to_ascii_nocase(src) == 0; };

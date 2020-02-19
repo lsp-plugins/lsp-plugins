@@ -49,6 +49,7 @@ namespace lsp
                 status_t            set_float(const char *name, double value);
                 status_t            set_bool(const char *name, bool value);
                 status_t            set_string(const char *name, const char *value, const char *charset = NULL);
+                status_t            set_string(const char *name, const LSPString *value);
                 status_t            set_null(const char *name);
 
                 status_t            set_int(const LSPString *name, ssize_t value);

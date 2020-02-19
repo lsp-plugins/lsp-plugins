@@ -81,10 +81,10 @@ UTEST_BEGIN("core", string)
         // Test data coding
         UTEST_ASSERT(s6.set_utf8("涼宮ハルヒの憂鬱：第一章."));
         UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
-        UTEST_ASSERT(s6.equals(&s7));
+        UTEST_ASSERT(s6.compare_to(&s7) == 0);
         s7.clear();
         UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
-        UTEST_ASSERT(s6.equals(&s7));
+        UTEST_ASSERT(s6.compare_to(&s7) == 0);
 
         UTEST_ASSERT(s6.set_utf8("Всем привет!"));
         UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
