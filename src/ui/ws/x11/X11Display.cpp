@@ -1764,6 +1764,21 @@ namespace lsp
                 }
             }
 
+            X11Display::x11_async_t *X11Display::find_dnd_proxy_task(Window wnd)
+            {
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+                    if (task->cb_common.bComplete)
+                        continue;
+                    if ((task->type == X11ASYNC_DND_PROXY) &&
+                        (task->dnd_proxy.hTarget = wnd))
+                        return task;
+                }
+
+                return NULL;
+            }
+
             bool X11Display::handle_drag_event(XEvent *ev)
             {
                 // It SHOULD be a client message
@@ -1781,10 +1796,11 @@ namespace lsp
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
-                            continue;
-                        task->result        = STATUS_CANCELLED;
-                        task->cb_common.bComplete = true;
+                        if ((task->type == X11ASYNC_DND_RECV) && (!task->cb_common.bComplete))
+                        {
+                            task->result        = STATUS_CANCELLED;
+                            task->cb_common.bComplete = true;
+                        }
                     }
 
                     // Create new task
@@ -1796,22 +1812,25 @@ namespace lsp
                 {
                     lsp_trace("Received XdndLeave");
 
-                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    // Handle proxy tasks first
+                    x11_async_t *task = find_dnd_proxy_task(ce->window);
+                    if (task == NULL)
                     {
-                        x11_async_t *task = sAsync.at(i);
-                        if (task->cb_common.bComplete)
-                            continue;
-                        if ((task->type == X11ASYNC_DND_PROXY) &&
-                            (task->dnd_proxy.hTarget = ce->window))
+                        for (size_t i=0, n=sAsync.size(); i<n; ++i)
                         {
-                            task->result        = handle_drag_leave(&task->dnd_recv, ce);
-                            task->cb_common.bComplete = true;
+                            x11_async_t *task = sAsync.at(i);
+                            if ((task->type == X11ASYNC_DND_RECV) &&
+                                (!task->cb_common.bComplete))
+                            {
+                                task->result        = handle_drag_leave(&task->dnd_recv, ce);
+                                task->cb_common.bComplete = true;
+                            }
                         }
-                        else if (task->type == X11ASYNC_DND_RECV)
-                        {
-                            task->result        = handle_drag_leave(&task->dnd_recv, ce);
-                            task->cb_common.bComplete = true;
-                        }
+                    }
+                    else
+                    {
+                        task->result        = proxy_drag_leave(&task->dnd_proxy, ce);
+                        task->cb_common.bComplete = true;
                     }
 
                     return true;
@@ -1819,35 +1838,14 @@ namespace lsp
                 else if (type == sAtoms.X11_XdndPosition)
                 {
                     lsp_trace("Received XdndPosition");
-                    bool processed = false;
 
-                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
-                    {
-                        x11_async_t *task = sAsync.at(i);
-                        if (task->cb_common.bComplete)
-                            continue;
-
-                        if ((task->type == X11ASYNC_DND_PROXY) &&
-                            (task->dnd_proxy.hTarget == ce->window))
-                        {
-                            task->result        = proxy_drag_position(&task->dnd_proxy, ce);
-                            if (task->result != STATUS_OK)
-                                task->cb_common.bComplete   = true;
-                            processed = true;
-                            break;
-                        }
-                    }
-
-                    // Process X11ASYNC_DND_RECV tasks only if event has not been proxied
-                    if (!processed)
+                    x11_async_t *task = find_dnd_proxy_task(ce->window);
+                    if (task == NULL)
                     {
                         for (size_t i=0, n=sAsync.size(); i<n; ++i)
                         {
                             x11_async_t *task = sAsync.at(i);
-                            if (task->cb_common.bComplete)
-                                continue;
-
-                            if (task->type == X11ASYNC_DND_RECV)
+                            if ((task->type == X11ASYNC_DND_RECV) && (!task->cb_common.bComplete))
                             {
                                 task->result        = handle_drag_position(&task->dnd_recv, ce);
                                 if (task->result != STATUS_OK)
@@ -1855,6 +1853,13 @@ namespace lsp
                             }
                         }
                     }
+                    else
+                    {
+                        task->result        = proxy_drag_position(&task->dnd_proxy, ce);
+                        if (task->result != STATUS_OK)
+                            task->cb_common.bComplete   = true;
+                    }
+
                     return true;
                 }
                 else if (type == sAtoms.X11_XdndDrop)
@@ -2102,7 +2107,8 @@ namespace lsp
                         xev->data.l[4]      = ev->data.l[4];
 
                         lsp_trace("Sending XdndPosition to %lx", long(task->hCurrent));
-                        send_immediate(task->hCurrent, True, NoEventMask, &xe);
+                        ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                        ::XFlush(pDisplay);
                     }
                 }
                 else // Need to send XDndStatus message with reject
