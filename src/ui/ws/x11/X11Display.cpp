@@ -1819,6 +1819,8 @@ namespace lsp
                 else if (type == sAtoms.X11_XdndPosition)
                 {
                     lsp_trace("Received XdndPosition");
+                    bool processed = false;
+
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
@@ -1831,12 +1833,26 @@ namespace lsp
                             task->result        = proxy_drag_position(&task->dnd_proxy, ce);
                             if (task->result != STATUS_OK)
                                 task->cb_common.bComplete   = true;
+                            processed = true;
+                            break;
                         }
-                        if (task->type == X11ASYNC_DND_RECV)
+                    }
+
+                    // Process X11ASYNC_DND_RECV tasks only if event has not been proxied
+                    if (!processed)
+                    {
+                        for (size_t i=0, n=sAsync.size(); i<n; ++i)
                         {
-                            task->result        = handle_drag_position(&task->dnd_recv, ce);
-                            if (task->result != STATUS_OK)
-                                task->cb_common.bComplete   = true;
+                            x11_async_t *task = sAsync.at(i);
+                            if (task->cb_common.bComplete)
+                                continue;
+
+                            if (task->type == X11ASYNC_DND_RECV)
+                            {
+                                task->result        = handle_drag_position(&task->dnd_recv, ce);
+                                if (task->result != STATUS_OK)
+                                    task->cb_common.bComplete   = true;
+                            }
                         }
                     }
                     return true;
@@ -1872,6 +1888,22 @@ namespace lsp
                 return NULL;
             }
 
+            void X11Display::send_immediate(Window wnd, Bool propagate, long event_mask, XEvent *event)
+            {
+                X11Window *pwnd = find_window(wnd);
+                if (pwnd == NULL)
+                {
+                    lsp_trace("Sending xevent to %lx", long(wnd));
+                    ::XSendEvent(pDisplay, wnd, propagate, event_mask, event);
+                    ::XFlush(pDisplay);
+                }
+                else
+                {
+                    lsp_trace("Handling xevent as for %lx", long(wnd));
+                    handleEvent(event);
+                }
+            }
+
             status_t X11Display::proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev)
             {
                 Window root = None, parent = None, *children = NULL, child = None;
@@ -1885,10 +1917,9 @@ namespace lsp
                     data.l[3] contains the time stamp for retrieving the data. (new in version 1)
                     data.l[4] contains the action requested by the user. (new in version 2)
                  */
-
-
-                int x = (ev->data.l[2] >> 16) & 0xffff;
-                int y = ev->data.l[2] & 0xffff;
+                int x       = (ev->data.l[2] >> 16) & 0xffff;
+                int y       = ev->data.l[2] & 0xffff;
+                Atom act    = ev->data.l[4];
 
                 // Determine the target window to send data
                 ::XQueryTree(pDisplay, task->hTarget, &root, &parent, &children, &nchildren);
@@ -1966,7 +1997,7 @@ namespace lsp
                         xev->data.l[4]      = 0;
 
                         lsp_trace("Sending XdndLeave to %lx", long(task->hCurrent));
-                        ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                        send_immediate(task->hCurrent, True, NoEventMask, &xe);
                     }
 
                     // Update current window
@@ -1992,30 +2023,87 @@ namespace lsp
                         xev->data.l[4]      = task->enter[3];
 
                         lsp_trace("Sending XdndEnter to %lx", long(task->hCurrent));
-                        ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                        send_immediate(task->hCurrent, True, NoEventMask, &xe);
                     }
                 }
 
                 // Need to send XDndPosition now
                 if (task->hCurrent != None)
                 {
-                    XEvent xe;
-                    XClientMessageEvent *xev = &xe.xclient;
-                    xev->type           = ClientMessage;
-                    xev->serial         = ev->serial;
-                    xev->send_event     = True;
-                    xev->display        = pDisplay;
-                    xev->window         = task->hCurrent;
-                    xev->message_type   = sAtoms.X11_XdndPosition;
-                    xev->format         = 32;
-                    xev->data.l[0]      = task->hSource;
-                    xev->data.l[1]      = ev->data.l[1];
-                    xev->data.l[2]      = ev->data.l[2];
-                    xev->data.l[3]      = ev->data.l[3];
-                    xev->data.l[4]      = ev->data.l[4];
+                    // For our windows, perform some additional stuff
+                    X11Window *wnd = find_window(task->hCurrent);
 
-                    lsp_trace("Sending XdndPosition to %lx", long(task->hCurrent));
-                    ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                    dnd_recv_t *recv    = current_drag_task();
+                    lsp_trace("Current drag task: %p", recv);
+
+                    if ((wnd != NULL) && (recv != NULL))
+                    {
+                        // Our window - explore the drag
+                        recv->enState       = DND_RECV_POSITION; // Allow specific state changes
+                        recv->hProxy        = task->hTarget;
+
+                        // Form the notification event
+                        ws_event_t ue;
+                        ue.nType            = UIE_DRAG_REQUEST;
+                        ue.nLeft            = cx;
+                        ue.nTop             = cy;
+                        ue.nWidth           = 0;
+                        ue.nHeight          = 0;
+                        ue.nCode            = 0;
+                        ue.nState           = DRAG_COPY;
+
+                        // Decode action
+                        if (act == sAtoms.X11_XdndActionCopy)
+                            ue.nState           = DRAG_COPY;
+                        else if (act == sAtoms.X11_XdndActionMove)
+                            ue.nState           = DRAG_MOVE;
+                        else if (act == sAtoms.X11_XdndActionLink)
+                            ue.nState           = DRAG_LINK;
+                        else if (act == sAtoms.X11_XdndActionAsk)
+                            ue.nState           = DRAG_ASK;
+                        else if (act == sAtoms.X11_XdndActionPrivate)
+                            ue.nState           = DRAG_PRIVATE;
+                        else if (act == sAtoms.X11_XdndActionDirectSave)
+                            ue.nState           = DRAG_DIRECT_SAVE;
+                        else
+                            recv->hAction       = None;
+
+                        ue.nTime            = ev->data.l[3];
+
+                        wnd->handle_event(&ue);
+
+                        // Did the handler properly process the event?
+                        if ((recv->enState != DND_RECV_ACCEPT) && (recv->enState != DND_RECV_REJECT))
+                        {
+                            lsp_trace("Forcing reject of proxied DnD transfer (task state=%d)", int(recv->enState));
+                            reject_dnd_transfer(recv);
+                        }
+
+                        // Return state back
+                        recv->enState   = DND_RECV_PENDING;
+                        recv->hProxy    = None;
+                    }
+                    else
+                    {
+                        // For other windows, just proxy the message
+                        XEvent xe;
+                        XClientMessageEvent *xev = &xe.xclient;
+                        xev->type           = ClientMessage;
+                        xev->serial         = ev->serial;
+                        xev->send_event     = True;
+                        xev->display        = pDisplay;
+                        xev->window         = task->hCurrent;
+                        xev->message_type   = sAtoms.X11_XdndPosition;
+                        xev->format         = 32;
+                        xev->data.l[0]      = task->hSource;
+                        xev->data.l[1]      = ev->data.l[1];
+                        xev->data.l[2]      = ev->data.l[2];
+                        xev->data.l[3]      = ev->data.l[3];
+                        xev->data.l[4]      = ev->data.l[4];
+
+                        lsp_trace("Sending XdndPosition to %lx", long(task->hCurrent));
+                        send_immediate(task->hCurrent, True, NoEventMask, &xe);
+                    }
                 }
                 else // Need to send XDndStatus message with reject
                 {
@@ -2030,17 +2118,14 @@ namespace lsp
                     xev->message_type   = sAtoms.X11_XdndStatus;
                     xev->format         = 32;
                     xev->data.l[0]      = task->hTarget;
-                    xev->data.l[1]      = (1 << 1);
+                    xev->data.l[1]      = 0;
                     xev->data.l[2]      = 0;
                     xev->data.l[3]      = 0;
                     xev->data.l[4]      = None;
 
                     lsp_trace("Sending XdndReject to %lx", long(task->hSource));
-                    ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xe);
+                    send_immediate(task->hSource, True, NoEventMask, &xe);
                 }
-
-                // Flush display
-                ::XFlush(pDisplay);
 
                 return STATUS_OK;
             }
@@ -2240,6 +2325,7 @@ namespace lsp
                 dnd->enState        = DND_RECV_PENDING;
                 dnd->pSink          = NULL;
                 dnd->hAction        = None;
+                dnd->hProxy         = None;
 
                 // Log all supported MIME types
                 #ifdef LSP_TRACE
@@ -2390,7 +2476,7 @@ namespace lsp
                 // Did the handler properly process the event?
                 if ((task->enState != DND_RECV_ACCEPT) && (task->enState != DND_RECV_REJECT))
                 {
-                    lsp_trace("Rejecting DnD transfer (task state=%d)", int(task->enState));
+                    lsp_trace("Forcing reject of DnD transfer (task state=%d)", int(task->enState));
                     reject_dnd_transfer(task);
                 }
 
@@ -3108,13 +3194,14 @@ namespace lsp
                         should be sent if the drop will not be accepted. (new in version 2)
                  */
                 // Send end of transfer if status is bad
-                lsp_trace("Sending XdndStatus (reject) from %lx to %lx", long(task->hTarget), long(task->hSource));
+                Window target = (task->hProxy != None) ? task->hProxy : task->hTarget;
+                lsp_trace("Sending XdndStatus (reject) from %lx to %lx", long(target), long(task->hSource));
                 
                 XWindowAttributes xwa;
-                Window child = None;
-                int x = 0, y = 0;
+//                Window child = None;
+//                int x = 0, y = 0;
                 ::XGetWindowAttributes(pDisplay, task->hTarget, &xwa);
-                ::XTranslateCoordinates(pDisplay, task->hTarget, hRootWnd, 0, 0, &x, &y, &child);
+//                ::XTranslateCoordinates(pDisplay, task->hTarget, hRootWnd, 0, 0, &x, &y, &child);
 
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
@@ -3125,8 +3212,8 @@ namespace lsp
                 ev->window          = task->hSource;
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
-                ev->data.l[0]       = task->hTarget;
-                ev->data.l[1]       = (1 << 1);
+                ev->data.l[0]       = target;
+                ev->data.l[1]       = 0;
                 ev->data.l[2]       = 0;
                 ev->data.l[3]       = 0;
 //                ev->data.l[1]       = (1 << 1);
@@ -3155,6 +3242,7 @@ namespace lsp
                 task->enState       = DND_RECV_REJECT;
 
                 // Send reject status to requestor
+                lsp_trace("Handler rejected DnD transfer");
                 reject_dnd_transfer(task);
 
                 return STATUS_OK;
@@ -3233,7 +3321,8 @@ namespace lsp
                 }
 
                 // Form the message
-                lsp_trace("Sending XdndStatus (accept)");
+                Window target       = (task->hProxy != None) ? task->hProxy : task->hTarget;
+                lsp_trace("Sending XdndStatus (accept) from %lx to %lx", long(target), long(task->hSource));
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
                 ev->type            = ClientMessage;
@@ -3243,7 +3332,7 @@ namespace lsp
                 ev->window          = task->hSource;
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
-                ev->data.l[0]       = task->hTarget;
+                ev->data.l[0]       = target;
                 ev->data.l[1]       = 1 | ((internal) ? (1 << 1) : 0);
                 if (r != NULL)
                 {

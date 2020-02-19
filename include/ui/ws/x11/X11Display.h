@@ -96,6 +96,7 @@ namespace lsp
                         x11_dnd_recv_states enState;
                         IDataSink          *pSink;
                         Atom                hAction;
+                        Window              hProxy;
                     } dnd_recv_t;
 
                     typedef struct dnd_proxy_t: public cb_common_t
@@ -200,6 +201,8 @@ namespace lsp
                     status_t        handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev);
                     void            complete_dnd_transfer(dnd_recv_t *task, bool success);
                     void            reject_dnd_transfer(dnd_recv_t *task);
+
+                    void            send_immediate(Window wnd, Bool propagate, long event_mask, XEvent *event);
 
                     status_t        proxy_drag_leave(dnd_proxy_t *task, XClientMessageEvent *ev);
                     status_t        proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev);
