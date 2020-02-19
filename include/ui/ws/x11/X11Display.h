@@ -207,6 +207,7 @@ namespace lsp
                     x11_async_t    *find_dnd_proxy_task(Window wnd);
                     status_t        proxy_drag_leave(dnd_proxy_t *task, XClientMessageEvent *ev);
                     status_t        proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev);
+                    status_t        proxy_drag_drop(dnd_proxy_t *task, XClientMessageEvent *ev);
 //                    status_t        proxy_drag_enter(x11_async_t *task, XClientMessageEvent *ev);
 
                     x11_async_t    *lookup_dnd_proxy_task();
