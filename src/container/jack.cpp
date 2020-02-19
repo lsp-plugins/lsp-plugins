@@ -21,6 +21,8 @@
 #include <container/const.h>
 #include <container/jack/wrapper.h>
 
+#include <signal.h>
+
 namespace lsp
 {
     typedef struct jack_wrapper_t
@@ -228,6 +230,8 @@ extern "C"
     {
         using namespace lsp;
         
+        signal(SIGPIPE, SIG_IGN); // Ignore SIGPIPE signal since JACK can suddenly lose socket connection
+
         lsp_debug_init("jack");
         init_locale();
         
