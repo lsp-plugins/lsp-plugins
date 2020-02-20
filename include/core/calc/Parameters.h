@@ -118,6 +118,7 @@ namespace lsp
                 status_t            insert_string(size_t index, const LSPString *value);
                 status_t            insert_null(size_t index);
                 status_t            insert_undef(size_t index);
+                status_t            insert(size_t index, const value_t *value);
 
                 status_t            insert(size_t index, const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 

@@ -303,6 +303,9 @@ namespace lsp
 
         status_t Parameters::add_string(const char *name, const char *value, const char *charset)
         {
+            if (value == NULL)
+                return add_null(name);
+
             LSPString s;
             if (!s.set_native(value, charset))
                 return STATUS_NO_MEM;
@@ -315,6 +318,9 @@ namespace lsp
 
         status_t Parameters::add_string(const char *name, const LSPString *value)
         {
+            if (value == NULL)
+                return add_null(name);
+
             value_t v;
             v.type      = VT_STRING;
             v.v_str     = const_cast<LSPString *>(value);
@@ -363,6 +369,9 @@ namespace lsp
 
         status_t Parameters::add_string(const LSPString *name, const char *value, const char *charset)
         {
+            if (value == NULL)
+                return add_null(name);
+
             LSPString s;
             if (!s.set_native(value, charset))
                 return STATUS_NO_MEM;
@@ -375,6 +384,9 @@ namespace lsp
 
         status_t Parameters::add_string(const LSPString *name, const LSPString *value)
         {
+            if (value == NULL)
+                return add_null(name);
+
             value_t v;
             v.type      = VT_STRING;
             v.v_str     = const_cast<LSPString *>(value);
@@ -423,6 +435,9 @@ namespace lsp
 
         status_t Parameters::add_string(const char *value, const char *charset)
         {
+            if (value == NULL)
+                return add_null();
+
             LSPString s;
             if (!s.set_native(value, charset))
                 return STATUS_NO_MEM;
@@ -435,6 +450,9 @@ namespace lsp
 
         status_t Parameters::add_string(const LSPString *value)
         {
+            if (value == NULL)
+                return add_null();
+
             value_t v;
             v.type      = VT_STRING;
             v.v_str     = const_cast<LSPString *>(value);
@@ -456,6 +474,261 @@ namespace lsp
             v.v_str     = NULL;
             return add(&v);
         }
+
+        status_t Parameters::insert(size_t index, const char *name, const value_t *value)
+        {
+            if (name == NULL)
+                return insert(index, value);
+
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+            return insert(index, &tmp, value);
+        }
+
+        status_t Parameters::insert(size_t index, const LSPString *name, const value_t *value)
+        {
+            if (name == NULL)
+                return insert(index, value);
+            else if (index > vParams.size())
+                return STATUS_INVALID_VALUE;
+
+            param_t *p = allocate(name);
+            if (p == NULL)
+                return STATUS_NO_MEM;
+
+            status_t res = init_value(&p->value, value);
+            if (res == STATUS_OK)
+            {
+                if (vParams.insert(p, index))
+                    return STATUS_OK;
+                res = STATUS_NO_MEM;
+            }
+
+            destroy(p);
+            return res;
+        }
+
+        status_t Parameters::insert(size_t index, const value_t *value)
+        {
+            if (index > vParams.size())
+                return STATUS_INVALID_VALUE;
+
+            param_t *p = allocate();
+            if (p == NULL)
+                return STATUS_NO_MEM;
+
+            status_t res = init_value(&p->value, value);
+            if (res == STATUS_OK)
+            {
+                if (vParams.insert(p, index))
+                    return STATUS_OK;
+                res = STATUS_NO_MEM;
+            }
+
+            destroy(p);
+            return res;
+        }
+
+        status_t Parameters::insert_int(size_t index, const char *name, ssize_t value)
+        {
+            value_t v;
+            v.type      = VT_INT;
+            v.v_int     = value;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_float(size_t index, const char *name, double value)
+        {
+            value_t v;
+            v.type      = VT_FLOAT;
+            v.v_float   = value;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_bool(size_t index, const char *name, bool value)
+        {
+            value_t v;
+            v.type      = VT_BOOL;
+            v.v_bool    = value;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_string(size_t index, const char *name, const char *value, const char *charset)
+        {
+            if (value == NULL)
+                return insert_null(index, name);
+
+            LSPString s;
+            if (!s.set_native(value, charset))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = &s;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_string(size_t index, const char *name, const LSPString *value)
+        {
+            if (value == NULL)
+                return insert_null(index, name);
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = const_cast<LSPString *>(value);
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_null(size_t index, const char *name)
+        {
+            value_t v;
+            v.type      = VT_NULL;
+            v.v_str     = NULL;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_undef(size_t index, const char *name)
+        {
+            value_t v;
+            v.type      = VT_UNDEF;
+            v.v_str     = NULL;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_int(size_t index, const LSPString *name, ssize_t value)
+        {
+            value_t v;
+            v.type      = VT_INT;
+            v.v_int     = value;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_float(size_t index, const LSPString *name, double value)
+        {
+            value_t v;
+            v.type      = VT_FLOAT;
+            v.v_float   = value;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_bool(size_t index, const LSPString *name, bool value)
+        {
+            value_t v;
+            v.type      = VT_BOOL;
+            v.v_bool    = value;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_string(size_t index, const LSPString *name, const char *value, const char *charset)
+        {
+            if (value == NULL)
+                return insert_null(index, name);
+
+            LSPString s;
+            if (!s.set_native(value, charset))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = &s;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_string(size_t index, const LSPString *name, const LSPString *value)
+        {
+            if (value == NULL)
+                return insert_null(index, name);
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = const_cast<LSPString *>(value);
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_null(size_t index, const LSPString *name)
+        {
+            value_t v;
+            v.type      = VT_NULL;
+            v.v_str     = NULL;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_undef(size_t index, const LSPString *name)
+        {
+            value_t v;
+            v.type      = VT_UNDEF;
+            v.v_str     = NULL;
+            return insert(index, name, &v);
+        }
+
+        status_t Parameters::insert_int(size_t index, ssize_t value)
+        {
+            value_t v;
+            v.type      = VT_INT;
+            v.v_int     = value;
+            return insert(index, &v);
+        }
+
+        status_t Parameters::insert_float(size_t index, double value)
+        {
+            value_t v;
+            v.type      = VT_FLOAT;
+            v.v_float   = value;
+            return insert(index, &v);
+        }
+
+        status_t Parameters::insert_bool(size_t index, bool value)
+        {
+            value_t v;
+            v.type      = VT_BOOL;
+            v.v_bool    = value;
+            return insert(index, &v);
+        }
+
+        status_t Parameters::insert_string(size_t index, const char *value, const char *charset)
+        {
+            if (value == NULL)
+                return insert_null(index);
+
+            LSPString s;
+            if (!s.set_native(value, charset))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = &s;
+            return insert(index, &v);
+        }
+
+        status_t Parameters::insert_string(size_t index, const LSPString *value)
+        {
+            if (value == NULL)
+                return insert_null(index);
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = const_cast<LSPString *>(value);
+            return insert(index, &v);
+        }
+
+        status_t Parameters::insert_null(size_t index)
+        {
+            value_t v;
+            v.type      = VT_NULL;
+            v.v_str     = NULL;
+            return insert(index, &v);
+        }
+
+        status_t Parameters::insert_undef(size_t index)
+        {
+            value_t v;
+            v.type      = VT_UNDEF;
+            v.v_str     = NULL;
+            return insert(index, &v);
+        }
+
+
     
     } /* namespace calc */
 } /* namespace lsp */
