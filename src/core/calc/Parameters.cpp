@@ -728,6 +728,257 @@ namespace lsp
             return insert(index, &v);
         }
 
+        status_t Parameters::get(size_t index, value_t *value)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            return (value != NULL) ? copy_value(value, &v->value) : STATUS_OK;
+        }
+
+        status_t Parameters::get(const char *name, value_t *value)
+        {
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get(&tmp, value);
+        }
+
+        status_t Parameters::get(const LSPString *name, value_t *value)
+        {
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            return (value != NULL) ? copy_value(value, &v->value) : STATUS_OK;
+        }
+
+        status_t Parameters::get_int(size_t index, ssize_t *value)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != VT_INT)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+                *value = v->value.v_int;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_float(size_t index, double *value)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != VT_FLOAT)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+                *value = v->value.v_float;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_bool(size_t index, bool *value)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != VT_BOOL)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+                *value = v->value.v_bool;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_string(size_t index, LSPString *value)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != VT_BOOL)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+            {
+                if (!value->set(v->value.v_str))
+                    return STATUS_NO_MEM;
+            }
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_null(size_t index)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != VT_NULL)
+                return STATUS_BAD_TYPE;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_undef(size_t index)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != VT_UNDEF)
+                return STATUS_BAD_TYPE;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_int(const char *name, ssize_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get_int(&tmp, value);
+        }
+
+        status_t Parameters::get_float(const char *name, double *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get_float(&tmp, value);
+        }
+
+        status_t Parameters::get_bool(const char *name, bool *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get_bool(&tmp, value);
+        }
+
+        status_t Parameters::get_string(const char *name, LSPString *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get_string(&tmp, value);
+        }
+
+        status_t Parameters::get_null(const char *name)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get_null(&tmp);
+        }
+
+        status_t Parameters::get_undef(const char *name)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return get_undef(&tmp);
+        }
+
+        status_t Parameters::get_int(const LSPString *name, ssize_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != VT_INT)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+                *value = v->value.v_int;
+
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_float(const LSPString *name, double *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != VT_FLOAT)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+                *value = v->value.v_float;
+
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_bool(const LSPString *name, bool *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != VT_BOOL)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+                *value = v->value.v_bool;
+
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_string(const LSPString *name, LSPString *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != VT_STRING)
+                return STATUS_BAD_TYPE;
+            else if (value != NULL)
+            {
+                if (!value->set(v->value.v_str))
+                    return STATUS_NO_MEM;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_null(const LSPString *name)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != VT_NULL)
+                return STATUS_BAD_TYPE;
+
+            return STATUS_OK;
+        }
+
+        status_t Parameters::get_undef(const LSPString *name)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != VT_UNDEF)
+                return STATUS_BAD_TYPE;
+
+            return STATUS_OK;
+        }
+
 
     
     } /* namespace calc */

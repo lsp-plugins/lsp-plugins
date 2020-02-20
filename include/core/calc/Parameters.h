@@ -39,7 +39,7 @@ namespace lsp
             protected:
                 param_t            *lookup_by_name(const LSPString *name);
                 ssize_t             lookup_idx_by_name(const LSPString *name);
-                param_t             *lookup_by_name(const LSPString *name, size_t *idx);
+                param_t            *lookup_by_name(const LSPString *name, size_t *idx);
                 static param_t     *allocate();
                 static param_t     *allocate(const lsp_wchar_t *name, ssize_t len);
                 static param_t     *clone(const param_t *src);
@@ -142,7 +142,7 @@ namespace lsp
                 status_t            get_int(const LSPString *name, ssize_t *value);
                 status_t            get_float(const LSPString *name, double *value);
                 status_t            get_bool(const LSPString *name, bool *value);
-                status_t            get_string(const LSPString *name, const LSPString *value);
+                status_t            get_string(const LSPString *name, LSPString *value);
                 status_t            get_null(const LSPString *name);
                 status_t            get_undef(const LSPString *name);
                 status_t            get(const LSPString *name, value_t *value);
