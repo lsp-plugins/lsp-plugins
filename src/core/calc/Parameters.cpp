@@ -1435,5 +1435,353 @@ namespace lsp
             return set(index, &v);
         }
 
+        status_t Parameters::remove(size_t index, value_t *value)
+        {
+            param_t *v  = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            if (value != NULL)
+            {
+                status_t res = copy_value(value, &v->value);
+                if (res != STATUS_OK)
+                    return res;
+            }
+            vParams.remove(index);
+            destroy(v);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_value(size_t index, value_type_t type, value_t *value)
+        {
+            param_t *v  = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != type)
+                return STATUS_BAD_TYPE;
+            if (value != NULL)
+            {
+                status_t res = copy_value(value, &v->value);
+                if (res != STATUS_OK)
+                    return res;
+            }
+            vParams.remove(index);
+            destroy(v);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove(const char *name, value_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return remove(&tmp, value);
+        }
+
+        status_t Parameters::remove_value(const char *name, value_type_t type, value_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return remove_value(&tmp, type, value);
+        }
+
+        status_t Parameters::remove(const LSPString *name, value_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            size_t index;
+            param_t *v = lookup_by_name(name, &index);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            if (value != NULL)
+            {
+                status_t res = copy_value(value, &v->value);
+                if (res != STATUS_OK)
+                    return res;
+            }
+            vParams.remove(index);
+            destroy(v);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_value(const LSPString *name, value_type_t type, value_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            size_t index;
+            param_t *v = lookup_by_name(name, &index);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != type)
+                return STATUS_BAD_TYPE;
+            if (value != NULL)
+            {
+                status_t res = copy_value(value, &v->value);
+                if (res != STATUS_OK)
+                    return res;
+            }
+            vParams.remove(index);
+            destroy(v);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::drop_value(size_t index, value_type_t type, param_t **out)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (v->value.type != type)
+                return STATUS_BAD_TYPE;
+
+            vParams.remove(index);
+            *out = v;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::drop_value(const char *name, value_type_t type, param_t **out)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return drop_value(&tmp, type, out);
+        }
+
+        status_t Parameters::drop_value(const LSPString *name, value_type_t type, param_t **out)
+        {
+            size_t index;
+            param_t *v = lookup_by_name(name, &index);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+            else if (v->value.type != type)
+                return STATUS_BAD_TYPE;
+
+            vParams.remove(index);
+            *out = v;
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_int(size_t index, ssize_t *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(index, VT_INT, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_int;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_float(size_t index, double *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(index, VT_FLOAT, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_float;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_bool(size_t index, bool *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(index, VT_BOOL, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_bool;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_string(size_t index, LSPString *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(index, VT_STRING, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                value->swap(pv->value.v_str);
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_null(size_t index)
+        {
+            param_t *pv;
+            status_t res = drop_value(index, VT_NULL, &pv);
+            if (res != STATUS_OK)
+                return res;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_undef(size_t index)
+        {
+            param_t *pv;
+            status_t res = drop_value(index, VT_UNDEF, &pv);
+            if (res != STATUS_OK)
+                return res;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+
+
+        status_t Parameters::remove_int(const char *name, ssize_t *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_INT, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_int;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_float(const char *name, double *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_FLOAT, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_float;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_bool(const char *name, bool *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_BOOL, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_bool;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_string(const char *name, LSPString *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_STRING, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                value->swap(pv->value.v_str);
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_null(const char *name)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_NULL, &pv);
+            if (res != STATUS_OK)
+                return res;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_undef(const char *name)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_UNDEF, &pv);
+            if (res != STATUS_OK)
+                return res;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+
+
+
+        status_t Parameters::remove_int(const LSPString *name, ssize_t *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_INT, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_int;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_float(const LSPString *name, double *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_FLOAT, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_float;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_bool(const LSPString *name, bool *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_BOOL, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                *value  = pv->value.v_bool;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_string(const LSPString *name, LSPString *value)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_STRING, &pv);
+            if (res != STATUS_OK)
+                return res;
+            if (value != NULL)
+                value->swap(pv->value.v_str);
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_null(const LSPString *name)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_NULL, &pv);
+            if (res != STATUS_OK)
+                return res;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
+        status_t Parameters::remove_undef(const LSPString *name)
+        {
+            param_t *pv;
+            status_t res = drop_value(name, VT_UNDEF, &pv);
+            if (res != STATUS_OK)
+                return res;
+            destroy(pv);
+            return STATUS_OK;
+        }
+
     } /* namespace calc */
 } /* namespace lsp */

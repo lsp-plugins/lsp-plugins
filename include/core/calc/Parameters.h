@@ -48,6 +48,10 @@ namespace lsp
 
                 static void         destroy_params(cvector<param_t> &params);
 
+                status_t            drop_value(size_t index, value_type_t type, param_t **out);
+                status_t            drop_value(const char *name, value_type_t type, param_t **out);
+                status_t            drop_value(const LSPString *name, value_type_t type, param_t **out);
+
             public:
                 explicit Parameters();
                 virtual ~Parameters();
@@ -210,6 +214,7 @@ namespace lsp
                 status_t            remove_null(size_t index);
                 status_t            remove_undef(size_t index);
                 status_t            remove(size_t index, value_t *value = NULL);
+                status_t            remove_value(size_t index, value_type_t type, value_t *value);
 
                 status_t            remove_int(const char *name, ssize_t *value = NULL);
                 status_t            remove_float(const char *name, double *value = NULL);
@@ -218,6 +223,7 @@ namespace lsp
                 status_t            remove_null(const char *name = NULL);
                 status_t            remove_undef(const char *name = NULL);
                 status_t            remove(const char *name, value_t *value = NULL);
+                status_t            remove_value(const char *name, value_type_t type, value_t *value = NULL);
 
                 status_t            remove_int(const LSPString *name, ssize_t *value = NULL);
                 status_t            remove_float(const LSPString *name, double *value = NULL);
@@ -226,6 +232,7 @@ namespace lsp
                 status_t            remove_null(const LSPString *name = NULL);
                 status_t            remove_undef(const LSPString *name = NULL);
                 status_t            remove(const LSPString *name, value_t *value = NULL);
+                status_t            remove_value(const LSPString *name, value_type_t type, value_t *value = NULL);
 
                 // Obtaining type of parameter (negative result on error)
                 ssize_t             get_type(size_t index);
