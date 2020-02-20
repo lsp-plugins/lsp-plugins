@@ -979,6 +979,244 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t Parameters::as_value(size_t index, value_t *value, value_type_t type)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+
+            value_t tmp;
+            status_t res = init_value(&tmp, &v->value);
+            if (res == STATUS_OK)
+            {
+                if ((res = cast_value(&tmp, type)) == STATUS_OK)
+                    res = (tmp.type == type) ? copy_value(value, &tmp) : STATUS_BAD_TYPE;
+            }
+
+            destroy_value(&tmp);
+            return res;
+        }
+
+        status_t Parameters::as_value(const LSPString *name, value_t *value, value_type_t type)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return STATUS_NOT_FOUND;
+
+            value_t tmp;
+            status_t res = init_value(&tmp, &v->value);
+            if (res == STATUS_OK)
+            {
+                if ((res = cast_value(&tmp, type)) == STATUS_OK)
+                    res = (tmp.type == type) ? copy_value(value, &tmp) : STATUS_BAD_TYPE;
+            }
+
+            destroy_value(&tmp);
+            return res;
+        }
+
+        status_t Parameters::as_value(const char *name, value_t *value, value_type_t type)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return as_value(&tmp, value, type);
+        }
+
+        status_t Parameters::as_int(size_t index, ssize_t *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(index, &v, VT_INT);
+            if (res == STATUS_OK)
+                *value  = v.v_int;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_float(size_t index, double *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(index, &v, VT_FLOAT);
+            if (res == STATUS_OK)
+                *value  = v.v_float;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_bool(size_t index, bool *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(index, &v, VT_BOOL);
+            if (res == STATUS_OK)
+                *value  = v.v_bool;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_string(size_t index, LSPString *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(index, &v, VT_STRING);
+            if (res == STATUS_OK)
+                res = (value->set(v.v_str)) ? STATUS_OK : STATUS_NO_MEM;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_null(size_t index)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(index, &v, VT_NULL);
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_undef(size_t index)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(index, &v, VT_UNDEF);
+            destroy_value(&v);
+            return res;
+        }
+
+
+        status_t Parameters::as_int(const char *name, ssize_t *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_INT);
+            if (res == STATUS_OK)
+                *value  = v.v_int;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_float(const char *name, double *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_FLOAT);
+            if (res == STATUS_OK)
+                *value  = v.v_float;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_bool(const char *name, bool *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_BOOL);
+            if (res == STATUS_OK)
+                *value  = v.v_bool;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_string(const char *name, LSPString *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_STRING);
+            if (res == STATUS_OK)
+                res = (value->set(v.v_str)) ? STATUS_OK : STATUS_NO_MEM;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_null(const char *name)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_NULL);
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_undef(const char *name)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_UNDEF);
+            destroy_value(&v);
+            return res;
+        }
+
+
+        status_t Parameters::as_int(const LSPString *name, ssize_t *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_INT);
+            if (res == STATUS_OK)
+                *value  = v.v_int;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_float(const LSPString *name, double *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_FLOAT);
+            if (res == STATUS_OK)
+                *value  = v.v_float;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_bool(const LSPString *name, bool *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_BOOL);
+            if (res == STATUS_OK)
+                *value  = v.v_bool;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_string(const LSPString *name, LSPString *value)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_STRING);
+            if (res == STATUS_OK)
+                res = (value->set(v.v_str)) ? STATUS_OK : STATUS_NO_MEM;
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_null(const LSPString *name)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_NULL);
+            destroy_value(&v);
+            return res;
+        }
+
+        status_t Parameters::as_undef(const LSPString *name)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = as_value(name, &v, VT_UNDEF);
+            destroy_value(&v);
+            return res;
+        }
 
     
     } /* namespace calc */

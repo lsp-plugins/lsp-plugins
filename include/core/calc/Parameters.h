@@ -147,6 +147,31 @@ namespace lsp
                 status_t            get_undef(const LSPString *name);
                 status_t            get(const LSPString *name, value_t *value);
 
+                // Getting with cast
+                status_t            as_int(size_t index, ssize_t *value);
+                status_t            as_float(size_t index, double *value);
+                status_t            as_bool(size_t index, bool *value);
+                status_t            as_string(size_t index, LSPString *value);
+                status_t            as_null(size_t index);
+                status_t            as_undef(size_t index);
+                status_t            as_value(size_t index, value_t *value, value_type_t type);
+
+                status_t            as_int(const char *name, ssize_t *value);
+                status_t            as_float(const char *name, double *value);
+                status_t            as_bool(const char *name, bool *value);
+                status_t            as_string(const char *name, LSPString *value);
+                status_t            as_null(const char *name);
+                status_t            as_undef(const char *name);
+                status_t            as_value(const char *name, value_t *value, value_type_t type);
+
+                status_t            as_int(const LSPString *name, ssize_t *value);
+                status_t            as_float(const LSPString *name, double *value);
+                status_t            as_bool(const LSPString *name, bool *value);
+                status_t            as_string(const LSPString *name, LSPString *value);
+                status_t            as_null(const LSPString *name);
+                status_t            as_undef(const LSPString *name);
+                status_t            as_value(const LSPString *name, value_t *value, value_type_t type);
+
                 // Setting
                 status_t            set_int(const char *name, ssize_t value);
                 status_t            set_float(const char *name, double value);

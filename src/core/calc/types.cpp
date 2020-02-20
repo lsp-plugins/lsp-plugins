@@ -169,6 +169,22 @@ namespace lsp
             return (dst->set(v->v_str)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
+        status_t cast_value(value_t *v, value_type_t type)
+        {
+            switch (type)
+            {
+                case VT_INT: return cast_int(v);
+                case VT_FLOAT: return cast_float(v);
+                case VT_BOOL: return cast_bool(v);
+                case VT_STRING: return cast_string(v);
+                case VT_NULL:
+                case VT_UNDEF:
+                    return STATUS_OK;
+            }
+
+            return STATUS_BAD_TYPE;
+        }
+
         status_t cast_int(value_t *v)
         {
             switch (v->type)

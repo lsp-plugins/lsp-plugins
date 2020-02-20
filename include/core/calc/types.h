@@ -111,6 +111,8 @@ namespace lsp
         status_t    fetch_bool(bool *dst, const value_t *v);
         status_t    fetch_string(LSPString *dst, const value_t *v);
 
+        status_t    cast_value(value_t *v, value_type_t type);
+
         status_t    cast_int(value_t *v);
         status_t    cast_float(value_t *v);
         status_t    cast_bool(value_t *v);
