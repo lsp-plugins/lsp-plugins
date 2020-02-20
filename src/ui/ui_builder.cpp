@@ -712,6 +712,8 @@ namespace lsp
     status_t ui_builder::eval_string(LSPString *value, const LSPString *expr)
     {
         calc::value_t v;
+
+        init_value(&v);
         status_t res = evaluate(&v, expr);
         if (res != STATUS_OK)
             return res;
@@ -733,6 +735,8 @@ namespace lsp
     status_t ui_builder::eval_bool(bool *value, const LSPString *expr)
     {
         calc::value_t v;
+        init_value(&v);
+
         status_t res = evaluate(&v, expr);
         if (res != STATUS_OK)
             return res;

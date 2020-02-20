@@ -43,6 +43,7 @@ namespace lsp
                 static param_t     *allocate();
                 static param_t     *allocate(const lsp_wchar_t *name, ssize_t len);
                 static param_t     *clone(const param_t *src);
+                static void         destroy(param_t *p);
                 inline static param_t *allocate(const LSPString *name) { return allocate(name->characters(), name->length()); };
 
                 static void         destroy_params(cvector<param_t> &params);
@@ -87,6 +88,7 @@ namespace lsp
                 status_t            add_string(const LSPString *value);
                 status_t            add_null();
                 status_t            add_undef();
+                status_t            add(const value_t *value);
 
                 status_t            add(const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 

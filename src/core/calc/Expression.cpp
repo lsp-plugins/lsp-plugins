@@ -55,11 +55,7 @@ namespace lsp
                     parse_destroy(r->expr);
                     r->expr = NULL;
                 }
-                if ((r->result.type == VT_STRING) && (r->result.v_str != NULL))
-                {
-                    delete r->result.v_str;
-                    r->result.v_str = NULL;
-                }
+                destroy_value(&r->result);
             }
             vRoots.flush();
         }
