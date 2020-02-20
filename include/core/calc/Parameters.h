@@ -198,6 +198,7 @@ namespace lsp
                 status_t            set_string(size_t index, const LSPString *value);
                 status_t            set_null(size_t index);
                 status_t            set_undef(size_t index);
+                status_t            set(size_t index, const value_t *value);
 
                 status_t            set(const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 

@@ -1092,7 +1092,6 @@ namespace lsp
             return res;
         }
 
-
         status_t Parameters::as_int(const char *name, ssize_t *value)
         {
             value_t v;
@@ -1154,7 +1153,6 @@ namespace lsp
             destroy_value(&v);
             return res;
         }
-
 
         status_t Parameters::as_int(const LSPString *name, ssize_t *value)
         {
@@ -1218,6 +1216,224 @@ namespace lsp
             return res;
         }
 
-    
+        status_t Parameters::set(const char *name, const value_t *value)
+        {
+            if (name == NULL)
+                return STATUS_INVALID_VALUE;
+
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            return set(&tmp, value);
+        }
+
+        status_t Parameters::set(const LSPString *name, const value_t *value)
+        {
+            param_t *v = lookup_by_name(name);
+            if (v == NULL)
+                return add(name, value);
+
+            return copy_value(&v->value, value);
+        }
+
+        status_t Parameters::set(size_t index, const value_t *value)
+        {
+            param_t *v = vParams.get(index);
+            if (v == NULL)
+                return STATUS_INVALID_VALUE;
+
+            return copy_value(&v->value, value);
+        }
+
+        status_t Parameters::set_int(const char *name, ssize_t value)
+        {
+            value_t v;
+            v.type      = VT_INT;
+            v.v_int     = value;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_float(const char *name, double value)
+        {
+            value_t v;
+            v.type      = VT_FLOAT;
+            v.v_float   = value;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_bool(const char *name, bool value)
+        {
+            value_t v;
+            v.type      = VT_BOOL;
+            v.v_bool    = value;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_string(const char *name, const char *value, const char *charset)
+        {
+            if (value == NULL)
+                return set_null(name);
+
+            LSPString tmp;
+            if (!tmp.set_utf8(value))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = &tmp;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_string(const char *name, const LSPString *value)
+        {
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = const_cast<LSPString *>(value);
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_null(const char *name)
+        {
+            value_t v;
+            v.type      = VT_NULL;
+            v.v_str     = NULL;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_undef(const char *name)
+        {
+            value_t v;
+            v.type      = VT_UNDEF;
+            v.v_str     = NULL;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_int(const LSPString *name, ssize_t value)
+        {
+            value_t v;
+            v.type      = VT_INT;
+            v.v_int     = value;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_float(const LSPString *name, double value)
+        {
+            value_t v;
+            v.type      = VT_FLOAT;
+            v.v_float   = value;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_bool(const LSPString *name, bool value)
+        {
+            value_t v;
+            v.type      = VT_BOOL;
+            v.v_bool    = value;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_string(const LSPString *name, const char *value, const char *charset)
+        {
+            if (value == NULL)
+                return set_null(name);
+
+            LSPString tmp;
+            if (!tmp.set_utf8(value))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = &tmp;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_string(const LSPString *name, const LSPString *value)
+        {
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = const_cast<LSPString *>(value);
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_null(const LSPString *name)
+        {
+            value_t v;
+            v.type      = VT_NULL;
+            v.v_str     = NULL;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_undef(const LSPString *name)
+        {
+            value_t v;
+            v.type      = VT_UNDEF;
+            v.v_str     = NULL;
+            return set(name, &v);
+        }
+
+        status_t Parameters::set_int(size_t index, ssize_t value)
+        {
+            value_t v;
+            v.type      = VT_INT;
+            v.v_int     = value;
+            return set(index, &v);
+        }
+
+        status_t Parameters::set_float(size_t index, double value)
+        {
+            value_t v;
+            v.type      = VT_FLOAT;
+            v.v_float   = value;
+            return set(index, &v);
+        }
+
+        status_t Parameters::set_bool(size_t index, bool value)
+        {
+            value_t v;
+            v.type      = VT_BOOL;
+            v.v_bool    = value;
+            return set(index, &v);
+        }
+
+        status_t Parameters::set_string(size_t index, const char *value, const char *charset)
+        {
+            if (value == NULL)
+                return set_null(index);
+
+            LSPString tmp;
+            if (!tmp.set_utf8(value))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = &tmp;
+            return set(index, &v);
+        }
+
+        status_t Parameters::set_string(size_t index, const LSPString *value)
+        {
+            value_t v;
+            v.type      = VT_STRING;
+            v.v_str     = const_cast<LSPString *>(value);
+            return set(index, &v);
+        }
+
+        status_t Parameters::set_null(size_t index)
+        {
+            value_t v;
+            v.type      = VT_NULL;
+            v.v_str     = NULL;
+            return set(index, &v);
+        }
+
+        status_t Parameters::set_undef(size_t index)
+        {
+            value_t v;
+            v.type      = VT_UNDEF;
+            v.v_str     = NULL;
+            return set(index, &v);
+        }
+
     } /* namespace calc */
 } /* namespace lsp */
