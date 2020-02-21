@@ -67,6 +67,7 @@ namespace lsp
             status_t X11Window::init()
             {
                 Display *dpy = pX11Display->x11display();
+                Atom dnd_version    = 5;    // Version 5 of protocol is supported
 
                 if (bWrapper)
                 {
@@ -75,7 +76,7 @@ namespace lsp
 
                     // Now select input for the handle
                     lsp_trace("Issuing XSelectInput");
-                    XSelectInput(dpy, hWindow,
+                    ::XSelectInput(dpy, hWindow,
                         KeyPressMask |
                         KeyReleaseMask |
                         ButtonPressMask |
@@ -96,6 +97,25 @@ namespace lsp
                         FocusChangeMask |
                         PropertyChangeMask
                     );
+
+                    /**
+                     * In order for the user to be able to transfer data from any application to any other application
+                     * via DND, every application that supports XDND version N must also support all previous versions
+                     * (3 to N-1). The XdndAware property provides the highest version number supported by the target
+                     * (Nt). If the source supports versions up to Ns, then the version that will actually be used is
+                     * min(Ns,Nt). This is the version sent in the XdndEnter message. It is important to note that
+                     * XdndAware allows this to be calculated before any messages are actually sent.
+                     */
+                    ::XChangeProperty(dpy, hWindow, pX11Display->atoms().X11_XdndAware, XA_ATOM, 32, PropModeReplace,
+                                    reinterpret_cast<unsigned char *>(&dnd_version), 1);
+                    /**
+                     * The proxy window must have the XdndProxy property set to point to itself. If it doesn't or if the
+                     * proxy window doesn't exist at all, one should ignore XdndProxy on the assumption that it is left
+                     * over after a crash.
+                     */
+                    ::XChangeProperty(dpy, hWindow, pX11Display->atoms().X11_XdndProxy, XA_WINDOW, 32, PropModeReplace,
+                                    reinterpret_cast<unsigned char *>(&hWindow), 1);
+
                     pX11Display->flush();
                 }
                 else
@@ -140,11 +160,25 @@ namespace lsp
                     // Get protocols
                     lsp_trace("Issuing XSetWMProtocols");
                     Atom atom_close     = pX11Display->atoms().X11_WM_DELETE_WINDOW;
-                    Atom dnd_version    = 4;
-                    XSetWMProtocols(dpy, wnd, &atom_close, 1);
-                    XChangeProperty(dpy, wnd, pX11Display->atoms().X11_XdndAware, XA_ATOM, 32, PropModeReplace,
-                                    reinterpret_cast<unsigned char *>(&dnd_version), 1);
+                    ::XSetWMProtocols(dpy, wnd, &atom_close, 1);
 
+                    /**
+                     * In order for the user to be able to transfer data from any application to any other application
+                     * via DND, every application that supports XDND version N must also support all previous versions
+                     * (3 to N-1). The XdndAware property provides the highest version number supported by the target
+                     * (Nt). If the source supports versions up to Ns, then the version that will actually be used is
+                     * min(Ns,Nt). This is the version sent in the XdndEnter message. It is important to note that
+                     * XdndAware allows this to be calculated before any messages are actually sent.
+                     */
+                    ::XChangeProperty(dpy, wnd, pX11Display->atoms().X11_XdndAware, XA_ATOM, 32, PropModeReplace,
+                                    reinterpret_cast<unsigned char *>(&dnd_version), 1);
+                    /**
+                     * The proxy window must have the XdndProxy property set to point to itself. If it doesn't or if the
+                     * proxy window doesn't exist at all, one should ignore XdndProxy on the assumption that it is left
+                     * over after a crash.
+                     */
+                    ::XChangeProperty(dpy, wnd, pX11Display->atoms().X11_XdndProxy, XA_WINDOW, 32, PropModeReplace,
+                                    reinterpret_cast<unsigned char *>(&wnd), 1);
                     pX11Display->flush();
 
                     // Now create X11Window instance
@@ -157,7 +191,7 @@ namespace lsp
 
                     // Now select input for new handle
                     lsp_trace("Issuing XSelectInput");
-                    XSelectInput(dpy, wnd,
+                    ::XSelectInput(dpy, wnd,
                         KeyPressMask |
                         KeyReleaseMask |
                         ButtonPressMask |
@@ -184,6 +218,11 @@ namespace lsp
                         ColormapChangeMask |
                         OwnerGrabButtonMask
                     );
+                    if (hParent > 0)
+                    {
+                        ::XSelectInput(dpy, hParent, PropertyChangeMask);
+                    }
+
                     pX11Display->flush();
 
                     sMotif.flags        = MWM_HINTS_FUNCTIONS | MWM_HINTS_DECORATIONS | MWM_HINTS_INPUT_MODE | MWM_HINTS_STATUS;
