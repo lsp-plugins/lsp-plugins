@@ -1921,9 +1921,6 @@ namespace lsp
 
             status_t X11Display::proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev)
             {
-                Window root = None, parent = None, *children = NULL, child = None;
-                unsigned int nchildren = 0;
-
                 /**
                     data.l[0] contains the XID of the source window.
                     data.l[1] is reserved for future use (flags).
@@ -1932,62 +1929,80 @@ namespace lsp
                     data.l[3] contains the time stamp for retrieving the data. (new in version 1)
                     data.l[4] contains the action requested by the user. (new in version 2)
                  */
-                int x       = (ev->data.l[2] >> 16) & 0xffff;
-                int y       = ev->data.l[2] & 0xffff;
-                Atom act    = ev->data.l[4];
+                int x           = (ev->data.l[2] >> 16) & 0xffff;
+                int y           = ev->data.l[2] & 0xffff;
+                Atom act        = ev->data.l[4];
 
-                // Determine the target window to send data
+                Window root     = None;
+                Window parent   = None;
+                Window child    = None;
+                Window *children = NULL;
+                unsigned int nchildren = 0;
                 ::XQueryTree(pDisplay, task->hTarget, &root, &parent, &children, &nchildren);
 
-                lsp_trace("target=%lx, root = %lx, parent = %lx, children = %d",
-                        long(task->hTarget), long(root), long(parent), int(nchildren));
-                for (size_t i=0; i<nchildren; ++i)
+                // Determine the target window to send data
+                #ifdef LSP_TRACE
                 {
-                    XWindowAttributes xwa;
-                    Window wnd = children[i];
-                    ::XGetWindowAttributes(pDisplay, wnd, &xwa);
+                    lsp_trace("target=%lx, root = %lx, parent = %lx, children = %d",
+                            long(task->hTarget), long(root), long(parent), int(nchildren));
+                    for (size_t i=0; i<nchildren; ++i)
+                    {
+                        XWindowAttributes xwa;
+                        Window wnd = children[i];
+                        ::XGetWindowAttributes(pDisplay, wnd, &xwa);
 
-                    lsp_trace("  child #%d = %lx located at x=%d, y=%d, w=%d, h=%d",
-                            int(i), long(wnd),
-                            int(xwa.x), int(xwa.y), int(xwa.width), int(xwa.height)
-                    );
+                        lsp_trace("  child #%d = %lx located at x=%d, y=%d, w=%d, h=%d",
+                                int(i), long(wnd),
+                                int(xwa.x), int(xwa.y), int(xwa.width), int(xwa.height)
+                        );
+                    }
                 }
+                #endif
 
                 // Release children
                 if (children != NULL)
                     ::XFree(children);
 
-                // Translate coordinates
+                // Find child window that supports XDnD protocol
                 int cx = -1, cy = -1;
-                ::XTranslateCoordinates(pDisplay, root, task->hTarget, x, y, &cx, &cy, &child);
-                lsp_trace(" found child %lx pointer location: x=%d, y=%d -> cx=%d, cy=%d",
-                        long(child), x, y, cx, cy
-                );
+                parent = task->hTarget;
+                while (true)
+                {
+                    // Translate coordinates
+                    ::XTranslateCoordinates(pDisplay, root, parent, x, y, &cx, &cy, &child);
+                    lsp_trace(" found child %lx pointer location: x=%d, y=%d -> cx=%d, cy=%d",
+                            long(child), x, y, cx, cy
+                    );
+                    if (child == None)
+                        break;
+
+                    // Test for XdndAware property
+                    uint8_t *data       = NULL;
+                    size_t size         = 0;
+                    Atom xtype          = None;
+
+                    // Test for support of XDnD protocol
+                    status_t res    = read_property(child, sAtoms.X11_XdndAware, XA_ATOM, &data, &size, &xtype);
+                    lsp_trace("xDndAware res=%d, xtype=%d, size=%d", int(res), int(xtype), int(size));
+                    if ((res != STATUS_OK) || (xtype == None) || (size < 1) || (data[0] < 1))
+                    {
+                        lsp_trace("Window %lx does not support XDnD Protocol", long(child));
+                        parent = child;
+                        child = None;
+                    }
+                    if (data != NULL)
+                        ::free(data);
+
+                    // Found window that supports XDnd?
+                    if (child != None)
+                        break;
+                }
 
                 // Replace child with target if not found
                 if (child == None)
                 {
                     child = task->hTarget;
                     lsp_trace("Empty child window replaced with parent %lx", long(child));
-                }
-
-                // Test for XdndAware property
-                {
-                    // Get XdndAware property
-                    uint8_t *data       = NULL;
-                    size_t size         = 0;
-                    Atom xtype          = None;
-
-                    // We require support of at least version 4 of XDnD protocol
-                    status_t res    = read_property(child, sAtoms.X11_XdndAware, XA_ATOM, &data, &size, &xtype);
-                    lsp_trace("xDndAware res=%d, xtype=%d, size=%d", int(res), int(xtype), int(size));
-                    if ((res != STATUS_OK) || (xtype == None) || (size < 1) || (data[0] < 4))
-                    {
-                        lsp_trace("Selected window %lx does not support XDnD Protocol version >= 4", long(child));
-                        child = None;
-                    }
-                    if (data != NULL)
-                        ::free(data);
                 }
 
                 if (task->hCurrent != child)

@@ -216,11 +216,6 @@ namespace lsp
             wrapper.pWrapper    = &w;
             wrapper.pWindow     = pui->root_window();
 
-            // Make a hack to test DND proxy
-            #ifdef XDND_PROXY_SUPPORT
-                patch_xdnd_proxy_window(cfg.parent_id, wrapper.pWindow->handle());
-            #endif
-
             LSPTimer tmr;
             tmr.bind(pui->display());
             tmr.set_handler(jack_ui_sync, &wrapper);

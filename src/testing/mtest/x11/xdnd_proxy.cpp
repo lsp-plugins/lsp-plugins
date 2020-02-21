@@ -22,79 +22,79 @@
 
 using namespace lsp;
 
-namespace {
-    Window  child_wnd = 0;
-}
-
-#if defined(LSP_TESTING)
-    void patch_xdnd_proxy_window(const void *wparent, const void *wchild)
-    {
-        if ((wparent == NULL) || (wchild == NULL))
-            return;
-
-        union {
-            Window wnd;
-            const void *handle;
-        } child, parent;
-
-        child.handle = wchild;
-        parent.handle = wparent;
-        Display *dpy = ::XOpenDisplay(NULL);
-
-        // Add DND PROXY attribute to parent window containing ID of the child window
-        Atom aDndProxy = XInternAtom(dpy, "XdndProxy", True);
-
-        long prop[1];
-        prop[0] = child.wnd;
-        XChangeProperty(dpy, parent.wnd, aDndProxy, XA_WINDOW, 32, PropModeReplace, reinterpret_cast<unsigned char *>(prop), 1);
-
-        XWindowAttributes xwa;
-        XGetWindowAttributes(dpy, child.wnd, &xwa);
-        XResizeWindow(dpy, parent.wnd, xwa.width, xwa.height);
-
-        XFlush(dpy);
-        XSync(dpy, True);
-
-        XCloseDisplay(dpy);
-
-        child_wnd = child.wnd;
-    }
-#endif
-
 MTEST_BEGIN("x11", xdnd_proxy)
     class X11Thread: public ipc::Thread
     {
         private:
             Display    *pDisplay;
             Window      hWindow;
+            Window      hWindow2;
+            Window      hChild;
             test::Test *pTest;
 
         public:
-            explicit X11Thread(Display *dpy, Window win, test::Test *test)
+            explicit X11Thread(Display *dpy, Window win, Window win2, test::Test *test)
             {
                 pDisplay = dpy;
                 hWindow = win;
+                hWindow2 = win2;
+                hChild = None;
                 pTest = test;
+            }
+
+            void configure_child()
+            {
+                if (hChild == None)
+                    return;
+
+                XWindowAttributes xwa;
+                ::XGetWindowAttributes(pDisplay, hChild, &xwa);
+                ::XResizeWindow(pDisplay, hWindow, xwa.width, xwa.height);
+                ::XResizeWindow(pDisplay, hWindow2, xwa.width, xwa.height);
+
+                long prop[1];
+                prop[0] = hChild;
+                Atom aDndProxy      = ::XInternAtom(pDisplay, "XdndProxy", True);
+                ::XChangeProperty(pDisplay, hWindow, aDndProxy, XA_WINDOW, 32, PropModeReplace, reinterpret_cast<unsigned char *>(prop), 1);
+
+                ::XSelectInput(pDisplay, hChild, StructureNotifyMask);
+                ::XFlush(pDisplay);
             }
 
             virtual status_t run()
             {
                 XEvent xev;
 
-                Atom aDeleteWnd     = XInternAtom(pDisplay, "WM_DELETE_WINDOW", False);
-                Atom aWmProtocols   = XInternAtom(pDisplay, "WM_PROTOCOLS", False);
-                Atom aClose         = XInternAtom(pDisplay, "WM_DELETE_WINDOW", False);
-                XSetWMProtocols(pDisplay, hWindow, &aClose, 1);
+                ::XSync(pDisplay, False);
 
-                if (child_wnd != 0)
-                    XSelectInput(pDisplay, child_wnd, StructureNotifyMask);
-                XSelectInput(pDisplay, hWindow, SubstructureNotifyMask);
-                XFlush(pDisplay);
+                // Obtain ID of child window and resize parents
+                Window parent_wnd = None, root_wnd = None;
+                Window *children = NULL;
+                unsigned int nchildren = 0;
+                ::XQueryTree(pDisplay, hWindow2, &root_wnd, &parent_wnd, &children, &nchildren);
+                if (nchildren > 0)
+                {
+                    hChild = children[0];
+                    configure_child();
+                }
+                if (children != NULL)
+                    ::XFree(children);
+                ::XFlush(pDisplay);
+
+                //Set additional properties
+                Atom aDeleteWnd     = ::XInternAtom(pDisplay, "WM_DELETE_WINDOW", True);
+                Atom aWmProtocols   = ::XInternAtom(pDisplay, "WM_PROTOCOLS", True);
+                Atom aClose         = ::XInternAtom(pDisplay, "WM_DELETE_WINDOW", True);
+                ::XSetWMProtocols(pDisplay, hWindow, &aClose, 1);
+
+                ::XSelectInput(pDisplay, hWindow, StructureNotifyMask | SubstructureNotifyMask);
+                ::XSelectInput(pDisplay, hWindow2, StructureNotifyMask | SubstructureNotifyMask);
+                ::XFlush(pDisplay);
 
                 do
                 {
                     // Next event
-                    XNextEvent(pDisplay, &xev);
+                    ::XNextEvent(pDisplay, &xev);
 
                     // Decode event
                     switch (xev.type)
@@ -106,7 +106,7 @@ MTEST_BEGIN("x11", xdnd_proxy)
 
                             if ((type == aWmProtocols) && (ce->data.l[0] == long(aDeleteWnd)) && (ce->window == hWindow))
                             {
-                                if (child_wnd != 0)
+                                if (hChild != 0)
                                 {
                                     XEvent sev;
                                     XClientMessageEvent &send = sev.xclient;
@@ -114,12 +114,12 @@ MTEST_BEGIN("x11", xdnd_proxy)
                                     send.serial = 0;
                                     send.send_event = True;
                                     send.display = pDisplay;
-                                    send.window = child_wnd;
+                                    send.window = hChild;
                                     send.message_type = aWmProtocols;
                                     send.format = 32;
                                     send.data.l[0] = aDeleteWnd;
-                                    XSendEvent(pDisplay, child_wnd, True, NoEventMask, &sev);
-                                    XFlush(pDisplay);
+                                    ::XSendEvent(pDisplay, hChild, True, NoEventMask, &sev);
+                                    ::XFlush(pDisplay);
                                 }
 
                                 Thread::cancel();
@@ -128,11 +128,40 @@ MTEST_BEGIN("x11", xdnd_proxy)
                             break;
                         }
 
+                        case CreateNotify:
+                        {
+                            XCreateWindowEvent *ce = &xev.xcreatewindow;
+                            lsp_trace("Create notify: wnd=%lx, wnd2=%lx, evt.wnd=%lx evt.parent=%lx",
+                                    long(hWindow), long(hWindow2), long(ce->window), long(ce->parent));
+                            if (ce->parent == hWindow2)
+                            {
+                                hChild = ce->window;
+                                configure_child();
+                            }
+                            break;
+                        }
+
+                        case ReparentNotify:
+                        {
+                            XReparentEvent *re = &xev.xreparent;
+                            lsp_trace("Reparent notify: wnd=%lx, wnd2=%lx, evt.wnd=%lx evt.parent=%lx",
+                                    long(hWindow), long(hWindow2), long(re->window), long(re->parent));
+                            if (re->parent == hWindow2)
+                            {
+                                hChild = re->window;
+                                configure_child();
+                            }
+                            break;
+                        }
+
                         case ConfigureNotify:
                         {
                             XConfigureEvent *ce = &xev.xconfigure;
-                            if (ce->window == child_wnd)
-                                XResizeWindow(pDisplay, hWindow, ce->width, ce->height);
+                            if (ce->window == hChild)
+                            {
+                                ::XResizeWindow(pDisplay, hWindow, ce->width, ce->height);
+                                ::XResizeWindow(pDisplay, hWindow2, ce->width, ce->height);
+                            }
 
                             break;
                         }
@@ -175,7 +204,7 @@ MTEST_BEGIN("x11", xdnd_proxy)
 
     MTEST_MAIN
     {
-        XInitThreads();
+        ::XInitThreads();
 
         if (argc <= 0)
             plugin_not_found(NULL);
@@ -193,14 +222,18 @@ MTEST_BEGIN("x11", xdnd_proxy)
         Window root = RootWindow(dpy, screen);
         Window hWnd = ::XCreateSimpleWindow(dpy, root, 0, 0, 600, 400, 0, 0, 0);
         ::XMapWindow(dpy, hWnd);
-        XFlush(dpy);
-        XSync(dpy, True);
 
-        X11Thread handler(dpy, hWnd, this);
+        Window hWnd2 = ::XCreateSimpleWindow(dpy, hWnd, 0, 0, 600, 400, 0, 0, 0);
+        ::XMapWindow(dpy, hWnd2);
+
+        ::XFlush(dpy);
+        ::XSync(dpy, True);
+
+        X11Thread handler(dpy, hWnd, hWnd2, this);
         handler.start();
 
         char proxy_id[32];
-        ::snprintf(proxy_id, sizeof(proxy_id), "%lx", long(hWnd));
+        ::snprintf(proxy_id, sizeof(proxy_id), "%lx", long(hWnd2));
         proxy_id[sizeof(proxy_id)-1] = '\0';
 
         // Prepare command-line arguments
