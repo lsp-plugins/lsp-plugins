@@ -21,6 +21,18 @@ namespace lsp
             destroy_params(vParams);
         }
 
+        Parameters *Parameters::clone() const
+        {
+            Parameters *res = new Parameters();
+            if (res == NULL)
+                return NULL;
+            status_t status = res->set(this);
+            if (status == STATUS_OK)
+                return res;
+            delete res;
+            return NULL;
+        }
+
         status_t Parameters::resolve(value_t *value, const char *name, size_t num_indexes, const ssize_t *indexes)
         {
             if (name == NULL)

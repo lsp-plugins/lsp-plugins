@@ -363,7 +363,7 @@ UTEST_BEGIN("core.calc", parameters)
 
         // Test invalid inserts
         UTEST_ASSERT(p.insert_int(100, 789) == STATUS_INVALID_VALUE);
-        UTEST_ASSERT(p.insert_float(100, 1.0f) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.insert_float(100, 1.0) == STATUS_INVALID_VALUE);
         UTEST_ASSERT(p.insert_cstring(100, "abc") == STATUS_INVALID_VALUE);
         UTEST_ASSERT(p.insert_string(100, &tmp) == STATUS_INVALID_VALUE);
         UTEST_ASSERT(p.insert_null(100) == STATUS_INVALID_VALUE);
@@ -717,6 +717,221 @@ UTEST_BEGIN("core.calc", parameters)
         UTEST_ASSERT(p.as_undef(&k) == STATUS_NOT_FOUND);
     }
 
+    void test_set()
+    {
+        Parameters p;
+        value_t v;
+        LSPString tmp, k;
+        values_t vv;
+        init_value(&vv.xv);
+        size_t i=0;
+
+        OK(p.add_undef("1"));
+        OK(p.add_undef("2"));
+        OK(p.add_undef("3"));
+        OK(p.add_undef("4"));
+        OK(p.add_undef("5"));
+        OK(p.add_undef("6"));
+        OK(p.add_undef("7"));
+        OK(p.add_undef("8"));
+
+        // Test setting by index
+        OK(p.set_int(size_t(0), 123));
+        OK(p.set_float(1, 220.0));
+        OK(p.set_bool(2, true));
+        OK(p.set_cstring(3, "string0"));
+        UTEST_ASSERT(tmp.set_ascii("string1"));
+        OK(p.set_string(4, &tmp));
+        OK(p.set_null(5));
+        OK(p.set_undef(6));
+        v.type = VT_INT;
+        v.v_int = 42;
+        OK(p.set(7, &v));
+
+        UTEST_ASSERT(p.set_int(8, 456) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set_float(8, 440.0) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set_bool(8, false) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set_cstring(8, "bad") == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set_string(8, &tmp) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set_null(8) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set_undef(8) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.set(8, &v) == STATUS_INVALID_VALUE);
+
+        // Validate values
+        i = 0;
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        OK(p.get_int(i++, &vv.iv));
+        OK(p.get_float(i++, &vv.fv));
+        OK(p.get_bool(i++, &vv.bv));
+        OK(p.get_string(i++, &vv.sv));
+        OK(p.get_string(i++, &vv.sv2));
+        OK(p.get_null(i++));
+        OK(p.get_undef(i++));
+        OK(p.get(i++, &vv.xv));
+
+        UTEST_ASSERT(vv.iv == 123);
+        UTEST_ASSERT(vv.fv == 220.0);
+        UTEST_ASSERT(vv.bv == true);
+        UTEST_ASSERT(vv.sv.equals_ascii("string0"));
+        UTEST_ASSERT(vv.sv2.equals_ascii("string1"));
+        UTEST_ASSERT(vv.xv.type == VT_INT);
+        UTEST_ASSERT(vv.xv.v_int == 42);
+
+        // Test setting by name
+        OK(p.set_int("1", 456));
+        OK(p.set_float("2", 440.0));
+        OK(p.set_bool("3", false));
+        OK(p.set_string("4", "stringA"));
+        UTEST_ASSERT(tmp.set_ascii("stringB"));
+        OK(p.set_string("5", &tmp));
+        OK(p.set_null("6"));
+        OK(p.set_undef("7"));
+        v.type = VT_FLOAT;
+        v.v_float = 42.0;
+        OK(p.set("8", &v));
+
+        // Validate values
+        i = 0;
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = true;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        OK(p.get_int(i++, &vv.iv));
+        OK(p.get_float(i++, &vv.fv));
+        OK(p.get_bool(i++, &vv.bv));
+        OK(p.get_string(i++, &vv.sv));
+        OK(p.get_string(i++, &vv.sv2));
+        OK(p.get_null(i++));
+        OK(p.get_undef(i++));
+        OK(p.get(i++, &vv.xv));
+
+        UTEST_ASSERT(vv.iv == 456);
+        UTEST_ASSERT(vv.fv == 440.0);
+        UTEST_ASSERT(vv.bv == false);
+        UTEST_ASSERT(vv.sv.equals_ascii("stringA"));
+        UTEST_ASSERT(vv.sv2.equals_ascii("stringB"));
+        UTEST_ASSERT(vv.xv.type == VT_FLOAT);
+        UTEST_ASSERT(vv.xv.v_float == 42.0);
+
+        // Test setting non-existing values
+        OK(p.set_int("9", 123));
+        OK(p.set_float("10", 220.0));
+        OK(p.set_bool("11", true));
+        OK(p.set_string("12", "string0"));
+        UTEST_ASSERT(tmp.set_ascii("string1"));
+        OK(p.set_string("13", &tmp));
+        OK(p.set_null("14"));
+        OK(p.set_undef("15"));
+        v.type = VT_INT;
+        v.v_int = 42;
+        OK(p.set("16", &v));
+
+        UTEST_ASSERT(p.size() == 16);
+        UTEST_ASSERT(p.get_index("9") == 8);
+        UTEST_ASSERT(p.get_index("10") == 9);
+        UTEST_ASSERT(p.get_index("11") == 10);
+        UTEST_ASSERT(p.get_index("12") == 11);
+        UTEST_ASSERT(p.get_index("13") == 12);
+        UTEST_ASSERT(p.get_index("14") == 13);
+        UTEST_ASSERT(p.get_index("15") == 14);
+        UTEST_ASSERT(p.get_index("16") == 15);
+
+        // Test setting by name (2)
+        UTEST_ASSERT(k.set_ascii("1"));
+        OK(p.set_int(&k, 789));
+        UTEST_ASSERT(k.set_ascii("2"));
+        OK(p.set_float(&k, 880.0));
+        UTEST_ASSERT(k.set_ascii("3"));
+        OK(p.set_bool(&k, true));
+        UTEST_ASSERT(k.set_ascii("4"));
+        OK(p.set_string(&k, "testA"));
+        UTEST_ASSERT(tmp.set_ascii("testB"));
+        UTEST_ASSERT(k.set_ascii("5"));
+        OK(p.set_string(&k, &tmp));
+        UTEST_ASSERT(k.set_ascii("6"));
+        OK(p.set_null(&k));
+        UTEST_ASSERT(k.set_ascii("7"));
+        OK(p.set_undef(&k));
+        v.type = VT_INT;
+        v.v_int = 42;
+        UTEST_ASSERT(k.set_ascii("8"));
+        OK(p.set(&k, &v));
+
+        // Validate values
+        i = 0;
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        OK(p.get_int(i++, &vv.iv));
+        OK(p.get_float(i++, &vv.fv));
+        OK(p.get_bool(i++, &vv.bv));
+        OK(p.get_string(i++, &vv.sv));
+        OK(p.get_string(i++, &vv.sv2));
+        OK(p.get_null(i++));
+        OK(p.get_undef(i++));
+        OK(p.get(i++, &vv.xv));
+
+        UTEST_ASSERT(vv.iv == 789);
+        UTEST_ASSERT(vv.fv == 880.0);
+        UTEST_ASSERT(vv.bv == true);
+        UTEST_ASSERT(vv.sv.equals_ascii("testA"));
+        UTEST_ASSERT(vv.sv2.equals_ascii("testB"));
+        UTEST_ASSERT(vv.xv.type == VT_INT);
+        UTEST_ASSERT(vv.xv.v_int == 42);
+
+        // Test setting non-existing values
+        UTEST_ASSERT(k.set_ascii("17"));
+        OK(p.set_int(&k, 123));
+        UTEST_ASSERT(k.set_ascii("18"));
+        OK(p.set_float(&k, 220.0));
+        UTEST_ASSERT(k.set_ascii("19"));
+        OK(p.set_bool(&k, true));
+        UTEST_ASSERT(k.set_ascii("20"));
+        OK(p.set_string(&k, "string0"));
+        UTEST_ASSERT(tmp.set_ascii("string1"));
+        UTEST_ASSERT(k.set_ascii("21"));
+        OK(p.set_string(&k, &tmp));
+        UTEST_ASSERT(k.set_ascii("22"));
+        OK(p.set_null(&k));
+        UTEST_ASSERT(k.set_ascii("23"));
+        OK(p.set_undef(&k));
+        v.type = VT_INT;
+        v.v_int = 42;
+        UTEST_ASSERT(k.set_ascii("24"));
+        OK(p.set(&k, &v));
+
+        UTEST_ASSERT(p.size() == 24);
+        UTEST_ASSERT(k.set_ascii("17"));
+        UTEST_ASSERT(p.get_index(&k) == 16);
+        UTEST_ASSERT(k.set_ascii("18"));
+        UTEST_ASSERT(p.get_index(&k) == 17);
+        UTEST_ASSERT(k.set_ascii("19"));
+        UTEST_ASSERT(p.get_index(&k) == 18);
+        UTEST_ASSERT(k.set_ascii("20"));
+        UTEST_ASSERT(p.get_index(&k) == 19);
+        UTEST_ASSERT(k.set_ascii("21"));
+        UTEST_ASSERT(p.get_index(&k) == 20);
+        UTEST_ASSERT(k.set_ascii("22"));
+        UTEST_ASSERT(p.get_index(&k) == 21);
+        UTEST_ASSERT(k.set_ascii("23"));
+        UTEST_ASSERT(p.get_index(&k) == 22);
+        UTEST_ASSERT(k.set_ascii("24"));
+        UTEST_ASSERT(p.get_index(&k) == 23);
+    }
+
     UTEST_MAIN
     {
         printf("Testing add functions...\n");
@@ -727,6 +942,9 @@ UTEST_BEGIN("core.calc", parameters)
 
         printf("Testing cast functions...\n");
         test_cast();
+
+        printf("Testing set functions...\n");
+        test_set();
     }
 
 UTEST_END

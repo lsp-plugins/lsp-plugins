@@ -64,6 +64,7 @@ namespace lsp
                 inline size_t       size() const            { return vParams.size(); }
                 inline void         swap(Parameters *src)   { vParams.swap_data(&src->vParams); }
                 inline void         clear()                 { destroy_params(vParams); };
+                Parameters         *clone() const;
 
                 // Adding: add parameter to the end of list.
                 status_t            add_int(const char *name, ssize_t value);
