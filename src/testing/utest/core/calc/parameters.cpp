@@ -34,7 +34,7 @@ UTEST_BEGIN("core.calc", parameters)
 
         // Append named parameters
         OK(p.add_int("1", 123));
-        OK(p.add_float("2", 440.0f));
+        OK(p.add_float("2", 440.0));
         OK(p.add_string("3", "string0"));
         UTEST_ASSERT(tmp.set_utf8("string1"));
         OK(p.add_string("4", &tmp));
@@ -51,7 +51,7 @@ UTEST_BEGIN("core.calc", parameters)
         UTEST_ASSERT(k.set_utf8("1"));
         OK(p.add_int(&k, 456));
         UTEST_ASSERT(k.set_utf8("2"));
-        OK(p.add_float(&k, 880.0f));
+        OK(p.add_float(&k, 880.0));
         UTEST_ASSERT(k.set_utf8("3"));
         OK(p.add_string(&k, "stringA"));
         UTEST_ASSERT(tmp.set_utf8("stringB"));
@@ -65,14 +65,14 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.add_undef(&k));
         UTEST_ASSERT(k.set_utf8("8"));
         v.type      = VT_FLOAT;
-        v.v_int     = 42.0f;
+        v.v_int     = 42.0;
         OK(p.add(&k, &v));
 
         UTEST_ASSERT(p.size() == 16);
 
         // Append anonymous parameters
         OK(p.add_int(789));
-        OK(p.add_float(220.0f));
+        OK(p.add_float(220.0));
         OK(p.add_cstring("test0"));
         UTEST_ASSERT(tmp.set_utf8("test1"));
         OK(p.add_string(&tmp));
@@ -90,7 +90,14 @@ UTEST_BEGIN("core.calc", parameters)
         init_value(&vv.xv);
         size_t i=0;
 
-        // Part 1
+        // Part 1 check
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
         OK(p.get_int(i++, &vv.iv));
         OK(p.get_float(i++, &vv.fv));
         OK(p.get_string(i++, &vv.sv));
@@ -101,14 +108,21 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.get(i++, &vv.xv));
 
         UTEST_ASSERT(vv.iv == 123);
-        UTEST_ASSERT(vv.fv == 440.0f);
+        UTEST_ASSERT(vv.fv == 440.0);
         UTEST_ASSERT(vv.sv.equals_ascii("string0"));
         UTEST_ASSERT(vv.sv2.equals_ascii("string1"));
         UTEST_ASSERT(vv.bv == true);
         UTEST_ASSERT(vv.xv.type == VT_INT);
         UTEST_ASSERT(vv.xv.v_int == 42);
 
-        // Part 2
+        // Part 2 check
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = true;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
         OK(p.get_int(i++, &vv.iv));
         OK(p.get_float(i++, &vv.fv));
         OK(p.get_string(i++, &vv.sv));
@@ -119,14 +133,21 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.get(i++, &vv.xv));
 
         UTEST_ASSERT(vv.iv == 456);
-        UTEST_ASSERT(vv.fv == 880.0f);
+        UTEST_ASSERT(vv.fv == 880.0);
         UTEST_ASSERT(vv.sv.equals_ascii("stringA"));
         UTEST_ASSERT(vv.sv2.equals_ascii("stringB"));
         UTEST_ASSERT(vv.bv == false);
         UTEST_ASSERT(vv.xv.type == VT_FLOAT);
-        UTEST_ASSERT(vv.xv.v_int == 42.0f);
+        UTEST_ASSERT(vv.xv.v_int == 42.0);
 
         // Part 3
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
         OK(p.get_int(i++, &vv.iv));
         OK(p.get_float(i++, &vv.fv));
         OK(p.get_string(i++, &vv.sv));
@@ -137,7 +158,7 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.get(i++, &vv.xv));
 
         UTEST_ASSERT(vv.iv == 789);
-        UTEST_ASSERT(vv.fv == 220.0f);
+        UTEST_ASSERT(vv.fv == 220.0);
         UTEST_ASSERT(vv.sv.equals_ascii("test0"));
         UTEST_ASSERT(vv.sv2.equals_ascii("test1"));
         UTEST_ASSERT(vv.bv == true);
@@ -147,6 +168,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Validate fetching parameters by name (part 1)
         vv.iv = 0;
         vv.fv = 0.0;
+        vv.bv = false;
         vv.sv.clear();
         vv.sv2.clear();
         destroy_value(&vv.xv);
@@ -161,7 +183,7 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.get("8", &vv.xv));
 
         UTEST_ASSERT(vv.iv == 123);
-        UTEST_ASSERT(vv.fv == 440.0f);
+        UTEST_ASSERT(vv.fv == 440.0);
         UTEST_ASSERT(vv.sv.equals_ascii("string0"));
         UTEST_ASSERT(vv.sv2.equals_ascii("string1"));
         UTEST_ASSERT(vv.bv == true);
@@ -171,6 +193,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Validate fetching parameters by name (part 2)
         vv.iv = 0;
         vv.fv = 0.0;
+        vv.bv = false;
         vv.sv.clear();
         vv.sv2.clear();
         destroy_value(&vv.xv);
@@ -193,7 +216,7 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.get(&k, &vv.xv));
 
         UTEST_ASSERT(vv.iv == 123);
-        UTEST_ASSERT(vv.fv == 440.0f);
+        UTEST_ASSERT(vv.fv == 440.0);
         UTEST_ASSERT(vv.sv.equals_ascii("string0"));
         UTEST_ASSERT(vv.sv2.equals_ascii("string1"));
         UTEST_ASSERT(vv.bv == true);
@@ -203,9 +226,126 @@ UTEST_BEGIN("core.calc", parameters)
         destroy_value(&vv.xv);
     }
 
+    void test_insert()
+    {
+        Parameters p;
+        value_t v;
+        LSPString tmp, k;
+        values_t vv;
+        init_value(&vv.xv);
+
+        // Append named parameters
+        OK(p.add_int("1", 123));
+        OK(p.add_float("2", 440.0));
+        OK(p.add_string("3", "string0"));
+        UTEST_ASSERT(tmp.set_utf8("string1"));
+        OK(p.add_string("4", &tmp));
+        OK(p.add_bool("5", true));
+        OK(p.add_null("6"));
+        OK(p.add_undef("7"));
+        v.type      = VT_INT;
+        v.v_int     = 42;
+        OK(p.add("8", &v));
+
+        UTEST_ASSERT(p.size() == 8);
+
+        // Insert named parameters
+        OK(p.insert_int(0, "1", 456));
+        OK(p.insert_float(1, "2", 220.0));
+        OK(p.insert_string(2, "3", "stringA"));
+        UTEST_ASSERT(tmp.set_utf8("stringB"));
+        OK(p.insert_string(3, "4", &tmp));
+        OK(p.insert_bool(4, "5", false));
+        OK(p.insert_null(5, "6"));
+        OK(p.insert_undef(6, "7"));
+        v.type      = VT_FLOAT;
+        v.v_int     = 42.0;
+        OK(p.insert(7, "8", &v));
+
+        UTEST_ASSERT(p.size() == 16);
+
+        // Check parameter types
+        // Validate fetching parameters by name (part 1)
+        vv.iv = 0;
+        vv.bv = false;
+        vv.fv = 0.0;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        OK(p.get_int("1", &vv.iv));
+        OK(p.get_float("2", &vv.fv));
+        OK(p.get_string("3", &vv.sv));
+        OK(p.get_string("4", &vv.sv2));
+        OK(p.get_bool("5", &vv.bv));
+        OK(p.get_null("6"));
+        OK(p.get_undef("7"));
+        OK(p.get("8", &vv.xv));
+
+        UTEST_ASSERT(vv.iv == 456);
+        UTEST_ASSERT(vv.fv == 220.0);
+        UTEST_ASSERT(vv.sv.equals_ascii("string0"));
+        UTEST_ASSERT(vv.sv2.equals_ascii("string1"));
+        UTEST_ASSERT(vv.bv == true);
+        UTEST_ASSERT(vv.xv.type == VT_FLOAT);
+        UTEST_ASSERT(vv.xv.v_int == 42.0);
+
+        // Insert more named parameters
+        UTEST_ASSERT(k.set_utf8("1"));
+        OK(p.insert_int(0, &k, 789));
+        UTEST_ASSERT(k.set_utf8("2"));
+        OK(p.insert_float(1, &k, 880.0));
+        UTEST_ASSERT(k.set_utf8("3"));
+        OK(p.insert_string(2, &k, "testA"));
+        UTEST_ASSERT(k.set_utf8("4"));
+        UTEST_ASSERT(tmp.set_utf8("testB"));
+        UTEST_ASSERT(k.set_utf8("5"));
+        OK(p.insert_string(3, &k, &tmp));
+        UTEST_ASSERT(k.set_utf8("6"));
+        OK(p.insert_bool(4, &k, false));
+        UTEST_ASSERT(k.set_utf8("7"));
+        OK(p.insert_null(5, &k));
+        UTEST_ASSERT(k.set_utf8("8"));
+        OK(p.insert_undef(6, &k));
+        v.type      = VT_BOOL;
+        v.v_int     = true;
+        OK(p.insert(7, &k, &v));
+
+        UTEST_ASSERT(p.size() == 24);
+
+        // Check parameter types
+        // Validate fetching parameters by name (part 1)
+        vv.iv = 0;
+        vv.bv = true;
+        vv.fv = 0.0;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        OK(p.get_int("1", &vv.iv));
+        OK(p.get_float("2", &vv.fv));
+        OK(p.get_string("3", &vv.sv));
+        OK(p.get_string("4", &vv.sv2));
+        OK(p.get_bool("5", &vv.bv));
+        OK(p.get_null("6"));
+        OK(p.get_undef("7"));
+        OK(p.get("8", &vv.xv));
+
+        UTEST_ASSERT(vv.iv == 789);
+        UTEST_ASSERT(vv.fv == 880.0);
+        UTEST_ASSERT(vv.sv.equals_ascii("testA"));
+        UTEST_ASSERT(vv.sv2.equals_ascii("testB"));
+        UTEST_ASSERT(vv.bv == false);
+        UTEST_ASSERT(vv.xv.type == VT_BOOL);
+        UTEST_ASSERT(vv.xv.v_int == true);
+    }
+
     UTEST_MAIN
     {
-        printf("Testing add functions...");
+        printf("Testing add functions...\n");
+        test_add();
+
+        printf("Testing insert functions...\n");
         test_add();
     }
 
