@@ -135,6 +135,7 @@ namespace lsp
             {
                 init_value(&p->value);
                 p->len = len;
+                ::memcpy(p->name, name, len * sizeof(lsp_wchar_t));
             }
             return p;
         }
@@ -433,7 +434,7 @@ namespace lsp
             return add(&v);
         }
 
-        status_t Parameters::add_string(const char *value, const char *charset)
+        status_t Parameters::add_cstring(const char *value, const char *charset)
         {
             if (value == NULL)
                 return add_null();
@@ -686,7 +687,7 @@ namespace lsp
             return insert(index, &v);
         }
 
-        status_t Parameters::insert_string(size_t index, const char *value, const char *charset)
+        status_t Parameters::insert_cstring(size_t index, const char *value, const char *charset)
         {
             if (value == NULL)
                 return insert_null(index);
@@ -794,7 +795,7 @@ namespace lsp
             param_t *v = vParams.get(index);
             if (v == NULL)
                 return STATUS_INVALID_VALUE;
-            else if (v->value.type != VT_BOOL)
+            else if (v->value.type != VT_STRING)
                 return STATUS_BAD_TYPE;
             else if (value != NULL)
             {
@@ -1396,7 +1397,7 @@ namespace lsp
             return set(index, &v);
         }
 
-        status_t Parameters::set_string(size_t index, const char *value, const char *charset)
+        status_t Parameters::set_cstring(size_t index, const char *value, const char *charset)
         {
             if (value == NULL)
                 return set_null(index);

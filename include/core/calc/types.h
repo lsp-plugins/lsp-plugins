@@ -102,6 +102,7 @@ namespace lsp
 
         /**
          * Destroy value and all internal contents associated with it
+         * The value remains valid and available for further operations but set to UNDEF
          * @param value value to destroy
          */
         void        destroy_value(value_t *value);

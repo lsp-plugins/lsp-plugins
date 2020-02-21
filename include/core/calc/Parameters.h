@@ -88,7 +88,7 @@ namespace lsp
                 status_t            add_int(ssize_t value);
                 status_t            add_float(double value);
                 status_t            add_bool(bool value);
-                status_t            add_string(const char *value, const char *charset = NULL);
+                status_t            add_cstring(const char *value, const char *charset = NULL);
                 status_t            add_string(const LSPString *value);
                 status_t            add_null();
                 status_t            add_undef();
@@ -118,7 +118,7 @@ namespace lsp
                 status_t            insert_int(size_t index, ssize_t value);
                 status_t            insert_float(size_t index, double value);
                 status_t            insert_bool(size_t index, bool value);
-                status_t            insert_string(size_t index, const char *value, const char *charset = NULL);
+                status_t            insert_cstring(size_t index, const char *value, const char *charset = NULL);
                 status_t            insert_string(size_t index, const LSPString *value);
                 status_t            insert_null(size_t index);
                 status_t            insert_undef(size_t index);
@@ -198,7 +198,7 @@ namespace lsp
                 status_t            set_int(size_t index, ssize_t value);
                 status_t            set_float(size_t index, double value);
                 status_t            set_bool(size_t index, bool value);
-                status_t            set_string(size_t index, const char *value, const char *charset = NULL);
+                status_t            set_cstring(size_t index, const char *value, const char *charset = NULL);
                 status_t            set_string(size_t index, const LSPString *value);
                 status_t            set_null(size_t index);
                 status_t            set_undef(size_t index);
