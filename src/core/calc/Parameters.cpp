@@ -44,7 +44,7 @@ namespace lsp
             return NULL;
         }
 
-        ssize_t Parameters::lookup_idx_by_name(const LSPString *name)
+        ssize_t Parameters::get_index(const LSPString *name) const
         {
             for (size_t i=0, n=vParams.size(); i<n; ++i)
             {
@@ -53,6 +53,45 @@ namespace lsp
                     return i;
             }
             return -STATUS_NOT_FOUND;
+        }
+
+        ssize_t Parameters::get_index(const char *name) const
+        {
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+            return get_index(&tmp);
+        }
+
+        status_t Parameters::get_name(size_t index, LSPString *name) const
+        {
+            param_t *p = vParams.get(index);
+            if (p == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (p->len < 0)
+                return STATUS_NULL;
+
+            return (name->set(p->name, p->len)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        ssize_t Parameters::get_type(size_t index) const
+        {
+            param_t *p = vParams.get(index);
+            return (p != NULL) ? p->value.type : -STATUS_INVALID_VALUE;
+        }
+
+        ssize_t Parameters::get_type(const char *name) const
+        {
+            LSPString tmp;
+            if (!tmp.set_utf8(name))
+                return STATUS_NO_MEM;
+            return get_type(&tmp);
+        }
+
+        ssize_t Parameters::get_type(const LSPString *name) const
+        {
+            param_t *p = const_cast<Parameters *>(this)->lookup_by_name(name);
+            return (p != NULL) ? p->value.type : -STATUS_NOT_FOUND;
         }
 
         Parameters::param_t *Parameters::lookup_by_name(const LSPString *name, size_t *idx)

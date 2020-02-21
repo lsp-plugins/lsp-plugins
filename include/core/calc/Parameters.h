@@ -38,7 +38,6 @@ namespace lsp
 
             protected:
                 param_t            *lookup_by_name(const LSPString *name);
-                ssize_t             lookup_idx_by_name(const LSPString *name);
                 param_t            *lookup_by_name(const LSPString *name, size_t *idx);
                 static param_t     *allocate();
                 static param_t     *allocate(const lsp_wchar_t *name, ssize_t len);
@@ -235,13 +234,19 @@ namespace lsp
                 status_t            remove_value(const LSPString *name, value_type_t type, value_t *value = NULL);
 
                 // Obtaining type of parameter (negative result on error)
-                ssize_t             get_type(size_t index);
-                ssize_t             get_type(const char *name);
-                ssize_t             get_type(const LSPString *name);
+                ssize_t             get_type(size_t index) const;
+                ssize_t             get_type(const char *name) const;
+                ssize_t             get_type(const LSPString *name) const;
 
                 // Obtaining name of parameter
-                ssize_t             get_name(size_t index, LSPString *name);
-                const char         *get_name(size_t index);
+                status_t            get_name(size_t index, LSPString *name) const;
+                ssize_t             get_index(const LSPString *name) const;
+                ssize_t             get_index(const char *name) const;
+
+                // Checking for contents
+                inline bool         contains(size_t index) const            { return index < vParams.size(); }
+                inline bool         contains(const char *name) const        { return get_index(name) >= 0; }
+                inline bool         contains(const LSPString *name) const   { return get_index(name) >= 0; }
         };
     
     } /* namespace calc */

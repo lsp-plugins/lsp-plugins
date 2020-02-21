@@ -178,7 +178,10 @@ namespace lsp
                 case VT_BOOL: return cast_bool(v);
                 case VT_STRING: return cast_string(v);
                 case VT_NULL:
+                    set_value_null(v);
+                    return STATUS_OK;
                 case VT_UNDEF:
+                    set_value_undef(v);
                     return STATUS_OK;
             }
 
