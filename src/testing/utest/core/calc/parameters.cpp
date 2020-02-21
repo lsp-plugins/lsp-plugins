@@ -932,6 +932,284 @@ UTEST_BEGIN("core.calc", parameters)
         UTEST_ASSERT(p.get_index(&k) == 23);
     }
 
+    void test_remove()
+    {
+        Parameters p;
+        value_t v;
+        LSPString tmp, k;
+        values_t vv;
+        init_value(&vv.xv);
+        size_t i=0;
+
+        // Append named parameters
+        OK(p.add_int("1", 123));
+        OK(p.add_float("2", 440.0));
+        OK(p.add_string("3", "string0"));
+        OK(p.add_bool("4", true));
+        OK(p.add_null("5"));
+        OK(p.add_undef("6"));
+        v.type      = VT_INT;
+        v.v_int     = 42;
+        OK(p.add("7", &v));
+
+        // Remove parameters by index
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        UTEST_ASSERT(p.remove_float(i, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(i, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(i, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(i, VT_FLOAT, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_int(i, &vv.iv));
+        UTEST_ASSERT(vv.iv == 123);
+
+        UTEST_ASSERT(p.remove_int(i, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(i, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(i, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(i, VT_INT, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_float(i, &vv.fv));
+        UTEST_ASSERT(vv.fv == 440.0);
+
+        UTEST_ASSERT(p.remove_int(i, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(i, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(i, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(i, VT_NULL, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_string(i, &vv.sv));
+        UTEST_ASSERT(vv.sv.equals_ascii("string0"));
+
+        UTEST_ASSERT(p.remove_int(i, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(i, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(i, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(i, VT_STRING, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_bool(i, &vv.bv));
+        UTEST_ASSERT(vv.bv == true);
+
+        UTEST_ASSERT(p.remove_int(i, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(i, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(i, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(i, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(i, VT_UNDEF, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_null(i));
+
+        UTEST_ASSERT(p.remove_int(i, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(i, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(i, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(i, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(i) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(i, VT_BOOL, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_undef(i));
+
+        OK(p.remove(i, &vv.xv));
+        UTEST_ASSERT(vv.xv.type == VT_INT);
+        UTEST_ASSERT(vv.xv.v_int == 42);
+
+        UTEST_ASSERT(p.remove_int(i, &vv.iv) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove_float(i, &vv.fv) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove_bool(i, &vv.bv) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove_string(i, &vv.sv) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove_null(i) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove_undef(i) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove_value(i, VT_STRING, &v) == STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.remove(i, &vv.xv) == STATUS_INVALID_VALUE);
+
+        UTEST_ASSERT(p.size() == 0);
+
+        // Append named parameters
+        OK(p.add_int("1", 123));
+        OK(p.add_float("2", 440.0));
+        OK(p.add_string("3", "string0"));
+        OK(p.add_bool("4", true));
+        OK(p.add_null("5"));
+        OK(p.add_undef("6"));
+        v.type      = VT_INT;
+        v.v_int     = 42;
+        OK(p.add("7", &v));
+
+        // Remove parameters by name
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        UTEST_ASSERT(p.remove_float("1", &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string("1", &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool("1", &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null("1") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef("1") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value("1", VT_FLOAT, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_int("1", &vv.iv));
+        UTEST_ASSERT(vv.iv == 123);
+
+        UTEST_ASSERT(p.remove_int("2", &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string("2", &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool("2", &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null("2") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef("2") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value("2", VT_INT, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_float("2", &vv.fv));
+        UTEST_ASSERT(vv.fv == 440.0);
+
+        UTEST_ASSERT(p.remove_int("3", &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float("3", &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool("3", &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null("3") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef("3") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value("3", VT_NULL, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_string("3", &vv.sv));
+        UTEST_ASSERT(vv.sv.equals_ascii("string0"));
+
+        UTEST_ASSERT(p.remove_int("4", &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float("4", &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string("4", &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null("4") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef("4") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value("4", VT_STRING, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_bool("4", &vv.bv));
+        UTEST_ASSERT(vv.bv == true);
+
+        UTEST_ASSERT(p.remove_int("5", &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float("5", &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string("5", &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool("5", &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef("5") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value("5", VT_UNDEF, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_null("5"));
+
+        UTEST_ASSERT(p.remove_int("6", &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float("6", &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string("6", &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool("6", &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null("6") == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value("6", VT_BOOL, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_undef("6"));
+
+        OK(p.remove("7", &vv.xv));
+        UTEST_ASSERT(vv.xv.type == VT_INT);
+        UTEST_ASSERT(vv.xv.v_int == 42);
+
+        UTEST_ASSERT(p.remove_int("8", &vv.iv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_float("8", &vv.fv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_string("8", &vv.sv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_bool("8", &vv.bv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_null("8") == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_undef("8") == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_value("8", VT_BOOL, &v) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove("8", &v) == STATUS_NOT_FOUND);
+
+        UTEST_ASSERT(p.size() == 0);
+
+        // Append named parameters
+        OK(p.add_int("1", 123));
+        OK(p.add_float("2", 440.0));
+        OK(p.add_string("3", "string0"));
+        OK(p.add_bool("4", true));
+        OK(p.add_null("5"));
+        OK(p.add_undef("6"));
+        v.type      = VT_INT;
+        v.v_int     = 42;
+        OK(p.add("7", &v));
+
+        // Remove parameters by name (2)
+        vv.iv = 0;
+        vv.fv = 0.0;
+        vv.bv = false;
+        vv.sv.clear();
+        vv.sv2.clear();
+        destroy_value(&vv.xv);
+
+        UTEST_ASSERT(k.set_ascii("1"));
+        UTEST_ASSERT(p.remove_float(&k, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(&k, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(&k, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(&k, VT_FLOAT, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_int(&k, &vv.iv));
+        UTEST_ASSERT(vv.iv == 123);
+
+        UTEST_ASSERT(k.set_ascii("2"));
+        UTEST_ASSERT(p.remove_int(&k, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(&k, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(&k, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(&k, VT_INT, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_float(&k, &vv.fv));
+        UTEST_ASSERT(vv.fv == 440.0);
+
+        UTEST_ASSERT(k.set_ascii("3"));
+        UTEST_ASSERT(p.remove_int(&k, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(&k, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(&k, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(&k, VT_NULL, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_string(&k, &vv.sv));
+        UTEST_ASSERT(vv.sv.equals_ascii("string0"));
+
+        UTEST_ASSERT(k.set_ascii("4"));
+        UTEST_ASSERT(p.remove_int(&k, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(&k, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(&k, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(&k, VT_STRING, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_bool(&k, &vv.bv));
+        UTEST_ASSERT(vv.bv == true);
+
+        UTEST_ASSERT(k.set_ascii("5"));
+        UTEST_ASSERT(p.remove_int(&k, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(&k, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(&k, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(&k, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_undef(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(&k, VT_UNDEF, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_null(&k));
+
+        UTEST_ASSERT(k.set_ascii("6"));
+        UTEST_ASSERT(p.remove_int(&k, &vv.iv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_float(&k, &vv.fv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_string(&k, &vv.sv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_bool(&k, &vv.bv) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_null(&k) == STATUS_BAD_TYPE);
+        UTEST_ASSERT(p.remove_value(&k, VT_BOOL, &v) == STATUS_BAD_TYPE);
+        OK(p.remove_undef(&k));
+
+        UTEST_ASSERT(k.set_ascii("7"));
+        OK(p.remove(&k, &vv.xv));
+        UTEST_ASSERT(vv.xv.type == VT_INT);
+        UTEST_ASSERT(vv.xv.v_int == 42);
+
+        UTEST_ASSERT(k.set_ascii("8"));
+        UTEST_ASSERT(p.remove_int(&k, &vv.iv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_float(&k, &vv.fv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_string(&k, &vv.sv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_bool(&k, &vv.bv) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_null(&k) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_undef(&k) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove_value(&k, VT_BOOL, &v) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.remove(&k, &v) == STATUS_NOT_FOUND);
+
+        UTEST_ASSERT(p.size() == 0);
+
+        destroy_value(&vv.xv);
+    }
+
     UTEST_MAIN
     {
         printf("Testing add functions...\n");
@@ -945,6 +1223,9 @@ UTEST_BEGIN("core.calc", parameters)
 
         printf("Testing set functions...\n");
         test_set();
+
+        printf("Testing remove functions...\n");
+        test_remove();
     }
 
 UTEST_END
