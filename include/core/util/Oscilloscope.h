@@ -59,7 +59,7 @@ namespace lsp
         {
             size_t  nHead;
             size_t  nTriggerAt;
-//            size_t  nRemaining;
+            size_t  nCopyHead;
         } buffer_t;
 
         private:
@@ -202,6 +202,14 @@ namespace lsp
                 bSync = true;
             }
 
+            /**
+             *
+             */
+            inline void set_sweep_complete(bool complete)
+            {
+                sSweepParams.bSweepComplete = complete;
+            }
+
             /** Set trigger type.
              *
              * @param type trigger type.
@@ -242,15 +250,6 @@ namespace lsp
             inline float * get_sweep_buffer()
             {
                 return vSweepBuffer;
-            }
-
-            /** Get the sweep buffer length.
-             *
-             * @return sweep buffer length.
-             */
-            inline size_t get_sweep_buffer_length()
-            {
-                return sSweepParams.nSweepLength;
             }
     };
 }

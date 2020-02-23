@@ -53,6 +53,7 @@ MTEST_BEGIN("core.util", oscilloscope)
                 snprintf(fName, MAX_FNAME_LENGTH, "tmp/sweep_%lu.csv", (unsigned long)sweepMark);
                 dsp::copy(sweepDst, sweepBuf, sweepCount);
                 write_buffer(fName, "Sweep", sweepDst, sweepCount);
+                sOscilloscope.set_sweep_complete(false);
                 ++sweepMark;
             }
         }
@@ -68,9 +69,9 @@ MTEST_MAIN
     fg_function_t   enTestSigFunc   = FG_SINE;
     float           fTestSigFreq    = 1000.0f;
 
-    over_mode_t     enOverMode      = OM_NONE;
-    float           fPreTrigger     = 10.0f / fTestSigFreq;
-    float           fPostTrigger    = 10.0f / fTestSigFreq;
+    over_mode_t     enOverMode      = OM_LANCZOS_8X3;
+    float           fPreTrigger     = 20.0f / fTestSigFreq;
+    float           fPostTrigger    = 20.0f / fTestSigFreq;
     trg_type_t      enTrigType      = TRG_TYPE_SIMPLE_RISING_EDGE;
 
     size_t          nSweeps         = 10;
