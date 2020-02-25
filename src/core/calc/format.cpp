@@ -448,6 +448,7 @@ namespace lsp
                                 break;
 
                             case 's': case 'S': // string, capitalized string, lowered string, first-capitalized string
+
                         }
 
                         break;
