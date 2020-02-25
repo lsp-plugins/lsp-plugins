@@ -112,6 +112,22 @@ namespace lsp
                 return false;
             }
 
+            inline bool remove_items(size_t first, size_t count)
+            {
+                size_t last = first + count;
+                if (last == nItems)
+                {
+                    nItems  = first;
+                    return true;
+                }
+                else if (last > nItems)
+                    return false;
+
+                ::memmove(&pvItems[first], &pvItems[last], (nItems - last) * sizeof(void *));
+                nItems  -= count;
+                return true;
+            }
+
             inline bool remove_item(size_t index, bool fast)
             {
                 if (index >= nItems)
@@ -357,6 +373,8 @@ namespace lsp
                 inline bool remove(const T *item, bool fast = false) { return basic_vector::remove_item(item, fast); }
 
                 inline bool remove(size_t index, bool fast = false) { return basic_vector::remove_item(index, fast); };
+
+                inline bool remove_n(size_t index, size_t count) { return basic_vector::remove_items(index, count); };
 
                 inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 

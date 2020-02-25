@@ -1210,6 +1210,148 @@ UTEST_BEGIN("core.calc", parameters)
         destroy_value(&vv.xv);
     }
 
+    void test_get_type()
+    {
+        Parameters p;
+        LSPString tmp, k;
+        values_t vv;
+        init_value(&vv.xv);
+
+        // Append named parameters
+        OK(p.add_int("1", 123));
+        OK(p.add_float("2", 440.0));
+        OK(p.add_string("3", "string0"));
+        OK(p.add_bool("4", true));
+        OK(p.add_null("5"));
+        OK(p.add_undef("6"));
+
+        // Get names
+        OK(p.get_name(0, &k));
+        UTEST_ASSERT(p.get_type(size_t(0)) == VT_INT);
+        UTEST_ASSERT(k.equals_ascii("1"));
+        OK(p.get_name(1, &k));
+        UTEST_ASSERT(p.get_type(1) == VT_FLOAT);
+        UTEST_ASSERT(k.equals_ascii("2"));
+        OK(p.get_name(2, &k));
+        UTEST_ASSERT(p.get_type(2) == VT_STRING);
+        UTEST_ASSERT(k.equals_ascii("3"));
+        OK(p.get_name(3, &k));
+        UTEST_ASSERT(p.get_type(3) == VT_BOOL);
+        UTEST_ASSERT(k.equals_ascii("4"));
+        OK(p.get_name(4, &k));
+        UTEST_ASSERT(p.get_type(4) == VT_NULL);
+        UTEST_ASSERT(k.equals_ascii("5"));
+        OK(p.get_name(5, &k));
+        UTEST_ASSERT(p.get_type(5) == VT_UNDEF);
+        UTEST_ASSERT(k.equals_ascii("6"));
+        UTEST_ASSERT(p.get_type(6) == -STATUS_INVALID_VALUE);
+        UTEST_ASSERT(p.get_name(6, &k) == STATUS_INVALID_VALUE);
+
+        // Get indexes
+        UTEST_ASSERT(p.get_index("1") == 0);
+        UTEST_ASSERT(p.get_type("1") == VT_INT);
+        UTEST_ASSERT(p.get_index("2") == 1);
+        UTEST_ASSERT(p.get_type("2") == VT_FLOAT);
+        UTEST_ASSERT(p.get_index("3") == 2);
+        UTEST_ASSERT(p.get_type("3") == VT_STRING);
+        UTEST_ASSERT(p.get_index("4") == 3);
+        UTEST_ASSERT(p.get_type("4") == VT_BOOL);
+        UTEST_ASSERT(p.get_index("5") == 4);
+        UTEST_ASSERT(p.get_type("5") == VT_NULL);
+        UTEST_ASSERT(p.get_index("6") == 5);
+        UTEST_ASSERT(p.get_type("6") == VT_UNDEF);
+        UTEST_ASSERT(p.get_index("7") == -STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.get_type("7") == -STATUS_NOT_FOUND);
+
+        // Get indexes (LSPString)
+        UTEST_ASSERT(k.set_ascii("1"));
+        UTEST_ASSERT(p.get_index(&k) == 0);
+        UTEST_ASSERT(p.get_type(&k) == VT_INT);
+        UTEST_ASSERT(k.set_ascii("2"));
+        UTEST_ASSERT(p.get_index(&k) == 1);
+        UTEST_ASSERT(p.get_type(&k) == VT_FLOAT);
+        UTEST_ASSERT(k.set_ascii("3"));
+        UTEST_ASSERT(p.get_index(&k) == 2);
+        UTEST_ASSERT(p.get_type(&k) == VT_STRING);
+        UTEST_ASSERT(k.set_ascii("4"));
+        UTEST_ASSERT(p.get_index(&k) == 3);
+        UTEST_ASSERT(p.get_type(&k) == VT_BOOL);
+        UTEST_ASSERT(k.set_ascii("5"));
+        UTEST_ASSERT(p.get_index(&k) == 4);
+        UTEST_ASSERT(p.get_type(&k) == VT_NULL);
+        UTEST_ASSERT(k.set_ascii("6"));
+        UTEST_ASSERT(p.get_index(&k) == 5);
+        UTEST_ASSERT(p.get_type(&k) == VT_UNDEF);
+        UTEST_ASSERT(k.set_ascii("7"));
+        UTEST_ASSERT(p.get_index(&k) == -STATUS_NOT_FOUND);
+        UTEST_ASSERT(p.get_type(&k) == -STATUS_NOT_FOUND);
+
+        destroy_value(&vv.xv);
+    }
+
+    void test_set_operations()
+    {
+        Parameters p;
+        OK(p.add_int("1", 123));
+        OK(p.add_float("2", 440.0));
+        OK(p.add_string("3", "string0"));
+        OK(p.add_bool("4", true));
+        OK(p.add_null("5"));
+        OK(p.add_undef("6"));
+        UTEST_ASSERT(p.size() == 6);
+
+        // Check clones
+        Parameters *tmp = p.clone();
+        UTEST_ASSERT(tmp->size() == 6);
+        UTEST_ASSERT(tmp->get_type("1") == VT_INT);
+        UTEST_ASSERT(tmp->get_type("2") == VT_FLOAT);
+        UTEST_ASSERT(tmp->get_type("3") == VT_STRING);
+        UTEST_ASSERT(tmp->get_type("4") == VT_BOOL);
+        UTEST_ASSERT(tmp->get_type("5") == VT_NULL);
+        UTEST_ASSERT(tmp->get_type("6") == VT_UNDEF);
+
+        // Clear
+        tmp->clear();
+        UTEST_ASSERT(tmp->size() == 0);
+
+        // Add parameters
+        OK(tmp->add_int("4", 42));
+        OK(tmp->add(&p, 3, 6));
+        OK(tmp->insert(0, &p, 0, 3));
+        UTEST_ASSERT(tmp->size() == 7);
+
+        UTEST_ASSERT(tmp->get_type("1") == VT_INT);
+        UTEST_ASSERT(tmp->get_type("2") == VT_FLOAT);
+        UTEST_ASSERT(tmp->get_type("3") == VT_STRING);
+        UTEST_ASSERT(tmp->get_type("4") == VT_INT);
+        UTEST_ASSERT(tmp->get_type("5") == VT_NULL);
+        UTEST_ASSERT(tmp->get_type("6") == VT_UNDEF);
+
+        UTEST_ASSERT(tmp->get_type(size_t(0)) == VT_INT);
+        UTEST_ASSERT(tmp->get_type(1) == VT_FLOAT);
+        UTEST_ASSERT(tmp->get_type(2) == VT_STRING);
+        UTEST_ASSERT(tmp->get_type(3) == VT_INT);
+        UTEST_ASSERT(tmp->get_type(4) == VT_BOOL);
+        UTEST_ASSERT(tmp->get_type(5) == VT_NULL);
+        UTEST_ASSERT(tmp->get_type(6) == VT_UNDEF);
+
+        // Remove parameters
+        OK(tmp->remove(2, 5));
+        UTEST_ASSERT(tmp->size() == 4);
+
+        UTEST_ASSERT(tmp->get_type(size_t(0)) == VT_INT);
+        UTEST_ASSERT(tmp->get_type(1) == VT_FLOAT);
+        UTEST_ASSERT(tmp->get_type(2) == VT_NULL);
+        UTEST_ASSERT(tmp->get_type(3) == VT_UNDEF);
+
+        // Test swap
+        p.swap(tmp);
+        UTEST_ASSERT(p.size() == 4);
+        UTEST_ASSERT(tmp->size() == 6);
+
+        delete tmp;
+    }
+
     UTEST_MAIN
     {
         printf("Testing add functions...\n");
@@ -1226,6 +1368,12 @@ UTEST_BEGIN("core.calc", parameters)
 
         printf("Testing remove functions...\n");
         test_remove();
+
+        printf("Testing get_type functions...\n");
+        test_get_type();
+
+        printf("Testing functions for manipulating set of parameters...\n");
+        test_set_operations();
     }
 
 UTEST_END

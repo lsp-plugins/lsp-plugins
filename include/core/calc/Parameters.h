@@ -234,6 +234,8 @@ namespace lsp
                 status_t            remove(const LSPString *name, value_t *value = NULL);
                 status_t            remove_value(const LSPString *name, value_type_t type, value_t *value = NULL);
 
+                status_t            remove(ssize_t first, ssize_t last);
+
                 // Obtaining type of parameter (negative result on error)
                 ssize_t             get_type(size_t index) const;
                 ssize_t             get_type(const char *name) const;

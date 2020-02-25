@@ -199,7 +199,7 @@ namespace lsp
             param_t *p = reinterpret_cast<param_t *>(::malloc(ALIGN_SIZE(to_alloc, DEFAULT_ALIGN)));
             if (p != NULL)
             {
-                copy_value(&p->value, &src->value);
+                init_value(&p->value, &src->value);
                 p->len = src->len;
                 ::memcpy(p->name, src->name, len * sizeof(lsp_wchar_t));
             }
@@ -233,7 +233,7 @@ namespace lsp
             for ( ; first < last; ++first)
             {
                 param_t *p = clone(vp.at(first));
-                if (p == NULL)
+                if ((p == NULL) || (!slice.add(p)))
                 {
                     destroy_params(slice);
                     return STATUS_NO_MEM;
@@ -248,35 +248,67 @@ namespace lsp
 
         status_t Parameters::insert(size_t index, const Parameters *p, ssize_t first, ssize_t last)
         {
+            if ((first < 0) || (first > last) || (last > ssize_t(p->vParams.size())))
+                return STATUS_INVALID_VALUE;
             if (index > vParams.size())
                 return STATUS_OVERFLOW;
-
-            // Initialize temporary parameters
-            Parameters tmp;
-            status_t res = tmp.add(p, first, last);
-            if (res != STATUS_OK)
-                return res;
 
             // Perform a copy
             cvector<param_t> slice;
             param_t * const *vp = vParams.get_array();
             if (!slice.add_all(&vp[0], index))
                 return STATUS_NO_MEM;
-            if (!slice.add_all(&tmp.vParams))
+
+            // Clone parameters and append to the current tail
+            for (ssize_t i=first; i < last; ++i)
+            {
+                param_t *cp = clone(p->vParams.at(i));
+                if ((cp == NULL) || (!slice.add(cp)))
+                {
+                    // Destroy cloned parameters
+                    size_t count = slice.size() - index;
+                    for (size_t j=0; j<count; ++j)
+                        destroy(slice.at(j));
+                    return STATUS_NO_MEM;
+                }
+            }
+
+            // Append parameters
+            if (!slice.add_all(&vp[index], vParams.size() - index))
+            {
+                // Destroy cloned parameters
+                size_t count = slice.size() - index;
+                for (size_t j=0; j<count; ++j)
+                    destroy(slice.at(j));
                 return STATUS_NO_MEM;
-            if (!slice.add_all(&vp[index], index - vParams.size()))
-                return STATUS_NO_MEM;
+            }
 
             // Clean temporary parameters, swap parameters and destroy old data
-            tmp.vParams.flush();
             vParams.swap_data(&slice);
-            destroy_params(slice);
             return STATUS_OK;
         }
 
         status_t Parameters::add(const Parameters *p, ssize_t first, ssize_t last)
         {
-            return insert(vParams.size(), p, first, last);
+            if ((first < 0) || (first > last) || (last > ssize_t(p->vParams.size())))
+                return STATUS_INVALID_VALUE;
+
+            // Clone parameters and append to the tail
+            for (ssize_t i=first; i < last; ++i)
+            {
+                param_t *cp = clone(p->vParams.at(i));
+                if ((cp == NULL) || (!vParams.add(cp)))
+                {
+                    // Destroy cloned parameters
+                    size_t count = vParams.size() - first;
+                    for (size_t j=0; j<count; ++j)
+                        destroy(vParams.at(j));
+                    vParams.remove_n(first, count);
+                    return STATUS_NO_MEM;
+                }
+            }
+
+            return STATUS_OK;
         }
 
         status_t Parameters::add(const LSPString *name, const value_t *value)
@@ -1585,6 +1617,21 @@ namespace lsp
             vParams.remove(index);
             destroy(v);
             return STATUS_OK;
+        }
+
+        status_t Parameters::remove(ssize_t first, ssize_t last)
+        {
+            if ((first < 0) || (last > ssize_t(vParams.size())))
+                return STATUS_INVALID_VALUE;
+
+            ssize_t count = last - first;
+            if (count < 0)
+                return STATUS_INVALID_VALUE;
+
+            for (ssize_t i=first; i<last; ++i)
+                destroy(vParams.at(i));
+
+            return (vParams.remove_n(first, count)) ? STATUS_OK : STATUS_CORRUPTED;
         }
 
         status_t Parameters::drop_value(size_t index, value_type_t type, param_t **out)
