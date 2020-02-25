@@ -24,6 +24,7 @@ namespace lsp
                 OutStringSequence & operator = (const OutStringSequence &);
 
             public:
+                explicit OutStringSequence();
                 explicit OutStringSequence(LSPString *out, bool del = false);
                 virtual ~OutStringSequence();
     
