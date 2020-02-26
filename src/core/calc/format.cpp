@@ -9,12 +9,13 @@
 #include <core/calc/Tokenizer.h>
 #include <core/io/InStringSequence.h>
 #include <core/io/OutStringSequence.h>
+#include <core/stdlib/stdio.h>
 
 namespace lsp
 {
     namespace calc
     {
-        status_t format(io::IOutSequence *out, const char *fmt, Resolver *r)
+        status_t format(io::IOutSequence *out, const char *fmt, Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -37,7 +38,7 @@ namespace lsp
             return xfmt.close();
         }
 
-        status_t format(io::IOutSequence *out, const LSPString *fmt, Resolver *r)
+        status_t format(io::IOutSequence *out, const LSPString *fmt, Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -60,7 +61,7 @@ namespace lsp
             return xfmt.close();
         }
 
-        status_t format(LSPString *out, io::IInSequence *fmt, Resolver *r)
+        status_t format(LSPString *out, io::IInSequence *fmt, Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -83,7 +84,7 @@ namespace lsp
             return xout.close();
         }
 
-        status_t format(LSPString *out, const char *fmt, Resolver *r)
+        status_t format(LSPString *out, const char *fmt, Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -106,7 +107,7 @@ namespace lsp
             return xout.close();
         }
 
-        status_t format(LSPString *out, const LSPString *fmt, Resolver *r)
+        status_t format(LSPString *out, const LSPString *fmt, Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -400,7 +401,7 @@ namespace lsp
                             }
                         }
 
-                        // Read format character
+                        // Read type specifier
                         if (i < len)
                         {
                             res = STATUS_BAD_FORMAT;
@@ -410,12 +411,45 @@ namespace lsp
                         c = spec->buf.char_at(i++);
                         switch (c)
                         {
-                            case 'i': case 'd': // decimals
+                            case 'i': case 'd': case 'u': // decimals
                             case 'b': case 'o': case 'x': case 'X': // octals, binaries, hexadecimals
                             case 'f': case 'F': case 'e': case 'E': // floating-points
+                            case 's': // string
                                 spec->type = c;
                                 break;
-                            case 't': // boolean, bOOLEAN
+                            case 'l': // boolean, bOOLEAN
+                                c = (i < len) ? spec->buf.char_at(i) : 0;
+                                if (c == 'l')
+                                {
+                                    ++i;
+                                    spec->type = 'l';
+                                }
+                                else if (c == 'L')
+                                {
+                                    ++i;
+                                    spec->type = 'z';
+                                }
+                                else
+                                    spec->type = 'l';
+                                break;
+
+                            case 'L': // BOOLEAN, Boolean
+                                c = (i < len) ? spec->buf.char_at(i) : 0;
+                                if (c == 'l')
+                                {
+                                    ++i;
+                                    spec->type = 'Z';
+                                }
+                                else if (c == 'L')
+                                {
+                                    ++i;
+                                    spec->type = 'L';
+                                }
+                                else
+                                    spec->type = 'L';
+                                break;
+
+                            case 't': // text, tEXT
                                 c = (i < len) ? spec->buf.char_at(i) : 0;
                                 if (c == 't')
                                 {
@@ -425,18 +459,17 @@ namespace lsp
                                 else if (c == 'T')
                                 {
                                     ++i;
-                                    spec->type = 'x';
+                                    spec->type = 'y';
                                 }
                                 else
                                     spec->type = 't';
                                 break;
-
-                            case 'T': // BOOLEAN, Boolean
+                            case 'T': // TEXT, Text
                                 c = (i < len) ? spec->buf.char_at(i) : 0;
                                 if (c == 't')
                                 {
                                     ++i;
-                                    spec->type = 'X';
+                                    spec->type = 'Y';
                                 }
                                 else if (c == 'T')
                                 {
@@ -446,15 +479,14 @@ namespace lsp
                                 else
                                     spec->type = 'T';
                                 break;
-
-                            case 's': case 'S': // string, capitalized string, lowered string, first-capitalized string
-
+                            default:
+                                // No type specifier, just width
+                                break;
                         }
 
                         break;
 
                     default:
-                        res = STATUS_BAD_FORMAT;
                         break;
                 }
 
@@ -475,12 +507,328 @@ namespace lsp
             return res;
         }
 
-        status_t emit_parameter(io::IOutSequence *out, fmt_spec_t *spec, Resolver *r)
+        status_t check_specials(fmt_spec_t *spec, value_t *v)
         {
+            if (v->type == VT_NULL)
+                return (spec->buf.set_ascii("<null>")) ? STATUS_SKIP : STATUS_NO_MEM;
+            else if (v->type == VT_UNDEF)
+                return (spec->buf.set_ascii("<undef>")) ? STATUS_SKIP : STATUS_NO_MEM;
             return STATUS_OK;
         }
 
-        status_t format(io::IOutSequence *out, io::IInSequence *fmt, Resolver *r)
+        status_t int_to_dec(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            ssize_t x = v->v_int;
+            do
+            {
+                if ((res = spec->buf.append(lsp_wchar_t((x % 10) + '0'))) != STATUS_OK)
+                    return res;
+                x /= 10;
+            } while (x);
+
+            if (v->v_int < 0)
+                res = spec->buf.append('-');
+            else if (spec->flags & F_SIGN)
+                res = spec->buf.append('+');
+
+            if (res != STATUS_OK)
+                return res;
+
+            spec->buf.reverse();
+            return STATUS_OK;
+        }
+
+        status_t uint_to_dec(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            size_t x = v->v_int;
+            do
+            {
+                if ((res = spec->buf.append(lsp_wchar_t((x % 10) + '0'))) != STATUS_OK)
+                    return res;
+                x /= 10;
+            } while (x);
+
+            if (res != STATUS_OK)
+                return res;
+
+            spec->buf.reverse();
+            return STATUS_OK;
+        }
+
+        status_t int_to_bin(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            size_t x = v->v_int;
+            do
+            {
+                if ((res = spec->buf.append(lsp_wchar_t((x & 1) + '0'))) != STATUS_OK)
+                    return res;
+                x >>= 1;
+            } while (x);
+
+            if (res != STATUS_OK)
+                return res;
+
+            spec->buf.reverse();
+            return STATUS_OK;
+        }
+
+        status_t int_to_oct(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            size_t x = v->v_int;
+            do
+            {
+                if ((res = spec->buf.append(lsp_wchar_t((x & 0x7) + '0'))) != STATUS_OK)
+                    return res;
+                x >>= 3;
+            } while (x);
+
+            if (res != STATUS_OK)
+                return res;
+
+            spec->buf.reverse();
+            return STATUS_OK;
+        }
+
+        static const char *hex_table = "0123456789abcdef0123456789ABCDEF";
+
+        status_t int_to_hex(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            const char *table = (spec->type == 'X') ? &hex_table[16] : hex_table;
+            size_t x = v->v_int;
+            do
+            {
+                if ((res = spec->buf.append(table[x & 0xf])) != STATUS_OK)
+                    return res;
+                x >>= 4;
+            } while (x);
+
+            if (res != STATUS_OK)
+                return res;
+
+            spec->buf.reverse();
+            return STATUS_OK;
+        }
+
+        status_t float_to_str(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            char fmt[64];
+            if (spec->flags & F_FRAC)
+                ::snprintf(fmt, sizeof(fmt), "%%.%d%c", int(spec->frac), char(spec->type));
+            else
+                ::snprintf(fmt, sizeof(fmt), "%%%c", char(spec->type));
+
+            fmt[63] = '\0';
+            return spec->buf.fmt_ascii(fmt, v->v_float) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t text_to_str(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            if (!spec->buf.set(v->v_str))
+                return STATUS_NO_MEM;
+
+            // Additional modifications?
+            switch (spec->type)
+            {
+                case 't': spec->buf.tolower(); break;
+                case 'T': spec->buf.toupper(); break;
+                case 'y':
+                    if (spec->buf.length() > 0)
+                        spec->buf.tolower(0, 1);
+                    if (spec->buf.length() > 1)
+                        spec->buf.toupper(1);
+                    break;
+                case 'Y':
+                    if (spec->buf.length() > 0)
+                        spec->buf.toupper(0, 1);
+                    if (spec->buf.length() > 1)
+                        spec->buf.tolower(1);
+                    break;
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t bool_to_str(fmt_spec_t *spec, value_t *v)
+        {
+            status_t res = check_specials(spec, v);
+            if (res != STATUS_OK)
+                return (res == STATUS_SKIP) ? STATUS_OK : res;
+
+            switch (spec->type)
+            {
+                case 'l': res = spec->buf.set_ascii((v->v_bool) ? "true" : "false"); break;
+                case 'L': res = spec->buf.set_ascii((v->v_bool) ? "TRUE" : "FALSE"); break;
+                case 'z': res = spec->buf.set_ascii((v->v_bool) ? "tRUE" : "fALSE"); break;
+                case 'Z': res = spec->buf.set_ascii((v->v_bool) ? "True" : "False"); break;
+            }
+            return res;
+        }
+
+        status_t emit_parameter(io::IOutSequence *out, fmt_spec_t *spec, Parameters *r)
+        {
+            value_t v;
+            init_value(&v);
+            status_t res = STATUS_OK;
+
+            // Fetch the value if resolver is present
+            if (r != NULL)
+            {
+                if (spec->flags & F_NAME)
+                    res = r->get(&spec->name, &v);
+                else
+                    res = r->get(spec->index, &v);
+
+                if (res != STATUS_OK)
+                {
+                    destroy_value(&v);
+                    return res;
+                }
+            }
+
+            // Cast the value's type
+            spec->buf.clear();
+
+            switch (spec->type)
+            {
+                case 'i': case 'd':
+                    res = cast_value(&v, VT_INT);
+                    if (res == STATUS_OK)
+                        res = int_to_dec(spec, &v);
+                    break;
+                case 'u':
+                    res = cast_value(&v, VT_INT);
+                    if (res == STATUS_OK)
+                        res = uint_to_dec(spec, &v);
+                    break;
+                case 'b':
+                    res = cast_value(&v, VT_INT);
+                    if (res == STATUS_OK)
+                        res = int_to_bin(spec, &v);
+                    break;
+                case 'o':
+                    res = cast_value(&v, VT_INT);
+                    if (res == STATUS_OK)
+                        res = int_to_oct(spec, &v);
+                    break;
+                case 'x': case 'X':
+                    res = cast_value(&v, VT_INT);
+                    if (res == STATUS_OK)
+                        res = int_to_hex(spec, &v);
+                    break;
+                case 'e': case 'E':
+                    res = cast_value(&v, VT_FLOAT);
+                    if (res == STATUS_OK)
+                        res = float_to_str(spec, &v);
+                    break;
+                case 's': case 't': case 'T': case 'y': case 'Y':
+                    res = cast_value(&v, VT_STRING);
+                    if (res == STATUS_OK)
+                        res = text_to_str(spec, &v);
+                    break;
+                case 'l': case 'L': case 'z': case 'Z':
+                    res = cast_value(&v, VT_BOOL);
+                    if (res == STATUS_OK)
+                        res = bool_to_str(spec, &v);
+                    break;
+                default:
+                    break;
+            }
+
+            if (res != STATUS_OK)
+            {
+                destroy_value(&v);
+                return res;
+            }
+
+            // Compute padding
+            ssize_t lpad = 0, rpad = 0, pad = spec->width - spec->buf.length();
+            if ((spec->flags & F_WIDTH) && (pad > 0))
+            {
+                switch (spec->align)
+                {
+                    case AL_LEFT:
+                        rpad = pad;
+                        break;
+                    case AL_RIGHT:
+                        lpad = pad;
+                        break;
+                    case AL_MIDDLE:
+                    case AL_FROM_LEFT:
+                        lpad = pad >> 1;
+                        rpad = pad - lpad;
+                        break;
+                    case AL_FROM_RIGHT:
+                        rpad = pad >> 1;
+                        lpad = pad - rpad;
+                        break;
+                    case AL_TO_LEFT:
+                        lpad = pad >> 2;
+                        rpad = pad - lpad;
+                        break;
+                    case AL_TO_RIGHT:
+                        rpad = pad >> 2;
+                        lpad = pad - rpad;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // Emit value
+            while (lpad--)
+            {
+                if ((res = out->write(spec->lpad)) != STATUS_OK)
+                {
+                    destroy_value(&v);
+                    return res;
+                }
+            }
+            if ((res = out->write(&spec->buf)) != STATUS_OK)
+            {
+                destroy_value(&v);
+                return res;
+            }
+            while (rpad--)
+            {
+                if ((res = out->write(spec->rpad)) != STATUS_OK)
+                {
+                    destroy_value(&v);
+                    return res;
+                }
+            }
+
+            return res;
+        }
+
+        status_t format(io::IOutSequence *out, io::IInSequence *fmt, Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;

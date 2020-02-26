@@ -10,7 +10,7 @@
 
 #include <core/io/IOutSequence.h>
 #include <core/io/IInSequence.h>
-#include <core/calc/Resolver.h>
+#include <core/calc/Parameters.h>
 
 namespace lsp
 {
@@ -26,7 +26,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(io::IOutSequence *out, io::IInSequence *fmt, Resolver *r);
+        status_t format(io::IOutSequence *out, io::IInSequence *fmt, Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -37,7 +37,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(io::IOutSequence *out, const char *fmt, Resolver *r);
+        status_t format(io::IOutSequence *out, const char *fmt, Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -48,7 +48,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(io::IOutSequence *out, const LSPString *fmt, Resolver *r);
+        status_t format(io::IOutSequence *out, const LSPString *fmt, Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using input character
@@ -59,7 +59,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(LSPString *out, io::IInSequence *fmt, Resolver *r);
+        status_t format(LSPString *out, io::IInSequence *fmt, Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -70,7 +70,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(LSPString *out, const char *fmt, Resolver *r);
+        status_t format(LSPString *out, const char *fmt, Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -81,7 +81,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(LSPString *out, const LSPString *fmt, Resolver *r);
+        status_t format(LSPString *out, const LSPString *fmt, Parameters *r);
     }
 }
 
