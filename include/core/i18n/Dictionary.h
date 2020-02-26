@@ -1,0 +1,82 @@
+/*
+ * RootDictionary.h
+ *
+ *  Created on: 26 февр. 2020 г.
+ *      Author: sadko
+ */
+
+#ifndef CORE_I18N_ROOTDICTIONARY_H_
+#define CORE_I18N_ROOTDICTIONARY_H_
+
+#include <data/cvector.h>
+#include <core/i18n/IDictionary.h>
+#include <core/io/Path.h>
+
+namespace lsp
+{
+    /**
+     * Class implements root dictionary logic which operates on all
+     * sub-dictionaries
+     */
+    class Dictionary: public IDictionary
+    {
+        private:
+            Dictionary & operator = (const Dictionary &);
+
+        protected:
+            typedef struct node_t
+            {
+                LSPString       sKey;
+                IDictionary    *pDict;
+            } node_t;
+
+        protected:
+            cvector<node_t>     vNodes;
+            LSPString           sPath;
+
+        public:
+            explicit Dictionary();
+            virtual ~Dictionary();
+
+        public:
+            using IDictionary::lookup;
+
+            virtual status_t lookup(const LSPString *key, LSPString *value);
+
+            virtual status_t get_value(size_t index, LSPString *key, LSPString *value);
+
+            virtual status_t get_child(size_t index, LSPString *key, IDictionary **dict);
+
+            virtual size_t size();
+
+        public:
+            /**
+             * Initialize dictionary
+             * @param path the location of the dictionary
+             * @return status of operation
+             */
+            status_t    init(const char *path);
+
+            /**
+             * Initialize dictionary
+             * @param path the location of the dictionary
+             * @return status of operation
+             */
+            status_t    init(const LSPString *path);
+
+            /**
+             * Initialize dictionary
+             * @param path the location of the dictionary
+             * @return status of operation
+             */
+            status_t    init(const io::Path *path);
+
+            /**
+             * Clear dictionary contents
+             */
+            void        clear();
+    };
+
+} /* namespace lsp */
+
+#endif /* CORE_I18N_ROOTDICTIONARY_H_ */

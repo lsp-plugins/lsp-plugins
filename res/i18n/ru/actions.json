@@ -1,0 +1,36 @@
+{
+	"3d_rendering": "3D движок",
+
+	"apply": "Применить",
+	
+	"cancel": "Отмена",
+	"close": "Закрыть",
+	"copy": "Копировать",
+	"copy_url": "Копировать ссылку",
+	
+	"export": "Экспорт",
+	"export_settings_to_clipboard": "Экпорт настроек в буфер обмена",
+	"export_settings_to_file": "Экспорт настроек в файл...",
+	
+	"follow_url": "Перейти по ссылке",
+	
+	"go": "Перейти",
+	
+	"import": "Импорт",
+	"import_settings_from_clipboard": "Импорт настроек из буфера обмена",
+	"import_settings_from_file": "Импорт настроек из файла...",
+	"import_rew_filter_file": "Файл фильтров REW...",
+
+	"listen": "Слушать",
+	"load": "Загрузить",
+	"load_preset": "Загрузить пресет",
+	
+	"open": "Открыть",
+	
+	"save": "Сохранить",
+	
+	"to_bookmarks": "В закладки",
+	"toggle_rack_mount": "Переключить стоечный монтаж",
+	
+	"up": "Наверх"
+}
