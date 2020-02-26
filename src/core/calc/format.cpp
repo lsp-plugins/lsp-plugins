@@ -67,6 +67,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             io::OutStringSequence xout;
+            out->set_length(0);
             status_t res = xout.wrap(out, false);
             if (res != STATUS_OK)
             {
@@ -90,6 +91,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             io::OutStringSequence xout;
+            out->set_length(0);
             status_t res = xout.wrap(out, false);
             if (res != STATUS_OK)
             {
@@ -113,6 +115,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             io::OutStringSequence xout;
+            out->set_length(0);
             status_t res = xout.wrap(out, false);
             if (res != STATUS_OK)
             {
@@ -184,16 +187,17 @@ namespace lsp
 
         status_t read_specifier(io::IOutSequence *out, io::IInSequence *fmt, fmt_spec_t *spec)
         {
+            lsp_swchar_t c;
             status_t res = STATUS_OK;
 
             // Read format specifier as string
             while (true)
             {
                 // Read next character
-                lsp_swchar_t c = fmt->read();
+                c = fmt->read();
                 if (c < 0)
                 {
-                    if (c != STATUS_EOF)
+                    if (c != -STATUS_EOF)
                         return -c;
 
                     // Format specifier has been interrupted
@@ -216,7 +220,7 @@ namespace lsp
             size_t len = spec->buf.length();
             for (size_t i=0; i<len; )
             {
-                lsp_wchar_t c = spec->buf.char_at(i++);
+                c = spec->buf.char_at(i++);
 
                 switch (c)
                 {
@@ -232,26 +236,30 @@ namespace lsp
                         c = (i < len) ? spec->buf.char_at(i++) : 0;
                         if (Tokenizer::is_identifier_first(c))
                         {
+                            // Append character
                             spec->flags    |= F_NAME;
                             if (!spec->name.append(c))
                             {
                                 res = STATUS_NO_MEM;
                                 break;
                             }
-                        }
 
-                        // Check other characters
-                        while (i < len)
-                        {
-                            c = spec->buf.char_at(i);
-                            if (!Tokenizer::is_identifier_next(c))
-                                break;
-                            else if (!spec->name.append(c))
+                            // Check other characters
+                            for (; i < len; ++i)
                             {
-                                res = STATUS_NO_MEM;
-                                break;
+                                c = spec->buf.char_at(i);
+                                if (!Tokenizer::is_identifier_next(c))
+                                    break;
+                                else if (!spec->name.append(c))
+                                {
+                                    res = STATUS_NO_MEM;
+                                    break;
+                                }
                             }
                         }
+                        else
+                            res = STATUS_BAD_FORMAT;
+
                         break;
                     case '[': // Index
                         // Prevent from duplicate definitions
@@ -262,16 +270,15 @@ namespace lsp
                         }
 
                         // Read decimal index
-                        while (i < len)
+                        spec->index = 0;
+                        for ( ; i < len; ++i)
                         {
-                            c = spec->buf.char_at(i++);
-                            if ((c >= '0') && (c <= '9'))
-                            {
-                                spec->index = spec->index * 10 + (c - '0');
-                                spec->flags |= F_INDEX;
-                            }
-                            else
+                            c = spec->buf.char_at(i);
+                            if ((c < '0') || (c > '9'))
                                 break;
+
+                            spec->index = spec->index * 10 + (c - '0');
+                            spec->flags |= F_INDEX;
                         }
 
                         // Require final ']'
@@ -341,13 +348,17 @@ namespace lsp
                             if (i < len)
                             {
                                 // Lookup additional modes
-                                c = spec->buf.char_at(i++);
+                                c = spec->buf.char_at(i);
                                 if (c == '<') // '|<'
+                                {
                                     spec->align     = AL_FROM_RIGHT;
+                                    ++i;
+                                }
                                 else if (c == '>') // '|>'
+                                {
                                     spec->align     = AL_TO_RIGHT;
-                                else if (c != 0)
-                                    res             = STATUS_BAD_FORMAT;
+                                    ++i;
+                                }
                             }
                         }
                         else
@@ -371,17 +382,14 @@ namespace lsp
                         }
 
                         // Read width
-                        while (i < len)
+                        for ( ; i < len; ++i)
                         {
                             c = spec->buf.char_at(i);
-                            if ((c >= '0') && (c <= '9'))
-                            {
-                                spec->flags |= F_WIDTH;
-                                spec->width = spec->width * 10 + (c - '0');
-                                ++i;
-                            }
-                            else
+                            if ((c < '0') || (c > '9'))
                                 break;
+
+                            spec->flags |= F_WIDTH;
+                            spec->width = spec->width * 10 + (c - '0');
                         }
 
                         // Lookup for dot
@@ -391,18 +399,23 @@ namespace lsp
                             while ((++i) < len)
                             {
                                 c = spec->buf.char_at(i);
-                                if ((c >= '0') && (c <= '9'))
-                                {
-                                    spec->flags |= F_FRAC;
-                                    spec->frac = spec->frac * 10 + (c - '0');
-                                }
-                                else
+                                if ((c < '0') || (c > '9'))
                                     break;
+
+                                spec->flags |= F_FRAC;
+                                spec->frac = spec->frac * 10 + (c - '0');
+                            }
+
+                            // Check that fraction part is present
+                            if (!(spec->flags & F_FRAC))
+                            {
+                                res = STATUS_BAD_FORMAT;
+                                break;
                             }
                         }
 
                         // Read type specifier
-                        if (i < len)
+                        if (i >= len)
                         {
                             res = STATUS_BAD_FORMAT;
                             break;
@@ -481,12 +494,14 @@ namespace lsp
                                 break;
                             default:
                                 // No type specifier, just width
+                                --i;
                                 break;
                         }
 
                         break;
 
                     default:
+                        res = STATUS_BAD_FORMAT;
                         break;
                 }
 
@@ -499,8 +514,10 @@ namespace lsp
                         return res;
                     if ((res = out->write('}')) != STATUS_OK)
                         return res;
+                    res = STATUS_BAD_FORMAT;
+                    break;
                 }
-                if (res != STATUS_OK)
+                else if (res != STATUS_OK)
                     break;
             }
 
@@ -525,15 +542,16 @@ namespace lsp
             ssize_t x = v->v_int;
             do
             {
-                if ((res = spec->buf.append(lsp_wchar_t((x % 10) + '0'))) != STATUS_OK)
-                    return res;
+                lsp_swchar_t rem = x % 10;
+                if (!spec->buf.append(lsp_wchar_t((rem >= 0) ? '0' + rem : '0' - rem)))
+                    return STATUS_NO_MEM;
                 x /= 10;
             } while (x);
 
             if (v->v_int < 0)
-                res = spec->buf.append('-');
+                res = (spec->buf.append('-')) ? STATUS_OK : STATUS_NO_MEM;
             else if (spec->flags & F_SIGN)
-                res = spec->buf.append('+');
+                res = (spec->buf.append('+')) ? STATUS_OK : STATUS_NO_MEM;
 
             if (res != STATUS_OK)
                 return res;
@@ -551,8 +569,8 @@ namespace lsp
             size_t x = v->v_int;
             do
             {
-                if ((res = spec->buf.append(lsp_wchar_t((x % 10) + '0'))) != STATUS_OK)
-                    return res;
+                if (!spec->buf.append(lsp_wchar_t((x % 10) + '0')))
+                    return STATUS_NO_MEM;
                 x /= 10;
             } while (x);
 
@@ -572,8 +590,8 @@ namespace lsp
             size_t x = v->v_int;
             do
             {
-                if ((res = spec->buf.append(lsp_wchar_t((x & 1) + '0'))) != STATUS_OK)
-                    return res;
+                if (!spec->buf.append(lsp_wchar_t((x & 1) + '0')))
+                    return STATUS_NO_MEM;
                 x >>= 1;
             } while (x);
 
@@ -593,8 +611,8 @@ namespace lsp
             size_t x = v->v_int;
             do
             {
-                if ((res = spec->buf.append(lsp_wchar_t((x & 0x7) + '0'))) != STATUS_OK)
-                    return res;
+                if (!spec->buf.append(lsp_wchar_t((x & 0x7) + '0')))
+                    return STATUS_NO_MEM;
                 x >>= 3;
             } while (x);
 
@@ -617,8 +635,8 @@ namespace lsp
             size_t x = v->v_int;
             do
             {
-                if ((res = spec->buf.append(table[x & 0xf])) != STATUS_OK)
-                    return res;
+                if (!spec->buf.append(table[x & 0xf]))
+                    return STATUS_NO_MEM;
                 x >>= 4;
             } while (x);
 
@@ -635,14 +653,35 @@ namespace lsp
             if (res != STATUS_OK)
                 return (res == STATUS_SKIP) ? STATUS_OK : res;
 
-            char fmt[64];
-            if (spec->flags & F_FRAC)
-                ::snprintf(fmt, sizeof(fmt), "%%.%d%c", int(spec->frac), char(spec->type));
+            if (isnan(v->v_float))
+                res = (spec->buf.set_ascii("nan")) ? STATUS_OK : STATUS_NO_MEM;
+            else if (isinf(v->v_float))
+            {
+                if (v->v_float < 0)
+                {
+                    v->v_float = INFINITY;
+                    res = (spec->buf.set_ascii("-inf")) ? STATUS_OK : STATUS_NO_MEM;
+                }
+                else if (spec->flags & F_SIGN)
+                    res = (spec->buf.set_ascii("+inf")) ? STATUS_OK : STATUS_NO_MEM;
+                else
+                    res = (spec->buf.set_ascii("inf")) ? STATUS_OK : STATUS_NO_MEM;
+            }
             else
-                ::snprintf(fmt, sizeof(fmt), "%%%c", char(spec->type));
+            {
+                char fmt[64];
+                if (spec->flags & F_FRAC)
+                    ::snprintf(fmt, sizeof(fmt), "%%.%d%c", int(spec->frac), char(spec->type));
+                else
+                    ::snprintf(fmt, sizeof(fmt), "%%.6%c", char(spec->type));
 
-            fmt[63] = '\0';
-            return spec->buf.fmt_ascii(fmt, v->v_float) ? STATUS_OK : STATUS_NO_MEM;
+                fmt[63] = '\0';
+                res = spec->buf.fmt_ascii(fmt, v->v_float) ? STATUS_OK : STATUS_NO_MEM;
+                if ((res == STATUS_OK) && (spec->flags & F_SIGN) && (v->v_float > 0))
+                    res = (spec->buf.prepend(lsp_wchar_t('+'))) ? STATUS_OK : STATUS_NO_MEM;
+            }
+
+            return res;
         }
 
         status_t text_to_str(fmt_spec_t *spec, value_t *v)
@@ -682,14 +721,15 @@ namespace lsp
             if (res != STATUS_OK)
                 return (res == STATUS_SKIP) ? STATUS_OK : res;
 
+            bool success = true;
             switch (spec->type)
             {
-                case 'l': res = spec->buf.set_ascii((v->v_bool) ? "true" : "false"); break;
-                case 'L': res = spec->buf.set_ascii((v->v_bool) ? "TRUE" : "FALSE"); break;
-                case 'z': res = spec->buf.set_ascii((v->v_bool) ? "tRUE" : "fALSE"); break;
-                case 'Z': res = spec->buf.set_ascii((v->v_bool) ? "True" : "False"); break;
+                case 'l': success = spec->buf.set_ascii((v->v_bool) ? "true" : "false"); break;
+                case 'L': success = spec->buf.set_ascii((v->v_bool) ? "TRUE" : "FALSE"); break;
+                case 'z': success = spec->buf.set_ascii((v->v_bool) ? "tRUE" : "fALSE"); break;
+                case 'Z': success = spec->buf.set_ascii((v->v_bool) ? "True" : "False"); break;
             }
-            return res;
+            return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
         status_t emit_parameter(io::IOutSequence *out, fmt_spec_t *spec, Parameters *r)
@@ -744,6 +784,7 @@ namespace lsp
                         res = int_to_hex(spec, &v);
                     break;
                 case 'e': case 'E':
+                case 'f': case 'F':
                     res = cast_value(&v, VT_FLOAT);
                     if (res == STATUS_OK)
                         res = float_to_str(spec, &v);
@@ -759,6 +800,9 @@ namespace lsp
                         res = bool_to_str(spec, &v);
                     break;
                 default:
+                    res = cast_value(&v, VT_STRING);
+                    if (res == STATUS_OK)
+                        res = text_to_str(spec, &v);
                     break;
             }
 
@@ -844,7 +888,7 @@ namespace lsp
                 // Read character
                 lsp_swchar_t c = fmt->read();
                 if (c < 0)
-                    return (c != STATUS_EOF) ? -c : STATUS_OK;
+                    return (c != -STATUS_EOF) ? -c : STATUS_OK;
 
                 switch (c)
                 {
@@ -862,18 +906,23 @@ namespace lsp
                         {
                             if ((res = out->write('{')) != STATUS_OK)
                                 return res;
+                            protector = false;
                         }
                         else
                         {
                             // Read specifier and format the value
-                            if ((res = read_specifier(out, fmt, &spec)) != STATUS_OK)
-                                return res;
-                            if ((res = emit_parameter(out, &spec, r)) != STATUS_OK)
-                                return res;
+                            res = read_specifier(out, fmt, &spec);
+                            if (res == STATUS_OK)
+                            {
+                                if ((res = emit_parameter(out, &spec, r)) != STATUS_OK)
+                                    return res;
 
-                            // Reset specifier
-                            if (!(spec.flags & (F_NAME | F_INDEX)))
-                                ++index;
+                                // Reset specifier
+                                if (!(spec.flags & (F_NAME | F_INDEX)))
+                                    ++index;
+                            }
+                            else if (res != STATUS_BAD_FORMAT)
+                                return res;
                             init_spec(&spec, index);
                         }
                         break;
