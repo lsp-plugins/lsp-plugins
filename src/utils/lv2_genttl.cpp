@@ -132,8 +132,8 @@ namespace lsp
         { U_DEG,        "degree" },
 
         { U_SAMPLES,    NULL,       "samples",              "%.0f"      },
-        { U_GAIN_AMP,   NULL,       "gain",                 "%f"        },
-        { U_GAIN_POW,   NULL,       "gain",                 "%f"        },
+        { U_GAIN_AMP,   NULL,       "gain",                 "%.8f"      },
+        { U_GAIN_POW,   NULL,       "gain",                 "%.8f"      },
 
         { U_SEMITONES,  NULL,       "st",                   "%.2f"      },
 
