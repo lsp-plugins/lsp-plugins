@@ -41,6 +41,9 @@ namespace lsp
 
         public:
             using IDictionary::init;
+            using IDictionary::get_value;
+            using IDictionary::get_child;
+            using IDictionary::lookup;
 
             virtual status_t init(const LSPString *path);
 

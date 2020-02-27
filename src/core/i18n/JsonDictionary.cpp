@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/debug.h>
 #include <core/i18n/JsonDictionary.h>
 #include <core/files/json/token.h>
 #include <core/files/json/Parser.h>
@@ -18,33 +19,93 @@ namespace lsp
     
     JsonDictionary::~JsonDictionary()
     {
+        // Recursively drop the dictionary tree
+        for (size_t i=0, n = vNodes.size(); i<n; ++i)
+        {
+            node_t *node = vNodes.get(i);
+            if (node == NULL)
+                continue;
+            if (node->pChild != NULL)
+                delete node->pChild;
+            delete node;
+        }
+        vNodes.flush();
     }
 
     status_t JsonDictionary::init(const LSPString *path)
     {
         json::Parser p;
+        JsonDictionary tmp;
+
         status_t res = p.open(path, json::JSON_VERSION5);
         if (res == STATUS_OK)
-            res = parse_json(&p);
+            res = tmp.parse_json(&p);
 
         if (res != STATUS_OK)
             p.close();
         else
             res = p.close();
 
+        if (res == STATUS_OK)
+            vNodes.swap_data(&tmp.vNodes);
+
         return res;
     }
 
-    status_t JsonDictionary::add_node(const node_t *node)
+    status_t JsonDictionary::add_node(const node_t *src)
     {
-        // TODO
+        // Perform binary search, the item should not exist
+        ssize_t first = 0, last = vNodes.size()-1, idx = 0;
+        while (first <= last)
+        {
+            idx = (first + last) >> 1;
+            node_t *node = vNodes.at(idx);
+            int cmp = node->sKey.compare_to(&src->sKey);
+
+            if (cmp > 0)
+                last    = idx - 1;
+            else if (cmp < 0)
+                first   = idx + 1;
+            else
+                return STATUS_BAD_FORMAT;
+        }
+
+        // Create new item and insert into list
+        node_t *x = new node_t;
+        if (x == NULL)
+            return STATUS_NO_MEM;
+
+        // Initialize key
+        if (!x->sKey.set(&src->sKey))
+        {
+            delete x;
+            return STATUS_NO_MEM;
+        }
+
+        // Initialize value
+        if (src->pChild != NULL)
+            x->pChild   = src->pChild;
+        else if (x->sValue.set(&src->sValue))
+            x->pChild   = NULL;
+        else
+        {
+            delete x;
+            return STATUS_NO_MEM;
+        }
+
+        // Add node
+        if (!vNodes.insert(x, first))
+        {
+            delete x;
+            return STATUS_NO_MEM;
+        }
+
         return STATUS_OK;
     }
 
     status_t JsonDictionary::parse_json(json::Parser *p)
     {
         status_t res;
-        bool root       = false;
         JsonDictionary *curr = NULL;
         json::event_t ev;
         cvector<JsonDictionary> stack;
@@ -57,22 +118,16 @@ namespace lsp
             {
                 // Start of new object
                 case json::JE_OBJECT_START:
-                    if (!root)
+                    if (curr == NULL)
                     {
-                        root    = true;
-                        curr    = this;
-
-                        if (!stack.push(curr))
-                            return STATUS_NO_MEM;
+                        curr = this;
                         break;
                     }
-                    else if (curr == NULL)
-                        return STATUS_BAD_STATE;
 
-                    // Add current dictionary to stack
                     if (!stack.push(curr))
                         return STATUS_NO_MEM;
 
+                    // Add current dictionary to stack
                     if ((node.pChild = new JsonDictionary()) == NULL)
                         return STATUS_NO_MEM;
 
@@ -89,8 +144,8 @@ namespace lsp
                 // End of current object
                 case json::JE_OBJECT_END:
                     if (!stack.pop(&curr))
-                        return STATUS_BAD_STATE;
-                    if (curr == NULL)
+                        curr = NULL;
+                    else if (curr == NULL)
                         return STATUS_BAD_STATE;
                     break;
 
@@ -123,7 +178,7 @@ namespace lsp
         // Check final state
         if (res != STATUS_EOF)
             return res;
-        else if ((stack.size() > 0) || (curr != this))
+        else if ((stack.size() > 0) || (curr != NULL))
             return STATUS_BAD_STATE;
 
         return STATUS_OK;
@@ -140,9 +195,9 @@ namespace lsp
             int cmp = node->sKey.compare_to(key);
 
             if (cmp > 0)
-                last    = first - 1;
+                last    = idx - 1;
             else if (cmp < 0)
-                first   = last + 1;
+                first   = idx + 1;
             else
                 return node;
         }
