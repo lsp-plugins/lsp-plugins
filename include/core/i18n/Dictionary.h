@@ -40,6 +40,7 @@ namespace lsp
 
         public:
             using IDictionary::lookup;
+            using IDictionary::init;
 
             virtual status_t lookup(const LSPString *key, LSPString *value);
 
@@ -49,32 +50,14 @@ namespace lsp
 
             virtual size_t size();
 
+            virtual status_t init(const LSPString *path);
+
         public:
-            /**
-             * Initialize dictionary
-             * @param path the location of the dictionary
-             * @return status of operation
-             */
-            status_t    init(const char *path);
-
-            /**
-             * Initialize dictionary
-             * @param path the location of the dictionary
-             * @return status of operation
-             */
-            status_t    init(const LSPString *path);
-
-            /**
-             * Initialize dictionary
-             * @param path the location of the dictionary
-             * @return status of operation
-             */
-            status_t    init(const io::Path *path);
-
             /**
              * Clear dictionary contents
              */
             void        clear();
+
     };
 
 } /* namespace lsp */

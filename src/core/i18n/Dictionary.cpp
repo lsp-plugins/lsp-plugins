@@ -35,7 +35,8 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Perform binary search
-        ssize_t first = 0, last = vNodes.size()-1, idx = 0;
+        ssize_t first = 0, last = vNodes.size()-1;
+        idx = 0;
         while (first <= last)
         {
             idx = (first + last) >> 1;
@@ -52,6 +53,7 @@ namespace lsp
 
         // TODO: Dictionary not found: try to create new one
 
+
         return STATUS_NOT_FOUND;
     }
 
@@ -64,7 +66,7 @@ namespace lsp
     status_t Dictionary::get_child(size_t index, LSPString *key, IDictionary **dict)
     {
         node_t *node = vNodes.get(index);
-        if (node == NULL)
+        if ((node == NULL) || (node->pDict == NULL))
             return STATUS_NOT_FOUND;
 
         if ((key != NULL) && (!key->set(&node->sKey)))
@@ -79,23 +81,6 @@ namespace lsp
     size_t Dictionary::size()
     {
         return vNodes.size();
-    }
-
-    status_t Dictionary::Dictionary::init(const char *path)
-    {
-        if (path == NULL)
-            return STATUS_BAD_ARGUMENTS;
-        LSPString xpath;
-        if (!xpath.set_utf8(path))
-            return STATUS_NO_MEM;
-        return init(&xpath);
-    }
-
-    status_t Dictionary::Dictionary::init(const io::Path *path)
-    {
-        if (path == NULL)
-            return STATUS_BAD_ARGUMENTS;
-        return init(path->as_string());
     }
 
     status_t Dictionary::Dictionary::init(const LSPString *path)

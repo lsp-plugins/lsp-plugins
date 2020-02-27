@@ -9,6 +9,7 @@
 #define CORE_I18N_IDICTIONARY_H_
 
 #include <core/status.h>
+#include <core/io/Path.h>
 #include <core/LSPString.h>
 
 namespace lsp
@@ -23,6 +24,27 @@ namespace lsp
             virtual ~IDictionary();
 
         public:
+            /**
+             * Initialize dictionary
+             * @param path the location of the dictionary
+             * @return status of operation
+             */
+            virtual status_t init(const char *path);
+
+            /**
+             * Initialize dictionary
+             * @param path the location of the dictionary
+             * @return status of operation
+             */
+            virtual status_t init(const LSPString *path);
+
+            /**
+             * Initialize dictionary
+             * @param path the location of the dictionary
+             * @return status of operation
+             */
+            virtual status_t init(const io::Path *path);
+
             /**
              * Lookup for a key
              * @param key non-null UTF-8 encoded key value
