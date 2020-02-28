@@ -24,7 +24,8 @@ namespace lsp
         RESOURCE_UNKNOWN,
         RESOURCE_XML,
         RESOURCE_3D_SCENE,
-        RESOURCE_PRESET
+        RESOURCE_PRESET,
+        RESOURCE_JSON
     };
 
     typedef struct resource_t
