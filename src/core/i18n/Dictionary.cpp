@@ -5,7 +5,10 @@
  *      Author: sadko
  */
 
+#include <core/resource.h>
 #include <core/i18n/Dictionary.h>
+#include <core/i18n/JsonDictionary.h>
+#include <core/i18n/BuiltinDictionary.h>
 
 namespace lsp
 {
@@ -17,6 +20,67 @@ namespace lsp
     Dictionary::~Dictionary()
     {
         clear();
+    }
+
+    status_t Dictionary::init_dictionary(IDictionary *d, const LSPString *path)
+    {
+        LSPString xp;
+        if (!xp.append(path))
+            return STATUS_NO_MEM;
+        if (!xp.append_ascii(".json"))
+            return STATUS_NO_MEM;
+
+        status_t res = d->init(&xp);
+        if (res != STATUS_OK)
+        {
+            if (!xp.append('5'))
+                res = STATUS_NO_MEM;
+            else
+                res = d->init(&xp);
+        }
+        return res;
+    }
+
+    status_t Dictionary::load_json(IDictionary **dict, const LSPString *path)
+    {
+        JsonDictionary *d = new JsonDictionary();
+        status_t res = init_dictionary(d, path);
+        if (res == STATUS_OK)
+            *dict = d;
+        else
+            delete d;
+
+        return res;
+    }
+
+    status_t Dictionary::load_builtin(IDictionary **dict, const LSPString *path)
+    {
+        BuiltinDictionary *d = new BuiltinDictionary();
+        status_t res = init_dictionary(d, path);
+        if (res == STATUS_OK)
+            *dict = d;
+        else
+            delete d;
+        return res;
+    }
+
+    status_t Dictionary::create_child(IDictionary **dict, const LSPString *path)
+    {
+        LSPString xp;
+        if (!xp.append(&sPath))
+            return STATUS_NO_MEM;
+        if (!xp.append('/'))
+            return STATUS_NO_MEM;
+        if (!xp.append(path))
+            return STATUS_NO_MEM;
+
+        Dictionary *d = new Dictionary;
+        status_t res = d->init(&xp);
+        if (res != STATUS_OK)
+            delete d;
+        else
+            *dict = d;
+        return res;
     }
 
     status_t Dictionary::lookup(const LSPString *key, LSPString *value)
@@ -34,7 +98,7 @@ namespace lsp
         if (!subkey.set(key, idx+1))
             return STATUS_NO_MEM;
 
-        // Perform binary search
+        // Perform binary search of the item
         ssize_t first = 0, last = vNodes.size()-1;
         idx = 0;
         while (first <= last)
@@ -44,17 +108,60 @@ namespace lsp
             int cmp = node->sKey.compare_to(&id);
 
             if (cmp > 0)
-                last = first - 1;
+                last    = idx - 1;
             else if (cmp < 0)
-                first = last + 1;
+                first   = idx + 1;
             else
-                return node->pDict->lookup(&subkey, value);
+                return (node->pDict != NULL) ? node->pDict->lookup(&subkey, value) : STATUS_NOT_FOUND;
         }
 
-        // TODO: Dictionary not found: try to create new one
+        // Dictionary not found, try to create new one
+        status_t res = STATUS_OK;
+        LSPString res_id;
+        IDictionary *dict = NULL;
+        if (sPath.starts_with_ascii(LSP_BUILTIN_PREFIX))
+        {
+            if (!res_id.set(&sPath, ::strlen(LSP_BUILTIN_PREFIX)))
+                return STATUS_NO_MEM;
+            if (!res_id.append('/'))
+                return STATUS_NO_MEM;
+            if (!res_id.append(&id))
+                return STATUS_NO_MEM;
+            res = load_builtin(&dict, &res_id);
+        }
+        else
+        {
+            if (!res_id.set(&sPath))
+                return STATUS_NO_MEM;
+            if (!res_id.append('/'))
+                return STATUS_NO_MEM;
+            if (!res_id.append(&id))
+                return STATUS_NO_MEM;
 
+            // Prefer builtin over external
+            res = load_builtin(&dict, &res_id);
+            if (res == STATUS_NOT_FOUND)
+                res = load_json(&dict, &res_id);
+        }
 
-        return STATUS_NOT_FOUND;
+        if (res == STATUS_NOT_FOUND)
+            res = create_child(&dict, &id);
+
+        // Add node to list of nodes
+        if (res != STATUS_OK)
+            return res;
+
+        node_t *child = new node_t;
+        if ((child == NULL) || (!vNodes.insert(child, first)))
+        {
+            delete dict;
+            return STATUS_NO_MEM;
+        }
+
+        child->sKey.swap(&id);
+        child->pDict        = dict;
+
+        return dict->lookup(&subkey, value);
     }
 
     status_t Dictionary::get_value(size_t index, LSPString *key, LSPString *value)

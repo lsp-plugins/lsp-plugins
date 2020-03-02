@@ -34,6 +34,12 @@ namespace lsp
             cvector<node_t>     vNodes;
             LSPString           sPath;
 
+        protected:
+            status_t        load_json(IDictionary **dict, const LSPString *path);
+            status_t        load_builtin(IDictionary **dict, const LSPString *path);
+            status_t        create_child(IDictionary **dict, const LSPString *path);
+            status_t        init_dictionary(IDictionary *d, const LSPString *path);
+
         public:
             explicit Dictionary();
             virtual ~Dictionary();
