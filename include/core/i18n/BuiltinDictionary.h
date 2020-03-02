@@ -8,7 +8,7 @@
 #ifndef CORE_I18N_BUILTINDICTIONARY_H_
 #define CORE_I18N_BUILTINDICTIONARY_H_
 
-#include <data/cvector.h>
+#include <data/cstorage.h>
 #include <core/i18n/IDictionary.h>
 #include <core/resource.h>
 
@@ -29,7 +29,7 @@ namespace lsp
 
         protected:
             LSPString           sPath;
-            cvector<node_t>     vNodes;
+            cstorage<node_t>    vNodes;
 
         protected:
             status_t            parse_dictionary(const resource_t *res);

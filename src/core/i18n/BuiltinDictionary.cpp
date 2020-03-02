@@ -5,6 +5,9 @@
  *      Author: sadko
  */
 
+#include <data/cvector.h>
+
+#include <core/debug.h>
 #include <core/stdlib/string.h>
 #include <core/i18n/BuiltinDictionary.h>
 
@@ -46,9 +49,10 @@ namespace lsp
             {
                 // Start of new object
                 case '{':
+                    lsp_trace("Object start");
                     if (curr == NULL)
                     {
-                        curr        = this;
+                        curr            = this;
                         break;
                     }
 
@@ -59,16 +63,19 @@ namespace lsp
                     if ((node.pChild = new BuiltinDictionary()) == NULL)
                         return STATUS_NO_MEM;
 
-                    node.sValue = NULL;
+                    node.sValue     = NULL;
                     if (!curr->vNodes.add(&node))
                         return STATUS_NO_MEM;
 
-                    curr        = node.pChild;
-                    node.pChild = NULL;
+                    curr            = node.pChild;
+                    node.sKey       = NULL;
+                    node.pChild     = NULL;
+                    node.sValue     = NULL;
                     break;
 
                 // End of current object
                 case '}':
+                    lsp_trace("Object end");
                     if (!stack.pop(&curr))
                         curr = NULL;
                     else if (curr == NULL)
@@ -77,25 +84,31 @@ namespace lsp
 
                 // JSON Property key
                 case ':':
+                    lsp_trace("Property key");
                     if (curr == NULL)
                         return STATUS_BAD_STATE;
 
                     node.sKey   = resource_fetch_dstring(&ptr);
+                    lsp_trace("  property key: %s", node.sKey);
                     if (!node.sKey)
                         return STATUS_CORRUPTED;
                     break;
 
                 // JSON string value
                 case '\"':
+                    lsp_trace("Property value");
                     if (curr == NULL)
                         return STATUS_BAD_STATE;
 
                     node.sValue     = resource_fetch_dstring(&ptr);
+                    lsp_trace("  property value: %s", node.sValue);
                     if (!node.sValue)
                         return STATUS_CORRUPTED;
                     node.pChild     = NULL;
                     if (!curr->vNodes.add(&node))
                         return STATUS_NO_MEM;
+                    node.sKey       = NULL;
+                    node.sValue     = NULL;
                     break;
 
                 // Other values are invalid
@@ -103,6 +116,8 @@ namespace lsp
                     return STATUS_CORRUPTED;
             }
         }
+
+        lsp_trace("End of file");
 
         // Check final state
         if ((stack.size() > 0) || (curr != NULL))
@@ -131,7 +146,7 @@ namespace lsp
         if (res == STATUS_OK)
         {
             sPath.swap(&tpath);
-            vNodes.swap_data(&tmp.vNodes);
+            vNodes.swap(&tmp.vNodes);
         }
 
         return STATUS_OK;
@@ -163,11 +178,13 @@ namespace lsp
         if (key == NULL)
             return STATUS_INVALID_VALUE;
 
+        lsp_trace("Lookup key: %s", key);
+
         node_t *node;
 
         // Need to lookup sub-node?
-        const char *split = strchr(key, '.');
-        if (split > 0)
+        const char *split = ::strchr(key, '.');
+        if (split != NULL)
         {
             // Allocate temporary string
             size_t len = split - key;
@@ -177,14 +194,16 @@ namespace lsp
             ::memcpy(tmp, key, len);
             tmp[len] = '\0';
 
+            lsp_trace("Lookup child: %s", tmp);
+
             node = find_node(tmp);
             ::free(tmp);
 
             if ((node == NULL) || (node->pChild == NULL))
                 return STATUS_NOT_FOUND;
 
-            status_t res = node->pChild->lookup(&split[1], value);
-            return res;
+            lsp_trace("Accessing to child dictionary %p with key: %s", node->pChild, &split[1]);
+            return node->pChild->lookup(&split[1], value);
         }
 
         // No need to lookup

@@ -1,3 +1,10 @@
+/*
+ * json_dictionary.cpp
+ *
+ *  Created on: 2 мар. 2020 г.
+ *      Author: sadko
+ */
+
 #include <test/utest.h>
 #include <core/i18n/JsonDictionary.h>
 

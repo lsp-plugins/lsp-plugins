@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/debug.h>
 #include <core/resource.h>
 #include <core/i18n/Dictionary.h>
 #include <core/i18n/JsonDictionary.h>
@@ -127,6 +128,8 @@ namespace lsp
                 return STATUS_NO_MEM;
             if (!res_id.append(&id))
                 return STATUS_NO_MEM;
+
+            lsp_debug("Trying to load builtin resource %s...", res_id.get_utf8());
             res = load_builtin(&dict, &res_id);
         }
         else
@@ -139,9 +142,13 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Prefer builtin over external
+            lsp_debug("Trying to load builtin resource %s...", res_id.get_utf8());
             res = load_builtin(&dict, &res_id);
             if (res == STATUS_NOT_FOUND)
+            {
+                lsp_debug("Trying to file resource %s...", res_id.get_utf8());
                 res = load_json(&dict, &res_id);
+            }
         }
 
         if (res == STATUS_NOT_FOUND)
