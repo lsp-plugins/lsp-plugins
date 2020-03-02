@@ -127,29 +127,29 @@ namespace lsp
                 status_t            insert(size_t index, const Parameters *p, ssize_t first = 0, ssize_t last = -1);
 
                 // Getting
-                status_t            get_int(size_t index, ssize_t *value);
-                status_t            get_float(size_t index, double *value);
-                status_t            get_bool(size_t index, bool *value);
-                status_t            get_string(size_t index, LSPString *value);
-                status_t            get_null(size_t index);
-                status_t            get_undef(size_t index);
-                status_t            get(size_t index, value_t *value);
+                status_t            get_int(size_t index, ssize_t *value) const;
+                status_t            get_float(size_t index, double *value) const;
+                status_t            get_bool(size_t index, bool *value) const;
+                status_t            get_string(size_t index, LSPString *value) const;
+                status_t            get_null(size_t index) const;
+                status_t            get_undef(size_t index) const;
+                status_t            get(size_t index, value_t *value) const;
 
-                status_t            get_int(const char *name, ssize_t *value);
-                status_t            get_float(const char *name, double *value);
-                status_t            get_bool(const char *name, bool *value);
-                status_t            get_string(const char *name, LSPString *value);
-                status_t            get_null(const char *name);
-                status_t            get_undef(const char *name);
-                status_t            get(const char *name, value_t *value);
+                status_t            get_int(const char *name, ssize_t *value) const;
+                status_t            get_float(const char *name, double *value) const;
+                status_t            get_bool(const char *name, bool *value) const;
+                status_t            get_string(const char *name, LSPString *value) const;
+                status_t            get_null(const char *name) const;
+                status_t            get_undef(const char *name) const;
+                status_t            get(const char *name, value_t *value) const;
 
-                status_t            get_int(const LSPString *name, ssize_t *value);
-                status_t            get_float(const LSPString *name, double *value);
-                status_t            get_bool(const LSPString *name, bool *value);
-                status_t            get_string(const LSPString *name, LSPString *value);
-                status_t            get_null(const LSPString *name);
-                status_t            get_undef(const LSPString *name);
-                status_t            get(const LSPString *name, value_t *value);
+                status_t            get_int(const LSPString *name, ssize_t *value) const;
+                status_t            get_float(const LSPString *name, double *value) const;
+                status_t            get_bool(const LSPString *name, bool *value) const;
+                status_t            get_string(const LSPString *name, LSPString *value) const;
+                status_t            get_null(const LSPString *name) const;
+                status_t            get_undef(const LSPString *name) const;
+                status_t            get(const LSPString *name, value_t *value) const;
 
                 // Getting with cast
                 status_t            as_int(size_t index, ssize_t *value);

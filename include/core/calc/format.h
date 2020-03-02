@@ -26,7 +26,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(io::IOutSequence *out, io::IInSequence *fmt, Parameters *r);
+        status_t format(io::IOutSequence *out, io::IInSequence *fmt, const Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -37,7 +37,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(io::IOutSequence *out, const char *fmt, Parameters *r);
+        status_t format(io::IOutSequence *out, const char *fmt, const Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -48,7 +48,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(io::IOutSequence *out, const LSPString *fmt, Parameters *r);
+        status_t format(io::IOutSequence *out, const LSPString *fmt, const Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using input character
@@ -59,7 +59,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(LSPString *out, io::IInSequence *fmt, Parameters *r);
+        status_t format(LSPString *out, io::IInSequence *fmt, const Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -70,7 +70,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(LSPString *out, const char *fmt, Parameters *r);
+        status_t format(LSPString *out, const char *fmt, const Parameters *r);
 
         /**
          * Format the set of parameters provided by Resolver using format string
@@ -81,7 +81,7 @@ namespace lsp
          * @param r parameter resolver
          * @return status of operation
          */
-        status_t format(LSPString *out, const LSPString *fmt, Parameters *r);
+        status_t format(LSPString *out, const LSPString *fmt, const Parameters *r);
     }
 }
 

@@ -15,7 +15,7 @@ namespace lsp
 {
     namespace calc
     {
-        status_t format(io::IOutSequence *out, const char *fmt, Parameters *r)
+        status_t format(io::IOutSequence *out, const char *fmt, const Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -38,7 +38,7 @@ namespace lsp
             return xfmt.close();
         }
 
-        status_t format(io::IOutSequence *out, const LSPString *fmt, Parameters *r)
+        status_t format(io::IOutSequence *out, const LSPString *fmt, const Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -61,7 +61,7 @@ namespace lsp
             return xfmt.close();
         }
 
-        status_t format(LSPString *out, io::IInSequence *fmt, Parameters *r)
+        status_t format(LSPString *out, io::IInSequence *fmt, const Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -85,7 +85,7 @@ namespace lsp
             return xout.close();
         }
 
-        status_t format(LSPString *out, const char *fmt, Parameters *r)
+        status_t format(LSPString *out, const char *fmt, const Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -109,7 +109,7 @@ namespace lsp
             return xout.close();
         }
 
-        status_t format(LSPString *out, const LSPString *fmt, Parameters *r)
+        status_t format(LSPString *out, const LSPString *fmt, const Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -732,7 +732,7 @@ namespace lsp
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        status_t emit_parameter(io::IOutSequence *out, fmt_spec_t *spec, Parameters *r)
+        status_t emit_parameter(io::IOutSequence *out, fmt_spec_t *spec, const Parameters *r)
         {
             value_t v;
             init_value(&v);
@@ -872,7 +872,7 @@ namespace lsp
             return res;
         }
 
-        status_t format(io::IOutSequence *out, io::IInSequence *fmt, Parameters *r)
+        status_t format(io::IOutSequence *out, io::IInSequence *fmt, const Parameters *r)
         {
             if ((out == NULL) || (fmt == NULL))
                 return STATUS_BAD_ARGUMENTS;

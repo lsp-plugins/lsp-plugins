@@ -26,11 +26,14 @@ namespace lsp
 //                    F_DIRTY         = 1 << 1
                 };
 
-            private:
+            protected:
                 LSPWidget          *pOwner;     // Owner of this string
                 size_t              nFlags;     // Different flags
                 LSPString           sText;      // Text used for rendering
                 calc::Parameters    sParams;    // The paramet
+
+            protected:
+                status_t            fmt_intarnal(LSPString *out, IDictionary *dict, const LSPString *lang) const;
 
             public:
                 explicit LSPLocalString();
@@ -104,6 +107,24 @@ namespace lsp
                  * Clear the localized string
                  */
                 void clear();
+
+                /**
+                 * Output the formatted message to the string
+                 * @param out output string
+                 * @param dict dictionary that stores localization data
+                 * @param lang the target language to use
+                 * @return status of operation
+                 */
+                status_t format(LSPString *out, IDictionary *dict, const char *lang) const;
+
+                /**
+                 * Output the formatted message to the string
+                 * @param out output string
+                 * @param dict dictionary that stores localization data
+                 * @param lang the target language to use (UTF-8 encoded)
+                 * @return status of operation
+                 */
+                status_t format(LSPString *out, IDictionary *dict, const LSPString *lang) const;
         };
     
     } /* namespace tk */

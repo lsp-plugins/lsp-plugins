@@ -812,7 +812,7 @@ namespace lsp
             return insert(index, &v);
         }
 
-        status_t Parameters::get(size_t index, value_t *value)
+        status_t Parameters::get(size_t index, value_t *value) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -820,7 +820,7 @@ namespace lsp
             return (value != NULL) ? copy_value(value, &v->value) : STATUS_OK;
         }
 
-        status_t Parameters::get(const char *name, value_t *value)
+        status_t Parameters::get(const char *name, value_t *value) const
         {
             LSPString tmp;
             if (!tmp.set_utf8(name))
@@ -829,15 +829,15 @@ namespace lsp
             return get(&tmp, value);
         }
 
-        status_t Parameters::get(const LSPString *name, value_t *value)
+        status_t Parameters::get(const LSPString *name, value_t *value) const
         {
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             return (value != NULL) ? copy_value(value, &v->value) : STATUS_OK;
         }
 
-        status_t Parameters::get_int(size_t index, ssize_t *value)
+        status_t Parameters::get_int(size_t index, ssize_t *value) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -849,7 +849,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_float(size_t index, double *value)
+        status_t Parameters::get_float(size_t index, double *value) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -861,7 +861,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_bool(size_t index, bool *value)
+        status_t Parameters::get_bool(size_t index, bool *value) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -873,7 +873,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_string(size_t index, LSPString *value)
+        status_t Parameters::get_string(size_t index, LSPString *value) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -888,7 +888,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_null(size_t index)
+        status_t Parameters::get_null(size_t index) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -898,7 +898,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_undef(size_t index)
+        status_t Parameters::get_undef(size_t index) const
         {
             param_t *v = vParams.get(index);
             if (v == NULL)
@@ -908,7 +908,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_int(const char *name, ssize_t *value)
+        status_t Parameters::get_int(const char *name, ssize_t *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -919,7 +919,7 @@ namespace lsp
             return get_int(&tmp, value);
         }
 
-        status_t Parameters::get_float(const char *name, double *value)
+        status_t Parameters::get_float(const char *name, double *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -930,7 +930,7 @@ namespace lsp
             return get_float(&tmp, value);
         }
 
-        status_t Parameters::get_bool(const char *name, bool *value)
+        status_t Parameters::get_bool(const char *name, bool *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -941,7 +941,7 @@ namespace lsp
             return get_bool(&tmp, value);
         }
 
-        status_t Parameters::get_string(const char *name, LSPString *value)
+        status_t Parameters::get_string(const char *name, LSPString *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -952,7 +952,7 @@ namespace lsp
             return get_string(&tmp, value);
         }
 
-        status_t Parameters::get_null(const char *name)
+        status_t Parameters::get_null(const char *name) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -963,7 +963,7 @@ namespace lsp
             return get_null(&tmp);
         }
 
-        status_t Parameters::get_undef(const char *name)
+        status_t Parameters::get_undef(const char *name) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -974,11 +974,11 @@ namespace lsp
             return get_undef(&tmp);
         }
 
-        status_t Parameters::get_int(const LSPString *name, ssize_t *value)
+        status_t Parameters::get_int(const LSPString *name, ssize_t *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             else if (v->value.type != VT_INT)
@@ -989,11 +989,11 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_float(const LSPString *name, double *value)
+        status_t Parameters::get_float(const LSPString *name, double *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             else if (v->value.type != VT_FLOAT)
@@ -1004,11 +1004,11 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_bool(const LSPString *name, bool *value)
+        status_t Parameters::get_bool(const LSPString *name, bool *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             else if (v->value.type != VT_BOOL)
@@ -1019,11 +1019,11 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_string(const LSPString *name, LSPString *value)
+        status_t Parameters::get_string(const LSPString *name, LSPString *value) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             else if (v->value.type != VT_STRING)
@@ -1037,11 +1037,11 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_null(const LSPString *name)
+        status_t Parameters::get_null(const LSPString *name) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             else if (v->value.type != VT_NULL)
@@ -1050,11 +1050,11 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::get_undef(const LSPString *name)
+        status_t Parameters::get_undef(const LSPString *name) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
             else if (v->value.type != VT_UNDEF)
