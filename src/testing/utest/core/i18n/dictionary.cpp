@@ -6,6 +6,7 @@
  */
 
 #include <test/utest.h>
+#include <core/resource.h>
 #include <core/i18n/Dictionary.h>
 
 using namespace lsp;
@@ -26,7 +27,15 @@ UTEST_BEGIN("core.i18n", dictionary)
         Dictionary d;
 
         printf("Creating dictionary...\n");
-        UTEST_ASSERT(d.init("res") == STATUS_OK);
+        UTEST_ASSERT(d.init(LSP_RESOURCE_PATH) == STATUS_OK);
+
+        printf("Testing dictionary lookup...\n");
+        IDictionary *xd;
+        UTEST_ASSERT(d.lookup("test.i18n.k1", &xd) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(d.lookup("test.i18n.valid", &xd) == STATUS_OK);
+        ck_lookup(xd, "k1", "v1");
+        ck_lookup(xd, "k8.k1.k2", "z2");
+        ck_lookup(xd, "k7.a3", "x3");
 
         printf("Testing parameter access...\n");
         LSPString v;
@@ -36,6 +45,9 @@ UTEST_BEGIN("core.i18n", dictionary)
         ck_lookup(&d, "test.i18n.valid.k1", "v1");
         ck_lookup(&d, "test.i18n.valid.k8.k1.k2", "z2");
         ck_lookup(&d, "test.i18n.valid.k7.a3", "x3");
+
+        UTEST_ASSERT(d.lookup("x.a", &v) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(d.lookup("x.a", &v) == STATUS_NOT_FOUND);
     }
 
 UTEST_END

@@ -115,7 +115,7 @@ namespace lsp
             res = load_builtin(dict, &res_id);
             if (res == STATUS_NOT_FOUND)
             {
-                lsp_debug("Trying to file resource %s...", res_id.get_utf8());
+                lsp_debug("Trying to load file resource %s...", res_id.get_utf8());
                 res = load_json(dict, &res_id);
             }
         }
@@ -140,17 +140,16 @@ namespace lsp
 
         // Perform binary search of the item
         ssize_t first = 0, last = vNodes.size()-1;
-        idx = 0;
         while (first <= last)
         {
-            idx = (first + last) >> 1;
-            node_t *node = vNodes.at(idx);
+            ssize_t curr = (first + last) >> 1;
+            node_t *node = vNodes.at(curr);
             int cmp = node->sKey.compare_to(&id);
 
             if (cmp > 0)
-                last    = idx - 1;
+                last    = curr - 1;
             else if (cmp < 0)
-                first   = idx + 1;
+                first   = curr + 1;
             else
                 return (node->pDict != NULL) ? node->pDict->lookup(&subkey, value) : STATUS_NOT_FOUND;
         }
@@ -202,7 +201,7 @@ namespace lsp
         while (first <= last)
         {
             ssize_t curr = (first + last) >> 1;
-            node_t *node = vNodes.at(idx);
+            node_t *node = vNodes.at(curr);
             int cmp = node->sKey.compare_to(&id);
 
             if (cmp > 0)
@@ -213,18 +212,24 @@ namespace lsp
             {
                 if (node->pDict == NULL)
                     return STATUS_NOT_FOUND;
-                else
-                    dict = node->pDict;
+                if ((node->bRoot) && (idx < 0))
+                    return STATUS_NOT_FOUND;
+                dict = node->pDict;
+                break;
             }
         }
 
-        // Dictionary not found, try to create new one
+        // Dictionary object not found?
         if (dict == NULL)
         {
+            // Try to load/create node
+            bool root    = false;
             status_t res = load_dictionary(&id, &dict);
             if (res == STATUS_NOT_FOUND)
-                res = create_child(&dict, &id);
-
+            {
+                res         = create_child(&dict, &id);
+                root        = true;
+            }
             if (res != STATUS_OK)
                 return res;
 
@@ -238,9 +243,14 @@ namespace lsp
 
             child->sKey.swap(&id);
             child->pDict        = dict;
+            child->bRoot        = root;
+
+            // There is no path element defined more?
+            if ((child->bRoot) && (idx < 0))
+                return STATUS_NOT_FOUND;
         }
 
-        if (idx >= 0)
+        if (idx > 0)
             return dict->lookup(&subkey, value);
 
         *value = dict;

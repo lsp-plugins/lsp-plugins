@@ -55,17 +55,17 @@ namespace lsp
     status_t JsonDictionary::add_node(const node_t *src)
     {
         // Perform binary search, the item should not exist
-        ssize_t first = 0, last = vNodes.size()-1, idx = 0;
+        ssize_t first = 0, last = vNodes.size()-1;
         while (first <= last)
         {
-            idx = (first + last) >> 1;
-            node_t *node = vNodes.at(idx);
+            ssize_t curr = (first + last) >> 1;
+            node_t *node = vNodes.at(curr);
             int cmp = node->sKey.compare_to(&src->sKey);
 
             if (cmp > 0)
-                last    = idx - 1;
+                last    = curr - 1;
             else if (cmp < 0)
-                first   = idx + 1;
+                first   = curr + 1;
             else
                 return STATUS_BAD_FORMAT;
         }
@@ -187,17 +187,17 @@ namespace lsp
     JsonDictionary::node_t *JsonDictionary::find_node(const LSPString *key)
     {
         // Perform binary search
-        ssize_t first = 0, last = vNodes.size()-1, idx = 0;
+        ssize_t first = 0, last = vNodes.size()-1;
         while (first <= last)
         {
-            idx = (first + last) >> 1;
-            node_t *node = vNodes.at(idx);
+            ssize_t curr = (first + last) >> 1;
+            node_t *node = vNodes.at(curr);
             int cmp = node->sKey.compare_to(key);
 
             if (cmp > 0)
-                last    = idx - 1;
+                last    = curr - 1;
             else if (cmp < 0)
-                first   = idx + 1;
+                first   = curr + 1;
             else
                 return node;
         }

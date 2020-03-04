@@ -28,6 +28,7 @@ namespace lsp
             {
                 LSPString       sKey;
                 IDictionary    *pDict;
+                bool            bRoot;
             } node_t;
 
         protected:
