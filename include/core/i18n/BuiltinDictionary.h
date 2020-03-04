@@ -25,6 +25,7 @@ namespace lsp
                 const char         *sKey;
                 const char         *sValue;
                 BuiltinDictionary  *pChild;
+                bool                bBad;
             } node_t;
 
         protected:
@@ -46,7 +47,11 @@ namespace lsp
 
             virtual status_t lookup(const char *key, LSPString *value);
 
+            virtual status_t lookup(const char *key, IDictionary **value);
+
             virtual status_t lookup(const LSPString *key, LSPString *value);
+
+            virtual status_t lookup(const LSPString *key, IDictionary **value);
 
             virtual status_t get_value(size_t index, LSPString *key, LSPString *value);
 

@@ -49,7 +49,7 @@ namespace lsp
             {
                 // Start of new object
                 case '{':
-                    lsp_trace("Object start");
+//                    lsp_trace("Object start");
                     if (curr == NULL)
                     {
                         curr            = this;
@@ -75,7 +75,7 @@ namespace lsp
 
                 // End of current object
                 case '}':
-                    lsp_trace("Object end");
+//                    lsp_trace("Object end");
                     if (!stack.pop(&curr))
                         curr = NULL;
                     else if (curr == NULL)
@@ -84,24 +84,24 @@ namespace lsp
 
                 // JSON Property key
                 case ':':
-                    lsp_trace("Property key");
+//                    lsp_trace("Property key");
                     if (curr == NULL)
                         return STATUS_BAD_STATE;
 
                     node.sKey   = resource_fetch_dstring(&ptr);
-                    lsp_trace("  property key: %s", node.sKey);
+//                    lsp_trace("  property key: %s", node.sKey);
                     if (!node.sKey)
                         return STATUS_CORRUPTED;
                     break;
 
                 // JSON string value
                 case '\"':
-                    lsp_trace("Property value");
+//                    lsp_trace("Property value");
                     if (curr == NULL)
                         return STATUS_BAD_STATE;
 
                     node.sValue     = resource_fetch_dstring(&ptr);
-                    lsp_trace("  property value: %s", node.sValue);
+//                    lsp_trace("  property value: %s", node.sValue);
                     if (!node.sValue)
                         return STATUS_CORRUPTED;
                     node.pChild     = NULL;
@@ -117,7 +117,7 @@ namespace lsp
             }
         }
 
-        lsp_trace("End of file");
+//        lsp_trace("End of file");
 
         // Check final state
         if ((stack.size() > 0) || (curr != NULL))
@@ -178,14 +178,17 @@ namespace lsp
         if (key == NULL)
             return STATUS_INVALID_VALUE;
 
-        lsp_trace("Lookup key: %s", key);
-
+//        lsp_trace("Lookup key: %s", key);
         node_t *node;
+        BuiltinDictionary *curr = this;
 
         // Need to lookup sub-node?
-        const char *split = ::strchr(key, '.');
-        if (split != NULL)
+        while (true)
         {
+            const char *split = ::strchr(key, '.');
+            if (split == NULL)
+                break;;
+
             // Allocate temporary string
             size_t len = split - key;
             char *tmp = reinterpret_cast<char *>(::malloc(len + 1));
@@ -194,30 +197,85 @@ namespace lsp
             ::memcpy(tmp, key, len);
             tmp[len] = '\0';
 
-            lsp_trace("Lookup child: %s", tmp);
+//            lsp_trace("Lookup child: %s", tmp);
 
-            node = find_node(tmp);
+            node = curr->find_node(tmp);
             ::free(tmp);
 
             if ((node == NULL) || (node->pChild == NULL))
                 return STATUS_NOT_FOUND;
 
-            lsp_trace("Accessing to child dictionary %p with key: %s", node->pChild, &split[1]);
-            return node->pChild->lookup(&split[1], value);
+//            lsp_trace("Accessing to child dictionary %p with key: %s", node->pChild, &split[1]);
+            key = &split[1];
+            curr = node->pChild;
         }
 
         // No need to lookup
-        node = find_node(key);
+        node = curr->find_node(key);
         if ((node == NULL) || (node->pChild != NULL))
             return STATUS_NOT_FOUND;
-
         if ((value != NULL) && (!value->set_utf8(node->sValue)))
             return STATUS_NO_MEM;
 
         return STATUS_OK;
     }
 
+    status_t BuiltinDictionary::lookup(const char *key, IDictionary **value)
+    {
+        if (key == NULL)
+            return STATUS_INVALID_VALUE;
+
+//        lsp_trace("Lookup key: %s", key);
+
+        node_t *node;
+        BuiltinDictionary *curr = this;
+
+        // Need to lookup sub-nodes?
+        while (true)
+        {
+            const char *split = ::strchr(key, '.');
+            if (split == NULL)
+                break;
+
+            // Allocate temporary string
+            size_t len = split - key;
+            char *tmp = reinterpret_cast<char *>(::malloc(len + 1));
+            if (tmp == NULL)
+                return STATUS_NO_MEM;
+            ::memcpy(tmp, key, len);
+            tmp[len] = '\0';
+
+//            lsp_trace("Lookup child: %s", tmp);
+            node = curr->find_node(tmp);
+            ::free(tmp);
+
+            if ((node == NULL) || (node->pChild == NULL))
+                return STATUS_NOT_FOUND;
+
+//            lsp_trace("Accessing to child dictionary %p with key: %s", node->pChild, &split[1]);
+            key = &split[1];
+            curr = node->pChild;
+        }
+
+        // No need to lookup
+        node = curr->find_node(key);
+        if ((node == NULL) || (node->pChild == NULL))
+            return STATUS_NOT_FOUND;
+        if (value != NULL)
+            *value = node->pChild;
+
+        return STATUS_OK;
+    }
+
     status_t BuiltinDictionary::lookup(const LSPString *key, LSPString *value)
+    {
+        if (key == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        return lookup(key->get_utf8(), value);
+    }
+
+    status_t BuiltinDictionary::lookup(const LSPString *key, IDictionary **value)
     {
         if (key == NULL)
             return STATUS_BAD_ARGUMENTS;

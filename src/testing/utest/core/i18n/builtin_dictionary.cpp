@@ -31,6 +31,14 @@ UTEST_BEGIN("core.i18n", builtin_dictionary)
         printf("Accessing builtin dictionary...\n");
         UTEST_ASSERT(d.init(LSP_BUILTIN_PREFIX "i18n") == STATUS_OK);
 
+        printf("Testing nested dictionary lookup...\n");
+        IDictionary *xd;
+        UTEST_ASSERT(d.lookup("unexisting", &xd) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(d.lookup("us.lang.local", &xd) == STATUS_OK);
+        ck_lookup(xd, "us", "English (US)");
+        UTEST_ASSERT(d.lookup("ru.lang", &xd) == STATUS_OK);
+        ck_lookup(xd, "local.ru", "Русский");
+
         printf("Testing access...\n");
         ck_lookup(&d, "us.lang.local.us", "English (US)");
         ck_lookup(&d, "us.lang.local.ru", "Russian");
