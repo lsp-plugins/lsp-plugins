@@ -117,7 +117,7 @@ namespace lsp
 
         status_t LSPMessageBox::set_heading(const char *text)
         {
-            status_t result = sHeading.set_text(text);
+            status_t result = sHeading.text()->set_raw(text);
             if (result == STATUS_OK)
                 sHeadAlign.set_visible(text != NULL);
             return result;
@@ -125,7 +125,7 @@ namespace lsp
 
         status_t LSPMessageBox::set_heading(const LSPString *text)
         {
-            status_t result = sHeading.set_text(text);
+            status_t result = sHeading.text()->set_raw(text);
             if (result == STATUS_OK)
                 sHeadAlign.set_visible(text != NULL);
             return result;
@@ -133,7 +133,7 @@ namespace lsp
 
         status_t LSPMessageBox::set_message(const char *text)
         {
-            status_t result = sMessage.set_text(text);
+            status_t result = sMessage.text()->set_raw(text);
             if (result == STATUS_OK)
                 sMsgAlign.set_visible(text != NULL);
             return result;
@@ -141,7 +141,7 @@ namespace lsp
 
         status_t LSPMessageBox::set_message(const LSPString *text)
         {
-            status_t result = sMessage.set_text(text);
+            status_t result = sMessage.text()->set_raw(text);
             if (result == STATUS_OK)
                 sMsgAlign.set_visible(text != NULL);
             return result;

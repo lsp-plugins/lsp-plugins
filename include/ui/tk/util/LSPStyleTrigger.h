@@ -18,6 +18,8 @@ namespace lsp
             STYLE_TRG_RESIZE
         };
         
+        class LSPWidget;
+
         class LSPStyleTrigger: public IStyleListener
         {
             private:
@@ -69,10 +71,20 @@ namespace lsp
                  */
                 status_t            bind(const LSPString *name, ui_property_type_t type, style_trigger_action_t action);
 
-                inline status_t     bind_int(ui_atom_t id, style_trigger_action_t action)       { return bind(id, PT_INT, action); };
-                inline status_t     bind_float(ui_atom_t id, style_trigger_action_t action)     { return bind(id, PT_FLOAT, action); };
-                inline status_t     bind_bool(ui_atom_t id, style_trigger_action_t action)      { return bind(id, PT_BOOL, action); };
-                inline status_t     bind_string(ui_atom_t id, style_trigger_action_t action)    { return bind(id, PT_STRING, action); };
+                inline status_t     bind_int(ui_atom_t id, style_trigger_action_t action)               { return bind(id, PT_INT, action); };
+                inline status_t     bind_float(ui_atom_t id, style_trigger_action_t action)             { return bind(id, PT_FLOAT, action); };
+                inline status_t     bind_bool(ui_atom_t id, style_trigger_action_t action)              { return bind(id, PT_BOOL, action); };
+                inline status_t     bind_string(ui_atom_t id, style_trigger_action_t action)            { return bind(id, PT_STRING, action); };
+
+                inline status_t     bind_int(const char *name, style_trigger_action_t action)           { return bind(name, PT_INT, action); };
+                inline status_t     bind_float(const char *name, style_trigger_action_t action)         { return bind(name, PT_FLOAT, action); };
+                inline status_t     bind_bool(const char *name, style_trigger_action_t action)          { return bind(name, PT_BOOL, action); };
+                inline status_t     bind_string(const char *name, style_trigger_action_t action)        { return bind(name, PT_STRING, action); };
+
+                inline status_t     bind_int(const LSPString *name, style_trigger_action_t action)      { return bind(name, PT_INT, action); };
+                inline status_t     bind_float(const LSPString *name, style_trigger_action_t action)    { return bind(name, PT_FLOAT, action); };
+                inline status_t     bind_bool(const LSPString *name, style_trigger_action_t action)     { return bind(name, PT_BOOL, action); };
+                inline status_t     bind_string(const LSPString *name, style_trigger_action_t action)   { return bind(name, PT_STRING, action); };
 
                 /**
                  * Check that trigger is already bound with the specified action

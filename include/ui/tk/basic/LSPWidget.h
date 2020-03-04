@@ -52,7 +52,7 @@ namespace lsp
 
                 LSPColor            sBgColor;       // Widget color
                 LSPFloat            sBrightness;    // Brightness
-                LSPStyle            sStyle;
+                LSPStyle            sStyle;         // Style
 
             //---------------------------------------------------------------------------------
             // Slot handlers

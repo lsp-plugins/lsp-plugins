@@ -46,7 +46,7 @@ namespace lsp
             {
                 case A_TEXT:
                     if (hlink != NULL)
-                        hlink->set_text(value);
+                        hlink->text()->set_raw(value);
                     break;
                 case A_URL:
                     if (hlink != NULL)

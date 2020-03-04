@@ -15,7 +15,8 @@ namespace lsp
 
         LSPLabel::LSPLabel(LSPDisplay *dpy):
             LSPWidget(dpy),
-            sFont(dpy, this)
+            sFont(dpy, this),
+            sText(this)
         {
             fVAlign     = 0.5f;
             fHAlign     = 0.5f;
@@ -37,6 +38,8 @@ namespace lsp
 
             sFont.init();
             init_color(C_LABEL_TEXT, sFont.color());
+
+            sText.bind();
 
             return STATUS_OK;
         }
@@ -87,17 +90,20 @@ namespace lsp
             sFont.get_parameters(s, &fp);
 
             // Estimate number of lines
-            ssize_t n_lines = 1 + sText.count('\n');
+            LSPString text;
+            sText.format(&text);
+
+            ssize_t n_lines = 1 + text.count('\n');
             ssize_t dy      = sSize.nHeight - fp.Height*n_lines - (nBorder << 1);
             ssize_t y       = nBorder - fp.Descent + dy * fVAlign;
 
             // Estimate text size
-            ssize_t last = 0, curr = 0, tail = 0, len = sText.length();
+            ssize_t last = 0, curr = 0, tail = 0, len = text.length();
 
             while (curr < len)
             {
                 // Get next line indexes
-                curr    = sText.index_of(last, '\n');
+                curr    = text.index_of(last, '\n');
                 if (curr < 0)
                 {
                     curr        = len;
@@ -106,17 +112,17 @@ namespace lsp
                 else
                 {
                     tail        = curr;
-                    if ((tail > last) && (sText.at(tail-1) == '\r'))
+                    if ((tail > last) && (text.at(tail-1) == '\r'))
                         --tail;
                 }
 
                 // Calculate text location
-                sFont.get_text_parameters(s, &tp, &sText, last, tail);
+                sFont.get_text_parameters(s, &tp, &text, last, tail);
                 ssize_t dx  = sSize.nWidth - tp.Width - (nBorder << 1);
                 ssize_t x   = nBorder + dx * fHAlign - tp.XBearing;
                 y          += fp.Height;
 
-                sFont.draw(s, x, y, font_color, &sText, last, tail);
+                sFont.draw(s, x, y, font_color, &text, last, tail);
                 last    = curr + 1;
 
 //                s->line(x - 3, y - 3, x + 3, y + 3, 1, red);
@@ -136,7 +142,10 @@ namespace lsp
             r->nMaxWidth    = -1;
             r->nMaxHeight   = -1;
 
-            if (sText.is_empty())
+            LSPString text;
+            sText.format(&text);
+
+            if (text.is_empty())
                 return;
             if (pDisplay == NULL)
                 return;
@@ -145,7 +154,7 @@ namespace lsp
                 return;
 
             text_parameters_t tp;
-            sFont.get_multiline_text_parameters(s, &tp, &sText);
+            sFont.get_multiline_text_parameters(s, &tp, &text);
 
             r->nMinWidth    = tp.Width + (nBorder + 1) * 2;
             r->nMinHeight   = tp.Height + (nBorder + 1) * 2;
@@ -181,22 +190,5 @@ namespace lsp
                 query_draw();
         }
 
-        status_t LSPLabel::set_text(const char *text)
-        {
-            if (!sText.set_native(text))
-                return STATUS_NO_MEM;
-
-            query_safe_resize();
-            return STATUS_OK;
-        };
-
-        status_t LSPLabel::set_text(const LSPString *text)
-        {
-            if (!sText.set(text))
-                return STATUS_NO_MEM;
-
-            query_safe_resize();
-            return STATUS_OK;
-        }
     } /* namespace tk */
 } /* namespace lsp */

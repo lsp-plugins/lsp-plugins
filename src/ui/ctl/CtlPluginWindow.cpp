@@ -233,7 +233,7 @@ namespace lsp
                         LSPLabel   *lbl = new LSPLabel(dpy);
                         vWidgets.add(lbl);
                         lbl->init();
-                        lbl->set_text("Bypass");
+                        lbl->text()->set_raw("Bypass");
                         box->add(lbl);
 
                         LSPSwitch  *sw  = new LSPSwitch(dpy);
@@ -672,7 +672,7 @@ namespace lsp
             lbl->init();
             vWidgets.add(lbl);
             dst->add(lbl);
-            lbl->set_text(text);
+            lbl->text()->set_raw(text);
             lbl->set_fill(true);
             lbl->set_align(halign, 0.5f);
             return lbl;
@@ -692,7 +692,7 @@ namespace lsp
             vWidgets.add(hlink);
             algn->add(hlink);
             hlink->set_url(text);
-            hlink->set_text(text);
+            hlink->text()->set_raw(text);
             return hlink;
         }
 

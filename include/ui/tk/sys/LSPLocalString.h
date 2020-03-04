@@ -27,20 +27,54 @@ namespace lsp
                 };
 
             protected:
-                LSPWidget          *pOwner;     // Owner of this string
-                size_t              nFlags;     // Different flags
-                LSPString           sText;      // Text used for rendering
-                calc::Parameters    sParams;    // The paramet
+                class Listener: public IStyleListener
+                {
+                    private:
+                        LSPLocalString  *pString;
+
+                    public:
+                        inline Listener(LSPLocalString *ps) { pString = ps; }
+                        virtual ~Listener();
+
+                    public:
+                        virtual void notify(ui_atom_t property);
+                };
 
             protected:
-                status_t            fmt_intarnal(LSPString *out, IDictionary *dict, const LSPString *lang) const;
+                LSPWidget          *pWidget;    // Owner of this string
+                size_t              nFlags;     // Different flags
+                mutable ui_atom_t   nAtom;      // Atom for "lang" property
+                LSPString           sText;      // Text used for rendering
+                calc::Parameters    sParams;    // The paramet
+                Listener            sListener;  // Style listener
+
+            protected:
+                status_t            fmt_internal(LSPString *out, IDictionary *dict, const LSPString *lang) const;
+                void                notify(ui_atom_t property);
 
             public:
                 explicit LSPLocalString();
-                explicit LSPLocalString(LSPWidget *owner);
+                explicit LSPLocalString(LSPWidget *widget);
                 virtual ~LSPLocalString();
 
             public:
+                /**
+                 * Bind property to the widget
+                 * @param widget widget to bind
+                 * @return status of operation
+                 */
+                status_t bind(const char *property);
+                status_t bind(const LSPString *property);
+                status_t bind(ui_atom_t property);
+                status_t bind();
+
+                /**
+                 * Unbind property from widget
+                 * @param widget widget to unbind
+                 * @return status of operation
+                 */
+                status_t unbind();
+
                 /**
                  * Check wheter the string is localized
                  * @return true if the string is localized
@@ -51,19 +85,19 @@ namespace lsp
                  * Get raw text
                  * @return raw text or NULL if string is localized
                  */
-                inline const LSPString *get_raw() const { return (nFlags & F_LOCALIZED) ? NULL : &sText;        }
+                inline const LSPString *raw() const { return (nFlags & F_LOCALIZED) ? NULL : &sText;        }
 
                 /**
                  * Get localization key
                  * @return localization key or NULL if string is not localized
                  */
-                inline const LSPString *get_key() const { return (nFlags & F_LOCALIZED) ? &sText : NULL;        }
+                inline const LSPString *key() const { return (nFlags & F_LOCALIZED) ? &sText : NULL;        }
 
                 /**
                  * Get localization parameters
                  * @return localization parameters or NULL if string is not localized
                  */
-                inline const calc::Parameters *get_params() const { return (nFlags & F_LOCALIZED) ? &sParams : NULL; }
+                inline const calc::Parameters *params() const { return (nFlags & F_LOCALIZED) ? &sParams : NULL; }
 
             public:
                 /**
@@ -125,6 +159,13 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t format(LSPString *out, IDictionary *dict, const LSPString *lang) const;
+
+                /**
+                 * Format the message using dictionary and style from derived widget
+                 * @param out output string
+                 * @return status of operation
+                 */
+                status_t format(LSPString *out) const;
         };
     
     } /* namespace tk */

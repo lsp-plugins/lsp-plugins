@@ -138,7 +138,7 @@ namespace lsp
                     if (enType != CTL_LABEL_TEXT)
                         return;
                     if (lbl != NULL)
-                        lbl->set_text(value);
+                        lbl->text()->set_raw(value);
                     break;
                 case A_UNITS:
                     if (enType == CTL_LABEL_TEXT)
@@ -213,7 +213,7 @@ namespace lsp
             {
                 case CTL_LABEL_TEXT:
                     if ((mdata != NULL) && (mdata->name != NULL))
-                        lbl->set_text(mdata->name);
+                        lbl->text()->set_raw(mdata->name);
                     return;
 
                 case CTL_LABEL_PARAM:
@@ -244,7 +244,7 @@ namespace lsp
                     }
 
                     // Update text
-                    lbl->set_text(text);
+                    lbl->text()->set_raw(text);
                     break;
                 }
 
@@ -268,7 +268,7 @@ namespace lsp
                         snprintf(a_text, sizeof(a_text), "%s", buf);
 
                     // Update text
-                    lbl->set_text(a_text);
+                    lbl->text()->set_raw(a_text);
                     break;
                 }
 
@@ -282,7 +282,7 @@ namespace lsp
                         init_color(C_STATUS_WARN, lbl->font()->color());
                     else
                         init_color(C_STATUS_ERROR, lbl->font()->color());
-                    lbl->set_text(text);
+                    lbl->text()->set_raw(text);
                     break;
                 }
 
@@ -424,7 +424,7 @@ namespace lsp
 
             if (u_name != NULL)
             {
-                if (popup->sUnits.set_text(u_name) != STATUS_OK)
+                if (popup->sUnits.text()->set_raw(u_name) != STATUS_OK)
                     u_name = NULL;
             }
 

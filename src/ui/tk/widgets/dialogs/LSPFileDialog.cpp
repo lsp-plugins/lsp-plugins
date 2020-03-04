@@ -110,7 +110,7 @@ namespace lsp
                 result = algn->init();
             algn->set_hpos(align);
             if (result == STATUS_OK)
-                result = lbl->set_text(text);
+                result = lbl->text()->set_raw(text);
 
             if (result == STATUS_OK)
                 result = algn->add(lbl);
@@ -190,7 +190,7 @@ namespace lsp
             sAppendExt.set_hpos(0.0f);
 
             if (result == STATUS_OK)
-                result = lbl->set_text(text);
+                result = lbl->text()->set_raw(text);
             if (result == STATUS_OK)
                 result = sAppendExt.add(box);
             if (result == STATUS_OK)
@@ -458,13 +458,13 @@ namespace lsp
             if (enMode == FDM_OPEN_FILE)
             {
                 if (pWSearch != NULL)
-                    pWSearch->set_text("Search");
+                    pWSearch->text()->set("labels.search");
                 sAppendExt.set_visible(false);
             }
             else if (enMode == FDM_SAVE_FILE)
             {
                 if (pWSearch != NULL)
-                    pWSearch->set_text("File name");
+                    pWSearch->text()->set("labels.file_name");
                 sAppendExt.set_visible(true);
             }
         }
@@ -680,7 +680,7 @@ namespace lsp
                 str.set_native("Access error: ");
                 path.set_native(text);
                 str.append(&path);
-                sWWarning.set_text(&str);
+                sWWarning.text()->set_raw(&str);
                 sWWarning.show();
             }
 
@@ -1470,7 +1470,7 @@ namespace lsp
                     break;
                 if ((res = ent->sHlink.init()) != STATUS_OK)
                     break;
-                if ((res = ent->sHlink.set_text(&b->name)) != STATUS_OK)
+                if ((res = ent->sHlink.text()->set_raw(&b->name)) != STATUS_OK)
                     break;
                 res = (url.set_ascii("file://")) ? STATUS_OK : STATUS_NO_MEM;
                 if (res == STATUS_OK)
@@ -1640,7 +1640,7 @@ namespace lsp
                 return res;
             if ((res = ent->sHlink.init()) != STATUS_OK)
                 return res;
-            if ((res = ent->sHlink.set_text(&ent->sBookmark.name)) != STATUS_OK)
+            if ((res = ent->sHlink.text()->set_raw(&ent->sBookmark.name)) != STATUS_OK)
                 return res;
             if ((res = path->get(&url)) != STATUS_OK)
                 return res;
