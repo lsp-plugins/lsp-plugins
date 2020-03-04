@@ -45,6 +45,7 @@ namespace lsp
                 CtlPort            *pR3DBackend;
 
                 cstorage<backend_sel_t>     vBackendSel;
+                cvector<LSPString>          vLangSel;
 
             protected:
                 static status_t slot_window_close(LSPWidget *sender, void *ptr, void *data);
@@ -70,12 +71,15 @@ namespace lsp
 
                 static status_t slot_select_backend(LSPWidget *sender, void *ptr, void *data);
 
+                static status_t slot_select_language(LSPWidget *sender, void *ptr, void *data);
+
             protected:
                 status_t        show_notification();
                 status_t        show_menu(size_t actor_id, void *data);
                 LSPLabel       *create_label(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
                 LSPHyperlink   *create_hlink(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
                 status_t        init_r3d_support(LSPMenu *menu);
+                status_t        create_language_menu(LSPMenu *menu);
 
             public:
                 explicit CtlPluginWindow(plugin_ui *src, LSPWindow *wnd);

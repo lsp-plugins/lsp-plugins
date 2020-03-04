@@ -307,7 +307,7 @@ namespace lsp
                 return NULL;
             }
 
-            xcopy(s->pData, pData, nLength);
+            xmove(s->pData, pData, nLength);
         }
         else
             s->pData        = NULL;
@@ -408,7 +408,7 @@ namespace lsp
         if (!cap_reserve(n))
             return false;
 
-        xcopy(pData, arr, n);
+        xmove(pData, arr, n);
         nLength     = n;
         return true;
     }
@@ -429,7 +429,7 @@ namespace lsp
         if (!cap_reserve(src->nLength))
             return false;
         if (src->nLength > 0)
-            xcopy(pData, src->pData, src->nLength);
+            xmove(pData, src->pData, src->nLength);
         nLength     = src->nLength;
         return true;
     }
@@ -445,7 +445,7 @@ namespace lsp
         {
             if (!cap_reserve(length))
                 return false;
-            xcopy(pData, &src->pData[first], length);
+            xmove(pData, &src->pData[first], length);
             nLength     = length;
         }
         else
@@ -465,7 +465,7 @@ namespace lsp
         {
             if (!cap_reserve(length))
                 return false;
-            xcopy(pData, &src->pData[first], length);
+            xmove(pData, &src->pData[first], length);
             nLength     = length;
         }
         else
@@ -499,7 +499,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+n], &pData[pos], count);
-        xcopy(&pData[pos], arr, n);
+        xmove(&pData[pos], arr, n);
         nLength    += n;
 
         return true;
@@ -517,7 +517,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+src->nLength], &pData[pos], count);
-        xcopy(&pData[pos], src->pData, src->nLength);
+        xmove(&pData[pos], src->pData, src->nLength);
         nLength    += src->nLength;
 
         return true;
@@ -537,7 +537,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+length], &pData[pos], count);
-        xcopy(&pData[pos], &src->pData[first], length);
+        xmove(&pData[pos], &src->pData[first], length);
         nLength    += length;
 
         return true;
@@ -558,7 +558,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+length], &pData[pos], count);
-        xcopy(&pData[pos], &src->pData[first], length);
+        xmove(&pData[pos], &src->pData[first], length);
         nLength    += length;
 
         return true;
@@ -592,7 +592,7 @@ namespace lsp
     {
         if (!cap_grow(n))
             return false;
-        xcopy(&pData[nLength], arr, n);
+        xmove(&pData[nLength], arr, n);
         nLength += n;
         return true;
     }
@@ -623,7 +623,7 @@ namespace lsp
             return true;
         if (!cap_grow(src->nLength))
             return false;
-        xcopy(&pData[nLength], src->pData, src->nLength);
+        xmove(&pData[nLength], src->pData, src->nLength);
         nLength += src->nLength;
         return true;
     }
@@ -637,7 +637,7 @@ namespace lsp
 
         if (!cap_grow(length))
             return false;
-        xcopy(&pData[nLength], &src->pData[first], length);
+        xmove(&pData[nLength], &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -652,7 +652,7 @@ namespace lsp
 
         if (!cap_grow(length))
             return false;
-        xcopy(&pData[nLength], &src->pData[first], length);
+        xmove(&pData[nLength], &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -676,7 +676,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[n], pData, nLength);
-        xcopy(pData, arr, n);
+        xmove(pData, arr, n);
         nLength += n;
         return true;
     }
@@ -713,7 +713,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[src->nLength], pData, nLength);
-        xcopy(pData, src->pData, src->nLength);
+        xmove(pData, src->pData, src->nLength);
         nLength += src->nLength;
         return true;
     }
@@ -729,7 +729,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[length], pData, nLength);
-        xcopy(pData, &src->pData[first], length);
+        xmove(pData, &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -746,7 +746,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[length], pData, nLength);
-        xcopy(pData, &src->pData[first], length);
+        xmove(pData, &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -1005,7 +1005,7 @@ namespace lsp
         if (!cap_reserve(pos + n))
             return false;
 
-        xcopy(&pData[pos], arr, n);
+        xmove(&pData[pos], arr, n);
         nLength =  pos + n;
         return true;
     }
@@ -1017,7 +1017,7 @@ namespace lsp
         if (!cap_reserve(pos + src->nLength))
             return false;
 
-        xcopy(&pData[pos], src->pData, src->nLength);
+        xmove(&pData[pos], src->pData, src->nLength);
         nLength =  pos + src->nLength;
         return true;
     }
@@ -1033,7 +1033,7 @@ namespace lsp
             if (!cap_reserve(pos + length))
                 return false;
 
-            xcopy(&pData[pos], &src->pData[first], length);
+            xmove(&pData[pos], &src->pData[first], length);
         }
         nLength =  pos + length;
         return true;
@@ -1048,7 +1048,7 @@ namespace lsp
         if (!cap_reserve(pos + length))
             return false;
 
-        xcopy(&pData[pos], &src->pData[first], length);
+        xmove(&pData[pos], &src->pData[first], length);
         nLength =  pos + length;
         return true;
     }
@@ -1088,7 +1088,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + n], &pData[tail], nLength - tail);
         if (n > 0)
-            xcopy(&pData[first], arr, n);
+            xmove(&pData[first], arr, n);
         nLength = nLength - count + n;
         return true;
     }
@@ -1108,7 +1108,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + src->nLength], &pData[tail], nLength - tail);
         if (src->nLength > 0)
-            xcopy(&pData[first], src->pData, src->nLength);
+            xmove(&pData[first], src->pData, src->nLength);
         nLength = nLength - count + src->nLength;
         return true;
     }
@@ -1131,7 +1131,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + scount], &pData[tail], nLength - tail);
         if (scount > 0)
-            xcopy(&pData[first], &src->pData[sfirst], scount);
+            xmove(&pData[first], &src->pData[sfirst], scount);
         nLength = nLength - count + scount;
         return true;
     }
@@ -1157,7 +1157,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + scount], &pData[tail], nLength - tail);
         if (scount > 0)
-            xcopy(&pData[first], &src->pData[sfirst], scount);
+            xmove(&pData[first], &src->pData[sfirst], scount);
         nLength = nLength - count + scount;
         return true;
     }
@@ -1308,7 +1308,7 @@ namespace lsp
                 return NULL;
             }
 
-            xcopy(s->pData, &pData[first], length);
+            xmove(s->pData, &pData[first], length);
         }
         else
             s->pData        = NULL;
@@ -1340,7 +1340,7 @@ namespace lsp
                 return NULL;
             }
 
-            xcopy(s->pData, &pData[first], length);
+            xmove(s->pData, &pData[first], length);
         }
         else
             s->pData        = NULL;

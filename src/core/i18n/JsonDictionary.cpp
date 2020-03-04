@@ -211,32 +211,96 @@ namespace lsp
             return STATUS_INVALID_VALUE;
 
         node_t *node;
+        JsonDictionary *curr = this;
+        size_t last = 0;
 
-        // Need to lookup sub-node?
-        ssize_t idx = key->index_of('.');
-        if (idx > 0)
+        // Need to lookup sub-nodes?
+        LSPString id;
+        while (true)
         {
-            LSPString id;
-            if (!id.set(key, 0, idx))
+            // Is there a path element?
+            ssize_t idx = key->index_of(last, '.');
+            if (idx <= 0)
+                break;
+
+            // Get a sub-string
+            if (!id.set(key, last, idx))
                 return STATUS_NO_MEM;
 
-            node = find_node(&id);
+            // Try to find node
+            node = curr->find_node(&id);
             if ((node == NULL) || (node->pChild == NULL))
                 return STATUS_NOT_FOUND;
 
-            if (!id.set(key, idx+1))
-                return STATUS_NO_MEM;
-
-            return node->pChild->lookup(&id, value);
+            last = idx+1;
+            curr = node->pChild;
         }
 
-        // No need to lookup
-        node = find_node(key);
+        // Find last element
+        if (last != 0)
+        {
+            if (!id.set(key, last))
+                return STATUS_NO_MEM;
+            node = curr->find_node(&id);
+        }
+        else
+            node = curr->find_node(key);
+
+        // Analyze node
         if ((node == NULL) || (node->pChild != NULL))
             return STATUS_NOT_FOUND;
-
         if ((value != NULL) && (!value->set(&node->sValue)))
             return STATUS_NO_MEM;
+
+        return STATUS_OK;
+    }
+
+    status_t JsonDictionary::lookup(const LSPString *key, IDictionary **value)
+    {
+        if (key == NULL)
+            return STATUS_INVALID_VALUE;
+
+        node_t *node;
+        JsonDictionary *curr = this;
+        size_t last = 0;
+
+        // Need to lookup sub-nodes?
+        LSPString id;
+        while (true)
+        {
+            // Is there a path element?
+            ssize_t idx = key->index_of(last, '.');
+            if (idx <= 0)
+                break;
+
+            // Get a sub-string
+            if (!id.set(key, last, idx))
+                return STATUS_NO_MEM;
+
+            // Try to find node
+            node = curr->find_node(&id);
+            if ((node == NULL) || (node->pChild == NULL))
+                return STATUS_NOT_FOUND;
+
+            last = idx+1;
+            curr = node->pChild;
+        }
+
+        // Find last element
+        if (last != 0)
+        {
+            if (!id.set(key, last))
+                return STATUS_NO_MEM;
+            node = curr->find_node(&id);
+        }
+        else
+            node = curr->find_node(key);
+
+        // Analyze node
+        if ((node == NULL) || (node->pChild == NULL))
+            return STATUS_NOT_FOUND;
+        if (value != NULL)
+            *value = node->pChild;
 
         return STATUS_OK;
     }

@@ -62,6 +62,22 @@ namespace lsp
             virtual status_t lookup(const LSPString *key, LSPString *value);
 
             /**
+             * Lookup for a dictionary
+             * @param key non-null UTF-8 encoded key value
+             * @param value pointer to store the value (may be NULL)
+             * @return status of operation
+             */
+            virtual status_t lookup(const char *key, IDictionary **value);
+
+            /**
+             * Lookup for a dictionary
+             * @param key non-null key value
+             * @param value pointer to store the value (may be NULL)
+             * @return status of operation
+             */
+            virtual status_t lookup(const LSPString *key, IDictionary **value);
+
+            /**
              * Get the element by index of element
              * @param index index of the element
              * @param key the key name

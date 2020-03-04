@@ -6,6 +6,7 @@
  */
 
 #include <test/utest.h>
+#include <core/resource.h>
 #include <core/i18n/JsonDictionary.h>
 
 using namespace lsp;
@@ -22,7 +23,7 @@ UTEST_BEGIN("core.i18n", json_dictionary)
         UTEST_ASSERT(v.equals_utf8(value));
     }
 
-    void ck_child(JsonDictionary *d, size_t index, const char *name)
+    void ck_child(IDictionary *d, size_t index, const char *name)
     {
         LSPString k;
         IDictionary *c = NULL;
@@ -45,7 +46,7 @@ UTEST_BEGIN("core.i18n", json_dictionary)
         UTEST_ASSERT(v.equals_utf8(value));
     }
 
-    void validate(JsonDictionary *d)
+    void validate(IDictionary *d)
     {
         ck_att(d, 0, "k1", "v1");
         ck_child(d, 1, "k2");
@@ -65,7 +66,17 @@ UTEST_BEGIN("core.i18n", json_dictionary)
         JsonDictionary d;
 
         printf("Testing load of valid dictionary...\n");
-        UTEST_ASSERT(d.init("res/test/i18n/valid.json") == STATUS_OK);
+        UTEST_ASSERT(d.init(LSP_RESOURCE_PATH "/test/i18n/valid.json") == STATUS_OK);
+
+        printf("Testing lookup of dictionary node...\n");
+        IDictionary *xd = NULL;
+        UTEST_ASSERT(d.lookup("lalala", &xd) == STATUS_NOT_FOUND);
+        UTEST_ASSERT(d.lookup("k2", &xd) == STATUS_OK);
+        ck_att(xd, 0, "a1", "x1");
+        ck_att(xd, 1, "a2", "x2");
+        ck_att(xd, 2, "a3", "x3");
+        UTEST_ASSERT(d.lookup("k8.k1", &xd) == STATUS_OK);
+        ck_att(xd, 0, "k2", "z2");
 
         printf("Validating dictionary...\n");
         validate(&d);

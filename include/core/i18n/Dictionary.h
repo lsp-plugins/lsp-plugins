@@ -39,6 +39,7 @@ namespace lsp
             status_t        load_builtin(IDictionary **dict, const LSPString *path);
             status_t        create_child(IDictionary **dict, const LSPString *path);
             status_t        init_dictionary(IDictionary *d, const LSPString *path);
+            status_t        load_dictionary(const LSPString *id, IDictionary **dict);
 
         public:
             explicit Dictionary();
@@ -49,6 +50,8 @@ namespace lsp
             using IDictionary::init;
 
             virtual status_t lookup(const LSPString *key, LSPString *value);
+
+            virtual status_t lookup(const LSPString *key, IDictionary **value);
 
             virtual status_t get_value(size_t index, LSPString *key, LSPString *value);
 

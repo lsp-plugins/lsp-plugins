@@ -39,8 +39,7 @@ namespace lsp
         
         CtlPluginWindow::~CtlPluginWindow()
         {
-            size_t n    = vWidgets.size();
-            for (size_t i=0; i<n; ++i)
+            for (size_t i=0, n=vWidgets.size(); i<n; ++i)
             {
                 LSPWidget *w = vWidgets.at(i);
                 if (w == NULL)
@@ -48,8 +47,17 @@ namespace lsp
                 w->destroy();
                 delete w;
             }
+
+            for (size_t i=0, n=vLangSel.size(); i<n; ++i)
+            {
+                LSPString *s = vLangSel.at(i);
+                if (s != NULL)
+                    delete s;
+            }
+
             vWidgets.flush();
             vBackendSel.flush();
+            vLangSel.flush();
         }
 
         status_t CtlPluginWindow::slot_window_close(LSPWidget *sender, void *ptr, void *data)
@@ -184,6 +192,9 @@ namespace lsp
                     itm->slots()->bind(LSPSLOT_SUBMIT, slot_toggle_rack_mount, this);
                     pMenu->add(itm);
 
+                    // Create language selection menu
+                    create_language_menu(pMenu);
+
                     // Add support of 3D rendering backend switch
                     if (meta->extensions & E_3D_BACKEND)
                         init_r3d_support(pMenu);
@@ -289,6 +300,112 @@ namespace lsp
             pWnd->slots()->bind(LSPSLOT_SHOW, slot_window_show, this);
         }
 
+        status_t CtlPluginWindow::create_language_menu(LSPMenu *menu)
+        {
+            if (menu == NULL)
+                return STATUS_OK;
+
+            LSPDisplay *dpy   = menu->display();
+            if (dpy == NULL)
+                return STATUS_OK;
+
+            IDictionary *dict = dpy->dictionary();
+            if (dict == NULL)
+                return STATUS_OK;
+
+            // Perform lookup before loading list of languages
+            IDictionary *list = NULL;
+            status_t res = dict->lookup("default.lang.target", &list);
+            if (res != STATUS_OK)
+                return res;
+
+            // Create submenu item
+            LSPMenuItem *root       = new LSPMenuItem(menu->display());
+            if (root == NULL)
+                return STATUS_NO_MEM;
+            if ((res = root->init()) != STATUS_OK)
+            {
+                delete root;
+                return res;
+            }
+            if (!vWidgets.add(root))
+            {
+                root->destroy();
+                delete root;
+                return STATUS_NO_MEM;
+            }
+
+            // Create submenu
+            menu                = new LSPMenu(menu->display());
+            if (menu == NULL)
+                return STATUS_NO_MEM;
+            if ((res = menu->init()) != STATUS_OK)
+            {
+                menu->destroy();
+                delete menu;
+                return res;
+            }
+            if (!vWidgets.add(menu))
+            {
+                menu->destroy();
+                delete menu;
+                return STATUS_NO_MEM;
+            }
+            root->set_submenu(menu);
+
+            // Iterate all children and add language keys
+            LSPString key, value, *lang;
+            size_t added = 0;
+            for (size_t i=0, n=dict->size(); i<n; ++i)
+            {
+                // Fetch placeholder for language selection key
+                if ((res = dict->get_value(i, &key, &value)) != STATUS_OK)
+                {
+                    // Skip nested dictionaries
+                    if (res == STATUS_BAD_TYPE)
+                        continue;
+                    return res;
+                }
+                if ((lang = key.clone()) == NULL)
+                    return STATUS_NO_MEM;
+                if (!vLangSel.add(lang))
+                {
+                    delete lang;
+                    return STATUS_NO_MEM;
+                }
+
+                // Create menu item
+                LSPMenuItem *item = new LSPMenuItem(menu->display());
+                if (item == NULL)
+                    continue;
+                if ((res = item->init()) != STATUS_OK)
+                {
+                    item->destroy();
+                    delete item;
+                    continue;
+                }
+                if (!vWidgets.add(item))
+                {
+                    item->destroy();
+                    delete item;
+                    continue;
+                }
+
+                item->set_text(&value);
+                menu->add(item);
+
+                // Create closure and bind
+                item->slots()->bind(LSPSLOT_SUBMIT, slot_select_language, lang);
+
+                ++added;
+            }
+
+            // Set menu item visible only if there are available languages
+            root->set_visible(added > 0);
+
+            return STATUS_OK;
+        }
+
         status_t CtlPluginWindow::init_r3d_support(LSPMenu *menu)
         {
             if (menu == NULL)
@@ -349,7 +466,7 @@ namespace lsp
                     break;
 
                 // Create menu item
-                LSPMenuItem *item       = new LSPMenuItem(menu->display());
+                item       = new LSPMenuItem(menu->display());
                 if (item == NULL)
                     continue;
                 if ((res = item->init()) != STATUS_OK)
@@ -421,6 +538,15 @@ namespace lsp
                     sel->ctl->pR3DBackend->notify_all();
                 }
             }
+
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_select_language(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPString *lang = reinterpret_cast<LSPString *>(data);
+            if (lang != NULL)
+                lsp_trace("Select language: %s", lang->get_utf8());
 
             return STATUS_OK;
         }

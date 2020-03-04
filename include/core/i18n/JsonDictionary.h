@@ -49,6 +49,8 @@ namespace lsp
 
             virtual status_t lookup(const LSPString *key, LSPString *value);
 
+            virtual status_t lookup(const LSPString *key, IDictionary **value);
+
             virtual status_t get_value(size_t index, LSPString *key, LSPString *value);
 
             virtual status_t get_child(size_t index, LSPString *key, IDictionary **dict);

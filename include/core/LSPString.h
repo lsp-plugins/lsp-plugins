@@ -45,7 +45,6 @@ namespace lsp
             static inline lsp_wchar_t *xrealloc(lsp_wchar_t * ptr, size_t size) { return reinterpret_cast<lsp_wchar_t *>(::realloc(ptr, size * sizeof(lsp_wchar_t))); };
             static inline void xfree(lsp_wchar_t *ptr) { ::free(ptr); }
             static inline void xmove(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { ::memmove(dst, src, n * sizeof(lsp_wchar_t)); }
-            static inline void xcopy(lsp_wchar_t *dst, const lsp_wchar_t *src, size_t n) { ::memcpy(dst, src, n * sizeof(lsp_wchar_t)); }
             static inline size_t xlen(const lsp_wchar_t *s);
 
 #ifdef ARCH_LE

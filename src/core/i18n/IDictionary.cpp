@@ -53,6 +53,19 @@ namespace lsp
         return STATUS_NOT_FOUND;
     }
 
+    status_t IDictionary::lookup(const char *key, IDictionary **value)
+    {
+        LSPString path;
+        if (!path.set_utf8(key))
+            return STATUS_NO_MEM;
+        return lookup(&path, value);
+    }
+
+    status_t IDictionary::lookup(const LSPString *key, IDictionary **value)
+    {
+        return STATUS_NOT_FOUND;
+    }
+
     status_t IDictionary::get_value(size_t index, LSPString *key, LSPString *value)
     {
         return STATUS_NOT_FOUND;

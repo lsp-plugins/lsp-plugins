@@ -84,6 +84,45 @@ namespace lsp
         return res;
     }
 
+    status_t Dictionary::load_dictionary(const LSPString *id, IDictionary **dict)
+    {
+        status_t res;
+        LSPString res_id;
+
+        if (sPath.starts_with_ascii(LSP_BUILTIN_PREFIX))
+        {
+            if (!res_id.set(&sPath, ::strlen(LSP_BUILTIN_PREFIX)))
+                return STATUS_NO_MEM;
+            if (!res_id.append('/'))
+                return STATUS_NO_MEM;
+            if (!res_id.append(id))
+                return STATUS_NO_MEM;
+
+            lsp_debug("Trying to load builtin resource %s...", res_id.get_utf8());
+            res = load_builtin(dict, &res_id);
+        }
+        else
+        {
+            if (!res_id.set(&sPath))
+                return STATUS_NO_MEM;
+            if (!res_id.append('/'))
+                return STATUS_NO_MEM;
+            if (!res_id.append(id))
+                return STATUS_NO_MEM;
+
+            // Prefer builtin over external
+            lsp_debug("Trying to load builtin resource %s...", res_id.get_utf8());
+            res = load_builtin(dict, &res_id);
+            if (res == STATUS_NOT_FOUND)
+            {
+                lsp_debug("Trying to file resource %s...", res_id.get_utf8());
+                res = load_json(dict, &res_id);
+            }
+        }
+
+        return res;
+    }
+
     status_t Dictionary::lookup(const LSPString *key, LSPString *value)
     {
         if (key == NULL)
@@ -117,40 +156,8 @@ namespace lsp
         }
 
         // Dictionary not found, try to create new one
-        status_t res = STATUS_OK;
-        LSPString res_id;
         IDictionary *dict = NULL;
-        if (sPath.starts_with_ascii(LSP_BUILTIN_PREFIX))
-        {
-            if (!res_id.set(&sPath, ::strlen(LSP_BUILTIN_PREFIX)))
-                return STATUS_NO_MEM;
-            if (!res_id.append('/'))
-                return STATUS_NO_MEM;
-            if (!res_id.append(&id))
-                return STATUS_NO_MEM;
-
-            lsp_debug("Trying to load builtin resource %s...", res_id.get_utf8());
-            res = load_builtin(&dict, &res_id);
-        }
-        else
-        {
-            if (!res_id.set(&sPath))
-                return STATUS_NO_MEM;
-            if (!res_id.append('/'))
-                return STATUS_NO_MEM;
-            if (!res_id.append(&id))
-                return STATUS_NO_MEM;
-
-            // Prefer builtin over external
-            lsp_debug("Trying to load builtin resource %s...", res_id.get_utf8());
-            res = load_builtin(&dict, &res_id);
-            if (res == STATUS_NOT_FOUND)
-            {
-                lsp_debug("Trying to file resource %s...", res_id.get_utf8());
-                res = load_json(&dict, &res_id);
-            }
-        }
-
+        status_t res = load_dictionary(&id, &dict);
         if (res == STATUS_NOT_FOUND)
             res = create_child(&dict, &id);
 
@@ -169,6 +176,75 @@ namespace lsp
         child->pDict        = dict;
 
         return dict->lookup(&subkey, value);
+    }
+
+    status_t Dictionary::lookup(const LSPString *key, IDictionary **value)
+    {
+        if (key == NULL)
+            return STATUS_INVALID_VALUE;
+
+        ssize_t idx = key->index_of('.');
+        LSPString id, subkey;
+
+        if (idx > 0)
+        {
+            if (!id.set(key, 0, idx))
+                return STATUS_NO_MEM;
+            if (!subkey.set(key, idx+1))
+                return STATUS_NO_MEM;
+        }
+        else if (!id.set(key))
+            return STATUS_NO_MEM;
+
+        // Perform binary search of the dictionary
+        IDictionary *dict = NULL;
+        ssize_t first = 0, last = vNodes.size()-1;
+        while (first <= last)
+        {
+            ssize_t curr = (first + last) >> 1;
+            node_t *node = vNodes.at(idx);
+            int cmp = node->sKey.compare_to(&id);
+
+            if (cmp > 0)
+                last    = curr - 1;
+            else if (cmp < 0)
+                first   = curr + 1;
+            else
+            {
+                if (node->pDict == NULL)
+                    return STATUS_NOT_FOUND;
+                else
+                    dict = node->pDict;
+            }
+        }
+
+        // Dictionary not found, try to create new one
+        if (dict == NULL)
+        {
+            status_t res = load_dictionary(&id, &dict);
+            if (res == STATUS_NOT_FOUND)
+                res = create_child(&dict, &id);
+
+            if (res != STATUS_OK)
+                return res;
+
+            // Add node to list of nodes
+            node_t *child = new node_t;
+            if ((child == NULL) || (!vNodes.insert(child, first)))
+            {
+                delete dict;
+                return STATUS_NO_MEM;
+            }
+
+            child->sKey.swap(&id);
+            child->pDict        = dict;
+        }
+
+        if (idx >= 0)
+            return dict->lookup(&subkey, value);
+
+        *value = dict;
+        return STATUS_OK;
     }
 
     status_t Dictionary::get_value(size_t index, LSPString *key, LSPString *value)
