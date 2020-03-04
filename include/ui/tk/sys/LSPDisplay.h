@@ -34,6 +34,7 @@ namespace lsp
                 cvector<char>           vAtoms;
                 LSPSlotSet              sSlots;
                 LSPTheme                sTheme;
+                IDictionary            *pDictionary;
                 IDisplay               *pDisplay;
 
             protected:
@@ -173,6 +174,12 @@ namespace lsp
                  * @return native display handle
                  */
                 inline IDisplay *display()                  { return pDisplay; }
+
+                /**
+                 * Get the dictionary that contains localization data
+                 * @return dictionary object
+                 */
+                inline IDictionary *dictionary()            { return pDictionary; }
 
                 /** Get current display theme
                  *

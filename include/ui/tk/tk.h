@@ -13,6 +13,7 @@
 #include <data/cvector.h>
 #include <data/cstorage.h>
 #include <core/LSPString.h>
+#include <core/i18n/IDictionary.h>
 
 #include <ui/ws/ws.h>
 
@@ -232,6 +233,7 @@ namespace lsp
 #include <ui/tk/util/LSPTextDataSink.h>
 #include <ui/tk/util/LSPUrlSink.h>
 #include <ui/tk/util/LSPFileFilter.h>
+#include <ui/tk/util/LSPStyleTrigger.h>
 
 // Widget basics
 #include <ui/tk/basic/LSPWidget.h>

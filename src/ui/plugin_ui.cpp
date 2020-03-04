@@ -1074,6 +1074,16 @@ namespace lsp
         if (result != STATUS_OK)
             return result;
 
+        lsp_trace("Loading dictionary");
+        IDictionary *dict = sDisplay.dictionary();
+        #ifdef LSP_BULTIN_RESOURCES
+            result = dict->init(LSP_BUILTIN_PREFIX "i18n");
+        #else
+            result = dict->init(LSP_RESOURCE_PATH "/i18n");
+        #endif
+        if (result != STATUS_OK)
+            return result;
+
         // Read global configuration
         result = load_global_config();
         if (result != STATUS_OK)

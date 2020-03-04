@@ -31,6 +31,9 @@ namespace lsp
 
             // Initialize root style
             sStyle.init();
+            ui_atom_t lang = dpy->atom_id("language");
+            if (lang >= 0)
+                sStyle.set_string(lang, "us");
             sBgColor.bind(dpy, &sStyle, "bg_color");
             sGlassColor.bind(dpy, &sStyle, "glass_color");
             sHoleColor.bind(dpy, &sStyle, "hole_color");

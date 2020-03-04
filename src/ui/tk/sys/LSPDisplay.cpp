@@ -8,6 +8,8 @@
 #include <ui/ws/ws.h>
 #include <ui/tk/tk.h>
 
+#include <core/i18n/Dictionary.h>
+
 #if defined(USE_X11_DISPLAY)
     #include <ui/ws/x11/ws.h>
 #else
@@ -20,6 +22,7 @@ namespace lsp
     {
         LSPDisplay::LSPDisplay()
         {
+            pDictionary     = NULL;
             pDisplay        = NULL;
         }
 
@@ -145,20 +148,32 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
+            // Initialize dictionary
+            Dictionary *dict = new Dictionary();
+            if (dict == NULL)
+                return STATUS_NO_MEM;
+
             // Initialize display
-            pDisplay    = dpy;
+            pDisplay        = dpy;
             pDisplay->set_main_callback(main_task_handler, this);
 
             // Create slots
-            LSPSlot *slot = sSlots.add(LSPSLOT_DESTROY);
+            LSPSlot *slot   = sSlots.add(LSPSLOT_DESTROY);
             if (slot == NULL)
+            {
+                delete dict;
                 return STATUS_NO_MEM;
+            }
             slot = sSlots.add(LSPSLOT_RESIZE);
             if (slot == NULL)
+            {
+                delete dict;
                 return STATUS_NO_MEM;
+            }
 
             // Initialize theme
             sTheme.init(this);
+            pDictionary     = dict;
 
             return STATUS_OK;
         }

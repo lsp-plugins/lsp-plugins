@@ -29,7 +29,7 @@ UTEST_BEGIN("core.i18n", builtin_dictionary)
         Dictionary d;
 
         printf("Accessing builtin dictionary...\n");
-        UTEST_ASSERT(d.init("builtin://i18n") == STATUS_OK);
+        UTEST_ASSERT(d.init(LSP_BUILTIN_PREFIX "i18n") == STATUS_OK);
 
         printf("Testing access...\n");
         ck_lookup(&d, "us.lang.local.us", "English (US)");
