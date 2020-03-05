@@ -56,9 +56,9 @@ namespace lsp
                 float               nVertScale;
                 float               nHorScale;
                 size_t              nBorder;
-                Title               sTitle;
                 LSPWindowActions    sActions;
                 LSPColor            sBorder;
+                Title               sTitle;
                 window_poilicy_t    enPolicy;
 
             //---------------------------------------------------------------------------------

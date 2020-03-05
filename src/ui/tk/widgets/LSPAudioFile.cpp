@@ -64,6 +64,7 @@ namespace lsp
 
         LSPAudioFile::LSPAudioFile(LSPDisplay *dpy):
             LSPWidget(dpy),
+            sHint(this),
             sFont(dpy, this),
             sHintFont(dpy, this),
             sConstraints(this),
@@ -104,6 +105,8 @@ namespace lsp
             if (pSink == NULL)
                 return STATUS_NO_MEM;
             pSink->acquire();
+
+            sHint.bind();
 
             sFont.init();
             sFont.set_size(10);
@@ -178,22 +181,6 @@ namespace lsp
         status_t LSPAudioFile::set_file_name(const LSPString *text)
         {
             if (!sFileName.set(text))
-                return STATUS_NO_MEM;
-            query_draw();
-            return STATUS_OK;
-        }
-
-        status_t LSPAudioFile::set_hint(const char *text)
-        {
-            if (!sHint.set_native(text))
-                return STATUS_NO_MEM;
-            query_draw();
-            return STATUS_OK;
-        }
-
-        status_t LSPAudioFile::set_hint(const LSPString *text)
-        {
-            if (!sHint.set(text))
                 return STATUS_NO_MEM;
             query_draw();
             return STATUS_OK;
@@ -659,14 +646,20 @@ namespace lsp
 
             if (nStatus & AF_SHOW_HINT)
             {
-                font_parameters_t fp;
-                text_parameters_t tp;
+                LSPString hint;
+                sHint.format(&hint);
 
-                pGraph->set_antialiasing(false);
-                sHintFont.get_parameters(pGraph, &fp);
-                sHintFont.get_text_parameters(pGraph, &tp, &sHint);
+                if (!hint.is_empty())
+                {
+                    font_parameters_t fp;
+                    text_parameters_t tp;
 
-                sHintFont.draw(pGraph, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, &sHint);
+                    pGraph->set_antialiasing(false);
+                    sHintFont.get_parameters(pGraph, &fp);
+                    sHintFont.get_text_parameters(pGraph, &tp, &hint);
+
+                    sHintFont.draw(pGraph, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, &hint);
+                }
             }
 
             pGraph->set_antialiasing(aa);

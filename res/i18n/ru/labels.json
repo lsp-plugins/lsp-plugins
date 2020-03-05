@@ -1,6 +1,9 @@
 {
 	"automatic_extension": "Автоматическое расширение",
+	
 	"bookmark_list": "Закладки",
+	
+	"click_or_drag_to_load": "Клик или перетаскивание для загрузки",
 
 	"file_list": "Список файлов",
 	"file_name": "Имя файла",

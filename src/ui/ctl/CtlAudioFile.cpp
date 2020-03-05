@@ -174,7 +174,7 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint("Click or drag to load");
+                af->hint()->set("labels.click_or_drag_to_load");
             }
             else if (status == STATUS_LOADING)
             {
@@ -182,7 +182,7 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint("Loading...");
+                af->hint()->set("statuses.loading");
             }
             else if (status == STATUS_OK)
             {
@@ -196,7 +196,11 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint(get_status(status_t(status)));
+
+                LSPString code;
+                code.set_utf8("statuses.std.");
+                code.append_utf8(get_status_key(status_t(status)));
+                af->hint()->set(&code);
             }
         }
 

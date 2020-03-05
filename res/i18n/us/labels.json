@@ -1,6 +1,9 @@
 {
 	"automatic_extension": "Automatic extension",
+	
 	"bookmark_list": "Bookmarks",
+	
+	"click_or_drag_to_load": "Click or drag to load",
 	
 	"file_list": "File list",
 	"file_name": "File name",
