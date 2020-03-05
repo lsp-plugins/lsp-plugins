@@ -1732,7 +1732,7 @@ namespace lsp
                                 if (wnd != redirect)
                                 {
 //                                    lsp_trace("Redirect window: %p", wnd);
-                                    sTargets.set(i, wnd);
+                                    sTargets.set(i, redirect);
                                 }
                             }
 

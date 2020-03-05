@@ -527,17 +527,10 @@ namespace lsp
 
         status_t LSPFileDialog::set_confirmation(const char *value)
         {
-            if (!sConfirm.set_native(value))
+            LSPString tmp;
+            if (!tmp.set_utf8(value))
                 return STATUS_NO_MEM;
-            if ((sConfirm.length() > 0) || (pWConfirm == NULL))
-                return STATUS_OK;
-            if ((pWConfirm != NULL) && (pWConfirm->hidden()))
-            {
-                pWConfirm->destroy();
-                delete pWConfirm;
-                pWConfirm = NULL;
-            }
-            return STATUS_OK;
+            return set_confirmation(&tmp);
         };
 
         status_t LSPFileDialog::add_file_entry(cvector<file_entry_t> *dst, const char *name, size_t flags)
