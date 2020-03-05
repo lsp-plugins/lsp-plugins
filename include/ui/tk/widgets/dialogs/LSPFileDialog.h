@@ -74,6 +74,14 @@ namespace lsp
                         virtual void default_updated(ssize_t idx);
                 };
 
+                class ConfirmMsg: public LSPLocalString
+                {
+                    public:
+                        inline ConfirmMsg(LSPFileDialog *dlg): LSPLocalString(dlg) {}
+
+                        virtual void sync();
+                };
+
             protected:
                 LSPEdit             sWPath;
                 LSPEdit             sWSearch;
@@ -106,8 +114,9 @@ namespace lsp
                 cvector<bm_entry_t> vBookmarks;
                 bm_entry_t         *pSelBookmark;
                 bm_entry_t         *pPopupBookmark;
+                bool                bUseConfirm;
 
-                LSPString           sConfirm;       // Confirmation message
+                ConfirmMsg          sConfirm;       // Confirmation message
                 LSPString           sSelected;
                 LSPFileDialogFilter sFilter;
                 size_t              nDefaultFilter;
@@ -162,7 +171,7 @@ namespace lsp
 
                 void                sync_mode();
                 status_t            build_full_path(LSPString *dst, const LSPString *fname);
-                status_t            show_message(const char *heading, const char *main, const char *message);
+                status_t            show_message(const char *title, const char *heading, const char *message);
                 file_entry_t       *selected_entry();
 
                 void                drop_bookmarks();
@@ -200,8 +209,10 @@ namespace lsp
                 inline LSPLocalString *cancel_title() { return sWCancel.title(); };
                 inline const LSPLocalString *cancel_title() const { return sWCancel.title(); };
 
-                inline status_t get_confirmation(LSPString *dst) const { return (dst->set(&sConfirm)) ? STATUS_OK : STATUS_NO_MEM; };
-                inline const char *confirmation() const { return sConfirm.get_native(); };
+                inline bool         use_confirm() const { return bUseConfirm; }
+
+                inline LSPLocalString *confirm() { return &sConfirm; }
+                inline const LSPLocalString *confirm() const { return &sConfirm; }
 
                 inline LSPFileFilter *filter() { return &sFilter; }
 
@@ -224,8 +235,7 @@ namespace lsp
                 status_t set_search(const LSPString *value);
                 status_t set_search(const char *value);
 
-                status_t set_confirmation(const LSPString *value);
-                status_t set_confirmation(const char *value);
+                status_t set_use_confirm(bool use);
 
                 inline status_t    bind_action(ui_event_handler_t handler, void *arg = NULL) { return sAction.bind(handler, arg); };
                 inline status_t    bind_cancel(ui_event_handler_t handler, void *arg = NULL) { return sCancel.bind(handler, arg); };

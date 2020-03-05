@@ -964,6 +964,9 @@ namespace lsp
 
             status_t X11Window::set_caption(const char *text)
             {
+                if (hWindow == None)
+                    return STATUS_OK;
+
                 const x11_atoms_t &a = pX11Display->atoms();
 
                 XChangeProperty(

@@ -88,7 +88,8 @@ namespace lsp
                 pDialog->action_title()->set("actions.open");
                 pDialog->bind_action(slot_on_action, this);
                 pDialog->bind_cancel(slot_on_cancel, this);
-                pDialog->set_confirmation("Do you really want to load file?");
+                pDialog->set_use_confirm(true);
+                pDialog->confirm()->set("messages.file.confirm_load");
 
                 LSPFileFilter *f = pDialog->filter();
 

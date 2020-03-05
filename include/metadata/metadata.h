@@ -27,7 +27,8 @@
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
 #define LSP_PLUGIN_UI_URI(format, plugin)               LSP_UI_URI(format) #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
-#define LSP_DONATION_URI                                "https://salt.bountysource.com/teams/" LSP_ARTIFACT_ID
+#define LSP_DONATION_URI1                               "https://salt.bountysource.com/teams/" LSP_ARTIFACT_ID
+#define LSP_DONATION_URI2                               "https://liberapay.com/sadko4u/donate"
 #define LSP_DOWNLOAD_URI                                LSP_BASE_URI "?page=download"
 
 // Different LV2 UI classes for different platforms

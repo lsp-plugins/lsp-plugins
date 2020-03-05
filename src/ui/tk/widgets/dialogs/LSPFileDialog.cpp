@@ -46,6 +46,14 @@ namespace lsp
             pDialog->sWFilter.set_selected(idx);
         }
 
+        void LSPFileDialog::ConfirmMsg::sync()
+        {
+            // Propagate message to the confirm dialog
+            LSPFileDialog *dlg = widget_cast<LSPFileDialog>(pWidget);
+            if ((dlg != NULL) && (dlg->pWConfirm != NULL))
+                dlg->pWConfirm->message()->set(this);
+        }
+
         //---------------------------------------------------------------------
         LSPFileDialog::LSPFileDialog(LSPDisplay *dpy):
             LSPWindow(dpy),
@@ -69,6 +77,7 @@ namespace lsp
             wUp(dpy),
             wPathBox(dpy),
             sWWarning(dpy),
+            sConfirm(this),
             sFilter(this)
         {
             pSelBookmark    = NULL;
@@ -80,6 +89,7 @@ namespace lsp
             pWMessage       = NULL;
             pClass          = &metadata;
             enMode          = FDM_OPEN_FILE;
+            bUseConfirm     = false;
         }
 
         LSPFileDialog::~LSPFileDialog()
@@ -215,6 +225,9 @@ namespace lsp
 
         status_t LSPFileDialog::init()
         {
+            // Initialize bindings
+            sConfirm.bind();
+
             // Initialize labels
             LSP_STATUS_ASSERT(LSPWindow::init());
             LSP_STATUS_ASSERT(sWPath.init());
@@ -510,27 +523,18 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPFileDialog::set_confirmation(const LSPString *value)
+        status_t LSPFileDialog::set_use_confirm(bool set)
         {
-            if (!sConfirm.set(value))
-                return STATUS_NO_MEM;
-            if ((sConfirm.length() > 0) || (pWConfirm == NULL))
+            if (bUseConfirm == set)
                 return STATUS_OK;
-            if ((pWConfirm != NULL) && (pWConfirm->hidden()))
+            if ((!set) && (pWConfirm != NULL) && (pWConfirm->hidden()))
             {
                 pWConfirm->destroy();
                 delete pWConfirm;
                 pWConfirm = NULL;
             }
+            bUseConfirm = set;
             return STATUS_OK;
-        };
-
-        status_t LSPFileDialog::set_confirmation(const char *value)
-        {
-            LSPString tmp;
-            if (!tmp.set_utf8(value))
-                return STATUS_NO_MEM;
-            return set_confirmation(&tmp);
         };
 
         status_t LSPFileDialog::add_file_entry(cvector<file_entry_t> *dst, const char *name, size_t flags)
@@ -1076,7 +1080,7 @@ namespace lsp
             return LSPFileMask::append_path(dst, &path, fname);
         }
 
-        status_t LSPFileDialog::show_message(const char *heading, const char *title, const char *message)
+        status_t LSPFileDialog::show_message(const char *title, const char *heading, const char *message)
         {
             if (pWMessage == NULL)
             {
@@ -1088,11 +1092,11 @@ namespace lsp
                     return res;
                 }
 
-                LSP_STATUS_ASSERT(pWMessage->add_button("OK"));
+                LSP_STATUS_ASSERT(pWMessage->add_button("actions.ok"));
             }
-            LSP_STATUS_ASSERT(pWMessage->set_heading(heading));
             LSP_STATUS_ASSERT(pWMessage->title()->set(title));
-            LSP_STATUS_ASSERT(pWMessage->set_message(message));
+            LSP_STATUS_ASSERT(pWMessage->heading()->set(heading));
+            LSP_STATUS_ASSERT(pWMessage->message()->set(message));
 
             return pWMessage->show(this);
         }
@@ -1131,7 +1135,7 @@ namespace lsp
                 }
 
                 if (LSPFileMask::is_dots(&fname) || (!LSPFileMask::valid_file_name(&fname)))
-                    return show_message("Attention", "titles.attention", "The entered file name is not valid");
+                    return show_message("titles.attention", "headings.attention", "messages.file.invalid_name");
 
                 LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
                 committed = true;
@@ -1152,7 +1156,7 @@ namespace lsp
             {
                 file_entry_t *ent = selected_entry();
                 if (ent == NULL)
-                    return show_message("Attention", "titles.attention", "The file name is not specified");
+                    return show_message("titles.attention", "headings.attention", "messages.file.not_specified");
 
                 // Analyze what to do
                 if (ent->nFlags & F_DOTDOT)
@@ -1178,7 +1182,7 @@ namespace lsp
 
             if (enMode == FDM_SAVE_FILE)
             {
-                if (sConfirm.length() <= 0)
+                if (!bUseConfirm)
                     return on_dlg_confirm(data);
 
                 // Check that file exists and avoid confirmation if it doesn't
@@ -1189,9 +1193,9 @@ namespace lsp
             else
             {
                 if (stat_result != 0)
-                    return show_message("Attention", "titles.attention", "The selected file does not exist");
+                    return show_message("titles.attention", "headings.attention", "messages.file.not_exists");
 
-                if (sConfirm.length() <= 0)
+                if (!bUseConfirm)
                     return on_dlg_confirm(data);
             }
 
@@ -1203,12 +1207,12 @@ namespace lsp
                     return STATUS_NO_MEM;
                 pWConfirm->init();
 
-                pWConfirm->set_heading("Confirmation");
                 pWConfirm->title()->set("titles.confirmation");
+                pWConfirm->heading()->set("headings.confirmation");
                 pWConfirm->add_button("actions.confirm.yes", slot_on_confirm, self());
                 pWConfirm->add_button("actions.confirm.no");
             }
-            pWConfirm->set_message(&sConfirm);
+            pWConfirm->message()->set(&sConfirm);
             pWConfirm->show(this);
 
             return STATUS_OK;

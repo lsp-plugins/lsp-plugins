@@ -115,68 +115,14 @@ namespace lsp
             LSPWindow::destroy();
         }
 
-        status_t LSPMessageBox::set_heading(const char *text)
+        void LSPMessageBox::set_use_heading(bool use)
         {
-            status_t result = sHeading.text()->set_raw(text);
-            if (result == STATUS_OK)
-                sHeadAlign.set_visible(text != NULL);
-            return result;
+            sHeadAlign.set_visible(use);
         }
 
-        status_t LSPMessageBox::set_heading(const LSPString *text)
+        void LSPMessageBox::set_use_message(bool use)
         {
-            status_t result = sHeading.text()->set_raw(text);
-            if (result == STATUS_OK)
-                sHeadAlign.set_visible(text != NULL);
-            return result;
-        }
-
-        status_t LSPMessageBox::set_heading(const LSPString *key, const calc::Parameters *params)
-        {
-            status_t result = sHeading.text()->set(key, params);
-            if (result == STATUS_OK)
-                sHeadAlign.set_visible(key != NULL);
-            return result;
-        }
-
-        status_t LSPMessageBox::set_heading(const LSPLocalString *text)
-        {
-            status_t result = sHeading.text()->set(text);
-            if (result == STATUS_OK)
-                sHeadAlign.set_visible(text != NULL);
-            return result;
-        }
-
-        status_t LSPMessageBox::set_message(const char *text)
-        {
-            status_t result = sMessage.text()->set_raw(text);
-            if (result == STATUS_OK)
-                sMsgAlign.set_visible(text != NULL);
-            return result;
-        }
-
-        status_t LSPMessageBox::set_message(const LSPString *text)
-        {
-            status_t result = sMessage.text()->set_raw(text);
-            if (result == STATUS_OK)
-                sMsgAlign.set_visible(text != NULL);
-            return result;
-        }
-
-        status_t LSPMessageBox::set_message(const LSPString *text, const calc::Parameters *params)
-        {
-            status_t result = sMessage.text()->set(text, params);
-            if (result == STATUS_OK)
-                sMsgAlign.set_visible(text != NULL);
-            return result;
-        }
-
-        status_t LSPMessageBox::set_message(const LSPLocalString *text)
-        {
-            status_t result = sMessage.text()->set(text);
-            if (result == STATUS_OK)
-                sMsgAlign.set_visible(text != NULL);
-            return result;
+            sMsgAlign.set_visible(use);
         }
 
         status_t LSPMessageBox::slot_on_button_submit(LSPWidget *sender, void *ptr, void *data)

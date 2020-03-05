@@ -1,0 +1,20 @@
+{
+	"file": {
+		"confirm_load": "Do you really want to load the selected file?",
+		"confirm_overwrite": "The selected file already exists. Overwrite?",
+		
+		"invalid_name": "The entered file name is not valid",
+		
+		"not_exists": "The selected file does not exist",
+		"not_specified": "The file name is not specified"
+	},
+	
+	"greetings": {
+		"0": "You've just updated plugins to version {@version}!",
+		"1": "The '{@project}' is non-commercial project and needs financial support for the further development.",
+		"2": "You may help the open source collection of plugins to grow by visiting the following link and submitting donations to the project:",
+		"3": "Remember that subscription and regular small donations will give more benefits to the project than one-time donations.",
+		"4": "To not to be very annoying, this dialog will be shown only after each version update of plugins.",
+		"5": "Thanks in advance."
+	}
+}

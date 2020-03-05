@@ -703,7 +703,8 @@ namespace lsp
                 dlg->set_mode(FDM_SAVE_FILE);
                 dlg->title()->set("titles.export_settings");
                 dlg->action_title()->set("actions.save");
-                dlg->set_confirmation("The selected file already exists. Overwrite?");
+                dlg->set_use_confirm(true);
+                dlg->confirm()->set("messages.file.confirm_overwrite");
 
                 LSPFileFilter *f = dlg->filter();
                 f->add("*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg");
@@ -856,13 +857,25 @@ namespace lsp
             return STATUS_OK;
         }
 
-        LSPLabel *CtlPluginWindow::create_label(LSPWidgetContainer *dst, const char *text, float halign)
+        LSPLabel *CtlPluginWindow::create_label(LSPWidgetContainer *dst, const char *key, float halign)
         {
             LSPLabel *lbl = new LSPLabel(pUI->display());
             lbl->init();
             vWidgets.add(lbl);
             dst->add(lbl);
-            lbl->text()->set_raw(text);
+            lbl->text()->set(key);
+            lbl->set_fill(true);
+            lbl->set_align(halign, 0.5f);
+            return lbl;
+        }
+
+        LSPLabel *CtlPluginWindow::create_plabel(LSPWidgetContainer *dst, const char *key, const calc::Parameters *params, const float halign)
+        {
+            LSPLabel *lbl = new LSPLabel(pUI->display());
+            lbl->init();
+            vWidgets.add(lbl);
+            dst->add(lbl);
+            lbl->text()->set(key, params);
             lbl->set_fill(true);
             lbl->set_align(halign, 0.5f);
             return lbl;
@@ -920,25 +933,28 @@ namespace lsp
                 vWidgets.add(vbox);
                 pMessage->add(vbox);
 
-                LSPLabel *lbl  = create_label(vbox, "Greetings!");
-//                lbl->bg_color()->set_rgb(1.0f, 0.0f, 0.0f);
+                calc::Parameters p;
+
+                LSPLabel *lbl  = create_label(vbox, "headings.greetings");
                 lbl->font()->set_size(24);
                 lbl->font()->set_bold();
 
-                lbl  = create_label(vbox, "You've just updated plugins to version " LSP_MAIN_VERSION "!");
+                p.clear();
+                p.set_string("version", LSP_MAIN_VERSION);
+                lbl  = create_plabel(vbox, "messages.greetings.0", &p);
                 lbl->font()->set_bold();
 
-                lbl  = create_label(vbox, "The " LSP_FULL_NAME " is non-commercial project and needs financial support for the further development.");
-                lbl  = create_label(vbox, "You may help all plugins become open source by visiting the following link and submitting donations to the project:");
-                create_hlink(vbox, LSP_DONATION_URI, 0.02);
+                p.clear();
+                p.set_string("project", LSP_FULL_NAME);
+                lbl  = create_plabel(vbox, "messages.greetings.1", &p);
+                lbl  = create_label(vbox, "messages.greetings.2");
+                create_hlink(vbox, LSP_DONATION_URI1, 0.02);
+                create_hlink(vbox, LSP_DONATION_URI2, 0.02);
 
-                lbl  = create_label(vbox, "You can find more information about policy of publishing source code by visiting the following link:");
-                create_hlink(vbox, LSP_DOWNLOAD_URI, 0.02);
+                lbl  = create_label(vbox, "messages.greetings.3");
+                lbl  = create_label(vbox, "messages.greetings.4");
 
-                lbl  = create_label(vbox, "Remember that subscription and regular small donations will give more benefits to the project than one-time donations.");
-                lbl  = create_label(vbox, "To not to be very annoying, this dialog will be shown only after each version update of plugins.");
-
-                lbl  = create_label(vbox, "Thanks in advance", 1.0f);
+                lbl  = create_label(vbox, "messages.greetings.5", 1.0f);
                 lbl  = create_label(vbox, LSP_FULL_NAME, 1.0f);
                 create_hlink(vbox, LSP_BASE_URI, 1.0f);
 
