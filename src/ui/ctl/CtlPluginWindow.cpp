@@ -35,6 +35,7 @@ namespace lsp
             pPBypass        = NULL;
             pPath           = NULL;
             pR3DBackend     = NULL;
+            pLanguage       = NULL;
         }
         
         CtlPluginWindow::~CtlPluginWindow()
@@ -50,7 +51,7 @@ namespace lsp
 
             for (size_t i=0, n=vLangSel.size(); i<n; ++i)
             {
-                LSPString *s = vLangSel.at(i);
+                lang_sel_t *s = vLangSel.at(i);
                 if (s != NULL)
                     delete s;
             }
@@ -97,6 +98,7 @@ namespace lsp
             BIND_PORT(pRegistry, pPath, CONFIG_PATH_PORT);
             BIND_PORT(pRegistry, pPBypass, PORT_NAME_BYPASS);
             BIND_PORT(pRegistry, pR3DBackend, R3D_BACKEND_PORT);
+            BIND_PORT(pRegistry, pLanguage, LANGUAGE_PORT);
 
             const plugin_metadata_t *meta   = pUI->metadata();
 
@@ -193,7 +195,7 @@ namespace lsp
                     pMenu->add(itm);
 
                     // Create language selection menu
-                    create_language_menu(pMenu);
+                    init_i18n_support(pMenu);
 
                     // Add support of 3D rendering backend switch
                     if (meta->extensions & E_3D_BACKEND)
@@ -300,7 +302,7 @@ namespace lsp
             pWnd->slots()->bind(LSPSLOT_SHOW, slot_window_show, this);
         }
 
-        status_t CtlPluginWindow::create_language_menu(LSPMenu *menu)
+        status_t CtlPluginWindow::init_i18n_support(LSPMenu *menu)
         {
             if (menu == NULL)
                 return STATUS_OK;
@@ -356,7 +358,8 @@ namespace lsp
             root->set_submenu(menu);
 
             // Iterate all children and add language keys
-            LSPString key, value, *lang;
+            LSPString key, value;
+            lang_sel_t *lang;
             size_t added = 0;
             for (size_t i=0, n=dict->size(); i<n; ++i)
             {
@@ -368,13 +371,19 @@ namespace lsp
                         continue;
                     return res;
                 }
-                if ((lang = key.clone()) == NULL)
+                if ((lang = new lang_sel_t()) == NULL)
                     return STATUS_NO_MEM;
+                if (!lang->lang.set(&key))
+                {
+                    delete lang;
+                    return STATUS_NO_MEM;
+                }
                 if (!vLangSel.add(lang))
                 {
                     delete lang;
                     return STATUS_NO_MEM;
                 }
+                lang->ctl   = this;
 
                 // Create menu item
                 LSPMenuItem *item = new LSPMenuItem(menu->display());
@@ -404,6 +413,22 @@ namespace lsp
 
             // Set menu item visible only if there are available languages
             root->set_visible(added > 0);
+            if (pLanguage != NULL)
+            {
+                const char *lang = pLanguage->get_buffer<char>();
+                ui_atom_t atom = dpy->atom_id("language");
+
+                if ((lang != NULL) && (strlen(lang) > 0) && (atom >= 0))
+                {
+                    LSPTheme *theme = dpy->theme();
+                    LSPStyle *style = (theme != NULL) ? theme->root() : NULL;
+                    if (style != NULL)
+                    {
+                        lsp_trace("System language set to: %s", lang);
+                        style->set_string(atom, lang);
+                    }
+                }
+            }
 
             return STATUS_OK;
         }
@@ -546,9 +571,46 @@ namespace lsp
 
         status_t CtlPluginWindow::slot_select_language(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPString *lang = reinterpret_cast<LSPString *>(ptr);
-            if (lang != NULL)
-                lsp_trace("Select language: %s", lang->get_utf8());
+            lang_sel_t *sel = reinterpret_cast<lang_sel_t *>(ptr);
+            lsp_trace("sender=%p, sel=%p", sender, sel);
+            if ((sender == NULL) || (sel == NULL) || (sel->ctl == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPDisplay *dpy = sender->display();
+            lsp_trace("dpy = %p", dpy);
+            if (dpy == NULL)
+                return STATUS_BAD_STATE;
+            ui_atom_t atom = dpy->atom_id("language");
+            lsp_trace("atom = %d", int(atom));
+            if (atom < 0)
+                return STATUS_BAD_STATE;
+
+            LSPTheme *theme = dpy->theme();
+            lsp_trace("theme = %p", theme);
+            if (theme == NULL)
+                return STATUS_BAD_STATE;
+            LSPStyle *style = theme->root();
+            lsp_trace("style = %p", style);
+            if (style == NULL)
+                return STATUS_BAD_STATE;
+
+            const char *dlang = sel->lang.get_utf8();
+            lsp_trace("Select language: \"%s\"", dlang);
+            status_t res = style->set_string(atom, &sel->lang);
+            lsp_trace("Updated style: %d", int(res));
+            if ((res == STATUS_OK) && (sel->ctl->pLanguage != NULL))
+            {
+                const char *slang = sel->ctl->pLanguage->get_buffer<char>();
+                lsp_trace("Current language: \"%s\"", slang);
+                if ((slang == NULL) || (strcmp(slang, dlang)))
+                {
+                    lsp_trace("Write and notify: \"%s\"", dlang);
+                    sel->ctl->pLanguage->write(dlang, strlen(dlang));
+                    sel->ctl->pLanguage->notify_all();
+                }
+            }
+
+            lsp_trace("Language has been selected");
 
             return STATUS_OK;
         }

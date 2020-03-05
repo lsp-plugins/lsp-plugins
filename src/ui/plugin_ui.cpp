@@ -264,6 +264,7 @@ namespace lsp
         PATH(UI_DLG_MODEL3D_PATH_ID, "Dialog for saving/loading 3D model files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
+        PATH(UI_LANGUAGE_PORT_ID, "Selected language identifier for the UI interface"),
         PORTS_END
     };
 
