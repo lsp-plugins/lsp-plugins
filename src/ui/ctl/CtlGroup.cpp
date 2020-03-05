@@ -55,7 +55,7 @@ namespace lsp
             {
                 case A_TEXT:
                     if (grp != NULL)
-                        grp->set_text(value);
+                        grp->text()->set_raw(value);
                     break;
                 case A_BORDER:
                     if (grp != NULL)

@@ -78,7 +78,9 @@ namespace lsp
             d->nMinWidth    = nBorder*2;
             d->nMinHeight   = nBorder*2;
 
-            if (sText.length() > 0)
+            LSPString text;
+            sText.format(&text);
+            if (!text.is_empty())
             {
                 // Create temporary surface
                 ISurface *s = (pDisplay != NULL) ? pDisplay->create_surface(1, 1) : NULL;
@@ -89,7 +91,7 @@ namespace lsp
                 text_parameters_t   tp;
 
                 sFont.get_parameters(s, &fp);
-                sFont.get_text_parameters(s, &tp, &sText);
+                sFont.get_text_parameters(s, &tp, &text);
 
                 d->nMinWidth    += tp.Width + nRadius * 3;
                 d->nMinHeight   += fp.Height + nRadius * 2;
@@ -108,24 +110,6 @@ namespace lsp
                 unlink_widget(pWidget);
                 pWidget  = NULL;
             }
-        }
-
-        status_t LSPGroup::set_text(const char *text)
-        {
-            if (!sText.set_native(text))
-                return STATUS_NO_MEM;
-
-            query_resize();
-            return STATUS_OK;
-        }
-
-        status_t LSPGroup::set_text(const LSPString *text)
-        {
-            if (!sText.set(text))
-                return STATUS_NO_MEM;
-
-            query_resize();
-            return STATUS_OK;
         }
 
         void LSPGroup::set_radius(size_t value)
@@ -210,21 +194,23 @@ namespace lsp
                 s->wire_round_rect(cx, cy, sx-1, sy-1, nRadius, 0x0e, 2.0f, color);
 
                 // Draw text frame
-                if (sText.length() > 0)
+                LSPString text;
+                sText.format(&text);
+                if (!text.is_empty())
                 {
                     // Draw text border
                     font_parameters_t   fp;
                     text_parameters_t   tp;
 
                     sFont.get_parameters(s, &fp);
-                    sFont.get_text_parameters(s, &tp, &sText);
+                    sFont.get_text_parameters(s, &tp, &text);
 
                     s->fill_round_rect(cx-1, cy-1, 4 + nRadius + tp.Width, fp.Height + 4, nRadius, 0x04, color);
 
                     // Show text
                     Color font(sFont.raw_color());
                     font.scale_lightness(brightness());
-                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, font, &sText);
+                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, font, &text);
                 }
 
                 s->set_antialiasing(aa);

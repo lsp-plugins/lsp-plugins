@@ -212,6 +212,40 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t LSPLocalString::set_key(const char *key)
+        {
+            if (key == NULL)
+            {
+                sText.clear();
+                sync();
+                return STATUS_OK;
+            }
+            else if (!sText.set_utf8(key))
+                return STATUS_NO_MEM;
+
+            // Apply
+            nFlags      = /* F_DIRTY | */ F_LOCALIZED;
+            sync();
+            return STATUS_OK;
+        }
+
+        status_t LSPLocalString::set_key(const LSPString *key)
+        {
+            if (key == NULL)
+            {
+                sText.clear();
+                sync();
+                return STATUS_OK;
+            }
+            else if (!sText.set(key))
+                return STATUS_NO_MEM;
+
+            // Apply
+            nFlags      = /* F_DIRTY | */ F_LOCALIZED;
+            sync();
+            return STATUS_OK;
+        }
+
         status_t LSPLocalString::set(const char *key, const calc::Parameters *params)
         {
             if (key == NULL)

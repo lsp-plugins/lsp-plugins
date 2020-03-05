@@ -98,7 +98,7 @@ namespace lsp
                  * Get localization parameters
                  * @return localization parameters or NULL if string is not localized
                  */
-                inline const calc::Parameters *params() const { return (nFlags & F_LOCALIZED) ? &sParams : NULL; }
+                inline const calc::Parameters *params() const { return &sParams; }
 
             public:
                 /**
@@ -114,6 +114,20 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t set_raw(const char *value);
+
+                /**
+                 * Set raw (non-localized) value
+                 * @param value value to set
+                 * @return status of operation
+                 */
+                status_t set_key(const LSPString *value);
+
+                /**
+                 * Set raw (non-localized) value
+                 * @param value UTF-8 text to set
+                 * @return status of operation
+                 */
+                status_t set_key(const char *value);
 
                 /**
                  * Set localized value
