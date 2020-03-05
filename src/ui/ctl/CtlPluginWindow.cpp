@@ -702,7 +702,7 @@ namespace lsp
                 dlg->init();
                 dlg->set_mode(FDM_SAVE_FILE);
                 dlg->set_title("Export settings");
-                dlg->set_action_title("Save");
+                dlg->action_title()->set("actions.save");
                 dlg->set_confirmation("The selected file already exists. Overwrite?");
 
                 LSPFileFilter *f = dlg->filter();
@@ -729,7 +729,7 @@ namespace lsp
                 dlg->init();
                 dlg->set_mode(FDM_OPEN_FILE);
                 dlg->set_title("Import settings");
-                dlg->set_action_title("Open");
+                dlg->action_title()->set("actions.open");
 
                 LSPFileFilter *f = dlg->filter();
                 f->add("*.cfg", "Configuration file (*.cfg)", ".cfg");
@@ -953,7 +953,7 @@ namespace lsp
                 vWidgets.add(btn);
                 algn->add(btn);
                 btn->set_min_width(96);
-                btn->set_title("Close");
+                btn->title()->set("actions.close");
 
                 // Bind slots
                 btn->slots()->bind(LSPSLOT_SUBMIT, slot_message_close, this);

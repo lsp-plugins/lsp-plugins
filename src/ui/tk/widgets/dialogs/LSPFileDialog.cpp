@@ -229,7 +229,7 @@ namespace lsp
             sWAction.set_min_width(96);
             sWAction.set_min_height(24);
             LSP_STATUS_ASSERT(sWCancel.init());
-            LSP_STATUS_ASSERT(sWCancel.set_title("Cancel"));
+            LSP_STATUS_ASSERT(sWCancel.title()->set("actions.cancel"));
             sWCancel.set_min_width(96);
             sWCancel.set_min_height(24);
             LSP_STATUS_ASSERT(sWWarning.init());
@@ -238,13 +238,13 @@ namespace lsp
             sWWarning.set_align(1.0f, 0.5f);
 
             LSP_STATUS_ASSERT(wGo.init());
-            LSP_STATUS_ASSERT(wGo.set_title("Go"));
+            LSP_STATUS_ASSERT(wGo.title()->set("actions.nav.go"));
             wGo.set_min_width(32);
             LSP_STATUS_ASSERT(wUp.init());
-            LSP_STATUS_ASSERT(wUp.set_title("Up"));
+            LSP_STATUS_ASSERT(wUp.title()->set("actions.nav.up"));
             wUp.set_min_width(32);
             LSP_STATUS_ASSERT(sBMAdd.init());
-            LSP_STATUS_ASSERT(sBMAdd.set_title("+Bookmarks"));
+            LSP_STATUS_ASSERT(sBMAdd.title()->set("actions.to_bookmarks"));
             sBMAdd.set_min_width(32);
 
             LSP_STATUS_ASSERT(wPathBox.init());
@@ -1212,8 +1212,8 @@ namespace lsp
 
                 pWConfirm->set_heading("Confirmation");
                 pWConfirm->set_title("Confirmation");
-                pWConfirm->add_button("Yes", slot_on_confirm, self());
-                pWConfirm->add_button("No");
+                pWConfirm->add_button("actions.confirm.yes", slot_on_confirm, self());
+                pWConfirm->add_button("actions.confirm.no");
             }
             pWConfirm->set_message(&sConfirm);
             pWConfirm->show(this);

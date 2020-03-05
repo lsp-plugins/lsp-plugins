@@ -67,10 +67,10 @@ namespace lsp
 
             sUnits.padding()->set_left(4);
 
-            sApply.set_title("Apply");
+            sApply.title()->set("actions.apply");
             sApply.slots()->bind(LSPSLOT_SUBMIT, CtlLabel::slot_submit_value, pLabel);
 
-            sCancel.set_title("Cancel");
+            sCancel.title()->set("actions.cancel");
             sCancel.slots()->bind(LSPSLOT_SUBMIT, CtlLabel::slot_cancel_value, pLabel);
 
             this->add(&sBox);

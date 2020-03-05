@@ -131,6 +131,22 @@ namespace lsp
             return result;
         }
 
+        status_t LSPMessageBox::set_heading(const LSPString *key, const calc::Parameters *params)
+        {
+            status_t result = sHeading.text()->set(key, params);
+            if (result == STATUS_OK)
+                sHeadAlign.set_visible(key != NULL);
+            return result;
+        }
+
+        status_t LSPMessageBox::set_heading(const LSPLocalString *text)
+        {
+            status_t result = sHeading.text()->set(text);
+            if (result == STATUS_OK)
+                sHeadAlign.set_visible(text != NULL);
+            return result;
+        }
+
         status_t LSPMessageBox::set_message(const char *text)
         {
             status_t result = sMessage.text()->set_raw(text);
@@ -142,6 +158,22 @@ namespace lsp
         status_t LSPMessageBox::set_message(const LSPString *text)
         {
             status_t result = sMessage.text()->set_raw(text);
+            if (result == STATUS_OK)
+                sMsgAlign.set_visible(text != NULL);
+            return result;
+        }
+
+        status_t LSPMessageBox::set_message(const LSPString *text, const calc::Parameters *params)
+        {
+            status_t result = sMessage.text()->set(text, params);
+            if (result == STATUS_OK)
+                sMsgAlign.set_visible(text != NULL);
+            return result;
+        }
+
+        status_t LSPMessageBox::set_message(const LSPLocalString *text)
+        {
+            status_t result = sMessage.text()->set(text);
             if (result == STATUS_OK)
                 sMsgAlign.set_visible(text != NULL);
             return result;
@@ -159,47 +191,23 @@ namespace lsp
 
         status_t LSPMessageBox::add_button(const char *text, ui_event_handler_t handler, void *arg)
         {
-            LSPButton *btn = new LSPButton(pDisplay);
-            if (btn == NULL)
+            LSPLocalString tmp;
+            if (!tmp.set(text))
                 return STATUS_NO_MEM;
 
-            status_t result = (vButtons.add(btn)) ? STATUS_OK : STATUS_NO_MEM;
-
-            if (result == STATUS_OK)
-                result = btn->init();
-            if (result == STATUS_OK)
-            {
-                btn->set_normal();
-                btn->set_min_size(nMinBtnWidth, nMinBtnHeight);
-                result = btn->slots()->bind(LSPSLOT_SUBMIT, slot_on_button_submit, self());
-                result = (result >= 0) ? STATUS_OK : -result;
-            }
-
-            if (result == STATUS_OK)
-                result = btn->set_title(text);
-
-            if ((result == STATUS_OK) && (handler != NULL))
-            {
-                result = btn->slots()->bind(LSPSLOT_CHANGE, handler, arg);
-                result = (result >= 0) ? STATUS_OK : -result;
-            }
-
-            if (result == STATUS_OK)
-                result = sHBox.add(btn);
-
-            sHBox.set_visible(vButtons.size() > 0);
-
-            if (result != STATUS_OK)
-            {
-                vButtons.remove(btn);
-                btn->destroy();
-                delete btn;
-            }
-
-            return result;
+            return add_button(&tmp, handler, arg);
         }
 
         status_t LSPMessageBox::add_button(const LSPString *text, ui_event_handler_t handler, void *arg)
+        {
+            LSPLocalString tmp;
+            if (!tmp.set(text))
+                return STATUS_NO_MEM;
+
+            return add_button(&tmp, handler, arg);
+        }
+
+        status_t LSPMessageBox::add_button(const LSPLocalString *text, ui_event_handler_t handler, void *arg)
         {
             LSPButton *btn = new LSPButton(pDisplay);
             if (btn == NULL)
@@ -218,7 +226,7 @@ namespace lsp
             }
 
             if (result == STATUS_OK)
-                result = btn->set_title(text);
+                result = btn->title()->set(text);
 
             if ((result == STATUS_OK) && (handler != NULL))
             {

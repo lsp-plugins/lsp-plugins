@@ -42,6 +42,8 @@ namespace lsp
             public:
                 inline LSPLabel        *heading()           { return &sHeading; }
                 inline LSPLabel        *message()           { return &sMessage; }
+                inline LSPLocalString  *heading_text()      { return sHeading.text(); }
+                inline LSPLocalString  *message_text()      { return sMessage.text(); }
                 inline LSPButton       *button(size_t idx)  { return vButtons.get(idx); }
                 inline size_t           buttons() const     { return vButtons.size(); }
                 inline size_t           min_button_width() const    { return nMinBtnWidth; }
@@ -50,12 +52,17 @@ namespace lsp
             public:
                 status_t    set_heading(const char *text);
                 status_t    set_heading(const LSPString *text);
+                status_t    set_heading(const LSPLocalString *text);
+                status_t    set_heading(const LSPString *key, const calc::Parameters *params);
 
                 status_t    set_message(const char *text);
                 status_t    set_message(const LSPString *text);
+                status_t    set_message(const LSPLocalString *text);
+                status_t    set_message(const LSPString *key, const calc::Parameters *params);
 
                 status_t    add_button(const char *text, ui_event_handler_t handler = NULL, void *arg = NULL);
                 status_t    add_button(const LSPString *text, ui_event_handler_t handler = NULL, void *arg = NULL);
+                status_t    add_button(const LSPLocalString *text, ui_event_handler_t handler = NULL, void *arg = NULL);
 
                 void        clear_buttons();
 

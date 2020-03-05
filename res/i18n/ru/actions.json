@@ -6,6 +6,11 @@
 	"cancel": "Отмена",
 	"close": "Закрыть",
 	
+	"confirm": {
+		"no": "Нет",
+		"yes": "Да"
+	},
+	
 	"edit": {
 		"clear": "Очистить",
 		"copy": "Копировать",
@@ -22,8 +27,6 @@
 	"export_settings_to_clipboard": "Экпорт настроек в буфер обмена",
 	"export_settings_to_file": "Экспорт настроек в файл...",
 	
-	"go": "Перейти",
-	
 	"import": "Импорт",
 	"import_settings_from_clipboard": "Импорт настроек из буфера обмена",
 	"import_settings_from_file": "Импорт настроек из файла...",
@@ -38,6 +41,11 @@
 	"load": "Загрузить",
 	"load_preset": "Загрузить пресет",
 	
+	"nav": {
+		"go": "Перейти",
+		"up": "Наверх"
+	},
+	
 	"open": "Открыть",
 	
 	"save": "Сохранить",
@@ -45,7 +53,5 @@
 	"select_language": "Выбрать язык",	
 	
 	"to_bookmarks": "В закладки",
-	"toggle_rack_mount": "Переключить стоечный монтаж",
-	
-	"up": "Наверх"
+	"toggle_rack_mount": "Переключить стоечный монтаж"
 }

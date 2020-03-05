@@ -6,6 +6,11 @@
 	"cancel": "Cancel",
 	"close": "Close",
 	
+	"confirm": {
+		"no": "No",
+		"yes": "Yes"
+	},
+	
 	"edit": {
 		"clear": "Clear",
 		"copy": "Copy",
@@ -22,8 +27,6 @@
 	"export_settings_to_clipboard": "Export settings to clipboard",
 	"export_settings_to_file": "Export settings to file...",
 	
-	"go": "Go",
-	
 	"import": "Import",
 	"import_settings_from_clipboard": "Import settings from clipboard",
 	"import_settings_from_file": "Import settings from file...",
@@ -38,6 +41,11 @@
 	"load": "Load",
 	"load_preset": "Load preset",
 	
+	"nav": {
+		"go": "Go",
+		"up": "Up"
+	},
+	
 	"open": "Open",
 	
 	"save": "Save",
@@ -45,7 +53,5 @@
 	"select_language": "Select lanugage",
 	
 	"to_bookmarks": "+Bookmarks",
-	"toggle_rack_mount": "Toggle rack mount",
-	
-	"up": "Up"
+	"toggle_rack_mount": "Toggle rack mount"
 }

@@ -85,7 +85,7 @@ namespace lsp
                 pDialog     = new LSPFileDialog(pWidget->display());
                 pDialog->init();
                 pDialog->set_title("Open file...");
-                pDialog->set_action_title("Open");
+                pDialog->action_title()->set("actions.open");
                 pDialog->bind_action(slot_on_action, this);
                 pDialog->bind_cancel(slot_on_cancel, this);
                 pDialog->set_confirmation("Do you really want to load file?");

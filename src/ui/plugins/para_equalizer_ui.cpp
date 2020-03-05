@@ -64,7 +64,7 @@ namespace lsp
             dlg->init();
             dlg->set_mode(FDM_OPEN_FILE);
             dlg->set_title("Import REW filer settings");
-            dlg->set_action_title("Import");
+            dlg->action_title()->set("actions.import");
 
             LSPFileFilter *f = dlg->filter();
             f->add("*.req|*.txt", "All REW filter settings (*.req, *.txt)", "");

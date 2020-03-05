@@ -113,7 +113,7 @@ namespace lsp
             LSP_STATUS_ASSERT(sDialog.init());
             sDialog.set_mode(FDM_SAVE_FILE);
             sDialog.set_title("Save to file");
-            sDialog.set_action_title("Save");
+            sDialog.action_title()->set("actions.save");
             sDialog.set_confirmation("The selected file already exists. Overwrite?");
             sDialog.filter()->add("*", "All files (*.*)", "");
             sDialog.bind_action(slot_on_file_submit, self());

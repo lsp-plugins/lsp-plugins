@@ -127,7 +127,7 @@ namespace lsp
             f->add("*", "Any file", "");
             f->set_default(0);
 
-            sDialog.set_action_title("Load");
+            sDialog.action_title()->set("actions.load");
             sDialog.bind_action(slot_on_dialog_submit, self());
             sDialog.slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());
 

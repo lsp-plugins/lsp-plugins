@@ -16,7 +16,8 @@ namespace lsp
         LSPButton::LSPButton(LSPDisplay *dpy):
             LSPWidget(dpy),
             sColor(this),
-            sFont(this)
+            sFont(this),
+            sTitle(this)
         {
             nWidth      = 18;
             nHeight     = 18;
@@ -44,6 +45,7 @@ namespace lsp
 
             init_color(C_BUTTON_FACE, &sColor);
             init_color(C_BUTTON_TEXT, sFont.color());
+            sTitle.bind();
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_CHANGE, slot_on_change, self());
@@ -304,7 +306,9 @@ namespace lsp
             }
 
             // Output text
-            if (sTitle.length() > 0)
+            LSPString title;
+            sTitle.format(&title);
+            if (title.length() > 0)
             {
                 text_parameters_t tp;
                 font_parameters_t fp;
@@ -313,7 +317,7 @@ namespace lsp
                 font_color.scale_lightness(brightness());
 
                 sFont.get_parameters(s, &fp);
-                sFont.get_text_parameters(s, &tp, &sTitle);
+                sFont.get_text_parameters(s, &tp, &title);
 
                 if (pressed & S_PRESSED)
                 {
@@ -321,7 +325,7 @@ namespace lsp
                     c_x++;
                 }
 
-                sFont.draw(s, c_x - (tp.XAdvance * 0.5f), c_y - (fp.Height * 0.5f) + fp.Ascent, font_color, &sTitle);
+                sFont.draw(s, c_x - (tp.XAdvance * 0.5f), c_y - (fp.Height * 0.5f) + fp.Ascent, font_color, &title);
             }
 
             s->set_antialiasing(aa);
@@ -334,16 +338,20 @@ namespace lsp
             r->nMinWidth    = nMinWidth;
             r->nMinHeight   = nMinHeight;
 
-            if (sTitle.length() > 0)
+            LSPString title;
+            sTitle.format(&title);
+
+            if (title.length() > 0)
             {
                 text_parameters_t tp;
                 font_parameters_t fp;
+
                 ISurface *s = pDisplay->create_surface(1, 1);
 
                 if (s != NULL)
                 {
                     sFont.get_parameters(s, &fp);
-                    sFont.get_text_parameters(s, &tp, &sTitle);
+                    sFont.get_text_parameters(s, &tp, &title);
                     s->destroy();
                     delete s;
 
@@ -371,7 +379,9 @@ namespace lsp
             nWidth      = nMinWidth;
             nHeight     = nMinHeight;
 
-            if (sTitle.length() <= 0)
+            LSPString title;
+            sTitle.format(&title);
+            if (title.length() <= 0)
                 return;
 
             text_parameters_t tp;
@@ -381,7 +391,7 @@ namespace lsp
                 return;
 
             sFont.get_parameters(s, &fp);
-            sFont.get_text_parameters(s, &tp, &sTitle);
+            sFont.get_text_parameters(s, &tp, &title);
             s->destroy();
             delete s;
 
@@ -586,45 +596,5 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPButton::set_title(const char *title)
-        {
-            if (title != NULL)
-            {
-                LSPString tmp;
-                tmp.set_native(title);
-                if (tmp.equals(&sTitle))
-                    return STATUS_OK;
-
-                sTitle.swap(&tmp);
-            }
-            else if (sTitle.length() > 0)
-                sTitle.truncate();
-            else
-                return STATUS_OK;
-
-            query_resize();
-
-            return STATUS_OK;
-        }
-
-        status_t LSPButton::set_title(const LSPString *title)
-        {
-            if (title != NULL)
-            {
-                if (sTitle.equals(title))
-                    return STATUS_OK;
-                if (!sTitle.set(title))
-                    return STATUS_NO_MEM;
-            }
-            else if (sTitle.length() > 0)
-                sTitle.truncate();
-            else
-                return STATUS_OK;
-
-            query_resize();
-
-            return STATUS_OK;
-        }
-    
     } /* namespace tk */
 } /* namespace lsp */

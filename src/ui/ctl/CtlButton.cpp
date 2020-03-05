@@ -160,7 +160,7 @@ namespace lsp
                     break;
                 case A_TEXT:
                     if (btn != NULL)
-                        btn->set_title(value);
+                        btn->title()->set_raw(value);
                     break;
                 case A_EDITABLE:
                     if (btn != NULL)

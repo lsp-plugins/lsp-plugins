@@ -120,7 +120,8 @@ namespace lsp
                  * @param params additional optional parameters for message formatting
                  * @return status of operation
                  */
-                status_t set(const LSPString *key, const calc::Parameters *params = NULL);
+                status_t set(const LSPString *key, const calc::Parameters *params);
+                inline status_t set(const LSPString *key) { return set(key, (calc::Parameters *)NULL); };
 
                 /**
                  * Set localized value
@@ -128,7 +129,8 @@ namespace lsp
                  * @param params additional optional parameters for message formatting
                  * @return status of operation
                  */
-                status_t set(const char *key, const calc::Parameters *params = NULL);
+                status_t set(const char *key, const calc::Parameters *params);
+                inline status_t set(const char *key) { return set(key, (calc::Parameters *)NULL); };
 
                 /**
                  * Make a copy of data from the source local string to this local string

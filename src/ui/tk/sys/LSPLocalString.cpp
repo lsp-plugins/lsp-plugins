@@ -181,7 +181,10 @@ namespace lsp
         status_t LSPLocalString::set(const LSPString *key, const calc::Parameters *params)
         {
             if (key == NULL)
-                return STATUS_BAD_ARGUMENTS;
+            {
+                clear();
+                return STATUS_OK;
+            }
 
             LSPString ts;
             calc::Parameters tp;
@@ -212,7 +215,10 @@ namespace lsp
         status_t LSPLocalString::set(const char *key, const calc::Parameters *params)
         {
             if (key == NULL)
-                return STATUS_BAD_ARGUMENTS;
+            {
+                clear();
+                return STATUS_OK;
+            }
 
             LSPString ts;
             calc::Parameters tp;
