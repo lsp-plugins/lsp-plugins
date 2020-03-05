@@ -246,7 +246,7 @@ namespace lsp
             vStdItems[0] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdPopup.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Cut"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.edit.cut"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_cut_action, self());
             if (id < 0)
                 return -id;
@@ -257,7 +257,7 @@ namespace lsp
             vStdItems[1] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdPopup.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Copy"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.edit.copy"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_copy_action, self());
             if (id < 0)
                 return -id;
@@ -268,7 +268,7 @@ namespace lsp
             vStdItems[2] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdPopup.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Paste"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.edit.paste"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_paste_action, self());
             if (id < 0)
                 return -id;

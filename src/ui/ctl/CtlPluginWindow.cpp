@@ -128,7 +128,7 @@ namespace lsp
                     LSPMenuItem *itm = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
-                    itm->set_text("Export");
+                    itm->text()->set("actions.export");
                     itm->set_submenu(submenu);
                     pMenu->add(itm);
 
@@ -137,14 +137,14 @@ namespace lsp
                         LSPMenuItem *child = new LSPMenuItem(dpy);
                         vWidgets.add(child);
                         child->init();
-                        child->set_text("Settings to file...");
+                        child->text()->set("actions.export_settings_to_file");
                         child->slots()->bind(LSPSLOT_SUBMIT, slot_export_settings_to_file, this);
                         submenu->add(child);
 
                         child = new LSPMenuItem(dpy);
                         vWidgets.add(child);
                         child->init();
-                        child->set_text("Settings to clipboard");
+                        child->text()->set("actions.export_settings_to_clipboard");
                         child->slots()->bind(LSPSLOT_SUBMIT, slot_export_settings_to_clipboard, this);
                         submenu->add(child);
                     }
@@ -158,7 +158,7 @@ namespace lsp
                     itm = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
-                    itm->set_text("Import");
+                    itm->text()->set("actions.import");
                     itm->set_submenu(submenu);
                     pMenu->add(itm);
 
@@ -167,14 +167,14 @@ namespace lsp
                         LSPMenuItem *child = new LSPMenuItem(dpy);
                         vWidgets.add(child);
                         child->init();
-                        child->set_text("Settings from file...");
+                        child->text()->set("actions.import_settings_from_file");
                         child->slots()->bind(LSPSLOT_SUBMIT, slot_import_settings_from_file, this);
                         submenu->add(child);
 
                         child = new LSPMenuItem(dpy);
                         vWidgets.add(child);
                         child->init();
-                        child->set_text("Settings from clipboard");
+                        child->text()->set("actions.import_settings_from_clipboard");
                         child->slots()->bind(LSPSLOT_SUBMIT, slot_import_settings_from_clipboard, this);
                         submenu->add(child);
                     }
@@ -190,7 +190,7 @@ namespace lsp
                     itm     = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
-                    itm->set_text("Toggle rack mount");
+                    itm->text()->set("actions.toggle_rack_mount");
                     itm->slots()->bind(LSPSLOT_SUBMIT, slot_toggle_rack_mount, this);
                     pMenu->add(itm);
 
@@ -335,7 +335,7 @@ namespace lsp
                 delete root;
                 return STATUS_NO_MEM;
             }
-            root->set_text("Set language");
+            root->text()->set("actions.select_language");
             if ((res = menu->add(root)) != STATUS_OK)
                 return res;
 
@@ -402,7 +402,7 @@ namespace lsp
                     continue;
                 }
 
-                item->set_text(&value);
+                item->text()->set_raw(&value);
                 menu->add(item);
 
                 // Create closure and bind
@@ -461,7 +461,7 @@ namespace lsp
             }
 
             // Add item to the main menu
-            item->set_text("3D Rendering");
+            item->text()->set("actions.3d_rendering");
             menu->add(item);
 
             // Get backend port
@@ -509,7 +509,7 @@ namespace lsp
                     continue;
                 }
 
-                item->set_text(&info->display);
+                item->text()->set_raw(&info->display);
                 menu->add(item);
 
                 // Create closure and bind

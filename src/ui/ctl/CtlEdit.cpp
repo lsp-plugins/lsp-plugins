@@ -29,7 +29,7 @@ namespace lsp
                 vWidgets.add(item);
                 item->init();
                 sprintf(str, "Menu item %d", int(i));
-                item->set_text(str);
+                item->text()->set_raw(str);
                 menu->add(item);
                 item->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, this);
 

@@ -47,6 +47,7 @@ namespace lsp
                  * @return
                  */
                 inline LSPLocalString      *text()  { return &sText; };
+                inline const LSPLocalString  *text() const      { return &sText; }
 
                 /** Get vertical alignment
                  *

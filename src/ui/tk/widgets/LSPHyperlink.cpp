@@ -58,7 +58,7 @@ namespace lsp
             vStdItems[0] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdMenu.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Copy link"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.link.copy"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_copy_link_action, self());
             if (id < 0)
                 return -id;
@@ -69,7 +69,7 @@ namespace lsp
             vStdItems[1] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdMenu.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Follow link"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.link.follow"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0)
                 return -id;

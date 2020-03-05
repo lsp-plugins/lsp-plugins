@@ -1,4 +1,11 @@
 {
+	"automatic_extension": "Automatic extension",
+	"bookmark_list": "Bookmarks",
+
+	"file_list": "File list",
 	"file_name": "File name",
+	"filter": "Filter",
+
+	"location": "Location",
 	"search": "Search"
 }

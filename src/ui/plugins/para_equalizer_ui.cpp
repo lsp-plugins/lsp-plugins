@@ -139,7 +139,7 @@ namespace lsp
             LSPMenuItem *child = new LSPMenuItem(&sDisplay);
             vWidgets.add(child);
             child->init();
-            child->set_text("REW filter file...");
+            child->text()->set("actions.import_rew_filter_file");
             child->slots()->bind(LSPSLOT_SUBMIT, slot_start_import_rew_file, this);
             menu->add(child);
         }

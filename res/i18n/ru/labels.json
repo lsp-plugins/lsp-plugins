@@ -1,4 +1,11 @@
 {
+	"automatic_extension": "Автоматическое расширение",
+	"bookmark_list": "Закладки",
+
+	"file_list": "Список файлов",
 	"file_name": "Имя файла",
+	"filter": "Фильтр",
+
+	"location": "Местоположение",
 	"search": "Поиск"
 }

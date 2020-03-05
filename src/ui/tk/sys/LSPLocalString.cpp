@@ -313,10 +313,7 @@ namespace lsp
 
             // Still no template? Leave
             if (res == STATUS_NOT_FOUND)
-            {
-                out->clear();
-                return STATUS_OK;
-            }
+                return (out->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; // By default output dictionary key
             else if (res != STATUS_OK)
                 return res;
 

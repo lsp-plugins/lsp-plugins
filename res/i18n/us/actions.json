@@ -5,14 +5,22 @@
 	
 	"cancel": "Cancel",
 	"close": "Close",
-	"copy": "Copy",
-	"copy_url": "Copy URL",
+	
+	"edit": {
+		"clear": "Clear",
+		"copy": "Copy",
+		"cut": "Cut",
+		"delete": "Delete",
+		"move_down": "Move down",
+		"move_first": "Set first",
+		"move_last": "Set last",
+		"move_up": "Move up",
+		"paste": "Paste"
+	},
 	
 	"export": "Export",
 	"export_settings_to_clipboard": "Export settings to clipboard",
 	"export_settings_to_file": "Export settings to file...",
-	
-	"follow_url": "Follow URL",
 	
 	"go": "Go",
 	
@@ -22,12 +30,19 @@
 	"import_rew_filter_file": "REW filter file...",
 
 	"listen": "Listen",
+	"link": {
+		"copy": "Copy link",
+		"follow": "Follow link"
+	},
+	
 	"load": "Load",
 	"load_preset": "Load preset",
 	
 	"open": "Open",
 	
 	"save": "Save",
+	
+	"select_language": "Select lanugage",
 	
 	"to_bookmarks": "+Bookmarks",
 	"toggle_rack_mount": "Toggle rack mount",

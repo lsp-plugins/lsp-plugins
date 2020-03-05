@@ -87,7 +87,7 @@ namespace lsp
             do_destroy();
         }
 
-        status_t LSPFileDialog::add_label(LSPWidgetContainer *c, const char *text, float align, LSPLabel **label)
+        status_t LSPFileDialog::add_label(LSPWidgetContainer *c, const char *key, float align, LSPLabel **label)
         {
             LSPAlign *algn = new LSPAlign(pDisplay);
             if (algn == NULL)
@@ -110,7 +110,7 @@ namespace lsp
                 result = algn->init();
             algn->set_hpos(align);
             if (result == STATUS_OK)
-                result = lbl->text()->set_raw(text);
+                result = lbl->text()->set(key);
 
             if (result == STATUS_OK)
                 result = algn->add(lbl);
@@ -133,7 +133,7 @@ namespace lsp
             return result;
         }
 
-        status_t LSPFileDialog::add_menu_item(LSPMenu *m, const char *text, ui_event_handler_t handler)
+        status_t LSPFileDialog::add_menu_item(LSPMenu *m, const char *key, ui_event_handler_t handler)
         {
             LSPMenuItem *mi = new LSPMenuItem(pDisplay);
             if (mi == NULL)
@@ -146,9 +146,9 @@ namespace lsp
             }
 
             LSP_STATUS_ASSERT(mi->init());
-            if (text != NULL)
+            if (key != NULL)
             {
-                LSP_STATUS_ASSERT(mi->set_text(text));
+                LSP_STATUS_ASSERT(mi->text()->set(key));
                 ui_handler_id_t id = mi->slots()->bind(LSPSLOT_SUBMIT, handler, self());
                 if (id < 0)
                     return STATUS_UNKNOWN_ERR;
@@ -296,12 +296,12 @@ namespace lsp
             LSP_STATUS_ASSERT(wPathBox.add(&sBMAdd));
             LSP_STATUS_ASSERT(wPathBox.add(&wUp));
             LSP_STATUS_ASSERT(wPathBox.add(&wGo));
-            LSP_STATUS_ASSERT(add_label(&wPathBox, "Location", 1.0f));
+            LSP_STATUS_ASSERT(add_label(&wPathBox, "labels.location", 1.0f));
             // Button box
             LSP_STATUS_ASSERT(sHBox.add(&sWAction));
             LSP_STATUS_ASSERT(sHBox.add(&sWCancel));
             // Warning box
-            LSP_STATUS_ASSERT(add_label(&sWarnBox, "Files"));
+            LSP_STATUS_ASSERT(add_label(&sWarnBox, "labels.file_list"));
             LSP_STATUS_ASSERT(sWarnBox.add(&sWWarning));
 
             // Initialize grid
@@ -309,19 +309,19 @@ namespace lsp
             LSP_STATUS_ASSERT(sMainGrid.add(&wPathBox));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWPath));
             // Row 2
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Bookmarks"));
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.bookmark_list"));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
             // Row 3
             LSP_STATUS_ASSERT(sMainGrid.add(&sSBBookmarks));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFiles));
             // Row 4
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
-            LSP_STATUS_ASSERT(add_ext_button(&sMainGrid, "Automatic extension"));
+            LSP_STATUS_ASSERT(add_ext_button(&sMainGrid, "labels.automatic_extension"));
             // Row 5
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "File name", 1.0f, &pWSearch));
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.file_name", 1.0f, &pWSearch));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWSearch));
             // Row 6
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Filter", 1.0f));
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.filter", 1.0f));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFilter));
             // Row 7
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
@@ -440,15 +440,15 @@ namespace lsp
         status_t LSPFileDialog::init_bm_popup_menu()
         {
             LSP_STATUS_ASSERT(sBMPopup.init());
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Open", slot_on_bm_menu_open));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Follow URL", slot_on_bm_menu_follow));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Copy URL", slot_on_bm_menu_copy));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Delete", slot_on_bm_menu_delete));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.open", slot_on_bm_menu_open));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.link.follow", slot_on_bm_menu_follow));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.link.copy", slot_on_bm_menu_copy));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.delete", slot_on_bm_menu_delete));
             LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, NULL, NULL));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "First", slot_on_bm_menu_first));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Up", slot_on_bm_menu_up));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Down", slot_on_bm_menu_down));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Last", slot_on_bm_menu_last));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_first", slot_on_bm_menu_first));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_up", slot_on_bm_menu_up));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_down", slot_on_bm_menu_down));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_last", slot_on_bm_menu_last));
 
             return STATUS_OK;
         }

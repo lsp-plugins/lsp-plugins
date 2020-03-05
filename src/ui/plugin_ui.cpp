@@ -1122,7 +1122,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            item->set_text("Load Preset");
+            item->text()->set("actions.load_preset");
             menu->add(item);
 
             // Create submenu
@@ -1150,7 +1150,7 @@ namespace lsp
                 result = item->init();
                 if (result != STATUS_OK)
                     return result;
-                item->set_text(p->name);
+                item->text()->set_raw(p->name);
                 p->item     = item;
 
                 item->slots()->bind(LSPSLOT_SUBMIT, slot_preset_select, this);

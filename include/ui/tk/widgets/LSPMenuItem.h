@@ -23,7 +23,7 @@ namespace lsp
                 friend class LSPMenu;
 
             protected:
-                LSPString       sText;
+                LSPLocalString  sText;
                 LSPMenu        *pSubmenu;
                 bool            bSeparator;
 
@@ -37,14 +37,13 @@ namespace lsp
                 virtual status_t init();
 
             public:
-                const char         *text() const            { return sText.get_native(); }
-                LSPMenu            *submenu()               { return pSubmenu; }
-                inline bool         is_separator() const    { return bSeparator; }
-                inline bool         has_submenu() const     { return pSubmenu != NULL; }
+                inline LSPLocalString  *text()                  { return &sText; }
+                inline const LSPLocalString  *text() const      { return &sText; }
+                LSPMenu                *submenu()               { return pSubmenu; }
+                inline bool             is_separator() const    { return bSeparator; }
+                inline bool             has_submenu() const     { return pSubmenu != NULL; }
 
             public:
-                status_t            set_text(const char *text);
-                status_t            set_text(const LSPString *text);
                 status_t            set_submenu(LSPMenu *submenu);
                 status_t            set_separator(bool value);
 
