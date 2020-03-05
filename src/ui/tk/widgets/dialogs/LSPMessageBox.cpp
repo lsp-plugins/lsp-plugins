@@ -192,19 +192,15 @@ namespace lsp
         status_t LSPMessageBox::add_button(const char *text, ui_event_handler_t handler, void *arg)
         {
             LSPLocalString tmp;
-            if (!tmp.set(text))
-                return STATUS_NO_MEM;
-
-            return add_button(&tmp, handler, arg);
+            status_t res = tmp.set(text);
+            return (res == STATUS_OK) ? add_button(&tmp, handler, arg) : res;
         }
 
         status_t LSPMessageBox::add_button(const LSPString *text, ui_event_handler_t handler, void *arg)
         {
             LSPLocalString tmp;
-            if (!tmp.set(text))
-                return STATUS_NO_MEM;
-
-            return add_button(&tmp, handler, arg);
+            status_t res = tmp.set(text);
+            return (res == STATUS_OK) ? add_button(&tmp, handler, arg) : res;
         }
 
         status_t LSPMessageBox::add_button(const LSPLocalString *text, ui_event_handler_t handler, void *arg)

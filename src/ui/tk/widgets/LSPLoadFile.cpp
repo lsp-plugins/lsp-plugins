@@ -151,7 +151,7 @@ namespace lsp
             // Create dialog
             LSP_STATUS_ASSERT(sDialog.init());
             sDialog.set_mode(FDM_OPEN_FILE);
-            sDialog.set_title("Load from file");
+            sDialog.title()->set("titles.load_from_file");
             sDialog.action_title()->set("actions.open");
             sDialog.filter()->add("*", "All files (*.*)", "");
             sDialog.bind_action(slot_on_file_submit, self());

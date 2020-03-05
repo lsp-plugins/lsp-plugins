@@ -402,7 +402,7 @@ namespace lsp
     void plugin_ui::set_title(const char *title)
     {
         if (pRoot != NULL)
-            pRoot->set_title(title);
+            pRoot->title()->set(title);
     }
 
     CtlWidget *plugin_ui::build_widget(widget_ctl_t w_class)

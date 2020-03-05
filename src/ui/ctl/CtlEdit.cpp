@@ -84,7 +84,7 @@ namespace lsp
             {
                 pDialog     = new LSPFileDialog(pWidget->display());
                 pDialog->init();
-                pDialog->set_title("Open file...");
+                pDialog->title()->set_raw("Open file...");
                 pDialog->action_title()->set("actions.open");
                 pDialog->bind_action(slot_on_action, this);
                 pDialog->bind_cancel(slot_on_cancel, this);

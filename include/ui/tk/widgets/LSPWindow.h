@@ -28,6 +28,16 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
+                class Title: public LSPLocalString
+                {
+                    public:
+                        inline Title(LSPWidget *widget): LSPLocalString(widget) {}
+
+                    protected:
+                        virtual void        sync();
+                };
+
+            protected:
                 INativeWindow      *pWindow;
                 void               *pNativeHandle;
                 LSPWidget          *pChild;
@@ -46,7 +56,7 @@ namespace lsp
                 float               nVertScale;
                 float               nHorScale;
                 size_t              nBorder;
-                LSPString           sCaption;
+                Title               sTitle;
                 LSPWindowActions    sActions;
                 LSPColor            sBorder;
                 window_poilicy_t    enPolicy;
@@ -120,9 +130,8 @@ namespace lsp
 
                 inline bool size_request_pending() const { return bSizeRequest; }
 
-                inline const char *title() const { return sCaption.get_native(); }
-
-                inline status_t get_title(LSPString *dst) const { return dst->set(&sCaption) ? STATUS_OK : STATUS_NO_MEM; };
+                inline LSPLocalString *title()                  { return &sTitle; }
+                inline const LSPLocalString *title() const      { return &sTitle; }
 
                 inline window_poilicy_t policy() const          { return enPolicy; }
 
@@ -137,10 +146,6 @@ namespace lsp
             // Manipulation
             public:
                 virtual void        query_resize();
-
-                virtual status_t    set_title(const char *caption);
-
-                virtual status_t    set_title(const LSPString *value);
 
                 /** Render window's content to surface
                  *

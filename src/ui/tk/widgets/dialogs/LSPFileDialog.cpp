@@ -1098,7 +1098,7 @@ namespace lsp
                 LSP_STATUS_ASSERT(pWMessage->add_button("OK"));
             }
             LSP_STATUS_ASSERT(pWMessage->set_heading(heading));
-            LSP_STATUS_ASSERT(pWMessage->set_title(title));
+            LSP_STATUS_ASSERT(pWMessage->title()->set(title));
             LSP_STATUS_ASSERT(pWMessage->set_message(message));
 
             return pWMessage->show(this);
@@ -1138,7 +1138,7 @@ namespace lsp
                 }
 
                 if (LSPFileMask::is_dots(&fname) || (!LSPFileMask::valid_file_name(&fname)))
-                    return show_message("Attention", "Attention", "The entered file name is not valid");
+                    return show_message("Attention", "titles.attention", "The entered file name is not valid");
 
                 LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
                 committed = true;
@@ -1159,7 +1159,7 @@ namespace lsp
             {
                 file_entry_t *ent = selected_entry();
                 if (ent == NULL)
-                    return show_message("Attention", "Attention", "The file name is not specified");
+                    return show_message("Attention", "titles.attention", "The file name is not specified");
 
                 // Analyze what to do
                 if (ent->nFlags & F_DOTDOT)
@@ -1196,7 +1196,7 @@ namespace lsp
             else
             {
                 if (stat_result != 0)
-                    return show_message("Attention", "Attention", "The selected file does not exist");
+                    return show_message("Attention", "titles.attention", "The selected file does not exist");
 
                 if (sConfirm.length() <= 0)
                     return on_dlg_confirm(data);
@@ -1211,7 +1211,7 @@ namespace lsp
                 pWConfirm->init();
 
                 pWConfirm->set_heading("Confirmation");
-                pWConfirm->set_title("Confirmation");
+                pWConfirm->title()->set("titles.confirmation");
                 pWConfirm->add_button("actions.confirm.yes", slot_on_confirm, self());
                 pWConfirm->add_button("actions.confirm.no");
             }

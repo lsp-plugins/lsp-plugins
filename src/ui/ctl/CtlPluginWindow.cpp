@@ -105,7 +105,7 @@ namespace lsp
             // Initialize window
             LSPDisplay *dpy = pWnd->display();
 
-            pWnd->set_title(meta->name);
+            pWnd->title()->set_raw(meta->name);
             pWnd->set_policy(WP_GREEDY);
             if (!pWnd->nested())
                 pWnd->actions()->deny_actions(WA_RESIZE);
@@ -701,7 +701,7 @@ namespace lsp
 
                 dlg->init();
                 dlg->set_mode(FDM_SAVE_FILE);
-                dlg->set_title("Export settings");
+                dlg->title()->set("titles.export_settings");
                 dlg->action_title()->set("actions.save");
                 dlg->set_confirmation("The selected file already exists. Overwrite?");
 
@@ -728,7 +728,7 @@ namespace lsp
 
                 dlg->init();
                 dlg->set_mode(FDM_OPEN_FILE);
-                dlg->set_title("Import settings");
+                dlg->title()->set("titles.import_settings");
                 dlg->action_title()->set("actions.open");
 
                 LSPFileFilter *f = dlg->filter();
@@ -909,7 +909,7 @@ namespace lsp
                 vWidgets.add(pMessage);
                 pMessage->init();
                 pMessage->set_border_style(BS_DIALOG);
-                pMessage->set_title("Update notification");
+                pMessage->title()->set("titles.update_nofitication");
                 pMessage->actions()->deny_all();
                 pMessage->actions()->set_closeable(true);
                 pMessage->padding()->set_all(16);

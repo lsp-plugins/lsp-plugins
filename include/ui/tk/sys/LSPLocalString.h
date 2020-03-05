@@ -50,7 +50,8 @@ namespace lsp
 
             protected:
                 status_t            fmt_internal(LSPString *out, IDictionary *dict, const LSPString *lang) const;
-                void                notify(ui_atom_t property);
+                virtual void        notify(ui_atom_t property);
+                virtual void        sync();
 
             public:
                 explicit LSPLocalString();

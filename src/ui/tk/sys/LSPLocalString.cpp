@@ -27,7 +27,7 @@ namespace lsp
         LSPLocalString::LSPLocalString():
             sListener(this)
         {
-            pWidget      = NULL;
+            pWidget     = NULL;
             nFlags      = 0;
             nAtom       = -1;
         }
@@ -35,7 +35,7 @@ namespace lsp
         LSPLocalString::LSPLocalString(LSPWidget *widget):
             sListener(this)
         {
-            pWidget      = widget;
+            pWidget     = widget;
             nFlags      = 0;
             nAtom       = -1;
         }
@@ -44,7 +44,7 @@ namespace lsp
         {
             unbind();
 
-            pWidget      = NULL;
+            pWidget     = NULL;
             nFlags      = 0;
             nAtom       = -1;
         }
@@ -141,8 +141,14 @@ namespace lsp
 
         void LSPLocalString::notify(ui_atom_t property)
         {
+            if (property == nAtom)
+                sync();
+        }
+
+        void LSPLocalString::sync()
+        {
             // Trigger the widget for resize if property has changed
-            if ((pWidget != NULL) && (property == nAtom))
+            if (pWidget != NULL)
                 pWidget->query_resize();
         }
     
@@ -156,9 +162,7 @@ namespace lsp
             nFlags      = 0; //F_DIRTY;
             sParams.clear();
 
-            if (pWidget != NULL)
-                pWidget->query_resize();
-
+            sync();
             return STATUS_OK;
         }
 
@@ -172,9 +176,7 @@ namespace lsp
             nFlags      = 0; //F_DIRTY;
             sParams.clear();
 
-            if (pWidget != NULL)
-                pWidget->query_resize();
-
+            sync();
             return STATUS_OK;
         }
 
@@ -206,9 +208,7 @@ namespace lsp
             sParams.swap(&tp);
             nFlags      = /* F_DIRTY | */ F_LOCALIZED;
 
-            if (pWidget != NULL)
-                pWidget->query_resize();
-
+            sync();
             return STATUS_OK;
         }
 
@@ -240,9 +240,7 @@ namespace lsp
             sParams.swap(&tp);
             nFlags      = /* F_DIRTY | */ F_LOCALIZED;
 
-            if (pWidget != NULL)
-                pWidget->query_resize();
-
+            sync();
             return STATUS_OK;
         }
 
@@ -280,9 +278,7 @@ namespace lsp
             sText.truncate();
             sParams.clear();
             nFlags      = 0; //F_DIRTY;
-
-            if (pWidget != NULL)
-                pWidget->query_resize();
+            sync();
         }
 
         status_t LSPLocalString::fmt_internal(LSPString *out, IDictionary *dict, const LSPString *lang) const
