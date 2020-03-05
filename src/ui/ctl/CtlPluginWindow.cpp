@@ -314,8 +314,7 @@ namespace lsp
                 return STATUS_OK;
 
             // Perform lookup before loading list of languages
-            IDictionary *list = NULL;
-            status_t res = dict->lookup("default.lang.target", &list);
+            status_t res = dict->lookup("default.lang.target", &dict);
             if (res != STATUS_OK)
                 return res;
 
@@ -334,6 +333,9 @@ namespace lsp
                 delete root;
                 return STATUS_NO_MEM;
             }
+            root->set_text("Set language");
+            if ((res = menu->add(root)) != STATUS_OK)
+                return res;
 
             // Create submenu
             menu                = new LSPMenu(menu->display());
@@ -544,7 +546,7 @@ namespace lsp
 
         status_t CtlPluginWindow::slot_select_language(LSPWidget *sender, void *ptr, void *data)
         {
-            LSPString *lang = reinterpret_cast<LSPString *>(data);
+            LSPString *lang = reinterpret_cast<LSPString *>(ptr);
             if (lang != NULL)
                 lsp_trace("Select language: %s", lang->get_utf8());
 
