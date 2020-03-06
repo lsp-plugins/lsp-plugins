@@ -227,7 +227,7 @@
 		</hbox>
 		
 		<hbox spacing="4" visibility="(:mode ieq 0) or (:mode ieq 2)">
-			<group text="plug.channels" expand="true">
+			<group text="groups.channels" expand="true">
 				<grid rows="7" cols="9" transpose="true">
 					<label text="#" />
 					<label text="On" />
@@ -256,7 +256,7 @@
 				</grid>
 			</group>
 			
-			<group text="plug.metering" expand="true">
+			<group text="groups.metering" expand="true">
 				<grid rows="5" cols="3">
 					<label text="Channel" />
 					<label text="Frequency (Hz)" />
@@ -282,7 +282,7 @@
 		</hbox>
 		
 		<hbox spacing="4" visibility="(:mode ine 0) and (:mode ine 2)">
-			<group text="plug.channels" fill="true">
+			<group text="groups.channels" fill="true">
 				<grid rows="6" cols="9" transpose="true" fill="true">
 					<label text="Channel #" />
 					<label text="Hold" />
@@ -301,7 +301,7 @@
 					</ui:for>
 				</grid>
 			</group>
-			<group text="plug.metering">
+			<group text="groups.metering">
 				<grid rows="6" cols="1" transpose="true" fill="true">
 					<label text="Preamp" />
 					<knob id="pamp" />

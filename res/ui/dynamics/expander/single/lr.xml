@@ -228,7 +228,7 @@
 			<label text="Out" />
 		</grid>
 		<hbox spacing="4">
-			<group text="plug.sidechain" expand="true">
+			<group text="groups.sidechain" expand="true">
 				<grid rows="5" cols="5" expand="true">
 					<label text="Listen" />
 					<label text="Preamp" />
@@ -272,7 +272,7 @@
 				</grid>
 			</group>
 		
-			<group text="plug.expander" expand="true">
+			<group text="groups.expander" expand="true">
 				<vbox expand="true" fill="true">
 					<hbox expand="true" fill="true">
 						<grid rows="6" cols="4" expand="true">
@@ -364,7 +364,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="plug.signal" expand="true">
+			<group text="groups.signal" expand="true">
 				<vbox expand="true">
 					<label text="Input" />
 					<knob id="g_in" />

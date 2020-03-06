@@ -227,7 +227,7 @@
 		</hbox>
 	
 		<hbox spacing="4" visibility="(:mode ieq 0) or (:mode ieq 2)">
-			<group text="plug.channels" expand="true">
+			<group text="groups.channels" expand="true">
 				<grid rows="7" cols="5" transpose="true">
 					<label text="#" />
 					<label text="On" />
@@ -256,7 +256,7 @@
 				</grid>
 			</group>
 			
-			<group text="plug.metering" expand="true">
+			<group text="groups.metering" expand="true">
 				<grid rows="5" cols="3" expand="true">
 					<label text="Channel" />
 					<label text="Frequency (Hz)" />
@@ -281,7 +281,7 @@
 			</group>
 		</hbox>
 		
-		<group text="plug.channels" expand="true" visibility="(:mode ine 0) and (:mode ine 2)">
+		<group text="groups.channels" expand="true" visibility="(:mode ine 0) and (:mode ine 2)">
 			<grid rows="4" cols="20" transpose="true" fill="true">
 				<ui:for id="i" first="0" last="3">
 					<cell cols="3"><label text="Channel ${i}" /></cell>

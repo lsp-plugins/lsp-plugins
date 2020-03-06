@@ -377,7 +377,7 @@
 			</cgroup>
 			
 			<!-- Signal control -->
-			<group text="plug.signal">
+			<group text="groups.signal">
 				<grid rows="6" cols="1" transpose="true">
 					<label text="Input" />
 					<knob id="g_in" />

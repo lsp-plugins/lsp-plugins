@@ -1,7 +1,7 @@
 <plugin resizable="false">
 	<grid rows="3" cols="2" hspacing="4" vspacing="4">
 		<!-- IR editor -->
-		<group text="plug.impulse_response" expand="true">
+		<group text="groups.impulse_response" expand="true">
 			<vbox spacing="4">
 				<!-- File editor -->
 				<align hpos="-1">
@@ -54,7 +54,7 @@
 		</group>
 		
 		<cell rows="2">
-			<group text="plug.output" expand="true">
+			<group text="groups.output" expand="true">
 				<vbox>
 					<grid rows="4" cols="1" expand="true" fill="true">
 						<grid rows="4" cols="2">
@@ -91,7 +91,7 @@
 		</cell>
 		
 	
-		<group text="plug.processors" expand="true">
+		<group text="groups.processors" expand="true">
 			<hbox>
 				<grid rows="5" cols="6" expand="true">
 					<label text="#" />
@@ -163,7 +163,7 @@
 		
 		<!-- Wet equalization -->
 		<cell cols="2" visibility=":wpp">
-			<group text="plug.wet_signal_eq">
+			<group text="groups.wet_signal_eq">
 				<grid rows="5" cols="10">
 					<label text="Low-cut" />
 					<label text="50" />

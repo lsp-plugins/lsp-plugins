@@ -1,6 +1,6 @@
 <plugin resizable="false">
 	<hbox spacing="4">
-		<group text="plug.signal">
+		<group text="groups.signal">
 			<grid rows="4" cols="2">
 				<label id="dry" />
 				<label id="wet" />
@@ -20,7 +20,7 @@
 				</hbox>
 			</grid>
 		</group>
-		<group text="plug.samples">
+		<group text="groups.samples">
 			<vbox border="0">
 				<label text="Samples" />
 				<knob id="samp" />
@@ -32,7 +32,7 @@
 				</hbox>
 			</vbox>
 		</group>
-		<group text="plug.distance">
+		<group text="groups.distance">
 			<vbox>
 				<grid rows="3" cols="3">
 					<label text="Meters" />
@@ -53,7 +53,7 @@
 				</hbox>
 			</vbox>
 		</group>
-		<group text="plug.time">
+		<group text="groups.time">
 			<vbox>
 				<label text="Delay" />
 				<knob id="time" />
@@ -65,7 +65,7 @@
 				</hbox>
 			</vbox>
 		</group>
-		<group text="plug.monitoring">
+		<group text="groups.monitoring">
 			<grid rows="5" cols="2" hspacing="1" vspacing="1">
 				<label text="" />
 				<label text="Value" />

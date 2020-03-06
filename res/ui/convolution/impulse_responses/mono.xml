@@ -1,7 +1,7 @@
 <plugin resizable="false">
 	<vbox spacing="4">
 		<!-- IR editor -->
-		<group text="plug.impulse_response">
+		<group text="groups.impulse_response">
 			<vbox spacing="4">
 				<!-- File editor -->
 				<align hpos="-1">
@@ -90,7 +90,7 @@
 		</group>
 		
 		<!-- Wet equalization -->
-		<group text="plug.wet_signal_eq" visibility=":wpp">
+		<group text="groups.wet_signal_eq" visibility=":wpp">
 			<grid rows="5" cols="10">
 				<label text="Low-cut" />
 				<label text="50" />

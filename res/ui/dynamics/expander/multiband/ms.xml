@@ -115,7 +115,7 @@
 			</cell>
 			<cell rows="2">
 				<vbox spacing="4">
-					<group text="plug.signal" expand="true">
+					<group text="groups.signal" expand="true">
 						<grid rows="6" cols="4" transpose="false">
 							<label text="In" color="middle_channel" />
 							<label text="Input" />
@@ -150,7 +150,7 @@
 							<value id="g_wet" />
 						</grid>
 					</group>
-					<group text="plug.analysis">
+					<group text="groups.analysis">
 						<grid rows="3" cols="3" transpose="true" >
 							<label text="Reactivity" />
 							<knob id="react" size="20" />

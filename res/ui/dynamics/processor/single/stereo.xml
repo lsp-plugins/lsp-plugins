@@ -217,7 +217,7 @@
 		</grid>
 		<hbox spacing="4">
 			<!-- Stereo processing -->
-			<group text="plug.processor">
+			<group text="groups.processor">
 				<hbox>
 					<grid rows="8" cols="3" expand="true" fill="true">
 						<label text="Type" fill="true" halign="0" />
@@ -327,7 +327,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="plug.signal">
+			<group text="groups.signal">
 				<grid rows="6" cols="1" transpose="true">
 					<label text="Input" />
 					<knob id="g_in" />
