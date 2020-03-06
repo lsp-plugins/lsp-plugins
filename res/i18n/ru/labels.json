@@ -1,31 +1,64 @@
 {
 	"active": "Активно",
 	
+	"attack": "Атака",
+	"attack:db_ms": "Атака\n(дБ, мс)",
+	
 	"automatic_extension": "Автоматическое расширение",
 	
+	"band_hue": "Полоса, Тон",
+	
+	"boost": "Повышение",
 	"bookmark_list": "Закладки",
 	
 	"bypass": "Обход",
 	
 	"chan": {
 		":db": "(дБ)",
+		"Ext_ernal": "Внеш",
 		"H_old": "У",
 		"L_eft": "Л",
+		"L_eft:": "Л:",
 		"M_ute": "Г",
+		"M_id": "Ц",
+		"M_id:": "Ц:",
 		"R_ight": "П",
+		"R_ight:": "П:",
+		"S_ide": "С",
+		"S_ide:": "С:",
 		"S_olo": "С",
 		"channel_n": "Канал {@id}",
+		"external_sc": "Внешняя",
 		"hold": "Удерж",
 		"hue": "Тон",
+		"in": "Вх",
+		"input": "Вход",
 		"left": "Левый",
+		"left_on": "Левый вкл",
+		"mid": "Центр",
+		"mid_on": "Центр вкл",
+		"mute": "Глушение",
+		"num_id": "№{@id}",
+		"num_id_L_eft": "№{@id} Л",
+		"num_id_M_id": "№{@id} Ц",
+		"num_id_R_ight": "№{@id} П",
+		"num_id_S_ide": "№{@id} С",
+		"off": "Выкл",
 		"on": "Вкл",
+		"out": "Вых",
+		"output": "Выход",
 		"right": "Правый",
+		"right_on": "Правый вкл",
 		"shift": "Смещ",
+		"side": "Сторона",
+		"side_on": "Сторона вкл",
 		"solo": "Соло",
 		"solo_hold": "Соло/Удерж"
 	},
 	"channel": "Канал",
 	"channels": "Каналы",
+	
+	"controls": "Управление",
 	
 	"click_or_drag_to_load": "Клик или притащить файл",
 	
@@ -39,6 +72,8 @@
 
 	"fft": {
 		"envelope": "Огибающая",
+		"fft": "БПФ",
+		"fft:": "БПФ:",
 		"frame": "Кадр БПФ",
 		"tolerance": "Точность",
 		"window": "Окно"
@@ -57,7 +92,11 @@
 		"4_7k": "4.7к",
 		"EQ_ualizer": "ЭКВ",
 		"H_ighC_ut": "ФНЧ",
+		"HCF": "ФНЧ",
+		"HPF": "ФВЧ",
 		"L_owC_ut": "ФВЧ",
+		"LCF": "ФВЧ",
+		"LPF": "ФНЧ",
 		"bass": "Басы",
 		"high_cut": "ВЧ срез",
 		"low_cut": "НЧ срез",
@@ -70,12 +109,14 @@
 	"frequency": "Частота",
 	
 	"gain": "Усиление",
+	"gain_": "Усил",
 	
 	"graphs": {
 		"delay_line": "ЛИНИЯ ЗАДЕРЖКИ",
 		"frequency": "ЧАСТОТНЫЙ ГРАФИК",
 		"left_channel": "ЛЕВЫЙ КАНАЛ",
-		"right_channel": "ПРАВЫЙ КАНАЛ"
+		"right_channel": "ПРАВЫЙ КАНАЛ",
+		"spectrum": "СПЕКТРАЛЬНЫЙ ГРАФ"
 	},
 	
 	"hold": "Удерживать",
@@ -83,11 +124,15 @@
 	"host_bpm": "УВМ хоста",
 	
 	"ir_equalizer": "Эквализация ИО",
+	
+	"knee": "Колено",
 
 	"left": "Лево",
 	"listen": "Слушать",
 	"location": "Местоположение",
 	"log_scale": "Лог масштаб",
+	
+	"lookahead": "Предсказание",
 	
 	"makeup": "Коррекция",
 	
@@ -99,10 +144,12 @@
 		"level:db": "Уровень (дБ)",
 		"preamp": "Предусиление",
 		"reactivity": "Реактивность",
-		"selector": "Селектор"
+		"selector": "Селектор",
+		"shift": "Смещение"
 	},
 	
 	"mode": "Режим",
+	"mode:": "Режим:",
 	
 	"mute": "Глушение",
 	
@@ -111,13 +158,44 @@
 	"panorama": "Панорама",
 	"panorama:pc": "Панорама (%)",
 	
+	"plug": {
+		"calibrator": "Калибратор",
+		"compressor": "Компрессор",	
+		"expander": "Экспандер",
+		"gate": "Гейт",
+		"latency_detector": "Детектор задержки",
+		"limiter": "Лимитер",
+		"trigger": "Триггер"
+	},
+	
+	"preamp": "Предусиление",
+	
 	"predelay": "Предзадержка",
 	
 	"ramp": "Сглаж",
+	"range": "Диапазон",
+	
+	"ratio": "Степень",
+	"ratio_knee:db": "Степень,\nКолено (dB)",
+	
+	"release": "Выключение",
+	"release:db_ms": "Выключение\n(дБ, мс)",
+	
 	"right": "Право",
 	
 	"samples": "Отсчёты",
 	"samples:samp": "Отсчёты (шт)",
+	
+	"sc": {
+		"lookahead": "Предсказание",
+		"preamp": "Усиление",
+		"reactivity": "Реактивность"
+	},
+	
+	"sc_boost": "Усиление БЦ",
+	"sc_boost:": "Усиление БЦ:",
+	
+	"sc_preamp_makeup:db_db": "Усиление БЦ,\nКорректировка\n(дБ, дБ)",
 	
 	"search": "Поиск",
 	"sedit": {
@@ -128,6 +206,8 @@
 		"tail_cut": "Кон срез"
 	},
 	"settings": "Настройки",
+	
+	"sidechain": "Боковая цепь",
 	
 	"signal": {
 		"M_iddle": "Ц",
@@ -160,6 +240,9 @@
 	
 	"temperature": "Температура",
 	"tempo": "Темп",
+	
+	"threshold": "Порог",
+	
 	"time": "Время",
 	"time:ms": "Время (мс)",
 	

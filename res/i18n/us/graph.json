@@ -4,7 +4,9 @@
 		"10k": "10K",
 	},
 	
-	"text": {
+	"axis": {
+		"in": "in",
+		"out": "out",
 		"time": "time"
 	},
 

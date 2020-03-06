@@ -1,31 +1,64 @@
 {
 	"active": "Active",
 	
+	"attack": "Attack",
+	"attack:db_ms": "Attack\n(dB, ms)",
+	
 	"automatic_extension": "Automatic extension",
 	
+	"band_hue": "Band, Hue",
+	
+	"boost": "Boost",
 	"bookmark_list": "Bookmarks",
 	
 	"bypass": "Bypass",
 	
 	"chan": {
 		":db": "(dB)",
+		"Ext_ernal": "Ext",
 		"H_old": "H",
 		"L_eft": "L",
+		"L_eft:": "L:",
+		"M_id": "M",
+		"M_id:": "M:",
 		"M_ute": "M",
 		"R_ight": "R",
+		"R_ight:": "R:",
+		"S_ide": "S",
+		"S_ide:": "S:",
 		"S_olo": "S",
 		"channel_n": "Channel {@id}",
+		"external_sc": "External",
 		"hold": "Hold",
 		"hue": "Hue",
+		"in": "In",
+		"input": "Input",
 		"left": "Left",
+		"left_on": "Left on",
+		"mid": "Mid",
+		"mid_on": "Mid on",
+		"mute": "Mute",
+		"num_id": "#{@id}",
+		"num_id_L_eft": "#{@id} L",
+		"num_id_M_id": "#{@id} M",
+		"num_id_R_ight": "#{@id} R",
+		"num_id_S_ide": "#{@id} S",
+		"off": "Off",
 		"on": "On",
+		"out": "Out",
+		"output": "Output",
 		"right": "Right",
+		"right_on": "Right on",
 		"shift": "Shift",
+		"side": "Side",
+		"side_on": "Side on",
 		"solo": "Solo",
 		"solo_hold": "Solo/Hold"
 	},
 	"channel": "Channel",
 	"channels": "Channels",
+	
+	"controls": "Controls",
 	
 	"click_or_drag_to_load": "Click or drag to load",
 	
@@ -39,6 +72,8 @@
 
 	"fft": {
 		"envelope": "Envelope",
+		"fft": "FFT",
+		"fft:": "FFT:",
 		"frame": "FFT Frame",
 		"tolerance": "Tolerance",
 		"window": "Window"
@@ -57,7 +92,11 @@
 		"4_7k": "4.7k",
 		"EQ_ualizer": "EQ",
 		"H_ighC_ut": "HC",
+		"HCF": "HCF",
+		"HPF": "HPF",
 		"L_owC_ut": "LC", 
+		"LCF": "LCF",
+		"LPF": "LPF",
 		"bass": "Bass",
 		"high_cut": "High cut",
 		"low_cut": "Low cut",
@@ -70,12 +109,14 @@
 	"frequency": "Frequency",
 	
 	"gain": "Gain",
+	"gain_": "Gain",
 	
 	"graphs": {
 		"delay_line": "DELAY LINE",
 		"frequency": "FEQUENCY GRAPH",
 		"left_channel": "LEFT CHANNEL",
-		"right_channel": "RIGHT CHANNEL"
+		"right_channel": "RIGHT CHANNEL",
+		"spectrum": "SPECTRUM GRAPH"
 	},
 	
 	"hold": "Hold",
@@ -84,10 +125,14 @@
 	
 	"ir_equalizer": "IR equalizer",
 	
+	"knee": "Knee",
+	
 	"left": "Left",
 	"listen": "Listen",
 	"location": "Location",
 	"log_scale": "Log scale",
+	
+	"lookahead": "Lookahead",
 	
 	"makeup": "Makeup",
 	
@@ -99,10 +144,12 @@
 		"level:db": "Level (dB)",
 		"preamp": "Preamp",
 		"reactivity": "Reactivity",
-		"selector": "Selector"
+		"selector": "Selector",
+		"shift": "Shift"
 	},
 	
 	"mode": "Mode",
+	"mode:": "Mode:",
 	
 	"mute": "Mute",
 	
@@ -111,13 +158,44 @@
 	"panorama": "Panorama",
 	"panorama:pc": "Panorama (%)",
 	
+	"plug": {
+		"calibrator": "Calibrator",
+		"compressor": "Compressor",	
+		"expander": "Expander",
+		"gate": "Gate",
+		"latency_detector": "Latency Detector",
+		"limiter": "Limiter",
+		"trigger": "Trigger"
+	},
+	
+	"preamp": "Preamp",
+	
 	"predelay": "Pre-delay",
 	
 	"ramp": "Ramp",
+	"range": "Range",
+	
+	"ratio": "Ratio",
+	"ratio_knee:db": "Ratio,\nKnee (dB)",
+	
+	"release": "Release",
+	"release:db_ms": "Release\n(dB, ms)",
+	
 	"right": "Right",
 	
 	"samples": "Samples",
 	"samples:samp": "Samples (samp)",
+	
+	"sc": {
+		"lookahead": "Lookahead",
+		"preamp": "Preamp",
+		"reactivity": "Reactivity"
+	},
+	
+	"sc_boost": "SC boost",
+	"sc_boost:": "SC boost:",
+	
+	"sc_preamp_makeup:db_db": "SC Preamp,\nMakeup\n(dB, dB)",
 	
 	"search": "Search",
 	"sedit": {
@@ -128,6 +206,8 @@
 		"tail_cut": "Tail cut"
 	},
 	"settings": "Settings",
+	
+	"sidechain": "Sidechain",
 	
 	"signal": {
 		"M_iddle": "M",
@@ -159,6 +239,9 @@
 	
 	"temperature": "Temperature",
 	"tempo": "Tempo",
+	
+	"threshold": "Threshold",
+	
 	"time": "Time",
 	"time:ms": "Time (ms)",
 	
