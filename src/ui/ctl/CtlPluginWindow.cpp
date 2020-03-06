@@ -246,7 +246,7 @@ namespace lsp
                         LSPLabel   *lbl = new LSPLabel(dpy);
                         vWidgets.add(lbl);
                         lbl->init();
-                        lbl->text()->set_raw("Bypass");
+                        lbl->text()->set("labels.bypass");
                         box->add(lbl);
 
                         LSPSwitch  *sw  = new LSPSwitch(dpy);

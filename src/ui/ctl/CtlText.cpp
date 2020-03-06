@@ -66,6 +66,15 @@ namespace lsp
             update_coords();
         }
 
+        void CtlText::set(const char *name, const char *value)
+        {
+            LSPText *text = widget_cast<LSPText>(pWidget);
+            if (text != NULL)
+                set_lc_attr(A_TEXT, text->text(), name, value);
+
+            CtlWidget::set(name, value);
+        }
+
         void CtlText::set(widget_attribute_t att, const char *value)
         {
             LSPText *text = widget_cast<LSPText>(pWidget);
@@ -93,10 +102,6 @@ namespace lsp
                 case A_SIZE:
                     if (text != NULL)
                         PARSE_FLOAT(value, text->font()->set_size(__));
-                    break;
-                case A_TEXT:
-                    if (text != NULL)
-                        text->set_text(value);
                     break;
                 default:
                 {

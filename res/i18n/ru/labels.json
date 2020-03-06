@@ -3,12 +3,64 @@
 	
 	"bookmark_list": "Закладки",
 	
+	"bypass": "Обход",
+	
+	"chan": {
+		":db": "(дБ)",
+		"H": "У",
+		"S": "С",
+		"channel_n": "Канал {@id}",
+		"on": "Вкл",
+		"hold": "Удерж",
+		"hue": "Тон",
+		"shift": "Смещ",
+		"solo": "Соло",
+		"solo_hold": "Соло/Удерж"
+	},
+	"channel": "Канал",
+	"channels": "Каналы",
+	
 	"click_or_drag_to_load": "Клик или притащить файл",
+	
+	"fft": {
+		"window": "Окно",
+		"tolerance": "Точность",
+		"envelope": "Огибающая"
+	},
 
 	"file_list": "Список файлов",
 	"file_name": "Имя файла",
 	"filter": "Фильтр",
+	
+	"graphs": {
+		"frequency": "ЧАСТОТНЫЙ ГРАФИК",
+	},
+	
+	"hold": "Удерживать",
 
 	"location": "Местоположение",
-	"search": "Поиск"
+	"log_scale": "Лог масштаб",
+	
+	"metering": {
+		"channel": "Канал",
+		"frequency": "Частота",
+		"frequency:hz": "Частота (Гц)",
+		"level": "Уровень",
+		"level:db": "Уровень (дБ)",
+		"preamp": "Предусиление",
+		"reactivity": "Реактивность",
+		"selector": "Селектор"
+	},
+	
+	"mode": "Режим",
+	
+	"search": "Поиск",
+
+	"specials": {
+		"idx": "{@id}",
+		"num": "№"	
+	},	
+	"spectrogram": "Спектрограмма",
+	
+	"zoom": "Масштаб"
 }

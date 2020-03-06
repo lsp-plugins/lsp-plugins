@@ -3,12 +3,64 @@
 	
 	"bookmark_list": "Bookmarks",
 	
+	"bypass": "Bypass",
+	
+	"chan": {
+		":db": "(dB)",
+		"H": "H",
+		"S": "S",
+		"channel_n": "Channel {@id}",
+		"on": "On",
+		"hold": "Hold",
+		"hue": "Hue",
+		"shift": "Shift",
+		"solo": "Solo",
+		"solo_hold": "Solo/Hold"
+	},
+	"channel": "Channel",
+	"channels": "Channels",
+	
 	"click_or_drag_to_load": "Click or drag to load",
+
+	"fft": {
+		"window": "Window",
+		"tolerance": "Tolerance",
+		"envelope": "Envelope"
+	},
 
 	"file_list": "File list",
 	"file_name": "File name",
 	"filter": "Filter",
+	
+	"graphs": {
+		"frequency": "FEQUENCY GRAPH",
+	},
+	
+	"hold": "Hold",
 
 	"location": "Location",
-	"search": "Search"
+	"log_scale": "Log scale",
+	
+	"metering": {
+		"channel": "Channel",
+		"frequency": "Frequency",
+		"frequency:hz": "Frequency (Hz)",
+		"level": "Level",
+		"level:db": "Level (dB)",
+		"preamp": "Preamp",
+		"reactivity": "Reactivity",
+		"selector": "Selector"
+	},
+	
+	"mode": "Mode",
+	
+	"search": "Search",
+	
+	"specials": {
+		"idx": "{@id}",
+		"num": "#"	
+	},
+	"spectrogram": "Spectrogram",
+	
+	"zoom": "Zoom"
 }

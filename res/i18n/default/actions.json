@@ -27,6 +27,8 @@
 	"export_settings_to_clipboard": "Export settings to clipboard",
 	"export_settings_to_file": "Export settings to file...",
 	
+	"freeze": "Freeze",
+	
 	"import": "Import",
 	"import_settings_from_clipboard": "Import settings from clipboard",
 	"import_settings_from_file": "Import settings from file...",

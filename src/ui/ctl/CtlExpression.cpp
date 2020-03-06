@@ -120,7 +120,7 @@ namespace lsp
             calc::init_value(&value);
 
             status_t res = sExpr.result(&value, idx);
-            if (res == STATUS_OK)
+            if (res != STATUS_OK)
             {
                 calc::destroy_value(&value);
                 return 0.0f;

@@ -27,6 +27,8 @@
 	"export_settings_to_clipboard": "Экпорт настроек в буфер обмена",
 	"export_settings_to_file": "Экспорт настроек в файл...",
 	
+	"freeze": "Стоп-кадр",
+	
 	"import": "Импорт",
 	"import_settings_from_clipboard": "Импорт настроек из буфера обмена",
 	"import_settings_from_file": "Импорт настроек из файла...",

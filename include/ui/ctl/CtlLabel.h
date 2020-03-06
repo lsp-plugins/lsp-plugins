@@ -76,27 +76,14 @@ namespace lsp
                 virtual ~CtlLabel();
 
             public:
-                /** Begin initialization of controller
-                 *
-                 */
                 virtual void init();
 
-                /** Set attribute to widget
-                 *
-                 * @param att attribute identifier
-                 * @param value attribute value
-                 */
+                virtual void set(const char *name, const char *value);
+
                 virtual void set(widget_attribute_t att, const char *value);
 
-                /** Notify controller about one of port bindings has changed
-                 *
-                 * @param port port triggered change
-                 */
                 virtual void notify(CtlPort *port);
 
-                /** Complete initialization
-                 *
-                 */
                 virtual void end();
         };
     

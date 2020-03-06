@@ -130,6 +130,15 @@ namespace lsp
             btn->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
         }
 
+        void CtlButton::set(const char *name, const char *value)
+        {
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
+            if (btn != NULL)
+                set_lc_attr(A_TEXT, btn->title(), name, value);
+
+            CtlWidget::set(name, value);
+        }
+
         void CtlButton::set(widget_attribute_t att, const char *value)
         {
             LSPButton *btn = widget_cast<LSPButton>(pWidget);
@@ -157,10 +166,6 @@ namespace lsp
                 case A_LED:
                     if (btn != NULL)
                         PARSE_BOOL(value, btn->set_led(__));
-                    break;
-                case A_TEXT:
-                    if (btn != NULL)
-                        btn->title()->set_raw(value);
                     break;
                 case A_EDITABLE:
                     if (btn != NULL)

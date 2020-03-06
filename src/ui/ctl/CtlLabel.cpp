@@ -118,27 +118,30 @@ namespace lsp
             if (pWidget == NULL)
                 return;
 
-            LSPLabel *lbl = static_cast<LSPLabel *>(pWidget);
+            LSPLabel *lbl = widget_cast<LSPLabel>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, lbl, lbl->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             lbl->slot(LSPSLOT_MOUSE_DBL_CLICK)->bind(slot_dbl_click, this);
         }
 
+        void CtlLabel::set(const char *name, const char *value)
+        {
+            LSPLabel *lbl = widget_cast<LSPLabel>(pWidget);
+            if ((lbl != NULL) && (enType == CTL_LABEL_TEXT))
+                set_lc_attr(A_TEXT, lbl->text(), name, value);
+
+            CtlWidget::set(name, value);
+        }
+
         void CtlLabel::set(widget_attribute_t att, const char *value)
         {
-            LSPLabel *lbl = (pWidget != NULL) ? static_cast<LSPLabel *>(pWidget) : NULL;
+            LSPLabel *lbl = widget_cast<LSPLabel>(pWidget);
 
             switch (att)
             {
                 case A_ID:
                     BIND_PORT(pRegistry, pPort, value);
-                    break;
-                case A_TEXT:
-                    if (enType != CTL_LABEL_TEXT)
-                        return;
-                    if (lbl != NULL)
-                        lbl->text()->set_raw(value);
                     break;
                 case A_UNITS:
                     if (enType == CTL_LABEL_TEXT)
