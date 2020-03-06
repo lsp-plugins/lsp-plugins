@@ -39,6 +39,8 @@ namespace lsp
             public:
                 virtual void init();
 
+                virtual void set(const char *name, const char *value);
+
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void end();

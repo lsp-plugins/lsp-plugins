@@ -2,8 +2,8 @@
 	<grid rows="2" cols="5" transpose="true" hspacing="4" vspacing="4">
 		<group text="groups.lchan.signal" expand="true">
 			<grid rows="4" cols="2">
-				<label text="Dry amount" />
-				<label text="Wet amount" />
+				<label text="labels.signal.dry" />
+				<label text="labels.signal.wet" />
 				
 				<knob id="dry_l" />
 				<knob id="wet_l" />
@@ -13,19 +13,19 @@
 				
 				<hbox fill="false">
 					<button id="mode_l" />
-					<label text="Mode" />
+					<label text="labels.mode" />
 				</hbox>
 				
 				<hbox fill="false">
 					<button id="ramp_l" color="yellow" led="true" />
-					<label text="Ramp" />
+					<label text="labels.ramp" />
 				</hbox>
 			</grid>
 		</group>
 		<group text="groups.rchan.signal" expand="true">
 			<grid rows="4" cols="2">
-				<label text="Dry amount" />
-				<label text="Wet amount" />
+				<label text="labels.signal.dry" />
+				<label text="labels.signal.wet" />
 				
 				<knob id="dry_r" />
 				<knob id="wet_r" />
@@ -35,37 +35,37 @@
 				
 				<hbox fill="false">
 					<button id="mode_r" />
-					<label text="Mode" />
+					<label text="labels.mode" />
 				</hbox>
 				
 				<hbox fill="false">
 					<button id="ramp_r" color="yellow" led="true" />
-					<label text="Ramp" />
+					<label text="labels.ramp" />
 				</hbox>
 			</grid>
 		</group>
 
 		<group text="groups.lchan.samples" expand="true">
 			<vbox border="0">
-				<label text="Samples" />
+				<label text="labels.units.samples" />
 				<knob id="samp_l" />
 				<value id="samp_l" />
 				
 				<hbox fill="false">
 					<led id="mode_l" key="0" />
-					<label text="Active" />
+					<label text="labels.active" />
 				</hbox>
 			</vbox>
 		</group>
 		<group text="groups.rchan.samples" expand="true">
 			<vbox border="0">
-				<label text="Samples" />
+				<label text="labels.units.samples" />
 				<knob id="samp_r" />
 				<value id="samp_r" />
 				
 				<hbox fill="false">
 					<led id="mode_r" key="0" />
-					<label text="Active" />
+					<label text="labels.active" />
 				</hbox>
 			</vbox>
 		</group>
@@ -73,9 +73,9 @@
 		<group text="groups.lchan.distance" expand="true">
 			<vbox>
 				<grid rows="3" cols="3">
-					<label text="Meters" />
-					<label text="Centimeters" />
-					<label text="Temperature" />
+					<label text="labels.units.meters" />
+					<label text="labels.units.centimeters" />
+					<label text="labels.temperature" />
 					
 					<knob id="m_l" />
 					<knob id="cm_l" />
@@ -87,16 +87,16 @@
 				</grid>
 				<hbox fill="false">
 					<led id="mode_l" key="1" />
-					<label text="Active" />
+					<label text="labels.ative" />
 				</hbox>
 			</vbox>
 		</group>
 		<group text="groups.rchan.distance" expand="true">
 			<vbox>
 				<grid rows="3" cols="3">
-					<label text="Meters" />
-					<label text="Centimeters" />
-					<label text="Temperature" />
+					<label text="labels.units.meters" />
+					<label text="labels.units.centimeters" />
+					<label text="labels.temperature" />
 					
 					<knob id="m_r" />
 					<knob id="cm_r" />
@@ -108,32 +108,32 @@
 				</grid>
 				<hbox fill="false">
 					<led id="mode_r" key="1" />
-					<label text="Active" />
+					<label text="labels.active" />
 				</hbox>
 			</vbox>
 		</group>
 
 		<group text="groups.lchan.time" expand="true">
 			<vbox>
-				<label text="Delay" />
+				<label text="labels.delay" />
 				<knob id="time_l" />
 				<value id="time_l" />
 				
 				<hbox fill="false">
 					<led id="mode_l" key="2" />
-					<label text="Active" />
+					<label text="labels.active" />
 				</hbox>
 			</vbox>
 		</group>
 		<group text="groups.rchan.time" expand="true">
 			<vbox>
-				<label text="Delay" />
+				<label text="labels.delay" />
 				<knob id="time_r" />
 				<value id="time_r" />
 				
 				<hbox fill="false">
 					<led id="mode_r" key="2" />
-					<label text="Active" />
+					<label text="labels.active" />
 				</hbox>
 			</vbox>
 		</group>
@@ -141,38 +141,38 @@
 		<group text="groups.lchan.monitoring" expand="true">
 			<grid rows="5" cols="2" hspacing="1" vspacing="1">
 				<label />
-				<label text="Value" />
+				<label text="labels.value" />
 
-				<label text="Time (ms)" fill="true" halign="0" />
+				<label text="labels.time:ms" fill="true" halign="0" />
 				<indicator id="d_t_l" format="f6.2!" text_color="green" />
 				
-				<label text="Samples (samp)" fill="true" halign="0" />
+				<label text="labels.samples:samp" fill="true" halign="0" />
 				<indicator id="d_s_l" format="i6" text_color="green" /> 
 				
-				<label text="Distance (cm)" fill="true" halign="0" />
+				<label text="labels.distance:cm" fill="true" halign="0" />
 				<indicator id="d_d_l" format="f6.1!" text_color="green" />
 				
 				<cell cols="2">
-					<label text="LEFT CHANNEL" />
+					<label text="labels.graphs.left_channel" />
 				</cell>
 			</grid>
 		</group>
 		<group text="groups.rchan.monitoring" expand="true">
 			<grid rows="5" cols="2" hspacing="1" vspacing="1">
 				<label />
-				<label text="Value" />
+				<label text="labels.value" />
 
-				<label text="Time (ms)" fill="true" halign="0" />
+				<label text="labels.time:ms" fill="true" halign="0" />
 				<indicator id="d_t_r" format="f6.2!" text_color="green" />
 				
-				<label text="Samples (samp)" fill="true" halign="0" />
+				<label text="labels.samples:samp" fill="true" halign="0" />
 				<indicator id="d_s_r" format="i6" text_color="green" /> 
 				
-				<label text="Distance (cm)" fill="true" halign="0" />
+				<label text="labels.distance:cm" fill="true" halign="0" />
 				<indicator id="d_d_r" format="f6.1!" text_color="green" />
 				
 				<cell cols="2">
-					<label text="RIGHT CHANNEL" />
+					<label text="labels.graphs.right_channel" />
 				</cell>
 			</grid>
 		</group>

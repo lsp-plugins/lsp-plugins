@@ -55,6 +55,7 @@
 
 	"select_language": "Выбрать язык",	
 	
+	"tap": "Тук",
 	"to_bookmarks": "В закладки",
 	"toggle_rack_mount": "Переключить стоечный монтаж"
 }

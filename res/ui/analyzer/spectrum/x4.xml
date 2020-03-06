@@ -246,8 +246,8 @@
 						<grid rows="2" cols="2" fill="false">
 							<button id="solo_${i}" size="12" color="red" led="true" hue_id="hue_${i}" />
 							<button id="frz_${i}" size="12" color="red" led="true" hue_id="hue_${i}" />
-							<label text="labels.chan.S" font_size="8" />
-							<label text="labels.chan.H" font_size="8" />
+							<label text="labels.chan.S_olo" font_size="8" />
+							<label text="labels.chan.H_old" font_size="8" />
 						</grid> 
 						
 						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />

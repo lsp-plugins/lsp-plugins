@@ -2,30 +2,30 @@
 	<vbox spacing="4">
 		<group text="groups.chan.master" expand="true">
 			<grid rows="3" cols="10">
-				<label text="Temperature" />
-				<label text="Pre-delay" />
-				<label text="Tempo" />
-				<label text="Stretch" />
-				<label text="Settings" />
-				<label text="Pan Left" />
-				<label text="Pan Right" />
-				<label text="Dry" />
-				<label text="Wet" />
-				<label text="Output" />
+				<label text="labels.temperature" />
+				<label text="labels.predelay" />
+				<label text="labels.tempo" />
+				<label text="labels.stretch" />
+				<label text="labels.settings" />
+				<label text="labels.pan_l" />
+				<label text="labels.pan_r" />
+				<label text="labels.signal.dry" />
+				<label text="labels.signal.wet" />
+				<label text="labels.output" />
 				
 				<knob id="temp" />
 				<knob id="pred" />
 				<vbox>
 					<knob id="tempo" visibility="!:sync" />
 					<indicator id="time:bpm" format="f4.1!" visibility=":sync" text_color="green" />
-					<label text="Host BPM" font_size="9" visibility=":sync" />
+					<label text="labels:host_bpm" font_size="9" visibility=":sync" />
 				</vbox>
 				<knob id="strch" />
 				<grid rows="2" cols="2" fill="false">
 					<button id="mono" size="16" led="true" color="green" />
-					<label text="Mono" />
+					<label text="labels.signal.mono" />
 					<button id="ramp" size="16" led="true" color="yellow" />
-					<label text="Ramp" />
+					<label text="labels.ramp" />
 				</grid>
 				<knob id="pl_in" scale_color="left_channel" />
 				<knob id="pr_in" scale_color="right_channel" />
@@ -39,7 +39,7 @@
 					<value id="tempo" same_line="true" visibility="!:sync" />
 					<hbox fill="false">
 						<button id="sync" size="12" color="green" led="true" />
-						<label text="Sync" font_size="9" />
+						<label text="labels.sync" font_size="9" />
 					</hbox>
 				</vbox>
 				<value id="strch" />
@@ -50,14 +50,14 @@
 					<value id="dry" same_line="true" />
 					<hbox fill="false">
 						<button id="dm" size="12" color="red" led="true" />
-						<label text="Mute" font_size="9" />
+						<label text="labels.mute" font_size="9" />
 					</hbox>
 				</vbox>
 				<vbox fill="false">
 					<value id="wet" same_line="true" />
 					<hbox fill="false">
 						<button id="wm" size="12" color="red" led="true" />
-						<label text="Mute" font_size="9" />
+						<label text="labels.mute" font_size="9" />
 					</hbox>
 				</vbox>
 				<value id="g_out" />
@@ -67,25 +67,25 @@
 			<!-- 4 groups -->
 			<ui:for id="g" first="0" last="3">
 				<grid rows="18" cols="13" hspacing="1" >
-					<cell rows="2"><label text="Mode" /></cell>
-					<cell rows="2"><label text="Delay" /></cell>
-					<cell cols="2"><label text="Panorama (%)" /></cell>
-					<label text="Gain" />
-					<cell rows="2"><label text="Filters" /></cell>
-					<label text="Low cut" />
-					<cell cols="5"><label text="Equalizer (dB)" /></cell>
-					<label text="High cut" />
+					<cell rows="2"><label text="labels.mode" /></cell>
+					<cell rows="2"><label text="labels.delay" /></cell>
+					<cell cols="2"><label text="labels.panorama:pc" /></cell>
+					<label text="labels.gain" />
+					<cell rows="2"><label text="labels.filters" /></cell>
+					<label text="labels.flt.low_cut" />
+					<cell cols="5"><label text="labels.equalizer:db" /></cell>
+					<label text="labels.flt.high_cut" />
 					
-					<label text="Left" />
-					<label text="Right" />
-					<label text="(dB)" />
-					<label text="(Hz)" />
-					<label text="Subs" />
-					<label text="Bass" />
-					<label text="Middle" />
-					<label text="Presence" />
-					<label text="Treble" />
-					<label text="(Hz)" />
+					<label text="labels.chan.left" />
+					<label text="labels.chan.right" />
+					<label text="labels.units.:db" />
+					<label text="labels.units.:hz" />
+					<label text="labels.flt.subs" />
+					<label text="labels.flt.bass" />
+					<label text="labels.flt.middle" />
+					<label text="labels.flt.presence" />
+					<label text="labels.flt.treble" />
+					<label text="labels.units.:hz" />
 				
 					<ui:for id="i" first="${:g*4}" last="${:g*4+3}">
 						<!-- Row 1 -->
@@ -101,11 +101,11 @@
 						<cell rows="2" fill="false">
 							<grid rows="3" cols="2" fill="false">
 								<button id="lfc${i}" size="12" color="magenta" led="true" />
-								<label text="LC" font_size="9" />
+								<label text="labels.flt.L_owC_ut" font_size="9" />
 								<button id="eq${i}" size="12" color="green" led="true" />
-								<label text="EQ" font_size="9" />
+								<label text="labels.flt.EQ_ualizer" font_size="9" />
 								<button id="hfc${i}" size="12" color="cyan" led="true" />
-								<label text="HC" font_size="9" />
+								<label text="labels.flt.H_ighC_ut" font_size="9" />
 							</grid>
 						</cell>
 						<knob id="flc${i}" size="20" scale_color="magenta" />
@@ -118,13 +118,13 @@
 						
 						<!-- Row 2 -->
 						<hbox fill="false">
-							<label text="${i}:" />
+							<label text="labels.specials.idx:" text:id="${i}" />
 							<button id="s${i}" size="12" color="green" led="true" />
-							<label text="S" font_size="9" />
+							<label text="labels.chan.S_olo" font_size="9" />
 							<button id="m${i}" size="12" color="red" led="true" />
-							<label text="M" font_size="9" />
+							<label text="labels.chan.M_ute" font_size="9" />
 							<button id="ph${i}" size="12" color="yellow" led="true" />
-							<label text="P" font_size="9" />
+							<label text="labels.signal.P_hase" font_size="9" />
 						</hbox>
 						<hbox>
 							<value id="dt${i}" visibility=":dm${i} ieq 1" same_line="true" />

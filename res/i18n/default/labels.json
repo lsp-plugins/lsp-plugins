@@ -9,14 +9,17 @@
 	
 	"chan": {
 		":db": "(dB)",
-		"H": "H",
+		"H_old": "H",
 		"L_eft": "L",
+		"M_ute": "M",
 		"R_ight": "R",
-		"S": "S",
+		"S_olo": "S",
 		"channel_n": "Channel {@id}",
-		"on": "On",
 		"hold": "Hold",
 		"hue": "Hue",
+		"left": "Left",
+		"on": "On",
+		"right": "Right",
 		"shift": "Shift",
 		"solo": "Solo",
 		"solo_hold": "Solo/Hold"
@@ -25,6 +28,14 @@
 	"channels": "Channels",
 	
 	"click_or_drag_to_load": "Click or drag to load",
+	
+	"delay": "Delay",
+	
+	"distance": "Distance",
+	"distance:cm": "Distance (cm)",
+	
+	"equalizer": "Equalizer",
+	"equalizer:db": "Equalizer (dB)",
 
 	"fft": {
 		"envelope": "Envelope",
@@ -37,26 +48,43 @@
 	"file_list": "File list",
 	"file_name": "File name",
 	"filter": "Filter",
+	"filters": "Filters",
 	
 	"flt": {
-		"high_cut": "High-cut",
-		"low_cut": "Low-cut",
+		"10k": "10k",
 		"1k": "1k",
 		"2_2k": "2.2k",
 		"4_7k": "4.7k",
-		"10k": "10k"
+		"EQ_ualizer": "EQ",
+		"H_ighC_ut": "HC",
+		"L_owC_ut": "LC",
+		"bass": "Bass",
+		"high_cut": "High cut",
+		"low_cut": "Low cut",
+		"middle": "Middle",
+		"presence": "Presence",
+		"subs": "Subs",
+		"treble": "Treble"
 	},
 	
 	"frequency": "Frequency",
 	
+	"gain": "Gain",
+	
 	"graphs": {
+		"delay_line": "DELAY LINE",
 		"frequency": "FEQUENCY GRAPH",
+		"left_channel": "LEFT CHANNEL",
+		"right_channel": "RIGHT CHANNEL"
 	},
 	
 	"hold": "Hold",
+	
+	"host_bpm": "Host BPM",
 
 	"ir_equalizer": "IR equalizer",
 
+	"left": "Left",
 	"listen": "Listen",
 	"location": "Location",
 	"log_scale": "Log scale",
@@ -80,7 +108,16 @@
 	
 	"output": "Output",
 	
+	"panorama": "Panorama",
+	"panorama:pc": "Panorama (%)",
+	
 	"predelay": "Pre-delay",
+	
+	"ramp": "Ramp",
+	"right": "Right",
+	
+	"samples": "Samples",
+	"samples:samp": "Samples (samp)",
 	
 	"search": "Search",
 	"sedit": {
@@ -90,12 +127,21 @@
 		"reverse": "Reverse",
 		"tail_cut": "Tail cut"
 	},
+	"settings": "Settings",
 	
 	"signal": {
+		"M_iddle": "M",
+		"P_hase": "P",
+		"S_ide": "S",
 		"dry": "Dry",
 		"dry_pan": "Dry pan",
 		"in_lr": "In L/R",
+		"mono": "Mono",
 		"out_lr": "Out L/R",
+		"pan": "Pan",
+		"pan_l": "Pan L",
+		"pan_r": "Pan R",
+		"stereo": "Stereo",
 		"wet": "Wet"
 	},
 	
@@ -106,6 +152,27 @@
 		"num": "#"	
 	},
 	"spectrogram": "Spectrogram",
+	
+	"stretch": "Stretch",
+	
+	"sync": "Sync",
+	
+	"temperature": "Temperature",
+	"tempo": "Tempo",
+	"time": "Time",
+	"time:ms": "Time (ms)",
+	
+	"units": {
+		":db": "(dB)",
+		":hz": "(Hz)",
+		":pc": "(%)",
+		"centimeters": "Centimeters",
+		"meters": "Meters",
+		"millimeters": "Millimeters",
+		"samples": "Samples"
+	},
+	
+	"value": "Value",
 	
 	"zoom": "Zoom"
 }
