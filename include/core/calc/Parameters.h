@@ -51,6 +51,14 @@ namespace lsp
                 status_t            drop_value(const char *name, value_type_t type, param_t **out);
                 status_t            drop_value(const LSPString *name, value_type_t type, param_t **out);
 
+            protected:
+                /**
+                 * This callback is called when the collection becomes modified.
+                 * Method can be overridden to trigger different events like parent
+                 * collection update.
+                 */
+                virtual void        modified();
+
             public:
                 explicit Parameters();
                 virtual ~Parameters();
@@ -62,15 +70,15 @@ namespace lsp
 
             public:
                 inline size_t       size() const            { return vParams.size(); }
-                inline void         swap(Parameters *src)   { vParams.swap_data(&src->vParams); }
-                inline void         clear()                 { destroy_params(vParams); };
+                void                swap(Parameters *src);
+                void                clear();
                 Parameters         *clone() const;
 
                 // Adding: add parameter to the end of list.
                 status_t            add_int(const char *name, ssize_t value);
                 status_t            add_float(const char *name, double value);
                 status_t            add_bool(const char *name, bool value);
-                status_t            add_string(const char *name, const char *value, const char *charset = NULL);
+                status_t            add_string(const char *name, const char *value);
                 status_t            add_string(const char *name, const LSPString *value);
                 status_t            add_null(const char *name);
                 status_t            add_undef(const char *name);
@@ -79,7 +87,7 @@ namespace lsp
                 status_t            add_int(const LSPString *name, ssize_t value);
                 status_t            add_float(const LSPString *name, double value);
                 status_t            add_bool(const LSPString *name, bool value);
-                status_t            add_string(const LSPString *name, const char *value, const char *charset = NULL);
+                status_t            add_string(const LSPString *name, const char *value);
                 status_t            add_string(const LSPString *name, const LSPString *value);
                 status_t            add_null(const LSPString *name);
                 status_t            add_undef(const LSPString *name);
@@ -88,7 +96,7 @@ namespace lsp
                 status_t            add_int(ssize_t value);
                 status_t            add_float(double value);
                 status_t            add_bool(bool value);
-                status_t            add_cstring(const char *value, const char *charset = NULL);
+                status_t            add_cstring(const char *value);
                 status_t            add_string(const LSPString *value);
                 status_t            add_null();
                 status_t            add_undef();
@@ -100,7 +108,7 @@ namespace lsp
                 status_t            insert_int(size_t index, const char *name, ssize_t value);
                 status_t            insert_float(size_t index, const char *name, double value);
                 status_t            insert_bool(size_t index, const char *name, bool value);
-                status_t            insert_string(size_t index, const char *name, const char *value, const char *charset = NULL);
+                status_t            insert_string(size_t index, const char *name, const char *value);
                 status_t            insert_string(size_t index, const char *name, const LSPString *value);
                 status_t            insert_null(size_t index, const char *name);
                 status_t            insert_undef(size_t index, const char *name);
@@ -109,7 +117,7 @@ namespace lsp
                 status_t            insert_int(size_t index, const LSPString *name, ssize_t value);
                 status_t            insert_float(size_t index, const LSPString *name, double value);
                 status_t            insert_bool(size_t index, const LSPString *name, bool value);
-                status_t            insert_string(size_t index, const LSPString *name, const char *value, const char *charset = NULL);
+                status_t            insert_string(size_t index, const LSPString *name, const char *value);
                 status_t            insert_string(size_t index, const LSPString *name, const LSPString *value);
                 status_t            insert_null(size_t index, const LSPString *name);
                 status_t            insert_undef(size_t index, const LSPString *name);
@@ -118,7 +126,7 @@ namespace lsp
                 status_t            insert_int(size_t index, ssize_t value);
                 status_t            insert_float(size_t index, double value);
                 status_t            insert_bool(size_t index, bool value);
-                status_t            insert_cstring(size_t index, const char *value, const char *charset = NULL);
+                status_t            insert_cstring(size_t index, const char *value);
                 status_t            insert_string(size_t index, const LSPString *value);
                 status_t            insert_null(size_t index);
                 status_t            insert_undef(size_t index);
@@ -152,35 +160,35 @@ namespace lsp
                 status_t            get(const LSPString *name, value_t *value) const;
 
                 // Getting with cast
-                status_t            as_int(size_t index, ssize_t *value);
-                status_t            as_float(size_t index, double *value);
-                status_t            as_bool(size_t index, bool *value);
-                status_t            as_string(size_t index, LSPString *value);
-                status_t            as_null(size_t index);
-                status_t            as_undef(size_t index);
-                status_t            as_value(size_t index, value_t *value, value_type_t type);
+                status_t            as_int(size_t index, ssize_t *value) const;
+                status_t            as_float(size_t index, double *value) const;
+                status_t            as_bool(size_t index, bool *value) const;
+                status_t            as_string(size_t index, LSPString *value) const;
+                status_t            as_null(size_t index) const;
+                status_t            as_undef(size_t index) const;
+                status_t            as_value(size_t index, value_t *value, value_type_t type) const;
 
-                status_t            as_int(const char *name, ssize_t *value);
-                status_t            as_float(const char *name, double *value);
-                status_t            as_bool(const char *name, bool *value);
-                status_t            as_string(const char *name, LSPString *value);
-                status_t            as_null(const char *name);
-                status_t            as_undef(const char *name);
-                status_t            as_value(const char *name, value_t *value, value_type_t type);
+                status_t            as_int(const char *name, ssize_t *value) const;
+                status_t            as_float(const char *name, double *value) const;
+                status_t            as_bool(const char *name, bool *value) const;
+                status_t            as_string(const char *name, LSPString *value) const;
+                status_t            as_null(const char *name) const;
+                status_t            as_undef(const char *name) const;
+                status_t            as_value(const char *name, value_t *value, value_type_t type) const;
 
-                status_t            as_int(const LSPString *name, ssize_t *value);
-                status_t            as_float(const LSPString *name, double *value);
-                status_t            as_bool(const LSPString *name, bool *value);
-                status_t            as_string(const LSPString *name, LSPString *value);
-                status_t            as_null(const LSPString *name);
-                status_t            as_undef(const LSPString *name);
-                status_t            as_value(const LSPString *name, value_t *value, value_type_t type);
+                status_t            as_int(const LSPString *name, ssize_t *value) const;
+                status_t            as_float(const LSPString *name, double *value) const;
+                status_t            as_bool(const LSPString *name, bool *value) const;
+                status_t            as_string(const LSPString *name, LSPString *value) const;
+                status_t            as_null(const LSPString *name) const;
+                status_t            as_undef(const LSPString *name) const;
+                status_t            as_value(const LSPString *name, value_t *value, value_type_t type) const;
 
                 // Setting
                 status_t            set_int(const char *name, ssize_t value);
                 status_t            set_float(const char *name, double value);
                 status_t            set_bool(const char *name, bool value);
-                status_t            set_string(const char *name, const char *value, const char *charset = NULL);
+                status_t            set_cstring(const char *name, const char *value);
                 status_t            set_string(const char *name, const LSPString *value);
                 status_t            set_null(const char *name);
                 status_t            set_undef(const char *name);
@@ -189,7 +197,7 @@ namespace lsp
                 status_t            set_int(const LSPString *name, ssize_t value);
                 status_t            set_float(const LSPString *name, double value);
                 status_t            set_bool(const LSPString *name, bool value);
-                status_t            set_string(const LSPString *name, const char *value, const char *charset = NULL);
+                status_t            set_cstring(const LSPString *name, const char *value);
                 status_t            set_string(const LSPString *name, const LSPString *value);
                 status_t            set_null(const LSPString *name);
                 status_t            set_undef(const LSPString *name);
@@ -198,7 +206,7 @@ namespace lsp
                 status_t            set_int(size_t index, ssize_t value);
                 status_t            set_float(size_t index, double value);
                 status_t            set_bool(size_t index, bool value);
-                status_t            set_cstring(size_t index, const char *value, const char *charset = NULL);
+                status_t            set_cstring(size_t index, const char *value);
                 status_t            set_string(size_t index, const LSPString *value);
                 status_t            set_null(size_t index);
                 status_t            set_undef(size_t index);

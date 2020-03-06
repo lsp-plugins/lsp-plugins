@@ -21,6 +21,10 @@ namespace lsp
             destroy_params(vParams);
         }
 
+        void Parameters::modified()
+        {
+        }
+
         Parameters *Parameters::clone() const
         {
             Parameters *res = new Parameters();
@@ -31,6 +35,19 @@ namespace lsp
                 return res;
             delete res;
             return NULL;
+        }
+
+        void Parameters::swap(Parameters *src)
+        {
+            vParams.swap_data(&src->vParams);
+            src->modified();
+            this->modified();
+        }
+
+        void Parameters::clear()
+        {
+            destroy_params(vParams);
+            modified();
         }
 
         status_t Parameters::resolve(value_t *value, const char *name, size_t num_indexes, const ssize_t *indexes)
@@ -243,6 +260,7 @@ namespace lsp
             // Swap parameters and destroy old data
             vParams.swap_data(&slice);
             destroy_params(slice);
+            modified();
             return STATUS_OK;
         }
 
@@ -285,6 +303,7 @@ namespace lsp
 
             // Clean temporary parameters, swap parameters and destroy old data
             vParams.swap_data(&slice);
+            modified();
             return STATUS_OK;
         }
 
@@ -308,6 +327,7 @@ namespace lsp
                 }
             }
 
+            modified();
             return STATUS_OK;
         }
 
@@ -324,7 +344,10 @@ namespace lsp
             if (res == STATUS_OK)
             {
                 if (vParams.add(p))
+                {
+                    modified();
                     return STATUS_OK;
+                }
                 res = STATUS_NO_MEM;
             }
 
@@ -353,7 +376,10 @@ namespace lsp
             if (res == STATUS_OK)
             {
                 if (vParams.add(p))
+                {
+                    modified();
                     return STATUS_OK;
+                }
                 res = STATUS_NO_MEM;
             }
 
@@ -385,13 +411,13 @@ namespace lsp
             return add(name, &v);
         }
 
-        status_t Parameters::add_string(const char *name, const char *value, const char *charset)
+        status_t Parameters::add_string(const char *name, const char *value)
         {
             if (value == NULL)
                 return add_null(name);
 
             LSPString s;
-            if (!s.set_native(value, charset))
+            if (!s.set_utf8(value))
                 return STATUS_NO_MEM;
 
             value_t v;
@@ -451,13 +477,13 @@ namespace lsp
             return add(name, &v);
         }
 
-        status_t Parameters::add_string(const LSPString *name, const char *value, const char *charset)
+        status_t Parameters::add_string(const LSPString *name, const char *value)
         {
             if (value == NULL)
                 return add_null(name);
 
             LSPString s;
-            if (!s.set_native(value, charset))
+            if (!s.set_utf8(value))
                 return STATUS_NO_MEM;
 
             value_t v;
@@ -517,13 +543,13 @@ namespace lsp
             return add(&v);
         }
 
-        status_t Parameters::add_cstring(const char *value, const char *charset)
+        status_t Parameters::add_cstring(const char *value)
         {
             if (value == NULL)
                 return add_null();
 
             LSPString s;
-            if (!s.set_native(value, charset))
+            if (!s.set_utf8(value))
                 return STATUS_NO_MEM;
 
             value_t v;
@@ -585,7 +611,10 @@ namespace lsp
             if (res == STATUS_OK)
             {
                 if (vParams.insert(p, index))
+                {
+                    modified();
                     return STATUS_OK;
+                }
                 res = STATUS_NO_MEM;
             }
 
@@ -606,7 +635,10 @@ namespace lsp
             if (res == STATUS_OK)
             {
                 if (vParams.insert(p, index))
+                {
+                    modified();
                     return STATUS_OK;
+                }
                 res = STATUS_NO_MEM;
             }
 
@@ -638,13 +670,13 @@ namespace lsp
             return insert(index, name, &v);
         }
 
-        status_t Parameters::insert_string(size_t index, const char *name, const char *value, const char *charset)
+        status_t Parameters::insert_string(size_t index, const char *name, const char *value)
         {
             if (value == NULL)
                 return insert_null(index, name);
 
             LSPString s;
-            if (!s.set_native(value, charset))
+            if (!s.set_utf8(value))
                 return STATUS_NO_MEM;
 
             value_t v;
@@ -704,13 +736,13 @@ namespace lsp
             return insert(index, name, &v);
         }
 
-        status_t Parameters::insert_string(size_t index, const LSPString *name, const char *value, const char *charset)
+        status_t Parameters::insert_string(size_t index, const LSPString *name, const char *value)
         {
             if (value == NULL)
                 return insert_null(index, name);
 
             LSPString s;
-            if (!s.set_native(value, charset))
+            if (!s.set_utf8(value))
                 return STATUS_NO_MEM;
 
             value_t v;
@@ -770,13 +802,13 @@ namespace lsp
             return insert(index, &v);
         }
 
-        status_t Parameters::insert_cstring(size_t index, const char *value, const char *charset)
+        status_t Parameters::insert_cstring(size_t index, const char *value)
         {
             if (value == NULL)
                 return insert_null(index);
 
             LSPString s;
-            if (!s.set_native(value, charset))
+            if (!s.set_utf8(value))
                 return STATUS_NO_MEM;
 
             value_t v;
@@ -1063,9 +1095,9 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Parameters::as_value(size_t index, value_t *value, value_type_t type)
+        status_t Parameters::as_value(size_t index, value_t *value, value_type_t type) const
         {
-            param_t *v = vParams.get(index);
+            const param_t *v = const_cast<Parameters *>(this)->vParams.get(index);
             if (v == NULL)
                 return STATUS_INVALID_VALUE;
 
@@ -1081,12 +1113,12 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_value(const LSPString *name, value_t *value, value_type_t type)
+        status_t Parameters::as_value(const LSPString *name, value_t *value, value_type_t type) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
 
-            param_t *v = lookup_by_name(name);
+            param_t *v = const_cast<Parameters *>(this)->lookup_by_name(name);
             if (v == NULL)
                 return STATUS_NOT_FOUND;
 
@@ -1102,7 +1134,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_value(const char *name, value_t *value, value_type_t type)
+        status_t Parameters::as_value(const char *name, value_t *value, value_type_t type) const
         {
             if (name == NULL)
                 return STATUS_INVALID_VALUE;
@@ -1114,7 +1146,7 @@ namespace lsp
             return as_value(&tmp, value, type);
         }
 
-        status_t Parameters::as_int(size_t index, ssize_t *value)
+        status_t Parameters::as_int(size_t index, ssize_t *value) const
         {
             value_t v;
             init_value(&v);
@@ -1125,7 +1157,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_float(size_t index, double *value)
+        status_t Parameters::as_float(size_t index, double *value) const
         {
             value_t v;
             init_value(&v);
@@ -1136,7 +1168,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_bool(size_t index, bool *value)
+        status_t Parameters::as_bool(size_t index, bool *value) const
         {
             value_t v;
             init_value(&v);
@@ -1147,7 +1179,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_string(size_t index, LSPString *value)
+        status_t Parameters::as_string(size_t index, LSPString *value) const
         {
             value_t v;
             init_value(&v);
@@ -1158,7 +1190,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_null(size_t index)
+        status_t Parameters::as_null(size_t index) const
         {
             value_t v;
             init_value(&v);
@@ -1167,7 +1199,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_undef(size_t index)
+        status_t Parameters::as_undef(size_t index) const
         {
             value_t v;
             init_value(&v);
@@ -1176,7 +1208,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_int(const char *name, ssize_t *value)
+        status_t Parameters::as_int(const char *name, ssize_t *value) const
         {
             value_t v;
             init_value(&v);
@@ -1187,7 +1219,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_float(const char *name, double *value)
+        status_t Parameters::as_float(const char *name, double *value) const
         {
             value_t v;
             init_value(&v);
@@ -1198,7 +1230,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_bool(const char *name, bool *value)
+        status_t Parameters::as_bool(const char *name, bool *value) const
         {
             value_t v;
             init_value(&v);
@@ -1209,7 +1241,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_string(const char *name, LSPString *value)
+        status_t Parameters::as_string(const char *name, LSPString *value) const
         {
             value_t v;
             init_value(&v);
@@ -1220,7 +1252,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_null(const char *name)
+        status_t Parameters::as_null(const char *name) const
         {
             value_t v;
             init_value(&v);
@@ -1229,7 +1261,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_undef(const char *name)
+        status_t Parameters::as_undef(const char *name) const
         {
             value_t v;
             init_value(&v);
@@ -1238,7 +1270,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_int(const LSPString *name, ssize_t *value)
+        status_t Parameters::as_int(const LSPString *name, ssize_t *value) const
         {
             value_t v;
             init_value(&v);
@@ -1249,7 +1281,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_float(const LSPString *name, double *value)
+        status_t Parameters::as_float(const LSPString *name, double *value) const
         {
             value_t v;
             init_value(&v);
@@ -1260,7 +1292,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_bool(const LSPString *name, bool *value)
+        status_t Parameters::as_bool(const LSPString *name, bool *value) const
         {
             value_t v;
             init_value(&v);
@@ -1271,7 +1303,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_string(const LSPString *name, LSPString *value)
+        status_t Parameters::as_string(const LSPString *name, LSPString *value) const
         {
             value_t v;
             init_value(&v);
@@ -1282,7 +1314,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_null(const LSPString *name)
+        status_t Parameters::as_null(const LSPString *name) const
         {
             value_t v;
             init_value(&v);
@@ -1291,7 +1323,7 @@ namespace lsp
             return res;
         }
 
-        status_t Parameters::as_undef(const LSPString *name)
+        status_t Parameters::as_undef(const LSPString *name) const
         {
             value_t v;
             init_value(&v);
@@ -1318,7 +1350,10 @@ namespace lsp
             if (v == NULL)
                 return add(name, value);
 
-            return copy_value(&v->value, value);
+            status_t res = copy_value(&v->value, value);
+            if (res == STATUS_OK)
+                modified();
+            return res;
         }
 
         status_t Parameters::set(size_t index, const value_t *value)
@@ -1327,7 +1362,10 @@ namespace lsp
             if (v == NULL)
                 return STATUS_INVALID_VALUE;
 
-            return copy_value(&v->value, value);
+            status_t res = copy_value(&v->value, value);
+            if (res == STATUS_OK)
+                modified();
+            return res;
         }
 
         status_t Parameters::set_int(const char *name, ssize_t value)
@@ -1354,7 +1392,7 @@ namespace lsp
             return set(name, &v);
         }
 
-        status_t Parameters::set_string(const char *name, const char *value, const char *charset)
+        status_t Parameters::set_cstring(const char *name, const char *value)
         {
             if (value == NULL)
                 return set_null(name);
@@ -1417,7 +1455,7 @@ namespace lsp
             return set(name, &v);
         }
 
-        status_t Parameters::set_string(const LSPString *name, const char *value, const char *charset)
+        status_t Parameters::set_cstring(const LSPString *name, const char *value)
         {
             if (value == NULL)
                 return set_null(name);
@@ -1480,7 +1518,7 @@ namespace lsp
             return set(index, &v);
         }
 
-        status_t Parameters::set_cstring(size_t index, const char *value, const char *charset)
+        status_t Parameters::set_cstring(size_t index, const char *value)
         {
             if (value == NULL)
                 return set_null(index);
@@ -1530,8 +1568,10 @@ namespace lsp
                 if (res != STATUS_OK)
                     return res;
             }
+
             vParams.remove(index);
             destroy(v);
+            modified();
             return STATUS_OK;
         }
 
@@ -1548,8 +1588,10 @@ namespace lsp
                 if (res != STATUS_OK)
                     return res;
             }
+
             vParams.remove(index);
             destroy(v);
+            modified();
             return STATUS_OK;
         }
 
@@ -1592,8 +1634,10 @@ namespace lsp
                 if (res != STATUS_OK)
                     return res;
             }
+
             vParams.remove(index);
             destroy(v);
+            modified();
             return STATUS_OK;
         }
 
@@ -1614,8 +1658,10 @@ namespace lsp
                 if (res != STATUS_OK)
                     return res;
             }
+
             vParams.remove(index);
             destroy(v);
+            modified();
             return STATUS_OK;
         }
 
@@ -1631,7 +1677,10 @@ namespace lsp
             for (ssize_t i=first; i<last; ++i)
                 destroy(vParams.at(i));
 
-            return (vParams.remove_n(first, count)) ? STATUS_OK : STATUS_CORRUPTED;
+            bool success = vParams.remove_n(first, count);
+            if (success)
+                modified();
+            return (success) ? STATUS_OK : STATUS_CORRUPTED;
         }
 
         status_t Parameters::drop_value(size_t index, value_type_t type, param_t **out)
@@ -1644,6 +1693,7 @@ namespace lsp
 
             vParams.remove(index);
             *out = v;
+            modified();
             return STATUS_OK;
         }
 
@@ -1670,6 +1720,7 @@ namespace lsp
 
             vParams.remove(index);
             *out = v;
+            modified();
             return STATUS_OK;
         }
 

@@ -940,12 +940,12 @@ namespace lsp
                 lbl->font()->set_bold();
 
                 p.clear();
-                p.set_string("version", LSP_MAIN_VERSION);
+                p.set_cstring("version", LSP_MAIN_VERSION);
                 lbl  = create_plabel(vbox, "messages.greetings.0", &p);
                 lbl->font()->set_bold();
 
                 p.clear();
-                p.set_string("project", LSP_FULL_NAME);
+                p.set_cstring("project", LSP_FULL_NAME);
                 lbl  = create_plabel(vbox, "messages.greetings.1", &p);
                 lbl  = create_label(vbox, "messages.greetings.2");
                 create_hlink(vbox, LSP_DONATION_URI1, 0.02);

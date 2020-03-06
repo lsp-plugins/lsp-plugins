@@ -787,7 +787,7 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.set_int("1", 456));
         OK(p.set_float("2", 440.0));
         OK(p.set_bool("3", false));
-        OK(p.set_string("4", "stringA"));
+        OK(p.set_cstring("4", "stringA"));
         UTEST_ASSERT(tmp.set_ascii("stringB"));
         OK(p.set_string("5", &tmp));
         OK(p.set_null("6"));
@@ -826,7 +826,7 @@ UTEST_BEGIN("core.calc", parameters)
         OK(p.set_int("9", 123));
         OK(p.set_float("10", 220.0));
         OK(p.set_bool("11", true));
-        OK(p.set_string("12", "string0"));
+        OK(p.set_cstring("12", "string0"));
         UTEST_ASSERT(tmp.set_ascii("string1"));
         OK(p.set_string("13", &tmp));
         OK(p.set_null("14"));
@@ -853,7 +853,7 @@ UTEST_BEGIN("core.calc", parameters)
         UTEST_ASSERT(k.set_ascii("3"));
         OK(p.set_bool(&k, true));
         UTEST_ASSERT(k.set_ascii("4"));
-        OK(p.set_string(&k, "testA"));
+        OK(p.set_cstring(&k, "testA"));
         UTEST_ASSERT(tmp.set_ascii("testB"));
         UTEST_ASSERT(k.set_ascii("5"));
         OK(p.set_string(&k, &tmp));
@@ -900,7 +900,7 @@ UTEST_BEGIN("core.calc", parameters)
         UTEST_ASSERT(k.set_ascii("19"));
         OK(p.set_bool(&k, true));
         UTEST_ASSERT(k.set_ascii("20"));
-        OK(p.set_string(&k, "string0"));
+        OK(p.set_cstring(&k, "string0"));
         UTEST_ASSERT(tmp.set_ascii("string1"));
         UTEST_ASSERT(k.set_ascii("21"));
         OK(p.set_string(&k, &tmp));
