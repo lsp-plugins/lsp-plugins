@@ -22,8 +22,7 @@ namespace lsp
             private:
                 enum flags_t
                 {
-                    F_LOCALIZED     = 1 << 0,
-//                    F_DIRTY         = 1 << 1
+                    F_LOCALIZED     = 1 << 0
                 };
 
             protected:
@@ -34,10 +33,21 @@ namespace lsp
 
                     public:
                         inline Listener(LSPLocalString *ps) { pString = ps; }
-                        virtual ~Listener();
 
                     public:
                         virtual void notify(ui_atom_t property);
+                };
+
+                class Params: public calc::Parameters
+                {
+                    private:
+                        LSPLocalString  *pString;
+
+                    protected:
+                        virtual void        modified();
+
+                    public:
+                        inline Params(LSPLocalString *ps) { pString = ps; }
                 };
 
             protected:
@@ -45,7 +55,7 @@ namespace lsp
                 size_t              nFlags;     // Different flags
                 mutable ui_atom_t   nAtom;      // Atom for "lang" property
                 LSPString           sText;      // Text used for rendering
-                calc::Parameters    sParams;    // The paramet
+                Params              sParams;    // Parameters
                 Listener            sListener;  // Style listener
 
             protected:
@@ -95,10 +105,22 @@ namespace lsp
                 inline const LSPString *key() const { return (nFlags & F_LOCALIZED) ? &sText : NULL;        }
 
                 /**
-                 * Get localization parameters
-                 * @return localization parameters or NULL if string is not localized
+                 * Get formatting parameters for localized string
+                 * @return parameters
                  */
                 inline const calc::Parameters *params() const { return &sParams; }
+
+                /**
+                 * Get formatting parameters for localized string
+                 * @return parameters
+                 */
+                inline calc::Parameters *params() { return &sParams; }
+
+                /**
+                 * Check whether string contains localized data or not
+                 * @return true if string contains localized data
+                 */
+                inline bool is_localized() const { return nFlags & F_LOCALIZED; }
 
             public:
                 /**
@@ -116,18 +138,25 @@ namespace lsp
                 status_t set_raw(const char *value);
 
                 /**
-                 * Set raw (non-localized) value
+                 * Set key to the localized string
                  * @param value value to set
                  * @return status of operation
                  */
                 status_t set_key(const LSPString *value);
 
                 /**
-                 * Set raw (non-localized) value
-                 * @param value UTF-8 text to set
+                 * Set key to the localized string
+                 * @param value value to set
                  * @return status of operation
                  */
                 status_t set_key(const char *value);
+
+                /**
+                 * Set parameters only to the localized string
+                 * @param params parameters to set
+                 * @return status of operation
+                 */
+                status_t set_params(const calc::Parameters *params);
 
                 /**
                  * Set localized value

@@ -12,10 +12,10 @@ namespace lsp
 {
     namespace tk
     {
-        
-        LSPLocalString::Listener::~Listener()
+        void LSPLocalString::Params::modified()
         {
-            pString     = NULL;
+            if (pString != NULL)
+                pString->sync();
         }
 
         void LSPLocalString::Listener::notify(ui_atom_t property)
@@ -25,6 +25,7 @@ namespace lsp
         }
 
         LSPLocalString::LSPLocalString():
+            sParams(this),
             sListener(this)
         {
             pWidget     = NULL;
@@ -33,6 +34,7 @@ namespace lsp
         }
         
         LSPLocalString::LSPLocalString(LSPWidget *widget):
+            sParams(this),
             sListener(this)
         {
             pWidget     = widget;
@@ -159,7 +161,7 @@ namespace lsp
             else if (!sText.set(value))
                 return STATUS_NO_MEM;
 
-            nFlags      = 0; //F_DIRTY;
+            nFlags      = 0;
             sParams.clear();
 
             sync();
@@ -173,10 +175,19 @@ namespace lsp
             else if (!sText.set_utf8(value))
                 return STATUS_NO_MEM;
 
-            nFlags      = 0; //F_DIRTY;
+            nFlags      = 0;
             sParams.clear();
 
             sync();
+            return STATUS_OK;
+        }
+
+        status_t LSPLocalString::set_params(const calc::Parameters *params)
+        {
+            if (params != NULL)
+                return sParams.set(params); // will call sync();
+
+            sParams.clear(); // will call sync();
             return STATUS_OK;
         }
 
@@ -204,11 +215,10 @@ namespace lsp
                 tp.clear();
 
             // Apply
+            nFlags      = F_LOCALIZED;
             sText.swap(&ts);
-            sParams.swap(&tp);
-            nFlags      = /* F_DIRTY | */ F_LOCALIZED;
+            sParams.swap(&tp); // will call sync()
 
-            sync();
             return STATUS_OK;
         }
 
@@ -224,7 +234,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             // Apply
-            nFlags      = /* F_DIRTY | */ F_LOCALIZED;
+            nFlags      = F_LOCALIZED;
             sync();
             return STATUS_OK;
         }
@@ -270,11 +280,10 @@ namespace lsp
                 tp.clear();
 
             // Apply
+            nFlags      = F_LOCALIZED;
             sText.swap(&ts);
-            sParams.swap(&tp);
-            nFlags      = /* F_DIRTY | */ F_LOCALIZED;
+            sParams.swap(&tp); // Will call sync()
 
-            sync();
             return STATUS_OK;
         }
 
@@ -297,12 +306,9 @@ namespace lsp
                 return res;
 
             // Apply
-            sText.swap(&ts);
-            sParams.swap(&tp);
             nFlags      = value->nFlags;
-
-            if (pWidget != NULL)
-                pWidget->query_resize();
+            sText.swap(&ts);
+            sParams.swap(&tp); // Will call sync()
 
             return STATUS_OK;
         }
@@ -311,7 +317,7 @@ namespace lsp
         {
             sText.truncate();
             sParams.clear();
-            nFlags      = 0; //F_DIRTY;
+            nFlags      = 0;
             sync();
         }
 
