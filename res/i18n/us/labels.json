@@ -1,4 +1,6 @@
 {
+	"active": "Active",
+	
 	"automatic_extension": "Automatic extension",
 	
 	"bookmark_list": "Bookmarks",
@@ -8,6 +10,8 @@
 	"chan": {
 		":db": "(dB)",
 		"H": "H",
+		"L_eft": "L",
+		"R_ight": "R",
 		"S": "S",
 		"channel_n": "Channel {@id}",
 		"on": "On",
@@ -23,14 +27,27 @@
 	"click_or_drag_to_load": "Click or drag to load",
 	
 	"fft": {
-		"window": "Window",
+		"envelope": "Envelope",
+		"frame": "FFT Frame",
 		"tolerance": "Tolerance",
-		"envelope": "Envelope"
+		"window": "Window"
 	},
 	
+	"file": "File",
 	"file_list": "File list",
 	"file_name": "File name",
 	"filter": "Filter",
+	
+	"flt": {
+		"high_cut": "High-cut",
+		"low_cut": "Low-cut",
+		"1k": "1k",
+		"2_2k": "2.2k",
+		"4_7k": "4.7k",
+		"10k": "10k"
+	},
+	
+	"frequency": "Frequency",
 	
 	"graphs": {
 		"frequency": "FEQUENCY GRAPH",
@@ -38,8 +55,13 @@
 	
 	"hold": "Hold",
 	
+	"ir_equalizer": "IR equalizer",
+	
+	"listen": "Listen",
 	"location": "Location",
 	"log_scale": "Log scale",
+	
+	"makeup": "Makeup",
 	
 	"metering": {
 		"channel": "Channel",
@@ -54,8 +76,31 @@
 	
 	"mode": "Mode",
 	
+	"mute": "Mute",
+	
+	"output": "Output",
+	
+	"predelay": "Pre-delay",
+	
 	"search": "Search",
+	"sedit": {
+		"fade_in": "Fade in",
+		"fade_out": "Fade out",
+		"head_cut": "Head cut",
+		"reverse": "Reverse",
+		"tail_cut": "Tail cut"
+	},
+	
+	"signal": {
+		"dry": "Dry",
+		"dry_pan": "Dry pan",
+		"in_lr": "In L/R",
+		"out_lr": "Out L/R",
+		"wet": "Wet"
+	},
 
+	"source": "Source",
+	
 	"specials": {
 		"idx": "{@id}",
 		"num": "#"	
