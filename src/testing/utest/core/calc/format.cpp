@@ -117,8 +117,8 @@ UTEST_BEGIN("core.calc", format)
         OK(p.add_int("int", 100500));
         OK(p.add_float("float", 440.0));
         OK(p.add_bool("bool", true));
-        OK(p.add_string("strA", "string"));
-        OK(p.add_string("strB", "CaMeL"));
+        OK(p.add_cstring("strA", "string"));
+        OK(p.add_cstring("strB", "CaMeL"));
         OK(p.add_float("nan", NAN));
         OK(p.add_float("pinf", +INFINITY));
         OK(p.add_float("ninf", -INFINITY));
@@ -126,7 +126,7 @@ UTEST_BEGIN("core.calc", format)
         OK(p.add_undef("undef"));
         OK(p.add_int("neg", -1234));
         OK(p.add_int("hex", 0xc0de));
-        OK(p.add_string("strC", ""));
+        OK(p.add_cstring("strC", ""));
 
         printf("\nTesting simple types...\n");
         test_simple(&p);

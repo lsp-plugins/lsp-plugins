@@ -37,7 +37,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         UTEST_ASSERT(tmp.set_utf8("string1"));
         OK(p.add_string("4", &tmp));
         OK(p.add_bool("5", true));
@@ -55,7 +55,7 @@ UTEST_BEGIN("core.calc", parameters)
         UTEST_ASSERT(k.set_utf8("2"));
         OK(p.add_float(&k, 880.0));
         UTEST_ASSERT(k.set_utf8("3"));
-        OK(p.add_string(&k, "stringA"));
+        OK(p.add_cstring(&k, "stringA"));
         UTEST_ASSERT(tmp.set_utf8("stringB"));
         UTEST_ASSERT(k.set_utf8("4"));
         OK(p.add_string(&k, &tmp));
@@ -259,7 +259,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         UTEST_ASSERT(tmp.set_utf8("string1"));
         OK(p.add_string("4", &tmp));
         OK(p.add_bool("5", true));
@@ -383,7 +383,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         UTEST_ASSERT(tmp.set_utf8("456"));
         OK(p.add_string("4", &tmp));
         OK(p.add_bool("5", true));
@@ -944,7 +944,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         OK(p.add_bool("4", true));
         OK(p.add_null("5"));
         OK(p.add_undef("6"));
@@ -1030,7 +1030,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         OK(p.add_bool("4", true));
         OK(p.add_null("5"));
         OK(p.add_undef("6"));
@@ -1116,7 +1116,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         OK(p.add_bool("4", true));
         OK(p.add_null("5"));
         OK(p.add_undef("6"));
@@ -1220,7 +1220,7 @@ UTEST_BEGIN("core.calc", parameters)
         // Append named parameters
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         OK(p.add_bool("4", true));
         OK(p.add_null("5"));
         OK(p.add_undef("6"));
@@ -1294,7 +1294,7 @@ UTEST_BEGIN("core.calc", parameters)
         Parameters p;
         OK(p.add_int("1", 123));
         OK(p.add_float("2", 440.0));
-        OK(p.add_string("3", "string0"));
+        OK(p.add_cstring("3", "string0"));
         OK(p.add_bool("4", true));
         OK(p.add_null("5"));
         OK(p.add_undef("6"));

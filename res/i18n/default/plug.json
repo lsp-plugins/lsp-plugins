@@ -1,0 +1,34 @@
+{
+	"channel": "Channel",
+	"channel_n": "Channel {@id}",
+	"channels": "Channels",
+	
+	"distance": "Distance",
+	
+	"left": {
+		"distance": "Distance (left)",
+		"monitoring": "Monitoring (left)",
+		"samples": "Samples (left)",
+		"signal": "Signal (left)",
+		"time": "Time (left)"
+	},
+	
+	"monitoring": "Monitoring",
+	
+	"right": {
+		"distance": "Distance (right)",
+		"monitoring": "Monitoring (right)",
+		"samples": "Samples (right)",
+		"signal": "Signal (right)",
+		"time": "Time (right)"
+	},
+	
+	"sample_n": "Sample {@id}",
+	"samples": "Samples",
+	
+	"signal": "Signal",
+	"signal_n": "Signal {@id}",
+	"signals": "Signals",
+	
+	"time": "Time"
+}

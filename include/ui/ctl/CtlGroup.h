@@ -34,6 +34,8 @@ namespace lsp
 
                 virtual void destroy();
 
+                virtual void set(const char *name, const char *value);
+
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual status_t add(CtlWidget *child);

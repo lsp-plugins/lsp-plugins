@@ -411,7 +411,7 @@ namespace lsp
             return add(name, &v);
         }
 
-        status_t Parameters::add_string(const char *name, const char *value)
+        status_t Parameters::add_cstring(const char *name, const char *value)
         {
             if (value == NULL)
                 return add_null(name);
@@ -477,7 +477,7 @@ namespace lsp
             return add(name, &v);
         }
 
-        status_t Parameters::add_string(const LSPString *name, const char *value)
+        status_t Parameters::add_cstring(const LSPString *name, const char *value)
         {
             if (value == NULL)
                 return add_null(name);

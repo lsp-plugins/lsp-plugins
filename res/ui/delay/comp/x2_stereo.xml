@@ -1,6 +1,6 @@
 <plugin resizable="false">
 	<grid rows="2" cols="5" transpose="true" hspacing="4" vspacing="4">
-		<group text="Signal L" expand="true">
+		<group text="plug.left.signal" expand="true">
 			<grid rows="4" cols="2">
 				<label text="Dry amount" />
 				<label text="Wet amount" />
@@ -22,7 +22,7 @@
 				</hbox>
 			</grid>
 		</group>
-		<group text="Signal R" expand="true">
+		<group text="plug.right.signal" expand="true">
 			<grid rows="4" cols="2">
 				<label text="Dry amount" />
 				<label text="Wet amount" />
@@ -45,7 +45,7 @@
 			</grid>
 		</group>
 
-		<group text="Samples L" expand="true">
+		<group text="plug.left.samples" expand="true">
 			<vbox border="0">
 				<label text="Samples" />
 				<knob id="samp_l" />
@@ -57,7 +57,7 @@
 				</hbox>
 			</vbox>
 		</group>
-		<group text="Samples R" expand="true">
+		<group text="plug.right.samples" expand="true">
 			<vbox border="0">
 				<label text="Samples" />
 				<knob id="samp_r" />
@@ -70,7 +70,7 @@
 			</vbox>
 		</group>
 
-		<group text="Distance L" expand="true">
+		<group text="plug.left.distance" expand="true">
 			<vbox>
 				<grid rows="3" cols="3">
 					<label text="Meters" />
@@ -91,7 +91,7 @@
 				</hbox>
 			</vbox>
 		</group>
-		<group text="Distance R" expand="true">
+		<group text="plug.right.distance" expand="true">
 			<vbox>
 				<grid rows="3" cols="3">
 					<label text="Meters" />
@@ -113,7 +113,7 @@
 			</vbox>
 		</group>
 
-		<group text="Time L" expand="true">
+		<group text="plug.left.time" expand="true">
 			<vbox>
 				<label text="Delay" />
 				<knob id="time_l" />
@@ -125,7 +125,7 @@
 				</hbox>
 			</vbox>
 		</group>
-		<group text="Time R" expand="true">
+		<group text="plug.right.time" expand="true">
 			<vbox>
 				<label text="Delay" />
 				<knob id="time_r" />
@@ -138,7 +138,7 @@
 			</vbox>
 		</group>
 
-		<group text="Monitoring L" expand="true">
+		<group text="plug.left.monitoring" expand="true">
 			<grid rows="5" cols="2" hspacing="1" vspacing="1">
 				<label />
 				<label text="Value" />
@@ -157,7 +157,7 @@
 				</cell>
 			</grid>
 		</group>
-		<group text="Monitoring R" expand="true">
+		<group text="plug.right.monitoring" expand="true">
 			<grid rows="5" cols="2" hspacing="1" vspacing="1">
 				<label />
 				<label text="Value" />

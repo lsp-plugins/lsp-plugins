@@ -15,6 +15,7 @@ namespace lsp
 
         LSPGroup::LSPGroup(LSPDisplay *dpy):
             LSPWidgetContainer(dpy),
+            sText(this),
             sColor(this),
             sFont(this)
         {
@@ -33,6 +34,8 @@ namespace lsp
 
         status_t LSPGroup::init()
         {
+            sText.bind();
+
             status_t result = LSPWidgetContainer::init();
             if (result != STATUS_OK)
                 return result;

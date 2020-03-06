@@ -47,16 +47,21 @@ namespace lsp
             sEmbed.destroy();
         }
 
+        void CtlGroup::set(const char *name, const char *value)
+        {
+            LSPGroup *grp       = widget_cast<LSPGroup>(pWidget);
+            if (grp != NULL)
+                set_lc_attr(A_TEXT, grp->text(), name, value);
+
+            CtlWidget::set(name, value);
+        }
+
         void CtlGroup::set(widget_attribute_t att, const char *value)
         {
-            LSPGroup *grp       = (pWidget != NULL) ? static_cast<LSPGroup *>(pWidget) : NULL;
+            LSPGroup *grp       = widget_cast<LSPGroup>(pWidget);
 
             switch (att)
             {
-                case A_TEXT:
-                    if (grp != NULL)
-                        grp->text()->set_raw(value);
-                    break;
                 case A_BORDER:
                     if (grp != NULL)
                         PARSE_INT(value, grp->set_border(__));
@@ -83,7 +88,7 @@ namespace lsp
             if (pWidget == NULL)
                 return STATUS_BAD_STATE;
 
-            LSPGroup *grp     = static_cast<LSPGroup *>(pWidget);
+            LSPGroup *grp     = widget_cast<LSPGroup>(pWidget);
             return grp->add(child->widget());
         }
 
@@ -91,7 +96,7 @@ namespace lsp
         {
             CtlWidget::notify(port);
 
-            LSPGroup *grp     = static_cast<LSPGroup *>(pWidget);
+            LSPGroup *grp     = widget_cast<LSPGroup>(pWidget);
             if (grp == NULL)
                 return;
 
