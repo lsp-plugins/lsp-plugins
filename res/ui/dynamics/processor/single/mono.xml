@@ -199,7 +199,7 @@
 		</grid>
 		<hbox spacing="4">
 			<!-- Mono processing -->
-			<group text="Processor">
+			<group text="plug.processor">
 				<hbox>
 					<grid rows="8" cols="3" expand="true" fill="true">
 						<label text="Type" fill="true" halign="0" />
@@ -308,7 +308,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="Signal">
+			<group text="plug.signal">
 				<grid rows="6" cols="1" transpose="true">
 					<label text="Input" />
 					<knob id="g_in" />

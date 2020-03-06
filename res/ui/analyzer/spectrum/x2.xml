@@ -222,7 +222,7 @@
 		</hbox>
 		
 		<hbox spacing="4" visibility=":mode ile 1">
-			<group text="Channels" expand="true">
+			<group text="plug.channels" expand="true">
 				<grid rows="5" cols="6" expand="true">
 					<label text="#" />
 					<label text="On" />
@@ -249,7 +249,7 @@
 				</grid>
 			</group>
 			
-			<group text="Metering" expand="true">
+			<group text="plug.metering" expand="true">
 				<grid rows="5" cols="3" expand="true">
 					<label text="Channel" />
 					<label text="Frequency (Hz)" />
@@ -273,7 +273,7 @@
 				</grid>
 			</group>
 		</hbox>
-		<group text="Channels" expand="true" visibility=":mode ige 2">
+		<group text="plug.channels" expand="true" visibility=":mode ige 2">
 			<grid rows="4" cols="10" transpose="true" fill="true">
 				<cell cols="3"><label text="Channel 0" /></cell>
 				<label text="Hold" />

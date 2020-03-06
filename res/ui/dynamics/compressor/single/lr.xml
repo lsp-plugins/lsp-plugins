@@ -227,7 +227,7 @@
 			<label text="Out" />
 		</grid>
 		<hbox spacing="4">
-			<group text="Sidechain" expand="true">
+			<group text="plug.sidechain" expand="true">
 				<grid rows="5" cols="5" expand="true" hspacing="2">
 					<label text="Listen" />
 					<label text="Preamp" />
@@ -271,7 +271,7 @@
 				</grid>
 			</group>
 		
-			<group text="Compressor" expand="true">
+			<group text="plug.compressor" expand="true">
 				<grid rows="6" cols="14" expand="true">
 					<cell rows="2"><label text="Mode" /></cell>
 					<cell rows="2"><label text="Ratio" /></cell>
@@ -353,7 +353,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="Signal" expand="true">
+			<group text="plug.signal" expand="true">
 				<vbox expand="true">
 					<label text="Input" />
 					<knob id="g_in" />

@@ -143,7 +143,7 @@
 		</grid>
 		<hbox spacing="4">
 			<!-- Limiter setup -->
-			<group text="Limiter">
+			<group text="plug.plug.limiter">
 				<grid rows="3" cols="7">
 					<label text="SC Preamp" />
 					<label text="Lookahead" />
@@ -186,7 +186,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="Signal">
+			<group text="plug.signal">
 				<grid rows="3" cols="2">
 					<label text="Input" />
 					<label text="Output" />

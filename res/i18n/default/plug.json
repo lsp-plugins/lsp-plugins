@@ -1,11 +1,19 @@
 {
+	"analysis": "Analysis",
+	
+	"chan": {
+		"master": "Master Channel"
+	},
+	
 	"channel": "Channel",
 	"channel_n": "Channel {@id}",
 	"channels": "Channels",
 	
 	"distance": "Distance",
+
+	"impulse_response": "Impulse Response",
 	
-	"left": {
+	"lchan": {
 		"distance": "Distance (left)",
 		"monitoring": "Monitoring (left)",
 		"samples": "Samples (left)",
@@ -13,9 +21,23 @@
 		"time": "Time (left)"
 	},
 	
+	"metering": "Metering",
 	"monitoring": "Monitoring",
 	
-	"right": {
+	"output": "Output",
+	"outputs": "Outputs",
+	
+	"plug": {
+		"compressor": "Compressor",	
+		"expander": "Expander",
+		"gate": "Gate",
+		"limiter": "Limiter"
+	},
+	
+	"processor": "Processor",
+	"processors": "Processors",
+	
+	"rchan": {
 		"distance": "Distance (right)",
 		"monitoring": "Monitoring (right)",
 		"samples": "Samples (right)",
@@ -26,9 +48,12 @@
 	"sample_n": "Sample {@id}",
 	"samples": "Samples",
 	
+	"sidechain": "Sidechain",
 	"signal": "Signal",
 	"signal_n": "Signal {@id}",
 	"signals": "Signals",
 	
-	"time": "Time"
+	"time": "Time",
+	
+	"wet_signal_eq": "Wet Signal Equalization"
 }

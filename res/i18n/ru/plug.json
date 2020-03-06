@@ -1,9 +1,22 @@
 {
+	"analysis": "Анализ",
+	
+	"chan": {
+		"master": "Мастер канал"
+	},
+
 	"channel": "Канал",
 	"channel_n": "Канал {@id}",
 	"channels": "Каналы",
+	"compressor": "Компрессор",
 	
 	"distance": "Расстояние",
+	
+	"expander": "Экспандер",
+	
+	"gate": "Гейт",
+	
+	"impulse_response": "Импульсный отклик",
 	
 	"left": {
 		"distance": "Рассотяние (левый)",
@@ -13,7 +26,14 @@
 		"time": "Время (левый)"
 	},
 	
+	"metering": "Измерения",
 	"monitoring": "Мониторинг",
+	
+	"output": "Выход",
+	"outputs": "Выходы",
+	
+	"processor": "Обработчик",
+	"processors": "Обработчики",
 	
 	"right": {
 		"distance": "Расстояние (правый)",
@@ -26,9 +46,12 @@
 	"sample_n": "Сэмпл {@id}",
 	"samples": "Сэмплы",
 
+	"sidechain": "Боковая цепь",
 	"signal": "Сигнал",
 	"signal_n": "Сигнал {@id}",
 	"signals": "Сигналы",
 	
-	"time": "Время"
+	"time": "Время",
+	
+	"wet_signal_eq": "Эквализация обработанного сигнала"
 }

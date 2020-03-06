@@ -601,9 +601,6 @@ namespace lsp
                     if ((w->nRows <= 0) || (w->nCols <= 0))
                         continue;
 
-                    if (w->pWidget == NULL)
-                        lsp_trace("break");
-
                     w->a.nLeft      = v->nOffset;
                     w->a.nTop       = h->nOffset;
                     w->a.nWidth     = estimate_size(vCols, j, w->nCols, &hs);

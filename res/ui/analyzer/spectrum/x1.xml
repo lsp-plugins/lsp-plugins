@@ -156,7 +156,7 @@
 		</hbox>
 	
 		<hbox spacing="4" visibility=":mode ile 1">
-			<group text="Channel" expand="true">
+			<group text="plug.channel" expand="true">
 				<grid rows="3" cols="4" expand="true">
 					<label text="On" />
 					<label text="Hold" />
@@ -175,7 +175,7 @@
 				</grid>
 			</group>
 			
-			<group text="Metering" expand="true">
+			<group text="plug.metering" expand="true">
 				<grid rows="43" cols="4" expand="true">
 					<label text="Preamp" />
 					<label text="Selector" />
@@ -198,7 +198,7 @@
 			</group>
 		</hbox>
 		
-		<group text="Channel" expand="true" visibility=":mode ige 2">
+		<group text="plug.channel" expand="true" visibility=":mode ige 2">
 			<grid rows="3" cols="6" transpose="true" fill="true">
 				<label text="Hold" />
 				<button id="frz_0" size="32" color="red" led="true" hue_id="hue_0" />

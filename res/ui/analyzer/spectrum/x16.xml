@@ -225,7 +225,7 @@
 				<value id="zoom" />
 			</vbox>
 			
-			<group text="Metering" expand="true" visibility="(:mode ieq 0) or (:mode ieq 2)">
+			<group text="plug.metering" expand="true" visibility="(:mode ieq 0) or (:mode ieq 2)">
 				<grid rows="15" cols="1" expand="true">
 					<label text="Preamp" />
 					<knob id="pamp" />
@@ -250,7 +250,7 @@
 			</group>
 		</hbox>
 	
-		<group text="Channels" expand="true" visibility="(:mode ieq 0) or (:mode ieq 2)">
+		<group text="plug.channels" expand="true" visibility="(:mode ieq 0) or (:mode ieq 2)">
 			<grid rows="7" cols="17" transpose="true">
 				<label text="#" />
 				<label text="On" />
@@ -280,7 +280,7 @@
 		</group>
 		
 		<hbox spacing="4" visibility="(:mode ine 0) and (:mode ine 2)">
-			<group text="Channels" fill="true">
+			<group text="plug.channels" fill="true">
 				<grid rows="6" cols="33" transpose="true" fill="true">
 					<label text="Channel #" />
 					<label text="Hold" />
@@ -299,7 +299,7 @@
 					</ui:for>
 				</grid>
 			</group>
-			<group text="Metering">
+			<group text="plug.metering">
 				<grid rows="6" cols="1" transpose="true" fill="true">
 					<label text="Preamp" />
 					<knob id="pamp" />

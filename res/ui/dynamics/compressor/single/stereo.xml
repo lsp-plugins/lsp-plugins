@@ -195,7 +195,7 @@
 			<label text="Out" />
 		</grid>
 		<hbox spacing="4">
-			<group text="Sidechain" expand="true">
+			<group text="plug.sidechain" expand="true">
 				<vbox>
 					<align hpos="-1">
 						<hbox spacing="4">
@@ -226,7 +226,7 @@
 					</grid>
 				</vbox>
 			</group>
-			<group text="Compressor" expand="true">
+			<group text="plug.compressor" expand="true">
 				<vbox>
 					<align hpos="-1">
 						<hbox spacing="4">
@@ -283,7 +283,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="Signal" expand="true">
+			<group text="plug.signal" expand="true">
 				<grid rows="3" cols="2" expand="true">
 					<label text="Input" />
 					<label text="Output" />

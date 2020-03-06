@@ -243,7 +243,7 @@
 		</grid>
 		<hbox spacing="4">
 			<!-- Sidechain processing -->
-			<group text="Sidechain" expand="true">
+			<group text="plug.sidechain" expand="true">
 				<grid rows="5" cols="5" expand="true">
 					<label text="Listen" />
 					<label text="Preamp" />
@@ -288,7 +288,7 @@
 			</group>
 			
 			<!-- Gate setup -->
-			<group text="Gate" expand="true">
+			<group text="plug.gate" expand="true">
 				<hbox expand="true">
 					<grid rows="5" cols="4" expand="true">
 						<label text="Reduction" />
@@ -375,7 +375,7 @@
 			</group>
 			
 			<!-- Signal control -->
-			<group text="Signal" expand="true">
+			<group text="plug.signal" expand="true">
 				<vbox expand="true">
 					<label text="Input" />
 					<knob id="g_in" />
