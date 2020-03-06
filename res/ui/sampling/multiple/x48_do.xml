@@ -61,7 +61,7 @@
 					<value id="drft[inst]" same_line="true" />
 				</grid>
 			</cgroup>
-			<group text="Audio Output">
+			<group text="groups.audio_output">
 				<grid rows="3" cols="6">
 					<label text="Muting" />
 					<hbox spacing="4" fill="false">
@@ -127,7 +127,7 @@
 					</grid>
 				</vbox>
 			</cgroup>
-			<group text="Sample matrix" expand="true">
+			<group text="group.sample_matrix" expand="true">
 				<!-- Sample matrix -->
 				<grid rows="11" cols="9" transpose="true">
 					<label text="Sample #" fill="true" halign="0" />
@@ -161,7 +161,7 @@
 					
 		<!-- Mixer -->
 		<ui:for id="m" first="0" last="3">
-			<group text="Instrument mixer" visibility=":msel ieq ${:m+1}">
+			<group text="groups.instrument_mixer" visibility=":msel ieq ${:m+1}">
 				<grid rows="14" cols="13" transpose="true" hspacing="2" vspacing="2">
 					<label text="Instrument #" fill="true" halign="0" />
 					<label text="Enabled" fill="true" halign="0" />

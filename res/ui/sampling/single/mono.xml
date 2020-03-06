@@ -90,7 +90,7 @@
 				<value id="g_out" />
 			</grid>
 		</group>
-		<group text="Sample matrix" expand="true">
+		<group text="group.sample_matrix" expand="true">
 			<!-- Sample matrix -->
 			<grid rows="9" cols="9" transpose="true">
 				<label text="Sample #" fill="true" halign="0" />

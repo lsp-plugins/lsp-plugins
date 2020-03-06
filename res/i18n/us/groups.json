@@ -1,6 +1,12 @@
 {
 	"analysis": "Analysis",
+	"audio_channel": "Audio Channel",
+	"audio_output": "Audio Output",
+	
+	"bands": "Bands",
 
+	"controls": "Controls",
+	
 	"chan": {
 		"master": "Master Channel"
 	},
@@ -8,17 +14,18 @@
 	"channel": "Channel",
 	"channel_n": "Channel {@id}",
 	"channels": "Channels",
-	"compressor": "Compressor",
 	
 	"distance": "Distance",
 	
-	"expander": "Expander",
-	
-	"gate": "Gate",
+	"gain": "Gain",
+	"general": "General",
 	
 	"impulse_response": "Impulse response",
+	"instrument_mixer": "Instrument mixer",
 	
-	"left": {
+	"latency": "Latency",
+	
+	"lchan": {
 		"distance": "Distance (left)",
 		"monitoring": "Monitoring (left)",
 		"samples": "Samples (left)",
@@ -29,13 +36,30 @@
 	"metering": "Metering",
 	"monitoring": "Monitoring",
 	
+	"oscillator_function": "Oscillator Function",
 	"output": "Output",
 	"outputs": "Outputs",
+	
+	"parameters": "Parameters",
+	
+	"plug": {
+		"calibrator": "Calibrator",
+		"compressor": "Compressor",	
+		"expander": "Expander",
+		"gate": "Gate",
+		"latency_detector": "Latency Detector",
+		"limiter": "Limiter",
+		"trigger": "Trigger"
+	},
 	
 	"processor": "Processor",
 	"processors": "Processors",
 	
-	"right": {
+	"rendering": "Rendering",
+	
+	"results": "Results",
+	
+	"rchan": {
 		"distance": "Distance (right)",
 		"monitoring": "Monitoring (right)",
 		"samples": "Samples (right)",
@@ -43,6 +67,7 @@
 		"time": "Time (right)"
 	},
 	
+	"sample_matrix": "Sample Matrix",
 	"sample_n": "Sample {@id}",
 	"samples": "Samples",
 	
@@ -51,6 +76,7 @@
 	"signal_n": "Signal {@id}",
 	"signals": "Signals",
 	
+	"test_signal": "Test Signal",
 	"time": "Time",
 	
 	"wet_signal_eq": "Wet Signal Equalization"

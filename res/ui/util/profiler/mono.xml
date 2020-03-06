@@ -1,6 +1,6 @@
 <plugin resizable="false">
 	<vbox spacing="4">
-		<group text="Results" expand="true" fill="true">
+		<group text="groups.results" expand="true" fill="true">
 			<grid rows="3" cols="2" hspacing="8" vspacing="4">
 				<graph width="512" height="320" expand="true" fill="true">
 					<center hpos="-1.0" vpos="0.0" visible="false" />
@@ -108,7 +108,7 @@
 		</group>
 		
 		<hbox spacing="4">
-			<group text="Calibrator" expand="true" fill="true">
+			<group text="groups.plug.calibrator" expand="true" fill="true">
 				<grid rows="3" cols="3" hspacing="5">
 					<label text="Frequency" />
 					<label text="Amplitude" />
@@ -130,7 +130,7 @@
 				</grid>
 			</group>
 
-			<group text="Latency Detector" expand="true" fill="true">
+			<group text="groups.plug.latency_detector" expand="true" fill="true">
 				<grid rows="3" cols="4" hspacing="5">
 					<label text="Max Latency" />
 					<label text="Peak"/>
@@ -155,7 +155,7 @@
 				</grid>
 			</group>
 
-			<group text="Test Signal" expand="true" fill="true">
+			<group text="groups.test_signal" expand="true" fill="true">
 				<grid rows="3" cols="2" hspacing="5">
 					<label text="Coarse&#10;Duration" fill="true" />
 					<label text="Actual&#10;Duration (s)" fill="true" />

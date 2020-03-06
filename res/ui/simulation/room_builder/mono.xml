@@ -502,7 +502,7 @@
 		
 		<hbox spacing="4">
 			<!-- Rendering -->
-			<group text="Rendering">
+			<group text="groups.rendering">
 				<grid rows="4" cols="3" transpose="true" vspacing="4" hspacing="4">
 					<align hpos="-1"><label text="Status" /></align>
 					<align hpos="-1"><label text="Threads" /></align>
@@ -537,7 +537,7 @@
 			</group>
 			
 			<!-- Output -->
-			<group text="Output" expand="false">
+			<group text="groups.output" expand="false">
 				<hbox>
 					<grid rows="3" cols="2" expand="true" fill="true">
 						<label text="Dry Pan" />

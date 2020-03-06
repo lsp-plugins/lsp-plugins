@@ -162,7 +162,7 @@
 					</grid>
 				</vbox>
 			</cgroup>
-			<group text="Sample matrix" expand="true">
+			<group text="groups.sample_matrix" expand="true">
 				<!-- Sample matrix -->
 				<grid rows="9" cols="9" transpose="true">
 					<label text="Sample #" fill="true" halign="0" />
@@ -193,7 +193,7 @@
 		<!-- Common parameters -->
 		<hbox spacing="4">
 			<!-- Controls -->
-			<group text="Trigger" expand="true">
+			<group text="groups.plug.trigger" expand="true">
 				<hbox expand="true">
 					<grid rows="3" cols="3" expand="true">
 						<label text="Preamp" />
@@ -257,7 +257,7 @@
 					</grid>
 				</hbox>
 			</group>
-			<group text="Audio Channel" expand="true">
+			<group text="groups.audio_channel" expand="true">
 				<grid rows="3" cols="3">
 					<label text="Dry" />
 					<label text="Wet" />

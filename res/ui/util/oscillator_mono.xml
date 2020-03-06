@@ -1,6 +1,6 @@
 <plugin resizable="false">
 	<hbox spacing="4">
-		<group text="Oscillator Function" expand="true" fill="true">
+		<group text="groups.oscillator_function" expand="true" fill="true">
 			<vbox>
 				<align vpos="0">
 					<combo id="scf" />
@@ -52,7 +52,7 @@
 				</grid>
 			</vbox>
 		</group>
-		<group text="General" expand="true" fill="true">
+		<group text="groups.general" expand="true" fill="true">
 			<vbox expand="true" fill="true">
 				<align hpos="0">
 					<hbox spacing="4"> <!-- Spacing can help -->

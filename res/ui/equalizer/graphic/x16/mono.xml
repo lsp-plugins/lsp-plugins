@@ -136,7 +136,7 @@
 				<value id="zoom" />
 			</vbox>
 			<vbox spacing="4">
-				<group text="Signal" expand="true">
+				<group text="groups.signal" expand="true">
 					<grid rows="2" cols="2" hspacing="4">
 						<knob id="g_in" />
 						<vbox vfill="false">
@@ -151,7 +151,7 @@
 						</vbox>
 					</grid>
 				</group>
-				<group text="Analysis" expand="true">
+				<group text="groups.analysis" expand="true">
 					<vbox>
 						<label text="FFT" halign="0" />
 						<combo id="fft" fill="true" />
@@ -174,7 +174,7 @@
 			</vbox>
 		</hbox>
 		<hbox spacing="4">
-			<group text="Bands" expand="true" >
+			<group text="groups.bands" expand="true" >
 				<grid rows="5" cols="17">
 					<label text="Hz" fill="true" halign="0" />
 					<label text="16" />

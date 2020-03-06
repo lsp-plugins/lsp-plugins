@@ -1,6 +1,6 @@
 <plugin resizable="false">
 	<hbox spacing="4">
-		<group text="Controls">
+		<group text="groups.controls">
 			<grid rows="3" cols="3">
 				<label text="Max time" />
 				<label text="Reactivity" />
@@ -15,7 +15,7 @@
 				<value id="sel" />
 			</grid>
 		</group>
-		<group text="Monitoring">
+		<group text="groups.monitoring">
 			<grid rows="4" cols="5" hspacing="1" vspacing="1">
 				<label text="Phase" fill="true" halign="0" />
 				<label text="Delay (ms)" />
