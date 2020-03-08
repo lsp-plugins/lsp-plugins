@@ -67,6 +67,8 @@
 	
 	"click_or_drag_to_load": "Click or drag to load",
 	
+	"curve": "Curve",
+	
 	"delay": "Delay",
 	
 	"distance": "Distance",
@@ -121,6 +123,7 @@
 		"delay_line": "DELAY LINE",
 		"expansion": "EXPANSION",
 		"frequency": "FEQUENCY GRAPH",
+		"gating": "GATING",
 		"left_channel": "LEFT CHANNEL",
 		"right_channel": "RIGHT CHANNEL",
 		"spectrum": "SPECTRUM GRAPH",
@@ -128,8 +131,9 @@
 	},
 	
 	"hold": "Hold",
-	
 	"host_bpm": "Host BPM",
+	
+	"hysteresis": "Hysteresis",
 	
 	"input": "Input",
 
@@ -194,6 +198,8 @@
 	
 	"ratio": "Ratio",
 	"ratio_knee:db": "Ratio,\nKnee (dB)",
+	
+	"reduction": "Reduction",
 	
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",
@@ -286,5 +292,6 @@
 	
 	"value": "Value",
 	
+	"zone": "Zone",
 	"zoom": "Zoom"
 }
