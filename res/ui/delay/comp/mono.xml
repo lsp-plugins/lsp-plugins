@@ -70,7 +70,7 @@
 				<label />
 				<label text="labels.value" />
 
-				<label text="labels.time:ms" fill="true" halign="0" />
+				<label text="labels.time_:ms" fill="true" halign="0" />
 				<indicator id="d_t" format="f6.2!" text_color="green" />
 				
 				<label text="labels.samples:samp" fill="true" halign="0" />
