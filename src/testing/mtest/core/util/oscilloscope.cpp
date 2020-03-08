@@ -70,8 +70,8 @@ MTEST_MAIN
     float           fTestSigFreq    = 1000.0f;
 
     over_mode_t     enOverMode      = OM_LANCZOS_8X3;
-    float           fPreTrigger     = 20.0f / fTestSigFreq;
-    float           fPostTrigger    = 20.0f / fTestSigFreq;
+    float           fPreTrigger     = 3.0f / fTestSigFreq;
+    float           fPostTrigger    = 3.0f / fTestSigFreq;
     trg_type_t      enTrigType      = TRG_TYPE_SIMPLE_RISING_EDGE;
 
     size_t          nSweeps         = 10;
@@ -97,7 +97,7 @@ MTEST_MAIN
 
     float *in       = new float[nTestSigBufLen];
     float *out      = new float[nTestSigBufLen];
-    float *sweep    = new float[sOscilloscope.get_sweep_length()];
+    float *sweep    = new float[nSweepSigBufLen];
 
     run_test(out, in, sweep, sOscillator, sOscilloscope, nTestSigBufLen, nSweepSigBufLen, nSweeps);
 

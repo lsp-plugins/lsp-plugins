@@ -7,8 +7,7 @@
 
 #include <core/util/Oscilloscope.h>
 
-#define CAPTURE_BUFFER_LIMIT_SIZE   196608 // Multiple of 3 4 6 and 8
-#define SWEEP_BUFFER_LIMIT_SIZE     196608 // Multiple of 3 4 6 and 8
+#define BUFFER_LIM_SIZE 1000 // 196608 // Multiple of 3 4 6 and 8
 
 namespace lsp
 {
@@ -54,7 +53,7 @@ namespace lsp
     bool Oscilloscope::init()
     {
         // 1X Capture Buffer + 1X Sync Buffer
-        size_t samples = CAPTURE_BUFFER_LIMIT_SIZE + SWEEP_BUFFER_LIMIT_SIZE;
+        size_t samples = 2 * BUFFER_LIM_SIZE;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -63,10 +62,10 @@ namespace lsp
         lsp_guard_assert(float *save = ptr);
 
         vCaptureBuffer = ptr;
-        ptr += CAPTURE_BUFFER_LIMIT_SIZE;
+        ptr += BUFFER_LIM_SIZE;
 
         vSweepBuffer = ptr;
-        ptr += SWEEP_BUFFER_LIMIT_SIZE;
+        ptr += BUFFER_LIM_SIZE;
 
         lsp_assert(ptr <= &save[samples]);
 
@@ -95,13 +94,21 @@ namespace lsp
         nOversampling = sOver.get_oversampling();
         nOverSampleRate = nOversampling * nSampleRate;
 
-        size_t minBufSize = (CAPTURE_BUFFER_LIMIT_SIZE < SWEEP_BUFFER_LIMIT_SIZE) ? CAPTURE_BUFFER_LIMIT_SIZE : SWEEP_BUFFER_LIMIT_SIZE;
+//        size_t maxTriggerSide = (BUFFER_LIM_SIZE / 2) - 1;
+//
+//        sSweepParams.nPreTrigger = seconds_to_samples(nOverSampleRate, sSweepParams.fPreTrigger);
+//        sSweepParams.nPreTrigger = (sSweepParams.nPreTrigger < maxTriggerSide) ? sSweepParams.nPreTrigger : maxTriggerSide;
+//        sSweepParams.fPreTrigger = samples_to_seconds(nOverSampleRate, sSweepParams.nPreTrigger);
+//
+//        sSweepParams.nPostTrigger = seconds_to_samples(nOverSampleRate, sSweepParams.fPostTrigger);
+//        sSweepParams.nPostTrigger = (sSweepParams.nPostTrigger < maxTriggerSide) ? sSweepParams.nPostTrigger : maxTriggerSide;
+//        sSweepParams.fPostTrigger = samples_to_seconds(nOverSampleRate, sSweepParams.nPostTrigger);
 
         sSweepParams.nPreTrigger = seconds_to_samples(nOverSampleRate, sSweepParams.fPreTrigger);
-        sSweepParams.nPreTrigger = (sSweepParams.nPreTrigger < minBufSize) ? sSweepParams.nPreTrigger : minBufSize;
+        sSweepParams.nPreTrigger = (sSweepParams.nPreTrigger < BUFFER_LIM_SIZE) ? sSweepParams.nPreTrigger : BUFFER_LIM_SIZE;
         sSweepParams.fPreTrigger = samples_to_seconds(nOverSampleRate, sSweepParams.nPreTrigger);
 
-        size_t availableForPost = SWEEP_BUFFER_LIMIT_SIZE - sSweepParams.nPreTrigger - 1;
+        size_t availableForPost = (BUFFER_LIM_SIZE > sSweepParams.nPreTrigger) ? BUFFER_LIM_SIZE - sSweepParams.nPreTrigger - 1 : 0;
         sSweepParams.nPostTrigger = seconds_to_samples(nOverSampleRate, sSweepParams.fPostTrigger);
         sSweepParams.nPostTrigger = (sSweepParams.nPostTrigger < availableForPost) ? sSweepParams.nPostTrigger : availableForPost;
         sSweepParams.fPostTrigger = samples_to_seconds(nOverSampleRate, sSweepParams.nPostTrigger);
@@ -112,7 +119,6 @@ namespace lsp
 
         sBufferParams.nHead = 0;
         sBufferParams.nTriggerAt = 0;
-//        sBufferParams.nRemaining = CAPTURE_BUFFER_LIMIT_SIZE;
 
         sTrigger.set_post_trigger_samples(sSweepParams.nSweepLength);
         sTrigger.set_trigger_type(enTriggerType);
@@ -129,7 +135,7 @@ namespace lsp
         if (sBufferParams.nTriggerAt >= sSweepParams.nPreTrigger)
             copyhead = sBufferParams.nTriggerAt - sSweepParams.nPreTrigger;
         else
-            copyhead = CAPTURE_BUFFER_LIMIT_SIZE - sSweepParams.nPreTrigger + sBufferParams.nTriggerAt;
+            copyhead = BUFFER_LIM_SIZE - sSweepParams.nPreTrigger + sBufferParams.nTriggerAt;
 
         if (copyhead <= sBufferParams.nTriggerAt)
         {
@@ -138,8 +144,8 @@ namespace lsp
         }
         else
         {
-            dsp::copy(&vSweepBuffer[sSweepParams.nHead], &vCaptureBuffer[copyhead], CAPTURE_BUFFER_LIMIT_SIZE - copyhead);
-            sSweepParams.nHead += CAPTURE_BUFFER_LIMIT_SIZE - copyhead;
+            dsp::copy(&vSweepBuffer[sSweepParams.nHead], &vCaptureBuffer[copyhead], BUFFER_LIM_SIZE - copyhead);
+            sSweepParams.nHead += BUFFER_LIM_SIZE - copyhead;
             dsp::copy(&vSweepBuffer[sSweepParams.nHead], vCaptureBuffer, sBufferParams.nTriggerAt);
             sSweepParams.nHead += sBufferParams.nTriggerAt;
         }
@@ -165,8 +171,9 @@ namespace lsp
                 case OSC_STATE_ACQUIRING:
                 {
                     size_t to_process = nOversampling * count;
-                    size_t remaining = CAPTURE_BUFFER_LIMIT_SIZE - sBufferParams.nHead;
-                    size_t to_store = to_process > remaining ? remaining : to_process;
+                    size_t remaining_in_buffer = BUFFER_LIM_SIZE - sBufferParams.nHead;
+                    size_t to_store = to_process > remaining_in_buffer ? remaining_in_buffer : to_process;
+                    to_store = (to_store < sSweepParams.nPostTrigger) ? to_store : sSweepParams.nPostTrigger;
                     size_t to_do = to_store / nOversampling;
 
                     float* bufptr = &vCaptureBuffer[sBufferParams.nHead];
@@ -190,7 +197,7 @@ namespace lsp
                         }
                     }
 
-                    sBufferParams.nHead = (sBufferParams.nHead + to_store) % CAPTURE_BUFFER_LIMIT_SIZE;
+                    sBufferParams.nHead = (sBufferParams.nHead + to_store) % BUFFER_LIM_SIZE;
 
                     src     += to_do;
                     count   -= to_do;
@@ -203,9 +210,9 @@ namespace lsp
                     size_t remaining_in_sweep;
                     size_t copy_now;
 
-                    if (sBufferParams.nHead < sBufferParams.nCopyHead)
+                    if (sBufferParams.nHead <= sBufferParams.nCopyHead)
                     {
-                        available_in_buffer = CAPTURE_BUFFER_LIMIT_SIZE - sBufferParams.nCopyHead;
+                        available_in_buffer = BUFFER_LIM_SIZE - sBufferParams.nCopyHead;
                         remaining_in_sweep = sSweepParams.nSweepLength - sSweepParams.nHead;
                         copy_now = (remaining_in_sweep < available_in_buffer) ? remaining_in_sweep : available_in_buffer;
 
@@ -220,16 +227,17 @@ namespace lsp
 
                     dsp::copy(&vSweepBuffer[sSweepParams.nHead], &vCaptureBuffer[sBufferParams.nCopyHead], copy_now);
                     sSweepParams.nHead += copy_now;
-                    sBufferParams.nCopyHead = (sBufferParams.nCopyHead + copy_now) % CAPTURE_BUFFER_LIMIT_SIZE;
+                    sBufferParams.nCopyHead = (sBufferParams.nCopyHead + copy_now) % BUFFER_LIM_SIZE;
 
                     size_t to_process = nOversampling * count;
-                    size_t remaining = CAPTURE_BUFFER_LIMIT_SIZE - sBufferParams.nHead;
+                    size_t remaining = BUFFER_LIM_SIZE - sBufferParams.nHead;
                     size_t to_store = to_process > remaining ? remaining : to_process;
+                    to_store = (to_store < sSweepParams.nPostTrigger) ? to_store : sSweepParams.nPostTrigger;
                     size_t to_do = to_store / nOversampling;
 
                     sOver.upsample(&vCaptureBuffer[sBufferParams.nHead], src, to_do);
 
-                    sBufferParams.nHead = (sBufferParams.nHead + to_store) % CAPTURE_BUFFER_LIMIT_SIZE;
+                    sBufferParams.nHead = (sBufferParams.nHead + to_store) % BUFFER_LIM_SIZE;
 
                     src     += to_do;
                     count   -= to_do;
