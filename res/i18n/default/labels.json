@@ -1,4 +1,6 @@
 {
+	"Env_elope": "Env",
+
 	"active": "Active",
 	
 	"attack": "Attack",
@@ -58,6 +60,8 @@
 	"channel": "Channel",
 	"channels": "Channels",
 	
+	"clear": "Clear",
+	
 	"controls": "Controls",
 	
 	"click_or_drag_to_load": "Click or drag to load",
@@ -112,16 +116,20 @@
 	"gain_": "Gain",
 	
 	"graphs": {
+		"compression": "COMPRESSION",
 		"delay_line": "DELAY LINE",
 		"frequency": "FEQUENCY GRAPH",
 		"left_channel": "LEFT CHANNEL",
 		"right_channel": "RIGHT CHANNEL",
-		"spectrum": "SPECTRUM GRAPH"
+		"spectrum": "SPECTRUM GRAPH",
+		"time": "TIME GRAPH"
 	},
 	
 	"hold": "Hold",
 	
 	"host_bpm": "Host BPM",
+	
+	"input": "Input",
 
 	"ir_equalizer": "IR equalizer",
 	
@@ -148,8 +156,12 @@
 		"shift": "Shift"
 	},
 	
+	"mix": "Mix",
+	
 	"mode": "Mode",
 	"mode:": "Mode:",
+	
+	"ms_listen": "MS Listen",
 	
 	"mute": "Mute",
 	
@@ -157,6 +169,7 @@
 	
 	"panorama": "Panorama",
 	"panorama:pc": "Panorama (%)",
+	"pause": "Pause",
 	
 	"plug": {
 		"calibrator": "Calibrator",
@@ -186,10 +199,16 @@
 	"samples": "Samples",
 	"samples:samp": "Samples (samp)",
 	
+	"setup": "Setup",
+	
 	"sc": {
+		"SC": "SC",
+		"listen": "Listen",
 		"lookahead": "Lookahead",
+		"position": "Position",
 		"preamp": "Preamp",
-		"reactivity": "Reactivity"
+		"reactivity": "Reactivity",
+		"type": "Type"
 	},
 	
 	"sc_boost": "SC boost",
@@ -248,6 +267,7 @@
 	"units": {
 		":db": "(dB)",
 		":hz": "(Hz)",
+		":ms": "(ms)",
 		":pc": "(%)",
 		"centimeters": "Centimeters",
 		"meters": "Meters",
