@@ -5,6 +5,7 @@
 	
 	"active": "Активно",
 	
+	"att_ack": "Атак",
 	"attack": "Атака",
 	"attack:db_ms": "Атака\n(дБ, мс)",
 	
@@ -36,6 +37,11 @@
 		"external_sc": "Внешняя",
 		"hold": "Удерж",
 		"hue": "Тон",
+		"id": "{@id}",
+		"id_L_eft": "{@id} Л",
+		"id_M_id": "{@id} Ц",
+		"id_R_ight": "{@id} П",
+		"id_S_ide": "{@id} С",
 		"in": "Вх",
 		"input": "Вход",
 		"left": "Левый",
@@ -126,6 +132,7 @@
 	
 	"graphs": {
 		"compression": "КОМПРЕССИЯ",
+		"curve": "КРИВАЯ",
 		"delay_line": "ЛИНИЯ ЗАДЕРЖКИ",
 		"expansion": "РАСШИРЕНИЕ",
 		"frequency": "ЧАСТОТНЫЙ ГРАФИК",
@@ -174,6 +181,8 @@
 	
 	"mode": "Режим",
 	"mode:": "Режим:",
+	"model": "Модель",
+	"model:": "Модель:",
 	
 	"ms_listen": "Слушать ЦС",
 	
@@ -201,12 +210,16 @@
 	
 	"ramp": "Сглаж",
 	"range": "Диапазон",
+	"ranges": "Диапазоны",
 	
-	"ratio": "Степень",
-	"ratio_knee:db": "Степень,\nКолено (dB)",
+	"ratio": "Наклон",
+	"ratio_high": "Наклон верх",
+	"ratio_low": "Наклон низ",
+	"ratio_knee:db": "Наклон,\nКолено (dB)",
 	
 	"reduction": "Понижение",
 	
+	"rel_ease": "Выкл",
 	"release": "Выключение",
 	"release:db_ms": "Выключение\n(дБ, мс)",
 	
@@ -281,13 +294,17 @@
 	"temperature": "Температура",
 	"tempo": "Темп",
 	
+	"thr_eshold": "Пор",
 	"threshold": "Порог",
+	"thresh_gain:db_db": "Порог, Усил\n(дБ, дБ)",
 	"thresh_old": "Порог",
 	"thresh_old:db": "Порог\n(дБ)",
 	
 	"time": "Время",
 	"time_:ms": "Время (мс)",
 	"time:ms": "Время\n(мс)",
+	
+	"type": "Тип",
 	
 	"units": {
 		":db": "(дБ)",

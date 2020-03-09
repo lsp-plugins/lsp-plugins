@@ -2,6 +2,10 @@
 	"values": {
 		"1k": "1K",
 		"10k": "10K",
+		"idL_eft": "{@id}L",
+		"idM_id": "{@id}M",
+		"idR_ight": "{@id}R",
+		"idS_ide": "{@id}S",
 		"x:db": "{@value} dB",
 		"x:hz": "{@value} Hz",
 		"x:s": "{@value} s"

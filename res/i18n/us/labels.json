@@ -5,6 +5,7 @@
 	
 	"active": "Active",
 	
+	"att_ack": "Att",
 	"attack": "Attack",
 	"attack:db_ms": "Attack\n(dB, ms)",
 	
@@ -36,6 +37,11 @@
 		"external_sc": "External",
 		"hold": "Hold",
 		"hue": "Hue",
+		"id": "{@id}",
+		"id_L_eft": "{@id} L",
+		"id_M_id": "{@id} M",
+		"id_R_ight": "{@id} R",
+		"id_S_ide": "{@id} S",
 		"in": "In",
 		"input": "Input",
 		"left": "Left",
@@ -126,6 +132,7 @@
 	
 	"graphs": {
 		"compression": "COMPRESSION",
+		"curve": "CURVE",
 		"delay_line": "DELAY LINE",
 		"expansion": "EXPANSION",
 		"frequency": "FEQUENCY GRAPH",
@@ -174,6 +181,8 @@
 	
 	"mode": "Mode",
 	"mode:": "Mode:",
+	"model": "Model",
+	"model:": "Model:",
 	
 	"ms_listen": "MS Listen",
 	
@@ -201,12 +210,16 @@
 	
 	"ramp": "Ramp",
 	"range": "Range",
+	"ranges": "Ranges",
 	
 	"reduction": "Reduction",
 	
 	"ratio": "Ratio",
+	"ratio_high": "Ratio high",
+	"ratio_low": "Ratio low",
 	"ratio_knee:db": "Ratio,\nKnee (dB)",
 	
+	"rel_ease": "Rel",
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",
 	
@@ -280,13 +293,17 @@
 	"temperature": "Temperature",
 	"tempo": "Tempo",
 	
+	"thr_eshold": "Thr",
 	"threshold": "Threshold",
+	"thresh_gain:db_db": "Thresh, Gain\n(dB, dB)",
 	"thresh_old": "Thresh",
 	"thresh_old:db": "Thresh\n(dB)",
 	
 	"time": "Time",
 	"time_:ms": "Time (ms)",
 	"time:ms": "Time\n(ms)",
+	
+	"type": "Type",
 	
 	"units": {
 		":db": "(dB)",

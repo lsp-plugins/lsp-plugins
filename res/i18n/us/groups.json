@@ -49,6 +49,7 @@
 		"gate": "Gate",
 		"latency_detector": "Latency Detector",
 		"limiter": "Limiter",
+		"processor": "Processor",
 		"trigger": "Trigger"
 	},
 	

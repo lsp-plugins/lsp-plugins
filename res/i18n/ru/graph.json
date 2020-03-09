@@ -2,6 +2,10 @@
 	"values": {
 		"1k": "1К",
 		"10k": "10К",
+		"idL_eft": "{@id}Л",
+		"idM_id": "{@id}Ц",
+		"idR_ight": "{@id}П",
+		"idS_ide": "{@id}С",
 		"x:db": "{@value} дБ",
 		"x:hz": "{@value} Гц",
 		"x:s": "{@value} с"

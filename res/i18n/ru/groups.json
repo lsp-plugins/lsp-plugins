@@ -49,6 +49,7 @@
 		"gate": "Гейт",
 		"latency_detector": "Детектор задержки",
 		"limiter": "Лимитер",
+		"processor": "Процессор",
 		"trigger": "Триггер"
 	},
 	

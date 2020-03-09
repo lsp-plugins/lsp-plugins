@@ -11,7 +11,7 @@
 					<marker value="0.001" color="g_gray" basis="1" parallel="0" />    <!-- -60 dB -->
 					<ui:for id="t" first="0" last="4">
 						<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
-					</ui:for>
+					</ui:for>graph.values.
 					
 					<!-- Yellow grid -->
 					<marker value="0.06310" color="g_yellow" basis="1" parallel="0" /><!-- -24 dB -->
@@ -43,7 +43,7 @@
 					<mesh id="grg_s" width="2" color="bright_blue" visibility_id="grv_s" />
 					
 					<!-- Text -->
-					<text text="dB" coord="5;15.8489" halign="1" valign="-1" />
+					<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
 					<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
 					<text text="0" coord="5;1" halign="1" valign="-1" />
 					<text text="-12" coord="5;0.25119" halign="1" valign="-1" />
@@ -52,7 +52,7 @@
 					<text text="-48" coord="5;0.00398" halign="1" valign="-1" />
 					<text text="-60" coord="5;0.001" halign="1" valign="-1" />
 					
-					<text text="s" coord="5;0.00025" halign="1" valign="1" />
+					<text text="graph.units.s" coord="5;0.00025" halign="1" valign="1" />
 					<ui:for id="t" first="0" last="4" step="1">
 						<text text="${t}" coord="${t};0.00025" halign="-1" valign="1" color="white" />
 						<text text="${t}.5" coord="${t}.5;0.00025" halign="-1" valign="1" color="white" />
@@ -63,20 +63,22 @@
 			<!-- Graph buttons -->
 			<hbox expand="true" spacing="4">
 				<button id="pause" size="16" color="green" led="true" />
-				<label text="Pause" />
+				<label text="labels.pause" />
 				<button id="clear" size="16" color="red" led="true" />
-				<label text="Clear" />
+				<label text="labels.clear" />
 				<button id="msl" size="16" color="yellow" led="true" />
-				<label text="MS Listen" />
-				<align pad_right="4" expand="true" hpos="1"><label text="TIME GRAPH" /></align>
+				<label text="labels.ms_listen" />
+				<align pad_right="4" expand="true" hpos="1">
+					<label text="labels.graphs.time" />
+				</align>
 			</hbox>
 			
 			<!-- Sidechain meters -->
 			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="slv_m" size="10" color="bright_green" led="true" />
 						<button id="slv_s" size="10" color="bright_green" led="true" />
 					</grid>
@@ -86,14 +88,14 @@
 						color="bright_green" color2="bright_green" />
 				</vbox>
 			</align>
-			<label text="SC" />
+			<label text="labels.sc.SC" />
 
 			<!-- Envelope meters -->
 			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="elv_m" size="10" color="bright_magenta" led="true" />
 						<button id="elv_s" size="10" color="bright_magenta" led="true" />
 					</grid>
@@ -103,14 +105,14 @@
 						color="bright_magenta" color2="bright_magenta" />
 				</vbox>
 			</align>
-			<label text="Env" />
+			<label text="labels.Env_elope" />
 			
 			<!-- Gain reduction meters -->
 			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="grv_m" size="10" color="bright_blue" led="true" />
 						<button id="grv_s" size="10" color="bright_blue" led="true" />
 					</grid>
@@ -120,7 +122,7 @@
 						color="bright_blue" color2="bright_blue" />
 				</vbox>
 			</align>
-			<label text="Gain" />
+			<label text="labels.gain_" />
 		
 			<!-- Curve graph -->
 			<align expand="true" fill="true" pad_top="4">
@@ -164,15 +166,15 @@
 					<!-- Markers -->
 					<ui:for id="i" first="0" last="3">
 						<marker id="al${i}_m" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility=":cmv_m and :ae${i}_m" />
-						<text text="${i}M" coord=":al${i}_m;15.84893" color="magenta" halign="-1" valign="-1" visibility=":cmv_m and :ae${i}_m" />
+						<text text="graph.values.idM_id" text:id="${i}" coord=":al${i}_m;15.84893" color="magenta" halign="-1" valign="-1" visibility=":cmv_m and :ae${i}_m" />
 						<marker id="al${i}_s" width="2" basis="0" color="g_magenta" parallel="1" smooth="true" visibility=":cmv_s and :ae${i}_s" />
-						<text text="${i}S" coord=":al${i}_s;15.84893" color="magenta" halign="1" valign="-1" visibility=":cmv_s and :ae${i}_s" />
+						<text text="graph.values.idS_ide" text:id="${i}" coord=":al${i}_s;15.84893" color="magenta" halign="1" valign="-1" visibility=":cmv_s and :ae${i}_s" />
 					</ui:for>
 					<ui:for id="i" first="0" last="3">
 						<marker id="rl${i}_m" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility=":cmv_m and :re${i}_m" />
-						<text text="${i}M" coord=":rl${i}_m;0.00025" color="g_orange" halign="-1" valign="1" visibility=":cmv_m and :re${i}_m" />
+						<text text="graph.values.idM_id" text:id="${i}" coord=":rl${i}_m;0.00025" color="g_orange" halign="-1" valign="1" visibility=":cmv_m and :re${i}_m" />
 						<marker id="rl${i}_s" width="2" basis="0" color="g_orange" parallel="1" smooth="true" visibility=":cmv_s and :re${i}_s" />
-						<text text="${i}S" coord=":rl${i}_s;0.00025" color="g_orange" halign="1" valign="1" visibility=":cmv_s and :re${i}_s" />
+						<text text="graph.values.idS_ide" text:id="${i}" coord=":rl${i}_s;0.00025" color="g_orange" halign="1" valign="1" visibility=":cmv_s and :re${i}_s" />
 					</ui:for>
 					
 					<!-- Dots -->
@@ -185,8 +187,8 @@
 						/>
 					</ui:for>
 					<ui:for id="i" first="0" last="3">
-						<text text="${i}M" coord=":tl${i}_m;:gl${i}_m" color="middle_channel" halign="-1" valign="1" visibility=":cmv_m and :pe${i}_m" />
-						<text text="${i}S" coord=":tl${i}_s;:gl${i}_s" color="side_channel" halign="1" valign="-1" visibility=":cmv_s and :pe${i}_s" />
+						<text text="graph.values.idM_id" text:id="${i}" coord=":tl${i}_m;:gl${i}_m" color="middle_channel" halign="-1" valign="1" visibility=":cmv_m and :pe${i}_m" />
+						<text text="graph.values.idS_ide" text:id="${i}" coord=":tl${i}_s;:gl${i}_s" color="side_channel" halign="1" valign="-1" visibility=":cmv_s and :pe${i}_s" />
 					</ui:for>
 					
 					<dot hpos_id="elm_m" vpos_id="clm_m" color="middle_channel" led="true" visibility=":cmv_m" />
@@ -195,40 +197,42 @@
 					<!-- Text -->
 					<text text="0" coord="1;1" halign="1" valign="1" />
 					
-					<text text="dB" coord="1;15.8489" halign="1" valign="-1" />
+					<text text="graph.units.db" coord="1;15.8489" halign="1" valign="-1" />
 					<text text="+12" coord="1;3.98107" halign="1" valign="-1" />
 					<text text="-12" coord="1;0.25119" halign="1" valign="-1" />
 					<text text="-24" coord="1;0.06310" halign="1" valign="-1" />
 					<text text="-36" coord="1;0.01585" halign="1" valign="-1" />
 					<text text="-48" coord="1;0.00398" halign="1" valign="-1" />
 					<text text="-60" coord="1;0.001" halign="1" valign="-1" />
-					<text text="out" coord="1;0.00025" halign="1" valign="1" />
+					<text text="graph.axis.out" coord="1;0.00025" halign="1" valign="1" />
 					
-					<text text="dB" coord="15.8489;1" halign="-1" valign="1" />
+					<text text="graph.units.db" coord="15.8489;1" halign="-1" valign="1" />
 					<text text="+12" coord="3.98107;1" halign="-1" valign="1" />
 					<text text="-12" coord="0.25119;1" halign="-1" valign="1" />
 					<text text="-24" coord="0.06310;1" halign="-1" valign="1" />
 					<text text="-36" coord="0.01585;1" halign="-1" valign="1" />
 					<text text="-48" coord="0.00398;1" halign="-1" valign="1" />
 					<text text="-60" coord="0.001;1" halign="-1" valign="1" />
-					<text text="in" coord="0.00025;1" halign="1" valign="1" />
+					<text text="graph.axis.in" coord="0.00025;1" halign="1" valign="1" />
 				</graph>
 			</align>
 			<hbox expand="true">
-				<label text="Model:" />
+				<label text="labels.model:" />
 				<button id="cmv_m" size="16" color="middle_channel" led="true" />
-				<label text="Middle" />
+				<label text="labels.chan.middle" />
 				<button id="cmv_s" size="16" color="side_channel" led="true" />
-				<label text="Side" />
-				<align pad_right="4" expand="true" hpos="1"><label text="CURVE" /></align>
+				<label text="labels.chan.side" />
+				<align pad_right="4" expand="true" hpos="1">
+					<label text="labels.graphs.curve" />
+				</align>
 			</hbox>
 			
 			<!-- Input signal meters -->
 			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="ilv_m" size="10" color="middle_channel" led="true" />
 						<button id="ilv_s" size="10" color="side_channel" led="true" />
 					</grid>
@@ -238,14 +242,14 @@
 						color="middle_channel" color2="side_channel" />
 				</vbox>
 			</align>
-			<label text="In" />
+			<label text="labels.chan.in" />
 			
 			<!-- Output signal meters -->
 			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="olv_m" size="10" color="middle_channel" led="true" />
 						<button id="olv_s" size="10" color="side_channel" led="true" />
 					</grid>
@@ -255,23 +259,23 @@
 						color="middle_channel" color2="side_channel" />
 				</vbox>
 			</align>
-			<label text="Out" />
+			<label text="labels.chan.out" />
 		</grid>
 		<hbox spacing="4">
 			<!-- Processors -->
 			<cgroup id="psel" text="Processor ">
 				<ui:for id="p" first="0" last="1">
-					<ui:set id="chn" value="${(:p mod 2) ? 'S' : 'M'}" />
+					<ui:set id="chn" value="${(:p mod 2) ? 'labels.chan.id_S_ide' : 'labels.chan.id_M_id'}" />
 					<ui:set id="ch" value="${(:p mod 2) ? '_s' : '_m'}" />
 					<ui:set id="chc" value="${(:p mod 2) ? 'side_channel' : 'middle_channel'}" />
 					
 					<hbox expand="true" fill="true">
 						<grid rows="8" cols="3" expand="true" fill="true">
-							<label text="Type" fill="true" halign="0" />
+							<label text="labels.type" fill="true" halign="0" />
 							<label />
 							<hbox fill="false">
 								<button id="scl${ch}" size="16" color="${chc}" led="true" />
-								<label text="Listen" />
+								<label text="labels.sc.listen" />
 							</hbox>
 							<cell cols="3" fill="true">
 								<align vpos="-1" hscale="1">
@@ -283,9 +287,9 @@
 								</align>
 							</cell>
 							
-							<label text="Preamp" />
-							<label text="Reactivity" />
-							<label text="Lookahead" />
+							<label text="labels.sc.preamp" />
+							<label text="labels.sc.reactivity" />
+							<label text="labels.sc.lookahead" />
 							
 							<knob id="scp${ch}" />
 							<knob id="scr${ch}" />
@@ -297,32 +301,28 @@
 						</grid>
 						<vsep />
 						<grid rows="9" cols="1" expand="true" fill="true">
-							<label text="Ratio low" />
+							<label text="labels.ratio_low" />
 							<knob id="llr${ch}" size="20" scale_color="${chc}" />
 							<value id="llr${ch}" />
-							<label text="Attack" />
+							<label text="labels.attack" />
 							<knob id="atd${ch}" size="20" scale_color="magenta" />
 							<value id="atd${ch}" />
-							<label text="Makeup" />
+							<label text="labels.makeup" />
 							<knob id="omk${ch}" size="20" scale_color="${chc}" />
 							<value id="omk${ch}" />
 						</grid>
 						<vsep />
 						<grid rows="9" cols="9" transpose="true" expand="true" fill="true">
-							<label text="Ranges" />
-							<label text="Thresh, Gain" />
-							<label text="(dB), (dB)"/>
-							<label text="Knee" />
-							<label text="(dB)"/>
-							<label text="Attack" />
-							<label text="(dB), (ms)"/>
-							<label text="Release" />
-							<label text="(dB), (ms)"/>
+							<label text="labels.ranges" />
+							<cell rows="2"><label text="labels.thresh_gain:db_db" /></cell>
+							<cell rows="2"><label text="labels.knee_:db" /></cell>
+							<cell rows="2"><label text="labels.attack:db_ms" /></cell>
+							<cell rows="2"><label text="labels.release:db_ms" /></cell>
 							
 							<ui:for id="c" first="0" last="3">
 								<ui:set id="i" value="${c}${ch}" />
 								
-								<cell cols="2"><label text="${c}${chn}" /></cell>
+								<cell cols="2"><label text="${chn}" text:id="${c}" /></cell>
 								<knob id="tl${i}" size="20" scale_color="${chc}" />
 								<value id="tl${i}" detailed="false" />
 								<knob id="kn${i}" size="20" scale_color="${chc}" />
@@ -340,9 +340,9 @@
 										<button id="ae${i}" led="true" size="12" color="magenta" />
 										<button id="re${i}" led="true" size="12" color="orange" />
 										
-										<label text="Thr" font_size="9" detailed="false" />
-										<label text="Att" font_size="9" detailed="false" />
-										<label text="Rel" font_size="9" detailed="false" />
+										<label text="labels.thr_eshold" font_size="9" detailed="false" />
+										<label text="labels.att_ack" font_size="9" detailed="false" />
+										<label text="labels.rel_ease" font_size="9" detailed="false" />
 									</grid>
 								</cell>
 								<knob id="at${i}" size="20" scale_color="magenta" />
@@ -353,16 +353,16 @@
 						</grid>
 						<vsep />
 						<grid rows="9" cols="1" fill="true">
-							<label text="Ratio high" />
+							<label text="labels.ratio_high" />
 							<knob id="hlr${ch}" size="20" scale_color="${chc}" />
 							<value id="hlr${ch}" />
-							<label text="Release" />
+							<label text="labels.release" />
 							<knob id="rtd${ch}" size="20" scale_color="orange" />
 							<value id="rtd${ch}" />
 							<cell rows="3" expand="true">
 								<grid rows="3" cols="2" expand="true">
-									<label text="Dry" />
-									<label text="Wet" />
+									<label text="labels.signal.dry" />
+									<label text="labels.signal.wet" />
 									
 									<knob id="cdr${ch}" scale_color="yellow" size="20" />
 									<knob id="cwt${ch}" scale_color="yellow" size="20" />
@@ -379,11 +379,11 @@
 			<!-- Signal control -->
 			<group text="groups.signal">
 				<grid rows="6" cols="1" transpose="true">
-					<label text="Input" />
+					<label text="labels.input" />
 					<knob id="g_in" />
 					<value id="g_in" />
 												
-					<label text="Output" />
+					<label text="labels.output" />
 					<knob id="g_out" />
 					<value id="g_out" />
 				</grid>
