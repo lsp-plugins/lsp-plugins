@@ -1,5 +1,7 @@
 {
 	"Env_elope": "Огиб",
+	"Over_Sampling": "П/Д",
+	"Over_Sampling:": "П/Д:",
 	
 	"active": "Активно",
 	
@@ -11,6 +13,7 @@
 	"band_hue": "Полоса, Тон",
 	
 	"boost": "Повышение",
+	"boost_": "Повыш",
 	"bookmark_list": "Закладки",
 	
 	"bypass": "Обход",
@@ -73,6 +76,9 @@
 	
 	"distance": "Дистанция",
 	"distance:cm": "Дистанция (см)",
+	"dither": "Дизеринг",
+	"dither:": "Дизеринг:",
+	"dithering": "Дизеринг",
 	
 	"equalizer": "Эквалайзер",
 	"equalizer:db": "Эквалайзер (дБ)",
@@ -212,12 +218,14 @@
 	"setup": "Настройка",
 	
 	"sc": {
+		"Ext_ernal": "Внеш",
 		"SC": "БЦ",
 		"listen": "Слушать",
 		"lookahead": "Предсказание",
 		"position": "Позиция",
 		"preamp": "Усиление",
 		"reactivity": "Реактивность",
+		"sc_preamp": "Предусил БЦ",
 		"type": "Тип"
 	},
 	
@@ -265,6 +273,7 @@
 	},	
 	"spectrogram": "Спектрограмма",
 	
+	"stereo_link": "Стереосвязь",
 	"stretch": "Растяжение",
 	
 	"sync": "Синхр",

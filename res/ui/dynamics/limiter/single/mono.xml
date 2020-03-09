@@ -2,7 +2,7 @@
 	<vbox spacing="4">
 		<grid rows="2" cols="5" transpose="true" hspacing="2" vspacing="2">
 			<!-- Time graph -->
-			<align expand="true" fill="true" pad_top="4">
+			<align expand="true" fill="true" pad_top="4" hscale="1">
 				<graph width="560" height="280">
 					<!-- Gray grid -->
 					<marker value="0.25119" color="g_gray" basis="1" parallel="0" />  <!-- -12 dB -->
@@ -37,12 +37,12 @@
 					<marker id="th" color="g_magenta" basis="1" parallel="0" />
 					
 					<!-- Text -->
-					<text text="0 dB" coord="4;1" halign="1" valign="-1" />
+					<text text="graph.values.x:db" text:value="0" coord="4;1" halign="1" valign="-1" />
 					<text text="-12" coord="4;0.25119" halign="1" valign="-1" />
 					<text text="-24" coord="4;0.06310" halign="1" valign="-1" />
 					<text text="-36" coord="4;0.01585" halign="1" valign="-1" />
 				
-					<text text="s" coord="4;0.00398" halign="1" valign="1" />
+					<text text="graph.units.s" coord="4;0.00398" halign="1" valign="1" />
 					<ui:for id="t" first="0" last="3">
 						<text text="${t}" coord="${t};0.00398" halign="-1" valign="1" color="white" />
 						<text text="${t}.5" coord="${t}.5;0.00398" halign="-1" valign="1" color="white" />
@@ -51,22 +51,22 @@
 			</align>
 			
 			<!-- Graph buttons -->
-			<hbox>
+			<hbox spacing="4">
 				<button id="pause" size="16" color="green" led="true" />
-				<label text="Pause" />
+				<label text="labels.pause" />
 				<button id="clear" size="16" color="red" led="true" />
-				<label text="Clear" />
+				<label text="labels.clear" />
 				<align hpos="0.5" expand="true">
 					<hbox spacing="4" fill="false">
-						<label text="Mode:" />
+						<label text="labels.mode:" />
 						<combo id="mode" />
-						<label text="O/S:" />
+						<label text="labels.Over_Sampling:" />
 						<combo id="ovs" />
-						<label text="Dither:" />
+						<label text="labels.dither:" />
 						<combo id="dith" />
 					</hbox>
 				</align>
-				<label text="TIME GRAPH" />
+				<label text="labels.graphs.time" />
 			</hbox>
 			
 			<!-- Sidechain meters -->				
@@ -76,7 +76,7 @@
 					<meter id="sclm" angle="1" logarithmic="true" min="0.00398" max="1.0" height="280" color="bright_green" activity_id="scgv" />
 				</vbox>
 			</align>
-			<label text="SC" />
+			<label text="labels.sc.SC" />
 			
 			<!-- Gain meters -->				
 			<align fill="true" vpos="1" pad_bottom="8">
@@ -87,7 +87,7 @@
 						min="0.00398" max="1.0" balance="1.0" height="280" />
 				</vbox>
 			</align>
-			<label text="Gain" />
+			<label text="labels.gain_" />
 			
 			<!-- Input signal meters -->
 			<align fill="true" vpos="1" pad_bottom="8">
@@ -96,7 +96,7 @@
 					<meter id="ilm" angle="1" type="rms_peak" min="0.00398" max="1.0" height="280" color="middle_channel" activity_id="igv" />
 				</vbox>
 			</align>
-			<label text="In" />
+			<label text="labels.chan.in" />
 			
 			<!-- Output signal meters -->
 			<align fill="true" vpos="1" pad_bottom="8">
@@ -105,18 +105,18 @@
 					<meter id="olm" angle="1" type="rms_peak" min="0.00398" max="1.0" height="280" color="middle_channel" activity_id="ogv" />
 				</vbox>
 			</align>
-			<label text="Out" />
+			<label text="labels.chan.out" />
 		</grid>
 		<hbox spacing="4">
 			<!-- Limiter setup -->
 			<group text="groups.plug.limiter">
 				<grid rows="3" cols="6">
-					<label text="SC Preamp" />
-					<label text="Lookahead" />
-					<label text="Threshold" />
-					<label text="Attack" />
-					<label text="Release" />
-					<label text="Knee" />
+					<label text="labels.sc.sc_preamp" />
+					<label text="labels.sc.lookahead" />
+					<label text="labels.threshold" />
+					<label text="labels.attack" />
+					<label text="labels.release" />
+					<label text="labels.knee" />
 					
 					<knob id="scp" />
 					<knob id="lk" />
@@ -128,7 +128,7 @@
 					<hbox fill="false">
 						<vbox fill="false" visibility="ex :extsc">
 							<button id="extsc" size="12" color="green" led="true" />
-							<label text="Ext" font_size="8" />
+							<label text="labels.sc.Ext_ernal" font_size="8" />
 						</vbox>
 						<value id="scp" />
 						<label text="  " visibility="ex :extsc"/>
@@ -137,7 +137,7 @@
 					<hbox fill="false">
 						<vbox fill="false">
 							<button id="boost" size="12" color="green" led="true" />
-							<label text="Boost" font_size="8" />
+							<label text="labels.boost_" font_size="8" />
 						</vbox>
 						<value id="th" />
 						<label text="  " />
@@ -151,8 +151,8 @@
 			<!-- Signal control -->
 			<group text="groups.signal">
 				<grid rows="3" cols="2">
-					<label text="Input" />
-					<label text="Output" />
+					<label text="labels.input" />
+					<label text="labels.output" />
 					
 					<knob id="g_in" />
 					<knob id="g_out" />

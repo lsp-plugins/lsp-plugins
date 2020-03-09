@@ -1,5 +1,7 @@
 {
 	"Env_elope": "Env",
+	"Over_Sampling": "O/S",
+	"Over_Sampling:": "O/S:",
 	
 	"active": "Active",
 	
@@ -11,6 +13,7 @@
 	"band_hue": "Band, Hue",
 	
 	"boost": "Boost",
+	"boost_": "Boost",
 	"bookmark_list": "Bookmarks",
 	
 	"bypass": "Bypass",
@@ -73,6 +76,9 @@
 	
 	"distance": "Distance",
 	"distance:cm": "Distance (cm)",
+	"dither": "Dither",
+	"dither:": "Dither:",
+	"dithering": "Dithering",
 	
 	"equalizer": "Equalizer",
 	"equalizer:db": "Equalizer (dB)",
@@ -212,12 +218,14 @@
 	"setup": "Setup",
 	
 	"sc": {
+		"Ext_ernal": "Ext",
 		"SC": "SC",
 		"listen": "Listen",
 		"lookahead": "Lookahead",
 		"position": "Position",
 		"preamp": "Preamp",
 		"reactivity": "Reactivity",
+		"sc_preamp": "SC Preamp",
 		"type": "Type"
 	},
 	
@@ -264,6 +272,7 @@
 	},	
 	"spectrogram": "Spectrogram",
 	
+	"stereo_link": "Stereo link",
 	"stretch": "Stretch",
 	
 	"sync": "Sync",

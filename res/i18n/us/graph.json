@@ -2,6 +2,9 @@
 	"values": {
 		"1k": "1K",
 		"10k": "10K",
+		"x:db": "{@value} dB",
+		"x:hz": "{@value} Hz",
+		"x:s": "{@value} s"
 	},
 	
 	"axis": {
