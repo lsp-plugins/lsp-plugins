@@ -58,7 +58,7 @@ namespace lsp
 
             size_t      nMeshSize;
 
-            size_t      vDflAbscissa;
+            float      *vDflAbscissa;
 
             IPort      *pBypass;
 

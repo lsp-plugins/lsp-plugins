@@ -33,6 +33,7 @@
 #include <plugins/profiler.h>
 #include <plugins/room_builder.h>
 #include <plugins/mb_expander.h>
+#include <plugins/oscilloscope.h>
 
 #include <plugins/nonlinear_convolver.h>
 

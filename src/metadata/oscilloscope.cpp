@@ -116,7 +116,7 @@ namespace lsp
         mono_plugin_port_groups
     };
 
-    const plugin_metadata_t profiler_stereo_metadata::metadata =
+    const plugin_metadata_t oscilloscope_x2_metadata::metadata =
     {
         "Oscilloscope x2",
         "Oscilloscope x2",

@@ -235,7 +235,7 @@ namespace lsp
         }
     }
 
-    void void oscilloscope_base::process(size_t samples)
+    void oscilloscope_base::process(size_t samples)
     {
         // Bind audio ports
         for (size_t ch = 0; ch < nChannels; ++ch)
@@ -288,5 +288,21 @@ namespace lsp
 
             samples -= to_do;
         }
+    }
+
+    oscilloscope_x1::oscilloscope_x1(): oscilloscope_base(metadata, 1)
+    {
+    }
+
+    oscilloscope_x1::~oscilloscope_x1()
+    {
+    }
+
+    oscilloscope_x2::oscilloscope_x2(): oscilloscope_base(metadata, 2)
+    {
+    }
+
+    oscilloscope_x2::~oscilloscope_x2()
+    {
     }
 }

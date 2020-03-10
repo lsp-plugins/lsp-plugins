@@ -1,0 +1,42 @@
+<plugin resizable="false">
+    <vbox spacing="4">
+        <group text="Screen" expand="true" fill="true">
+            <graph width="512" height="320" expand="true" fill="true">
+                <center hpos="-1.0" vpos="0.0" visible="false" />
+                <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
+                <axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
+
+                <mesh id="oscv_1" width="3" />
+
+                <marker value="-1" color="g_white" basis="1" parallel="0" />
+                <marker value="-0.75" color="g_gray" basis="1" parallel="0" />
+                <marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
+                <marker value="-0.25" color="g_gray" basis="1" parallel="0" />
+                <marker value="0.25" color="g_gray" basis="1" parallel="0" />
+                <marker value="0.5" color="g_yellow" basis="1" parallel="0" />
+                <marker value="0.75" color="g_gray" basis="1" parallel="0" />
+                <marker value="1" color="g_white" basis="1" parallel="0" />
+
+                <marker value="0.25" color="g_gray" basis="0" parallel="1" />
+                <marker value="0.5" color="g_yellow" basis="0" parallel="1" />
+                <marker value="0.75" color="g_gray" basis="0" parallel="1" />
+                <marker value="1" color="g_white" basis="0" parallel="1" />
+                <marker value="1.25" color="g_gray" basis="0" parallel="1" />
+                <marker value="1.5" color="g_yellow" basis="0" parallel="1" />
+                <marker value="1.75" color="g_gray" basis="0" parallel="1" />
+                <marker value="2" color="g_white" basis="0" parallel="1" />
+
+                <text text="X" coord="0;-1" halign="1" valign="1" />
+                <text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
+                <text text="0.5" coord="1;-1" halign="-1" valign="1" />
+                <text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
+                <text text="1.0" coord="2;-1" halign="-1" valign="1" />
+
+                <text text="Y" coord="0;1" halign="1" valign="-1" />
+                <text text="0.5" coord="0;0.5" halign="1" valign="-1" />
+                <text text="0" coord="0;0" halign="1" valign="-1" />
+                <text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
+            </graph>
+        </group>
+    </vbox>
+</plugin>
