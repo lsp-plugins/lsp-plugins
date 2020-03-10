@@ -65,7 +65,12 @@ namespace lsp
             if (name[len] == ':') // Parameter ("prefix:")?
                 s->params()->add_cstring(&name[len+1], value);
             else if (name[len] == '\0') // Key?
-                s->set_key(value);
+            {
+                if (strchr(value, '.') == NULL) // Raw value with high probability?
+                    s->set_raw(value);
+                else
+                    s->set_key(value);
+            }
         }
 
         void CtlWidget::init_color(color_t value, Color *color)
