@@ -11,6 +11,8 @@
 	
 	"automatic_extension": "Automatic extension",
 	
+	"balance": "Balance",
+	
 	"band_hue": "Band, Hue",
 	
 	"boost": "Boost",
@@ -73,6 +75,7 @@
 	"clear": "Clear",
 	
 	"controls": "Controls",
+	"ctl": "Ctl",
 	
 	"click_or_drag_to_load": "Click or drag to load",
 	
@@ -129,6 +132,7 @@
 	
 	"gain": "Gain",
 	"gain_": "Gain",
+	"gain:db": "Gain\n(dB)",
 	
 	"graphs": {
 		"compression": "COMPRESSION",
@@ -149,6 +153,7 @@
 	"hysteresis": "Hysteresis",
 	
 	"input": "Input",
+	"input:db": "Input (dB)",
 
 	"ir_equalizer": "IR equalizer",
 	
@@ -189,6 +194,7 @@
 	"mute": "Mute",
 	
 	"output": "Output",
+	"output:db": "Output (dB)",
 	
 	"panorama": "Panorama",
 	"panorama:pc": "Panorama (%)",
@@ -310,6 +316,10 @@
 		":hz": "(Hz)",
 		":ms": "(ms)",
 		":pc": "(%)",
+		"db": "dB",
+		"hz": "Hz",
+		"ms": "ms",
+		"pc": "%",
 		"centimeters": "Centimeters",
 		"meters": "Meters",
 		"millimeters": "Millimeters",
@@ -317,6 +327,9 @@
 	},
 	
 	"value": "Value",
+	"values": {
+		"x_k": "{@value}k"
+	},
 	
 	"zone": "Zone",
 	"zoom": "Zoom"
