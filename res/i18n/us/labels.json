@@ -61,6 +61,11 @@
 		"on": "On",
 		"out": "Out",
 		"output": "Output",
+		"pitch": "Pitch",
+		"pitch_left": "Pitch Left",
+		"pitch_mid": "Pitch Mid",
+		"pitch_right": "Pitch Right",
+		"pitch_side": "Pitch Side",
 		"right": "Right",
 		"right_on": "Right on",
 		"shift": "Shift",
@@ -129,6 +134,7 @@
 	},
 	
 	"frequency": "Frequency",
+	"freq_gain:hz_db": "Freq, Gain\n(Hz, dB)",
 	
 	"gain": "Gain",
 	"gain_": "Gain",
@@ -214,6 +220,8 @@
 	
 	"predelay": "Pre-delay",
 	
+	"q_hue": "Q, Hue",
+	
 	"ramp": "Ramp",
 	"range": "Range",
 	"ranges": "Ranges",
@@ -234,8 +242,6 @@
 	"samples": "Samples",
 	"samples:samp": "Samples (samp)",
 	
-	"setup": "Setup",
-	
 	"sc": {
 		"Ext_ernal": "Ext",
 		"SC": "SC",
@@ -253,6 +259,7 @@
 	
 	"sc_preamp_makeup:db_db": "SC Preamp,\nMakeup\n(dB, dB)",
 	
+	"setup": "Setup",
 	"search": "Search",
 	"sedit": {
 		"fade_in": "Fade in",
@@ -282,6 +289,8 @@
 		"wet": "Wet",
 		"wet:db": "Wet\n(dB)"
 	},
+	
+	"slope": "Slope",
 
 	"source": "Source",
 	
