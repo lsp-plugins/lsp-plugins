@@ -1,6 +1,7 @@
 {
 	"analysis": "Analysis",
 	"audio_channel": "Audio Channel",
+	"audio_channels": "Audio Channel",
 	"audio_output": "Audio Output",
 	
 	"bands": "Bands",
@@ -34,6 +35,7 @@
 	},
 	
 	"metering": "Metering",
+	"midi_setup": "MIDI Setup",
 	"monitoring": "Monitoring",
 	
 	"oscillator_function": "Oscillator Function",

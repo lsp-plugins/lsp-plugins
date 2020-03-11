@@ -1,16 +1,16 @@
 <plugin resizable="false">
 	<grid rows="2" cols="2" spacing="4" transpose="true">
-		<group text="MIDI Setup" expand="true">
+		<group text="groups.midi_setup" expand="true">
 			<grid rows="3" cols="6" hspacing="4">
-				<label text="Channel" />
-				<label text="Note" />
-				<label text="Muting" />
+				<label text="labels.channel" />
+				<label text="labels.mus.note" />
+				<label text="labels.muting" />
 				<hbox spacing="4" fill="false">
 					<button id="noff" led="true" color="green" size="12" />
-					<label text="Note off" />
+					<label text="labels.midi.note_off" />
 				</hbox>
-				<label text="MIDI #" />
-				<label text="Mute" />
+				<label text="labels.midi.midi_num" />
+				<label text="labels.muting" />
 									
 				<combo id="chan" halign="1" fill="true" />
 				<hbox fill="true" spacing="2">
@@ -43,13 +43,13 @@
 				/>
 					
 				<grid rows="3" cols="7" vspacing="2" expand="true">
-					<label text="Head cut" />
-					<label text="Tail cut" />
-					<label text="Fade in" />
-					<label text="Fade out" />
-					<label text="Makeup" />
-					<label text="Pre-delay" />
-					<label text="Listen" />
+					<label text="labels.sedit.head_cut" />
+					<label text="labels.sedit.tail_cut" />
+					<label text="labels.sedit.fade_in" />
+					<label text="labels.sedit.fade_out" />
+					<label text="labels.sedit.makeup" />
+					<label text="labels.sedit.predelay" />
+					<label text="labels.sedit.listen" />
 					
 					<knob id="hc[ssel]" size="20" />
 					<knob id="tc[ssel]" size="20" />
@@ -69,13 +69,13 @@
 				</grid>
 			</vbox>
 		</cgroup>
-		<group text="Audio Channel" expand="true">
+		<group text="groups.audio_channel" expand="true">
 			<grid rows="3" cols="5">
-				<label id="dyna" />
-				<label id="drft" />
-				<label id="dry" />
-				<label id="wet" />
-				<label id="g_out" />
+				<label text="labels.dynamics" />
+				<label text="labels.time_drifting" />
+				<label text="labels.signal.dry" />
+				<label text="labels.signal.wet" />
+				<label text="labels.output" />
 				
 				<knob id="dyna" scale_color="green" />
 				<knob id="drft" scale_color="green" />
@@ -90,18 +90,18 @@
 				<value id="g_out" />
 			</grid>
 		</group>
-		<group text="group.sample_matrix" expand="true">
+		<group text="groups.sample_matrix" expand="true">
 			<!-- Sample matrix -->
 			<grid rows="9" cols="9" transpose="true">
-				<label text="Sample #" fill="true" halign="0" />
-				<label text="Enabled" fill="true" halign="0" />
-				<label text="Active" fill="true" halign="0" />
-				<label text="Velocity" fill="true" halign="0" />
-				<label text="(%)" fill="true" halign="0" />
-				<label text="Gain" fill="true" halign="0" />
-				<label text="(dB)" fill="true" halign="0" />
-				<label text="Listen" fill="true" halign="0" />
-				<label text="Note on" fill="true" halign="0" />
+				<label text="labels.sedit.sample_num" fill="true" halign="0" />
+				<label text="labels.sedit.enabled" fill="true" halign="0" />
+				<label text="labels.sedit.active" fill="true" halign="0" />
+				<label text="labels.midi.velocity" fill="true" halign="0" />
+				<label text="labels.units.:pc" fill="true" halign="0" />
+				<label text="labels.gain" fill="true" halign="0" />
+				<label text="labels.units.:db" fill="true" halign="0" />
+				<label text="labels.sedit.listen" fill="true" halign="0" />
+				<label text="labels.midi.note_on" fill="true" halign="0" />
 
 				<ui:for id="i" first="0" last="7" >
 					<label text="${i}" />

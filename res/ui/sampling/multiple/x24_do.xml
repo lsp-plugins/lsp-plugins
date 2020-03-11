@@ -5,13 +5,13 @@
 		<!-- Area selector -->
 		<align hpos="-1">
 			<hbox spacing="8">
-				<label text="Working area" />
+				<label text="labels.working_area" />
 				<combo id="msel" halign="1" />
-				<label text="Direct output:" />
+				<label text="labels.direct_output_" />
 				<button id="do_gain" led="true" color="left_channel" />
-				<label text="Gain" />
+				<label text="labels.gain" />
 				<button id="do_pan" led="true" color="right_channel" />
-				<label text="Panning" />
+				<label text="labels.panning" />
 			</hbox>
 		</align>
 		
@@ -20,12 +20,12 @@
 			<cgroup id="inst" text="Instrument # ">
 				<grid rows="4" cols="6" spacing="4">
 					<!-- Row 1 -->
-					<label text="Channel" />
-					<label text="Note" />
-					<label text="MIDI #" />
+					<label text="labels.channel" />
+					<label text="labels.mus.note" />
+					<label text="labels.midi.midi_num" />
 					<cell rows="4"><vsep /></cell>
-					<label text="Dynamics" />
-					<label text="Time drifting" />
+					<label text="labels.dynamics" />
+					<label text="labels.time_drifting" />
 
 					<!-- Row 2 -->
 					<combo id="chan[inst]" fill="true" />
@@ -38,15 +38,15 @@
 					<cell rows="2"><knob id="drft[inst]" scale_color="green" /></cell>
 					
 					<!-- Row 3 -->
-					<label text="Group" />
+					<label text="labels.group" />
 					<align hpos="0">
 						<hbox spacing="4">
 							<button id="mtg[inst]" color="yellow" led="true" size="12" />
-							<label text="Muting" />
+							<label text="labels.muting" />
 						</hbox>
 					</align>
 					<cell rows="2">
-						<button id="ion[inst]" size="32" led="true" color="yellow" text="ON" />
+						<button id="ion[inst]" size="32" led="true" color="yellow" text="labels.chan.ON" />
 					</cell>
 					
 					<!-- Row 4 -->
@@ -54,7 +54,7 @@
 					<align hpos="0">
 						<hbox spacing="4">
 							<button id="nto[inst]" color="green" led="true" size="12" />
-							<label text="Note off" />
+							<label text="labels.midi.note_off" />
 						</hbox>
 					</align>
 					<value id="dyna[inst]" same_line="true" />
@@ -63,15 +63,15 @@
 			</cgroup>
 			<group text="groups.audio_output">
 				<grid rows="3" cols="6">
-					<label text="Muting" />
+					<label text="labels.muting" />
 					<hbox spacing="4" fill="false">
 						<button id="noff" led="true" color="green" size="12" />
-						<label text="Note off" />
+						<label text="labels.midi.note_off" />
 					</hbox>
-					<label id="dry" />
-					<label id="wet" />
-					<label id="g_out" />
-					<label text="Mute" />
+					<label text="labels.signal.dry" />
+					<label text="labels.signal.wet" />
+					<label text="labels.output" />
+					<label text="labels.mute" />
 					
 					<button id="muting" size="24" color="yellow" led="true" />
 					<knob id="fout" />
@@ -101,13 +101,13 @@
 					/>
 						
 					<grid rows="3" cols="7" vspacing="2" expand="true">
-						<label text="Head cut" />
-						<label text="Tail cut" />
-						<label text="Fade in" />
-						<label text="Fade out" />
-						<label text="Makeup" />
-						<label text="Pre-delay" />
-						<label text="Listen" />
+						<label text="labels.sedit.head_cut" />
+						<label text="labels.sedit.tail_cut" />
+						<label text="labels.sedit.fade_in" />
+						<label text="labels.sedit.fade_out" />
+						<label text="labels.sedit.makeup" />
+						<label text="labels.sedit.predelay" />
+						<label text="labels.sedit.listen" />
 						
 						<knob id="hc[inst][ssel]" size="20" />
 						<knob id="tc[inst][ssel]" size="20" />
@@ -127,20 +127,20 @@
 					</grid>
 				</vbox>
 			</cgroup>
-			<group text="group.sample_matrix" expand="true">
+			<group text="groups.sample_matrix" expand="true">
 				<!-- Sample matrix -->
 				<grid rows="11" cols="9" transpose="true">
-					<label text="Sample #" fill="true" halign="0" />
-					<label text="Enabled" fill="true" halign="0" />
-					<label text="Active" fill="true" halign="0" />
-					<label text="Velocity" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Pan Left" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Pan Right" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Listen" fill="true" halign="0" />
-					<label text="Note on" fill="true" halign="0" />
+					<label text="labels.sedit.sample_num" fill="true" halign="0" />
+					<label text="labels.sedit.enabled" fill="true" halign="0" />
+					<label text="labels.sedit.active" fill="true" halign="0" />
+					<label text="labels.midi.velocity" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.signal.pan_left" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.signal.pan_right" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.sedit.listen" fill="true" halign="0" />
+					<label text="labels.midi.note_on" fill="true" halign="0" />
 
 					<ui:for id="i" first="0" last="7" >
 						<label text="${i}" />
@@ -163,19 +163,19 @@
 		<ui:for id="m" first="0" last="1">
 			<group text="groups.instrument_mixer" visibility=":msel ieq ${:m+1}">
 				<grid rows="14" cols="13" transpose="true" hspacing="2" vspacing="2">
-					<label text="Instrument #" fill="true" halign="0" />
-					<label text="Enabled" fill="true" halign="0" />
-					<label text="Mix gain" fill="true" halign="0" />
-					<label text="(dB)" fill="true" halign="0" />
-					<label text="Direct Out" fill="true" halign="0" />
-					<label text="Pan Left" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Pan Right" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Group" fill="true" halign="0" />
-					<label text="MIDI #" fill="true" halign="0" />
-					<label text="Note on" fill="true" halign="0" />
-					<label text="Listen" fill="true" halign="0" />
+					<label text="labels.instrument_num" fill="true" halign="0" />
+					<label text="labels.sedit.enabled" fill="true" halign="0" />
+					<label text="labels.mix_gain" fill="true" halign="0" />
+					<label text="labels.units.:db" fill="true" halign="0" />
+					<label text="labels.direct_out" fill="true" halign="0" />
+					<label text="labels.signal.pan_left" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.signal.pan_right" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.group" fill="true" halign="0" />
+					<label text="labels.midi.midi_num" fill="true" halign="0" />
+					<label text="labels.midi.note_on" fill="true" halign="0" />
+					<label text="labels.listen" fill="true" halign="0" />
 					<label />
 					
 					<ui:for id="i" first="${:m*12}" last="${:m*12+11}" >

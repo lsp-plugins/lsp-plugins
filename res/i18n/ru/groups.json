@@ -1,6 +1,7 @@
 {
 	"analysis": "Анализ",
 	"audio_channel": "Аудиоканал",
+	"audio_channels": "Аудиоканалы",
 	"audio_output": "Аудиовыход",
 	
 	"bands": "Полосы",
@@ -34,6 +35,7 @@
 	},
 	
 	"metering": "Измерения",
+	"midi_setup": "Настройка MIDI",
 	"monitoring": "Мониторинг",
 	
 	"oscillator_function": "Функция осциллятора",

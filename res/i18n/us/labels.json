@@ -30,6 +30,8 @@
 		"M_id": "M",
 		"M_id:": "M:",
 		"M_ute": "M",
+		"OFF": "OFF",
+		"ON": "ON",
 		"R_ight": "R",
 		"R_ight:": "R:",
 		"S_ide": "S",
@@ -88,11 +90,16 @@
 	
 	"delay": "Delay",
 	
+	"direct_out": "Direct out",
+	"direct_output": "Direct output",
+	"direct_output_": "Direct output:",
 	"distance": "Distance",
 	"distance:cm": "Distance (cm)",
 	"dither": "Dither",
 	"dither:": "Dither:",
 	"dithering": "Dithering",
+	
+	"dynamics": "Dynamis",
 	
 	"equalizer": "Equalizer",
 	"equalizer:db": "Equalizer (dB)",
@@ -152,6 +159,7 @@
 		"spectrum": "SPECTRUM GRAPH",
 		"time": "TIME GRAPH"
 	},
+	"group": "Group",
 	
 	"hold": "Hold",
 	"host_bpm": "Host BPM",
@@ -160,6 +168,7 @@
 	
 	"input": "Input",
 	"input:db": "Input (dB)",
+	"instrument_num": "Instrument #",
 	
 	"ir_equalizer": "IR equalizer",
 	
@@ -188,7 +197,14 @@
 		"shift": "Shift"
 	},
 	
+	"midi": {
+		"midi_num": "MIDI #",
+		"note_off": "Note off",
+		"note_on": "Note on",
+		"velocity": "Velocity"
+	},
 	"mix": "Mix",
+	"mix_gain": "Mix Gain",
 	
 	"mode": "Mode",
 	"mode:": "Mode:",
@@ -197,11 +213,21 @@
 	
 	"ms_listen": "MS Listen",
 	
+	"mus": {
+		"note": "Note",
+		"bpm": "BPM",
+		"pitch": "Pitch",
+		"tempo": "Tempo",
+		"tone": "Tone"
+	},
+	
 	"mute": "Mute",
+	"muting": "Muting",
 	
 	"output": "Output",
 	"output:db": "Output (dB)",
 	
+	"panning": "Panning",
 	"panorama": "Panorama",
 	"panorama:pc": "Panorama (%)",
 	"pause": "Pause",
@@ -262,10 +288,17 @@
 	"setup": "Setup",
 	"search": "Search",
 	"sedit": {
+		"active": "Active",
+		"disabled": "Disabled",
+		"enabled": "Enabled",
 		"fade_in": "Fade in",
 		"fade_out": "Fade out",
 		"head_cut": "Head cut",
+		"listen": "Listen",
+		"makeup": "Makeup",
+		"predelay": "Pre-delay",
 		"reverse": "Reverse",
+		"sample_num": "Sample #",
 		"tail_cut": "Tail cut"
 	},
 	"settings": "Settings",
@@ -284,6 +317,7 @@
 		"out_lr": "Out L/R",
 		"pan": "Pan",
 		"pan_l": "Pan L",
+		"pan_left": "Pan Left",
 		"pan_r": "Pan R",
 		"stereo": "Stereo",
 		"wet": "Wet",
@@ -316,6 +350,7 @@
 	
 	"time": "Time",
 	"time_:ms": "Time (ms)",
+	"time_drifting": "Time drifting",
 	"time:ms": "Time\n(ms)",
 	
 	"type": "Type",
@@ -339,6 +374,8 @@
 	"values": {
 		"x_k": "{@value}k"
 	},
+	
+	"working_area": "Working area",
 	
 	"zone": "Zone",
 	"zoom": "Zoom"
