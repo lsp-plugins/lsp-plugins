@@ -31,6 +31,7 @@
 	"Env_elope": "Env",
 	"Over_Sampling": "O/S",
 	"Over_Sampling:": "O/S:",
+	"Tri_gger": "Trg",
 
 	"active": "Active",
 	
@@ -188,7 +189,8 @@
 		"left_channel": "LEFT CHANNEL",
 		"right_channel": "RIGHT CHANNEL",
 		"spectrum": "SPECTRUM GRAPH",
-		"time": "TIME GRAPH"
+		"time": "TIME GRAPH",
+		"trigger": "TRIGGER GRAPH"
 	},
 	"group": "Group",
 	
@@ -311,6 +313,7 @@
 	
 	"ramp": "Ramp",
 	"range": "Range",
+	"range_id": "Range {@id}",
 	"ranges": "Ranges",
 	
 	"ratio": "Ratio",
@@ -403,6 +406,7 @@
 		"num": "#"	
 	},
 	"spectrogram": "Spectrogram",
+	"spread": "Spread",
 	
 	"src": {
 		"disabled": "Disabled",
