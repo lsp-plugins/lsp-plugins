@@ -122,7 +122,7 @@ namespace lsp
         SWITCH("scgv" id, "Sidechain graph visibility" label, 1.0f), \
         SWITCH("grgv" id, "Gain graph visibility" label, 1.0f), \
         METER_OUT_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_0_DB), \
-        METER_OUT_GAIN("olm" id, "Outut level meter" label, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("olm" id, "Output level meter" label, GAIN_AMP_0_DB), \
         METER_OUT_GAIN("sclm" id, "Sidechain level meter" label, GAIN_AMP_0_DB), \
         METER_GAIN_DFL("grlm" id, "Gain reduction level meter" label, GAIN_AMP_0_DB, GAIN_AMP_0_DB), \
         MESH("ig" id, "Input graph" label, 2, limiter_base_metadata::HISTORY_MESH_SIZE), \
