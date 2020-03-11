@@ -157,10 +157,10 @@
 					<label text="107" />
 					<label text="227" />
 					<label text="484" />
-					<label text="labels.flt.1k" />
-					<label text="labels.flt.2_2k" />
-					<label text="labels.flt.4_7k" />
-					<label text="labels.flt.10k" />
+					<label text="labels.values.x_k" text:value="1" />
+					<label text="labels.values.x_k" text:value="2.2" />
+					<label text="labels.values.x_k" text:value="4.7" />
+					<label text="labels.values.x_k" text:value="10" />
 					<label text="labels.flt.high_cut" />
 					
 					<combo id="lcm" />

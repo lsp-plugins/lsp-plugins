@@ -1,4 +1,33 @@
 {
+	"3d": {
+		"3d_model": "Модель 3D",
+		"angle": "Угол",
+		"camera": "Камера",
+		"curvature": "Кривизна",
+		"distance": "Расстояние",
+		"height": "Высота",
+		"move_x": "Смещ X",
+		"move_y": "Смещ Y",
+		"move_z": "Смещ Z",
+		"pitch": "Наклон",
+		"roll": "Крен",
+		"s_ize_x:": "Разм X:",
+		"s_ize_y:": "Разм Y:",
+		"s_ize_z:": "Разм Z:",
+		"scale_x": "Масш X",
+		"scale_y": "Масш Y",
+		"scale_z": "Масш Z",
+		"size": "Размер",
+		"size_x:": "Разм X:",
+		"size_y:": "Разм Y:",
+		"size_z:": "Разм Z:",
+		"shape": "Фигура",
+		"x_axis": "Ось X",
+		"y_axis": "Ось Y",
+		"yaw": "Поворот",
+		"z_axis": "Ось Z"
+	},
+	
 	"Env_elope": "Огиб",
 	"Over_Sampling": "П/Д",
 	"Over_Sampling:": "П/Д:",
@@ -20,6 +49,10 @@
 	"bookmark_list": "Закладки",
 	
 	"bypass": "Обход",
+	
+	"capture": "Захват",
+	"capture:": "Захват:",
+	"capsule": "Капсюль",
 	
 	"chan": {
 		":db": "(дБ)",
@@ -103,6 +136,8 @@
 	
 	"equalizer": "Эквалайзер",
 	"equalizer:db": "Эквалайзер (дБ)",
+	
+	"export": "Экспорт",
 
 	"fft": {
 		"envelope": "Огибающая",
@@ -175,6 +210,7 @@
 	"knee": "Колено",
 	"knee_:db": "Колено\n(дБ)",
 
+	"launch": "Пуск",
 	"left": "Лево",
 	"listen": "Слушать",
 	"location": "Местоположение",
@@ -184,6 +220,21 @@
 	
 	"makeup": "Коррекция",
 	"makeup_:db": "Коррекция\n(дБ)",
+	
+	"material": {
+		"absorption": "Поглощение",
+		"diffusion": "Рассеяние",
+		"dispersion": "Дисперсия",
+		"in_to_out": "Внутрь",
+		"link": "Связь",
+		"material_preset": "Готовый материал",
+		"material_preset:": "Готовый материал:",
+		"out_to_in": "Наружу",
+		"physical_properties": "Физические свойства",
+		"physical_properties:": "Физические свойства:",
+		"sound_speed": "Скорость звука",
+		"transparency": "Проницаемость"
+	},
 	
 	"metering": {
 		"channel": "Канал",
@@ -196,6 +247,8 @@
 		"selector": "Селектор",
 		"shift": "Смещение"
 	},
+	
+	"mic_rophone_direction": "Напр микрофона",
 	
 	"midi": {
 		"midi_num": "№ MIDI",
@@ -224,6 +277,16 @@
 	"mute": "Глушение",
 	"muting": "Глушение",
 	
+	"normalize": "Нормализация",
+	
+	"obj": {
+		"disabled": "Отключен",
+		"enabled": "Включен",
+		"hue": "Тон",
+		"object": "Объект",
+		"object:": "Объект:"
+	},
+	
 	"output": "Выход",
 	"output:db": "Выход (дБ)",
 	
@@ -245,8 +308,10 @@
 	"preamp": "Предусиление",
 	
 	"predelay": "Предзадержка",
+	"progress": "Прогресс",
 	
 	"q_hue": "Добр, Тон",
+	"quality": "Качество",
 	
 	"ramp": "Сглаж",
 	"range": "Диапазон",
@@ -259,11 +324,15 @@
 	
 	"reduction": "Понижение",
 	
+	"reflections": "Отражения",
+	
 	"rel_ease": "Выкл",
 	"release": "Выключение",
 	"release:db_ms": "Выключение\n(дБ, мс)",
 	
 	"right": "Право",
+	
+	"room_orientation:": "Ориентация комнаты:",
 	
 	"samples": "Отсчёты",
 	"samples:samp": "Отсчёты (шт)",
@@ -303,6 +372,7 @@
 	},
 	"settings": "Настройки",
 	
+	"side_direction": "Напр бокового",
 	"sidechain": "Боковая цепь",
 	
 	"signal": {
@@ -313,6 +383,7 @@
 		"dry:db": "Необр\n(дБ)",
 		"dry_pan": "Пан необр",
 		"in_lr": "Вх Л/П",
+		"invert": "Инвертировать",
 		"mono": "Моно",
 		"out_lr": "Вых Л/П",
 		"pan": "Панорама",
@@ -320,6 +391,7 @@
 		"pan_left": "Пан лев",
 		"pan_r": "Пан прав",
 		"pan_right": "Пан прав",
+		"phase": "Phase",
 		"stereo": "Стерео",
 		"wet": "Обраб",
 		"wet:db": "Обраб\n(дБ)"
@@ -328,6 +400,7 @@
 	"slope": "Крутизна",
 	
 	"source": "Источник",
+	"source:": "Источник:",
 	
 	"specials": {
 		"idx": "{@id}",
@@ -336,7 +409,15 @@
 	},	
 	"spectrogram": "Спектрограмма",
 	
+	"src": {
+		"disabled": "Выключен",
+		"enabled": "Включен"
+	},
+	
+	"status": "Статус",
+	
 	"stereo_link": "Стереосвязь",
+	"stop": "Стоп",
 	"stretch": "Растяжение",
 	
 	"sync": "Синхр",
@@ -345,6 +426,7 @@
 	"tempo": "Темп",
 	
 	"thr_eshold": "Пор",
+	"threads": "Потоков",
 	"threshold": "Порог",
 	"thresh_gain:db_db": "Порог, Усил\n(дБ, дБ)",
 	"thresh_old": "Порог",

@@ -1,4 +1,33 @@
 {
+	"3d": {
+		"3d_model": "3D model",
+		"angle": "Angle",
+		"camera": "Camera",
+		"curvature": "Curvature",
+		"distance": "Distance",
+		"height": "Height",
+		"move_x": "Move X",
+		"move_y": "Move Y",
+		"move_z": "Move Z",
+		"pitch": "Pitch",
+		"roll": "Roll",
+		"s_ize_x:": "Sz X:",
+		"s_ize_y:": "Sz Y:",
+		"s_ize_z:": "Sz Z:",
+		"scale_x": "Scale X",
+		"scale_y": "Scale Y",
+		"scale_z": "Scale Z",
+		"size": "Size",
+		"size_x:": "Size X:",
+		"size_y:": "Size Y:",
+		"size_z:": "Size Z:",
+		"shape": "Shape",
+		"x_axis": "X Axis",
+		"y_axis": "Y Axis",
+		"yaw": "Yaw",
+		"z_axis": "Z Axis"
+	},
+
 	"Env_elope": "Env",
 	"Over_Sampling": "O/S",
 	"Over_Sampling:": "O/S:",
@@ -20,6 +49,10 @@
 	"bookmark_list": "Bookmarks",
 	
 	"bypass": "Bypass",
+	
+	"capture": "Capture",
+	"capture:": "Capture:",
+	"capsule": "Capsule",
 	
 	"chan": {
 		":db": "(dB)",
@@ -103,6 +136,8 @@
 	
 	"equalizer": "Equalizer",
 	"equalizer:db": "Equalizer (dB)",
+	
+	"export": "Export",
 
 	"fft": {
 		"envelope": "Envelope",
@@ -120,10 +155,6 @@
 	"filters": "Filters",
 	
 	"flt": {
-		"10k": "10k",
-		"1k": "1k",
-		"2_2k": "2.2k",
-		"4_7k": "4.7k",
 		"EQ_ualizer": "EQ",
 		"H_ighC_ut": "HC",
 		"HCF": "HCF",
@@ -175,6 +206,7 @@
 	"knee": "Knee",
 	"knee_:db": "Knee\n(dB)",
 
+	"launch": "Launch",
 	"left": "Left",
 	"listen": "Listen",
 	"location": "Location",
@@ -184,6 +216,21 @@
 	
 	"makeup": "Makeup",
 	"makeup_:db": "Makeup\n(dB)",
+	
+	"material": {
+		"absorption": "Absorption",
+		"diffusion": "Diffusion",
+		"dispersion": "Dispersion",
+		"in_to_out": "In -> Out",
+		"link": "Link",
+		"material_preset": "Material preset",
+		"material_preset:": "Material preset:",
+		"out_to_in": "Out -> In",
+		"physical_properties": "Physical properties",
+		"physical_properties:": "Physical properties:",
+		"sound_speed": "Sound speed",
+		"transparency": "Transparency"
+	},
 	
 	"metering": {
 		"channel": "Channel",
@@ -196,6 +243,8 @@
 		"selector": "Selector",
 		"shift": "Shift"
 	},
+	
+	"mic_rophone_direction": "Mic. direction",
 	
 	"midi": {
 		"midi_num": "MIDI #",
@@ -224,6 +273,16 @@
 	"mute": "Mute",
 	"muting": "Muting",
 	
+	"normalize": "Normalize",
+	
+	"obj": {
+		"disabled": "Disabled",
+		"enabled": "Enabled",
+		"hue": "Hue",
+		"object": "Object",
+		"object:": "Object:"
+	},
+	
 	"output": "Output",
 	"output:db": "Output (dB)",
 	
@@ -245,8 +304,10 @@
 	"preamp": "Preamp",
 	
 	"predelay": "Pre-delay",
+	"progress": "Progress",
 	
 	"q_hue": "Q, Hue",
+	"quality": "Quality",
 	
 	"ramp": "Ramp",
 	"range": "Range",
@@ -259,11 +320,15 @@
 	
 	"reduction": "Reduction",
 	
+	"reflections": "Reflections",
+	
 	"rel_ease": "Rel",
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",
 	
 	"right": "Right",
+	
+	"room_orientation:": "Room orientation:",
 	
 	"samples": "Samples",
 	"samples:samp": "Samples (samp)",
@@ -303,6 +368,7 @@
 	},
 	"settings": "Settings",
 	
+	"side_direction": "Side direction", 
 	"sidechain": "Sidechain",
 	
 	"signal": {
@@ -313,6 +379,7 @@
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Dry pan",
 		"in_lr": "In L/R",
+		"invert": "Invert",
 		"mono": "Mono",
 		"out_lr": "Out L/R",
 		"pan": "Pan",
@@ -320,6 +387,7 @@
 		"pan_left": "Pan Left",
 		"pan_r": "Pan R",
 		"pan_right": "Pan Right",
+		"phase": "Phase",
 		"stereo": "Stereo",
 		"wet": "Wet",
 		"wet:db": "Wet\n(dB)"
@@ -328,6 +396,7 @@
 	"slope": "Slope",
 	
 	"source": "Source",
+	"source:": "Source:",
 	
 	"specials": {
 		"idx": "{@id}",
@@ -335,7 +404,15 @@
 	},
 	"spectrogram": "Spectrogram",
 	
+	"src": {
+		"disabled": "Disabled",
+		"enabled": "Enabled"
+	},
+	
+	"status": "Status",
+	
 	"stereo_link": "Stereo link",
+	"stop": "Stop",
 	"stretch": "Stretch",
 	
 	"sync": "Sync",
@@ -344,6 +421,7 @@
 	"tempo": "Tempo",
 	
 	"thr_eshold": "Thr",
+	"threads": "Threads",
 	"threshold": "Threshold",
 	"thresh_gain:db_db": "Thresh, Gain\n(dB, dB)",
 	"thresh_old": "Thresh",

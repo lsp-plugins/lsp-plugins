@@ -3,11 +3,11 @@
 		<!-- Main settings -->
 		<align hpos="-1">
 			<hbox spacing="4">
-				<label text="FFT frame" />
+				<label text="labels.fft.frame" />
 				<combo id="fft" />
 				<vsep />
 				<button id="wpp" size="16" color="green" led="true" />
-				<label text="IR Equalizer" />
+				<label text="labels.ir_equalizer" />
 			</hbox>
 		</align>
 		
@@ -18,26 +18,26 @@
 					<align hpos="-1">
 						<hbox spacing="4">
 							<vbox>
-								<align hpos="-1"><label text="Room orientation:" /></align>
+								<align hpos="-1"><label text="labels.room_orientation:" /></align>
 								<align hpos="-1"><combo id="ifo" /></align>
 							</vbox>
 							<vsep />
 							
 							<knob id="xscale" scale_color="red" size="16" />
 							<vbox>
-								<align hpos="-1"><label text="Sz X:" /></align>
+								<align hpos="-1"><label text="labels.3d.s_ize_x:" /></align>
 								<align hpos="-1"><value id="xscale" same_line="true" /></align>
 							</vbox>
 							
 							<knob id="yscale" scale_color="green"  size="16" />
 							<vbox>
-								<align hpos="-1"><label text="Sz Y:" /></align>
+								<align hpos="-1"><label text="labels.3d.s_ize_y:" /></align>
 								<align hpos="-1"><value id="yscale" same_line="true" /></align>
 							</vbox>
 							
 							<knob id="zscale" scale_color="blue" size="16" />
 							<vbox>
-								<align hpos="-1"><label text="Sz Z:" /></align>
+								<align hpos="-1"><label text="labels.3d.s_ize_z:" /></align>
 								<align hpos="-1"><value id="zscale" same_line="true" /></align>
 							</vbox>
 						</hbox>
@@ -76,19 +76,19 @@
 					</viewer3d>
 					<!--  yaw_id="cyaw" pitch_id="cpitch" -->
 					<grid rows="4" cols="7">
-						<label text="3D model" />
+						<label text="labels.3d.3d_model" />
 						<cell rows="4"><vsep /></cell>
-						<cell cols="5"><label text="Camera" /></cell>
+						<cell cols="5"><label text="labels.3d.camera" /></cell>
 						
 						<cell rows="3">
 							<load size="64" id="ifn" format="obj3d" status_id="ifs" progress_id="ifp" path_id="ui:dlg_model3d_path" />
 						</cell>
 						
-						<label text="X Axis" />
-						<label text="Y Axis" />
-						<label text="Z Axis" />
-						<label text="Yaw" />
-						<label text="Pitch" />
+						<label text="labels.3d.x_axis" />
+						<label text="labels.3d.y_axis" />
+						<label text="labels.3d.z_axis" />
+						<label text="labels.3d.yaw" />
+						<label text="labels.3d.pitch" />
 						
 						<knob id="cposx" size="24" scale_color="red" />
 						<knob id="cposy" size="24" scale_color="green" />
@@ -118,14 +118,14 @@
 						</hbox>
 						
 						<grid rows="4" cols="8" hspacing="4">
-							<label text="Export" />
+							<label text="labels.export" />
 							<cell rows="4"><vsep /></cell>
-							<label text="Reverse" />
-							<label text="Head cut" />
-							<label text="Tail cut" />
-							<label text="Fade in" />
-							<label text="Fade out" />
-							<label text="Listen" />
+							<label text="labels.sedit.reverse" />
+							<label text="labels.sedit.head_cut" />
+							<label text="labels.sedit.tail_cut" />
+							<label text="labels.sedit.fade_in" />
+							<label text="labels.sedit.fade_out" />
+							<label text="labels.sedit.listen" />
 							
 							<cell rows="3">
 								<save size="64" id="ofn_${i}"
@@ -147,7 +147,7 @@
 							<value id="ifo_${i}" />
 							<led id="ils_${i}" />
 							
-							<label text="Makeup" />
+							<label text="labels.sedit.makeup" />
 							<cell cols="3">
 								<fader id="imkp_${i}" size="20" />
 							</cell>
@@ -175,23 +175,23 @@
 						
 						<!-- Sources -->
 						<grid rows="2" cols="2" transpose="true" vspacing="2" hspacing="4" fill="true">
-							<align pad_left="8" hpos="-1"><label text="Shape" /></align>
-							<align pad_left="8" hpos="-1"><label text="Phase" /></align>
+							<align pad_left="8" hpos="-1"><label text="labels.3d.shape" /></align>
+							<align pad_left="8" hpos="-1"><label text="labels.signal.phase" /></align>
 						
 							<combo id="sscf[ssel]" />
 							<align hpos="-1">
 								<hbox spacing="2">
 									<button id="ssph[ssel]" size="16" led="true" color="red" hue_id="ssh[ssel]" />
-									<label text="invert" />
+									<label text="labels.signal.invert" />
 								</hbox>
 							</align>
 						</grid>
 						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="X Axis" />
-							<label text="Y Axis" />
-							<label text="Z Axis" />
+						<grid rows="12" cols="3">
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.x_axis" />
+							<label text="labels.3d.y_axis" />
+							<label text="labels.3d.z_axis" />
 							
 							<knob id="sspx[ssel]" size="16" scale_hue_id="ssh[ssel]" />
 							<knob id="sspy[ssel]" size="16" scale_hue_id="ssh[ssel]" />
@@ -200,13 +200,11 @@
 							<value id="sspx[ssel]" same_line="true" />
 							<value id="sspy[ssel]" same_line="true" />
 							<value id="sspz[ssel]" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="Yaw" />
-							<label text="Pitch" />
-							<label text="Roll" />
+							
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.yaw" />
+							<label text="labels.3d.pitch" />
+							<label text="labels.3d.roll" />
 							
 							<knob id="ssay[ssel]" size="16" scale_hue_id="ssh[ssel]" />
 							<knob id="ssap[ssel]" size="16" scale_hue_id="ssh[ssel]" />
@@ -215,13 +213,11 @@
 							<value id="ssay[ssel]" same_line="true" />
 							<value id="ssap[ssel]" same_line="true" />
 							<value id="ssar[ssel]" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="Hue" />
-							<label text="Angle" />
-							<label text="Size" />
+							
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.obj.hue" />
+							<label text="labels.3d.angle" />
+							<label text="labels.3d.size" />
 							
 							<knob id="ssh[ssel]" size="16" scale_hue_id="ssh[ssel]" />
 							<knob id="ssa[ssel]" size="16" scale_hue_id="ssh[ssel]" balance="50" />
@@ -231,14 +227,15 @@
 							<value id="ssa[ssel]" same_line="true"/>
 							<value id="sss[ssel]" same_line="true"/>
 						</grid>
+						
 						<hbox spacing="2">
 							<vbox visibility="(:sscf[ssel] ieq 5) or (:sscf[ssel] ieq 6) or (:sscf[ssel] ieq 10)">
-								<label text="Height" />
+								<label text="labels.3d.height" />
 								<knob id="shh[ssel]" size="16" scale_hue_id="ssh[ssel]" />
 								<value id="shh[ssel]" same_line="true"/>
 							</vbox>
 							<vbox visibility="(:sscf[ssel] ieq 10) or (:sscf[ssel] ieq 11)">
-								<label text="Curvature" />
+								<label text="labels.3d.curvature" />
 								<knob id="sscv[ssel]" size="16" scale_hue_id="ssh[ssel]" />
 								<value id="sscv[ssel]" same_line="true"/>
 							</vbox>
@@ -251,10 +248,10 @@
 						<!-- Capture selector -->
 						<align hpos="-1" vpos="-1">
 							<hbox spacing="8">
-								<label text="Capture:" />
+								<label text="labels.capture:" />
 								<combo id="csel" width="20" />
 								<button id="sce[csel]" size="16" led="true" color="red" hue_id="sch[csel]" />
-								<label text="Enabled" />
+								<label text="labels.obj.enabled" />
 							</hbox>
 						</align>
 						<hsep pad_bottom="8" />
@@ -262,10 +259,10 @@
 						<!-- Captures -->
 						<align vpos="-1">
 							<grid rows="4" cols="2" transpose="true" vspacing="2" hspacing="4" >
-								<align pad_left="8" hpos="-1"><label text="Mode" /></align>
-								<align pad_left="8" hpos="-1"><label text="Reflections" /></align>
-								<align pad_left="8" hpos="-1"><label text="Mic. direction" /></align>
-								<align pad_left="8" hpos="-1" visibility="(:sccf[csel] ieq 4)" ><label text="Side direction" /></align>
+								<align pad_left="8" hpos="-1"><label text="labels.mode" /></align>
+								<align pad_left="8" hpos="-1"><label text="labels.reflections" /></align>
+								<align pad_left="8" hpos="-1"><label text="labels.mic_rophone_direction" /></align>
+								<align pad_left="8" hpos="-1" visibility="(:sccf[csel] ieq 4)" ><label text="labels.side_direction" /></align>
 								
 								<combo id="sccf[csel]" />
 								<hbox spacing="2">
@@ -278,11 +275,11 @@
 							</grid>
 						</align>
 						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="X Axis" />
-							<label text="Y Axis" />
-							<label text="Z Axis" />
+						<grid rows="8" cols="3">
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.x_axis" />
+							<label text="labels.3d.y_axis" />
+							<label text="labels.3d.z_axis" />
 							
 							<knob id="scpx[csel]" size="16" scale_hue_id="sch[csel]" />
 							<knob id="scpy[csel]" size="16" scale_hue_id="sch[csel]" />
@@ -291,13 +288,11 @@
 							<value id="scpx[csel]" same_line="true" />
 							<value id="scpy[csel]" same_line="true" />
 							<value id="scpz[csel]" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="Yaw" />
-							<label text="Pitch" />
-							<label text="Roll" />
+							
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.yaw" />
+							<label text="labels.3d.pitch" />
+							<label text="labels.3d.roll" />
 							
 							<knob id="scay[csel]" size="16" scale_hue_id="sch[csel]" />
 							<knob id="scap[csel]" size="16" scale_hue_id="sch[csel]" />
@@ -311,22 +306,22 @@
 						<hsep />
 						<hbox spacing="2">
 							<vbox>
-								<label text="Hue" />
+								<label text="labels.obj.hue" />
 								<knob id="sch[csel]" size="16" scale_hue_id="sch[csel]" />
 								<value id="sch[csel]" same_line="true" />
 							</vbox>
 							<vbox>
-								<label text="Capsule" />
+								<label text="labels.capsule" />
 								<knob id="sccs[csel]" size="16" scale_hue_id="sch[csel]" />
 								<value id="sccs[csel]" same_line="true" />
 							</vbox>
 							<vbox visibility="(:sccf[csel] ieq 1) or (:sccf[csel] ieq 3)" >
-								<label text="Angle" />
+								<label text="labels.3d.angle" />
 								<knob id="sca[csel]" size="16" scale_hue_id="sch[csel]" balance="90" />
 								<value id="sca[csel]" same_line="true"/>
 							</vbox>
 							<vbox visibility="(:sccf[csel] ieq 2)" >
-								<label text="Distance" />
+								<label text="labels.3d.distance" />
 								<knob id="scab[csel]" size="16" scale_hue_id="sch[csel]" />
 								<value id="scab[csel]" same_line="true" />
 							</vbox>
@@ -340,18 +335,18 @@
 						<!-- Object selector -->
 						<align hpos="-1" vpos="-1">
 							<hbox spacing="8">
-								<label text="Object:" />
+								<label text="labels.obj.object:" />
 								<button id="kvt:enabled" size="16" led="true" color="red" hue_id="kvt:hue" />
-								<label text="Enabled" />
+								<label text="labels.obj.enabled" />
 							</hbox>
 						</align>
 						<combo id="kvt:oid" width="192" />
 						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="X Move" />
-							<label text="Y Move" />
-							<label text="Z Move" />
+						<grid rows="12" cols="3">
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.move_x" />
+							<label text="labels.3d.move_y" />
+							<label text="labels.3d.move_z" />
 							
 							<knob id="kvt:xpos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<knob id="kvt:ypos" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -360,13 +355,11 @@
 							<value id="kvt:xpos" same_line="true" />
 							<value id="kvt:ypos" same_line="true" />
 							<value id="kvt:zpos" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="Yaw" />
-							<label text="Pitch" />
-							<label text="Roll" />
+							
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.yaw" />
+							<label text="labels.3d.pitch" />
+							<label text="labels.3d.roll" />
 							
 							<knob id="kvt:yaw" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<knob id="kvt:pitch" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -375,13 +368,11 @@
 							<value id="kvt:yaw" same_line="true" />
 							<value id="kvt:pitch" same_line="true" />
 							<value id="kvt:roll" same_line="true" />
-						</grid>
-						
-						<hsep />
-						<grid rows="3" cols="3">
-							<label text="X Scale" />
-							<label text="Y Scale" />
-							<label text="Z Scale" />
+							
+							<cell cols="3"><hsep /></cell>
+							<label text="labels.3d.scale_x" />
+							<label text="labels.3d.scale_y" />
+							<label text="labels.3d.scale_z" />
 							
 							<knob id="kvt:xscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<knob id="kvt:yscale" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -394,7 +385,7 @@
 						
 						<hsep />
 						<grid rows="3" cols="1">
-							<label text="Hue" />
+							<label text="labels.obj.hue" />
 							<knob id="kvt:hue" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<value id="kvt:hue" same_line="true" />
 						</grid>
@@ -408,70 +399,70 @@
 						<!-- Object selector -->
 						<align hpos="-1" vpos="-1">
 							<hbox spacing="8">
-								<label text="Object:" />
+								<label text="labels.obj.object:" />
 								<button id="kvt:enabled" size="16" led="true" color="red" hue_id="kvt:hue" />
-								<label text="Enabled" />
+								<label text="labels.obj.enabled" />
 							</hbox>
 						</align>
 						<combo id="kvt:oid" width="192" />
 						<align hpos="-1" vpos="-1">
-							<label text="Material preset:" />
+							<label text="labels.material.material_preset:" />
 						</align>
 						<combo ui:id="mpreset" width="192" />
 						
 						<hsep />
 						<hbox>
-							<label text="Sound speed" />
+							<label text="labels.material.sound_speed" />
 							<knob id="kvt:speed" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<value id="kvt:speed" same_line="true" />
 						</hbox>
 						<hsep />
 						<align hpos="-1" vpos="-1">
-							<label text="Physical properties:" />
+							<label text="labels.material.physical_properties:" />
 						</align>
 						<grid rows="9" cols="4">
 							<label />
-							<label text="Out -> In" />
+							<label text="labels.material.out_to_in" />
 							<label />
-							<label text="In -> Out" />
+							<label text="labels.material.in_to_out" />
 							
 							<!-- Absorption -->
-							<label text="Absorption" />
+							<label text="labels.material.absorption" />
 							<knob id="kvt:oabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<cell rows="2">
 								<vbox>
 									<button id="kvt:labs" size="12" led="true" color="red" hue_id="kvt:hue" />
-									<label font_size="9" text="Link" />
+									<label font_size="9" text="labels.material.link" />
 								</vbox>
 							</cell>
 							<knob id="kvt:iabs" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							
-							<label text="(%)" />
+							<label text="labels.units.:pc" />
 							<value id="kvt:oabs" detailed="false" />
 							<value id="kvt:iabs" detailed="false" />
 							
 							<!-- Transparency -->
-							<label text="Transparency" />
+							<label text="labels.material.transparency" />
 							<knob id="kvt:otransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<cell rows="2">
 								<vbox>
 									<button id="kvt:ltransp" size="12" led="true" color="red" hue_id="kvt:hue" />
-									<label font_size="9" text="Link" />
+									<label font_size="9" text="labels.material.link" />
 								</vbox>
 							</cell>
 							<knob id="kvt:itransp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							
-							<label text="(%)" />
+							<label text="labels.units.:pc" />
 							<value id="kvt:otransp" detailed="false" />
 							<value id="kvt:itransp" detailed="false" />
 							
 							<!-- Dispersion -->
-							<label text="Dispersion" />
+							<label text="labels.material.dispersion" />
 							<knob id="kvt:odisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<cell rows="2">
 								<vbox>
 									<button id="kvt:ldisp" size="12" led="true" color="red" hue_id="kvt:hue" />
-									<label font_size="9" text="Link" />
+									<label font_size="9" text="labels.material.link" />
 								</vbox>
 							</cell>
 							<knob id="kvt:idisp" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -481,12 +472,12 @@
 							<value id="kvt:idisp" detailed="false" />
 							
 							<!-- Diffusion -->
-							<label text="Diffusion" />
+							<label text="labels.material.diffusion" />
 							<knob id="kvt:odiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
 							<cell rows="2">
 								<vbox>
 									<button id="kvt:ldiff" size="12" led="true" color="red" hue_id="kvt:hue" />
-									<label font_size="9" text="Link" />
+									<label font_size="9" text="labels.material.link" />
 								</vbox>
 							</cell>
 							<knob id="kvt:idiff" size="16" scale_hue="0" scale_hue_id="kvt:hue" />
@@ -504,17 +495,17 @@
 			<!-- Rendering -->
 			<group text="groups.rendering">
 				<grid rows="4" cols="3" transpose="true" vspacing="4" hspacing="4">
-					<align hpos="-1"><label text="Status" /></align>
-					<align hpos="-1"><label text="Threads" /></align>
-					<align hpos="-1"><label text="Quality" /></align>
-					<align hpos="-1"><label text="Progress" /></align>
+					<align hpos="-1"><label text="labels.status" /></align>
+					<align hpos="-1"><label text="labels.threads" /></align>
+					<align hpos="-1"><label text="labels.quality" /></align>
+					<align hpos="-1"><label text="labels.progress" /></align>
 	
 					<align hpos="-1" expand="true"><status id="status" /></align>
 					<align hpos="-1">
 						<hbox spacing="4">
 							<threadcombo id="threads" width="32" />
 							<button id="normal" led="true" color="yellow" size="16" />
-							<label text="Normalize" />
+							<label text="labels.normalize" />
 						</hbox>
 					</align>
 					<align hpos="-1">
@@ -527,9 +518,9 @@
 					
 					<cell rows="3">
 						<vbox>
-							<label text="Launch" visibility=":status ine 3" />
+							<label text="labels.launch" visibility=":status ine 3" />
 							<button id="render" led="true" color="green" size="32" visibility=":status ine 3" />
-							<label text="Stop" visibility=":status eq 3" />
+							<label text="labels.stop" visibility=":status eq 3" />
 							<button id="render" led="true" color="red" size="32" visibility=":status ieq 3" />
 						</vbox>
 					</cell>
@@ -540,10 +531,10 @@
 			<group text="groups.output" expand="false">
 				<hbox>
 					<grid rows="4" cols="3" expand="true" fill="true">
-						<cell cols="2"><label text="Dry Pan" /></cell>
-						<cell rows="2"><label text="Pre-delay" /></cell>
-						<label text="L" />
-						<label text="R" />
+						<cell cols="2"><label text="labels.signal.dry_pan" /></cell>
+						<cell rows="2"><label text="labels.predelay" /></cell>
+						<label text="labels.chan.L_eft" />
+						<label text="labels.chan.R_ight" />
 						
 						<knob id="pl" scale_color="left_channel" size="16" />
 						<knob id="pr" scale_color="right_channel" size="16" />
@@ -556,9 +547,9 @@
 					<vsep />
 					
 					<grid hspacing="4" rows="3" cols="3" expand="true" fill="true">	
-						<label text="Dry" />
-						<label text="Wet" />
-						<label text="Output" />
+						<label text="labels.signal.dry" />
+						<label text="labels.signal.wet" />
+						<label text="labels.output" />
 						
 						<knob id="dry" scale_color="yellow" />
 						<knob id="wet" scale_color="yellow" />
@@ -577,12 +568,12 @@
 			<!-- Processors -->
 			<hbox>
 				<grid rows="5" cols="6" expand="true">
-					<label text="#" />
-					<label text="In L/R" />
-					<label text="Pre-delay" />
-					<label text="Source" />
-					<label text="Makeup" />
-					<label text="Out L/R" />
+					<label text="labels.specials.num" />
+					<label text="labels.signal.in_lr" />
+					<label text="labels.predelay" />
+					<label text="labels.source" />
+					<label text="labels.makeup" />
+					<label text="labels.signal.out_lr" />
 					
 					<ui:for id="i" first="0" last="1">
 						<label text="${i}" />
@@ -610,12 +601,12 @@
 				</grid>
 				<vsep />
 				<grid rows="5" cols="6" expand="true">
-					<label text="#" />
-					<label text="In L/R" />
-					<label text="Pre-delay" />
-					<label text="Source" />
-					<label text="Makeup" />
-					<label text="Out L/R" />
+					<label text="labels.specials.num" />
+					<label text="labels.signal.in_lr" />
+					<label text="labels.predelay" />
+					<label text="labels.source" />
+					<label text="labels.makeup" />
+					<label text="labels.signal.out_lr" />
 					
 					<ui:for id="i" first="2" last="3">
 						<label text="${i}" />
@@ -645,16 +636,16 @@
 			
 			<!-- Equalizer -->
 			<grid rows="5" cols="10">
-				<label text="Low-cut" />
+				<label text="labels.flt.low_cut" />
 				<label text="50" />
 				<label text="107" />
 				<label text="227" />
 				<label text="484" />
-				<label text="1k" />
-				<label text="2.2k" />
-				<label text="4.7k" />
-				<label text="10k" />
-				<label text="High-cut" />
+				<label text="labels.values.x_k" text:value="1" />
+				<label text="labels.values.x_k" text:value="2.2" />
+				<label text="labels.values.x_k" text:value="4.7" />
+				<label text="labels.values.x_k" text:value="10" />
+				<label text="labels.flt.high_cut" />
 				
 				<combo id="lcm" />
 				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
@@ -667,8 +658,8 @@
 				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
 				<combo id="hcm" />
 				
-				<label text="Freq" />
-				<label text="Freq" />
+				<label text="labels.frequency" />
+				<label text="labels.frequency" />
 				
 				<knob id="lcf" logarithmic="true" />
 				<knob id="hcf" logarithmic="true" />
