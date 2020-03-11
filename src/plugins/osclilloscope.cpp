@@ -253,7 +253,6 @@ namespace lsp
 
             for (size_t ch = 0; ch < nChannels; ++ch)
             {
-                vChannels[ch].sShiftBuffer.shift(to_do);
                 vChannels[ch].sShiftBuffer.append(vChannels[ch].vIn, to_do);
 
                 size_t bufferSize = vChannels[ch].sShiftBuffer.size();
@@ -275,6 +274,7 @@ namespace lsp
 
                     dsp::copy(mesh->pvData[0], vDflAbscissa, nMeshSize);
                     dsp::copy(mesh->pvData[1], vChannels[ch].vOrdinate, nMeshSize);
+                    mesh->data(2, nMeshSize);
                 }
             }
 
