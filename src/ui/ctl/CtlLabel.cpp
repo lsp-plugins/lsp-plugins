@@ -273,10 +273,13 @@ namespace lsp
 
                     // Form the final text
                     LSPString text, funit;
+                    calc::Parameters params;
+
                     if (mdata->name != NULL)
                         text.set_utf8(mdata->name);
-
                     sunit.format(&funit, lbl);
+
+
                     if ((detailed) && (funit.length() > 0))
                     {
                         if (text.length() > 0)
@@ -288,7 +291,19 @@ namespace lsp
                     }
 
                     // Update text
-                    lbl->text()->set_raw(&text);
+                    const char *key = "labels.values.desc_name";
+                    if ((detailed) && (funit.length() > 0))
+                    {
+                        if (text.length() > 0)
+                            key = (bSameLine) ? "labels.values.desc_single_line" : "labels.values.desc_multi_line";
+                        else
+                            key = "labels.values.desc_unit";
+                    }
+
+                    params.add_string("name", &text);
+                    params.add_string("unit", &funit);
+
+                    lbl->text()->set(key, &params);
                     break;
                 }
 
@@ -302,12 +317,13 @@ namespace lsp
                         sunit.set(unit_lc_key((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit));
 
                     // Format the value
-                    LSPString text, funit;
                     char buf[TMP_BUF_SIZE];
+                    calc::Parameters params;
+                    LSPString text, funit;
+
                     format_value(buf, TMP_BUF_SIZE, mdata, fValue, nPrecision);
                     text.set_ascii(buf);
                     sunit.format(&funit, lbl);
-
                     if (mdata->unit == U_BOOL)
                     {
                         text.prepend_ascii("labels.bool.");
@@ -316,14 +332,15 @@ namespace lsp
                         detailed = false;
                     }
 
-                    if ((detailed) && (funit.length() > 0))
-                    {
-                        text.append((bSameLine) ? ' ' : '\n');
-                        text.append(&funit);
-                    }
-
                     // Update text
-                    lbl->text()->set_raw(&text);
+                    const char *key = "labels.values.fmt_value";
+                    if ((detailed) && (funit.length() > 0))
+                        key = (bSameLine) ? "labels.values.fmt_single_line" : "labels.values.fmt_multi_line";
+
+                    params.add_string("value", &text);
+                    params.add_string("unit", &funit);
+
+                    lbl->text()->set(key, &params);
                     break;
                 }
 

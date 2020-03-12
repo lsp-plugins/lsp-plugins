@@ -527,6 +527,13 @@
 	"value": "Значение",
 	"values": {
 		"best": "Лучшее",
+		"desc_label": "{@name}",
+		"desc_multi_line": "{@name}\n({@unit})",
+		"desc_single_line": "{@name} ({@unit})",
+		"desc_unit": "({@unit})",
+		"fmt_multi_line": "{@value}\n{@unit}",
+		"fmt_single_line": "{@value} {@unit}",
+		"fmt_value": "{@value}",
 		"selected": "Выбранное",
 		"worst": "Худшее",
 		"x_k": "{@value}к"
