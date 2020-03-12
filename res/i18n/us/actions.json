@@ -43,6 +43,8 @@
 	"load": "Load",
 	"load_preset": "Load preset",
 	
+	"measure": "Measure",
+	
 	"nav": {
 		"go": "Go",
 		"up": "Up"
@@ -50,6 +52,9 @@
 	
 	"ok": "OK",
 	"open": "Open",
+	
+	"postprocess": "Post-process",
+	"profile": "Profile",
 	
 	"save": "Save",
 	

@@ -33,7 +33,12 @@
 	"Over_Sampling:": "П/Д:",
 	"Tri_gger": "Триг",
 	
+	"absolute_threshold": "Абс порог",
+	
 	"active": "Активно",
+	"actual_duration": "Действительная\nдлительность (с)",
+	
+	"amplitude": "Амплитуда",
 	
 	"att_ack": "Атак",
 	"attack": "Атака",
@@ -120,6 +125,9 @@
 	
 	"click_or_drag_to_load": "Клик или притащить файл",
 	
+	"coarse_ir_duration": "Приблизительная\nдлительность ИО (с)",
+	"coarse_duration": "Приблизительная\nдлительность",
+	
 	"curve": "Кривая",
 	
 	"delay": "Задержка",
@@ -135,10 +143,16 @@
 	
 	"dynamics": "Динамика",
 	
+	"enable": "Включить",
+	
+	"energy_decay_linear_correlation": "Линейная корреляция\nзатухания энергии",
+	
 	"equalizer": "Эквалайзер",
 	"equalizer:db": "Эквалайзер (дБ)",
 	
 	"export": "Экспорт",
+	
+	"feedback": "Обратная связь",
 
 	"fft": {
 		"envelope": "Огибающая",
@@ -204,6 +218,7 @@
 	"hysteresis": "Гистерезис",
 	
 	"input": "Вход",
+	"input_level:db": "Входной уровень (дБ)",
 	"input:db": "Вход (дБ)",
 	"instrument_num": "№ инструмента",
 	
@@ -212,6 +227,7 @@
 	"knee": "Колено",
 	"knee_:db": "Колено\n(дБ)",
 
+	"latency:ms": "Задержка (мс)",
 	"launch": "Пуск",
 	"left": "Лево",
 	"listen": "Слушать",
@@ -237,6 +253,7 @@
 		"sound_speed": "Скорость звука",
 		"transparency": "Проницаемость"
 	},
+	"max_latency": "Макс задержка",
 	
 	"metering": {
 		"channel": "Канал",
@@ -281,6 +298,8 @@
 	
 	"normalize": "Нормализация",
 	
+	"noise_floor": "Шумовой порог",
+	
 	"obj": {
 		"disabled": "Отключен",
 		"enabled": "Включен",
@@ -288,6 +307,8 @@
 		"object": "Объект",
 		"object:": "Объект:"
 	},
+	
+	"offset": "Смещение",
 	
 	"output": "Выход",
 	"output:db": "Выход (дБ)",
@@ -307,9 +328,24 @@
 		"trigger": "Триггер"
 	},
 	
+	"postprocess": "Постобработка",
+	
 	"preamp": "Предусиление",
 	
 	"predelay": "Предзадержка",
+	"prof": {
+		"calibrating": "КАЛИБРОВКА",
+		"convolving": "СВЁРТКА",
+		"detecting_latency": "ОПРЕДЕЛЕНИЕ ЗАДЕРЖКИ",
+		"idle": "НЕАКТИВЕН",
+		"postprocessing": "ПОСТОБРАБОТКА",
+		"preprocessing": "ПРЕДОБРАБОТКА",
+		"profiler_state": "СОСТОЯНИЕ ПРОФИЛИРОВЩИКА:",
+		"rt_algorithm": "Алгоритм ВР",
+		"recording": "ЗАПИСЬ",
+		"saving": "СОХРАНЕНИЕ",
+		"waiting": "ОЖИДАНИЕ"
+	},
 	"progress": "Прогресс",
 	
 	"q_hue": "Добр, Тон",
@@ -333,12 +369,17 @@
 	"release": "Выключение",
 	"release:db_ms": "Выключение\n(дБ, мс)",
 	
+	"reverberation_time:s": "Время\nреверберации (с)",
+	
 	"right": "Право",
 	
 	"room_orientation:": "Ориентация комнаты:",
 	
 	"samples": "Отсчёты",
 	"samples:samp": "Отсчёты (шт)",
+	"save": "Сохранить",
+	"save_": "Сохр",
+	"save_mode": "Режим сохранения",
 
 	"sc": {
 		"Ext_ernal": "Внеш",
@@ -394,6 +435,7 @@
 		"pan_left": "Пан лев",
 		"pan_r": "Пан прав",
 		"pan_right": "Пан прав",
+		"peak": "Пик",
 		"phase": "Phase",
 		"stereo": "Стерео",
 		"wet": "Обраб",

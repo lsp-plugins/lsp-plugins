@@ -33,7 +33,12 @@
 	"Over_Sampling:": "O/S:",
 	"Tri_gger": "Trg",
 	
+	"absolute_threshold": "Absolute",
+	
 	"active": "Active",
+	"actual_duration": "Actual\nDuration (s)",
+	
+	"amplitude": "Amplitude",
 	
 	"att_ack": "Att",
 	"attack": "Attack",
@@ -120,6 +125,9 @@
 	
 	"click_or_drag_to_load": "Click or drag to load",
 	
+	"coarse_ir_duration": "Coarse\nIR Duration (s)",
+	"coarse_duration": "Coarse\nDuration",
+	
 	"curve": "Curve",
 	
 	"delay": "Delay",
@@ -135,10 +143,16 @@
 	
 	"dynamics": "Dynamis",
 	
+	"enable": "Enable",
+	
+	"energy_decay_linear_correlation": "Energy Decay\nLinear Correlation",
+	
 	"equalizer": "Equalizer",
 	"equalizer:db": "Equalizer (dB)",
 	
 	"export": "Export",
+	
+	"feedback": "Feedback",
 
 	"fft": {
 		"envelope": "Envelope",
@@ -204,6 +218,7 @@
 	"hysteresis": "Hysteresis",
 	
 	"input": "Input",
+	"input_level:db": "Input Level (dB)",
 	"input:db": "Input (dB)",
 	"instrument_num": "Instrument #",
 	
@@ -212,6 +227,7 @@
 	"knee": "Knee",
 	"knee_:db": "Knee\n(dB)",
 	
+	"latency:ms": "Latency (ms)",
 	"launch": "Launch",
 	"left": "Left",
 	"listen": "Listen",
@@ -237,6 +253,7 @@
 		"sound_speed": "Sound speed",
 		"transparency": "Transparency"
 	},
+	"max_latency": "Max Latency",
 	
 	"metering": {
 		"channel": "Channel",
@@ -279,6 +296,8 @@
 	"mute": "Mute",
 	"muting": "Muting",
 	
+	"noise_floor": "Noise Floor",
+	
 	"normalize": "Normalize",
 	
 	"obj": {
@@ -288,6 +307,8 @@
 		"object": "Object",
 		"object:": "Object:"
 	},
+	
+	"offset": "Offset",
 	
 	"output": "Output",
 	"output:db": "Output (dB)",
@@ -307,9 +328,24 @@
 		"trigger": "Trigger"
 	},
 	
+	"postprocess": "Post-process",
+	
 	"preamp": "Preamp",
 	
 	"predelay": "Pre-delay",
+	"prof": {
+		"calibrating": "CALIBRATING",
+		"convolving": "CONVOLVING",
+		"detecting_latency": "DETECTING LATENCY",
+		"idle": "IDLE",
+		"postprocessing": "POSTPROCESSING",
+		"preprocessing": "PREPROCESSING",
+		"profiler_state": "PROFILER STATE:",
+		"recording": "RECORDING",
+		"rt_algorithm": "RT Algorithm",
+		"saving": "SAVING",
+		"waiting": "WAITING"
+	},
 	"progress": "Progress",
 	
 	"q_hue": "Q, Hue",
@@ -320,18 +356,20 @@
 	"range_id": "Range {@id}",
 	"ranges": "Ranges",
 	
-	"reduction": "Reduction",
-	
-	"reflections": "Reflections",
-	
 	"ratio": "Ratio",
 	"ratio_high": "Ratio high",
 	"ratio_low": "Ratio low",
 	"ratio_knee:db": "Ratio,\nKnee (dB)",
 	
+	"reduction": "Reduction",
+	
+	"reflections": "Reflections",
+	
 	"rel_ease": "Rel",
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",
+	
+	"reverberation_time:s": "Reverberation\nTime (s)",
 	
 	"right": "Right",
 	
@@ -339,6 +377,9 @@
 	
 	"samples": "Samples",
 	"samples:samp": "Samples (samp)",
+	"save": "Save",
+	"save_": "Save",
+	"save_mode": "Save Mode",
 	
 	"sc": {
 		"Ext_ernal": "Ext",
@@ -393,6 +434,7 @@
 		"pan_l": "Pan L",
 		"pan_left": "Pan Left",
 		"pan_r": "Pan R",
+		"peak": "Peak",
 		"phase": "Phase",
 		"stereo": "Stereo",
 		"wet": "Wet",

@@ -13,8 +13,14 @@
 	},
 	
 	"axis": {
+		"chan": {
+			"left": "left",
+			"right": "right"
+		},
 		"in": "in",
+		"level": "level",
 		"out": "out",
+		"reverb_time": "reverb time",
 		"time": "time"
 	},
 
