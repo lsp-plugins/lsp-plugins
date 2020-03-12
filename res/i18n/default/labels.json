@@ -134,6 +134,7 @@
 	"dc_reference": "DC Reference",
 	
 	"delay": "Delay",
+	"delay:ms": "Delay (ms)",
 	
 	"direct_out": "Direct out",
 	"direct_output": "Direct output",
@@ -198,6 +199,7 @@
 	
 	"graphs": {
 		"compression": "COMPRESSION",
+		"correlation": "CORRELATION GRAPH",
 		"curve": "CURVE",
 		"delay_line": "DELAY LINE",
 		"expansion": "EXPANSION",
@@ -254,6 +256,7 @@
 		"transparency": "Transparency"
 	},
 	"max_latency": "Max Latency",
+	"max_time": "Max time",
 	
 	"measure": "Measure",
 	"metering": {
@@ -310,6 +313,7 @@
 	},
 	
 	"offset": "Offset",
+	"offset:samp": "Offset (samp)",
 	
 	"output": "Output",
 	"output:db": "Output (dB)",
@@ -370,6 +374,7 @@
 	"rel_ease": "Rel",
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",
+	"reset": "Reset",
 	
 	"reverberation_time:s": "Reverberation\nTime (s)",
 	
@@ -400,6 +405,7 @@
 	
 	"sc_preamp_makeup:db_db": "SC Preamp,\nMakeup\n(dB, dB)",
 
+	"sel_time": "Sel time",
 	"setup": "Setup",
 	"search": "Search",
 	"sedit": {
@@ -510,6 +516,9 @@
 	
 	"value": "Value",
 	"values": {
+		"best": "Best",
+		"selected": "Selected",
+		"worst": "Worst",
 		"x_k": "{@value}k"
 	},
 	

@@ -134,6 +134,7 @@
 	"dc_reference": "Точка отсчёта",
 	
 	"delay": "Задержка",
+	"delay:ms": "Задержка (мс)",
 	
 	"direct_out": "Прямой вых",
 	"direct_output": "Прямой выход",
@@ -202,6 +203,7 @@
 	
 	"graphs": {
 		"compression": "КОМПРЕССИЯ",
+		"correlation": "ГРАФИК КОРРЕЛЯЦИИ",
 		"curve": "КРИВАЯ",
 		"delay_line": "ЛИНИЯ ЗАДЕРЖКИ",
 		"expansion": "РАСШИРЕНИЕ",
@@ -258,6 +260,7 @@
 		"transparency": "Проницаемость"
 	},
 	"max_latency": "Макс задержка",
+	"max_time": "Макс время",
 	
 	"measure": "Измерить",
 	"metering": {
@@ -314,6 +317,7 @@
 	},
 	
 	"offset": "Смещение",
+	"offset:samp": "Смещение (отсч)",
 	
 	"output": "Выход",
 	"output:db": "Выход (дБ)",
@@ -374,6 +378,7 @@
 	"rel_ease": "Выкл",
 	"release": "Выключение",
 	"release:db_ms": "Выключение\n(дБ, мс)",
+	"reset": "Сбросить",
 	
 	"reverberation_time:s": "Время\nреверберации (с)",
 	
@@ -404,6 +409,7 @@
 	
 	"sc_preamp_makeup:db_db": "Усиление БЦ,\nКорректировка\n(дБ, дБ)",
 	
+	"sel_time": "Выбр время",
 	"setup": "Настройка",
 	"search": "Поиск",
 	"sedit": {
@@ -515,6 +521,9 @@
 	
 	"value": "Значение",
 	"values": {
+		"best": "Лучшее",
+		"selected": "Выбранное",
+		"worst": "Худшее",
 		"x_k": "{@value}к"
 	},
 	
