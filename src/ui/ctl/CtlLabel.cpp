@@ -90,10 +90,20 @@ namespace lsp
             LSPWindow::destroy();
         }
 
+        void CtlLabel::Listener::notify(ui_atom_t property)
+        {
+            if (pLabel == NULL)
+                return;
+            if (property == pLabel->nAtomID)
+                pLabel->commit_value();
+        }
+
         //---------------------------------------------------------------------
         // CtlLabel implementation
 
-        CtlLabel::CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type): CtlWidget(src, widget)
+        CtlLabel::CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type):
+            CtlWidget(src, widget),
+            sListener(this)
         {
             pClass          = &metadata;
 
@@ -104,11 +114,36 @@ namespace lsp
             bSameLine       = false;
             nUnits          = U_NONE - 1;
             nPrecision      = -1;
+            nAtomID         = -1;
             pPopup          = NULL;
         }
 
         CtlLabel::~CtlLabel()
         {
+            do_destroy();
+        }
+
+        void CtlLabel::destroy()
+        {
+            do_destroy();
+        }
+
+        void CtlLabel::do_destroy()
+        {
+            sListener.pLabel = NULL;
+
+            LSPLabel *lbl = widget_cast<LSPLabel>(pWidget);
+            if (lbl == NULL)
+                return;
+
+            if (nAtomID >= 0)
+            {
+                LSPStyle *style = lbl->style();
+                style->unbind(nAtomID, &sListener);
+                nAtomID = -1;
+            }
+
+            pWidget = NULL;
         }
 
         void CtlLabel::init()
@@ -119,6 +154,14 @@ namespace lsp
                 return;
 
             LSPLabel *lbl = widget_cast<LSPLabel>(pWidget);
+            if (lbl == NULL)
+                return;
+
+            LSPStyle *style = lbl->style();
+            LSPDisplay *dpy = lbl->display();
+            nAtomID = dpy->atom_id("language");
+            if (nAtomID >= 0)
+                style->bind(nAtomID, PT_STRING, &sListener);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, lbl, lbl->font()->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
@@ -208,8 +251,6 @@ namespace lsp
                 return;
 
             // Analyze type of the label
-            char a_text[TMP_BUF_SIZE];
-            a_text[0]           = '\0';
             bool detailed       = bDetailed;
 
             switch (enType)
@@ -222,70 +263,81 @@ namespace lsp
                 case CTL_LABEL_PARAM:
                 {
                     // Encode units
-                    const char *u_name = NULL;
+                    LSPLocalString sunit;
                     if (nUnits != (U_NONE - 1))
-                        u_name  = encode_unit(nUnits);
+                        sunit.set(unit_lc_key(nUnits));
                     else
-                        u_name  = encode_unit((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
+                        sunit.set(unit_lc_key((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit));
                     if (mdata->unit == U_BOOL)
                         detailed = false;
 
                     // Form the final text
-                    const char *text    = mdata->name;
-                    if (u_name != NULL)
+                    LSPString text, funit;
+                    if (mdata->name != NULL)
+                        text.set_utf8(mdata->name);
+
+                    sunit.format(&funit, lbl);
+                    if ((detailed) && (funit.length() > 0))
                     {
-                        if (detailed)
-                        {
-                            if (text != NULL)
-                                snprintf(a_text, sizeof(a_text), "%s (%s)", text, u_name);
-                            else
-                                snprintf(a_text, sizeof(a_text), "(%s)", u_name);
-                        }
-                        else if (text != NULL)
-                            snprintf(a_text, sizeof(a_text), "%s", text);
-                        text    = a_text;
+                        if (text.length() > 0)
+                            text.append_ascii(" (");
+                        else
+                            text.append('(');
+                        text.append(&funit);
+                        text.append(')');
                     }
 
                     // Update text
-                    lbl->text()->set_raw(text);
+                    lbl->text()->set_raw(&text);
                     break;
                 }
 
                 case CTL_LABEL_VALUE:
                 {
                     // Encode units
-                    const char *u_name = NULL;
+                    LSPLocalString sunit;
                     if (nUnits != (U_NONE - 1))
-                        u_name  = encode_unit(nUnits);
+                        sunit.set(unit_lc_key(nUnits));
                     else
-                        u_name  = encode_unit((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
-                    if (mdata->unit == U_BOOL)
-                        detailed = false;
+                        sunit.set(unit_lc_key((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit));
 
-                    // Form the final text
+                    // Format the value
+                    LSPString text, funit;
                     char buf[TMP_BUF_SIZE];
                     format_value(buf, TMP_BUF_SIZE, mdata, fValue, nPrecision);
-                    if (detailed)
-                        snprintf(a_text, sizeof(a_text), "%s%c%s", buf, (bSameLine) ? ' ' : '\n', (u_name != NULL) ? u_name : "" );
-                    else
-                        snprintf(a_text, sizeof(a_text), "%s", buf);
+                    text.set_ascii(buf);
+                    sunit.format(&funit, lbl);
+
+                    if (mdata->unit == U_BOOL)
+                    {
+                        text.prepend_ascii("labels.bool.");
+                        sunit.set(&text);
+                        sunit.format(&text, lbl);
+                        detailed = false;
+                    }
+
+                    if ((detailed) && (funit.length() > 0))
+                    {
+                        text.append((bSameLine) ? ' ' : '\n');
+                        text.append(&funit);
+                    }
 
                     // Update text
-                    lbl->text()->set_raw(a_text);
+                    lbl->text()->set_raw(&text);
                     break;
                 }
 
                 case CTL_STATUS_CODE:
                 {
                     status_t code = fValue;
-                    const char *text = get_status(code);
+                    const char *text = get_status_lc_key(code);
                     if (status_is_success(code))
                         init_color(C_STATUS_OK, lbl->font()->color());
                     else if (status_is_preliminary(code))
                         init_color(C_STATUS_WARN, lbl->font()->color());
                     else
                         init_color(C_STATUS_ERROR, lbl->font()->color());
-                    lbl->text()->set_raw(text);
+                    lbl->text()->set(text);
                     break;
                 }
 
@@ -377,13 +429,13 @@ namespace lsp
                 return STATUS_OK;
 
             // Set-up units
-            const char *u_name = NULL;
+            const char *u_key = NULL;
             if (_this->nUnits != (U_NONE - 1))
-                u_name  = encode_unit(_this->nUnits);
+                u_key  = unit_lc_key(_this->nUnits);
             else
-                u_name  = encode_unit((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
+                u_key  = unit_lc_key((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
             if ((mdata->unit == U_BOOL) || (mdata->unit == U_ENUM))
-                u_name  = NULL;
+                u_key  = NULL;
 
             // Get label widget
             LSPLabel *lbl = widget_cast<LSPLabel>(_this->pWidget);
@@ -425,13 +477,13 @@ namespace lsp
             popup->sValue.set_text(buf);
             popup->sValue.selection()->set_all();
 
-            if (u_name != NULL)
+            if (u_key != NULL)
             {
-                if (popup->sUnits.text()->set_raw(u_name) != STATUS_OK)
-                    u_name = NULL;
+                if (popup->sUnits.text()->set(u_key) != STATUS_OK)
+                    u_key = NULL;
             }
 
-            popup->sUnits.set_visible(u_name != NULL);
+            popup->sUnits.set_visible(u_key != NULL);
 
             popup->move(r.nLeft + lbl->left(), r.nTop + lbl->top());
             popup->show(lbl);

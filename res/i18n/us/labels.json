@@ -50,6 +50,11 @@
 	
 	"band_hue": "Band, Hue",
 	
+	"bool": {
+		"off": "off",
+		"on": "on"
+	},
+	
 	"boost": "Boost",
 	"boost_": "Boost",
 	"bookmark_list": "Bookmarks",

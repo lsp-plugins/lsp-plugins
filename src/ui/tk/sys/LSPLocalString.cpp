@@ -8,6 +8,8 @@
 #include <ui/tk/tk.h>
 #include <core/calc/format.h>
 
+#define LANG_ATOM_NAME      "language"
+
 namespace lsp
 {
     namespace tk
@@ -79,7 +81,7 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_STATE;
 
-            ui_atom_t atom = dpy->atom_id("language");
+            ui_atom_t atom = dpy->atom_id(LANG_ATOM_NAME);
             if (atom < 0)
                 return -atom;
 
@@ -96,7 +98,7 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_STATE;
 
-            ui_atom_t atom = dpy->atom_id((property != NULL) ? property : "language");
+            ui_atom_t atom = dpy->atom_id((property != NULL) ? property : LANG_ATOM_NAME);
             if (atom < 0)
                 return -atom;
 
@@ -113,7 +115,7 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_STATE;
 
-            const char *prop = (property != NULL) ? property->get_utf8() : "language";
+            const char *prop = (property != NULL) ? property->get_utf8() : LANG_ATOM_NAME;
             if (prop == NULL)
                 return STATUS_NO_MEM;
             ui_atom_t atom = dpy->atom_id(prop);
@@ -401,23 +403,47 @@ namespace lsp
             return fmt_internal(out, dict, lang);
         }
 
+        status_t LSPLocalString::format(LSPString *out, LSPDisplay *dpy, const LSPStyle *style) const
+        {
+            if ((dpy == NULL) || (style == NULL))
+                return format(out, (IDictionary *)NULL, (const char *)NULL);
+
+            // Get identifier of atom that describes language
+            ssize_t atom = dpy->atom_id(LANG_ATOM_NAME);
+            if (atom < 0)
+                return format(out, (IDictionary *)NULL, (const char *)NULL);
+
+            // Get language name from style property
+            LSPString lang;
+            status_t res = style->get_string(atom, &lang);
+            if (res != STATUS_OK)
+                return format(out, (IDictionary *)NULL, (const char *)NULL);
+
+            // Perform formatting
+            return format(out, dpy->dictionary(), &lang);
+        }
+
+        status_t LSPLocalString::format(LSPString *out, LSPWidget *widget) const
+        {
+            if (widget == NULL)
+                return format(out, (IDictionary *)NULL, (const char *)NULL);
+            return format(out, widget->display(), widget->style());
+        }
+
         status_t LSPLocalString::format(LSPString *out) const
         {
             if (pWidget == NULL)
-            {
-                out->clear();
-                return STATUS_OK;
-            }
+                return (out->set(&sText)) ? STATUS_OK : STATUS_NO_MEM;
 
             LSPDisplay *dpy = pWidget->display();
             LSPStyle *style = pWidget->style();
             if ((dpy == NULL) || (style == NULL))
-                return format(out, NULL, (const char *)NULL);
+                return format(out, (IDictionary *)NULL, (const char *)NULL);
 
             LSPString lang;
             status_t res = style->get_string(nAtom, &lang);
             if (res != STATUS_OK)
-                return format(out, NULL, (const char *)NULL);
+                return format(out, (IDictionary *)NULL, (const char *)NULL);
 
             return format(out, dpy->dictionary(), &lang);
         }

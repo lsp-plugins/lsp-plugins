@@ -320,6 +320,7 @@ namespace lsp
     extern const port_t         lv2_latency_port;
 
     const char     *encode_unit(size_t unit);
+    const char     *unit_lc_key(size_t code);
     unit_t          decode_unit(const char *name);
     bool            is_discrete_unit(size_t unit);
     bool            is_decibel_unit(size_t unit);

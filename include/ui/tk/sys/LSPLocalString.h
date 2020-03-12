@@ -122,6 +122,12 @@ namespace lsp
                  */
                 inline bool is_localized() const { return nFlags & F_LOCALIZED; }
 
+                /**
+                 * Check for emptiness
+                 * @return true if string is empty
+                 */
+                inline bool is_empty() const { return sText.is_empty(); }
+
             public:
                 /**
                  * Set raw (non-localized) value
@@ -205,6 +211,23 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t format(LSPString *out, IDictionary *dict, const LSPString *lang) const;
+
+                /**
+                 * Output the formatted message to the string
+                 * @param out output string
+                 * @param dpy display to use as dictionary source
+                 * @param style the style to take language identifier from
+                 * @return status of operation
+                 */
+                status_t format(LSPString *out, LSPDisplay *dpy, const LSPStyle *style) const;
+
+                /**
+                 * Output the formatted message to the string
+                 * @param out output string
+                 * @param widget LSP widget
+                 * @return status of operation
+                 */
+                status_t format(LSPString *out, LSPWidget *widget) const;
 
                 /**
                  * Format the message using dictionary and style from derived widget

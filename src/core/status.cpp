@@ -82,12 +82,14 @@ namespace lsp
         NULL
     };
 
+    #undef S
+
     const char *get_status(status_t code)
     {
         return ((code >= 0) && (code < STATUS_TOTAL)) ? statuses[code].desc: NULL;
     }
 
-    const char *get_status_key(status_t code)
+    const char *get_status_lc_key(status_t code)
     {
         return ((code >= 0) && (code < STATUS_TOTAL)) ? statuses[code].key : NULL;
     }

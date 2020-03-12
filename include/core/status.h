@@ -77,8 +77,9 @@ namespace lsp
         STATUS_MAX = STATUS_TOTAL - 1,
         STATUS_SUCCESS = STATUS_OK
     };
+
     const char *get_status(status_t code);
-    const char *get_status_key(status_t code);
+    const char *get_status_lc_key(status_t code);
 
     bool status_is_success(status_t code);
     bool status_is_preliminary(status_t code);

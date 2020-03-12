@@ -199,7 +199,7 @@ namespace lsp
 
                 LSPString code;
                 code.set_utf8("statuses.std.");
-                code.append_utf8(get_status_key(status_t(status)));
+                code.append_utf8(get_status_lc_key(status_t(status)));
                 af->hint()->set(&code);
             }
         }
