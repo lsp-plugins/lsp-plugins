@@ -66,7 +66,7 @@ namespace lsp
         AMP_GAIN10("gain", "Output gain", 1.0f),
         CONTROL("dcoff", "DC Offset", U_NONE, oscillator_mono_metadata::DCOFFSET),
         COMBO("scr", "DC Reference", oscillator_mono_metadata::SC_DC_DFL, sc_dc_ref),
-        CONTROL("iniph", "Initial Phase", U_DEG, oscillator_mono_metadata::INITPHASE),
+        CYC_CONTROL("iniph", "Initial Phase", U_DEG, oscillator_mono_metadata::INITPHASE),
         COMBO("scm", "Operation Mode", oscillator_mono_metadata::SC_MODE_DFL, sc_mode),
         COMBO("scom", "Oversampler Mode", oscillator_mono_metadata::SC_OVS_DFL, sc_oversampler_mode),
         COMBO("scf", "Function", oscillator_mono_metadata::SC_FUNC_DFL, sc_func),

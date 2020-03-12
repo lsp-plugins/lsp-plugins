@@ -9,10 +9,12 @@
 		"x:db": "{@value} дБ",
 		"x:hz": "{@value} Гц",
 		"x:s": "{@value} с",
+		"x_T": "{@value}T",
 		"x_k": "{@value}к"
 	},
 	
 	"axis": {
+		"amplitude": "амплитуда",
 		"chan": {
 			"left": "левый",
 			"right": "правый"
@@ -20,6 +22,7 @@
 		"in": "вх",
 		"level": "уровень",
 		"out": "вых",
+		"period": "период",
 		"reverb_time": "время реверберации",
 		"time": "время"
 	},

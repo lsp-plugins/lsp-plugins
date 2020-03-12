@@ -130,6 +130,9 @@
 	
 	"curve": "Curve",
 	
+	"dc_offset": "DC Offset",
+	"dc_reference": "DC Reference",
+	
 	"delay": "Delay",
 	
 	"direct_out": "Direct out",
@@ -205,6 +208,7 @@
 		"frequency": "FEQUENCY GRAPH",
 		"gating": "GATING",
 		"left_channel": "LEFT CHANNEL",
+		"oscillator_waveform": "OSCILLATOR_WAVEFORM",
 		"right_channel": "RIGHT CHANNEL",
 		"spectrum": "SPECTRUM GRAPH",
 		"time": "TIME GRAPH",
@@ -313,6 +317,7 @@
 	
 	"output": "Output",
 	"output:db": "Output (dB)",
+	"oversampling": "Oversampling",
 	
 	"panning": "Panning",
 	"panorama": "Panorama",
@@ -424,12 +429,16 @@
 		"M_iddle": "M",
 		"P_hase": "P",
 		"S_ide": "S",
+		"amplitude": "Amplitude",
 		"dry": "Dry",
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Dry pan",
+		"duty_ratio": "Duty Ratio",
+		"fall": "Fall",
 		"in_lr": "In L/R",
 		"invert": "Invert",
 		"mono": "Mono",
+		"negative_width": "Negative Width",
 		"out_lr": "Out L/R",
 		"pan": "Pan",
 		"pan_l": "Pan L",
@@ -437,7 +446,10 @@
 		"pan_r": "Pan R",
 		"peak": "Peak",
 		"phase": "Phase",
+		"positive_width": "Positive Width",
+		"raise": "Raise",
 		"stereo": "Stereo",
+		"width": "Width",
 		"wet": "Wet",
 		"wet:db": "Wet\n(dB)"
 	},
