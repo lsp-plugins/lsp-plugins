@@ -255,6 +255,7 @@
 	},
 	"max_latency": "Max Latency",
 	
+	"measure": "Measure",
 	"metering": {
 		"channel": "Channel",
 		"frequency": "Frequency",

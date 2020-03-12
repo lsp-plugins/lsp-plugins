@@ -255,6 +255,7 @@
 	},
 	"max_latency": "Макс задержка",
 	
+	"measure": "Измерить",
 	"metering": {
 		"channel": "Канал",
 		"frequency": "Частота",
