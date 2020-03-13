@@ -273,19 +273,24 @@ namespace lsp
         const char                 *parent_id;  // Reference to parent group
     } port_group_t;
 
+    typedef struct port_item_t {
+        const char             *text;           // Text to display, required
+        const char             *lc_key;         // Localized key  (optional)
+    } port_item_t;
+
     typedef struct port_t
     {
-        const char     *id;         // Control ID
-        const char     *name;       // Control name
-        unit_t          unit;       // Units
-        role_t          role;       // Role
-        int             flags;      // Flags
-        float           min;        // Minimum value
-        float           max;        // Maximum value
-        float           start;      // Initial value
-        float           step;       // Change step
-        const char    **items;      // Items for enum / port set
-        const port_t   *members;    // Port members for group
+        const char             *id;             // Control ID
+        const char             *name;           // Control name
+        unit_t                  unit;           // Units
+        role_t                  role;           // Role
+        int                     flags;          // Flags
+        float                   min;            // Minimum value
+        float                   max;            // Maximum value
+        float                   start;          // Initial value
+        float                   step;           // Change step
+        const port_item_t      *items;          // Items for enum / port set
+        const port_t           *members;        // Port members for group
     } port_t;
 
     typedef struct person_t
@@ -327,7 +332,7 @@ namespace lsp
     bool            is_degree_unit(size_t unit);
     bool            is_log_rule(const port_t *port);
 
-    size_t          list_size(const char **list);
+    size_t          list_size(const port_item_t *list);
     float           limit_value(const port_t *port, float value);
 
     void            format_float(char *buf, size_t len, const port_t *meta, float value, ssize_t precision = -1);

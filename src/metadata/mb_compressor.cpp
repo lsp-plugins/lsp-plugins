@@ -18,95 +18,95 @@ namespace lsp
     // Multiband compressor
     static const int mb_compressor_classes[] = { C_COMPRESSOR, -1 };
 
-    static const char *mb_comp_modes[] =
+    static const port_item_t mb_comp_sc_modes[] =
     {
-        "Down",
-        "Up",
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL,         NULL }
+    };
+
+    static const port_item_t mb_comp_sc_source[] =
+    {
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
+    };
+
+    static const port_item_t mb_comp_sc_boost[] =
+    {
+        { "None",       "sidechain.boost.none" },
+        { "Pink BT",    "sidechain.boost.pink_bt" },
+        { "Pink MT",    "sidechain.boost.pink_mt" },
+        { "Brown BT",   "sidechain.boost.brown_bt" },
+        { "Brown MT",   "sidechain.boost.brown_mt" },
+        { NULL, NULL }
+    };
+
+    static const port_item_t mb_comp_modes[] =
+    {
+        { "Down",       "compressor.down_ward" },
+        { "Up",         "compressor.up_ward" },
+        { NULL, NULL }
+    };
+
+    static const port_item_t mb_global_comp_modes[] =
+    {
+        { "Classic",    "multiband.classic" },
+        { "Modern",     "multiband.modern" },
         NULL
     };
 
-    static const char *comp_sc_modes[] =
+    static const port_item_t mb_comp_sc_bands[] =
     {
-        "Peak",
-        "RMS",
-        "LPF",
-        "Uniform",
+        { "Split",          "mb_comp.split" },
+        { "Band 0",         "mb_comp.band0" },
+        { "Band 1",         "mb_comp.band1" },
+        { "Band 2",         "mb_comp.band2" },
+        { "Band 3",         "mb_comp.band3" },
+        { "Band 4",         "mb_comp.band4" },
+        { "Band 5",         "mb_comp.band5" },
+        { "Band 6",         "mb_comp.band6" },
+        { "Band 7",         "mb_comp.band7" },
         NULL
     };
 
-    static const char *comp_sc_source[] =
+    static const port_item_t mb_comp_sc_lr_bands[] =
     {
-        "Mid",
-        "Side",
-        "Left",
-        "Right",
+        { "Split Left",     "mb_comp.split_left" },
+        { "Split Right",    "mb_comp.split_right" },
+        { "Band 0",         "mb_comp.band0" },
+        { "Band 1",         "mb_comp.band1" },
+        { "Band 2",         "mb_comp.band2" },
+        { "Band 3",         "mb_comp.band3" },
+        { "Band 4",         "mb_comp.band4" },
+        { "Band 5",         "mb_comp.band5" },
+        { "Band 6",         "mb_comp.band6" },
+        { "Band 7",         "mb_comp.band7" },
         NULL
     };
 
-    static const char *comp_sc_bands[] =
+    static const port_item_t mb_comp_sc_ms_bands[] =
     {
-        "Split",
-        "Band 0",
-        "Band 1",
-        "Band 2",
-        "Band 3",
-        "Band 4",
-        "Band 5",
-        "Band 6",
-        "Band 7",
-        NULL
-    };
-
-    static const char *comp_sc_lr_bands[] =
-    {
-        "Split Left",
-        "Split Right",
-        "Band 0",
-        "Band 1",
-        "Band 2",
-        "Band 3",
-        "Band 4",
-        "Band 5",
-        "Band 6",
-        "Band 7",
-        NULL
-    };
-
-    static const char *comp_sc_ms_bands[] =
-    {
-        "Split Mid",
-        "Split Side",
-        "Band 0",
-        "Band 1",
-        "Band 2",
-        "Band 3",
-        "Band 4",
-        "Band 5",
-        "Band 6",
-        "Band 7",
-        NULL
-    };
-
-    static const char *comp_sc_boost[] =
-    {
-        "None",
-        "Pink BT",
-        "Pink MT",
-        "Brown BT",
-        "Brown MT",
-        NULL
-    };
-
-    static const char *global_comp_modes[] =
-    {
-        "Classic",
-        "Modern",
+        { "Split Mid",      "mb_comp.split_middle" },
+        { "Split Side",     "mb_comp.split_side" },
+        { "Band 0",         "mb_comp.band0" },
+        { "Band 1",         "mb_comp.band1" },
+        { "Band 2",         "mb_comp.band2" },
+        { "Band 3",         "mb_comp.band3" },
+        { "Band 4",         "mb_comp.band4" },
+        { "Band 5",         "mb_comp.band5" },
+        { "Band 6",         "mb_comp.band6" },
+        { "Band 7",         "mb_comp.band7" },
         NULL
     };
 
     #define MB_COMMON(bands) \
             BYPASS, \
-            COMBO("mode", "Compressor mode", 1, global_comp_modes), \
+            COMBO("mode", "Compressor mode", 1, mb_global_comp_modes), \
             AMP_GAIN("g_in", "Input gain", mb_compressor_base_metadata::IN_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_out", "Output gain", mb_compressor_base_metadata::OUT_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
@@ -114,7 +114,7 @@ namespace lsp
             LOG_CONTROL("react", "FFT reactivity", U_MSEC, mb_compressor_base_metadata::REACT_TIME), \
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
             LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, mb_compressor_base_metadata::ZOOM), \
-            COMBO("envb", "Envelope boost", mb_compressor_base_metadata::FB_DEFAULT, comp_sc_boost), \
+            COMBO("envb", "Envelope boost", mb_compressor_base_metadata::FB_DEFAULT, mb_comp_sc_boost), \
             COMBO("bsel", "Band selection", mb_compressor_base_metadata::SC_BAND_DFL, bands)
 
     #define MB_SPLIT(id, label, enable, freq) \
@@ -122,7 +122,7 @@ namespace lsp
             LOG_CONTROL_DFL("sf" id, "Split frequency" label, U_HZ, mb_compressor_base_metadata::FREQ, freq)
 
     #define MB_MONO_BAND(id, label, x, total, fe, fs) \
-            COMBO("scm" id, "Sidechain mode" label, mb_compressor_base_metadata::SC_MODE_DFL, comp_sc_modes), \
+            COMBO("scm" id, "Sidechain mode" label, mb_compressor_base_metadata::SC_MODE_DFL, mb_comp_sc_modes), \
             CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, mb_compressor_base_metadata::LOOKAHEAD), \
             LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, mb_compressor_base_metadata::REACTIVITY), \
             AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
@@ -153,7 +153,7 @@ namespace lsp
             METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
 
     #define MB_STEREO_BAND(id, label, x, total, fe, fs) \
-            COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, comp_sc_source), \
+            COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, mb_comp_sc_source), \
             MB_MONO_BAND(id, label, x, total, fe, fs)
 
     #define MB_SC_MONO_BAND(id, label, x, total, fe, fs) \
@@ -193,7 +193,7 @@ namespace lsp
     static const port_t mb_compressor_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(mb_comp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("", ""),
         MB_CHANNEL_METERS("", ""),
@@ -221,7 +221,7 @@ namespace lsp
     static const port_t mb_compressor_stereo_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(mb_comp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("_l", " Left"),
         MB_CHANNEL_METERS("_l", " Left"),
@@ -251,7 +251,7 @@ namespace lsp
     static const port_t mb_compressor_lr_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        MB_COMMON(comp_sc_lr_bands),
+        MB_COMMON(mb_comp_sc_lr_bands),
         MB_CHANNEL("_l", " Left"),
         MB_CHANNEL("_r", " Right"),
         MB_FFT_METERS("_l", " Left"),
@@ -299,7 +299,7 @@ namespace lsp
     static const port_t mb_compressor_ms_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        MB_COMMON(comp_sc_ms_bands),
+        MB_COMMON(mb_comp_sc_ms_bands),
         MB_CHANNEL("_m", " Mid"),
         MB_CHANNEL("_s", " Side"),
         MB_FFT_METERS("_m", " Mid"),
@@ -348,7 +348,7 @@ namespace lsp
     {
         PORTS_MONO_PLUGIN,
         PORTS_MONO_SIDECHAIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(mb_comp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("", ""),
         MB_CHANNEL_METERS("", ""),
@@ -377,7 +377,7 @@ namespace lsp
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        MB_COMMON(comp_sc_bands),
+        MB_COMMON(mb_comp_sc_bands),
         MB_CHANNEL("", ""),
         MB_FFT_METERS("_l", " Left"),
         MB_CHANNEL_METERS("_l", " Left"),
@@ -408,7 +408,7 @@ namespace lsp
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        MB_COMMON(comp_sc_lr_bands),
+        MB_COMMON(mb_comp_sc_lr_bands),
         MB_CHANNEL("_l", " Left"),
         MB_CHANNEL("_r", " Right"),
         MB_FFT_METERS("_l", " Left"),
@@ -457,7 +457,7 @@ namespace lsp
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        MB_COMMON(comp_sc_ms_bands),
+        MB_COMMON(mb_comp_sc_ms_bands),
         MB_CHANNEL("_m", " Mid"),
         MB_CHANNEL("_s", " Side"),
         MB_FFT_METERS("_m", " Mid"),

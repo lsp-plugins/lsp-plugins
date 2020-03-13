@@ -18,82 +18,82 @@ namespace lsp
     // Multiband expander
     static const int mb_expander_classes[] = { C_EXPANDER, -1 };
 
-    static const char *exp_sc_modes[] =
+    static const port_item_t mb_exp_sc_modes[] =
     {
-        "Peak",
-        "RMS",
-        "LPF",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL,         NULL }
     };
 
-    static const char *exp_sc_source[] =
+    static const port_item_t exp_sc_source[] =
     {
-        "Mid",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *exp_sc_boost[] =
+    static const port_item_t exp_sc_boost[] =
     {
-        "None",
-        "Pink BT",
-        "Pink MT",
-        "Brown BT",
-        "Brown MT",
-        NULL
+        { "None",       "sidechain.boost.none" },
+        { "Pink BT",    "sidechain.boost.pink_bt" },
+        { "Pink MT",    "sidechain.boost.pink_mt" },
+        { "Brown BT",   "sidechain.boost.brown_bt" },
+        { "Brown MT",   "sidechain.boost.brown_mt" },
+        { NULL, NULL }
     };
 
-    static const char *global_exp_modes[] =
+    static const port_item_t global_exp_modes[] =
     {
-        "Classic",
-        "Modern",
-        NULL
+        { "Classic",    "multiband.classic" },
+        { "Modern",     "multiband.modern" },
+        { NULL, NULL }
     };
 
-    static const char *exp_sc_bands[] =
+    static const port_item_t exp_sc_bands[] =
     {
-        "Split",
-        "Band 0",
-        "Band 1",
-        "Band 2",
-        "Band 3",
-        "Band 4",
-        "Band 5",
-        "Band 6",
-        "Band 7",
-        NULL
+        { "Split",          "mb_expand.split" },
+        { "Band 0",         "mb_expand.band0" },
+        { "Band 1",         "mb_expand.band1" },
+        { "Band 2",         "mb_expand.band2" },
+        { "Band 3",         "mb_expand.band3" },
+        { "Band 4",         "mb_expand.band4" },
+        { "Band 5",         "mb_expand.band5" },
+        { "Band 6",         "mb_expand.band6" },
+        { "Band 7",         "mb_expand.band7" },
+        { NULL, NULL }
     };
 
-    static const char *exp_sc_lr_bands[] =
+    static const port_item_t exp_sc_lr_bands[] =
     {
-        "Split Left",
-        "Split Right",
-        "Band 0",
-        "Band 1",
-        "Band 2",
-        "Band 3",
-        "Band 4",
-        "Band 5",
-        "Band 6",
-        "Band 7",
-        NULL
+        { "Split Left",     "mb_expand.split_left" },
+        { "Split Right",    "mb_expand.split_right" },
+        { "Band 0",         "mb_expand.band0" },
+        { "Band 1",         "mb_expand.band1" },
+        { "Band 2",         "mb_expand.band2" },
+        { "Band 3",         "mb_expand.band3" },
+        { "Band 4",         "mb_expand.band4" },
+        { "Band 5",         "mb_expand.band5" },
+        { "Band 6",         "mb_expand.band6" },
+        { "Band 7",         "mb_expand.band7" },
+        { NULL, NULL }
     };
 
-    static const char *exp_sc_ms_bands[] =
+    static const port_item_t exp_sc_ms_bands[] =
     {
-        "Split Mid",
-        "Split Side",
-        "Band 0",
-        "Band 1",
-        "Band 2",
-        "Band 3",
-        "Band 4",
-        "Band 5",
-        "Band 6",
-        "Band 7",
+        { "Split Mid",      "mb_expand.split_middle" },
+        { "Split Side",     "mb_expand.split_side" },
+        { "Band 0",         "mb_expand.band0" },
+        { "Band 1",         "mb_expand.band1" },
+        { "Band 2",         "mb_expand.band2" },
+        { "Band 3",         "mb_expand.band3" },
+        { "Band 4",         "mb_expand.band4" },
+        { "Band 5",         "mb_expand.band5" },
+        { "Band 6",         "mb_expand.band6" },
+        { "Band 7",         "mb_expand.band7" },
         NULL
     };
 
@@ -129,7 +129,7 @@ namespace lsp
         LOG_CONTROL_DFL("sf" id, "Split frequency" label, U_HZ, mb_expander_base_metadata::FREQ, freq)
 
     #define MB_MONO_BAND(id, label, x, total, fe, fs) \
-        COMBO("scm" id, "Sidechain mode" label, mb_expander_base_metadata::SC_MODE_DFL, exp_sc_modes), \
+        COMBO("scm" id, "Sidechain mode" label, mb_expander_base_metadata::SC_MODE_DFL, mb_exp_sc_modes), \
         CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, mb_expander_base_metadata::LOOKAHEAD), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, mb_expander_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \

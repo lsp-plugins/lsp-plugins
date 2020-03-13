@@ -193,9 +193,9 @@ namespace lsp
                         if (pText != NULL)
                             prefix.set_native(pText);
 
-                        for (const char **item = p->items; (item != NULL) && (*item != NULL); ++item, ++i)
+                        for (const port_item_t *item = p->items; (item != NULL) && (item->text != NULL); ++item, ++i)
                         {
-                            text.set_native(*item);
+                            text.set_utf8(item->text);
                             text.prepend(&prefix);
 
                             size_t key      = fMin + fStep * i;

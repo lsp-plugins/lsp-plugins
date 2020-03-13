@@ -699,32 +699,24 @@ namespace lsp
 
                 int min  = (p->flags & F_LOWER) ? p->min : 0;
                 int curr = min;
+                size_t count = list_size(p->items);
                 int max  = min + list_size(p->items) - 1;
 
-                const char **list = p->items;
-                if ((list != NULL) && (*list != NULL))
+                const port_item_t *list = p->items;
+                if (count > 1)
                 {
-                    size_t count = 0;
-                    for (const char **t = list; *t != NULL; ++t)
-                        count ++;
-
-                    if (count > 0)
+                    fprintf(out, "\t\tlv2:scalePoint\n");
+                    for ( ; list->text != NULL; ++list)
                     {
-                        fprintf(out, "\t\tlv2:scalePoint\n");
-                        while (*list != NULL)
-                        {
-                            fprintf(out, "\t\t\t[ rdfs:label \"%s\"; rdf:value %d ]", *list, curr);
-                            if (--count)
-                                fprintf(out, " ,\n");
-                            else
-                                fprintf(out, " ;\n");
-                            list ++;
-                            curr ++;
-                        }
+                        fprintf(out, "\t\t\t[ rdfs:label \"%s\"; rdf:value %d ]", list->text, curr);
+                        if (--count)
+                            fprintf(out, " ,\n");
+                        else
+                            fprintf(out, " ;\n");
+                        curr ++;
                     }
-                    else
-                        fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", *list, curr);
-                }
+                } else if (count > 0)
+                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", list->text, curr);
 
 //                for (const char **list = p->items; *list != NULL; ++list, ++curr)
 //                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", *list, curr);

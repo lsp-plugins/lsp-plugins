@@ -127,9 +127,10 @@ namespace lsp
         {
             for (size_t i=0; i<nCapacity; ++i)
             {
-                if ((pItems[i] != NULL) && (pItems[i] != UNNAMED_STR))
-                    ::free(pItems[i]);
-                pItems[i] = NULL;
+                char *s = const_cast<char *>(pItems[i].text);
+                if ((s != NULL) && (s != UNNAMED_STR))
+                    ::free(s);
+                pItems[i].text = NULL;
             }
 
             ::free(pItems);
@@ -198,20 +199,21 @@ namespace lsp
     {
         if (pItems == NULL)
             return;
+        char **v = const_cast<char **>(&pItems[id].text);
 
         // Free previous value holder
-        if ((pItems[id] != NULL) && (pItems[id] != UNNAMED_STR))
-            ::free(pItems[id]);
+        if ((*v != NULL) && (*v != UNNAMED_STR))
+            ::free(*v);
 
         // Try to copy name of parameter
         if (value != NULL)
-            pItems[id]  = ::strdup(value);
-        else if (::asprintf(&pItems[id], "<unnamed #%d>", int(id)) < 0)
-            pItems[id]  = NULL;
+            *v = ::strdup(value);
+        else if (::asprintf(v, "<unnamed #%d>", int(id)) < 0)
+            *v  = NULL;
 
         // If all is bad, do this
-        if (pItems[id] == NULL)
-            pItems[id]  = const_cast<char *>(UNNAMED_STR);
+        if (*v == NULL)
+            *v  = const_cast<char *>(UNNAMED_STR);
     }
 
     bool room_builder_ui::CtlListPort::match(const char *id)
@@ -236,22 +238,25 @@ namespace lsp
             size_t capacity = ((size + 0x10) / 0x10) * 0x10;
             if (capacity > nCapacity)
             {
-                char **list = reinterpret_cast<char **>(::realloc(pItems, capacity * sizeof(char *)));
+                port_item_t *list = reinterpret_cast<port_item_t *>(::realloc(pItems, capacity * sizeof(port_item_t)));
                 if (list == NULL)
                     return false;
                 for (size_t i=nCapacity; i<capacity; ++i)
-                    list[i]     = NULL;
+                {
+                    list[i].text    = NULL;
+                    list[i].lc_key  = NULL;
+                }
 
                 pItems          = list;
                 nCapacity       = capacity;
-                sMetadata.items = const_cast<const char **>(list);
+                sMetadata.items = list;
             }
 
             // Allocate non-allocated strings
             char pname[0x100]; // Should be enough
             for (size_t i=nItems; i < size; ++i)
             {
-                ::sprintf(pname, "/scene/object/%d/name", int(i));
+                ::snprintf(pname, sizeof(pname), "/scene/object/%d/name", int(i));
                 const char *pval = NULL;
                 status_t res = storage->get(pname, &pval);
                 set_list_item(i, (res == STATUS_OK) ? pval : NULL);
@@ -259,9 +264,10 @@ namespace lsp
             nItems  = size; // Update size
 
             // Set the end of string list
-            if ((pItems[nItems] != NULL) && (pItems[nItems] != UNNAMED_STR))
-                ::free(pItems[nItems]);
-            pItems[nItems] = NULL;
+            char **s = const_cast<char **>(&pItems[nItems].text);
+            if ((*s != NULL) && (*s != UNNAMED_STR))
+                ::free(*s);
+            *s = NULL;
 
             // Cleanup storage
             room_builder_base::kvt_cleanup_objects(storage, nItems);

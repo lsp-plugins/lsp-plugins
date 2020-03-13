@@ -107,7 +107,7 @@ namespace lsp
                 if (p->unit == U_ENUM)
                 {
                     for (ssize_t i=nDenomMin; i<=nDenomMax; ++i)
-                        dl->add(p->items[i], i);
+                        dl->add(p->items[i].text, i);
                 }
                 else
                 {

@@ -13,12 +13,12 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Compensation delay
-    static const char *comp_delay_modes[] =
+    static const port_item_t comp_delay_modes[] =
     {
-        "Samples",
-        "Distance",
-        "Time",
-        NULL
+        { "Samples",    "comp_delay.samples"    },
+        { "Distance",   "comp_delay.distance"   },
+        { "Time",       "comp_delay.time"       },
+        { NULL,         NULL                    }
     };
 
     static const port_t comp_delay_mono_ports[] =

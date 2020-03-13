@@ -16,51 +16,51 @@ namespace lsp
     // Compressor
     static const int compressor_classes[] = { C_COMPRESSOR, -1 };
 
-    static const char *comp_sc_modes[] =
+    static const port_item_t comp_sc_modes[] =
     {
-        "Peak",
-        "RMS",
-        "Low-Pass",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL,         NULL }
     };
 
-    static const char *comp_modes[] =
+    static const port_item_t comp_sc_sources[] =
     {
-        "Downward",
-        "Upward",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *comp_modes_short[] =
+    static const port_item_t comp_sc_type[] =
     {
-        "Down",
-        "Up",
-        NULL
+        { "Feed-forward",   "sidechain.feed_forward" },
+        { "Feed-back",      "sidechain.feed_back" },
+        { NULL, NULL }
     };
 
-    static const char *comp_sc_sources[] =
+    static const port_item_t comp_sc2_type[] =
     {
-        "Middle",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Feed-forward",   "sidechain.feed_forward" },
+        { "Feed-back",      "sidechain.feed_back" },
+        { "External",       "sidechain.external" },
+        { NULL, NULL }
     };
 
-    static const char *comp_sc_type[] =
+    static const port_item_t comp_modes[] =
     {
-        "Feed-forward",
-        "Feed-back",
-        NULL
+        { "Downward",   "compressor.downward" },
+        { "Upward",     "compressor.upward" },
+        { NULL, NULL }
     };
 
-    static const char *comp_sc2_type[] =
+    static const port_item_t comp_modes_short[] =
     {
-        "Feed-forward",
-        "Feed-back",
-        "External",
-        NULL
+        { "Down",       "compressor.down_ward" },
+        { "Up",         "compressor.up_ward" },
+        { NULL, NULL }
     };
 
     #define COMP_COMMON     \

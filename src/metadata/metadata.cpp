@@ -93,9 +93,11 @@ namespace lsp
         NULL
     };
 
-    static const char *default_bool[] =
+    static port_item_t default_bool[] =
     {
-        "off", "on", NULL
+        { "off",    "bool.off" },
+        { "on",     "bool.on" },
+        { NULL, NULL }
     };
 
     const char *encode_unit(size_t unit)
@@ -172,14 +174,11 @@ namespace lsp
         return is_decibel_unit(port->unit);
     }
 
-    size_t list_size(const char **list)
+    size_t list_size(const port_item_t *list)
     {
         size_t size = 0;
-        while ((list != NULL) && (*list != NULL))
-        {
-            size    ++;
-            list    ++;
-        }
+        for ( ; (list != NULL) && (list->text != NULL); ++list)
+            ++size;
         return size;
     }
 
@@ -277,11 +276,11 @@ namespace lsp
         float min   = (meta->flags & F_LOWER) ? meta->min: 0;
         float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
 
-        for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
+        for (const port_item_t *p = meta->items; (p != NULL) && (p->text != NULL); ++p)
         {
             if (min >= value)
             {
-                strncpy(buf, *p, len);
+                ::strncpy(buf, p->text, len);
                 buf[len - 1] = '\0';
                 return;
             }
@@ -322,13 +321,13 @@ namespace lsp
 
     void format_bool(char *buf, size_t len, const port_t *meta, float value)
     {
-        const char **list = (meta->items != NULL) ? meta->items : default_bool;
+        const port_item_t *list = (meta->items != NULL) ? meta->items : default_bool;
         if (value >= 0.5f)
-            list++;
+            ++list;
 
-        if (*list != NULL)
+        if (list->text != NULL)
         {
-            strncpy(buf, *list, len);
+            ::strncpy(buf, list->text, len);
             buf[len-1] = '\0';
         }
         else
@@ -377,9 +376,9 @@ namespace lsp
         float min   = (meta->flags & F_LOWER) ? meta->min: 0;
         float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
 
-        for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
+        for (const port_item_t *p = meta->items; (p != NULL) && (p->text != NULL); ++p)
         {
-            if (!::strcasecmp(text, *p))
+            if (!::strcasecmp(text, p->text))
             {
                 if (dst != NULL)
                     *dst    = min;

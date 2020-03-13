@@ -174,8 +174,8 @@ namespace lsp
                     if ((p->unit == U_ENUM) && (p->items != NULL))
                     {
                         int value   = p->min;
-                        for (const char **item = p->items; *item != NULL; ++item)
-                            LSP_BOOL_ASSERT(comment->fmt_append_utf8("\n  %d: %s", value++, *item), STATUS_NO_MEM);
+                        for (const port_item_t *item = p->items; item->text != NULL; ++item)
+                            LSP_BOOL_ASSERT(comment->fmt_append_utf8("\n  %d: %s", value++, item->text), STATUS_NO_MEM);
                     }
 
                     // Serialize name

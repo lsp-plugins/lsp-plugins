@@ -1,0 +1,235 @@
+{
+	"bool": {
+		"off": "off",
+		"on": "on"
+	},
+
+	"comp_delay": {
+		"distance": "Distance",
+		"samples": "Samples",
+		"time": "Time"
+	},
+	
+	"compressor": {
+		"down_ward": "Down",
+		"downward": "Downward",
+		"up_ward": "Up",
+		"upward": "Upward"
+	},
+	
+	"dither": {
+        "none": "None",
+        "bits": {
+	        "11": "11bit",
+	        "12": "12bit",
+	        "15": "15bit",
+	        "16": "16bit",
+	        "23": "23bit",
+	        "24": "24bit",
+	        "7": "7bit",
+	        "8": "8bit"
+        }
+	},
+	
+	"dyna_proc": {
+		"left": "Left",
+		"middle": "Middle",
+		"right": "Right",
+		"side": "Side"
+	},
+	
+	"expander": {
+		"down_ward": "Down",
+		"downward": "Downward",
+		"up_ward": "Up",
+		"upward": "Upward"
+	},
+	
+	"eq": {
+		"slope": {
+			"6dbo": "6 dB/oct",
+			"12dbo": "12 dB/oct",
+			"18dbo": "18 dB/oct",
+			"off": "Off"
+		},
+		"type": {
+			"fir": "FIR",
+			"fft": "FFT",
+			"iir": "IIR"
+		}
+	},
+	
+	"file": {
+		"f1": "File 1",
+		"f1l": "File 1 Left",
+		"f1r": "File 1 Right",
+		"f2": "File 2",
+		"f2l": "File 2 Left",
+		"f2r": "File 2 Right",
+		"f3": "File 3",
+		"f3l": "File 3 Left",
+		"f3r": "File 3 Right",
+		"f4": "File 4",
+		"f4l": "File 4 Left",
+		"f4r": "File 4 Right",
+		
+		"left": "Left",
+		"none": "None",
+		"right": "Right",
+		
+		"t1": "Track 1",
+		"t2": "Track 2",
+		"t3": "Track 3",
+		"t4": "Track 4",
+		"t5": "Track 5",
+		"t6": "Track 6",
+		"t7": "Track 7",
+		"t8": "Track 8"
+	},
+	
+	"graph_eq": {
+		"bands_0:15": "Bands 0-15",
+		"bands_16:31": "Bands 16-31",
+		"bands_l": "Bands Left",
+		"bands_l_0:15": "Bands Left 0-15",
+		"bands_l_16:31": "Bands Left 16-31",
+		"bands_m": "Bands Middle",
+		"bands_m_0:15": "Bands Middle 0-15",
+		"bands_m_16:31": "Bands Middle 16-31",
+		"bands_r": "Bands Right",
+		"bands_r_0:15": "Bands Right 0-15",
+		"bands_r_16:31": "Bands Right 16-31",
+		"bands_s": "Bands Side",
+		"bands_s_0:15": "Bands Side 0-15",
+		"bands_s_16:31": "Bands Side 16-31",
+		
+		"slope": {
+			"bt48": "BT48",
+			"bt72": "BT72",
+			"bt96": "BT96",
+			"mt48": "MT48",
+			"mt72": "MT72",
+			"mt96": "MT96"
+		}
+	},
+	
+	"limiter": {
+		"mode": {
+		    "classic": "Classic",
+
+	        "exp_duck": "Exp Duck",
+	        "exp_tail": "Exp Tail",
+	        "exp_thin": "Exp Thin",
+	        "exp_wide": "Exp Wide",
+	        
+			"herm_duck": "Herm Duck",
+	        "herm_tail": "Herm Tail",
+	        "herm_thin": "Herm Thin",
+	        "herm_wide": "Herm Wide",
+
+	        "line_duck": "Line Duck",
+	        "line_tail": "Line Tail",
+	        "line_thin": "Line Thin",
+	        "line_wide": "Line Wide",
+	
+	        "mided_exp": "Mixed Exp",
+	        "mixed_herm": "Mixed Herm",
+	        "mided_line": "Mixed Line"
+		},
+		
+		"ovs": {
+			"full": {
+				"2x2": "Full x2(2L)",
+				"2x3": "Full x2(3L)",
+				"3x2": "Full x3(2L)",
+				"3x3": "Full x3(3L)",
+				"4x2": "Full x4(2L)",
+				"4x3": "Full x4(3L)",
+				"6x2": "Full x6(2L)",
+				"6x3": "Full x6(3L)",
+				"8x2": "Full x8(2L)",
+				"8x3": "Full x8(3L)"
+			},
+			"half": {
+				"2x2": "Half x2(2L)",
+				"2x3": "Half x2(3L)",
+				"3x2": "Half x3(2L)",
+				"3x3": "Half x3(3L)",
+				"4x2": "Half x4(2L)",
+				"4x3": "Half x4(3L)",
+				"6x2": "Half x6(2L)",
+				"6x3": "Half x6(3L)",
+				"8x2": "Half x8(2L)",
+				"8x3": "Half x8(3L)"
+			},
+			"none": "None",
+		}
+	},
+	
+	"mb_comp": {
+		"band0": "Band 0",
+		"band1": "Band 1",
+		"band2": "Band 2",
+		"band3": "Band 3",
+		"band4": "Band 4",
+		"band5": "Band 5",
+		"band6": "Band 6",
+		"band7": "Band 7",
+		"split": "Split",
+		"split_left": "Split Left",
+		"split_middle": "Split Mid",
+		"split_right": "Split Right",
+		"split_side": "Split Side"
+	},
+	
+	"mb_expand": {
+		"band0": "Band 0",
+		"band1": "Band 1",
+		"band2": "Band 2",
+		"band3": "Band 3",
+		"band4": "Band 4",
+		"band5": "Band 5",
+		"band6": "Band 6",
+		"band7": "Band 7",
+		"split": "Split",
+		"split_left": "Split Left",
+		"split_middle": "Split Mid",
+		"split_right": "Split Right",
+		"split_side": "Split Side"
+	},
+	
+	"metering": {
+		"fft": {
+			"off": "Off",
+			"post_eq": "Post-eq",
+			"pre_eq": "Pre-eq"
+		}
+	},
+	
+	"multiband": {
+		"classic": "Classic",
+		"modern": "Modern"
+	},
+	
+	"sidechain": {
+		"boost": {
+			"brown_bt": "Brown BT",
+			"brown_mt": "Brown MT",
+			"none": "None",
+			"pink_bt": "Pink BT",
+			"pink_mt": "Pink MT"
+		},
+		"external": "External",
+		"feed_back": "Feed-back",
+		"feed_forward": "Feed-forward",
+		"internal": "Internal",
+		"left": "Left",
+		"lowpass": "Low-Pass",
+		"middle": "Middle",
+		"peak": "Peak",
+		"right": "Right",
+		"rms": "RMS",
+		"side": "Side",
+		"uniform": "Uniform"
+	}
+}
