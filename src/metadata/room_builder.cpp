@@ -11,202 +11,202 @@
 
 namespace lsp
 {
-    static const char *rb_fft_rank[] =
+    static const port_item_t rb_fft_rank[] =
     {
-        "512",
-        "1024",
-        "2048",
-        "4096",
-        "8192",
-        "16384",
-        "32767",
-        "65536",
-        NULL
+        { "512",    NULL },
+        { "1024",   NULL },
+        { "2048",   NULL },
+        { "4096",   NULL },
+        { "8192",   NULL },
+        { "16384",  NULL },
+        { "32767",  NULL },
+        { "65536",  NULL },
+        { NULL, NULL }
     };
 
-    static const char *rb_view[] =
+    static const port_item_t rb_view[] =
     {
-        "Room browser",
-        "Sample 0",
-        "Sample 1",
-        "Sample 2",
-        "Sample 3",
-        "Sample 4",
-        "Sample 5",
-        "Sample 6",
-        "Sample 7",
-        NULL
+        { "Room browser",   "room_bld.room_browser" },
+        { "Sample 0",       "sampler.samp.0" },
+        { "Sample 1",       "sampler.samp.1" },
+        { "Sample 2",       "sampler.samp.2" },
+        { "Sample 3",       "sampler.samp.3" },
+        { "Sample 4",       "sampler.samp.4" },
+        { "Sample 5",       "sampler.samp.5" },
+        { "Sample 6",       "sampler.samp.6" },
+        { "Sample 7",       "sampler.samp.7" },
+        { NULL, NULL }
     };
 
-    static const char *rb_samples[] =
+    static const port_item_t rb_samples[] =
     {
-        "None",
-        "Sample 0",
-        "Sample 1",
-        "Sample 2",
-        "Sample 3",
-        "Sample 4",
-        "Sample 5",
-        "Sample 6",
-        "Sample 7",
-        NULL
+        { "None",           "sampler.samp.none" },
+        { "Sample 0",       "sampler.samp.0" },
+        { "Sample 1",       "sampler.samp.1" },
+        { "Sample 2",       "sampler.samp.2" },
+        { "Sample 3",       "sampler.samp.3" },
+        { "Sample 4",       "sampler.samp.4" },
+        { "Sample 5",       "sampler.samp.5" },
+        { "Sample 6",       "sampler.samp.6" },
+        { "Sample 7",       "sampler.samp.7" },
+        { NULL, NULL }
     };
 
-    static const char *rb_tracks[] =
+    static const port_item_t rb_tracks[] =
     {
-        "Left",
-        "Right",
-        NULL
+        { "Left",           "file.left" },
+        { "Right",          "file.right" },
+        { NULL, NULL }
     };
 
-    static const char *filter_slope[] =
+    static const port_item_t filter_slope[] =
     {
-        "off",
-        "6 dB/oct",
-        "12 dB/oct",
-        "18 dB/oct",
-        NULL
+        { "off",            "eq.slope.off" },
+        { "6 dB/oct",       "eq.slope.6dbo" },
+        { "12 dB/oct",      "eq.slope.12dbo" },
+        { "18 dB/oct",      "eq.slope.18dbo" },
+        { NULL, NULL }
     };
 
-    static const char *rb_editor[] =
+    static const port_item_t rb_editor[] =
     {
-        "Source editor",
-        "Capture editor",
-        "Object editor",
-        "Material editor",
-        NULL
+        { "Source editor",      "room_bld.ed.source" },
+        { "Capture editor",     "room_bld.ed.capture" },
+        { "Object editor",      "room_bld.ed.object" },
+        { "Material editor",    "room_bld.ed.material" },
+        { NULL, NULL }
     };
 
-    static const char *rb_processors[] =
+    static const port_item_t rb_processors[] =
     {
-        "Convolvers",
-        "IR Equalizer",
-        NULL
+        { "Convolvers",         "room_bld.convolvers" },
+        { "IR Equalizer",       "room_bld.ir_eq" },
+        { NULL, NULL }
     };
 
-    static const char *rb_ssel[] =
+    static const port_item_t rb_ssel[] =
     {
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        NULL
+        { "0", NULL },
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { NULL, NULL }
     };
 
-    static const char *rb_csel[] =
+    static const port_item_t rb_csel[] =
     {
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        NULL
+        { "0", NULL },
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { NULL, NULL }
     };
 
-    static const char *rb_source_mode[] =
+    static const port_item_t rb_source_mode[] =
     {
-        "Triangle",
-        "Tetrahedron",
-        "Octahedron",
-        "Box",
-        "Icosahedron",
-        "Cylinder",
-        "Cone",
-        "Octasphere",
-        "Icosphere",
-        "Flat spot",
-        "Cylindrical spot",
-        "Spherical spot",
-        NULL
+        { "Triangle",           "room_bld.src.tri" },
+        { "Tetrahedron",        "room_bld.src.tetra" },
+        { "Octahedron",         "room_bld.src.octa" },
+        { "Box",                "room_bld.src.box" },
+        { "Icosahedron",        "room_bld.src.ico" },
+        { "Cylinder",           "room_bld.src.cyl" },
+        { "Cone",               "room_bld.src.cone" },
+        { "Octasphere",         "room_bld.src.octa_s" },
+        { "Icosphere",          "room_bld.src.ico_s" },
+        { "Flat spot",          "room_bld.src.flat_s" },
+        { "Cylindrical spot",   "room_bld.src.cyl_s" },
+        { "Spherical spot",     "room_bld.src.sphe_s" },
+        { NULL, NULL }
     };
 
-    static const char *rb_capture_config[] =
+    static const port_item_t rb_capture_config[] =
     {
-        "Mono",
-        "XY",
-        "AB",
-        "ORTF",
-        "MS",
-        NULL
+        { "Mono",               "room_bld.capt.mono" },
+        { "XY",                 "room_bld.capt.xy" },
+        { "AB",                 "room_bld.capt.ab" },
+        { "ORTF",               "room_bld.capt.ortf" },
+        { "MS",                 "room_bld.capt.ms" },
+        { NULL, NULL }
     };
 
-    static const char *rb_capture_direction[] =
+    static const port_item_t rb_capture_direction[] =
     {
-        "Cardioid",
-        "Supercardioid",
-        "Hypercardioid",
-        "Bidirectional",
-        "8-directional",
-        "Omnidirectional",
-        NULL
+        { "Cardioid",           "room_bld.dir.cardio" },
+        { "Supercardioid",      "room_bld.dir.superc" },
+        { "Hypercardioid",      "room_bld.dir.hyperc" },
+        { "Bidirectional",      "room_bld.dir.bi" },
+        { "8-directional",      "room_bld.dir.eight" },
+        { "Omnidirectional",    "room_bld.dir.omni" },
+        { NULL, NULL }
     };
 
-    static const char *rb_capture_side_direction[] =
+    static const port_item_t rb_capture_side_direction[] =
     {
-        "Bidirectional",
-        "8-directional",
-        NULL
+        { "Bidirectional",      "room_bld.dir.bi" },
+        { "8-directional",      "room_bld.dir.eight" },
+        { NULL, NULL }
     };
 
-    static const char *rb_reflection[] =
+    static const port_item_t rb_reflection[] =
     {
-        "Any",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        NULL
+        { "Any",                "room_bld.refl_any" },
+        { "0", NULL },
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { "8", NULL },
+        { "9", NULL },
+        { "10", NULL },
+        { "11", NULL },
+        { "12", NULL },
+        { "13", NULL },
+        { "14", NULL },
+        { "15", NULL },
+        { NULL, NULL }
     };
 
-    static const char *rb_orientation[] =
+    static const port_item_t rb_orientation[] =
     {
-        "+X forward, +Y up",
-        "+X forward, +Z up",
-        "+X forward, -Y up",
-        "+X forward, -Z up",
-        "-X forward, +Y up",
-        "-X forward, +Z up",
-        "-X forward, -Y up",
-        "-X forward, -Z up",
+        { "+X forward, +Y up",  "room_bld.orient.+x+y" },
+        { "+X forward, +Z up",  "room_bld.orient.+x+z" },
+        { "+X forward, -Y up",  "room_bld.orient.+x-y" },
+        { "+X forward, -Z up",  "room_bld.orient.+x-z" },
+        { "-X forward, +Y up",  "room_bld.orient.-x+y" },
+        { "-X forward, +Z up",  "room_bld.orient.-x+z" },
+        { "-X forward, -Y up",  "room_bld.orient.-x-y" },
+        { "-X forward, -Z up",  "room_bld.orient.-x-z" },
 
-        "+Y forward, +X up",
-        "+Y forward, +Z up",
-        "+Y forward, -X up",
-        "+Y forward, -Z up",
-        "-Y forward, +X up",
-        "-Y forward, +Z up",
-        "-Y forward, -X up",
-        "-Y forward, -Z up",
+        { "+Y forward, +X up",  "room_bld.orient.+y+x" },
+        { "+Y forward, +Z up",  "room_bld.orient.+y+z" },
+        { "+Y forward, -X up",  "room_bld.orient.+y-x" },
+        { "+Y forward, -Z up",  "room_bld.orient.+y-z" },
+        { "-Y forward, +X up",  "room_bld.orient.-y+x" },
+        { "-Y forward, +Z up",  "room_bld.orient.-y+z" },
+        { "-Y forward, -X up",  "room_bld.orient.-y-x" },
+        { "-Y forward, -Z up",  "room_bld.orient.-y-z" },
 
-        "+Z forward, +X up",
-        "+Z forward, +Y up",
-        "+Z forward, -X up",
-        "+Z forward, -Y up",
-        "-Z forward, +X up",
-        "-Z forward, +Y up",
-        "-Z forward, -X up",
-        "-Z forward, -Y up",
+        { "+Z forward, +X up",  "room_bld.orient.+z+x" },
+        { "+Z forward, +Y up",  "room_bld.orient.+z+y" },
+        { "+Z forward, -X up",  "room_bld.orient.+z-x" },
+        { "+Z forward, -Y up",  "room_bld.orient.+z-y" },
+        { "-Z forward, +X up",  "room_bld.orient.-z+x" },
+        { "-Z forward, +Y up",  "room_bld.orient.-z+y" },
+        { "-Z forward, -X up",  "room_bld.orient.-z-x" },
+        { "-Z forward, -Y up",  "room_bld.orient.-z-y" },
 
-        NULL
+        { NULL, NULL }
     };
 
     #define RB_PAN_MONO \
@@ -437,45 +437,45 @@ namespace lsp
 
     const room_material_t room_builder_base_metadata::materials[] =
     {
-        { "Alder",          5060.0f,    6.0f    },
-        { "Aluminum",       5080.0f,    0.0f    },
-        { "Ash",            5065.0f,    6.0f    },
-        { "Basalt Fiber",   340.29f,    95.0f   },
-        { "Birch",          3625.0f,    8.0f    },
-        { "Brass",          3490.0f,    0.0f    },
-        { "Brick",          3600.0f,    3.2f    },
-        { "Cast Iron",      3850.0f,    0.1f    },
-        { "Concrete",       4250.0f,    1.5f    },
-        { "Copper",         3710.0f,    0.0f    },
-        { "Corkwood",       500.0f,     10.0f   },
-        { "Cotton",         340.29f,    17.0f   },
-        { "Fiberboard",     340.29f,    70.0f   },
-        { "Fiberglass",     340.29f,    75.0f   },
-        { "Fir",            4600.0f,    6.0f    },
-        { "Fresh Water",    1493.0f,    0.0f    },
-        { "Glass",          5370.0f,    3.0f    },
-        { "Granite",        3950.0f,    1.5f    },
-        { "Gypsum",         4970.0f,    6.2f    },
-        { "Ice",            3280.0f,    0.0f    },
-        { "Iron",           5170.0f,    0.0f    },
-        { "Lead",           1200.0f,    0.2f    },
-        { "Maple",          4450.0f,    6.0f    },
-        { "Marble",         6150.0f,    1.3f    },
-        { "Mineral Wool",   340.29f,    87.0f   },
-        { "Nickel",         4785.0f,    0.0f    },
-        { "Nickel Silver",  3580.0f,    0.0f    },
-        { "Oak",            4050.0f,    7.0f    },
-        { "Pine",           5030.0f,    6.0f    },
-        { "Plexiglass",     2670.0f,    15.0f   },
-        { "Polystyrene",    2350.0f,    4.0f    },
-        { "Rubber",         1600.0f,    6.0f    },
-        { "Sea Water",      1533.0f,    0.0f    },
-        { "Silicon",        3770.0f,    2.0f    },
-        { "Slate",          4510.0f,    1.9f    },
-        { "Steel",          5050.0f,    0.0f    },
-        { "Tin",            2730.0f,    0.1f    },
-        { "Velvet",         340.29f,    45.0f   },
-        { NULL,             0.0f,       0.0f    }
+        { "Alder",          "room_bld.mat.alder",           5060.0f,    6.0f    },
+        { "Aluminum",       "room_bld.mat.aluminium",       5080.0f,    0.0f    },
+        { "Ash",            "room_bld.mat.ash",             5065.0f,    6.0f    },
+        { "Basalt Fiber",   "room_bld.mat.basalt_fiber",    340.29f,    95.0f   },
+        { "Birch",          "room_bld.mat.birch",           3625.0f,    8.0f    },
+        { "Brass",          "room_bld.mat.brass",           3490.0f,    0.0f    },
+        { "Brick",          "room_bld.mat.brick",           3600.0f,    3.2f    },
+        { "Cast Iron",      "room_bld.mat.cast_iron",       3850.0f,    0.1f    },
+        { "Concrete",       "room_bld.mat.concrete",        4250.0f,    1.5f    },
+        { "Copper",         "room_bld.mat.copper",          3710.0f,    0.0f    },
+        { "Corkwood",       "room_bld.mat.corkwood",        500.0f,     10.0f   },
+        { "Cotton",         "room_bld.mat.cotton",          340.29f,    17.0f   },
+        { "Fiberboard",     "room_bld.mat.fiberboard",      340.29f,    70.0f   },
+        { "Fiberglass",     "room_bld.mat.fiberglass",      340.29f,    75.0f   },
+        { "Fir",            "room_bld.mat.fir",             4600.0f,    6.0f    },
+        { "Fresh Water",    "room_bld.mat.fresh_water",     1493.0f,    0.0f    },
+        { "Glass",          "room_bld.mat.glass",           5370.0f,    3.0f    },
+        { "Granite",        "room_bld.mat.granite",         3950.0f,    1.5f    },
+        { "Gypsum",         "room_bld.mat.gypsum",          4970.0f,    6.2f    },
+        { "Ice",            "room_bld.mat.ice",             3280.0f,    0.0f    },
+        { "Iron",           "room_bld.mat.iron",            5170.0f,    0.0f    },
+        { "Lead",           "room_bld.mat.lead",            1200.0f,    0.2f    },
+        { "Maple",          "room_bld.mat.maple",           4450.0f,    6.0f    },
+        { "Marble",         "room_bld.mat.marble",          6150.0f,    1.3f    },
+        { "Mineral Wool",   "room_bld.mat.mineral_wool",    340.29f,    87.0f   },
+        { "Nickel",         "room_bld.mat.nickel",          4785.0f,    0.0f    },
+        { "Nickel Silver",  "room_bld.mat.nickel_silver",   3580.0f,    0.0f    },
+        { "Oak",            "room_bld.mat.oak",             4050.0f,    7.0f    },
+        { "Pine",           "room_bld.mat.pine",            5030.0f,    6.0f    },
+        { "Plexiglass",     "room_bld.mat.plexiglass",      2670.0f,    15.0f   },
+        { "Polystyrene",    "room_bld.mat.polystyrene",     2350.0f,    4.0f    },
+        { "Rubber",         "room_bld.mat.rubber",          1600.0f,    6.0f    },
+        { "Sea Water",      "room_bld.mat.sea_water",       1533.0f,    0.0f    },
+        { "Silicon",        "room_bld.mat.silocon",         3770.0f,    2.0f    },
+        { "Slate",          "room_bld.mat.slate",           4510.0f,    1.9f    },
+        { "Steel",          "room_bld.mat.steel",           5050.0f,    0.0f    },
+        { "Tin",            "room_bld.mat.tin",             2730.0f,    0.1f    },
+        { "Velvet",         "room_bld.mat.velvet",          340.29f,    45.0f   },
+        { NULL,             NULL,                           0.0f,       0.0f    }
     };
 
     const plugin_metadata_t  room_builder_mono_metadata::metadata =

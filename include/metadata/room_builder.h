@@ -15,6 +15,7 @@ namespace lsp
     typedef struct room_material_t
     {
         const char *name;
+        const char *lc_key;
         float       speed;
         float       absorption;
     } room_material_t;

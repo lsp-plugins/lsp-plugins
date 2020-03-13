@@ -16,124 +16,124 @@ namespace lsp
     // Parametric Equalizer
     static const int para_equalizer_classes[] = { C_PARA_EQ, -1 };
 
-    static const char *filter_slopes[] =
+    static const port_item_t filter_slopes[] =
     {
-        { "x1", "" },
-        { "x2", "" },
-        { "x3", "" },
-        { "x4", "" },
-        NULL
+        { "x1", "eq.slope.x1" },
+        { "x2", "eq.slope.x2" },
+        { "x3", "eq.slope.x3" },
+        { "x4", "eq.slope.x4" },
+        { NULL, NULL }
     };
 
-    static const char *equalizer_eq_modes[] =
+    static const port_item_t equalizer_eq_modes[] =
     {
-        "IIR",
-        "FIR",
-        "FFT",
-        NULL
+        { "IIR",        "eq.type.iir" },
+        { "FIR",        "eq.type.fir" },
+        { "FFT",        "eq.type.fft" },
+        { NULL, NULL }
     };
 
     static const char *filter_types[] =
     {
-        { "Off", "" },
-        { "Bell", "" },
-        { "Hi-pass", "" },
-        { "Hi-shelf", "" },
-        { "Lo-pass", "" },
-        { "Lo-shelf", "" },
-        { "Notch", "" },
-        { "Resonance", "" },
-        { "Allpass", "" },
+        { "Off",            "eq.flt.off" },
+        { "Bell",           "eq.flt.bell" },
+        { "Hi-pass",        "eq.flt.hipass" },
+        { "Hi-shelf",       "eq.flt.hishelf" },
+        { "Lo-pass",        "eq.flt.lopass" },
+        { "Lo-shelf",       "eq.flt.loshelf" },
+        { "Notch",          "eq.flt.notch" },
+        { "Resonance",      "eq.flt.resonance" },
+        { "Allpass",        "eq.flt.allpass" },
 
         // Additional stuff
 #ifndef LSP_NO_EXPERIMENTAL
-        { "Allpass2", "" },
-        { "Ladder-pass", "" },
-        { "Ladder-rej", "" },
-        { "Envelope", "" },
-        { "Bandpass", "" },
+        { "Allpass2",       "eq.flt.allpass2" },
+        { "Ladder-pass",    "eq.flt.ladpass" },
+        { "Ladder-rej",     "eq.flt.ladrej" },
+        { "Envelope",       "eq.flt.envelope" },
+        { "Bandpass",       "eq.flt.bandpass" },
 #endif /* LSP_NO_EXPERIMENTAL */
-        NULL
+        { NULL, NULL }
     };
 
-    static const char *filter_modes[] =
+    static const port_item_t filter_modes[] =
     {
-        { "RLC (BT)", "" },
-        { "RLC (MT)", "" },
-        { "BWC (BT)", "" },
-        { "BWC (MT)", "" },
-        { "LRX (BT)", "" },
-        { "LRX (MT)", "" },
-        { "APO (DR)", "" },
-        NULL
+        { "RLC (BT)",       "eq.mode.rlc_bt" },
+        { "RLC (MT)",       "eq.mode.rlc_mt" },
+        { "BWC (BT)",       "eq.mode.bwc_bt" },
+        { "BWC (MT)",       "eq.mode.bwc_mt" },
+        { "LRX (BT)",       "eq.mode.lrx_bt" },
+        { "LRX (MT)",       "eq.mode.lrx_mt" },
+        { "APO (DR)",       "eq.mode.apo_dr" },
+        { NULL, NULL }
     };
 
-    static const char *equalizer_fft_mode[] =
+    static const port_item_t equalizer_fft_mode[] =
     {
-        "Off",
-        "Post-eq",
-        "Pre-eq",
-        NULL
+        { "Off",        "metering.fft.off" },
+        { "Post-eq",    "metering.fft.post_eq" },
+        { "Pre-eq",     "metering.fft.pre_eq" },
+        { NULL, NULL }
     };
 
-    static const char *filter_select_16[] =
+    static const port_item_t filter_select_16[] =
     {
-        { "Filters 0-7", "" },
-        { "Filters 8-15", "" },
-        NULL
+        { "Filters 0-7",            "para_eq.flt_0:7" },
+        { "Filters 8-15",           "para_eq.flt_8:15" },
+        { NULL, NULL }
     };
 
-    static const char *filter_select_16lr[] =
+    static const port_item_t filter_select_16lr[] =
     {
-        { "Filters Left 0-7", "" },
-        { "Filters Right 0-7", "" },
-        { "Filters Left 8-15", "" },
-        { "Filters Right 8-15", "" },
-        NULL
+        { "Filters Left 0-7",       "para_eq.flt_l_0:7" },
+        { "Filters Right 0-7",      "para_eq.flt_r_0:7" },
+        { "Filters Left 8-15",      "para_eq.flt_l_8:15" },
+        { "Filters Right 8-15",     "para_eq.flt_r_8:15" },
+        { NULL, NULL }
     };
 
-    static const char *filter_select_16ms[] =
+    static const port_item_t filter_select_16ms[] =
     {
-        { "Filters Middle 0-7", "" },
-        { "Filters Side 0-7", "" },
-        { "Filters Middle 8-15", "" },
-        { "Filters Side 8-15", "" },
-        NULL
+        { "Filters Middle 0-7",     "para_eq.flt_m_0:7" },
+        { "Filters Side 0-7",       "para_eq.flt_s_0:7" },
+        { "Filters Middle 8-15",    "para_eq.flt_m_8:15" },
+        { "Filters Side 8-15",      "para_eq.flt_s_8:15" },
+        { NULL, NULL }
     };
 
-    static const char *filter_select_32[] =
+    static const port_item_t filter_select_32[] =
     {
-        { "Filters 0-7", "" },
-        { "Filters 8-15", "" },
-        { "Filters 16-23", "" },
-        { "Filters 24-31", "" },
-        NULL
+        { "Filters 0-7",            "para_eq.flt_0:7" },
+        { "Filters 8-15",           "para_eq.flt_8:15" },
+        { "Filters 16-23",          "para_eq.flt_16:23" },
+        { "Filters 24-31",          "para_eq.flt_24:31" },
+        { NULL, NULL }
     };
 
-    static const char *filter_select_32lr[] =
+    static const port_item_t filter_select_32lr[] =
     {
-        { "Filters Left 0-7", "" },
-        { "Filters Right 0-7", "" },
-        { "Filters Left 8-15", "" },
-        { "Filters Right 8-15", "" },
-        { "Filters Left 16-23", "" },
-        { "Filters Right 16-23", "" },
-        { "Filters Left 24-31", "" },
-        { "Filters Right 24-31", "" },
-        NULL
+        { "Filters Left 0-7",       "para_eq.flt_l_0:7" },
+        { "Filters Right 0-7",      "para_eq.flt_r_0:7" },
+        { "Filters Left 8-15",      "para_eq.flt_l_8:15" },
+        { "Filters Right 8-15",     "para_eq.flt_r_8:15" },
+        { "Filters Left 16-23",     "para_eq.flt_l_16:23" },
+        { "Filters Right 16-23",    "para_eq.flt_r_16:23" },
+        { "Filters Left 24-31",     "para_eq.flt_l_24:31" },
+        { "Filters Right 24-31",    "para_eq.flt_r_24:31" },
+        { NULL, NULL }
     };
 
-    static const char *filter_select_32ms[] =
+    static const port_item_t filter_select_32ms[] =
     {
-        { "Filters Mid 0-7", "" },
-        { "Filters Side 0-7", "" },
-        { "Filters Mid 8-15", "" },
-        { "Filters Side 8-15", "" },
-        { "Filters Mid 16-23", "" },
-        { "Filters Side 16-23", "" },
-        { "Filters Mid 24-31", "" },
-        { "Filters Side 24-31", "" },
-        NULL
+        { "Filters Middle 0-7",     "para_eq.flt_m_0:7" },
+        { "Filters Side 0-7",       "para_eq.flt_s_0:7" },
+        { "Filters Middle 8-15",    "para_eq.flt_m_8:15" },
+        { "Filters Side 8-15",      "para_eq.flt_s_8:15" },
+        { "Filters Mid 16-23",      "para_eq.flt_m_16:23" },
+        { "Filters Side 16-23",     "para_eq.flt_s_16:23" },
+        { "Filters Mid 24-31",      "para_eq.flt_m_24:31" },
+        { "Filters Side 24-31",     "para_eq.flt_s_24:31" },
+        { NULL, NULL }
     };
 
     #define EQ_FILTER(id, label, x, total, f) \

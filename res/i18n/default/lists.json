@@ -46,11 +46,40 @@
 	},
 	
 	"eq": {
+		"flt": {
+			"allpass": "Allpass",
+			"allpass2": "Allpass2",
+			"bandpass": "Bandpass",
+			"bell": "Bell",
+			"envelope": "Envelope",
+			"hipass": "Hi-pass",
+			"hishelf": "Hi-shelf",
+			"ladpass": "Ladder-pass",
+			"ladrej": "Ladder-rej",
+			"lopass": "Lo-pass",
+			"loshelf": "Lo-shelf",
+			"notch": "Notch",
+			"off": "Off",
+			"resonance": "Resonance"
+		},
+		"mode": {
+			"rlc_bt": "RLC (BT)",
+			"rlc_mt": "RLC (MT)",
+			"bwc_bt": "BWC (BT)",
+			"bwc_mt": "BWC (MT)",
+			"lrx_bt": "LRX (BT)",
+			"lrx_mt": "LRX (MT)",
+			"apo_dr": "APO (DR)"
+		},
 		"slope": {
 			"6dbo": "6 dB/oct",
 			"12dbo": "12 dB/oct",
 			"18dbo": "18 dB/oct",
-			"off": "Off"
+			"off": "Off",
+			"x1": "x1",
+			"x2": "x2",
+			"x3": "x3",
+			"x4": "x4"
 		},
 		"type": {
 			"fir": "FIR",
@@ -236,6 +265,186 @@
 			"x8": "x8"
 		},
 		"none": "None"
+	},
+	
+	"para_eq": {
+		"flt_0:7": "Filters 0-7",
+		"flt_16:23": "Filters 16-23",
+		"flt_24:31": "Filters 24-31",
+		"flt_8:15": "Filters 8-15",
+		
+		"flt_l_0:7": "Filters Left 0-7",
+		"flt_l_16:23": "Filters Left 16-23",
+		"flt_l_24:31": "Filters Left 24-31",
+		"flt_l_8:15": "Filters Left 8-15",
+		
+		"flt_m_0:7": "Filters Right 0-7",
+		"flt_m_16:23": "Filters Right 16-23",
+		"flt_m_24:31": "Filters Right 24-31",
+		"flt_m_8:15": "Filters Right 8-15",
+		
+		"flt_r_0:7": "Filters Mid 0-7",
+		"flt_r_16:23": "Filters Mid 16-23",
+		"flt_r_24:31": "Filters Mid 24-31",
+		"flt_r_8:15": "Filters Mid 8-15",
+		
+		"flt_s_0:7": "Filters Side 0-7",
+		"flt_s_16:23": "Filters Side 16-23",
+		"flt_s_24:31": "Filters Side 24-31",
+		"flt_s_8:15": "Filters Side 8-15"
+	},
+	
+	"profiler": {
+		"algo": {
+			"edt0": "EDT0",
+			"edt1": "EDT1",
+			"rt10": "RT10",
+			"rt20": "RT20",
+			"rt30": "RT30"
+		},
+		"fmt": {
+			"lti_all": "LTI All (*.wav)",
+			"lti_auto": "Auto (*.wav)",
+			"lti_coarse": "LTI Coarse (*.wav)",
+			"lti_rt": "LTI RT (*.wav)",
+			"all": "All Info (*.lspc)"
+		},
+		"st": {
+			"cal": "Calibration",
+			"conv": "Convolving",
+			"det": "Latency Detection",
+			"idle": "Idle",
+			"post": "Postprocessing",
+			"pre": "Preprocessing",
+			"rec": "Recording",
+			"save": "Saving",
+			"wait": "Waiting"
+		}
+	},
+	
+	"room_bld": {
+		"capt": {
+			"ab": "AB",
+			"mono": "Mono",
+			"ms": "MS",
+			"ortf": "ORTF",
+			"xy": "XY"
+		},
+		"convolvers": "Convolvers",
+		"dir": {
+			"bi": "Bidirectional",
+			"cardio": "Cardioid",
+			"eight": "8-directional",
+			"superc": "Supercardioid",
+			"hyperc": "Hypercardioid",
+			"omni": "Omnidirectional"
+		},
+		"ed": {
+			"capture": "Capture Editor",
+			"material": "Material Editor",
+			"object": "Object Editor",
+			"source": "Source Editor"
+		},
+		"ir_eq": "IR Equalizer",
+		"mat": {
+			"alder": "Alder",
+			"aluminium": "Aluminum",
+			"ash": "Ash",
+			"basalt_fiber": "Basalt Fiber",
+			"birch": "Birch",
+			"brass": "Brass",
+			"brick": "Brick",
+			"cast_iron": "Cast Iron",
+			"concrete": "Concrete",
+			"copper": "Copper",
+			"corkwood": "Corkwood",
+			"cotton": "Cotton",
+			"fiberboard": "Fiberboard",
+			"fiberglass": "Fiberglass",
+			"fir": "Fir",
+			"fresh_water": "Fresh Water",
+			"glass": "Glass",
+			"granite": "Granite",
+			"gypsum": "Gypsum",
+			"ice": "Ice",
+			"iron": "Iron",
+			"lead": "Lead",
+			"maple": "Maple",
+			"marble": "Marble",
+			"mineral_wool": "Mineral Wool",
+			"nickel": "Nickel",
+			"nickel_silver": "Nickel Silver",
+			"oak": "Oak",
+			"pine": "Pine",
+			"plexiglass": "Plexiglass",
+			"polystyrene": "Polystyrene",
+			"rubber": "Rubber",
+			"sea_water": "Sea Water",
+			"silocon": "Silicon",
+			"slate": "Slate",
+			"steel": "Steel",
+			"tin": "Tin",
+			"velvet": "Velvet"
+		},
+		"orient": {
+			"+x+y": "+X forward, +Y up",
+			"+x+z": "+X forward, +Z up",
+			"+x-y": "+X forward, -Y up",
+			"+x-z": "+X forward, -Z up",
+			"-x+y": "-X forward, +Y up",
+			"-x+z": "-X forward, +Z up",
+			"-x-y": "-X forward, -Y up",
+			"-x-z": "-X forward, -Z up",
+
+			"+y+x": "+Y forward, +X up",
+			"+y+z": "+Y forward, +Z up",
+			"+y-x": "+Y forward, -X up",
+			"+y-z": "+Y forward, -Z up",
+			"-y+x": "-Y forward, +X up",
+			"-y+z": "-Y forward, +Z up",
+			"-y-x": "-Y forward, -X up",
+			"-y-z": "-Y forward, -Z up",
+			
+			"+z+x": "+Z forward, +X up",
+			"+z+y": "+Z forward, +Y up",
+			"+z-x": "+Z forward, -X up",
+			"+z-y": "+Z forward, -Y up",
+			"-z+x": "-Z forward, +X up",
+			"-z+y": "-Z forward, +Y up",
+			"-z-x": "-Z forward, -X up",
+			"-z-y": "-Z forward, -Y up"
+		},
+		"refl_any": "Any",
+		"room_browser": "Room browser",
+		
+		"src": {
+			"box": "Box",
+			"cone": "Cone",
+			"cyl": "Cylinder",
+			"cyl_s": "Cylindrical spot",
+			"flat_s": "Flat spot",
+			"ico": "Icosahedron",
+			"ico_s": "Icosphere",
+			"octa": "Octahedron",
+			"octa_s": "Octasphere",
+			"sphe_s": "Spherical spot",
+			"tri": "Triangle",
+			"tetra": "Tetrahedron"
+		}
+	},
+	
+	"sampler": {
+		"samp": {
+			"0": "Sample 0",
+			"1": "Sample 1",
+			"2": "Sample 2",
+			"3": "Sample 3",
+			"4": "Sample 4",
+			"5": "Sample 5",
+			"6": "Sample 6",
+			"7": "Sample 7",
+			"none": "None"
+		}
 	},
 	
 	"sidechain": {
