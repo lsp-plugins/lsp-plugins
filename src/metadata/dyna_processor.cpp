@@ -25,7 +25,7 @@ namespace lsp
         { "RMS",        "sidechain.rms"            },
         { "Low-Pass",   "sidechain.lowpass"        },
         { "Uniform",    "sidechain.uniform"        },
-        { NULL,         NULL }
+        { NULL, NULL }
     };
 
     static const port_item_t dyna_proc_sc_sources[] =
@@ -56,14 +56,14 @@ namespace lsp
     {
         { "Left",           "dyna_proc.left" },
         { "Right",          "dyna_proc.right" },
-        NULL
+        { NULL, NULL }
     };
 
     static const port_item_t dyna_proc_sel_ms[] =
     {
         { "Middle",         "dyna_proc.mid" },
         { "Side",           "dyna_proc.side" },
-        NULL
+        { NULL, NULL }
     };
 
     #define DYNA_PROC_COMMON     \

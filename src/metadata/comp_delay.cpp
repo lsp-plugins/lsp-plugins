@@ -18,7 +18,7 @@ namespace lsp
         { "Samples",    "comp_delay.samples"    },
         { "Distance",   "comp_delay.distance"   },
         { "Time",       "comp_delay.time"       },
-        { NULL,         NULL                    }
+        { NULL, NULL }
     };
 
     static const port_t comp_delay_mono_ports[] =

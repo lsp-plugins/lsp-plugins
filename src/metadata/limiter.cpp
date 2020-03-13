@@ -44,31 +44,31 @@ namespace lsp
 
     static port_item_t limiter_ovs_modes[] =
     {
-        { "None",           "limiter.ovs.none" },
+        { "None",           "oversampler.none" },
 
-        { "Half x2(2L)",    "limiter.ovs.half.2x2" },
-        { "Half x2(3L)",    "limiter.ovs.half.2x3" },
-        { "Half x3(2L)",    "limiter.ovs.half.3x2" },
-        { "Half x3(3L)",    "limiter.ovs.half.3x3" },
-        { "Half x4(2L)",    "limiter.ovs.half.4x2" },
-        { "Half x4(3L)",    "limiter.ovs.half.4x3" },
-        { "Half x6(2L)",    "limiter.ovs.half.6x2" },
-        { "Half x6(3L)",    "limiter.ovs.half.6x3" },
-        { "Half x8(2L)",    "limiter.ovs.half.8x2" },
-        { "Half x8(3L)",    "limiter.ovs.half.8x3" },
+        { "Half x2(2L)",    "oversampler.half.2x2" },
+        { "Half x2(3L)",    "oversampler.half.2x3" },
+        { "Half x3(2L)",    "oversampler.half.3x2" },
+        { "Half x3(3L)",    "oversampler.half.3x3" },
+        { "Half x4(2L)",    "oversampler.half.4x2" },
+        { "Half x4(3L)",    "oversampler.half.4x3" },
+        { "Half x6(2L)",    "oversampler.half.6x2" },
+        { "Half x6(3L)",    "oversampler.half.6x3" },
+        { "Half x8(2L)",    "oversampler.half.8x2" },
+        { "Half x8(3L)",    "oversampler.half.8x3" },
 
-        { "Full x2(2L)",    "limiter.ovs.full.2x2" },
-        { "Full x2(3L)",    "limiter.ovs.full.2x3" },
-        { "Full x3(2L)",    "limiter.ovs.full.3x2" },
-        { "Full x3(3L)",    "limiter.ovs.full.3x3" },
-        { "Full x4(2L)",    "limiter.ovs.full.4x2" },
-        { "Full x4(3L)",    "limiter.ovs.full.4x3" },
-        { "Full x6(2L)",    "limiter.ovs.full.6x2" },
-        { "Full x6(3L)",    "limiter.ovs.full.6x3" },
-        { "Full x8(2L)",    "limiter.ovs.full.8x2" },
-        { "Full x8(3L)",    "limiter.ovs.full.8x3" },
+        { "Full x2(2L)",    "oversampler.full.2x2" },
+        { "Full x2(3L)",    "oversampler.full.2x3" },
+        { "Full x3(2L)",    "oversampler.full.3x2" },
+        { "Full x3(3L)",    "oversampler.full.3x3" },
+        { "Full x4(2L)",    "oversampler.full.4x2" },
+        { "Full x4(3L)",    "oversampler.full.4x3" },
+        { "Full x6(2L)",    "oversampler.full.6x2" },
+        { "Full x6(3L)",    "oversampler.full.6x3" },
+        { "Full x8(2L)",    "oversampler.full.8x2" },
+        { "Full x8(3L)",    "oversampler.full.8x3" },
 
-        NULL
+        { NULL, NULL }
     };
 
     static port_item_t limiter_dither_modes[] =

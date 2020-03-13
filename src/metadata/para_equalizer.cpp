@@ -18,10 +18,10 @@ namespace lsp
 
     static const char *filter_slopes[] =
     {
-        "x1",
-        "x2",
-        "x3",
-        "x4",
+        { "x1", "" },
+        { "x2", "" },
+        { "x3", "" },
+        { "x4", "" },
         NULL
     };
 
@@ -35,36 +35,36 @@ namespace lsp
 
     static const char *filter_types[] =
     {
-        "Off",
-        "Bell",
-        "Hi-pass",
-        "Hi-shelf",
-        "Lo-pass",
-        "Lo-shelf",
-        "Notch",
-        "Resonance",
-        "Allpass",
+        { "Off", "" },
+        { "Bell", "" },
+        { "Hi-pass", "" },
+        { "Hi-shelf", "" },
+        { "Lo-pass", "" },
+        { "Lo-shelf", "" },
+        { "Notch", "" },
+        { "Resonance", "" },
+        { "Allpass", "" },
 
         // Additional stuff
 #ifndef LSP_NO_EXPERIMENTAL
-        "Allpass2",
-        "Ladder-pass",
-        "Ladder-rej",
-        "Envelope",
-        "Bandpass",
+        { "Allpass2", "" },
+        { "Ladder-pass", "" },
+        { "Ladder-rej", "" },
+        { "Envelope", "" },
+        { "Bandpass", "" },
 #endif /* LSP_NO_EXPERIMENTAL */
         NULL
     };
 
     static const char *filter_modes[] =
     {
-        "RLC (BT)",
-        "RLC (MT)",
-        "BWC (BT)",
-        "BWC (MT)",
-        "LRX (BT)",
-        "LRX (MT)",
-        "APO (DR)",
+        { "RLC (BT)", "" },
+        { "RLC (MT)", "" },
+        { "BWC (BT)", "" },
+        { "BWC (MT)", "" },
+        { "LRX (BT)", "" },
+        { "LRX (MT)", "" },
+        { "APO (DR)", "" },
         NULL
     };
 
@@ -78,61 +78,61 @@ namespace lsp
 
     static const char *filter_select_16[] =
     {
-        "Filters 0-7",
-        "Filters 8-15",
+        { "Filters 0-7", "" },
+        { "Filters 8-15", "" },
         NULL
     };
 
     static const char *filter_select_16lr[] =
     {
-        "Filters Left 0-7",
-        "Filters Right 0-7",
-        "Filters Left 8-15",
-        "Filters Right 8-15",
+        { "Filters Left 0-7", "" },
+        { "Filters Right 0-7", "" },
+        { "Filters Left 8-15", "" },
+        { "Filters Right 8-15", "" },
         NULL
     };
 
     static const char *filter_select_16ms[] =
     {
-        "Filters Middle 0-7",
-        "Filters Side 0-7",
-        "Filters Middle 8-15",
-        "Filters Side 8-15",
+        { "Filters Middle 0-7", "" },
+        { "Filters Side 0-7", "" },
+        { "Filters Middle 8-15", "" },
+        { "Filters Side 8-15", "" },
         NULL
     };
 
     static const char *filter_select_32[] =
     {
-        "Filters 0-7",
-        "Filters 8-15",
-        "Filters 16-23",
-        "Filters 24-31",
+        { "Filters 0-7", "" },
+        { "Filters 8-15", "" },
+        { "Filters 16-23", "" },
+        { "Filters 24-31", "" },
         NULL
     };
 
     static const char *filter_select_32lr[] =
     {
-        "Filters Left 0-7",
-        "Filters Right 0-7",
-        "Filters Left 8-15",
-        "Filters Right 8-15",
-        "Filters Left 16-23",
-        "Filters Right 16-23",
-        "Filters Left 24-31",
-        "Filters Right 24-31",
+        { "Filters Left 0-7", "" },
+        { "Filters Right 0-7", "" },
+        { "Filters Left 8-15", "" },
+        { "Filters Right 8-15", "" },
+        { "Filters Left 16-23", "" },
+        { "Filters Right 16-23", "" },
+        { "Filters Left 24-31", "" },
+        { "Filters Right 24-31", "" },
         NULL
     };
 
     static const char *filter_select_32ms[] =
     {
-        "Filters Mid 0-7",
-        "Filters Side 0-7",
-        "Filters Mid 8-15",
-        "Filters Side 8-15",
-        "Filters Mid 16-23",
-        "Filters Side 16-23",
-        "Filters Mid 24-31",
-        "Filters Side 24-31",
+        { "Filters Mid 0-7", "" },
+        { "Filters Side 0-7", "" },
+        { "Filters Mid 8-15", "" },
+        { "Filters Side 8-15", "" },
+        { "Filters Mid 16-23", "" },
+        { "Filters Side 16-23", "" },
+        { "Filters Mid 24-31", "" },
+        { "Filters Side 24-31", "" },
         NULL
     };
 

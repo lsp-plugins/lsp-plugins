@@ -21,7 +21,7 @@ namespace lsp
         { "File 2",     "file.f2" },
         { "File 3",     "file.f3" },
         { "File 4",     "file.f4" },
-        NULL
+        { NULL, NULL }
     };
 
     static const port_item_t ir_tracks[] =
@@ -34,7 +34,7 @@ namespace lsp
         { "Track 6",    "file.t6" },
         { "Track 7",    "file.t7" },
         { "Track 8",    "file.t8" },
-        NULL
+        { NULL, NULL }
     };
 
     static const port_item_t ir_fft_rank[] =
@@ -56,7 +56,7 @@ namespace lsp
         { "File 2",     "file.f2" },
         { "File 3",     "file.f3" },
         { "File 4",     "file.f4" },
-        NULL
+        { NULL, NULL }
     };
 
     static const port_item_t filter_slope[] =

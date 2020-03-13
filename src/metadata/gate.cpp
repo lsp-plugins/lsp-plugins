@@ -22,7 +22,7 @@ namespace lsp
         { "RMS",        "sidechain.rms"            },
         { "Low-Pass",   "sidechain.lowpass"        },
         { "Uniform",    "sidechain.uniform"        },
-        { NULL,         NULL }
+        { NULL, NULL }
     };
 
     static const port_item_t gate_sc_sources[] =

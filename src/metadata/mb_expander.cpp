@@ -24,7 +24,7 @@ namespace lsp
         { "RMS",        "sidechain.rms"            },
         { "Low-Pass",   "sidechain.lowpass"        },
         { "Uniform",    "sidechain.uniform"        },
-        { NULL,         NULL }
+        { NULL, NULL }
     };
 
     static const port_item_t exp_sc_source[] =
@@ -94,7 +94,7 @@ namespace lsp
         { "Band 5",         "mb_expand.band5" },
         { "Band 6",         "mb_expand.band6" },
         { "Band 7",         "mb_expand.band7" },
-        NULL
+        { NULL, NULL }
     };
 
     #define MB_COMMON(bands) \

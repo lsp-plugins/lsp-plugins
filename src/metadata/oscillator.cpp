@@ -13,49 +13,49 @@ namespace lsp
 {
     static const int oscillator_classes[] = { C_OSCILLATOR, -1};
 
-    static const char *sc_func[] =
+    static const port_item_t sc_func[] =
     {
-        "Sine",
-        "Cosine",
-        "Squared Sine",
-        "Squared Cosine",
-        "Rectangular",
-        "Sawtooth",
-        "Trapezoid",
-        "Pulsetrain",
-        "Parabolic",
-        "Band Limited Rectangular",
-        "Band Limited Sawtooth",
-        "Band Limited Trapezoid",
-        "Band Limited Pulsetrain",
-        "Band Limited Parabolic",
-        NULL
+        { "Sine",                       "oscillator.sin" },
+        { "Cosine",                     "oscillator.cos" },
+        { "Squared Sine",               "oscillator.sqr_sin" },
+        { "Squared Cosine",             "oscillator.sqr_cos" },
+        { "Rectangular",                "oscillator.rect" },
+        { "Sawtooth",                   "oscillator.saw" },
+        { "Trapezoid",                  "oscillator.trap" },
+        { "Pulsetrain",                 "oscillator.pulse" },
+        { "Parabolic",                  "oscillator.para" },
+        { "Band Limited Rectangular",   "oscillator.bl_rect" },
+        { "Band Limited Sawtooth",      "oscillator.bl_saw" },
+        { "Band Limited Trapezoid",     "oscillator.bl_trap" },
+        { "Band Limited Pulsetrain",    "oscillator.bl_pulse" },
+        { "Band Limited Parabolic",     "oscillator.bl_para" },
+        { NULL, NULL }
     };
 
-    static const char *sc_dc_ref[] =
+    static const port_item_t sc_dc_ref[] =
     {
-        "Wave DC",
-        "Zero DC",
-        NULL
+        { "Wave DC",        "oscillator.wave_dc" },
+        { "Zero DC",        "oscillator.zero_dc" },
+        { NULL, NULL }
     };
 
-    static const char *sc_mode[] =
+    static const port_item_t sc_mode[] =
     {
-        "Add",
-        "Multiply",
-        "Replace",
-        NULL
+        { "Add",            "oscillator.add" },
+        { "Multiply",       "oscillator.mul" },
+        { "Replace",        "oscillator.rep" },
+        { NULL, NULL }
     };
 
-    static const char *sc_oversampler_mode[] =
+    static const port_item_t sc_oversampler_mode[] =
     {
-        "None",
-        "x2",
-        "x3",
-        "x4",
-        "x6",
-        "x8",
-        NULL
+        { "None", "oversampler.none" },
+        { "x2", "oversampler.normal.x2" },
+        { "x3", "oversampler.normal.x3" },
+        { "x4", "oversampler.normal.x4" },
+        { "x6", "oversampler.normal.x6" },
+        { "x8", "oversampler.normal.x8" },
+        { NULL, NULL }
     };
 
     static const port_t oscillator_ports[] =
