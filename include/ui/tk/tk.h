@@ -232,6 +232,7 @@ namespace lsp
 #include <ui/tk/util/LSPTextDataSource.h>
 #include <ui/tk/util/LSPTextDataSink.h>
 #include <ui/tk/util/LSPUrlSink.h>
+#include <ui/tk/util/LSPFileFilterItem.h>
 #include <ui/tk/util/LSPFileFilter.h>
 #include <ui/tk/util/LSPStyleTrigger.h>
 
