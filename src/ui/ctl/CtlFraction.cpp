@@ -88,6 +88,7 @@ namespace lsp
                 return;
 
             char v[32];
+            LSPItem *item = NULL;
             if (pDenom != NULL)
             {
                 const port_t *p = (pDenom != NULL) ? pDenom->metadata() : NULL;
@@ -107,14 +108,24 @@ namespace lsp
                 if (p->unit == U_ENUM)
                 {
                     for (ssize_t i=nDenomMin; i<=nDenomMax; ++i)
-                        dl->add(p->items[i].text, i);
+                    {
+                        if (dl->add(&item) == STATUS_OK)
+                        {
+                            item->text()->set_raw(p->items[i].text);
+                            item->set_value(i);
+                        }
+                    }
                 }
                 else
                 {
                     for (ssize_t i=nDenomMin; i<=nDenomMax; ++i)
                     {
-                        snprintf(v, 32, "%d", int(i));
-                        dl->add(v, i);
+                        if (dl->add(&item) == STATUS_OK)
+                        {
+                            snprintf(v, 32, "%d", int(i));
+                            item->text()->set_raw(v);
+                            item->set_value(i);
+                        }
                     }
                 }
             }
@@ -125,8 +136,12 @@ namespace lsp
 
                 for (ssize_t i=nDenomMin; i<=nDenomMax; ++i)
                 {
-                    snprintf(v, 32, "%d", int(i));
-                    dl->add(v, i);
+                    if ((dl->add(&item)) == STATUS_OK)
+                    {
+                        snprintf(v, 32, "%d", int(i));
+                        item->text()->set_raw(v);
+                        item->set_value(i);
+                    }
                 }
             }
 
@@ -201,10 +216,15 @@ namespace lsp
             ssize_t n       = nl->size();
 
             char v[32];
+            LSPItem *item = NULL;
             for (ssize_t i=n; i<=num_max; ++i)
             {
-                snprintf(v, 32, "%d", int(i));
-                nl->add(v, i);
+                if ((nl->add(&item)) == STATUS_OK)
+                {
+                    snprintf(v, 32, "%d", int(i));
+                    item->text()->set_raw(v);
+                    item->set_value(i);
+                }
             }
             nl->truncate(num_max+1);
 

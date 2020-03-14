@@ -28,7 +28,8 @@ namespace lsp
 
         status_t LSPFileDialog::LSPFileDialogFilter::item_updated(size_t idx, filter_t *flt)
         {
-            return pDialog->sWFilter.items()->set_text(idx, &flt->sTitle);
+            LSPItem *item = pDialog->sWFilter.items()->get(idx);
+            return (item != NULL) ? item->text()->set_raw(&flt->sTitle) : STATUS_NOT_FOUND;
         }
 
         status_t LSPFileDialog::LSPFileDialogFilter::item_removed(size_t idx, filter_t *flt)
@@ -38,7 +39,11 @@ namespace lsp
 
         status_t LSPFileDialog::LSPFileDialogFilter::item_added(size_t idx, filter_t *flt)
         {
-            return pDialog->sWFilter.items()->insert(idx, &flt->sTitle);
+            LSPItem *item = NULL;
+            status_t res = pDialog->sWFilter.items()->insert(idx, &item);
+            if (res == STATUS_OK)
+                res = item->text()->set_raw(&flt->sTitle);
+            return res;
         }
 
         void LSPFileDialog::LSPFileDialogFilter::default_updated(ssize_t idx)
@@ -787,11 +792,14 @@ namespace lsp
                 }
 
                 // Add item
-                if ((xres = lst->add(psrc, i)) != STATUS_OK)
+                LSPItem *item = NULL;
+                if ((xres = lst->add(&item)) != STATUS_OK)
                 {
                     lst->clear();
                     return xres;
                 }
+                item->text()->set_raw(psrc);
+                item->set_value(i);
 
                 // Check if is equal
                 if ((!(ent->nFlags & (F_ISDIR | F_DOTDOT))) && (xfname.length() > 0))
@@ -1106,7 +1114,10 @@ namespace lsp
             ssize_t index = sWFiles.selection()->value();
             if (index < 0)
                 return NULL;
-            index = sWFiles.items()->value(index);
+            LSPItem *item = sWFiles.items()->get(index);
+            if (item == NULL)
+                return NULL;
+            index = item->value();
             if (index < 0)
                 return NULL;
             return vFiles.get(index);

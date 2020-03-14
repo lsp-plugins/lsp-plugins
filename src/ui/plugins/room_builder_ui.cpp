@@ -343,13 +343,20 @@ namespace lsp
         pCBox = widget_cast<LSPComboBox>(pUI->resolve("mpreset"));
 
         // Initialize list of presets
+        LSPItem li;
         if (pCBox != NULL)
         {
             // Initialize box
-            pCBox->items()->add("<select material>", -1.0f);
+            li.text()->set_raw("<select material>");
+            li.set_value(-1.0f);
+            pCBox->items()->add(&li);
             size_t i=0;
             for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m)
-                pCBox->items()->add(m->name, i++);
+            {
+                li.text()->set_raw(m->name);
+                li.set_value(i++);
+                pCBox->items()->add(&li);
+            }
             pCBox->set_selected(0);
 
             // Bind listener

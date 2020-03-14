@@ -119,7 +119,7 @@ namespace lsp
                 virtual status_t        on_grab_key_down(const ws_event_t *e);
 
             public:
-                const char         *text() const;
+                const LSPLocalString   *text() const;
                 inline LSPColor    *color()                 { return &sColor; }
                 inline size_t       radius() const          { return nRadius; }
                 inline size_t       border() const          { return nBorder; }

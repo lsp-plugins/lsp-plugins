@@ -21,8 +21,9 @@ namespace lsp
 //            char str[32];
 
             LSPItemList *items = widget->items();
+            LSPItem *item;
 
-            #define MP(x) items->add(#x, x);
+            #define MP(x) items->add(&item); item->text()->set_raw(#x); item->set_value(x);
 
             MP(MP_NONE);
             MP(MP_ARROW);
@@ -115,7 +116,10 @@ namespace lsp
 //            if (wnd == NULL)
 //                return STATUS_OK;
             size_t index = lb->selection()->value();
-            lb->set_cursor(mouse_pointer_t(lb->items()->value(index)));
+            LSPItem *item = lb->items()->get(index);
+
+            if (item != NULL)
+                lb->set_cursor(mouse_pointer_t(item->value()));
 
             return STATUS_OK;
         }
