@@ -1130,6 +1130,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             value_t tmp;
+            init_value(&tmp);
             for (size_t i=0; i<expr->resolve.count; ++i)
             {
                 expr_t *e = expr->resolve.items[i];
@@ -1148,6 +1149,7 @@ namespace lsp
                 if (res != STATUS_OK)
                 {
                     ::free(indexes);
+                    destroy_value(&tmp);
                     return res;
                 }
             }
@@ -1155,6 +1157,7 @@ namespace lsp
             // Now we can resolve values
             res = env->resolve(value, expr->resolve.name, expr->resolve.count, indexes);
             ::free(indexes);
+            destroy_value(&tmp);
 
             return res;
         }

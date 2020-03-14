@@ -72,6 +72,13 @@ namespace lsp
                 delete pDisplay;
                 pDisplay = NULL;
             }
+
+            // Destroy dictionary
+            if (pDictionary != NULL)
+            {
+                delete pDictionary;
+                pDictionary = NULL;
+            }
         }
 
         status_t LSPDisplay::main_task_handler(ws::timestamp_t time, void *arg)

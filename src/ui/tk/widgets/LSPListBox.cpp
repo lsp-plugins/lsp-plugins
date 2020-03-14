@@ -601,6 +601,9 @@ namespace lsp
                 r->nMaxWidth = r->nMinWidth;
             if (r->nMaxHeight < r->nMinHeight)
                 r->nMaxHeight = r->nMinHeight;
+
+            s->destroy();
+            delete s;
         }
 
         void LSPListBox::realize(const realize_t *r)

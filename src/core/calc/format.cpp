@@ -869,6 +869,7 @@ namespace lsp
                 }
             }
 
+            destroy_value(&v);
             return res;
         }
 

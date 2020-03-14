@@ -256,11 +256,11 @@ namespace lsp
 
             void X11Window::destroy()
             {
+                // Drop surface
+                drop_surface();
+
                 if (!bWrapper)
                 {
-                    // Drop surface
-                    drop_surface();
-
                     // Remove window from registry
                     if (pX11Display != NULL)
                         pX11Display->remove_window(this);
