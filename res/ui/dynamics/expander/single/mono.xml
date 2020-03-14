@@ -195,7 +195,7 @@
 					<knob id="scr" />
 					<knob id="sla" />
 					<vbox fill="false" spacing="1">
-						<combo id="sci" visiblity="ex :sci" fill="true" />
+						<combo id="sci" visibility="ex :sci" fill="true" />
 						<combo id="scm" fill="true" />
 					</vbox>
 					

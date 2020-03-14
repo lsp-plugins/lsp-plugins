@@ -201,7 +201,7 @@ namespace lsp
 
     const port_item_t fft_envelopes[] =
     {
-        { "Purple noise",       "fft.env.purple" },
+        { "Violet noise",       "fft.env.violet" },
         { "Blue noise",         "fft.env.blue" },
         { "White noise",        "fft.env.white" },
         { "Pink noise",         "fft.env.pink" },

@@ -472,6 +472,7 @@
 	
 	"specials": {
 		"idx": "{@id}",
+		"idx:": "{@id}:",
 		"num": "#"	
 	},	
 	"spectrogram": "Spectrogram",

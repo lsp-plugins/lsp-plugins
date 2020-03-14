@@ -591,9 +591,9 @@
 						<value id="pd${i}" same_line="true" />
 						<hbox fill="false">
 							<button id="cam${i}" size="12" color="red" led="true" />
-							<label text="Mute" font_size="9" />
+							<label text="labels.chan.mute" font_size="9" />
 							<led id="ca${i}" />
-							<label text="Active" />
+							<label text="labels.active" font_size="9" />
 						</hbox>
 						<value id="mk${i}" same_line="true" />
 						<value id="com${i}" same_line="true" />
@@ -624,9 +624,9 @@
 						<value id="pd${i}" same_line="true" />
 						<hbox fill="false">
 							<button id="cam${i}" size="12" color="red" led="true" />
-							<label text="Mute" font_size="9" />
+							<label text="labels.chan.mute" font_size="9" />
 							<led id="ca${i}" />
-							<label text="Active" font_size="9" />
+							<label text="labels.active" font_size="9" />
 						</hbox>
 						<value id="mk${i}" same_line="true" />
 						<value id="com${i}" same_line="true" />

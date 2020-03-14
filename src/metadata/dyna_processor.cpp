@@ -61,7 +61,7 @@ namespace lsp
 
     static const port_item_t dyna_proc_sel_ms[] =
     {
-        { "Middle",         "dyna_proc.mid" },
+        { "Middle",         "dyna_proc.middle" },
         { "Side",           "dyna_proc.side" },
         { NULL, NULL }
     };

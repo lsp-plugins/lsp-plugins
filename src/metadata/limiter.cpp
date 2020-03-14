@@ -35,9 +35,9 @@ namespace lsp
         { "Line Tail",      "limiter.line_tail" },
         { "Line Duck",      "limiter.line_duck" },
 
-        { "Mixed Herm",     "limiter.mided_herm" },
-        { "Mixed Exp",      "limiter.mided_exp" },
-        { "Mixed Line",     "limiter.mided_line" },
+        { "Mixed Herm",     "limiter.mixed_herm" },
+        { "Mixed Exp",      "limiter.mixed_exp" },
+        { "Mixed Line",     "limiter.mixed_line" },
 
         { NULL, NULL }
     };

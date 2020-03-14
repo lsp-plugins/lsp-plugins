@@ -261,7 +261,7 @@
 		</grid>
 		<hbox spacing="4">
 			<!-- Processors -->
-			<cgroup id="psel" text="Processor ">
+			<cgroup id="psel" >
 				<ui:for id="p" first="0" last="1">
 					<ui:set id="chn" value="${(:p mod 2) ? 'labels.chan.id_R_ight' : 'labels.chan.id_L_eft'}" />
 					<ui:set id="ch" value="${(:p mod 2) ? '_r' : '_l'}" />

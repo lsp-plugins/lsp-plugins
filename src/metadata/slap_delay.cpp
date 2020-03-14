@@ -24,10 +24,10 @@ namespace lsp
 
     static const port_item_t slap_delay_lines[] =
     {
-        { "0-4",    NULL },
-        { "5-7",    NULL },
-        { "8-11",   NULL },
-        { "12-15",  NULL },
+        { "0-3",        "slap_delay.lines_0:3" },
+        { "4-7",        "slap_delay.lines_4:7" },
+        { "8-11",       "slap_delay.lines_8:11" },
+        { "12-15",      "slap_delay.lines_12:15" },
         { NULL, NULL }
     };
 

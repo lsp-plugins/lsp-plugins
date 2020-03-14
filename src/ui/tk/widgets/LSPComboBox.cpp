@@ -461,7 +461,7 @@ namespace lsp
                     continue;
 
                 // Perform text format
-                item->text()->format(&str);
+                item->text()->format(&str, this);
                 if (str.is_empty())
                     continue;
 
@@ -539,7 +539,7 @@ namespace lsp
                 if (item == NULL)
                     text.clear();
                 else
-                    item->text()->format(&text);
+                    item->text()->format(&text, this);
             }
 
             // Get text and font parameters

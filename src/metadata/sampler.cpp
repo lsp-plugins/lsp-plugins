@@ -13,18 +13,16 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Sampler
-    #define R(x) { x, NULL }
-
     static const port_item_t sampler_sample_selectors[] =
     {
-        { "0", NULL },
-        { "1", NULL },
-        { "2", NULL },
-        { "3", NULL },
-        { "4", NULL },
-        { "5", NULL },
-        { "6", NULL },
-        { "7", NULL },
+        { "0", "sampler.samp.0" },
+        { "1", "sampler.samp.1" },
+        { "2", "sampler.samp.2" },
+        { "3", "sampler.samp.3" },
+        { "4", "sampler.samp.4" },
+        { "5", "sampler.samp.5" },
+        { "6", "sampler.samp.6" },
+        { "7", "sampler.samp.7" },
         { NULL, NULL }
     };
 
@@ -60,6 +58,7 @@ namespace lsp
         { NULL, NULL }
     };
 
+    #define R(x) { x, "sampler.inst." x }
     static const port_item_t sampler_x12_instruments[] =
     {
         R("0"), R("1"), R("2"), R("3"),
@@ -95,6 +94,7 @@ namespace lsp
         R("44"), R("45"), R("46"), R("47"),
         { NULL, NULL }
     };
+    #undef R
 
     static const port_item_t sampler_x12_mixer_lines[] =
     {

@@ -165,22 +165,22 @@
 			</cell>
 			<hbox spacing="8">
 				<label text="labels.mode:" />
-				<combo id="mode" width="48" />
+				<combo id="mode" />
 				<label text="labels.sc_boost:" />
 				<combo id="envb" />
 				<label text="labels.fft.fft:" />
 				<grid rows="2" cols="2" hspacing="2" vspacing="2">
 					<button id="ife_m" size="10" color="middle_channel" led="true" />
 					<button id="ife_s" size="10" color="side_channel" led="true" />
-					<label text="labels.chan.M_id" font_size="9" />
-					<label text="labels.chan.S_ide" font_size="9" />
+					<label text="labels.chan.M_id" font_size="9" color="middle_channel" />
+					<label text="labels.chan.S_ide" font_size="9" color="side_channel" />
 				</grid>
 				<label text="In" />
 				<grid rows="2" cols="2" hspacing="2" vspacing="2">
 					<button id="ofe_m" size="10" color="middle_channel" led="true" />
 					<button id="ofe_s" size="10" color="side_channel" led="true" />
-					<label text="labels.chan.M_id" font_size="9" />
-					<label text="labels.chan.S_ide" font_size="9" />
+					<label text="labels.chan.M_id" font_size="9" color="middle_channel" />
+					<label text="labels.chan.S_ide" font_size="9" color="side_channel" />
 				</grid>
 				<label text="Out" />
 				<vsep />

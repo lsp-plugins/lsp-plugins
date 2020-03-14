@@ -170,7 +170,7 @@ namespace lsp
             LSPString text;
             const LSPLocalString *lctext = this->text();
             if (lctext != NULL)
-                lctext->format(&text);
+                lctext->format(&text, this);
             if (text.length() > 0)
             {
                 // Create temporary surface
@@ -299,7 +299,7 @@ namespace lsp
                 LSPString text;
                 const LSPLocalString *lctext = this->text();
                 if (lctext != NULL)
-                    lctext->format(&text);
+                    lctext->format(&text, this);
                 if (text.length() > 0)
                 {
                     // Draw text border

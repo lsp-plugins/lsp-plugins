@@ -147,15 +147,23 @@ namespace lsp
                         LSPItemList *lst= cbox->items();
                         lst->clear();
 
-                        LSPItem *li     = NULL;
+                        LSPItem li;
+                        LSPString lck;
+
                         for (const port_item_t *item = p->items; (item != NULL) && (item->text != NULL); ++item, ++i)
                         {
                             size_t key      = fMin + fStep * i;
-                            if ((lst->add(&li)) == STATUS_OK)
+                            if (item->lc_key != NULL)
                             {
-                                li->text()->set_raw(item->text);
-                                li->set_value(key);
+                                lck.set_ascii("lists.");
+                                lck.append_ascii(item->lc_key);
+                                li.text()->set(&lck);
                             }
+                            else
+                                li.text()->set_raw(item->text);
+                            li.set_value(key);
+                            lst->add(&li);
+
                             if (key == value)
                                 cbox->set_selected(i);
                         }

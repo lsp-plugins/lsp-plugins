@@ -491,7 +491,7 @@ namespace lsp
                 if (item == NULL)
                     continue;
 
-                item->text()->format(&text);
+                item->text()->format(&text, this);
                 if (sSelection.contains(first))
                 {
                     s->fill_rect(0.0f, y, sArea.nWidth, fp.Height, font);
@@ -574,7 +574,7 @@ namespace lsp
                 if (item == NULL)
                     continue;
 
-                item->text()->format(&text);
+                item->text()->format(&text, this);
                 if (text.is_empty())
                     continue;
 

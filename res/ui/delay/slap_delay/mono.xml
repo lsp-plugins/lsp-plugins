@@ -60,7 +60,7 @@
 				<value id="g_out" />
 			</grid>
 		</group>
-		<cgroup id="lsel" text="Delay lines: ">
+		<cgroup id="lsel">
 			<!-- 4 groups -->
 			<ui:for id="g" first="0" last="3">
 				<grid rows="18" cols="12" hspacing="1">

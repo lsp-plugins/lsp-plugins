@@ -344,16 +344,24 @@ namespace lsp
 
         // Initialize list of presets
         LSPItem li;
+        LSPString lc;
         if (pCBox != NULL)
         {
             // Initialize box
-            li.text()->set_raw("<select material>");
+            li.text()->set("lists.room_bld.select_mat");
             li.set_value(-1.0f);
             pCBox->items()->add(&li);
             size_t i=0;
             for (const room_material_t *m = room_builder_base_metadata::materials; m->name != NULL; ++m)
             {
-                li.text()->set_raw(m->name);
+                if (m->lc_key != NULL)
+                {
+                    lc.set_ascii("lists.");
+                    lc.append_ascii(m->lc_key);
+                    li.text()->set(&lc);
+                }
+                else
+                    li.text()->set_raw(m->name);
                 li.set_value(i++);
                 pCBox->items()->add(&li);
             }
