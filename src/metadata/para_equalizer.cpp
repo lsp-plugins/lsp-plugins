@@ -33,7 +33,7 @@ namespace lsp
         { NULL, NULL }
     };
 
-    static const char *filter_types[] =
+    static const port_item_t filter_types[] =
     {
         { "Off",            "eq.flt.off" },
         { "Bell",           "eq.flt.bell" },

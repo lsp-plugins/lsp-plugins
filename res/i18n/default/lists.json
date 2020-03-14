@@ -88,6 +88,37 @@
 		}
 	},
 	
+	"fft": {
+		"env": {
+			"blue": "Blue noise",
+			"brown": "Brown noise",
+			"pink": "Pink noise",
+			"violet": "Violet noise",
+			"white": "White noise"
+		},
+		"wnd": {
+			"bartlett_fejer": "Bartlett-Fejer",
+			"bartlett_hann": "Bartlett-Hann",
+			"blackman": "Blackman",
+			"blackman_harris": "Blackman-Harris",
+			"blackman_nuttall": "Blackman-Nuttall",
+			"cosine": "Cosine",
+			"flat_top": "Flat top",
+			"gauss": "Gaussian",
+			"hamming": "Hamming",
+			"hann": "Hann",
+			"hann_poisson": "Hann-Poisson",
+			"lanczos": "Lanczos",
+			"nuttall": "Nuttall",
+			"parzen": "Parzen",
+			"poisson": "Poisson",
+			"rectangular": "Rectangular",
+			"triangular": "Triangular",
+			"tukey": "Tukey",
+			"welch": "Welch"
+		}
+	},
+	
 	"file": {
 		"f1": "File 1",
 		"f1l": "File 1 Left",
@@ -434,6 +465,12 @@
 	},
 	
 	"sampler": {
+		"instruments": "Instruments",
+		"mixer": "Mixer",
+		"mixer_0:11": "Mixer 0-11",
+		"mixer_12:23": "Mixer 12-23",
+		"mixer_24:35": "Mixer 24-35",
+		"mixer_36:47": "Mixer 36-47",
 		"samp": {
 			"0": "Sample 0",
 			"1": "Sample 1",
@@ -467,5 +504,36 @@
 		"rms": "RMS",
 		"side": "Side",
 		"uniform": "Uniform"
+	},
+	
+	"slap_delay": {
+		"modes": {
+			"distance": "Distance",
+			"notes": "Notes",
+			"off": "Off",
+			"time": "Time"
+		}
+	},
+	
+	"spectrum": {
+		"analyzer": "Analyzer",
+		"analyzer_s": "Analyzer Stereo",
+		"mastering": "Mastering",
+		"mastering_s": "Mastering Stereo",
+		"spc": {
+			"color": "Color",
+			"fog": "Fog",
+			"lightness": "Lightness",
+			"lightning": "Lightning",
+			"rainbow": "Rainbow"
+		},
+		"spectralizer": "Spectralizer",
+		"spectralizer_s": "Spectralizer Stereo"
+	},
+	
+	"trigger": {
+		"inst": "Instrument",
+		"trig": "Trigger"
 	}
 }
+

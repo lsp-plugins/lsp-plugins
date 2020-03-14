@@ -11,36 +11,42 @@
 
 namespace lsp
 {
-    static const char *trigger_sample_selectors[] =
+    static const port_item_t trigger_sample_selectors[] =
     {
-        "0", "1", "2", "3",
-        "4", "5", "6", "7",
-        NULL
+        { "0", NULL },
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { NULL, NULL }
     };
 
-    static const char *trigger_modes[] =
+    static const port_item_t trigger_modes[] =
     {
-        "Peak",
-        "RMS",
-        "Low-Pass",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL, NULL }
     };
 
-    static const char *trigger_sources[] =
+    static const port_item_t trigger_sources[] =
     {
-        "Middle",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *trigger_areas[] =
+    static const port_item_t trigger_areas[] =
     {
-        "Trigger",
-        "Instrument",
-        NULL
+        { "Trigger",    "trigger.trig" },
+        { "Instrument", "trigger.inst" },
+        { NULL, NULL }
     };
 
     //-------------------------------------------------------------------------

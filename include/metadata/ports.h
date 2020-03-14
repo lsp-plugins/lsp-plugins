@@ -199,13 +199,12 @@ namespace lsp
     extern const port_group_t stereo_plugin_sidechain_port_groups[];
 
     // Miscellaneous lists
-    extern const char *file_channels[];
-
-    extern const char *midi_channels[];
-
-    extern const char *octaves[];
-
-    extern const char *notes[];
+    extern const port_item_t file_channels[];
+    extern const port_item_t midi_channels[];
+    extern const port_item_t octaves[];
+    extern const port_item_t notes[];
+    extern const port_item_t fft_windows[];
+    extern const port_item_t fft_envelopes[];
 }
 
 
