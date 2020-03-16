@@ -51,7 +51,7 @@ namespace lsp
             item                = new LSPMenuItem(dpy);
             item->init();
             vWidgets.add(item);
-            item->set_text("Test Submenu");
+            item->text()->set_raw("Test Submenu");
             menu->add(item);
 
             // Create submenu
@@ -70,7 +70,7 @@ namespace lsp
                 item->init();
                 item->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, (void *)(i+1));
                 vWidgets.add(item);
-                item->set_text(&str);
+                item->text()->set_raw(&str);
                 menu->add(item);
             }
         }

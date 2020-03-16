@@ -29,7 +29,7 @@ namespace lsp
                 vWidgets.add(item);
                 item->init();
                 sprintf(str, "Menu item %d", int(i));
-                item->set_text(str);
+                item->text()->set_raw(str);
                 menu->add(item);
                 item->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, this);
 
@@ -84,17 +84,32 @@ namespace lsp
             {
                 pDialog     = new LSPFileDialog(pWidget->display());
                 pDialog->init();
-                pDialog->set_title("Open file...");
-                pDialog->set_action_title("Open");
+                pDialog->title()->set_raw("Open file...");
+                pDialog->action_title()->set("actions.open");
                 pDialog->bind_action(slot_on_action, this);
                 pDialog->bind_cancel(slot_on_cancel, this);
-                pDialog->set_confirmation("Do you really want to load file?");
+                pDialog->set_use_confirm(true);
+                pDialog->confirm()->set("messages.file.confirm_load");
 
                 LSPFileFilter *f = pDialog->filter();
+                {
+                    LSPFileFilterItem ffi;
 
-                f->add("*.txt", "Text files", ".txt");
-                f->add("*.wav|*.mp3", "Audio files", ".wav");
-                f->add("*", "All files", "");
+                    ffi.pattern()->set("*.txt");
+                    ffi.title()->set("files.text.txt");
+                    ffi.set_extension(".txt");
+                    f->add(&ffi);
+
+                    ffi.pattern()->set("*.wav|*.mp3");
+                    ffi.title()->set("files.audio.all");
+                    ffi.set_extension(".wav");
+                    f->add(&ffi);
+
+                    ffi.pattern()->set("*");
+                    ffi.title()->set("files.all");
+                    ffi.set_extension("");
+                    f->add(&ffi);
+                }
                 f->set_default(2);
             }
 

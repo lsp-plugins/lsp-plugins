@@ -367,18 +367,19 @@ namespace lsp
             ssize_t width       = 0;
 
             // Estimate the maximum width of the list box
+            LSPString str;
             for (size_t i=0, n=lst->size(); i<n; ++i)
             {
                 // Fetch item
                 LSPItem *item = lst->get(i);
                 if (item == NULL)
                     continue;
-                const char *str = item->text();
-                if (str == NULL)
+                item->text()->format(&str);
+                if (str.is_empty())
                     continue;
 
                 // Get text parameters
-                sFont.get_text_parameters(s, &tp, str);
+                sFont.get_text_parameters(s, &tp, &str);
                 if (tp.Width > width)
                     width = tp.Width;
             }
@@ -412,14 +413,22 @@ namespace lsp
             num.set_native("-");
             ssize_t sel = sNumerator.selected();
             if (sel >= 0)
-                sNumerator.items()->get_text(sel, &num);
+            {
+                LSPItem *it = sNumerator.items()->get(sel);
+                if (it != NULL)
+                    it->text()->format(&num);
+            }
             sFont.get_text_parameters(s, &tp, &num);
 
             // Get denominator parameters
             denom.set_native("-");
             sel = sDenominator.selected();
             if (sel >= 0)
-                sDenominator.items()->get_text(sel, &denom);
+            {
+                LSPItem *it = sDenominator.items()->get(sel);
+                if (it != NULL)
+                    it->text()->format(&denom);
+            }
             sFont.get_text_parameters(s, &bp, &denom);
 
             t.nHeight   = fp.Height;
@@ -498,14 +507,22 @@ namespace lsp
             num.set_native("-");
             ssize_t sel = sNumerator.selected();
             if (sel >= 0)
-                sNumerator.items()->get_text(sel, &num);
+            {
+                LSPItem *it = sNumerator.items()->get(sel);
+                if (it != NULL)
+                    it->text()->format(&num);
+            }
             sFont.get_text_parameters(s, &tp, &num);
 
             // Get denominator parameters
             denom.set_native("-");
             sel = sDenominator.selected();
             if (sel >= 0)
-                sDenominator.items()->get_text(sel, &denom);
+            {
+                LSPItem *it = sDenominator.items()->get(sel);
+                if (it != NULL)
+                    it->text()->format(&denom);
+            }
             sFont.get_text_parameters(s, &bp, &denom);
 
             t.nHeight   = fp.Height;

@@ -29,7 +29,7 @@ namespace lsp
                 } dimensions_t;
 
             protected:
-                LSPString       sText;
+                LSPLocalString  sText;
                 LSPColor        sColor;
                 size_t          nRadius;
                 size_t          nBorder;
@@ -43,8 +43,8 @@ namespace lsp
                 void                do_destroy();
 
             public:
-                inline const char  *text() const            { return sText.get_native(); }
-                inline status_t     get_text(LSPString *dst) const { return (dst->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; };
+                inline LSPLocalString *text()               { return &sText; }
+                inline const LSPLocalString *text() const   { return &sText; }
                 inline LSPColor    *color()                 { return &sColor; }
                 inline LSPColor    *text_color()            { return sFont.color(); }
                 inline size_t       radius() const          { return nRadius; }
@@ -53,8 +53,6 @@ namespace lsp
                 inline bool         embed() const           { return bEmbed; }
 
             public:
-                status_t            set_text(const char *text);
-                status_t            set_text(const LSPString *text);
                 void                set_radius(size_t value);
                 void                set_border(size_t value);
                 void                set_embed(bool embed);

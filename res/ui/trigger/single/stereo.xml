@@ -3,14 +3,14 @@
 		<!-- Area selector -->
 		<align hpos="0">
 			<hbox spacing="8">
-				<label text="Working area" />
+				<label text="labels.working_area" />
 				<combo id="asel" halign="1" />
 			</hbox>
 		</align>
 		
 		<!-- Trigger -->
-		<grid visibility_id="asel" visibility_key="0" rows="2" cols="4" transpose="true">
-			<align expand="true" pad_top="12" pad_bottom="4">
+		<grid visibility=":asel ieq 0" rows="2" cols="4" transpose="true">
+			<align expand="true" fill="true" pad_top="12" pad_bottom="4" hscale="1">
 				<graph width="640" height="256" >
 					<center hpos="1" vpos="-1" visible="false" />
 					
@@ -50,7 +50,7 @@
 					<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
 					
 					<!-- Text -->
-					<text text="s" coord="5;2.51e-4" halign="1" valign="1" />
+					<text text="graph.units.s" coord="5;2.51e-4" halign="1" valign="1" />
 					<ui:for id="t" first="0" last="4" step="1">
 						<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
 						<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
@@ -63,7 +63,7 @@
 					<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
 					<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
 					<text text="-60" coord="5;0.001" halign="1" valign="1" />
-					<text text="dB" coord="5;15.8489" halign="1" valign="-1" />
+					<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
 					
 					<!-- Markers -->
 					<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
@@ -72,34 +72,36 @@
 					<marker id="rl" color="g_magenta" basis="1" parallel="0" />
 				</graph>
 			</align>
-			<hbox expand="true" fill="true">
+			<hbox fill="true">
 				<button id="pause" size="16" color="green" led="true" />
-				<label text="Pause" />
+				<label text="labels.pause" />
 				<button id="clear" size="16" color="red" led="true" />
-				<label text="Clear" />
+				<label text="labels.clear" />
 				
 				<!-- MIDI settings -->
 				<align expand="true" hpos="0.5">
 					<hbox spacing="4" visibility="ex :note">
-						<label text="Channel" />
+						<label text="labels.channel" />
 						<combo id="chan" fill="true" width="20" />
-						<label text="Note" />
+						<label text="labels.mus.note" />
 						<combo id="note" width="20" />
 						<combo id="oct" width="20" />
-						<label text="MIDI #" />
+						<label text="labels.midi.midi_num" />
 						<indicator id="mn" format="i3" text_color="green" />
 					</hbox>
 				</align>
 				
-				<align pad_right="4" hpos="1"><label text="TRIGGER GRAPH" /></align>
+				<align pad_right="4" hpos="1">
+					<label text="labels.graphs.trigger" />
+				</align>
 			</hbox>
 			
 			<!-- Input signal meters -->
-			<align expand="true" fill="true" vpos="1">
+			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2" fill="false">
-						<label text="L" font_size="8" />
-						<label text="R" font_size="8" />
+						<label text="labels.chan.L_eft" font_size="8" />
+						<label text="labels.chan.R_ight" font_size="8" />
 						<button id="isvl" size="10" color="left_channel" led="true" />
 						<button id="isvr" size="10" color="right_channel" led="true" />
 					</grid>
@@ -109,7 +111,7 @@
 						color="left_channel" color2="right_channel" />
 				</vbox>
 			</align>
-			<label text="In" />
+			<label text="labels.chan.in" />
 			
 			<!-- Sidechain signal meter -->
 			<align fill="true" vpos="1" pad_bottom="8">
@@ -118,7 +120,7 @@
 					<meter id="tfm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="green" pad_left="4" pad_right="4" activity_id="tfv" />
 				</vbox>
 			</align>
-			<label text="SC" />
+			<label text="labels.sc.SC" />
 			
 			<!-- Trigger signal meter -->
 			<align fill="true" vpos="1" pad_bottom="8">
@@ -127,11 +129,11 @@
 					<meter id="tlm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="medium_green" pad_left="4" pad_right="4" activity_id="tlv" />
 				</vbox>
 			</align>
-			<label text="Trg" />
+			<label text="labels.Tri_gger" />
 		</grid>
 		
 		<!-- Instrument editor -->
-		<hbox visibility_id="asel" visibility_key="1" spacing="4">
+		<hbox visibility=":asel ieq 1" spacing="4">
 			<cgroup id="ssel" text="Sample # ">
 				<vbox>
 					<!-- File editor -->
@@ -145,13 +147,13 @@
 					/>
 						
 					<grid rows="3" cols="7" vspacing="2" expand="true">
-						<label text="Head cut" />
-						<label text="Tail cut" />
-						<label text="Fade in" />
-						<label text="Fade out" />
-						<label text="Makeup" />
-						<label text="Pre-delay" />
-						<label text="Listen" />
+						<label text="labels.sedit.head_cut" />
+						<label text="labels.sedit.tail_cut" />
+						<label text="labels.sedit.fade_in" />
+						<label text="labels.sedit.fade_out" />
+						<label text="labels.sedit.makeup" />
+						<label text="labels.sedit.predelay" />
+						<label text="labels.sedit.listen" />
 						
 						<knob id="hc[ssel]" size="20" />
 						<knob id="tc[ssel]" size="20" />
@@ -171,20 +173,20 @@
 					</grid>
 				</vbox>
 			</cgroup>
-			<group text="Sample matrix" expand="true">
+			<group text="groups.sample_matrix" expand="true">
 				<!-- Sample matrix -->
 				<grid rows="11" cols="9" transpose="true">
-					<label text="Sample #" fill="true" halign="0" />
-					<label text="Enabled" fill="true" halign="0" />
-					<label text="Active" fill="true" halign="0" />
-					<label text="Velocity" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Pan Left" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Pan Right" fill="true" halign="0" />
-					<label text="(%)" fill="true" halign="0" />
-					<label text="Listen" fill="true" halign="0" />
-					<label text="Note on" fill="true" halign="0" />
+					<label text="labels.sedit.sample_num" fill="true" halign="0" />
+					<label text="labels.sedit.enabled" fill="true" halign="0" />
+					<label text="labels.sedit.active" fill="true" halign="0" />
+					<label text="labels.midi.velocity" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.signal.pan_left" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.signal.pan_right" fill="true" halign="0" />
+					<label text="labels.units.:pc" fill="true" halign="0" />
+					<label text="labels.sedit.listen" fill="true" halign="0" />
+					<label text="labels.midi.note_on" fill="true" halign="0" />
 
 					<ui:for id="i" first="0" last="7" >
 						<label text="${i}" />
@@ -206,17 +208,17 @@
 		<!-- Common parameters -->
 		<hbox spacing="4">
 			<!-- Controls -->
-			<group text="Trigger" expand="true">
+			<group text="groups.plug.trigger" expand="true">
 				<hbox expand="true">
 					<grid rows="3" cols="3" expand="true">
-						<label text="Preamp" />
-						<label text="Mode" />
-						<label text="Reactivity" />
+						<label text="labels.sc.preamp" />
+						<label text="labels.mode" />
+						<label text="labels.sc.reactivity" />
 						
 						<knob id="preamp" />
 						<vbox fill="false">
 							<combo id="mode" fill="true" />
-							<label text="Source" />
+							<label text="labels.source" />
 							<combo id="ssrc" fill="true" />
 						</vbox>
 						<knob id="react" />
@@ -224,7 +226,7 @@
 						<value id="preamp" />
 						<hbox fill="false">
 							<led id="tla" />
-							<label text="Active" />
+							<label text="labels.active" />
 						</hbox>
 						<value id="react" />
 					</grid>
@@ -232,9 +234,9 @@
 					<vsep />
 					
 					<grid rows="4" cols="2" expand="true">
-						<cell cols="2"><label text="Attack" /></cell>
-						<label text="Level" />
-						<label text="Time" />
+						<cell cols="2"><label text="labels.attack" /></cell>
+						<label text="labels.thresh_old" />
+						<label text="labels.time" />
 						
 						<knob id="dl" scale_color="magenta" size="20" />
 						<knob id="dt" size="20" />
@@ -246,9 +248,9 @@
 					<vsep />
 					
 					<grid rows="4" cols="2" expand="true">
-						<cell cols="2"><label text="Release" /></cell>
-						<label text="Level" />
-						<label text="Time" />
+						<cell cols="2"><label text="labels.release" /></cell>
+						<label text="labels.thresh_old" />
+						<label text="labels.time" />
 						
 						<knob id="rrl" scale_color="magenta" size="20" />
 						<knob id="rt" size="20" />
@@ -259,10 +261,10 @@
 					
 					<vsep />
 					<grid rows="4" cols="3" expand="true">
-						<cell cols="3"><label text="Dynamics" /></cell>
-						<label text="Spread" />
-						<label text="Range 1" />
-						<label text="Range 2" />
+						<cell cols="3"><label text="labels.dynamics" /></cell>
+						<label text="labels.spread" />
+						<label text="labels.range_id" text:id="1" />
+						<label text="labels.range_id" text:id="2" />
 						
 						<knob id="dyna" scale_color="#0080ff" size="20" />
 						<knob id="dtr1" scale_color="#0080ff" size="20" />
@@ -274,11 +276,11 @@
 					</grid>
 				</hbox>
 			</group>
-			<group text="Audio Channel" expand="true">
+			<group text="groups.audio_channel" expand="true">
 				<grid rows="3" cols="3">
-					<label text="Dry" />
-					<label text="Wet" />
-					<label text="Output" />
+					<label text="labels.signal.dry" />
+					<label text="labels.signal.wet" />
+					<label text="labels.output" />
 					
 					<knob id="dry" />
 					<knob id="wet" />

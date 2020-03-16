@@ -18,11 +18,11 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                LSPString       sText;
-                float           fVAlign;
-                float           fHAlign;
-                LSPFont         sFont;
-                ssize_t         nBorder;
+                float               fVAlign;
+                float               fHAlign;
+                LSPFont             sFont;
+                LSPLocalString      sText;
+                ssize_t             nBorder;
 
             protected:
                 void    query_safe_resize();
@@ -40,38 +40,34 @@ namespace lsp
                  *
                  * @return font
                  */
-                LSPFont        *font() { return &sFont; }
+                inline LSPFont             *font()  { return &sFont; }
 
-                /** Get current label text
-                 *
-                 * @return current label text
+                /**
+                 * Get text
+                 * @return
                  */
-                inline const char     *text() const { return sText.get_native(); }
-                inline status_t        get_text(LSPString *dst) const { return (dst->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; };
+                inline LSPLocalString      *text()  { return &sText; };
+                inline const LSPLocalString  *text() const      { return &sText; }
 
                 /** Get vertical alignment
                  *
                  * @return vertical alignment
                  */
-                inline float           valign() const { return fVAlign; }
+                inline float                valign() const { return fVAlign; }
 
                 /** Get horizontal alignment
                  *
                  * @return horizontal alignment
                  */
-                inline float           halign() const { return fHAlign; }
+                inline float                halign() const { return fHAlign; }
 
                 /** Get border
                  *
                  * @return border
                  */
-                inline float           border() const { return nBorder; }
+                inline float                border() const { return nBorder; }
 
             public:
-                status_t set_text(const char *text);
-
-                status_t set_text(const LSPString *text);
-
                 void set_valign(float align);
 
                 void set_halign(float align);

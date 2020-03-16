@@ -14,7 +14,14 @@ namespace lsp
         //-----------------------------------------------------------------------------
         // LSPListItem implementation
 
-        LSPItemList::LSPListItem::LSPListItem(LSPItemList *list, const LSPString *text, float value): LSPItem(text, value)
+        LSPItemList::LSPListItem::LSPListItem(LSPItemList *list):
+            LSPItem()
+        {
+            pList       = list;
+        }
+
+        LSPItemList::LSPListItem::LSPListItem(LSPItemList *list, const LSPItem *item):
+            LSPItem(item)
         {
             pList       = list;
         }
@@ -60,9 +67,14 @@ namespace lsp
             vItems.flush();
         }
 
-        LSPItemList::LSPListItem *LSPItemList::create_item(const LSPString *text, float value)
+        LSPItemList::LSPListItem *LSPItemList::create_item()
         {
-            return new LSPListItem(this, text, value);
+            return new LSPListItem(this);
+        }
+
+        LSPItemList::LSPListItem *LSPItemList::create_item(const LSPItem *item)
+        {
+            return new LSPListItem(this, item);
         }
 
         void LSPItemList::on_item_change(LSPListItem *item)
@@ -91,13 +103,9 @@ namespace lsp
             on_item_clear();
         }
 
-        status_t LSPItemList::add(const char *text, float value)
+        status_t LSPItemList::add(const LSPItem *src)
         {
-            LSPString s;
-            if (!s.set_native(text))
-                return STATUS_NO_MEM;
-
-            LSPListItem *item   = create_item(&s, value);
+            LSPListItem *item   = create_item(src);
             if (item == NULL)
                 return STATUS_NO_MEM;
 
@@ -113,9 +121,9 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPItemList::add(const LSPString *text, float value)
+        status_t LSPItemList::add(LSPItem **dst)
         {
-            LSPListItem *item   = create_item(text, value);
+            LSPListItem *item   = create_item();
             if (item == NULL)
                 return STATUS_NO_MEM;
 
@@ -127,22 +135,18 @@ namespace lsp
             }
 
             on_item_add(index);
+            if (dst != NULL)
+                *dst = item;
 
             return STATUS_OK;
         }
 
-        status_t LSPItemList::add(const LSPItem *item)
+        status_t LSPItemList::insert(ssize_t idx, const LSPItem *src)
         {
-            return (item == NULL) ? add(static_cast<char *>(NULL), 0.0f) : add(item->text(), item->value());
-        }
+            if (idx > ssize_t(vItems.size()))
+                return STATUS_INVALID_VALUE;
 
-        status_t LSPItemList::insert(ssize_t idx, const char *text, float value)
-        {
-            LSPString s;
-            if (!s.set_native(text))
-                return STATUS_NO_MEM;
-
-            LSPListItem *item   = create_item(&s, value);
+            LSPListItem *item   = create_item(src);
             if (item == NULL)
                 return STATUS_NO_MEM;
 
@@ -156,9 +160,12 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPItemList::insert(ssize_t idx, const LSPString *text, float value)
+        status_t LSPItemList::insert(ssize_t idx, LSPItem **dst)
         {
-            LSPListItem *item   = create_item(text, value);
+            if (idx > ssize_t(vItems.size()))
+                return STATUS_INVALID_VALUE;
+
+            LSPListItem *item   = create_item();
             if (item == NULL)
                 return STATUS_NO_MEM;
 
@@ -169,31 +176,30 @@ namespace lsp
             }
 
             on_item_add(idx);
+            if (dst != NULL)
+                *dst = item;
             return STATUS_OK;
         }
 
-        status_t LSPItemList::insert(ssize_t idx,const LSPItem *item)
-        {
-            return (item == NULL) ? insert(idx, "", 0.0f) : insert(idx, item->text(), item->value());
-        }
-
-        status_t LSPItemList::remove(ssize_t idx)
+        status_t LSPItemList::remove(ssize_t idx, LSPItem *dst)
         {
             LSPListItem *item = vItems.get(idx);
-            if (!vItems.remove(idx))
+            if (item == NULL)
+                return STATUS_INVALID_VALUE;
+            else if (!vItems.remove(idx))
                 return STATUS_BAD_ARGUMENTS;
 
-            if (item != NULL)
-                delete item;
-
             on_item_remove(idx);
-            return STATUS_OK;
+
+            status_t res = (dst != NULL) ? dst->set(item) : STATUS_OK;
+            delete item;
+
+            return res;
         }
 
         status_t LSPItemList::truncate(size_t size)
         {
-            size_t n = vItems.size();
-            while ((n--) > size)
+            for (size_t n = vItems.size(); n > size; --n)
             {
                 LSPListItem *item = vItems.get(n);
                 if (!vItems.remove(n))
@@ -218,101 +224,9 @@ namespace lsp
             return STATUS_OK;
         }
 
-        const char *LSPItemList::text(ssize_t idx) const
-        {
-            cvector<LSPListItem> *st = const_cast<cvector<LSPListItem> *>(&vItems);
-            LSPListItem *item = st->get(idx);
-            return (item != NULL) ? item->text() : NULL;
-        }
-
-        float LSPItemList::value(ssize_t idx) const
-        {
-            cvector<LSPListItem> *st = const_cast<cvector<LSPListItem> *>(&vItems);
-            LSPListItem *item = st->get(idx);
-            return (item != NULL) ? item->value() : 0.0f;
-        }
-
         LSPItem *LSPItemList::get(ssize_t idx)
         {
             return vItems.get(idx);
-        }
-
-        status_t LSPItemList::get(ssize_t idx, const char **text, float *value) const
-        {
-            cvector<LSPListItem> *st = const_cast<cvector<LSPListItem> *>(&vItems);
-            LSPListItem *item = st->get(idx);
-            if (item == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            if (text != NULL)
-                *text = item->text();
-            if (value != NULL)
-                *value = item->value();
-
-            return STATUS_OK;
-        }
-
-        status_t LSPItemList::get(ssize_t idx, LSPString *text, float *value) const
-        {
-            cvector<LSPListItem> *st = const_cast<cvector<LSPListItem> *>(&vItems);
-            LSPListItem *item = st->get(idx);
-            if (item == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            if (text != NULL)
-                LSP_STATUS_ASSERT(item->get_text(text));
-            if (value != NULL)
-                *value = item->value();
-
-            return STATUS_OK;
-        }
-
-        status_t LSPItemList::get_text(ssize_t idx, const char **text) const
-        {
-            cvector<LSPListItem> *st = const_cast<cvector<LSPListItem> *>(&vItems);
-            LSPListItem *item = st->get(idx);
-            if (item == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            if (text != NULL)
-                *text = item->text();
-
-            return STATUS_OK;
-        }
-
-        status_t LSPItemList::get_text(ssize_t idx, LSPString *text) const
-        {
-            cvector<LSPListItem> *st = const_cast<cvector<LSPListItem> *>(&vItems);
-            LSPListItem *item = st->get(idx);
-            if (item == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            if (text != NULL)
-                LSP_STATUS_ASSERT(item->get_text(text));
-
-            return STATUS_OK;
-        }
-
-        status_t LSPItemList::set_text(ssize_t idx, const char *text)
-        {
-            LSPListItem *item = vItems.get(idx);
-            return (item != NULL) ? item->set_text(text) : STATUS_BAD_ARGUMENTS;
-        }
-
-        status_t LSPItemList::set_text(ssize_t idx, const LSPString *text)
-        {
-            LSPListItem *item = vItems.get(idx);
-            return (item != NULL) ? item->set_text(text) : STATUS_BAD_ARGUMENTS;
-        }
-
-        status_t LSPItemList::set_value(ssize_t idx, float value)
-        {
-            LSPListItem *item = vItems.get(idx);
-            if (item == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            item->set_value(value);
-            return STATUS_OK;
         }
 
         status_t LSPItemList::set(ssize_t idx, const LSPItem *item)
@@ -322,15 +236,6 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             return dst->set(item);
-        }
-
-        status_t LSPItemList::set(ssize_t idx, const char *text, float value)
-        {
-            LSPListItem *dst    = vItems.get(idx);
-            if (dst == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            return dst->set(text, value);
         }
 
         ssize_t LSPItemList::index_of(const LSPItem *item) const

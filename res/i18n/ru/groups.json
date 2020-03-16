@@ -1,0 +1,86 @@
+{
+	"analysis": "Анализ",
+	"audio_channel": "Аудиоканал",
+	"audio_channels": "Аудиоканалы",
+	"audio_output": "Аудиовыход",
+	
+	"bands": "Полосы",
+	
+	"controls": "Управление",
+	
+	"chan": {
+		"master": "Мастер канал"
+	},
+
+	"channel": "Канал",
+	"channel_n": "Канал {@id}",
+	"channels": "Каналы",
+	
+	"distance": "Расстояние",
+	
+	"gain": "Усиление",
+	"general": "Общие настройки",
+	
+	"impulse_response": "Импульсный отклик",
+	"instrument_mixer": "Микшер инструментов",
+	
+	"latency": "Задержка",
+	
+	"lchan": {
+		"distance": "Рассотяние (левый)",
+		"monitoring": "Мониторинг (левый)",
+		"samples": "Сэмплы (левый)",
+		"signal": "Сигнал (левый)",
+		"time": "Время (левый)"
+	},
+	
+	"metering": "Измерения",
+	"midi_setup": "Настройка MIDI",
+	"monitoring": "Мониторинг",
+	
+	"oscillator_function": "Функция осциллятора",
+	"output": "Выход",
+	"outputs": "Выходы",
+	
+	"parameters": "Параметры",
+	
+	"plug": {
+		"calibrator": "Калибратор",
+		"compressor": "Компрессор",	
+		"expander": "Экспандер",
+		"gate": "Гейт",
+		"latency_detector": "Детектор задержки",
+		"limiter": "Лимитер",
+		"processor": "Процессор",
+		"trigger": "Триггер"
+	},
+	
+	"processor": "Обработчик",
+	"processors": "Обработчики",
+	
+	"rendering": "Отрисовка",
+	
+	"results": "Результаты",
+	
+	"rchan": {
+		"distance": "Расстояние (правый)",
+		"monitoring": "Мониторинг (правый)",
+		"samples": "Сэмплы (правый)",
+		"signal": "Сигнал (правый)",
+		"time": "Время (правый)"
+	},
+	
+	"sample_matrix": "Матрица сэмплов",
+	"sample_n": "Сэмпл {@id}",
+	"samples": "Сэмплы",
+
+	"sidechain": "Боковая цепь",
+	"signal": "Сигнал",
+	"signal_n": "Сигнал {@id}",
+	"signals": "Сигналы",
+	
+	"test_signal": "Тестовый сигнал",
+	"time": "Время",
+	
+	"wet_signal_eq": "Эквализация обработанного сигнала"
+}

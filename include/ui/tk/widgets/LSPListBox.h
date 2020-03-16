@@ -35,7 +35,7 @@ namespace lsp
                         virtual void            on_item_clear();
 
                     public:
-                        LSPListBoxList(LSPListBox *widget);
+                        explicit LSPListBoxList(LSPListBox *widget);
                         virtual ~LSPListBoxList();
                 };
 
@@ -58,7 +58,7 @@ namespace lsp
                         virtual void on_clear();
 
                     public:
-                        LSPListBoxSelection(LSPListBox *widget);
+                        explicit LSPListBoxSelection(LSPListBox *widget);
                         virtual ~LSPListBoxSelection();
                 };
 

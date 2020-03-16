@@ -13,37 +13,37 @@ namespace lsp
 {
     static const int profiler_classes[] = { C_UTILITY, -1};
 
-    static const char *profiler_states[] =
+    static const port_item_t profiler_states[] =
     {
-        "Idle",
-        "Calibration",
-        "Latency Detection",
-        "Preprocessing",
-        "Waiting",
-        "Recording",
-        "Convolving",
-        "Postprocessing",
-        "Saving",
+        { "Idle",                   "profiler.st.idle" },
+        { "Calibration",            "profiler.st.cal" },
+        { "Latency Detection",      "profiler.st.lat" },
+        { "Preprocessing",          "profiler.st.pre" },
+        { "Waiting",                "profiler.st.wait" },
+        { "Recording",              "profiler.st.rec" },
+        { "Convolving",             "profiler.st.conv" },
+        { "Postprocessing",         "profiler.st.post" },
+        { "Saving",                 "profiler.st.save" },
         NULL
     };
 
-    static const char *sc_rtalgo[] =
+    static const port_item_t sc_rtalgo[] =
     {
-        "EDT0",
-        "EDT1",
-        "RT10",
-        "RT20",
-        "RT30",
+        { "EDT0",   "profiler.algo.edt0" },
+        { "EDT1",   "profiler.algo.edt1" },
+        { "RT10",   "profiler.algo.rt10" },
+        { "RT20",   "profiler.algo.rt20" },
+        { "RT30",   "profiler.algo.rt30" },
         NULL
     };
 
-    static const char *sc_savemode[] =
+    static const port_item_t sc_savemode[] =
     {
-        "LTI Auto (*.wav)",
-        "LTI RT (*.wav)",
-        "LTI Coarse (*.wav)",
-        "LTI All (*.wav)",
-        "All Info (*.lspc)",
+        { "LTI Auto (*.wav)",       "profiler.fmt.lti_auto" },
+        { "LTI RT (*.wav)",         "profiler.fmt.lti_rt" },
+        { "LTI Coarse (*.wav)",     "profiler.fmt.lti_coarse" },
+        { "LTI All (*.wav)",        "profiler.fmt.lti_all" },
+        { "All Info (*.lspc)",      "profiler.fmt.all" },
         NULL
     };
 

@@ -65,13 +65,21 @@ namespace lsp
                         virtual ~LSPFileDialogFilter();
 
                     protected:
-                        virtual status_t item_updated(size_t idx, filter_t *flt);
+                        virtual status_t item_updated(size_t idx, LSPFileFilterItem *flt);
 
-                        virtual status_t item_removed(size_t idx, filter_t *flt);
+                        virtual status_t item_removed(size_t idx, LSPFileFilterItem *flt);
 
-                        virtual status_t item_added(size_t idx, filter_t *flt);
+                        virtual status_t item_added(size_t idx, LSPFileFilterItem *flt);
 
                         virtual void default_updated(ssize_t idx);
+                };
+
+                class ConfirmMsg: public LSPLocalString
+                {
+                    public:
+                        inline ConfirmMsg(LSPFileDialog *dlg): LSPLocalString(dlg) {}
+
+                        virtual void sync();
                 };
 
             protected:
@@ -106,8 +114,9 @@ namespace lsp
                 cvector<bm_entry_t> vBookmarks;
                 bm_entry_t         *pSelBookmark;
                 bm_entry_t         *pPopupBookmark;
+                bool                bUseConfirm;
 
-                LSPString           sConfirm;       // Confirmation message
+                ConfirmMsg          sConfirm;       // Confirmation message
                 LSPString           sSelected;
                 LSPFileDialogFilter sFilter;
                 size_t              nDefaultFilter;
@@ -162,7 +171,7 @@ namespace lsp
 
                 void                sync_mode();
                 status_t            build_full_path(LSPString *dst, const LSPString *fname);
-                status_t            show_message(const char *heading, const char *main, const char *message);
+                status_t            show_message(const char *title, const char *heading, const char *message);
                 file_entry_t       *selected_entry();
 
                 void                drop_bookmarks();
@@ -194,14 +203,16 @@ namespace lsp
                 inline status_t get_search(LSPString *dst) const { return sWSearch.get_text(dst); };
                 inline const char *search() const { return sWSearch.text(); };
 
-                inline status_t get_action_title(LSPString *dst) const { return sWAction.get_title(dst); };
-                inline const char *action_title() const { return sWAction.title(); };
+                inline LSPLocalString *action_title() { return sWAction.title(); };
+                inline const LSPLocalString *action_title() const { return sWAction.title(); };
 
-                inline status_t get_cancel_title(LSPString *dst) const { return sWAction.get_title(dst); };
-                inline const char *cancel_title() const { return sWAction.title(); };
+                inline LSPLocalString *cancel_title() { return sWCancel.title(); };
+                inline const LSPLocalString *cancel_title() const { return sWCancel.title(); };
 
-                inline status_t get_confirmation(LSPString *dst) const { return (dst->set(&sConfirm)) ? STATUS_OK : STATUS_NO_MEM; };
-                inline const char *confirmation() const { return sConfirm.get_native(); };
+                inline bool         use_confirm() const { return bUseConfirm; }
+
+                inline LSPLocalString *confirm() { return &sConfirm; }
+                inline const LSPLocalString *confirm() const { return &sConfirm; }
 
                 inline LSPFileFilter *filter() { return &sFilter; }
 
@@ -224,14 +235,7 @@ namespace lsp
                 status_t set_search(const LSPString *value);
                 status_t set_search(const char *value);
 
-                status_t set_confirmation(const LSPString *value);
-                status_t set_confirmation(const char *value);
-
-                inline status_t set_action_title(const LSPString *value) { return sWAction.set_title(value); };
-                inline status_t set_action_title(const char *value) { return sWAction.set_title(value); };
-
-                inline status_t set_cancel_title(const LSPString *value) { return sWCancel.set_title(value); };
-                inline status_t set_cancel_title(const char *value) { return sWCancel.set_title(value); };
+                status_t set_use_confirm(bool use);
 
                 inline status_t    bind_action(ui_event_handler_t handler, void *arg = NULL) { return sAction.bind(handler, arg); };
                 inline status_t    bind_cancel(ui_event_handler_t handler, void *arg = NULL) { return sCancel.bind(handler, arg); };

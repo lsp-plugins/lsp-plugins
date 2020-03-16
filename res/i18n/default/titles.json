@@ -1,0 +1,17 @@
+{
+	"attention": "Attention",
+	
+	"confirmation": "Confirmation",
+	
+	"export_settings": "Export settings",
+	
+	"import_rew_filter_settings": "Import REW filer settings",
+	"import_settings": "Import settings",
+	
+	"load_audio_file": "Load Audio File",
+	"load_from_file": "Load from file",
+	
+	"save_to_file": "Save to file",
+	
+	"update_nofitication": "Update notification"
+}

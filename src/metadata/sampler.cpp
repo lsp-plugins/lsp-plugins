@@ -13,71 +13,112 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Sampler
-    static const char *sampler_sample_selectors[] =
+    static const port_item_t sampler_sample_selectors[] =
     {
-        "0", "1", "2", "3",
-        "4", "5", "6", "7",
-        NULL
+        { "0", "sampler.samp.0" },
+        { "1", "sampler.samp.1" },
+        { "2", "sampler.samp.2" },
+        { "3", "sampler.samp.3" },
+        { "4", "sampler.samp.4" },
+        { "5", "sampler.samp.5" },
+        { "6", "sampler.samp.6" },
+        { "7", "sampler.samp.7" },
+        { NULL, NULL }
     };
 
-    static const char *mute_groups[] =
+    static const port_item_t mute_groups[] =
     {
-        "None",
-        "A", "B", "C", "D",
-        "E", "F", "G", "H",
-        "I", "J", "K", "L",
-        "M", "N", "O", "P",
-        "Q", "R", "S", "T",
-        "U", "V", "W", "X",
-        "Y", "Z",
-        NULL
+        { "None", "sampler.samp.none" },
+        { "A", NULL },
+        { "B", NULL },
+        { "C", NULL },
+        { "D", NULL },
+        { "E", NULL },
+        { "F", NULL },
+        { "G", NULL },
+        { "H", NULL },
+        { "I", NULL },
+        { "J", NULL },
+        { "K", NULL },
+        { "L", NULL },
+        { "M", NULL },
+        { "N", NULL },
+        { "O", NULL },
+        { "P", NULL },
+        { "Q", NULL },
+        { "R", NULL },
+        { "S", NULL },
+        { "T", NULL },
+        { "U", NULL },
+        { "V", NULL },
+        { "W", NULL },
+        { "X", NULL },
+        { "Y", NULL },
+        { "Z", NULL },
+        { NULL, NULL }
     };
 
-    static const char *sampler_x12_instruments[] =
+    #define R(x) { x, "sampler.inst." x }
+    static const port_item_t sampler_x12_instruments[] =
     {
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
-        NULL
+        R("0"), R("1"), R("2"), R("3"),
+        R("4"), R("5"), R("6"), R("7"),
+        R("8"), R("9"), R("10"), R("11"),
+        { NULL, NULL }
     };
 
-    static const char *sampler_x24_instruments[] =
+    static const port_item_t sampler_x24_instruments[] =
     {
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
-        "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23",
-        NULL
+        R("0"), R("1"), R("2"), R("3"),
+        R("4"), R("5"), R("6"), R("7"),
+        R("8"), R("9"), R("10"), R("11"),
+        R("12"), R("13"), R("14"), R("15"),
+        R("16"), R("17"), R("18"), R("19"),
+        R("20"), R("21"), R("22"), R("23"),
+        { NULL, NULL }
     };
 
-    static const char *sampler_x48_instruments[] =
+    static const port_item_t sampler_x48_instruments[] =
     {
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
-        "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23",
-        "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35",
-        "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47",
-        NULL
+        R("0"), R("1"), R("2"), R("3"),
+        R("4"), R("5"), R("6"), R("7"),
+        R("8"), R("9"), R("10"), R("11"),
+        R("12"), R("13"), R("14"), R("15"),
+        R("16"), R("17"), R("18"), R("19"),
+        R("20"), R("21"), R("22"), R("23"),
+        R("24"), R("25"), R("26"), R("27"),
+        R("28"), R("29"), R("30"), R("31"),
+        R("32"), R("33"), R("34"), R("35"),
+        R("36"), R("37"), R("38"), R("39"),
+        R("40"), R("41"), R("42"), R("43"),
+        R("44"), R("45"), R("46"), R("47"),
+        { NULL, NULL }
+    };
+    #undef R
+
+    static const port_item_t sampler_x12_mixer_lines[] =
+    {
+        { "Instruments", "sampler.instruments" },
+        { "Mixer", "sampler.mixer" },
+        { NULL, NULL }
     };
 
-    static const char *sampler_x12_mixer_lines[] =
+    static const port_item_t sampler_x24_mixer_lines[] =
     {
-        "Instruments",
-        "Mixer",
-        NULL
+        { "Instruments", "sampler.instruments" },
+        { "Mixer 0-11", "sampler.mixer_0:11" },
+        { "Mixer 12-23", "sampler.mixer_12:23" },
+        { NULL, NULL }
     };
 
-    static const char *sampler_x24_mixer_lines[] =
+    static const port_item_t sampler_x48_mixer_lines[] =
     {
-        "Instruments",
-        "Mixer 0-11",
-        "Mixer 12-23",
-        NULL
-    };
-
-    static const char *sampler_x48_mixer_lines[] =
-    {
-        "Instruments",
-        "Mixer 0-11",
-        "Mixer 12-23",
-        "Mixer 24-35",
-        "Mixer 36-47",
-        NULL
+        { "Instruments", "sampler.instruments" },
+        { "Mixer 0-11", "sampler.mixer_0:11" },
+        { "Mixer 12-23", "sampler.mixer_12:23" },
+        { "Mixer 24-35", "sampler.mixer_24:35" },
+        { "Mixer 36-47", "sampler.mixer_36:47" },
+        { NULL, NULL }
     };
 
     #define S_DO_GROUP_PORTS(i) \
@@ -109,7 +150,7 @@ namespace lsp
     #define S_SAMPLE_FILE(gain)        \
         PATH("sf", "Sample file"), \
         CONTROL("hc", "Sample head cut", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
-        CONTROL("tc", "Sample tail cut", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
+    	CONTROL("tc", "Sample tail cut", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
         CONTROL("fi", "Sample fade in", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
         CONTROL("fo", "Sample fade out", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
         AMP_GAIN10("mk", "Sample makeup gain", 1.0f), \

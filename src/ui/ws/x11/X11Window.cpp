@@ -256,11 +256,11 @@ namespace lsp
 
             void X11Window::destroy()
             {
+                // Drop surface
+                drop_surface();
+
                 if (!bWrapper)
                 {
-                    // Drop surface
-                    drop_surface();
-
                     // Remove window from registry
                     if (pX11Display != NULL)
                         pX11Display->remove_window(this);
@@ -964,6 +964,9 @@ namespace lsp
 
             status_t X11Window::set_caption(const char *text)
             {
+                if (hWindow == None)
+                    return STATUS_OK;
+
                 const x11_atoms_t &a = pX11Display->atoms();
 
                 XChangeProperty(

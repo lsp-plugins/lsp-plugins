@@ -22,7 +22,8 @@ namespace lsp
                         LSPItemList    *pList;
 
                     public:
-                        LSPListItem(LSPItemList *list, const LSPString *text, float value);
+                        explicit LSPListItem(LSPItemList *list);
+                        explicit LSPListItem(LSPItemList *list, const LSPItem *item);
                         virtual ~LSPListItem();
 
                     protected:
@@ -33,7 +34,9 @@ namespace lsp
                 cvector<LSPListItem>    vItems;
 
             protected:
-                virtual LSPListItem    *create_item(const LSPString *text, float value = 0.0f);
+                virtual LSPListItem    *create_item();
+
+                virtual LSPListItem    *create_item(const LSPItem *item);
 
                 virtual void            on_item_change(LSPListItem *item); // Triggered when the content of item has been changed
 
@@ -56,38 +59,19 @@ namespace lsp
                 void            clear();
                 inline size_t   size()      { return vItems.size(); }
 
-                status_t        add(const char *text = NULL, float value = 0.0f);
-                status_t        add(const LSPString *text = NULL, float value = 0.0f);
+                inline bool     exists(ssize_t idx) { return (idx >= 0) && (idx < ssize_t(vItems.size())); }
+
                 status_t        add(const LSPItem *item);
-
-                status_t        insert(ssize_t idx, const char *text = NULL, float value = 0.0f);
-                status_t        insert(ssize_t idx, const LSPString *item, float value = 0.0f);
+                status_t        add(LSPItem **item = NULL);
                 status_t        insert(ssize_t idx, const LSPItem *item);
-
-                status_t        remove(ssize_t idx);
-
+                status_t        insert(ssize_t idx, LSPItem **item = NULL);
+                LSPItem        *get(ssize_t idx);
+                status_t        set(ssize_t idx, const LSPItem *item);
+                ssize_t         index_of(const LSPItem *item) const;
+                status_t        remove(ssize_t idx, LSPItem *item = NULL);
                 status_t        truncate(size_t size);
 
                 status_t        swap(ssize_t idx1, ssize_t idx2);
-
-                inline bool     exists(ssize_t idx) { return (idx >= 0) && (idx < ssize_t(vItems.size())); }
-
-                const char     *text(ssize_t idx) const;
-                float           value(ssize_t idx) const;
-                LSPItem        *get(ssize_t idx);
-                status_t        get(ssize_t idx, const char **text, float *value) const;
-                status_t        get(ssize_t idx, LSPString *text, float *value) const;
-                status_t        get_text(ssize_t idx, const char **text) const;
-                status_t        get_text(ssize_t idx, LSPString *text) const;
-
-                status_t        set_text(ssize_t idx, const char *text);
-                status_t        set_text(ssize_t idx, const LSPString *text);
-                status_t        set_value(ssize_t idx, float value);
-                status_t        set_item(ssize_t idx, const LSPItem *item);
-                status_t        set(ssize_t idx, const LSPItem *item);
-                status_t        set(ssize_t idx, const char *text, float value);
-
-                ssize_t         index_of(const LSPItem *item) const;
         };
     
     } /* namespace tk */

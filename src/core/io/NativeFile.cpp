@@ -65,6 +65,13 @@ namespace lsp
             if (path == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
+            fattr_t stat;
+            if (File::stat(path, &stat) == STATUS_OK)
+            {
+                if (stat.type == fattr_t::FT_DIRECTORY)
+                    return (mode & FM_CREATE) ? STATUS_ALREADY_EXISTS : STATUS_NOT_FOUND;
+            }
+
             int oflags;
             size_t fflags;
             size_t shflags = FILE_SHARE_DELETE;
@@ -109,6 +116,13 @@ namespace lsp
         {
             if (path == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
+
+            fattr_t stat;
+            if (File::stat(path, &stat) == STATUS_OK)
+            {
+                if (stat.type == fattr_t::FT_DIRECTORY)
+                    return (mode & FM_CREATE) ? STATUS_ALREADY_EXISTS : STATUS_NOT_FOUND;
+            }
 
             int oflags;
             size_t fflags;

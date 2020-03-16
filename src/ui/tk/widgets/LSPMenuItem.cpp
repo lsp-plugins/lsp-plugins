@@ -14,7 +14,8 @@ namespace lsp
         const w_class_t LSPMenuItem::metadata = { "LSPMenuItem", &LSPWidget::metadata };
 
         LSPMenuItem::LSPMenuItem(LSPDisplay *dpy):
-            LSPWidget(dpy)
+            LSPWidget(dpy),
+            sText(this)
         {
             pSubmenu    = NULL;
             bSeparator  = false;
@@ -34,34 +35,9 @@ namespace lsp
         status_t LSPMenuItem::init()
         {
             ui_handler_id_t id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
+            sText.bind();
 
             return (id >= 0) ? STATUS_OK : -id;
-        }
-
-        status_t LSPMenuItem::set_text(const char *text)
-        {
-            LSPString tmp;
-            if (text != NULL)
-                tmp.set_native(text);
-            if (sText.equals(&tmp))
-                return STATUS_OK;
-            sText.swap(&tmp);
-            tmp.truncate();
-
-            query_draw();
-
-            return STATUS_OK;
-        }
-
-        status_t LSPMenuItem::set_text(const LSPString *text)
-        {
-            if (sText.equals(text))
-                return STATUS_OK;
-            if (!sText.set(text))
-                return STATUS_NO_MEM;
-
-            query_draw();
-            return STATUS_OK;
         }
 
         status_t LSPMenuItem::set_submenu(LSPMenu *submenu)

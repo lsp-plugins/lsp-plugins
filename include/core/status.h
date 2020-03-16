@@ -71,15 +71,15 @@ namespace lsp
         STATUS_PROTOCOL_ERROR,
         STATUS_BAD_TOKEN,
         STATUS_NO_GRAB,
+        STATUS_UNDERFLOW,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
         STATUS_SUCCESS = STATUS_OK
     };
 
-    extern const char *status_descriptions[];
-
     const char *get_status(status_t code);
+    const char *get_status_lc_key(status_t code);
 
     bool status_is_success(status_t code);
     bool status_is_preliminary(status_t code);

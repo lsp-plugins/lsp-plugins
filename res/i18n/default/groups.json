@@ -1,0 +1,86 @@
+{
+	"analysis": "Analysis",
+	"audio_channel": "Audio Channel",
+	"audio_channels": "Audio Channel",
+	"audio_output": "Audio Output",
+	
+	"bands": "Bands",
+	
+	"controls": "Controls",
+	
+	"chan": {
+		"master": "Master Channel"
+	},
+	
+	"channel": "Channel",
+	"channel_n": "Channel {@id}",
+	"channels": "Channels",
+	
+	"distance": "Distance",
+	
+	"gain": "Gain",
+	"general": "General",
+	
+	"impulse_response": "Impulse Response",
+	"instrument_mixer": "Instrument mixer",
+	
+	"latency": "Latency",
+	
+	"lchan": {
+		"distance": "Distance (left)",
+		"monitoring": "Monitoring (left)",
+		"samples": "Samples (left)",
+		"signal": "Signal (left)",
+		"time": "Time (left)"
+	},
+	
+	"metering": "Metering",
+	"midi_setup": "MIDI Setup",
+	"monitoring": "Monitoring",
+	
+	"oscillator_function": "Oscillator Function",
+	"output": "Output",
+	"outputs": "Outputs",
+	
+	"parameters": "Parameters",
+	
+	"plug": {
+		"calibrator": "Calibrator",
+		"compressor": "Compressor",	
+		"expander": "Expander",
+		"gate": "Gate",
+		"latency_detector": "Latency Detector",
+		"limiter": "Limiter",
+		"processor": "Processor",
+		"trigger": "Trigger"
+	},
+	
+	"processor": "Processor",
+	"processors": "Processors",
+	
+	"results": "Results",
+	
+	"rendering": "Rendering",
+	
+	"rchan": {
+		"distance": "Distance (right)",
+		"monitoring": "Monitoring (right)",
+		"samples": "Samples (right)",
+		"signal": "Signal (right)",
+		"time": "Time (right)"
+	},
+	
+	"sample_matrix": "Sample Matrix",
+	"sample_n": "Sample {@id}",
+	"samples": "Samples",
+	
+	"sidechain": "Sidechain",
+	"signal": "Signal",
+	"signal_n": "Signal {@id}",
+	"signals": "Signals",
+	
+	"test_signal": "Test Signal",
+	"time": "Time",
+	
+	"wet_signal_eq": "Wet Signal Equalization"
+}

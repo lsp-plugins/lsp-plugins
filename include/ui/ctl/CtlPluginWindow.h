@@ -27,6 +27,12 @@ namespace lsp
                     size_t              id;
                 } backend_sel_t;
 
+                typedef struct lang_sel_t
+                {
+                    CtlPluginWindow    *ctl;
+                    LSPString           lang;
+                } lang_sel_t;
+
             protected:
                 bool                bResizable;
                 LSPWindow          *pWnd;
@@ -43,8 +49,10 @@ namespace lsp
                 CtlPort            *pPBypass;
                 CtlPort            *pPath;
                 CtlPort            *pR3DBackend;
+                CtlPort            *pLanguage;
 
                 cstorage<backend_sel_t>     vBackendSel;
+                cvector<lang_sel_t>         vLangSel;
 
             protected:
                 static status_t slot_window_close(LSPWidget *sender, void *ptr, void *data);
@@ -70,12 +78,16 @@ namespace lsp
 
                 static status_t slot_select_backend(LSPWidget *sender, void *ptr, void *data);
 
+                static status_t slot_select_language(LSPWidget *sender, void *ptr, void *data);
+
             protected:
                 status_t        show_notification();
                 status_t        show_menu(size_t actor_id, void *data);
-                LSPLabel       *create_label(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
+                LSPLabel       *create_label(LSPWidgetContainer *dst, const char *key, float halign = 0.0f);
+                LSPLabel       *create_plabel(LSPWidgetContainer *dst, const char *key, const calc::Parameters *params, float halign = 0.0f);
                 LSPHyperlink   *create_hlink(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
                 status_t        init_r3d_support(LSPMenu *menu);
+                status_t        init_i18n_support(LSPMenu *menu);
 
             public:
                 explicit CtlPluginWindow(plugin_ui *src, LSPWindow *wnd);

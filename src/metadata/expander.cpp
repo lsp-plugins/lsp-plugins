@@ -16,36 +16,36 @@ namespace lsp
     // Expander
     static const int expander_classes[] = { C_EXPANDER, -1 };
 
-    static const char *exp_sc_modes[] =
+    static const port_item_t exp_sc_modes[] =
     {
-        "Peak",
-        "RMS",
-        "Low-Pass",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL, NULL }
     };
 
-    static const char *exp_sc_sources[] =
+    static const port_item_t exp_sc_sources[] =
     {
-        "Middle",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *exp_modes[] =
+    static const port_item_t exp_sc_type[] =
     {
-        "Down",
-        "Up",
-        NULL
+        { "Internal",   "sidechain.internal" },
+        { "External",   "sidechain.external" },
+        { NULL, NULL }
     };
 
-    static const char *exp_sc_type[] =
+    static const port_item_t exp_modes[] =
     {
-        "Internal",
-        "External",
-        NULL
+        { "Down",       "expander.down_ward" },
+        { "Up",         "expander.up_ward" },
+        { NULL, NULL }
     };
 
     #define EXP_COMMON     \
@@ -88,7 +88,7 @@ namespace lsp
         LOG_CONTROL("at" id, "Attack time" label, U_MSEC, expander_base_metadata::ATTACK_TIME), \
         LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, expander_base_metadata::RELEASE_LVL), \
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, expander_base_metadata::RELEASE_TIME), \
-        LOG_CONTROL("cr" id, "Ratio" label, U_NONE, expander_base_metadata::RATIO), \
+        LOG_CONTROL("er" id, "Ratio" label, U_NONE, expander_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, expander_base_metadata::KNEE), \
         LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, expander_base_metadata::MAKEUP), \
         AMP_GAIN10("cdr" id, "Dry gain" label, GAIN_AMP_M_INF_DB),     \

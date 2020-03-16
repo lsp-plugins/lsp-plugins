@@ -1,0 +1,10 @@
+{
+	"language": "Language",
+
+	"target": {
+		"de": "Deutsch",
+		"en": "English (British)",
+		"ru": "Русский",
+		"us": "English (US)"
+	}
+}

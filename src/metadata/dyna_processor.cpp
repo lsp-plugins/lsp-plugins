@@ -19,51 +19,51 @@ namespace lsp
         C_DYNAMICS, -1
     };
 
-    static const char *dyna_proc_sc_modes[] =
+    static const port_item_t dyna_proc_sc_modes[] =
     {
-        "Peak",
-        "RMS",
-        "Low-Pass",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL, NULL }
     };
 
-    static const char *dyna_proc_sc_sources[] =
+    static const port_item_t dyna_proc_sc_sources[] =
     {
-        "Middle",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *dyna_proc_sc_type[] =
+    static const port_item_t dyna_proc_sc_type[] =
     {
-        "Feed-forward",
-        "Feed-back",
-        NULL
+        { "Feed-forward",   "sidechain.feed_forward" },
+        { "Feed-back",      "sidechain.feed_back" },
+        { NULL, NULL }
     };
 
-    static const char *dyna_proc_extsc_type[] =
+    static const port_item_t dyna_proc_extsc_type[] =
     {
-        "Feed-forward",
-        "Feed-back",
-        "External",
-        NULL
+        { "Feed-forward",   "sidechain.feed_forward" },
+        { "Feed-back",      "sidechain.feed_back" },
+        { "External",       "sidechain.external" },
+        { NULL, NULL }
     };
 
-    static const char *dyna_proc_sel_lr[] =
+    static const port_item_t dyna_proc_sel_lr[] =
     {
-        "Left",
-        "Right",
-        NULL
+        { "Left",           "dyna_proc.left" },
+        { "Right",          "dyna_proc.right" },
+        { NULL, NULL }
     };
 
-    static const char *dyna_proc_sel_ms[] =
+    static const port_item_t dyna_proc_sel_ms[] =
     {
-        "Middle",
-        "Side",
-        NULL
+        { "Middle",         "dyna_proc.middle" },
+        { "Side",           "dyna_proc.side" },
+        { NULL, NULL }
     };
 
     #define DYNA_PROC_COMMON     \

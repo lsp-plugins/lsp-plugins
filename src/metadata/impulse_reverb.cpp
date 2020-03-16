@@ -14,58 +14,58 @@ namespace lsp
     //-------------------------------------------------------------------------
     // Impulse reverb
 
-    static const char *ir_files[] =
+    static const port_item_t ir_files[] =
     {
-        "None",
-        "File 1",
-        "File 2",
-        "File 3",
-        "File 4",
-        NULL
+        { "None",       "file.none" },
+        { "File 1",     "file.f1" },
+        { "File 2",     "file.f2" },
+        { "File 3",     "file.f3" },
+        { "File 4",     "file.f4" },
+        { NULL, NULL }
     };
 
-    static const char *ir_tracks[] =
+    static const port_item_t ir_tracks[] =
     {
-        "Track 1",
-        "Track 2",
-        "Track 3",
-        "Track 4",
-        "Track 5",
-        "Track 6",
-        "Track 7",
-        "Track 8",
-        NULL
+        { "Track 1",    "file.t1" },
+        { "Track 2",    "file.t2" },
+        { "Track 3",    "file.t3" },
+        { "Track 4",    "file.t4" },
+        { "Track 5",    "file.t5" },
+        { "Track 6",    "file.t6" },
+        { "Track 7",    "file.t7" },
+        { "Track 8",    "file.t8" },
+        { NULL, NULL }
     };
 
-    static const char *ir_fft_rank[] =
+    static const port_item_t ir_fft_rank[] =
     {
-        "512",
-        "1024",
-        "2048",
-        "4096",
-        "8192",
-        "16384",
-        "32767",
-        "65536",
-        NULL
+        { "512",    NULL },
+        { "1024",   NULL },
+        { "2048",   NULL },
+        { "4096",   NULL },
+        { "8192",   NULL },
+        { "16384",  NULL },
+        { "32767",  NULL },
+        { "65536",  NULL },
+        { NULL, NULL }
     };
 
-    static const char *ir_file_select[] =
+    static const port_item_t ir_file_select[] =
     {
-        "File 1",
-        "File 2",
-        "File 3",
-        "File 4",
-        NULL
+        { "File 1",     "file.f1" },
+        { "File 2",     "file.f2" },
+        { "File 3",     "file.f3" },
+        { "File 4",     "file.f4" },
+        { NULL, NULL }
     };
 
-    static const char *filter_slope[] =
+    static const port_item_t filter_slope[] =
     {
-        "off",
-        "6 dB/oct",
-        "12 dB/oct",
-        "18 dB/oct",
-        NULL
+        { "off",        "eq.slope.off" },
+        { "6 dB/oct",   "eq.slope.6dbo" },
+        { "12 dB/oct",  "eq.slope.12dbo" },
+        { "18 dB/oct",  "eq.slope.18dbo" },
+        { NULL, NULL }
     };
 
     #define IR_PAN_MONO \

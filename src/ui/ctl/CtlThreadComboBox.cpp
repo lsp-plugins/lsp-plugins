@@ -136,11 +136,18 @@ namespace lsp
             {
                 LSPString v;
                 LSPItemList *list = cbox->items();
+                LSPItem *item = NULL;
 
                 for (size_t i=1, cores=ipc::Thread::system_cores(); i<=cores; ++i)
                 {
-                    if (v.fmt_ascii("%d", int(i)))
-                        list->add(&v, i);
+                    if (!v.fmt_ascii("%d", int(i)))
+                        continue;
+
+                    if (list->add(&item) == STATUS_OK)
+                    {
+                        item->text()->set_raw(&v);
+                        item->set_value(i);
+                    }
                 }
             }
 

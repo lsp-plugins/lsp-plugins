@@ -112,10 +112,17 @@ namespace lsp
             // Create dialog
             LSP_STATUS_ASSERT(sDialog.init());
             sDialog.set_mode(FDM_SAVE_FILE);
-            sDialog.set_title("Save to file");
-            sDialog.set_action_title("Save");
-            sDialog.set_confirmation("The selected file already exists. Overwrite?");
-            sDialog.filter()->add("*", "All files (*.*)", "");
+            sDialog.title()->set("titles.save_to_file");
+            sDialog.action_title()->set("actions.save");
+            sDialog.set_use_confirm(true);
+            sDialog.confirm()->set("messages.file.confirm_overwrite");
+            {
+                LSPFileFilterItem ffi;
+                ffi.pattern()->set("*");
+                ffi.title()->set("files.all");
+                ffi.set_extension("");
+                sDialog.filter()->add(&ffi);
+            }
             sDialog.bind_action(slot_on_file_submit, self());
 
             sDialog.slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());

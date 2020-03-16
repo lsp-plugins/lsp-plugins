@@ -100,6 +100,30 @@ namespace lsp
             return set(&key, &v);
         }
 
+        status_t Variables::set_string(const char *name, const LSPString *value)
+        {
+            if (name == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString key;
+            if (!key.set_utf8(name))
+                return STATUS_NO_MEM;
+
+            value_t v;
+            if (value != NULL)
+            {
+                v.type      = VT_STRING;
+                v.v_str     = const_cast<LSPString *>(value);
+            }
+            else
+            {
+                v.type      = VT_NULL;
+                v.v_str     = NULL;
+            }
+
+            return set(&key, &v);
+        }
+
         status_t Variables::set_null(const char *name)
         {
             if (name == NULL)
@@ -250,6 +274,7 @@ namespace lsp
 
             // Resolve from underlying resolver
             value_t v;
+            init_value(&v);
             status_t res = pResolver->resolve(&v, name, num_indexes, indexes);
             if (res != STATUS_OK)
                 return res;
@@ -269,6 +294,7 @@ namespace lsp
             if (!var->name.set(name))
                 return STATUS_NO_MEM;
 
+            init_value(&var->value);
             status_t res = copy_value(&var->value, value);
             if (res == STATUS_OK)
                 res = (vVars.add(var)) ? STATUS_OK : STATUS_NO_MEM;

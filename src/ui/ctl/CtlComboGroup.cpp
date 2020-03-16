@@ -193,13 +193,23 @@ namespace lsp
                         if (pText != NULL)
                             prefix.set_native(pText);
 
-                        for (const char **item = p->items; (item != NULL) && (*item != NULL); ++item, ++i)
-                        {
-                            text.set_native(*item);
-                            text.prepend(&prefix);
+                        LSPItem li;
+                        LSPString lck;
 
+                        for (const port_item_t *item = p->items; (item != NULL) && (item->text != NULL); ++item, ++i)
+                        {
                             size_t key      = fMin + fStep * i;
-                            lst->add(&text, key);
+                            if (item->lc_key != NULL)
+                            {
+                                lck.set_ascii("lists.");
+                                lck.append_ascii(item->lc_key);
+                                li.text()->set(&lck);
+                            }
+                            else
+                                li.text()->set_raw(item->text);
+                            li.set_value(key);
+                            lst->add(&li);
+
                             if (key == value)
                                 cbox->set_selected(i);
                         }

@@ -167,8 +167,11 @@ namespace lsp
             d->nMinWidth    = nBorder*2;
             d->nMinHeight   = nBorder*2;
 
-            const char *text = this->text();
-            if ((text != NULL) && (strlen(text) > 0))
+            LSPString text;
+            const LSPLocalString *lctext = this->text();
+            if (lctext != NULL)
+                lctext->format(&text, this);
+            if (text.length() > 0)
             {
                 // Create temporary surface
                 ISurface *s = (pDisplay != NULL) ? pDisplay->create_surface(1, 1) : NULL;
@@ -179,7 +182,7 @@ namespace lsp
                 text_parameters_t   tp;
 
                 sFont.get_parameters(s, &fp);
-                sFont.get_text_parameters(s, &tp, text);
+                sFont.get_text_parameters(s, &tp, &text);
 
                 d->nMinWidth    += tp.Width + nRadius * 3;
                 d->nMinHeight   += fp.Height + nRadius * 2;
@@ -293,14 +296,17 @@ namespace lsp
                 sGroupHdr.nHeight   = nRadius;
 
                 // Draw text frame
-                const char *text = this->text();
-                if ((text != NULL) && (strlen(text) > 0))
+                LSPString text;
+                const LSPLocalString *lctext = this->text();
+                if (lctext != NULL)
+                    lctext->format(&text, this);
+                if (text.length() > 0)
                 {
                     // Draw text border
                     font_parameters_t   fp;
                     text_parameters_t   tp;
                     sFont.get_parameters(s, &fp);
-                    sFont.get_text_parameters(s, &tp, text);
+                    sFont.get_text_parameters(s, &tp, &text);
 
                     sGroupHdr.nWidth    = 4 + nRadius + tp.Width + bwidth;
                     sGroupHdr.nHeight   = fp.Height + 4;
@@ -311,7 +317,7 @@ namespace lsp
                     Color font(sFont.raw_color());
                     font.scale_lightness(brightness());
 
-                    sFont.draw(s, cx + bwidth + 4 , cy + fp.Ascent + nBorder, font, text);
+                    sFont.draw(s, cx + bwidth + 4 , cy + fp.Ascent + nBorder, font, &text);
 
                     // Draw buttons
                     ssize_t half = sGroupHdr.nTop + (fp.Height * 0.5f);
@@ -527,7 +533,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        const char *LSPComboGroup::text() const
+        const LSPLocalString *LSPComboGroup::text() const
         {
             LSPComboList *lb = const_cast<LSPComboList *>(&sListBox);
             ssize_t idx = lb->selection()->value();

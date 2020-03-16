@@ -112,6 +112,22 @@ namespace lsp
                 return false;
             }
 
+            inline bool remove_items(size_t first, size_t count)
+            {
+                size_t last = first + count;
+                if (last == nItems)
+                {
+                    nItems  = first;
+                    return true;
+                }
+                else if (last > nItems)
+                    return false;
+
+                ::memmove(&pvItems[first], &pvItems[last], (nItems - last) * sizeof(void *));
+                nItems  -= count;
+                return true;
+            }
+
             inline bool remove_item(size_t index, bool fast)
             {
                 if (index >= nItems)
@@ -294,11 +310,27 @@ namespace lsp
             public:
                 inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
 
+                inline const T * const *get_const_array() const { return (nItems > 0) ? reinterpret_cast<const T * const *>(pvItems) : NULL; }
+
                 inline bool add(T *item) { return basic_vector::add_item(item); }
 
-                inline bool add_all(const T * const *items, size_t count) { return basic_vector::add_all(items, count); }
+                inline bool add_all(const T * const *items, size_t count) {
+                    union {
+                        const T * const *titems;
+                        const void * const *vitems;
+                    } x;
+                    x.titems = items;
+                    return basic_vector::add_all(x.vitems, count);
+                }
 
-                inline bool add_all(const cvector<T> *items) { return basic_vector::add_all(items->get_array(), items->size()); }
+                inline bool add_all(const cvector<T> *items) {
+                    union {
+                        const T * const *titems;
+                        const void * const *vitems;
+                    } x;
+                    x.titems = items->get_const_array();
+                    return basic_vector::add_all(x.vitems, items->size());
+                }
 
                 inline bool push(T *item) { return basic_vector::add_item(item); }
 
@@ -341,6 +373,8 @@ namespace lsp
                 inline bool remove(const T *item, bool fast = false) { return basic_vector::remove_item(item, fast); }
 
                 inline bool remove(size_t index, bool fast = false) { return basic_vector::remove_item(index, fast); };
+
+                inline bool remove_n(size_t index, size_t count) { return basic_vector::remove_items(index, count); };
 
                 inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 

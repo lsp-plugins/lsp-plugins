@@ -42,7 +42,7 @@ namespace lsp
                 protected:
                     room_builder_ui    *pUI;
                     port_t              sMetadata;
-                    char              **pItems;
+                    port_item_t        *pItems;
                     size_t              nCapacity;
                     size_t              nItems;
                     cvector<CtlPort>    vKvtPorts;

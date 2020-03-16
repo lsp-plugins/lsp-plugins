@@ -117,7 +117,7 @@ namespace lsp
             vMenuItems[off++] = mi;
             LSP_VSTATUS_ASSERT(mi->init());
             LSP_VSTATUS_ASSERT(sMenu.add(mi));
-            LSP_VSTATUS_ASSERT(mi->set_text("Cut"));
+            LSP_VSTATUS_ASSERT(mi->text()->set("actions.edit.cut"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_cut_action, this);
             if (id < 0)
                 return;
@@ -128,7 +128,7 @@ namespace lsp
             vMenuItems[off++] = mi;
             LSP_VSTATUS_ASSERT(mi->init());
             LSP_VSTATUS_ASSERT(sMenu.add(mi));
-            LSP_VSTATUS_ASSERT(mi->set_text("Copy"));
+            LSP_VSTATUS_ASSERT(mi->text()->set("actions.edit.copy"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_copy_action, this);
             if (id < 0)
                 return;
@@ -139,7 +139,7 @@ namespace lsp
             vMenuItems[off++] = mi;
             LSP_VSTATUS_ASSERT(mi->init());
             LSP_VSTATUS_ASSERT(sMenu.add(mi));
-            LSP_VSTATUS_ASSERT(mi->set_text("Paste"));
+            LSP_VSTATUS_ASSERT(mi->text()->set("actions.edit.paste"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_paste_action, this);
             if (id < 0)
                 return;
@@ -150,7 +150,7 @@ namespace lsp
             vMenuItems[off++] = mi;
             LSP_VSTATUS_ASSERT(mi->init());
             LSP_VSTATUS_ASSERT(sMenu.add(mi));
-            LSP_VSTATUS_ASSERT(mi->set_text("Clear"));
+            LSP_VSTATUS_ASSERT(mi->text()->set("actions.edit.clear"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_clear_action, this);
             if (id < 0)
                 return;
@@ -174,7 +174,7 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint("Click or drag to load");
+                af->hint()->set("labels.click_or_drag_to_load");
             }
             else if (status == STATUS_LOADING)
             {
@@ -182,7 +182,7 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint("Loading...");
+                af->hint()->set("statuses.loading");
             }
             else if (status == STATUS_OK)
             {
@@ -196,7 +196,11 @@ namespace lsp
                 af->set_show_data(false);
                 af->set_show_file_name(false);
                 af->set_show_hint(true);
-                af->set_hint(get_status(status_t(status)));
+
+                LSPString code;
+                code.set_utf8("statuses.std.");
+                code.append_utf8(get_status_lc_key(status_t(status)));
+                af->hint()->set(&code);
             }
         }
 

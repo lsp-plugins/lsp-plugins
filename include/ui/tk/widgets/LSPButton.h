@@ -32,8 +32,8 @@ namespace lsp
 
             protected:
                 LSPColor            sColor;
-                LSPString           sTitle;
                 LSPFont             sFont;
+                LSPLocalString      sTitle;
 
                 size_t              nWidth;
                 size_t              nHeight;
@@ -68,8 +68,9 @@ namespace lsp
 
                 inline size_t       min_width() const       { return nMinWidth; }
                 inline size_t       min_height() const      { return nMinHeight; }
-                inline status_t     get_title(LSPString *dst) const { return dst->set(&sTitle) ? STATUS_OK : STATUS_NO_MEM; };
-                inline const char  *title() const           { return sTitle.get_native(); }
+
+                inline LSPLocalString *title()              { return &sTitle; }
+                inline const LSPLocalString *title() const  { return &sTitle; }
 
             public:
                 void            set_trigger();
@@ -81,9 +82,6 @@ namespace lsp
                 void            set_min_width(size_t value);
                 void            set_min_height(size_t value);
                 void            set_min_size(size_t width, size_t height);
-
-                status_t        set_title(const char *title);
-                status_t        set_title(const LSPString *title);
 
             public:
                 virtual void draw(ISurface *s);

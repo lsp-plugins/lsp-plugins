@@ -452,18 +452,21 @@ namespace lsp
             ssize_t width       = 0;
 
             // Estimate the maximum width of the list box
+            LSPString str;
             for (size_t i=0, n=lst->size(); i<n; ++i)
             {
                 // Fetch item
                 LSPItem *item = lst->get(i);
                 if (item == NULL)
                     continue;
-                const char *str = item->text();
-                if (str == NULL)
+
+                // Perform text format
+                item->text()->format(&str, this);
+                if (str.is_empty())
                     continue;
 
                 // Get text parameters
-                sFont.get_text_parameters(s, &tp, str);
+                sFont.get_text_parameters(s, &tp, &str);
                 if (tp.Width > width)
                     width = tp.Width;
             }
@@ -527,22 +530,25 @@ namespace lsp
             s->fill_round_rect(0.5f, 0.5f, sSize.nWidth - 1, sSize.nHeight - 1, 4, SURFMASK_ALL_CORNER, col);
 
             // Get text to print
-            const char *text = "----------------";
+            LSPString text;
+            text.set_ascii("----------------");
             ssize_t sel = sListBox.selection()->value();
             if (sel >= 0)
             {
-                text = sListBox.items()->text(sel);
-                if (text == NULL)
-                    text = "";
+                LSPItem *item = sListBox.items()->get(sel);
+                if (item == NULL)
+                    text.clear();
+                else
+                    item->text()->format(&text, this);
             }
 
             // Get text and font parameters
             sFont.get_parameters(s, &fp);
-            sFont.get_text_parameters(s, &tp, text);
+            sFont.get_text_parameters(s, &tp, &text);
 
             size_t padding = 3;
             s->set_antialiasing(aa);
-            sFont.draw(s, padding, padding + (sSize.nHeight - padding * 2 - fp.Height)*0.5f + fp.Ascent, bg, text);
+            sFont.draw(s, padding, padding + (sSize.nHeight - padding * 2 - fp.Height)*0.5f + fp.Ascent, bg, &text);
 
             // Additionally wire around
             ssize_t bwidth = 12;
