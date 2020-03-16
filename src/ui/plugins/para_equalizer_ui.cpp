@@ -67,10 +67,29 @@ namespace lsp
             dlg->action_title()->set("actions.import");
 
             LSPFileFilter *f = dlg->filter();
-            f->add("*.req|*.txt", "All REW filter settings (*.req, *.txt)", "");
-            f->add("*.req", "REW binary filter settings (*.req)", "");
-            f->add("*.txt", "REW text filter settings (*.txt)", "");
-            f->add("*", "All files (*.*)", "");
+            {
+                LSPFileFilterItem ffi;
+
+                ffi.pattern()->set("*.req|*.txt");
+                ffi.title()->set("files.roomeqwizard.all");
+                ffi.set_extension("");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*.req");
+                ffi.title()->set("files.roomeqwizard.req");
+                ffi.set_extension("");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*.txt");
+                ffi.title()->set("files.roomeqwizard.txt");
+                ffi.set_extension("");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*");
+                ffi.title()->set("files.all");
+                ffi.set_extension("");
+                f->add(&ffi);
+            }
             dlg->bind_action(slot_call_import_rew_file, ptr);
             dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_rew_path, _this);
             dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_rew_path, _this);

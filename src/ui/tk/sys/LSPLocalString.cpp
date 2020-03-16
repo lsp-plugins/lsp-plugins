@@ -448,5 +448,12 @@ namespace lsp
             return format(out, dpy->dictionary(), &lang);
         }
 
+        void LSPLocalString::swap(LSPLocalString *dst)
+        {
+            sText.swap(&dst->sText);
+            sParams.swap(&dst->sParams);
+            ::swap(nFlags, dst->nFlags);
+        }
+
     } /* namespace tk */
 } /* namespace lsp */

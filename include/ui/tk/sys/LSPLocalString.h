@@ -235,6 +235,12 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t format(LSPString *out) const;
+
+                /**
+                 * Swap contents
+                 * @param dst destination string to perform swap
+                 */
+                void swap(LSPLocalString *dst);
         };
     
     } /* namespace tk */

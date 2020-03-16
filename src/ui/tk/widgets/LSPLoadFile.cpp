@@ -153,7 +153,13 @@ namespace lsp
             sDialog.set_mode(FDM_OPEN_FILE);
             sDialog.title()->set("titles.load_from_file");
             sDialog.action_title()->set("actions.open");
-            sDialog.filter()->add("*", "All files (*.*)", "");
+            {
+                LSPFileFilterItem ffi;
+                ffi.pattern()->set("*");
+                ffi.title()->set("files.all");
+                ffi.set_extension("");
+                sDialog.filter()->add(&ffi);
+            }
             sDialog.bind_action(slot_on_file_submit, self());
 
             sDialog.slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());

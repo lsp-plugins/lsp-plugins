@@ -65,11 +65,11 @@ namespace lsp
                         virtual ~LSPFileDialogFilter();
 
                     protected:
-                        virtual status_t item_updated(size_t idx, filter_t *flt);
+                        virtual status_t item_updated(size_t idx, LSPFileFilterItem *flt);
 
-                        virtual status_t item_removed(size_t idx, filter_t *flt);
+                        virtual status_t item_removed(size_t idx, LSPFileFilterItem *flt);
 
-                        virtual status_t item_added(size_t idx, filter_t *flt);
+                        virtual status_t item_added(size_t idx, LSPFileFilterItem *flt);
 
                         virtual void default_updated(ssize_t idx);
                 };

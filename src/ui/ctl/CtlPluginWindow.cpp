@@ -707,8 +707,19 @@ namespace lsp
                 dlg->confirm()->set("messages.file.confirm_overwrite");
 
                 LSPFileFilter *f = dlg->filter();
-                f->add("*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg");
-                f->add("*", "All files (*.*)", "");
+                {
+                    LSPFileFilterItem ffi;
+
+                    ffi.pattern()->set("*.cfg");
+                    ffi.title()->set("files.config.lsp");
+                    ffi.set_extension(".cfg");
+                    f->add(&ffi);
+
+                    ffi.pattern()->set("*");
+                    ffi.title()->set("files.all");
+                    ffi.set_extension("");
+                    f->add(&ffi);
+                }
                 dlg->bind_action(slot_call_export_settings_to_file, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
@@ -733,8 +744,19 @@ namespace lsp
                 dlg->action_title()->set("actions.open");
 
                 LSPFileFilter *f = dlg->filter();
-                f->add("*.cfg", "Configuration file (*.cfg)", ".cfg");
-                f->add("*", "All files (*.*)", "");
+                {
+                    LSPFileFilterItem ffi;
+
+                    ffi.pattern()->set("*.cfg");
+                    ffi.title()->set("files.config.lsp");
+                    ffi.set_extension(".cfg");
+                    f->add(&ffi);
+
+                    ffi.pattern()->set("*");
+                    ffi.title()->set("files.all");
+                    ffi.set_extension("");
+                    f->add(&ffi);
+                }
                 dlg->bind_action(slot_call_import_settings_to_file, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);

@@ -26,23 +26,23 @@ namespace lsp
         {
         }
 
-        status_t LSPFileDialog::LSPFileDialogFilter::item_updated(size_t idx, filter_t *flt)
+        status_t LSPFileDialog::LSPFileDialogFilter::item_updated(size_t idx, LSPFileFilterItem *flt)
         {
             LSPItem *item = pDialog->sWFilter.items()->get(idx);
-            return (item != NULL) ? item->text()->set_raw(&flt->sTitle) : STATUS_NOT_FOUND;
+            return (item != NULL) ? item->text()->set(flt->title()) : STATUS_NOT_FOUND;
         }
 
-        status_t LSPFileDialog::LSPFileDialogFilter::item_removed(size_t idx, filter_t *flt)
+        status_t LSPFileDialog::LSPFileDialogFilter::item_removed(size_t idx, LSPFileFilterItem *flt)
         {
             return pDialog->sWFilter.items()->remove(idx);
         }
 
-        status_t LSPFileDialog::LSPFileDialogFilter::item_added(size_t idx, filter_t *flt)
+        status_t LSPFileDialog::LSPFileDialogFilter::item_added(size_t idx, LSPFileFilterItem *flt)
         {
             LSPItem *item = NULL;
             status_t res = pDialog->sWFilter.items()->insert(idx, &item);
             if (res == STATUS_OK)
-                res = item->text()->set_raw(&flt->sTitle);
+                res = item->text()->set(flt->title());
             return res;
         }
 
@@ -736,7 +736,8 @@ namespace lsp
             if (sWFilter.items()->size() > 0)
             {
                 ssize_t sel = sWFilter.selected();
-                fmask = sFilter.get_mask((sel < 0) ? 0 : sel);
+                LSPFileFilterItem *fi = sFilter.get((sel < 0) ? 0 : sel);
+                fmask = (fi != NULL) ? fi->pattern() : NULL;
             }
 
             // Now we need to fill data
@@ -1136,7 +1137,11 @@ namespace lsp
                 {
                     LSPString ext;
                     ssize_t sel = sWFilter.selected();
-                    if (sFilter.get_extension((sel < 0) ? 0 : sel, &ext) == STATUS_OK)
+
+                    LSPFileFilterItem *item  = sFilter.get((sel < 0) ? 0 : sel);
+                    status_t res = (item != NULL) ? item->get_extension(&ext) : STATUS_NOT_FOUND;
+
+                    if (res == STATUS_OK)
                     {
                         lsp_trace("fname = %s, ext = %s", fname.get_native(), ext.get_native());
                         if (!fname.ends_with_nocase(&ext))

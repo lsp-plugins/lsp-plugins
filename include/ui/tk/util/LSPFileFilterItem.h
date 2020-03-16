@@ -21,10 +21,6 @@ namespace lsp
             private:
                 LSPFileFilterItem & operator = (const LSPFileFilterItem &);
 
-            public:
-                explicit LSPFileFilterItem();
-                virtual ~LSPFileFilterItem();
-
             protected:
                 class Title: public LSPLocalString
                 {
@@ -47,23 +43,31 @@ namespace lsp
                 virtual void sync();
 
             public:
+                explicit LSPFileFilterItem();
+                virtual ~LSPFileFilterItem();
+
+            public:
                 inline LSPLocalString          *title()         { return &sTitle; };
                 inline const LSPLocalString    *title() const   { return &sTitle; };
 
-                inline status_t get_pattern(LSPString *pattern) const { return sPattern.get_mask(pattern); }
-                inline const char *get_pattern() const { return sPattern.mask(); }
+                inline LSPFileMask             *pattern()       { return &sPattern; };
+                inline const LSPFileMask       *pattern() const { return &sPattern; };
 
-                inline status_t get_extension(LSPString *ext) const;
-                inline const char *get_extension() const;
+                inline status_t                 get_extension(LSPString *ext) const
+                {
+                    if (ext == NULL)
+                        return STATUS_BAD_ARGUMENTS;
+                    return (ext->set(&sExtension)) ? STATUS_OK : STATUS_NO_MEM;
+                }
+                inline const char              *get_extension() const { return sExtension.get_utf8(); };
 
             public:
-                status_t set_pattern(const LSPString *pattern, size_t flags = 0);
-                status_t set_pattern(const char *pattern, size_t flags = 0);
-
                 status_t set_extension(const LSPString *ext);
                 status_t set_extension(const char *ext);
 
                 status_t set(const LSPFileFilterItem *src);
+
+                void swap(LSPFileFilterItem *src);
         };
     
     } /* namespace tk */

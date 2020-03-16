@@ -32,32 +32,6 @@ namespace lsp
             // Callback for handling changes
         }
 
-        status_t LSPFileFilterItem::set_pattern(const LSPString *pattern, size_t flags)
-        {
-            LSPFileMask fm;
-            size_t res      = fm.parse(pattern, flags);
-            if (res == STATUS_OK)
-            {
-                fm.swap(&sPattern);
-                sync();
-            }
-
-            return STATUS_OK;
-        }
-
-        status_t LSPFileFilterItem::set_pattern(const char *pattern, size_t flags)
-        {
-            LSPFileMask fm;
-            size_t res      = fm.parse(pattern, flags);
-            if (res == STATUS_OK)
-            {
-                fm.swap(&sPattern);
-                sync();
-            }
-
-            return STATUS_OK;
-        }
-
         status_t LSPFileFilterItem::set_extension(const LSPString *ext)
         {
             status_t res = (sExtension.set(ext)) ? STATUS_OK : STATUS_NO_MEM;
@@ -101,6 +75,13 @@ namespace lsp
             }
 
             return res;
+        }
+
+        void LSPFileFilterItem::swap(LSPFileFilterItem *src)
+        {
+            sPattern.swap(&src->sPattern);
+            sExtension.swap(&src->sExtension);
+            sTitle.swap(&src->sTitle);
         }
     
     } /* namespace tk */

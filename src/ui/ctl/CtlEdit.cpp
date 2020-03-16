@@ -92,10 +92,24 @@ namespace lsp
                 pDialog->confirm()->set("messages.file.confirm_load");
 
                 LSPFileFilter *f = pDialog->filter();
+                {
+                    LSPFileFilterItem ffi;
 
-                f->add("*.txt", "Text files", ".txt");
-                f->add("*.wav|*.mp3", "Audio files", ".wav");
-                f->add("*", "All files", "");
+                    ffi.pattern()->set("*.txt");
+                    ffi.title()->set("files.text.txt");
+                    ffi.set_extension(".txt");
+                    f->add(&ffi);
+
+                    ffi.pattern()->set("*.wav|*.mp3");
+                    ffi.title()->set("files.audio.all");
+                    ffi.set_extension(".wav");
+                    f->add(&ffi);
+
+                    ffi.pattern()->set("*");
+                    ffi.title()->set("files.all");
+                    ffi.set_extension("");
+                    f->add(&ffi);
+                }
                 f->set_default(2);
             }
 

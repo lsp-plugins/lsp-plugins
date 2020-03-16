@@ -126,8 +126,18 @@ namespace lsp
 
             sDialog.title()->set("titles.load_audio_file");
             LSPFileFilter *f = sDialog.filter();
-            f->add("*.wav", "Wave audio format (*.wav)", ".wav");
-            f->add("*", "Any file", "");
+            {
+                LSPFileFilterItem ffi;
+                ffi.pattern()->set("*.wav");
+                ffi.title()->set("files.audio.wave");
+                ffi.set_extension(".wav");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*");
+                ffi.title()->set("files.all");
+                ffi.set_extension("");
+                f->add(&ffi);
+            }
             f->set_default(0);
 
             sDialog.action_title()->set("actions.load");
