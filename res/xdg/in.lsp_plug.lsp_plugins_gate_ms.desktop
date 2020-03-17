@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-gate-ms
-GenericName=Mid-Side Stereo Gate
+Name=Mid-Side Stereo Gate
+GenericName=Gates
+GenericName[ru]=Гейты
 Comment=Performs gating of stereo input signal in Mid-Side mode.
+Comment[ru]=Осуществляет гейтирование стереосигнала, центр и сторона обрабатываются индивидуально.
 Exec=lsp-plugins-gate-ms
 Icon=lsp-plugins
 Terminal=false

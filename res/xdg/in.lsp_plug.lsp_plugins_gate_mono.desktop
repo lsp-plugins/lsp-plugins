@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-gate-mono
-GenericName=Mono Gate
+Name=Mono Gate
+GenericName=Gates
+GenericName[ru]=Гейты
 Comment=Performs gating of mono input signal.
+Comment[ru]=Осуществляет гейтирование моносигнала.
 Exec=lsp-plugins-gate-mono
 Icon=lsp-plugins
 Terminal=false

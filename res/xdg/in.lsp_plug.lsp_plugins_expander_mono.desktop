@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-expander-mono
-GenericName=Mono Expander
+Name=Mono Expander
+GenericName=Expanders
+GenericName[ru]=Экспандеры
 Comment=Performs increasing of dynamic range of mono input signal.
+Comment[ru]=Осуществляет увеличение динамического диапазона моносигнала.
 Exec=lsp-plugins-expander-mono
 Icon=lsp-plugins
 Terminal=false
