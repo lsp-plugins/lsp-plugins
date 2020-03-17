@@ -83,6 +83,32 @@ namespace lsp
             } while (value > 0);
         }
 
+        static void encode_signed(FILE *out, int64_t value)
+        {
+            size_t v = value & (0x7fffffffffffffffULL);
+
+            // First iteration with sign
+            int x = v & 0x3f;
+            v >>= 6;
+            if (v != 0)
+                x |= 0x80;
+            if (value < 0)
+                x |= 0x40;
+            fprintf(out, "\"\\x%02x\" ", x);
+
+            // Next iterations without sign
+            while (v != 0)
+            {
+                x = v & 0x7f;
+                v >>= 7;
+                if (v != 0)
+                    x |= 0x80;
+                fprintf(out, "\"\\x%02x\" ", x);
+            }
+
+            fputc('\n', out);
+        }
+
         static void encode_word(FILE *out, cvector<xml_word_t> *dict, const char *key)
         {
             xml_word_t *w   = res_dict_get(dict, key);

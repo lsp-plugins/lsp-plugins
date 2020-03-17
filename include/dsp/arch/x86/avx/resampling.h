@@ -1107,7 +1107,7 @@ namespace avx
         );
     }
 
-    static const float lanczos_8x3[] __lsp_aligned16 =
+    static const float lanczos_8x3[] __lsp_aligned32 =
     {
         +0.0000000000000000f,
         +0.0413762983728270f,

@@ -21,6 +21,7 @@
 #define UI_DLG_MODEL3D_PATH_ID              "dlg_model3d_path"
 #define UI_DLG_REW_PATH_ID                  "dlg_rew_path"
 #define UI_R3D_BACKEND_PORT_ID              "r3d_backend"
+#define UI_LANGUAGE_PORT_ID                 "language"
 
 #define MSTUD_PORT                          UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
 #define VERSION_PORT                        UI_CONFIG_PORT_PREFIX UI_LAST_VERSION_PORT_ID
@@ -30,11 +31,13 @@
 #define CONFIG_PATH_PORT                    UI_CONFIG_PORT_PREFIX UI_DLG_CONFIG_PATH_ID
 #define MODEL3D_PATH_PORT                   UI_CONFIG_PORT_PREFIX UI_DLG_MODEL3D_PATH_ID
 #define R3D_BACKEND_PORT                    UI_CONFIG_PORT_PREFIX UI_R3D_BACKEND_PORT_ID
+#define LANGUAGE_PORT                       UI_CONFIG_PORT_PREFIX UI_LANGUAGE_PORT_ID
 
 // Special widget identifiers
 #define WUID_MAIN_MENU                      "main_menu"
 #define WUID_EXPORT_MENU                    "export_menu"
 #define WUID_IMPORT_MENU                    "import_menu"
+#define WUID_LANGUAGE_MENU                  "language_menu"
 
 // Special ports for handling current time
 #define TIME_PORT_PREFIX                    "time:"

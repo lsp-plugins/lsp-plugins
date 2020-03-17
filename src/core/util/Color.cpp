@@ -219,7 +219,7 @@ namespace lsp
 
         // Calculate maximum value
         const char *fmt;
-        size_t tol;
+        int tol;
 
         if (alpha)
         {
@@ -243,7 +243,13 @@ namespace lsp
                     break;
             }
 
-            return ::sprintf(dst, fmt, prefix, size_t(v[3] * tol), size_t(v[0] * tol), size_t(v[1] * tol), size_t(v[2] * tol));
+            return ::snprintf(
+                    dst, len, fmt, prefix,
+                    int(v[3] * tol) & tol,
+                    int(v[0] * tol) & tol,
+                    int(v[1] * tol) & tol,
+                    int(v[2] * tol) & tol
+                );
         }
         else
         {
@@ -267,7 +273,12 @@ namespace lsp
                     break;
             }
 
-            return ::sprintf(dst, fmt, prefix, size_t(v[0] * tol), size_t(v[1] * tol), size_t(v[2] * tol));
+            return ::snprintf(
+                    dst, len, fmt, prefix,
+                    int(v[0] * tol) & tol,
+                    int(v[1] * tol) & tol,
+                    int(v[2] * tol) & tol
+                );
         }
     }
 

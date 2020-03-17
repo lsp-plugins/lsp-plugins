@@ -16,70 +16,70 @@ namespace lsp
     // Graphic Equalizer
     static const int graph_equalizer_classes[] = { C_MULTI_EQ, -1 };
 
-    static const char *band_slopes[] =
+    static const port_item_t band_fft_mode[] =
     {
-        "BT48",
-        "MT48",
-        "BT72",
-        "MT72",
-        "BT96",
-        "MT96",
-        NULL
+        { "Off",        "metering.fft.off" },
+        { "Post-eq",    "metering.fft.post_eq" },
+        { "Pre-eq",     "metering.fft.pre_eq" },
+        { NULL, NULL }
     };
 
-    static const char *band_fft_mode[] =
+    static const port_item_t band_slopes[] =
     {
-        "Off",
-        "Post-eq",
-        "Pre-eq",
-        NULL
+        { "BT48",       "graph_eq.slope.bt48" },
+        { "MT48",       "graph_eq.slope.mt48" },
+        { "BT72",       "graph_eq.slope.bt72" },
+        { "MT72",       "graph_eq.slope.mt72" },
+        { "BT96",       "graph_eq.slope.bt96" },
+        { "MT96",       "graph_eq.slope.mt96" },
+        { NULL, NULL }
     };
 
-    static const char *band_eq_modes[] =
+    static const port_item_t band_eq_modes[] =
     {
-        "IIR",
-        "FIR",
-        "FFT",
-        NULL
+        { "IIR",        "eq.type.iir" },
+        { "FIR",        "eq.type.fir" },
+        { "FFT",        "eq.type.fft" },
+        { NULL, NULL }
     };
 
-    static const char *band_select_16lr[] =
+    static const port_item_t band_select_16lr[] =
     {
-        "Bands Left",
-        "Bands Right",
-        NULL
+        { "Bands Left",             "graph_eq.bands_l" },
+        { "Bands Right",            "graph_eq.bands_r" },
+        { NULL, NULL }
     };
 
-    static const char *band_select_16ms[] =
+    static const port_item_t band_select_16ms[] =
     {
-        "Bands Middle",
-        "Bands Side",
-        NULL
+        { "Bands Middle",           "graph_eq.bands_m" },
+        { "Bands Side",             "graph_eq.bands_s" },
+        { NULL, NULL }
     };
 
-    static const char *band_select_32[] =
+    static const port_item_t band_select_32[] =
     {
-        "Bands 0-15",
-        "Bands 16-31",
-        NULL
+        { "Bands 0-15",             "graph_eq.bands_0:15" },
+        { "Bands 16-31",            "graph_eq.bands_16:31" },
+        { NULL, NULL }
     };
 
-    static const char *band_select_32lr[] =
+    static const port_item_t band_select_32lr[] =
     {
-        "Bands Left 0-15",
-        "Bands Right 0-15",
-        "Bands Left 16-31",
-        "Bands Right 16-31",
-        NULL
+        { "Bands Left 0-15",        "graph_eq.bands_l_0:15" },
+        { "Bands Right 0-15",       "graph_eq.bands_r_0:15" },
+        { "Bands Left 16-31",       "graph_eq.bands_l_16:31" },
+        { "Bands Right 16-31",      "graph_eq.bands_r_16:31" },
+        { NULL, NULL }
     };
 
-    static const char *band_select_32ms[] =
+    static const port_item_t band_select_32ms[] =
     {
-        "Bands Middle 0-15",
-        "Bands Side 0-15",
-        "Bands Middle 16-31",
-        "Bands Side 16-31",
-        NULL
+        { "Bands Middle 0-15",      "graph_eq.bands_m_0:15" },
+        { "Bands Side 0-15",        "graph_eq.bands_s_0:15" },
+        { "Bands Middle 16-31",     "graph_eq.bands_m_16:31" },
+        { "Bands Side 16-31",       "graph_eq.bands_s_16:31" },
+        { NULL, NULL }
     };
 
     #define EQ_BAND(id, label, x, f) \

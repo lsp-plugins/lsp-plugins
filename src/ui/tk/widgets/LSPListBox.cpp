@@ -484,23 +484,22 @@ namespace lsp
             ssize_t last  = (sVBar.value() + sArea.nHeight + fp.Height - 1) / fp.Height;
             ssize_t y     = first * fp.Height - sVBar.value();
 
+            LSPString text;
             for ( ; first <= last; first++, y += fp.Height)
             {
                 LSPItem *item = sItems.get(first);
                 if (item == NULL)
                     continue;
 
-                const char *text = item->text();
-                if (text == NULL)
-                    continue;
-
+                item->text()->format(&text, this);
                 if (sSelection.contains(first))
                 {
                     s->fill_rect(0.0f, y, sArea.nWidth, fp.Height, font);
-                    sFont.draw(s, 1.0f, y + fp.Ascent, bg_color, text);
+                    if (text.length() > 0)
+                        sFont.draw(s, 1.0f, y + fp.Ascent, bg_color, &text);
                 }
-                else
-                    sFont.draw(s, 1.0f, y + fp.Ascent, font, text);
+                else if (text.length() > 0)
+                    sFont.draw(s, 1.0f, y + fp.Ascent, font, &text);
             }
         }
 
@@ -568,17 +567,18 @@ namespace lsp
             size_t padding  = 6;
             size_t n_items  = sItems.size();
 
+            LSPString text;
             for (size_t i=0; i<n_items; ++i)
             {
                 LSPItem *item = sItems.get(i);
                 if (item == NULL)
                     continue;
 
-                const char *text = item->text();
-                if (text == NULL)
+                item->text()->format(&text, this);
+                if (text.is_empty())
                     continue;
 
-                sFont.get_text_parameters(s, &tp, text);
+                sFont.get_text_parameters(s, &tp, &text);
                 if (tp.Width > r->nMaxWidth)
                     r->nMaxWidth    = tp.Width;
             }
@@ -601,6 +601,9 @@ namespace lsp
                 r->nMaxWidth = r->nMinWidth;
             if (r->nMaxHeight < r->nMinHeight)
                 r->nMaxHeight = r->nMinHeight;
+
+            s->destroy();
+            delete s;
         }
 
         void LSPListBox::realize(const realize_t *r)

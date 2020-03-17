@@ -43,69 +43,81 @@ namespace lsp
         LSP_LV2_LATENCY_PORT,   "Latency OUT",          U_NONE,         R_CONTROL, F_OUT | F_INT | F_LOWER | F_UPPER, 0, MAX_SAMPLE_RATE, 0, 0, NULL
     };
 
-    const char *unit_names[] =
+    typedef struct unit_desc_t
     {
-        NULL,
-        NULL,
-        NULL,
-        "%",
+        const char *name;
+        const char *lc_key;
+    } unit_desc_t;
 
-        "mm",
-        "cm",
-        "m",
-        "\"",
-        "km",
+    const unit_desc_t unit_desc[] =
+    {
+        { NULL,     NULL },
+        { NULL,     NULL },
+        { NULL,     NULL },
+        { "%",      "units.pc" },
 
-        "m/s",
-        "km/h",
+        { "mm",     "units.mm" },
+        { "cm",     "units.cm" },
+        { "m",      "units.m" },
+        { "\"",     "units.inch" },
+        { "km",     "units.km" },
 
-        "samp",
+        { "m/s",    "units.mps" },
+        { "km/h",   "units.kmph" },
 
-        "Hz",
-        "kHz",
-        "MHz",
-        "bpm",
+        { "samp",   "units.samp" },
 
-        "cent",
-        "st",
+        { "Hz",     "units.hz" },
+        { "kHz",    "units.khz" },
+        { "MHz",    "units.mhz" },
+        { "bpm",    "units.bpm" },
 
-        "bar",
-        "beat",
-        "s",
-        "ms",
+        { "cent",   "units.cent" },
+        { "st",     "units.st" },
 
-        "dB",
-        "G",
-        "G",
+        { "bar",    "units.bar" },
+        { "beat",   "units.beat" },
+        { "s",      "units.s" },
+        { "ms",     "units.ms" },
 
-        "°",
-        "°C",
-        "°F",
-        "°K",
-        "°R",
+        { "dB",     "units.db" },
+        { "G",      "units.gain" },
+        { "G",      "units.gain" },
+
+        { "°",      "units.deg" },
+        { "°C",     "units.degc" },
+        { "°F",     "units.degf" },
+        { "°K",     "units.degk" },
+        { "°R",     "units.degr" },
 
         NULL
     };
 
-    static const char *default_bool[] =
+    static port_item_t default_bool[] =
     {
-        "off", "on", NULL
+        { "off",    "bool.off" },
+        { "on",     "bool.on" },
+        { NULL, NULL }
     };
 
     const char *encode_unit(size_t unit)
     {
-        if ((unit >= 0) && (unit <= U_ENUM))
-            return unit_names[unit];
+        return ((unit >= 0) && (unit <= U_ENUM)) ?
+                unit_desc[unit].name : NULL;
+    }
 
-        return NULL;
+    const char *unit_lc_key(size_t unit)
+    {
+        return ((unit >= 0) && (unit <= U_ENUM)) ?
+                unit_desc[unit].lc_key : NULL;
     }
 
     unit_t decode_unit(const char *name)
     {
         for (ssize_t i=0; i<= U_ENUM; ++i)
         {
-            const char *uname = unit_names[i];
-            if ((uname != NULL) && (!strcmp(name, uname)))
+            const char *uname = unit_desc[i].name;
+            if ((uname != NULL) && (!::strcmp(name, uname)))
                 return unit_t(i);
         }
         return U_NONE;
@@ -162,14 +174,11 @@ namespace lsp
         return is_decibel_unit(port->unit);
     }
 
-    size_t list_size(const char **list)
+    size_t list_size(const port_item_t *list)
     {
         size_t size = 0;
-        while ((list != NULL) && (*list != NULL))
-        {
-            size    ++;
-            list    ++;
-        }
+        for ( ; (list != NULL) && (list->text != NULL); ++list)
+            ++size;
         return size;
     }
 
@@ -267,11 +276,11 @@ namespace lsp
         float min   = (meta->flags & F_LOWER) ? meta->min: 0;
         float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
 
-        for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
+        for (const port_item_t *p = meta->items; (p != NULL) && (p->text != NULL); ++p)
         {
             if (min >= value)
             {
-                strncpy(buf, *p, len);
+                ::strncpy(buf, p->text, len);
                 buf[len - 1] = '\0';
                 return;
             }
@@ -282,12 +291,13 @@ namespace lsp
 
     void format_decibels(char *buf, size_t len, const port_t *meta, float value, ssize_t precision)
     {
-        double mul       = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
+        double mul      = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
         if (value < 0.0f)
             value           = - value;
 
         value = mul * log(value) / M_LN10;
-        if (value <= -80.0)
+        float thresh    = (meta->flags & F_EXT) ? -140.0f : -80.0f;
+        if (value <= thresh)
         {
             strcpy(buf, "-inf");
             return;
@@ -311,13 +321,13 @@ namespace lsp
 
     void format_bool(char *buf, size_t len, const port_t *meta, float value)
     {
-        const char **list = (meta->items != NULL) ? meta->items : default_bool;
+        const port_item_t *list = (meta->items != NULL) ? meta->items : default_bool;
         if (value >= 0.5f)
-            list++;
+            ++list;
 
-        if (*list != NULL)
+        if (list->text != NULL)
         {
-            strncpy(buf, *list, len);
+            ::strncpy(buf, list->text, len);
             buf[len-1] = '\0';
         }
         else
@@ -366,9 +376,9 @@ namespace lsp
         float min   = (meta->flags & F_LOWER) ? meta->min: 0;
         float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
 
-        for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
+        for (const port_item_t *p = meta->items; (p != NULL) && (p->text != NULL); ++p)
         {
-            if (!::strcasecmp(text, *p))
+            if (!::strcasecmp(text, p->text))
             {
                 if (dst != NULL)
                     *dst    = min;

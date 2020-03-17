@@ -15,31 +15,40 @@ namespace lsp
         class LSPItem
         {
             protected:
-                LSPString   sText;
-                float       fValue;
+                class LocalString: public LSPLocalString
+                {
+                    private:
+                        friend class LSPItem;
+
+                    protected:
+                        LSPItem *pItem;
+
+                    protected:
+                        virtual void        sync();
+
+                    public:
+                        inline LocalString(LSPItem *item) { pItem = item; }
+                };
+
+            protected:
+                LocalString         sText;
+                float               fValue;
 
             public:
+                explicit LSPItem();
                 explicit LSPItem(const LSPItem *src);
-                explicit LSPItem(float value = 0.0f);
-                explicit LSPItem(const char *text, float value = 0.0f);
-                explicit LSPItem(const LSPString *text, float value = 0.0f);
                 virtual ~LSPItem();
 
             protected:
-                virtual void        on_text_change();
-                virtual void        on_value_change();
                 virtual void        on_change();
 
             public:
-                inline const char  *text() const    { return sText.get_native();    }
-                status_t            get_text(LSPString *text) const;
-                inline float        value() const   { return fValue;    }
+                inline LSPLocalString          *text()          { return &sText;    }
+                inline const LSPLocalString    *text() const    { return &sText;    }
+                inline float                    value() const   { return fValue;    }
 
             public:
-                status_t            set(const char *text, float value);
                 status_t            set(const LSPItem *src);
-                status_t            set_text(const char *text);
-                status_t            set_text(const LSPString *text);
                 void                set_value(float value);
         };
     

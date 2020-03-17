@@ -356,10 +356,20 @@ namespace lsp
                 virtual mouse_pointer_t get_mouse_pointer();
 
                 /**
-                 * Grab mouse and keyboard events
+                 * Grab mouse and keyboard events for the specified group.
+                 * Group declares the set of controls that will receive events only
+                 * when there are no windows with grabbing events in more prioretized group.
+                 *
+                 * @param group the group of events to grab
                  * @return status of operation
                  */
-                virtual status_t grab_events();
+                virtual status_t grab_events(grab_t group);
+
+                /**
+                 * Release grab of events
+                 * @return status of operation
+                 */
+                virtual status_t ungrab_events();
         };
     } /* namespace ws */
 } /* namespace lsp */

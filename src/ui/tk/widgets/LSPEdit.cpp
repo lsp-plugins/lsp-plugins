@@ -137,7 +137,7 @@ namespace lsp
             if (mime == NULL)
                 return -STATUS_UNSUPPORTED_FORMAT;
             pMime   = ::strdup(mime);
-            lsp_trace("selected mime type: %s, index=%d", pMime, int(idx));
+            lsp_trace("Selected mime type: %s, index=%d", pMime, int(idx));
             return (pMime != NULL) ? idx : -STATUS_NO_MEM;
         }
 
@@ -147,11 +147,13 @@ namespace lsp
                 return STATUS_CANCELLED;
             if (pMime == NULL)
                 return STATUS_CLOSED;
-            return sOS.write(buf, count);
+            ssize_t written = sOS.write(buf, count);
+            return (written >= ssize_t(count)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
         }
 
         status_t LSPEdit::DataSink::close(status_t code)
         {
+            lsp_trace("code: %x", int(code));
             if ((pMime == NULL) || (pEdit == NULL))
             {
                 unbind();
@@ -244,7 +246,7 @@ namespace lsp
             vStdItems[0] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdPopup.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Cut"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.edit.cut"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_cut_action, self());
             if (id < 0)
                 return -id;
@@ -255,7 +257,7 @@ namespace lsp
             vStdItems[1] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdPopup.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Copy"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.edit.copy"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_copy_action, self());
             if (id < 0)
                 return -id;
@@ -266,7 +268,7 @@ namespace lsp
             vStdItems[2] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdPopup.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Paste"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.edit.paste"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_paste_action, self());
             if (id < 0)
                 return -id;

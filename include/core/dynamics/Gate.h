@@ -14,6 +14,9 @@ namespace lsp
 {
     class Gate
     {
+        private:
+            Gate & operator = (const Gate &);
+
         protected:
             typedef struct curve_t
             {
@@ -42,7 +45,7 @@ namespace lsp
             bool        bUpdate;
 
         public:
-            Gate();
+            explicit Gate();
             ~Gate();
 
         public:

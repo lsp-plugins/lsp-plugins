@@ -19,10 +19,61 @@ namespace lsp
             dst->v_str      = NULL;
         }
 
-        status_t copy_value(value_t *dst, const value_t *src)
+        inline void destroy_value_internal(value_t *value)
         {
-            if ((src->type == VT_STRING) && (src->v_str != NULL))
+            if ((value->type == VT_STRING) && (value->v_str != NULL))
             {
+                delete value->v_str;
+                value->v_str        = NULL;
+            }
+        }
+
+        void set_value_null(value_t *dst)
+        {
+            destroy_value_internal(dst);
+            dst->type       = VT_NULL;
+        }
+
+        void set_value_undef(value_t *dst)
+        {
+            destroy_value_internal(dst);
+            dst->type       = VT_UNDEF;
+        }
+
+        void set_value_int(value_t *dst, ssize_t value)
+        {
+            destroy_value_internal(dst);
+            dst->type       = VT_INT;
+            dst->v_int      = value;
+        }
+
+        void set_value_float(value_t *dst, double value)
+        {
+            destroy_value_internal(dst);
+            dst->type       = VT_FLOAT;
+            dst->v_float    = value;
+        }
+
+        void set_value_bool(value_t *dst, bool value)
+        {
+            destroy_value_internal(dst);
+            dst->type       = VT_BOOL;
+            dst->v_bool     = value;
+        }
+
+        status_t init_value(value_t *dst, const value_t *src)
+        {
+            if (src == NULL)
+            {
+                dst->type       = VT_NULL;
+                dst->v_str      = NULL;
+                return STATUS_OK;
+            }
+            else if ((src->type == VT_STRING) && (src->v_str != NULL))
+            {
+                dst->type       = VT_UNDEF;
+                dst->v_str      = NULL;
+
                 LSPString *copy = src->v_str->clone();
                 if (copy == NULL)
                     return STATUS_NO_MEM;
@@ -35,13 +86,55 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t set_value_string(value_t *dst, LSPString *value)
+        {
+            if (value == NULL)
+            {
+                set_value_null(dst);
+                return STATUS_OK;
+            }
+            else if (dst->type == VT_STRING)
+                return (dst->v_str->set(value)) ? STATUS_OK : STATUS_NO_MEM;
+
+            LSPString *copy = value->clone();
+            if (copy == NULL)
+                return STATUS_NO_MEM;
+
+            destroy_value_internal(dst);
+            dst->type       = VT_STRING;
+            dst->v_str      = copy;
+            return STATUS_OK;
+        }
+
+        status_t copy_value(value_t *dst, const value_t *src)
+        {
+            if (src == NULL)
+            {
+                set_value_null(dst);
+                return STATUS_OK;
+            }
+            else if ((src->type == VT_STRING) && (src->v_str != NULL))
+            {
+                LSPString *copy = src->v_str->clone();
+                if (copy == NULL)
+                    return STATUS_NO_MEM;
+
+                destroy_value_internal(dst);
+
+                dst->type       = VT_STRING;
+                dst->v_str      = copy;
+            }
+            else
+            {
+                destroy_value_internal(dst);
+                *dst        = *src;
+            }
+            return STATUS_OK;
+        }
+
         void destroy_value(value_t *value)
         {
-            if ((value->type == VT_STRING) && (value->v_str != NULL))
-            {
-                delete value->v_str;
-                value->v_str        = NULL;
-            }
+            destroy_value_internal(value);
             value->type     = VT_UNDEF;
         }
 
@@ -74,6 +167,25 @@ namespace lsp
             if (v->type != VT_STRING)
                 return STATUS_BAD_TYPE;
             return (dst->set(v->v_str)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t cast_value(value_t *v, value_type_t type)
+        {
+            switch (type)
+            {
+                case VT_INT: return cast_int(v);
+                case VT_FLOAT: return cast_float(v);
+                case VT_BOOL: return cast_bool(v);
+                case VT_STRING: return cast_string(v);
+                case VT_NULL:
+                    set_value_null(v);
+                    return STATUS_OK;
+                case VT_UNDEF:
+                    set_value_undef(v);
+                    return STATUS_OK;
+            }
+
+            return STATUS_BAD_TYPE;
         }
 
         status_t cast_int(value_t *v)

@@ -132,8 +132,8 @@ namespace lsp
         { U_DEG,        "degree" },
 
         { U_SAMPLES,    NULL,       "samples",              "%.0f"      },
-        { U_GAIN_AMP,   NULL,       "gain",                 "%f"        },
-        { U_GAIN_POW,   NULL,       "gain",                 "%f"        },
+        { U_GAIN_AMP,   NULL,       "gain",                 "%.8f"      },
+        { U_GAIN_POW,   NULL,       "gain",                 "%.8f"      },
 
         { U_SEMITONES,  NULL,       "st",                   "%.2f"      },
 
@@ -654,6 +654,7 @@ namespace lsp
                     fprintf(out, "lv2:AudioPort ;\n");
                     break;
                 case R_CONTROL:
+                case R_BYPASS:
                 case R_METER:
                     fprintf(out, "lv2:ControlPort ;\n");
                     break;
@@ -662,8 +663,10 @@ namespace lsp
             }
 
             fprintf(out, "\t\tlv2:index %d ;\n", (int)port_id);
-            fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p->id);
-            fprintf(out, "\t\tlv2:name \"%s\" ;\n", p->name);
+            fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", (p->role == R_BYPASS) ? "enabled" : p->id);
+            fprintf(out, "\t\tlv2:name \"%s\" ;\n", (p->role == R_BYPASS) ? "Enabled" : p->name);
+            if (p->role == R_BYPASS)
+                fprintf(out, "\t\tlv2:designation lv2:enabled ;\n");
 
             print_units(out, p->unit);
 
@@ -684,7 +687,7 @@ namespace lsp
 //                    fprintf(out, "\t\tlv2:portProperty pp:trigger ;\n");
                 fprintf(out, "\t\tlv2:minimum %d ;\n", 0);
                 fprintf(out, "\t\tlv2:maximum %d ;\n", 1);
-                fprintf(out, "\t\tlv2:default %d ;\n", int(p->start));
+                fprintf(out, "\t\tlv2:default %d ;\n", (p->role == R_BYPASS) ? (1 - int(p->start)) : int(p->start));
             }
             else if (p->unit == U_ENUM)
             {
@@ -696,32 +699,24 @@ namespace lsp
 
                 int min  = (p->flags & F_LOWER) ? p->min : 0;
                 int curr = min;
+                size_t count = list_size(p->items);
                 int max  = min + list_size(p->items) - 1;
 
-                const char **list = p->items;
-                if ((list != NULL) && (*list != NULL))
+                const port_item_t *list = p->items;
+                if (count > 1)
                 {
-                    size_t count = 0;
-                    for (const char **t = list; *t != NULL; ++t)
-                        count ++;
-
-                    if (count > 0)
+                    fprintf(out, "\t\tlv2:scalePoint\n");
+                    for ( ; list->text != NULL; ++list)
                     {
-                        fprintf(out, "\t\tlv2:scalePoint\n");
-                        while (*list != NULL)
-                        {
-                            fprintf(out, "\t\t\t[ rdfs:label \"%s\"; rdf:value %d ]", *list, curr);
-                            if (--count)
-                                fprintf(out, " ,\n");
-                            else
-                                fprintf(out, " ;\n");
-                            list ++;
-                            curr ++;
-                        }
+                        fprintf(out, "\t\t\t[ rdfs:label \"%s\"; rdf:value %d ]", list->text, curr);
+                        if (--count)
+                            fprintf(out, " ,\n");
+                        else
+                            fprintf(out, " ;\n");
+                        curr ++;
                     }
-                    else
-                        fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", *list, curr);
-                }
+                } else if (count > 0)
+                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", list->text, curr);
 
 //                for (const char **list = p->items; *list != NULL; ++list, ++curr)
 //                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", *list, curr);

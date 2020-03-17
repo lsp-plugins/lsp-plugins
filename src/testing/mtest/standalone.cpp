@@ -60,7 +60,7 @@ MTEST_BEGIN("", standalone)
         const char ** args = reinterpret_cast<const char **>(alloca(argc * sizeof(const char *)));
         MTEST_ASSERT(args != NULL);
 
-        args[0] = "utest.standalone";
+        args[0] = full_name();
         for (ssize_t i=1; i < argc; ++i)
             args[i] = argv[i];
 

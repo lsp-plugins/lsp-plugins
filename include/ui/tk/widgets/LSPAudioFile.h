@@ -62,7 +62,7 @@ namespace lsp
 
             protected:
                 LSPString           sFileName;
-                LSPString           sHint;
+                LSPLocalString      sHint;
                 LSPString           sPath;
                 LSPFont             sFont;
                 LSPFont             sHintFont;
@@ -116,8 +116,8 @@ namespace lsp
                 inline const char      *file_name() const { return sFileName.get_native(); }
                 inline status_t         get_file_name(LSPString *dst) const { return (dst->set(&sFileName)) ? STATUS_OK : STATUS_NO_MEM; };
 
-                inline const char      *hint() const { return sHint.get_native(); }
-                inline status_t         get_hint(LSPString *dst) const { return (dst->set(&sHint)) ? STATUS_OK : STATUS_NO_MEM; };
+                inline LSPLocalString  *hint() { return &sHint; };
+                inline const LSPLocalString  *hint() const { return &sHint; };
 
                 inline LSPSizeConstraints  *constraints()   { return &sConstraints; }
 
@@ -153,8 +153,6 @@ namespace lsp
             public:
                 status_t        set_file_name(const char *text);
                 status_t        set_file_name(const LSPString *text);
-                status_t        set_hint(const char *text);
-                status_t        set_hint(const LSPString *text);
 
                 status_t        set_channels(size_t n);
                 status_t        add_channel();

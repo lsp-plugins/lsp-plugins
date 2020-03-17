@@ -272,6 +272,7 @@ namespace lsp
                 b->pRelTime     = NULL;
                 b->pRatio       = NULL;
                 b->pKnee        = NULL;
+                b->pBThresh     = NULL;
                 b->pMakeup      = NULL;
                 b->pFreqEnd     = NULL;
                 b->pEnvLvl      = NULL;
@@ -444,6 +445,7 @@ namespace lsp
                     b->pRelTime     = sb->pRelTime;
                     b->pRatio       = sb->pRatio;
                     b->pKnee        = sb->pKnee;
+                    b->pBThresh     = sb->pBThresh;
                     b->pMakeup      = sb->pMakeup;
 
                     b->pFreqEnd     = sb->pFreqEnd;
@@ -504,6 +506,8 @@ namespace lsp
                     b->pRatio       = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pKnee        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pBThresh     = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pMakeup      = vPorts[port_id++];
 
@@ -743,6 +747,7 @@ namespace lsp
                 b->sComp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
                 b->sComp.set_ratio(b->pRatio->getValue());
                 b->sComp.set_knee(b->pKnee->getValue());
+                b->sComp.set_boost_threshold(b->pBThresh->getValue());
 
                 if (b->sComp.modified())
                 {

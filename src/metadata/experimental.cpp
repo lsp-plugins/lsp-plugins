@@ -17,41 +17,53 @@ namespace lsp
     #define TEST_EQ_BAND(id) \
         LOG_CONTROL("g_" #id, "Band gain " #id, U_GAIN_AMP, test_plugin_metadata::BAND_GAIN)
 
-    static const char *filter_select_32ms[] =
+    static const port_item_t filter_select_32ms[] =
     {
-        "Mid 0-7",
-        "Side 0-7",
-        "Mid 8-15",
-        "Side 8-15",
-        "Mid 16-23",
-        "Side 16-23",
-        "Mid 24-31",
-        "Side 24-31",
-        NULL
+        { "Mid 0-7", NULL },
+        { "Side 0-7", NULL },
+        { "Mid 8-15", NULL },
+        { "Side 8-15", NULL },
+        { "Mid 16-23", NULL },
+        { "Side 16-23", NULL },
+        { "Mid 24-31", NULL },
+        { "Side 24-31", NULL },
+        { NULL, NULL }
     };
 
-    static const char *band_selectors[] =
+    static const port_item_t band_selectors[] =
     {
-        "0", "1", "2", "3",
-        "4", "5", "6", "7",
-        "8", "9", "10", "11",
-        "12", "13", "14", "15",
-        NULL
+        { "0", NULL },
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { "8", NULL },
+        { "9", NULL },
+        { "10", NULL },
+        { "11", NULL },
+        { "12", NULL },
+        { "13", NULL },
+        { "14", NULL },
+        { "15", NULL },
+        { NULL, NULL }
     };
 
-    static const char *fb_modes[] =
+    static const port_item_t fb_modes[] =
     {
-        "Rainbow",
-        "Fog",
-        "Color",
-        "Lightness",
-        "Lightness2",
-        NULL
+        { "Rainbow", NULL },
+        { "Fog", NULL },
+        { "Color", NULL },
+        { "Lightness", NULL },
+        { "Lightness2", NULL },
+        { NULL, NULL }
     };
 
-    #define FT(x) # x
+    #define FT(x) { #x, NULL }
 
-    static const char *filter_types[] =
+    static const port_item_t filter_types[] =
     {
         FT(FLT_NONE),
 
@@ -135,35 +147,35 @@ namespace lsp
         FT(FLT_DR_APO_LADDERPASS),
         FT(FLT_DR_APO_LADDERREJ),
 
-        NULL
+        { NULL, NULL }
     };
 
-    static const char *filter_slopes[] =
+    static const port_item_t filter_slopes[] =
     {
-        "x1",
-        "x2",
-        "x3",
-        "x4",
-        "x5",
-        "x6",
-        "x7",
-        "x8",
-        NULL
+        { "x1", NULL },
+        { "x2", NULL },
+        { "x3", NULL },
+        { "x4", NULL },
+        { "x5", NULL },
+        { "x6", NULL },
+        { "x7", NULL },
+        { "x8", NULL },
+        { NULL, NULL }
     };
 
-    static const char *filter_ops[] =
+    static const port_item_t filter_ops[] =
     {
-        "none",
-        "add",
-        "sub",
-        NULL
+        { "none", NULL },
+        { "add", NULL },
+        { "sub", NULL },
+        { NULL, NULL }
     };
 
-    static const char *filter_graphs[] =
+    static const port_item_t filter_graphs[] =
     {
-        "Amplitude",
-        "Phase",
-        NULL
+        { "Amplitude", NULL },
+        { "Phase", NULL },
+        { NULL, NULL }
     };
 
     static const port_t test_ports[] =

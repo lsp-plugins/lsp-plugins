@@ -8,31 +8,49 @@
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
+=== 1.1.16 ===
+- Added frequency-domain spectral analysis to convolver plugin series.
+- Added frequency-domain spectral analysis to profiler plugin series.
+- Research the work of plugins under Audacity.
+- Added audio preview to file open dialog.
+- Added subsystem for loading missed files.
+- Implemented Multiband gate plugin series.
+- Implemented equal loudness compensation plugin according to ISO 226:2003
+  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
+  topic: https://linuxmusicians.com/viewtopic.php?p=113835
+  
 === 1.1.14 ===
 
 * Implemented Multiband expander plugin series.
 * Fixed bug in trigger that caused notes to be immediately cancelled.
 * Implemented support of LV2 state:mapPath extension.
 * Removed strict requirement to build UI for LADSPA version of plugins.
+* Bypass button now supports LV2:enabled designation, that makes plugin to work more smooth with the host.
+* Bypass button now handles effSetBypass VST event, that makes plugin to work more smooth with the host.
+* Denied use of -ffast-math compiler option since it may provide incorrect behaviour of standard C
+  library functions like isnan() and isinf().
+* Fixed stack corruption bug when working with UI styles and colors.
+* Reworked and additionally optimized structure of all filter chains.
+* Refactored and optimized dynamic filter processing.
+* Additional DSP optimizations for AArch64 architecture.
+* Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
+* Fixed problem with matched Z transform caused by filter characteristics optimizations.
+* Fixed bug in Profiler plugin that caused crash on saving files to WAV format.
+* Fixed bug with pop-up menus in parameter's editing popup window that caused user interface to lock.
+* Fixed bug with producing NaNs by dynamic processors in some cases when knee has zero length.
+* Updated behaviour of limiter in classic mode.
+* Fixed upward compressor behaviour: now upward compressor has additional compensation knee that prevents from
+  infinite gain boost on low-level input signals.
+* Added SIGPIPE signal blocking for JACK plugin format at startup.
+* Implemented workaround for Drag&Drop support initiated by GTK-based applications.
+* Implemented multilingual interface support.
+* Added russian translations of the user interface.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
+- Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
-- Implemented Multiband gate plugin series.
-- Fixe problem with matched Z transform caused by filter characteristics optimizations.
-- Refactored and optimized dynamic filter processing.
 - Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform. 
 - Added multilingual support by the graphical toolkit.
-- Added frequency-domain spectral analysis to convolver plugin series.
-- Added frequency-domain spectral analysis to profiler plugin series.
-- Additional DSP optimizations for AArch64 architecture.
-- Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
-- Research the work of plugins under Audacity.
-- Added audio preview to file open dialog.
-- Added subsystem for loading missed files.
-- Implement equal loudness compensation plugin according to ISO 226:2003
-  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
-  topic: https://linuxmusicians.com/viewtopic.php?p=113835
- 
 
 *******************************************************************************
 * Release steps
@@ -117,6 +135,28 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== OSC-Send Plugin ====
+
+https://discourse.ardour.org/t/feature-request-osc-send-plugin/102649
+
+Hi Paul,
+
+it would be great to control external osc receivers via plugin from Ardourmixer:
+
+| n sends | 127.0.0.1 |
+| Q | M | /osc/message/1 |
+| Q | M | /osc/message/2 |
+| Q | M | /osc/message/3 |
+
+Q = Poti
+M = Mute
+
+Also a xy-pad just sending osc.
+And recording / playback osc.
+
+Does it already exists?
+Cheers
 
 ==== FFT analysis of the Profiler and Convolver ====
 

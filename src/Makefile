@@ -84,7 +84,7 @@ $(OBJ_TESTING_CORE): test testing rendering
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating builtin resources"
 	@mkdir -p $(OBJDIR)/res
-	@$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(BASEDIR)/res/ui $(BASEDIR)/res/presets $(BASEDIR)/res/models
+	@$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(BASEDIR)/res/ui $(BASEDIR)/res/presets $(BASEDIR)/res/models $(BASEDIR)/res/i18n
 	@-rm gmon.out >/dev/null 2>&1
 	@$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/builtin_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 

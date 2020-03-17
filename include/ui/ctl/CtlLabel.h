@@ -48,8 +48,25 @@ namespace lsp
                         virtual void destroy();
                 };
 
+                class Listener: public IStyleListener
+                {
+                    private:
+                        friend class CtlLabel;
+
+                    protected:
+                        CtlLabel   *pLabel;
+
+                    public:
+                        inline explicit Listener(CtlLabel *lbl) { pLabel = lbl; }
+
+                        virtual void notify(ui_atom_t property);
+                };
+
+                void do_destroy();
+
             protected:
                 CtlColor            sColor;
+                Listener            sListener;
                 CtlPort            *pPort;
                 ctl_label_type_t    enType;
                 float               fValue;
@@ -57,6 +74,7 @@ namespace lsp
                 bool                bSameLine;
                 ssize_t             nUnits;
                 ssize_t             nPrecision;
+                ssize_t             nAtomID;
                 PopupWindow        *pPopup;
 
             protected:
@@ -75,28 +93,17 @@ namespace lsp
                 explicit CtlLabel(CtlRegistry *src, LSPLabel *widget, ctl_label_type_t type);
                 virtual ~CtlLabel();
 
+                virtual void destroy();
+
             public:
-                /** Begin initialization of controller
-                 *
-                 */
                 virtual void init();
 
-                /** Set attribute to widget
-                 *
-                 * @param att attribute identifier
-                 * @param value attribute value
-                 */
+                virtual void set(const char *name, const char *value);
+
                 virtual void set(widget_attribute_t att, const char *value);
 
-                /** Notify controller about one of port bindings has changed
-                 *
-                 * @param port port triggered change
-                 */
                 virtual void notify(CtlPort *port);
 
-                /** Complete initialization
-                 *
-                 */
                 virtual void end();
         };
     

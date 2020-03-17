@@ -58,7 +58,7 @@ namespace lsp
             vStdItems[0] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdMenu.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Copy link"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.link.copy"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_copy_link_action, self());
             if (id < 0)
                 return -id;
@@ -69,7 +69,7 @@ namespace lsp
             vStdItems[1] = mi;
             LSP_STATUS_ASSERT(mi->init());
             LSP_STATUS_ASSERT(sStdMenu.add(mi));
-            LSP_STATUS_ASSERT(mi->set_text("Follow link"));
+            LSP_STATUS_ASSERT(mi->text()->set("actions.link.follow"));
             id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0)
                 return -id;
@@ -192,17 +192,20 @@ namespace lsp
             sFont.get_parameters(s, &fp);
 
             // Estimate number of lines
-            ssize_t n_lines = 1 + sText.count('\n');
+            LSPString text;
+            sText.format(&text);
+
+            ssize_t n_lines = 1 + text.count('\n');
             ssize_t dy      = sSize.nHeight - fp.Height*n_lines - (nBorder << 1);
             ssize_t y       = nBorder - fp.Descent + dy * fVAlign;
 
             // Estimate text size
-            ssize_t last = 0, curr = 0, tail = 0, len = sText.length();
+            ssize_t last = 0, curr = 0, tail = 0, len = text.length();
 
             while (curr < len)
             {
                 // Get next line indexes
-                curr    = sText.index_of(last, '\n');
+                curr    = text.index_of(last, '\n');
                 if (curr < 0)
                 {
                     curr        = len;
@@ -211,17 +214,17 @@ namespace lsp
                 else
                 {
                     tail        = curr;
-                    if ((tail > last) && (sText.at(tail-1) == '\r'))
+                    if ((tail > last) && (text.at(tail-1) == '\r'))
                         --tail;
                 }
 
                 // Calculate text location
-                sFont.get_text_parameters(s, &tp, &sText, last, tail);
+                sFont.get_text_parameters(s, &tp, &text, last, tail);
                 ssize_t dx  = sSize.nWidth - tp.Width - (nBorder << 1);
                 ssize_t x   = nBorder + dx * fHAlign - tp.XBearing;
                 y          += fp.Height;
 
-                sFont.draw(s, x, y, font, &sText, last, tail);
+                sFont.draw(s, x, y, font, &text, last, tail);
                 last    = curr + 1;
             }
         }

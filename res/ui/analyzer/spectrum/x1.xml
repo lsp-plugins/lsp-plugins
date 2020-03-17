@@ -2,15 +2,15 @@
 	<vbox spacing="4">
 		<align hpos="0" fill="true">
 			<hbox spacing="8" border="4" fill="false">
-				<label text="Mode" />
+				<label text="labels.mode" />
 				<combo id="mode" />
 				
-				<button text="Freeze" size="16" width="64" led="true" id="freeze" color="yellow" />
+				<button text="actions.freeze" size="16" width="64" led="true" id="freeze" color="yellow" />
 				
-				<label text="Spectrogram" visibility=":mode ige 2" />
+				<label text="labels.spectrogram" visibility=":mode ige 2" />
 				<combo id="spm" visibility=":mode ige 2" />
 				
-				<label text="Log scale" visibility=":mode ige 2" />
+				<label text="labels.log_scale" visibility=":mode ige 2" />
 				<button id="splog" size="16" color="yellow" led="true" visibility=":mode ige 2" />
 			</hbox>
 		</align>
@@ -69,10 +69,10 @@
 					<marker id="lvl" color="g_red" basis="1" parallel="0" />
 					
 					<!-- Text -->
-					<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />
+					<text text="graph.units.hz" basis="0;2" coord="10;0" halign="1" valign="1" />
 					<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
-					<text text="1K" basis="0;2" coord="1000;0" halign="1" valign="1" />
-					<text text="10K" basis="0;2" coord="10000;0" halign="1" valign="1" />
+					<text text="graph.values.1k" basis="0;2" coord="1000;0" halign="1" valign="1" />
+					<text text="graph.values.10k" basis="0;2" coord="10000;0" halign="1" valign="1" />
 					
 					<text text="0" coord="10;0 db" halign="1" valign="1" />
 					<text text="12" coord="10;12 db" halign="1" valign="1" />
@@ -81,7 +81,7 @@
 					<text text="-36" coord="10;-36 db" halign="1" valign="1" />
 					<text text="-48" coord="10;-48 db" halign="1" valign="1" />
 					<text text="-60" coord="10;-60 db" halign="1" valign="1" />
-					<text text="dB" basis="0;2" coord="10;1" halign="1" valign="-1" />
+					<text text="graph.units.db" basis="0;2" coord="10;1" halign="1" valign="-1" />
 					
 					<!-- Additional text -->
 					<text text="-6" coord="10;-6 db" halign="1" valign="1" visibility=":zoom le -18 db" />
@@ -127,41 +127,43 @@
 					<axis min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
 					
 					<!-- Text -->
-					<text text="Hz" basis="0;1" coord="10;8" halign="1" valign="1" />
+					<text text="graph.units.hz" basis="0;1" coord="10;8" halign="1" valign="1" />
 					<text text="100" basis="0;1" coord="100;8" halign="1" valign="1" />
-					<text text="1K" basis="0;1" coord="1000;8" halign="1" valign="1" />
-					<text text="10K" basis="0;1" coord="10000;8" halign="1" valign="1" />
+					<text text="graph.values.1k" basis="0;1" coord="1000;8" halign="1" valign="1" />
+					<text text="graph.values.10k" basis="0;1" coord="10000;8" halign="1" valign="1" />
 					
 					<ui:for id="t" first="1" last="7"><text text="${t}" coord="10;${t}" halign="1" valign="1" /></ui:for>
-					<text text="time" basis="0;1" coord="10;0" halign="1" valign="-1" />
+					<text text="graph.axis.time" basis="0;1" coord="10;0" halign="1" valign="-1" />
 				</graph>
 				
 				<!-- FFT settings -->
 				<hbox spacing="8" border="4">
-					<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
-					<label text="Window" />
+					<align pad_right="4" fill="true" hpos="0">
+						<label text="labels.graphs.frequency" />
+					</align>
+					<label text="labels.fft.window" />
 					<combo id="wnd" />
-					<label text="Tolerance" />
+					<label text="labels.fft.tolerance" />
 					<combo id="tol" />
-					<label text="Envelope" />
+					<label text="labels.fft.envelope" />
 					<combo id="env" />
 				</hbox>
 			</vbox>
 			
 			<vbox visibility=":mode ile 1">
-				<label text="Zoom" />
+				<label text="labels.zoom" />
 				<fader id="zoom" angle="1" expand="true" />
 				<value id="zoom" />
 			</vbox>
 		</hbox>
 	
 		<hbox spacing="4" visibility=":mode ile 1">
-			<group text="Channel" expand="true">
+			<group text="groups.channel" expand="true">
 				<grid rows="3" cols="4" expand="true">
-					<label text="On" />
-					<label text="Hold" />
-					<label text="Hue" />
-					<label text="Shift" />
+					<label text="labels.chan.on" />
+					<label text="labels.chan.hold" />
+					<label text="labels.chan.hue" />
+					<label text="labels.chan.shift" />
 					
 					<button id="on_0" size="32" color="red" led="true" hue_id="hue_0" />
 					<button id="frz_0" size="32" color="red" led="true" hue_id="hue_0"  />
@@ -175,12 +177,12 @@
 				</grid>
 			</group>
 			
-			<group text="Metering" expand="true">
+			<group text="groups.metering" expand="true">
 				<grid rows="43" cols="4" expand="true">
-					<label text="Preamp" />
-					<label text="Selector" />
-					<label text="Reactivity" />
-					<label text="Frequency (Hz)" />
+					<label text="labels.metering.preamp" />
+					<label text="labels.metering.selector" />
+					<label text="labels.metering.reactivity" />
+					<label text="labels.metering.frequency:hz" />
 					
 					<knob id="pamp" />
 					<knob id="sel" />
@@ -193,22 +195,22 @@
 					<value id="pamp" />
 					<value id="sel" />
 					<value id="react" />						
-					<label text="Level (dB)" />
+					<label text="labels.metering.level:db" />
 				</grid>
 			</group>
 		</hbox>
 		
-		<group text="Channel" expand="true" visibility=":mode ige 2">
+		<group text="groups.channel" expand="true" visibility=":mode ige 2">
 			<grid rows="3" cols="6" transpose="true" fill="true">
-				<label text="Hold" />
+				<label text="labels.chan.hold" />
 				<button id="frz_0" size="32" color="red" led="true" hue_id="hue_0" />
 				<label />
 
-				<label text="Hue" />
+				<label text="labels.chan.hue" />
 				<knob id="hue_0" scale_hue_id="hue_0" size="20" />
 				<value id="hue_0" detailed="false" />
 
-				<label text="Shift" />
+				<label text="labels.chan.shift" />
 				<knob id="sh_0" scale_hue_id="hue_0" size="20" />
 				<value id="sh_0" same_line="true" />
 
@@ -216,11 +218,11 @@
 					<vsep />
 				</cell>
 				
-				<label text="Preamp" />
+				<label text="labels.metering.preamp" />
 				<knob id="pamp" />
 				<value id="pamp" same_line="true" />
 
-				<label text="Reactivity" />
+				<label text="labels.metering.reactivity" />
 				<knob id="react" />
 				<value id="react" same_line="true" />
 			</grid>

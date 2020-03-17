@@ -7,7 +7,9 @@
 ?>
 
 <p>
-	This plugin implements a brick-wall limiter with flexible configuration. It prevents input <?= ($m) ? 'mono' : 'stereo' ?>signal
+	This plugin implements a limiter with flexible configuration. In most cases it acts as a brick-wall limiter but there are several settings
+	for which is acts as an compressor with extreme settings, so the output signal may exceed the limiter's threshold. 
+	It prevents input <?= ($m) ? 'mono' : 'stereo' ?>signal
 	from raising over the specified <b>Threshold</b>. <?php if ($sc) {?> Additional sidechain inputs are provided for better use.<?php } ?>
 </p>
 <p><u>Attention:</u> this plugin implements set of limiting modes, most of them are iterative. That means that CPU load may be not stable, in other
@@ -50,7 +52,10 @@ words: the more work should be done, the more CPU resources will be used. Beware
 	<li><b>Clear</b> - clears all graphs.</li>
 	<li><b>Mode</b> - the selected mode to use by limiter:</li>
 	<ul>
-		<li><b>Classic</b> - limiter works like compressor with infinite ratio. May cause sound artifacts and clicking on extreme setup.</li>
+		<li><b>Classic</b> - limiter works like compressor with infinite ratio. 
+			May cause sound artifacts and clicking on extreme settings.
+			Additionally, the output signal can exceed the limiter's threshold.
+		</li>
 		<li><b>Herm Thin</b>, <b>Herm Wide</b>, <b>Herm Tail</b>, <b>Herm Duck</b> - hermite-interpolated cubic functions are used to apply gain reduction.</b>
 		<li><b>Exp Thin</b>, <b>Exp Wide</b>, <b>Exp Tail</b>, <b>Exp Duck</b> - exponent-interpolated functions are used to apply gain reduction.</b>
 		<li><b>Line Thin</b>, <b>Line Wide</b>, <b>Line Tail</b>, <b>Line Duck</b> - linear-interpolated functions are used to apply gain reduction.</b>

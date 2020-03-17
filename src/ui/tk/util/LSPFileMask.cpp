@@ -202,7 +202,7 @@ namespace lsp
             lsp_wchar_t *buf        = lsp_tmalloc(lsp_wchar_t, n);
             if (buf == NULL)
                 return STATUS_NO_MEM;
-            memcpy(buf, pattern->characters(), n*sizeof(lsp_wchar_t));
+            ::memcpy(buf, pattern->characters(), n*sizeof(lsp_wchar_t));
 
             // Create iterator
             biter_t bi;
@@ -267,6 +267,11 @@ namespace lsp
         void LSPFileMask::set_flags(size_t flags)
         {
             nFlags      = flags & (INVERSIVE | CASE_SENSITIVE);
+        }
+
+        status_t LSPFileMask::set(const LSPFileMask *mask)
+        {
+            return parse(&mask->sMask, mask->nFlags);
         }
 
         bool LSPFileMask::matched(const LSPString *str)

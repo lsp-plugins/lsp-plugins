@@ -88,9 +88,13 @@
 	<li><b>Ratio</b> - compression ratio.</li>
 	<li><b>Knee</b> - size of compression knee.</li>
 	<li><b>Makeup</b> - additional amplification gain after compression stage.</li>
-	<li><b>Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
+	<li><b>Boost</b> - this knob is related to <b>upward compression mode</b> only.
+	   It defines the threshold below which the constant amplification will be applied to the input signal. This prevents
+	   the compressor from applying infinite amplification to very quiet signals.
+	</li>
+	<li><b>Attack Thresh</b> - threshold of the compressor, placed in the middle of the knee.</li>
 	<li><b>Attack Time</b> - attack time of the compressor.</li>
-	<li><b>Release Level</b> - relative to the <b>Attack Level</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
+	<li><b>Release Thresh</b> - relative to the <b>Attack Thresh</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
 	<li><b>Release Time</b> - release time of the compressor.</li>
 	<li><b>Mix Dry</b> - the amount of dry (unprocessed) signal, useful for parallel compression.</li>
 	<li><b>Mix Wet</b> - the amount of wet (processed) signal, useful for parallel compression.</li>

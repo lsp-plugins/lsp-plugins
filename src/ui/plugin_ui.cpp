@@ -164,7 +164,7 @@ namespace lsp
                     *flags  = config::SF_TYPE_I32;
                     break;
                 case KVT_UINT32:
-                    fmt = value->fmt_ascii("%lu", (unsigned long)(p->u32));
+                    fmt     = value->fmt_ascii("%lu", (unsigned long)(p->u32));
                     *flags  = config::SF_TYPE_U32;
                     break;
                 case KVT_INT64:
@@ -264,6 +264,7 @@ namespace lsp
         PATH(UI_DLG_MODEL3D_PATH_ID, "Dialog for saving/loading 3D model files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
+        PATH(UI_LANGUAGE_PORT_ID, "Selected language identifier for the UI interface"),
         PORTS_END
     };
 
@@ -401,7 +402,7 @@ namespace lsp
     void plugin_ui::set_title(const char *title)
     {
         if (pRoot != NULL)
-            pRoot->set_title(title);
+            pRoot->title()->set(title);
     }
 
     CtlWidget *plugin_ui::build_widget(widget_ctl_t w_class)
@@ -1074,6 +1075,16 @@ namespace lsp
         if (result != STATUS_OK)
             return result;
 
+        lsp_trace("Loading dictionary");
+        IDictionary *dict = sDisplay.dictionary();
+        #ifdef LSP_BULTIN_RESOURCES
+            result = dict->init(LSP_BUILTIN_PREFIX "i18n");
+        #else
+            result = dict->init(LSP_RESOURCE_PATH "/i18n");
+        #endif
+        if (result != STATUS_OK)
+            return result;
+
         // Read global configuration
         result = load_global_config();
         if (result != STATUS_OK)
@@ -1111,7 +1122,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            item->set_text("Load Preset");
+            item->text()->set("actions.load_preset");
             menu->add(item);
 
             // Create submenu
@@ -1139,7 +1150,7 @@ namespace lsp
                 result = item->init();
                 if (result != STATUS_OK)
                     return result;
-                item->set_text(p->name);
+                item->text()->set_raw(p->name);
                 p->item     = item;
 
                 item->slots()->bind(LSPSLOT_SUBMIT, slot_preset_select, this);

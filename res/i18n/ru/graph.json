@@ -1,0 +1,37 @@
+{
+	"values": {
+		"1k": "1k",
+		"10k": "10k",
+		"idL_eft": "{@id}Л",
+		"idM_id": "{@id}Ц",
+		"idR_ight": "{@id}П",
+		"idS_ide": "{@id}С",
+		"x:db": "{@value} дБ",
+		"x:hz": "{@value} Гц",
+		"x:s": "{@value} с",
+		"x_T": "{@value}T",
+		"x_k": "{@value}к"
+	},
+	
+	"axis": {
+		"+phase": "+фаза",
+		"-phase": "-фаза",
+		"amplitude": "амплитуда",
+		"chan": {
+			"left": "левый",
+			"right": "правый"
+		},
+		"in": "вх",
+		"level": "уровень",
+		"out": "вых",
+		"period": "период",
+		"reverb_time": "время реверберации",
+		"time": "время"
+	},
+
+	"units": {
+		"db": "дБ",
+		"hz": "Гц",
+		"s": "с"
+	}
+}

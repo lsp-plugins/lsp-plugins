@@ -1,14 +1,14 @@
 <plugin resizable="false">
 	<vbox spacing="4">
 		<!-- IR editor -->
-		<group text="Impulse Response">
+		<group text="groups.impulse_response">
 			<vbox spacing="4">
 				<!-- File editor -->
 				<align hpos="-1">
 					<hbox spacing="4" fill="false">
-						<label text="FFT frame:" />
+						<label text="labels.fft.frame" />
 						<combo id="fft" />
-						<label text="IR equalizer" />
+						<label text="labels.ir_equalizer" />
 						<button id="wpp" color="green" led="true" />
 					</hbox>
 				</align>
@@ -27,11 +27,11 @@
 	
 				<hbox>
 					<grid rows="3" cols="5" expand="true">
-						<label text="Head cut" />
-						<label text="Tail cut" />
-						<label text="Fade in" />
-						<label text="Fade out" />
-						<label text="Listen" />
+						<label text="labels.sedit.head_cut" />
+						<label text="labels.sedit.tail_cut" />
+						<label text="labels.sedit.fade_in" />
+						<label text="labels.sedit.fade_out" />
+						<label text="labels.listen" />
 						
 						<knob id="ihc" size="20" />
 						<knob id="itc" size="20" />
@@ -49,18 +49,18 @@
 					<vsep />
 					
 					<grid rows="3" cols="1" expand="true">
-						<label text="Source" />
+						<label text="labels.source" />
 						<combo id="cs" />
 						<hbox fill="false">
 							<led id="ca" />
-							<label text="Active" />
+							<label text="labels.active" />
 						</hbox>
 					</grid>
 					<vsep />
 					
 					<grid rows="3" cols="2" expand="true">
-						<label text="Pre-delay" />
-						<label text="Makeup" />
+						<label text="labels.predelay" />
+						<label text="labels.makeup" />
 						
 						<knob id="pd" />
 						<knob id="mk" />
@@ -70,8 +70,8 @@
 					</grid>
 					<vsep />
 					<grid rows="3" cols="2" expand="true">
-						<label text="Dry" scale_color="yellow" />
-						<label text="Wet" scale_color="yellow" />
+						<label text="labels.signal.dry" scale_color="yellow" />
+						<label text="labels.signal.wet" scale_color="yellow" />
 						
 						<knob id="dry" />
 						<knob id="wet" />
@@ -81,7 +81,7 @@
 					</grid>
 					<vsep />
 					<grid rows="3" cols="1" expand="true">
-						<label text="Output" />
+						<label text="labels.output" />
 						<knob id="g_out" />
 						<value id="g_out" />
 					</grid>
@@ -90,18 +90,18 @@
 		</group>
 		
 		<!-- Wet equalization -->
-		<group text="Wet Signal Equalization" visibility=":wpp">
+		<group text="groups.wet_signal_eq" visibility=":wpp">
 			<grid rows="5" cols="10">
-				<label text="Low-cut" />
+				<label text="labels.flt.low_cut" />
 				<label text="50" />
 				<label text="107" />
 				<label text="227" />
 				<label text="484" />
-				<label text="1k" />
-				<label text="2.2k" />
-				<label text="4.7k" />
-				<label text="10k" />
-				<label text="High-cut" />
+				<label text="labels.flt.1k" />
+				<label text="labels.flt.2_2k" />
+				<label text="labels.flt.4_7k" />
+				<label text="labels.flt.10k" />
+				<label text="labels.flt.high_cut" />
 				
 				<combo id="lcm" />
 				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
@@ -114,8 +114,8 @@
 				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
 				<combo id="hcm" />
 				
-				<label text="Freq" />
-				<label text="Freq" />
+				<label text="labels.frequency" />
+				<label text="labels.frequency" />
 				
 				<knob id="lcf" logarithmic="true" />
 				<knob id="hcf" logarithmic="true" />

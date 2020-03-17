@@ -14,7 +14,7 @@ namespace lsp
     {
         const char *envelopes[] =
         {
-            "Purple noise",
+            "Violet noise",
             "Blue noise",
             "White noise",
             "Pink noise",
@@ -30,7 +30,7 @@ namespace lsp
                 case PINK_NOISE:    pink_noise(dst, n);     return;
                 case BROWN_NOISE:   brown_noise(dst, n);    return;
                 case BLUE_NOISE:    blue_noise(dst, n);     return;
-                case PURPLE_NOISE:  purple_noise(dst, n);   return;
+                case VIOLET_NOISE:  violet_noise(dst, n);   return;
                 default:
                     return;
             }
@@ -42,9 +42,9 @@ namespace lsp
             {
                 case WHITE_NOISE:   white_noise(dst, n);    return;
                 case PINK_NOISE:    blue_noise(dst, n);     return;
-                case BROWN_NOISE:   purple_noise(dst, n);   return;
+                case BROWN_NOISE:   violet_noise(dst, n);   return;
                 case BLUE_NOISE:    pink_noise(dst, n);     return;
-                case PURPLE_NOISE:  brown_noise(dst, n);    return;
+                case VIOLET_NOISE:  brown_noise(dst, n);    return;
                 default:
                     return;
             }
@@ -82,7 +82,7 @@ namespace lsp
             basic_noise(dst, n, logf(2) / logf(4));
         }
 
-        void purple_noise(float *dst, size_t n)
+        void violet_noise(float *dst, size_t n)
         {
             basic_noise(dst, n, 1);
         }

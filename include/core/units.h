@@ -66,6 +66,7 @@
 #define GAIN_AMP_M_80_DB                    0.0001              /* -80 dB       */
 #define GAIN_AMP_M_100_DB                   0.00001             /* -100 dB      */
 #define GAIN_AMP_M_120_DB                   0.000001            /* -120 dB      */
+#define GAIN_AMP_M_140_DB                   0.0000001           /* -140 dB      */
 #define GAIN_AMP_P_20_DB                    10.0                /* +20 dB       */
 #define GAIN_AMP_P_40_DB                    100.0               /* +40 dB       */
 #define GAIN_AMP_P_60_DB                    1000.0              /* +60 dB       */
@@ -135,7 +136,7 @@ namespace lsp
      */
     inline float samples_to_millis(float sr, float samples)
     {
-        return samples_to_seconds(sr, samples) * 1000.0f;
+        return (samples / sr) * 1000.0f;
     }
 
     /** Convert samples [samp] to distance [m]
@@ -159,7 +160,7 @@ namespace lsp
      */
     inline float samples_to_centimeters(float sr, float speed, float samples)
     {
-        return samples_to_meters(sr, speed, samples) * 100.0f;
+        return ((samples * speed) / sr) * 100.0f;
     }
 
     /** Convert time [ms] to samples [samp]
@@ -170,7 +171,7 @@ namespace lsp
      */
     inline float millis_to_samples(float sr, float time)
     {
-        return seconds_to_samples(sr, time * 0.001f);
+        return (time * 0.001f) * sr;
     }
 
     /** Convert decibels to gain value

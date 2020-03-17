@@ -16,6 +16,13 @@
 #include <limits.h>
 
 //-----------------------------------------------------------------------------
+// Deny some compiler settings
+#ifdef __FAST_MATH__
+    #error "-ffast-math compiler option is prohibited since it may cause some standard floating-point operations to work improperly. Please disable -ffast-math option and rebuild the project."
+#endif /* __FAST_MATH__ */
+
+
+//-----------------------------------------------------------------------------
 // Detect build architecture
 #if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) || defined(_M_AMD64)
     #define ARCH_X86_64

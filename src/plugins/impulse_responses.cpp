@@ -311,6 +311,8 @@ namespace lsp
             lsp_trace("Binding impulse file #%d ports", int(i));
             af_descriptor_t *f  = &vFiles[i];
 
+            f->sListen.init();
+
             TRACE_PORT(vPorts[port_id]);
             f->pFile        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -447,14 +449,19 @@ namespace lsp
             }
 
             // Listen button pressed?
-            if (f->pListen->getValue() >= 0.5f)
+            if (f->pListen != NULL)
+                f->sListen.submit(f->pListen->getValue());
+
+            if (f->sListen.pending())
             {
+                lsp_trace("Submitted listen toggle");
                 size_t n_c = (f->pCurrSample != NULL) ? f->pCurrSample->channels() : 0;
                 if (n_c > 0)
                 {
                     for (size_t j=0; j<nChannels; ++j)
                         vChannels[j].sPlayer.play(i, j%n_c, 1.0f, 0);
                 }
+                f->sListen.commit();
             }
 
             size_t source       = c->pSource->getValue();

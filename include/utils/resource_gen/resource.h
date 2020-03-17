@@ -133,6 +133,10 @@ namespace lsp
                 return RESOURCE_3D_SCENE;
             if (strcasecmp(dot, ".preset") == 0)
                 return RESOURCE_PRESET;
+            if (strcasecmp(dot, ".json") == 0)
+                return RESOURCE_JSON;
+            if (strcasecmp(dot, ".json5") == 0)
+                return RESOURCE_JSON;
 
             return RESOURCE_UNKNOWN;
         }

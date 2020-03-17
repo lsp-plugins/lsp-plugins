@@ -15,6 +15,8 @@
 
 #define DSP_ARCH_X86_AVX2_IMPL
 
+#include <dsp/arch/x86/avx2/float.h>
+
 #include <dsp/arch/x86/avx2/pmath/op_kx.h>
 #include <dsp/arch/x86/avx2/pmath/fmop_kx.h>
 #include <dsp/arch/x86/avx2/pmath/exp.h>
@@ -76,6 +78,11 @@ namespace avx2
         lsp_trace("Optimizing DSP for AVX2 instruction set");
 
         bool favx   = feature_check(f, FEAT_FAST_AVX);
+
+        CEXPORT1(favx, limit_saturate1);
+        CEXPORT1(favx, limit_saturate2);
+        CEXPORT1(favx, copy_saturated);
+        CEXPORT1(favx, saturate);
 
         CEXPORT1(favx, add_k2);
         CEXPORT1(favx, sub_k2);

@@ -1,0 +1,66 @@
+{
+	"3d_rendering": "3D rendering",
+
+	"apply": "Apply",
+	
+	"cancel": "Cancel",
+	"close": "Close",
+	
+	"confirm": {
+		"no": "No",
+		"yes": "Yes"
+	},
+	
+	"edit": {
+		"clear": "Clear",
+		"copy": "Copy",
+		"cut": "Cut",
+		"delete": "Delete",
+		"move_down": "Move down",
+		"move_first": "Set first",
+		"move_last": "Set last",
+		"move_up": "Move up",
+		"paste": "Paste"
+	},
+	
+	"export": "Export",
+	"export_settings_to_clipboard": "Export settings to clipboard",
+	"export_settings_to_file": "Export settings to file...",
+	
+	"freeze": "Freeze",
+	
+	"import": "Import",
+	"import_settings_from_clipboard": "Import settings from clipboard",
+	"import_settings_from_file": "Import settings from file...",
+	"import_rew_filter_file": "REW filter file...",
+
+	"listen": "Listen",
+	"link": {
+		"copy": "Copy link",
+		"follow": "Follow link"
+	},
+	
+	"load": "Load",
+	"load_preset": "Load preset",
+	
+	"measure": "Measure",
+	
+	"nav": {
+		"go": "Go",
+		"up": "Up"
+	},
+	
+	"ok": "OK",
+	"open": "Open",
+	
+	"postprocess": "Post-process",
+	"profile": "Profile",
+	
+	"save": "Save",
+	
+	"select_language": "Select lanugage",
+	
+	"tap": "Tap",
+	"to_bookmarks": "+Bookmarks",
+	"toggle_rack_mount": "Toggle rack mount"
+}

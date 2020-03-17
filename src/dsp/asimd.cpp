@@ -47,6 +47,7 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+#include <dsp/arch/aarch64/asimd/float.h>
 
 #include <dsp/arch/aarch64/asimd/pmath/op_kx.h>
 #include <dsp/arch/aarch64/asimd/pmath/op_vv.h>
@@ -74,7 +75,11 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/pfft.h>
 #include <dsp/arch/aarch64/asimd/fastconv.h>
 
+#include <dsp/arch/aarch64/asimd/filters/static.h>
+#include <dsp/arch/aarch64/asimd/filters/dynamic.h>
 #include <dsp/arch/aarch64/asimd/filters/transfer.h>
+#include <dsp/arch/aarch64/asimd/filters/transform.h>
+
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
@@ -97,6 +102,13 @@ namespace asimd
         EXPORT1(fill_minus_one);
         EXPORT1(reverse1);
         EXPORT1(reverse2);
+
+        EXPORT1(saturate);
+        EXPORT1(copy_saturated);
+        EXPORT1(limit_saturate1);
+        EXPORT1(limit_saturate2);
+        EXPORT1(limit1);
+        EXPORT1(limit2);
 
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
@@ -274,10 +286,30 @@ namespace asimd
         EXPORT1(fastconv_apply);
         EXPORT1(fastconv_parse_apply);
 
+        EXPORT1(biquad_process_x1);
+        EXPORT1(biquad_process_x2);
+        EXPORT1(biquad_process_x4);
+        EXPORT1(biquad_process_x8);
+
+        EXPORT1(dyn_biquad_process_x1);
+        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x4);
+        EXPORT1(dyn_biquad_process_x8);
+
         EXPORT1(filter_transfer_calc_ri);
         EXPORT1(filter_transfer_apply_ri);
         EXPORT1(filter_transfer_calc_pc);
         EXPORT1(filter_transfer_apply_pc);
+
+        EXPORT1(dyn_biquad_process_x1);
+        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x4);
+        EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(bilinear_transform_x1);
+        EXPORT1(bilinear_transform_x2);
+        EXPORT1(bilinear_transform_x4);
+        EXPORT1(bilinear_transform_x8);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);

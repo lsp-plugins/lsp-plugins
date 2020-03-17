@@ -37,6 +37,7 @@ namespace lsp
             protected:
                 void            init_color(color_t value, Color *color);
                 void            init_color(color_t value, LSPColor *color);
+                void            set_lc_attr(widget_attribute_t att, LSPLocalString *s, const char *name, const char *value);
 
             public:
                 explicit CtlWidget(CtlRegistry *src, LSPWidget *widget);
@@ -59,7 +60,7 @@ namespace lsp
                  * @param name attribute name
                  * @param value attribute value
                  */
-                void set(const char *name, const char *value);
+                virtual void set(const char *name, const char *value);
 
                 /** Set attribute to widget
                  *

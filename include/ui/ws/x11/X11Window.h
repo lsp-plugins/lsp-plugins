@@ -208,9 +208,16 @@ namespace lsp
 
                     /**
                      * Grab events from the screen
+                     * @param group grab group
                      * @return status of operation
                      */
-                    virtual status_t grab_events();
+                    virtual status_t grab_events(grab_t group);
+
+                    /**
+                     * Ungrab currently selected group of events
+                     * @return status of operation
+                     */
+                    virtual status_t ungrab_events();
 
                     /** Set left coordinate of the window
                      *

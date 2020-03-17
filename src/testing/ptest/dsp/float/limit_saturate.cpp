@@ -24,10 +24,24 @@ IF_ARCH_X86(
         void limit_saturate1(float *dst, size_t count);
         void limit_saturate2(float *dst, const float *src, size_t count);
     }
+
+    namespace avx2
+    {
+        void limit_saturate1(float *dst, size_t count);
+        void limit_saturate2(float *dst, const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void limit_saturate1(float *dst, size_t count);
+        void limit_saturate2(float *dst, const float *src, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void limit_saturate1(float *dst, size_t count);
         void limit_saturate2(float *dst, const float *src, size_t count);
@@ -91,20 +105,26 @@ PTEST_BEGIN("dsp.float", limit_saturate, 5, 10000)
             }
         }
 
+        #define CALL(func) \
+            call(#func, dst, src, count, func)
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native::limit_saturate1", dst, src, count, native::limit_saturate1);
-            call("native::limit_saturate2", dst, src, count, native::limit_saturate2);
-
-            IF_ARCH_X86(call("sse2::limit_saturate1", dst, src, count, sse2::limit_saturate1));
-            IF_ARCH_X86(call("sse2::limit_saturate2", dst, src, count, sse2::limit_saturate2));
-
-            IF_ARCH_ARM(call("neon_d32::limit_saturate1", dst, src, count, neon_d32::limit_saturate1));
-            IF_ARCH_ARM(call("neon_d32::limit_saturate2", dst, src, count, neon_d32::limit_saturate2));
-
+            CALL(native::limit_saturate1);
+            IF_ARCH_X86(CALL(sse2::limit_saturate1));
+            IF_ARCH_X86(CALL(avx2::limit_saturate1));
+            IF_ARCH_ARM(CALL(neon_d32::limit_saturate1));
+            IF_ARCH_AARCH64(CALL(asimd::limit_saturate1));
             PTEST_SEPARATOR;
+
+            CALL(native::limit_saturate2);
+            IF_ARCH_X86(CALL(sse2::limit_saturate2));
+            IF_ARCH_X86(CALL(avx2::limit_saturate2));
+            IF_ARCH_ARM(CALL(neon_d32::limit_saturate2));
+            IF_ARCH_AARCH64(CALL(asimd::limit_saturate2));
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);

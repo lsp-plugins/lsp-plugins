@@ -12,8 +12,15 @@ namespace lsp
 {
     namespace tk
     {
+        /**
+         * This class defines mask of the file which can be used
+         * for filtering files in dialogs
+         */
         class LSPFileMask
         {
+            private:
+                LSPFileMask & operator = (const LSPFileMask &);
+
             public:
                 enum flags
                 {
@@ -51,12 +58,12 @@ namespace lsp
                 bool                        check_mask(simplemask_t *mask, const lsp_wchar_t *s, size_t len);
 
             public:
-                LSPFileMask();
+                explicit LSPFileMask();
                 virtual ~LSPFileMask();
 
             public:
-                inline const char *mask() { return sMask.get_native(); }
-                inline status_t get_mask(LSPString *mask) { return (mask != NULL) ? mask->set(&sMask) : STATUS_BAD_ARGUMENTS; }
+                inline const char *mask() const { return sMask.get_utf8(); }
+                inline status_t get_mask(LSPString *mask) const { return (mask != NULL) ? mask->set(&sMask) : STATUS_BAD_ARGUMENTS; }
                 inline size_t flags() const { return nFlags; }
 
             public:
@@ -64,6 +71,10 @@ namespace lsp
 
                 status_t    parse(const LSPString *pattern, size_t flags = NONE);
                 status_t    parse(const char *pattern, size_t flags = NONE);
+
+                status_t    set(const LSPFileMask *mask);
+                status_t    set(const LSPString *pattern, size_t flags = NONE) { return parse(pattern, flags); };
+                status_t    set(const char *pattern, size_t flags = NONE) { return parse(pattern, flags); };
 
                 void        set_flags(size_t flags);
 

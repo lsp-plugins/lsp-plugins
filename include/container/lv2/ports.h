@@ -103,7 +103,7 @@ namespace lsp
 
     class LV2PortGroup: public LV2Port
     {
-        private:
+        protected:
             float                   nCurrRow;
             size_t                  nCols;
             size_t                  nRows;
@@ -207,7 +207,7 @@ namespace lsp
 
     class LV2InputPort: public LV2Port
     {
-        private:
+        protected:
             const float    *pData;
             float           fValue;
             float           fPrev;
@@ -299,9 +299,54 @@ namespace lsp
             }
     };
 
+    class LV2BypassPort: public LV2InputPort
+    {
+        public:
+            explicit LV2BypassPort(const port_t *meta, LV2Extensions *ext) : LV2InputPort(meta, ext) { }
+
+            virtual ~LV2BypassPort() {}
+
+        public:
+            virtual float getValue()
+            {
+                return pMetadata->max - fValue;
+            }
+
+            virtual void setValue(float value)
+            {
+                fValue      = pMetadata->max - value;
+            }
+
+            virtual void save()
+            {
+                if (nID >= 0)
+                    return;
+                float value = pMetadata->max - fValue;
+                lsp_trace("save port id=%s, urid=%d (%s), value=%f", pMetadata->id, urid, get_uri(), value);
+                pExt->store_value(urid, pExt->forge.Float, &value, sizeof(float));
+            }
+
+            virtual void restore()
+            {
+                if (nID >= 0)
+                    return;
+                lsp_trace("restore port id=%s, urid=%d (%s)", pMetadata->id, urid, get_uri());
+                size_t count            = 0;
+                const void *data        = pExt->restore_value(urid, pExt->forge.Float, &count);
+                if ((count == sizeof(float)) && (data != NULL))
+                    fValue      = limit_value(pMetadata, pMetadata->max - *(reinterpret_cast<const float *>(data)));
+            }
+
+            virtual void deserialize(const void *data, size_t flags)
+            {
+                const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
+                fValue      = pMetadata->max - atom->body;
+            }
+    };
+
     class LV2OutputPort: public LV2Port
     {
-        private:
+        protected:
             float  *pData;
             float   fPrev;
             float   fValue;
@@ -388,7 +433,7 @@ namespace lsp
 
     class LV2MeshPort: public LV2Port
     {
-        private:
+        protected:
             LV2Mesh                 sMesh;
 
         public:
@@ -445,7 +490,7 @@ namespace lsp
 
     class LV2FrameBufferPort: public LV2Port
     {
-        private:
+        protected:
             frame_buffer_t      sFB;
             size_t              nRowID;
 
@@ -515,7 +560,7 @@ namespace lsp
 
     class LV2PathPort: public LV2Port
     {
-        private:
+        protected:
             lv2_path_t          sPath;
             atomic_t            nLastChange;
 
@@ -664,7 +709,7 @@ namespace lsp
 
     class LV2MidiPort: public LV2Port
     {
-        private:
+        protected:
             midi_t      sQueue;
 
         public:
@@ -682,7 +727,7 @@ namespace lsp
 
     class LV2OscPort: public LV2Port
     {
-        private:
+        protected:
             osc_buffer_t     *pFB;
 
         public:

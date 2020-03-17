@@ -1,16 +1,16 @@
 <plugin resizable="false">
 	<grid rows="3" cols="2" vspacing="4" hspacing="4">
 		<!-- IR editor -->
-		<group text="Impulse Response" expand="true">
+		<group text="groups.impulse_response" expand="true">
 			<vbox spacing="4">
 				<!-- File editor -->
 				<align hpos="-1">
 					<hbox spacing="4">
-						<label text="File:" />
+						<label text="labels.file" />
 						<combo id="fsel" />
-						<label text="FFT frame:" />
+						<label text="labels.fft.frame" />
 						<combo id="fft" />
-						<label text="IR equalizer" />
+						<label text="labels.ir_equalizer" />
 						<button id="wpp" color="green" led="true" />
 					</hbox>
 				</align>
@@ -28,12 +28,12 @@
 					</hbox>
 					
 					<grid rows="3" cols="6" visibility=":fsel == ${i}">
-						<label text="Reverse" />
-						<label text="Head cut" />
-						<label text="Tail cut" />
-						<label text="Fade in" />
-						<label text="Fade out" />
-						<label text="Listen" />
+						<label text="labels.sedit.reverse" />
+						<label text="labels.sedit.head_cut" />
+						<label text="labels.sedit.tail_cut" />
+						<label text="labels.sedit.fade_in" />
+						<label text="labels.sedit.fade_out" />
+						<label text="labels.listen" />
 						
 						<button id="irv${i}" size="32" toggle="false" />
 						<knob id="ihc${i}" size="20" />
@@ -54,29 +54,29 @@
 		</group>
 		
 		<cell rows="2">
-			<group text="Output" expand="true">
+			<group text="groups.output" expand="true">
 				<vbox>
 					<grid rows="15" cols="1" expand="true" fill="true">
-						<label text="Dry Pan" />
+						<label text="labels.signal.dry_pan" />
 						<knob id="p" />
 						<value id="p" same_line="true" />
 						
-						<label text="Pre-delay" />
+						<label text="labels.predelay" />
 						<knob id="pd" />
 						<value id="pd" same_line="true" />
 					</grid>
 					<hsep />
 					
 					<grid rows="15" cols="1" expand="true" fill="true">	
-						<label text="Dry" />
+						<label text="labels.signal.dry" />
 						<knob id="dry" scale_color="yellow" />
 						<value id="dry" same_line="true" />
 						
-						<label text="Wet" />
+						<label text="labels.signal.wet" />
 						<knob id="wet" scale_color="yellow" />
 						<value id="wet" same_line="true" />
 						
-						<label text="Output" />
+						<label text="labels.output" />
 						<knob id="g_out" />
 						<value id="g_out" same_line="true" />
 					</grid>
@@ -84,17 +84,17 @@
 			</group>
 		</cell>
 		
-		<group text="Processors" expand="true">
+		<group text="groups.processors" expand="true">
 			<hbox>
 				<grid rows="5" cols="5" expand="true">
-					<label text="#" />
-					<label text="Pre-delay" />
-					<label text="Source" />
-					<label text="Makeup" />
-					<label text="Out L/R" />
+					<label text="labels.specials.num" />
+					<label text="labels.predelay" />
+					<label text="labels.source" />
+					<label text="labels.makeup" />
+					<label text="labels.signal.out_lr" />
 					
 					<ui:for id="i" first="0" last="1">
-						<label text="${i}" />
+						<label text="labels.specials.idx" text:id="${i}" />
 						<knob id="pd${i}" size="20" />
 						<vbox spacing="2">
 							<combo id="csf${i}" fill="true" />
@@ -107,9 +107,9 @@
 						<value id="pd${i}" same_line="true" />
 						<hbox fill="false">
 							<button id="cam${i}" size="12" color="red" led="true" />
-							<label text="Mute" font_size="9" />
+							<label text="labels.chan.mute" font_size="9" />
 							<led id="ca${i}" />
-							<label text="Active" />
+							<label text="labels.active" font_size="9" />
 						</hbox>
 						<value id="mk${i}" same_line="true" />
 						<value id="com${i}" same_line="true" />
@@ -117,14 +117,14 @@
 				</grid>
 				<vsep />
 				<grid rows="5" cols="5" expand="true">
-					<label text="#" />
-					<label text="Pre-delay" />
-					<label text="Source" />
-					<label text="Makeup" />
-					<label text="Out L/R" />
+					<label text="labels.specials.num" />
+					<label text="labels.predelay" />
+					<label text="labels.source" />
+					<label text="labels.makeup" />
+					<label text="labels.signal.out_lr" />
 					
 					<ui:for id="i" first="2" last="3">
-						<label text="${i}" />
+						<label text="labels.specials.idx" text:id="${i}" />
 						<knob id="pd${i}" size="20" />
 						<vbox spacing="2">
 							<combo id="csf${i}" fill="true" />
@@ -137,9 +137,9 @@
 						<value id="pd${i}" same_line="true" />
 						<hbox fill="false">
 							<button id="cam${i}" size="12" color="red" led="true" />
-							<label text="Mute" font_size="9" />
+							<label text="labels.chan.mute" font_size="9" />
 							<led id="ca${i}" />
-							<label text="Active" />
+							<label text="labels.active" font_size="9"  />
 						</hbox>
 						<value id="mk${i}" same_line="true" />
 						<value id="com${i}" same_line="true" />
@@ -150,18 +150,18 @@
 
 		<!-- Wet equalization -->
 		<cell cols="2" visibility=":wpp">
-			<group text="Wet Signal Equalization">
+			<group text="groups.wet_signal_eq">
 				<grid rows="5" cols="10">
-					<label text="Low-cut" />
+					<label text="labels.flt.low_cut" />
 					<label text="50" />
 					<label text="107" />
 					<label text="227" />
 					<label text="484" />
-					<label text="1k" />
-					<label text="2.2k" />
-					<label text="4.7k" />
-					<label text="10k" />
-					<label text="High-cut" />
+					<label text="labels.values.x_k" text:value="1" />
+					<label text="labels.values.x_k" text:value="2.2" />
+					<label text="labels.values.x_k" text:value="4.7" />
+					<label text="labels.values.x_k" text:value="10" />
+					<label text="labels.flt.high_cut" />
 					
 					<combo id="lcm" />
 					<cell rows="3"><fader id="eq_0" angle="1" /></cell>
@@ -174,8 +174,8 @@
 					<cell rows="3"><fader id="eq_7" angle="1" /></cell>
 					<combo id="hcm" />
 					
-					<label text="Freq" />
-					<label text="Freq" />
+					<label text="labels.frequency" />
+					<label text="labels.frequency" />
 					
 					<knob id="lcf" logarithmic="true" />
 					<knob id="hcf" logarithmic="true" />

@@ -2,7 +2,7 @@
 	<vbox>
 		<grid rows="2" cols="7" transpose="true" hspacing="2" vspacing="2">
 			<!-- Time graph -->
-			<align expand="true" fill="true" pad_top="8">
+			<align expand="true" fill="true" pad_top="8" hscale="1">
 				<graph width="400" height="256">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
@@ -49,7 +49,7 @@
 					<marker id="rl_s" color="g_blue" basis="1" parallel="0" />
 					
 					<!-- Text -->
-					<text text="dB" coord="5;15.8489" halign="1" valign="-1" />
+					<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
 					<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
 					<text text="0" coord="5;1" halign="1" valign="-1" />
 					<text text="-12" coord="5;0.25119" halign="1" valign="-1" />
@@ -58,7 +58,7 @@
 					<text text="-48" coord="5;0.00398" halign="1" valign="-1" />
 					<text text="-60" coord="5;0.001" halign="1" valign="-1" />
 					
-					<text text="s" coord="5;0.00025" halign="1" valign="1" />
+					<text text="graph.units.s" coord="5;0.00025" halign="1" valign="1" />
 					<ui:for id="t" first="0" last="4" step="1">
 						<text text="${t}" coord="${t};0.00025" halign="-1" valign="1" color="white" />
 						<text text="${t}.5" coord="${t}.5;0.00025" halign="-1" valign="1" color="white" />
@@ -67,20 +67,22 @@
 			</align>
 			<hbox>
 				<button id="pause" size="16" color="green" led="true" />
-				<label text="Pause" />
+				<label text="labels.pause" />
 				<button id="clear" size="16" color="red" led="true" />
-				<label text="Clear" />
+				<label text="labels.clear" />
 				<button id="msl" size="16" color="yellow" led="true" />
-				<label text="MS Listen" />
-				<align pad_right="4" expand="true" hpos="1"><label text="TIME GRAPH" /></align>
+				<label text="labels.ms_listen" />
+				<align pad_right="4" expand="true" hpos="1">
+					<label text="labels.graphs.time" />
+				</align>
 			</hbox>
 			
 			<!-- Sidechain meters -->
-			<align expand="true" fill="true" vpos="1">
+			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="slv_m" size="10" color="bright_green" led="true" />
 						<button id="slv_s" size="10" color="bright_green" led="true" />
 					</grid>
@@ -90,14 +92,14 @@
 						color="bright_green" color2="bright_green" />
 				</vbox>
 			</align>
-			<label text="SC" />
+			<label text="labels.sc.SC" />
 		
 			<!-- Envelope meters -->
-			<align expand="true" fill="true" vpos="1">
+			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="elv_m" size="10" color="bright_magenta" led="true" />
 						<button id="elv_s" size="10" color="bright_magenta" led="true" />
 					</grid>
@@ -107,14 +109,14 @@
 						color="bright_magenta" color2="bright_magenta" />
 				</vbox>
 			</align>
-			<label text="Env" />
+			<label text="labels.Env_elope" />
 			
 			<!-- Gain reduction meters -->
-			<align expand="true" fill="true" vpos="1">
+			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="grv_m" size="10" color="bright_blue" led="true" />
 						<button id="grv_s" size="10" color="bright_blue" led="true" />
 					</grid>
@@ -124,10 +126,10 @@
 						color="bright_blue" color2="bright_blue" />
 				</vbox>
 			</align>
-			<label text="Gain" />
+			<label text="labels.gain_" />
 			
 			<!-- Curve graph -->
-			<align expand="true" fill="true" pad_top="8">
+			<align fill="true" pad_top="8">
 				<graph width="256" height="256" expand="true" fill="true">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
@@ -172,7 +174,7 @@
 					<!-- Text -->
 					<text text="0" coord="1;1" halign="1" valign="1" />
 					
-					<text text="dB" coord="1;15.8489" halign="1" valign="-1" />
+					<text text="graph.units.db" coord="1;15.8489" halign="1" valign="-1" />
 					<text text="+12" coord="1;3.98107" halign="1" valign="-1" />
 					<text text="-12" coord="1;0.25119" halign="1" valign="-1" />
 					<text text="-24" coord="1;0.06310" halign="1" valign="-1" />
@@ -181,7 +183,7 @@
 					<text text="-60" coord="1;0.001" halign="1" valign="-1" />
 					<text text="out" coord="1;0.00025" halign="1" valign="1" />
 					
-					<text text="dB" coord="15.8489;1" halign="-1" valign="1" />
+					<text text="graph.units.db" coord="15.8489;1" halign="-1" valign="1" />
 					<text text="+12" coord="3.98107;1" halign="-1" valign="1" />
 					<text text="-12" coord="0.25119;1" halign="-1" valign="1" />
 					<text text="-24" coord="0.06310;1" halign="-1" valign="1" />
@@ -191,14 +193,16 @@
 					<text text="in" coord="0.00025;1" halign="1" valign="1" />
 				</graph>
 			</align>
-			<align pad_right="4" fill="true" hpos="0"><label text="COMPRESSION" /></align>
+			<align pad_right="4" fill="true" hpos="0">
+				<label text="labels.graphs.compression" />
+			</align>
 			
 			<!-- Input signal meters -->
-			<align expand="true" fill="true" vpos="1">
+			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="ilv_m" size="10" color="middle_channel" led="true" />
 						<button id="ilv_s" size="10" color="side_channel" led="true" />
 					</grid>
@@ -208,14 +212,14 @@
 						color="middle_channel" color2="side_channel" />
 				</vbox>
 			</align>
-			<label text="In" />
+			<label text="labels.chan.in" />
 			
 			<!-- Output signal meters -->
-			<align expand="true" fill="true" vpos="1">
+			<align fill="true" vpos="1">
 				<vbox>
 					<grid rows="2" cols="2">
-						<label text="M" font_size="8" />
-						<label text="S" font_size="8" />
+						<label text="labels.chan.M_id" font_size="8" />
+						<label text="labels.chan.S_ide" font_size="8" />
 						<button id="olv_m" size="10" color="middle_channel" led="true" />
 						<button id="olv_s" size="10" color="side_channel" led="true" />
 					</grid>
@@ -225,16 +229,16 @@
 						color="middle_channel" color2="side_channel" />
 				</vbox>
 			</align>
-			<label text="Out" />
+			<label text="labels.chan.out" />
 		</grid>
-		<hbox spacing="">
-			<group text="Sidechain" expand="true">
+		<hbox spacing="4">
+			<group text="groups.sidechain" expand="true">
 				<grid rows="5" cols="5" expand="true">
-					<label text="Listen" />
-					<label text="Preamp" />
-					<label text="Reactivity" />
-					<label text="Lookahead" />
-					<label text="Setup" />
+					<label text="labels.sc.listen" />
+					<label text="labels.sc.preamp" />
+					<label text="labels.sc.reactivity" />
+					<label text="labels.sc.lookahead" />
+					<label text="labels.setup" />
 					
 					<button id="scl_m" size="16" color="middle_channel" led="true" />
 					<knob id="scp_m" />
@@ -248,7 +252,7 @@
 						</vbox>
 					</cell>
 					
-					<label text="Middle" />
+					<label text="labels.chan.middle" />
 					<value id="scp_m" same_line="true" />
 					<value id="scr_m" same_line="true" />
 					<value id="sla_m" same_line="true" />
@@ -265,112 +269,102 @@
 						</vbox>
 					</cell>
 					
-					<label text="Side" />
+					<label text="labels.chan.side" />
 					<value id="scp_s" same_line="true" />
 					<value id="scr_s" same_line="true" />
 					<value id="sla_s" same_line="true" />
 				</grid>
 			</group>
 		
-			<group text="Compressor" expand="true">
-				<vbox expand="true" fill="true">
-					<hbox expand="true" fill="true">
-						<grid rows="6" cols="4" expand="true">
-							<label text="Mode" />
-							<label text="Ratio" />
-							<vbox><label text="Knee" /><label text="(dB)" /></vbox>
-							<vbox><label text="Makeup" /><label text="(dB)" /></vbox>
-							
-							<combo id="cm_m" />
-							<knob id="cr_m" />
-							<knob id="kn_m" />
-							<knob id="mk_m" />
-							
-							<label />
-							<hbox fill="false">
-								<value id="cr_m" detailed="false"/>
-								<label text=":"/>
-								<label text="1"/>
-							</hbox>
-							<value id="kn_m" detailed="false" />
-							<value id="mk_m" detailed="false" />
-							
-							<combo id="cm_s" />
-							<knob id="cr_s" />
-							<knob id="kn_s" />
-							<knob id="mk_s" />
-							
-							<label />
-							<hbox><value id="cr_s" detailed="false"/><label text=":"/><label text="1"/></hbox>
-							<value id="kn_s" detailed="false" />
-							<value id="mk_s" detailed="false" />
-						</grid>
-						<vsep />
-						<grid rows="6" cols="2" expand="true">
-							<cell cols="2"><label text="Attack" /></cell>
-							<vbox><label text="Level" /><label text="(dB)" /></vbox>
-							<vbox><label text="Time" /><label text="(ms)" /></vbox>
-							
-							<knob id="al_m" scale_color="magenta" size="20" />
-							<knob id="at_m" size="20" />
-							
-							<value id="al_m" detailed="false" />
-							<value id="at_m" detailed="false" />
-							
-							<knob id="al_s" scale_color="blue" size="20" />
-							<knob id="at_s" size="20" />
-							
-							<value id="al_s" detailed="false" />
-							<value id="at_s" detailed="false" />
-						</grid>
-						<vsep />
-						<grid rows="6" cols="2" expand="true">
-							<cell cols="2"><label text="Release" /></cell>
-							<vbox><label text="Level" /><label text="(dB)" /></vbox>
-							<vbox><label text="Time" /><label text="(ms)" /></vbox>
-							
-							<knob id="rrl_m" scale_color="magenta" size="20" />
-							<knob id="rt_m" size="20" />
-							
-							<value id="rrl_m" detailed="false" />
-							<value id="rt_m" detailed="false" />
-							
-							<knob id="rrl_s" scale_color="blue" size="20" />
-							<knob id="rt_s" size="20" />
-							
-							<value id="rrl_s" detailed="false" />
-							<value id="rt_s" detailed="false" />
-						</grid>
-						<vsep />
-						<grid rows="6" cols="2" expand="true">
-							<cell cols="2"><label text="Mix" /></cell>
-							<vbox><label text="Dry" /><label text="(dB)" /></vbox>
-							<vbox><label text="Wet" /><label text="(dB)" /></vbox>
-							
-							<knob id="cdr_m" scale_color="yellow" size="20" />
-							<knob id="cwt_m" scale_color="yellow" size="20" />
-							
-							<value id="cdr_m" detailed="false" />
-							<value id="cwt_m" detailed="false" />
-							
-							<knob id="cdr_s" scale_color="yellow" size="20" />
-							<knob id="cwt_s" scale_color="yellow" size="20" />
-							
-							<value id="cdr_s" detailed="false" />
-							<value id="cwt_s" detailed="false" />
-						</grid>
+			<group text="groups.plug.compressor" expand="true">
+				<grid rows="6" cols="14" expand="true">
+					<cell rows="2"><label text="labels.mode" /></cell>
+					<cell rows="2"><label text="labels.ratio" /></cell>
+					<label text="labels.knee" />
+					<label text="labels.makeup" />
+					<cell rows="2"><label text="labels.boost" bright="((:cm_m ieq 1) or (:cm_s ieq 1)) ? 1 : 0.5" /></cell>
+					<cell rows="6"><vsep /></cell>
+					<cell cols="2"><label text="labels.attack" /></cell>
+					<cell rows="6"><vsep /></cell>
+					<cell cols="2"><label text="labels.release" /></cell>
+					<cell rows="6"><vsep /></cell>
+					<cell cols="2"><label text="labels.mix" /></cell>
+					
+					<label text="labels.units.:db" />
+					<label text="labels.units.:db" />
+					<vbox><label text="labels.threshold" /><label text="(dB)" /></vbox>
+					<vbox><label text="labels.time" /><label text="(ms)" /></vbox>
+					<vbox><label text="labels.threshold" /><label text="(dB)" /></vbox>
+					<vbox><label text="labels.time" /><label text="(ms)" /></vbox>
+					<vbox><label text="labels.signal.dry" /><label text="(dB)" /></vbox>
+					<vbox><label text="labels.signal.wet" /><label text="(dB)" /></vbox>
+					
+					<combo id="cm_m" scale_color="middle_channel" />
+					<knob id="cr_m" scale_color="middle_channel" />
+					<knob id="kn_m" scale_color="middle_channel" />
+					<knob id="mk_m" scale_color="middle_channel" />
+					<knob id="bth_m" scale_color="middle_channel" bright="(:cm_m ieq 1) ? 1 : 0.5" />
+					<knob id="al_m" scale_color="magenta" size="20" />
+					<knob id="at_m" scale_color="middle_channel" size="20" />
+					<knob id="rrl_m" scale_color="magenta" size="20" />
+					<knob id="rt_m" scale_color="middle_channel" size="20" />
+					<knob id="cdr_m" scale_color="yellow" size="20" />
+					<knob id="cwt_m" scale_color="yellow" size="20" />
+
+					<label />
+					<hbox fill="false">
+						<value id="cr_m" detailed="false"/>
+						<label text=":"/>
+						<label text="1"/>
 					</hbox>
-				</vbox>
+					<value id="kn_m" detailed="false" />
+					<value id="mk_m" detailed="false" />
+					<value id="bth_m" detailed="false" bright="(:cm_m ieq 1) ? 1 : 0.5" />
+					<value id="al_m" detailed="false" />
+					<value id="at_m" detailed="false" />
+					<value id="rrl_m" detailed="false" />
+					<value id="rt_m" detailed="false" />
+					<value id="cdr_m" detailed="false" />
+					<value id="cwt_m" detailed="false" />
+					
+					<combo id="cm_s" scale_color="side_channel" />
+					<knob id="cr_s" scale_color="side_channel" />
+					<knob id="kn_s" scale_color="side_channel" />
+					<knob id="mk_s" scale_color="side_channel" />
+					<knob id="bth_s" scale_color="side_channel" bright="(:cm_s ieq 1) ? 1 : 0.5" />
+					<knob id="al_s" scale_color="blue" size="20" />
+					<knob id="at_s" scale_color="side_channel" size="20" />
+					<knob id="rrl_s" scale_color="blue" size="20" />
+					<knob id="rt_s" scale_color="side_channel" size="20" />
+					<knob id="cdr_s" scale_color="yellow" size="20" />
+					<knob id="cwt_s" scale_color="yellow" size="20" />
+					
+					<label />
+					<hbox fill="false">
+						<value id="cr_s" detailed="false"/>
+						<label text=":"/>
+						<label text="1"/>
+					</hbox>
+					<value id="kn_s" detailed="false" />
+					<value id="mk_s" detailed="false" />
+					<value id="bth_s" detailed="false" bright="(:cm_s ieq 1) ? 1 : 0.5" />
+					<value id="al_s" detailed="false" />
+					<value id="at_s" detailed="false" />
+					<value id="rrl_s" detailed="false" />
+					<value id="rt_s" detailed="false" />
+					<value id="cdr_s" detailed="false" />
+					<value id="cwt_s" detailed="false" />
+				</grid>
 			</group>
 			
 			<!-- Signal control -->
-			<group text="Signal" expand="true">
+			<group text="groups.signal" expand="true">
 				<vbox expand="true">
-					<label text="Input" />
+					<label text="labels.input" />
 					<knob id="g_in" />
 					<value id="g_in" />
 											
-					<label text="Output" />
+					<label text="labels.output" />
 					<knob id="g_out" />
 					<value id="g_out" />
 				</vbox>

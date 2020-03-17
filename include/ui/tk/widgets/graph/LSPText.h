@@ -25,7 +25,7 @@ namespace lsp
                 } coord_t;
 
             protected:
-                LSPString       sText;
+                LSPLocalString  sText;
                 size_t          nCoords;
                 coord_t        *vCoords;
                 float           fHAlign;
@@ -47,8 +47,10 @@ namespace lsp
                 inline size_t get_axes() const { return nCoords; }
                 float get_coord(size_t axis) const;
                 size_t get_basis(size_t axis) const;
-                inline const char     *text() const { return sText.get_native(); }
-                inline status_t        get_text(LSPString *dst) const { return (dst->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; };
+
+                inline const LSPLocalString *text() const { return &sText; }
+                inline LSPLocalString *text()       { return &sText; }
+
                 inline float halign() const { return fHAlign; }
                 inline float valign() const { return fVAlign; }
                 inline LSPFont *font() { return &sFont; }
@@ -58,8 +60,6 @@ namespace lsp
                 status_t set_axes(size_t axes);
                 status_t set_coord(size_t axis, float value);
                 status_t set_basis(size_t axis, size_t value);
-                status_t set_text(const char *text);
-                status_t set_text(const LSPString *text);
                 void set_halign(float value);
                 void set_valign(float value);
                 void set_center(size_t value);

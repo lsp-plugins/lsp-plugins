@@ -204,6 +204,8 @@ namespace lsp
             f->pSwapSample  = NULL;
             f->pCurrSample  = NULL;
 
+            f->sListen.init();
+
             for (size_t j=0; j<impulse_reverb_base_metadata::TRACKS_MAX; ++j)
             {
                 f->vThumbs[j]   = reinterpret_cast<float *>(ptr);
@@ -611,14 +613,20 @@ namespace lsp
             }
 
             // Listen button pressed?
-            if (f->pListen->getValue() >= 0.5f)
+            if (f->pListen != NULL)
+                f->sListen.submit(f->pListen->getValue());
+
+            if (f->sListen.pending())
             {
+                lsp_trace("Submitted listen toggle");
                 size_t n_c = (f->pCurrSample != NULL) ? f->pCurrSample->channels() : 0;
                 if (n_c > 0)
                 {
                     for (size_t j=0; j<2; ++j)
                         vChannels[j].sPlayer.play(i, j % n_c, 1.0f, 0);
                 }
+
+                f->sListen.commit();
             }
         }
     }

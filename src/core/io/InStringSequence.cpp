@@ -76,6 +76,29 @@ namespace lsp
             return res;
         }
 
+        status_t InStringSequence::wrap(const char *s)
+        {
+            if (pString != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (s == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            LSPString *str = new LSPString();
+            if (s == NULL)
+                return set_error(STATUS_NO_MEM);
+            else if (!str->set_utf8(s))
+            {
+                delete s;
+                return set_error(STATUS_NO_MEM);
+            }
+
+            status_t res = wrap(str, true);
+            if (res != STATUS_OK)
+                delete s;
+
+            return res;
+        }
+
         void InStringSequence::do_close()
         {
             if (pString == NULL)

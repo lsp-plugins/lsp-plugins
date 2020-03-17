@@ -52,6 +52,27 @@ namespace lsp
             return pWidget;
         };
 
+        void CtlWidget::set_lc_attr(widget_attribute_t att, LSPLocalString *s, const char *name, const char *value)
+        {
+            // Get prefix
+            const char *prefix = widget_attribute(att);
+            size_t len = ::strlen(prefix);
+
+            // Prefix matches?
+            if (::strncmp(prefix, name, len) != 0)
+                return;
+
+            if (name[len] == ':') // Parameter ("prefix:")?
+                s->params()->add_cstring(&name[len+1], value);
+            else if (name[len] == '\0') // Key?
+            {
+                if (strchr(value, '.') == NULL) // Raw value with high probability?
+                    s->set_raw(value);
+                else
+                    s->set_key(value);
+            }
+        }
+
         void CtlWidget::init_color(color_t value, Color *color)
         {
             LSPDisplay *dpy = (pWidget != NULL) ? pWidget->display() : NULL;
@@ -196,6 +217,13 @@ namespace lsp
                 float value = sVisibility.evaluate();
                 if (pWidget != NULL)
                     pWidget->set_visible(value >= 0.5f);
+            }
+
+            // Evaluate brightness
+            if (sBright.valid())
+            {
+                float value = sBright.evaluate();
+                pWidget->set_brightness(value);
             }
         }
 

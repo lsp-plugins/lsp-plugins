@@ -40,22 +40,24 @@ namespace lsp
                 void do_destroy();
 
             public:
-                inline LSPLabel        *heading()           { return &sHeading; }
-                inline LSPLabel        *message()           { return &sMessage; }
+                inline LSPLabel        *heading_widget()    { return &sHeading; }
+                inline LSPLabel        *message_widget()    { return &sMessage; }
+                inline LSPLocalString  *heading()           { return sHeading.text(); }
+                inline LSPLocalString  *message()           { return sMessage.text(); }
+                inline bool             use_heading() const { return sHeadAlign.visible(); }
+                inline bool             use_message() const { return sMsgAlign.visible(); }
                 inline LSPButton       *button(size_t idx)  { return vButtons.get(idx); }
                 inline size_t           buttons() const     { return vButtons.size(); }
                 inline size_t           min_button_width() const    { return nMinBtnWidth; }
                 inline size_t           min_button_height() const   { return nMinBtnHeight; }
 
             public:
-                status_t    set_heading(const char *text);
-                status_t    set_heading(const LSPString *text);
-
-                status_t    set_message(const char *text);
-                status_t    set_message(const LSPString *text);
+                void        set_use_heading(bool use);
+                void        set_use_message(bool use);
 
                 status_t    add_button(const char *text, ui_event_handler_t handler = NULL, void *arg = NULL);
                 status_t    add_button(const LSPString *text, ui_event_handler_t handler = NULL, void *arg = NULL);
+                status_t    add_button(const LSPLocalString *text, ui_event_handler_t handler = NULL, void *arg = NULL);
 
                 void        clear_buttons();
 

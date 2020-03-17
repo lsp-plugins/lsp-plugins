@@ -19,11 +19,11 @@ namespace native
         for (size_t i=0; i<count; ++i)
         {
             float s     = src[i];
-            //   a: a0 a0 a1 a2
+            //   a: a0 a1 a2 0
             //   b: b1 b2 0  0
-            float s2    = f->x1.a[0]*s + f->d[0];
-            float p1    = f->x1.a[2]*s + f->x1.b[0]*s2;
-            float p2    = f->x1.a[3]*s + f->x1.b[1]*s2;
+            float s2    = f->x1.a0*s + f->d[0];
+            float p1    = f->x1.a1*s + f->x1.b1*s2;
+            float p2    = f->x1.a2*s + f->x1.b2*s2;
 
             dst[i]      = s2;
 
@@ -40,47 +40,44 @@ namespace native
 
         float s, r, s2, r2, p1, q1, p2, q2;
 
-        //   a: a0 a0 a1 a2 i0 i0 i1 i2
-        //   b: b1 b2 0  0  j1 j2 0  0
-
         // First filter only
         s           = *(src++);
-        s2          = f->x2.a[0]*s + f->d[0];
-        p1          = f->x2.a[2]*s + f->x2.b[0]*s2;
-        p2          = f->x2.a[3]*s + f->x2.b[1]*s2;
+        s2          = f->x2.a0[0]*s + f->d[0];
+        p1          = f->x2.a1[0]*s + f->x2.b1[0]*s2;
+        p2          = f->x2.a2[0]*s + f->x2.b2[0]*s2;
         r           = s2;
-        f->d[0]     = f->d[1] + p1;
-        f->d[1]     = p2;
+        f->d[0]     = f->d[2] + p1;
+        f->d[2]     = p2;
 
         // Both filters
         for (size_t i=1; i<count; ++i)
         {
             s           = *(src++);
-            r2          = f->x2.a[4]*r + f->d[4];
-            s2          = f->x2.a[0]*s + f->d[0];
+            r2          = f->x2.a0[1]*r + f->d[1];
+            s2          = f->x2.a0[0]*s + f->d[0];
 
-            q1          = f->x2.a[6]*r + f->x2.b[4]*r2;
-            p1          = f->x2.a[2]*s + f->x2.b[0]*s2;
-            q2          = f->x2.a[7]*r + f->x2.b[5]*r2;
-            p2          = f->x2.a[3]*s + f->x2.b[1]*s2;
+            q1          = f->x2.a1[1]*r + f->x2.b1[1]*r2;
+            p1          = f->x2.a1[0]*s + f->x2.b1[0]*s2;
+            q2          = f->x2.a2[1]*r + f->x2.b2[1]*r2;
+            p2          = f->x2.a2[0]*s + f->x2.b2[0]*s2;
 
             r           = s2;
             *(dst++)    = r2;
 
             // Shift buffers
-            f->d[4]     = f->d[5] + q1;
-            f->d[0]     = f->d[1] + p1;
-            f->d[5]     = q2;
-            f->d[1]     = p2;
+            f->d[1]     = f->d[3] + q1;
+            f->d[0]     = f->d[2] + p1;
+            f->d[3]     = q2;
+            f->d[2]     = p2;
         }
 
         // Second filter only
-        r2          = f->x2.a[4]*r + f->d[4];
-        q1          = f->x2.a[6]*r + f->x2.b[4]*r2;
-        q2          = f->x2.a[7]*r + f->x2.b[5]*r2;
+        r2          = f->x2.a0[1]*r + f->d[1];
+        q1          = f->x2.a1[1]*r + f->x2.b1[1]*r2;
+        q2          = f->x2.a2[1]*r + f->x2.b2[1]*r2;
         *dst        = r2;
-        f->d[4]     = f->d[5] + q1;
-        f->d[5]     = q2;
+        f->d[1]     = f->d[3] + q1;
+        f->d[3]     = q2;
     }
 
     void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
