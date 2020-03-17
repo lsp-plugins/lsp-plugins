@@ -12,6 +12,8 @@
 #include <metadata/plugins.h>
 #include <core/util/Bypass.h>
 #include <core/util/ShiftBuffer.h>
+#include <core/util/Oversampler.h>
+#include <core/util/Trigger.h>
 
 namespace lsp
 {
@@ -21,7 +23,21 @@ namespace lsp
             typedef struct channel_t
             {
                 Bypass          sBypass;
+                Oversampler     sOversampler;
                 ShiftBuffer     sShiftBuffer;
+                Trigger         sTrigger;
+
+                over_mode_t     enOverMode;
+                size_t          nOversampling;
+                size_t          nOverSampleRate;
+
+                size_t          nSamplesCounter;
+                bool            bProcessComplete;
+
+                size_t          nTriggerIndex;
+                size_t          nPreTrigger;
+                size_t          nPostTrigger;
+                size_t          nSweepSize;
 
                 float          *vAbscissa;
                 float          *vOrdinate;
@@ -57,6 +73,8 @@ namespace lsp
             size_t      nBuffersCapacity;
 
             size_t      nMeshSize;
+
+            float      *vTemp;
 
             float      *vDflAbscissa;
 

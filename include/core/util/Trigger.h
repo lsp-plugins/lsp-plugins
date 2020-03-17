@@ -117,6 +117,15 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Set the trigger threshold.
+             *
+             * @param trigger threshold.
+             */
+            inline void set_trigger_threshold(float threshold)
+            {
+                fThreshold = threshold;
+            }
+
             /** Return he trigger state.
              *
              * @return trigger state.

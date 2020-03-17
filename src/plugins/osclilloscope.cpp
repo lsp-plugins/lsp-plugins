@@ -8,8 +8,8 @@
 #include <plugins/oscilloscope.h>
 #include <core/debug.h>
 
-#define TRACE_PORT(p)       lsp_trace("  port id=%s", (p)->metadata()->id);
-#define SHIFT_BUF_LIM_SIZE  196608
+#define TRACE_PORT(p)   lsp_trace("  port id=%s", (p)->metadata()->id);
+#define BUF_LIM_SIZE    196608
 
 namespace lsp
 {
@@ -68,6 +68,8 @@ namespace lsp
 
         nMeshSize           = 0;
 
+        vTemp               = NULL;
+
         vDflAbscissa        = NULL;
 
         pBypass             = NULL;
@@ -83,12 +85,16 @@ namespace lsp
     {
         free_aligned(pData);
         pData = NULL;
+        vTemp = NULL;
+        vDflAbscissa = NULL;
 
         if (vChannels != NULL)
         {
             for (size_t ch = 0; ch < nChannels; ++ch)
             {
+                vChannels[ch].sOversampler.destroy();
                 vChannels[ch].sShiftBuffer.destroy();
+                vChannels[ch].sTrigger.destroy();
                 vChannels[ch].vAbscissa = NULL;
                 vChannels[ch].vOrdinate = NULL;
             }
@@ -107,9 +113,10 @@ namespace lsp
         if (vChannels == NULL)
             return;
 
-        // 2x nChannels X Mesh Buffers (x, y for each channel) + 1X Default Abscissa Buffer.
+        // 2x nChannels X Mesh Buffers (x, y for each channel) +  1X temporary buffer + 1X Default Abscissa Buffer.
+        nBuffersCapacity = BUF_LIM_SIZE;
         nMeshSize = oscilloscope_base_metadata::SCOPE_MESH_SIZE;
-        size_t samples = 2 * nChannels * nMeshSize + nMeshSize;
+        size_t samples = 2 * nChannels * nMeshSize + nBuffersCapacity + nMeshSize;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -117,16 +124,36 @@ namespace lsp
 
         lsp_guard_assert(float *save = ptr);
 
-        nBuffersCapacity = SHIFT_BUF_LIM_SIZE;
-
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
 
-            if (!c->sShiftBuffer.init(nBuffersCapacity))
-            {
+            if (!c->sOversampler.init())
                 return;
-            }
+
+            // Test settings for oversampler before proper implementation
+            c->enOverMode = OM_NONE;
+            c->sOversampler.set_mode(c->enOverMode);
+            if (c->sOversampler.modified())
+                c->sOversampler.update_settings();
+            c->nOversampling = c->sOversampler.get_oversampling();
+            c->nOverSampleRate = c->nOversampling * nSampleRate;
+
+            if (!c->sShiftBuffer.init(nBuffersCapacity))
+                return;
+
+            if (!c->sTrigger.init())
+                return;
+
+            // Test settings for trigger before proper implementation.
+            c->nTriggerIndex = 0;
+            c->nPreTrigger = 1024;
+            c->nPostTrigger = 1024;
+            c->nSweepSize = c->nPreTrigger + c->nPostTrigger + 1;
+            c->sTrigger.set_post_trigger_samples(c->nSweepSize);
+            c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
+            c->sTrigger.set_trigger_threshold(0.5f);
+            c->sTrigger.update_settings();
 
             c->vAbscissa = ptr;
             ptr += nMeshSize;
@@ -155,6 +182,9 @@ namespace lsp
 
             c->pMesh        = NULL;
         }
+
+        vTemp = ptr;
+        ptr += nBuffersCapacity;
 
         vDflAbscissa = ptr;
         ptr += nMeshSize;
@@ -232,6 +262,8 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             vChannels[ch].sBypass.init(sr);
+            vChannels[ch].sOversampler.set_sample_rate(sr);
+            vChannels[ch].nOverSampleRate = vChannels[ch].nOversampling * nSampleRate;
         }
     }
 
@@ -245,19 +277,50 @@ namespace lsp
 
             if ((vChannels[ch].vIn == NULL) || (vChannels[ch].vOut == NULL))
                 return;
+
+            vChannels[ch].nSamplesCounter = samples;
+            vChannels[ch].bProcessComplete = false;
         }
 
-        while (samples > 0)
+        bool doLoop = true;
+        bool doSweep = false;
+
+        while (doLoop)
         {
-            size_t to_do = (samples < nBuffersCapacity) ? samples : nBuffersCapacity;
+            doLoop = false;
 
             for (size_t ch = 0; ch < nChannels; ++ch)
             {
-                vChannels[ch].sShiftBuffer.append(vChannels[ch].vIn, to_do);
+                if (vChannels[ch].bProcessComplete)
+                    continue;
 
+                size_t upsampled_total = vChannels[ch].nOversampling * vChannels[ch].nSamplesCounter;
+                size_t upsampled_available = (upsampled_total < nBuffersCapacity) ? upsampled_total : nBuffersCapacity;
+                size_t to_do = upsampled_available / vChannels[ch].nOversampling;
+
+                vChannels[ch].sOversampler.upsample(vTemp, vChannels[ch].vIn, to_do);
+                vChannels[ch].sShiftBuffer.append(vTemp, upsampled_available);
+
+                float *head = vChannels[ch].sShiftBuffer.head();
                 size_t bufferSize = vChannels[ch].sShiftBuffer.size();
 
-                if (bufferSize >= nMeshSize)
+                for (size_t n = 0; n < bufferSize; ++n)
+                {
+                    vChannels[ch].sTrigger.single_sample_processor(head[n]);
+
+                    trg_state_t tState = vChannels[ch].sTrigger.get_trigger_state();
+                    if (tState == TRG_STATE_FIRED)
+                    {
+                        vChannels[ch].nTriggerIndex = n;
+                        doSweep = true;
+                        break;
+                    }
+                }
+
+                if (!doSweep)
+                    vChannels[ch].sShiftBuffer.shift(bufferSize - vChannels[ch].nPreTrigger);
+
+                if (doSweep && (bufferSize >= vChannels[ch].nSweepSize))
                 {
                     mesh_t *mesh = vChannels[ch].pMesh->getBuffer<mesh_t>();
 
@@ -267,26 +330,29 @@ namespace lsp
                     if (!mesh->isEmpty())
                         continue;
 
-                    get_plottable_data(vChannels[ch].vAbscissa, vChannels[ch].sShiftBuffer.head(), nMeshSize, bufferSize);
-                    get_plottable_data(vChannels[ch].vOrdinate, vChannels[ch].sShiftBuffer.head(), nMeshSize, bufferSize);
+                    size_t copyhead = vChannels[ch].nTriggerIndex - vChannels[ch].nPreTrigger;
 
-                    vChannels[ch].sShiftBuffer.shift(bufferSize);
+                    get_plottable_data(vChannels[ch].vAbscissa, &head[copyhead], nMeshSize, vChannels[ch].nSweepSize);
+                    get_plottable_data(vChannels[ch].vOrdinate, &head[copyhead], nMeshSize, vChannels[ch].nSweepSize);
 
                     dsp::copy(mesh->pvData[0], vDflAbscissa, nMeshSize);
                     dsp::copy(mesh->pvData[1], vChannels[ch].vOrdinate, nMeshSize);
                     mesh->data(2, nMeshSize);
-                }
-            }
 
-            for (size_t ch = 0; ch < nChannels; ++ch)
-            {
-                //vChannels[ch].sBypass.process(vChannels[ch].vOut, vChannels[ch].vIn, vChannels[ch].vBuffer, to_do);
+                    vChannels[ch].sShiftBuffer.shift(copyhead + vChannels[ch].nSweepSize);
+                    doSweep = false;
+                }
 
                 vChannels[ch].vIn   += to_do;
                 vChannels[ch].vOut  += to_do;
-            }
+                vChannels[ch].nSamplesCounter -= to_do;
 
-            samples -= to_do;
+                if (vChannels[ch].nSamplesCounter <= 0)
+                {
+                    vChannels[ch].bProcessComplete = true;
+                    doLoop = doLoop || !vChannels[ch].bProcessComplete;
+                }
+            }
         }
     }
 
