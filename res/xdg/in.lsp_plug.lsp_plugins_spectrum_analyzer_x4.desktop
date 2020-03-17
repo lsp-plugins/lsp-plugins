@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-spectrum-analyzer-x4
-GenericName=Four Channel Spectrum Analyzer
+Name=Four Channel Spectrum Analyzer
+GenericName=Analyzers
+GenericName[ru]=Анализаторы
 Comment=Performs spectral analysis of 4 independent channels simultaneously. Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
+Comment[ru]=Осуществляет одновременный спектральный анализ 4 независимых каналов. Также возможно анализировать стереоканалы при использовании специального режима.
 Exec=lsp-plugins-spectrum-analyzer-x4
 Icon=lsp-plugins
 Terminal=false
