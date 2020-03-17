@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Split Stereo Delay Compensator
+GenericName=Delay effects
+GenericName[ru]=Эффекты задержки
+Comment=Add short delay to each individual channel of the stereo channel to compensate the phase offset relatively to other channels.
+Comment[ru]=Добавляет короткую задержку к каждому индивидуальному каналу стереопары, чтобы компенсировать фазовый сдвиг относительно других каналов."
+Exec=lsp-plugins-comp-delay-x2-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

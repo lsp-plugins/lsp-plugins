@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Stereo Delay Compensator
+GenericName=Delay effects
+GenericName[ru]=Эффекты задержки
+Comment=Add short delay to the stereo channel to compensate the phase offset relatively to other channels.
+Comment[ru]=Добавляет короткую задержку к стереоканалу, чтобы компенсировать фазовый сдвиг относительно других каналов.
+Exec=lsp-plugins-comp-delay-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;
