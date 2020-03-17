@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-multisampler-x12-do
-GenericName=Direct Out 12 Instrument Sample Player
+Name=Direct Out 12 Instrument Sample Player
+GenericName=Sample Player
+GenericName[ru]=Сэмплер
 Comment=Implements 12-instrument MIDI sample player with stereo input and stereo output.
+Comment[ru]=Реализует управляемый MIDI сэмплер на 12 инструментов со стереовходом и стереовыходом.
 Exec=lsp-plugins-multisampler-x12-do
 Icon=lsp-plugins
 Terminal=false
