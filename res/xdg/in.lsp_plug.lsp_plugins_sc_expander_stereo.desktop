@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-sc-expander-stereo
-GenericName=Stereo Sidechain Expander
+Name=Stereo Sidechain Expander
+GenericName=Expanders
+GenericName[ru]=Экспандеры
 Comment=Performs increasing of dynamic range of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Comment[ru]=Осуществляет увеличение динамического диапазона стереосигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-expander-stereo
 Icon=lsp-plugins
 Terminal=false

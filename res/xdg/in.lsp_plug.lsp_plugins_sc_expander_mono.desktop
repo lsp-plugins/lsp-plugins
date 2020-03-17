@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-sc-expander-mono
-GenericName=Mono Sidechain Expander
+Name=Mono Sidechain Expander
+GenericName=Expanders
+GenericName[ru]=Экспандеры
 Comment=Performs increasing of dynamic range of mono input signal. Flexible sidechain-control configuration and additional sidechain input are provided.
+Comment[ru]=Осуществляет увеличение динамического диапазона моносигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-expander-mono
 Icon=lsp-plugins
 Terminal=false
