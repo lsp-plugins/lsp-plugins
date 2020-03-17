@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-limiter-mono
-GenericName=Mono Limiter
+Name=Mono Limiter
+GenericName=Limiters
+GenericName[ru]=Лимитеры
 Comment=Implements a brick-wall limiter with flexible configuration. It prevents input monosignal from raising over the specified Threshold.
+Comment[ru]=Реализует лимитер с жёсткой верхней границей. Предотвращает превышение моносигналом заданного порогового уровня. 
 Exec=lsp-plugins-limiter-mono
 Icon=lsp-plugins
 Terminal=false

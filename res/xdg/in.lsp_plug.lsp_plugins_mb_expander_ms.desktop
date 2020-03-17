@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Mid-Side Split Multiband Expander
+GenericName=Expanders
+GenericName[ru]=Экспандеры
+Comment=Performs multiband increasing of dynamic range of stereo input signal in Mid-Side mode.
+Comment[ru]=Осуществляет многополосное повышение динамического диапазона стереосигнала, центр и сторона обрабатываются индивидуально.
+Exec=lsp-plugins-mb-expander-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

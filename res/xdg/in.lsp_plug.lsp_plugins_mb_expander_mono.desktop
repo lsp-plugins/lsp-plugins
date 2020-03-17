@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Mono Multiband Expander
+GenericName=Expanders
+GenericName[ru]=Экспандеры
+Comment=Performs multiband increasing of dynamic range of mono input signal.
+Comment[ru]=Осуществляет многополосное повышение динамического диапазона моносигнала.
+Exec=lsp-plugins-mb-expander-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

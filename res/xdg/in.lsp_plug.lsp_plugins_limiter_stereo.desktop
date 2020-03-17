@@ -1,8 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-limiter-stereo
-GenericName=Stereo Limiter
+Name=Stereo Limiter
+GenericName=Limiters
+GenericName[ru]=Лимитеры
 Comment=Implements a brick-wall limiter with flexible configuration. It prevents input monosignal from raising over the specified Threshold.
 Exec=lsp-plugins-limiter-stereo
 Icon=lsp-plugins
