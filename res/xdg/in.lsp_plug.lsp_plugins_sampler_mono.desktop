@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-sampler-mono
-GenericName=Mono MIDI Sample Player
+Name=Mono MIDI Sample Player
+GenericName=Sample Player
+GenericName[ru]=Сэмплер
 Comment=Implements single-note MIDI sample player with mono input and mono output.
+Comment[ru]=Реализует монофонический сэмплер, срабатывающий на одну заданную MIDI-ноту.
 Exec=lsp-plugins-sampler-mono
 Icon=lsp-plugins
 Terminal=false

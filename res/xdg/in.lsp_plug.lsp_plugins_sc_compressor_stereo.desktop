@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-sc-compressor-stereo
-GenericName=Stero Sidechain Compressor
+Name=Stero Sidechain Compressor
+GenericName=Compressors
+GenericName[ru]=Компрессоры
 Comment=Performs compression of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
+Comment[ru]=Осуществляет компрессию стереосигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-compressor-stereo
 Icon=lsp-plugins
 Terminal=false

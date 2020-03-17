@@ -1,9 +1,11 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=lsp-plugins-profiler-mono
-GenericName=Mono Audio Profiler
+Name=Mono Audio Profiler
+GenericName=Utilities
+GenericName[ru]=Утилиты
 Comment=Allows to profile audio systems (mono) based on the Synchronized Swept Sine method by Antonin Novak.
+Comment[ru]=Позволяет профилировать монофонические аудиосистемы. 
 Exec=lsp-plugins-profiler-mono
 Icon=lsp-plugins
 Terminal=false
