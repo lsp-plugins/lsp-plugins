@@ -18,6 +18,10 @@
 - Implemented equal loudness compensation plugin according to ISO 226:2003
   details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
+- Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
+- Add delay compensation feature between bands for spectrum analyzer plugin.
+- Decomposition of core modules into submodules.
+- Additional code updates to get compatibility with WindowsNT platform.
   
 === 1.1.14 ===
 
@@ -45,12 +49,8 @@
 * Implemented workaround for Drag&Drop support initiated by GTK-based applications.
 * Implemented multilingual interface support.
 * Added russian translations of the user interface.
-- Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
-- Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
-- Add delay compensation feature between bands for spectrum analyzer plugin. 
-- Decomposition of core modules into submodules.
-- Additional code updates to get compatibility with WindowsNT platform. 
-- Added multilingual support by the graphical toolkit.
+* Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
+- Added support of optional compilation of UI for LV2 plugins.
 
 *******************************************************************************
 * Release steps
