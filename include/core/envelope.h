@@ -23,6 +23,8 @@ namespace lsp
             WHITE_NOISE,
             PINK_NOISE,
             BROWN_NOISE,
+            MINUS_4_5_DB,
+            PLUS_4_5_DB,
 
             // Special variables
             TOTAL,

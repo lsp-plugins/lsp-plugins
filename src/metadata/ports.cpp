@@ -177,35 +177,37 @@ namespace lsp
 
     const port_item_t fft_windows[] =
     {
-        { "Hann",               "fft.wnd.hann" },
-        { "Hamming",            "fft.wnd.hamming" },
-        { "Blackman",           "fft.wnd.blackman" },
-        { "Lanczos",            "fft.wnd.lanczos" },
-        { "Gaussian",           "fft.wnd.gauss" },
-        { "Poisson",            "fft.wnd.poisson" },
-        { "Parzen",             "fft.wnd.parzen" },
-        { "Tukey",              "fft.wnd.tukey" },
-        { "Welch",              "fft.wnd.welch" },
-        { "Nuttall",            "fft.wnd.nuttall" },
-        { "Blackman-Nuttall",   "fft.wnd.blackman_nuttall" },
-        { "Blackman-Harris",    "fft.wnd.blackman_harris" },
-        { "Hann-Poisson",       "fft.wnd.hann_poisson" },
-        { "Bartlett-Hann",      "fft.wnd.bartlett_hann" },
-        { "Bartlett-Fejer",     "fft.wnd.bartlett_fejer" },
-        { "Triangular",         "fft.wnd.triangular" },
-        { "Rectangular",        "fft.wnd.rectangular" },
-        { "Flat top",           "fft.wnd.flat_top" },
-        { "Cosine",             "fft.wnd.cosine" },
+        { "Hann",                   "fft.wnd.hann" },
+        { "Hamming",                "fft.wnd.hamming" },
+        { "Blackman",               "fft.wnd.blackman" },
+        { "Lanczos",                "fft.wnd.lanczos" },
+        { "Gaussian",               "fft.wnd.gauss" },
+        { "Poisson",                "fft.wnd.poisson" },
+        { "Parzen",                 "fft.wnd.parzen" },
+        { "Tukey",                  "fft.wnd.tukey" },
+        { "Welch",                  "fft.wnd.welch" },
+        { "Nuttall",                "fft.wnd.nuttall" },
+        { "Blackman-Nuttall",       "fft.wnd.blackman_nuttall" },
+        { "Blackman-Harris",        "fft.wnd.blackman_harris" },
+        { "Hann-Poisson",           "fft.wnd.hann_poisson" },
+        { "Bartlett-Hann",          "fft.wnd.bartlett_hann" },
+        { "Bartlett-Fejer",         "fft.wnd.bartlett_fejer" },
+        { "Triangular",             "fft.wnd.triangular" },
+        { "Rectangular",            "fft.wnd.rectangular" },
+        { "Flat top",               "fft.wnd.flat_top" },
+        { "Cosine",                 "fft.wnd.cosine" },
         { NULL, NULL }
     };
 
     const port_item_t fft_envelopes[] =
     {
-        { "Violet noise",       "fft.env.violet" },
-        { "Blue noise",         "fft.env.blue" },
-        { "White noise",        "fft.env.white" },
-        { "Pink noise",         "fft.env.pink" },
-        { "Brown noise",        "fft.env.brown" },
+        { "Violet noise",           "fft.env.violet" },
+        { "Blue noise",             "fft.env.blue" },
+        { "White noise",            "fft.env.white" },
+        { "Pink noise",             "fft.env.pink" },
+        { "Brown noise",            "fft.env.brown" },
+        { "4.5 dB/oct fall-off",    "fft.env.falloff_4_5db" },
+        { "4.5 dB/oct raise",       "fft.env.raise_4_5db" },
         { NULL, NULL }
     };
 }
