@@ -27,7 +27,7 @@ namespace lsp
         { NULL, NULL }
     };
 
-    static const port_item_t exp_sc_source[] =
+    static const port_item_t mb_exp_sc_source[] =
     {
         { "Middle",     "sidechain.middle" },
         { "Side",       "sidechain.side" },
@@ -36,7 +36,7 @@ namespace lsp
         { NULL, NULL }
     };
 
-    static const port_item_t exp_sc_boost[] =
+    static const port_item_t mb_exp_sc_boost[] =
     {
         { "None",       "sidechain.boost.none" },
         { "Pink BT",    "sidechain.boost.pink_bt" },
@@ -46,10 +46,17 @@ namespace lsp
         { NULL, NULL }
     };
 
-    static const port_item_t global_exp_modes[] =
+    static const port_item_t mb_global_mb_exp_modes[] =
     {
         { "Classic",    "multiband.classic" },
         { "Modern",     "multiband.modern" },
+        { NULL, NULL }
+    };
+
+    static const port_item_t mb_exp_modes[] =
+    {
+        { "Down",       "expander.down_ward" },
+        { "Up",         "expander.up_ward" },
         { NULL, NULL }
     };
 
@@ -99,7 +106,7 @@ namespace lsp
 
     #define MB_COMMON(bands) \
         BYPASS, \
-        COMBO("mode", "Expander mode", 1, global_exp_modes), \
+        COMBO("mode", "Expander mode", 1, mb_global_mb_exp_modes), \
         AMP_GAIN("g_in", "Input gain", mb_expander_base_metadata::IN_GAIN_DFL, 10.0f), \
         AMP_GAIN("g_out", "Output gain", mb_expander_base_metadata::OUT_GAIN_DFL, 10.0f), \
         AMP_GAIN("g_dry", "Dry gain", 0.0f, 10.0f), \
@@ -107,7 +114,7 @@ namespace lsp
         LOG_CONTROL("react", "FFT reactivity", U_MSEC, mb_expander_base_metadata::FFT_REACT_TIME), \
         AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
         LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, mb_expander_base_metadata::ZOOM), \
-        COMBO("envb", "Envelope boost", mb_expander_base_metadata::FB_DEFAULT, exp_sc_boost), \
+        COMBO("envb", "Envelope boost", mb_expander_base_metadata::FB_DEFAULT, mb_exp_sc_boost), \
         COMBO("bsel", "Band selection", mb_expander_base_metadata::SC_BAND_DFL, bands)
 
     #define MB_CHANNEL(id, label) \
@@ -139,6 +146,7 @@ namespace lsp
         LOG_CONTROL_DFL("schf" id, "Sidechain hi-cut frequency" label, U_HZ, mb_expander_base_metadata::FREQ, fs), \
         MESH("bfc" id, "Side-chain band frequency chart" label, 2, mb_expander_base_metadata::FILTER_MESH_POINTS), \
         \
+        COMBO("em" id, "Expander mode" label, mb_expander_base_metadata::EM_DEFAULT, mb_exp_modes), \
         SWITCH("ee" id, "Expander enable" label, 1.0f), \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
@@ -158,7 +166,7 @@ namespace lsp
         METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
 
     #define MB_STEREO_BAND(id, label, x, total, fe, fs) \
-        COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, exp_sc_source), \
+        COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, mb_exp_sc_source), \
         MB_MONO_BAND(id, label, x, total, fe, fs)
 
     #define MB_SC_MONO_BAND(id, label, x, total, fe, fs) \

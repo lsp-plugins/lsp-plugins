@@ -115,6 +115,14 @@ namespace lsp
 
             FB_DEFAULT              = FB_BT_3DB
         };
+
+        enum mode_t
+        {
+            EM_DOWNWARD,
+            EM_UPWARD
+        };
+
+        static const size_t EM_DEFAULT              = EM_UPWARD;
     };
 
     struct mb_expander_mono_metadata: public mb_expander_base_metadata
