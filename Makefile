@@ -24,7 +24,9 @@ OBJDIR                  = $(BUILDDIR)
 # Installation locations
 BIN_PATH               ?= $(PREFIX)/bin
 LIB_PATH               ?= $(PREFIX)/lib
-DOC_PATH               ?= $(PREFIX)/share/doc
+SHARE_PATH             ?= $(PREFIX)/share
+ETC_PATH               ?= /etc
+DOC_PATH               ?= $(SHARE_PATH)/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
@@ -211,26 +213,33 @@ install_ladspa: all
 	
 install_lv2: all
 	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
-	@mkdir -p $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
+	@mkdir -p "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
+	@$(INSTALL) $(LIB_LV2) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/"
 	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	@$(UTL_GENTTL) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
 	
 install_vst: all
 	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/$(VST_ID)"
-	@mkdir -p $(DESTDIR)$(VST_PATH)/$(VST_ID)
-	@$(INSTALL) $(LIB_VST) $(DESTDIR)$(VST_PATH)/$(VST_ID)/
+	@mkdir -p "$(DESTDIR)$(VST_PATH)/$(VST_ID)"
+	@$(INSTALL) $(LIB_VST) "$(DESTDIR)$(VST_PATH)/$(VST_ID)/"
 	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 
 install_jack: all
 	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
-	@mkdir -p $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
-	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
+	@mkdir -p "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
+	@$(INSTALL) $(LIB_JACK) "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
-	@mkdir -p $(DESTDIR)$(BIN_PATH)
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
+	@mkdir -p "$(DESTDIR)$(BIN_PATH)"
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
+	@echo "Installing desktop icons to $(DESTDIR)$(SHARE_PATH)/applications"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/applications"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/desktop-directories"
+	@mkdir -p "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged"
+	@$(INSTALL) -m 444 res/xdg/*.desktop "$(DESTDIR)$(SHARE_PATH)/applications/"
+	@$(INSTALL) -m 444 res/xdg/lsp-plugins.directory "$(DESTDIR)$(SHARE_PATH)/desktop-directories/"
+	@$(INSTALL) -m 444 res/xdg/lsp-plugins.menu "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/"
 
 install_doc: all
 	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"

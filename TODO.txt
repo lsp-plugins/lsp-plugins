@@ -45,6 +45,7 @@
 * Implemented workaround for Drag&Drop support initiated by GTK-based applications.
 * Implemented multilingual interface support.
 * Added russian translations of the user interface.
+- Added desktop menu for standalone plugins (changes contributed by David Runge). 
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
 - Add delay compensation feature between bands for spectrum analyzer plugin. 
@@ -57,6 +58,7 @@
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
+* Ensure that there are menu items present for all new plugins in res/xdg
 * Run make clean && make test to build testing system
 * Run .test/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
