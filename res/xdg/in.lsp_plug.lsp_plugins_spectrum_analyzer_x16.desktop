@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=16 Channel Spectrum Analyzer
-GenericName=Analyzers
-GenericName[ru]=Анализаторы
+GenericName=16 Channel Spectrum Analyzer
+Name=Analyzers
+Name[ru]=Анализаторы
 Comment=Performs spectral analysis of 16 independent channels simultaneously. Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
 Comment[ru]=Осуществляет одновременный спектральный анализ 16 независимых каналов. Также возможно анализировать стереоканалы при использовании специального режима.
 Exec=lsp-plugins-spectrum-analyzer-x16

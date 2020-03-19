@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo 16 Band Parametric Equalizer
-GenericName=Equalizers
-GenericName[ru]=Эквалайзеры
+GenericName=Stereo 16 Band Parametric Equalizer
+Name=Equalizers
+Name[ru]=Эквалайзеры
 Comment=Performs parametric equalization of stereo channel. Up to 16 filters are available for signal processing simultaneously.
 Comment[ru]=Осуществляет параметрическую эквализацию стереосигнала. Возможно использование до 16 фильтров одновременно.
 Exec=lsp-plugins-para-equalizer-x16-stereo

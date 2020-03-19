@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Mono Dynamic Processor
-GenericName=Dynamic Processing
-GenericName[ru]=Динамическая обработка
+GenericName=Mono Dynamic Processor
+Name=Dynamic Processing
+Name[ru]=Динамическая обработка
 Comment=Performs dynamic processing of mono input signal.
 Comment[ru]=Осуществляет динамическую обработку моносигнала.
 Exec=lsp-plugins-dyna-processor-mono

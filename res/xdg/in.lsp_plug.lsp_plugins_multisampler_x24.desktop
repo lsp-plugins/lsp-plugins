@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo 24 Instrument Sample Player
-GenericName=Sample Player
-GenericName[ru]=Сэмплер
+GenericName=Stereo 24 Instrument Sample Player
+Name=Sample Player
+Name[ru]=Сэмплер
 Comment=Implements 24-instrument MIDI sample player with stereo input and stereo output.
 Comment[ru]=Реализует управляемый MIDI сэмплер на 24 инструмента со стереовходом и стереовыходом.
 Exec=lsp-plugins-multisampler-x24

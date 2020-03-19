@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Eight Channel Spectrum Analyzer
-GenericName=Analyzers
-GenericName[ru]=Анализаторы
+GenericName=Eight Channel Spectrum Analyzer
+Name=Analyzers
+Name[ru]=Анализаторы
 Comment=Performs spectral analysis of 8 independent channels simultaneously. Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
 Comment[ru]=Осуществляет одновременный спектральный анализ 8 независимых каналов. Также возможно анализировать стереоканалы при использовании специального режима.
 Exec=lsp-plugins-spectrum-analyzer-x8

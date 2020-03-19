@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Mono Sidechain Gate
-GenericName=Gates
-GenericName[ru]=Гейты
+GenericName=Mono Sidechain Gate
+Name=Gates
+Name[ru]=Гейты
 Comment=Performs gating of mono input signal. Flexible sidechain-control configuration and additional sidechain input are provided.
 Comment[ru]=Осуществляет гейтирование моносигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-gate-mono

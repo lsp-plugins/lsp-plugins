@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Mono Sidechain Limiter
-GenericName=Limiters
-GenericName[ru]=Лимитеры
+GenericName=Mono Sidechain Limiter
+Name=Limiters
+Name[ru]=Лимитеры
 Comment=Implements a brick-wall limiter with flexible configuration. It prevents input monosignal from raising over the specified Threshold. Additional sidechain inputs are provided for better use.
 Comment[ru]=Реализует лимитер с жёсткой верхней границей. Предотвращает превышение моносигналом заданного порогового уровня. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-limiter-mono

@@ -45,7 +45,8 @@
 * Implemented workaround for Drag&Drop support initiated by GTK-based applications.
 * Implemented multilingual interface support.
 * Added russian translations of the user interface.
-- Added desktop menu for standalone plugins (changes contributed by David Runge). 
+* Added desktop menu for standalone JACK plugins (contributed by David Runge).
+* Added scalable vector graphics (SVG) logo (contributed by Sergey Tkach <http://tkach.de/>).
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
 - Add delay compensation feature between bands for spectrum analyzer plugin. 

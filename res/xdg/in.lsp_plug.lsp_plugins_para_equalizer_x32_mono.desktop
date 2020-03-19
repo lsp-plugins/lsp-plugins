@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Mono 32 Band Parametric Equalizer
-GenericName=Equalizers
-GenericName[ru]=Эквалайзеры
+GenericName=Mono 32 Band Parametric Equalizer
+Name=Equalizers
+Name[ru]=Эквалайзеры
 Comment=Performs parametric equalization of mono channel. Up to 32 filters are available for signal processing simultaneously.
 Comment[ru]=Осуществляет параметрическую эквализацию моносигнала. Возможно использование до 32 фильтров одновременно.
 Exec=lsp-plugins-para-equalizer-x32-mono

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo Expander
-GenericName=Expanders
-GenericName[ru]=Экспандеры
+GenericName=Stereo Expander
+Name=Expanders
+Name[ru]=Экспандеры
 Comment=Performs increasing of dynamic range of stereo input signal.
 Comment[ru]=Осуществляет увеличение динамического диапазона стереосигнала.
 Exec=lsp-plugins-expander-stereo

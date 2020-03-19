@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Phase Detector
-GenericName=Utilities
-GenericName[ru]=Утилиты
+GenericName=Phase Detector
+Name=Utilities
+Name[ru]=Утилиты
 Comment=Allows to detect phase between two sources.
 Comment[ru]=Позволяет установить фазовое смещение между двумя источниками сигнала.
 Exec=lsp-plugins-phase-detector

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-name=Stereo Gate
-GenericName=Gates
-GenericName[ru]=Гейты
+GenericName=Stereo Gate
+Name=Gates
+Name[ru]=Гейты
 Comment=Performs gating of stereo input signal.
 Comment[ru]=Осуществляет гейтирование стереосигнала.
 Exec=lsp-plugins-gate-stereo

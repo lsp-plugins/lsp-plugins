@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo MIDI Sample Player
-GenericName=Sample Player
-GenericName[ru]=Сэмплер
+GenericName=Stereo MIDI Sample Player
+Name=Sample Player
+Name[ru]=Сэмплер
 Comment=Implements single-note MIDI sample player with stereo input and stereo output.
 Comment[ru]=Реализует стереофонический сэмплер, срабатывающий на одну заданную MIDI-ноту.
 Exec=lsp-plugins-sampler-stereo

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Split Stereo Compressor
-GenericName=Compressors
-GenericName[ru]=Компрессоры
+GenericName=Split Stereo Compressor
+Name=Compressors
+Name[ru]=Компрессоры
 Comment=Performs compression of stereo input signal by applying individual processing to left and right channels separately.
 Comment[ru]=Осуществляет компрессию входного стереосигнала, применяя индивидуальную компрессию к каждому каналу.
 Exec=lsp-plugins-compressor-lr

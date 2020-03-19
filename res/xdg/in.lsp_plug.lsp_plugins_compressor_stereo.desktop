@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo Compressor
-GenericName=Compressors
-GenericName[ru]=Компрессоры
+GenericName=Stereo Compressor
+Name=Compressors
+Name[ru]=Компрессоры
 Comment=Performs compression of stereo input signal.
 Comment[ru]=Осуществляет компрессию стереосигнала.
 Exec=lsp-plugins-compressor-stereo

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo Multiband Sidechain Expander
-GenericName=Expanders
-GenericName[ru]=Экспандеры
+GenericName=Stereo Multiband Sidechain Expander
+Name=Expanders
+Name[ru]=Экспандеры
 Comment=Performs multiband increasing of dynamic range of stereo input signal.
 Comment[ru]=Осуществляет многополосное повышение динамического диапазона стереосигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-mb-expander-stereo

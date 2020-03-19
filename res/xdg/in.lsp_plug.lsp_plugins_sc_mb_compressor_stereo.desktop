@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo Sidechain Multiband Compressor
-GenericName=Compressors
-GenericName[ru]=Компрессоры
+GenericName=Stereo Sidechain Multiband Compressor
+Name=Compressors
+Name[ru]=Компрессоры
 Comment=Performs multiband compression of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет многополосную компрессию стереосигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-mb-compressor-stereo

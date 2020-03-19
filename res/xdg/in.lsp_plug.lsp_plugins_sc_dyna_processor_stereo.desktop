@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Stereo Dynamic Sidechain Processor
-GenericName=Dynamic Processing
-GenericName[ru]=Динамическая обработка
+GenericName=Stereo Dynamic Sidechain Processor
+Name=Dynamic Processing
+Name[ru]=Динамическая обработка
 Comment=Performs dynamic processing of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет динамическую обработку стереоканала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-dyna-processor-stereo
