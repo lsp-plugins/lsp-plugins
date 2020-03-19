@@ -58,7 +58,7 @@ namespace lsp
                 position_t::init(&sPosition);
             }
 
-            ~LV2UIWrapper()
+            virtual ~LV2UIWrapper()
             {
                 pUI         = NULL;
                 pExt        = NULL;

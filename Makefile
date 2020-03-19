@@ -158,6 +158,7 @@ compile_info:
 	@echo "  target system       : $(BUILD_SYSTEM)"
 	@echo "  compiler            : $(BUILD_COMPILER)"
 	@echo "  modules             : $(BUILD_MODULES)"
+	@echo "  UI                  : LV2=$(LV2_UI), VST=$(VST_UI)"
 	@echo "  3D rendering        : $(BUILD_R3D_BACKENDS)"
 	@echo "  build directory     : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"

@@ -6,6 +6,12 @@ UTL_DEPS                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
 NEED_UI                 = 0
 NEED_PLUGINS            = 0
 
+RESOURCE_PATHS = \
+  $(BASEDIR)/res/ui \
+  $(BASEDIR)/res/presets \
+  $(BASEDIR)/res/models \
+  $(BASEDIR)/res/i18n
+
 ifeq ($(LSP_TESTING),1)
   SUBDIRS                += test testing
   CONTAINER_DEPS         += $(OBJ_TEST_CORE) $(OBJ_TESTING_CORE)
@@ -19,12 +25,16 @@ ifneq ($(LSP_TESTING),1)
     NEED_PLUGINS            = 1
   endif
   ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
-    NEED_UI                 = 1
+    ifeq ($(LV2_UI),1)
+      NEED_UI                 = 1
+    endif
     NEED_PLUGINS            = 1
   endif
   ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
     MODULES                += vst_stub
-    NEED_UI                 = 1
+    ifeq ($(VST_UI),1)
+      NEED_UI                 = 1
+    endif
     NEED_PLUGINS            = 1
   endif
   ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
@@ -84,7 +94,7 @@ $(OBJ_TESTING_CORE): test testing rendering
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating builtin resources"
 	@mkdir -p $(OBJDIR)/res
-	@$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(BASEDIR)/res/ui $(BASEDIR)/res/presets $(BASEDIR)/res/models $(BASEDIR)/res/i18n
+	@$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(RESOURCE_PATHS)
 	@-rm gmon.out >/dev/null 2>&1
 	@$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/builtin_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 
