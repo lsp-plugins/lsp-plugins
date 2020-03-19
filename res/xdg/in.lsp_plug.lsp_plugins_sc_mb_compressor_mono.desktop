@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+GenericName=Mono Sidechain Multiband Compressor
+Name=Compressors
+Name[ru]=Компрессоры
+Comment=Performs multiband compression of mono input signal. Flexible sidechain-control configuration and additional sidechain input are provided.
+Comment[ru]=Осуществляет многополосную компрессию моносигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
+Exec=lsp-plugins-sc-mb-compressor-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

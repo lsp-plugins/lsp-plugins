@@ -285,6 +285,7 @@ namespace lsp
 
     status_t Dictionary::Dictionary::init(const LSPString *path)
     {
+        lsp_trace("Init dictionary path: %s" , path->get_utf8());
         return (sPath.set(path)) ? STATUS_OK : STATUS_NO_MEM;
     }
 

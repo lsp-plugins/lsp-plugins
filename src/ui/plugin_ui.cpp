@@ -1077,7 +1077,7 @@ namespace lsp
 
         lsp_trace("Loading dictionary");
         IDictionary *dict = sDisplay.dictionary();
-        #ifdef LSP_BULTIN_RESOURCES
+        #ifdef LSP_BUILTIN_RESOURCES
             result = dict->init(LSP_BUILTIN_PREFIX "i18n");
         #else
             result = dict->init(LSP_RESOURCE_PATH "/i18n");
