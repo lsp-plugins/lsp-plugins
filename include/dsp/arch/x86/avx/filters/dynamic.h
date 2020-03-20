@@ -436,7 +436,8 @@ namespace avx
             __ASM_EMIT("vblendvps           %%xmm5, %%xmm2, %%xmm6, %%xmm6")                    // xmm6     = (d0') & MASK | (d0 & ~MASK)
             __ASM_EMIT("vblendvps           %%xmm5, %%xmm3, %%xmm7, %%xmm7")                    // xmm7     = (d1') & MASK | (d0 & ~MASK)
             __ASM_EMIT("add                 $0x50, %[f]")
-            __ASM_EMIT("dec                 %[count]")
+            __ASM_EMIT64("dec               %[count]")
+            __ASM_EMIT32("decl              %[count]")
             __ASM_EMIT("jz                  4f")                                                // jump to completion
             __ASM_EMIT("vshufps             $0x90, %%xmm5, %%xmm5, %%xmm5")                     // xmm5     = m[0] m[0] m[1] m[2]
             __ASM_EMIT("lea                 0x01(,%[mask], 2), %[mask]")                        // mask     = (mask << 1) | 1
@@ -460,7 +461,8 @@ namespace avx
             __ASM_EMIT("vmovss              %%xmm0, (%[dst])")                                  // *dst     = s2[3]
             __ASM_EMIT("add                 $0x50, %[f]")
             __ASM_EMIT("add                 $4, %[dst]")                                        // dst      ++
-            __ASM_EMIT("dec                 %[count]")
+            __ASM_EMIT64("dec               %[count]")
+            __ASM_EMIT32("decl              %[count]")
             __ASM_EMIT("jnz                 3b")
             __ASM_EMIT("4:")
             // Prepare last loop
@@ -562,7 +564,8 @@ namespace avx
 
             // Repeat loop
             __ASM_EMIT("add             $0xa0, %[f]")                                   // f++
-            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT64("dec           %[count]")
+            __ASM_EMIT32("decl          %[count]")
             __ASM_EMIT("jz              4f")                                            // jump to completion
             __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                    // mask     = (mask << 1) | 1
             __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
@@ -595,7 +598,8 @@ namespace avx
             // Repeat loop
             __ASM_EMIT("add             $0xa0, %[f]")                                   // f++
             __ASM_EMIT("add             $4, %[dst]")                                    // dst      ++
-            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT64("dec           %[count]")
+            __ASM_EMIT32("decl          %[count]")
             __ASM_EMIT("jnz             3b")
 
             // Prepare last loop, shift mask
