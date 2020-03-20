@@ -21,8 +21,9 @@ namespace avx
         ARCH_X86_ASM
         (
             // Check count
-            __ASM_EMIT32("cmp               $0, %[count]")
             __ASM_EMIT64("test              %[count], %[count]")
+            __ASM_EMIT32NP("test            %[count], %[count]")
+            __ASM_EMIT32P("cmpl             $0, %[count]")
             __ASM_EMIT("jz                  2f")
 
             // Load permanent data
@@ -72,8 +73,9 @@ namespace avx
         ARCH_X86_ASM
         (
             // Check count
-            __ASM_EMIT32("cmp               $0, %[count]")
             __ASM_EMIT64("test              %[count], %[count]")
+            __ASM_EMIT32NP("test            %[count], %[count]")
+            __ASM_EMIT32P("cmpl             $0, %[count]")
             __ASM_EMIT("jz                  2f")
 
             // Load permanent data
@@ -269,8 +271,9 @@ namespace avx
         ARCH_X86_ASM
         (
             // Check count
-            __ASM_EMIT32("cmpl              $0, %[count]")
             __ASM_EMIT64("test              %[count], %[count]")
+            __ASM_EMIT32NP("test            %[count], %[count]")
+            __ASM_EMIT32P("cmpl             $0, %[count]")
             __ASM_EMIT("jz                  8f")
 
             // Initialize mask
@@ -400,7 +403,9 @@ namespace avx
         ARCH_X86_ASM
         (
             // Check count
-            __ASM_EMIT("test                %[count], %[count]")
+            __ASM_EMIT64("test              %[count], %[count]")
+            __ASM_EMIT32NP("test            %[count], %[count]")
+            __ASM_EMIT32P("cmpl             $0, %[count]")
             __ASM_EMIT("jz                  8f")
 
             // Initialize mask
@@ -518,7 +523,9 @@ namespace avx
         ARCH_X86_64_ASM
         (
             // Check count
-            __ASM_EMIT("test            %[count], %[count]")
+            __ASM_EMIT64("test          %[count], %[count]")
+            __ASM_EMIT32NP("test        %[count], %[count]")
+            __ASM_EMIT32P("cmpl         $0, %[count]")
             __ASM_EMIT("jz              8f")
 
             // Initialize mask
