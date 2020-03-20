@@ -108,59 +108,107 @@ namespace lsp
 
     //-------------------------------------------------------------------------
     // Miscellaneous lists
-    const char *file_channels[] =
+    const port_item_t file_channels[] =
     {
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        NULL
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { "8", NULL },
+        { NULL, NULL }
     };
 
-    const char *midi_channels[] =
+    const port_item_t midi_channels[] =
     {
-        "01", "02", "03", "04",
-        "05", "06", "07", "08",
-        "09", "10", "11", "12",
-        "13", "14", "15", "16",
-        NULL
+        { "01", NULL },
+        { "02", NULL },
+        { "03", NULL },
+        { "04", NULL },
+        { "05", NULL },
+        { "06", NULL },
+        { "07", NULL },
+        { "08", NULL },
+        { "09", NULL },
+        { "10", NULL },
+        { "11", NULL },
+        { "12", NULL },
+        { "13", NULL },
+        { "14", NULL },
+        { "15", NULL },
+        { "16", NULL },
+        { NULL, NULL }
     };
 
-    const char *octaves[] =
+    const port_item_t octaves[] =
     {
-        "-2",
-        "-1",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        NULL
+        { "-2", NULL },
+        { "-1", NULL },
+        { "0", NULL },
+        { "1", NULL },
+        { "2", NULL },
+        { "3", NULL },
+        { "4", NULL },
+        { "5", NULL },
+        { "6", NULL },
+        { "7", NULL },
+        { "8", NULL },
+        { NULL, NULL }
     };
 
-    const char *notes[] =
+    const port_item_t notes[] =
     {
-        "C",
-        "C" UTF8_SHARP,
-        "D",
-        "D" UTF8_SHARP,
-        "E",
-        "F",
-        "F" UTF8_SHARP,
-        "G",
-        "G" UTF8_SHARP,
-        "A",
-        "A" UTF8_SHARP,
-        "B",
-        NULL
+        { "C", NULL },
+        { "C" UTF8_SHARP, NULL },
+        { "D", NULL },
+        { "D" UTF8_SHARP, NULL },
+        { "E", NULL },
+        { "F", NULL },
+        { "F" UTF8_SHARP, NULL },
+        { "G", NULL },
+        { "G" UTF8_SHARP, NULL },
+        { "A", NULL },
+        { "A" UTF8_SHARP, NULL },
+        { "B", NULL },
+        { NULL, NULL }
+    };
+
+    const port_item_t fft_windows[] =
+    {
+        { "Hann",                   "fft.wnd.hann" },
+        { "Hamming",                "fft.wnd.hamming" },
+        { "Blackman",               "fft.wnd.blackman" },
+        { "Lanczos",                "fft.wnd.lanczos" },
+        { "Gaussian",               "fft.wnd.gauss" },
+        { "Poisson",                "fft.wnd.poisson" },
+        { "Parzen",                 "fft.wnd.parzen" },
+        { "Tukey",                  "fft.wnd.tukey" },
+        { "Welch",                  "fft.wnd.welch" },
+        { "Nuttall",                "fft.wnd.nuttall" },
+        { "Blackman-Nuttall",       "fft.wnd.blackman_nuttall" },
+        { "Blackman-Harris",        "fft.wnd.blackman_harris" },
+        { "Hann-Poisson",           "fft.wnd.hann_poisson" },
+        { "Bartlett-Hann",          "fft.wnd.bartlett_hann" },
+        { "Bartlett-Fejer",         "fft.wnd.bartlett_fejer" },
+        { "Triangular",             "fft.wnd.triangular" },
+        { "Rectangular",            "fft.wnd.rectangular" },
+        { "Flat top",               "fft.wnd.flat_top" },
+        { "Cosine",                 "fft.wnd.cosine" },
+        { NULL, NULL }
+    };
+
+    const port_item_t fft_envelopes[] =
+    {
+        { "Violet noise",           "fft.env.violet" },
+        { "Blue noise",             "fft.env.blue" },
+        { "White noise",            "fft.env.white" },
+        { "Pink noise",             "fft.env.pink" },
+        { "Brown noise",            "fft.env.brown" },
+        { "4.5 dB/oct fall-off",    "fft.env.falloff_4_5db" },
+        { "4.5 dB/oct raise",       "fft.env.raise_4_5db" },
+        { NULL, NULL }
     };
 }
 

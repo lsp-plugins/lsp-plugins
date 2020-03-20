@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+GenericName=Mid-Side Stereo Dynamic Processor
+Name=Dynamic Processing
+Name[ru]=Динамическая обработка
+Comment=Performs dynamic processing of stereo input signal in Mid-Side mode.
+Comment[ru]=Осуществляет динамическую обработку стереосигнала, центр и сторона обрабатываются индивидуально.
+Exec=lsp-plugins-dyna-processor-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

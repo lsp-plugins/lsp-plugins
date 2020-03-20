@@ -18,9 +18,19 @@
 	// Determine current page
 	$PAGE       = isset($argv[1]) ? $argv[1] : 'index';
 	$MENUITEM   = find_menu_item($PAGE);
-	$DOCROOT    = (isset($MENUITEM)) ? ('../' . ((strlen($MENUITEM['root']) > 0) ? ($MENUITEM['root'] . '/') : '')) : '';
-	$HEADER		= (isset($MENUITEM)) ? $MENUITEM['text'] : 'LSP Plugins Documentation';
-	$FILENAME   = (isset($MENUITEM)) ? (isset($MENUITEM['file']) ? $MENUITEM['file'] : $PAGE) : 'index';
+	if (!isset($MENUITEM))
+	    $MENUITEM = array(
+	        'id' => 'index',
+	        'parent' => null,
+	        'text' => 'LSP Plugins Documentation',
+	        'root' => '',
+	        'path' => '',
+	        'file' => $PAGE
+	    );
+	
+	$DOCROOT    = ((strlen($MENUITEM['root']) > 0) ? ($MENUITEM['root'] . '/') : '');
+	$HEADER		= $MENUITEM['text'];
+	$FILENAME   = (isset($MENUITEM['file'])) ? $MENUITEM['file'] : $PAGE;
 	$RES_ROOT   = $DOCROOT;
 	$DOC_BASE   = '.';
 ?>
@@ -48,9 +58,9 @@
 			<!-- Main content -->
 			<div id="main">
 				<?php 
-					if ($MENUITEM['parent'] != 'plugins')
-						echo '<h1>' . htmlspecialchars($HEADER) . '</h1>';
-					require("./manuals/${MENUITEM['path']}/${FILENAME}.php");
+				    if ($MENUITEM['parent'] != 'plugins')
+				        echo '<h1>' . htmlspecialchars($HEADER) . '</h1>';
+			        require("./manuals/${MENUITEM['path']}/${FILENAME}.php");
 				?>
 			</div>
 			

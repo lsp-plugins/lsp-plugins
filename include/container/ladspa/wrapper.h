@@ -72,6 +72,7 @@ namespace lsp
                             break;
                         }
                         case R_CONTROL:
+                        case R_BYPASS:
                         case R_METER:
                         {
                             LADSPAPort *lp = NULL;

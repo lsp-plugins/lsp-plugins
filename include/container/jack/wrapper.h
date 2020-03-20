@@ -365,6 +365,7 @@ namespace lsp
                 break;
 
             case R_CONTROL:
+            case R_BYPASS:
                 jp      = new JACKControlPort(port, this);
                 jup     = new JACKUIControlPort(jp);
                 break;

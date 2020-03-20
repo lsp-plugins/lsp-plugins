@@ -20,6 +20,9 @@ namespace lsp
     
     class Expander
     {
+        private:
+            Expander & operator = (const Expander &);
+
         protected:
             // Basic parameters
             float       fAttackThresh;
@@ -44,7 +47,7 @@ namespace lsp
             bool        bUpward;
 
         public:
-            Expander();
+            explicit Expander();
             ~Expander();
 
         public:
@@ -56,6 +59,16 @@ namespace lsp
             inline bool modified() const
             {
                 return bUpdate;
+            }
+
+            inline bool is_upward() const
+            {
+                return bUpward;
+            }
+
+            inline bool is_downward() const
+            {
+                return !bUpward;
             }
 
             /** Update expander settings

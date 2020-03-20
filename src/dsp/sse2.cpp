@@ -52,7 +52,12 @@ namespace sse2 // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse2/graphics.h>
 #include <dsp/arch/x86/sse2/graphics/effects.h>
+#include <dsp/arch/x86/sse2/graphics/axis.h>
 
+#include <dsp/arch/x86/sse2/pmath/op_kx.h>
+#include <dsp/arch/x86/sse2/pmath/op_vv.h>
+#include <dsp/arch/x86/sse2/pmath/fmop_kx.h>
+#include <dsp/arch/x86/sse2/pmath/fmop_vv.h>
 #include <dsp/arch/x86/sse2/pmath/exp.h>
 #include <dsp/arch/x86/sse2/pmath/log.h>
 #include <dsp/arch/x86/sse2/pmath/pow.h>
@@ -77,8 +82,20 @@ namespace sse2
         EXPORT1(saturate);
         EXPORT1(limit_saturate1);
         EXPORT1(limit_saturate2);
-        EXPORT1(limit1);
-        EXPORT1(limit2);
+
+        EXPORT1(mod_k2);
+        EXPORT1(rmod_k2);
+        EXPORT1(mod_k3);
+        EXPORT1(rmod_k3);
+
+        EXPORT1(fmmod_k3);
+        EXPORT1(fmrmod_k3);
+        EXPORT1(fmmod_k4);
+        EXPORT1(fmrmod_k4);
+
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
+        EXPORT1(mod3);
 
         EXPORT1(exp1);
         EXPORT1(exp2);
@@ -111,6 +128,10 @@ namespace sse2
         EXPORT1(eff_hsla_sat);
         EXPORT1(eff_hsla_light);
         EXPORT1(eff_hsla_alpha);
+
+        EXPORT1(axis_apply_log1);
+        EXPORT1(axis_apply_log2);
+        EXPORT1(rgba32_to_bgra32);
     }
 
     #undef EXPORT1

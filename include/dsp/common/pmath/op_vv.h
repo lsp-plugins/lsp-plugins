@@ -62,6 +62,22 @@ namespace dsp
      */
     extern void (* rdiv2)(float *dst, const float *src, size_t count);
 
+    /** Compute remainder: dst[i] = dst[i] - src[i] * int(dst[i]/src[i])
+     *
+     * @param dst destination
+     * @param src source
+     * @param count number of elements
+     */
+    extern void (* mod2)(float *dst, const float *src, size_t count);
+
+    /** Compute reverse remainder: dst[i] = src[i] - dst[i] * int(src[i]/dst[i])
+     *
+     * @param dst destination
+     * @param src source
+     * @param count number of elements
+     */
+    extern void (* rmod2)(float *dst, const float *src, size_t count);
+
     /** Calculate dst[i] = src1[i] + src2[i]
      *
      * @param dst destination array
@@ -95,6 +111,15 @@ namespace dsp
      * @param count number of elements
      */
     extern void (* div3)(float *dst, const float *src1, const float *src2, size_t count);
+
+    /** Remainder: dst[i] = src1[i] - src2[i]*int(src1[i]/src2[i]);
+     *
+     * @param dst destination
+     * @param src1 first source
+     * @param src2 second source
+     * @param count number of elements
+     */
+    extern void (* mod3)(float *dst, const float *src1, const float *src2, size_t count);
 
 }
 

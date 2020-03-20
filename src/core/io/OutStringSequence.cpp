@@ -11,6 +11,12 @@ namespace lsp
 {
     namespace io
     {
+        OutStringSequence::OutStringSequence()
+        {
+            pOut = NULL;
+            bDelete = false;
+        }
+
         OutStringSequence::OutStringSequence(LSPString *out, bool del)
         {
             pOut = out;

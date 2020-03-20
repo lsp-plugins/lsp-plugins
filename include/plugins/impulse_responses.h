@@ -13,6 +13,7 @@
 #include <core/util/Convolver.h>
 #include <core/util/Bypass.h>
 #include <core/util/Delay.h>
+#include <core/util/Toggle.h>
 #include <core/filters/Equalizer.h>
 #include <core/sampling/SamplePlayer.h>
 #include <core/files/AudioFile.h>
@@ -39,8 +40,9 @@ namespace lsp
                 AudioFile      *pCurr;
                 AudioFile      *pSwap;
 
+                Toggle          sListen;                // Listen toggle
                 Sample         *pSwapSample;
-                Sample         *pCurrSample;                                                    // Rendered file sample
+                Sample         *pCurrSample;            // Rendered file sample
                 float          *vThumbs[impulse_responses_base_metadata::TRACKS_MAX];           // Thumbnails
                 float           fNorm;          // Norming factor
                 bool            bRender;        // Flag that indicates that file needs rendering

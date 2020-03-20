@@ -26,24 +26,37 @@ namespace lsp
         {
         }
 
-        status_t LSPFileDialog::LSPFileDialogFilter::item_updated(size_t idx, filter_t *flt)
+        status_t LSPFileDialog::LSPFileDialogFilter::item_updated(size_t idx, LSPFileFilterItem *flt)
         {
-            return pDialog->sWFilter.items()->set_text(idx, &flt->sTitle);
+            LSPItem *item = pDialog->sWFilter.items()->get(idx);
+            return (item != NULL) ? item->text()->set(flt->title()) : STATUS_NOT_FOUND;
         }
 
-        status_t LSPFileDialog::LSPFileDialogFilter::item_removed(size_t idx, filter_t *flt)
+        status_t LSPFileDialog::LSPFileDialogFilter::item_removed(size_t idx, LSPFileFilterItem *flt)
         {
             return pDialog->sWFilter.items()->remove(idx);
         }
 
-        status_t LSPFileDialog::LSPFileDialogFilter::item_added(size_t idx, filter_t *flt)
+        status_t LSPFileDialog::LSPFileDialogFilter::item_added(size_t idx, LSPFileFilterItem *flt)
         {
-            return pDialog->sWFilter.items()->insert(idx, &flt->sTitle);
+            LSPItem *item = NULL;
+            status_t res = pDialog->sWFilter.items()->insert(idx, &item);
+            if (res == STATUS_OK)
+                res = item->text()->set(flt->title());
+            return res;
         }
 
         void LSPFileDialog::LSPFileDialogFilter::default_updated(ssize_t idx)
         {
             pDialog->sWFilter.set_selected(idx);
+        }
+
+        void LSPFileDialog::ConfirmMsg::sync()
+        {
+            // Propagate message to the confirm dialog
+            LSPFileDialog *dlg = widget_cast<LSPFileDialog>(pWidget);
+            if ((dlg != NULL) && (dlg->pWConfirm != NULL))
+                dlg->pWConfirm->message()->set(this);
         }
 
         //---------------------------------------------------------------------
@@ -69,6 +82,7 @@ namespace lsp
             wUp(dpy),
             wPathBox(dpy),
             sWWarning(dpy),
+            sConfirm(this),
             sFilter(this)
         {
             pSelBookmark    = NULL;
@@ -80,6 +94,7 @@ namespace lsp
             pWMessage       = NULL;
             pClass          = &metadata;
             enMode          = FDM_OPEN_FILE;
+            bUseConfirm     = false;
         }
 
         LSPFileDialog::~LSPFileDialog()
@@ -87,7 +102,7 @@ namespace lsp
             do_destroy();
         }
 
-        status_t LSPFileDialog::add_label(LSPWidgetContainer *c, const char *text, float align, LSPLabel **label)
+        status_t LSPFileDialog::add_label(LSPWidgetContainer *c, const char *key, float align, LSPLabel **label)
         {
             LSPAlign *algn = new LSPAlign(pDisplay);
             if (algn == NULL)
@@ -110,7 +125,7 @@ namespace lsp
                 result = algn->init();
             algn->set_hpos(align);
             if (result == STATUS_OK)
-                result = lbl->set_text(text);
+                result = lbl->text()->set(key);
 
             if (result == STATUS_OK)
                 result = algn->add(lbl);
@@ -133,7 +148,7 @@ namespace lsp
             return result;
         }
 
-        status_t LSPFileDialog::add_menu_item(LSPMenu *m, const char *text, ui_event_handler_t handler)
+        status_t LSPFileDialog::add_menu_item(LSPMenu *m, const char *key, ui_event_handler_t handler)
         {
             LSPMenuItem *mi = new LSPMenuItem(pDisplay);
             if (mi == NULL)
@@ -146,9 +161,9 @@ namespace lsp
             }
 
             LSP_STATUS_ASSERT(mi->init());
-            if (text != NULL)
+            if (key != NULL)
             {
-                LSP_STATUS_ASSERT(mi->set_text(text));
+                LSP_STATUS_ASSERT(mi->text()->set(key));
                 ui_handler_id_t id = mi->slots()->bind(LSPSLOT_SUBMIT, handler, self());
                 if (id < 0)
                     return STATUS_UNKNOWN_ERR;
@@ -190,7 +205,7 @@ namespace lsp
             sAppendExt.set_hpos(0.0f);
 
             if (result == STATUS_OK)
-                result = lbl->set_text(text);
+                result = lbl->text()->set_raw(text);
             if (result == STATUS_OK)
                 result = sAppendExt.add(box);
             if (result == STATUS_OK)
@@ -215,6 +230,9 @@ namespace lsp
 
         status_t LSPFileDialog::init()
         {
+            // Initialize bindings
+            sConfirm.bind();
+
             // Initialize labels
             LSP_STATUS_ASSERT(LSPWindow::init());
             LSP_STATUS_ASSERT(sWPath.init());
@@ -229,7 +247,7 @@ namespace lsp
             sWAction.set_min_width(96);
             sWAction.set_min_height(24);
             LSP_STATUS_ASSERT(sWCancel.init());
-            LSP_STATUS_ASSERT(sWCancel.set_title("Cancel"));
+            LSP_STATUS_ASSERT(sWCancel.title()->set("actions.cancel"));
             sWCancel.set_min_width(96);
             sWCancel.set_min_height(24);
             LSP_STATUS_ASSERT(sWWarning.init());
@@ -238,13 +256,13 @@ namespace lsp
             sWWarning.set_align(1.0f, 0.5f);
 
             LSP_STATUS_ASSERT(wGo.init());
-            LSP_STATUS_ASSERT(wGo.set_title("Go"));
+            LSP_STATUS_ASSERT(wGo.title()->set("actions.nav.go"));
             wGo.set_min_width(32);
             LSP_STATUS_ASSERT(wUp.init());
-            LSP_STATUS_ASSERT(wUp.set_title("Up"));
+            LSP_STATUS_ASSERT(wUp.title()->set("actions.nav.up"));
             wUp.set_min_width(32);
             LSP_STATUS_ASSERT(sBMAdd.init());
-            LSP_STATUS_ASSERT(sBMAdd.set_title("+Bookmarks"));
+            LSP_STATUS_ASSERT(sBMAdd.title()->set("actions.to_bookmarks"));
             sBMAdd.set_min_width(32);
 
             LSP_STATUS_ASSERT(wPathBox.init());
@@ -296,12 +314,12 @@ namespace lsp
             LSP_STATUS_ASSERT(wPathBox.add(&sBMAdd));
             LSP_STATUS_ASSERT(wPathBox.add(&wUp));
             LSP_STATUS_ASSERT(wPathBox.add(&wGo));
-            LSP_STATUS_ASSERT(add_label(&wPathBox, "Location", 1.0f));
+            LSP_STATUS_ASSERT(add_label(&wPathBox, "labels.location", 1.0f));
             // Button box
             LSP_STATUS_ASSERT(sHBox.add(&sWAction));
             LSP_STATUS_ASSERT(sHBox.add(&sWCancel));
             // Warning box
-            LSP_STATUS_ASSERT(add_label(&sWarnBox, "Files"));
+            LSP_STATUS_ASSERT(add_label(&sWarnBox, "labels.file_list"));
             LSP_STATUS_ASSERT(sWarnBox.add(&sWWarning));
 
             // Initialize grid
@@ -309,19 +327,19 @@ namespace lsp
             LSP_STATUS_ASSERT(sMainGrid.add(&wPathBox));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWPath));
             // Row 2
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Bookmarks"));
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.bookmark_list"));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
             // Row 3
             LSP_STATUS_ASSERT(sMainGrid.add(&sSBBookmarks));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFiles));
             // Row 4
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
-            LSP_STATUS_ASSERT(add_ext_button(&sMainGrid, "Automatic extension"));
+            LSP_STATUS_ASSERT(add_ext_button(&sMainGrid, "labels.automatic_extension"));
             // Row 5
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "File name", 1.0f, &pWSearch));
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.file_name", 1.0f, &pWSearch));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWSearch));
             // Row 6
-            LSP_STATUS_ASSERT(add_label(&sMainGrid, "Filter", 1.0f));
+            LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.filter", 1.0f));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFilter));
             // Row 7
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
@@ -440,15 +458,15 @@ namespace lsp
         status_t LSPFileDialog::init_bm_popup_menu()
         {
             LSP_STATUS_ASSERT(sBMPopup.init());
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Open", slot_on_bm_menu_open));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Follow URL", slot_on_bm_menu_follow));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Copy URL", slot_on_bm_menu_copy));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Delete", slot_on_bm_menu_delete));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.open", slot_on_bm_menu_open));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.link.follow", slot_on_bm_menu_follow));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.link.copy", slot_on_bm_menu_copy));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.delete", slot_on_bm_menu_delete));
             LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, NULL, NULL));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "First", slot_on_bm_menu_first));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Up", slot_on_bm_menu_up));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Down", slot_on_bm_menu_down));
-            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "Last", slot_on_bm_menu_last));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_first", slot_on_bm_menu_first));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_up", slot_on_bm_menu_up));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_down", slot_on_bm_menu_down));
+            LSP_STATUS_ASSERT(add_menu_item(&sBMPopup, "actions.edit.move_last", slot_on_bm_menu_last));
 
             return STATUS_OK;
         }
@@ -458,13 +476,13 @@ namespace lsp
             if (enMode == FDM_OPEN_FILE)
             {
                 if (pWSearch != NULL)
-                    pWSearch->set_text("Search");
+                    pWSearch->text()->set("labels.search");
                 sAppendExt.set_visible(false);
             }
             else if (enMode == FDM_SAVE_FILE)
             {
                 if (pWSearch != NULL)
-                    pWSearch->set_text("File name");
+                    pWSearch->text()->set("labels.file_name");
                 sAppendExt.set_visible(true);
             }
         }
@@ -510,33 +528,17 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPFileDialog::set_confirmation(const LSPString *value)
+        status_t LSPFileDialog::set_use_confirm(bool set)
         {
-            if (!sConfirm.set(value))
-                return STATUS_NO_MEM;
-            if ((sConfirm.length() > 0) || (pWConfirm == NULL))
+            if (bUseConfirm == set)
                 return STATUS_OK;
-            if ((pWConfirm != NULL) && (pWConfirm->hidden()))
+            if ((!set) && (pWConfirm != NULL) && (pWConfirm->hidden()))
             {
                 pWConfirm->destroy();
                 delete pWConfirm;
                 pWConfirm = NULL;
             }
-            return STATUS_OK;
-        };
-
-        status_t LSPFileDialog::set_confirmation(const char *value)
-        {
-            if (!sConfirm.set_native(value))
-                return STATUS_NO_MEM;
-            if ((sConfirm.length() > 0) || (pWConfirm == NULL))
-                return STATUS_OK;
-            if ((pWConfirm != NULL) && (pWConfirm->hidden()))
-            {
-                pWConfirm->destroy();
-                delete pWConfirm;
-                pWConfirm = NULL;
-            }
+            bUseConfirm = set;
             return STATUS_OK;
         };
 
@@ -680,7 +682,7 @@ namespace lsp
                 str.set_native("Access error: ");
                 path.set_native(text);
                 str.append(&path);
-                sWWarning.set_text(&str);
+                sWWarning.text()->set_raw(&str);
                 sWWarning.show();
             }
 
@@ -734,7 +736,8 @@ namespace lsp
             if (sWFilter.items()->size() > 0)
             {
                 ssize_t sel = sWFilter.selected();
-                fmask = sFilter.get_mask((sel < 0) ? 0 : sel);
+                LSPFileFilterItem *fi = sFilter.get((sel < 0) ? 0 : sel);
+                fmask = (fi != NULL) ? fi->pattern() : NULL;
             }
 
             // Now we need to fill data
@@ -790,11 +793,14 @@ namespace lsp
                 }
 
                 // Add item
-                if ((xres = lst->add(psrc, i)) != STATUS_OK)
+                LSPItem *item = NULL;
+                if ((xres = lst->add(&item)) != STATUS_OK)
                 {
                     lst->clear();
                     return xres;
                 }
+                item->text()->set_raw(psrc);
+                item->set_value(i);
 
                 // Check if is equal
                 if ((!(ent->nFlags & (F_ISDIR | F_DOTDOT))) && (xfname.length() > 0))
@@ -1083,7 +1089,7 @@ namespace lsp
             return LSPFileMask::append_path(dst, &path, fname);
         }
 
-        status_t LSPFileDialog::show_message(const char *heading, const char *title, const char *message)
+        status_t LSPFileDialog::show_message(const char *title, const char *heading, const char *message)
         {
             if (pWMessage == NULL)
             {
@@ -1095,11 +1101,11 @@ namespace lsp
                     return res;
                 }
 
-                LSP_STATUS_ASSERT(pWMessage->add_button("OK"));
+                LSP_STATUS_ASSERT(pWMessage->add_button("actions.ok"));
             }
-            LSP_STATUS_ASSERT(pWMessage->set_heading(heading));
-            LSP_STATUS_ASSERT(pWMessage->set_title(title));
-            LSP_STATUS_ASSERT(pWMessage->set_message(message));
+            LSP_STATUS_ASSERT(pWMessage->title()->set(title));
+            LSP_STATUS_ASSERT(pWMessage->heading()->set(heading));
+            LSP_STATUS_ASSERT(pWMessage->message()->set(message));
 
             return pWMessage->show(this);
         }
@@ -1109,7 +1115,10 @@ namespace lsp
             ssize_t index = sWFiles.selection()->value();
             if (index < 0)
                 return NULL;
-            index = sWFiles.items()->value(index);
+            LSPItem *item = sWFiles.items()->get(index);
+            if (item == NULL)
+                return NULL;
+            index = item->value();
             if (index < 0)
                 return NULL;
             return vFiles.get(index);
@@ -1128,7 +1137,11 @@ namespace lsp
                 {
                     LSPString ext;
                     ssize_t sel = sWFilter.selected();
-                    if (sFilter.get_extension((sel < 0) ? 0 : sel, &ext) == STATUS_OK)
+
+                    LSPFileFilterItem *item  = sFilter.get((sel < 0) ? 0 : sel);
+                    status_t res = (item != NULL) ? item->get_extension(&ext) : STATUS_NOT_FOUND;
+
+                    if (res == STATUS_OK)
                     {
                         lsp_trace("fname = %s, ext = %s", fname.get_native(), ext.get_native());
                         if (!fname.ends_with_nocase(&ext))
@@ -1138,7 +1151,7 @@ namespace lsp
                 }
 
                 if (LSPFileMask::is_dots(&fname) || (!LSPFileMask::valid_file_name(&fname)))
-                    return show_message("Attention", "Attention", "The entered file name is not valid");
+                    return show_message("titles.attention", "headings.attention", "messages.file.invalid_name");
 
                 LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
                 committed = true;
@@ -1159,7 +1172,7 @@ namespace lsp
             {
                 file_entry_t *ent = selected_entry();
                 if (ent == NULL)
-                    return show_message("Attention", "Attention", "The file name is not specified");
+                    return show_message("titles.attention", "headings.attention", "messages.file.not_specified");
 
                 // Analyze what to do
                 if (ent->nFlags & F_DOTDOT)
@@ -1185,7 +1198,7 @@ namespace lsp
 
             if (enMode == FDM_SAVE_FILE)
             {
-                if (sConfirm.length() <= 0)
+                if (!bUseConfirm)
                     return on_dlg_confirm(data);
 
                 // Check that file exists and avoid confirmation if it doesn't
@@ -1196,9 +1209,9 @@ namespace lsp
             else
             {
                 if (stat_result != 0)
-                    return show_message("Attention", "Attention", "The selected file does not exist");
+                    return show_message("titles.attention", "headings.attention", "messages.file.not_exists");
 
-                if (sConfirm.length() <= 0)
+                if (!bUseConfirm)
                     return on_dlg_confirm(data);
             }
 
@@ -1210,12 +1223,12 @@ namespace lsp
                     return STATUS_NO_MEM;
                 pWConfirm->init();
 
-                pWConfirm->set_heading("Confirmation");
-                pWConfirm->set_title("Confirmation");
-                pWConfirm->add_button("Yes", slot_on_confirm, self());
-                pWConfirm->add_button("No");
+                pWConfirm->title()->set("titles.confirmation");
+                pWConfirm->heading()->set("headings.confirmation");
+                pWConfirm->add_button("actions.confirm.yes", slot_on_confirm, self());
+                pWConfirm->add_button("actions.confirm.no");
             }
-            pWConfirm->set_message(&sConfirm);
+            pWConfirm->message()->set(&sConfirm);
             pWConfirm->show(this);
 
             return STATUS_OK;
@@ -1265,7 +1278,7 @@ namespace lsp
         status_t LSPFileDialog::read_lsp_bookmarks(cvector<bookmark_t> &vbm)
         {
             io::Path path;
-            status_t res = system::get_home_directory(&path);
+            status_t res = system::get_user_config_path(&path);
             if (res != STATUS_OK)
                 return res;
             if ((res = path.append_child(LSP_BOOKMARK_PATH)) != STATUS_OK)
@@ -1315,7 +1328,7 @@ namespace lsp
             io::Path path, parent;
             cvector<bookmark_t> tmp;
 
-            status_t res = system::get_home_directory(&path);
+            status_t res = system::get_user_config_path(&path);
             if (res != STATUS_OK)
                 return res;
             if ((res = path.append_child(LSP_BOOKMARK_PATH)) != STATUS_OK)
@@ -1470,7 +1483,7 @@ namespace lsp
                     break;
                 if ((res = ent->sHlink.init()) != STATUS_OK)
                     break;
-                if ((res = ent->sHlink.set_text(&b->name)) != STATUS_OK)
+                if ((res = ent->sHlink.text()->set_raw(&b->name)) != STATUS_OK)
                     break;
                 res = (url.set_ascii("file://")) ? STATUS_OK : STATUS_NO_MEM;
                 if (res == STATUS_OK)
@@ -1640,7 +1653,7 @@ namespace lsp
                 return res;
             if ((res = ent->sHlink.init()) != STATUS_OK)
                 return res;
-            if ((res = ent->sHlink.set_text(&ent->sBookmark.name)) != STATUS_OK)
+            if ((res = ent->sHlink.text()->set_raw(&ent->sBookmark.name)) != STATUS_OK)
                 return res;
             if ((res = path->get(&url)) != STATUS_OK)
                 return res;

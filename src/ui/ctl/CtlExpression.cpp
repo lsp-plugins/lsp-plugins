@@ -75,12 +75,16 @@ namespace lsp
         float CtlExpression::evaluate()
         {
             calc::value_t value;
+            calc::init_value(&value);
 
             sVars.clear();
             drop_dependencies();
             status_t res = sExpr.evaluate(&value);
             if (res != STATUS_OK)
+            {
+                calc::destroy_value(&value);
                 return 0.0f;
+            }
 
             float fval;
             calc::cast_float(&value);
@@ -92,12 +96,16 @@ namespace lsp
         float CtlExpression::evaluate(size_t idx)
         {
             calc::value_t value;
+            calc::init_value(&value);
 
             sVars.clear();
             drop_dependencies();
             status_t res = sExpr.evaluate(idx, &value);
             if (res != STATUS_OK)
+            {
+                calc::destroy_value(&value);
                 return 0.0f;
+            }
 
             float fval;
             calc::cast_float(&value);
@@ -109,9 +117,14 @@ namespace lsp
         float CtlExpression::result(size_t idx)
         {
             calc::value_t value;
+            calc::init_value(&value);
+
             status_t res = sExpr.result(&value, idx);
             if (res != STATUS_OK)
+            {
+                calc::destroy_value(&value);
                 return 0.0f;
+            }
 
             float fval;
             calc::cast_float(&value);

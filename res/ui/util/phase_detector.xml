@@ -1,10 +1,10 @@
 <plugin resizable="false">
 	<hbox spacing="4">
-		<group text="Controls">
-			<grid rows="3" cols="3">
-				<label text="Max time" />
-				<label text="Reactivity" />
-				<label text="Sel time" />
+		<group text="groups.controls">
+			<grid rows="3" cols="3" hspacing="4">
+				<label text="labels.max_time" />
+				<label text="labels.metering.reactivity" />
+				<label text="labels.sel_time" />
 				
 				<knob id="time" size="24" />
 				<knob id="react" size="24" />
@@ -15,27 +15,27 @@
 				<value id="sel" />
 			</grid>
 		</group>
-		<group text="Monitoring">
+		<group text="groups.monitoring">
 			<grid rows="4" cols="5" hspacing="1" vspacing="1">
-				<label text="Phase" fill="true" halign="0" />
-				<label text="Delay (ms)" />
-				<label text="Offset (samp)" />
-				<label text="Distance (cm)" />
-				<label text="Value" />
+				<label text="labels.signal.phase" fill="true" halign="0" />
+				<label text="labels.delay:ms" />
+				<label text="labels.offset:samp" />
+				<label text="labels.distance:cm" />
+				<label text="labels.value" />
 				
-				<label text="Best" color="green" fill="true" halign="0" />
+				<label text="labels.values.best" color="green" fill="true" halign="0" />
 				<indicator id="b_t" format="+-f5.3!" text_color="green" /> 
 				<indicator id="b_s" format="+-i4" text_color="green" />
 				<indicator id="b_d" format="+-f5.1!" text_color="green" />
 				<indicator id="b_v" format="+-f4.3!" text_color="green" />
 				
-				<label text="Selected" color="yellow" fill="true" halign="0" />
+				<label text="labels.values.selected" color="yellow" fill="true" halign="0" />
 				<indicator id="s_t" format="+-f5.3!" text_color="yellow" />
 				<indicator id="s_s" format="+-i4" text_color="yellow" />
 				<indicator id="s_d" format="+-f5.1!" text_color="yellow" />
 				<indicator id="s_v" format="+-f4.3!" text_color="yellow" />
 				
-				<label text="Worst" color="red" fill="true" halign="0" />
+				<label text="labels.values.worst" color="red" fill="true" halign="0" />
 				<indicator id="w_t" format="+-f5.3!" text_color="red" />
 				<indicator id="w_s" format="+-i4" text_color="red" />
 				<indicator id="w_d" format="+-f5.1!" text_color="red" />
@@ -50,25 +50,25 @@
 				
 				<mesh id="f" width="3" />
 				
-				<marker id="w_t" color="g_red" basis="0" parallel="1" />
-				<marker id="w_v" color="g_red" basis="1" parallel="0" />
+				<marker id="w_t" color="red" basis="0" parallel="1" />
+				<marker id="w_v" color="red" basis="1" parallel="0" />
 				
-				<marker id="b_t" color="g_green" basis="0" parallel="1" />
-				<marker id="b_v" color="g_green" basis="1" parallel="0" />
+				<marker id="b_t" color="green" basis="0" parallel="1" />
+				<marker id="b_v" color="green" basis="1" parallel="0" />
 				
-				<marker id="s_t" color="g_yellow" basis="0" parallel="1" />
-				<marker id="s_v" color="g_yellow" basis="1" parallel="0" />
+				<marker id="s_t" color="yellow" basis="0" parallel="1" />
+				<marker id="s_v" color="yellow" basis="1" parallel="0" />
 				
-				<text text="+phase" coord="0;1.05" halign="1" valign="-1" color="green" />
-				<text text="-phase" coord="0;-1.05" halign="1" valign="1" color="red" />
+				<text text="graph.axis.+phase" coord="0;1.05" halign="1" valign="-1" color="green" />
+				<text text="graph.axis.-phase" coord="0;-1.05" halign="1" valign="1" color="red" />
 				
-				<text text="time" coord="0;0" halign="-1" valign="-1" color="white" />
+				<text text="graph.axis.time" coord="0;0" halign="-1" valign="-1" color="white" />
 			</graph>
-			<label text="CORRELATION GRAPH" />
+			<label text="labels.graphs.correlation" />
 		</vbox>
 		<align pad_left="8" pad_right="8">
 			<vbox>
-				<label text="Reset" />
+				<label text="labels.reset" />
 				<button id="reset" size="32" toggle="false" />
 				<led id="reset" color="red"  size="8" />
 			</vbox>

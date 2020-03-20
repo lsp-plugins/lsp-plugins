@@ -13,10 +13,28 @@ namespace lsp
     {
         const w_class_t LSPWindow::metadata = { "LSPWindow", &LSPWidgetContainer::metadata };
 
+        void LSPWindow::Title::sync()
+        {
+            LSPWindow *window = widget_cast<LSPWindow>(pWidget);
+            if ((window == NULL) || (window->pWindow == NULL))
+                return;
+
+            LSPString text;
+            status_t res = window->sTitle.format(&text);
+            if (res != STATUS_OK)
+                return;
+
+            const char *caption = text.get_native();
+            if (caption == NULL)
+                caption = "";
+            window->pWindow->set_caption(caption);
+        }
+
         LSPWindow::LSPWindow(LSPDisplay *dpy, void *handle, ssize_t screen):
             LSPWidgetContainer(dpy),
             sActions(this),
-            sBorder(this)
+            sBorder(this),
+            sTitle(this)
         {
             lsp_trace("native_handle = %p", handle);
 
@@ -78,6 +96,7 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_STATE;
 
+            sTitle.bind();
             sRedraw.bind(dpy);
             sRedraw.set_handler(tmr_redraw_request, self());
 
@@ -344,9 +363,14 @@ namespace lsp
             query_resize();
         }
 
-        status_t LSPWindow::grab_events()
+        status_t LSPWindow::grab_events(grab_t grab)
         {
-            return (pWindow != NULL) ? pWindow->grab_events() : STATUS_BAD_STATE;
+            return (pWindow != NULL) ? pWindow->grab_events(grab) : STATUS_BAD_STATE;
+        }
+
+        status_t LSPWindow::ungrab_events()
+        {
+            return (pWindow != NULL) ? pWindow->ungrab_events() : STATUS_BAD_STATE;
         }
 
         void LSPWindow::set_policy(window_poilicy_t policy)
@@ -927,48 +951,6 @@ namespace lsp
         bool LSPWindow::has_focus() const
         {
             return (visible()) ? bHasFocus : false;
-        }
-
-        status_t LSPWindow::set_title(const char *caption)
-        {
-            if (caption != NULL)
-            {
-                LSPString tmp;
-                tmp.set_native(caption);
-                if (tmp.equals(&sCaption))
-                    return STATUS_OK;
-
-                sCaption.swap(&tmp);
-            }
-            else if (sCaption.length() > 0)
-            {
-                sCaption.truncate();
-                caption = "";
-            }
-            else
-                return STATUS_OK;
-
-            return (pWindow != NULL) ? pWindow->set_caption(caption) : STATUS_OK;
-        }
-
-        status_t LSPWindow::set_title(const LSPString *value)
-        {
-            if (value != NULL)
-            {
-                if (sCaption.equals(value))
-                    return STATUS_OK;
-                if (!sCaption.set(value))
-                    return STATUS_NO_MEM;
-            }
-            else if (sCaption.length() > 0)
-                sCaption.truncate();
-            else
-                return STATUS_OK;
-
-            const char *caption = sCaption.get_native();
-            if (caption == NULL)
-                caption = "";
-            return (pWindow != NULL) ? pWindow->set_caption(caption) : STATUS_OK;
         }
 
         void LSPWindow::realize(const realize_t *r)

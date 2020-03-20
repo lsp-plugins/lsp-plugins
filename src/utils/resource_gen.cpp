@@ -28,6 +28,7 @@
 #include <utils/resource_gen/xml.h>
 #include <utils/resource_gen/scene3d.h>
 #include <utils/resource_gen/presets.h>
+#include <utils/resource_gen/json.h>
 
 namespace lsp
 {
@@ -51,6 +52,7 @@ namespace lsp
                 case RESOURCE_XML: return preprocess_xml_resource(resource, sdict);
                 case RESOURCE_3D_SCENE: return preprocess_3d_scene(resource, sdict, fdict);
                 case RESOURCE_PRESET: return preprocess_preset(resource, sdict, fdict);
+                case RESOURCE_JSON: return preprocess_json(resource, sdict, fdict);
                 default: break;
             }
 
@@ -69,6 +71,7 @@ namespace lsp
                 case RESOURCE_XML: return serialize_xml_resource(out, resource, dict);
                 case RESOURCE_3D_SCENE: return serialize_3d_scene(out, resource, dict, fdict);
                 case RESOURCE_PRESET: return serialize_preset(out, resource, dict, fdict);
+                case RESOURCE_JSON: return serialize_json(out, resource, dict, fdict);
                 default: break;
             }
 

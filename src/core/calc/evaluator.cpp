@@ -16,7 +16,6 @@ namespace lsp
         #define INT_OP(eval_name, oper) \
             status_t eval_name(value_t *value, const expr_t *expr, eval_env_t *env) \
             { \
-                value_t right; \
                 status_t res = expr->calc.left->eval(value, expr->calc.left, env); \
                 if (res != STATUS_OK) \
                     return res; \
@@ -30,9 +29,12 @@ namespace lsp
                     return STATUS_OK; \
                 } \
                 \
+                value_t right; \
+                init_value(&right); \
                 res = expr->calc.right->eval(&right, expr->calc.right, env); \
                 if (res != STATUS_OK) \
                 { \
+                    destroy_value(&right); \
                     destroy_value(value); \
                     return res; \
                 } \
@@ -55,7 +57,6 @@ namespace lsp
 
         status_t eval_add(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
@@ -69,9 +70,13 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            value_t right;
+            init_value(&right);
+
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -109,7 +114,6 @@ namespace lsp
 
         status_t eval_sub(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
@@ -123,9 +127,12 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -163,7 +170,6 @@ namespace lsp
 
         status_t eval_mul(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
@@ -177,9 +183,12 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -217,7 +226,6 @@ namespace lsp
 
         status_t eval_div(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
@@ -231,9 +239,12 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -284,7 +295,6 @@ namespace lsp
 
         status_t eval_imod(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
@@ -298,9 +308,12 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -328,7 +341,6 @@ namespace lsp
 
         status_t eval_fmod(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
@@ -342,9 +354,12 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -367,18 +382,19 @@ namespace lsp
 
         status_t eval_xor(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
-
             // Test left argument
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
+            value_t right;
+            init_value(&right);
             res = cast_bool(value);
             if (res == STATUS_OK)
                 res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -454,17 +470,18 @@ namespace lsp
 
         status_t eval_cmp(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
-
             // Fetch left argument and test for UNDEF
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
             // Fetch right argument and test for UNDEF
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -748,17 +765,18 @@ namespace lsp
 
         status_t eval_icmp(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
-
             // Fetch left argument and test for UNDEF
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
             // Fetch right argument and test for UNDEF
+            value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -889,11 +907,12 @@ namespace lsp
 
         status_t eval_power(value_t *value, const expr_t *expr, eval_env_t *env)
         {
-            value_t right;
             status_t res = expr->calc.left->eval(value, expr->calc.left, env);
             if (res != STATUS_OK)
                 return res;
 
+            value_t right;
+            init_value(&right);
             cast_float(value);
             switch (value->type)
             {
@@ -926,10 +945,9 @@ namespace lsp
                         res = STATUS_BAD_TYPE;
                         break;
                 }
-
-                destroy_value(&right);
             }
 
+            destroy_value(&right);
             if (res != STATUS_OK)
                 destroy_value(value);
 
@@ -1112,6 +1130,7 @@ namespace lsp
                 return STATUS_NO_MEM;
 
             value_t tmp;
+            init_value(&tmp);
             for (size_t i=0; i<expr->resolve.count; ++i)
             {
                 expr_t *e = expr->resolve.items[i];
@@ -1130,6 +1149,7 @@ namespace lsp
                 if (res != STATUS_OK)
                 {
                     ::free(indexes);
+                    destroy_value(&tmp);
                     return res;
                 }
             }
@@ -1137,6 +1157,7 @@ namespace lsp
             // Now we can resolve values
             res = env->resolve(value, expr->resolve.name, expr->resolve.count, indexes);
             ::free(indexes);
+            destroy_value(&tmp);
 
             return res;
         }
@@ -1177,9 +1198,11 @@ namespace lsp
             }
 
             value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }
@@ -1212,9 +1235,11 @@ namespace lsp
             }
 
             value_t right;
+            init_value(&right);
             res = expr->calc.right->eval(&right, expr->calc.right, env);
             if (res != STATUS_OK)
             {
+                destroy_value(&right);
                 destroy_value(value);
                 return res;
             }

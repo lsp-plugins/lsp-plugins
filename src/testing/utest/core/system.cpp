@@ -44,5 +44,13 @@ UTEST_BEGIN("core", system)
         UTEST_ASSERT(path.set(&homedir) == STATUS_OK);
         UTEST_ASSERT(path.is_absolute());
         printf("Home directory is: %s\n", path.as_native());
+
+        // Test config directory
+        LSPString config;
+        io::Path cpath;
+        UTEST_ASSERT(system::get_user_config_path(&config) == STATUS_OK);
+        UTEST_ASSERT(cpath.set(&config) == STATUS_OK);
+        UTEST_ASSERT(cpath.is_absolute());
+        printf("Configuration directory is: %s\n", cpath.as_native());
     }
 UTEST_END

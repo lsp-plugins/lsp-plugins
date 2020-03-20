@@ -16,70 +16,73 @@ namespace lsp
     // Limiter
     static const int limiter_classes[] = { C_LIMITER, -1 };
 
-    static const char *limiter_oper_modes[] =
+    static port_item_t limiter_oper_modes[] =
     {
-        "Classic",
+        { "Classic",        "limiter.classic" },
 
-        "Herm Thin",
-        "Herm Wide",
-        "Herm Tail",
-        "Herm Duck",
+        { "Herm Thin",      "limiter.herm_thin" },
+        { "Herm Wide",      "limiter.herm_wide" },
+        { "Herm Tail",      "limiter.herm_tail" },
+        { "Herm Duck",      "limiter.herm_duck" },
 
-        "Exp Thin",
-        "Exp Wide",
-        "Exp Tail",
-        "Exp Duck",
+        { "Exp Thin",       "limiter.exp_thin" },
+        { "Exp Wide",       "limiter.exp_wide" },
+        { "Exp Tail",       "limiter.exp_tail" },
+        { "Exp Duck",       "limiter.exp_duck" },
 
-        "Line Thin",
-        "Line Wide",
-        "Line Tail",
-        "Line Duck",
+        { "Line Thin",      "limiter.line_thin" },
+        { "Line Wide",      "limiter.line_wide" },
+        { "Line Tail",      "limiter.line_tail" },
+        { "Line Duck",      "limiter.line_duck" },
 
-        "Mixed Herm",
-        "Mixed Exp",
-        "Mixed Line",
+        { "Mixed Herm",     "limiter.mixed_herm" },
+        { "Mixed Exp",      "limiter.mixed_exp" },
+        { "Mixed Line",     "limiter.mixed_line" },
 
-        NULL
+        { NULL, NULL }
     };
 
-    static const char *limiter_ovs_modes[] =
+    static port_item_t limiter_ovs_modes[] =
     {
-        "None",
-        "Half x2(2L)",
-        "Half x2(3L)",
-        "Half x3(2L)",
-        "Half x3(3L)",
-        "Half x4(2L)",
-        "Half x4(3L)",
-        "Half x6(2L)",
-        "Half x6(3L)",
-        "Half x8(2L)",
-        "Half x8(3L)",
-        "Full x2(2L)",
-        "Full x2(3L)",
-        "Full x3(2L)",
-        "Full x3(3L)",
-        "Full x4(2L)",
-        "Full x4(3L)",
-        "Full x6(2L)",
-        "Full x6(3L)",
-        "Full x8(2L)",
-        "Full x8(3L)",
-        NULL
+        { "None",           "oversampler.none" },
+
+        { "Half x2(2L)",    "oversampler.half.2x2" },
+        { "Half x2(3L)",    "oversampler.half.2x3" },
+        { "Half x3(2L)",    "oversampler.half.3x2" },
+        { "Half x3(3L)",    "oversampler.half.3x3" },
+        { "Half x4(2L)",    "oversampler.half.4x2" },
+        { "Half x4(3L)",    "oversampler.half.4x3" },
+        { "Half x6(2L)",    "oversampler.half.6x2" },
+        { "Half x6(3L)",    "oversampler.half.6x3" },
+        { "Half x8(2L)",    "oversampler.half.8x2" },
+        { "Half x8(3L)",    "oversampler.half.8x3" },
+
+        { "Full x2(2L)",    "oversampler.full.2x2" },
+        { "Full x2(3L)",    "oversampler.full.2x3" },
+        { "Full x3(2L)",    "oversampler.full.3x2" },
+        { "Full x3(3L)",    "oversampler.full.3x3" },
+        { "Full x4(2L)",    "oversampler.full.4x2" },
+        { "Full x4(3L)",    "oversampler.full.4x3" },
+        { "Full x6(2L)",    "oversampler.full.6x2" },
+        { "Full x6(3L)",    "oversampler.full.6x3" },
+        { "Full x8(2L)",    "oversampler.full.8x2" },
+        { "Full x8(3L)",    "oversampler.full.8x3" },
+
+        { NULL, NULL }
     };
 
-    static const char *limiter_dither_modes[] =
+    static port_item_t limiter_dither_modes[] =
     {
-        "None",
-        "7bit",
-        "8bit",
-        "11bit",
-        "12bit",
-        "15bit",
-        "16bit",
-        "23bit",
-        "24bit",
-        NULL
+        { "None",   "dither.none" },
+        { "7bit",   "dither.bits.7" },
+        { "8bit",   "dither.bits.8" },
+        { "11bit",  "dither.bits.11" },
+        { "12bit",  "dither.bits.12" },
+        { "15bit",  "dither.bits.15" },
+        { "16bit",  "dither.bits.16" },
+        { "23bit",  "dither.bits.23" },
+        { "24bit",  "dither.bits.24" },
+        { NULL, NULL }
     };
 
     #define LIMIT_COMMON    \
@@ -122,7 +125,7 @@ namespace lsp
         SWITCH("scgv" id, "Sidechain graph visibility" label, 1.0f), \
         SWITCH("grgv" id, "Gain graph visibility" label, 1.0f), \
         METER_OUT_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_0_DB), \
-        METER_OUT_GAIN("olm" id, "Outut level meter" label, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("olm" id, "Output level meter" label, GAIN_AMP_0_DB), \
         METER_OUT_GAIN("sclm" id, "Sidechain level meter" label, GAIN_AMP_0_DB), \
         METER_GAIN_DFL("grlm" id, "Gain reduction level meter" label, GAIN_AMP_0_DB, GAIN_AMP_0_DB), \
         MESH("ig" id, "Input graph" label, 2, limiter_base_metadata::HISTORY_MESH_SIZE), \

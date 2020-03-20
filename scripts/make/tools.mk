@@ -32,10 +32,24 @@ MERGE_FLAGS               = $(LD_ARCH) -r
 EXE_TEST_FLAGS            = $(LDFLAGS) $(CC_ARCH)
 EXE_FLAGS                 = $(LDFLAGS) $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections
 
+ifeq ($(BUILD_PLATFORM), Linux)
+  SO_FLAGS                 += -Wl,--no-undefined
+endif
+
 ifneq ($(LD_PATH),)
   SO_FLAGS                 += -Wl,-rpath,$(LD_PATH)
   EXE_TEST_FLAGS           += -Wl,-rpath,$(LD_PATH)
   EXE_FLAGS                += -Wl,-rpath,$(LD_PATH)
+endif
+
+ifneq ($(LV2_UI),1)
+  CFLAGS                   += -DLSP_NO_LV2_UI
+  CXXFLAGS                 += -DLSP_NO_LV2_UI
+endif
+
+ifneq ($(VST_UI),1)
+  CFLAGS                   += -DLSP_NO_VST_UI
+  CXXFLAGS                 += -DLSP_NO_VST_UI
 endif
 
 export CC

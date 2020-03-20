@@ -3,6 +3,9 @@ MODULES_FILE           := install-modules.txt
 R3D_BACKENDS_FILE      := install-r3d-backends.txt
 BUILD_PROFILE_FILE     := install-build-profile.txt
 
+LV2_UI                 ?= 1
+VST_UI                 ?= 1
+
 # Detect operating system
 ifndef BUILD_SYSTEM
   ifeq ($(findstring Windows,$(OS)),Windows)
@@ -31,6 +34,8 @@ endif
 
 export BUILD_SYSTEM
 export BUILD_PLATFORM
+export LV2_UI
+export VST_UI
 
 # Detect processor architecture
 ifeq ($(BUILD_PLATFORM),Windows)

@@ -24,6 +24,9 @@ namespace lsp
 
     class DynamicProcessor
     {
+        private:
+            DynamicProcessor & operator = (const DynamicProcessor &);
+
         protected:
             typedef struct spline_t
             {
@@ -83,7 +86,7 @@ namespace lsp
             static inline float     solve_reaction(const reaction_t *s, float x, size_t count);
 
         public:
-            DynamicProcessor();
+            explicit DynamicProcessor();
             ~DynamicProcessor();
 
         public:

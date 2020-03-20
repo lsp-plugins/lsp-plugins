@@ -47,6 +47,7 @@ namespace asimd // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/aarch64/asimd/copy.h>
+#include <dsp/arch/aarch64/asimd/float.h>
 
 #include <dsp/arch/aarch64/asimd/pmath/op_kx.h>
 #include <dsp/arch/aarch64/asimd/pmath/op_vv.h>
@@ -61,14 +62,24 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/hmath/hdotp.h>
 
 #include <dsp/arch/aarch64/asimd/mix.h>
+#include <dsp/arch/aarch64/asimd/msmatrix.h>
 #include <dsp/arch/aarch64/asimd/search/minmax.h>
 #include <dsp/arch/aarch64/asimd/search/iminmax.h>
+#include <dsp/arch/aarch64/asimd/resampling.h>
+#include <dsp/arch/aarch64/asimd/convolution.h>
 
 #include <dsp/arch/aarch64/asimd/complex.h>
 #include <dsp/arch/aarch64/asimd/pcomplex.h>
 
 #include <dsp/arch/aarch64/asimd/fft.h>
 #include <dsp/arch/aarch64/asimd/pfft.h>
+#include <dsp/arch/aarch64/asimd/fastconv.h>
+
+#include <dsp/arch/aarch64/asimd/filters/static.h>
+#include <dsp/arch/aarch64/asimd/filters/dynamic.h>
+#include <dsp/arch/aarch64/asimd/filters/transfer.h>
+#include <dsp/arch/aarch64/asimd/filters/transform.h>
+
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
@@ -92,12 +103,21 @@ namespace asimd
         EXPORT1(reverse1);
         EXPORT1(reverse2);
 
+        EXPORT1(saturate);
+        EXPORT1(copy_saturated);
+        EXPORT1(limit_saturate1);
+        EXPORT1(limit_saturate2);
+        EXPORT1(limit1);
+        EXPORT1(limit2);
+
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
         EXPORT1(rsub_k2);
         EXPORT1(mul_k2);
         EXPORT1(div_k2);
         EXPORT1(rdiv_k2);
+        EXPORT1(mod_k2);
+        EXPORT1(rmod_k2);
 
         EXPORT1(add_k3);
         EXPORT1(sub_k3);
@@ -105,6 +125,8 @@ namespace asimd
         EXPORT1(mul_k3);
         EXPORT1(div_k3);
         EXPORT1(rdiv_k3);
+        EXPORT1(mod_k3);
+        EXPORT1(rmod_k3);
 
         EXPORT1(add2);
         EXPORT1(sub2);
@@ -112,11 +134,50 @@ namespace asimd
         EXPORT1(mul2);
         EXPORT1(div2);
         EXPORT1(rdiv2);
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
 
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
+        EXPORT1(mod3);
+
+        EXPORT1(fmadd_k3);
+        EXPORT1(fmsub_k3);
+        EXPORT1(fmrsub_k3);
+        EXPORT1(fmmul_k3);
+        EXPORT1(fmdiv_k3);
+        EXPORT1(fmrdiv_k3);
+        EXPORT1(fmmod_k3);
+        EXPORT1(fmrmod_k3);
+
+        EXPORT1(fmadd_k4);
+        EXPORT1(fmsub_k4);
+        EXPORT1(fmrsub_k4);
+        EXPORT1(fmmul_k4);
+        EXPORT1(fmdiv_k4);
+        EXPORT1(fmrdiv_k4);
+        EXPORT1(fmmod_k4);
+        EXPORT1(fmrmod_k4);
+
+        EXPORT1(fmadd3);
+        EXPORT1(fmsub3);
+        EXPORT1(fmrsub3);
+        EXPORT1(fmmul3);
+        EXPORT1(fmdiv3);
+        EXPORT1(fmrdiv3);
+        EXPORT1(fmmod3);
+        EXPORT1(fmrmod3);
+
+        EXPORT1(fmadd4);
+        EXPORT1(fmsub4);
+        EXPORT1(fmrsub4);
+        EXPORT1(fmmul4);
+        EXPORT1(fmdiv4);
+        EXPORT1(fmrdiv4);
+        EXPORT1(fmmod4);
+        EXPORT1(fmrmod4);
 
         EXPORT1(abs1);
         EXPORT1(abs2);
@@ -134,34 +195,6 @@ namespace asimd
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
         EXPORT1(abs_rdiv3);
-
-        EXPORT1(fmadd_k3);
-        EXPORT1(fmsub_k3);
-        EXPORT1(fmrsub_k3);
-        EXPORT1(fmmul_k3);
-        EXPORT1(fmdiv_k3);
-        EXPORT1(fmrdiv_k3);
-
-        EXPORT1(fmadd_k4);
-        EXPORT1(fmsub_k4);
-        EXPORT1(fmrsub_k4);
-        EXPORT1(fmmul_k4);
-        EXPORT1(fmdiv_k4);
-        EXPORT1(fmrdiv_k4);
-
-        EXPORT1(fmadd3);
-        EXPORT1(fmsub3);
-        EXPORT1(fmrsub3);
-        EXPORT1(fmmul3);
-        EXPORT1(fmdiv3);
-        EXPORT1(fmrdiv3);
-
-        EXPORT1(fmadd4);
-        EXPORT1(fmsub4);
-        EXPORT1(fmrsub4);
-        EXPORT1(fmmul4);
-        EXPORT1(fmdiv4);
-        EXPORT1(fmrdiv4);
 
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);
@@ -197,6 +230,13 @@ namespace asimd
         EXPORT1(mix_add2);
         EXPORT1(mix_add3);
         EXPORT1(mix_add4);
+
+        EXPORT1(lr_to_ms);
+        EXPORT1(lr_to_mid);
+        EXPORT1(lr_to_side);
+        EXPORT1(ms_to_lr);
+        EXPORT1(ms_to_left);
+        EXPORT1(ms_to_right);
 
         EXPORT1(min)
         EXPORT1(max)
@@ -240,6 +280,55 @@ namespace asimd
 
         EXPORT1(packed_direct_fft);
         EXPORT1(packed_reverse_fft);
+
+        EXPORT1(fastconv_parse);
+        EXPORT1(fastconv_restore);
+        EXPORT1(fastconv_apply);
+        EXPORT1(fastconv_parse_apply);
+
+        EXPORT1(biquad_process_x1);
+        EXPORT1(biquad_process_x2);
+        EXPORT1(biquad_process_x4);
+        EXPORT1(biquad_process_x8);
+
+        EXPORT1(dyn_biquad_process_x1);
+        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x4);
+        EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_apply_ri);
+        EXPORT1(filter_transfer_calc_pc);
+        EXPORT1(filter_transfer_apply_pc);
+
+        EXPORT1(dyn_biquad_process_x1);
+        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x4);
+        EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(bilinear_transform_x1);
+        EXPORT1(bilinear_transform_x2);
+        EXPORT1(bilinear_transform_x4);
+        EXPORT1(bilinear_transform_x8);
+
+        EXPORT1(lanczos_resample_2x2);
+        EXPORT1(lanczos_resample_2x3);
+        EXPORT1(lanczos_resample_3x2);
+        EXPORT1(lanczos_resample_3x3);
+        EXPORT1(lanczos_resample_4x2);
+        EXPORT1(lanczos_resample_4x3);
+        EXPORT1(lanczos_resample_6x2);
+        EXPORT1(lanczos_resample_6x3);
+        EXPORT1(lanczos_resample_8x2);
+        EXPORT1(lanczos_resample_8x3);
+
+        EXPORT1(downsample_2x);
+        EXPORT1(downsample_3x);
+        EXPORT1(downsample_4x);
+        EXPORT1(downsample_6x);
+        EXPORT1(downsample_8x);
+
+        EXPORT1(convolve);
     }
 }
 

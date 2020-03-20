@@ -7,28 +7,28 @@
   plugin series
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
-- Review implementation of multiband compressor according to the article:
-  https://www.modernmetalproduction.com/linkwitz-riley-crossovers-digital-multiband-processing/
 
-=== 1.1.14 ===
-
-- Additional DSP optimizations for AArch64 architecture.
-- Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set or i586 and x86_64 architectures.
-- Added multilingual support by the graphical toolkit.
-- Decomposition of core modules into submodules.
-- Additional code updates to get compatibility with WindowsNT platform.
-- Research the work of plugins under Audacity.
-- Added audio preview to file open dialog.
-- Added subsystem for loading missed files. 
+=== 1.1.16 ===
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
- 
-
+- Research the work of plugins under Audacity.
+- Added audio preview to file open dialog.
+- Added subsystem for loading missed files.
+- Implemented Multiband gate plugin series.
+- Implemented equal loudness compensation plugin according to ISO 226:2003
+  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
+  topic: https://linuxmusicians.com/viewtopic.php?p=113835
+- Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
+- Add delay compensation feature between bands for spectrum analyzer plugin.
+- Decomposition of core modules into submodules.
+- Additional code updates to get compatibility with WindowsNT platform.
+  
 *******************************************************************************
 * Release steps
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
+* Ensure that there are menu items present for all new plugins in res/xdg
 * Run make clean && make test to build testing system
 * Run .test/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
@@ -62,6 +62,7 @@
 * Linear Audio Profiler
 * Multi-Sampler
 * Multiband Compressor
+* Multiband expander
 * Parametric Equalizer
 * Phase Compensator
 * Phase Detector
@@ -72,7 +73,6 @@
 
 - Dynamic equalizer
 - One-band compressor
-- Multiband expander
 - Multiband gate
 - Multiband limiter
 - Nonlinear audio profiler
@@ -107,6 +107,28 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== OSC-Send Plugin ====
+
+https://discourse.ardour.org/t/feature-request-osc-send-plugin/102649
+
+Hi Paul,
+
+it would be great to control external osc receivers via plugin from Ardourmixer:
+
+| n sends | 127.0.0.1 |
+| Q | M | /osc/message/1 |
+| Q | M | /osc/message/2 |
+| Q | M | /osc/message/3 |
+
+Q = Poti
+M = Mute
+
+Also a xy-pad just sending osc.
+And recording / playback osc.
+
+Does it already exists?
+Cheers
 
 ==== FFT analysis of the Profiler and Convolver ====
 

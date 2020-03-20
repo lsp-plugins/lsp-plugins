@@ -31,7 +31,7 @@ namespace lsp
         fZoom           = GAIN_AMP_0_DB;
         pData           = NULL;
         vTr             = NULL;
-        vPFc             = NULL;
+        vPFc            = NULL;
         vRFc            = NULL;
         vFreqs          = NULL;
         vCurve          = NULL;
@@ -167,6 +167,7 @@ namespace lsp
                     return;
             }
 
+            c->nPlanSize    = 0;
             c->vIn          = NULL;
             c->vOut         = NULL;
             c->vScIn        = NULL;
@@ -188,8 +189,8 @@ namespace lsp
 
             c->nAnInChannel = an_cid++;
             c->nAnOutChannel= an_cid++;
-//            c->nSfFttChannel= an_cid++;
-//            c->bScFft       = false;
+            c->bInFft       = false;
+            c->bOutFft      = false;
 
             c->pIn          = NULL;
             c->pOut         = NULL;
@@ -199,6 +200,7 @@ namespace lsp
             c->pFftOut      = NULL;
             c->pFftOutSw    = NULL;
 
+            c->pAmpGraph    = NULL;
             c->pInLvl       = NULL;
             c->pOutLvl      = NULL;
 
@@ -243,7 +245,6 @@ namespace lsp
                 b->bEnabled     = j < mb_compressor_base_metadata::BANDS_DFL;
                 b->bCustHCF     = false;
                 b->bCustLCF     = false;
-//                b->bFFT         = false;
                 b->bMute        = false;
                 b->bSolo        = false;
                 b->bExtSc       = false;
@@ -271,6 +272,7 @@ namespace lsp
                 b->pRelTime     = NULL;
                 b->pRatio       = NULL;
                 b->pKnee        = NULL;
+                b->pBThresh     = NULL;
                 b->pMakeup      = NULL;
                 b->pFreqEnd     = NULL;
                 b->pEnvLvl      = NULL;
@@ -375,8 +377,6 @@ namespace lsp
             c->pFftInSw             = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pFftOutSw            = vPorts[port_id++];
-//            TRACE_PORT(vPorts[port_id]);
-//            c->pScFftSw             = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pFftIn               = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -434,8 +434,6 @@ namespace lsp
                     b->pScLcfFreq   = sb->pScLcfFreq;
                     b->pScHcfFreq   = sb->pScHcfFreq;
                     b->pScFreqChart = sb->pScFreqChart;
-//                    b->pScFftOn     = sb->pScFftOn;
-//                    b->pScFftChart  = sb->pScFftChart;
 
                     b->pMode        = sb->pMode;
                     b->pEnable      = sb->pEnable;
@@ -447,6 +445,7 @@ namespace lsp
                     b->pRelTime     = sb->pRelTime;
                     b->pRatio       = sb->pRatio;
                     b->pKnee        = sb->pKnee;
+                    b->pBThresh     = sb->pBThresh;
                     b->pMakeup      = sb->pMakeup;
 
                     b->pFreqEnd     = sb->pFreqEnd;
@@ -486,10 +485,6 @@ namespace lsp
                     b->pScHcfFreq   = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pScFreqChart = vPorts[port_id++];
-//                    TRACE_PORT(vPorts[port_id]);
-//                    b->pScFftOn     = vPorts[port_id++];
-//                    TRACE_PORT(vPorts[port_id]);
-//                    b->pScFftChart  = vPorts[port_id++];
 
                     TRACE_PORT(vPorts[port_id]);
                     b->pMode        = vPorts[port_id++];
@@ -511,6 +506,8 @@ namespace lsp
                     b->pRatio       = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pKnee        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pBThresh     = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pMakeup      = vPorts[port_id++];
 
@@ -643,9 +640,7 @@ namespace lsp
             // Update analyzer settings
             c->bInFft       = c->pFftInSw->getValue() >= 0.5f;
             c->bOutFft      = c->pFftOutSw->getValue() >= 0.5f;
-//            c->bScFft       = c->pScFftSw->getValue() >= 0.5f;
 
-//            sAnalyzer.enable_channel(c->nAnInChannel, (c->bInFft) || (c->bScFft));
             sAnalyzer.enable_channel(c->nAnInChannel, c->bInFft);
             sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->getValue()  >= 0.5f);
 
@@ -729,7 +724,7 @@ namespace lsp
                 bool cust_lcf   = b->pScLpfOn->getValue() >= 0.5f;
                 bool cust_hcf   = b->pScHpfOn->getValue() >= 0.5f;
                 float sc_gain   = b->pScPreamp->getValue();
-                bool mute       = (enabled) && (b->pMute->getValue() >= 0.5f);
+                bool mute       = (b->pMute->getValue() >= 0.5f);
                 bool solo       = (enabled) && (b->pSolo->getValue() >= 0.5f);
 
                 b->pRelLevelOut->setValue(release);
@@ -752,6 +747,7 @@ namespace lsp
                 b->sComp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
                 b->sComp.set_ratio(b->pRatio->getValue());
                 b->sComp.set_knee(b->pKnee->getValue());
+                b->sComp.set_boost_threshold(b->pBThresh->getValue());
 
                 if (b->sComp.modified())
                 {
@@ -816,17 +812,6 @@ namespace lsp
 
                 // Estimate lookahead buffer size
                 b->nLookahead   = millis_to_samples(fSampleRate, b->pScLook->getValue());
-
-                // There should be individual FFT for individual channel
-//                bool fft        = (b->pScFftOn->getValue() >= 0.5f) && c->bScFft;
-//                if (fft && (j > 0))
-//                    fft             = c->vSplit[j-1].bEnabled;
-//
-//                if (b->bFFT != fft)
-//                {
-//                    b->bFFT         = fft;
-//                    b->nSync       |= S_EQ_CURVE;
-//                }
             }
         }
 
@@ -1044,7 +1029,7 @@ namespace lsp
     {
         // Determine number of channels
         size_t channels     = (nMode == MBCM_MONO) ? 1 : 2;
-        size_t max_delay    = millis_to_samples(sr, compressor_base_metadata::LOOKAHEAD_MAX);
+        size_t max_delay    = millis_to_samples(sr, mb_compressor_base_metadata::LOOKAHEAD_MAX);
 
         // Update analyzer's sample rate
         sAnalyzer.set_sample_rate(sr);
@@ -1091,7 +1076,7 @@ namespace lsp
             for (size_t j=0; j<c->nPlanSize; ++j)
             {
                 comp_band_t *b      = c->vPlan[j];
-                b->nSync            = S_EQ_CURVE | S_COMP_CURVE;
+                b->nSync            = S_ALL;
             }
         }
     }
@@ -1185,11 +1170,7 @@ namespace lsp
 
                 if (sAnalyzer.channel_active(c->nAnInChannel))
                     sAnalyzer.process(c->nAnInChannel, c->vBuffer, to_process);
-
-//                if (sAnalyzer.channel_active(c->nSfFttChannel))
-//                    sAnalyzer.process(c->nSfFttChannel, c->vScBuffer, to_process);
             }
-
 
             // MAIN PLUGIN STUFF
             for (size_t i=0; i<channels; ++i)
@@ -1208,7 +1189,6 @@ namespace lsp
                     // Preprocess VCA signal
                     b->sSC.process(vBuffer, const_cast<const float **>(vSc), to_process); // Band now contains processed by sidechain signal
                     b->sDelay.process(vBuffer, vBuffer, b->fScPreamp, to_process); // Apply sidechain preamp and lookahead delay
-//                    dsp::scale2(vBuffer, b->fScPreamp, to_process); // Applay sidechain preamp
 
                     if (b->bEnabled)
                     {
@@ -1232,7 +1212,7 @@ namespace lsp
                     }
                     else
                     {
-                        dsp::fill(b->vVCA, GAIN_AMP_0_DB, to_process);
+                        dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
                         b->fEnvLevel    = GAIN_AMP_0_DB;
                         b->fGainLevel   = GAIN_AMP_0_DB;
                     }
@@ -1467,29 +1447,6 @@ namespace lsp
                 dsp::copy(mesh->pvData[1], c->vTrMem, mb_compressor_base_metadata::FFT_MESH_POINTS);
                 mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
             }
-
-            // FFT spectrogram
-//            for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)
-//            {
-//                comp_band_t *b      = &c->vBands[j];
-//
-//                sAnalyzer.get_spectrum(c->nSfFttChannel, vTr, vIndexes, mb_compressor_base_metadata::FFT_MESH_POINTS);
-//
-//                mesh            = (b->pScFftChart != NULL) ? b->pScFftChart->getBuffer<mesh_t>() : NULL;
-//                if ((mesh != NULL) && (mesh->isEmpty()))
-//                {
-//                    if (b->bFFT)
-//                    {
-//                        dsp::copy(mesh->pvData[0], vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-//                        dsp::scale_mul4(mesh->pvData[1], vTr, b->vTr, b->fScPreamp, mb_compressor_base_metadata::FFT_MESH_POINTS);
-//
-//                        // Mark mesh containing data
-//                        mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
-//                    }
-//                    else
-//                        mesh->data(2, 0);
-//                }
-//            }
         } // for channel
 
         // Request for redraw

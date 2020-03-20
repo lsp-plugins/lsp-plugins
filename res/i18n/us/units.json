@@ -1,0 +1,36 @@
+{
+	"bar": "bar",
+	"beat": "beat",
+	"bpm": "BPM",
+	
+	"cent": "cent",
+	"cm": "cm",
+	
+	"db": "dB",
+	"deg": "°",
+	"degc": "°C",
+	"degf": "°F",
+	"degk": "°K",
+	"degr": "°R",
+	
+	"gain": "G",
+	
+	"hz": "Hz",
+	"inch": "\"",
+	
+	"khz": "kHz",
+	"km": "km",
+	"kmph": "km/h",
+
+	"m": "m",
+	"mhz": "MHz",
+	"mps": "m/s",
+	"mm": "mm",
+	"ms": "ms",
+	
+	"pc": "%",
+	
+	"s": "s",
+	"samp": "samp",
+	"st": "st"
+}

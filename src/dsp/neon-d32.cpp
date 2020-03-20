@@ -73,9 +73,12 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
 #include <dsp/arch/arm/neon-d32/resampling.h>
+
 #include <dsp/arch/arm/neon-d32/filters/static.h>
 #include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 #include <dsp/arch/arm/neon-d32/filters/transform.h>
+#include <dsp/arch/arm/neon-d32/filters/transfer.h>
+
 #include <dsp/arch/arm/neon-d32/fft.h>
 #include <dsp/arch/arm/neon-d32/fastconv.h>
 #include <dsp/arch/arm/neon-d32/mix.h>
@@ -147,19 +150,23 @@ namespace neon_d32
         EXPORT1(abs1);
         EXPORT1(abs2);
 
-        EXPORT1(add_k3);
-        EXPORT1(sub_k3);
-        EXPORT1(rsub_k3);
-        EXPORT1(mul_k3);
-        EXPORT1(div_k3);
-        EXPORT1(rdiv_k3);
-
         EXPORT1(add_k2);
         EXPORT1(sub_k2);
         EXPORT1(rsub_k2);
         EXPORT1(mul_k2);
         EXPORT1(div_k2);
         EXPORT1(rdiv_k2);
+        EXPORT1(mod_k2);
+        EXPORT1(rmod_k2);
+
+        EXPORT1(add_k3);
+        EXPORT1(sub_k3);
+        EXPORT1(rsub_k3);
+        EXPORT1(mul_k3);
+        EXPORT1(div_k3);
+        EXPORT1(rdiv_k3);
+        EXPORT1(mod_k3);
+        EXPORT1(rmod_k3);
 
         EXPORT1(add2);
         EXPORT1(sub2);
@@ -167,11 +174,14 @@ namespace neon_d32
         EXPORT1(mul2);
         EXPORT1(div2);
         EXPORT1(rdiv2);
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
 
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
+        EXPORT1(mod3);
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);
@@ -179,6 +189,8 @@ namespace neon_d32
         EXPORT1(fmmul_k3);
         EXPORT1(fmdiv_k3);
         EXPORT1(fmrdiv_k3);
+        EXPORT1(fmmod_k3);
+        EXPORT1(fmrmod_k3);
 
         EXPORT1(fmadd_k4);
         EXPORT1(fmsub_k4);
@@ -186,6 +198,8 @@ namespace neon_d32
         EXPORT1(fmmul_k4);
         EXPORT1(fmdiv_k4);
         EXPORT1(fmrdiv_k4);
+        EXPORT1(fmmod_k4);
+        EXPORT1(fmrmod_k4);
 
         EXPORT1(fmadd3);
         EXPORT1(fmsub3);
@@ -193,6 +207,8 @@ namespace neon_d32
         EXPORT1(fmmul3);
         EXPORT1(fmdiv3);
         EXPORT1(fmrdiv3);
+        EXPORT1(fmmod3);
+        EXPORT1(fmrmod3);
 
         EXPORT1(fmadd4);
         EXPORT1(fmsub4);
@@ -200,6 +216,8 @@ namespace neon_d32
         EXPORT1(fmmul4);
         EXPORT1(fmdiv4);
         EXPORT1(fmrdiv4);
+        EXPORT1(fmmod4);
+        EXPORT1(fmrmod4);
 
         EXPORT1(abs_add2);
         EXPORT1(abs_sub2);
@@ -288,6 +306,11 @@ namespace neon_d32
         EXPORT1(dyn_biquad_process_x2);
         EXPORT1(dyn_biquad_process_x4);
         EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_apply_ri);
+        EXPORT1(filter_transfer_calc_pc);
+        EXPORT1(filter_transfer_apply_pc);
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);

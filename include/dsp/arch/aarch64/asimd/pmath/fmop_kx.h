@@ -841,7 +841,213 @@ namespace asimd
         );
     }
 
+#define INC_ON(x)           x
+#define INC_OFF(x)
+
 #undef FMDIV_K4_CORE
+
+#define FMMOD_VV_CORE(DST, INCD, SRC1, INC1, SRC2, INC2, SEL)   \
+    __ASM_EMIT("subs            %[count], %[count], #16") \
+    __ASM_EMIT("mov             v21.16b, v20.16b") \
+    __ASM_EMIT("b.lo            2f") \
+    /* 16x blocks */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("ldp             q4, q5, [%[" SEL(SRC2, SRC1) "], #0x00]") \
+    __ASM_EMIT("ldp             q6, q7, [%[" SEL(SRC2, SRC1) "], #0x20]") \
+    __ASM_EMIT(SEL("fmul        v4.4s, v4.4s, v20.4s", ""))                     /* v4   = d */ \
+    __ASM_EMIT(SEL("fmul        v5.4s, v5.4s, v21.4s", "")) \
+    __ASM_EMIT(SEL("fmul        v6.4s, v6.4s, v20.4s", "")) \
+    __ASM_EMIT(SEL("fmul        v7.4s, v7.4s, v21.4s", "")) \
+    __ASM_EMIT("frecpe          v16.4s, v4.4s")                                 /* v16  = s2 */ \
+    __ASM_EMIT("frecpe          v17.4s, v5.4s") \
+    __ASM_EMIT("frecpe          v18.4s, v6.4s") \
+    __ASM_EMIT("frecpe          v19.4s, v7.4s") \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2) */ \
+    __ASM_EMIT("frecps          v1.4s, v17.4s, v5.4s") \
+    __ASM_EMIT("frecps          v2.4s, v18.4s, v6.4s") \
+    __ASM_EMIT("frecps          v3.4s, v19.4s, v7.4s") \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("fmul            v17.4s, v1.4s, v17.4s") \
+    __ASM_EMIT("fmul            v18.4s, v2.4s, v18.4s") \
+    __ASM_EMIT("fmul            v19.4s, v3.4s, v19.4s") \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2') */ \
+    __ASM_EMIT("frecps          v1.4s, v17.4s, v5.4s") \
+    __ASM_EMIT("frecps          v2.4s, v18.4s, v6.4s") \
+    __ASM_EMIT("frecps          v3.4s, v19.4s, v7.4s") \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("fmul            v17.4s, v1.4s, v17.4s") \
+    __ASM_EMIT("fmul            v18.4s, v2.4s, v18.4s") \
+    __ASM_EMIT("fmul            v19.4s, v3.4s, v19.4s") \
+    __ASM_EMIT("ldp             q0, q1, [%[" SEL(SRC1, SRC2) "], #0x00]") \
+    __ASM_EMIT("ldp             q2, q3, [%[" SEL(SRC1, SRC2) "], #0x20]") \
+    __ASM_EMIT(SEL("", "fmul    v0.4s, v0.4s, v20.4s"))                         /* v0   = s */ \
+    __ASM_EMIT(SEL("", "fmul    v1.4s, v1.4s, v21.4s"))\
+    __ASM_EMIT(SEL("", "fmul    v2.4s, v2.4s, v20.4s")) \
+    __ASM_EMIT(SEL("", "fmul    v3.4s, v3.4s, v21.4s")) \
+    __ASM_EMIT("fmul            v16.4s, v16.4s, v0.4s")                         /* v16  = s/d */ \
+    __ASM_EMIT("fmul            v17.4s, v17.4s, v1.4s") \
+    __ASM_EMIT("fmul            v18.4s, v18.4s, v2.4s") \
+    __ASM_EMIT("fmul            v19.4s, v19.4s, v3.4s") \
+    __ASM_EMIT("frintz          v16.4s, v16.4s") \
+    __ASM_EMIT("frintz          v17.4s, v17.4s") \
+    __ASM_EMIT("frintz          v18.4s, v18.4s") \
+    __ASM_EMIT("frintz          v19.4s, v19.4s") \
+    __ASM_EMIT("fmls            v0.4s, v4.4s, v16.4s")                          /* v0   = s - d*int(s/d) */ \
+    __ASM_EMIT("fmls            v1.4s, v5.4s, v17.4s") \
+    __ASM_EMIT("fmls            v2.4s, v6.4s, v18.4s") \
+    __ASM_EMIT("fmls            v3.4s, v7.4s, v19.4s") \
+    __ASM_EMIT("stp             q0, q1, [%[" DST "], #0x00]") \
+    __ASM_EMIT("stp             q2, q3, [%[" DST "], #0x20]") \
+    __ASM_EMIT("subs            %[count], %[count], #16") \
+    __ASM_EMIT(INC1("add        %[" SRC1 "], %[" SRC1 "], #0x40")) \
+    __ASM_EMIT(INC2("add        %[" SRC2 "], %[" SRC2 "], #0x40")) \
+    __ASM_EMIT(INCD("add        %[" DST "], %[" DST "], #0x40")) \
+    __ASM_EMIT("b.hs            1b") \
+    /* 8x block */ \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("adds            %[count], %[count], #8") \
+    __ASM_EMIT("b.lt            4f") \
+    __ASM_EMIT("ldp             q4, q5, [%[" SEL(SRC2, SRC1) "], #0x00]") \
+    __ASM_EMIT(SEL("fmul        v4.4s, v4.4s, v20.4s", ""))                     /* v4   = d */ \
+    __ASM_EMIT(SEL("fmul        v5.4s, v5.4s, v21.4s", "")) \
+    __ASM_EMIT("frecpe          v16.4s, v4.4s")                                 /* v16  = s2 */ \
+    __ASM_EMIT("frecpe          v17.4s, v5.4s") \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2) */ \
+    __ASM_EMIT("frecps          v1.4s, v17.4s, v5.4s") \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("fmul            v17.4s, v1.4s, v17.4s") \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2') */ \
+    __ASM_EMIT("frecps          v1.4s, v17.4s, v5.4s") \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("fmul            v17.4s, v1.4s, v17.4s") \
+    __ASM_EMIT("ldp             q0, q1, [%[" SEL(SRC1, SRC2) "], #0x00]") \
+    __ASM_EMIT(SEL("", "fmul    v0.4s, v0.4s, v20.4s"))                         /* v0   = s */ \
+    __ASM_EMIT(SEL("", "fmul    v1.4s, v1.4s, v21.4s"))\
+    __ASM_EMIT("fmul            v16.4s, v16.4s, v0.4s")                         /* v16  = s/d */ \
+    __ASM_EMIT("fmul            v17.4s, v17.4s, v1.4s") \
+    __ASM_EMIT("frintz          v16.4s, v16.4s") \
+    __ASM_EMIT("frintz          v17.4s, v17.4s") \
+    __ASM_EMIT("fmls            v0.4s, v4.4s, v16.4s")                          /* v0   = s - d*int(s/d) */ \
+    __ASM_EMIT("fmls            v1.4s, v5.4s, v17.4s") \
+    __ASM_EMIT("stp             q0, q1, [%[" DST "], #0x00]") \
+    __ASM_EMIT("sub             %[count], %[count], #8") \
+    __ASM_EMIT(INC1("add        %[" SRC1 "], %[" SRC1 "], #0x20")) \
+    __ASM_EMIT(INC2("add        %[" SRC2 "], %[" SRC2 "], #0x20")) \
+    __ASM_EMIT(INCD("add        %[" DST "], %[" DST "], #0x20")) \
+    /* 4x blocks */ \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("adds            %[count], %[count], #4") \
+    __ASM_EMIT("b.lt            6f") \
+    __ASM_EMIT("ldr             q4, [%[" SEL(SRC2, SRC1) "]]") \
+    __ASM_EMIT(SEL("fmul        v4.4s, v4.4s, v20.4s", ""))                     /* v4   = d */ \
+    __ASM_EMIT("frecpe          v16.4s, v4.4s")                                 /* v16  = s2 */ \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2) */ \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2') */ \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("ldr             q0, [%[" SEL(SRC1, SRC2) "]]") \
+    __ASM_EMIT(SEL("", "fmul    v0.4s, v0.4s, v20.4s"))                         /* v0   = s */ \
+    __ASM_EMIT("fmul            v16.4s, v16.4s, v0.4s")                         /* v16  = s/d */ \
+    __ASM_EMIT("frintz          v16.4s, v16.4s") \
+    __ASM_EMIT("fmls            v0.4s, v4.4s, v16.4s")                          /* v0   = s - d*int(s/d) */ \
+    __ASM_EMIT("str             q0, [%[" DST "]]") \
+    __ASM_EMIT("sub             %[count], %[count], #4") \
+    __ASM_EMIT(INC1("add        %[" SRC1 "], %[" SRC1 "], #0x10")) \
+    __ASM_EMIT(INC2("add        %[" SRC2 "], %[" SRC2 "], #0x10")) \
+    __ASM_EMIT(INCD("add        %[" DST "], %[" DST "], #0x10")) \
+    /* 1x blocks */ \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("adds            %[count], %[count], #3") \
+    __ASM_EMIT("b.lt            8f") \
+    __ASM_EMIT("7:") \
+    __ASM_EMIT("ld1r            {v4.4s}, [%[" SEL(SRC2, SRC1) "]]") \
+    __ASM_EMIT(SEL("fmul        v4.4s, v4.4s, v20.4s", ""))                     /* v4   = d */ \
+    __ASM_EMIT("frecpe          v16.4s, v4.4s")                                 /* v16  = s2 */ \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2) */ \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2' = s2 * (2 - R*s2) */ \
+    __ASM_EMIT("frecps          v0.4s, v16.4s, v4.4s")                          /* v0   = (2 - R*s2') */ \
+    __ASM_EMIT("fmul            v16.4s, v0.4s, v16.4s")                         /* v16  = s2" = s2' * (2 - R*s2) = 1/d */  \
+    __ASM_EMIT("ld1r            {v0.4s}, [%[" SEL(SRC1, SRC2) "]]") \
+    __ASM_EMIT(SEL("", "fmul    v0.4s, v0.4s, v20.4s"))                         /* v0   = s */ \
+    __ASM_EMIT("fmul            v16.4s, v16.4s, v0.4s")                         /* v16  = s/d */ \
+    __ASM_EMIT("frintz          v16.4s, v16.4s") \
+    __ASM_EMIT("fmls            v0.4s, v4.4s, v16.4s")                          /* v0   = s - d*int(s/d) */ \
+    __ASM_EMIT("st1             {v0.s}[0], [%[" DST "]]") \
+    __ASM_EMIT("subs            %[count], %[count], #1") \
+    __ASM_EMIT(INC1("add        %[" SRC1 "], %[" SRC1 "], #0x04")) \
+    __ASM_EMIT(INC2("add        %[" SRC2 "], %[" SRC2 "], #0x04")) \
+    __ASM_EMIT(INCD("add        %[" DST "], %[" DST "], #0x04")) \
+    __ASM_EMIT("bge             7b") \
+    __ASM_EMIT("8:")
+
+    void fmmod_k3(float *dst, const float *src, float k, size_t count)
+    {
+        IF_ARCH_AARCH64(float *pk = &k);
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ld1r        {v20.4s}, [%[k]]")
+            FMMOD_VV_CORE("dst", INC_ON, "dst", INC_OFF, "src", INC_ON, OP_DSEL)
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [k] "r" (pk)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19", "q20", "q21", "q22", "q23"
+        );
+    }
+
+    void fmrmod_k3(float *dst, const float *src, float k, size_t count)
+    {
+        IF_ARCH_AARCH64(float *pk = &k);
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ld1r        {v20.4s}, [%[k]]")
+            FMMOD_VV_CORE("dst", INC_ON, "dst", INC_OFF, "src", INC_ON, OP_RSEL)
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [k] "r" (pk)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19", "q20", "q21", "q22", "q23"
+        );
+    }
+
+    void fmmod_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        IF_ARCH_AARCH64(float *pk = &k);
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ld1r        {v20.4s}, [%[k]]")
+            FMMOD_VV_CORE("dst", INC_ON, "src1", INC_ON, "src2", INC_ON, OP_DSEL)
+            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
+              [count] "+r" (count)
+            : [k] "r" (pk)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19", "q20", "q21", "q22", "q23"
+        );
+    }
+
+    void fmrmod_k4(float *dst, const float *src1, const float *src2, float k, size_t count)
+    {
+        IF_ARCH_AARCH64(float *pk = &k);
+        ARCH_AARCH64_ASM
+        (
+            __ASM_EMIT("ld1r        {v20.4s}, [%[k]]")
+            FMMOD_VV_CORE("dst", INC_ON, "src1", INC_ON, "src2", INC_ON, OP_RSEL)
+            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
+              [count] "+r" (count)
+            : [k] "r" (pk)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19", "q20", "q21", "q22", "q23"
+        );
+    }
+
+#undef FMMOD_VV_CORE
+
+#undef INC_ON
+#undef INC_OFF
 
 #undef OP_DSEL
 #undef OP_RSEL

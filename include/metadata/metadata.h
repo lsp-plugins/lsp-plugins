@@ -27,7 +27,8 @@
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
 #define LSP_PLUGIN_UI_URI(format, plugin)               LSP_UI_URI(format) #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
-#define LSP_DONATION_URI                                "https://salt.bountysource.com/teams/" LSP_ARTIFACT_ID
+#define LSP_DONATION_URI1                               "https://salt.bountysource.com/teams/" LSP_ARTIFACT_ID
+#define LSP_DONATION_URI2                               "https://liberapay.com/sadko4u/donate"
 #define LSP_DOWNLOAD_URI                                LSP_BASE_URI "?page=download"
 
 // Different LV2 UI classes for different platforms
@@ -139,7 +140,8 @@ namespace lsp
         R_PATH,                 // Path to the local file
         R_MIDI,                 // MIDI events
         R_PORT_SET,             // Set of ports
-        R_OSC                   // OSC events
+        R_OSC,                  // OSC events
+        R_BYPASS                // Bypass
     };
 
     enum flags_t
@@ -156,6 +158,7 @@ namespace lsp
         F_LOWERING      = (1 << 8),     // Proportionally lowering default value (for port sets)
         F_PEAK          = (1 << 9),     // Peak flag
         F_CYCLIC        = (1 << 10),    // Cyclic flag
+        F_EXT           = (1 << 11),    // Extended range
     };
 
     #define IS_OUT_PORT(p)      ((p)->flags & F_OUT)
@@ -270,19 +273,24 @@ namespace lsp
         const char                 *parent_id;  // Reference to parent group
     } port_group_t;
 
+    typedef struct port_item_t {
+        const char             *text;           // Text to display, required
+        const char             *lc_key;         // Localized key  (optional)
+    } port_item_t;
+
     typedef struct port_t
     {
-        const char     *id;         // Control ID
-        const char     *name;       // Control name
-        unit_t          unit;       // Units
-        role_t          role;       // Role
-        int             flags;      // Flags
-        float           min;        // Minimum value
-        float           max;        // Maximum value
-        float           start;      // Initial value
-        float           step;       // Change step
-        const char    **items;      // Items for enum / port set
-        const port_t   *members;    // Port members for group
+        const char             *id;             // Control ID
+        const char             *name;           // Control name
+        unit_t                  unit;           // Units
+        role_t                  role;           // Role
+        int                     flags;          // Flags
+        float                   min;            // Minimum value
+        float                   max;            // Maximum value
+        float                   start;          // Initial value
+        float                   step;           // Change step
+        const port_item_t      *items;          // Items for enum / port set
+        const port_t           *members;        // Port members for group
     } port_t;
 
     typedef struct person_t
@@ -317,13 +325,14 @@ namespace lsp
     extern const port_t         lv2_latency_port;
 
     const char     *encode_unit(size_t unit);
+    const char     *unit_lc_key(size_t code);
     unit_t          decode_unit(const char *name);
     bool            is_discrete_unit(size_t unit);
     bool            is_decibel_unit(size_t unit);
     bool            is_degree_unit(size_t unit);
     bool            is_log_rule(const port_t *port);
 
-    size_t          list_size(const char **list);
+    size_t          list_size(const port_item_t *list);
     float           limit_value(const port_t *port, float value);
 
     void            format_float(char *buf, size_t len, const port_t *meta, float value, ssize_t precision = -1);

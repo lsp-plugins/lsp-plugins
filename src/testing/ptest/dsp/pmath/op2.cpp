@@ -22,6 +22,8 @@ namespace native
     void    mul2(float *dst, const float *src, size_t count);
     void    div2(float *dst, const float *src, size_t count);
     void    rdiv2(float *dst, const float *src, size_t count);
+    void    mod2(float *dst, const float *src, size_t count);
+    void    rmod2(float *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
@@ -35,6 +37,12 @@ IF_ARCH_X86(
         void    rdiv2(float *dst, const float *src, size_t count);
     }
 
+    namespace sse2
+    {
+        void    mod2(float *dst, const float *src, size_t count);
+        void    rmod2(float *dst, const float *src, size_t count);
+    }
+
     namespace avx
     {
         void    add2(float *dst, const float *src, size_t count);
@@ -43,6 +51,10 @@ IF_ARCH_X86(
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
         void    rdiv2(float *dst, const float *src, size_t count);
+        void    mod2(float *dst, const float *src, size_t count);
+        void    rmod2(float *dst, const float *src, size_t count);
+        void    mod2_fma3(float *dst, const float *src, size_t count);
+        void    rmod2_fma3(float *dst, const float *src, size_t count);
     }
 )
 
@@ -55,6 +67,8 @@ IF_ARCH_ARM(
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
         void    rdiv2(float *dst, const float *src, size_t count);
+        void    mod2(float *dst, const float *src, size_t count);
+        void    rmod2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -67,6 +81,8 @@ IF_ARCH_AARCH64(
         void    mul2(float *dst, const float *src, size_t count);
         void    div2(float *dst, const float *src, size_t count);
         void    rdiv2(float *dst, const float *src, size_t count);
+        void    mod2(float *dst, const float *src, size_t count);
+        void    rmod2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -146,6 +162,22 @@ PTEST_BEGIN("dsp.pmath", op2, 5, 1000)
             IF_ARCH_X86(CALL(avx::rdiv2));
             IF_ARCH_ARM(CALL(neon_d32::rdiv2));
             IF_ARCH_AARCH64(CALL(asimd::rdiv2));
+            PTEST_SEPARATOR;
+
+            CALL(native::mod2);
+            IF_ARCH_X86(CALL(sse2::mod2));
+            IF_ARCH_X86(CALL(avx::mod2));
+            IF_ARCH_X86(CALL(avx::mod2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::mod2));
+            IF_ARCH_AARCH64(CALL(asimd::mod2));
+            PTEST_SEPARATOR;
+
+            CALL(native::rmod2);
+            IF_ARCH_X86(CALL(sse2::rmod2));
+            IF_ARCH_X86(CALL(avx::rmod2));
+            IF_ARCH_X86(CALL(avx::rmod2_fma3));
+            IF_ARCH_ARM(CALL(neon_d32::rmod2));
+            IF_ARCH_AARCH64(CALL(asimd::rmod2));
             PTEST_SEPARATOR2;
         }
 

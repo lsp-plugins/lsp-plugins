@@ -19,10 +19,23 @@ IF_ARCH_X86(
     {
         void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
     }
+
+    namespace avx
+    {
+        void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
+        void convolve_fma3(float *dst, const float *src, const float *conv, size_t length, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
     }
@@ -49,7 +62,7 @@ UTEST_BEGIN("dsp", convolve)
 //        size_t mask = 0;
         {
             UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
-//            size_t count = 31;
+//            size_t count = 4;
             {
                 FloatBuffer src(count, align, mask & 0x01);
 //                src.fill_zero();
@@ -57,7 +70,7 @@ UTEST_BEGIN("dsp", convolve)
 //                src[2] = -1.0f;
 
                 UTEST_FOREACH(length, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
-//                size_t lenth = 128;
+//                size_t length = 128;
                 {
                     printf("Tesing %s convolution length=%d on buffer count=%d mask=0x%x\n", label, int(length), int(count), int(mask));
 
@@ -98,9 +111,15 @@ UTEST_BEGIN("dsp", convolve)
 
     UTEST_MAIN
     {
-        call("native:convolve", 16, native::convolve);
-        IF_ARCH_X86(call("sse:convolve", 16, sse::convolve));
-        IF_ARCH_ARM(call("neon_d32:convolve", 16, neon_d32::convolve));
+        #define CALL(func, align) \
+            call(#func, align, func)
+
+        CALL(native::convolve, 16);
+        IF_ARCH_X86(CALL(sse::convolve, 16));
+        IF_ARCH_X86(CALL(avx::convolve, 32));
+        IF_ARCH_X86(CALL(avx::convolve_fma3, 32));
+        IF_ARCH_ARM(CALL(neon_d32::convolve, 16));
+        IF_ARCH_AARCH64(CALL(asimd::convolve, 16));
     }
 
 UTEST_END;

@@ -163,63 +163,94 @@ typedef int64_t VstInt64;
 #define chunkPresetMagic    CCONST('F', 'P', 'C', 'h')      /* Opaque chunk (preset) magic number for program chunk (FXP) */
 #define chunkBankMagic      CCONST('F', 'B', 'C', 'h')      /* Opaque chunk (preset) magic number for bank chunk (FXB) */
 
+/**
+ * Host can do the following
+ */
+#define canDoSendVstEvents                  "sendVstEvents"                     /* Host supports send of Vst events to plug-in */
+#define canDoSendVstMidiEvent               "sendVstMidiEvent"                  /* Host supports send of Vst events to plug-in */
+#define canDoSendVstTimeInfo                "sendVstTimeInfo"                   /* Host supports send of VstTimeInfo to plug-in */
+#define canDoReceiveVstEvents               "receiveVstEvents"                  /* Host can receive Vst events from plug-in */
+#define canDoReceiveVstMidiEvent            "receiveVstMidiEvent"               /* Host can receive MIDI events from plug-in */
+#define canDoReportConnectionChanges        "reportConnectionChanges"           /* Host will indicates the plug-in when something change in plug-in´s routing/connections with suspend/resume/setSpeakerArrangement */
+#define canDoAcceptIOChanges                "acceptIOChanges"                   /* Host supports ioChanged () */
+#define canDoSizeWindow                     "sizeWindow"                        /* used by VSTGUI */
+#define canDoOffline                        "offline"                           /* Host supports offline feature */
+#define canDoOpenFileSelector               "openFileSelector"                  /* Host supports function openFileSelector () */
+#define canDoCloseFileSelector              "closeFileSelector"                 /* Host supports function closeFileSelector () */
+#define canDoStartStopProcess               "startStopProcess"                  /* Host supports functions startProcess () and stopProcess () */
+#define canDoShellCategory                  "shellCategory"                     /* 'shell' handling via uniqueID. If supported by the Host and the Plug-in has the category kPlugCategShell */
+#define canDoSendVstMidiEventFlagIsRealtime "sendVstMidiEventFlagIsRealtime"    /* Host supports flags for VstMidiEvent */
+
+/**
+ * Plugin can do the following
+ */
+#define canDoSendVstEvents                  "sendVstEvents"                     /* plug-in will send Vst events to Host */
+#define canDoSendVstMidiEvent               "sendVstMidiEvent"                  /* plug-in will send MIDI events to Host */
+#define canDoReceiveVstEvents               "receiveVstEvents"                  /* plug-in can receive MIDI events from Host */
+#define canDoReceiveVstMidiEvent            "receiveVstMidiEvent"               /* plug-in can receive MIDI events from Host  */
+#define canDoReceiveVstTimeInfo             "receiveVstTimeInfo"                /* plug-in can receive Time info from Host  */
+#define canDoOffline                        "offline"                           /* plug-in supports offline functions (offlineNotify, offlinePrepare, offlineRun) */
+#define canDoMidiProgramNames               "midiProgramNames"                  /* plug-in supports function getMidiProgramName () */
+#define canDoBypass                         "bypass"                            /* plug-in supports function setBypass () */
+
+
 enum VstAEffectFlags
 {
     /** Plugin provides custom user interface/editor
      *
      */
-    effFlagsHasEditor           = 1 << 0,
+    effFlagsHasEditor           = 1 << 0, //!< effFlagsHasEditor
 
     /** This flag is deprecated
      * @deprecated since VST 2.4
      */
-    effFlagsHasClip             = 1 << 1,
+    effFlagsHasClip             = 1 << 1, //!< effFlagsHasClip
 
     /** This flag is deprecated
      * @deprecated since VST 2.4
      */
-    effFlagsHasVu               = 1 << 2,
+    effFlagsHasVu               = 1 << 2, //!< effFlagsHasVu
 
     /** This flag is deprecated
      * @deprecated since VST 2.4
      */
-    effFlagsCanMono             = 1 << 3,
+    effFlagsCanMono             = 1 << 3, //!< effFlagsCanMono
 
     /** Supports replacing process mode, default mode for VST 2.4
      *
      */
-    effFlagsCanReplacing        = 1 << 4,
+    effFlagsCanReplacing        = 1 << 4, //!< effFlagsCanReplacing
 
     /** Program data is handled in formatless chunks
      *
      */
-    effFlagsProgramChunks       = 1 << 5,
+    effFlagsProgramChunks       = 1 << 5, //!< effFlagsProgramChunks
 
     /** Plug-in is a synthesizer/instrument (VSTi),
      * host may assign mixer channels for its outputs
      *
      */
-    effFlagsIsSynth             = 1 << 8,
+    effFlagsIsSynth             = 1 << 8, //!< effFlagsIsSynth
 
     /** Plug-in does not produce sound when there is zero data on all inputs
      *
      */
-    effFlagsNoSoundInStop       = 1 << 9,
+    effFlagsNoSoundInStop       = 1 << 9, //!< effFlagsNoSoundInStop
 
     /** This flag is deprecated
      * @deprecated since VST 2.4
      */
-    effFlagsExtIsAsync          = 1 << 10,
+    effFlagsExtIsAsync          = 1 << 10,//!< effFlagsExtIsAsync
 
     /** This flag is deprecated
      * @deprecated since VST 2.4
      */
-    effFlagsExtHasBuffer        = 1 << 11,
+    effFlagsExtHasBuffer        = 1 << 11,//!< effFlagsExtHasBuffer
 
     /** Plug-in supports double precision processing
      * @since VST 2.4
      */
-    effFlagsCanDoubleReplacing  = 1 << 12
+    effFlagsCanDoubleReplacing  = 1 << 12 //!< effFlagsCanDoubleReplacing
 };
 
 /** Host to plugin communication codes

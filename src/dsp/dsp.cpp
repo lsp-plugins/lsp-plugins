@@ -99,25 +99,32 @@ namespace dsp
     void    (* mul2)(float *dst, const float *src, size_t count) = NULL;
     void    (* div2)(float *dst, const float *src, size_t count) = NULL;
     void    (* rdiv2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* mod2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rmod2)(float *dst, const float *src, size_t count) = NULL;
 
     void    (* add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
     void    (* div3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* mod3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
 
     void    (* add_k2)(float *dst, float k, size_t count) = NULL;
     void    (* sub_k2)(float *dst, float k, size_t count) = NULL;
     void    (* rsub_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* mul_k2)(float *dst, float k, size_t count) = NULL;
     void    (* div_k2)(float *dst, float k, size_t count) = NULL;
     void    (* rdiv_k2)(float *dst, float k, size_t count) = NULL;
-    void    (* mul_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* mod_k2)(float *dst, float k, size_t count) = NULL;
+    void    (* rmod_k2)(float *dst, float k, size_t count) = NULL;
 
     void    (* add_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* sub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* rsub_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* mul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* div_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* rdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
-    void    (* mul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* mod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* rmod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* exp1)(float *dst, size_t count) = NULL;
     void    (* exp2)(float *dst, const float *src, size_t count) = NULL;
@@ -148,6 +155,8 @@ namespace dsp
     void    (* fmmul_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* fmdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
     void    (* fmrdiv_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmmod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
+    void    (* fmrmod_k3)(float *dst, const float *src, float k, size_t count) = NULL;
 
     void    (* fmadd_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* fmsub_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
@@ -155,6 +164,8 @@ namespace dsp
     void    (* fmmul_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* fmdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
     void    (* fmrdiv_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmmod_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
+    void    (* fmrmod_k4)(float *dst, const float *src1, const float *src2, float k, size_t count) = NULL;
 
     void    (* fmadd3)(float *dst, const float *a, const float *b, size_t count) = NULL;
     void    (* fmsub3)(float *dst, const float *a, const float *b, size_t count) = NULL;
@@ -162,6 +173,8 @@ namespace dsp
     void    (* fmmul3)(float *dst, const float *a, const float *b, size_t count) = NULL;
     void    (* fmdiv3)(float *dst, const float *a, const float *b, size_t count) = NULL;
     void    (* fmrdiv3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmmod3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* fmrmod3)(float *dst, const float *a, const float *b, size_t count) = NULL;
 
     void    (* fmadd4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
     void    (* fmsub4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
@@ -169,6 +182,8 @@ namespace dsp
     void    (* fmmul4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
     void    (* fmdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
     void    (* fmrdiv4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmmod4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
+    void    (* fmrmod4)(float *dst, const float *a, const float *b, const float *c, size_t count) = NULL;
 
     void    (* mix2)(float *dst, const float *src, float k1, float k2, size_t count) = NULL;
     void    (* mix_copy2)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
@@ -250,6 +265,11 @@ namespace dsp
     void    (* dyn_biquad_process_x2)(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f) = NULL;
     void    (* dyn_biquad_process_x4)(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f) = NULL;
     void    (* dyn_biquad_process_x8)(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f) = NULL;
+
+    void    (* filter_transfer_calc_ri)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count) = NULL;
+    void    (* filter_transfer_apply_ri)(float *re, float *im, const f_cascade_t *c, const float *freq, size_t count) = NULL;
+    void    (* filter_transfer_calc_pc)(float *dst, const f_cascade_t *c, const float *freq, size_t count) = NULL;
+    void    (* filter_transfer_apply_pc)(float *dst, const f_cascade_t *c, const float *freq, size_t count) = NULL;
 
     void    (* bilinear_transform_x1)(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count) = NULL;
     void    (* bilinear_transform_x2)(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count) = NULL;

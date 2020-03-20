@@ -63,14 +63,33 @@ namespace lsp
 
             dlg->init();
             dlg->set_mode(FDM_OPEN_FILE);
-            dlg->set_title("Import REW filer settings");
-            dlg->set_action_title("Import");
+            dlg->title()->set("titles.import_rew_filter_settings");
+            dlg->action_title()->set("actions.import");
 
             LSPFileFilter *f = dlg->filter();
-            f->add("*.req|*.txt", "All REW filter settings (*.req, *.txt)", "");
-            f->add("*.req", "REW binary filter settings (*.req)", "");
-            f->add("*.txt", "REW text filter settings (*.txt)", "");
-            f->add("*", "All files (*.*)", "");
+            {
+                LSPFileFilterItem ffi;
+
+                ffi.pattern()->set("*.req|*.txt");
+                ffi.title()->set("files.roomeqwizard.all");
+                ffi.set_extension("");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*.req");
+                ffi.title()->set("files.roomeqwizard.req");
+                ffi.set_extension("");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*.txt");
+                ffi.title()->set("files.roomeqwizard.txt");
+                ffi.set_extension("");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*");
+                ffi.title()->set("files.all");
+                ffi.set_extension("");
+                f->add(&ffi);
+            }
             dlg->bind_action(slot_call_import_rew_file, ptr);
             dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_rew_path, _this);
             dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_rew_path, _this);
@@ -139,7 +158,7 @@ namespace lsp
             LSPMenuItem *child = new LSPMenuItem(&sDisplay);
             vWidgets.add(child);
             child->init();
-            child->set_text("REW filter file...");
+            child->text()->set("actions.import_rew_filter_file");
             child->slots()->bind(LSPSLOT_SUBMIT, slot_start_import_rew_file, this);
             menu->add(child);
         }

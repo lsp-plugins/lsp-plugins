@@ -16,29 +16,29 @@ namespace lsp
     // Gate
     static const int gate_classes[] = { C_GATE, -1 };
 
-    static const char *gate_sc_modes[] =
+    static const port_item_t gate_sc_modes[] =
     {
-        "Peak",
-        "RMS",
-        "Low-Pass",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL, NULL }
     };
 
-    static const char *gate_sc_sources[] =
+    static const port_item_t gate_sc_sources[] =
     {
-        "Middle",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *gate_sc_type[] =
+    static const port_item_t gate_sc_type[] =
     {
-        "Internal",
-        "External",
-        NULL
+        { "Internal",   "sidechain.internal" },
+        { "External",   "sidechain.external" },
+        { NULL, NULL }
     };
 
     #define GATE_COMMON     \

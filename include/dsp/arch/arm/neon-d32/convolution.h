@@ -27,12 +27,10 @@ namespace neon_d32
             __ASM_EMIT("blo         20f")
 
             __ASM_EMIT("10:")
-                __ASM_EMIT("veor        q15, q15, q15")             // q15 = 0 (history)
-                __ASM_EMIT("mov         %[clen], %[length]")
+                __ASM_EMIT("veor        q15, q15, q15")             // q15 = p0 p1 p2 p3 = 0 0 0 0 (history)
                 __ASM_EMIT("mov         %[d], %[dst]")
                 __ASM_EMIT("mov         %[c], %[conv]")
-
-                __ASM_EMIT("subs        %[clen], $4")
+                __ASM_EMIT("subs        %[clen], %[length], $4")
                 __ASM_EMIT("blo         12f")
 
                 // Load convolution coefficients
@@ -44,8 +42,8 @@ namespace neon_d32
 
                 // Load convolution kernel
                 __ASM_EMIT("11:")
-                    __ASM_EMIT("vld1.32     {q8}, [%[d]]")              // q8  = d0 d1 d2 d3
                     __ASM_EMIT("vld1.32     {q4}, [%[c]]!")             // q4  = c0 c1 c2 c3, c += 4
+                    __ASM_EMIT("vld1.32     {q8}, [%[d]]")              // q8  = d0 d1 d2 d3
                     __ASM_EMIT("vext.8      q5, q15, q4, $12")          // q5  = p3 c0 c1 c2
                     __ASM_EMIT("vext.8      q6, q15, q4, $8")           // q6  = p2 p3 c0 c1
                     __ASM_EMIT("vext.8      q7, q15, q4, $4")           // q7  = p1 p2 p3 c0
@@ -94,14 +92,12 @@ namespace neon_d32
             __ASM_EMIT("adds        %[count], $3")
             __ASM_EMIT("blt         40f")
             __ASM_EMIT("21:")
-                __ASM_EMIT("mov         %[clen], %[length]")
                 __ASM_EMIT("mov         %[d], %[dst]")
                 __ASM_EMIT("mov         %[c], %[conv]")
-                __ASM_EMIT("vld1.32     {d0[]}, [%[k]]")        // d0 = k0 k0
-                __ASM_EMIT("subs        %[clen], $8")
-                __ASM_EMIT("vmov        d1, d0")                // q0 = k0 k0 k0 k0
-                __ASM_EMIT("blo         22f")
+                __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[k]]")  // q0 = k0 k0 k0 k0
+                __ASM_EMIT("subs        %[clen], %[length], $8")
                 __ASM_EMIT("vmov        q1, q0")                // q1 = k0 k0 k0 k0
+                __ASM_EMIT("blo         22f")
                 __ASM_EMIT("23:")
                     __ASM_EMIT("vld1.32     {q2-q3}, [%[c]]!")  // q2 = c0 c1 c2 c3, c+= 8
                     __ASM_EMIT("vld1.32     {q8-q9}, [%[d]]")   // q8 = d0 d1 d2 d3

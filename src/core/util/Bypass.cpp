@@ -25,14 +25,31 @@ namespace lsp
     bool Bypass::set_bypass(bool bypass)
     {
         // Trigger state change
-        if ((bypass) && (nState == S_ON))
-            return false;
-        else if ((!bypass) && (nState == S_OFF))
-            return false;
+        switch (nState)
+        {
+            case S_ON:
+                if (bypass)
+                    return false;
+                nState  = S_ACTIVE;
+                break;
+            case S_OFF:
+                if (!bypass)
+                    return false;
+                nState  = S_ACTIVE;
+                break;
+            case S_ACTIVE:
+            {
+                bool off    = (fDelta < 0.0f);
+                if (bypass == off)
+                    return false;
+                break;
+            }
+            default:
+                return false;
+        }
 
         // Change sign of the applying delta
         fDelta  = -fDelta;
-        nState  = S_ACTIVE;
         return true;
     }
 
@@ -50,10 +67,12 @@ namespace lsp
     void Bypass::init(int sample_rate, float time)
     {
         // Off by default
-        float length= sample_rate * time;
-        nState      = S_OFF;
-        fDelta      = 1.0 / (length + 1);
-        fGain       = 1.0;
+        float length    = sample_rate * time;
+        if (length < 1.0f)
+            length          = 1.0f;
+        nState          = S_OFF;
+        fDelta          = 1.0 / length;
+        fGain           = 1.0;
     }
 
     void Bypass::process(float *dst, const float *dry, const float *wet, size_t count)

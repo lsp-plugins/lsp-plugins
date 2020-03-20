@@ -42,6 +42,7 @@
 #include <dsp/arch/native/filters/static.h>
 #include <dsp/arch/native/filters/dynamic.h>
 #include <dsp/arch/native/filters/transform.h>
+#include <dsp/arch/native/filters/transfer.h>
 
 #include <dsp/arch/native/fft.h>
 #include <dsp/arch/native/fastconv.h>
@@ -139,6 +140,8 @@ namespace native
         EXPORT1(mul_k2);
         EXPORT1(div_k2);
         EXPORT1(rdiv_k2);
+        EXPORT1(mod_k2);
+        EXPORT1(rmod_k2);
 
         EXPORT1(add_k3);
         EXPORT1(sub_k3);
@@ -146,6 +149,8 @@ namespace native
         EXPORT1(mul_k3);
         EXPORT1(div_k3);
         EXPORT1(rdiv_k3);
+        EXPORT1(mod_k3);
+        EXPORT1(rmod_k3);
 
         EXPORT1(add2);
         EXPORT1(sub2);
@@ -153,11 +158,14 @@ namespace native
         EXPORT1(mul2);
         EXPORT1(div2);
         EXPORT1(rdiv2);
+        EXPORT1(mod2);
+        EXPORT1(rmod2);
 
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
+        EXPORT1(mod3);
 
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);
@@ -172,6 +180,8 @@ namespace native
         EXPORT1(fmmul_k3);
         EXPORT1(fmdiv_k3);
         EXPORT1(fmrdiv_k3);
+        EXPORT1(fmmod_k3);
+        EXPORT1(fmrmod_k3);
 
         EXPORT1(fmadd_k4);
         EXPORT1(fmsub_k4);
@@ -179,6 +189,8 @@ namespace native
         EXPORT1(fmmul_k4);
         EXPORT1(fmdiv_k4);
         EXPORT1(fmrdiv_k4);
+        EXPORT1(fmmod_k4);
+        EXPORT1(fmrmod_k4);
 
         EXPORT1(fmadd3);
         EXPORT1(fmsub3);
@@ -186,6 +198,8 @@ namespace native
         EXPORT1(fmmul3);
         EXPORT1(fmdiv3);
         EXPORT1(fmrdiv3);
+        EXPORT1(fmmod3);
+        EXPORT1(fmrmod3);
 
         EXPORT1(fmadd4);
         EXPORT1(fmsub4);
@@ -193,6 +207,8 @@ namespace native
         EXPORT1(fmmul4);
         EXPORT1(fmdiv4);
         EXPORT1(fmrdiv4);
+        EXPORT1(fmmod4);
+        EXPORT1(fmrmod4);
 
         EXPORT1(mix2);
         EXPORT1(mix_copy2);
@@ -262,7 +278,6 @@ namespace native
         EXPORT1(ms_to_lr);
         EXPORT1(ms_to_left);
         EXPORT1(ms_to_right);
-        EXPORT1(avoid_denormals);
 
         EXPORT1(biquad_process_x1);
         EXPORT1(biquad_process_x2);
@@ -273,6 +288,11 @@ namespace native
         EXPORT1(dyn_biquad_process_x2);
         EXPORT1(dyn_biquad_process_x4);
         EXPORT1(dyn_biquad_process_x8);
+
+        EXPORT1(filter_transfer_calc_ri);
+        EXPORT1(filter_transfer_apply_ri);
+        EXPORT1(filter_transfer_calc_pc);
+        EXPORT1(filter_transfer_apply_pc);
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);

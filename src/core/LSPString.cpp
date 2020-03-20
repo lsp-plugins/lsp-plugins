@@ -84,6 +84,14 @@ namespace lsp
     }
 #endif /* ARCH_LE */
 
+    inline size_t LSPString::xlen(const lsp_wchar_t *s)
+    {
+        const lsp_wchar_t *p = s;
+        while (*p != '\0')
+            ++p;
+        return p - s;
+    }
+
     int LSPString::xcasecmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n)
     {
         while (n--)
@@ -299,7 +307,7 @@ namespace lsp
                 return NULL;
             }
 
-            xcopy(s->pData, pData, nLength);
+            xmove(s->pData, pData, nLength);
         }
         else
             s->pData        = NULL;
@@ -388,6 +396,11 @@ namespace lsp
         return true;
     }
 
+    bool LSPString::set(const lsp_wchar_t *arr)
+    {
+        return set(arr, xlen(arr));
+    }
+
     bool LSPString::set(const lsp_wchar_t *arr, size_t n)
     {
         drop_temp();
@@ -395,7 +408,7 @@ namespace lsp
         if (!cap_reserve(n))
             return false;
 
-        xcopy(pData, arr, n);
+        xmove(pData, arr, n);
         nLength     = n;
         return true;
     }
@@ -416,7 +429,7 @@ namespace lsp
         if (!cap_reserve(src->nLength))
             return false;
         if (src->nLength > 0)
-            xcopy(pData, src->pData, src->nLength);
+            xmove(pData, src->pData, src->nLength);
         nLength     = src->nLength;
         return true;
     }
@@ -432,7 +445,7 @@ namespace lsp
         {
             if (!cap_reserve(length))
                 return false;
-            xcopy(pData, &src->pData[first], length);
+            xmove(pData, &src->pData[first], length);
             nLength     = length;
         }
         else
@@ -452,7 +465,7 @@ namespace lsp
         {
             if (!cap_reserve(length))
                 return false;
-            xcopy(pData, &src->pData[first], length);
+            xmove(pData, &src->pData[first], length);
             nLength     = length;
         }
         else
@@ -486,7 +499,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+n], &pData[pos], count);
-        xcopy(&pData[pos], arr, n);
+        xmove(&pData[pos], arr, n);
         nLength    += n;
 
         return true;
@@ -504,7 +517,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+src->nLength], &pData[pos], count);
-        xcopy(&pData[pos], src->pData, src->nLength);
+        xmove(&pData[pos], src->pData, src->nLength);
         nLength    += src->nLength;
 
         return true;
@@ -524,7 +537,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+length], &pData[pos], count);
-        xcopy(&pData[pos], &src->pData[first], length);
+        xmove(&pData[pos], &src->pData[first], length);
         nLength    += length;
 
         return true;
@@ -545,7 +558,7 @@ namespace lsp
         ssize_t count = nLength - pos;
         if (count > 0)
             xmove(&pData[pos+length], &pData[pos], count);
-        xcopy(&pData[pos], &src->pData[first], length);
+        xmove(&pData[pos], &src->pData[first], length);
         nLength    += length;
 
         return true;
@@ -579,7 +592,7 @@ namespace lsp
     {
         if (!cap_grow(n))
             return false;
-        xcopy(&pData[nLength], arr, n);
+        xmove(&pData[nLength], arr, n);
         nLength += n;
         return true;
     }
@@ -610,7 +623,7 @@ namespace lsp
             return true;
         if (!cap_grow(src->nLength))
             return false;
-        xcopy(&pData[nLength], src->pData, src->nLength);
+        xmove(&pData[nLength], src->pData, src->nLength);
         nLength += src->nLength;
         return true;
     }
@@ -624,7 +637,7 @@ namespace lsp
 
         if (!cap_grow(length))
             return false;
-        xcopy(&pData[nLength], &src->pData[first], length);
+        xmove(&pData[nLength], &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -639,7 +652,7 @@ namespace lsp
 
         if (!cap_grow(length))
             return false;
-        xcopy(&pData[nLength], &src->pData[first], length);
+        xmove(&pData[nLength], &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -663,7 +676,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[n], pData, nLength);
-        xcopy(pData, arr, n);
+        xmove(pData, arr, n);
         nLength += n;
         return true;
     }
@@ -700,7 +713,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[src->nLength], pData, nLength);
-        xcopy(pData, src->pData, src->nLength);
+        xmove(pData, src->pData, src->nLength);
         nLength += src->nLength;
         return true;
     }
@@ -716,7 +729,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[length], pData, nLength);
-        xcopy(pData, &src->pData[first], length);
+        xmove(pData, &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -733,7 +746,7 @@ namespace lsp
             return false;
         if (nLength > 0)
             xmove(&pData[length], pData, nLength);
-        xcopy(pData, &src->pData[first], length);
+        xmove(pData, &src->pData[first], length);
         nLength += length;
         return true;
     }
@@ -992,7 +1005,7 @@ namespace lsp
         if (!cap_reserve(pos + n))
             return false;
 
-        xcopy(&pData[pos], arr, n);
+        xmove(&pData[pos], arr, n);
         nLength =  pos + n;
         return true;
     }
@@ -1004,7 +1017,7 @@ namespace lsp
         if (!cap_reserve(pos + src->nLength))
             return false;
 
-        xcopy(&pData[pos], src->pData, src->nLength);
+        xmove(&pData[pos], src->pData, src->nLength);
         nLength =  pos + src->nLength;
         return true;
     }
@@ -1020,7 +1033,7 @@ namespace lsp
             if (!cap_reserve(pos + length))
                 return false;
 
-            xcopy(&pData[pos], &src->pData[first], length);
+            xmove(&pData[pos], &src->pData[first], length);
         }
         nLength =  pos + length;
         return true;
@@ -1035,7 +1048,7 @@ namespace lsp
         if (!cap_reserve(pos + length))
             return false;
 
-        xcopy(&pData[pos], &src->pData[first], length);
+        xmove(&pData[pos], &src->pData[first], length);
         nLength =  pos + length;
         return true;
     }
@@ -1075,7 +1088,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + n], &pData[tail], nLength - tail);
         if (n > 0)
-            xcopy(&pData[first], arr, n);
+            xmove(&pData[first], arr, n);
         nLength = nLength - count + n;
         return true;
     }
@@ -1095,7 +1108,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + src->nLength], &pData[tail], nLength - tail);
         if (src->nLength > 0)
-            xcopy(&pData[first], src->pData, src->nLength);
+            xmove(&pData[first], src->pData, src->nLength);
         nLength = nLength - count + src->nLength;
         return true;
     }
@@ -1118,7 +1131,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + scount], &pData[tail], nLength - tail);
         if (scount > 0)
-            xcopy(&pData[first], &src->pData[sfirst], scount);
+            xmove(&pData[first], &src->pData[sfirst], scount);
         nLength = nLength - count + scount;
         return true;
     }
@@ -1144,7 +1157,7 @@ namespace lsp
         if (tail > 0)
             xmove(&pData[first + scount], &pData[tail], nLength - tail);
         if (scount > 0)
-            xcopy(&pData[first], &src->pData[sfirst], scount);
+            xmove(&pData[first], &src->pData[sfirst], scount);
         nLength = nLength - count + scount;
         return true;
     }
@@ -1295,7 +1308,7 @@ namespace lsp
                 return NULL;
             }
 
-            xcopy(s->pData, &pData[first], length);
+            xmove(s->pData, &pData[first], length);
         }
         else
             s->pData        = NULL;
@@ -1327,7 +1340,7 @@ namespace lsp
                 return NULL;
             }
 
-            xcopy(s->pData, &pData[first], length);
+            xmove(s->pData, &pData[first], length);
         }
         else
             s->pData        = NULL;
@@ -1335,10 +1348,15 @@ namespace lsp
         return s;
     }
 
-    int LSPString::compare_to(const LSPString *src) const
+    int LSPString::compare_to(const lsp_wchar_t *src) const
     {
-        ssize_t n = (nLength > src->nLength) ? src->nLength : nLength;
-        const lsp_wchar_t *a = pData, *b = src->pData;
+        return compare_to(src, xlen(src));
+    }
+
+    int LSPString::compare_to(const lsp_wchar_t *src, size_t len) const
+    {
+        ssize_t n = (nLength > len) ? len : nLength;
+        const lsp_wchar_t *a = pData, *b = src;
 
         while (n--)
         {
@@ -1349,7 +1367,7 @@ namespace lsp
 
         if (a < &pData[nLength])
             return int(*a);
-        else if (b < &src->pData[src->nLength])
+        else if (b < &src[len])
             return -int(*b);
 
         return 0;
@@ -1389,10 +1407,10 @@ namespace lsp
         return -int(uint8_t(src[i]));
     }
 
-    int LSPString::compare_to_nocase(const LSPString *src) const
+    int LSPString::compare_to_nocase(const lsp_wchar_t *src, size_t len) const
     {
-        ssize_t n = (nLength > src->nLength) ? src->nLength : nLength;
-        const lsp_wchar_t *a = pData, *b = src->pData;
+        ssize_t n = (nLength > len) ? len : nLength;
+        const lsp_wchar_t *a = pData, *b = src;
 
         while (n--)
         {
@@ -1403,10 +1421,15 @@ namespace lsp
 
         if (a < &pData[nLength])
             return int(*a);
-        else if (b < &src->pData[src->nLength])
+        else if (b < &src[len])
             return -int(*b);
 
         return 0;
+    }
+
+    int LSPString::compare_to_nocase(const lsp_wchar_t *src) const
+    {
+        return compare_to_nocase(src, xlen(src));
     }
 
     int LSPString::compare_to_utf8_nocase(const char *src) const
@@ -1483,22 +1506,27 @@ namespace lsp
         return n;
     }
 
-    bool LSPString::equals(const LSPString *src) const
+    bool LSPString::equals(const lsp_wchar_t *src, size_t len) const
     {
-        if (nLength != src->nLength)
+        if (nLength != len)
             return false;
         if (nLength <= 0)
             return true;
 
-        return xcmp(pData, src->pData, nLength) == 0;
+        return xcmp(pData, src, nLength) == 0;
     }
 
-    bool LSPString::equals_nocase(const LSPString *src) const
+    bool LSPString::equals(const lsp_wchar_t *src) const
     {
-        if (nLength != src->nLength)
+        return equals(src, xlen(src));
+    }
+
+    bool LSPString::equals_nocase(const lsp_wchar_t *src, size_t len) const
+    {
+        if (nLength != len)
             return false;
 
-        const lsp_wchar_t *a = pData, *b = src->pData;
+        const lsp_wchar_t *a = pData, *b = src;
         for (size_t i=nLength; i>0; --i)
         {
             if (towlower(*(a++)) != towlower(*(b++)))
@@ -1506,6 +1534,11 @@ namespace lsp
         }
 
         return true;
+    }
+
+    bool LSPString::equals_nocase(const lsp_wchar_t *src) const
+    {
+        return equals_nocase(src, xlen(src));
     }
 
     bool LSPString::set_utf8(const char *s, size_t n)

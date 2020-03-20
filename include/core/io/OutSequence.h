@@ -39,6 +39,10 @@ namespace lsp
                 virtual ~OutSequence();
 
             public:
+                using IOutSequence::write;
+                using IOutSequence::write_ascii;
+
+            public:
                 status_t wrap(FILE *fd, bool close, const char *charset = NULL);
 
                 status_t wrap_native(lsp_fhandle_t fd, bool close, const char *charset = NULL);

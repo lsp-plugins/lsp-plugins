@@ -18,15 +18,17 @@ namespace lsp
 
         enum envelope_t
         {
-            PURPLE_NOISE,
+            VIOLET_NOISE,
             BLUE_NOISE,
             WHITE_NOISE,
             PINK_NOISE,
             BROWN_NOISE,
+            MINUS_4_5_DB,
+            PLUS_4_5_DB,
 
             // Special variables
             TOTAL,
-            FIRST = PURPLE_NOISE,
+            FIRST = VIOLET_NOISE,
             LAST = TOTAL - 1
         };
 
@@ -42,7 +44,7 @@ namespace lsp
 
         void blue_noise(float *dst, size_t n);
 
-        void purple_noise(float *dst, size_t n);
+        void violet_noise(float *dst, size_t n);
     }
 }
 

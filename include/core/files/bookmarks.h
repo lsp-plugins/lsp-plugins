@@ -19,7 +19,7 @@
 #define GTK3_BOOKMARK_PATH          ".config/gtk-3.0/bookmarks"
 #define GTK2_BOOKMARK_PATH          ".gtk-bookmarks"
 #define QT5_BOOKMARK_PATH           ".local/share/user-places.xbel"
-#define LSP_BOOKMARK_PATH           ".config/" LSP_ARTIFACT_ID "/bookmarks.json"
+#define LSP_BOOKMARK_PATH           LSP_ARTIFACT_ID FILE_SEPARATOR_S "bookmarks.json"
 
 namespace lsp
 {

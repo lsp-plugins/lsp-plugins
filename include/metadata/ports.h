@@ -58,6 +58,11 @@
 #define INT_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_INT, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define HUE_CTL(id, label, dfl) \
+    { id, label, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (dfl), 0.25f/360.0f, NULL     }
+#define CYC_CONTROL(id, label, units, limits) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_CYCLIC, \
+        limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
 
 #define UNLIMITED_METER(id, label, units, dfl) \
     { id, label, units, R_METER, F_OUT, 0.0f, 0.0f, dfl, 0.0f, NULL, NULL }
@@ -69,6 +74,9 @@
         min, max, min, 0.0f, NULL, NULL }
 #define LOG_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
+        limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define EXT_LOG_CONTROL(id, label, units, limits) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG | F_EXT, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
 #define LOG_CONTROL_DFL(id, label, units, limits, dfl) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
@@ -126,7 +134,7 @@
 #define WET_GAIN_L(g)       AMP_GAIN10("wet_l", "Wet amount L", g)
 #define WET_GAIN_R(g)       AMP_GAIN10("wet_r", "Wet amount R", g)
 
-#define BYPASS              SWITCH(PORT_NAME_BYPASS, "Bypass", 0.0f)
+#define BYPASS              { PORT_NAME_BYPASS, "Bypass", U_BOOL, R_BYPASS, F_IN | F_UPPER | F_LOWER, 0, 1, 0, 0, NULL, NULL }
 
 
 // Port configurations
@@ -191,13 +199,12 @@ namespace lsp
     extern const port_group_t stereo_plugin_sidechain_port_groups[];
 
     // Miscellaneous lists
-    extern const char *file_channels[];
-
-    extern const char *midi_channels[];
-
-    extern const char *octaves[];
-
-    extern const char *notes[];
+    extern const port_item_t file_channels[];
+    extern const port_item_t midi_channels[];
+    extern const port_item_t octaves[];
+    extern const port_item_t notes[];
+    extern const port_item_t fft_windows[];
+    extern const port_item_t fft_envelopes[];
 }
 
 

@@ -22,13 +22,13 @@ namespace lsp
 
         static const file_format_t file_formats[] =
         {
-            { "wav", "*.wav", "Wave audio format (*.wav)", ".wav", LSPFileMask::NONE },
-            { "lspc", "*.lspc", "LSP chunk data file format (*.lspc)", ".lspc", LSPFileMask::NONE },
-            { "cfg", "*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg", LSPFileMask::NONE },
-            { "audio", "*.wav", "All supported audio files (*.wav)", ".wav", LSPFileMask::NONE },
-            { "audio_lspc", "*.wav|*.lspc", "All supported audio containers (*.wav, *.lspc)", ".wav", LSPFileMask::NONE },
-            { "obj3d", "*.obj", "Wavefont 3D file format (*.obj)", ".obj", LSPFileMask::NONE },
-            { "all", "*", "All files (*.*)", "", LSPFileMask::NONE },
+            { "wav", "*.wav", "files.audio.wave", ".wav", LSPFileMask::NONE },
+            { "lspc", "*.lspc", "files.config.lspc", ".lspc", LSPFileMask::NONE },
+            { "cfg", "*.cfg", "files.config.lsp", ".cfg", LSPFileMask::NONE },
+            { "audio", "*.wav", "files.audio.supported", ".wav", LSPFileMask::NONE },
+            { "audio_lspc", "*.wav|*.lspc", "files.audio.audio_lspc", ".wav", LSPFileMask::NONE },
+            { "obj3d", "*.obj", "files.3d.wavefont", ".obj", LSPFileMask::NONE },
+            { "all", "*", "files.all", "", LSPFileMask::NONE },
             { NULL, NULL, NULL, 0 }
         };
 
@@ -38,7 +38,12 @@ namespace lsp
             {
                 if (!strncasecmp(f->id, variable, n))
                 {
-                    flt->add(f->filter, f->text, f->ext, f->flags);
+                    LSPFileFilterItem ffi;
+                    ffi.pattern()->set(f->filter, f->flags);
+                    ffi.title()->set(f->text);
+                    ffi.set_extension(f->ext);
+
+                    flt->add(&ffi);
                     return;
                 }
             }
@@ -160,16 +165,22 @@ namespace lsp
                             else
                                 LSP_BOOL_ASSERT(comment->append_utf8(": true/false"), STATUS_NO_MEM);
                         }
-                        else
+                        else if (!(p->flags & F_EXT))
+                        {
                             LSP_BOOL_ASSERT(comment->fmt_append_utf8(": %.6f..%.6f", p->min, p->max), STATUS_NO_MEM);
+                        }
+                        else
+                        {
+                            LSP_BOOL_ASSERT(comment->fmt_append_utf8(": %.12f..%.12f", p->min, p->max), STATUS_NO_MEM);
+                        }
                     }
 
                     // Describe enum
                     if ((p->unit == U_ENUM) && (p->items != NULL))
                     {
                         int value   = p->min;
-                        for (const char **item = p->items; *item != NULL; ++item)
-                            LSP_BOOL_ASSERT(comment->fmt_append_utf8("\n  %d: %s", value++, *item), STATUS_NO_MEM);
+                        for (const port_item_t *item = p->items; item->text != NULL; ++item)
+                            LSP_BOOL_ASSERT(comment->fmt_append_utf8("\n  %d: %s", value++, item->text), STATUS_NO_MEM);
                     }
 
                     // Serialize name
@@ -184,8 +195,14 @@ namespace lsp
                         else
                             LSP_BOOL_ASSERT(value->fmt_utf8("%d", int(v)), STATUS_NO_MEM);
                     }
-                    else
+                    else if (!(p->flags & F_EXT))
+                    {
                         LSP_BOOL_ASSERT(value->fmt_utf8("%.6f", v), STATUS_NO_MEM);
+                    }
+                    else
+                    {
+                        LSP_BOOL_ASSERT(value->fmt_utf8("%.12f", v), STATUS_NO_MEM);
+                    }
 
                     // No flags
                     *flags = 0;

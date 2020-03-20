@@ -13,22 +13,22 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Slap delay
-    static const char *slap_delay_modes[] =
+    static const port_item_t slap_delay_modes[] =
     {
-        "Off",
-        "Time",
-        "Distance",
-        "Notes",
-        NULL
+        { "Off",        "slap_delay.modes.off" },
+        { "Time",       "slap_delay.modes.time" },
+        { "Distance",   "slap_delay.modes.distance" },
+        { "Notes",      "slap_delay.modes.notes" },
+        { NULL, NULL }
     };
 
-    static const char *slap_delay_lines[] =
+    static const port_item_t slap_delay_lines[] =
     {
-        "0-4",
-        "5-7",
-        "8-11",
-        "12-15",
-        NULL
+        { "0-3",        "slap_delay.lines_0:3" },
+        { "4-7",        "slap_delay.lines_4:7" },
+        { "8-11",       "slap_delay.lines_8:11" },
+        { "12-15",      "slap_delay.lines_12:15" },
+        { NULL, NULL }
     };
 
     #define SLAP_PAN_MONO(id, label) \

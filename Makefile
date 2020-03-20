@@ -24,7 +24,9 @@ OBJDIR                  = $(BUILDDIR)
 # Installation locations
 BIN_PATH               ?= $(PREFIX)/bin
 LIB_PATH               ?= $(PREFIX)/lib
-DOC_PATH               ?= $(PREFIX)/share/doc
+SHARE_PATH             ?= $(PREFIX)/share
+ETC_PATH               ?= /etc
+DOC_PATH               ?= $(SHARE_PATH)/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
@@ -81,6 +83,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
+.DEFAULT_GOAL          := all
 .PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
 .PHONY: compile_info
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
@@ -99,30 +102,30 @@ experimental: export CFLAGS += -O2
 experimental: export CXXFLAGS += -O2
 experimental: compile
 
-trace: export CFLAGS        += -O2 -DLSP_TRACE -g3
-trace: export CXXFLAGS      += -O2 -DLSP_TRACE -g3
+trace: export CFLAGS        += -O2 -DLSP_TRACE -g3 -fstack-protector
+trace: export CXXFLAGS      += -O2 -DLSP_TRACE -g3 -fstack-protector
 trace: export EXE_FLAGS     += -g3
 trace: compile
 
 test: OBJDIR                 = $(TESTDIR)
-test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
-test: export CXXFLAGS       += -O2 -DLSP_TESTING -DLSP_TRACE -g3
+test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
+test: export CXXFLAGS       += -O2 -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
 test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: export BUILD_MODULES   = jack
 test: test_compile
 
 testdebug: OBJDIR                 = $(TESTDIR)
-testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3
-testdebug: export CXXFLAGS       += -O0 -DLSP_TESTING -DLSP_TRACE -g3
+testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
+testdebug: export CXXFLAGS       += -O0 -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
 testdebug: export EXE_TEST_FLAGS += -g3
 testdebug: export MAKE_OPTS      += LSP_TESTING=1
 testdebug: export BUILD_MODULES   = jack
 testdebug: test_compile
 
 testprofile: OBJDIR                 = $(TESTDIR)
-testprofile: export CFLAGS         += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC
-testprofile: export CXXFLAGS       += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC
+testprofile: export CFLAGS         += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC -fstack-protector
+testprofile: export CXXFLAGS       += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC -fstack-protector
 testprofile: export EXE_TEST_FLAGS += -g -pg -O2 -g3 -no-pie -fno-pie -fPIC
 testprofile: export MAKE_OPTS      += LSP_TESTING=1
 testprofile: compile
@@ -157,6 +160,7 @@ compile_info:
 	@echo "  target system       : $(BUILD_SYSTEM)"
 	@echo "  compiler            : $(BUILD_COMPILER)"
 	@echo "  modules             : $(BUILD_MODULES)"
+	@echo "  UI                  : LV2=$(LV2_UI), VST=$(VST_UI)"
 	@echo "  3D rendering        : $(BUILD_R3D_BACKENDS)"
 	@echo "  build directory     : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"
@@ -210,26 +214,35 @@ install_ladspa: all
 	
 install_lv2: all
 	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
-	@mkdir -p $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
+	@mkdir -p "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
+	@$(INSTALL) $(LIB_LV2) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/"
 	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	@$(UTL_GENTTL) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
 	
 install_vst: all
 	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/$(VST_ID)"
-	@mkdir -p $(DESTDIR)$(VST_PATH)/$(VST_ID)
-	@$(INSTALL) $(LIB_VST) $(DESTDIR)$(VST_PATH)/$(VST_ID)/
+	@mkdir -p "$(DESTDIR)$(VST_PATH)/$(VST_ID)"
+	@$(INSTALL) $(LIB_VST) "$(DESTDIR)$(VST_PATH)/$(VST_ID)/"
 	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 
 install_jack: all
 	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
-	@mkdir -p $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
-	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/
+	@mkdir -p "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
+	@$(INSTALL) $(LIB_JACK) "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
+	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
-	@mkdir -p $(DESTDIR)$(BIN_PATH)
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
+	@mkdir -p "$(DESTDIR)$(BIN_PATH)"
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
+	@echo "Installing desktop icons to $(DESTDIR)$(SHARE_PATH)/applications"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/applications"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/desktop-directories"
+	@mkdir -p "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps"
+	@cp res/xdg/*.desktop "$(DESTDIR)$(SHARE_PATH)/applications/"
+	@cp res/xdg/lsp-plugins.directory "$(DESTDIR)$(SHARE_PATH)/desktop-directories/"
+	@cp res/xdg/lsp-plugins.menu "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/"
+	@cp -f res/icons/lsp-plugins-exp.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/lsp-plugins.png"
 
 install_doc: all
 	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"
@@ -249,73 +262,62 @@ release: $(RELEASES)
 release_prepare: all
 	@echo "Releasing plugins for architecture $(BUILD_PROFILE)"
 	@mkdir -p $(RELEASE)
-	@mkdir -p $(RELEASE_BIN)
+	@mkdir -p $(DESTDIR)
 	
-release_ladspa: release_prepare
+release_ladspa: DESTDIR=$(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+release_ladspa: | release_prepare install_ladspa
 	@echo "Releasing LADSPA binaries"
-	@mkdir -p $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(LIB_LADSPA) $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
-	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 	
-release_lv2: release_prepare
+release_lv2: DESTDIR=$(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+release_lv2: | release_prepare install_lv2
 	@echo "Releasing LV2 binaries"
-	@mkdir -p $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@mkdir -p $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
-	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
-	@$(UTL_GENTTL) $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 	
-release_vst: release_prepare
+release_vst: DESTDIR=$(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+release_vst: | release_prepare install_vst
 	@echo "Releasing VST binaries"
-	@mkdir -p $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(LIB_VST) $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
-	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
-	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 	
-release_jack: release_prepare
+release_jack: DESTDIR=$(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+release_jack: | release_prepare install_jack
 	@echo "Releasing JACK binaries"
-	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)
-	@mkdir -p $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin
-	@$(INSTALL) $(LIB_JACK) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)/
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)-*.so $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib/$(ARTIFACT_ID)/
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin INSTALL="$(INSTALL)"
-	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 
-release_profile: release_prepare
+release_profile: DESTDIR=$(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+release_profile: | release_prepare
 	@echo "Releasing PROFILE binaries"
-	@mkdir -p $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(BIN_PROFILE) $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@$(INSTALL) $(BIN_PROFILE) $(DESTDIR)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	@rm -rf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 
-release_src:
+release_src: DESTDIR=$(RELEASE)/$(SRC_ID)
+release_src: | release_prepare
 	@echo "Releasing source code binaries"
-	@mkdir -p $(RELEASE)/$(SRC_ID)
-	@mkdir -p $(RELEASE)/$(SRC_ID)/scripts
-	@cp -R $(RELEASE_SRC) $(RELEASE)/$(SRC_ID)/
-	@cp -R $(RELEASE_SCRIPTS) $(RELEASE)/$(SRC_ID)/scripts/
+	@mkdir -p $(DESTDIR)
+	@mkdir -p $(DESTDIR)/scripts
+	@cp -R $(RELEASE_SRC) $(DESTDIR)/
+	@cp -R $(RELEASE_SCRIPTS) $(DESTDIR)/scripts/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
-	@rm -rf $(RELEASE)/$(SRC_ID)
+	@rm -rf $(DESTDIR)
 
-release_doc: release_prepare
+release_doc: DESTDIR=$(RELEASE)/$(DOC_ID)
+release_doc: | release_prepare
 	@echo "Releasing documentation"
-	@mkdir -p $(RELEASE)/$(DOC_ID)
-	@cp -r $(OBJDIR)/html/* $(RELEASE)/$(DOC_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(DOC_ID)/
+	@mkdir -p $(DESTDIR)
+	@cp -r $(OBJDIR)/html/* $(DESTDIR)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(DOC_ID).tar.gz $(DOC_ID)
-	@rm -rf $(RELEASE)/$(DOC_ID)
+	@rm -rf $(DESTDIR)
 
 # Unrelease target
 unrelease: clean
@@ -345,6 +347,10 @@ uninstall_jack:
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
+	@-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/lsp-plugins.png
 	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_doc:

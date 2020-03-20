@@ -6,20 +6,31 @@
 #include <core/lib.h>
 #include <core/protocol/midi.h>
 #include <core/protocol/osc.h>
+#include <core/resource.h>
 #include <dsp/atomic.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>
 
-#include <ui/ui.h>
+#ifndef LSP_NO_LV2_UI
+    #include <ui/ui.h>
+#endif /* LSP_NO_LV2_UI */
 
 #include <container/lv2/extensions.h>
 #include <container/lv2/types.h>
 #include <container/lv2/ports.h>
 #include <container/lv2/executor.h>
 #include <container/lv2/wrapper.h>
-#include <container/lv2/ui_ports.h>
-#include <container/lv2/ui_wrapper.h>
+
+#ifndef LSP_NO_LV2_UI
+    #include <container/lv2/ui_ports.h>
+    #include <container/lv2/ui_wrapper.h>
+#endif
+
+#ifdef LSP_NO_LV2_UI
+    /* Generate stub resource placeholders if there is no UI requirement */
+    BUILTIN_RESOURCES_STUB
+#endif /* LSP_NO_LV2_UI */
 
 namespace lsp
 {
@@ -215,21 +226,23 @@ namespace lsp
     const void *lv2_extension_data(const char * uri)
     {
         lsp_trace("requested extension data = %s", uri);
-        if (!strcmp(uri, LV2_STATE__interface))
+        if (!::strcmp(uri, LV2_STATE__interface))
         {
             lsp_trace("  state_interface = %p", &lv2_state_interface);
             return &lv2_state_interface;
         }
-        else if (!strcmp(uri, LV2_WORKER__interface))
+        else if (!::strcmp(uri, LV2_WORKER__interface))
         {
             lsp_trace("  worker_interface = %p", &lv2_worker_interface);
             return &lv2_worker_interface;
         }
-        else if (!strcmp(uri, LV2_INLINEDISPLAY__interface))
+#ifndef LSP_NO_LV2_UI
+        else if (!::strcmp(uri, LV2_INLINEDISPLAY__interface))
         {
             lsp_trace("  inline_display_interface = %p", &lv2_inline_display_interface);
             return &lv2_inline_display_interface;
         }
+#endif
 
         return NULL;
     }
@@ -281,7 +294,7 @@ namespace lsp
 
     //--------------------------------------------------------------------------------------
     // LV2UI routines
-
+#ifndef LSP_NO_LV2_UI
     LV2UI_Handle lv2ui_instantiate(
         const struct _LV2UI_Descriptor* descriptor,
         const char*                     plugin_uri,
@@ -418,6 +431,7 @@ namespace lsp
     };
 
     static StaticFinalizer lv2ui_finalizer(lv2ui_drop_descriptors);
+#endif
 }
 
 #ifdef __cplusplus
@@ -435,6 +449,7 @@ extern "C"
         return (index < lv2_descriptors_count) ? &lv2_descriptors[index] : NULL;
     }
 
+#ifndef LSP_NO_LV2_UI
     LV2_SYMBOL_EXPORT
     const LV2UI_Descriptor *lv2ui_descriptor(uint32_t index)
     {
@@ -444,6 +459,7 @@ extern "C"
         lv2ui_gen_descriptors();
         return (index < lv2ui_descriptors_count) ? &lv2ui_descriptors[index] : NULL;
     }
+#endif
 
 #ifdef __cplusplus
 }

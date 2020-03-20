@@ -23,10 +23,14 @@ namespace lsp
      */
     class Compressor
     {
+        private:
+            Compressor & operator = (const Compressor &);
+
         protected:
             // Basic parameters
             float       fAttackThresh;
             float       fReleaseThresh;
+            float       fBoostThresh;
             float       fAttack;
             float       fRelease;
             float       fKnee;
@@ -36,11 +40,18 @@ namespace lsp
             // Pre-calculated parameters
             float       fTauAttack;
             float       fTauRelease;
-            float       vHermite[3];    // Knee hermite interpolation
             float       fXRatio;        // Compression ratio
+
+            float       fLogTH;         // Logarithmic threshold
             float       fKS;            // Knee start
             float       fKE;            // Knee end
-            float       fLogTH;         // Logarithmic threshold
+            float       vHermite[3];    // Knee hermite interpolation
+
+            float       fBLogTH;        // Logarithmic boost threshold
+            float       fBKS;           // Boost knee start
+            float       fBKE;           // Boost knee end
+            float       vBHermite[3];   // Boost hermite interpolation
+            float       fBoost;         // Overall gain boost
 
             // Additional parameters
             size_t      nSampleRate;
@@ -48,7 +59,7 @@ namespace lsp
             bool        bUpdate;
 
         public:
-            Compressor();
+            explicit Compressor();
             ~Compressor();
 
         public:
@@ -78,6 +89,18 @@ namespace lsp
                     return;
                 fAttackThresh       = attack;
                 fReleaseThresh      = release;
+                bUpdate             = true;
+            }
+
+            /**
+             * Set boost threshold, valid for upward compression only
+             * @param boost boost threshold
+             */
+            inline void set_boost_threshold(float boost)
+            {
+                if (fBoostThresh == boost)
+                    return;
+                fBoostThresh        = boost;
                 bUpdate             = true;
             }
 

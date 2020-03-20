@@ -25,10 +25,24 @@ IF_ARCH_X86(
         void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
         void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
     }
+
+    namespace avx
+    {
+        void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
+        void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
+        void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
         void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
@@ -94,11 +108,20 @@ UTEST_BEGIN("dsp.msmatrix", conv2)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:lr_to_ms", 16, native::lr_to_ms, sse::lr_to_ms));
-        IF_ARCH_X86(call("sse:ms_to_lr", 16, native::ms_to_lr, sse::ms_to_lr));
+        #define CALL(native, func, align) \
+            call( #func, align, native, func)
 
-        IF_ARCH_ARM(call("neon_d32:lr_to_ms", 16, native::lr_to_ms, neon_d32::lr_to_ms));
-        IF_ARCH_ARM(call("neon_d32:ms_to_lr", 16, native::ms_to_lr, neon_d32::ms_to_lr));
+        IF_ARCH_X86(CALL(native::lr_to_ms, sse::lr_to_ms, 16));
+        IF_ARCH_X86(CALL(native::ms_to_lr, sse::ms_to_lr, 16));
+
+        IF_ARCH_X86(CALL(native::lr_to_ms, avx::lr_to_ms, 32));
+        IF_ARCH_X86(CALL(native::ms_to_lr, avx::ms_to_lr, 32));
+
+        IF_ARCH_ARM(CALL(native::lr_to_ms, neon_d32::lr_to_ms, 16));
+        IF_ARCH_ARM(CALL(native::ms_to_lr, neon_d32::ms_to_lr, 16));
+
+        IF_ARCH_AARCH64(CALL(native::lr_to_ms, asimd::lr_to_ms, 16));
+        IF_ARCH_AARCH64(CALL(native::ms_to_lr, asimd::ms_to_lr, 16));
     }
 UTEST_END
 

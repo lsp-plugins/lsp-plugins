@@ -37,7 +37,8 @@ namespace lsp
             public:
                 status_t                wrap(const LSPString *in);
                 status_t                wrap(LSPString *in, bool del);
-                status_t                wrap(const char *s, const char *charset = NULL);
+                status_t                wrap(const char *s, const char *charset);
+                status_t                wrap(const char *s);
 
                 virtual ssize_t         read(lsp_wchar_t *dst, size_t count);
 

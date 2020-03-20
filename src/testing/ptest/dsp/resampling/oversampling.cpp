@@ -38,10 +38,40 @@ IF_ARCH_X86(
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
+    {
+        void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+    }
+)
+
+IF_ARCH_AARCH64(
+    namespace asimd
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
         void lanczos_resample_2x3(float *dst, const float *src, size_t count);
@@ -84,55 +114,78 @@ PTEST_BEGIN("dsp.resampling", oversampling, 5, 1000)
             in[i]               = (i % 1) ? 1.0f : -1.0f;
         dsp::fill_zero(out, RTEST_BUF_SIZE * 8 + RESAMPLING_RESERVED_SAMPLES);
 
+        #define CALL(func, n) \
+            call(out, in, RTEST_BUF_SIZE, n, #func, func)
+
         // Do tests
-        call(out, in, RTEST_BUF_SIZE, 2, "native:2x2", native::lanczos_resample_2x2);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "sse:2x2", sse::lanczos_resample_2x2));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 2, "neon_d32:2x2", neon_d32::lanczos_resample_2x2));
+        CALL(native::lanczos_resample_2x2, 2);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_2x2, 2));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_2x2, 2));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_2x2, 2));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_2x2, 2));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 2, "native:2x3", native::lanczos_resample_2x3);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "sse:2x3", sse::lanczos_resample_2x3));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 2, "neon_d32:2x3", neon_d32::lanczos_resample_2x3));
+        CALL(native::lanczos_resample_2x3, 2);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_2x3, 2));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_2x3, 2));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_2x3, 2));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_2x3, 2));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 3, "native:3x2", native::lanczos_resample_3x2);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 3, "sse:3x2", sse::lanczos_resample_3x2));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 3, "neon_d32:3x2", neon_d32::lanczos_resample_3x2));
+        CALL(native::lanczos_resample_3x2, 3);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_3x2, 3));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_3x2, 3));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_3x2, 3));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_3x2, 3));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 3, "native:3x3", native::lanczos_resample_3x3);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 3, "sse:3x3", sse::lanczos_resample_3x3));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 3, "neon_d32:3x3", neon_d32::lanczos_resample_3x3));
+        CALL(native::lanczos_resample_3x3, 3);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_3x3, 3));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_3x3, 3));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_3x3, 3));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_3x3, 3));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 4, "native:4x2", native::lanczos_resample_4x2);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "sse:4x2", sse::lanczos_resample_4x2));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 4, "neon_d32:4x2", neon_d32::lanczos_resample_4x2));
+        CALL(native::lanczos_resample_4x2, 4);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_4x2, 4));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_4x2, 4));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_4x2, 4));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_4x2, 4));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 4, "native:4x3", native::lanczos_resample_4x3);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "sse:4x3", sse::lanczos_resample_4x3));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 4, "neon_d32:4x3", neon_d32::lanczos_resample_4x3));
+        CALL(native::lanczos_resample_4x3, 4);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_4x3, 4));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_4x3, 4));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_4x3, 4));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_4x3, 4));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 6, "native:6x2", native::lanczos_resample_6x2);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "sse:6x2", sse::lanczos_resample_6x2));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 6, "neon_d32:6x2", neon_d32::lanczos_resample_6x2));
+        CALL(native::lanczos_resample_6x2, 6);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_6x2, 6));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_6x2, 6));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_6x2, 6));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_6x2, 6));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 6, "native:6x3", native::lanczos_resample_6x3);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "sse:6x3", sse::lanczos_resample_6x3));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 6, "neon_d32:6x3", neon_d32::lanczos_resample_6x3));
+        CALL(native::lanczos_resample_6x3, 6);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_6x3, 6));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_6x3, 6));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_6x3, 6));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_6x3, 6));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 8, "native:8x2", native::lanczos_resample_8x2);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 8, "sse:8x2", sse::lanczos_resample_8x2));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 8, "neon_d32:8x2", neon_d32::lanczos_resample_8x2));
+        CALL(native::lanczos_resample_8x2, 8);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_8x2, 8));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_8x2, 8));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_8x2, 8));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_8x2, 8));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 8, "native:8x3", native::lanczos_resample_8x3);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 8, "sse:8x3", sse::lanczos_resample_8x3));
-        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 8, "neon_d32:8x3", neon_d32::lanczos_resample_8x3));
+        CALL(native::lanczos_resample_8x3, 8);
+        IF_ARCH_X86(CALL(sse::lanczos_resample_8x3, 8));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_8x3, 8));
+        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_8x3, 8));
+        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_8x3, 8));
         PTEST_SEPARATOR;
 
         delete [] out;

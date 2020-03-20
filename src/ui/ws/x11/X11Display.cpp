@@ -143,10 +143,28 @@ namespace lsp
                 }
 
                 // Get Root window and screen
+                size_t screens  = ScreenCount(pDisplay);
                 hRootWnd        = DefaultRootWindow(pDisplay);
                 int dfl         = DefaultScreen(pDisplay);
                 nBlackColor     = BlackPixel(pDisplay, dfl);
                 nWhiteColor     = WhitePixel(pDisplay, dfl);
+
+                for (size_t i=0; i<screens; ++i)
+                {
+                    x11_screen_t *s     = vScreens.add();
+                    if (s == NULL)
+                        return STATUS_NO_MEM;
+                    s->id           = i;
+                    s->grabs        = 0;
+                    s->width        = DisplayWidth(pDisplay, i);
+                    s->height       = DisplayHeight(pDisplay, i);
+                    s->mm_width     = DisplayWidthMM(pDisplay, i);
+                    s->mm_height    = DisplayHeightMM(pDisplay, i);
+
+                    lsp_trace("Added display #%d: %ldx%ld (%ldx%ld mm)", int(i),
+                            long(s->width), long(s->height), long(s->mm_width), long(s->mm_height));
+                }
+
 
                 // Allocate I/O buffer
                 nIOBufSize      = ::XExtendedMaxRequestSize(pDisplay) / 4;
@@ -280,7 +298,8 @@ namespace lsp
 
                 vWindows.flush();
                 sPending.flush();
-                sGrab.clear();
+                for (size_t i=0; i<__GRAB_TOTAL; ++i)
+                    vGrab[i].clear();
                 sTargets.clear();
                 drop_mime_types(&vDndMimeTypes);
 
@@ -937,7 +956,7 @@ namespace lsp
                                     task->pSink->release();
                                     task->pSink     = NULL;
 
-                                    complete_dnd_transfer(task);
+                                    complete_dnd_transfer(task, true);
                                     task->bComplete = true;
                                 }
                                 else if (type == task->hType)
@@ -947,7 +966,10 @@ namespace lsp
                                     ::XFlush(pDisplay);
                                 }
                                 else
+                                {
+                                    complete_dnd_transfer(task, false);
                                     res     = STATUS_UNSUPPORTED_FORMAT;
+                                }
                             }
                         }
 
@@ -1161,11 +1183,14 @@ namespace lsp
                                 if (bytes > 0)
                                     res = task->pSink->write(data, bytes);
 
-                                complete_dnd_transfer(task);
+                                complete_dnd_transfer(task, true);
                                 task->bComplete = true;
                             }
                             else
+                            {
+                                complete_dnd_transfer(task, false);
                                 res     = STATUS_UNSUPPORTED_FORMAT;
+                            }
                         }
 
                         break;
@@ -1185,7 +1210,7 @@ namespace lsp
                                 ::XFlush(pDisplay);
 
                                 // Notify source about end of transfer
-                                complete_dnd_transfer(task);
+                                complete_dnd_transfer(task, true);
                                 task->bComplete = true;
                             }
                             else if (type == task->hType)
@@ -1195,7 +1220,10 @@ namespace lsp
                                 res     = task->pSink->write(data, bytes); // Append data to the sink
                             }
                             else
+                            {
+                                complete_dnd_transfer(task, false);
                                 res     = STATUS_UNSUPPORTED_FORMAT;
+                            }
                         }
 
                         break;
@@ -1420,6 +1448,22 @@ namespace lsp
                 if (ev->type > LASTEvent)
                     return;
 
+                #if 0
+                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
+                    int(ev->type), event_name(ev->type), long(ev->xany.serial), int(ev->xany.window));
+
+
+                if (ev->type == PropertyNotify)
+                {
+                    XPropertyEvent *pe = &ev->xproperty;
+                    #ifdef LSP_TRACE
+                    char *name = ::XGetAtomName(pDisplay, pe->atom);
+                    lsp_trace("Received PropertyNotifyEvent: property=%s, state=%lx", name, (long)pe->state);
+                    ::XFree(name);
+                    #endif
+                }
+                #endif
+
                 // Special case for buffers
                 if (handle_clipboard_event(ev))
                 {
@@ -1432,9 +1476,6 @@ namespace lsp
                     complete_async_tasks();
                     return;
                 }
-
-//                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
-//                    int(ev->type), event_name(ev->type), long(ev->xany.serial), int(ev->xany.window));
 
                 // Find the target window
                 X11Window *target = NULL;
@@ -1638,26 +1679,42 @@ namespace lsp
                         case UIE_KEY_DOWN:
                         case UIE_KEY_UP:
                         {
-                            // Check if there is grab enabled
-                            if (sGrab.size() > 0)
+                            // Check if there is grab enabled and obtain list of receivers
+                            bool has_grab = false;
+                            for (ssize_t i=__GRAB_TOTAL-1; i>=0; --i)
                             {
+                                cvector<X11Window> &g = vGrab[i];
+                                if (g.size() <= 0)
+                                    continue;
+
                                 // Add listeners from grabbing windows
-                                for (size_t i=0, nwnd = vWindows.size(); i<nwnd; ++i)
+                                for (size_t i=0; i<g.size();)
                                 {
-                                    X11Window *wnd = vWindows.at(i);
-                                    if (wnd == NULL)
+                                    X11Window *wnd = g.at(i);
+                                    if ((wnd == NULL) || (vWindows.index_of(wnd) < 0))
+                                    {
+                                        g.remove(i, false);
                                         continue;
-                                    if (sGrab.index_of(wnd) < 0)
-                                        continue;
+                                    }
                                     sTargets.add(wnd);
-//                                    lsp_trace("Grabbing window: %p", wnd);
+                                    ++i;
                                 }
 
+                                // Finally, break if there are target windows
+                                if (sTargets.size() > 0)
+                                {
+                                    has_grab = true;
+                                    break;
+                                }
+                            }
+
+                            if (has_grab)
+                            {
                                 // Allow event replay
                                 if ((se.nType == UIE_KEY_DOWN) || (se.nType == UIE_KEY_UP))
-                                    XAllowEvents(pDisplay, ReplayKeyboard, CurrentTime);
+                                    ::XAllowEvents(pDisplay, ReplayKeyboard, CurrentTime);
                                 else if (se.nType != UIE_CLOSE)
-                                    XAllowEvents(pDisplay, ReplayPointer, CurrentTime);
+                                    ::XAllowEvents(pDisplay, ReplayPointer, CurrentTime);
                             }
                             else if (target != NULL)
                                 sTargets.add(target);
@@ -1675,7 +1732,7 @@ namespace lsp
                                 if (wnd != redirect)
                                 {
 //                                    lsp_trace("Redirect window: %p", wnd);
-                                    sTargets.set(i, wnd);
+                                    sTargets.set(i, redirect);
                                 }
                             }
 
@@ -1707,6 +1764,21 @@ namespace lsp
                 }
             }
 
+            X11Display::x11_async_t *X11Display::find_dnd_proxy_task(Window wnd)
+            {
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+                    if (task->cb_common.bComplete)
+                        continue;
+                    if ((task->type == X11ASYNC_DND_PROXY) &&
+                        (task->dnd_proxy.hTarget = wnd))
+                        return task;
+                }
+
+                return NULL;
+            }
+
             bool X11Display::handle_drag_event(XEvent *ev)
             {
                 // It SHOULD be a client message
@@ -1724,10 +1796,11 @@ namespace lsp
                     for (size_t i=0, n=sAsync.size(); i<n; ++i)
                     {
                         x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
-                            continue;
-                        task->result        = STATUS_CANCELLED;
-                        task->cb_common.bComplete = true;
+                        if ((task->type == X11ASYNC_DND_RECV) && (!task->cb_common.bComplete))
+                        {
+                            task->result        = STATUS_CANCELLED;
+                            task->cb_common.bComplete = true;
+                        }
                     }
 
                     // Create new task
@@ -1739,13 +1812,25 @@ namespace lsp
                 {
                     lsp_trace("Received XdndLeave");
 
-                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    // Handle proxy tasks first
+                    x11_async_t *task = find_dnd_proxy_task(ce->window);
+                    if (task == NULL)
                     {
-                        x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
-                            continue;
-                        task->result        = handle_drag_leave(&task->dnd_recv, ce);
+                        for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                        {
+                            x11_async_t *task = sAsync.at(i);
+                            if ((task->type == X11ASYNC_DND_RECV) &&
+                                (!task->cb_common.bComplete))
+                            {
+                                task->result        = handle_drag_leave(&task->dnd_recv, ce);
+                                task->cb_common.bComplete = true;
+                            }
+                        }
+                    }
+                    else
+                    {
                         task->cb_common.bComplete = true;
+                        task->result        = proxy_drag_leave(&task->dnd_proxy, ce);
                     }
 
                     return true;
@@ -1753,34 +1838,350 @@ namespace lsp
                 else if (type == sAtoms.X11_XdndPosition)
                 {
                     lsp_trace("Received XdndPosition");
-                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+
+                    x11_async_t *task = find_dnd_proxy_task(ce->window);
+                    if (task == NULL)
                     {
-                        x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
-                            continue;
-                        task->result        = handle_drag_position(&task->dnd_recv, ce);
+                        for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                        {
+                            x11_async_t *task = sAsync.at(i);
+                            if ((task->type == X11ASYNC_DND_RECV) && (!task->cb_common.bComplete))
+                            {
+                                task->result        = handle_drag_position(&task->dnd_recv, ce);
+                                if (task->result != STATUS_OK)
+                                    task->cb_common.bComplete   = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        task->result        = proxy_drag_position(&task->dnd_proxy, ce);
                         if (task->result != STATUS_OK)
                             task->cb_common.bComplete   = true;
                     }
+
                     return true;
                 }
                 else if (type == sAtoms.X11_XdndDrop)
                 {
                     lsp_trace("Received XdndDrop");
-                    for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                    x11_async_t *task = find_dnd_proxy_task(ce->window);
+                    if (task == NULL)
                     {
-                        x11_async_t *task = sAsync.at(i);
-                        if ((task->type != X11ASYNC_DND_RECV) || (task->cb_common.bComplete))
-                            continue;
-                        task->result        = handle_drag_drop(&task->dnd_recv, ce);
-                        if (task->result != STATUS_OK)
-                            task->cb_common.bComplete   = true;
+                        for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                        {
+                            x11_async_t *task = sAsync.at(i);
+                            if ((task->type == X11ASYNC_DND_RECV) && (!task->cb_common.bComplete))
+                            {
+                                task->result        = handle_drag_drop(&task->dnd_recv, ce);
+                                if (task->result != STATUS_OK)
+                                    task->cb_common.bComplete   = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        task->cb_common.bComplete   = true;
+                        task->result        = proxy_drag_drop(&task->dnd_proxy, ce);
                     }
                     return true;
                 }
 
                 return false;
             }
+
+            X11Display::x11_async_t *X11Display::lookup_dnd_proxy_task()
+            {
+                // Lookup for DnD task
+                for (size_t i=0, n=sAsync.size(); i<n; ++i)
+                {
+                    x11_async_t *task = sAsync.at(i);
+                    if ((task->type == X11ASYNC_DND_PROXY) && (!task->cb_common.bComplete))
+                        return task;
+                }
+
+                return NULL;
+            }
+
+            void X11Display::send_immediate(Window wnd, Bool propagate, long event_mask, XEvent *event)
+            {
+                X11Window *pwnd = find_window(wnd);
+                if (pwnd == NULL)
+                {
+                    lsp_trace("Sending xevent to %lx", long(wnd));
+                    ::XSendEvent(pDisplay, wnd, propagate, event_mask, event);
+                    ::XFlush(pDisplay);
+                }
+                else
+                {
+                    lsp_trace("Handling xevent as for %lx", long(wnd));
+                    handleEvent(event);
+                }
+            }
+
+            status_t X11Display::proxy_drag_position(dnd_proxy_t *task, XClientMessageEvent *ev)
+            {
+                /**
+                    data.l[0] contains the XID of the source window.
+                    data.l[1] is reserved for future use (flags).
+                    data.l[2] contains the coordinates of the mouse position relative to the root window.
+                        data.l[2] = (x << 16) | y
+                    data.l[3] contains the time stamp for retrieving the data. (new in version 1)
+                    data.l[4] contains the action requested by the user. (new in version 2)
+                 */
+                int x           = (ev->data.l[2] >> 16) & 0xffff;
+                int y           = ev->data.l[2] & 0xffff;
+                Atom act        = ev->data.l[4];
+
+                Window root     = None;
+                Window parent   = None;
+                Window child    = None;
+                Window *children = NULL;
+                unsigned int nchildren = 0;
+                ::XQueryTree(pDisplay, task->hTarget, &root, &parent, &children, &nchildren);
+
+                // Determine the target window to send data
+                #ifdef LSP_TRACE
+                {
+                    lsp_trace("target=%lx, root = %lx, parent = %lx, children = %d",
+                            long(task->hTarget), long(root), long(parent), int(nchildren));
+                    for (size_t i=0; i<nchildren; ++i)
+                    {
+                        XWindowAttributes xwa;
+                        Window wnd = children[i];
+                        ::XGetWindowAttributes(pDisplay, wnd, &xwa);
+
+                        lsp_trace("  child #%d = %lx located at x=%d, y=%d, w=%d, h=%d",
+                                int(i), long(wnd),
+                                int(xwa.x), int(xwa.y), int(xwa.width), int(xwa.height)
+                        );
+                    }
+                }
+                #endif
+
+                // Release children
+                if (children != NULL)
+                    ::XFree(children);
+
+                // Find child window that supports XDnD protocol
+                int cx = -1, cy = -1;
+                parent = task->hTarget;
+                while (true)
+                {
+                    // Translate coordinates
+                    ::XTranslateCoordinates(pDisplay, root, parent, x, y, &cx, &cy, &child);
+                    lsp_trace(" found child %lx pointer location: x=%d, y=%d -> cx=%d, cy=%d",
+                            long(child), x, y, cx, cy
+                    );
+                    if (child == None)
+                        break;
+
+                    // Test for XdndAware property
+                    uint8_t *data       = NULL;
+                    size_t size         = 0;
+                    Atom xtype          = None;
+
+                    // Test for support of XDnD protocol
+                    status_t res    = read_property(child, sAtoms.X11_XdndAware, XA_ATOM, &data, &size, &xtype);
+                    lsp_trace("xDndAware res=%d, xtype=%d, size=%d", int(res), int(xtype), int(size));
+                    if ((res != STATUS_OK) || (xtype == None) || (size < 1) || (data[0] < 1))
+                    {
+                        lsp_trace("Window %lx does not support XDnD Protocol", long(child));
+                        parent = child;
+                        child = None;
+                    }
+                    if (data != NULL)
+                        ::free(data);
+
+                    // Found window that supports XDnd?
+                    if (child != None)
+                        break;
+                }
+
+                // Replace child with target if not found
+                if (child == None)
+                {
+                    child = task->hTarget;
+                    lsp_trace("Empty child window replaced with parent %lx", long(child));
+                }
+
+                if (task->hCurrent != child)
+                {
+                    // Need to send XDndLeave?
+                    if (task->hCurrent != None)
+                    {
+                        XEvent xe;
+                        XClientMessageEvent *xev = &xe.xclient;
+
+                        xev->type           = ClientMessage;
+                        xev->serial         = ev->serial;
+                        xev->send_event     = True;
+                        xev->display        = pDisplay;
+                        xev->window         = task->hCurrent;
+                        xev->message_type   = sAtoms.X11_XdndLeave;
+                        xev->format         = 32;
+                        xev->data.l[0]      = task->hSource;
+                        xev->data.l[1]      = 0;
+                        xev->data.l[2]      = 0;
+                        xev->data.l[3]      = 0;
+                        xev->data.l[4]      = 0;
+
+                        lsp_trace("Sending XdndLeave to %lx", long(task->hCurrent));
+                        send_immediate(task->hCurrent, True, NoEventMask, &xe);
+                    }
+
+                    // Update current window
+                    task->hCurrent = child;
+
+                    // Need to send XDndEnter?
+                    if (task->hCurrent != None)
+                    {
+                        XEvent xe;
+                        XClientMessageEvent *xev = &xe.xclient;
+
+                        xev->type           = ClientMessage;
+                        xev->serial         = ev->serial;
+                        xev->send_event     = True;
+                        xev->display        = pDisplay;
+                        xev->window         = task->hCurrent;
+                        xev->message_type   = sAtoms.X11_XdndEnter;
+                        xev->format         = 32;
+                        xev->data.l[0]      = task->hSource;
+                        xev->data.l[1]      = task->enter[0];
+                        xev->data.l[2]      = task->enter[1];
+                        xev->data.l[3]      = task->enter[2];
+                        xev->data.l[4]      = task->enter[3];
+
+                        lsp_trace("Sending XdndEnter to %lx", long(task->hCurrent));
+                        send_immediate(task->hCurrent, True, NoEventMask, &xe);
+                    }
+                }
+
+                // Need to send XDndPosition now
+                if (task->hCurrent != None)
+                {
+                    // For our windows, perform some additional stuff
+                    X11Window *wnd = find_window(task->hCurrent);
+
+                    dnd_recv_t *recv    = current_drag_task();
+                    lsp_trace("Current drag task: %p", recv);
+
+                    if ((wnd != NULL) && (recv != NULL))
+                    {
+                        // Our window - explore the drag
+                        recv->enState       = DND_RECV_POSITION; // Allow specific state changes
+                        recv->hProxy        = task->hTarget;
+
+                        // Form the notification event
+                        ws_event_t ue;
+                        ue.nType            = UIE_DRAG_REQUEST;
+                        ue.nLeft            = cx;
+                        ue.nTop             = cy;
+                        ue.nWidth           = 0;
+                        ue.nHeight          = 0;
+                        ue.nCode            = 0;
+                        ue.nState           = DRAG_COPY;
+
+                        // Decode action
+                        if (act == sAtoms.X11_XdndActionCopy)
+                            ue.nState           = DRAG_COPY;
+                        else if (act == sAtoms.X11_XdndActionMove)
+                            ue.nState           = DRAG_MOVE;
+                        else if (act == sAtoms.X11_XdndActionLink)
+                            ue.nState           = DRAG_LINK;
+                        else if (act == sAtoms.X11_XdndActionAsk)
+                            ue.nState           = DRAG_ASK;
+                        else if (act == sAtoms.X11_XdndActionPrivate)
+                            ue.nState           = DRAG_PRIVATE;
+                        else if (act == sAtoms.X11_XdndActionDirectSave)
+                            ue.nState           = DRAG_DIRECT_SAVE;
+                        else
+                            recv->hAction       = None;
+
+                        ue.nTime            = ev->data.l[3];
+
+                        wnd->handle_event(&ue);
+
+                        // Did the handler properly process the event?
+                        if ((recv->enState != DND_RECV_ACCEPT) && (recv->enState != DND_RECV_REJECT))
+                        {
+                            lsp_trace("Forcing reject of proxied DnD transfer (task state=%d)", int(recv->enState));
+                            reject_dnd_transfer(recv);
+                        }
+
+                        // Return state back
+                        recv->enState   = DND_RECV_PENDING;
+                        recv->hProxy    = None;
+                    }
+                    else
+                    {
+                        // For other windows, just proxy the message
+                        XEvent xe;
+                        XClientMessageEvent *xev = &xe.xclient;
+                        xev->type           = ClientMessage;
+                        xev->serial         = ev->serial;
+                        xev->send_event     = True;
+                        xev->display        = pDisplay;
+                        xev->window         = task->hCurrent;
+                        xev->message_type   = sAtoms.X11_XdndPosition;
+                        xev->format         = 32;
+                        xev->data.l[0]      = task->hSource;
+                        xev->data.l[1]      = ev->data.l[1];
+                        xev->data.l[2]      = ev->data.l[2];
+                        xev->data.l[3]      = ev->data.l[3];
+                        xev->data.l[4]      = ev->data.l[4];
+
+                        lsp_trace("Sending XdndPosition to %lx", long(task->hCurrent));
+                        ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xe);
+                        ::XFlush(pDisplay);
+                    }
+                }
+                else // Need to send XDndStatus message with reject
+                {
+                    XEvent xe;
+                    XClientMessageEvent *xev = &xe.xclient;
+
+                    xev->type           = ClientMessage;
+                    xev->serial         = ev->serial;
+                    xev->send_event     = True;
+                    xev->display        = pDisplay;
+                    xev->window         = task->hSource;
+                    xev->message_type   = sAtoms.X11_XdndStatus;
+                    xev->format         = 32;
+                    xev->data.l[0]      = task->hTarget;
+                    xev->data.l[1]      = 0;
+                    xev->data.l[2]      = 0;
+                    xev->data.l[3]      = 0;
+                    xev->data.l[4]      = None;
+
+                    lsp_trace("Sending XdndReject to %lx", long(task->hSource));
+                    send_immediate(task->hSource, True, NoEventMask, &xe);
+                }
+
+                return STATUS_OK;
+            }
+
+//            status_t X11Display::proxy_drag_enter(x11_async_t *task, XClientMessageEvent *ev)
+//            {
+//                dnd_proxy_t *dnd = &task->dnd_proxy;
+//                Window root = None, parent = None, *children = NULL;
+//                unsigned int nchildren;
+//
+//                // Determine the target window to send data
+//                ::XQueryTree(pDisplay, dnd->hTarget, &root, &parent, &children, &nchildren);
+//
+//                lsp_trace("root = %lx, parent = %lx", long(root), long(parent));
+//                for (size_t i=0; i<nchildren; ++i)
+//                {
+//                    lsp_trace("  child #%d = %lx", int(i), long(children[i]));
+//                }
+//
+//                // Release children
+//                if (children != NULL)
+//                    ::XFree(children);
+//
+//                return STATUS_OK;
+//            }
 
             status_t X11Display::handle_drag_enter(XClientMessageEvent *ev)
             {
@@ -1799,8 +2200,9 @@ namespace lsp
                    the source cannot know what the target prefers.
                 */
 
-                lsp_trace("Received XdndEnter: wnd=0x%lx, ext=%s",
+                lsp_trace("Received XdndEnter: src_wnd=0x%lx, dst_wnd=0x%lx, ext=%s",
                         long(ev->data.l[0]),
+                        long(ev->window),
                         ((ev->data.l[1] & 1) ? "true" : "false")
                     );
 
@@ -1813,7 +2215,48 @@ namespace lsp
                 // Find target window
                 X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
-                    return STATUS_NOT_FOUND;
+                {
+                    lsp_trace("Target window 0x%lx not found, acting as a XDnD proxy", long(ev->window));
+                    x11_async_t *task   = lookup_dnd_proxy_task();
+                    if ((task != NULL) && (task->dnd_proxy.hTarget != Window(ev->window)))
+                    {
+                        lsp_trace("Target window does not match current proxy task, dropping task");
+                        task->cb_common.bComplete   = true;
+                        task                        = NULL;
+                    }
+
+                    if (task == NULL)
+                    {
+                        // Create task
+                        if ((task = sAsync.add()) == NULL)
+                        {
+                            if (data != NULL)
+                                ::free(data);
+                            return STATUS_NO_MEM;
+                        }
+
+                        lsp_trace("Created new XDnD proxy task");
+
+                        task->type          = X11ASYNC_DND_PROXY;
+                        task->result        = STATUS_OK;
+                        dnd_proxy_t *dnd    = &task->dnd_proxy;
+
+                        dnd->bComplete      = false;
+                        dnd->hProperty      = None;
+                        dnd->hTarget        = ev->window;
+                        dnd->hSource        = ev->data.l[0];
+                        dnd->hCurrent       = None;
+                        dnd->enter[0]       = ev->data.l[1];
+                        dnd->enter[1]       = ev->data.l[2];
+                        dnd->enter[2]       = ev->data.l[3];
+                        dnd->enter[3]       = ev->data.l[4];
+
+                        if (data != NULL)
+                            ::free(data);
+                    }
+
+                    return STATUS_OK;
+                }
 
                 // There are more than 3 mime types?
                 if (ev->data.l[1] & 1)
@@ -1823,9 +2266,15 @@ namespace lsp
                             sAtoms.X11_XdndTypeList, sAtoms.X11_XA_ATOM,
                             &data, &bytes, &type);
                     if (res != STATUS_OK)
+                    {
+                        lsp_trace("Could not read proprty XdndTypeList");
                         return res;
+                    }
                     else if (type != sAtoms.X11_XA_ATOM)
+                    {
+                        lsp_trace("Could proprty XdndTypeList is not of XA_ATOM type");
                         return STATUS_BAD_TYPE;
+                    }
 
                     // Decode MIME types
                     uint32_t *atoms = reinterpret_cast<uint32_t *>(data);
@@ -1907,6 +2356,7 @@ namespace lsp
                 dnd->enState        = DND_RECV_PENDING;
                 dnd->pSink          = NULL;
                 dnd->hAction        = None;
+                dnd->hProxy         = None;
 
                 // Log all supported MIME types
                 #ifdef LSP_TRACE
@@ -1930,6 +2380,36 @@ namespace lsp
 
                 // Pass event to the target window
                 return tgt->handle_event(&ue);
+            }
+
+            status_t X11Display::proxy_drag_leave(dnd_proxy_t *task, XClientMessageEvent *ev)
+            {
+                // Need to send XDndLeave?
+                if (task->hCurrent == None)
+                    return STATUS_OK;
+
+                XEvent xe;
+                XClientMessageEvent *xev = &xe.xclient;
+
+                xev->type           = ClientMessage;
+                xev->serial         = ev->serial;
+                xev->send_event     = True;
+                xev->display        = pDisplay;
+                xev->window         = task->hCurrent;
+                xev->message_type   = sAtoms.X11_XdndLeave;
+                xev->format         = 32;
+                xev->data.l[0]      = task->hSource;
+                xev->data.l[1]      = 0;
+                xev->data.l[2]      = 0;
+                xev->data.l[3]      = 0;
+                xev->data.l[4]      = 0;
+
+                lsp_trace("Sending XdndLeave to %lx", long(task->hCurrent));
+                send_immediate(task->hCurrent, True, NoEventMask, &xe);
+
+                task->hCurrent      = None;
+
+                return STATUS_OK;
             }
 
             status_t X11Display::handle_drag_leave(dnd_recv_t *task, XClientMessageEvent *ev)
@@ -1982,9 +2462,15 @@ namespace lsp
 
                 // Validate current state
                 if ((task->hTarget != ev->window) || (long(task->hSource) != ev->data.l[0]))
+                {
+                    lsp_trace("Window IDs do not match");
                     return STATUS_PROTOCOL_ERROR;
+                }
                 if (task->enState != DND_RECV_PENDING)
+                {
+                    lsp_trace("Invalid recv task state, should be DND_RECV_PENDING");
                     return STATUS_PROTOCOL_ERROR;
+                }
 
                 // Decode the event
                 int x = (ev->data.l[2] >> 16) & 0xffff, y = (ev->data.l[2] & 0xffff);
@@ -2001,14 +2487,16 @@ namespace lsp
                 // Find target window
                 X11Window *tgt  = find_window(ev->window);
                 if (tgt == NULL)
+                {
+                    lsp_trace("Could not find target window 0x%lx", long(ev->window));
                     return STATUS_NOT_FOUND;
+                }
 
                 Window child        = None;
                 ::XSync(pDisplay, False);
                 ::XTranslateCoordinates(pDisplay, hRootWnd, task->hTarget, x, y, &x, &y, &child);
                 ::XSync(pDisplay, False);
                 task->enState       = DND_RECV_POSITION; // Allow specific state changes
-                task->hAction       = act;
 
                 // Form the notification event
                 ws_event_t ue;
@@ -2042,12 +2530,106 @@ namespace lsp
 
                 // Did the handler properly process the event?
                 if ((task->enState != DND_RECV_ACCEPT) && (task->enState != DND_RECV_REJECT))
+                {
+                    lsp_trace("Forcing reject of DnD transfer (task state=%d)", int(task->enState));
                     reject_dnd_transfer(task);
+                }
 
                 // Return state back
                 task->enState   = DND_RECV_PENDING;
 
                 return res;
+            }
+
+            status_t X11Display::proxy_drag_drop(dnd_proxy_t *task, XClientMessageEvent *ev)
+            {
+                lsp_trace("Received proxied XdndDrop from %lx to wnd=0x%lx, ts=%ld", ev->data.l[0], ev->window, ev->data.l[2]);
+                bool fail           = false;
+                X11Window *tgt      = (task->hCurrent != None) ? find_window(task->hCurrent) : NULL;
+
+                if (tgt != NULL)
+                {
+                    lsp_trace("Current window is %p, id=%lx", tgt, long(task->hCurrent));
+                    dnd_recv_t *recv    = current_drag_task();
+
+                    if (recv != NULL)
+                    {
+                        recv->hProxy        = task->hTarget;
+
+                        XEvent xev;
+                        XClientMessageEvent *xe = &xev.xclient;
+                        xe->type            = ClientMessage;
+                        xe->serial          = ev->serial;
+                        xe->send_event      = True;
+                        xe->display         = pDisplay;
+                        xe->window          = task->hCurrent;
+                        xe->message_type    = sAtoms.X11_XdndDrop;
+                        xe->format          = 32;
+                        xe->data.l[0]       = ev->data.l[0];
+                        xe->data.l[1]       = ev->data.l[1];
+                        xe->data.l[2]       = ev->data.l[2];
+                        xe->data.l[3]       = ev->data.l[3];
+                        xe->data.l[4]       = ev->data.l[4];
+
+                        send_immediate(task->hCurrent, True, NoEventMask, &xev);
+                        recv->hProxy        = None;
+                    }
+                    else
+                        fail    = true;
+                }
+                else if (task->hCurrent != None)
+                {
+                    // Proxy DND Drop
+                    lsp_trace("No internal window found, proxying event");
+
+                    XEvent xev;
+                    XClientMessageEvent *xe = &xev.xclient;
+                    xe->type            = ClientMessage;
+                    xe->serial          = 0;
+                    xe->send_event      = True;
+                    xe->display         = pDisplay;
+                    xe->window          = task->hCurrent;
+                    xe->message_type    = sAtoms.X11_XdndFinished;
+                    xe->format          = 32;
+                    xe->data.l[0]       = ev->data.l[0];
+                    xe->data.l[1]       = ev->data.l[1];
+                    xe->data.l[2]       = ev->data.l[2];
+                    xe->data.l[3]       = ev->data.l[3];
+                    xe->data.l[4]       = ev->data.l[4];
+
+                    // Send the notification event
+                    ::XSendEvent(pDisplay, task->hCurrent, True, NoEventMask, &xev);
+                    ::XFlush(pDisplay);
+                }
+                else
+                    fail    = true;
+
+                // Need to fail DnD transfer?
+                if (fail)
+                {
+                    lsp_trace("No proper internal window found, failing DnD event");
+
+                    XEvent xev;
+                    XClientMessageEvent *xe = &xev.xclient;
+                    xe->type            = ClientMessage;
+                    xe->serial          = 0;
+                    xe->send_event      = True;
+                    xe->display         = pDisplay;
+                    xe->window          = task->hSource;
+                    xe->message_type    = sAtoms.X11_XdndFinished;
+                    xe->format          = 32;
+                    xe->data.l[0]       = task->hTarget;
+                    xe->data.l[1]       = 0;
+                    xe->data.l[2]       = None;
+                    xe->data.l[3]       = 0;
+                    xe->data.l[4]       = 0;
+
+                    // Send the notification event
+                    ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);
+                    ::XFlush(pDisplay);
+                }
+
+                return STATUS_OK;
             }
 
             status_t X11Display::handle_drag_drop(dnd_recv_t *task, XClientMessageEvent *ev)
@@ -2067,7 +2649,7 @@ namespace lsp
                     return STATUS_PROTOCOL_ERROR;
                 if (task->pSink == NULL)
                 {
-                    complete_dnd_transfer(task);
+                    complete_dnd_transfer(task, false);
                     return STATUS_UNSUPPORTED_FORMAT;
                 }
 
@@ -2075,7 +2657,7 @@ namespace lsp
                 X11Window *tgt  = find_window(task->hTarget);
                 if (tgt == NULL)
                 {
-                    complete_dnd_transfer(task);
+                    complete_dnd_transfer(task, false);
                     return STATUS_NOT_FOUND;
                 }
 
@@ -2118,16 +2700,13 @@ namespace lsp
                 // Release sink and complete transfer
                 task->pSink->release();
                 task->pSink = NULL;
-                complete_dnd_transfer(task);
+                complete_dnd_transfer(task, res == STATUS_OK);
 
                 return res;
             }
 
-            void X11Display::complete_dnd_transfer(dnd_recv_t *task)
+            void X11Display::complete_dnd_transfer(dnd_recv_t *task, bool success)
             {
-                // Send end of transfer if status is bad
-                lsp_trace("Sending XdndFinished");
-
                 /**
                 XdndFinished (new in version 2)
 
@@ -2149,6 +2728,10 @@ namespace lsp
                         was given based on the XdndStatus messages!)
                 */
 
+                // Send end of transfer and set status flag
+                Window target  = (task->hProxy != None) ? task->hProxy : task->hTarget;
+                lsp_trace("Sending XdndFinished from %lx to %lx", long(target), long(task->hSource));
+
                 XEvent xev;
                 XClientMessageEvent *xe = &xev.xclient;
                 xe->type            = ClientMessage;
@@ -2158,9 +2741,9 @@ namespace lsp
                 xe->window          = task->hSource;
                 xe->message_type    = sAtoms.X11_XdndFinished;
                 xe->format          = 32;
-                xe->data.l[0]       = task->hTarget;
-                xe->data.l[1]       = 0;
-                xe->data.l[2]       = None;
+                xe->data.l[0]       = target;
+                xe->data.l[1]       = (success) ? 1 : 0;
+                xe->data.l[2]       = (success) ? task->hAction : None;
                 xe->data.l[3]       = 0;
                 xe->data.l[4]       = 0;
 
@@ -2274,34 +2857,40 @@ namespace lsp
                 #undef E
             }
 
-            status_t X11Display::grab_events(X11Window *wnd)
+            status_t X11Display::grab_events(X11Window *wnd, grab_t group)
             {
-                if (sGrab.index_of(wnd) >= 0)
-                {
-                    lsp_trace("grab duplicated");
-                    return STATUS_DUPLICATED;
-                }
+                // Check validity of argument
+                if (group >= __GRAB_TOTAL)
+                    return STATUS_BAD_ARGUMENTS;
 
-                size_t screen = wnd->screen();
-                bool set_grab = true;
-                size_t n = sGrab.size();
-                for (size_t i=0; i<n; ++i)
+                // Check that window does not belong to any active grab group
+                for (size_t i=0; i<__GRAB_TOTAL; ++i)
                 {
-                    X11Window *wnd = sGrab.get(i);
-                    if (wnd->screen() == screen)
+                    cvector<X11Window> &g = vGrab[i];
+                    if (g.index_of(wnd) >= 0)
                     {
-                        set_grab = false;
-                        break;
+                        lsp_warn("Grab duplicated for window %p (id=%lx)", wnd, (long)wnd->hWindow);
+                        return STATUS_DUPLICATED;
                     }
                 }
 
-                if (!sGrab.add(wnd))
+                // Get the screen to obtain a grap
+                x11_screen_t *s = vScreens.get(wnd->screen());
+                if (s == NULL)
+                {
+                    lsp_warn("Invalid screen index");
+                    return STATUS_BAD_STATE;
+                }
+
+                // Add a grab
+                if (!vGrab[group].add(wnd))
                     return STATUS_NO_MEM;
 
-                if (set_grab)
+                // Obtain a grab if necessary
+                if (!(s->grabs++))
                 {
-                    lsp_trace("setting grab for screen=%d", int(screen));
-                    Window root     = RootWindow(pDisplay, screen);
+                    lsp_trace("Setting grab for screen=%d", int(s->id));
+                    Window root     = RootWindow(pDisplay, s->id);
                     ::XGrabPointer(pDisplay, root, True, PointerMotionMask | ButtonPressMask | ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
                     ::XGrabKeyboard(pDisplay, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 
@@ -2387,34 +2976,48 @@ namespace lsp
 
             status_t X11Display::ungrab_events(X11Window *wnd)
             {
-                size_t screen = wnd->screen();
-                bool kill_grab = true;
+                bool found = false;
 
-                if (!sGrab.remove(wnd))
+                // Obtain a screen object
+                x11_screen_t *s = vScreens.get(wnd->screen());
+                if (s == NULL)
                 {
-                    lsp_trace("grab window not found");
-                    return STATUS_NOT_FOUND;
+                    lsp_warn("No screen object found for window %p (%lx)", wnd, long(wnd->hWindow));
+                    return STATUS_BAD_STATE;
                 }
 
-                size_t n = sGrab.size();
-                for (size_t i=0; i<n; ++i)
+                // Check that window does belong to any active grab group
+                for (size_t i=0; i<__GRAB_TOTAL; ++i)
                 {
-                    X11Window *wnd = sGrab.get(i);
-                    if (wnd->screen() == screen)
+                    cvector<X11Window> &g = vGrab[i];
+                    if (g.remove(wnd, false))
                     {
-                        kill_grab = false;
+                        found = true;
                         break;
                     }
                 }
 
-                if (kill_grab)
+                // Return error if not found
+                if (!found)
                 {
-                    lsp_trace("removing grab for screen=%d", int(screen));
-                    XUngrabPointer(pDisplay, CurrentTime);
-                    XUngrabKeyboard(pDisplay, CurrentTime);
+                    lsp_trace("No grab found for window %p (%lx)", wnd, long(wnd->hWindow));
+                    return STATUS_NO_GRAB;
+                }
+                else if (s->grabs <= 0)
+                {
+                    lsp_trace("Grab for screen #%d has already been released", int(s->id));
+                    return STATUS_BAD_STATE;
+                }
 
-                    XFlush(pDisplay);
-//                    XSync(pDisplay, False);
+                // Need to release X11 grab?
+                if (!(--s->grabs))
+                {
+                    lsp_trace("Releasing grab for screen=%d", int(s->id));
+                    ::XUngrabPointer(pDisplay, CurrentTime);
+                    ::XUngrabKeyboard(pDisplay, CurrentTime);
+
+                    ::XFlush(pDisplay);
+//                    ::XSync(pDisplay, False);
                 }
 
                 return STATUS_OK;
@@ -2738,13 +3341,14 @@ namespace lsp
                         should be sent if the drop will not be accepted. (new in version 2)
                  */
                 // Send end of transfer if status is bad
-                lsp_trace("Sending XdndStatus (reject)");
+                Window target = (task->hProxy != None) ? task->hProxy : task->hTarget;
+                lsp_trace("Sending XdndStatus (reject) from %lx to %lx", long(target), long(task->hSource));
                 
-                XWindowAttributes xwa;
-                Window child = None;
-                int x = 0, y = 0;
-                ::XGetWindowAttributes(pDisplay, task->hTarget, &xwa);
-                ::XTranslateCoordinates(pDisplay, task->hTarget, hRootWnd, 0, 0, &x, &y, &child);
+//                XWindowAttributes xwa;
+//                Window child = None;
+//                int x = 0, y = 0;
+//                ::XGetWindowAttributes(pDisplay, task->hTarget, &xwa);
+//                ::XTranslateCoordinates(pDisplay, task->hTarget, hRootWnd, 0, 0, &x, &y, &child);
 
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
@@ -2755,7 +3359,7 @@ namespace lsp
                 ev->window          = task->hSource;
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
-                ev->data.l[0]       = task->hTarget;
+                ev->data.l[0]       = target;
                 ev->data.l[1]       = 0;
                 ev->data.l[2]       = 0;
                 ev->data.l[3]       = 0;
@@ -2785,6 +3389,7 @@ namespace lsp
                 task->enState       = DND_RECV_REJECT;
 
                 // Send reject status to requestor
+                lsp_trace("Handler rejected DnD transfer");
                 reject_dnd_transfer(task);
 
                 return STATUS_OK;
@@ -2863,7 +3468,8 @@ namespace lsp
                 }
 
                 // Form the message
-                lsp_trace("Sending XdndStatus (accept)");
+                Window target       = (task->hProxy != None) ? task->hProxy : task->hTarget;
+                lsp_trace("Sending XdndStatus (accept) from %lx to %lx", long(target), long(task->hSource));
                 XEvent xev;
                 XClientMessageEvent *ev = &xev.xclient;
                 ev->type            = ClientMessage;
@@ -2873,7 +3479,7 @@ namespace lsp
                 ev->window          = task->hSource;
                 ev->message_type    = sAtoms.X11_XdndStatus;
                 ev->format          = 32;
-                ev->data.l[0]       = task->hTarget;
+                ev->data.l[0]       = target;
                 ev->data.l[1]       = 1 | ((internal) ? (1 << 1) : 0);
                 if (r != NULL)
                 {
@@ -2894,6 +3500,7 @@ namespace lsp
                     task->pSink->release();
                 task->pSink     = sink;
                 task->enState   = DND_RECV_ACCEPT;
+                task->hAction   = act;
 
                 // Send the response
                 ::XSendEvent(pDisplay, task->hSource, True, NoEventMask, &xev);

@@ -103,7 +103,7 @@ namespace lsp
 
     class LV2PortGroup: public LV2Port
     {
-        private:
+        protected:
             float                   nCurrRow;
             size_t                  nCols;
             size_t                  nRows;
@@ -207,7 +207,7 @@ namespace lsp
 
     class LV2InputPort: public LV2Port
     {
-        private:
+        protected:
             const float    *pData;
             float           fValue;
             float           fPrev;
@@ -299,9 +299,54 @@ namespace lsp
             }
     };
 
+    class LV2BypassPort: public LV2InputPort
+    {
+        public:
+            explicit LV2BypassPort(const port_t *meta, LV2Extensions *ext) : LV2InputPort(meta, ext) { }
+
+            virtual ~LV2BypassPort() {}
+
+        public:
+            virtual float getValue()
+            {
+                return pMetadata->max - fValue;
+            }
+
+            virtual void setValue(float value)
+            {
+                fValue      = pMetadata->max - value;
+            }
+
+            virtual void save()
+            {
+                if (nID >= 0)
+                    return;
+                float value = pMetadata->max - fValue;
+                lsp_trace("save port id=%s, urid=%d (%s), value=%f", pMetadata->id, urid, get_uri(), value);
+                pExt->store_value(urid, pExt->forge.Float, &value, sizeof(float));
+            }
+
+            virtual void restore()
+            {
+                if (nID >= 0)
+                    return;
+                lsp_trace("restore port id=%s, urid=%d (%s)", pMetadata->id, urid, get_uri());
+                size_t count            = 0;
+                const void *data        = pExt->restore_value(urid, pExt->forge.Float, &count);
+                if ((count == sizeof(float)) && (data != NULL))
+                    fValue      = limit_value(pMetadata, pMetadata->max - *(reinterpret_cast<const float *>(data)));
+            }
+
+            virtual void deserialize(const void *data, size_t flags)
+            {
+                const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
+                fValue      = pMetadata->max - atom->body;
+            }
+    };
+
     class LV2OutputPort: public LV2Port
     {
-        private:
+        protected:
             float  *pData;
             float   fPrev;
             float   fValue;
@@ -388,7 +433,7 @@ namespace lsp
 
     class LV2MeshPort: public LV2Port
     {
-        private:
+        protected:
             LV2Mesh                 sMesh;
 
         public:
@@ -445,7 +490,7 @@ namespace lsp
 
     class LV2FrameBufferPort: public LV2Port
     {
-        private:
+        protected:
             frame_buffer_t      sFB;
             size_t              nRowID;
 
@@ -515,7 +560,7 @@ namespace lsp
 
     class LV2PathPort: public LV2Port
     {
-        private:
+        protected:
             lv2_path_t          sPath;
             atomic_t            nLastChange;
 
@@ -540,9 +585,31 @@ namespace lsp
 
             virtual void save()
             {
-                lsp_trace("save port id=%s, urid=%d (%s), value=%s", pMetadata->id, urid, get_uri(), sPath.sPath);
-                if (strlen(sPath.sPath) > 0)
-                    pExt->store_value(urid, pExt->uridPathType, sPath.sPath, strlen(sPath.sPath) + sizeof(char));
+                const char *path = sPath.sPath;
+
+                lsp_trace("save port id=%s, urid=%d (%s), value=%s", pMetadata->id, urid, get_uri(), path);
+
+                if (::strlen(path) > 0)
+                {
+                    char *mapped = NULL;
+
+                    // We need to translate absolute path to relative path?
+                    if ((pExt->mapPath != NULL) && (::strstr(path, LSP_BUILTIN_PREFIX) != path))
+                    {
+                        mapped = pExt->mapPath->abstract_path(pExt->mapPath->handle, path);
+                        if (mapped != NULL)
+                        {
+                            lsp_trace("mapped path: %s -> %s", path, mapped);
+                            path = mapped;
+                        }
+                    }
+
+                    // Store the actual value of the path
+                    pExt->store_value(urid, pExt->uridPathType, path, ::strlen(path) + sizeof(char));
+
+                    if (mapped != NULL)
+                        ::free(mapped);
+                }
             }
 
             void tx_request()
@@ -558,6 +625,7 @@ namespace lsp
                 uint32_t type           = -1;
 
                 const char *path        = reinterpret_cast<const char *>(pExt->retrieve_value(urid, &type, &count));
+                char *mapped            = NULL;
                 if (path != NULL)
                 {
                     if (type == pExt->forge.URID)
@@ -565,7 +633,7 @@ namespace lsp
                         const LV2_URID *urid    = reinterpret_cast<const LV2_URID *>(path);
                         path                = pExt->unmap_urid(*urid);
                         if (path != NULL)
-                            count               = strnlen(path, PATH_MAX);
+                            count               = ::strnlen(path, PATH_MAX-1);
                     }
                     else if ((type != pExt->uridPathType) && (type != pExt->forge.String))
                     {
@@ -576,10 +644,34 @@ namespace lsp
                 }
 
                 if ((path != NULL) && (count > 0))
+                {
+                    // Save path as temporary variable
+                    char tmp_path[PATH_MAX];
+                    ::strncpy(tmp_path, path, count);
+                    tmp_path[count] = '\0';
+                    path        = tmp_path;
+
+                    // We need to translate relative path to absolute path?
+                    if ((pExt->mapPath != NULL) && (::strstr(path, LSP_BUILTIN_PREFIX) != path))
+                    {
+                        mapped = pExt->mapPath->absolute_path(pExt->mapPath->handle, path);
+                        if (mapped != NULL)
+                        {
+                            lsp_trace("unmapped path: %s -> %s", path, mapped);
+                            path  = mapped;
+                            count = ::strnlen(path, PATH_MAX-1);
+                        }
+                    }
+
+                    // Restore the actual value of the path
                     set_string(path, count, PF_STATE_IMPORT);
+                }
                 else
                     set_string("", 0, PF_STATE_IMPORT);
                 tx_request();
+
+                if (mapped != NULL)
+                    ::free(mapped);
             }
 
             virtual bool tx_pending()
@@ -617,7 +709,7 @@ namespace lsp
 
     class LV2MidiPort: public LV2Port
     {
-        private:
+        protected:
             midi_t      sQueue;
 
         public:
@@ -635,7 +727,7 @@ namespace lsp
 
     class LV2OscPort: public LV2Port
     {
-        private:
+        protected:
             osc_buffer_t     *pFB;
 
         public:

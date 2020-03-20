@@ -1,4 +1,5 @@
 //#include <gtk/gtk.h>
+#include <core/types.h>
 
 #include <jack/jack.h>
 #include <jack/transport.h>
@@ -21,6 +22,17 @@
 #include <container/const.h>
 #include <container/jack/wrapper.h>
 
+#include <signal.h>
+
+#if defined(LSP_TESTING) && (defined(PLATFORM_LINUX) || defined(PLATFORM_BSD))
+    #define XDND_PROXY_SUPPORT
+    #define IF_XDND_PROXY_SUPPORT(...)  __VA_ARGS__
+
+    extern void patch_xdnd_proxy_window(const void *parent, const void *child);
+#else
+    #define IF_XDND_PROXY_SUPPORT(...)
+#endif
+
 namespace lsp
 {
     typedef struct jack_wrapper_t
@@ -34,13 +46,15 @@ namespace lsp
 
     typedef struct jack_config_t
     {
-        const char *cfg_file;
+        const char     *cfg_file;
+        void           *parent_id;
     } jack_config_t;
 
     status_t jack_parse_config(jack_config_t *cfg, int argc, const char **argv)
     {
         // Initialize config with default values
         cfg->cfg_file       = NULL;
+        cfg->parent_id      = NULL;
 
         // Parse arguments
         int i = 1;
@@ -52,6 +66,9 @@ namespace lsp
                 printf("Usage: %s [parameters]\n\n", argv[0]);
                 printf("Available parameters:\n");
                 printf("  -c, --config <file>   Load settings file on startup\n");
+                IF_XDND_PROXY_SUPPORT(
+                    printf("  --dnd-proxy <id>      Create window as child and DnD proxy of specified window ID\n");
+                )
                 printf("  -h, --help            Output help\n");
                 printf("\n");
 
@@ -66,6 +83,23 @@ namespace lsp
                 }
                 cfg->cfg_file = argv[i++];
             }
+        #ifdef XDND_PROXY_SUPPORT
+            else if (!::strcmp(arg, "--dnd-proxy"))
+            {
+                if (i >= argc)
+                {
+                    fprintf(stderr, "Not specified window hex identifier for '%s' parameter\n", arg);
+                    return STATUS_BAD_ARGUMENTS;
+                }
+
+                union {
+                    void *ptr;
+                    long data;
+                } parent;
+                parent.data = long(::strtol(argv[i++], NULL, 16));
+                cfg->parent_id  = parent.ptr;
+            }
+        #endif
             else
             {
                 fprintf(stderr, "Unknown parameter: %s\n", arg);
@@ -146,16 +180,10 @@ namespace lsp
         return STATUS_OK;
     }
 
-    int jack_plugin_main(plugin_t *plugin, plugin_ui *pui, int argc, const char **argv)
+    int jack_plugin_main(jack_config_t &cfg, plugin_t *plugin, plugin_ui *pui, int argc, const char **argv)
     {
         int status               = STATUS_OK;
         jack_wrapper_t  wrapper;
-
-        // Parse command-line arguments
-        jack_config_t cfg;
-        status_t res = jack_parse_config(&cfg, argc, argv);
-        if (res != STATUS_OK)
-            return (res == STATUS_CANCELLED) ? 0 : res;
 
         // Create wrapper
         lsp_trace("Creating wrapper");
@@ -228,6 +256,8 @@ extern "C"
     {
         using namespace lsp;
         
+        signal(SIGPIPE, SIG_IGN); // Ignore SIGPIPE signal since JACK can suddenly lose socket connection
+
         lsp_debug_init("jack");
         init_locale();
         
@@ -235,9 +265,14 @@ extern "C"
         lsp_trace("Initializing DSP");
         dsp::init();
 
+        jack_config_t cfg;
         plugin_t  *p    = NULL;
         plugin_ui *pui  = NULL;
         status_t res    = STATUS_OK;
+
+        // Parse command-line arguments
+        if ((res = jack_parse_config(&cfg, argc, argv)) != STATUS_OK)
+            return (res == STATUS_CANCELLED) ? 0 : res;
 
         // Call corresponding plugin for execute
         #define MOD_PLUGIN(plugin, ui)    \
@@ -246,7 +281,7 @@ extern "C"
             { \
                 p = new plugin(); \
                 if (plugin::metadata.ui_resource != NULL) \
-                    pui = new ui(&plugin::metadata, NULL); \
+                    pui = new ui(&plugin::metadata, cfg.parent_id); \
             }
 
         #include <metadata/modules.h>
@@ -264,7 +299,7 @@ extern "C"
         }
         else
         {
-            res = jack_plugin_main(p, pui, argc, argv);
+            res = jack_plugin_main(cfg, p, pui, argc, argv);
             pui = NULL; // Already destroyed by jack_plugin_main
         }
 

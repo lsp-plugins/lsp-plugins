@@ -54,6 +54,22 @@ namespace dsp
      */
     extern void (* rdiv_k2)(float *dst, float k, size_t count);
 
+    /**
+     * Compute remainder of dst/k: dst = dst - k * int(dst/k)
+     * @param dst destination
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* mod_k2)(float *dst, float k, size_t count);
+
+    /**
+     * Compute remainder of k/dst: dst = k - dst * int(k/dst)
+     * @param dst destination/divisor
+     * @param k constant value to use as divident
+     * @param count number of elements of destination to modify
+     */
+    extern void (* rmod_k2)(float *dst, float k, size_t count);
+
     /** Scale: dst[i] = dst[i] * k
      *
      * @param dst destination
@@ -105,6 +121,22 @@ namespace dsp
      * @param count number of elements of destination to modify
      */
     extern void (* rdiv_k3)(float *dst, const float *src, float k, size_t count);
+
+    /**
+     * Compute remainder of src/k: dst = src - k * int(src/k)
+     * @param dst destination
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* mod_k3)(float *dst, const float *src, float k, size_t count);
+
+    /**
+     * Compute remainder of k/src: dst = k - src * int(k/src)
+     * @param dst destination
+     * @param k constant value to use as divisor
+     * @param count number of elements of destination to modify
+     */
+    extern void (* rmod_k3)(float *dst, const float *src, float k, size_t count);
 
     /** Scale: dst[i] = src[i] * k
      *

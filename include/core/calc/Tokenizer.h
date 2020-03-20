@@ -43,8 +43,6 @@ namespace lsp
                 token_t             set_error(status_t code);
                 token_t             decode_bareword();
 
-                static bool         is_identifier_first(lsp_wchar_t ch);
-                static bool         is_identifier_next(lsp_wchar_t ch);
                 static bool         parse_digit(int *digit, lsp_wchar_t ch, int radix);
 
             public:
@@ -52,6 +50,20 @@ namespace lsp
                 virtual ~Tokenizer();
 
             public:
+                /**
+                 * Check that character matches first identifier letter
+                 * @param ch character
+                 * @return true if character matchers
+                 */
+                static bool             is_identifier_first(lsp_wchar_t ch);
+
+                /**
+                 * Check that character matches next identifier letter
+                 * @param ch character
+                 * @return true if character matchers
+                 */
+                static bool             is_identifier_next(lsp_wchar_t ch);
+
                 /**
                  * Get token
                  * @param flags tokenizing flags

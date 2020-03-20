@@ -585,8 +585,8 @@ namespace lsp
             }
         }
 
-        // Handle Note Off event
-        sKernel.trigger_off(timestamp, level);
+        // Do ont handle Note Off event by sampler because it will cause it to stop sample playback
+        // sKernel.trigger_off(timestamp, level);
     }
 
     void trigger_base::process(size_t samples)

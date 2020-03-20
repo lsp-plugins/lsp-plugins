@@ -105,7 +105,7 @@
 	</ul>
 	<li><b>SC Preamp</b> - applies additional gain to the sidechain band.</li>
 	<li><b>Makeup</b> - applies additional gain to the output of the corresponding compressor.</li>
-	<li><b>Ratio</b> - the compression ration for the corresponding band.</li>
+	<li><b>Ratio</b> - the compression ratio for the corresponding band.</li>
 	<li><b>Knee</b> - the compression knee for the corresponding band.</li>
 	<li><b>Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
 	<li><b>Attack Time</b> - attack time of the compressor.</li>
@@ -151,9 +151,13 @@
 	<li><b>Compressor Ratio</b> - compression ratio.</li>
 	<li><b>Compressor Knee</b> - size of compression knee.</li>
 	<li><b>Compressor Makeup</b> - additional amplification gain after compression stage.</li>
-	<li><b>Compressor Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
+	<li><b>Compressor Boost</b> - this knob is related to <b>upward compression mode</b> only.
+	   It defines the threshold below which the constant amplification will be applied to the input signal. This prevents
+	   the compressor from applying infinite amplification to very quiet signals.
+	</li>
+	<li><b>Compressor Attack Thresh</b> - threshold of the compressor, placed in the middle of the knee.</li>
 	<li><b>Compressor Attack Time</b> - attack time of the compressor.</li>
-	<li><b>Compressor Release Level</b> - relative to the <b>Attack Level</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
+	<li><b>Compressor Release Thresh</b> - relative to the <b>Attack Thresh</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
 	<li><b>Compressor Release Time</b> - release time of the compressor.</li>
 	<li><b>Gain</b> - the amount of gain applied to frequency band by the compression curve.</li>
 </ul>

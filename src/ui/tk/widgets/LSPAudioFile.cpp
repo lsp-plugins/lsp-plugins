@@ -64,6 +64,7 @@ namespace lsp
 
         LSPAudioFile::LSPAudioFile(LSPDisplay *dpy):
             LSPWidget(dpy),
+            sHint(this),
             sFont(dpy, this),
             sHintFont(dpy, this),
             sConstraints(this),
@@ -105,6 +106,8 @@ namespace lsp
                 return STATUS_NO_MEM;
             pSink->acquire();
 
+            sHint.bind();
+
             sFont.init();
             sFont.set_size(10);
             sFont.set_bold(true);
@@ -121,13 +124,23 @@ namespace lsp
             // Initialize dialog
             LSP_STATUS_ASSERT(sDialog.init());
 
-            sDialog.set_title("Load Audio File");
+            sDialog.title()->set("titles.load_audio_file");
             LSPFileFilter *f = sDialog.filter();
-            f->add("*.wav", "Wave audio format (*.wav)", ".wav");
-            f->add("*", "Any file", "");
+            {
+                LSPFileFilterItem ffi;
+                ffi.pattern()->set("*.wav");
+                ffi.title()->set("files.audio.wave");
+                ffi.set_extension(".wav");
+                f->add(&ffi);
+
+                ffi.pattern()->set("*");
+                ffi.title()->set("files.all");
+                ffi.set_extension("");
+                f->add(&ffi);
+            }
             f->set_default(0);
 
-            sDialog.set_action_title("Load");
+            sDialog.action_title()->set("actions.load");
             sDialog.bind_action(slot_on_dialog_submit, self());
             sDialog.slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());
 
@@ -178,22 +191,6 @@ namespace lsp
         status_t LSPAudioFile::set_file_name(const LSPString *text)
         {
             if (!sFileName.set(text))
-                return STATUS_NO_MEM;
-            query_draw();
-            return STATUS_OK;
-        }
-
-        status_t LSPAudioFile::set_hint(const char *text)
-        {
-            if (!sHint.set_native(text))
-                return STATUS_NO_MEM;
-            query_draw();
-            return STATUS_OK;
-        }
-
-        status_t LSPAudioFile::set_hint(const LSPString *text)
-        {
-            if (!sHint.set(text))
                 return STATUS_NO_MEM;
             query_draw();
             return STATUS_OK;
@@ -659,14 +656,20 @@ namespace lsp
 
             if (nStatus & AF_SHOW_HINT)
             {
-                font_parameters_t fp;
-                text_parameters_t tp;
+                LSPString hint;
+                sHint.format(&hint);
 
-                pGraph->set_antialiasing(false);
-                sHintFont.get_parameters(pGraph, &fp);
-                sHintFont.get_text_parameters(pGraph, &tp, &sHint);
+                if (!hint.is_empty())
+                {
+                    font_parameters_t fp;
+                    text_parameters_t tp;
 
-                sHintFont.draw(pGraph, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, &sHint);
+                    pGraph->set_antialiasing(false);
+                    sHintFont.get_parameters(pGraph, &fp);
+                    sHintFont.get_text_parameters(pGraph, &tp, &hint);
+
+                    sHintFont.draw(pGraph, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, &hint);
+                }
             }
 
             pGraph->set_antialiasing(aa);

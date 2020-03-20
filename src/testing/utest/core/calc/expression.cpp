@@ -20,6 +20,7 @@ UTEST_BEGIN("core.calc", expression)
     {
         Expression e(r);
         value_t res;
+        init_value(&res);
 
         printf("Evaluating expression: %s -> %f\n", expr, value);
         UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
@@ -34,6 +35,7 @@ UTEST_BEGIN("core.calc", expression)
     {
         Expression e(r);
         value_t res;
+        init_value(&res);
 
         printf("Evaluating expression: %s -> %ld\n", expr, long(value));
         UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
@@ -48,6 +50,7 @@ UTEST_BEGIN("core.calc", expression)
     {
         Expression e(r);
         value_t res;
+        init_value(&res);
 
         printf("Evaluating expression: %s -> %s\n", expr, (value) ? "true" : "false");
         UTEST_ASSERT_MSG(e.parse(expr, NULL, Expression::FLAG_NONE) == STATUS_OK, "Error parsing expression: %s", expr);
@@ -63,6 +66,7 @@ UTEST_BEGIN("core.calc", expression)
         LSPString tmp;
         Expression e(r);
         value_t res;
+        init_value(&res);
 
         printf("Evaluating expression: %s -> '%s'\n", expr, value);
         UTEST_ASSERT(tmp.set_utf8(expr) == true);
@@ -80,6 +84,7 @@ UTEST_BEGIN("core.calc", expression)
         LSPString tmp;
         Expression e(r);
         value_t res;
+        init_value(&res);
 
         printf("Evaluating expression: %s -> '%s'\n", expr, value);
         UTEST_ASSERT(tmp.set_utf8(expr) == true);
@@ -143,8 +148,12 @@ UTEST_BEGIN("core.calc", expression)
         UTEST_ASSERT(v.set_bool("v_1_0", true) == STATUS_OK);
         UTEST_ASSERT(v.set_string("v_1_1", "test") == STATUS_OK);
 
-        UTEST_ASSERT(v.set_string("sa", "lower") == STATUS_OK);
-        UTEST_ASSERT(v.set_string("sb", "UPPER") == STATUS_OK);
+        LSPString lower, upper;
+        UTEST_ASSERT(lower.set_ascii("lower"));
+        UTEST_ASSERT(upper.set_ascii("UPPER"));
+
+        UTEST_ASSERT(v.set_string("sa", &lower) == STATUS_OK);
+        UTEST_ASSERT(v.set_string("sb", &upper) == STATUS_OK);
 
     }
 

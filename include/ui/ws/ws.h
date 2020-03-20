@@ -87,6 +87,27 @@ namespace lsp
             MCD_RIGHT           = 4
         };
 
+        /**
+         * Different grab group types,
+         * sorted according to the priority of grab
+         * in ascending order
+         */
+        enum grab_t
+        {
+            GRAB_LOWEST,
+            GRAB_LOW,
+            GRAB_NORMAL,
+            GRAB_HIGH,
+            GRAB_HIGHEST,
+
+            GRAB_DROPDOWN,                  // Dropdown list
+
+            GRAB_MENU,                      // Simple menu
+            GRAB_EXTRA_MENU,                // Menu over menu
+
+            __GRAB_TOTAL
+        };
+
         /** Event processing flags
          *
          */
@@ -98,14 +119,17 @@ namespace lsp
             EVF_GRAB            = 1 << 2    // Grab all further events first
         };
 
+        /** Different drag actions
+         *
+         */
         enum drag_t
         {
-            DRAG_COPY           = 0,
-            DRAG_MOVE           = 1,
-            DRAG_LINK           = 2,
-            DRAG_ASK            = 3,
-            DRAG_PRIVATE        = 4,
-            DRAG_DIRECT_SAVE    = 5
+            DRAG_COPY           = 0,//!< DRAG_COPY
+            DRAG_MOVE           = 1,//!< DRAG_MOVE
+            DRAG_LINK           = 2,//!< DRAG_LINK
+            DRAG_ASK            = 3,//!< DRAG_ASK
+            DRAG_PRIVATE        = 4,//!< DRAG_PRIVATE
+            DRAG_DIRECT_SAVE    = 5 //!< DRAG_DIRECT_SAVE
         };
 
         enum mouse_pointer_t

@@ -124,7 +124,11 @@ namespace lsp
             // Initialize oversampler
             if (!c->sOver.init())
                 return;
-            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, limiter_base_metadata::LOOKAHEAD_MAX))
+            if (!c->sScOver.init())
+                return;
+            // Initialize limiter with latency compensation gap
+            float lk_latency = int(samples_to_millis(MAX_SAMPLE_RATE, limiter_base_metadata::OVERSAMPLING_MAX)) + 1.0f;
+            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, limiter_base_metadata::LOOKAHEAD_MAX + lk_latency))
                 return;
         }
 
@@ -247,6 +251,7 @@ namespace lsp
                 channel_t *c    = &vChannels[i];
                 c->sLimit.destroy();
                 c->sOver.destroy();
+                c->sScOver.destroy();
             }
 
             delete [] vChannels;
@@ -274,6 +279,7 @@ namespace lsp
 
             c->sBypass.init(sr);
             c->sOver.set_sample_rate(sr);
+            c->sScOver.set_sample_rate(sr);
             c->sLimit.set_mode(LM_HERM_THIN);
             c->sLimit.set_sample_rate(real_sample_rate);
             c->sBlink.init(sr);
@@ -400,13 +406,8 @@ namespace lsp
     {
         channel_t *c = &vChannels[0];
         size_t latency =
-                c->sLimit.get_latency() / c->sOver.get_oversampling()
-                + c->sOver.latency();
-//        lsp_trace("lim=%d, over=%d, o/s=%d, latency=%d",
-//                int(c->sLimit.get_latency()),
-//                int(c->sOver.latency()),
-//                int(c->sOver.get_oversampling()),
-//                int(latency));
+                c->sLimit.get_latency() / c->sScOver.get_oversampling()
+                + c->sScOver.latency();
         set_latency(latency);
     }
 
@@ -449,8 +450,17 @@ namespace lsp
             c->sOver.set_filtering(filtering);
             if (c->sOver.modified())
                 c->sOver.update_settings();
+
+            c->sScOver.set_mode(mode);
+            c->sScOver.set_filtering(false);
+            if (c->sScOver.modified())
+                c->sScOver.update_settings();
+
             size_t real_sample_rate     = c->sOver.get_oversampling() * fSampleRate;
             size_t real_samples_per_dot = seconds_to_samples(real_sample_rate, scaling_factor);
+
+            // Update lookahead because oversampling adds extra latency
+            lk_ahead                   += samples_to_millis(fSampleRate, c->sScOver.latency());
 
             // Update settings for limiter
             c->sLimit.set_mode(op_mode);
@@ -513,10 +523,10 @@ namespace lsp
                     if (fPreamp != GAIN_AMP_0_DB)
                     {
                         dsp::mul_k3(c->vOutBuf, c->vSc, fPreamp, to_do);
-                        c->sOver.upsample(c->vScBuf, c->vOutBuf, to_do);
+                        c->sScOver.upsample(c->vScBuf, c->vOutBuf, to_do);
                     }
                     else
-                        c->sOver.upsample(c->vScBuf, c->vSc, to_do);
+                        c->sScOver.upsample(c->vScBuf, c->vSc, to_do);
                 }
                 else
                 {

@@ -16,51 +16,51 @@ namespace lsp
     // Compressor
     static const int compressor_classes[] = { C_COMPRESSOR, -1 };
 
-    static const char *comp_sc_modes[] =
+    static const port_item_t comp_sc_modes[] =
     {
-        "Peak",
-        "RMS",
-        "Low-Pass",
-        "Uniform",
-        NULL
+        { "Peak",       "sidechain.peak"           },
+        { "RMS",        "sidechain.rms"            },
+        { "Low-Pass",   "sidechain.lowpass"        },
+        { "Uniform",    "sidechain.uniform"        },
+        { NULL, NULL }
     };
 
-    static const char *comp_modes[] =
+    static const port_item_t comp_sc_sources[] =
     {
-        "Downward",
-        "Upward",
-        NULL
+        { "Middle",     "sidechain.middle" },
+        { "Side",       "sidechain.side" },
+        { "Left",       "sidechain.left" },
+        { "Right",      "sidechain.right" },
+        { NULL, NULL }
     };
 
-    static const char *comp_modes_short[] =
+    static const port_item_t comp_sc_type[] =
     {
-        "Down",
-        "Up",
-        NULL
+        { "Feed-forward",   "sidechain.feed_forward" },
+        { "Feed-back",      "sidechain.feed_back" },
+        { NULL, NULL }
     };
 
-    static const char *comp_sc_sources[] =
+    static const port_item_t comp_sc2_type[] =
     {
-        "Middle",
-        "Side",
-        "Left",
-        "Right",
-        NULL
+        { "Feed-forward",   "sidechain.feed_forward" },
+        { "Feed-back",      "sidechain.feed_back" },
+        { "External",       "sidechain.external" },
+        { NULL, NULL }
     };
 
-    static const char *comp_sc_type[] =
+    static const port_item_t comp_modes[] =
     {
-        "Feed-forward",
-        "Feed-back",
-        NULL
+        { "Downward",   "compressor.downward" },
+        { "Upward",     "compressor.upward" },
+        { NULL, NULL }
     };
 
-    static const char *comp_sc2_type[] =
+    static const port_item_t comp_modes_short[] =
     {
-        "Feed-forward",
-        "Feed-back",
-        "External",
-        NULL
+        { "Down",       "compressor.down_ward" },
+        { "Up",         "compressor.up_ward" },
+        { NULL, NULL }
     };
 
     #define COMP_COMMON     \
@@ -99,6 +99,7 @@ namespace lsp
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, compressor_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("cr" id, "Ratio" label, U_NONE, compressor_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, compressor_base_metadata::KNEE), \
+        EXT_LOG_CONTROL("bth" id, "Boost threshold" label, U_GAIN_AMP, compressor_base_metadata::BTH), \
         LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, compressor_base_metadata::MAKEUP), \
         AMP_GAIN10("cdr" id, "Dry gain" label, GAIN_AMP_M_INF_DB),     \
         AMP_GAIN10("cwt" id, "Wet gain" label, GAIN_AMP_0_DB), \

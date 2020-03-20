@@ -388,6 +388,8 @@ namespace lsp
             ssize_t x       = sPadding.left() + nBorder;
             size_t n        = vItems.size();
 
+            LSPString text;
+
             for (size_t i=0; i < n; ++i)
             {
                 LSPMenuItem *item = vItems.get(i);
@@ -413,7 +415,7 @@ namespace lsp
                 {
                     if (y > (-fp.Height))
                     {
-                        const char *text = item->text();
+                        item->text()->format(&text);
                         if (nSelected == ssize_t(i))
                         {
                             s->fill_rect(nBorder, y, sSize.nWidth - nBorder*2, fp.Height, sel);
@@ -422,8 +424,8 @@ namespace lsp
                         else
                             tmp.copy(font);
 
-                        if (text != NULL)
-                            sFont.draw(s, x, y + fp.Ascent + hspace, tmp, text);
+                        if (!text.is_empty())
+                            sFont.draw(s, x, y + fp.Ascent + hspace, tmp, &text);
 
                         if (item->has_submenu())
                         {
@@ -646,12 +648,12 @@ namespace lsp
             realize(&wr);
             nSelected       = SEL_NONE;
 
-            pWindow->show();
+            pWindow->show(w);
 
             // Need to perform grabbing?
             pParentMenu = widget_cast<LSPMenu>(w);
             if (pParentMenu == NULL)
-                pWindow->grab_events();
+                pWindow->grab_events(GRAB_MENU);
 
             return LSPWidgetContainer::show();
         }
@@ -676,6 +678,7 @@ namespace lsp
             ssize_t separator = fp.Height * 0.5f;
             ssize_t subitem = 0;
 
+            LSPString text;
             for (size_t i=0; i<n; ++i)
             {
                 LSPMenuItem *mi = vItems.at(i);
@@ -693,10 +696,10 @@ namespace lsp
                     r->nMinHeight  += fp.Height + nSpacing;
                     ssize_t width   = (mi->submenu() != NULL) ? separator : 0;
 
-                    const char *text = mi->text();
-                    if (text != NULL)
+                    mi->text()->format(&text);
+                    if (!text.is_empty())
                     {
-                        sFont.get_text_parameters(s, &tp, text);
+                        sFont.get_text_parameters(s, &tp, &text);
                         width          += tp.XAdvance;
                     }
 

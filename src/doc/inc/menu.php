@@ -41,6 +41,7 @@
 		
 		if ((!isset($parent)) || (strlen($parent) <= 0))
 		{
+		    $item['root']    = '..';
 			array_push($MENU, $item);
 		}
 		else
