@@ -1140,6 +1140,8 @@ namespace lsp
                     if (b->bEnabled)
                     {
                         b->sExp.process(b->vVCA, vEnv, vBuffer, to_process); // Output
+                        if ((bModern) && (b->sExp.is_downward()))
+                            dsp::limit1(b->vVCA, GAIN_AMP_M_72_DB, GAIN_AMP_P_72_DB, to_process);
                         dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
                         // Output curve level
