@@ -144,6 +144,7 @@
 	<li><b>Sidechain LCF</b> - button turns on the low-cut filter for the sidechain signal and knob allows to control the frequency of the filter.</li>
 	<li><b>Sidechain HCF</b> - button turns on the high-cut filter for the sidechain signal and knob allows to control the frequency of the filter.</li>
 	
+	<li><b>Expander Mode</b> - allows to operate expander in <b>Upward</b> and <b>Downward</b> modes</li>
 	<li><b>Expander Solo</b> - turns on soloing mode to the selected band by applying -36 dB gain to non-soloing bands</li>
 	<li><b>Expander Mute</b> - turns on muting mode to the selected band by applying -36 dB gain to it</li>
 	<li><b>Expander On</b> - enables expander assigned to the corresponding frequency band.</li>

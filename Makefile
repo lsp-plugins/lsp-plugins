@@ -269,53 +269,55 @@ release_ladspa: | release_prepare install_ladspa
 	@echo "Releasing LADSPA binaries"
 	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 	
 release_lv2: DESTDIR=$(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_lv2: | release_prepare install_lv2
 	@echo "Releasing LV2 binaries"
 	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 	
 release_vst: DESTDIR=$(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_vst: | release_prepare install_vst
 	@echo "Releasing VST binaries"
 	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 	
 release_jack: DESTDIR=$(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_jack: | release_prepare install_jack
 	@echo "Releasing JACK binaries"
 	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(DESTDIR)
 
-release_profile: release_prepare
+release_profile: DESTDIR=$(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+release_profile: | release_prepare
 	@echo "Releasing PROFILE binaries"
-	@mkdir -p $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(BIN_PROFILE) $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@cp $(RELEASE_TEXT) $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@$(INSTALL) $(BIN_PROFILE) $(DESTDIR)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	@rm -rf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 
-release_src:
+release_src: DESTDIR=$(RELEASE)/$(SRC_ID)
+release_src: | release_prepare
 	@echo "Releasing source code binaries"
-	@mkdir -p $(RELEASE)/$(SRC_ID)
-	@mkdir -p $(RELEASE)/$(SRC_ID)/scripts
-	@cp -R $(RELEASE_SRC) $(RELEASE)/$(SRC_ID)/
-	@cp -R $(RELEASE_SCRIPTS) $(RELEASE)/$(SRC_ID)/scripts/
+	@mkdir -p $(DESTDIR)
+	@mkdir -p $(DESTDIR)/scripts
+	@cp -R $(RELEASE_SRC) $(DESTDIR)/
+	@cp -R $(RELEASE_SCRIPTS) $(DESTDIR)/scripts/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
-	@rm -rf $(RELEASE)/$(SRC_ID)
+	@rm -rf $(DESTDIR)
 
-release_doc: release_prepare
+release_doc: DESTDIR=$(RELEASE)/$(DOC_ID)
+release_doc: | release_prepare
 	@echo "Releasing documentation"
-	@mkdir -p $(RELEASE)/$(DOC_ID)
-	@cp -r $(OBJDIR)/html/* $(RELEASE)/$(DOC_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(DOC_ID)/
+	@mkdir -p $(DESTDIR)
+	@cp -r $(OBJDIR)/html/* $(DESTDIR)/
+	@cp $(RELEASE_TEXT) $(DESTDIR)/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(DOC_ID).tar.gz $(DOC_ID)
-	@rm -rf $(RELEASE)/$(DOC_ID)
+	@rm -rf $(DESTDIR)
 
 # Unrelease target
 unrelease: clean
