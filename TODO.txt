@@ -50,6 +50,7 @@
 * Implemented multilingual interface support.
 * Added russian translations of the user interface.
 * Added 4.5 dB/octave envelope compensation for spectrum analyzer, renamed purple noise to violet noise in UI.
+* Now LV2 and VST plugins can be compiled without the UI support.
 - Added support of optional compilation of UI for LV2 plugins.
 
 *******************************************************************************
