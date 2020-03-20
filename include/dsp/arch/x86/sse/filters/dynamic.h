@@ -16,7 +16,7 @@ namespace sse
 {
     void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)
     {
-        IF_ARCH_X86_64(size_t off);
+        IF_ARCH_X86(size_t off);
 
         ARCH_X86_ASM
         (
