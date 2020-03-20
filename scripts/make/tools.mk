@@ -27,10 +27,14 @@ LD                       ?= $(TOOL_LD)
 MAKE_OPTS                 = -s
 CFLAGS                   += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
 CXXFLAGS                 += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
-SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -Wl,--no-undefined -shared -Llibrary -lc -fPIC
+SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 MERGE_FLAGS               = $(LD_ARCH) -r
 EXE_TEST_FLAGS            = $(LDFLAGS) $(CC_ARCH)
 EXE_FLAGS                 = $(LDFLAGS) $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections
+
+ifeq ($(BUILD_PLATFORM), Linux)
+  SO_FLAGS                 += -Wl,--no-undefined
+endif
 
 ifneq ($(LD_PATH),)
   SO_FLAGS                 += -Wl,-rpath,$(LD_PATH)

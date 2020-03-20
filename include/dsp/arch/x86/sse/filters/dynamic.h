@@ -16,7 +16,7 @@ namespace sse
 {
     void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)
     {
-        IF_ARCH_X86_64(size_t off);
+        IF_ARCH_X86(size_t off);
 
         ARCH_X86_ASM
         (
@@ -103,7 +103,7 @@ namespace sse
             __ASM_EMIT("movss       %%xmm1, 0x08(%[d])")
             __ASM_EMIT("jz          2f")
             // x2 loop
-            __ASM_EMIT("movaps      0x00(%[d]), %%xmm6")                        // xmm6 = d0 e0 d1 e1
+            __ASM_EMIT("movups      0x00(%[d]), %%xmm6")                        // xmm6 = d0 e0 d1 e1
             __ASM_EMIT("xorps       %%xmm7, %%xmm7")                            // xmm7 = 0 0 0 0
             __ASM_EMIT(".align      16")
             __ASM_EMIT("1:")
@@ -128,7 +128,7 @@ namespace sse
             __ASM_EMIT("add         $0x04, %[dst]")
             __ASM_EMIT("dec         %[count]")
             __ASM_EMIT("jnz         1b")
-            __ASM_EMIT("movaps      %%xmm6, 0x00(%[d])")
+            __ASM_EMIT("movups      %%xmm6, 0x00(%[d])")
             // Last step
             __ASM_EMIT("2:")
             __ASM_EMIT("shufps      $0xb1, %%xmm0, %%xmm0")                     // shift

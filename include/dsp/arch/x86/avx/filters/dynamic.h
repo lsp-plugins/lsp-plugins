@@ -141,7 +141,7 @@ namespace avx
             __ASM_EMIT("vmovss              %%xmm7, 0x08(%[d])")
             __ASM_EMIT("jz                  2f")
             // x2 loop
-            __ASM_EMIT("vmovaps             0x00(%[d]), %%xmm6")                                // xmm6 = d0 e0 d1 e1
+            __ASM_EMIT("vmovups             0x00(%[d]), %%xmm6")                                // xmm6 = d0 e0 d1 e1
             __ASM_EMIT("vxorps              %%xmm7, %%xmm7, %%xmm7")                            // xmm7 = 0 0 0 0
             __ASM_EMIT(".align              16")
             __ASM_EMIT("1:")
@@ -162,7 +162,7 @@ namespace avx
             __ASM_EMIT("add                 $0x30, %[f]")
             __ASM_EMIT("dec                 %[count]")
             __ASM_EMIT("jnz                 1b")
-            __ASM_EMIT("vmovaps             %%xmm6, 0x00(%[d])")
+            __ASM_EMIT("vmovups             %%xmm6, 0x00(%[d])")
             // Last step
             __ASM_EMIT("2:")
             __ASM_EMIT("vshufps             $0xb1, %%xmm0, %%xmm0, %%xmm0")                     // shift
@@ -214,7 +214,7 @@ namespace avx
             __ASM_EMIT("vmovss              %%xmm3, 0x08(%[d])")
             __ASM_EMIT("jz                  2f")
             // x2 loop
-            __ASM_EMIT("vmovaps             0x00(%[d]), %%xmm6")                                // xmm6 = d0 e0 d1 e1
+            __ASM_EMIT("vmovups             0x00(%[d]), %%xmm6")                                // xmm6 = d0 e0 d1 e1
             __ASM_EMIT("vxorps              %%xmm7, %%xmm7, %%xmm7")                            // xmm7 = 0 0 0 0
             __ASM_EMIT(".align              16")
             __ASM_EMIT("1:")
@@ -234,7 +234,7 @@ namespace avx
             __ASM_EMIT("add                 $0x30, %[f]")
             __ASM_EMIT("dec                 %[count]")
             __ASM_EMIT("jnz                 1b")
-            __ASM_EMIT("vmovaps             %%xmm6, 0x00(%[d])")
+            __ASM_EMIT("vmovups             %%xmm6, 0x00(%[d])")
             // Last step
             __ASM_EMIT("2:")
             __ASM_EMIT("vshufps             $0xb1, %%xmm0, %%xmm0, %%xmm0")                     // shift
@@ -281,8 +281,8 @@ namespace avx
             __ASM_EMIT("vmovaps             %%xmm5, %[MASK]")
 
             // Load delay buffer
-            __ASM_EMIT("vmovaps             0x00(%[d]), %%xmm6")                                // xmm6     = d0
-            __ASM_EMIT("vmovaps             0x10(%[d]), %%xmm7")                                // xmm7     = d1
+            __ASM_EMIT("vmovups             0x00(%[d]), %%xmm6")                                // xmm6     = d0
+            __ASM_EMIT("vmovups             0x10(%[d]), %%xmm7")                                // xmm7     = d1
 
             // Process first 3 steps
             __ASM_EMIT(".align 16")
@@ -373,8 +373,8 @@ namespace avx
             __ASM_EMIT("jnz                 5b")                                                // check that mask is not zero
 
             // Store delay buffer
-            __ASM_EMIT("vmovaps             %%xmm6, 0x00(%[d])")                                // xmm6     = d0
-            __ASM_EMIT("vmovaps             %%xmm7, 0x10(%[d])")                                // xmm7     = d1
+            __ASM_EMIT("vmovups             %%xmm6, 0x00(%[d])")                                // xmm6     = d0
+            __ASM_EMIT("vmovups             %%xmm7, 0x10(%[d])")                                // xmm7     = d1
             __ASM_EMIT("8:")
 
 
@@ -411,8 +411,8 @@ namespace avx
             __ASM_EMIT("vmovaps             %%xmm5, %[MASK]")
 
             // Load delay buffer
-            __ASM_EMIT("vmovaps             0x00(%[d]), %%xmm6")                                // xmm6     = d0
-            __ASM_EMIT("vmovaps             0x10(%[d]), %%xmm7")                                // xmm7     = d1
+            __ASM_EMIT("vmovups             0x00(%[d]), %%xmm6")                                // xmm6     = d0
+            __ASM_EMIT("vmovups             0x10(%[d]), %%xmm7")                                // xmm7     = d1
 
             // Process first 3 steps
             __ASM_EMIT(".align 16")
@@ -495,8 +495,8 @@ namespace avx
             __ASM_EMIT("jnz                 5b")                                                // check that mask is not zero
 
             // Store delay buffer
-            __ASM_EMIT("vmovaps             %%xmm6, 0x00(%[d])")                                // xmm6     = d0
-            __ASM_EMIT("vmovaps             %%xmm7, 0x10(%[d])")                                // xmm7     = d1
+            __ASM_EMIT("vmovups             %%xmm6, 0x00(%[d])")                                // xmm6     = d0
+            __ASM_EMIT("vmovups             %%xmm7, 0x10(%[d])")                                // xmm7     = d1
             __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src),
