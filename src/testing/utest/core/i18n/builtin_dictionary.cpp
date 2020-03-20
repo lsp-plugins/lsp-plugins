@@ -43,7 +43,7 @@ UTEST_BEGIN("core.i18n", builtin_dictionary)
         ck_lookup(&d, "us.lang.local.us", "English (US)");
         ck_lookup(&d, "us.lang.local.ru", "Russian");
         ck_lookup(&d, "ru.lang.local.ru", "Русский");
-        ck_lookup(&d, "default.lang.target.de", "Deutsch");
+        ck_lookup(&d, "default.lang.target.us", "English (US)");
     }
 
 UTEST_END
