@@ -376,6 +376,7 @@ namespace lsp
     {
         size_t result   = 0;
 
+#ifndef LSP_NO_LV2_UI
         if (m.lv2_uid != NULL)
         {
             if (m.ui_resource != NULL)
@@ -383,6 +384,7 @@ namespace lsp
             if (m.extensions & E_INLINE_DISPLAY)
                 result |= REQ_IDISPLAY;
         }
+#endif
 
         result |= scan_port_requirements(m.ports);
 

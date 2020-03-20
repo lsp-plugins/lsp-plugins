@@ -27,7 +27,7 @@ LD                       ?= $(TOOL_LD)
 MAKE_OPTS                 = -s
 CFLAGS                   += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
 CXXFLAGS                 += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
-SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
+SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -Wl,--no-undefined -shared -Llibrary -lc -fPIC
 MERGE_FLAGS               = $(LD_ARCH) -r
 EXE_TEST_FLAGS            = $(LDFLAGS) $(CC_ARCH)
 EXE_FLAGS                 = $(LDFLAGS) $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections
@@ -36,6 +36,16 @@ ifneq ($(LD_PATH),)
   SO_FLAGS                 += -Wl,-rpath,$(LD_PATH)
   EXE_TEST_FLAGS           += -Wl,-rpath,$(LD_PATH)
   EXE_FLAGS                += -Wl,-rpath,$(LD_PATH)
+endif
+
+ifneq ($(LV2_UI),1)
+  CFLAGS                   += -DLSP_NO_LV2_UI
+  CXXFLAGS                 += -DLSP_NO_LV2_UI
+endif
+
+ifneq ($(VST_UI),1)
+  CFLAGS                   += -DLSP_NO_VST_UI
+  CXXFLAGS                 += -DLSP_NO_VST_UI
 endif
 
 export CC
