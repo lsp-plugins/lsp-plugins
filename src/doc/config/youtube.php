@@ -16,7 +16,8 @@ $YOUTUBE = array(
 	'JFXTcJb4DLs' => 'Latenzmessgerät',
 	'RCdk94Hta3o' => 'Multi-band Kompressor',
     'kXCBRnJL_qo' => 'Profiler Mono',
-    'J-ruYw9TwCE' => 'Room Builder'
+    'J-ruYw9TwCE' => 'Room Builder',
+    'TR_Ox7U_a84' => 'Multiband Expander'
 );
 
 ?>
