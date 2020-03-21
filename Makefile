@@ -239,14 +239,26 @@ install_jack: all
 	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/desktop-directories"
 	@mkdir -p "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged"
 	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps"
 	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps"
+	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps"
 	@cp res/xdg/*.desktop "$(DESTDIR)$(SHARE_PATH)/applications/"
 	@cp res/xdg/lsp-plugins.directory "$(DESTDIR)$(SHARE_PATH)/desktop-directories/"
 	@cp res/xdg/lsp-plugins.menu "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/"
 	@cp -f res/icons/$(ARTIFACT_ID)-exp.svg "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).svg"
-	@cp -f res/icons/$(ARTIFACT_ID)-exp.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-exp-32.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-16.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-22.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-24.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-32.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-48.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-64.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-128.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).png"
+	@cp -f res/icons/$(ARTIFACT_ID)-256.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).png"
 
 install_doc: all
 	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"
@@ -355,8 +367,14 @@ uninstall_jack:
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
 	@-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).*
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).*
 	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_doc:
