@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128px" height="128px" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>lsp0</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="138.358347%" id="linearGradient-1">
+            <stop stop-color="#000000" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#000000" stop-opacity="0.471099029" offset="39.0616293%"></stop>
+            <stop stop-color="#000000" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <radialGradient cx="72.7673761%" cy="0%" fx="72.7673761%" fy="0%" r="100%" gradientTransform="translate(0.727674,0.000000),scale(0.655172,1.000000),rotate(90.000000),translate(-0.727674,-0.000000)" id="radialGradient-2">
+            <stop stop-color="#FFFFFF" stop-opacity="0.7" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <rect id="path-3" x="0" y="0" width="128" height="83.862069" rx="8.82758621"></rect>
+        <path d="M48.9935345,56.2758621 L48.9935345,51.4267241 L36.7543103,51.4267241 L36.7543103,28.2866379 L30.8965517,28.2866379 L30.8965517,56.2758621 L48.9935345,56.2758621 Z M64.0116379,56.7413793 C71.0137931,56.7413793 75.300431,53.2887931 75.300431,47.8189655 C75.300431,43.5711207 72.7206897,41.1853448 66.8047414,40.0021552 L63.837069,39.4008621 C60.5396552,38.7413793 59.1818966,37.674569 59.1818966,35.9482759 C59.1818966,33.8922414 61.1215517,32.5344828 64.0116379,32.5344828 C66.9599138,32.5344828 69.0353448,33.9698276 69.2293103,36.3556034 L74.7573276,36.3556034 C74.6603448,31.2155172 70.5482759,27.8017241 64.0116379,27.8017241 C57.7853448,27.8017241 53.3241379,31.1961207 53.3241379,36.3168103 C53.3241379,40.487069 56.0590517,43.1637931 61.6452586,44.2693966 L64.5935345,44.8512931 C68.1043103,45.5689655 69.4232759,46.6163793 69.4232759,48.4590517 C69.4232759,50.5150862 67.2896552,52.0280172 64.1668103,52.0280172 C60.9857759,52.0280172 58.6193966,50.6314655 58.2508621,48.2844828 L52.7228448,48.2844828 C52.8974138,53.5603448 57.3392241,56.7413793 64.0116379,56.7413793 Z M86.174569,56.2758621 L86.174569,47.450431 L91.4116379,47.450431 C97.3081897,47.450431 101.400862,43.6099138 101.400862,37.8685345 C101.400862,32.1077586 97.4439655,28.2866379 91.7025862,28.2866379 L80.3168103,28.2866379 L80.3168103,56.2758621 L86.174569,56.2758621 Z M90.1314655,42.8728448 L86.174569,42.8728448 L86.174569,32.9224138 L90.1508621,32.9224138 C93.5064655,32.9224138 95.4461207,34.7068966 95.4461207,37.887931 C95.4461207,41.0883621 93.487069,42.8728448 90.1314655,42.8728448 Z" id="path-4"></path>
+        <filter x="-0.7%" y="-1.7%" width="101.4%" height="106.9%" filterUnits="objectBoundingBox" id="filter-5">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.05 0" type="matrix" in="shadowOffsetOuter1"></feColorMatrix>
+        </filter>
+        <filter x="-0.7%" y="-1.7%" width="101.4%" height="106.9%" filterUnits="objectBoundingBox" id="filter-6">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 1   0 0 0 0 1   0 0 0 0 1  0 0 0 1 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="lsp0" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g transform="translate(0.000000, 22.000000)">
+            <g id="Rectangle">
+                <use fill="#00C1FF" xlink:href="#path-3"></use>
+                <use fill-opacity="0.2" fill="url(#linearGradient-1)" xlink:href="#path-3"></use>
+                <use fill="url(#radialGradient-2)" style="mix-blend-mode: overlay;" xlink:href="#path-3"></use>
+            </g>
+            <g id="LSP" fill-rule="nonzero">
+                <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-4"></use>
+                <use fill="#EBFEFF" xlink:href="#path-4"></use>
+                <use fill="black" fill-opacity="1" filter="url(#filter-6)" xlink:href="#path-4"></use>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -242,7 +242,7 @@ install_jack: all
 	@cp res/xdg/*.desktop "$(DESTDIR)$(SHARE_PATH)/applications/"
 	@cp res/xdg/lsp-plugins.directory "$(DESTDIR)$(SHARE_PATH)/desktop-directories/"
 	@cp res/xdg/lsp-plugins.menu "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/"
-	@cp -f res/icons/lsp-plugins-exp.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/lsp-plugins.png"
+	@cp -f res/icons/lsp-plugins-exp.svg "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/lsp-plugins.png"
 
 install_doc: all
 	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"
@@ -350,7 +350,7 @@ uninstall_jack:
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
 	@-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/lsp-plugins.png
+	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/lsp-plugins.svg
 	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_doc:
