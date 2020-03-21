@@ -10,4 +10,5 @@ Exec=lsp-plugins-sc-dyna-processor-ms
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=AudioVideo;Audio;
+Keywords=audio;sound;jackd;
