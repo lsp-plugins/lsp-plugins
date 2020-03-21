@@ -10,4 +10,5 @@ Exec=lsp-plugins-room-builder-stereo
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=AudioVideo;Audio;
+Keywords=audio;sound;jackd;

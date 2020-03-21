@@ -10,4 +10,5 @@ Exec=lsp-plugins-sc-compressor-lr
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=AudioVideo;Audio;
+Keywords=audio;sound;jackd;
