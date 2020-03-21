@@ -9,6 +9,7 @@
 - Migrated to CMake build system.
 
 === 1.1.16 ===
+* Fixed improper TTL file generation for several plugins. 
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.
