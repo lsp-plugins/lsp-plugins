@@ -718,10 +718,7 @@ namespace lsp
                         curr ++;
                     }
                 } else if (count > 0)
-                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", list->text, curr);
-
-//                for (const char **list = p->items; *list != NULL; ++list, ++curr)
-//                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", *list, curr);
+                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", list->text, curr);
 
                 fprintf(out, "\t\tlv2:minimum %d ;\n", min);
                 fprintf(out, "\t\tlv2:maximum %d ;\n", max);
