@@ -9,6 +9,8 @@
 - Migrated to CMake build system.
 
 === 1.1.16 ===
+* Restored missing SVG files, implemented proper icon installation.
+* Added better desktop entry categorization (contributed by Dennis Braun).
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.
