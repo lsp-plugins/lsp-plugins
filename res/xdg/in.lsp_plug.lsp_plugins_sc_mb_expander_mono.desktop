@@ -10,5 +10,5 @@ Exec=lsp-plugins-sc-mb-expander-mono
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=AudioVideo;Audio;
-Keywords=audio;sound;jackd;
+Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;
