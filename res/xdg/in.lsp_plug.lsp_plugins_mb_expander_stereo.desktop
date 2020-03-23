@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+GenericName=Stereo Multiband Expander
+Name=Expanders
+Name[ru]=Экспандеры
+Comment=Performs multiband increasing of dynamic range of stereo input signal.
+Comment[ru]=Осуществляет многополосное повышение динамического диапазона стереосигнала.
+Exec=lsp-plugins-mb-expander-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

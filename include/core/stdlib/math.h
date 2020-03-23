@@ -15,11 +15,15 @@
 #endif
 
 #ifndef M_LOG2E
-    #define M_LOG2E	1.4426950408889634074	/* log_2 e */
+    #define M_LOG2E	    1.4426950408889634074	/* log_2 e */
 #endif
 
 #ifndef M_LOG10E
     #define M_LOG10E	0.43429448190325182765	/* log_10 e */
+#endif
+
+#ifndef M_LOG10_2
+    #define M_LOG10_2   0.301029995664          /* log10(2) */
 #endif
 
 #ifndef M_LN2

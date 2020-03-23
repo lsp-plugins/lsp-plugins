@@ -235,7 +235,7 @@
 					</grid>
 					<vsep />
 					<grid rows="4" cols="4" expand="true">
-						<cell cols="2"><label text="Curve" /></cell>
+						<cell cols="2"><label text="labels.curve" /></cell>
 						<cell cols="2" fill="false">
 							<hbox fill="false">
 								<button id="gh" size="16" color="middle_channel" led="true" />

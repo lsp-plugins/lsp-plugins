@@ -25,10 +25,10 @@
 	        'text' => 'LSP Plugins Documentation',
 	        'root' => '',
 	        'path' => '',
-	        'file' => 'index'
+	        'file' => $PAGE
 	    );
 	
-	$DOCROOT    = '../' . ((strlen($MENUITEM['root']) > 0) ? ($MENUITEM['root'] . '/') : '');
+	$DOCROOT    = ((strlen($MENUITEM['root']) > 0) ? ($MENUITEM['root'] . '/') : '');
 	$HEADER		= $MENUITEM['text'];
 	$FILENAME   = (isset($MENUITEM['file'])) ? $MENUITEM['file'] : $PAGE;
 	$RES_ROOT   = $DOCROOT;

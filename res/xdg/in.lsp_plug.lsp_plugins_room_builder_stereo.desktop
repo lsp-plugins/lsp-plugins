@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+GenericName=Stereo Room Impulse Response Builder
+Name=Utilities
+Name[ru]=Утилиты
+Comment=Allows to simulate stereo impulse response of any modelled room or space.
+Comment[ru]=Позволяет симулировать реверберацию пространства на основе произвольных 3D-моделей.
+Exec=lsp-plugins-room-builder-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Categories=lsp-plugins;

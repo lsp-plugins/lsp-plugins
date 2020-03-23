@@ -8,6 +8,8 @@
 #include <core/types.h>
 #include <core/protocol/midi.h>
 #include <core/lib.h>
+#include <core/resource.h>
+
 #include <dsp/atomic.h>
 #include <dsp/endian.h>
 #include <plugins/plugins.h>
@@ -15,7 +17,9 @@
 #include <data/cvector.h>
 
 // UI includes
-#include <ui/ui.h>
+#ifndef LSP_NO_VST_UI
+    #include <ui/ui.h>
+#endif
 
 // VST SDK includes
 #include <container/vst/defs.h>
@@ -23,6 +27,11 @@
 #include <container/vst/types.h>
 #include <container/vst/wrapper.h>
 #include <container/vst/ports.h>
+
+#ifdef LSP_NO_VST_UI
+    /* Generate stub resource placeholders if there is no UI requirement */
+    BUILTIN_RESOURCES_STUB
+#endif /* LSP_NO_LV2_UI */
 
 namespace lsp
 {
@@ -456,6 +465,7 @@ namespace lsp
                 break;
             }
 
+#ifndef LSP_NO_VST_UI
             case effEditOpen: // Run editor
             {
                 if (w->show_ui(ptr))
@@ -481,6 +491,7 @@ namespace lsp
                 v = 1;
                 break;
             }
+#endif
 
             case effSetProgram:
             case effGetProgram:

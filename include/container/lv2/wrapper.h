@@ -15,8 +15,11 @@
 #include <core/IWrapper.h>
 #include <core/ipc/NativeExecutor.h>
 #include <core/KVTDispatcher.h>
-#include <container/CairoCanvas.h>
 #include <container/lv2/lv2_sink.h>
+
+#ifndef LSP_NO_LV2_UI
+    #include <container/CairoCanvas.h>
+#endif
 
 namespace lsp
 {
@@ -59,8 +62,10 @@ namespace lsp
             ipc::Mutex          sKVTMutex;
             KVTDispatcher      *pKVTDispatcher;
 
+#ifndef LSP_NO_LV2_UI
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
+#endif
 
         protected:
             LV2Port *create_port(const port_t *meta, const char *postfix);
@@ -95,7 +100,13 @@ namespace lsp
                 nSyncSamples    = 0;
                 nClients        = 0;
                 nDirectClients  = 0;
+#ifndef LSP_NO_LV2_UI
                 pCanvas         = NULL;
+                sSurface.data   = NULL;
+                sSurface.width  = 0;
+                sSurface.height = 0;
+                sSurface.stride = 0;
+#endif
                 bQueueDraw      = false;
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
@@ -119,7 +130,13 @@ namespace lsp
                 nSyncSamples    = 0;
                 nClients        = 0;
                 nDirectClients  = 0;
+#ifndef LSP_NO_LV2_UI
                 pCanvas         = NULL;
+                sSurface.data   = NULL;
+                sSurface.width  = 0;
+                sSurface.height = 0;
+                sSurface.stride = 0;
+#endif
             }
 
         public:
@@ -177,7 +194,9 @@ namespace lsp
                 return &sPosition;
             }
 
+#ifndef LSP_NO_LV2_UI
             virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+#endif
 
             LV2Port *get_port(const char *id);
 
@@ -1231,12 +1250,6 @@ namespace lsp
 
     void LV2Wrapper::destroy()
     {
-        // Drop surface
-        sSurface.data           = NULL;
-        sSurface.width          = 0;
-        sSurface.height         = 0;
-        sSurface.stride         = 0;
-
         // Stop KVT dispatcher
         if (pKVTDispatcher != NULL)
         {
@@ -1246,6 +1259,13 @@ namespace lsp
             delete pKVTDispatcher;
         }
 
+#ifndef LSP_NO_LV2_UI
+        // Drop surface
+        sSurface.data           = NULL;
+        sSurface.width          = 0;
+        sSurface.height         = 0;
+        sSurface.stride         = 0;
+
         // Drop canvas
         lsp_trace("canvas = %p", pCanvas);
         if (pCanvas != NULL)
@@ -1254,6 +1274,7 @@ namespace lsp
             delete pCanvas;
             pCanvas     = NULL;
         }
+#endif
 
         // Shutdown and delete executor if exists
         if (pExecutor != NULL)
@@ -1870,6 +1891,7 @@ namespace lsp
 
     inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)
     {
+#ifndef LSP_NO_LV2_UI
         // Check for Inline display support
         const plugin_metadata_t *meta = pPlugin->get_metadata();
         if ((meta == NULL) || (!(meta->extensions & E_INLINE_DISPLAY)))
@@ -1908,8 +1930,12 @@ namespace lsp
 //            sSurface.data, int(sSurface.width), int(sSurface.height), int(sSurface.stride));
 
         return &sSurface;
+#else
+        return NULL;
+#endif
     }
 
+#ifndef LSP_NO_LV2_UI
     ICanvas *LV2Wrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
     {
         if ((cv != NULL) && (cv->width() == width) && (cv->height() == height))
@@ -1932,6 +1958,7 @@ namespace lsp
 
         return cv = ncv;
     }
+#endif
 
     KVTStorage *LV2Wrapper::kvt_lock()
     {

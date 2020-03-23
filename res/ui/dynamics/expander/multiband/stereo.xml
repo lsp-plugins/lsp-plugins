@@ -341,15 +341,14 @@
 							<align hpos="0">
 								<hbox spacing="4">
 									<label text="labels.plug.expander" />
-									<button id="ee_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
-									<label text="labels.chan.on" />
 									<button id="bs_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
 									<label text="labels.chan.solo" />
 									<button id="bm_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
 									<label text="labels.chan.mute" />
 								</hbox>
 							</align>
-							<grid rows="4" cols="7" hspacing="4">
+							<grid rows="4" cols="8" hspacing="4">
+								<cell rows="2"><label text="labels.mode" /></cell>
 								<cell rows="2"><label text="labels.ratio" /></cell>
 								<cell rows="2"><label text="labels.knee" /></cell>
 								<cell rows="2"><label text="labels.makeup" /></cell>
@@ -361,6 +360,15 @@
 								<cell><label text="labels.threshold" /></cell>
 								<cell><label text="labels.time" /></cell>
 								
+								<vbox>
+									<combo id="em_${i}" fill="true" />
+									<align hpos="0" pad_left="4">
+										<hbox fill="false" spacing="4">
+											<button id="ee_${i}" color="green" led="true" size="12" />
+											<label text="labels.chan.on" />
+										</hbox>
+									</align>
+								</vbox>
 								<knob id="er_${i}" scale_hue_id="hue_${i}" />
 								<knob id="kn_${i}" scale_hue_id="hue_${i}" />
 								<knob id="mk_${i}" scale_hue_id="hue_${i}" />
@@ -369,6 +377,7 @@
 								<knob id="rrl_${i}" scale_color="magenta" />
 								<knob id="rt_${i}" scale_hue_id="hue_${i}" />
 								
+								<label />
 								<hbox fill="false">
 									<value id="er_${i}" size="16" detailed="false" />
 									<label text=":"/>

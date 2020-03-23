@@ -376,6 +376,7 @@ namespace lsp
     {
         size_t result   = 0;
 
+#ifndef LSP_NO_LV2_UI
         if (m.lv2_uid != NULL)
         {
             if (m.ui_resource != NULL)
@@ -383,6 +384,7 @@ namespace lsp
             if (m.extensions & E_INLINE_DISPLAY)
                 result |= REQ_IDISPLAY;
         }
+#endif
 
         result |= scan_port_requirements(m.ports);
 
@@ -716,10 +718,7 @@ namespace lsp
                         curr ++;
                     }
                 } else if (count > 0)
-                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", list->text, curr);
-
-//                for (const char **list = p->items; *list != NULL; ++list, ++curr)
-//                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", *list, curr);
+                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", list->text, curr);
 
                 fprintf(out, "\t\tlv2:minimum %d ;\n", min);
                 fprintf(out, "\t\tlv2:maximum %d ;\n", max);

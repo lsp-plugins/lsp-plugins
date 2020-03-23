@@ -61,6 +61,16 @@ namespace lsp
                 return bUpdate;
             }
 
+            inline bool is_upward() const
+            {
+                return bUpward;
+            }
+
+            inline bool is_downward() const
+            {
+                return !bUpward;
+            }
+
             /** Update expander settings
              *
              */

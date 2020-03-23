@@ -12,6 +12,12 @@
 #include <container/vst/chunk.h>
 #include <core/ipc/NativeExecutor.h>
 
+#ifndef LSP_NO_VST_UI
+    #define IF_VST_UI_ON(...)       __VA_ARGS__
+#else
+    #define IF_VST_UI_ON(...)
+#endif
+
 namespace lsp
 {
     class VSTAudioPort;
@@ -19,13 +25,11 @@ namespace lsp
     class VSTPort;
     class VSTUIPort;
 
-    class VSTWrapper: public IWrapper, public IUIWrapper
+    class VSTWrapper: public IWrapper IF_VST_UI_ON(, public IUIWrapper)
     {
         private:
             plugin_t                   *pPlugin;
             AEffect                    *pEffect;
-            plugin_ui                  *pUI;
-            ERect                       sRect;
             audioMasterCallback         pMaster;
             ipc::IExecutor             *pExecutor;
             vst_chunk_t                 sChunk;
@@ -38,7 +42,6 @@ namespace lsp
             cvector<VSTParameterPort>   vParams;        // List of controllable parameters
             cvector<VSTPort>            vPorts;         // List of all created VST ports
             cvector<VSTPort>            vProxyPorts;    // List of all created VST proxy ports
-            cvector<VSTUIPort>          vUIPorts;       // List of all created UI ports
             cvector<port_t>             vGenMetadata;   // Generated metadata
 
             position_t                  sPosition;
@@ -46,15 +49,26 @@ namespace lsp
             KVTStorage                  sKVT;
             ipc::Mutex                  sKVTMutex;
 
+            IF_VST_UI_ON(
+                plugin_ui                  *pUI;
+                ERect                       sRect;
+                cvector<VSTUIPort>          vUIPorts;       // List of all created UI ports
+            )
+
         private:
-            void transfer_dsp_to_ui();
+            IF_VST_UI_ON(
+                void transfer_dsp_to_ui();
+            )
 
             VSTPort *create_port(const port_t *port, const char *postfix);
             VSTPort *find_by_id(const char *id);
             void create_ports(const port_t *meta);
 
         protected:
-            static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
+            IF_VST_UI_ON(
+                static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
+            )
+
             status_t check_vst_header(const fxBank *bank, size_t size);
             void deserialize_v1(const fxBank *bank);
             void deserialize_v2_v3(const uint8_t *data, size_t bytes);
@@ -72,16 +86,21 @@ namespace lsp
             {
                 pPlugin         = plugin;
                 pEffect         = effect;
-                pUI             = NULL;
+
                 pMaster         = callback;
                 pExecutor       = NULL;
-                sRect.top       = 0;
-                sRect.left      = 0;
-                sRect.bottom    = 0;
-                sRect.right     = 0;
+
                 fLatency        = 0.0f;
                 pBypass         = NULL;
                 bUpdateSettings = true;
+
+                IF_VST_UI_ON(
+                    pUI             = NULL;
+                    sRect.top       = 0;
+                    sRect.left      = 0;
+                    sRect.bottom    = 0;
+                    sRect.right     = 0;
+                )
 
                 position_t::init(&sPosition);
             }
@@ -90,7 +109,10 @@ namespace lsp
             {
                 pPlugin         = NULL;
                 pEffect         = NULL;
-                pUI             = NULL;
+                IF_VST_UI_ON(
+                    pUI             = NULL;
+                )
+
                 pMaster         = NULL;
             }
 
@@ -119,12 +141,14 @@ namespace lsp
                     pPlugin->deactivate();
             }
 
+#ifndef LSP_NO_VST_UI
             bool show_ui(void *root_widget);
             void hide_ui();
             void iterate_ui();
             void destroy_ui();
             void resize_ui(const realize_t *r);
             ERect *get_ui_rect();
+#endif
 
             inline bool has_bypass() const
             {
@@ -183,25 +207,27 @@ namespace lsp
 
 // Here Port description should be included
 #include <container/vst/ports.h>
-#include <container/vst/ui_ports.h>
+#ifndef LSP_NO_VST_UI
+    #include <container/vst/ui_ports.h>
+#endif
 
 namespace lsp
 {
     VSTPort *VSTWrapper::create_port(const port_t *port, const char *postfix)
     {
         VSTPort *vp = NULL;
-        VSTUIPort *vup = NULL;
+        IF_VST_UI_ON(VSTUIPort *vup = NULL;)
 
         switch (port->role)
         {
             case R_MESH:
                 vp  = new VSTMeshPort(port, pEffect, pMaster);
-                vup = new VSTUIMeshPort(port, vp);
+                IF_VST_UI_ON(vup = new VSTUIMeshPort(port, vp);)
                 break;
 
             case R_FBUFFER:
                 vp  = new VSTFrameBufferPort(port, pEffect, pMaster);
-                vup = new VSTUIFrameBufferPort(port, vp);
+                IF_VST_UI_ON(vup = new VSTUIFrameBufferPort(port, vp);)
                 break;
 
             case R_MIDI:
@@ -216,15 +242,17 @@ namespace lsp
 
             case R_OSC:
                 vp      = new VSTOscPort(port, pEffect, pMaster);
-                if (IS_OUT_PORT(port))
-                    vup     = new VSTUIOscPortIn(port, vp);
-                else
-                    vup     = new VSTUIOscPortOut(port, vp);
+                IF_VST_UI_ON(
+                    if (IS_OUT_PORT(port))
+                        vup     = new VSTUIOscPortIn(port, vp);
+                    else
+                        vup     = new VSTUIOscPortOut(port, vp);
+                )
                 break;
 
             case R_PATH:
                 vp  = new VSTPathPort(port, pEffect, pMaster);
-                vup = new VSTUIPathPort(port, vp);
+                IF_VST_UI_ON(vup = new VSTUIPathPort(port, vp);)
                 break;
 
             case R_AUDIO:
@@ -238,12 +266,12 @@ namespace lsp
                 if (IS_OUT_PORT(port))
                 {
                     vp      = new VSTMeterPort(port, pEffect, pMaster);
-                    vup     = new VSTUIMeterPort(port, vp);
+                    IF_VST_UI_ON(vup     = new VSTUIMeterPort(port, vp);)
                 }
                 else
                 {
                     vp      = new VSTParameterPort(port, pEffect, pMaster);
-                    vup     = new VSTUIParameterPort(port, static_cast<VSTParameterPort *>(vp));
+                    IF_VST_UI_ON(vup     = new VSTUIParameterPort(port, static_cast<VSTParameterPort *>(vp));)
                 }
                 if (port->role == R_BYPASS)
                     pBypass     = vp;
@@ -255,8 +283,10 @@ namespace lsp
                 VSTPortGroup       *pg      = new VSTPortGroup(port, pEffect, pMaster);
                 pPlugin->add_port(pg);
 
-                VSTUIPortGroup     *upg     = new VSTUIPortGroup(pg);
-                vUIPorts.add(upg);
+                IF_VST_UI_ON(
+                    VSTUIPortGroup     *upg     = new VSTUIPortGroup(pg);
+                    vUIPorts.add(upg);
+                )
 
                 for (size_t row=0; row<pg->rows(); ++row)
                 {
@@ -293,8 +323,10 @@ namespace lsp
 
         if (vp != NULL)
             vPorts.add(vp);
-        if (vup != NULL)
-            vUIPorts.add(vup);
+        IF_VST_UI_ON(
+            if (vup != NULL)
+                vUIPorts.add(vup);
+        )
 
         return vp;
     }
@@ -368,8 +400,10 @@ namespace lsp
 
     void VSTWrapper::destroy()
     {
+#ifndef LSP_NO_VST_UI
         // First destroy the UI
         destroy_ui();
+#endif
 
         // Shutdown and delete executor if exists
         if (pExecutor != NULL)
@@ -390,11 +424,14 @@ namespace lsp
         }
 
         // Destroy UI ports
-        for (size_t i=0; i<vUIPorts.size(); ++i)
-        {
-            lsp_trace("destroy ui port id=%s", vUIPorts[i]->metadata()->id);
-            delete vUIPorts[i];
-        }
+#ifndef LSP_NO_VST_UI
+            for (size_t i=0; i<vUIPorts.size(); ++i)
+            {
+                lsp_trace("destroy ui port id=%s", vUIPorts[i]->metadata()->id);
+                delete vUIPorts[i];
+            }
+            vUIPorts.clear();
+#endif
 
         // Destroy ports
         for (size_t i=0; i<vPorts.size(); ++i)
@@ -402,6 +439,7 @@ namespace lsp
             lsp_trace("destroy port id=%s", vPorts[i]->metadata()->id);
             delete vPorts[i];
         }
+        vPorts.clear();
 
         // Cleanup generated metadata
         for (size_t i=0; i<vGenMetadata.size(); ++i)
@@ -414,8 +452,6 @@ namespace lsp
         vInputs.clear();
         vOutputs.clear();
         vParams.clear();
-        vPorts.clear();
-        vUIPorts.clear();
 
         pMaster     = NULL;
         pEffect     = NULL;
@@ -480,6 +516,7 @@ namespace lsp
             return;
         }
 
+#ifndef LSP_NO_VST_UI
         // Sync UI state
         if (pUI != NULL)
         {
@@ -488,6 +525,7 @@ namespace lsp
         }
         else if (pPlugin->ui_active())
             pPlugin->deactivate_ui();
+#endif
 
         // Synchronize position
         sync_position();
@@ -584,6 +622,7 @@ namespace lsp
         run(inputs, outputs, samples);
     }
 
+#ifndef LSP_NO_VST_UI
     bool VSTWrapper::show_ui(void *root_widget)
     {
         lsp_trace("show ui");
@@ -847,6 +886,8 @@ namespace lsp
             sKVTMutex.unlock();
         }
     }
+
+#endif
 
     #ifdef LSP_TRACE
         static void dump_vst_bank(const void *bank, size_t ck_size)

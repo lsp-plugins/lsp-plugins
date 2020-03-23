@@ -35,6 +35,10 @@ namespace lsp
         protected:
             status_t            parse_dictionary(const resource_t *res);
             node_t             *find_node(const char *key);
+            status_t            add_node(const node_t *node);
+#ifdef LSP_TRACE
+            void                dump(size_t offset);
+#endif
 
         public:
             explicit BuiltinDictionary();

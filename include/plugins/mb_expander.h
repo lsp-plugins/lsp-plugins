@@ -86,7 +86,8 @@ namespace lsp
                 IPort          *pScHcfFreq;         // Sidechain hi-cut frequency
                 IPort          *pScFreqChart;       // Sidechain band frequency chart
 
-                IPort          *pEnable;            // Enable compressor
+                IPort          *pMode;              // Mode of expander: upward/downward
+                IPort          *pEnable;            // Enable expander
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
                 IPort          *pAttLevel;          // Attack level
@@ -97,7 +98,7 @@ namespace lsp
                 IPort          *pKnee;              // Knee
                 IPort          *pMakeup;            // Makeup gain
                 IPort          *pFreqEnd;           // Frequency range end
-                IPort          *pCurveGraph;        // Compressor curve graph
+                IPort          *pCurveGraph;        // Expander curve graph
                 IPort          *pRelLevelOut;       // Release level out
                 IPort          *pEnvLvl;            // Envelope level meter
                 IPort          *pCurveLvl;          // Reduction curve level meter
@@ -146,7 +147,7 @@ namespace lsp
                 IPort          *pFftInSw;           // Pre-processing FFT analysis control port
                 IPort          *pFftOut;            // Post-processing FFT analysis data
                 IPort          *pFftOutSw;          // Post-processing FFT analysis controlport
-                IPort          *pAmpGraph;          // Compressor's amplitude graph
+                IPort          *pAmpGraph;          // Expander's amplitude graph
                 IPort          *pInLvl;             // Input level meter
                 IPort          *pOutLvl;            // Output level meter
             } channel_t;
@@ -167,7 +168,7 @@ namespace lsp
             uint8_t        *pData;                  // Aligned data pointer
             float          *vSc[2];                 // Sidechain signal data
             float          *vBuffer;                // Temporary buffer
-            float          *vEnv;                   // Compressor envelope buffer
+            float          *vEnv;                   // Expander envelope buffer
             float          *vTr;                    // Transfer buffer
             float          *vPFc;                   // Pass filter characteristics buffer
             float          *vRFc;                   // Reject filter characteristics buffer

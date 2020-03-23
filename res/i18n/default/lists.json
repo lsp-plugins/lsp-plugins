@@ -92,7 +92,9 @@
 		"env": {
 			"blue": "Blue noise",
 			"brown": "Brown noise",
+			"falloff_4_5db": "4.5 dB/oct fall-off",
 			"pink": "Pink noise",
+			"raise_4_5db": "4.5 dB/oct raise",
 			"violet": "Violet noise",
 			"white": "White noise"
 		},

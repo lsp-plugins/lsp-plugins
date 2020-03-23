@@ -30,12 +30,36 @@ namespace lsp
         vNodes.flush();
     }
 
+    status_t BuiltinDictionary::add_node(const node_t *src)
+    {
+        // Perform binary search, the item should not exist
+        ssize_t first = 0, last = vNodes.size()-1;
+        while (first <= last)
+        {
+            ssize_t curr = (first + last) >> 1;
+            node_t *node = vNodes.at(curr);
+            int cmp = ::strcmp(node->sKey, src->sKey);
+            if (cmp > 0)
+                last    = curr - 1;
+            else if (cmp < 0)
+                first   = curr + 1;
+            else
+                return STATUS_BAD_FORMAT;
+        }
+
+        // Add node
+//        lsp_trace("Insert node %s at position %d", src->sKey, int(first));
+        return (vNodes.insert(first, src)) ?  STATUS_OK : STATUS_NO_MEM;
+    }
+
     status_t BuiltinDictionary::parse_dictionary(const resource_t *r)
     {
         BuiltinDictionary *curr = NULL;
         cvector<BuiltinDictionary> stack;
 
+        status_t res;
         node_t node;
+        node.bBad       = false;
 
         for (const void *ptr = r->data; ; )
         {
@@ -64,13 +88,13 @@ namespace lsp
                         return STATUS_NO_MEM;
 
                     node.sValue     = NULL;
-                    if (!curr->vNodes.add(&node))
-                        return STATUS_NO_MEM;
+                    if ((res = curr->add_node(&node)) != STATUS_OK)
+                        return res;
 
                     curr            = node.pChild;
                     node.sKey       = NULL;
-                    node.pChild     = NULL;
                     node.sValue     = NULL;
+                    node.pChild     = NULL;
                     break;
 
                 // End of current object
@@ -105,8 +129,8 @@ namespace lsp
                     if (!node.sValue)
                         return STATUS_CORRUPTED;
                     node.pChild     = NULL;
-                    if (!curr->vNodes.add(&node))
-                        return STATUS_NO_MEM;
+                    if ((res = curr->add_node(&node)) != STATUS_OK)
+                        return res;
                     node.sKey       = NULL;
                     node.sValue     = NULL;
                     break;
@@ -125,6 +149,28 @@ namespace lsp
 
         return STATUS_OK;
     }
+
+#ifdef LSP_TRACE
+    void BuiltinDictionary::dump(size_t offset)
+    {
+        LSPString pad;
+        for (size_t i=0; i<offset; ++i)
+            pad.append(' ');
+
+        for (size_t i=0, n=vNodes.size(); i<n; ++i)
+        {
+            node_t *node = vNodes.get(i);
+            if (node->pChild != NULL)
+            {
+                lsp_trace("%s%s={", pad.get_utf8(), node->sKey);
+                node->pChild->dump(offset + 2);
+                lsp_trace("%s}", pad.get_utf8());
+            }
+            else
+                lsp_trace("%s%s=%s", pad.get_utf8(), node->sKey, node->sValue);
+        }
+    }
+#endif
 
     status_t BuiltinDictionary::init(const LSPString *path)
     {
@@ -149,6 +195,13 @@ namespace lsp
             vNodes.swap(&tmp.vNodes);
         }
 
+#ifdef LSP_TRACE
+        lsp_trace("Dictionary %s dump:", path->get_utf8());
+        lsp_trace("{");
+        dump(2);
+        lsp_trace("}");
+#endif
+
         return STATUS_OK;
     }
 
@@ -161,6 +214,7 @@ namespace lsp
             idx = (first + last) >> 1;
             node_t *node = vNodes.at(idx);
             int cmp = ::strcmp(node->sKey, key);
+//            lsp_trace("strcmp %s <-> %s -> %d", node->sKey, key, cmp);
 
             if (cmp > 0)
                 last    = idx - 1;
@@ -178,13 +232,14 @@ namespace lsp
         if (key == NULL)
             return STATUS_INVALID_VALUE;
 
-//        lsp_trace("Lookup key: %s", key);
+//        lsp_trace("Lookup value: %s", key);
         node_t *node;
         BuiltinDictionary *curr = this;
 
         // Need to lookup sub-node?
         while (true)
         {
+//            lsp_trace("Current path: %s", key);
             const char *split = ::strchr(key, '.');
             if (split == NULL)
                 break;;
@@ -197,13 +252,15 @@ namespace lsp
             ::memcpy(tmp, key, len);
             tmp[len] = '\0';
 
-//            lsp_trace("Lookup child: %s", tmp);
-
+//            lsp_trace("Lookup child: \"%s\"", tmp);
             node = curr->find_node(tmp);
             ::free(tmp);
 
             if ((node == NULL) || (node->pChild == NULL))
+            {
+//                lsp_trace("Node not found: node=%p, pChild=%p", node, (node != NULL) ? node->pChild : NULL);
                 return STATUS_NOT_FOUND;
+            }
 
 //            lsp_trace("Accessing to child dictionary %p with key: %s", node->pChild, &split[1]);
             key = &split[1];
@@ -225,7 +282,7 @@ namespace lsp
         if (key == NULL)
             return STATUS_INVALID_VALUE;
 
-//        lsp_trace("Lookup key: %s", key);
+//        lsp_trace("Lookup dictionary: %s", key);
 
         node_t *node;
         BuiltinDictionary *curr = this;

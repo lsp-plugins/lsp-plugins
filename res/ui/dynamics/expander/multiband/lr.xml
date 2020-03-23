@@ -490,10 +490,6 @@
 								<hbox spacing="4">
 									<label text="labels.plug.expander" />
 									
-									<button id="ee_${i}l" size="16" color="left_channel" led="true" />
-									<label text="labels.chan.on" />
-									<button id="ee_${i}r" size="16" color="right_channel" led="true" />
-									
 									<button id="bs_${i}l" size="16" color="left_channel" led="true" />
 									<label text="labels.chan.solo" />
 									<button id="bs_${i}r" size="16" color="right_channel" led="true" />
@@ -503,7 +499,8 @@
 									<button id="bm_${i}r" size="16" color="right_channel" led="true" />
 								</hbox>
 							</align>
-							<grid rows="7" cols="7" hspacing="4">
+							<grid rows="7" cols="8" hspacing="4">
+								<cell rows="2"><label text="labels.mode" /></cell>
 								<cell rows="2"><label text="labels.ratio" /></cell>
 								<cell rows="2"><label text="labels.knee" /></cell>
 								<cell rows="2"><label text="labels.makeup" /></cell>
@@ -515,6 +512,17 @@
 								<cell><label text="labels.threshold" /></cell>
 								<cell><label text="labels.time" /></cell>
 								
+								<cell rows="2">
+									<vbox>
+										<combo id="em_${i}l" fill="true" />
+										<align hpos="0" pad_left="4">
+											<hbox fill="false" spacing="4">
+												<button id="ee_${i}l" color="left_channel" led="true" size="12" />
+												<label text="labels.chan.left_on" />
+											</hbox>
+										</align>
+									</vbox>
+								</cell>
 								<knob id="er_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="kn_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="mk_${i}l" size="16" scale_hue_id="hue_${i}l" />
@@ -535,10 +543,22 @@
 								<value id="rrl_${i}l" same_line="true" />
 								<value id="rt_${i}l" same_line="true" />
 								
+								<label />
 								<cell cols="7" fill="true">
 									<hsep />
 								</cell>
 								
+								<cell rows="2">
+									<vbox>
+										<combo id="em_${i}r" fill="true" />
+										<align hpos="0" pad_left="4">
+											<hbox fill="false" spacing="4">
+												<button id="ee_${i}r" color="right_channel" led="true" size="12" />
+												<label text="labels.chan.right_on" />
+											</hbox>
+										</align>
+									</vbox>
+								</cell>
 								<knob id="er_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="kn_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="mk_${i}r" size="16" scale_hue_id="hue_${i}r" />

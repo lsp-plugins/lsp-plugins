@@ -261,6 +261,7 @@ namespace lsp
                 b->pScHcfFreq   = NULL;
                 b->pScFreqChart = NULL;
 
+                b->pMode        = NULL;
                 b->pEnable      = NULL;
                 b->pSolo        = NULL;
                 b->pMute        = NULL;
@@ -431,6 +432,7 @@ namespace lsp
                     b->pScHcfFreq   = sb->pScHcfFreq;
                     b->pScFreqChart = sb->pScFreqChart;
 
+                    b->pMode        = sb->pMode;
                     b->pEnable      = sb->pEnable;
                     b->pSolo        = sb->pSolo;
                     b->pMute        = sb->pMute;
@@ -480,6 +482,8 @@ namespace lsp
                     TRACE_PORT(vPorts[port_id]);
                     b->pScFreqChart = vPorts[port_id++];
 
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pMode        = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pEnable      = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
@@ -708,6 +712,7 @@ namespace lsp
                 float release   = b->pRelLevel->getValue() * attack;
                 float makeup    = b->pMakeup->getValue();
                 bool enabled    = b->pEnable->getValue() >= 0.5f;
+                bool upward     = b->pMode->getValue() >= 0.5f;
                 if (enabled && (j > 0))
                     enabled         = c->vSplit[j-1].bEnabled;
                 bool cust_lcf   = b->pScLpfOn->getValue() >= 0.5f;
@@ -734,6 +739,7 @@ namespace lsp
                 b->sExp.set_threshold(attack, release);
                 b->sExp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
                 b->sExp.set_ratio(b->pRatio->getValue());
+                b->sExp.set_mode((upward) ? EM_UPWARD : EM_DOWNWARD);
                 b->sExp.set_knee(b->pKnee->getValue());
 
                 if (b->sExp.modified())
@@ -1134,6 +1140,8 @@ namespace lsp
                     if (b->bEnabled)
                     {
                         b->sExp.process(b->vVCA, vEnv, vBuffer, to_process); // Output
+                        if ((bModern) && (b->sExp.is_downward()))
+                            dsp::limit1(b->vVCA, GAIN_AMP_M_72_DB, GAIN_AMP_P_72_DB, to_process);
                         dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
                         // Output curve level
