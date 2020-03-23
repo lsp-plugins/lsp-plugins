@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Direct Out 12 Instrument Sample Player
-Name=Sample Player
+Name=Sample Player: Direct Out 12 Instrument Sample Player
 Name[ru]=Сэмплер
 Comment=Implements 12-instrument MIDI sample player with stereo input and stereo output.
 Comment[ru]=Реализует управляемый MIDI сэмплер на 12 инструментов со стереовходом и стереовыходом.

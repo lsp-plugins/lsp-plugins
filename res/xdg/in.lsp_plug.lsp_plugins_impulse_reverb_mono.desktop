@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Convolution Reverb
-Name=Convolution Processors
+Name=Convolution Processors: Mono Convolution Reverb
 Name[ru]=Свёрточные процессоры
 Comment=Performs highly optimized real time zero-latency convolution to the input signal. It can be used as a cabinet emulator, some sort of equalizer or as a reverb simulation.
 Comment[ru]=Осуществляет высокооптимизированную свёртку входного сигнала с нулевой задержкой. Может быть использован как эмулятор кабинета, эквалайзер или ревербератор.

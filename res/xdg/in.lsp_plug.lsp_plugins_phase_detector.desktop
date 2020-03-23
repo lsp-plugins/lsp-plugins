@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Phase Detector
-Name=Utilities
+Name=Utilities: Phase Detector
 Name[ru]=Утилиты
 Comment=Allows to detect phase between two sources.
 Comment[ru]=Позволяет установить фазовое смещение между двумя источниками сигнала.

@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Audio Profiler
-Name=Utilities
+Name=Utilities: Mono Audio Profiler
 Name[ru]=Утилиты
 Comment=Allows to profile audio systems (mono) based on the Synchronized Swept Sine method by Antonin Novak.
 Comment[ru]=Позволяет профилировать монофонические аудиосистемы. 

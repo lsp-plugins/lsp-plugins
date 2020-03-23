@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mid-Side Stereo 32 Band Parametric Equalizer
-Name=Equalizers
+Name=Equalizers: Mid-Side Stereo 32 Band Parametric Equalizer
 Name[ru]=Эквалайзеры
 Comment=Performs parametric equalization of stereo channel in Mid-Side mode. Up to 32 filters are available for signal processing simultaneously.
 Comment[ru]=Осуществляет параметрическую эквализацию стереосигнала, центр и сторона обрабатываются индивидуально. Возможно использование до 32 фильтров одновременно.

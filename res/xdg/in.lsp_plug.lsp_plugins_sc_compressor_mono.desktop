@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Sidechain Compressor
-Name=Compressors
+Name=Compressors: Mono Sidechain Compressor
 Name[ru]=Компрессоры
 Comment=Performs compression of mono input signal. Flexible sidechain-control configuration and additional sidechain input are provided.
 Comment[ru]=Осуществляет компрессию входного моносигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

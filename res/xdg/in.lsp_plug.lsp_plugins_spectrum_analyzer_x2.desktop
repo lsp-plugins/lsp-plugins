@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Two Channel Spectrum Analyzer
-Name=Analyzers
+Name=Analyzers: 2 Channel Spectrum Analyzer
 Name[ru]=Анализаторы
 Comment=Performs spectral analysis of a pair of audio channels. Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
 Comment[ru]=Осуществляет одновременный спектральный анализ Пары аудиоканалов. Также возможно анализировать стереоканалы при использовании специального режима.

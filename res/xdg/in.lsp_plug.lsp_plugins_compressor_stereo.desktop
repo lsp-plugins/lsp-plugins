@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Stereo Compressor
-Name=Compressors
+Name=Compressors: Stereo Compressor
 Name[ru]=Компрессоры
 Comment=Performs compression of stereo input signal.
 Comment[ru]=Осуществляет компрессию стереосигнала.

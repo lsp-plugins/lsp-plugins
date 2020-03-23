@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Signal Generator
-Name=Generators
+Name=Generators: Mono Signal Generator
 Name[ru]=Генераторы
 Comment=Implements a simple yet flexible utility signal generator. It can be used to provide reference waves in replacement, additive and multiplicative (modulation) Mode.
 Comment[ru]=Реализует простую но гибкую утилиту для генерации сигналов. Может быть использован для генерации референсных сигналов в режиме замещения, добавления и умножения (модуляции).

@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Split Stereo Dynamic Processor
-Name=Dynamic Processing
+Name=Dynamic Processing: Split Stereo Dynamic Processor
 Name[ru]=Динамическая обработка
 Comment=Performs dynamic processing of stereo input signal by applying individual processing to left and right channels separately.
 Comment[ru]=Осуществляет динамическую обработку стереосигнала, каждый канал стереопары обрабатывается индивидуально.

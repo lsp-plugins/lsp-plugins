@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=12 Channel Spectrum Analyzer
-Name=Analyzers
+Name=Analyzers: 12 Channel Spectrum Analyzer
 Name[ru]=Анализаторы
 Comment=Performs spectral analysis of 12 independent channels simultaneously. Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
 Comment[ru]=Осуществляет одновременный спектральный анализ 12 независимых каналов. Также возможно анализировать стереоканалы при использовании специального режима.

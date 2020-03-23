@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Stereo Sidechain Expander
-Name=Expanders
+Name=Expanders: Stereo Sidechain Expander
 Name[ru]=Экспандеры
 Comment=Performs increasing of dynamic range of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет увеличение динамического диапазона стереосигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

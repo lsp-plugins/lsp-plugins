@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Sidechain Expander
-Name=Expanders
+Name=Expanders: Mono Sidechain Expander
 Name[ru]=Экспандеры
 Comment=Performs increasing of dynamic range of mono input signal. Flexible sidechain-control configuration and additional sidechain input are provided.
 Comment[ru]=Осуществляет увеличение динамического диапазона моносигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

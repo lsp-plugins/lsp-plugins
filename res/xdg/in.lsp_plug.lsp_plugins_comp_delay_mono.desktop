@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Delay Compensator
-Name=Delay effects
+Name=Delay effects: Mono Delay Compensator
 Name[ru]=Эффекты задержки
 Comment=Add short delay to the mono channel to compensate the phase offset relatively to other channels.
 Comment[ru]=Добавляет короткую задержку к моноканалу, чтобы компенсировать фазовый сдвиг относительно других каналов.

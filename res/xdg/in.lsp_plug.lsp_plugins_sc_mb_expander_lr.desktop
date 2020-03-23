@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Split Multiband Sidechain Expander
-Name=Expanders
+Name=Expanders: Split Multiband Sidechain Expander
 Name[ru]=Экспандеры
 Comment=Performs multiband increasing of dynamic range of stereo input signal by applying individual processing to left and right channels separately.
 Comment[ru]=Осуществляет многополосное повышение динамического диапазона стереосигнала, левый и правый каналы обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

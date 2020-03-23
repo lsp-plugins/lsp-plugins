@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Gate
-Name=Gates
+Name=Gates: Mono Gate
 Name[ru]=Гейты
 Comment=Performs gating of mono input signal.
 Comment[ru]=Осуществляет гейтирование моносигнала.

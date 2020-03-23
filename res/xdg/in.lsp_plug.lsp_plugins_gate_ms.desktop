@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mid-Side Stereo Gate
-Name=Gates
+Name=Gates: Mid-Side Stereo Gate
 Name[ru]=Гейты
 Comment=Performs gating of stereo input signal in Mid-Side mode.
 Comment[ru]=Осуществляет гейтирование стереосигнала, центр и сторона обрабатываются индивидуально.

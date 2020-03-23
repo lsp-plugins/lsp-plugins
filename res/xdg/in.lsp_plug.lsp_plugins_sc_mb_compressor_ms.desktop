@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mid-Side Stereo Sidechain Multiband Compressor
-Name=Compressors
+Name=Compressors: Mid-Side Stereo Sidechain Multiband Compressor
 Name[ru]=Компрессоры
 Comment=Performs multiband compression of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет многополосную компрессию стереосигнала, центр и сторона обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

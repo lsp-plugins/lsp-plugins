@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Split Stereo Sidechain Compressor
-Name=Compressors
+Name=Compressors: Split Stereo Sidechain Compressor
 Name[ru]=Компрессоры
 Comment=Performs compression of stereo input signal by applying individual processing to left and right channels separately. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет компрессию входного стереосигнала, применяя индивидуальную компрессию к каждому каналу. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Stereo Multiband Compressor
-Name=Compressors
+Name=Compressors: Stereo Multiband Compressor
 Name[ru]=Компрессоры
 Comment=Performs multiband compression of stereo input signal.
 Comment[ru]=Осуществляет многополосную компрессию стереосигнала.

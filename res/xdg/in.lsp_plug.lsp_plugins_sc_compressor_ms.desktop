@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mid-Side Stero Sidechain Compressor
-Name=Compressors
+Name=Compressors: Mid-Side Stero Sidechain Compressor
 Name[ru]=Компрессоры
 Comment=Performs compression of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет компрессию входного стереосигнала, обрабатывая центр и сторону по отдельности. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

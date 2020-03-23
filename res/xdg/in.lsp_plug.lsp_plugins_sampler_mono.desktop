@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono MIDI Sample Player
-Name=Sample Player
+Name=Sample Player: Mono MIDI Sample Player
 Name[ru]=Сэмплер
 Comment=Implements single-note MIDI sample player with mono input and mono output.
 Comment[ru]=Реализует монофонический сэмплер, срабатывающий на одну заданную MIDI-ноту.

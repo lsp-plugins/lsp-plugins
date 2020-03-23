@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mid-Side Stereo Dynamic Sidechain Processor
-Name=Dynamic Processing
+Name=Dynamic Processing: Mid-Side Stereo Dynamic Sidechain Processor
 Name[ru]=Динамическая обработка
 Comment=Performs dynamic processing of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет динамическую обработку стереосигнала, центр и сторона обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.

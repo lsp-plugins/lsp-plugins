@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Multiband Compressor
-Name=Compressors
+Name=Compressors: Mono Multiband Compressor
 Name[ru]=Компрессоры
 Comment=Performs multiband compression of mono input signal.
 Comment[ru]=Осуществляет многополосную компрессию моносигнала.

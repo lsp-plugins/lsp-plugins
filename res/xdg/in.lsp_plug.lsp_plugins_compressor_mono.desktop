@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Mono Compressor
-Name=Compressors
+Name=Compressors: Mono Compressor
 Name[ru]=Компрессоры
 Comment=Performs compression of mono input signal.
 Comment[ru]=Осуществляет компрессию входного моносигнала.

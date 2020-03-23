@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 GenericName=Latency Meter
-Name=Utilities
+Name=Utilities: Latency Meter
 Name[ru]=Утилиты
 Comment=Allows to measure the latency of a transmission line by using chirp - inverse filter convolution. Latency is determined as the lag of the convolution peak.
 Comment[ru]=Позволяет измерить задержку линии передачи с использованием ЛЧМ-сигнала. Задержка определяется отклонением свёрки переданного и полученного сигналов.
