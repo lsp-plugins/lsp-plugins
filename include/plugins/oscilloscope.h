@@ -20,6 +20,12 @@ namespace lsp
     class oscilloscope_base: public plugin_t
     {
         protected:
+            enum channel_state_t
+            {
+                LISTENING,
+                SWEEPING
+            };
+
             typedef struct channel_t
             {
                 Bypass          sBypass;
@@ -38,9 +44,15 @@ namespace lsp
                 size_t          nPreTrigger;
                 size_t          nPostTrigger;
                 size_t          nSweepSize;
+                size_t          nSweepHead;
 
                 float          *vAbscissa;
                 float          *vOrdinate;
+
+                float          *vCapture;
+                float          *vSweep;
+
+                channel_state_t enState;
 
                 float          *vIn;
                 float          *vOut;
@@ -70,7 +82,7 @@ namespace lsp
 
             size_t      nSampleRate;
 
-            size_t      nBuffersCapacity;
+            size_t      nCaptureSize;
 
             size_t      nMeshSize;
 

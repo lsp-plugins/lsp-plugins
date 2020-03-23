@@ -13,25 +13,25 @@ namespace lsp
 {
     static const int osclilloscope_classes[] = { C_UTILITY, -1};
 
-    static const char *osc_trg_mode[] =
+    static const port_item_t osc_trg_mode[] =
     {
-        "None",
-        "Single",
-        "Repeat",
+        {"None", ""},
+        {"Single", ""},
+        {"Repeat", ""},
         NULL
     };
 
-    static const char *osc_trg_type[] =
+    static const port_item_t osc_trg_type[] =
     {
-        "Rising Edge",
-        "Falling Edge",
+        {"Rising Edge", ""},
+        {"Falling Edge", ""},
         NULL
     };
 
-    static const char *osc_coupling[] =
+    static const port_item_t osc_coupling[] =
     {
-        "AC",
-        "DC",
+        {"AC", ""},
+        {"DC", ""},
         NULL
     };
 

@@ -64,7 +64,7 @@ namespace lsp
 
         nSampleRate         = 0;
 
-        nBuffersCapacity    = 0;
+        nCaptureSize    = 0;
 
         nMeshSize           = 0;
 
@@ -97,12 +97,13 @@ namespace lsp
                 vChannels[ch].sTrigger.destroy();
                 vChannels[ch].vAbscissa = NULL;
                 vChannels[ch].vOrdinate = NULL;
+                vChannels[ch].vCapture  = NULL;
+                vChannels[ch].vSweep    = NULL;
             }
 
             delete [] vChannels;
             vChannels = NULL;
         }
-
     }
 
     void oscilloscope_base::init(IWrapper *wrapper)
@@ -113,10 +114,10 @@ namespace lsp
         if (vChannels == NULL)
             return;
 
-        // 2x nChannels X Mesh Buffers (x, y for each channel) +  1X temporary buffer + 1X Default Abscissa Buffer.
-        nBuffersCapacity = BUF_LIM_SIZE;
+        // 2x nChannels X Mesh Buffers (x, y for each channel) + nChannels X capture buffers + nChannels X sweep buffers +  1X temporary buffer + 1X Default Abscissa Buffer.
+        nCaptureSize = BUF_LIM_SIZE;
         nMeshSize = oscilloscope_base_metadata::SCOPE_MESH_SIZE;
-        size_t samples = 2 * nChannels * nMeshSize + nBuffersCapacity + nMeshSize;
+        size_t samples = (2 * nChannels * nMeshSize) + (nChannels * nCaptureSize) + (nChannels * nCaptureSize) + nCaptureSize + nMeshSize;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -139,7 +140,7 @@ namespace lsp
             c->nOversampling = c->sOversampler.get_oversampling();
             c->nOverSampleRate = c->nOversampling * nSampleRate;
 
-            if (!c->sShiftBuffer.init(nBuffersCapacity))
+            if (!c->sShiftBuffer.init(nCaptureSize))
                 return;
 
             if (!c->sTrigger.init())
@@ -147,9 +148,10 @@ namespace lsp
 
             // Test settings for trigger before proper implementation.
             c->nTriggerIndex = 0;
-            c->nPreTrigger = 1024;
-            c->nPostTrigger = 1024;
+            c->nPreTrigger = 256;
+            c->nPostTrigger = 255;
             c->nSweepSize = c->nPreTrigger + c->nPostTrigger + 1;
+            c->nSweepHead = 0;
             c->sTrigger.set_post_trigger_samples(c->nSweepSize);
             c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
             c->sTrigger.set_trigger_threshold(0.5f);
@@ -160,6 +162,14 @@ namespace lsp
 
             c->vOrdinate = ptr;
             ptr += nMeshSize;
+
+            c->vCapture = ptr;
+            ptr += nCaptureSize;
+
+            c->vSweep = ptr;
+            ptr += nCaptureSize;
+
+            c->enState = LISTENING;
 
             c->vIn          = NULL;
             c->vOut         = NULL;
@@ -184,7 +194,7 @@ namespace lsp
         }
 
         vTemp = ptr;
-        ptr += nBuffersCapacity;
+        ptr += nCaptureSize;
 
         vDflAbscissa = ptr;
         ptr += nMeshSize;
@@ -278,75 +288,125 @@ namespace lsp
             if ((vChannels[ch].vIn == NULL) || (vChannels[ch].vOut == NULL))
                 return;
 
-            vChannels[ch].nSamplesCounter = samples;
-            vChannels[ch].bProcessComplete = false;
+            vChannels[ch].nSamplesCounter   = samples;
+//            vChannels[ch].nSweepHead     = vChannels[ch].nSweepSize;
+            vChannels[ch].bProcessComplete  = false;
         }
 
         bool doLoop = true;
-        bool doSweep = false;
 
         while (doLoop)
         {
-            doLoop = false;
-
             for (size_t ch = 0; ch < nChannels; ++ch)
             {
-                if (vChannels[ch].bProcessComplete)
-                    continue;
+//                if (vChannels[ch].bProcessComplete)
+//                    continue;
 
-                size_t upsampled_total = vChannels[ch].nOversampling * vChannels[ch].nSamplesCounter;
-                size_t upsampled_available = (upsampled_total < nBuffersCapacity) ? upsampled_total : nBuffersCapacity;
-                size_t to_do = upsampled_available / vChannels[ch].nOversampling;
+                size_t to_process = vChannels[ch].nOversampling * vChannels[ch].nSamplesCounter;
+                size_t availble = vChannels[ch].sShiftBuffer.capacity() - vChannels[ch].sShiftBuffer.size();
+                size_t to_do_upsample = (to_process < availble) ? to_process : availble;
+                size_t to_do = to_do_upsample / vChannels[ch].nOversampling;
 
                 vChannels[ch].sOversampler.upsample(vTemp, vChannels[ch].vIn, to_do);
-                vChannels[ch].sShiftBuffer.append(vTemp, upsampled_available);
+                vChannels[ch].sShiftBuffer.append(vTemp, to_do_upsample);
 
-                float *head = vChannels[ch].sShiftBuffer.head();
-                size_t bufferSize = vChannels[ch].sShiftBuffer.size();
-
-                for (size_t n = 0; n < bufferSize; ++n)
+                switch (vChannels[ch].enState)
                 {
-                    vChannels[ch].sTrigger.single_sample_processor(head[n]);
-
-                    trg_state_t tState = vChannels[ch].sTrigger.get_trigger_state();
-                    if (tState == TRG_STATE_FIRED)
+                    case LISTENING:
                     {
-                        vChannels[ch].nTriggerIndex = n;
-                        doSweep = true;
-                        break;
+                        bool didtrigger = false;
+
+                        size_t bufferSize = vChannels[ch].sShiftBuffer.size();
+                        size_t scanSize = (vChannels[ch].nSweepSize < bufferSize) ? vChannels[ch].nSweepSize : bufferSize;
+
+                        for (size_t n = 0; n < scanSize; ++n)
+                        {
+                            vChannels[ch].sTrigger.single_sample_processor(*vChannels[ch].sShiftBuffer.head(n));
+
+                            trg_state_t tState = vChannels[ch].sTrigger.get_trigger_state();
+                            if (tState == TRG_STATE_FIRED) // The trigger will become inactive after firing until nPostTrigger has elapsed, so we enter this only once.
+                            {
+                                didtrigger = true;
+                                vChannels[ch].enState = SWEEPING;
+                                dsp::fill_zero(vChannels[ch].vSweep, vChannels[ch].nSweepSize);
+
+                                size_t captureHead;
+                                if (n > vChannels[ch].nPreTrigger)
+                                {
+                                    captureHead = n - vChannels[ch].nPreTrigger;
+                                    vChannels[ch].nSweepHead = 0;
+                                }
+                                else
+                                {
+                                    captureHead = 0;
+                                    vChannels[ch].nSweepHead = vChannels[ch].nPreTrigger - n;
+                                }
+
+                                size_t requested_sweep = vChannels[ch].nSweepSize - captureHead;
+                                size_t available_sweep = bufferSize - captureHead;
+                                size_t sweep_now = (requested_sweep < available_sweep) ? requested_sweep : available_sweep;
+
+                                dsp::copy(&vChannels[ch].vSweep[vChannels[ch].nSweepHead], vChannels[ch].sShiftBuffer.head(captureHead), sweep_now);
+                                vChannels[ch].nSweepHead += sweep_now;
+                            }
+                        }
+
+                        // If never triggered, then just dump the current samples.
+                        if (!didtrigger)
+                        {
+                            dsp::copy(&vChannels[ch].vSweep[vChannels[ch].nSweepHead], vChannels[ch].sShiftBuffer.head(), scanSize);
+                            vChannels[ch].nSweepHead += scanSize;
+                        }
+
+                        vChannels[ch].sShiftBuffer.shift(scanSize);
+
                     }
+                    break;
+
+                    case SWEEPING:
+                    {
+                        size_t bufferSize = vChannels[ch].sShiftBuffer.size();
+                        size_t requested_sweep = vChannels[ch].nSweepSize - vChannels[ch].nSweepHead;
+                        size_t sweep_now = (requested_sweep < bufferSize) ? requested_sweep : bufferSize;
+
+                        // Keep on updating the internal state of the trigger, even if it will not fire.
+                        for (size_t n = 0; n < sweep_now; ++n)
+                            vChannels[ch].sTrigger.single_sample_processor(*vChannels[ch].sShiftBuffer.head(n));
+
+                        dsp::copy(&vChannels[ch].vSweep[vChannels[ch].nSweepHead], vChannels[ch].sShiftBuffer.head(), sweep_now);
+                        vChannels[ch].nSweepHead += sweep_now;
+                        vChannels[ch].sShiftBuffer.shift(sweep_now);
+                    }
+                    break;
                 }
 
-                if (!doSweep)
-                    vChannels[ch].sShiftBuffer.shift(bufferSize - vChannels[ch].nPreTrigger);
-
-                if (doSweep && (bufferSize >= vChannels[ch].nSweepSize))
+                if (vChannels[ch].nSweepHead >= vChannels[ch].nSweepSize)
                 {
                     mesh_t *mesh = vChannels[ch].pMesh->getBuffer<mesh_t>();
 
-                    if (mesh == NULL)
-                        continue;
+                    if (mesh != NULL)
+                    {
+                        if (mesh->isEmpty())
+                        {
+                            get_plottable_data(vChannels[ch].vAbscissa, vChannels[ch].vSweep, nMeshSize, vChannels[ch].nSweepSize);
+                            get_plottable_data(vChannels[ch].vOrdinate, vChannels[ch].vSweep, nMeshSize, vChannels[ch].nSweepSize);
 
-                    if (!mesh->isEmpty())
-                        continue;
+                            dsp::copy(mesh->pvData[0], vDflAbscissa, nMeshSize);
+                            dsp::copy(mesh->pvData[1], vChannels[ch].vOrdinate, nMeshSize);
+                            mesh->data(2, nMeshSize);
+                        }
+                    }
 
-                    size_t copyhead = vChannels[ch].nTriggerIndex - vChannels[ch].nPreTrigger;
-
-                    get_plottable_data(vChannels[ch].vAbscissa, &head[copyhead], nMeshSize, vChannels[ch].nSweepSize);
-                    get_plottable_data(vChannels[ch].vOrdinate, &head[copyhead], nMeshSize, vChannels[ch].nSweepSize);
-
-                    dsp::copy(mesh->pvData[0], vDflAbscissa, nMeshSize);
-                    dsp::copy(mesh->pvData[1], vChannels[ch].vOrdinate, nMeshSize);
-                    mesh->data(2, nMeshSize);
-
-                    vChannels[ch].sShiftBuffer.shift(copyhead + vChannels[ch].nSweepSize);
-                    doSweep = false;
+                    dsp::fill_zero(vChannels[ch].vSweep, vChannels[ch].nSweepSize);
+                    vChannels[ch].nSweepHead = 0;
+                    vChannels[ch].enState = LISTENING;
                 }
 
                 vChannels[ch].vIn   += to_do;
                 vChannels[ch].vOut  += to_do;
                 vChannels[ch].nSamplesCounter -= to_do;
 
+                doLoop = false;
                 if (vChannels[ch].nSamplesCounter <= 0)
                 {
                     vChannels[ch].bProcessComplete = true;
