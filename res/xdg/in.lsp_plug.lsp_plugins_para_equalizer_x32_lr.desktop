@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Split Stereo 32 Band Parametric Equalizer
-Name=Equalizers
-Name[ru]=Эквалайзеры
+Name=Split Stereo 32 Band Parametric Equalizer
+GenericName=Parametric Equalizer
+GenericName[ru]=Параметрический эквалайзер
 Comment=Performs parametric equalization of stereo channel by applying individual equalization to left and right channels separately. Up to 32 filters are available for signal processing simultaneously.
 Comment[ru]=Осуществляет параметрическую эквализацию стереосигнала, левый и правый каналы обрабатываются индивидуально. Возможно использование до 32 фильтров одновременно.
 Exec=lsp-plugins-para-equalizer-x32-lr
@@ -11,3 +11,4 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

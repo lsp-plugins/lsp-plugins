@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono Sidechain Compressor
-Name=Compressors
-Name[ru]=Компрессоры
+Name=Mono Sidechain Compressor
+GenericName=Sidechain Compressor
+GenericName[ru]=Компрессор с боковой цепью
 Comment=Performs compression of mono input signal. Flexible sidechain-control configuration and additional sidechain input are provided.
 Comment[ru]=Осуществляет компрессию входного моносигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-compressor-mono
@@ -11,3 +11,4 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

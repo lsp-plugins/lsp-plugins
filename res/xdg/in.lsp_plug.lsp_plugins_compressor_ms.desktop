@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mid-Side Split Stereo Compressor
-Name=Compressors
-Name[ru]=Компрессоры
+Name=Mid-Side Split Stereo Compressor
+GenericName=Compressor
+GenericName[ru]=Компрессор
 Comment=Performs compression of stereo input signal in Mid-Side mode.
 Comment[ru]=Осуществляет компрессию входного стереосигнала, обрабатывая центр и сторону по отдельности.
 Exec=lsp-plugins-compressor-ms
@@ -11,3 +11,4 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

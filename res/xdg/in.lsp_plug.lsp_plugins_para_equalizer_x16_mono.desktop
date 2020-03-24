@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono 16 Band Parametric Equalizer
-Name=Equalizers
-Name[ru]=Эквалайзеры
+Name=Mono 16 Band Parametric Equalizer
+GenericName=Parametric Equalizer
+GenericName[ru]=Параметрический эквалайзер
 Comment=Performs parametric equalization of mono channel. Up to 16 filters are available for signal processing simultaneously.
 Comment[ru]=Осуществляет параметрическую эквализацию моносигнала. Возможно использование до 16 фильтров одновременно.
 Exec=lsp-plugins-para-equalizer-x16-mono
@@ -11,3 +11,4 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;
