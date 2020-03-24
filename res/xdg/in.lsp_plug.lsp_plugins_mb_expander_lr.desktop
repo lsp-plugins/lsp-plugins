@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Split Multiband Expander
-Name=Expanders
-Name[ru]=Экспандеры
+Name=Split Multiband Expander
+GenericName=Multiband Expander
+GenericName[ru]=Многополосный экспандер
 Comment=Performs multiband increasing of dynamic range of stereo input signal by applying individual processing to left and right channels separately.
 Comment[ru]=Осуществляет многополосное повышение динамического диапазона стереосигнала, левый и правый каналы обрабатываются индивидуально.
 Exec=lsp-plugins-mb-expander-lr

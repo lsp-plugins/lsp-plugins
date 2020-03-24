@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Stereo 32 Band Graphic Equalizer
-Name=Equalizers
-Name[ru]=Эквалайзеры
+Name=Stereo 32 Band Graphic Equalizer
+GenericName=Graphic Equalizer
+GenericName[ru]=Графический эквалайзер
 Comment=Performs graphic equalization of stereo channel. Up to 32 frequency bands are available for correction in range of 72 dB (-36..+36 dB).
 Comment[ru]=Осуществляет графическую эквализацию стереосигнала. Доступно до 32 полос эквализации с возможностью корректировки в диапазоне 72 дБ (-36..+36 дБ).
 Exec=lsp-plugins-graph-equalizer-x32-stereo

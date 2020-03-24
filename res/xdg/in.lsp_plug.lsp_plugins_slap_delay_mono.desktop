@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono Slap Delay
-Name=Delay effects
-Name[ru]=Эффекты задержки
+Name=Mono Slap Delay
+GenericName=Delay effect
+GenericName[ru]=Эффект задержки
 Comment=Allows to add set of short delays of the original (mono) signal to the output mix. Each delay can be used to simulate the early reflections of the signal from walls.
 Comment[ru]=Позволяет добавить короткие задержки к оригинальному моносигналу в финальный микс. Каждая задержка может симулировать первичные отражение сигнала от стен.
 Exec=lsp-plugins-slap-delay-mono

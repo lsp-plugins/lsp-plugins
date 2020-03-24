@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono Room Impulse Response Builder
-Name=Utilities
-Name[ru]=Утилиты
+Name=Mono Room Impulse Response Builder
+GenericName=Simulator
+GenericName[ru]=Симулятор
 Comment=Allows to simulate mono impulse response of any modelled room or space.
 Comment[ru]=Позволяет симулировать реверберацию пространства на основе произвольных 3D-моделей. 
 Exec=lsp-plugins-room-builder-mono

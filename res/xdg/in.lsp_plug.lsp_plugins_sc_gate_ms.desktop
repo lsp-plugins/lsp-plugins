@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mid-Side Stereo Sidechain Gate
-Name=Gates
-Name[ru]=Гейты
+Name=Mid-Side Stereo Sidechain Gate
+GenericName=Sidechain Gate
+GenericName[ru]=Гейт с боковой цепью
 Comment=Performs gating of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет гейтирование стереосигнала, центр и сторона обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-gate-ms

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono Delay Compensator
-Name=Delay effects
-Name[ru]=Эффекты задержки
+Name=Mono Delay Compensator
+GenericName=Delay effect
+GenericName[ru]=Эффект задержки
 Comment=Add short delay to the mono channel to compensate the phase offset relatively to other channels.
 Comment[ru]=Добавляет короткую задержку к моноканалу, чтобы компенсировать фазовый сдвиг относительно других каналов.
 Exec=lsp-plugins-comp-delay-mono

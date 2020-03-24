@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono Audio Trigger
-Name=Triggers
-Name[ru]=Триггеры
+Name=Mono Audio Trigger
+GenericName=Trigger
+GenericName[ru]=Триггер
 Comment=Implements trigger with mono input and mono output.
 Comment[ru]=Реализаует триггер с монофоническими входом и выходом. 
 Exec=lsp-plugins-trigger-mono

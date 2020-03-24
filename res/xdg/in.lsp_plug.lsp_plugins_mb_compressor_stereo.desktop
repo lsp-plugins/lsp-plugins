@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Stereo Multiband Compressor
-Name=Compressors
-Name[ru]=Компрессоры
+Name=Stereo Multiband Compressor
+GenericName=Multiband Compressor
+GenericName[ru]=Многополосный компрессор
 Comment=Performs multiband compression of stereo input signal.
 Comment[ru]=Осуществляет многополосную компрессию стереосигнала.
 Exec=lsp-plugins-mb-compressor-stereo
