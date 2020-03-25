@@ -307,6 +307,103 @@ IF_ARCH_ARM(
 
     #undef SEL_DST
     #undef SEL_NODST
+
+    #define SANITIZE_BODY(DST, SRC, INC) \
+        __ASM_EMIT("vldm            %[CVAL], {q8-q11}") \
+        __ASM_EMIT("subs            %[count], %[count], $8") \
+        __ASM_EMIT("blo             2f") \
+        /* 8x blocks */ \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("vldm            %[" SRC "]" INC ", {q0-q1}")            /* q0 = s */ \
+        __ASM_EMIT("vand            q2, q0, q8")                            /* q2 = abs(s) */ \
+        __ASM_EMIT("vand            q3, q1, q8") \
+        __ASM_EMIT("vand            q4, q0, q9")                            /* q4 = sign(s) */ \
+        __ASM_EMIT("vand            q5, q1, q9") \
+        __ASM_EMIT("vcle.u32        q6, q2, q10")                           /* q6 = abs(s) <= X_MAX */ \
+        __ASM_EMIT("vcle.u32        q7, q3, q10") \
+        __ASM_EMIT("vcgt.u32        q2, q2, q11")                           /* q2 = abs(s) > X_MIN */ \
+        __ASM_EMIT("vcgt.u32        q3, q3, q11") \
+        __ASM_EMIT("vand            q2, q2, q6")                            /* q2 = (abs(s) > X_MIN) & (abs(s) <= X_MIN) */ \
+        __ASM_EMIT("vand            q3, q3, q7") \
+        __ASM_EMIT("vbif            q0, q4, q2")                            /* q0 = ((abs(s) > X_MIN) & (abs(s) <= X_MIN)) ? s : sign(s) */ \
+        __ASM_EMIT("vbif            q1, q5, q3") \
+        __ASM_EMIT("subs            %[count], %[count], $8") \
+        __ASM_EMIT("vstm            %[" DST "]!, {q0-q1}")                  /* q0 = s */ \
+        __ASM_EMIT("bhs             1b") \
+        /* 4x block */ \
+        __ASM_EMIT("2:") \
+        __ASM_EMIT("adds            %[count], %[count], $4") \
+        __ASM_EMIT("blt             4f") \
+        __ASM_EMIT("vldm            %[" SRC "]" INC ", {q0}")               /* q0 = s */ \
+        __ASM_EMIT("vand            q2, q0, q8")                            /* q2 = abs(s) */ \
+        __ASM_EMIT("vand            q4, q0, q9")                            /* q4 = sign(s) */ \
+        __ASM_EMIT("vcle.u32        q6, q2, q10")                           /* q6 = abs(s) <= X_MAX */ \
+        __ASM_EMIT("vcgt.u32        q2, q2, q11")                           /* q2 = abs(s) > X_MIN */ \
+        __ASM_EMIT("vand            q2, q2, q6")                            /* q2 = (abs(s) > X_MIN) & (abs(s) <= X_MIN) */ \
+        __ASM_EMIT("vbif            q0, q4, q2")                            /* q0 = ((abs(s) > X_MIN) & (abs(s) <= X_MIN)) ? s : sign(s) */ \
+        __ASM_EMIT("sub             %[count], %[count], $4") \
+        __ASM_EMIT("vstm            %[" DST "]!, {q0}")                     /* q0 = s */ \
+        /* 1x blocks */ \
+        __ASM_EMIT("4:") \
+        __ASM_EMIT("adds            %[count], %[count], $3") \
+        __ASM_EMIT("blt             6f") \
+        __ASM_EMIT("5:") \
+        __ASM_EMIT("vld1.32         {d0[]}, [%[" SRC "]]" INC)              /* q0 = s */ \
+        __ASM_EMIT("vand            q2, q0, q8")                            /* q2 = abs(s) */ \
+        __ASM_EMIT("vand            q4, q0, q9")                            /* q4 = sign(s) */ \
+        __ASM_EMIT("vcle.u32        q6, q2, q10")                           /* q6 = abs(s) <= X_MAX */ \
+        __ASM_EMIT("vcgt.u32        q2, q2, q11")                           /* q2 = abs(s) > X_MIN */ \
+        __ASM_EMIT("vand            q2, q2, q6")                            /* q2 = (abs(s) > X_MIN) & (abs(s) <= X_MIN) */ \
+        __ASM_EMIT("vbif            q0, q4, q2")                            /* q0 = ((abs(s) > X_MIN) & (abs(s) <= X_MIN)) ? s : sign(s) */ \
+        __ASM_EMIT("subs            %[count], %[count], $1") \
+        __ASM_EMIT("vst1.32         {d0[0]}, [%[" DST "]]!")                /* q0 = s */ \
+        __ASM_EMIT("bge             5b") \
+        /* end */ \
+        __ASM_EMIT("6:")
+
+    #define U4VEC(x)        x, x, x, x
+    IF_ARCH_ARM(
+        static uint32_t SANITIZE_CVAL[] __lsp_aligned16 =
+        {
+            U4VEC(0x7fffffff),            // X_ABS
+            U4VEC(0x80000000),            // X_SIGN
+            U4VEC(0x7f7fffff),            // X_MAX
+            U4VEC(0x007fffff)             // X_MIN
+        };
+    )
+    #undef U4VEC
+
+    void sanitize1(float *dst, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            SANITIZE_BODY("dst", "dst", "")
+            : [dst] "+r" (dst),
+              [count] "+r" (count)
+            : [CVAL] "r" (&SANITIZE_CVAL[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
+        );
+    }
+
+    void sanitize2(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            SANITIZE_BODY("dst", "src", "!")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [CVAL] "r" (&SANITIZE_CVAL[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
+        );
+    }
+
+#undef SANITIZE_BODY
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_FLOAT_H_ */

@@ -35,6 +35,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void sanitize1(float *dst, size_t count);
+        void sanitize2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* sanitize1_t)(float *dst, size_t count);
 typedef void (* sanitize2_t)(float *dst, const float *src, size_t count);
 
@@ -180,6 +188,9 @@ UTEST_BEGIN("dsp.float", sanitize)
 
         IF_ARCH_X86(CALL(avx2::sanitize1, 32));
         IF_ARCH_X86(CALL(avx2::sanitize2, 32));
+
+        IF_ARCH_ARM(CALL(neon_d32::sanitize1, 16));
+        IF_ARCH_ARM(CALL(neon_d32::sanitize2, 16));
     }
 
 UTEST_END;
