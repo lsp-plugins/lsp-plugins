@@ -31,6 +31,12 @@ IF_ARCH_X86(
         void sanitize1(float *dst, size_t count);
         void sanitize2(float *dst, const float *src, size_t count);
     }
+
+    namespace avx2
+    {
+        void sanitize1(float *dst, size_t count);
+        void sanitize2(float *dst, const float *src, size_t count);
+    }
 )
 
 typedef void (* sanitize1_t)(float *dst, size_t count);
@@ -89,11 +95,13 @@ PTEST_BEGIN("dsp.float", sanitize, 5, 10000)
             CALL(native::sanitize1);
             IF_ARCH_X86(CALL(sse2::sanitize1));
             IF_ARCH_X86(CALL(avx::sanitize1));
+            IF_ARCH_X86(CALL(avx2::sanitize1));
             PTEST_SEPARATOR;
 
             CALL(native::sanitize2);
             IF_ARCH_X86(CALL(sse2::sanitize2));
             IF_ARCH_X86(CALL(avx::sanitize2));
+            IF_ARCH_X86(CALL(avx2::sanitize2));
             PTEST_SEPARATOR2;
         }
 

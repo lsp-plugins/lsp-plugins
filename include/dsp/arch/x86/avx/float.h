@@ -214,6 +214,8 @@ namespace avx
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
+
+#undef SANITIZE_BODY
 }
 
 #endif /* DSP_ARCH_X86_AVX_FLOAT_H_ */

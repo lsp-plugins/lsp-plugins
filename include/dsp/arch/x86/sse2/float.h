@@ -381,6 +381,8 @@ IF_ARCH_X86(
         );
     }
 
+#undef SANITIZE_BODY
+
 }
 
 #endif /* DSP_ARCH_X86_SSE2_FLOAT_H_ */
