@@ -43,6 +43,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void sanitize1(float *dst, size_t count);
+        void sanitize2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* sanitize1_t)(float *dst, size_t count);
 typedef void (* sanitize2_t)(float *dst, const float *src, size_t count);
 
@@ -191,6 +199,9 @@ UTEST_BEGIN("dsp.float", sanitize)
 
         IF_ARCH_ARM(CALL(neon_d32::sanitize1, 16));
         IF_ARCH_ARM(CALL(neon_d32::sanitize2, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::sanitize1, 16));
+        IF_ARCH_AARCH64(CALL(asimd::sanitize2, 16));
     }
 
 UTEST_END;
