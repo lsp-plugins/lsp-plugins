@@ -262,18 +262,6 @@ IF_ARCH_X86(
 
 #undef LIMIT_SAT_BODY
 
-    #define U4VEC(x)        x, x, x, x
-    IF_ARCH_X86(
-        static uint32_t SANITIZE_CVAL[] __lsp_aligned16 =
-        {
-            U4VEC(0x7fffffff),            // X_ABS
-            U4VEC(0x80000000),            // X_SIGN
-            U4VEC(0x7f7fffff),            // X_MAX
-            U4VEC(0x007fffff)             // X_MIN
-        };
-    )
-    #undef U4VEC
-
 #define SANITIZE_BODY(DST, SRC) \
     __ASM_EMIT("xor             %[off], %[off]") \
     __ASM_EMIT("sub             $8, %[count]") \
@@ -348,6 +336,18 @@ IF_ARCH_X86(
     /* end */ \
     __ASM_EMIT("6:")
 
+
+    #define U4VEC(x)        x, x, x, x
+    IF_ARCH_X86(
+        static uint32_t SANITIZE_CVAL[] __lsp_aligned16 =
+        {
+            U4VEC(0x7fffffff),            // X_ABS
+            U4VEC(0x80000000),            // X_SIGN
+            U4VEC(0x7f7fffff),            // X_MAX
+            U4VEC(0x007fffff)             // X_MIN
+        };
+    )
+    #undef U4VEC
 
     void sanitize1(float *dst, size_t count)
     {

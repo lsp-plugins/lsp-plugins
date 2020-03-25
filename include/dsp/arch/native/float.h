@@ -120,9 +120,10 @@ namespace native
 
         for (size_t i=0; i<count; ++i)
         {
-            uint32_t s      = dptr[i] & 0x80000000;   // Sign
-            uint32_t v      = dptr[i] & 0x7fffffff;   // Absolute value
-            dptr[i]         = s | (((v > 0x007fffff) && (v <= 0x7f7fffff)) ? v : 0);
+            uint32_t v      = dptr[i];
+            uint32_t a      = v & 0x7fffffff;   // Absolute value
+            uint32_t s      = v & 0x80000000;   // Sign
+            dptr[i]         = ((a > 0x007fffff) && (a <= 0x7f7fffff)) ? v : s;
         }
     }
 
@@ -133,9 +134,10 @@ namespace native
 
         for (size_t i=0; i<count; ++i)
         {
-            uint32_t s      = sptr[i] & 0x80000000;   // Sign
-            uint32_t v      = sptr[i] & 0x7fffffff;   // Absolute value
-            dptr[i]         = s | (((v > 0x007fffff) && (v <= 0x7f7fffff)) ? v : 0);
+            uint32_t v      = sptr[i];
+            uint32_t a      = v & 0x7fffffff;   // Absolute value
+            uint32_t s      = v & 0x80000000;   // Sign
+            dptr[i]         = ((a > 0x007fffff) && (a <= 0x7f7fffff)) ? v : s;
         }
     }
 }

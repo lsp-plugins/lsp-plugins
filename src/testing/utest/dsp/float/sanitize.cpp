@@ -21,6 +21,12 @@ IF_ARCH_X86(
         void sanitize1(float *dst, size_t count);
         void sanitize2(float *dst, const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        void sanitize1(float *dst, size_t count);
+        void sanitize2(float *dst, const float *src, size_t count);
+    }
 )
 
 typedef void (* sanitize1_t)(float *dst, size_t count);
@@ -38,16 +44,16 @@ UTEST_BEGIN("dsp.float", sanitize)
             switch (i % 10)
             {
                 case 0:
-                    ival[i]         = 0x7f800000; // + Infinity
-                    break;
-                case 1:
                     fval[i]          = (rand() * 2.0f) / RAND_MAX;
                     break;
+                case 1:
+                    ival[i]         = 0x7f800000; // + Infinity
+                    break;
                 case 2:
-                    ival[i]         = 0xff800000; // - Infinity
+                    fval[i]         = - (rand() * 2.0f) / RAND_MAX;
                     break;
                 case 3:
-                    fval[i]         = - (rand() * 2.0f) / RAND_MAX;
+                    ival[i]         = 0xff800000; // - Infinity
                     break;
                 case 4:
                     ival[i]         = 0x80004000; // -Denormal
@@ -85,7 +91,7 @@ UTEST_BEGIN("dsp.float", sanitize)
         {
             switch (i % 10)
             {
-                case 1: case 3:
+                case 0: case 2:
                     UTEST_ASSERT_MSG(b[i] == a[i],
                             "Invalid buffer %s contents at element %d: 0x%08lx, expected to be 0x%08lx",
                             dlabel, int(i), (unsigned long)(b[i]), (unsigned long)(a[i])
@@ -162,9 +168,9 @@ UTEST_BEGIN("dsp.float", sanitize)
 
         IF_ARCH_X86(CALL(sse2::sanitize1, 16));
         IF_ARCH_X86(CALL(sse2::sanitize2, 16));
-//
-//        IF_ARCH_X86(CALL(avx::limit1, 32));
-//        IF_ARCH_X86(CALL(avx::limit2, 32));
+
+        IF_ARCH_X86(CALL(avx::sanitize1, 16));
+        IF_ARCH_X86(CALL(avx::sanitize2, 16));
     }
 
 UTEST_END;

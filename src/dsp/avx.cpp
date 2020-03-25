@@ -108,6 +108,8 @@ namespace avx
 
         CEXPORT1(favx, limit1);
         CEXPORT1(favx, limit2);
+        CEXPORT1(favx, sanitize1);
+        CEXPORT1(favx, sanitize2);
 
         // Conditional export, depending on fast AVX implementation
         CEXPORT1(favx, add_k2);
