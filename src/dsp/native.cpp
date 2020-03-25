@@ -75,6 +75,8 @@ namespace native
         EXPORT1(limit_saturate2);
         EXPORT1(limit1);
         EXPORT1(limit2);
+        EXPORT1(sanitize1);
+        EXPORT1(sanitize2);
 
         EXPORT1(move);
         EXPORT1(fill);

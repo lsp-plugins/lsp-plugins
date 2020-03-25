@@ -113,6 +113,31 @@ namespace native
             *(dst++)    = v;
         }
     }
+
+    void sanitize1(float *dst, size_t count)
+    {
+        uint32_t *dptr = reinterpret_cast<uint32_t *>(dst);
+
+        for (size_t i=0; i<count; ++i)
+        {
+            uint32_t s      = dptr[i] & 0x80000000;   // Sign
+            uint32_t v      = dptr[i] & 0x7fffffff;   // Absolute value
+            dptr[i]         = s | (((v > 0x007fffff) && (v <= 0x7f7fffff)) ? v : 0);
+        }
+    }
+
+    void sanitize2(float *dst, const float *src, size_t count)
+    {
+        uint32_t *dptr          = reinterpret_cast<uint32_t *>(dst);
+        const uint32_t *sptr    = reinterpret_cast<const uint32_t *>(src);
+
+        for (size_t i=0; i<count; ++i)
+        {
+            uint32_t s      = sptr[i] & 0x80000000;   // Sign
+            uint32_t v      = sptr[i] & 0x7fffffff;   // Absolute value
+            dptr[i]         = s | (((v > 0x007fffff) && (v <= 0x7f7fffff)) ? v : 0);
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_FLOAT_H_ */
