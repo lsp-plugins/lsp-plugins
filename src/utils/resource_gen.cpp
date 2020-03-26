@@ -329,7 +329,7 @@ namespace lsp
             // Write footer
             if (result == STATUS_OK)
             {
-                fprintf(out,    "\textern const resource_t builtin_resources[] =\n");
+                fprintf(out,    "\tconst resource_t builtin_resources[] =\n");
                 fprintf(out,    "\t{\n");
 
                 for (size_t i=0; i<resources.size(); ++i)

@@ -12,6 +12,10 @@
 * Fixed improper TTL file generation for several plugins. 
 * Restored missing SVG files, implemented proper icon installation.
 * Added better desktop entry categorization (contributed by Dennis Braun).
+* Added protection from NaNs, Inf's and denormal floating point values passed to plugins' audio
+  inputs, all considered to be invalid values are replaced with zeros. 
+* Added '-fvisibility=hidden' compilation option to avoid conflict between builtin resources of
+  shared objects that contain implementation of different plugin formats.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.

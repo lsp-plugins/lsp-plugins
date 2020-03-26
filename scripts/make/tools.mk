@@ -10,6 +10,7 @@ FLAG_VERSION            = -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX
 FLAG_CTUNE              = -std=c++98 \
                           -fno-exceptions -fno-rtti \
                           -fdata-sections -ffunction-sections -fno-asynchronous-unwind-tables \
+                          -fvisibility=hidden \
                           -pipe -Wall
 
 # Patch flags and tools
