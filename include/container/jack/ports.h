@@ -84,6 +84,8 @@ namespace lsp
             jack_port_t    *pPort;
             void           *pBuffer;
             midi_t         *pMidi;
+            float          *pSanitized;
+            size_t          nBufSize;
 
         public:
             explicit JACKDataPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
@@ -91,6 +93,8 @@ namespace lsp
                 pPort       = NULL;
                 pBuffer     = NULL;
                 pMidi       = NULL;
+                pSanitized  = NULL;
+                nBufSize    = 0;
             }
 
             virtual ~JACKDataPort()
@@ -98,12 +102,14 @@ namespace lsp
                 pPort       = NULL;
                 pBuffer     = NULL;
                 pMidi       = NULL;
+                pSanitized  = NULL;
+                nBufSize    = 0;
             };
 
         public:
             virtual void *getBuffer()
             {
-                return (pMidi != NULL) ? pMidi : pBuffer;
+                return pBuffer;
             };
 
             virtual int init()
@@ -120,12 +126,21 @@ namespace lsp
                 if (cl != NULL)
                     jack_port_unregister(cl, pPort);
 
+                if (pSanitized != NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized = NULL;
+                }
+
                 if (pMidi != NULL)
                 {
                     delete pMidi;
                     pMidi       = NULL;
                 }
-                pPort = NULL;
+
+                pPort       = NULL;
+                nBufSize    = 0;
+
                 return STATUS_OK;
             }
 
@@ -167,6 +182,29 @@ namespace lsp
                 return (pPort != NULL) ? STATUS_OK : STATUS_UNKNOWN_ERR;
             }
 
+            void set_buffer_size(size_t size)
+            {
+                // set_buffer_size should affect only input audio ports currently
+                if ((!IS_IN_PORT(pMetadata)) || (pMidi != NULL))
+                    return;
+
+                // Buffer size has changed?
+                if (nBufSize == size)
+                    return;
+
+                float *buf  = reinterpret_cast<float *>(::realloc(pSanitized, sizeof(float) * size));
+                if (buf == NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized = NULL;
+                    return;
+                }
+
+                nBufSize    = size;
+                pSanitized  = buf;
+                dsp::fill_zero(pSanitized, nBufSize);
+            }
+
             void report_latency(ssize_t latency)
             {
                 // Only output ports should report latency
@@ -196,39 +234,60 @@ namespace lsp
 
                 pBuffer     = jack_port_get_buffer(pPort, samples);
 
-                if ((pMidi != NULL) && (pBuffer != NULL) && IS_IN_PORT(pMetadata))
+                if (pMidi != NULL)
                 {
-                    // Clear our buffer
-                    pMidi->clear();
-
-                    // Read MIDI events
-                    jack_midi_event_t   midi_event;
-                    midi_event_t        ev;
-
-                    jack_nframes_t event_count = jack_midi_get_event_count(pBuffer);
-                    for (jack_nframes_t i=0; i<event_count; i++)
+                    if ((pBuffer != NULL) && IS_IN_PORT(pMetadata))
                     {
-                        // Read MIDI event
-                        if (jack_midi_event_get(&midi_event, pBuffer, i) != 0)
+                        // Clear our buffer
+                        pMidi->clear();
+
+                        // Read MIDI events
+                        jack_midi_event_t   midi_event;
+                        midi_event_t        ev;
+
+                        jack_nframes_t event_count = jack_midi_get_event_count(pBuffer);
+                        for (jack_nframes_t i=0; i<event_count; i++)
                         {
-                            lsp_warn("Could not fetch MIDI event #%d from JACK port", int(i));
-                            continue;
+                            // Read MIDI event
+                            if (jack_midi_event_get(&midi_event, pBuffer, i) != 0)
+                            {
+                                lsp_warn("Could not fetch MIDI event #%d from JACK port", int(i));
+                                continue;
+                            }
+
+                            // Convert MIDI event
+                            if (!decode_midi_message(&ev, midi_event.buffer))
+                            {
+                                lsp_warn("Could not decode MIDI event #%d at timestamp %d from JACK port", int(i), int(midi_event.time));
+                                continue;
+                            }
+
+                            // Update timestamp and store event
+                            ev.timestamp    = midi_event.time;
+                            if (!pMidi->push(ev))
+                                lsp_warn("Could not append MIDI event #%d at timestamp %d due to buffer overflow", int(i), int(midi_event.time));
                         }
 
-                        // Convert MIDI event
-                        if (!decode_midi_message(&ev, midi_event.buffer))
-                        {
-                            lsp_warn("Could not decode MIDI event #%d at timestamp %d from JACK port", int(i), int(midi_event.time));
-                            continue;
-                        }
+                        // All MIDI events ARE ordered chronologically, we do not need to perform sort
+                    }
 
-                        // Update timestamp and store event
-                        ev.timestamp    = midi_event.time;
-                        if (!pMidi->push(ev))
-                            lsp_warn("Could not append MIDI event #%d at timestamp %d due to buffer overflow", int(i), int(midi_event.time));
+                    // Replace pBuffer with pMidi
+                    pBuffer     = pMidi;
+                }
+                else if (pSanitized != NULL) // Need to sanitize?
+                {
+                    // Perform sanitize() if possible
+                    if (samples <= nBufSize)
+                    {
+                        dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pBuffer), samples);
+                        pBuffer = pSanitized;
+                    }
+                    else
+                    {
+                        lsp_warn("Could not sanitize buffer data for port %s, not enough buffer size (required: %d, actual: %d)",
+                                pMetadata->id, int(samples), int(nBufSize));
                     }
                 }
-                // All events ARE ordered chronologically, we do not need to perform sort
 
                 return false;
             }

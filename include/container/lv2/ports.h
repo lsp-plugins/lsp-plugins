@@ -183,7 +183,7 @@ namespace lsp
     class LV2RawPort: public LV2Port
     {
         protected:
-            void *pBuffer;
+            void       *pBuffer;
 
         public:
             explicit LV2RawPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext), pBuffer(NULL) { }
@@ -200,9 +200,48 @@ namespace lsp
 
     class LV2AudioPort: public LV2RawPort
     {
+        protected:
+            float      *pSanitized;
+            float      *pFrame;
+
         public:
-            LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext) { }
-            virtual ~LV2AudioPort() { };
+            explicit LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext)
+            {
+                pSanitized  = NULL;
+                pFrame      = NULL;
+
+                if (IS_IN_PORT(pMetadata))
+                {
+                    size_t length = pExt->nMaxBlockLength;
+                    pSanitized = reinterpret_cast<float *>(::malloc(sizeof(float) * length));
+                    if (pSanitized != NULL)
+                        dsp::fill_zero(pSanitized, length);
+                    else
+                        lsp_warn("Failed to allocate sanitize buffer for port %s", pMetadata->id);
+                }
+            }
+
+            virtual ~LV2AudioPort()
+            {
+                if (pSanitized != NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized = NULL;
+                }
+            };
+
+            virtual void *getBuffer() { return pFrame; };
+
+            // Should be always called at least once after bind() and before processing
+            void sanitize(size_t off, size_t samples)
+            {
+                pFrame  = reinterpret_cast<float *>(pBuffer) + off;
+                if (pSanitized != NULL)
+                {
+                    dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pFrame), samples);
+                    pFrame      = pSanitized;
+                }
+            }
     };
 
     class LV2InputPort: public LV2Port

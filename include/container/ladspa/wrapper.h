@@ -13,15 +13,16 @@ namespace lsp
     class LADSPAWrapper: public IWrapper
     {
         private:
-            cvector<LADSPAPort>     vPorts;
-            plugin_t               *pPlugin;
-            ipc::IExecutor         *pExecutor;      // Executor service
-            size_t                  nLatencyID;     // ID of Latency port
-            LADSPA_Data            *pLatency;       // Latency pointer
-            bool                    bUpdateSettings;// Settings update
+            cvector<LADSPAAudioPort>    vAudioPorts;
+            cvector<LADSPAPort>         vPorts;
+            plugin_t                   *pPlugin;
+            ipc::IExecutor             *pExecutor;      // Executor service
+            size_t                      nLatencyID;     // ID of Latency port
+            LADSPA_Data                *pLatency;       // Latency pointer
+            bool                        bUpdateSettings;// Settings update
 
-            position_t              sPosition;
-            position_t              sNewPosition;
+            position_t                  sPosition;
+            position_t                  sNewPosition;
 
         protected:
             inline void add_port(LADSPAPort *p)
@@ -32,7 +33,7 @@ namespace lsp
             }
 
         public:
-            LADSPAWrapper(plugin_t *plugin)
+            explicit LADSPAWrapper(plugin_t *plugin)
             {
                 pPlugin         = plugin;
                 pExecutor       = NULL;
@@ -66,8 +67,9 @@ namespace lsp
                     {
                         case R_AUDIO:
                         {
-                            LADSPAPort *lp  = new LADSPAAudioPort(port);
+                            LADSPAAudioPort *lp  = new LADSPAAudioPort(port);
                             add_port(lp);
+                            vAudioPorts.add(lp);
                             lsp_trace("added as audio port");
                             break;
                         }
@@ -199,8 +201,20 @@ namespace lsp
                     bUpdateSettings     = false;
                 }
 
-                // Call the main processing unit
-                pPlugin->process(samples);
+                // Call the main processing unit (split data buffers into chunks of maximum LADSPA_MAX_BLOCK_LENGTH size)
+                size_t n_in_ports = vAudioPorts.size();
+                for (size_t off=0; off < samples; )
+                {
+                    size_t to_process = samples - off;
+                    if (to_process > LADSPA_MAX_BLOCK_LENGTH)
+                        to_process = LADSPA_MAX_BLOCK_LENGTH;
+
+                    for (size_t i=0; i<n_in_ports; ++i)
+                        vAudioPorts.at(i)->sanitize(off, to_process);
+                    pPlugin->process(to_process);
+
+                    off += to_process;
+                }
 
                 // Process external ports for changes
                 for (size_t i=0; i<n_ports; ++i)
