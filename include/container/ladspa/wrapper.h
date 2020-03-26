@@ -205,7 +205,10 @@ namespace lsp
                 size_t n_in_ports = vAudioPorts.size();
                 for (size_t off=0; off < samples; )
                 {
-                    size_t to_process = (samples <= LADSPA_MAX_BLOCK_LENGTH) ? samples : LADSPA_MAX_BLOCK_LENGTH;
+                    size_t to_process = samples - off;
+                    if (to_process > LADSPA_MAX_BLOCK_LENGTH)
+                        to_process = LADSPA_MAX_BLOCK_LENGTH;
+
                     for (size_t i=0; i<n_in_ports; ++i)
                         vAudioPorts.at(i)->sanitize(off, to_process);
                     pPlugin->process(to_process);

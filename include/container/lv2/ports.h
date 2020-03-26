@@ -202,16 +202,20 @@ namespace lsp
     {
         protected:
             float      *pSanitized;
+            float      *pFrame;
 
         public:
             explicit LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext)
             {
-                pSanitized = NULL;
-                if ((IS_IN_PORT(pMetadata)) && (pExt->nMaxBlockLength > 0))
+                pSanitized  = NULL;
+                pFrame      = NULL;
+
+                if (IS_IN_PORT(pMetadata))
                 {
-                    pSanitized = reinterpret_cast<float *>(::malloc(sizeof(float) * pExt->nMaxBlockLength));
+                    size_t length = pExt->nMaxBlockLength;
+                    pSanitized = reinterpret_cast<float *>(::malloc(sizeof(float) * length));
                     if (pSanitized != NULL)
-                        dsp::fill_zero(pSanitized, pExt->nMaxBlockLength);
+                        dsp::fill_zero(pSanitized, length);
                     else
                         lsp_warn("Failed to allocate sanitize buffer for port %s", pMetadata->id);
                 }
@@ -226,15 +230,17 @@ namespace lsp
                 }
             };
 
-            virtual bool pre_process(size_t samples)
-            {
-                if ((pSanitized != NULL) && (ssize_t(samples) <= pExt->nMaxBlockLength))
-                {
-                    dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pBuffer), samples);
-                    pBuffer     = pSanitized;
-                }
+            virtual void *getBuffer() { return pFrame; };
 
-                return false;
+            // Should be always called at least once after bind() and before processing
+            void sanitize(size_t off, size_t samples)
+            {
+                pFrame  = reinterpret_cast<float *>(pBuffer) + off;
+                if (pSanitized != NULL)
+                {
+                    dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pFrame), samples);
+                    pFrame      = pSanitized;
+                }
             }
     };
 

@@ -65,6 +65,7 @@ namespace lsp
         public:
             virtual void *getBuffer()   { return pBuffer; };
 
+            // Should be always called at least once after bind() and before processing
             void sanitize(size_t off, size_t samples)
             {
                 pBuffer     = &pData[off];

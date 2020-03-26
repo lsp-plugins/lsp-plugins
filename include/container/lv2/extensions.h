@@ -47,6 +47,8 @@ typedef struct LV2_Atom_Midi
 } LV2_Atom_Midi;
 #pragma pack(pop)
 
+#define LV2PORT_MAX_BLOCK_LENGTH        8192
+
 namespace lsp
 {
     #define LSP_LV2_ATOM_KEY_SIZE       (sizeof(uint32_t) * 2)
@@ -185,7 +187,7 @@ namespace lsp
             LV2UI_Write_Function    wf;
             ssize_t                 nAtomIn;            // Atom input port identifier
             ssize_t                 nAtomOut;           // Atom output port identifier
-            ssize_t                 nMaxBlockLength;    // Maximum size of audio block passed to plugin
+            size_t                  nMaxBlockLength;    // Maximum size of audio block passed to plugin
             uint8_t                *pBuffer;            // Atom serialization buffer
             size_t                  nBufSize;           // Atom serialization buffer size
             float                   fUIRefreshRate;     // UI refresh rate
@@ -203,7 +205,7 @@ namespace lsp
                 pParentWindow       = NULL;
                 pWrapper            = NULL;
                 fUIRefreshRate      = MESH_REFRESH_RATE;
-                nMaxBlockLength     = -1;
+                nMaxBlockLength     = LV2PORT_MAX_BLOCK_LENGTH;
 
                 const LV2_Options_Option *opts = NULL;
 
@@ -371,10 +373,13 @@ namespace lsp
                             (opts->key == uridMaxBlockLength) &&
                             (opts->value != NULL))
                         {
+                            ssize_t blk_len = nMaxBlockLength;
                             if ((opts->type == forge.Int) && (opts->size == sizeof(int32_t)))
-                                nMaxBlockLength = *reinterpret_cast<const int32_t *>(opts->value);
+                                blk_len = *reinterpret_cast<const int32_t *>(opts->value);
                             else if ((opts->type == forge.Long) && (opts->size == sizeof(int64_t)))
-                                nMaxBlockLength = *reinterpret_cast<const int64_t *>(opts->value);
+                                blk_len = *reinterpret_cast<const int64_t *>(opts->value);
+                            if (blk_len > 0)
+                                nMaxBlockLength = blk_len;
                             lsp_trace("MaxBlockLength has been set to %d", int(nMaxBlockLength));
                         }
 

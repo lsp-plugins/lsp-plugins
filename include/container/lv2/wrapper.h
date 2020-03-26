@@ -29,41 +29,42 @@ namespace lsp
     class LV2Wrapper: public IWrapper
     {
         private:
-            cvector<LV2Port>    vExtPorts;
-            cvector<LV2Port>    vAllPorts;      // List of all created ports, for garbage collection
-            cvector<LV2Port>    vPluginPorts;   // All plugin ports sorted in urid order
-            cvector<LV2Port>    vMeshPorts;
-            cvector<LV2Port>    vFrameBufferPorts;
-            cvector<LV2Port>    vMidiInPorts;
-            cvector<LV2Port>    vMidiOutPorts;
-            cvector<LV2Port>    vOscInPorts;
-            cvector<LV2Port>    vOscOutPorts;
-            cvector<port_t>     vGenMetadata;   // Generated metadata
+            cvector<LV2Port>        vExtPorts;
+            cvector<LV2Port>        vAllPorts;      // List of all created ports, for garbage collection
+            cvector<LV2Port>        vPluginPorts;   // All plugin ports sorted in urid order
+            cvector<LV2Port>        vMeshPorts;
+            cvector<LV2Port>        vFrameBufferPorts;
+            cvector<LV2Port>        vMidiInPorts;
+            cvector<LV2Port>        vMidiOutPorts;
+            cvector<LV2Port>        vOscInPorts;
+            cvector<LV2Port>        vOscOutPorts;
+            cvector<LV2AudioPort>   vAudioPorts;
+            cvector<port_t>         vGenMetadata;   // Generated metadata
 
-            plugin_t           *pPlugin;
-            LV2Extensions      *pExt;
-            ipc::IExecutor     *pExecutor;      // Executor service
-            void               *pAtomIn;        // Atom input port
-            void               *pAtomOut;       // Atom output port
-            float              *pLatency;       // Latency output port
-            size_t              nPatchReqs;     // Number of patch requests
-            size_t              nStateReqs;     // Number of state requests
-            ssize_t             nSyncTime;      // Synchronization time
-            ssize_t             nSyncSamples;   // Synchronization counter
-            ssize_t             nClients;       // Number of clients
-            ssize_t             nDirectClients; // Number of direct clients
-            bool                bQueueDraw;     // Queue draw request
-            bool                bUpdateSettings;// Settings update
-            float               fSampleRate;
-            uint8_t            *pOscPacket;     // OSC packet data
+            plugin_t               *pPlugin;
+            LV2Extensions          *pExt;
+            ipc::IExecutor         *pExecutor;      // Executor service
+            void                   *pAtomIn;        // Atom input port
+            void                   *pAtomOut;       // Atom output port
+            float                  *pLatency;       // Latency output port
+            size_t                  nPatchReqs;     // Number of patch requests
+            size_t                  nStateReqs;     // Number of state requests
+            ssize_t                 nSyncTime;      // Synchronization time
+            ssize_t                 nSyncSamples;   // Synchronization counter
+            ssize_t                 nClients;       // Number of clients
+            ssize_t                 nDirectClients; // Number of direct clients
+            bool                    bQueueDraw;     // Queue draw request
+            bool                    bUpdateSettings;// Settings update
+            float                   fSampleRate;
+            uint8_t                *pOscPacket;     // OSC packet data
 
-            position_t          sPosition;
-            KVTStorage          sKVT;
-            ipc::Mutex          sKVTMutex;
-            KVTDispatcher      *pKVTDispatcher;
+            position_t              sPosition;
+            KVTStorage              sKVT;
+            ipc::Mutex              sKVTMutex;
+            KVTDispatcher          *pKVTDispatcher;
 
 #ifndef LSP_NO_LV2_UI
-            CairoCanvas        *pCanvas;        // Canvas for drawing inline display
+            CairoCanvas            *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
 #endif
 
@@ -272,8 +273,12 @@ namespace lsp
                 break;
 
             case R_AUDIO:
-                result      = new LV2AudioPort(p, pExt);
+            {
+                LV2AudioPort *ap = new LV2AudioPort(p, pExt);
+                vAudioPorts.add(ap);
+                result          = ap;
                 break;
+            }
 
             case R_PORT_SET:
             {
@@ -417,8 +422,6 @@ namespace lsp
     {
         // Update sample rate
         fSampleRate = srate;
-        if (pExt->nMaxBlockLength <= 0)
-            lsp_warn("Host has not reporetd maximum supported block length, sanitize() on input data won't work");
 
         // Get plugin metadata
         const plugin_metadata_t *m  = pPlugin->get_metadata();
@@ -1400,8 +1403,20 @@ namespace lsp
             bUpdateSettings     = false;
         }
 
-        // Call the main processing unit
-        pPlugin->process(samples);
+        // Call the main processing unit (split data buffers into chunks not greater than MaxBlockLength)
+        size_t n_in_ports = vAudioPorts.size();
+        for (size_t off=0; off < samples; )
+        {
+            size_t to_process = samples - off;
+            if (to_process > pExt->nMaxBlockLength)
+                to_process = pExt->nMaxBlockLength;
+
+            for (size_t i=0; i<n_in_ports; ++i)
+                vAudioPorts.at(i)->sanitize(off, to_process);
+            pPlugin->process(to_process);
+
+            off += to_process;
+        }
 
         // Transmit atoms (if possible)
         transmit_atoms(samples);
