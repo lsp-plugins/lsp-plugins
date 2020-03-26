@@ -436,13 +436,16 @@ namespace lsp
                 break;
             }
 
-            case DECLARE_VST_DEPRECATED (effSetBlockSizeAndSampleRate): // Set block size and sample rate
+            case effSetBlockSizeAndSampleRate: // Set block size and sample rate
+                w->set_block_size(value);
+                w->set_sample_rate(opt);
+                break;
+
+            case effSetBlockSize: // Set block size
+                w->set_block_size(value);
+                break;
+
             case effSetSampleRate: // Set sample rate, always in suspended mode
-                if (opt > MAX_SAMPLE_RATE)
-                {
-                    lsp_error("Unsupported sample rate: %f, maximum supported sample rate is %ld", float(opt), long(MAX_SAMPLE_RATE));
-                    opt = MAX_SAMPLE_RATE;
-                }
                 w->set_sample_rate(opt);
                 break;
 
@@ -497,7 +500,6 @@ namespace lsp
             case effGetProgram:
             case effSetProgramName:
             case effGetProgramName:
-            case effSetBlockSize:
                 break;
 
             case effGetChunk:
