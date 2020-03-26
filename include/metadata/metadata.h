@@ -106,11 +106,13 @@ namespace lsp
         U_MHZ,                  // Megahertz
         U_BPM,                  // Beats per minute
         U_CENT,                 // Cents
+        U_OCTAVES,              // Octaves
         U_SEMITONES,            // Semitones
 
         // Time measurement
         U_BAR,                  // Bars
         U_BEAT,                 // Beats
+        U_MIN,                  // Minute
         U_SEC,                  // Seconds
         U_MSEC,                 // Milliseconds
 
