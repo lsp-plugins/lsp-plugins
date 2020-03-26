@@ -183,7 +183,7 @@ namespace lsp
     class LV2RawPort: public LV2Port
     {
         protected:
-            void *pBuffer;
+            void       *pBuffer;
 
         public:
             explicit LV2RawPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext), pBuffer(NULL) { }
@@ -200,9 +200,42 @@ namespace lsp
 
     class LV2AudioPort: public LV2RawPort
     {
+        protected:
+            float      *pSanitized;
+
         public:
-            LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext) { }
-            virtual ~LV2AudioPort() { };
+            explicit LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext)
+            {
+                pSanitized = NULL;
+                if ((IS_IN_PORT(pMetadata)) && (pExt->nMaxBlockLength > 0))
+                {
+                    pSanitized = reinterpret_cast<float *>(::malloc(sizeof(float) * pExt->nMaxBlockLength));
+                    if (pSanitized != NULL)
+                        dsp::fill_zero(pSanitized, pExt->nMaxBlockLength);
+                    else
+                        lsp_warn("Failed to allocate sanitize buffer for port %s", pMetadata->id);
+                }
+            }
+
+            virtual ~LV2AudioPort()
+            {
+                if (pSanitized != NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized = NULL;
+                }
+            };
+
+            virtual bool pre_process(size_t samples)
+            {
+                if ((pSanitized != NULL) && (ssize_t(samples) <= pExt->nMaxBlockLength))
+                {
+                    dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pBuffer), samples);
+                    pBuffer     = pSanitized;
+                }
+
+                return false;
+            }
     };
 
     class LV2InputPort: public LV2Port

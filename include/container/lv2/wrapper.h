@@ -417,6 +417,8 @@ namespace lsp
     {
         // Update sample rate
         fSampleRate = srate;
+        if (pExt->nMaxBlockLength <= 0)
+            lsp_warn("Host has not reporetd maximum supported block length, sanitize() on input data won't work");
 
         // Get plugin metadata
         const plugin_metadata_t *m  = pPlugin->get_metadata();
