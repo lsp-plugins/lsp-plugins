@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Split Stereo Sidechain Multiband Compressor
-Name=Compressors
-Name[ru]=Компрессоры
+Name=Split Stereo Sidechain Multiband Compressor
+GenericName=Sidechain Multiband Compressor
+GenericName[ru]=Многополосный компрессор с боковой цепью
 Comment=Performs multiband compression of stereo input signal by applying individual processing to left and right channels separately. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет многополосную компрессию стереосигнала, левый и правый каналы обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-mb-compressor-lr
@@ -11,3 +11,4 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

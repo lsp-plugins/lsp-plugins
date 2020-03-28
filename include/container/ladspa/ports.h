@@ -8,6 +8,8 @@
 #ifndef CONTAINER_LADSPA_PORTS_H_
 #define CONTAINER_LADSPA_PORTS_H_
 
+#define LADSPA_MAX_BLOCK_LENGTH             8192
+
 namespace lsp
 {
     // Specify port classes
@@ -17,7 +19,7 @@ namespace lsp
             float      *pData;
 
         public:
-            LADSPAPort(const port_t *meta) : IPort(meta), pData(NULL) {};
+            explicit LADSPAPort(const port_t *meta) : IPort(meta), pData(NULL) {};
             virtual ~LADSPAPort()
             {
                 pData   = NULL;
@@ -32,12 +34,50 @@ namespace lsp
 
     class LADSPAAudioPort: public LADSPAPort
     {
-        public:
-            LADSPAAudioPort(const port_t *meta) : LADSPAPort(meta) { }
-            virtual ~LADSPAAudioPort() { };
+        protected:
+            float      *pSanitized;
+            float      *pBuffer;
 
         public:
-            virtual void *getBuffer() { return pData; };
+            explicit LADSPAAudioPort(const port_t *meta) : LADSPAPort(meta)
+            {
+                pBuffer     = NULL;
+                pSanitized  = NULL;
+                if (IS_IN_PORT(meta))
+                {
+                    pSanitized = reinterpret_cast<float *>(::malloc(sizeof(float) * LADSPA_MAX_BLOCK_LENGTH));
+                    if (pSanitized != NULL)
+                        dsp::fill_zero(pSanitized, LADSPA_MAX_BLOCK_LENGTH);
+                    else
+                        lsp_warn("Failed to allocate sanitize buffer for port %s", pMetadata->id);
+                }
+            }
+
+            virtual ~LADSPAAudioPort()
+            {
+                if (pSanitized != NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized = NULL;
+                }
+            };
+
+        public:
+            virtual void *getBuffer()   { return pBuffer; };
+
+            // Should be always called at least once after bind() and before processing
+            void sanitize(size_t off, size_t samples)
+            {
+                pBuffer     = &pData[off];
+                if (pSanitized == NULL)
+                    return;
+
+                if (samples <= LADSPA_MAX_BLOCK_LENGTH)
+                {
+                    dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pBuffer), samples);
+                    pBuffer     = pSanitized;
+                }
+            }
     };
 
     class LADSPAInputPort: public LADSPAPort
@@ -47,7 +87,7 @@ namespace lsp
             float   fValue;
 
         public:
-            LADSPAInputPort(const port_t *meta) : LADSPAPort(meta)
+            explicit LADSPAInputPort(const port_t *meta) : LADSPAPort(meta)
             {
                 fPrev       = meta->start;
                 fValue      = meta->start;
@@ -80,7 +120,7 @@ namespace lsp
             float fValue;
 
         public:
-            LADSPAOutputPort(const port_t *meta) : LADSPAPort(meta)
+            explicit LADSPAOutputPort(const port_t *meta) : LADSPAPort(meta)
             {
                 fValue      = meta->start;
             }

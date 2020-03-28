@@ -27,8 +27,6 @@
 #if defined(LSP_TESTING) && (defined(PLATFORM_LINUX) || defined(PLATFORM_BSD))
     #define XDND_PROXY_SUPPORT
     #define IF_XDND_PROXY_SUPPORT(...)  __VA_ARGS__
-
-    extern void patch_xdnd_proxy_window(const void *parent, const void *child);
 #else
     #define IF_XDND_PROXY_SUPPORT(...)
 #endif
@@ -40,7 +38,6 @@ namespace lsp
         size_t          nSync;
         JACKWrapper    *pWrapper;
         LSPWindow      *pWindow;
-//        LSPMessageBox  *pDialog;
         timespec        nLastReconnect;
     } jack_wrapper_t;
 
@@ -128,25 +125,6 @@ namespace lsp
 
             // Remember last connection time
             clock_gettime(CLOCK_REALTIME, &wrapper->nLastReconnect);
-
-//            // Notify user TODO: remove this notification in future
-//            if (wrapper->pWindow != NULL)
-//            {
-//                if (wrapper->pDialog == NULL)
-//                {
-//                    LSPMessageBox *dlg  = new LSPMessageBox(wrapper->pWindow->display());
-//
-//                    dlg->init();
-//                    dlg->set_title("JACK connection error");
-//                    dlg->set_heading("Alert");
-//                    dlg->set_message("JACK backend has been shutdown. Further sound processing is not possible.\n"
-//                                    "Please consider to save the configuration of the plugin before shutting it down.");
-//                    dlg->add_button("OK");
-//                    wrapper->pDialog    = dlg;
-//                }
-//
-//                wrapper->pDialog->show(wrapper->pWindow);
-//            }
         }
 
         // If we are currently in disconnected state - try to perform a connection

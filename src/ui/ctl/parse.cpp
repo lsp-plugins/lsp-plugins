@@ -167,7 +167,7 @@ namespace lsp
                         }
                         else if (!(p->flags & F_EXT))
                         {
-                            LSP_BOOL_ASSERT(comment->fmt_append_utf8(": %.6f..%.6f", p->min, p->max), STATUS_NO_MEM);
+                            LSP_BOOL_ASSERT(comment->fmt_append_utf8(": %.8f..%.8f", p->min, p->max), STATUS_NO_MEM);
                         }
                         else
                         {
@@ -197,7 +197,7 @@ namespace lsp
                     }
                     else if (!(p->flags & F_EXT))
                     {
-                        LSP_BOOL_ASSERT(value->fmt_utf8("%.6f", v), STATUS_NO_MEM);
+                        LSP_BOOL_ASSERT(value->fmt_utf8("%.8f", v), STATUS_NO_MEM);
                     }
                     else
                     {

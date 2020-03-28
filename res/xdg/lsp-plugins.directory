@@ -2,3 +2,4 @@
 Name=LSP Plugins
 Icon=lsp-plugins
 Type=Directory
+Keywords=audio;sound;jackd;lsp-plugins;

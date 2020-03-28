@@ -328,6 +328,110 @@ namespace asimd
 
     #undef LIMIT_BODY
 
+    #define SANITIZE_BODY(DST, SRC, SEL) \
+        __ASM_EMIT("ldp             q16, q17, [%[CVAL], #0x00]") \
+        __ASM_EMIT("ldp             q18, q19, [%[CVAL], #0x20]") \
+        __ASM_EMIT("subs            %[count], %[count], #8") \
+        __ASM_EMIT("b.lo            2f") \
+        /* 8x blocks */ \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("ldp             q0, q1, [%[" SRC "]]")                  /* v0 = s */ \
+        __ASM_EMIT("and             v2.16b, v0.16b, v16.16b")               /* v2 = abs(s) */ \
+        __ASM_EMIT("and             v3.16b, v1.16b, v16.16b") \
+        __ASM_EMIT("and             v4.16b, v0.16b, v17.16b")               /* v4 = sign(s) */ \
+        __ASM_EMIT("and             v5.16b, v1.16b, v17.16b") \
+        __ASM_EMIT("cmge            v6.4s, v18.4s, v2.4s")                  /* v6 = abs(s) <= X_MAX */ \
+        __ASM_EMIT("cmge            v7.4s, v18.4s, v3.4s") \
+        __ASM_EMIT("cmgt            v2.4s, v2.4s, v19.4s")                  /* v2 = abs(s) > X_MIN */ \
+        __ASM_EMIT("cmgt            v3.4s, v3.4s, v19.4s") \
+        __ASM_EMIT("and             v2.16b, v2.16b, v6.16b")                /* v2 = (abs(s) > X_MIN) & (abs(s) <= X_MIN) */ \
+        __ASM_EMIT("and             v3.16b, v3.16b, v7.16b") \
+        __ASM_EMIT("bif             v0.16b, v4.16b, v2.16b")                /* v0 = ((abs(s) > X_MIN) & (abs(s) <= X_MIN)) ? s : sign(s) */ \
+        __ASM_EMIT("bif             v1.16b, v5.16b, v3.16b") \
+        __ASM_EMIT("stp             q0, q1, [%[" DST "]]")                  /* q0 = s */ \
+        __ASM_EMIT("subs            %[count], %[count], #8") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x20") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x20", "")) \
+        __ASM_EMIT("b.hs            1b") \
+        /* 4x block */ \
+        __ASM_EMIT("2:") \
+        __ASM_EMIT("adds            %[count], %[count], #4") \
+        __ASM_EMIT("b.lt            4f") \
+        __ASM_EMIT("ldr             q0, [%[" SRC "]]")                      /* v0 = s */ \
+        __ASM_EMIT("and             v2.16b, v0.16b, v16.16b")               /* v2 = abs(s) */ \
+        __ASM_EMIT("and             v4.16b, v0.16b, v17.16b")               /* v4 = sign(s) */ \
+        __ASM_EMIT("cmge            v6.4s, v18.4s, v2.4s")                  /* v6 = abs(s) <= X_MAX */ \
+        __ASM_EMIT("cmgt            v2.4s, v2.4s, v19.4s")                  /* v2 = abs(s) > X_MIN */ \
+        __ASM_EMIT("and             v2.16b, v2.16b, v6.16b")                /* v2 = (abs(s) > X_MIN) & (abs(s) <= X_MIN) */ \
+        __ASM_EMIT("bif             v0.16b, v4.16b, v2.16b")                /* v0 = ((abs(s) > X_MIN) & (abs(s) <= X_MIN)) ? s : sign(s) */ \
+        __ASM_EMIT("str             q0, [%[" DST "]]")                      /* q0 = s */ \
+        __ASM_EMIT("sub             %[count], %[count], #4") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x10") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x10", "")) \
+        /* 1x blocks */ \
+        __ASM_EMIT("4:") \
+        __ASM_EMIT("adds            %[count], %[count], #3") \
+        __ASM_EMIT("b.lt            6f") \
+        __ASM_EMIT("5:") \
+        __ASM_EMIT("ld1r            {v0.4s}, [%[" SRC "]]")                 /* v0 = s */ \
+        __ASM_EMIT("and             v2.16b, v0.16b, v16.16b")               /* v2 = abs(s) */ \
+        __ASM_EMIT("and             v4.16b, v0.16b, v17.16b")               /* v4 = sign(s) */ \
+        __ASM_EMIT("cmge            v6.4s, v18.4s, v2.4s")                  /* v6 = abs(s) <= X_MAX */ \
+        __ASM_EMIT("cmgt            v2.4s, v2.4s, v19.4s")                  /* v2 = abs(s) > X_MIN */ \
+        __ASM_EMIT("and             v2.16b, v2.16b, v6.16b")                /* v2 = (abs(s) > X_MIN) & (abs(s) <= X_MIN) */ \
+        __ASM_EMIT("bif             v0.16b, v4.16b, v2.16b")                /* v0 = ((abs(s) > X_MIN) & (abs(s) <= X_MIN)) ? s : sign(s) */ \
+        __ASM_EMIT("st1             {v0.s}[0], [%[" DST "]]")               /* q0 = s */ \
+        __ASM_EMIT("subs            %[count], %[count], #1") \
+        __ASM_EMIT("add             %[" SRC "], %[" SRC "], #0x04") \
+        __ASM_EMIT(SEL("add         %[" DST "], %[" DST "], #0x04", "")) \
+        __ASM_EMIT("b.ge            5b") \
+        /* end */ \
+        __ASM_EMIT("6:")
+
+    #define U4VEC(x)        x, x, x, x
+    IF_ARCH_AARCH64(
+        static uint32_t SANITIZE_CVAL[] __lsp_aligned16 =
+        {
+            U4VEC(0x7fffffff),            // X_ABS
+            U4VEC(0x80000000),            // X_SIGN
+            U4VEC(0x7f7fffff),            // X_MAX
+            U4VEC(0x007fffff)             // X_MIN
+        };
+    )
+    #undef U4VEC
+
+    void sanitize1(float *dst, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            SANITIZE_BODY("dst", "dst", SEL_NODST)
+            : [dst] "+r" (dst),
+              [count] "+r" (count)
+            : [CVAL] "r" (&SANITIZE_CVAL[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19"
+        );
+    }
+
+    void sanitize2(float *dst, const float *src, size_t count)
+    {
+        ARCH_AARCH64_ASM
+        (
+            SANITIZE_BODY("dst", "src", SEL_DST)
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [CVAL] "r" (&SANITIZE_CVAL[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q16", "q17", "q18", "q19"
+        );
+    }
+
+    #undef SANITIZE_BODY
+
     #undef SEL_DST
     #undef SEL_NODST
 }

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mid-Side Stereo Expander
-Name=Expanders
-Name[ru]=Экспандеры
+Name=Mid-Side Stereo Expander
+GenericName=Expander
+GenericName[ru]=Экспандер
 Comment=Performs increasing of dynamic range of stereo input signal in Mid-Side mode.
 Comment[ru]=Осуществляет увеличение динамического диапазона стереосигнала, центр и сторона обрабатываются индивидуально.
 Exec=lsp-plugins-expander-ms
@@ -11,3 +11,4 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

@@ -206,26 +206,71 @@ namespace lsp
     class VSTAudioPort: public VSTPort
     {
         private:
-            float *pBuffer;
+            float          *pBuffer;
+            float          *pSanitized;
+            size_t          nBufSize;
 
         public:
             explicit VSTAudioPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
                 pBuffer     = NULL;
+                pSanitized  = NULL;
+                nBufSize    = 0;
             }
 
             virtual ~VSTAudioPort()
             {
                 pBuffer     = NULL;
+
+                if (pSanitized != NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized  = NULL;
+                    nBufSize    = 0;
+                }
             };
 
         public:
             virtual void *getBuffer() { return pBuffer; };
 
-            void bind(float *data)
+            void bind(float *data, size_t samples)
             {
-                pBuffer = data;
+                pBuffer     = data;
+                if (pSanitized == NULL)
+                    return;
+
+                // Perform sanitize() if possible
+                if (samples <= nBufSize)
+                {
+                    dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pBuffer), samples);
+                    pBuffer = pSanitized;
+                }
+                else
+                {
+                    lsp_warn("Could not sanitize buffer data for port %s, not enough buffer size (required: %d, actual: %d)",
+                            pMetadata->id, int(samples), int(nBufSize));
+                }
             };
+
+            void set_blk_size(size_t size)
+            {
+                if (!IS_IN_PORT(pMetadata))
+                    return;
+                if (nBufSize == size)
+                    return;
+
+                float *buf  = reinterpret_cast<float *>(::realloc(pSanitized, sizeof(float) * size));
+                if (buf == NULL)
+                {
+                    ::free(pSanitized);
+                    pSanitized = NULL;
+                    return;
+                }
+
+                nBufSize    = size;
+                pSanitized  = buf;
+                dsp::fill_zero(pSanitized, nBufSize);
+            }
     };
 
     class VSTParameterPort: public VSTPort
