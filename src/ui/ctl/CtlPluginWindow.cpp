@@ -944,7 +944,7 @@ namespace lsp
                 vWidgets.add(pMessage);
                 pMessage->init();
                 pMessage->set_border_style(BS_DIALOG);
-                pMessage->title()->set("titles.update_nofitication");
+                pMessage->title()->set("titles.update_notification");
                 pMessage->actions()->deny_all();
                 pMessage->actions()->set_closeable(true);
                 pMessage->padding()->set_all(16);
