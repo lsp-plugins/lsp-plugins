@@ -1,0 +1,9 @@
+{
+	"language": "Langage",
+
+	"target": {
+		"fr": "Français",
+		"ru": "Русский",
+		"us": "English (US)"
+	}
+}
