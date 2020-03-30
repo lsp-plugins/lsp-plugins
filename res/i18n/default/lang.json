@@ -2,6 +2,7 @@
 	"language": "Language",
 
 	"target": {
+		"fr": "Français",
 		"ru": "Русский",
 		"us": "English (US)"
 	}
