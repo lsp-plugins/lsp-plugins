@@ -292,9 +292,9 @@
 					
 					<label text="labels.units.:db" />
 					<label text="labels.units.:db" />
-					<vbox><label text="labels.threshold" /><label text="(dB)" /></vbox>
+					<vbox><label text="labels.thresh_old" /><label text="(dB)" /></vbox>
 					<vbox><label text="labels.time" /><label text="(ms)" /></vbox>
-					<vbox><label text="labels.threshold" /><label text="(dB)" /></vbox>
+					<vbox><label text="labels.thresh_old" /><label text="(dB)" /></vbox>
 					<vbox><label text="labels.time" /><label text="(ms)" /></vbox>
 					<vbox><label text="labels.signal.dry" /><label text="(dB)" /></vbox>
 					<vbox><label text="labels.signal.wet" /><label text="(dB)" /></vbox>
