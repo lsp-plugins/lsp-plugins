@@ -169,11 +169,11 @@ UTEST_BEGIN("dsp.filters", dynamic)
             {
                 for (size_t j=0; j<2; ++j)
                 {
-                    f2[i].a0[j] = bq_normal.a0;
-                    f2[i].a1[j] = bq_normal.a1;
-                    f2[i].a2[j] = bq_normal.a2;
+                    f2[i].b0[j] = bq_normal.b0;
                     f2[i].b1[j] = bq_normal.b1;
                     f2[i].b2[j] = bq_normal.b2;
+                    f2[i].a1[j] = bq_normal.a1;
+                    f2[i].a2[j] = bq_normal.a2;
                     f2[i].p[j]  = 0.0f;
                 }
             }
@@ -235,11 +235,11 @@ UTEST_BEGIN("dsp.filters", dynamic)
             {
                 for (size_t j=0; j<4; ++j)
                 {
-                    f2[i].a0[j] = bq_normal.a0;
-                    f2[i].a1[j] = bq_normal.a1;
-                    f2[i].a2[j] = bq_normal.a2;
+                    f2[i].b0[j] = bq_normal.b0;
                     f2[i].b1[j] = bq_normal.b1;
                     f2[i].b2[j] = bq_normal.b2;
+                    f2[i].a1[j] = bq_normal.a1;
+                    f2[i].a2[j] = bq_normal.a2;
                 }
             }
 
@@ -304,11 +304,11 @@ UTEST_BEGIN("dsp.filters", dynamic)
             {
                 for (size_t j=0; j<8; ++j)
                 {
-                    f2[i].a0[j] = bq_normal.a0;
-                    f2[i].a1[j] = bq_normal.a1;
-                    f2[i].a2[j] = bq_normal.a2;
+                    f2[i].b0[j] = bq_normal.b0;
                     f2[i].b1[j] = bq_normal.b1;
                     f2[i].b2[j] = bq_normal.b2;
+                    f2[i].a1[j] = bq_normal.a1;
+                    f2[i].a2[j] = bq_normal.a2;
                 }
             }
 
