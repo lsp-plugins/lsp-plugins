@@ -49,6 +49,8 @@ namespace lsp
 
             size_t          nMemoryHead;
 
+            float           fPrevious;
+
             float          *vMemory;
             uint8_t        *pData;
 

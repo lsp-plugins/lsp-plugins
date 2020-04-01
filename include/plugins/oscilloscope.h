@@ -38,18 +38,22 @@ namespace lsp
                 size_t          nOverSampleRate;
 
                 size_t          nSamplesCounter;
+                size_t          nBufferScanningHead;
+                size_t          nBufferCopyHead;
+                size_t          nBufferCopyCount;
+
                 bool            bProcessComplete;
 
-                size_t          nTriggerIndex;
                 size_t          nPreTrigger;
                 size_t          nPostTrigger;
                 size_t          nSweepSize;
                 size_t          nSweepHead;
 
+                bool            bDoPlot;
+
                 float          *vAbscissa;
                 float          *vOrdinate;
 
-                float          *vCapture;
                 float          *vSweep;
 
                 channel_state_t enState;

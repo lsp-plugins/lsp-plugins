@@ -27,6 +27,8 @@ namespace lsp
 
         nMemoryHead             = 0;
 
+        fPrevious               = 0.0f;
+
         vMemory                 = NULL;
         pData                   = NULL;
 
@@ -78,6 +80,7 @@ namespace lsp
     void Trigger::prepare_memory()
     {
         dsp::fill_zero(vMemory, MEM_LIM_SIZE);
+        fPrevious = 0.0f;
     }
 
     void Trigger::single_sample_processor(float value)
@@ -88,14 +91,16 @@ namespace lsp
         {
             case TRG_TYPE_SIMPLE_RISING_EDGE:
             {
-                size_t previous_sample_idx = 0;
+//                size_t previous_sample_idx = 0;
+//
+//                if (nMemoryHead == 0)
+//                    previous_sample_idx = MEM_LIM_SIZE;
+//                else
+//                    previous_sample_idx = nMemoryHead - 1;
+//
+//                float diff = vMemory[nMemoryHead] - vMemory[previous_sample_idx];
 
-                if (nMemoryHead == 0)
-                    previous_sample_idx = MEM_LIM_SIZE;
-                else
-                    previous_sample_idx = nMemoryHead - 1;
-
-                float diff = vMemory[nMemoryHead] - vMemory[previous_sample_idx];
+                float diff = value - fPrevious;
 
                 if (diff > 0.0f)
                     enTriggerState = TRG_STATE_ARMED;
@@ -104,6 +109,7 @@ namespace lsp
                     enTriggerState = TRG_STATE_WAITING;
                 }
 
+//                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (fPrevious <= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
                 if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
                 {
                     enTriggerState = TRG_STATE_FIRED;
@@ -112,8 +118,10 @@ namespace lsp
                 else
                     enTriggerState = TRG_STATE_WAITING;
 
-                break;
+                fPrevious = value;
             }
+            break;
+
             case TRG_TYPE_SIMPLE_FALLING_EDGE:
             {
                 size_t previous_sample_idx = 0;
@@ -139,9 +147,9 @@ namespace lsp
                 }
                 else
                     enTriggerState = TRG_STATE_WAITING;
-
-                break;
             }
+            break;
+
             case TRG_TYPE_EXTERNAL:
             {
                 if ((enTriggerState == TRG_STATE_ARMED) && (nExternalTriggerCounter == 0))
@@ -157,9 +165,9 @@ namespace lsp
                 {
                     --nExternalTriggerCounter;
                 }
-
-                break;
             }
+            break;
+
             case TRG_TYPE_NONE:
             default:
                 return;
