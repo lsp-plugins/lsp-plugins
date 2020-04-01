@@ -10,6 +10,7 @@
 
 === 1.1.16 ===
 * Desktop integration icons are now more properly following the XDG standard.
+* Fixed Lanczos resampling kernel formula for oversampling operations.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.
