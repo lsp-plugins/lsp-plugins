@@ -437,7 +437,7 @@
 		"P_hase": "P",
 		"S_ide": "C",
 		"amplitude": "Amplitude",
-		"dry": "",
+		"dry": "Originel",
 		"dry:db": "Originel\n(dB)",
 		"dry_pan": "Pan originel",
 		"duty_ratio": "Ratio obligatoire",
