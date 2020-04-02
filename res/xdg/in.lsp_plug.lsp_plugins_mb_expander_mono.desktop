@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mono Multiband Expander
-Name=Expanders
-Name[ru]=Экспандеры
+Name=Mono Multiband Expander
+GenericName=Multiband Expander
+GenericName[ru]=Многополосный экспандер
 Comment=Performs multiband increasing of dynamic range of mono input signal.
 Comment[ru]=Осуществляет многополосное повышение динамического диапазона моносигнала.
 Exec=lsp-plugins-mb-expander-mono
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=One Channel Spectrum Analyzer
-Name=Analyzers
-Name[ru]=Анализаторы
+Name=One Channel Spectrum Analyzer
+GenericName=Spectrum Analyzer
+GenericName[ru]=Спектроанализатор
 Comment=Performs spectral analysis of a single audio channel. It does not affect any changes to the input signal, so can be placed anywhere where the metering is needed.
 Comment[ru]=Осуществляет одновременный спектральный анализ одного аудиоканала.
 Exec=lsp-plugins-spectrum-analyzer-x1
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

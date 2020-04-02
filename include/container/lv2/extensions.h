@@ -23,6 +23,7 @@
 #include <lv2/lv2plug.in/ns/ext/port-props/port-props.h>
 #include <lv2/lv2plug.in/ns/ext/port-groups/port-groups.h>
 #include <lv2/lv2plug.in/ns/ext/resize-port/resize-port.h>
+#include <lv2/lv2plug.in/ns/ext/buf-size/buf-size.h>
 #include <lv2/lv2plug.in/ns/extensions/units/units.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <lv2/lv2plug.in/ns/ext/instance-access/instance-access.h>
@@ -45,6 +46,8 @@ typedef struct LV2_Atom_Midi
     uint8_t     body[8];
 } LV2_Atom_Midi;
 #pragma pack(pop)
+
+#define LV2PORT_MAX_BLOCK_LENGTH        8192
 
 namespace lsp
 {
@@ -150,6 +153,8 @@ namespace lsp
             LV2_URID                uridTimeBeatsPerBar;
             LV2_URID                uridTimeBeatsPerMinute;
 
+            LV2_URID                uridMaxBlockLength;
+
             // OSC-related URIDs
             LV2_URID                uridOscBundle;
             LV2_URID                uridOscBundleTimetag;
@@ -180,12 +185,13 @@ namespace lsp
 
             LV2UI_Controller        ctl;
             LV2UI_Write_Function    wf;
-            ssize_t                 nAtomIn;        // Atom input port identifier
-            ssize_t                 nAtomOut;       // Atom output port identifier
-            uint8_t                *pBuffer;        // Atom serialization buffer
-            size_t                  nBufSize;       // Atom serialization buffer size
-            float                   fUIRefreshRate; // UI refresh rate
-            void                   *pParentWindow;  // Parent window handle
+            ssize_t                 nAtomIn;            // Atom input port identifier
+            ssize_t                 nAtomOut;           // Atom output port identifier
+            size_t                  nMaxBlockLength;    // Maximum size of audio block passed to plugin
+            uint8_t                *pBuffer;            // Atom serialization buffer
+            size_t                  nBufSize;           // Atom serialization buffer size
+            float                   fUIRefreshRate;     // UI refresh rate
+            void                   *pParentWindow;      // Parent window handle
 
         public:
             inline LV2Extensions(const LV2_Feature* const* feat, const char *uri, LV2UI_Controller lv2_ctl, LV2UI_Write_Function lv2_write)
@@ -199,6 +205,7 @@ namespace lsp
                 pParentWindow       = NULL;
                 pWrapper            = NULL;
                 fUIRefreshRate      = MESH_REFRESH_RATE;
+                nMaxBlockLength     = LV2PORT_MAX_BLOCK_LENGTH;
 
                 const LV2_Options_Option *opts = NULL;
 
@@ -294,6 +301,8 @@ namespace lsp
                 uridTimeBeatsPerBar         = map_uri(LV2_TIME__beatsPerBar);
                 uridTimeBeatsPerMinute      = map_uri(LV2_TIME__beatsPerMinute);
 
+                uridMaxBlockLength          = map_uri(LV2_BUF_SIZE__maxBlockLength);
+
                 // OSC-related URIDs
                 uridOscBundle               = map_uri(LV2_OSC__Bundle);
                 uridOscBundleTimetag        = map_uri(LV2_OSC__bundleTimetag);
@@ -342,7 +351,7 @@ namespace lsp
                                 opts->value
                         );
 
-                        // Move to next option
+                        // Update Rate for the UI
                         if ((opts->context == LV2_OPTIONS_INSTANCE) &&
                             (opts->key == uridUpdateRate) &&
                             (opts->value != NULL))
@@ -357,7 +366,21 @@ namespace lsp
                                 fUIRefreshRate  = *reinterpret_cast<const int64_t *>(opts->value);
                             if (fUIRefreshRate < 0)
                                 fUIRefreshRate = MESH_REFRESH_RATE;
-                            lsp_trace("UI refresh rate was set to %f", fUIRefreshRate);
+                            lsp_trace("UI refresh rate has been set to %f", fUIRefreshRate);
+                        }
+
+                        if ((opts->context == LV2_OPTIONS_INSTANCE) &&
+                            (opts->key == uridMaxBlockLength) &&
+                            (opts->value != NULL))
+                        {
+                            ssize_t blk_len = nMaxBlockLength;
+                            if ((opts->type == forge.Int) && (opts->size == sizeof(int32_t)))
+                                blk_len = *reinterpret_cast<const int32_t *>(opts->value);
+                            else if ((opts->type == forge.Long) && (opts->size == sizeof(int64_t)))
+                                blk_len = *reinterpret_cast<const int64_t *>(opts->value);
+                            if (blk_len > 0)
+                                nMaxBlockLength = blk_len;
+                            lsp_trace("MaxBlockLength has been set to %d", int(nMaxBlockLength));
                         }
 
                         opts++;

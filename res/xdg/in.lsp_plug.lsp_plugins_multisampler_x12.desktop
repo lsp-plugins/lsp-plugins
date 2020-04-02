@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Stereo 12 Instrument Sample Player
-Name=Sample Player
-Name[ru]=Сэмплер
+Name=Stereo 12 Instrument Sample Player
+GenericName=Sample Player
+GenericName[ru]=Сэмплер
 Comment=Implements 12-instrument MIDI sample player with stereo input and stereo output.
 Comment[ru]=Реализует управляемый MIDI сэмплер на 12 инструментов со стереовходом и стереовыходом.
 Exec=lsp-plugins-multisampler-x12
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

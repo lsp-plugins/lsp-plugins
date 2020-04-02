@@ -24,7 +24,6 @@
 *.log
 /gmon.out
 **/*.gmon
-*.svg
 *.core
 *vgcore*
 *perf.data*

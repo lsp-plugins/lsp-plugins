@@ -1,0 +1,17 @@
+{
+	"attention": "Attention",
+	
+	"confirmation": "Confirmation",
+	
+	"export_settings": "Exporter les paramètres",
+	
+	"import_rew_filter_settings": "Importer les paramètres du filtre REW",
+	"import_settings": "Importer les paramètres",
+	
+	"load_audio_file": "Charger un fichier audio",
+	"load_from_file": "Charger depuis un fichier",
+	
+	"save_to_file": "Sauvegarder dans un fichier",
+	
+	"update_notification": "Notification de mise à jour"
+}

@@ -129,9 +129,16 @@ namespace lsp
 
             inline void set_sample_rate(float sr)
             {
+                if (sr > MAX_SAMPLE_RATE)
+                {
+                    lsp_warn("Unsupported sample rate: %f, maximum supported sample rate is %ld", sr, long(MAX_SAMPLE_RATE));
+                    sr = MAX_SAMPLE_RATE;
+                }
                 pPlugin->set_sample_rate(sr);
                 bUpdateSettings = true;
             }
+
+            inline void set_block_size(size_t size);
 
             inline void mains_changed(VstIntPtr value)
             {
@@ -382,6 +389,11 @@ namespace lsp
         lsp_trace("Binding ports");
         create_ports(m->ports);
 
+        // Get buffer size
+        ssize_t blk_size = pMaster(pEffect, audioMasterGetBlockSize, 0, 0, 0, 0);
+        if (blk_size > 0)
+            set_block_size(blk_size);
+
         // Update instance parameters
         e->numInputs                    = vInputs.size();
         e->numOutputs                   = vOutputs.size();
@@ -457,6 +469,19 @@ namespace lsp
         pEffect     = NULL;
 
         lsp_trace("destroy complete");
+    }
+
+    void VSTWrapper::set_block_size(size_t size)
+    {
+        lsp_trace("Block size for audio processing: %d", int(size));
+
+        // Sync buffer size to all input ports
+        for (size_t i=0, n=vInputs.size(); i<n; ++i)
+        {
+            VSTAudioPort *p = vInputs.at(i);
+            if (p != NULL)
+                p->set_blk_size(size);
+        }
     }
 
     void VSTWrapper::sync_position()
@@ -536,14 +561,14 @@ namespace lsp
         {
             VSTAudioPort *p = vInputs.at(i);
             if (p != NULL)
-                p->bind(inputs[i]);
+                p->bind(inputs[i], samples);
         }
         size_t n_outputs = vOutputs.size();
         for (size_t i=0; i < n_outputs; ++i)
         {
             VSTAudioPort *p = vOutputs.at(i);
             if (p != NULL)
-                p->bind(outputs[i]);
+                p->bind(outputs[i], samples);
         }
 
         // Process ALL ports for changes

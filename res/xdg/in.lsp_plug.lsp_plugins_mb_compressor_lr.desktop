@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Split Multiband Compressor
-Name=Compressors
-Name[ru]=Компрессоры
+Name=Split Multiband Compressor
+GenericName=Multiband Compressor
+GenericName[ru]=Многополосный компрессор
 Comment=Performs multiband compression of stereo input signal by applying individual processing to left and right channels separately.
 Comment[ru]=Осуществляет многополосную компрессию стереосигнала, левый и правый каналы обрабатываются индивидуально.
 Exec=lsp-plugins-mb-compressor-lr
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

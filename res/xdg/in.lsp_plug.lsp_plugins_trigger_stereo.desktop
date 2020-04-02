@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Stereo Audio Trigger
-Name=Triggers
-Name[ru]=Триггеры
+Name=Stereo Audio Trigger
+GenericName=Trigger
+GenericName[ru]=Триггер
 Comment=Implements trigger with mono input and mono output.
 Comment[ru]=Реализаует триггер со стереофоническими входом и выходом. 
 Exec=lsp-plugins-trigger-stereo
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

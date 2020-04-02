@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Mid-Side Stereo Sidechain Expander
-Name=Expanders
-Name[ru]=Экспандеры
+Name=Mid-Side Stereo Sidechain Expander
+GenericName=Sidechain Expander
+GenericName[ru]=Экспандер с боковой цепью
 Comment=Performs increasing of dynamic range of stereo input signal in Mid-Side mode. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет увеличение динамического диапазона стереосигнала, центр и сторона обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-expander-ms
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

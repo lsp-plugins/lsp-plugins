@@ -1,0 +1,20 @@
+{
+	"file": {
+		"confirm_load": "Voulez-vous vraiment charger le fichier sélectionné ?",
+		"confirm_overwrite": "Le fichier sélectionné existe déjà. L'écraser ?",
+		
+		"invalid_name": "Le nom de fichier saisi n'est pas valide",
+		
+		"not_exists": "Le dossier sélectionné n'existe pas",
+		"not_specified": "Le nom du fichier n'est pas précisé"
+	},
+	
+	"greetings": {
+		"0": "Vous venez de mettre à jour les greffons à la version {@version} !",
+		"1": "'{@project}' est un projet non commercial et a besoin d'un soutien financier pour la poursuite de son développement.",
+		"2": "Vous pouvez aider la collection de greffons libres à se développer en visitant le lien suivant et en soumettant des dons au projet :",
+		"3": "N'oubliez pas que la souscription et les petits dons réguliers apporteront plus d'avantages au projet que les dons ponctuels.",
+		"4": "Pour ne pas être très ennuyeux, ce dialogue ne sera affiché qu'après chaque mise à jour de version des greffons.",
+		"5": "Merci d'avance."
+	}
+}

@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Stereo Dynamic Processor
-Name=Dynamic Processing
-Name[ru]=Динамическая обработка
+Name=Stereo Dynamic Processor
+GenericName=Dynamic Processor
+GenericName[ru]=Динамический процессор
 Comment=Performs dynamic processing of stereo input signal.
 Comment[ru]=Осуществляет динамическую обработку стереоканала.
 Exec=lsp-plugins-dyna-processor-stereo
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

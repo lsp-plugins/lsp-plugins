@@ -53,6 +53,8 @@ namespace dsp
     void    (* limit_saturate2)(float *dst, const float *src, size_t count) = NULL;
     void    (* limit1)(float *dst, float min, float max, size_t count) = NULL;
     void    (* limit2)(float *dst, const float *src, float min, float max, size_t count) = NULL;
+    void    (* sanitize1)(float *dst, size_t count) = NULL;
+    void    (* sanitize2)(float *dst, const float *src, size_t count) = NULL;
 
     void    (* move)(float *dst, const float *src, size_t count) = NULL;
     void    (* fill)(float *dst, float value, size_t count) = NULL;
@@ -473,11 +475,6 @@ namespace dsp
 
 namespace dsp
 {
-    void init_context(dsp::context_t *ctx)
-    {
-        ctx->top        = 0;
-    }
-
     void init()
     {
         // Consider already initialized

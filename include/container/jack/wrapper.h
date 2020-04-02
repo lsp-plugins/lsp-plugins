@@ -99,6 +99,7 @@ namespace lsp
 
         protected:
             static int process(jack_nframes_t nframes, void *arg);
+            static int sync_buffer_size(jack_nframes_t nframes, void *arg);
             static int jack_sync(jack_transport_state_t state, jack_position_t *pos, void *arg);
             static int latency_callback(jack_latency_callback_mode_t mode, void *arg);
             static void shutdown(void *arg);
@@ -188,6 +189,20 @@ namespace lsp
         dsp::finish(&ctx);
 
         return result;
+    }
+
+    int JACKWrapper::sync_buffer_size(jack_nframes_t nframes, void *arg)
+    {
+        JACKWrapper *_this  = reinterpret_cast<JACKWrapper *>(arg);
+
+        for (size_t i=0, n=_this->vDataPorts.size(); i<n; ++i)
+        {
+            JACKDataPort *p = _this->vDataPorts.at(i);
+            if (p != NULL)
+                p->set_buffer_size(nframes);
+        }
+
+        return 0;
     }
 
     int JACKWrapper::jack_sync(jack_transport_state_t state, jack_position_t *pos, void *arg)
@@ -518,11 +533,24 @@ namespace lsp
         // Set-up shutdown handler
         jack_on_shutdown(pClient, shutdown, this);
 
+        // Determine size of buffer
+        size_t buf_size             = jack_get_buffer_size(pClient);
+        if (jack_set_buffer_size_callback(pClient, sync_buffer_size, this))
+        {
+            lsp_error("Could not setup buffer size callback");
+            nState = S_CONN_LOST;
+            return STATUS_DISCONNECTED;
+        }
+
         // Connect data ports
         for (size_t i=0, n=vDataPorts.size(); i<n; ++i)
         {
             JACKDataPort *dp = vDataPorts.at(i);
-            dp->connect();
+            if (dp != NULL)
+            {
+                dp->connect();
+                dp->set_buffer_size(buf_size);
+            }
         }
 
         // Set plugin sample rate and call for settings update

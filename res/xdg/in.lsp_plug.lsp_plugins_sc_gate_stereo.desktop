@@ -1,13 +1,14 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-GenericName=Stereo Sidechain Gate
-Name=Gates
-Name[ru]=Гейты
+Name=Stereo Sidechain Gate
+GenericName=Sidechain Gate
+GenericName[ru]=Гейт с боковой цепью
 Comment=Performs gating of stereo input signal. Flexible sidechain-control configuration and additional sidechain inputs are provided.
 Comment[ru]=Осуществляет гейтирование стереосигнала. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
 Exec=lsp-plugins-sc-gate-stereo
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=lsp-plugins;
+Categories=Audio;X-lsp-plugins;
+Keywords=audio;sound;jackd;lsp-plugins;

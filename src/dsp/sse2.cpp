@@ -82,6 +82,8 @@ namespace sse2
         EXPORT1(saturate);
         EXPORT1(limit_saturate1);
         EXPORT1(limit_saturate2);
+        EXPORT1(sanitize1);
+        EXPORT1(sanitize2);
 
         EXPORT1(mod_k2);
         EXPORT1(rmod_k2);
