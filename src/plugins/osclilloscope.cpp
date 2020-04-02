@@ -132,7 +132,7 @@ namespace lsp
                 return;
 
             // Test settings for oversampler before proper implementation
-            c->enOverMode = OM_NONE;
+            c->enOverMode = OM_LANCZOS_8X3;
             c->sOversampler.set_mode(c->enOverMode);
             if (c->sOversampler.modified())
                 c->sOversampler.update_settings();

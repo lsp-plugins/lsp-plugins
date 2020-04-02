@@ -109,8 +109,8 @@ namespace lsp
                     enTriggerState = TRG_STATE_WAITING;
                 }
 
-//                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (fPrevious <= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
-                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
+                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (fPrevious <= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
+//                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nPostTriggerCounter = 0;
