@@ -150,7 +150,7 @@
 	"dither:": "Dither:",
 	"dithering": "Dithering",
 	
-	"dynamics": "Dynamis",
+	"dynamics": "Dynamics",
 	
 	"enable": "Enable",
 	
@@ -212,7 +212,7 @@
 		"curve": "CURVE",
 		"delay_line": "DELAY LINE",
 		"expansion": "EXPANSION",
-		"frequency": "FEQUENCY GRAPH",
+		"frequency": "FREQUENCY GRAPH",
 		"gating": "GATING",
 		"left_channel": "LEFT CHANNEL",
 		"oscillator_waveform": "OSCILLATOR_WAVEFORM",

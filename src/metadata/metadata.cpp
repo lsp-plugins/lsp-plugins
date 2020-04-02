@@ -73,10 +73,12 @@ namespace lsp
         { "bpm",    "units.bpm" },
 
         { "cent",   "units.cent" },
+        { "oct",    "units.octave" },
         { "st",     "units.st" },
 
         { "bar",    "units.bar" },
         { "beat",   "units.beat" },
+        { "min",    "units.min" },
         { "s",      "units.s" },
         { "ms",     "units.ms" },
 

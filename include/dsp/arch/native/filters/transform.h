@@ -38,11 +38,11 @@ namespace native
             N               = 1.0 / (B[0] + B[1] + B[2]);
 
             // Initialize filter parameters
-            bf->a0          = (T[0] + T[1] + T[2]) * N;
-            bf->a1          = 2.0 * (T[0] - T[2]) * N;
-            bf->a2          = (T[0] - T[1] + T[2]) * N;
-            bf->b1          = 2.0 * (B[2] - B[0]) * N;  // Sign negated
-            bf->b2          = (B[1] - B[2] - B[0]) * N; // Sign negated
+            bf->b0          = (T[0] + T[1] + T[2]) * N;
+            bf->b1          = 2.0 * (T[0] - T[2]) * N;
+            bf->b2          = (T[0] - T[1] + T[2]) * N;
+            bf->a1          = 2.0 * (B[2] - B[0]) * N;  // Sign negated
+            bf->a2          = (B[1] - B[2] - B[0]) * N; // Sign negated
             bf->p0          = 0.0f;
             bf->p1          = 0.0f;
             bf->p2          = 0.0f;
@@ -88,18 +88,18 @@ namespace native
             N[1]            = 1.0 / (B[4] + B[5] + B[6]);
 
             // Initialize filter top coefficients
-            bf->a0[0]        = (T[0] + T[1] + T[2]) * N[0];
-            bf->a0[1]        = (T[4] + T[5] + T[6]) * N[1];
-            bf->a1[0]        = 2.0f * (T[0] - T[2]) * N[0];
-            bf->a1[1]        = 2.0f * (T[4] - T[6]) * N[1];
-            bf->a2[0]        = (T[0] - T[1] + T[2]) * N[0];
-            bf->a2[1]        = (T[4] - T[5] + T[6]) * N[1];
+            bf->b0[0]        = (T[0] + T[1] + T[2]) * N[0];
+            bf->b0[1]        = (T[4] + T[5] + T[6]) * N[1];
+            bf->b1[0]        = 2.0f * (T[0] - T[2]) * N[0];
+            bf->b1[1]        = 2.0f * (T[4] - T[6]) * N[1];
+            bf->b2[0]        = (T[0] - T[1] + T[2]) * N[0];
+            bf->b2[1]        = (T[4] - T[5] + T[6]) * N[1];
 
             // Initialize filter bottom coefficients
-            bf->b1[0]        = 2.0 * (B[2] - B[0]) * N[0];  // Sign negated
-            bf->b1[1]        = 2.0 * (B[6] - B[4]) * N[1];  // Sign negated
-            bf->b2[0]        = (B[1] - B[2] - B[0]) * N[0]; // Sign negated
-            bf->b2[1]        = (B[5] - B[6] - B[4]) * N[1]; // Sign negated
+            bf->a1[0]        = 2.0 * (B[2] - B[0]) * N[0];  // Sign negated
+            bf->a1[1]        = 2.0 * (B[6] - B[4]) * N[1];  // Sign negated
+            bf->a2[0]        = (B[1] - B[2] - B[0]) * N[0]; // Sign negated
+            bf->a2[1]        = (B[5] - B[6] - B[4]) * N[1]; // Sign negated
 
             bf->p[0]        = 0.0f;
             bf->p[1]        = 0.0f;
@@ -160,30 +160,30 @@ namespace native
             N[3]            = 1.0 / (B0[3] + B1[3] + B2[3]);
 
             // Initialize filter parameters
-            bf->a0[0]       = (T0[0] + T1[0] + T2[0]) * N[0];
-            bf->a0[1]       = (T0[1] + T1[1] + T2[1]) * N[1];
-            bf->a0[2]       = (T0[2] + T1[2] + T2[2]) * N[2];
-            bf->a0[3]       = (T0[3] + T1[3] + T2[3]) * N[3];
+            bf->b0[0]       = (T0[0] + T1[0] + T2[0]) * N[0];
+            bf->b0[1]       = (T0[1] + T1[1] + T2[1]) * N[1];
+            bf->b0[2]       = (T0[2] + T1[2] + T2[2]) * N[2];
+            bf->b0[3]       = (T0[3] + T1[3] + T2[3]) * N[3];
 
-            bf->a1[0]       = 2.0 * (T0[0] - T2[0]) * N[0];
-            bf->a1[1]       = 2.0 * (T0[1] - T2[1]) * N[1];
-            bf->a1[2]       = 2.0 * (T0[2] - T2[2]) * N[2];
-            bf->a1[3]       = 2.0 * (T0[3] - T2[3]) * N[3];
+            bf->b1[0]       = 2.0 * (T0[0] - T2[0]) * N[0];
+            bf->b1[1]       = 2.0 * (T0[1] - T2[1]) * N[1];
+            bf->b1[2]       = 2.0 * (T0[2] - T2[2]) * N[2];
+            bf->b1[3]       = 2.0 * (T0[3] - T2[3]) * N[3];
 
-            bf->a2[0]       = (T0[0] - T1[0] + T2[0]) * N[0];
-            bf->a2[1]       = (T0[1] - T1[1] + T2[1]) * N[1];
-            bf->a2[2]       = (T0[2] - T1[2] + T2[2]) * N[2];
-            bf->a2[3]       = (T0[3] - T1[3] + T2[3]) * N[3];
+            bf->b2[0]       = (T0[0] - T1[0] + T2[0]) * N[0];
+            bf->b2[1]       = (T0[1] - T1[1] + T2[1]) * N[1];
+            bf->b2[2]       = (T0[2] - T1[2] + T2[2]) * N[2];
+            bf->b2[3]       = (T0[3] - T1[3] + T2[3]) * N[3];
 
-            bf->b1[0]       = 2.0 * (B2[0] - B0[0]) * N[0];     // Sign negated
-            bf->b1[1]       = 2.0 * (B2[1] - B0[1]) * N[1];     // Sign negated
-            bf->b1[2]       = 2.0 * (B2[2] - B0[2]) * N[2];     // Sign negated
-            bf->b1[3]       = 2.0 * (B2[3] - B0[3]) * N[3];     // Sign negated
+            bf->a1[0]       = 2.0 * (B2[0] - B0[0]) * N[0];     // Sign negated
+            bf->a1[1]       = 2.0 * (B2[1] - B0[1]) * N[1];     // Sign negated
+            bf->a1[2]       = 2.0 * (B2[2] - B0[2]) * N[2];     // Sign negated
+            bf->a1[3]       = 2.0 * (B2[3] - B0[3]) * N[3];     // Sign negated
 
-            bf->b2[0]       = (B1[0] - B2[0] - B0[0]) * N[0];   // Sign negated
-            bf->b2[1]       = (B1[1] - B2[1] - B0[1]) * N[1];   // Sign negated
-            bf->b2[2]       = (B1[2] - B2[2] - B0[2]) * N[2];   // Sign negated
-            bf->b2[3]       = (B1[3] - B2[3] - B0[3]) * N[3];   // Sign negated
+            bf->a2[0]       = (B1[0] - B2[0] - B0[0]) * N[0];   // Sign negated
+            bf->a2[1]       = (B1[1] - B2[1] - B0[1]) * N[1];   // Sign negated
+            bf->a2[2]       = (B1[2] - B2[2] - B0[2]) * N[2];   // Sign negated
+            bf->a2[3]       = (B1[3] - B2[3] - B0[3]) * N[3];   // Sign negated
 
             // Increment pointers
             bc             += 4;
@@ -204,7 +204,7 @@ namespace native
         for (size_t n=0; n<=4; n+=4)
         {
             // two x4 filters are in parallel, shift by 4 floats stride
-            biquad_x8_t *bq         = reinterpret_cast<biquad_x8_t *>(&bf->a0[n]);
+            biquad_x8_t *bq         = reinterpret_cast<biquad_x8_t *>(&bf->b0[n]);
             const f_cascade_t *fc   = &bc[n];
 
             for (size_t i=0; i<count; ++i)
@@ -248,30 +248,30 @@ namespace native
                 N[3]            = 1.0 / (B0[3] + B1[3] + B2[3]);
 
                 // Initialize filter parameters
-                bq->a0[0]       = (T0[0] + T1[0] + T2[0]) * N[0];
-                bq->a0[1]       = (T0[1] + T1[1] + T2[1]) * N[1];
-                bq->a0[2]       = (T0[2] + T1[2] + T2[2]) * N[2];
-                bq->a0[3]       = (T0[3] + T1[3] + T2[3]) * N[3];
+                bq->b0[0]       = (T0[0] + T1[0] + T2[0]) * N[0];
+                bq->b0[1]       = (T0[1] + T1[1] + T2[1]) * N[1];
+                bq->b0[2]       = (T0[2] + T1[2] + T2[2]) * N[2];
+                bq->b0[3]       = (T0[3] + T1[3] + T2[3]) * N[3];
 
-                bq->a1[0]       = 2.0 * (T0[0] - T2[0]) * N[0];
-                bq->a1[1]       = 2.0 * (T0[1] - T2[1]) * N[1];
-                bq->a1[2]       = 2.0 * (T0[2] - T2[2]) * N[2];
-                bq->a1[3]       = 2.0 * (T0[3] - T2[3]) * N[3];
+                bq->b1[0]       = 2.0 * (T0[0] - T2[0]) * N[0];
+                bq->b1[1]       = 2.0 * (T0[1] - T2[1]) * N[1];
+                bq->b1[2]       = 2.0 * (T0[2] - T2[2]) * N[2];
+                bq->b1[3]       = 2.0 * (T0[3] - T2[3]) * N[3];
 
-                bq->a2[0]       = (T0[0] - T1[0] + T2[0]) * N[0];
-                bq->a2[1]       = (T0[1] - T1[1] + T2[1]) * N[1];
-                bq->a2[2]       = (T0[2] - T1[2] + T2[2]) * N[2];
-                bq->a2[3]       = (T0[3] - T1[3] + T2[3]) * N[3];
+                bq->b2[0]       = (T0[0] - T1[0] + T2[0]) * N[0];
+                bq->b2[1]       = (T0[1] - T1[1] + T2[1]) * N[1];
+                bq->b2[2]       = (T0[2] - T1[2] + T2[2]) * N[2];
+                bq->b2[3]       = (T0[3] - T1[3] + T2[3]) * N[3];
 
-                bq->b1[0]       = 2.0 * (B2[0] - B0[0]) * N[0];     // Sign negated
-                bq->b1[1]       = 2.0 * (B2[1] - B0[1]) * N[1];     // Sign negated
-                bq->b1[2]       = 2.0 * (B2[2] - B0[2]) * N[2];     // Sign negated
-                bq->b1[3]       = 2.0 * (B2[3] - B0[3]) * N[3];     // Sign negated
+                bq->a1[0]       = 2.0 * (B2[0] - B0[0]) * N[0];     // Sign negated
+                bq->a1[1]       = 2.0 * (B2[1] - B0[1]) * N[1];     // Sign negated
+                bq->a1[2]       = 2.0 * (B2[2] - B0[2]) * N[2];     // Sign negated
+                bq->a1[3]       = 2.0 * (B2[3] - B0[3]) * N[3];     // Sign negated
 
-                bq->b2[0]       = (B1[0] - B2[0] - B0[0]) * N[0];   // Sign negated
-                bq->b2[1]       = (B1[1] - B2[1] - B0[1]) * N[1];   // Sign negated
-                bq->b2[2]       = (B1[2] - B2[2] - B0[2]) * N[2];   // Sign negated
-                bq->b2[3]       = (B1[3] - B2[3] - B0[3]) * N[3];   // Sign negated
+                bq->a2[0]       = (B1[0] - B2[0] - B0[0]) * N[0];   // Sign negated
+                bq->a2[1]       = (B1[1] - B2[1] - B0[1]) * N[1];   // Sign negated
+                bq->a2[2]       = (B1[2] - B2[2] - B0[2]) * N[2];   // Sign negated
+                bq->a2[3]       = (B1[3] - B2[3] - B0[3]) * N[3];   // Sign negated
 
                 // Increment pointers
                 fc             += 8;
@@ -408,11 +408,11 @@ namespace native
             float N1    = AN * N2;
 
             // Normalize filter parameters
-            bf->a0      = bc->t[0] * N1;
-            bf->a1      = bc->t[1] * N1;
-            bf->a2      = bc->t[2] * N1;
-            bf->b1      = -bc->b[1] * N2; // Sign negated
-            bf->b2      = -bc->b[2] * N2; // Sign negated
+            bf->b0      = bc->t[0] * N1;
+            bf->b1      = bc->t[1] * N1;
+            bf->b2      = bc->t[2] * N1;
+            bf->a1      = -bc->b[1] * N2; // Sign negated
+            bf->a2      = -bc->b[2] * N2; // Sign negated
             bf->p0      = 0.0f;
             bf->p1      = 0.0f;
             bf->p2      = 0.0f;
@@ -473,18 +473,18 @@ namespace native
             N1[1]       = AN[1] * N2[1];
 
             // Normalize filter parameters
-            bf->a0[0]   = bc[0].t[0] * N1[0];
-            bf->a0[1]   = bc[1].t[0] * N1[1];
-            bf->a1[0]   = bc[0].t[1] * N1[0];
-            bf->a1[1]   = bc[1].t[1] * N1[1];
+            bf->b0[0]   = bc[0].t[0] * N1[0];
+            bf->b0[1]   = bc[1].t[0] * N1[1];
+            bf->b1[0]   = bc[0].t[1] * N1[0];
+            bf->b1[1]   = bc[1].t[1] * N1[1];
 
-            bf->a2[0]   = bc[0].t[2] * N1[0];
-            bf->a2[1]   = bc[1].t[2] * N1[1];
+            bf->b2[0]   = bc[0].t[2] * N1[0];
+            bf->b2[1]   = bc[1].t[2] * N1[1];
 
-            bf->b1[0]   = -bc[0].b[1] * N2[0]; // Sign negated
-            bf->b1[1]   = -bc[1].b[1] * N2[1]; // Sign negated
-            bf->b2[0]   = -bc[0].b[2] * N2[0]; // Sign negated
-            bf->b2[1]   = -bc[1].b[2] * N2[1]; // Sign negated
+            bf->a1[0]   = -bc[0].b[1] * N2[0]; // Sign negated
+            bf->a1[1]   = -bc[1].b[1] * N2[1]; // Sign negated
+            bf->a2[0]   = -bc[0].b[2] * N2[0]; // Sign negated
+            bf->a2[1]   = -bc[1].b[2] * N2[1]; // Sign negated
 
             bf->p[0]    = 0.0f;
             bf->p[1]    = 0.0f;
@@ -566,30 +566,30 @@ namespace native
             N1[3]       = AN[3] * N2[3];
 
             // Normalize filter parameters
-            bf->a0[0]   = bc[0].t[0] * N1[0];
-            bf->a0[1]   = bc[1].t[0] * N1[1];
-            bf->a0[2]   = bc[2].t[0] * N1[2];
-            bf->a0[3]   = bc[3].t[0] * N1[3];
+            bf->b0[0]   = bc[0].t[0] * N1[0];
+            bf->b0[1]   = bc[1].t[0] * N1[1];
+            bf->b0[2]   = bc[2].t[0] * N1[2];
+            bf->b0[3]   = bc[3].t[0] * N1[3];
 
-            bf->a1[0]   = bc[0].t[1] * N1[0];
-            bf->a1[1]   = bc[1].t[1] * N1[1];
-            bf->a1[2]   = bc[2].t[1] * N1[2];
-            bf->a1[3]   = bc[3].t[1] * N1[3];
+            bf->b1[0]   = bc[0].t[1] * N1[0];
+            bf->b1[1]   = bc[1].t[1] * N1[1];
+            bf->b1[2]   = bc[2].t[1] * N1[2];
+            bf->b1[3]   = bc[3].t[1] * N1[3];
 
-            bf->a2[0]   = bc[0].t[2] * N1[0];
-            bf->a2[1]   = bc[1].t[2] * N1[1];
-            bf->a2[2]   = bc[2].t[2] * N1[2];
-            bf->a2[3]   = bc[3].t[2] * N1[3];
+            bf->b2[0]   = bc[0].t[2] * N1[0];
+            bf->b2[1]   = bc[1].t[2] * N1[1];
+            bf->b2[2]   = bc[2].t[2] * N1[2];
+            bf->b2[3]   = bc[3].t[2] * N1[3];
 
-            bf->b1[0]   = -bc[0].b[1] * N2[0]; // Sign negated
-            bf->b1[1]   = -bc[1].b[1] * N2[1]; // Sign negated
-            bf->b1[2]   = -bc[2].b[1] * N2[2]; // Sign negated
-            bf->b1[3]   = -bc[3].b[1] * N2[3]; // Sign negated
+            bf->a1[0]   = -bc[0].b[1] * N2[0]; // Sign negated
+            bf->a1[1]   = -bc[1].b[1] * N2[1]; // Sign negated
+            bf->a1[2]   = -bc[2].b[1] * N2[2]; // Sign negated
+            bf->a1[3]   = -bc[3].b[1] * N2[3]; // Sign negated
 
-            bf->b2[0]   = -bc[0].b[2] * N2[0]; // Sign negated
-            bf->b2[1]   = -bc[1].b[2] * N2[1]; // Sign negated
-            bf->b2[2]   = -bc[2].b[2] * N2[2]; // Sign negated
-            bf->b2[3]   = -bc[3].b[2] * N2[3]; // Sign negated
+            bf->a2[0]   = -bc[0].b[2] * N2[0]; // Sign negated
+            bf->a2[1]   = -bc[1].b[2] * N2[1]; // Sign negated
+            bf->a2[2]   = -bc[2].b[2] * N2[2]; // Sign negated
+            bf->a2[3]   = -bc[3].b[2] * N2[3]; // Sign negated
 
             // Move to next filter
             bf          ++;
@@ -704,50 +704,50 @@ namespace native
             N1[7]       = AN[7] * N2[7];
 
             // Normalize filter parameters
-            bf->a0[0]   = bc[0].t[0] * N1[0];
-            bf->a0[1]   = bc[1].t[0] * N1[1];
-            bf->a0[2]   = bc[2].t[0] * N1[2];
-            bf->a0[3]   = bc[3].t[0] * N1[3];
-            bf->a0[4]   = bc[4].t[0] * N1[4];
-            bf->a0[5]   = bc[5].t[0] * N1[5];
-            bf->a0[6]   = bc[6].t[0] * N1[6];
-            bf->a0[7]   = bc[7].t[0] * N1[7];
+            bf->b0[0]   = bc[0].t[0] * N1[0];
+            bf->b0[1]   = bc[1].t[0] * N1[1];
+            bf->b0[2]   = bc[2].t[0] * N1[2];
+            bf->b0[3]   = bc[3].t[0] * N1[3];
+            bf->b0[4]   = bc[4].t[0] * N1[4];
+            bf->b0[5]   = bc[5].t[0] * N1[5];
+            bf->b0[6]   = bc[6].t[0] * N1[6];
+            bf->b0[7]   = bc[7].t[0] * N1[7];
 
-            bf->a1[0]   = bc[0].t[1] * N1[0];
-            bf->a1[1]   = bc[1].t[1] * N1[1];
-            bf->a1[2]   = bc[2].t[1] * N1[2];
-            bf->a1[3]   = bc[3].t[1] * N1[3];
-            bf->a1[4]   = bc[4].t[1] * N1[4];
-            bf->a1[5]   = bc[5].t[1] * N1[5];
-            bf->a1[6]   = bc[6].t[1] * N1[6];
-            bf->a1[7]   = bc[7].t[1] * N1[7];
+            bf->b1[0]   = bc[0].t[1] * N1[0];
+            bf->b1[1]   = bc[1].t[1] * N1[1];
+            bf->b1[2]   = bc[2].t[1] * N1[2];
+            bf->b1[3]   = bc[3].t[1] * N1[3];
+            bf->b1[4]   = bc[4].t[1] * N1[4];
+            bf->b1[5]   = bc[5].t[1] * N1[5];
+            bf->b1[6]   = bc[6].t[1] * N1[6];
+            bf->b1[7]   = bc[7].t[1] * N1[7];
 
-            bf->a2[0]   = bc[0].t[2] * N1[0];
-            bf->a2[1]   = bc[1].t[2] * N1[1];
-            bf->a2[2]   = bc[2].t[2] * N1[2];
-            bf->a2[3]   = bc[3].t[2] * N1[3];
-            bf->a2[4]   = bc[4].t[2] * N1[4];
-            bf->a2[5]   = bc[5].t[2] * N1[5];
-            bf->a2[6]   = bc[6].t[2] * N1[6];
-            bf->a2[7]   = bc[7].t[2] * N1[7];
+            bf->b2[0]   = bc[0].t[2] * N1[0];
+            bf->b2[1]   = bc[1].t[2] * N1[1];
+            bf->b2[2]   = bc[2].t[2] * N1[2];
+            bf->b2[3]   = bc[3].t[2] * N1[3];
+            bf->b2[4]   = bc[4].t[2] * N1[4];
+            bf->b2[5]   = bc[5].t[2] * N1[5];
+            bf->b2[6]   = bc[6].t[2] * N1[6];
+            bf->b2[7]   = bc[7].t[2] * N1[7];
 
-            bf->b1[0]   = -bc[0].b[1] * N2[0]; // Sign negated
-            bf->b1[1]   = -bc[1].b[1] * N2[1]; // Sign negated
-            bf->b1[2]   = -bc[2].b[1] * N2[2]; // Sign negated
-            bf->b1[3]   = -bc[3].b[1] * N2[3]; // Sign negated
-            bf->b1[4]   = -bc[4].b[1] * N2[4]; // Sign negated
-            bf->b1[5]   = -bc[5].b[1] * N2[5]; // Sign negated
-            bf->b1[6]   = -bc[6].b[1] * N2[6]; // Sign negated
-            bf->b1[7]   = -bc[7].b[1] * N2[7]; // Sign negated
+            bf->a1[0]   = -bc[0].b[1] * N2[0]; // Sign negated
+            bf->a1[1]   = -bc[1].b[1] * N2[1]; // Sign negated
+            bf->a1[2]   = -bc[2].b[1] * N2[2]; // Sign negated
+            bf->a1[3]   = -bc[3].b[1] * N2[3]; // Sign negated
+            bf->a1[4]   = -bc[4].b[1] * N2[4]; // Sign negated
+            bf->a1[5]   = -bc[5].b[1] * N2[5]; // Sign negated
+            bf->a1[6]   = -bc[6].b[1] * N2[6]; // Sign negated
+            bf->a1[7]   = -bc[7].b[1] * N2[7]; // Sign negated
 
-            bf->b2[0]   = -bc[0].b[2] * N2[0]; // Sign negated
-            bf->b2[1]   = -bc[1].b[2] * N2[1]; // Sign negated
-            bf->b2[2]   = -bc[2].b[2] * N2[2]; // Sign negated
-            bf->b2[3]   = -bc[3].b[2] * N2[3]; // Sign negated
-            bf->b2[4]   = -bc[4].b[2] * N2[4]; // Sign negated
-            bf->b2[5]   = -bc[5].b[2] * N2[5]; // Sign negated
-            bf->b2[6]   = -bc[6].b[2] * N2[6]; // Sign negated
-            bf->b2[7]   = -bc[7].b[2] * N2[7]; // Sign negated
+            bf->a2[0]   = -bc[0].b[2] * N2[0]; // Sign negated
+            bf->a2[1]   = -bc[1].b[2] * N2[1]; // Sign negated
+            bf->a2[2]   = -bc[2].b[2] * N2[2]; // Sign negated
+            bf->a2[3]   = -bc[3].b[2] * N2[3]; // Sign negated
+            bf->a2[4]   = -bc[4].b[2] * N2[4]; // Sign negated
+            bf->a2[5]   = -bc[5].b[2] * N2[5]; // Sign negated
+            bf->a2[6]   = -bc[6].b[2] * N2[6]; // Sign negated
+            bf->a2[7]   = -bc[7].b[2] * N2[7]; // Sign negated
 
             // Move to next filter
             bf          ++;

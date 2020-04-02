@@ -23,9 +23,9 @@
                 b0 + b1*s + b2*s^2
 
      Normalized biquad filter:
-               a0 + a1*z^-1 + a2*z^-2
+               b0 + b1*z^-1 + b2*z^-2
        h[z] = ────────────────────────
-               1 - b1*z^-1 - b2*z^-2
+               1 - a1*z^-1 - a2*z^-2
 
      The structure of biquad filter:
 
@@ -34,7 +34,7 @@
        d0, d1 = filter memory
 
         s   ┌─────┐     ┌───┐                s'
-       ──┬─►│x a0 │────►│ + │──────────────┬────►
+       ──┬─►│x b0 │────►│ + │──────────────┬────►
          │  └─────┘     └───┘              │
          │                ▲                │
          │                │                │
@@ -44,7 +44,7 @@
          │                ▲                │
          │                │                │
          │  ┌─────┐     ┌───┐     ┌─────┐  │
-         ├─►│x a1 │────►│ + │◄────│x b1 │◄─┤
+         ├─►│x b1 │────►│ + │◄────│x a1 │◄─┤
          │  └─────┘     └───┘     └─────┘  │
          │                ▲                │
          │                │                │
@@ -54,7 +54,7 @@
          │                ▲                │
          │                │                │
          │  ┌─────┐     ┌───┐     ┌─────┐  │
-         └─►│x a2 │────►│ + │◄────│x b2 │◄─┘
+         └─►│x b2 │────►│ + │◄────│x a2 │◄─┘
             └─────┘     └───┘     └─────┘
 
     Static filters consist of biquad filter banks organized in optimal
@@ -73,15 +73,15 @@
 
       Index      +0x00     +0x01     +0x02     +0x03
               ┌─────────┬─────────┬─────────┬─────────┐
-       +0x00  │ f[0].a0 │ f[1].a0 │ f[2].a0 │ f[3].a0 │
+       +0x00  │ f[0].b0 │ f[1].b0 │ f[2].b0 │ f[3].b0 │
               ├─────────┼─────────┼─────────┼─────────┤
-       +0x04  │ f[0].a1 │ f[1].a1 │ f[2].a1 │ f[3].a1 │
+       +0x04  │ f[0].b1 │ f[1].b1 │ f[2].b1 │ f[3].b1 │
               ├─────────┼─────────┼─────────┼─────────┤
-       +0x08  │ f[0].a2 │ f[1].a2 │ f[2].a2 │ f[3].a2 │
+       +0x08  │ f[0].b2 │ f[1].b2 │ f[2].b2 │ f[3].b2 │
               ├─────────┼─────────┼─────────┼─────────┤
-       +0x0c  │ f[0].b0 │ f[1].b0 │ f[2].b0 │ f[3].b0 │
+       +0x0c  │ f[0].a0 │ f[1].a0 │ f[2].a0 │ f[3].a0 │
               ├─────────┼─────────┼─────────┼─────────┤
-       +0x10  │ f[0].b1 │ f[1].b1 │ f[2].b1 │ f[3].b1 │
+       +0x10  │ f[0].a1 │ f[1].a1 │ f[2].a1 │ f[3].a1 │
               └─────────┴─────────┴─────────┴─────────┘
 
     Dynamic filters consist of shifted biquad filter banks. For example,
@@ -205,8 +205,8 @@ typedef struct f_cascade_t
  */
 typedef struct biquad_x1_t
 {
-    float   a0, a1, a2;     //  a0 a1 a2
-    float   b1, b2;         //  b1 b2
+    float   b0, b1, b2;     //  b0 b1 b2
+    float   a1, a2;         //  a1 a2
     float   p0, p1, p2;     //  padding (not used), SHOULD be zero
 } biquad_x1_t;
 
@@ -216,11 +216,11 @@ typedef struct biquad_x1_t
  */
 typedef struct biquad_x2_t
 {
-    float   a0[2];
-    float   a1[2];
-    float   a2[2];
+    float   b0[2];
     float   b1[2];
     float   b2[2];
+    float   a1[2];
+    float   a2[2];
     float   p[2];           // padding (not used), SHOULD be zero
 } biquad_x2_t;
 
@@ -229,11 +229,11 @@ typedef struct biquad_x2_t
  */
 typedef struct biquad_x4_t
 {
-    float   a0[4];
-    float   a1[4];
-    float   a2[4];
+    float   b0[4];
     float   b1[4];
     float   b2[4];
+    float   a1[4];
+    float   a2[4];
 } biquad_x4_t;
 
 /**
@@ -241,11 +241,11 @@ typedef struct biquad_x4_t
  */
 typedef struct biquad_x8_t
 {
-    float   a0[8];
-    float   a1[8];
-    float   a2[8];
+    float   b0[8];
     float   b1[8];
     float   b2[8];
+    float   a1[8];
+    float   a2[8];
 } biquad_x8_t;
 
 /**

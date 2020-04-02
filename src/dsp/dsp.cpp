@@ -475,11 +475,6 @@ namespace dsp
 
 namespace dsp
 {
-    void init_context(dsp::context_t *ctx)
-    {
-        ctx->top        = 0;
-    }
-
     void init()
     {
         // Consider already initialized
