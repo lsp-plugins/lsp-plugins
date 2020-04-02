@@ -506,9 +506,9 @@
 								<cell cols="2"><label text="labels.attack" /></cell>
 								<cell cols="2"><label text="labels.release" /></cell>
 								
-								<cell><label text="labels.threshold" /></cell>
+								<cell><label text="labels.thresh_old" /></cell>
 								<cell><label text="labels.time" /></cell>
-								<cell><label text="labels.threshold" /></cell>
+								<cell><label text="labels.thresh_old" /></cell>
 								<cell><label text="labels.time" /></cell>
 								
 								<cell rows="2">

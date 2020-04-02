@@ -1,0 +1,66 @@
+{
+	"3d_rendering": "Rendu 3D",
+
+	"apply": "Appliquer",
+	
+	"cancel": "Annuler",
+	"close": "Fermer",
+	
+	"confirm": {
+		"no": "Non",
+		"yes": "Oui"
+	},
+	
+	"edit": {
+		"clear": "Effacer",
+		"copy": "Copier",
+		"cut": "Couper",
+		"delete": "Supprimer",
+		"move_down": "Déplacer vers le bas",
+		"move_first": "Mettre en premier",
+		"move_last": "Mettre en dernier",
+		"move_up": "Déplacer vers le haut",
+		"paste": "Coller"
+	},
+	
+	"export": "Exporter",
+	"export_settings_to_clipboard": "Exporter les paramètres dans le presse-papiers",
+	"export_settings_to_file": "Exporter les paramètres dans un fichier...",
+	
+	"freeze": "Geler",
+	
+	"import": "Importer",
+	"import_settings_from_clipboard": "Importer les paramètres depuis le presse-papiers",
+	"import_settings_from_file": "Importer les paramètres depuis un fichier...",
+	"import_rew_filter_file": "Fichier filtre REW...",
+
+	"listen": "Écouter",
+	"link": {
+		"copy": "Copier le lienk",
+		"follow": "Suivre le lien"
+	},
+	
+	"load": "Charger",
+	"load_preset": "Charger une présélection",
+	
+	"measure": "Mesure",
+	
+	"nav": {
+		"go": "Aller",
+		"up": "Haut"
+	},
+	
+	"ok": "OK",
+	"open": "Ouvrir",
+	
+	"postprocess": "Post-traitement",
+	"profile": "Profil",
+	
+	"save": "Sauvegarder",
+	
+	"select_language": "Sélectionner une langue",
+	
+	"tap": "Tap",
+	"to_bookmarks": "+Signets",
+	"toggle_rack_mount": "Basculer le rack"
+}
