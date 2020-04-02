@@ -11,5 +11,5 @@ Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
 Categories=Audio;X-lsp-plugins;
-OnlyShowIn:X-lsp-plugins;
+OnlyShowIn=X-lsp-plugins;
 Keywords=audio;sound;jackd;lsp-plugins;
