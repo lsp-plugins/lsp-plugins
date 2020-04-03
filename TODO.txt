@@ -15,6 +15,7 @@
 * Added French translation of the UI (contributed by Olivier Humbert).
 * Fixed non-working right sidechain channel for stereo version of
   Compressor, Dynamic Processor, Expander and Gate plugins.
+* Added WM_NAME, WM_CLASS and WM_WINDOW_NAME support for the X11 protocol.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.

@@ -962,32 +962,47 @@ namespace lsp
             }
 
 
-            status_t X11Window::set_caption(const char *text)
+            status_t X11Window::set_caption(const char *ascii, const char *utf8)
             {
+                if (ascii == NULL)
+                    return STATUS_BAD_ARGUMENTS;
                 if (hWindow == None)
                     return STATUS_OK;
 
+                if (utf8 == NULL)
+                    utf8 = ascii;
+
                 const x11_atoms_t &a = pX11Display->atoms();
 
-                XChangeProperty(
+                ::XChangeProperty(
+                    pX11Display->x11display(),
+                    hWindow,
+                    a.X11_XA_WM_NAME,
+                    a.X11_XA_STRING,
+                    8,
+                    PropModeReplace,
+                    reinterpret_cast<const unsigned char *>(ascii),
+                    ::strlen(ascii)
+                );
+                ::XChangeProperty(
                     pX11Display->x11display(),
                     hWindow,
                     a.X11__NET_WM_NAME,
                     a.X11_UTF8_STRING,
                     8,
                     PropModeReplace,
-                    reinterpret_cast<const unsigned char *>(text),
-                    strlen(text)
+                    reinterpret_cast<const unsigned char *>(utf8),
+                    ::strlen(utf8)
                 );
-                XChangeProperty(
+                ::XChangeProperty(
                     pX11Display->x11display(),
                     hWindow,
                     a.X11__NET_WM_ICON_NAME,
                     a.X11_UTF8_STRING,
                     8,
                     PropModeReplace,
-                    reinterpret_cast<const unsigned char *>(text),
-                    strlen(text)
+                    reinterpret_cast<const unsigned char *>(utf8),
+                    ::strlen(utf8)
                 );
 
                 pX11Display->flush();
@@ -1177,6 +1192,57 @@ namespace lsp
             mouse_pointer_t X11Window::get_mouse_pointer()
             {
                 return enPointer;
+            }
+
+            status_t X11Window::set_class(const char *instance, const char *wclass)
+            {
+                if ((instance == NULL) || (wclass == NULL))
+                    return STATUS_BAD_ARGUMENTS;
+
+                size_t l1 = ::strlen(instance);
+                size_t l2 = ::strlen(wclass);
+
+                char *dup = reinterpret_cast<char *>(::malloc((l1 + l2 + 2) * sizeof(char)));
+                if (dup == NULL)
+                    return STATUS_NO_MEM;
+
+                ::memcpy(dup, instance, l1+1);
+                ::memcpy(&dup[l1+1], wclass, l2+1);
+
+                const x11_atoms_t &a = pX11Display->atoms();
+                ::XChangeProperty(
+                    pX11Display->x11display(),
+                    hWindow,
+                    a.X11_XA_WM_CLASS,
+                    a.X11_XA_STRING,
+                    8,
+                    PropModeReplace,
+                    reinterpret_cast<unsigned char *>(dup),
+                    (l1 + l2 + 2)
+                );
+
+                ::free(dup);
+                return STATUS_OK;
+            }
+
+            status_t X11Window::set_role(const char *wrole)
+            {
+                if (wrole == NULL)
+                    return STATUS_BAD_ARGUMENTS;
+
+                const x11_atoms_t &a = pX11Display->atoms();
+                ::XChangeProperty(
+                    pX11Display->x11display(),
+                    hWindow,
+                    a.X11_WM_WINDOW_ROLE,
+                    a.X11_XA_STRING,
+                    8,
+                    PropModeReplace,
+                    reinterpret_cast<const unsigned char *>(wrole),
+                    ::strlen(wrole)
+                );
+
+                return STATUS_OK;
             }
         }
     } /* namespace ws */

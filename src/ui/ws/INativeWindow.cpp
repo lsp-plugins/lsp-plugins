@@ -305,7 +305,7 @@ namespace lsp
             return STATUS_NOT_IMPLEMENTED;
         }
 
-        status_t INativeWindow::set_caption(const char *text)
+        status_t INativeWindow::set_caption(const char *ascii, const char *utf8)
         {
             return STATUS_OK;
         }
@@ -353,6 +353,16 @@ namespace lsp
         status_t INativeWindow::ungrab_events()
         {
             return STATUS_NO_GRAB;
+        }
+
+        status_t INativeWindow::set_class(const char *instance, const char *wclass)
+        {
+            return STATUS_OK;
+        }
+
+        status_t INativeWindow::set_role(const char *wrole)
+        {
+            return STATUS_OK;
         }
     } /* namespace ws */
 } /* namespace lsp */

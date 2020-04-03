@@ -90,10 +90,11 @@ namespace lsp
 
                 /** Set caption of the window
                  *
-                 * @param text text of the caption
+                 * @param ascii ASCII-encoded caption
+                 * @param utf8 UTF-8-encoded caption
                  * @return status of operation
                  */
-                virtual status_t set_caption(const char *text);
+                virtual status_t set_caption(const char *ascii, const char *utf8);
 
             public:
                 /** Get native handle of the window
@@ -370,6 +371,21 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t ungrab_events();
+
+                /**
+                 * Set window class
+                 * @param instance window instance, ASCII-string
+                 * @param wclass window class, ASCII-string
+                 * @return status of operation
+                 */
+                virtual status_t set_class(const char *instance, const char *wclass);
+
+                /**
+                 * Set window role
+                 * @param wrole window role, ASCII-string
+                 * @return status of operation
+                 */
+                virtual status_t set_role(const char *wrole);
         };
     } /* namespace ws */
 } /* namespace lsp */

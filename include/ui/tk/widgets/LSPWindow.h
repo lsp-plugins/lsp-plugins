@@ -263,6 +263,12 @@ namespace lsp
                 void                    set_vscale(float value);
                 void                    set_hscale(float value);
 
+                status_t                set_class(const char *instance, const char *wclass);
+                status_t                set_class(const LSPString *instance, const LSPString *wclass);
+
+                status_t                set_role(const char *role);
+                status_t                set_role(const LSPString *role);
+
             //---------------------------------------------------------------------------------
             // Event handling
             public:

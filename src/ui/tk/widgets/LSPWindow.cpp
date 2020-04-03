@@ -24,10 +24,14 @@ namespace lsp
             if (res != STATUS_OK)
                 return;
 
-            const char *caption = text.get_native();
+            char *ascii = text.clone_ascii();
+            const char *caption = text.get_utf8();
             if (caption == NULL)
                 caption = "";
-            window->pWindow->set_caption(caption);
+
+            window->pWindow->set_caption((ascii != NULL) ? ascii : "", caption);
+            if (ascii != NULL)
+                ::free(ascii);
         }
 
         LSPWindow::LSPWindow(LSPDisplay *dpy, void *handle, ssize_t screen):
@@ -1077,6 +1081,41 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             return pWindow->set_icon(bgra, width, height);
+        }
+
+        status_t LSPWindow::set_class(const char *instance, const char *wclass)
+        {
+            if (pWindow == NULL)
+                return STATUS_BAD_STATE;
+            return pWindow->set_class(instance, wclass);
+        }
+
+        status_t LSPWindow::set_class(const LSPString *instance, const LSPString *wclass)
+        {
+            if ((instance == NULL) || (wclass == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            if (pWindow == NULL)
+                return STATUS_BAD_STATE;
+            char *i = instance->clone_ascii();
+            if (i == NULL)
+                return STATUS_NO_MEM;
+            const char *c = instance->get_utf8();
+
+            status_t res = (c != NULL) ? set_class(i, c) : STATUS_NO_MEM;
+            ::free(i);
+            return res;
+        }
+
+        status_t LSPWindow::set_role(const char *role)
+        {
+            if (pWindow == NULL)
+                return STATUS_BAD_STATE;
+            return pWindow->set_role(role);
+        }
+
+        status_t LSPWindow::set_role(const LSPString *role)
+        {
+            return set_role(role->get_utf8());
         }
 
     } /* namespace tk */
