@@ -4,6 +4,7 @@
 	"target": {
 		"fr": "Français",
 		"ru": "Russe",
-		"us": "Anglaise (US)"
+		"us": "Anglaise (US)",
+        "it": "Italiano (IT)"
 	}
 }
