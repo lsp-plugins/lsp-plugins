@@ -1,10 +1,10 @@
 {
 	"language": "Langage",
 
-	"target": {
+	"local": {
 		"fr": "Français",
 		"ru": "Russe",
 		"us": "Anglaise (US)",
-        "it": "Italien (IT)"
+        "it": "Italien"
 	}
 }
