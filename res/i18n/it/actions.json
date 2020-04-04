@@ -1,5 +1,5 @@
 {
-	"3d_rendering": "3D rendering",
+	"3d_rendering": "Rendering 3D",
 
 	"apply": "Applica",
 	
@@ -37,11 +37,11 @@
 	"listen": "Audiziona",
 	"link": {
 		"copy": "Copia link",
-		"follow": "Sengui link"
+		"follow": "Segui link"
 	},
 	
 	"load": "Carica",
-	"load_preset": "Caroca preset",
+	"load_preset": "Carica preset",
 	
 	"measure": "Misura",
 	

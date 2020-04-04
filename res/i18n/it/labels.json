@@ -17,10 +17,10 @@
 		"scale_x": "Scala X",
 		"scale_y": "Scala Y",
 		"scale_z": "Scala Z",
-		"size": "Dimesione",
-		"size_x:": "Dimesione X:",
-		"size_y:": "Dimesione Y:",
-		"size_z:": "Dimesione Z:",
+		"size": "Dimensione",
+		"size_x:": "Dimensione X:",
+		"size_y:": "Dimensione Y:",
+		"size_z:": "Dimensione Z:",
 		"shape": "Forma",
 		"x_axis": "Asse X",
 		"y_axis": "Asse Y",
@@ -81,7 +81,7 @@
 		"S_ide": "L",
 		"S_ide:": "L:",
 		"S_olo": "S",
-		"channel_n": "Cannale {@id}",
+		"channel_n": "Canale {@id}",
 		"external_sc": "Esterno",
 		"hold": "Fissa",
 		"hue": "Colore",
@@ -130,8 +130,8 @@
 	
 	"click_or_drag_to_load": "Click o trascina per caricare",
 	
-	"coarse_ir_duration": "Durata RI\nApprossimata (s)",
-	"coarse_duration": "Durata\nApprossimata",
+	"coarse_ir_duration": "Durata RI\nApprossimativa (s)",
+	"coarse_duration": "Durata\nApprossimativa",
 	
 	"curve": "Curva",
 	
@@ -161,7 +161,7 @@
 	
 	"export": "Esporta",
 	
-	"feedback": "Ritorno",
+	"feedback": "feed-back",
 
 	"fft": {
 		"envelope": "Inviluppo",
@@ -241,7 +241,7 @@
 	"latency:ms": "Latenza (ms)",
 	"launch": "Lancia",
 	"left": "Sinistra",
-	"listen": "Audiziona",
+	"listen": "Ascolta",
 	"location": "Localizzazione",
 	"log_scale": "Scala log",
 	
@@ -296,7 +296,7 @@
 	"model": "Modello",
 	"model:": "Modello:",
 	
-	"ms_listen": "Audiziona MS",
+	"ms_listen": "Ascolta MS",
 	
 	"mus": {
 		"note": "Nota",
@@ -355,7 +355,7 @@
 		"idle": "INATTIVO",
 		"postprocessing": "POSTPROCESSAMENTO",
 		"preprocessing": "PREPROCESSAMENTO",
-		"profiler_state": "STATO PROFILATORE:",
+		"profiler_state": "STATO PROFILER:",
 		"recording": "CATTURA",
 		"rt_algorithm": "Algoritmo TR",
 		"saving": "SALVATAGGIO",
@@ -371,10 +371,10 @@
 	"range_id": "Gamma {@id}",
 	"ranges": "Gamme",
 	
-	"ratio": "Ratio",
-	"ratio_high": "Ratio alte",
-	"ratio_low": "Ratio basse",
-	"ratio_knee:db": "Ratio,\nGinocchio (dB)",
+	"ratio": "Rapporto",
+	"ratio_high": "Rapporto alti",
+	"ratio_low": "Rapporto bassi",
+	"ratio_knee:db": "Rapporto,\nGinocchio (dB)",
 	
 	"reduction": "Riduzione",
 	
@@ -400,7 +400,7 @@
 	"sc": {
 		"Ext_ernal": "Est",
 		"SC": "SC",
-		"listen": "Audiziona",
+		"listen": "Ascolta",
 		"lookahead": "Lookahead",
 		"position": "Posizione",
 		"preamp": "Preamp",
@@ -424,10 +424,10 @@
 		"fade_in": "Dissolvenza ad aprire",
 		"fade_out": "Dissolvenza",
 		"head_cut": "Taglio testa",
-		"listen": "Audiziona",
+		"listen": "Ascolta",
 		"makeup": "Makeup",
 		"predelay": "Pre-delay",
-		"reverse": "Reverse",
+		"reverse": "Rovescia",
 		"sample_num": "Campione #",
 		"tail_cut": "Taglio coda"
 	},
@@ -467,8 +467,8 @@
 	
 	"slope": "Pendenza",
 
-	"source": "Fonte",
-	"source:": "Fonte:",
+	"source": "Sorgente",
+	"source:": "Sorgente:",
 	
 	"specials": {
 		"idx": "{@id}",

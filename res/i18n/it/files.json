@@ -14,9 +14,9 @@
 		"lspc": "Formato file LSP chunk data (*.lspc)"
 	},
 	"roomeqwizard": {
-		"all": "Tutti i parametri filtro REW (*.req, *.txt)",
-		"req": "Parametri filtro REW in formato binario (*.req)",
-		"txt": "Parametri filtro REW in formato testuale (*.txt)"
+		"all": "Tutti i file di settaggio filtro REW (*.req, *.txt)",
+		"req": "Settaggio filtro REW in formato binario (*.req)",
+		"txt": "Settaggio filtro REW in formato testuale (*.txt)"
 	},
 	"text": {
 		"txt": "File di testo(*.txt)"
