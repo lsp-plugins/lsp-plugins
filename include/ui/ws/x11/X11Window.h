@@ -126,7 +126,7 @@ namespace lsp
                      */
                     virtual size_t screen();
 
-                    virtual status_t set_caption(const char *text);
+                    virtual status_t set_caption(const char *ascii, const char *utf8);
 
                     inline ::Window x11handle() const { return hWindow; }
 
@@ -324,6 +324,20 @@ namespace lsp
                      */
                     virtual mouse_pointer_t get_mouse_pointer();
 
+                    /**
+                     * Set window class
+                     * @param instance window instance, ASCII-string
+                     * @param wclass window class, ASCII-string
+                     * @return status of operation
+                     */
+                    virtual status_t set_class(const char *instance, const char *wclass);
+
+                    /**
+                     * Set window role
+                     * @param wrole window role, ASCII-string
+                     * @return status of operation
+                     */
+                    virtual status_t set_role(const char *wrole);
             };
         }
     
