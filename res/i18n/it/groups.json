@@ -1,0 +1,86 @@
+{
+	"analysis": "Analisi",
+	"audio_channel": "Canale Audio",
+	"audio_channels": "Canali Audio",
+	"audio_output": "Uscita Audio",
+	
+	"bands": "Bande",
+
+	"controls": "Controlli",
+	
+	"chan": {
+		"master": "Canale Master"
+	},
+	
+	"channel": "Canale",
+	"channel_n": "Canale {@id}",
+	"channels": "Canali",
+	
+	"distance": "Distanza",
+	
+	"gain": "Guadagno",
+	"general": "Generale",
+	
+	"impulse_response": "Risposta all'impulso'",
+	"instrument_mixer": "Mixer dello strumento",
+	
+	"latency": "Latenza",
+	
+	"lchan": {
+		"distance": "Distanza (sinistra)",
+		"monitoring": "Monitoraggio (sinistra)",
+		"samples": "Campioni (sinistra)",
+		"signal": "Segnale (sinistra)",
+		"time": "Tempo (sinistra)"
+	},
+	
+	"metering": "Metering",
+	"midi_setup": "Setup MIDI",
+	"monitoring": "Monitoraggio",
+	
+	"oscillator_function": "Funzione dell'oscillatore'",
+	"output": "Uscita",
+	"outputs": "Uscite",
+	
+	"parameters": "Parametri",
+	
+	"plug": {
+		"calibrator": "Calibratore",
+		"compressor": "Compressore",	
+		"expander": "Expander",
+		"gate": "Gate",
+		"latency_detector": "Latency Detector",
+		"limiter": "Limiter",
+		"processor": "Processor",
+		"trigger": "Trigger"
+	},
+	
+	"processor": "Processore",
+	"processors": "Processori",
+	
+	"rendering": "Rendering",
+	
+	"results": "Risultati",
+	
+	"rchan": {
+		"distance": "Distanza (destra)",
+		"monitoring": "Monitoraggio (destra)",
+		"samples": "Campioni (destra)",
+		"signal": "Segnale (destra)",
+		"time": "Tempo (destra)"
+	},
+	
+	"sample_matrix": "Matrice dei Campioni",
+	"sample_n": "Campione {@id}",
+	"samples": "Campioni",
+	
+	"sidechain": "Sidechain",
+	"signal": "Segnale",
+	"signal_n": "Segnale {@id}",
+	"signals": "Segnali",
+	
+	"test_signal": "Segnale di prova",
+	"time": "Tempo",
+	
+	"wet_signal_eq": "Equalizzazione Segnale Wet"
+}

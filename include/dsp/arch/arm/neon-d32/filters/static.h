@@ -251,8 +251,8 @@ namespace neon_d32
     void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
     {
         IF_ARCH_ARM(
-            float *fx8a = f->x8.a0;
-            float *fx8b = f->x8.b1;
+            float *fx8a = f->x8.b0;
+            float *fx8b = f->x8.a1;
             float vmask[16] __lsp_aligned16;
             size_t mask;
         );

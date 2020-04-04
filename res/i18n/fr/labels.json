@@ -1,0 +1,542 @@
+{
+	"3d": {
+		"3d_model": "Modèle 3D",
+		"angle": "Angle",
+		"camera": "Caméra",
+		"curvature": "Courbure",
+		"distance": "Distance",
+		"height": "Hauteur",
+		"move_x": "Déplacement X",
+		"move_y": "Déplacement Y",
+		"move_z": "Déplacement Z",
+		"pitch": "Hauteur tonale",
+		"roll": "Rouler",
+		"s_ize_x:": "Ta X :",
+		"s_ize_y:": "Ta Y :",
+		"s_ize_z:": "Ta Z :",
+		"scale_x": "Échel X",
+		"scale_y": "Échel Y",
+		"scale_z": "Échel Z",
+		"size": "Taille",
+		"size_x:": "Taille X :",
+		"size_y:": "Taille Y :",
+		"size_z:": "Taille Z :",
+		"shape": "Forme",
+		"x_axis": "Axe X",
+		"y_axis": "Axe Y",
+		"yaw": "Yaw",
+		"z_axis": "Axe Z"
+	},
+
+	"Env_elope": "Env",
+	"Over_Sampling": "S/É",
+	"Over_Sampling:": "S/É :",
+	"Tri_gger": "Déc",
+	
+	"absolute_threshold": "Absolu",
+
+	"active": "Actif",
+	"actual_duration": "Durée\neffective (s)",
+	
+	"amplitude": "Amplitude",
+	
+	"att_ack": "Att",
+	"attack": "Attaque",
+	"attack:db_ms": "Attaque\n(dB, ms)",
+	
+	"automatic_extension": "Extension automatique",
+	
+	"balance": "Balance",
+	
+	"band_hue": "Band, Tonalité",
+	
+	"bool": {
+		"off": "off",
+		"on": "on"
+	},
+	
+	"boost": "Boost",
+	"boost_": "Boost",
+	"bookmark_list": "Signets",
+	
+	"bypass": "Court-circuit",
+	
+	"capture": "Capture",
+	"capture:": "Capture :",
+	"capsule": "Capsule",
+	
+	"chan": {
+		":db": "(dB)",
+		"Ext_ernal": "Ext",
+		"H_old": "M",
+		"L_eft": "G",
+		"L_eft:": "G :",
+		"M_id": "M",
+		"M_id:": "M :",
+		"M_ute": "M",
+		"OFF": "OFF",
+		"ON": "ON",
+		"R_ight": "D",
+		"R_ight:": "R :",
+		"S_ide": "C",
+		"S_ide:": "C :",
+		"S_olo": "S",
+		"channel_n": "Canal {@id}",
+		"external_sc": "Externe",
+		"hold": "Maintien",
+		"hue": "Tonalité",
+		"id": "{@id}",
+		"id_L_eft": "{@id} G",
+		"id_M_id": "{@id} M",
+		"id_R_ight": "{@id} D",
+		"id_S_ide": "{@id} C",
+		"in": "Entrée",
+		"input": "Entrée",
+		"left": "Gauche",
+		"left_on": "Gauche on",
+		"mid": "Mil",
+		"mid_on": "Mil on",
+		"middle": "Milieu",
+		"mute": "Muet",
+		"num_id": "#{@id}",
+		"num_id_L_eft": "#{@id} G",
+		"num_id_M_id": "#{@id} M",
+		"num_id_R_ight": "#{@id} D",
+		"num_id_S_ide": "#{@id} C",
+		"off": "Off",
+		"on": "On",
+		"out": "Sortie",
+		"output": "Sortie",
+		"pitch": "Hauteur tonale",
+		"pitch_left": "Hauteur tonale gauche",
+		"pitch_mid": "Hauteur tonale mil",
+		"pitch_right": "Hauteur tonale droite",
+		"pitch_side": "Hauteur tonale côté",
+		"right": "Droite",
+		"right_on": "Droite on",
+		"shift": "Décalage",
+		"side": "Côté",
+		"side_on": "Côté on",
+		"solo": "Solo",
+		"solo_hold": "Solo/maintien"
+	},
+	"channel": "Canal",
+	"channels": "Canaux",
+	
+	"clear": "Effacer",
+	
+	"controls": "Contrôles",
+	"ctl": "Ctl",
+	
+	"click_or_drag_to_load": "Cliquez ou glissez pour charger",
+	
+	"coarse_ir_duration": "Durée de\nl'IR grossière (s)",
+	"coarse_duration": "Durée\ngrossière",
+	
+	"curve": "Courbe",
+	
+	"dc_offset": "Décallage DC",
+	"dc_reference": "Référence DC",
+	
+	"delay": "Délai",
+	"delay:ms": "Délai (ms)",
+	
+	"direct_out": "Sortie directe",
+	"direct_output": "Sortie directe",
+	"direct_output_": "Sortie directe :",
+	"distance": "Distance",
+	"distance:cm": "Distance (cm)",
+	"dither": "Dither",
+	"dither:": "Dither :",
+	"dithering": "Dithering",
+	
+	"dynamics": "Dynamiques",
+	
+	"enable": "Actif",
+	
+	"energy_decay_linear_correlation": "Corrélation linéaire de\nla décroissance énergétique",
+	
+	"equalizer": "Égaliseur",
+	"equalizer:db": "Égaliseur (dB)",
+	
+	"export": "Exporter",
+	
+	"feedback": "Retour",
+
+	"fft": {
+		"envelope": "Envelope",
+		"fft": "FFT",
+		"fft:": "FFT :",
+		"frame": "Trame FFT",
+		"tolerance": "Tolérance",
+		"window": "Fenêtre"
+	},
+
+	"file": "Fichier",
+	"file_list": "Liste de fichier",
+	"file_name": "Nom de fichier",
+	"filter": "Filtre",
+	"filters": "Filtres",
+	
+	"flt": {
+		"EQ_ualizer": "EQ",
+		"H_ighC_ut": "HC",
+		"HCF": "HCF",
+		"HPF": "HPF",
+		"L_owC_ut": "LC",
+		"LCF": "LCF",
+		"LPF": "LPF",
+		"bass": "Basse",
+		"high_cut": "Coupure haute",
+		"low_cut": "Coupure basse",
+		"middle": "Milieu",
+		"presence": "Présence",
+		"subs": "Subs",
+		"treble": "Aigü"
+	},
+	
+	"frequency": "Fréquence",
+	"freq_gain:hz_db": "Fréq, Gain\n(Hz, dB)",
+	
+	"gain": "Gain",
+	"gain_": "Gain",
+	"gain:db": "Gain\n(dB)",
+	
+	"graphs": {
+		"compression": "COMPRESSION",
+		"correlation": "GRAPH DE CORRELATION",
+		"curve": "COURBE",
+		"delay_line": "DÉLAI EN LIGNE",
+		"expansion": "EXPENSION",
+		"frequency": "GRAPH DE FRÉQUENCE",
+		"gating": "GATING",
+		"left_channel": "CANAL GAUCHE",
+		"oscillator_waveform": "FORME D'ONDE DE L'OSCILLATEUR",
+		"right_channel": "CANAL DROIT",
+		"spectrum": "GRAPH SPECTRAL",
+		"time": "GRAPH TEMPOREL",
+		"trigger": "GRAPH DE DÉCLENCHEUR"
+	},
+	"group": "Groupe",
+	
+	"hold": "Maintien",
+	"host_bpm": "BPM de l'hôte",
+	
+	"hysteresis": "Hystérésis",
+	
+	"input": "Entrée",
+	"input_level:db": "Niveau d'entrée (dB)",
+	"input:db": "Entrée (dB)",
+	"instrument_num": "Instrument #",
+
+	"ir_equalizer": "IR égaliseur",
+	
+	"knee": "Genoux",
+	"knee_:db": "Genoux\n(dB)",
+
+	"latency:ms": "Latence (ms)",
+	"launch": "Lancer",
+	"left": "Gauche",
+	"listen": "Écoute",
+	"location": "Location",
+	"log_scale": "Échelle log",
+	
+	"lookahead": "Lookahead",
+	
+	"makeup": "Surgain",
+	"makeup_:db": "Surgain\n(dB)",
+	
+	"material": {
+		"absorption": "Absorption",
+		"diffusion": "Diffusion",
+		"dispersion": "Dispersion",
+		"in_to_out": "Entrée -> Sortie",
+		"link": "Lien",
+		"material_preset": "Préréglage matériel",
+		"material_preset:": "Préréglage matériel :",
+		"out_to_in": "Sortie -> Entrée",
+		"physical_properties": "Propriétés physiques",
+		"physical_properties:": "Propriétés physiques :",
+		"sound_speed": "Vitesse du son",
+		"transparency": "Transparence"
+	},
+	"max_latency": "Latence max",
+	"max_time": "Temps max",
+	
+	"measure": "Mesure",
+	"metering": {
+		"channel": "Canal",
+		"frequency": "Fréquence",
+		"frequency:hz": "Fréquence (Hz)",
+		"level": "Niveau",
+		"level:db": "Niveau (dB)",
+		"preamp": "Préamp",
+		"reactivity": "Réactivité",
+		"selector": "Sélecteur",
+		"shift": "Décalage"
+	},
+	
+	"mic_rophone_direction": "Direction du micro",
+	
+	"midi": {
+		"midi_num": "MIDI #",
+		"note_off": "Note off",
+		"note_on": "Note on",
+		"velocity": "Vélocité"
+	},
+	"mix": "Mix",
+	"mix_gain": "Gain du mix",
+	
+	"mode": "Mode",
+	"mode:": "Mode :",
+	"model": "Modèle",
+	"model:": "Modèle :",
+	
+	"ms_listen": "Écoute M/C",
+	
+	"mus": {
+		"note": "Note",
+		"bpm": "BPM",
+		"pitch": "Hauteur tonale",
+		"tempo": "Tempo",
+		"tone": "Ton"
+	},
+	
+	"mute": "Muet",
+	"muting": "Silencier",
+	
+	"noise_floor": "Seuil de bruit",
+	
+	"normalize": "Normaliser",
+	
+	"obj": {
+		"disabled": "Désactivé",
+		"enabled": "Activé",
+		"hue": "tonalité",
+		"object": "Objet",
+		"object:": "Objet :"
+	},
+	
+	"offset": "Décalage",
+	"offset:samp": "Décalage (écha)",
+	
+	"output": "Sortie",
+	"output:db": "Sortie (dB)",
+	"oversampling": "Suréchantillonnage",
+	
+	"panning": "Panning",
+	"panorama": "Panorama",
+	"panorama:pc": "Panorama (%)",
+	"pause": "Pause",
+	
+	"plug": {
+		"calibrator": "Calibrateur",
+		"compressor": "Compresseur",	
+		"expander": "Expandeur",
+		"gate": "Porte (gate)",
+		"latency_detector": "Détecteur de latence",
+		"limiter": "Limiteur",
+		"trigger": "Déclencheur"
+	},
+	
+	"postprocess": "Post-traitement",
+	
+	"preamp": "Préamp",
+	
+	"predelay": "Pré-délai",
+	"prof": {
+		"calibrating": "CALIBRATION",
+		"convolving": "CONVOLUTION",
+		"detecting_latency": "DÉTECTION DE LA LATENCE",
+		"idle": "INACTIF",
+		"postprocessing": "POSTTRAITEMENT",
+		"preprocessing": "PRÉTRAITEMENT",
+		"profiler_state": "ÉTAT DU PROFILEUR :",
+		"rt_algorithm": "Algorithme RT",
+		"recording": "EN ENREGISTREMENT",
+		"saving": "EN SAUVEGARDE",
+		"waiting": "EN ATTENTE"
+	},
+	"progress": "Progression",
+	
+	"q_hue": "Q, tonalité",
+	"quality": "Qualité",
+	
+	"ramp": "Rampe",
+	"range": "Éventail",
+	"range_id": "Éventail {@id}",
+	"ranges": "Éventails",
+	
+	"ratio": "Ratio",
+	"ratio_high": "Ratio haut",
+	"ratio_low": "Ratio bas",
+	"ratio_knee:db": "Ratio,\genoux (dB)",
+	
+	"reduction": "Réduction",
+	
+	"reflections": "Réflexions",
+	
+	"rel_ease": "Rel",
+	"release": "Relâche",
+	"release:db_ms": "Relâche\n(dB, ms)",
+	"reset": "Réinitialisation",
+	
+	"reverberation_time:s": "Temps de \nréverbération (s)",
+	
+	"right": "Droite",
+	
+	"room_orientation:": "Orientation de la pièce :",
+	
+	"samples": "Échantillons",
+	"samples:samp": "Échantillons (écha)",
+	"save": "Sauvegarder",
+	"save_": "Sauvegarder",
+	"save_mode": "Mode de sauvegarde",
+	
+	"sc": {
+		"Ext_ernal": "Ext",
+		"SC": "SC",
+		"listen": "Écoute",
+		"lookahead": "Lookahead",
+		"position": "Position",
+		"preamp": "Préamp",
+		"reactivity": "Réactivité",
+		"sc_preamp": "SC Préamp",
+		"type": "Type"
+	},
+	
+	"sc_boost": "SC boost",
+	"sc_boost:": "SC boost :",
+	
+	"sc_preamp_makeup:db_db": "SC Préamp,\nSurgain\n(dB, dB)",
+
+	"sel_time": "Temps de sél",
+	"setup": "Paramètre",
+	"search": "Recherche",
+	"sedit": {
+		"active": "Actif",
+		"disabled": "Désactivé",
+		"enabled": "Activé",
+		"fade_in": "Fondu ouverture",
+		"fade_out": "Fondu fermeture",
+		"head_cut": "Écrêtage",
+		"listen": "Écoute",
+		"makeup": "Surgain",
+		"predelay": "Pré-délai",
+		"reverse": "Inverser",
+		"sample_num": "Échantillon #",
+		"tail_cut": "Équeutage"
+	},
+	"settings": "Paramètres",
+	
+	"side_direction": "Direction de côté", 
+	"sidechain": "Chaîne latérale",
+	
+	"signal": {
+		"M_iddle": "M",
+		"P_hase": "P",
+		"S_ide": "C",
+		"amplitude": "Amplitude",
+		"dry": "Originel",
+		"dry:db": "Originel\n(dB)",
+		"dry_pan": "Pan originel",
+		"duty_ratio": "Ratio obligatoire",
+		"fall": "Chute",
+		"in_lr": "Entrée G/D",
+		"invert": "Inverser",
+		"mono": "Mono",
+		"negative_width": "Largeur négative",
+		"out_lr": "Sortie G/D",
+		"pan": "Pan",
+		"pan_l": "Pan G",
+		"pan_left": "Pan gauche",
+		"pan_r": "Pan D",
+		"pan_right": "Pan droite",
+		"peak": "Pic",
+		"phase": "Phase",
+		"positive_width": "Largeur positive",
+		"raise": "Augmenter",
+		"stereo": "Stéréo",
+		"width": "Largeur",
+		"wet": "Traité",
+		"wet:db": "Traité\n(dB)"
+	},
+	
+	"slope": "Pente",
+	
+	"source": "Source",
+	"source:": "Source :",
+	
+	"specials": {
+		"idx": "{@id}",
+		"idx:": "{@id} :",
+		"num": "#"	
+	},
+	"spectrogram": "Spectrogramme",
+	"spread": "Propagation",
+	
+	"src": {
+		"disabled": "Désactivé",
+		"enabled": "Activé"
+	},
+	
+	"status": "Statut",
+	
+	"stereo_link": "Lien stéréo",
+	"stop": "Stop",
+	"stretch": "Étirement",
+	
+	"sync": "Sync",
+	
+	"temperature": "Température",
+	"tempo": "Tempo",
+	
+	"thr_eshold": "Seu",
+	"threads": "Fils",
+	"threshold": "Seuil de déclenchement",
+	"thresh_gain:db_db": "Seuil, Gain\n(dB, dB)",
+	"thresh_old": "Seuil",
+	"thresh_old:db": "Seuil\n(dB)",
+	
+	"time": "Temps",
+	"time_:ms": "Temps (ms)",
+	"time_drifting": "Dérive temporelle",
+	"time:ms": "Temps\n(ms)",
+	
+	"type": "Type",
+	
+	"units": {
+		":db": "(dB)",
+		":hz": "(Hz)",
+		":ms": "(ms)",
+		":pc": "(%)",
+		"db": "dB",
+		"hz": "Hz",
+		"ms": "ms",
+		"pc": "%",
+		"centimeters": "Centimètres",
+		"meters": "Mètres",
+		"millimeters": "Millimètres",
+		"samples": "Échantillons"
+	},
+	
+	"value": "Vleur",
+	"values": {
+		"best": "Meilleure",
+		"desc_label": "{@name}",
+		"desc_multi_line": "{@name}\n({@unit})",
+		"desc_single_line": "{@name} ({@unit})",
+		"desc_unit": "({@unit})",
+		"fmt_multi_line": "{@value}\n{@unit}",
+		"fmt_single_line": "{@value} {@unit}",
+		"fmt_value": "{@value}",
+		"selected": "Sélectionné",
+		"worst": "Pire",
+		"x_k": "{@value}k"
+	},
+	
+	"working_area": "Zone de travail",
+	
+	"zone": "Zone",
+	"zoom": "Zoom"
+}

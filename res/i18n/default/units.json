@@ -24,9 +24,12 @@
 
 	"m": "m",
 	"mhz": "MHz",
+	"min": "min",
 	"mps": "m/s",
 	"mm": "mm",
 	"ms": "ms",
+	
+	"oct": "oct",
 	
 	"pc": "%",
 	

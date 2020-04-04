@@ -105,6 +105,8 @@ namespace lsp
             // Initialize window
             LSPDisplay *dpy = pWnd->display();
 
+            pWnd->set_class(meta->lv2_uid, LSP_ARTIFACT_ID);
+            pWnd->set_role("audio-plugin");
             pWnd->title()->set_raw(meta->name);
             pWnd->set_policy(WP_GREEDY);
             if (!pWnd->nested())
@@ -944,7 +946,7 @@ namespace lsp
                 vWidgets.add(pMessage);
                 pMessage->init();
                 pMessage->set_border_style(BS_DIALOG);
-                pMessage->title()->set("titles.update_nofitication");
+                pMessage->title()->set("titles.update_notification");
                 pMessage->actions()->deny_all();
                 pMessage->actions()->set_closeable(true);
                 pMessage->padding()->set_all(16);

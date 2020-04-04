@@ -252,9 +252,9 @@
 						<cell rows="4"><vsep /></cell>
 						<cell cols="2"><label text="labels.mix" /></cell>
 						
-						<label text="labels.threshold" />
+						<label text="labels.thresh_old" />
 						<label text="labels.time" />
-						<label text="labels.threshold" />
+						<label text="labels.thresh_old" />
 						<label text="labels.time" />
 						<label text="labels.signal.dry" />
 						<label text="labels.signal.wet" />

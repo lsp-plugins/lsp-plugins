@@ -6,7 +6,7 @@
         "unspecified": "Unspecified",
         "loading": "Loading",
         "in_process": "In process",
-        "uknown_error": "Unknown error",
+        "unknown_error": "Unknown error",
         "no_memory": "Not enough memory",
         "not_found": "Not found or does not exist",
         "bad_format": "Bad format",

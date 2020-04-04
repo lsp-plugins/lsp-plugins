@@ -1,0 +1,24 @@
+{
+	"3d": {
+		"wavefont": "Format de fichier Wavefont 3D (*.obj)"
+	},
+	"all": "Any file (*.*)",
+	"audio": {
+		"all": "Fichiers audio (*.wav, *.mp3)",
+		"audio_lspc": "Tous les conteneurs audio pris en charge (*.wav, *.lspc)",
+		"supported": "Tous les fichiers audio pris en charge (*.wav)",
+		"wave": "Format de fichier audio Wave (*.wav)"
+	},
+	"config": {
+		"lsp": "Fichier de configuration LSP plugin (*.cfg)",
+		"lspc": "Format de fichier de données de morceaux LSP (*.lspc)"
+	},
+	"roomeqwizard": {
+		"all": "Tous les paramètres du filtre REW (*.req, *.txt)",
+		"req": "Paramètres du filtre binaire REW (*.req)",
+		"txt": "Paramètres du filtre de texte REW (*.txt)"
+	},
+	"text": {
+		"txt": "Fichiers texte (*.txt)"
+	}
+}

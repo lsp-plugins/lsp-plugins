@@ -8,7 +8,8 @@
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
-=== 1.1.16 ===
+=== 1.1.18 ===
+- Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.
@@ -20,7 +21,6 @@
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin.
-- Decomposition of core modules into submodules.
 - Additional code updates to get compatibility with WindowsNT platform.
   
 *******************************************************************************

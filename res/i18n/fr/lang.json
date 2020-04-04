@@ -1,0 +1,10 @@
+{
+	"language": "Langage",
+
+	"local": {
+		"fr": "Français",
+		"ru": "Russe",
+		"us": "Anglaise (US)",
+        "it": "Italien"
+	}
+}

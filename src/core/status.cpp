@@ -24,7 +24,7 @@ namespace lsp
         S("unspecified", "Unspecified"),
         S("loading", "Loading"),
         S("in_process", "In process"),
-        S("uknown_error", "Unknown error"),
+        S("unknown_error", "Unknown error"),
         S("no_memory", "Not enough memory"),
         S("not_found", "Not found or does not exist"),
         S("bad_format", "Bad format"),

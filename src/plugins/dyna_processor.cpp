@@ -211,7 +211,6 @@ namespace lsp
             if ((i > 0) && (nMode == DYNA_STEREO))
             {
                 channel_t *sc       = &vChannels[0];
-                c->pSC              = sc->pSC;
                 c->pScType          = sc->pScType;
                 c->pScSource        = sc->pScSource;
                 c->pScMode          = sc->pScMode;
