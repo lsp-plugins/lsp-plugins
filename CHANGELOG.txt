@@ -2,6 +2,15 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.17 ===
+* Desktop integration icons are now more properly following the XDG standard.
+* Fixed Lanczos resampling kernel formula for oversampling operations.
+* Fixed improper display of units in the UI.
+* Added French translation of the UI (contributed by Olivier Humbert).
+* Added Italian translation of the UI (contributed by Stefano Tronci).
+* Fixed non-working right sidechain channel for stereo version of
+  Compressor, Dynamic Processor, Expander and Gate plugins.
+
 === 1.1.15 ===
 * Fixed improper TTL file generation for several plugins. 
 * Restored missing SVG files, implemented proper icon installation.
