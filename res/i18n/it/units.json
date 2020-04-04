@@ -1,0 +1,39 @@
+{
+	"bar": "battuta",
+	"beat": "battito",
+	"bpm": "BPM",
+	
+	"cent": "cent",
+	"cm": "cm",
+	
+	"db": "dB",
+	"deg": "°",
+	"degc": "°C",
+	"degf": "°F",
+	"degk": "°K",
+	"degr": "°R",
+	
+	"gain": "G",
+	
+	"hz": "Hz",
+	"inch": "\"",
+	
+	"khz": "kHz",
+	"km": "km",
+	"kmph": "km/h",
+
+	"m": "m",
+	"mhz": "MHz",
+	"min": "min",
+	"mps": "m/s",
+	"mm": "mm",
+	"ms": "ms",
+	
+	"oct": "oct",
+	
+	"pc": "%",
+	
+	"s": "s",
+	"samp": "samp",
+	"st": "st"
+}

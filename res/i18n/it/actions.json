@@ -1,0 +1,66 @@
+{
+	"3d_rendering": "Rendering 3D",
+
+	"apply": "Applica",
+	
+	"cancel": "Cancella",
+	"close": "Chiudi",
+	
+	"confirm": {
+		"no": "No",
+		"yes": "Si"
+	},
+	
+	"edit": {
+		"clear": "Pulisci",
+		"copy": "Copia",
+		"cut": "Taglia",
+		"delete": "Rimuovi",
+		"move_down": "Muovi sotto",
+		"move_first": "Muovi all'inizio",
+		"move_last": "Muovi alla fine",
+		"move_up": "Muovi su",
+		"paste": "Incolla"
+	},
+	
+	"export": "Esporta",
+	"export_settings_to_clipboard": "Esporta i settaggi negli appunti",
+	"export_settings_to_file": "Esporta i settaggi su file...",
+	
+	"freeze": "Congela",
+	
+	"import": "Importa",
+	"import_settings_from_clipboard": "Importa i settaggi dagli appunti",
+	"import_settings_from_file": "Importa i settaggi da file...",
+	"import_rew_filter_file": "File filtro REW...",
+
+	"listen": "Audiziona",
+	"link": {
+		"copy": "Copia link",
+		"follow": "Segui link"
+	},
+	
+	"load": "Carica",
+	"load_preset": "Carica preset",
+	
+	"measure": "Misura",
+	
+	"nav": {
+		"go": "Su",
+		"up": "Giu"
+	},
+	
+	"ok": "OK",
+	"open": "Apri",
+	
+	"postprocess": "Post-processa",
+	"profile": "Profila",
+	
+	"save": "Salva",
+	
+	"select_language": "Seleziona lingua",
+	
+	"tap": "Tap",
+	"to_bookmarks": "+Preferiti",
+	"toggle_rack_mount": "Cambia a rack mount"
+}
