@@ -10,6 +10,7 @@
 
 === 1.1.18 ===
 * Updated XDG desktop application integration.
+* Fixed bug in asimd::hdotp functions.
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
