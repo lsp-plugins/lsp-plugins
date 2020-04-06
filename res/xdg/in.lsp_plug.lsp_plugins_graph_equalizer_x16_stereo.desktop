@@ -10,5 +10,5 @@ Exec=lsp-plugins-graph-equalizer-x16-stereo
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;X-lsp-plugins;
+Categories=Audio;
 Keywords=audio;sound;jackd;lsp-plugins;

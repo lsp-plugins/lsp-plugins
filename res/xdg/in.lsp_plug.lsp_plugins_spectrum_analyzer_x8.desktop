@@ -10,5 +10,5 @@ Exec=lsp-plugins-spectrum-analyzer-x8
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;X-lsp-plugins;
+Categories=Audio;
 Keywords=audio;sound;jackd;lsp-plugins;
