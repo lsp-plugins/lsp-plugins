@@ -10,5 +10,4 @@ Exec=lsp-plugins-para-equalizer-x16-ms
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;AudioVideo;
 Keywords=audio;sound;jackd;lsp-plugins;

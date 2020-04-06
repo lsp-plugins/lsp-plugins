@@ -10,5 +10,4 @@ Exec=lsp-plugins-phase-detector
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;AudioVideo;
 Keywords=audio;sound;jackd;lsp-plugins;
