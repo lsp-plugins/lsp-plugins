@@ -7,8 +7,8 @@
 				<label text="labels.tempo" />
 				<label text="labels.stretch" />
 				<label text="labels.settings" />
-				<label text="labels.pan_l" />
-				<label text="labels.pan_r" />
+				<label text="labels.signal.pan_l" />
+				<label text="labels.signal.pan_r" />
 				<label text="labels.signal.dry" />
 				<label text="labels.signal.wet" />
 				<label text="labels.output" />

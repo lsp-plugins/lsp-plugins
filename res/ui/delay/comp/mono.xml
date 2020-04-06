@@ -22,7 +22,7 @@
 		</group>
 		<group text="groups.samples">
 			<vbox>
-				<label text="label.units.samples" />
+				<label text="labels.units.samples" />
 				<knob id="samp" />
 				<value id="samp" />
 				
