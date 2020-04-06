@@ -10,5 +10,5 @@ Exec=lsp-plugins-mb-expander-lr
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;
+Categories=Audio;AudioVideo;
 Keywords=audio;sound;jackd;lsp-plugins;

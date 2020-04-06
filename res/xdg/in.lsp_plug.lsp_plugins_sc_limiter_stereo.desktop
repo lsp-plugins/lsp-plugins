@@ -10,5 +10,5 @@ Exec=lsp-plugins-sc-limiter-stereo
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;
+Categories=Audio;AudioVideo;
 Keywords=audio;sound;jackd;lsp-plugins;
