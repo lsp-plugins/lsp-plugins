@@ -83,109 +83,185 @@
     }
  */
 
-#define FFT_BUTTERFLY_BODY(add_b, add_a) \
-    /* Init pointers */ \
-    register float *a_re    = &dst_re[b*pairs*2]; \
-    register float *a_im    = &dst_im[b*pairs*2]; \
-    register float *b_re    = &a_re[pairs]; \
-    register float *b_im    = &a_im[pairs]; \
-    register size_t p       = pairs; \
-    __IF_32(size_t tmp_re, tmp_im); \
-    \
-    ARCH_X86_ASM \
-    ( \
-        /* Prepare angle */ \
-        __ASM_EMIT32("mov       %[a_re], %[tmp_re]") \
-        __ASM_EMIT32("mov       %[a_im], %[tmp_im]") \
-        __ASM_EMIT32("mov       %[XFFT_A_RE], %[a_re]") \
-        __ASM_EMIT32("mov       %[XFFT_A_IM], %[a_im]") \
-        __ASM_EMIT32("movaps    (%[a_re], %[rank]), %%xmm6")        /* xmm6 = angle_re[0..3] */ \
-        __ASM_EMIT32("movaps    (%[a_im], %[rank]), %%xmm7")        /* xmm7 = angle_im[0..3] */ \
-        __ASM_EMIT32("mov       %[tmp_re], %[a_re]") \
-        __ASM_EMIT32("mov       %[tmp_im], %[a_im]") \
-        __ASM_EMIT64("movaps    (%[XFFT_A_RE], %[rank]), %%xmm6")   /* xmm6 = angle_re[0..3] */ \
-        __ASM_EMIT64("movaps    (%[XFFT_A_IM], %[rank]), %%xmm7")   /* xmm7 = angle_im[0..3] */ \
-        /* Start loop */ \
-        __ASM_EMIT(".align 16") \
-        __ASM_EMIT("1:") \
+#ifdef ARCH_I386
+    #define FFT_BUTTERFLY_BODY(add_b, add_a) \
+        /* Init pointers */ \
+        float *a_re    = &dst_re[b*pairs*2]; \
+        float *a_im    = &dst_im[b*pairs*2]; \
+        float *b_re    = &a_re[pairs]; \
+        float *b_im    = &a_im[pairs]; \
+        size_t p       = pairs; \
+        size_t off     = 0; \
+        float *tmp_re, *tmp_im; \
         \
-        /* Load complex values */ \
-        /* predicate: xmm6 = w_re[0..3] */ \
-        /* predicate: xmm7 = w_im[0..3] */ \
-        __ASM_EMIT("movups      (%[a_re]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
-        __ASM_EMIT("movups      (%[a_im]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
-        __ASM_EMIT("movups      (%[b_re]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
-        __ASM_EMIT("movups      (%[b_im]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
+        ARCH_X86_ASM \
+        ( \
+            /* Prepare angle */ \
+            __ASM_EMIT("mov         %[XFFT_A_RE], %[tmp_re]") \
+            __ASM_EMIT("mov         %[XFFT_A_IM], %[tmp_im]") \
+            __ASM_EMIT("movaps      (%[tmp_re], %[rank]), %%xmm6")      /* xmm6 = angle_re[0..3] */ \
+            __ASM_EMIT("movaps      (%[tmp_im], %[rank]), %%xmm7")      /* xmm7 = angle_im[0..3] */ \
+            /* Start loop */ \
+            __ASM_EMIT(".align 16") \
+            __ASM_EMIT("1:") \
+            \
+            /* Load complex values */ \
+            /* predicate: xmm6 = w_re[0..3] */ \
+            /* predicate: xmm7 = w_im[0..3] */ \
+            __ASM_EMIT("mov         %[a_re], %[tmp_re]") \
+            __ASM_EMIT("mov         %[a_im], %[tmp_im]") \
+            __ASM_EMIT("movups      (%[tmp_re], %[off]), %%xmm0")       /* xmm0 = a_re[0..3] */ \
+            __ASM_EMIT("movups      (%[tmp_im], %[off]), %%xmm1")       /* xmm1 = a_im[0..3] */ \
+            __ASM_EMIT("mov         %[b_re], %[tmp_re]") \
+            __ASM_EMIT("mov         %[b_im], %[tmp_im]") \
+            __ASM_EMIT("movups      (%[tmp_re], %[off]), %%xmm2")       /* xmm2 = b_re[0..3] */ \
+            __ASM_EMIT("movups      (%[tmp_im], %[off]), %%xmm3")       /* xmm3 = b_im[0..3] */ \
+            \
+            /* Calculate complex multiplication */ \
+            __ASM_EMIT("movaps      %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm3, %%xmm5") /* xmm5 = b_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm6, %%xmm2") /* xmm2 = w_re[0..3] * b_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm6, %%xmm3") /* xmm3 = w_re[0..3] * b_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm7, %%xmm4") /* xmm4 = w_im[0..3] * b_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm7, %%xmm5") /* xmm5 = w_im[0..3] * b_im[0..3] */ \
+            __ASM_EMIT(add_b "      %%xmm5, %%xmm2") /* xmm2 = c_re[0..3] = w_re[0..3] * b_re[0..3] +- w_im[0..3] * b_im[0..3] */ \
+            __ASM_EMIT(add_a "      %%xmm4, %%xmm3") /* xmm3 = c_im[0..3] = w_re[0..3] * b_im[0..3] -+ w_im[0..3] * b_re[0..3] */ \
+            \
+            /* Perform butterfly */ \
+            __ASM_EMIT("movaps      %%xmm0, %%xmm4") /* xmm4 = a_re[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm1, %%xmm5") /* xmm5 = a_im[0..3] */ \
+            __ASM_EMIT("subps       %%xmm2, %%xmm0") /* xmm0 = a_re[0..3] - c_re[0..3] */ \
+            __ASM_EMIT("subps       %%xmm3, %%xmm1") /* xmm1 = a_im[0..3] - c_im[0..3] */ \
+            __ASM_EMIT("addps       %%xmm4, %%xmm2") /* xmm2 = a_re[0..3] + c_re[0..3] */ \
+            __ASM_EMIT("addps       %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
+            \
+            /* Store values */ \
+            __ASM_EMIT("movups      %%xmm0, (%[tmp_re], %[off])") \
+            __ASM_EMIT("movups      %%xmm1, (%[tmp_im], %[off])") \
+            __ASM_EMIT("mov         %[a_re], %[tmp_re]") \
+            __ASM_EMIT("mov         %[a_im], %[tmp_im]") \
+            __ASM_EMIT("movups      %%xmm2, (%[tmp_re], %[off])") \
+            __ASM_EMIT("movups      %%xmm3, (%[tmp_im], %[off])") \
+            __ASM_EMIT("add         $0x10, %[off]") \
+            \
+            /* Repeat loop */ \
+            __ASM_EMIT("subl        $4, %[p]") \
+            __ASM_EMIT("jz          2f") \
+            \
+            /* Rotate angle */ \
+            __ASM_EMIT("mov         %[XFFT_W_RE], %[tmp_re]") \
+            __ASM_EMIT("mov         %[XFFT_W_IM], %[tmp_im]") \
+            __ASM_EMIT("movaps      (%[tmp_re], %[rank]), %%xmm0")          /* xmm0 = w_re[0..3] */ \
+            __ASM_EMIT("movaps      (%[tmp_im], %[rank]), %%xmm1")          /* xmm1 = w_im[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm1, %%xmm3")                        /* xmm3 = w_im[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")                        /* xmm2 = w_re[0..3] */ \
+            \
+            __ASM_EMIT("mulps       %%xmm6, %%xmm3")                        /* xmm3 = a_re[0..3] * w_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm7, %%xmm1")                        /* xmm1 = a_im[0..3] * w_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm0, %%xmm6")                        /* xmm6 = a_re[0..3] * w_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm2, %%xmm7")                        /* xmm7 = a_im[0..3] * w_re[0..3] */ \
+            __ASM_EMIT("subps       %%xmm1, %%xmm6")                        /* xmm6 = a_re[0..3] * w_re[0..3] + a_im[0..3] * w_im[0..3] */ \
+            __ASM_EMIT("addps       %%xmm3, %%xmm7")                        /* xmm7 = a_im[0..3] * w_re[0..3] - a_re[0..3] * w_im[0..3] */ \
+            \
+            /* Repeat loop */ \
+            __ASM_EMIT("jmp         1b") \
+            __ASM_EMIT("2:") \
+            \
+            : [tmp_re] "=&r" (tmp_re), [tmp_im] "=&r" (tmp_im), \
+              [off] "+r" (off), [p] "+g" (p) \
+            : [rank] "r" (rank), \
+              [a_re] "m" (a_re), [a_im] "m" (a_im), \
+              [b_re] "m" (b_re), [b_im] "m" (b_im), \
+              [XFFT_A_RE] "g" (&XFFT_A_RE[0]), [XFFT_A_IM] "g" (&XFFT_A_IM[0]), \
+              [XFFT_W_RE] "g" (&XFFT_W_RE[0]), [XFFT_W_IM] "g" (&XFFT_W_IM[0]) \
+            : "cc", "memory",  \
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
+        );
+#else /* ARCH_X86_64 */
+
+    #define FFT_BUTTERFLY_BODY(add_b, add_a) \
+        /* Init pointers */ \
+        float *a_re    = &dst_re[b*pairs*2]; \
+        float *a_im    = &dst_im[b*pairs*2]; \
+        float *b_re    = &a_re[pairs]; \
+        float *b_im    = &a_im[pairs]; \
+        size_t p       = pairs; \
+        size_t off     = 0; \
         \
-        /* Calculate complex multiplication */ \
-        __ASM_EMIT("movaps      %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
-        __ASM_EMIT("movaps      %%xmm3, %%xmm5") /* xmm5 = b_im[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm6, %%xmm2") /* xmm2 = w_re[0..3] * b_re[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm6, %%xmm3") /* xmm3 = w_re[0..3] * b_im[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm7, %%xmm4") /* xmm4 = w_im[0..3] * b_re[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm7, %%xmm5") /* xmm5 = w_im[0..3] * b_im[0..3] */ \
-        __ASM_EMIT(add_b "      %%xmm5, %%xmm2") /* xmm2 = c_re[0..3] = w_re[0..3] * b_re[0..3] +- w_im[0..3] * b_im[0..3] */ \
-        __ASM_EMIT(add_a "      %%xmm4, %%xmm3") /* xmm3 = c_im[0..3] = w_re[0..3] * b_im[0..3] -+ w_im[0..3] * b_re[0..3] */ \
-        \
-        /* Perform butterfly */ \
-        __ASM_EMIT("movaps      %%xmm0, %%xmm4") /* xmm4 = a_re[0..3] */ \
-        __ASM_EMIT("movaps      %%xmm1, %%xmm5") /* xmm5 = a_im[0..3] */ \
-        __ASM_EMIT("subps       %%xmm2, %%xmm0") /* xmm0 = a_re[0..3] - c_re[0..3] */ \
-        __ASM_EMIT("subps       %%xmm3, %%xmm1") /* xmm1 = a_im[0..3] - c_im[0..3] */ \
-        __ASM_EMIT("addps       %%xmm4, %%xmm2") /* xmm2 = a_re[0..3] + c_re[0..3] */ \
-        __ASM_EMIT("addps       %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
-        \
-        /* Store values */ \
-        __ASM_EMIT("movups      %%xmm2, (%[a_re])") \
-        __ASM_EMIT("movups      %%xmm3, (%[a_im])") \
-        __ASM_EMIT("movups      %%xmm0, (%[b_re])") \
-        __ASM_EMIT("movups      %%xmm1, (%[b_im])") \
-        \
-        /* Update pointers */ \
-        __ASM_EMIT("add         $0x10, %[a_re]") \
-        __ASM_EMIT("add         $0x10, %[b_re]") \
-        __ASM_EMIT("add         $0x10, %[a_im]") \
-        __ASM_EMIT("add         $0x10, %[b_im]") \
-        \
-        /* Repeat loop */ \
-        __ASM_EMIT32("subl      $4, %[p]") \
-        __ASM_EMIT64("subq      $4, %[p]") \
-        __ASM_EMIT("jz          2f") \
-        \
-        /* Rotate angle */ \
-        __ASM_EMIT32("mov       %[a_re], %[tmp_re]") \
-        __ASM_EMIT32("mov       %[a_im], %[tmp_im]") \
-        __ASM_EMIT32("mov       %[XFFT_W_RE], %[a_re]") \
-        __ASM_EMIT32("mov       %[XFFT_W_IM], %[a_im]") \
-        __ASM_EMIT32("movaps    (%[a_re], %[rank]), %%xmm0")            /* xmm0 = w_re[0..3] */ \
-        __ASM_EMIT32("movaps    (%[a_im], %[rank]), %%xmm1")            /* xmm1 = w_im[0..3] */ \
-        __ASM_EMIT32("mov       %[tmp_re], %[a_re]") \
-        __ASM_EMIT32("mov       %[tmp_im], %[a_im]") \
-        __ASM_EMIT64("movaps    (%[XFFT_W_IM], %[rank]), %%xmm1")       /* xmm1 = w_im[0..3] */ \
-        __ASM_EMIT64("movaps    (%[XFFT_W_RE], %[rank]), %%xmm0")       /* xmm0 = w_re[0..3] */ \
-        \
-        __ASM_EMIT("movaps      %%xmm1, %%xmm3")                        /* xmm3 = w_im[0..3] */ \
-        __ASM_EMIT("movaps      %%xmm0, %%xmm2")                        /* xmm2 = w_re[0..3] */ \
-        \
-        __ASM_EMIT("mulps       %%xmm6, %%xmm3")                        /* xmm3 = a_re[0..3] * w_im[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm7, %%xmm1")                        /* xmm1 = a_im[0..3] * w_im[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm0, %%xmm6")                        /* xmm6 = a_re[0..3] * w_re[0..3] */ \
-        __ASM_EMIT("mulps       %%xmm2, %%xmm7")                        /* xmm7 = a_im[0..3] * w_re[0..3] */ \
-        __ASM_EMIT("subps       %%xmm1, %%xmm6")                        /* xmm6 = a_re[0..3] * w_re[0..3] + a_im[0..3] * w_im[0..3] */ \
-        __ASM_EMIT("addps       %%xmm3, %%xmm7")                        /* xmm7 = a_im[0..3] * w_re[0..3] - a_re[0..3] * w_im[0..3] */ \
-        \
-        /* Repeat loop */ \
-        __ASM_EMIT("jmp         1b") \
-        __ASM_EMIT("2:") \
-        \
-        : [a_re] "+r"(a_re), [a_im] "+r"(a_im), [b_re] "+r"(b_re), [b_im] "+r"(b_im), [p] __ASM_ARG_RW(p) \
-        : [rank] "r" (rank), \
-          __IF_64([XFFT_A_RE] "r"(XFFT_A_RE), [XFFT_A_IM] "r"(XFFT_A_IM), [XFFT_W_RE] "r"(XFFT_W_RE), [XFFT_W_IM] "r"(XFFT_W_IM)) \
-          __IF_32([XFFT_A_RE] "g"(XFFT_A_RE), [XFFT_A_IM] "g"(XFFT_A_IM), [XFFT_W_RE] "g"(XFFT_W_RE), [XFFT_W_IM] "g"(XFFT_W_IM), [tmp_re] "g"(&tmp_re), [tmp_im] "g"(&tmp_im)) \
-        : "cc", "memory",  \
-        "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
-        "%xmm4", "%xmm5" \
-    );
+        ARCH_X86_ASM \
+        ( \
+            /* Prepare angle */ \
+            __ASM_EMIT("movaps      (%[XFFT_A_RE], %[rank]), %%xmm6")   /* xmm6 = angle_re[0..3] */ \
+            __ASM_EMIT("movaps      (%[XFFT_A_IM], %[rank]), %%xmm7")   /* xmm7 = angle_im[0..3] */ \
+            /* Start loop */ \
+            __ASM_EMIT(".align 16") \
+            __ASM_EMIT("1:") \
+            \
+            /* Load complex values */ \
+            /* predicate: xmm6 = w_re[0..3] */ \
+            /* predicate: xmm7 = w_im[0..3] */ \
+            __ASM_EMIT("movups      (%[a_re], %[off]), %%xmm0")     /* xmm0 = a_re[0..3] */ \
+            __ASM_EMIT("movups      (%[a_im], %[off]), %%xmm1")     /* xmm1 = a_im[0..3] */ \
+            __ASM_EMIT("movups      (%[b_re], %[off]), %%xmm2")     /* xmm2 = b_re[0..3] */ \
+            __ASM_EMIT("movups      (%[b_im], %[off]), %%xmm3")     /* xmm3 = b_im[0..3] */ \
+            \
+            /* Calculate complex multiplication */ \
+            __ASM_EMIT("movaps      %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm3, %%xmm5") /* xmm5 = b_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm6, %%xmm2") /* xmm2 = w_re[0..3] * b_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm6, %%xmm3") /* xmm3 = w_re[0..3] * b_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm7, %%xmm4") /* xmm4 = w_im[0..3] * b_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm7, %%xmm5") /* xmm5 = w_im[0..3] * b_im[0..3] */ \
+            __ASM_EMIT(add_b "      %%xmm5, %%xmm2") /* xmm2 = c_re[0..3] = w_re[0..3] * b_re[0..3] +- w_im[0..3] * b_im[0..3] */ \
+            __ASM_EMIT(add_a "      %%xmm4, %%xmm3") /* xmm3 = c_im[0..3] = w_re[0..3] * b_im[0..3] -+ w_im[0..3] * b_re[0..3] */ \
+            \
+            /* Perform butterfly */ \
+            __ASM_EMIT("movaps      %%xmm0, %%xmm4") /* xmm4 = a_re[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm1, %%xmm5") /* xmm5 = a_im[0..3] */ \
+            __ASM_EMIT("subps       %%xmm2, %%xmm0") /* xmm0 = a_re[0..3] - c_re[0..3] */ \
+            __ASM_EMIT("subps       %%xmm3, %%xmm1") /* xmm1 = a_im[0..3] - c_im[0..3] */ \
+            __ASM_EMIT("addps       %%xmm4, %%xmm2") /* xmm2 = a_re[0..3] + c_re[0..3] */ \
+            __ASM_EMIT("addps       %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
+            \
+            /* Store values */ \
+            __ASM_EMIT("movups      %%xmm2, (%[a_re], %[off])") \
+            __ASM_EMIT("movups      %%xmm3, (%[a_im], %[off])") \
+            __ASM_EMIT("movups      %%xmm0, (%[b_re], %[off])") \
+            __ASM_EMIT("movups      %%xmm1, (%[b_im], %[off])") \
+            /* Update pointers */ \
+            __ASM_EMIT("add         $0x10, %[off]") \
+            /* Repeat loop */ \
+            __ASM_EMIT("sub         $4, %[p]") \
+            __ASM_EMIT("jz          2f") \
+            \
+            /* Rotate angle */ \
+            __ASM_EMIT("movaps      (%[XFFT_W_IM], %[rank]), %%xmm1")       /* xmm1 = w_im[0..3] */ \
+            __ASM_EMIT("movaps      (%[XFFT_W_RE], %[rank]), %%xmm0")       /* xmm0 = w_re[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm1, %%xmm3")                        /* xmm3 = w_im[0..3] */ \
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")                        /* xmm2 = w_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm6, %%xmm3")                        /* xmm3 = a_re[0..3] * w_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm7, %%xmm1")                        /* xmm1 = a_im[0..3] * w_im[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm0, %%xmm6")                        /* xmm6 = a_re[0..3] * w_re[0..3] */ \
+            __ASM_EMIT("mulps       %%xmm2, %%xmm7")                        /* xmm7 = a_im[0..3] * w_re[0..3] */ \
+            __ASM_EMIT("subps       %%xmm1, %%xmm6")                        /* xmm6 = a_re[0..3] * w_re[0..3] + a_im[0..3] * w_im[0..3] */ \
+            __ASM_EMIT("addps       %%xmm3, %%xmm7")                        /* xmm7 = a_im[0..3] * w_re[0..3] - a_re[0..3] * w_im[0..3] */ \
+            \
+            /* Repeat loop */ \
+            __ASM_EMIT("jmp         1b") \
+            __ASM_EMIT("2:") \
+            \
+            : [off] "+r" (off), [p] "+r" (p) \
+            : [a_re] "r"(a_re), [a_im] "r"(a_im), \
+              [b_re] "r"(b_re), [b_im] "r"(b_im), \
+              [rank] "r" (rank), \
+              [XFFT_A_RE] "r" (XFFT_A_RE), [XFFT_A_IM] "r" (XFFT_A_IM), \
+              [XFFT_W_RE] "r" (XFFT_W_RE), [XFFT_W_IM] "r"(XFFT_W_IM) \
+            : "cc", "memory", \
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
+        );
+#endif /* ARCH_X86_64 */
 
 #define FFT_ANGLE_INIT   \
     ARCH_X86_ASM \
