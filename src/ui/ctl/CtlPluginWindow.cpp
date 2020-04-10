@@ -23,7 +23,7 @@ namespace lsp
             pClass          = &metadata;
             pWnd            = wnd;
             pMessage        = NULL;
-            bResizable      = true;
+            bResizable      = false;
             nVisible        = 1;
             pUI             = src;
             pBox            = NULL;
@@ -79,8 +79,10 @@ namespace lsp
         {
             switch (att)
             {
+            #ifndef LSP_NO_EXPERIMENTAL
                 case A_RESIZABLE:
                     PARSE_BOOL(value, bResizable = __);
+            #endif
                     break;
                 default:
                     CtlWidget::set(att, value);
@@ -626,6 +628,8 @@ namespace lsp
                 LSPWindow *wnd  = static_cast<LSPWindow *>(pWidget);
                 wnd->set_min_size(nMinWidth, nMinHeight);
                 wnd->set_border_style((bResizable) ? BS_SIZABLE : BS_SINGLE);
+                wnd->actions()->set_resizable(bResizable);
+                wnd->actions()->set_maximizable(bResizable);
             }
 
             if (pPMStud != NULL)

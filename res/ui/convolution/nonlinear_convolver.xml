@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<group text="Hammerstein Kernels" expand="true" fill="true">
 			<graph width="1024" height="300" expand="true" fill="true">

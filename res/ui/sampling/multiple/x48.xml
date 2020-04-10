@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<port id="ssel" value="ssel[inst]" />
 
 	<vbox spacing="4">

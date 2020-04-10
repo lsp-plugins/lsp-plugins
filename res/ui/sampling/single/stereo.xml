@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<grid rows="2" cols="2" spacing="4" transpose="true">
 		<group text="groups.midi_setup" expand="true">
 			<grid rows="3" cols="6" hspacing="4">

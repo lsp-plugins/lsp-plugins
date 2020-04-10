@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<grid rows="3" cols="2" hspacing="4" vspacing="4">
 		<!-- IR editor -->
 		<group text="groups.impulse_response" expand="true">
@@ -16,8 +16,8 @@
 				</align>
 				
 				<ui:for id="i" first="0" last="3">
-					<hbox border="2" visibility=":fsel == ${i}">
-						<file
+					<hbox border="2" visibility=":fsel == ${i}" expand="true">
+						<file fill="true"
 							id="ifn${i}" head_id="ihc${i}" tail_id="itc${i}"
 							fadein_id="ifi${i}" fadeout_id="ifo${i}" length_id="ifl${i}"
 							status_id="ifs${i}" mesh_id="ifd${i}"
@@ -54,7 +54,7 @@
 		</group>
 		
 		<cell rows="2">
-			<group text="groups.output" expand="true">
+			<group text="groups.output">
 				<vbox>
 					<grid rows="4" cols="1" expand="true" fill="true">
 						<grid rows="4" cols="2">
@@ -90,8 +90,7 @@
 			</group>
 		</cell>
 		
-	
-		<group text="groups.processors" expand="true">
+		<group text="groups.processors">
 			<hbox>
 				<grid rows="5" cols="6" expand="true">
 					<label text="labels.specials.num" />

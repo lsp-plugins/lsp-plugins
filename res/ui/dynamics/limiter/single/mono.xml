@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<grid rows="2" cols="5" transpose="true" hspacing="2" vspacing="2">
 			<!-- Time graph -->

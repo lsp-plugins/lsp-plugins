@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<hbox spacing="4">
 		<group text="groups.controls">
 			<grid rows="3" cols="3" hspacing="4">

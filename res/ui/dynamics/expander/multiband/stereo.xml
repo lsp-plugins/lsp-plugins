@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<grid rows="2" cols="3" vspacing="4" hspacing="4">
 			<graph width="640" height="320" expand="true" fill="true">

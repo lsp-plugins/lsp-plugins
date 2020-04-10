@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<align hpos="0" fill="true">
 			<hbox spacing="8" border="4" fill="false">
@@ -18,8 +18,8 @@
 			</hbox>
 		</align>
 		
-		<hbox>
-			<vbox fill="true" spacing="4">
+		<hbox expand="true">
+			<vbox fill="true" expand="true" spacing="4">
 				<!-- Analyzer, Mastering -->					
 				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ile 1">
 					<center hpos="-1" vpos="-1" visible="false" />
@@ -274,7 +274,7 @@
 				</grid>
 			</group>
 		</hbox>
-		<group text="groups.channels" expand="true" visibility=":mode ige 2">
+		<group text="groups.channels" visibility=":mode ige 2">
 			<grid rows="4" cols="10" transpose="true" fill="true">
 				<cell cols="3">
 					<label text="labels.chan.channel_n" text:id="0" />
