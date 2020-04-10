@@ -1,6 +1,6 @@
 <plugin resizable="true">
 	<grid rows="2" cols="2" spacing="4" transpose="true">
-		<group text="groups.midi_setup" expand="true">
+		<group text="groups.midi_setup">
 			<grid rows="3" cols="6" hspacing="4">
 				<label text="labels.channel" />
 				<label text="labels.mus.note" />
@@ -30,10 +30,10 @@
 				<led id="mute" color="red" />
 			</grid>
 		</group>
-		<cgroup id="ssel" text="Sample # ">
+		<cgroup id="ssel" expand="true">
 			<vbox>
 				<!-- File editor -->
-				<file
+				<file expand="true"
 					id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
 					fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
 					status_id="fs[ssel]" mesh_id="fd[ssel]"
@@ -42,7 +42,7 @@
 					bind="makeup=mk[ssel],predelay=pd[ssel]"
 				/>
 					
-				<grid rows="3" cols="7" vspacing="2" expand="true">
+				<grid rows="3" cols="7" vspacing="2">
 					<label text="labels.sedit.head_cut" />
 					<label text="labels.sedit.tail_cut" />
 					<label text="labels.sedit.fade_in" />
@@ -69,7 +69,7 @@
 				</grid>
 			</vbox>
 		</cgroup>
-		<group text="groups.audio_channels" expand="true">
+		<group text="groups.audio_channels">
 			<grid rows="3" cols="5">
 				<label text="labels.dynamics" />
 				<label text="labels.time_drifting" />
