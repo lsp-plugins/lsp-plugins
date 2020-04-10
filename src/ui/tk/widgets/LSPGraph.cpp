@@ -306,6 +306,21 @@ namespace lsp
             return LSPWidgetContainer::on_mouse_down(e);
         }
 
+        status_t LSPGraph::on_resize(const realize_t *r)
+        {
+            status_t res = STATUS_OK;
+
+            for (size_t i=0, n=vObjects.size(); i<n; ++i)
+            {
+                LSPGraphItem *item = vObjects.at(i);
+                realize_t tmp = *r;
+                if ((res = item->slots()->execute(LSPSLOT_RESIZE_PARENT, this, &tmp)) != STATUS_OK)
+                    break;
+            }
+
+            return res;
+        }
+
         void LSPGraph::draw(ISurface *s)
         {
             // Prepare palette

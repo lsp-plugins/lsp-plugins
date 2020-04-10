@@ -122,6 +122,8 @@ namespace lsp
             A_DETAILED,
             A_DISTANCE_ID,
             A_DURATION_ID,
+            A_DX,
+            A_DY,
             A_EDITABLE,
             A_EMBED,
             A_EXPAND,

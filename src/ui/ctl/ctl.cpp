@@ -98,6 +98,8 @@ namespace lsp
             "detailed",
             "distance_id",
             "duration_id",
+            "dx",
+            "dy",
             "editable",
             "embed",
             "expand",

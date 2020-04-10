@@ -154,6 +154,7 @@ namespace lsp
             LSPSLOT_CHANGE,             //!< LSPSLOT_CHANGE Triggered only when value(s) stored by the widget is(are) changed
             LSPSLOT_DESTROY,            //!< LSPSLOT_DESTROY Triggered when widget associated with slot is destroyed
             LSPSLOT_RESIZE,             //!< LSPSLOT_RESIZE Triggered when the geometry of widget has been changed
+            LSPSLOT_RESIZE_PARENT,      //!< LSPSLOT_RESIZE_PARENT Triggered when the parent widget has been resized
             LSPSLOT_CLOSE,              //!< LSPSLOT_CLOSE Triggered when the window is requested to close
             LSPSLOT_HSCROLL,            //!< LSPSLOT_HSCROLL Triggered when the horizontal scrolling is applied
             LSPSLOT_VSCROLL,            //!< LSPSLOT_VSCROLL Triggered when the vertical scrolling is applied

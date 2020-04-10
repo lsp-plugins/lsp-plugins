@@ -108,6 +108,8 @@ namespace lsp
 
                 virtual status_t    on_mouse_down(const ws_event_t *e);
 
+                virtual status_t    on_resize(const realize_t *r);
+
                 virtual void        draw(ISurface *s);
         };
     

@@ -12,9 +12,11 @@
 * Updated XDG desktop application integration.
 * Refactoring of sse::fft functions for better portability.
 * Fixed bug in asimd::hdotp functions for AArch64.
+- All plugin UIs are now resizable.
 ! Update spectralizer stereo drawing for spectrum analyzer.
-! Make audio file loader sizable.
-! Add proportional rule for widget allocation.
+! Make audio file loader sizeable.
+! Implement void widget.
+! Make meter widget sizeable.
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.

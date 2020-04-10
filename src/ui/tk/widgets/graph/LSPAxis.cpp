@@ -266,13 +266,22 @@ namespace lsp
                 return;
             fAngle      = value;
 
-            float dx    = 0.001f * truncf(cos(value) * 1000.0f);
-            float dy    = -0.001f * truncf(sin(value) * 1000.0f);
+            float dx    = 0.0001f * truncf(cosf(value) * 10000.0f);
+            float dy    = -0.0001f * truncf(sinf(value) * 10000.0f);
             if ((fDX == dx) && (fDY == dy))
                 return;
 
             fDX         = dx;
             fDY         = dy;
+            query_draw();
+        }
+
+        void LSPAxis::set_direction(float dx, float dy)
+        {
+            fDX         = dx;
+            fDY         = dy;
+            fAngle      = get_angle_2d(0.0f, 0.0f, dx, dy) * M_1_PI;
+
             query_draw();
         }
 

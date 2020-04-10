@@ -20,11 +20,18 @@ namespace lsp
             protected:
                 CtlPort        *pPort;
                 CtlColor        sColor;
+                CtlExpression   sAngle;
+                CtlExpression   sDX;
+                CtlExpression   sDY;
                 float           fTransparency;
 
             protected:
                 static status_t     slot_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_graph_resize(LSPWidget *sender, void *ptr, void *data);
+
                 void                submit_values();
+                void                trigger_expr();
+                float               eval_expr(CtlExpression *expr);
 
             public:
                 explicit CtlMarker(CtlRegistry *src, LSPMarker *mark);
