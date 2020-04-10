@@ -1,6 +1,6 @@
 <plugin resizable="true">
 	<hbox spacing="4">
-		<group text="groups.oscillator_function" expand="true" fill="true">
+		<group text="groups.oscillator_function" fill="true">
 			<vbox>
 				<align vpos="0">
 					<combo id="scf" />
@@ -52,7 +52,7 @@
 				</grid>
 			</vbox>
 		</group>
-		<group text="groups.general" expand="true" fill="true">
+		<group text="groups.general" fill="true">
 			<vbox expand="true" fill="true">
 				<align hpos="0">
 					<hbox spacing="4"> <!-- Spacing can help -->
@@ -86,7 +86,7 @@
 			</vbox>
 		</group>
 		
-		<vbox size="2" border="2">
+		<vbox size="2" border="2" expand="true">
 			<!-- Widgets are placed in order as they are drawn -->
 			<graph width="280" height="96" expand="true" fill="true">
 				<center hpos="-1.0" vpos="0.0" visible="false" />
