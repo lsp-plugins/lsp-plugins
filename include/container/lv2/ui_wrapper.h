@@ -43,7 +43,6 @@ namespace lsp
 
             static status_t slot_ui_hide(LSPWidget *sender, void *ptr, void *data);
             static status_t slot_ui_show(LSPWidget *sender, void *ptr, void *data);
-            static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
 
         public:
             inline explicit LV2UIWrapper(plugin_ui *ui, LV2Extensions *ext)
@@ -117,17 +116,11 @@ namespace lsp
 
                 root->slots()->bind(LSPSLOT_SHOW, slot_ui_show, this);
                 root->slots()->bind(LSPSLOT_HIDE, slot_ui_hide, this);
-                root->slots()->bind(LSPSLOT_RESIZE, slot_ui_resize, this);
 
                 pUI->show();
                 root->size_request(&sr);
                 root->resize(sr.nMinWidth, sr.nMinHeight);
-                realize_t r;
-                r.nLeft     = 0;
-                r.nTop      = 0;
-                r.nWidth    = sr.nMinWidth;
-                r.nHeight   = sr.nMinHeight;
-                ui_resize(&r);
+                pExt->resize_ui(sr.nMinWidth, sr.nMinHeight);
             }
 
             void ui_activated()
@@ -176,15 +169,6 @@ namespace lsp
                         pExt->ui_disconnect_from_plugin();
                     bConnected = false;
                 }
-            }
-
-            void ui_resize(const realize_t *r)
-            {
-                lsp_trace("UI has been resized");
-                if ((pUI == NULL) || (pExt == NULL))
-                    return;
-
-                pExt->resize_ui(r->nWidth, r->nHeight);
             }
 
             void destroy()
@@ -504,13 +488,6 @@ namespace lsp
     {
         LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
         _this->ui_deactivated();
-        return STATUS_OK;
-    }
-
-    status_t LV2UIWrapper::slot_ui_resize(LSPWidget *sender, void *ptr, void *data)
-    {
-        LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
-        _this->ui_resize(static_cast<realize_t *>(data));
         return STATUS_OK;
     }
 

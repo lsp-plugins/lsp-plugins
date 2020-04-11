@@ -208,7 +208,8 @@ namespace lsp
         fprintf(out, "\tlv2:requiredFeature urid:map, ui:idleInterface ;\n");
         {
             size_t count = 1;
-            fprintf(out, "\tlv2:optionalFeature ui:parent, ui:resize, ui:noUserResize");
+//            fprintf(out, "\tlv2:optionalFeature ui:parent, ui:resize, ui:noUserResize");
+            fprintf(out, "\tlv2:optionalFeature ui:parent, ui:resize");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_INSTANCE, "lv2ext:instance-access");
             fprintf(out, " ;\n");
         }
