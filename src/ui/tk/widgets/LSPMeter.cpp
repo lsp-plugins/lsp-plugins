@@ -462,8 +462,8 @@ namespace lsp
 
             r->nMinWidth    = width;
             r->nMinHeight   = height;
-            r->nMaxWidth    = width;
-            r->nMaxHeight   = height;
+            r->nMaxWidth    = -1;
+            r->nMaxHeight   = -1;
         }
 
         void LSPMeter::draw_meter(ISurface *s, channel_t *c, float x, float y, ssize_t dx, ssize_t dy, float wx, float wy, size_t n)
@@ -598,23 +598,27 @@ namespace lsp
             bool aa             = s->set_antialiasing(true);
 
             // Estimate text field size
+            ssize_t m_width     = nMWidth;
+            ssize_t m_height    = (nAngle & 1) ? sSize.nHeight - nBorder*2 : sSize.nWidth - nBorder * 2;
+
             if (bValues)
             {
                 sFont.get_parameters(s, &fp);
                 sFont.get_text_parameters(s, &tp, "+99.9");
 
-                tsx     = tp.Width + 2;
-                tsy     = (nChannels > 1) ? 2 * (fp.Height + 3) : fp.Height + 2;
+                tsx         = tp.Width + 2;
+                tsy         = (nChannels > 1) ? 2 * (fp.Height + 3) : fp.Height + 2;
+                m_height   -= (nAngle & 1) ? tsy : tsx;
             }
 
-            ssize_t s_width     = nMWidth;
-            ssize_t p_width     = nMWidth >> 1;
+            ssize_t s_width     = m_width;
+            ssize_t p_width     = m_width >> 1;
             ssize_t fp_width    = (nSpacing + (p_width<<1));
 
             size_t pairs        = nChannels >> 1;
             ssize_t ov_width    = fp_width * pairs + (s_width + 1) * (nChannels & 1) - 1;
-            ssize_t ov_height   = nMHeight + ((nAngle & 1) ? tsy : tsx);
-            size_t segments     = nMHeight >> 2;
+            ssize_t ov_height   = m_height + ((nAngle & 1) ? tsy : tsx);
+            size_t segments     = m_height >> 2;
             size_t swidth       = segments * 4;
 
             // Draw meter

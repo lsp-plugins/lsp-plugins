@@ -14,7 +14,6 @@
 * Fixed bug in asimd::hdotp functions for AArch64.
 - All plugin UIs are now resizable.
 ! Implement void widget.
-! Make meter widget sizeable.
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
