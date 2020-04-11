@@ -13,7 +13,6 @@
 * Refactoring of sse::fft functions for better portability.
 * Fixed bug in asimd::hdotp functions for AArch64.
 - All plugin UIs are now resizable.
-! Make audio file loader sizeable.
 ! Implement void widget.
 ! Make meter widget sizeable.
 - Decomposition of core modules into submodules.

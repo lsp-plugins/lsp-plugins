@@ -324,11 +324,11 @@ namespace lsp
                     break;
                 case A_WIDTH:
                     if (af != NULL)
-                        PARSE_INT(value, af->constraints()->set_width(__, __));
+                        PARSE_INT(value, af->constraints()->set_min_width(__));
                     break;
                 case A_HEIGHT:
                     if (af != NULL)
-                        PARSE_INT(value, af->constraints()->set_height(__, __));
+                        PARSE_INT(value, af->constraints()->set_min_height(__));
                     break;
                 case A_FORMAT:
                     if (af != NULL)
