@@ -606,7 +606,7 @@
 							<center hpos="-1" vpos="-1" visible="false" />
 							<axis min="-72 db" max="24 db" color="g_gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
 							<axis min="-72 db" max="24 db" color="g_gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
-							<marker value="1" offset="1" color="g_gray" basis="1" parallel="0" dx=":_g_width" dy=":_g_height" width="2" smooth="true" /> <!-- 1:1 -->
+							<marker value="1" offset="1" color="g_gray" basis="1" parallel="0" dx=":_a_width" dy=":_a_height" width="2" smooth="true" /> <!-- 1:1 -->
 							<marker value="24 db" color="g_gray" basis="1" parallel="0" /> <!-- +24 dB -->
 							<marker value="24 db" color="g_gray" basis="0" parallel="1" /> <!-- +24 dB -->
 		

@@ -210,12 +210,12 @@ namespace lsp
             }
             else
             {
-                if (!parallel->angle(x, y, fAngle * M_PI, a, b, c))
+                if (!parallel->angle(x, y, fAngle, a, b, c))
                     return;
                 if (nBorder != 0)
                 {
-                    parallel->rotate_shift(x, y, fAngle * M_PI, nBorder, nx, ny);
-                    if (!parallel->angle(x, y, fAngle * M_PI, a2, b2, c2))
+                    parallel->rotate_shift(x, y, fAngle, nBorder, nx, ny);
+                    if (!parallel->angle(x, y, fAngle, a2, b2, c2))
                         return;
                 }
             }
