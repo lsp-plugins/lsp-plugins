@@ -2,28 +2,22 @@
 	<grid rows="2" cols="3" spacing="4">
 		<vbox spacing="4" expand="true">
 			<!-- Signal meters -->
-			<hbox fill="true">
-				<align hpos="0">
-					<hbox spacing="2" fill="false">
-						<meter id="im" angle="0"
-						    type="rms_peak"
-							min="-36 db" max="+6 db" 
-							color="middle_channel"
-						/>
-						<label text="labels.input:db" />
-					</hbox>
-				</align>
-				
-				<align hpos="1">
-					<hbox spacing="2" fill="false">	
-						<label text="labels.output:db" />
-						<meter id="sm" angle="0"
-						    type="rms_peak"
-							min="-36 db" max="+6 db" 
-							color="middle_channel"
-						/>
-					</hbox>
-				</align>
+			<hbox spacing="4">
+				<meter expand="true"
+					id="im" angle="0"
+				    type="rms_peak"
+					min="-36 db" max="+6 db" 
+					color="middle_channel"
+				/>
+				<label text="labels.input:db" />
+				<void min_width="64" />
+				<label text="labels.output:db" />
+				<meter expand="true"
+					id="sm" angle="0"
+				    type="rms_peak"
+					min="-36 db" max="+6 db" 
+					color="middle_channel"
+				/>
 			</hbox>
 			
 			<!-- Graph -->
@@ -120,13 +114,12 @@
 				<text text="-3" coord="10;-3 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 				<text text="-9" coord="10;-9 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 			</graph>
-			<hbox spacing="8">
+			<hbox spacing="4">
 				<label text="labels.mode" />
 				<combo id="slope" />
 				<combo id="mode" />
-				<align pad_right="4" hpos="1"  expand="true">
-					<label text="labels.graphs.spectrum" />
-				</align>
+				<void expand="true" />
+				<label text="labels.graphs.spectrum" />
 			</hbox>
 		</vbox>
 		<vbox>

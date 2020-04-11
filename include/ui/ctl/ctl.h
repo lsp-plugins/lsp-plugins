@@ -85,6 +85,7 @@ namespace lsp
             WC_VBOX,
             WC_VGRID,
             WC_VIEWER3D,
+            WC_VOID,
             WC_VSBAR,
             WC_VSBOX,
             WC_VSEP,
@@ -300,6 +301,7 @@ namespace lsp
 
 // Widget controllers
 #include <ui/ctl/CtlWidget.h>
+#include <ui/ctl/CtlVoid.h>
 #include <ui/ctl/CtlPluginWindow.h>
 #include <ui/ctl/CtlBox.h>
 #include <ui/ctl/CtlScrollBox.h>

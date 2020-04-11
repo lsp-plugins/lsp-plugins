@@ -2,44 +2,38 @@
 	<grid rows="2" cols="3" spacing="4">
 		<vbox spacing="4" expand="true">
 			<!-- Signal meters -->
-			<hbox fill="true">
-				<align hpos="0">
-					<hbox spacing="2" fill="false">
-						<meter id="iml" id2="imr" visibility=":lstn ieq 0"
-							stereo="true" type="rms_peak"
-							angle="0"
-							min="-36 db" max="+6 db" 
-							color="left_channel" color2="right_channel"
-						/>
-						
-						<meter id="iml" id2="imr" visibility=":lstn ieq 1"
-							stereo="true" type="rms_peak"
-							angle="0" 
-							min="-36 db" max="+6 db" 
-							color="middle_channel" color2="side_channel"
-						/>
-						<label text="labels.input:db" />
-					</hbox>
-				</align>
-				
-				<align hpos="1">
-					<hbox spacing="2" fill="false">	
-						<label text="labels.output:db" />
-						<meter id="sml" id2="smr" visibility=":lstn ieq 0"
-							stereo="true" type="rms_peak"
-							angle="0"
-							min="-36 db" max="+6 db" 
-							color="left_channel" color2="right_channel"
-						/>
-						
-						<meter id="sml" id2="smr" visibility=":lstn ieq 1"
-							stereo="true" type="rms_peak"
-							angle="0" 
-							min="-36 db" max="+6 db" 
-							color="middle_channel" color2="side_channel"
-						/>
-					</hbox>
-				</align>
+			<hbox spacing="4">
+				<meter expand="true"
+					id="iml" id2="imr" visibility=":lstn ieq 0"
+					stereo="true" type="rms_peak"
+					angle="0"
+					min="-36 db" max="+6 db" 
+					color="left_channel" color2="right_channel"
+				/>
+				<meter expand="true"
+					id="iml" id2="imr" visibility=":lstn ieq 1"
+					stereo="true" type="rms_peak"
+					angle="0" 
+					min="-36 db" max="+6 db" 
+					color="middle_channel" color2="side_channel"
+				/>
+				<label text="labels.input:db" />
+				<void min_width="64" />
+				<label text="labels.output:db" />
+				<meter expand="true"
+					id="sml" id2="smr" visibility=":lstn ieq 0"
+					stereo="true" type="rms_peak"
+					angle="0"
+					min="-36 db" max="+6 db" 
+					color="left_channel" color2="right_channel"
+				/>
+				<meter expand="true"
+					id="sml" id2="smr" visibility=":lstn ieq 1"
+					stereo="true" type="rms_peak"
+					angle="0" 
+					min="-36 db" max="+6 db" 
+					color="middle_channel" color2="side_channel"
+				/>
 			</hbox>
 			
 			<!-- Graph -->
@@ -190,7 +184,7 @@
 				<label text="labels.mode" />
 				<combo id="slope" />
 				<combo id="mode" />
-				<align hpos="1" expand="true">
+				<align hpos="0.5" expand="true">
 					<hbox spacing="4">
 						<vbox>
 							<hbox>
@@ -212,9 +206,7 @@
 						<label text="labels.listen" />
 					</hbox>
 				</align>
-				<align pad_right="4" hpos="1"  expand="true">
-					<label text="labels.graphs.spectrum" />
-				</align>
+				<label text="labels.graphs.spectrum" />
 			</hbox>
 		</vbox>
 		<vbox>

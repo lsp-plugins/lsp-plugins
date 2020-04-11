@@ -2,30 +2,24 @@
 	<grid rows="2" cols="3" spacing="4">
 		<vbox spacing="4" expand="true">
 			<!-- Signal meters -->
-			<hbox fill="true">
-				<align hpos="0">
-					<hbox spacing="2" fill="false">
-						<meter id="iml" id2="imr"
-							stereo="true" type="rms_peak"
-							angle="0"
-							min="-36 db" max="+6 db" 
-							color="left_channel" color2="right_channel"
-						/>
-						<label text="labels.input:db" />
-					</hbox>
-				</align>
-				
-				<align hpos="1">
-					<hbox spacing="2" fill="false">	
-						<label text="labels.output:db" />
-						<meter id="sml" id2="smr"
-							stereo="true" type="rms_peak"
-							angle="0"
-							min="-36 db" max="+6 db" 
-							color="left_channel" color2="right_channel"
-						/>
-					</hbox>
-				</align>
+			<hbox spacing="4">
+				<meter expand="true"
+					id="iml" id2="imr"
+					stereo="true" type="rms_peak"
+					angle="0"
+					min="-36 db" max="+6 db" 
+					color="left_channel" color2="right_channel"
+				/>
+				<label text="labels.input:db" />
+				<void min_width="64" />
+				<label text="labels.output:db" />
+				<meter expand="true"
+					id="sml" id2="smr"
+					stereo="true" type="rms_peak"
+					angle="0"
+					min="-36 db" max="+6 db" 
+					color="left_channel" color2="right_channel"
+				/>
 			</hbox>
 			
 			<!-- Graph -->
@@ -116,20 +110,18 @@
 				<text text="-3" coord="10;-3 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 				<text text="-9" coord="10;-9 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 			</graph>
-			<hbox spacing="8">
+			<hbox spacing="4">
 				<label text="labels.mode" />
 				<combo id="mode" />
-				<align hpos="1" expand="true">
-					<hbox spacing="8">
+				<align hpos="0.5" expand="true">
+					<hbox spacing="4">
 						<button id="fftv_l" size="16" color="left_channel" led="true" />
 						<label text="labels.chan.left" />
 						<button id="fftv_r" size="16" color="right_channel" led="true" />
 						<label text="labels.chan.right" />
 					</hbox>
 				</align>
-				<align pad_right="4" hpos="1"  expand="true">
-					<label text="labels.graphs.spectrum" />
-				</align>
+				<label text="labels.graphs.spectrum" />
 			</hbox>
 		</vbox>
 		<vbox>

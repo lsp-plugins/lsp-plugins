@@ -243,6 +243,7 @@ namespace lsp
 #include <ui/tk/basic/LSPWidgetContainer.h>
 
 // Basic widgets
+#include <ui/tk/widgets/LSPVoid.h>
 #include <ui/tk/widgets/LSPWindow.h>
 #include <ui/tk/widgets/LSPBox.h>
 #include <ui/tk/widgets/LSPGrid.h>

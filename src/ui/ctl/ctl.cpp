@@ -63,6 +63,7 @@ namespace lsp
             "vbox",
             "vgrid",
             "viewer3d",
+            "void",
             "vsbar",
             "vsbox",
             "vsep",
