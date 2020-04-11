@@ -12,8 +12,9 @@
 * Updated XDG desktop application integration.
 * Refactoring of sse::fft functions for better portability.
 * Fixed bug in asimd::hdotp functions for AArch64.
-- All plugin UIs are now resizable.
-! Implement void widget.
+* LV2 UI and standalone JACK are now resizable.
+! Check resize of meter plugin.
+! Check axis behaviour (axes disappear for negative direction).
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.

@@ -32,7 +32,7 @@ namespace lsp
                 }
                 else
                 {
-                    hWindow                 = 0;
+                    hWindow                 = None;
                     hParent                 = wnd;
                 }
                 nScreen                 = screen;
@@ -220,7 +220,10 @@ namespace lsp
                     );
                     if (hParent > 0)
                     {
-                        ::XSelectInput(dpy, hParent, PropertyChangeMask);
+                        ::XSelectInput(dpy, hParent,
+                            PropertyChangeMask |
+                            StructureNotifyMask
+                        );
                     }
 
                     pX11Display->flush();

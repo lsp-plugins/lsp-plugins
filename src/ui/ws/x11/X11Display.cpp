@@ -1489,6 +1489,18 @@ namespace lsp
                         target      = wnd;
                         break;
                     }
+//                    else if ((ev->type == ConfigureNotify) &&
+//                            (wnd->x11parent() != None) &&
+//                            (wnd->x11parent() == ev->xany.window))
+//                    {
+//                        lsp_trace("resize window: handle=%lx, width=%d, height=%d",
+//                                long(wnd->x11handle()),
+//                                int(ev->xconfigure.width),
+//                                int(ev->xconfigure.height));
+//                        ::XResizeWindow(pDisplay, wnd->x11handle(), ev->xconfigure.width, ev->xconfigure.height);
+//                        ::XFlush(pDisplay);
+//                        return;
+//                    }
                 }
 
                 ws_event_t ue;
