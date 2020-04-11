@@ -100,16 +100,13 @@ namespace lsp
                         PARSE_FLOAT(value, mark->set_offset(__));
                     break;
                 case A_ANGLE:
-                    if (mark != NULL)
-                        BIND_EXPR(sAngle, value);
+                    BIND_EXPR(sAngle, value);
                     break;
                 case A_DX:
-                    if (mark != NULL)
-                        BIND_EXPR(sDX, value);
+                    BIND_EXPR(sDX, value);
                     break;
                 case A_DY:
-                    if (mark != NULL)
-                        BIND_EXPR(sDY, value);
+                    BIND_EXPR(sDY, value);
                     break;
                 case A_SMOOTH:
                     if (mark != NULL)
@@ -197,6 +194,8 @@ namespace lsp
             expr->params()->clear();
             expr->params()->set_int("_g_width", g->width());
             expr->params()->set_int("_g_height", g->height());
+            expr->params()->set_int("_a_width", g->area_width());
+            expr->params()->set_int("_a_height", g->area_height());
 
             return expr->evaluate();
         }
@@ -210,7 +209,7 @@ namespace lsp
             if (sAngle.valid())
             {
                 float angle = eval_expr(&sAngle);
-                mark->set_angle(angle);
+                mark->set_angle(angle * M_PI);
             }
 
             if (sDX.valid())

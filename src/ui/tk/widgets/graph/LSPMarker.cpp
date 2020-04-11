@@ -95,8 +95,8 @@ namespace lsp
         {
             if (fAngle == value)
                 return;
-            fDX     = cosf(value * M_PI);
-            fDY     = sinf(value * M_PI);
+            fDX     = cosf(value);
+            fDY     = sinf(value);
             fAngle  = value;
             query_draw();
         }
@@ -105,7 +105,7 @@ namespace lsp
         {
             fDX         = dx;
             fDY         = dy;
-            fAngle      = get_angle_2d(0.0f, 0.0f, dx, dy) * M_1_PI;
+            fAngle      = get_angle_2d(0.0f, 0.0f, dx, dy);
 
             query_draw();
         }

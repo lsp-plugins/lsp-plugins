@@ -26,6 +26,8 @@ namespace lsp
             nRadius         = 4;
             fCanvasLeft     = 0.0f;
             fCanvasTop      = 0.0f;
+            fCanvasWidth    = 0.0f;
+            fCanvasHeight   = 0.0f;
             pCanvas         = NULL;
             pGlass          = NULL;
             pClass          = &metadata;
@@ -306,6 +308,21 @@ namespace lsp
             return LSPWidgetContainer::on_mouse_down(e);
         }
 
+        void LSPGraph::realize(const realize_t *r)
+        {
+            size_t bw       = nBorder;
+            size_t bs       = bw * M_SQRT2 * 0.5;
+            ssize_t gw      = r->nWidth  - (bs << 1);
+            ssize_t gh      = r->nHeight - (bs << 1);
+
+            fCanvasLeft     = sSize.nLeft + bs;
+            fCanvasTop      = sSize.nTop + bs;
+            fCanvasWidth    = gw;
+            fCanvasHeight   = gh;
+
+            LSPWidgetContainer::realize(r);
+        }
+
         status_t LSPGraph::on_resize(const realize_t *r)
         {
             status_t res = STATUS_OK;
@@ -329,26 +346,20 @@ namespace lsp
             color.scale_lightness(brightness());
 
             // Draw background
-            ssize_t pr = (nBorder + 1) >> 1;
+            ssize_t pr  = (nBorder + 1) >> 1;
             s->fill_frame(0, 0, sSize.nWidth, sSize.nHeight,
                     pr, pr, sSize.nWidth - 2*pr, sSize.nHeight - 2*pr,
                     bg_color);
 
-            size_t bw = nBorder;
+            size_t bw   = nBorder;
+            size_t bs   = bw * M_SQRT2 * 0.5;
 
             s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, color);
 
-            // Draw graph content
-            size_t bs   = bw * M_SQRT2 * 0.5;
-            ssize_t gw  = sSize.nWidth  - (bs << 1);
-            ssize_t gh  = sSize.nHeight - (bs << 1);
-
             // Draw the internals
-            ISurface *cv = get_canvas(s, gw, gh, color);
+            ISurface *cv = get_canvas(s, fCanvasWidth, fCanvasHeight, color);
             if (cv != NULL)
                 s->draw(cv, bs, bs);
-            fCanvasLeft = sSize.nLeft + bs;
-            fCanvasTop  = sSize.nTop + bs;
 
             // Draw the glass and the border
             cv = create_border_glass(s, &pGlass, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, color);
