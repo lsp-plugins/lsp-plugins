@@ -110,7 +110,7 @@ namespace lsp
             pWnd->set_class(meta->lv2_uid, LSP_ARTIFACT_ID);
             pWnd->set_role("audio-plugin");
             pWnd->title()->set_raw(meta->name);
-            pWnd->set_policy(WP_GREEDY);
+
             if (!pWnd->nested())
                 pWnd->actions()->deny_actions(WA_RESIZE);
 
@@ -635,6 +635,7 @@ namespace lsp
             if (pPMStud != NULL)
                 notify(pPMStud);
 
+            pWnd->set_policy((bResizable) ? WP_NORMAL : WP_GREEDY);
             if (!pWnd->nested())
             {
                 size_request_t r;

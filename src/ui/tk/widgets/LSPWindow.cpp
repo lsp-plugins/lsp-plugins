@@ -186,6 +186,27 @@ namespace lsp
                 if (sr.nMinHeight > 0)
                     r.nHeight       = sr.nMinHeight;
             }
+            else
+            {
+                // Check whether window matches constraints
+                if ((sr.nMinWidth > 0) && (r.nWidth < sr.nMinWidth))
+                {
+                    r.nWidth        = sr.nMinWidth;
+                    if ((sr.nMaxWidth > 0) && (sr.nMaxWidth > sr.nMinWidth) && (r.nWidth > sr.nMaxWidth))
+                        r.nWidth        = sr.nMaxWidth;
+                }
+                else if ((sr.nMaxWidth > 0) && (r.nWidth > sr.nMaxWidth))
+                    r.nWidth        = sr.nMaxWidth;
+
+                if ((sr.nMinHeight > 0) && (r.nHeight < sr.nMinHeight))
+                {
+                    r.nHeight       = sr.nMinHeight;
+                    if ((sr.nMaxHeight > 0) && (sr.nMaxHeight > sr.nMinHeight) && (r.nHeight > sr.nMaxHeight))
+                        r.nHeight       = sr.nMaxHeight;
+                }
+                else if ((sr.nMaxHeight > 0) && (r.nHeight > sr.nMaxHeight))
+                    r.nHeight       = sr.nMaxHeight;
+            }
 
             pWindow->resize(r.nWidth, r.nHeight);
 
