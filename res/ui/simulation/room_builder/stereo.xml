@@ -11,9 +11,9 @@
 			</hbox>
 		</align>
 		
-		<hbox spacing="4">
+		<hbox spacing="4" expand="true">
 			<!-- IR editor -->
-			<cgroup id="view">
+			<cgroup id="view" expand="true">
 				<vbox spacing="2">
 					<align hpos="-1">
 						<hbox spacing="4">
@@ -43,7 +43,7 @@
 						</hbox>
 					</align>
 				
-					<viewer3d
+					<viewer3d expand="true"
 						id="ifn"
 						width="340" height="210" fov="70"
 						orientation_id="ifo" status_id="ifs"
@@ -564,7 +564,7 @@
 		</hbox>
 			
 		<!-- IR routing -->
-		<cgroup id="signal" expand="true">
+		<cgroup id="signal">
 			<!-- Processors -->
 			<hbox>
 				<grid rows="5" cols="6" expand="true">
