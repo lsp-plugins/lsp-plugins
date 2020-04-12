@@ -117,10 +117,11 @@ namespace lsp
                 root->slots()->bind(LSPSLOT_SHOW, slot_ui_show, this);
                 root->slots()->bind(LSPSLOT_HIDE, slot_ui_hide, this);
 
-                pUI->show();
                 root->size_request(&sr);
                 root->resize(sr.nMinWidth, sr.nMinHeight);
                 pExt->resize_ui(sr.nMinWidth, sr.nMinHeight);
+
+                pUI->show();
             }
 
             void ui_activated()
