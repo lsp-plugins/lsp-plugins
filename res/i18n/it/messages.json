@@ -1,0 +1,20 @@
+{
+	"file": {
+		"confirm_load": "Vuoi veramente caricare il file selezionato?",
+		"confirm_overwrite": "Il file selezionato è già esistente. Sovrascrivere?",
+		
+		"invalid_name": "Il file inserito è invalido",
+		
+		"not_exists": "Il file inserito non esiste",
+		"not_specified": "Il nome del file non è specificato"
+	},
+	
+	"greetings": {
+		"0": "Hai aggiornato i plugin alla versione {@version}!",
+		"1": "Il progetto '{@project}' è un progetto non-commerciale e ha bisogno di supporto finanziario per continuare lo sviluppo.",
+		"2": "Puoi aiutare questa raccolta opensource di plugin a crescere visitando il seguente link e donando al progetto:",
+		"3": "Ricorda che subscription e piccole donazioni regolari danno più benefici al progetto rispetto a grandi donazioni singole.",
+		"4": "Al fine di non infastidire, questa finestra sarà mostrata solo al seguito di ogni aggiornamento dei plugin.",
+		"5": "Grazie in anticipo."
+	}
+}
