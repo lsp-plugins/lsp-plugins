@@ -78,9 +78,12 @@ namespace lsp
                 if (!clip_line2d(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), x1, y1, x2, y2))
                     return false;
 
-                float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
+                float d1    = distance2d(cx, cy, x1, y1);
+                float d2    = distance2d(cx, cy, x2, y2);
                 d           = (d1 > d2) ? d1 : d2;
             }
+            if (d > 1.0f)
+                d          -= 0.5f; // Fix rounding errors
 
             // Normalize value according to minimum and maximum visible values of the axis
             float a_min = fabsf(fMin), a_max = fabsf(fMax);
@@ -147,9 +150,12 @@ namespace lsp
                 if (!clip_line2d(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), x1, y1, x2, y2))
                     return false;
 
-                float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
+                float d1    = distance2d(cx, cy, x1, y1);
+                float d2    = distance2d(cx, cy, x2, y2);
                 d           = (d1 > d2) ? d1 : d2;
             }
+            if (d > 1.0f)
+                d          -= 0.5f; // Fix rounding errors
 
             // Normalize value according to minimum and maximum visible values of the axis
             float a_min = fabsf(fMin), a_max = fabsf(fMax);
