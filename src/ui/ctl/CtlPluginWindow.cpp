@@ -625,7 +625,7 @@ namespace lsp
             if (pWidget != NULL)
             {
                 // Update window geometry
-                LSPWindow *wnd  = static_cast<LSPWindow *>(pWidget);
+                LSPWindow *wnd  = widget_cast<LSPWindow>(pWidget);
                 wnd->set_min_size(nMinWidth, nMinHeight);
                 wnd->set_border_style((bResizable) ? BS_SIZABLE : BS_SINGLE);
                 wnd->actions()->set_resizable(bResizable);
@@ -636,10 +636,12 @@ namespace lsp
                 notify(pPMStud);
 
             pWnd->set_policy((bResizable) ? WP_NORMAL : WP_GREEDY);
+
             if (!pWnd->nested())
             {
                 size_request_t r;
                 pWnd->size_request(&r);
+                pWnd->resize(r.nMinWidth, r.nMinHeight);
 
                 LSPDisplay *dpy = pWnd->display();
                 if (dpy != NULL)

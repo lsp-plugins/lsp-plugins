@@ -685,6 +685,8 @@ namespace lsp
 
         status_t LSPWindow::resize(ssize_t width, ssize_t height)
         {
+            lsp_trace("Resize: width=%d, height=%d", int(width), int(height));
+
             if (pWindow != NULL)
             {
                 status_t r = pWindow->resize(width, height);
