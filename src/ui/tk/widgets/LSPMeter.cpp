@@ -468,15 +468,23 @@ namespace lsp
 
         void LSPMeter::draw_meter(ISurface *s, channel_t *c, float x, float y, ssize_t dx, ssize_t dy, float wx, float wy, size_t n)
         {
-            float delta         = (c->fMax - c->fMin) / float(n);
+            float dist          = c->fMax - c->fMin;
+            dist               += (dist > 0.0f) ? 1e-4 : -1e-4; // Error correction delta
+            float delta         = dist / float(n);
             Color cl;
 
             float vmin          = c->fMin;
             float bright        = brightness();
 
+//            if (c->nFlags & MF_BALANCE)
+//                lsp_trace("fmin=%f, fmax=%f, delta=%f, n=%d", c->fMin, c->fMax, delta, int(n));
+
             for (size_t i=0; i<n; ++i)
             {
-                float vmax          = c->fMin + (i+1) * delta;
+                float vmax          = vmin + delta;
+
+//                if (c->nFlags & MF_BALANCE)
+//                    lsp_trace("  vmin=%f, vmax=%f, fbalance=%f", vmin, vmax, c->fBalance);
 
                 // Determine what color to use for this segment
                 if ((c->nFlags & MF_BALANCE) && (c->fBalance >= vmin) && (c->fBalance < vmax))
