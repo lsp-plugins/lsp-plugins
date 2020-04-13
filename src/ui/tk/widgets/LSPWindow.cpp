@@ -208,7 +208,8 @@ namespace lsp
                     r.nHeight       = sr.nMaxHeight;
             }
 
-            pWindow->resize(r.nWidth, r.nHeight);
+            if ((sSize.nWidth != r.nWidth) && (sSize.nHeight != r.nHeight))
+                pWindow->resize(r.nWidth, r.nHeight);
 
             return STATUS_OK;
         }
