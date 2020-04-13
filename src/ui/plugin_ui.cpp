@@ -686,6 +686,13 @@ namespace lsp
                 vWidgets.add(sep);
                 return new CtlSeparator(this, sep);
             }
+            case WC_VOID:
+            {
+                LSPVoid *v = new LSPVoid(&sDisplay);
+                v->init();
+                vWidgets.add(v);
+                return new CtlVoid(this, v);
+            }
 
             // File
             case WC_FILE:

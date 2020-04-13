@@ -145,8 +145,6 @@ namespace lsp
             LSPString text;
             sText.format(&text);
 
-            if (text.is_empty())
-                return;
             if (pDisplay == NULL)
                 return;
             ISurface *s = pDisplay->create_surface(1, 1);
@@ -154,7 +152,11 @@ namespace lsp
                 return;
 
             text_parameters_t tp;
+            font_parameters_t fp;
+            sFont.get_parameters(s, &fp);
             sFont.get_multiline_text_parameters(s, &tp, &text);
+            if (tp.Height < fp.Height)
+                tp.Height   = fp.Height;
 
             r->nMinWidth    = tp.Width + (nBorder + 1) * 2;
             r->nMinHeight   = tp.Height + (nBorder + 1) * 2;

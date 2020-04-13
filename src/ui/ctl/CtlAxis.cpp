@@ -24,19 +24,32 @@ namespace lsp
         {
         }
 
+        status_t CtlAxis::slot_graph_resize(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlAxis *_this    = static_cast<CtlAxis *>(ptr);
+            if (_this != NULL)
+                _this->trigger_expr();
+            return STATUS_OK;
+        }
+
         void CtlAxis::init()
         {
             CtlWidget::init();
             sMin.init(pRegistry, this);
             sMax.init(pRegistry, this);
+            sAngle.init(pRegistry, this);
+            sLength.init(pRegistry, this);
+            sDX.init(pRegistry, this);
+            sDY.init(pRegistry, this);
 
-            if (pWidget == NULL)
+            LSPAxis *axis   = widget_cast<LSPAxis>(pWidget);
+            if (axis == NULL)
                 return;
-
-            LSPAxis *axis   = static_cast<LSPAxis *>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, axis, axis->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+
+            axis->slots()->bind(LSPSLOT_RESIZE_PARENT, slot_graph_resize, this);
         }
 
         void CtlAxis::set(widget_attribute_t att, const char *value)
@@ -49,8 +62,16 @@ namespace lsp
                     BIND_PORT(pRegistry, pPort, value);
                     break;
                 case A_ANGLE:
-                    if (axis != NULL)
-                        PARSE_FLOAT(value, axis->set_angle(__ * M_PI));
+                    BIND_EXPR(sAngle, value);
+                    break;
+                case A_DX:
+                    BIND_EXPR(sDX, value);
+                    break;
+                case A_DY:
+                    BIND_EXPR(sDY, value);
+                    break;
+                case A_LENGTH:
+                    BIND_EXPR(sLength, value);
                     break;
                 case A_MIN:
                     BIND_EXPR(sMin, value);
@@ -77,10 +98,6 @@ namespace lsp
                                 nFlags &= ~F_LOG;
                         });
                     break;
-                case A_LENGTH:
-                    if (axis != NULL)
-                        PARSE_INT(value, axis->set_length(__));
-                    break;
                 case A_WIDTH:
                     if (axis != NULL)
                         PARSE_INT(value, axis->set_line_width(__));
@@ -100,6 +117,62 @@ namespace lsp
         {
             CtlWidget::end();
             update_axis();
+            trigger_expr();
+        }
+
+        float CtlAxis::eval_expr(CtlExpression *expr)
+        {
+            LSPAxis *axis = widget_cast<LSPAxis>(pWidget);
+            if (axis == NULL)
+                return 0.0f;
+
+            LSPGraph *g = axis->graph();
+            if (g == NULL)
+                return 0.0f;
+
+            expr->params()->clear();
+            expr->params()->set_int("_g_width", g->width());
+            expr->params()->set_int("_g_height", g->height());
+            expr->params()->set_int("_a_width", g->area_width());
+            expr->params()->set_int("_a_height", g->area_height());
+
+            return expr->evaluate();
+        }
+
+        void CtlAxis::trigger_expr()
+        {
+            LSPAxis *axis   = widget_cast<LSPAxis>(pWidget);
+            if (axis == NULL)
+                return;
+
+            if (sAngle.valid())
+            {
+                float angle = eval_expr(&sAngle);
+                axis->set_angle(angle * M_PI);
+            }
+
+            if (sLength.valid())
+            {
+                float length = eval_expr(&sLength);
+                axis->set_length(length);
+            }
+
+            if (sDX.valid())
+            {
+                float dx = eval_expr(&sDX);
+                if (sDY.valid())
+                {
+                    float dy = eval_expr(&sDY);
+                    axis->set_direction(dx, dy);
+                }
+                else
+                    axis->set_dir_x(dx);
+            }
+            else if (sDY.valid())
+            {
+                float dy = eval_expr(&sDY);
+                axis->set_dir_y(dy);
+            }
         }
 
         void CtlAxis::update_axis()
@@ -134,8 +207,9 @@ namespace lsp
         void CtlAxis::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
-//            if (pPort == port)
+
             update_axis();
+            trigger_expr();
         }
 
     } /* namespace ctl */

@@ -130,6 +130,8 @@ namespace lsp
 
                     inline ::Window x11handle() const { return hWindow; }
 
+                    inline ::Window x11parent() const { return hParent; }
+
                 public:
                     /** Handle X11 event
                      *

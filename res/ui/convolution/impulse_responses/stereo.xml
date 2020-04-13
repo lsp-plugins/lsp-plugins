@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<!-- IR editor -->
 		<group text="groups.impulse_response">
@@ -15,8 +15,8 @@
 					</hbox>
 				</align>
 				
-				<hbox border="2">
-					<file
+				<hbox border="2" expand="true">
+					<file fill="true"
 						id="ifn0" head_id="ihc0" tail_id="itc0"
 						fadein_id="ifi0" fadeout_id="ifo0" length_id="ifl0"
 						status_id="ifs0" mesh_id="ifd0"
@@ -25,7 +25,7 @@
 						path_id="ui:dlg_ir_path"
 						format="audio_lspc,all"
 						/>
-					<file
+					<file fill="true"
 						id="ifn1" head_id="ihc1" tail_id="itc1"
 						fadein_id="ifi1" fadeout_id="ifo1" length_id="ifl1"
 						status_id="ifs1" mesh_id="ifd1"

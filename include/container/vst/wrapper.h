@@ -668,7 +668,7 @@ namespace lsp
             // Add pre-generated ports
             for (size_t i=0; i<vUIPorts.size(); ++i)
             {
-                VSTUIPort  *vp      = vUIPorts[i];
+                VSTUIPort  *vp      = vUIPorts.at(i);
                 lsp_trace("Adding UI port id=%s", vp->metadata()->id);
                 vp->resync();
                 pUI->add_port(vp);
@@ -685,8 +685,22 @@ namespace lsp
                 wnd->slots()->bind(LSPSLOT_RESIZE, slot_ui_resize, this);
         }
 
-        pUI->show();
+        // Force all parameters to be re-shipped to the UI
+        for (size_t i=0; i<vUIPorts.size(); ++i)
+        {
+            VSTUIPort  *vp      = vUIPorts.at(i);
+            if (vp != NULL)
+                vp->notify_all();
+        }
 
+        if (sKVTMutex.lock())
+        {
+            sKVT.touch_all(KVT_TO_UI);
+            sKVTMutex.unlock();
+        }
+        transfer_dsp_to_ui();
+
+        // Show the UI window
         LSPWindow *wnd  = pUI->root_window();
         size_request_t sr;
         wnd->size_request(&sr);
@@ -703,24 +717,7 @@ namespace lsp
         r.nHeight       = sr.nMinHeight;
         resize_ui(&r);
 
-        // Force all parameters to be re-shipped to the UI
-        if (sKVTMutex.lock())
-        {
-            sKVT.touch_all(KVT_TO_UI);
-            sKVTMutex.unlock();
-        }
-//
-//        wnd->set_width(sr.nMinWidth);
-//        wnd->set_height(sr.nMinHeight);
-
-//        // Show window
-//        lsp_trace("create widget hierarchy pWidget=%p", pWidget);
-//        gtk_widget_show_all(pWidget);
-//        gdk_display_sync(gdk_display_get_default());
-
-
-        // Transfer state
-        transfer_dsp_to_ui();
+        pUI->show();
 
         return true;
     }
@@ -809,35 +806,6 @@ namespace lsp
         // Get number of ports
         if (pUI == NULL)
             return;
-
-//        LSPWindow *wnd  = pUI->root_window();
-//        if ((wnd != NULL) && (wnd->size_request_pending()))
-//        {
-//            size_request_t sr;
-//            wnd->size_request(&sr);
-//            sRect.top       = 0;
-//            sRect.left      = 0;
-//            sRect.right     = sr.nMinWidth;
-//            sRect.bottom    = sr.nMinHeight;
-//            lsp_trace("Window request width=%d, height=%d", int(sr.nMinWidth), int(sr.nMinHeight));
-//            pMaster(pEffect, audioMasterSizeWindow, sr.nMinWidth, sr.nMinHeight, 0, 0);
-//
-//            wnd->query_draw();
-//            realize_t r;
-//            r.nLeft         = 0;
-//            r.nTop          = 0;
-//            r.nWidth        = sr.nMinWidth;
-//            r.nHeight       = sr.nMinHeight;
-//            wnd->set_geometry(&r);
-//
-////            sr.nMaxWidth    = sr.nMinWidth;
-////            sr.nMaxHeight   = sr.nMinHeight;
-////
-////            wnd->set_size_constraints(&sr);
-//            wnd->realize(&r);
-////            wnd->query_draw();
-////            wnd->set_geometry(&r);
-//        }
 
         // Try to sync position
         pUI->position_updated(&sPosition);

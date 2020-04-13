@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<hbox spacing="4">
 		<group text="groups.signal">
 			<grid rows="4" cols="2">

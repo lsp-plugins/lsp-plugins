@@ -30,11 +30,19 @@ namespace lsp
                 size_t          nFlags;
                 CtlExpression   sMin;
                 CtlExpression   sMax;
+                CtlExpression   sAngle;
+                CtlExpression   sLength;
+                CtlExpression   sDX;
+                CtlExpression   sDY;
                 CtlPort        *pPort;
                 CtlColor        sColor;
 
             protected:
-                void            update_axis();
+                static status_t     slot_graph_resize(LSPWidget *sender, void *ptr, void *data);
+
+                void                update_axis();
+                void                trigger_expr();
+                float               eval_expr(CtlExpression *expr);
 
             public:
                 explicit CtlAxis(CtlRegistry *src, LSPAxis *axis);

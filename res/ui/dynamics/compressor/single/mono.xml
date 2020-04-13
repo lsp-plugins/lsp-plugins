@@ -1,9 +1,10 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
-		<grid rows="2" cols="7" transpose="true" hspacing="2" vspacing="2">
+		<grid rows="2" cols="7" transpose="true" hspacing="2" vspacing="2" expand="true">
 			<!-- Time graph -->
-			<align expand="true" fill="true" pad_top="4" hscale="1">
-				<graph width="400" height="256">
+			<vbox expand="true">
+				<label />
+				<graph width="400" height="256" expand="true">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
 					<marker value="0.25119" color="g_gray" basis="1" parallel="0" />  <!-- -12 dB -->
@@ -57,7 +58,8 @@
 						<text text="${t}.5" coord="${t}.5;0.00025" halign="-1" valign="1" color="white" />
 					</ui:for>
 				</graph>
-			</align>
+				<label />
+			</vbox>
 			
 			<!-- Graph buttons -->
 			<hbox>
@@ -71,36 +73,37 @@
 			</hbox>
 			
 			<!-- Sidechain meters -->				
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="slv" size="16" color="bright_green" led="true" />
-					<meter id="slm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_green" activity_id="slv" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="slv" size="16" color="bright_green" led="true" />
+				<meter expand="true"
+					id="slm" angle="1" logarithmic="true" min="0.000251189" max="15.8489"
+					height="256" color="bright_green" activity_id="slv"
+				/>
+			</vbox>
 			<label text="labels.sc.SC" />
 			
 			<!-- Envelope meters -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="elv" size="16" color="bright_magenta" led="true" />
-					<meter id="elm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_magenta" activity_id="elv" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="elv" size="16" color="bright_magenta" led="true" />
+				<meter expand="true" 
+					id="elm" angle="1" logarithmic="true" min="0.000251189" max="15.8489"
+					height="256" color="bright_magenta" activity_id="elv" />
+			</vbox>
 			<label text="labels.Env_elope" />
 			
 			<!-- Gain meters -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="grv" size="16" color="bright_blue" led="true" />
-					<meter id="rlm" activity_id="grv" color="bright_blue"  
-						angle="1" logarithmic="true" type="peak"
-						min="0.00398" max="251.18861" balance="1.0" height="256" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="grv" size="16" color="bright_blue" led="true" />
+				<meter expand="true"
+					id="rlm" activity_id="grv" color="bright_blue"  
+					angle="1" logarithmic="true" type="peak"
+					min="0.00398" max="251.18861" balance="1.0" height="256" />
+			</vbox>
 			<label text="labels.gain_" />
 			
 			<!-- Curve graph -->
-			<align fill="true" pad_top="4">
+			<vbox expand="true">
+				<label />
 				<graph width="256" height="256" expand="true" fill="true">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
@@ -122,7 +125,7 @@
 					<center hpos="-1" vpos="-1" visible="false" />
 					<axis min="0.00025" max="15.84893" color="g_gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
 					<axis min="0.00025" max="15.84893" color="g_gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
-					<marker value="1" offset="1" color="g_gray" basis="1" parallel="0" angle="0.25" width="2" smooth="true" /> <!-- 1:1 -->
+					<marker value="1" offset="1" color="g_gray" basis="1" parallel="0" dx=":_a_width" dy=":_a_height" width="2" smooth="true" /> <!-- 1:1 -->
 					<marker value="15.84893" color="g_gray" basis="1" parallel="0" /> <!-- +24 dB -->
 					<marker value="15.84893" color="g_gray" basis="0" parallel="1" /> <!-- +24 dB -->
 
@@ -159,27 +162,28 @@
 					<text text="-60" coord="0.001;1" halign="-1" valign="1" />
 					<text text="graph.axis.in" coord="0.00025;1" halign="1" valign="1" />
 				</graph>
-			</align>
+				<label />
+			</vbox>
 			<align pad_right="4" fill="true" hpos="0">
 				<label text="labels.graphs.compression" />
 			</align>
 			
 			<!-- Input signal meters -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="ilv" size="16" color="middle_channel" led="true" />
-					<meter id="ilm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="ilv" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="ilv" size="16" color="middle_channel" led="true" />
+				<meter expand="true" 
+					id="ilm" angle="1" type="rms_peak" min="0.000251189" max="15.8489"
+					height="256" color="middle_channel" activity_id="ilv" />
+			</vbox>
 			<label text="labels.chan.in" />
 			
 			<!-- Output signal meters -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="olv" size="16" color="middle_channel" led="true" />
-					<meter id="olm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="olv" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="olv" size="16" color="middle_channel" led="true" />
+				<meter expand="true"
+					id="olm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" 
+					height="256" color="middle_channel" activity_id="olv" />
+			</vbox>
 			<label text="labels.chan.out" />
 		</grid>
 		<hbox spacing="4">
