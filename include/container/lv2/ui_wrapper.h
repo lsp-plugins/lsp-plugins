@@ -117,6 +117,15 @@ namespace lsp
                 root->slots()->bind(LSPSLOT_SHOW, slot_ui_show, this);
                 root->slots()->bind(LSPSLOT_HIDE, slot_ui_hide, this);
 
+                // Sync state of UI ports with the UI
+                for (size_t i=0, n=vUIPorts.size(); i<n; ++i)
+                {
+                    LV2UIPort *p = vUIPorts.at(i);
+                    if (p != NULL)
+                        p->notify_all();
+                }
+
+                // Resize UI and show
                 root->size_request(&sr);
                 root->resize(sr.nMinWidth, sr.nMinHeight);
                 pExt->resize_ui(sr.nMinWidth, sr.nMinHeight);
@@ -228,8 +237,8 @@ namespace lsp
     //                lsp_trace("id=%d, size=%d, format=%d, buf=%p, port_id=%s", int(id), int(size), int(format), buf, p->metadata()->id);
                     if (p != NULL)
                     {
-                        lsp_trace("notify id=%d, size=%d, format=%d, buf=%p value=%f",
-                            int(id), int(size), int(format), buf, *(reinterpret_cast<const float *>(buf)));
+//                        lsp_trace("notify id=%d, size=%d, format=%d, buf=%p value=%f",
+//                            int(id), int(size), int(format), buf, *(reinterpret_cast<const float *>(buf)));
 
                         p->notify(buf, format, size);
                         p->notify_all();

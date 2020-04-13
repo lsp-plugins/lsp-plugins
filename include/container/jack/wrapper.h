@@ -955,19 +955,6 @@ namespace lsp
         else
             wnd->resize(r.nMinWidth, r.nMinHeight);
 
-//        wnd->display();
-        //                LSPDisplay *dpy = pWnd->display();
-        //                if (dpy != NULL)
-        //                {
-        //                    ssize_t w, h;
-        //                    if (dpy->screen_size(pWnd->screen(), &w, &h) == STATUS_OK)
-        //                    {
-        //                        w = (w - r.nMinWidth) >> 1;
-        //                        h = (h - r.nMinHeight) >> 1;
-        //                        pWnd->move(w, h);
-        //                    }
-        //                }
-
         pUI->show();
     }
 }
