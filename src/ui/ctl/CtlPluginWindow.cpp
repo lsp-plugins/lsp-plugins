@@ -36,6 +36,7 @@ namespace lsp
             pPath           = NULL;
             pR3DBackend     = NULL;
             pLanguage       = NULL;
+            nVisible        = 0;
         }
         
         CtlPluginWindow::~CtlPluginWindow()
@@ -626,7 +627,7 @@ namespace lsp
             {
                 // Update window geometry
                 LSPWindow *wnd  = widget_cast<LSPWindow>(pWidget);
-                wnd->set_min_size(nMinWidth, nMinHeight);
+//                wnd->set_min_size(nMinWidth, nMinHeight);
                 wnd->set_border_style((bResizable) ? BS_SIZABLE : BS_SINGLE);
                 wnd->actions()->set_resizable(bResizable);
                 wnd->actions()->set_maximizable(bResizable);
@@ -637,24 +638,24 @@ namespace lsp
 
             pWnd->set_policy((bResizable) ? WP_NORMAL : WP_GREEDY);
 
-            if (!pWnd->nested())
-            {
-                size_request_t r;
-                pWnd->size_request(&r);
-                pWnd->resize(r.nMinWidth, r.nMinHeight);
-
-                LSPDisplay *dpy = pWnd->display();
-                if (dpy != NULL)
-                {
-                    ssize_t w, h;
-                    if (dpy->screen_size(pWnd->screen(), &w, &h) == STATUS_OK)
-                    {
-                        w = (w - r.nMinWidth) >> 1;
-                        h = (h - r.nMinHeight) >> 1;
-                        pWnd->move(w, h);
-                    }
-                }
-            }
+//            if (!pWnd->nested())
+//            {
+//                size_request_t r;
+//                pWnd->size_request(&r);
+//                pWnd->resize(r.nMinWidth, r.nMinHeight);
+//
+//                LSPDisplay *dpy = pWnd->display();
+//                if (dpy != NULL)
+//                {
+//                    ssize_t w, h;
+//                    if (dpy->screen_size(pWnd->screen(), &w, &h) == STATUS_OK)
+//                    {
+//                        w = (w - r.nMinWidth) >> 1;
+//                        h = (h - r.nMinHeight) >> 1;
+//                        pWnd->move(w, h);
+//                    }
+//                }
+//            }
 
 
             // Call for parent class method

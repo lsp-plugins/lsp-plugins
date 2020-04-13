@@ -121,6 +121,7 @@ namespace lsp
             status_t disconnect();
 
             void destroy();
+            void show_ui();
             bool transfer_dsp_to_ui();
 
             inline bool initialized() const     { return nState != S_CREATED;       }
@@ -724,9 +725,6 @@ namespace lsp
     bool JACKWrapper::transfer_dsp_to_ui()
     {
         // Validate state
-        if (nState != S_CONNECTED)
-            return false;
-
         dsp::context_t ctx;
         dsp::start(&ctx);
 
@@ -928,6 +926,49 @@ namespace lsp
     bool JACKWrapper::kvt_release()
     {
         return sKVTMutex.unlock();
+    }
+
+    void JACKWrapper::show_ui()
+    {
+        for (size_t i=0, n=vUIPorts.size(); i<n; ++i)
+        {
+            JACKUIPort *port = vUIPorts.at(i);
+            if (port != NULL)
+                port->notify_all();
+        }
+
+        size_request_t r;
+        LSPWindow *wnd      = pUI->root_window();
+        LSPDisplay *dpy     = wnd->display();
+
+        // Limit window size
+        wnd->size_request(&r);
+
+        // Set location and size of window
+        ssize_t w, h;
+        if (dpy->screen_size(wnd->screen(), &w, &h) == STATUS_OK)
+        {
+            w = (w - r.nMinWidth) >> 1;
+            h = (h - r.nMinHeight) >> 1;
+            wnd->set_geometry(w, h, r.nMinWidth, r.nMinHeight);
+        }
+        else
+            wnd->resize(r.nMinWidth, r.nMinHeight);
+
+//        wnd->display();
+        //                LSPDisplay *dpy = pWnd->display();
+        //                if (dpy != NULL)
+        //                {
+        //                    ssize_t w, h;
+        //                    if (dpy->screen_size(pWnd->screen(), &w, &h) == STATUS_OK)
+        //                    {
+        //                        w = (w - r.nMinWidth) >> 1;
+        //                        h = (h - r.nMinHeight) >> 1;
+        //                        pWnd->move(w, h);
+        //                    }
+        //                }
+
+        pUI->show();
     }
 }
 
