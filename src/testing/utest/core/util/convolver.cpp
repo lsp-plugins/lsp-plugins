@@ -134,7 +134,7 @@ UTEST_BEGIN("core.util", convolver)
 
         conv.randomize(-1.0f, 1.0f);
 
-        for (size_t i=0; i<LCONV_SIZE;++i)
+        for (size_t i=1; i<LCONV_SIZE;++i)
         {
             printf("Testing simple convolution i=%d...\n", i);
 
@@ -143,6 +143,7 @@ UTEST_BEGIN("core.util", convolver)
             src.fill_zero();
             dst1.fill_zero();
             dst2.fill_zero();
+            src[0] = 1.0f;
             src[i] = 1.0f;
 
             ::convolve(dst1, src, conv, conv.size(), src.size());
@@ -217,7 +218,7 @@ UTEST_BEGIN("core.util", convolver)
 
     UTEST_MAIN
     {
-//        test_collisions();
+        test_collisions();
         test_small();
         test_large();
     }

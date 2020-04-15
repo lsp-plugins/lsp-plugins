@@ -924,10 +924,10 @@ namespace lsp
         base[PATH_MAX] = '\0';
         size_t prefix_len = ::strlen(base);
 
-        for (const resource_t *r = resource_all(); (r->id != NULL); ++r)
+        for (const resource::resource_t *r = resource::all(); (r->id != NULL); ++r)
         {
             // Check that resource matches
-            if (r->type != RESOURCE_PRESET)
+            if (r->type != resource::RESOURCE_PRESET)
                 continue;
             if (::strstr(r->id, base) != r->id)
                 continue;
