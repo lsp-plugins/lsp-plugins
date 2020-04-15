@@ -13,6 +13,7 @@
 
 using namespace lsp;
 
+#define LCONV_SIZE      0x10000
 #define CONV_SIZE       0x2000
 #define SRC_SIZE        0x2000
 #define SRC2_SIZE       0x20
@@ -21,8 +22,9 @@ static void convolve(float *dst, const float *src, const float *conv, size_t len
 {
     for (size_t i=0; i<count; ++i)
     {
+        float k = src[i];
         for (size_t j=0; j<length; ++j)
-            dst[i+j] += src[i] * conv[j];
+            dst[i+j] += k * conv[j];
     }
 }
 
@@ -34,11 +36,42 @@ UTEST_BEGIN("core.util", convolver)
             size_t todo = count - i;
             if (todo > step)
                 todo = step;
-            if (i == 248)
-                printf("debug\n");
             conv.process(&dst[i], &src[i], todo);
             i += todo;
         }
+    }
+
+    void convolve_full(Convolver &conv, float *dst, const float *src, size_t count, size_t step)
+    {
+        for (size_t i=0; i<count;)
+        {
+            size_t todo = count - i;
+            if (todo > step)
+                todo = step;
+            conv.process(dst, src, todo);
+
+            dst += todo;
+            src += todo;
+            i   += todo;
+        }
+
+        // Allocate empty data for buffer
+        count = conv.data_size() - 1;
+        float *buf = reinterpret_cast<float *>(::malloc(step * sizeof(float)));
+        dsp::fill_zero(buf, step);
+
+        for (size_t i=0; i<count;)
+        {
+            size_t todo = count - i;
+            if (todo > step)
+                todo = step;
+            conv.process(dst, buf, todo);
+
+            dst += todo;
+            i   += todo;
+        }
+
+        ::free(buf);
     }
 
     void test_small()
@@ -50,6 +83,8 @@ UTEST_BEGIN("core.util", convolver)
         FloatBuffer dst1(src.size());
         FloatBuffer dst2(dst1);
         FloatBuffer dst3(dst1);
+
+        printf("Testing small convolution...\n");
 
         // Initialize data
         for (size_t i=0; i<conv.size(); ++i)
@@ -87,6 +122,51 @@ UTEST_BEGIN("core.util", convolver)
         }
 
         c.destroy();
+    }
+
+    void test_collisions()
+    {
+        Convolver c;
+        FloatBuffer conv(LCONV_SIZE);
+        FloatBuffer src(LCONV_SIZE);
+        FloatBuffer dst1(LCONV_SIZE * 2);
+        FloatBuffer dst2(LCONV_SIZE * 2);
+
+        conv.randomize(-1.0f, 1.0f);
+
+        for (size_t i=0; i<LCONV_SIZE;++i)
+        {
+            printf("Testing simple convolution i=%d...\n", i);
+
+            UTEST_ASSERT(c.init(conv, conv.size(), 10, 0));
+
+            src.fill_zero();
+            dst1.fill_zero();
+            dst2.fill_zero();
+            src[i] = 1.0f;
+
+            ::convolve(dst1, src, conv, conv.size(), src.size());
+            convolve_full(c, dst2, src, src.size(), 127);
+
+            UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+            UTEST_ASSERT_MSG(conv.valid(), "Convolution 1 buffer corrupted");
+            UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+            UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+
+            c.destroy();
+
+            if (!dst2.equals_absolute(dst1, 1e-5))
+            {
+                src.dump("src ");
+                conv.dump("conv");
+                dst1.dump("dst1");
+                dst2.dump("dst2");
+                size_t index = dst2.last_diff();
+                UTEST_FAIL_MSG("Output of convolver is invalid, started at sample=%d: dst1[i]=%.8f vs dst2[i]=%.8f",
+                        int(index), dst1[index], dst2[index]);
+            }
+
+        }
     }
 
     void test_large()
@@ -137,6 +217,7 @@ UTEST_BEGIN("core.util", convolver)
 
     UTEST_MAIN
     {
+//        test_collisions();
         test_small();
         test_large();
     }

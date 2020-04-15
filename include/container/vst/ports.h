@@ -521,8 +521,8 @@ namespace lsp
                     const uint8_t *bytes        = reinterpret_cast<const uint8_t *>(vme->midiData);
 
                     // Decode MIDI event
-                    midi_event_t me;
-                    if (!decode_midi_message(&me, bytes))
+                    midi::event_t me;
+                    if (midi::decode(&me, bytes) <= 0)
                         return;
 
                     // Put the event to the queue
@@ -530,7 +530,7 @@ namespace lsp
 
                     // Debug
                     #ifdef LSP_TRACE
-                        #define TRACE_KEY(x)    case MIDI_MSG_ ## x: evt_type = #x; break;
+                        #define TRACE_KEY(x)    case midi::MIDI_MSG_ ## x: evt_type = #x; break;
                         lsp_trace("midi dump: %02x %02x %02x", int(bytes[0]) & 0xff, int(bytes[1]) & 0xff, int(bytes[2]) & 0xff);
 
                         char tmp_evt_type[32];
@@ -619,12 +619,12 @@ namespace lsp
 
                 for (size_t i=0; i<sQueue.nEvents; ++i)
                 {
-                    const midi_event_t *me  = &sQueue.vEvents[i];
-                    VstMidiEvent       *dst = &vEvents[pEvents->numEvents];
+                    const midi::event_t    *me  = &sQueue.vEvents[i];
+                    VstMidiEvent           *dst = &vEvents[pEvents->numEvents];
 
                     // Debug
                     #ifdef LSP_TRACE
-                        #define TRACE_KEY(x)    case MIDI_MSG_ ## x: evt_type = #x; break;
+                        #define TRACE_KEY(x)    case midi::MIDI_MSG_ ## x: evt_type = #x; break;
 
                         char tmp_evt_type[32];
                         const char *evt_type = NULL;
@@ -661,7 +661,7 @@ namespace lsp
 
                     #endif /* LSP_TRACE */
 
-                    size_t bytes = encode_midi_message(me, reinterpret_cast<uint8_t *>(dst->midiData));
+                    ssize_t bytes = midi::encode(reinterpret_cast<uint8_t *>(dst->midiData), me);
                     if (bytes <= 0)
                     {
                         lsp_error("Tried to serialize invalid MIDI event");
@@ -671,6 +671,11 @@ namespace lsp
                     dst->type           = kVstMidiType;
                     dst->byteSize       = sizeof(VstMidiEvent);
                     dst->deltaFrames    = me->timestamp;
+                    dst->flags          = (me->type >= midi::MIDI_MSG_CLOCK) ? kVstMidiEventIsRealtime : 0;
+                    dst->noteLength     = 0;
+                    dst->noteOffset     = 0;
+                    dst->detune         = 0;
+                    dst->noteOffVelocity= (me->type == midi::MIDI_MSG_NOTE_OFF) ? me->note.velocity : 0;
 
                     lsp_trace("midi dump: %02x %02x %02x",
                         int(dst->midiData[0]) & 0xff, int(dst->midiData[1]) & 0xff, int(dst->midiData[2]) & 0xff);

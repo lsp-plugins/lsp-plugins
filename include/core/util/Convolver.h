@@ -23,6 +23,10 @@ namespace lsp
     class Convolver
     {
         private:
+            Convolver & operator = (const Convolver &);
+
+        private:
+            size_t      nConvSize;              // Size of convolution
             size_t      nFrameSize;             // Current frame size
             size_t      nFrameMax;              // Maximum frame size
 
@@ -46,7 +50,7 @@ namespace lsp
             uint8_t    *vData;
 
         public:
-            Convolver();
+            explicit Convolver();
             ~Convolver();
 
         public:
@@ -71,6 +75,12 @@ namespace lsp
              * @param count number of samples to process
              */
             void process(float *dst, const float *src, size_t count);
+
+            /** Get the actual convolution size in samples
+             *
+             * @return actual convolution size in samples
+             */
+            inline size_t data_size()       { return nConvSize; }
     };
 
 } /* namespace lsp */

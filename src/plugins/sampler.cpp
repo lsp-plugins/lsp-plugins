@@ -1448,10 +1448,10 @@ namespace lsp
         for (size_t i=0; i<in->nEvents; ++i)
         {
             // Analyze MIDI event
-            const midi_event_t *me    = &in->vEvents[i];
+            const midi::event_t *me     = &in->vEvents[i];
             switch (me->type)
             {
-                case MIDI_MSG_NOTE_ON:
+                case midi::MIDI_MSG_NOTE_ON:
                 {
                     lsp_trace("NOTE_ON: channel=%d, pitch=%d, velocity=%d",
                             int(me->channel), int(me->note.pitch), int(me->note.velocity));
@@ -1495,7 +1495,7 @@ namespace lsp
                     break;
                 }
 
-                case MIDI_MSG_NOTE_OFF:
+                case midi::MIDI_MSG_NOTE_OFF:
                 {
                     lsp_trace("NOTE_OFF: channel=%d, pitch=%d, velocity=%d",
                             int(me->channel), int(me->note.pitch), int(me->note.velocity));
@@ -1512,10 +1512,10 @@ namespace lsp
                     break;
                 }
 
-                case MIDI_MSG_NOTE_CONTROLLER:
+                case midi::MIDI_MSG_NOTE_CONTROLLER:
                     lsp_trace("NOTE_CONTROLLER: channel=%d, control=%02x, value=%d",
                             int(me->channel), int(me->ctl.control), int(me->ctl.value));
-                    if (me->ctl.control != MIDI_CTL_ALL_NOTES_OFF)
+                    if (me->ctl.control != midi::MIDI_CTL_ALL_NOTES_OFF)
                         break;
 
                     for (size_t j=0; j<nSamplers; ++j)

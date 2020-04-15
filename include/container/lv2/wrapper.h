@@ -547,12 +547,12 @@ namespace lsp
             return;
 
         // Decode MIDI event
-        midi_event_t me;
+        midi::event_t me;
         const uint8_t *bytes        = reinterpret_cast<const uint8_t*>(ev + 1);
 
         // Debug
         #ifdef LSP_TRACE
-            #define TRACE_KEY(x)    case MIDI_MSG_ ## x: evt_type = #x; break;
+            #define TRACE_KEY(x)    case midi::MIDI_MSG_ ## x: evt_type = #x; break;
             lsp_trace("midi dump: %02x %02x %02x", int(bytes[0]), int(bytes[1]), int(bytes[2]));
 
             char tmp_evt_type[32];
@@ -590,7 +590,7 @@ namespace lsp
 
         #endif /* LSP_TRACE */
 
-        if (!decode_midi_message(&me, bytes))
+        if (midi::decode(&me, bytes) <= 0)
         {
             lsp_warn("Could not decode MIDI message");
             return;
@@ -843,11 +843,11 @@ namespace lsp
 
         for (size_t i=0; i<midi->nEvents; ++i)
         {
-            const midi_event_t *me = &midi->vEvents[i];
+            const midi::event_t *me = &midi->vEvents[i];
 
             // Debug
             #ifdef LSP_TRACE
-                #define TRACE_KEY(x)    case MIDI_MSG_ ## x: evt_type = #x; break;
+                #define TRACE_KEY(x)    case midi::MIDI_MSG_ ## x: evt_type = #x; break;
 
                 char tmp_evt_type[32];
                 const char *evt_type = NULL;
@@ -884,12 +884,13 @@ namespace lsp
 
             #endif /* LSP_TRACE */
 
-            buf.atom.size = encode_midi_message(me, buf.body);
-            if (!buf.atom.size)
+            ssize_t size = midi::encode(buf.body, me);
+            if (size <= 0)
             {
-                lsp_error("Tried to serialize invalid MIDI event");
+                lsp_error("Tried to serialize invalid MIDI event, error=%d", int(-size));
                 continue;
             }
+            buf.atom.size = size;
 
             lsp_trace("midi dump: %02x %02x %02x (%d: %d)",
                 int(buf.body[0]), int(buf.body[1]), int(buf.body[2]), int(buf.atom.size), int(buf.atom.size + sizeof(LV2_Atom)));
