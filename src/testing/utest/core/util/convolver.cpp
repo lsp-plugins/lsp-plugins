@@ -218,7 +218,7 @@ UTEST_BEGIN("core.util", convolver)
 
     UTEST_MAIN
     {
-        test_collisions();
+//        test_collisions();
         test_small();
         test_large();
     }
