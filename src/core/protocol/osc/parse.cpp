@@ -813,7 +813,7 @@ namespace lsp
             return STATUS_BAD_TYPE;
         }
 
-        status_t parse_midi(parse_frame_t *ref, midi_event_t *event)
+        status_t parse_midi(parse_frame_t *ref, midi::event_t *event)
         {
             // Check state and arguments
             if (!parse_check_msg(ref))
@@ -828,9 +828,10 @@ namespace lsp
                     if (left < sizeof(uint32_t))
                         return STATUS_CORRUPTED;
 
-                    midi_event_t ev;
-                    if (!decode_midi_message(&ev, &buf->data[buf->offset]))
-                        return STATUS_CORRUPTED;
+                    midi::event_t ev;
+                    ssize_t res = midi::decode(&ev, &buf->data[buf->offset]);
+                    if (res < 0)
+                        return -res;
                     if (event != NULL)
                         *event  = ev;
 
@@ -865,14 +866,14 @@ namespace lsp
                     if (left < sizeof(uint32_t))
                         return STATUS_CORRUPTED;
 
-                    midi_event_t ev;
-                    if (!decode_midi_message(&ev, &buf->data[buf->offset]))
-                        return STATUS_CORRUPTED;
-
+                    midi::event_t ev;
+                    ssize_t res = midi::decode(&ev, &buf->data[buf->offset]);
+                    if (res < 0)
+                        return -res;
                     if (event != NULL)
                         *event  = &buf->data[buf->offset];
                     if (len != NULL)
-                        *len    = encoded_midi_message_size(&ev);
+                        *len    = res;
 
                     buf->offset    += sizeof(uint32_t);
                     ++buf->args;

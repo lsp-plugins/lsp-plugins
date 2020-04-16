@@ -548,9 +548,9 @@ namespace lsp
             if (midi != NULL)
             {
                 // Create event
-                midi_event_t ev;
+                midi::event_t ev;
                 ev.timestamp    = timestamp;
-                ev.type         = MIDI_MSG_NOTE_ON;
+                ev.type         = midi::MIDI_MSG_NOTE_ON;
                 ev.channel      = nChannel;
                 ev.note.pitch   = nNote;
                 ev.note.velocity= uint32_t(1 + (level * 126));
@@ -573,9 +573,9 @@ namespace lsp
             if (midi != NULL)
             {
                 // Create event
-                midi_event_t ev;
+                midi::event_t ev;
                 ev.timestamp    = timestamp;
-                ev.type         = MIDI_MSG_NOTE_OFF;
+                ev.type         = midi::MIDI_MSG_NOTE_OFF;
                 ev.channel      = nChannel;
                 ev.note.pitch   = nNote;
                 ev.note.velocity= 0;                        // Velocity is zero now

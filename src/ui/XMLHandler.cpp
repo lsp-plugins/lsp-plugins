@@ -94,7 +94,7 @@ namespace lsp
 
     LSPString *XMLHandler::fetch_element_string(const void **data)
     {
-        const char *s = resource_fetch_dstring(data);
+        const char *s = resource::fetch_dstring(data);
         if (s == NULL)
             return NULL;
 
@@ -125,7 +125,7 @@ namespace lsp
         return parser.parse_file(this, path, "UTF-8");
     }
 
-    status_t XMLHandler::parse_resource(const resource_t *rs, XMLNode *root)
+    status_t XMLHandler::parse_resource(const resource::resource_t *rs, XMLNode *root)
     {
         // Obtain resource
         status_t res;
@@ -145,7 +145,7 @@ namespace lsp
 
         do
         {
-            size_t token = resource_fetch_byte(&data);
+            size_t token = resource::fetch_byte(&data);
             //lsp_trace("token = 0x%02x, path=%s", int(token), sPath.get_utf8());
 
             if (token != XML_CLOSE_TAG)
@@ -223,7 +223,7 @@ namespace lsp
             LSPString bpath;
             if (!bpath.set(uri, LSP_BUILTIN_PREFIX_LEN))
                 return STATUS_NO_MEM;
-            const resource_t *rs = resource_get(uri->get_utf8(), RESOURCE_XML);
+            const resource::resource_t *rs = resource::get(uri->get_utf8(), resource::RESOURCE_XML);
             return (rs != NULL) ? parse_resource(rs, root) : STATUS_NOT_FOUND;
         }
 
@@ -237,7 +237,7 @@ namespace lsp
             return res;
         return parse_file(p.as_string(), root);
 #else
-        const resource_t *rs = resource_get(uri->get_utf8(), RESOURCE_XML);
+        const resource::resource_t *rs = resource::get(uri->get_utf8(), resource::RESOURCE_XML);
         return (rs != NULL) ? parse_resource(rs, root) : STATUS_NOT_FOUND;
 #endif /* LSP_BUILTIN_RESOURCES */
     }

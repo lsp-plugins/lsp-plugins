@@ -232,7 +232,7 @@ namespace lsp
         status_t submit_symbol(const char *address, const char *s);
         status_t submit_ascii(const char *address, char c);
         status_t submit_rgba(const char *address, const uint32_t rgba);
-        status_t submit_midi(const char *address, const midi_event_t *event);
+        status_t submit_midi(const char *address, const midi::event_t *event);
         status_t submit_midi_raw(const char *address, const void *event, size_t bytes);
         status_t submit_bool(const char *address, bool value);
         status_t submit_null(const char *address);

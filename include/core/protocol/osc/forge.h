@@ -124,7 +124,7 @@ namespace lsp
         status_t forge_symbol(forge_frame_t *ref, const char *s);
         status_t forge_ascii(forge_frame_t *ref, char c);
         status_t forge_rgba(forge_frame_t *ref, const uint32_t rgba);
-        status_t forge_midi(forge_frame_t *ref, const midi_event_t *event);
+        status_t forge_midi(forge_frame_t *ref, const midi::event_t *event);
         status_t forge_midi_raw(forge_frame_t *ref, const void *event, size_t bytes);
         status_t forge_bool(forge_frame_t *ref, bool value);
         status_t forge_null(forge_frame_t *ref);

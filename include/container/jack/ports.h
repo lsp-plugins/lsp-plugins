@@ -81,16 +81,18 @@ namespace lsp
     class JACKDataPort: public JACKPort
     {
         private:
-            jack_port_t    *pPort;
-            void           *pBuffer;
-            midi_t         *pMidi;
-            float          *pSanitized;
-            size_t          nBufSize;
+            jack_port_t    *pPort;              // JACK port descriptor
+            void           *pDataBuffer;        // Real data buffer passed from JACK
+            void           *pBuffer;            // Data buffer
+            midi_t         *pMidi;              // Midi buffer for operating MIDI messages
+            float          *pSanitized;         // Input float data for sanitized buffers
+            size_t          nBufSize;           // Size of sanitized buffer in samples
 
         public:
             explicit JACKDataPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 pPort       = NULL;
+                pDataBuffer = NULL;
                 pBuffer     = NULL;
                 pMidi       = NULL;
                 pSanitized  = NULL;
@@ -100,6 +102,7 @@ namespace lsp
             virtual ~JACKDataPort()
             {
                 pPort       = NULL;
+                pDataBuffer = NULL;
                 pBuffer     = NULL;
                 pMidi       = NULL;
                 pSanitized  = NULL;
@@ -232,7 +235,8 @@ namespace lsp
                     return false;
                 }
 
-                pBuffer     = jack_port_get_buffer(pPort, samples);
+                pDataBuffer = jack_port_get_buffer(pPort, samples);
+                pBuffer     = pDataBuffer;
 
                 if (pMidi != NULL)
                 {
@@ -243,7 +247,7 @@ namespace lsp
 
                         // Read MIDI events
                         jack_midi_event_t   midi_event;
-                        midi_event_t        ev;
+                        midi::event_t       ev;
 
                         jack_nframes_t event_count = jack_midi_get_event_count(pBuffer);
                         for (jack_nframes_t i=0; i<event_count; i++)
@@ -256,7 +260,7 @@ namespace lsp
                             }
 
                             // Convert MIDI event
-                            if (!decode_midi_message(&ev, midi_event.buffer))
+                            if (midi::decode(&ev, midi_event.buffer) <= 0)
                             {
                                 lsp_warn("Could not decode MIDI event #%d at timestamp %d from JACK port", int(i), int(midi_event.time));
                                 continue;
@@ -279,7 +283,7 @@ namespace lsp
                     // Perform sanitize() if possible
                     if (samples <= nBufSize)
                     {
-                        dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pBuffer), samples);
+                        dsp::sanitize2(pSanitized, reinterpret_cast<float *>(pDataBuffer), samples);
                         pBuffer = pSanitized;
                     }
                     else
@@ -294,44 +298,41 @@ namespace lsp
 
             virtual void post_process(size_t samples)
             {
-                if ((pMidi != NULL) && (pBuffer != NULL) && IS_OUT_PORT(pMetadata))
+                if ((pMidi != NULL) && (pDataBuffer != NULL) && IS_OUT_PORT(pMetadata))
                 {
                     // Reset buffer
-                    jack_midi_clear_buffer(pBuffer);
+                    jack_midi_clear_buffer(pDataBuffer);
 
                     // Transfer MIDI events
                     pMidi->sort();  // All events SHOULD be ordered chonologically
 
-                    size_t events = pMidi->nEvents;
-                    if (events > 0)
+                    // Transmit all events
+                    for (size_t i=0, events=pMidi->nEvents; i<events; ++i)
                     {
-                        // Transport all events
-                        for (size_t i=0; i<events; ++i)
+                        // Determine size of the message
+                        midi::event_t *ev   = &pMidi->vEvents[i];
+                        ssize_t size        = midi::size_of(ev);
+                        if (size <= 0)
                         {
-                            // Determine size of the message
-                            midi_event_t *ev    = &pMidi->vEvents[i];
-                            size_t size         = encoded_midi_message_size(ev);
-                            if (size <= 0)
-                            {
-                                lsp_warn("Could not encode output MIDI message of type 0x%02x, timestamp=%d", int(ev->type), int(ev->timestamp));
-                                continue;
-                            }
-
-                            // Allocate MIDI event
-                            jack_midi_data_t *midi_data     = jack_midi_event_reserve(pBuffer, ev->timestamp, size);
-                            if (midi_data == NULL)
-                            {
-                                lsp_warn("Could not write MIDI message of type 0x%02x, timestamp=%d to JACK output port", int(ev->type), int(ev->timestamp));
-                                continue;
-                            }
-
-                            // Encode MIDI event
-                            encode_midi_message(ev, midi_data);
+                            lsp_warn("Could not encode output MIDI message of type 0x%02x, timestamp=%d", int(ev->type), int(ev->timestamp));
+                            continue;
                         }
 
-                        // Cleanup the output buffer
-                        pMidi->clear();
+                        // Allocate MIDI event
+                        jack_midi_data_t *midi_data     = jack_midi_event_reserve(pDataBuffer, ev->timestamp, size);
+                        if (midi_data == NULL)
+                        {
+                            lsp_warn("Could not write MIDI message of type 0x%02x, size=%d, timestamp=%d to JACK output port buffer=%p",
+                                    int(ev->type), int(size), int(ev->timestamp), pBuffer);
+                            continue;
+                        }
+
+                        // Encode MIDI event
+                        midi::encode(midi_data, ev);
                     }
+
+                    // Cleanup the output buffer
+                    pMidi->clear();
                 }
 
                 pBuffer     = NULL;

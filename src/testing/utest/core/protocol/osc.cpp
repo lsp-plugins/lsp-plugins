@@ -356,15 +356,15 @@ UTEST_BEGIN("core.protocol", osc)
         m.array.array.int32 = CPU_TO_BE(int32_t(0xcafeface));
         m.array.float32 = CPU_TO_BE(float(440.0f));
 
-        midi_event_t midi;
+        midi::event_t midi;
         midi.timestamp      = 0;
-        midi.type           = MIDI_MSG_NOTE_ON;
+        midi.type           = midi::MIDI_MSG_NOTE_ON;
         midi.channel        = 4;
         midi.note.pitch     = 51;
         midi.note.velocity  = 0x7f;
 
         uint8_t raw_midi[4];
-        raw_midi[0]         = MIDI_MSG_NOTE_OFF | 4;
+        raw_midi[0]         = midi::MIDI_MSG_NOTE_OFF | 4;
         raw_midi[1]         = 51;
         raw_midi[2]         = 0x5f;
 
@@ -750,16 +750,16 @@ UTEST_BEGIN("core.protocol", osc)
 
         union
         {
-            uint32_t    u32;
-            float       f32;
-            double      d64;
-            int32_t     i32;
-            uint64_t    u64;
-            int64_t     i64;
-            size_t      sz;
-            char        ch;
-            midi_event_t midi;
-            bool        tf;
+            uint32_t        u32;
+            float           f32;
+            double          d64;
+            int32_t         i32;
+            uint64_t        u64;
+            int64_t         i64;
+            size_t          sz;
+            char            ch;
+            midi::event_t   midi;
+            bool            tf;
         } xptr;
 
         UTEST_ASSERT(osc::parse_begin(&frame, &parser, simple_message, sizeof(simple_message)) == STATUS_OK);
@@ -900,15 +900,15 @@ UTEST_BEGIN("core.protocol", osc)
         osc::forge_t forge;
         osc::forge_frame_t sframe, smessage, sarray1, sarray2;
 
-        midi_event_t src_midi;
+        midi::event_t src_midi;
         src_midi.timestamp      = 0;
-        src_midi.type           = MIDI_MSG_NOTE_ON;
+        src_midi.type           = midi::MIDI_MSG_NOTE_ON;
         src_midi.channel        = 4;
         src_midi.note.pitch     = 51;
         src_midi.note.velocity  = 0x7f;
 
         uint8_t src_raw_midi[4];
-        src_raw_midi[0]         = MIDI_MSG_NOTE_OFF | 4;
+        src_raw_midi[0]         = midi::MIDI_MSG_NOTE_OFF | 4;
         src_raw_midi[1]         = 51;
         src_raw_midi[2]         = 0x5f;
 
@@ -959,22 +959,22 @@ UTEST_BEGIN("core.protocol", osc)
         osc::parse_frame_t dframe, dmessage, darray1, darray2;
         const char *address;
 
-        midi_event_t dst_midi;
+        midi::event_t dst_midi;
         const uint8_t *dst_raw_midi;
         const void *blob;
 
         union
         {
-            uint32_t    u32;
-            float       f32;
-            double      d64;
-            int32_t     i32;
-            uint64_t    u64;
-            int64_t     i64;
-            size_t      sz;
-            char        ch;
-            midi_event_t midi;
-            bool        tf;
+            uint32_t        u32;
+            float           f32;
+            double          d64;
+            int32_t         i32;
+            uint64_t        u64;
+            int64_t         i64;
+            size_t          sz;
+            char            ch;
+            midi::event_t   midi;
+            bool            tf;
         } xptr;
 
         UTEST_ASSERT(osc::parse_begin(&dframe, &parser, packet.data, packet.size) == STATUS_OK);
@@ -1157,16 +1157,16 @@ UTEST_BEGIN("core.protocol", osc)
         // Test reading
         union
         {
-            uint32_t    u32;
-            float       f32;
-            double      d64;
-            int32_t     i32;
-            uint64_t    u64;
-            int64_t     i64;
-            size_t      sz;
-            char        ch;
-            midi_event_t midi;
-            bool        tf;
+            uint32_t        u32;
+            float           f32;
+            double          d64;
+            int32_t         i32;
+            uint64_t        u64;
+            int64_t         i64;
+            size_t          sz;
+            char            ch;
+            midi::event_t   midi;
+            bool            tf;
         } xptr;
 
         osc::parser_t parser;

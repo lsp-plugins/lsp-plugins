@@ -538,12 +538,12 @@ namespace lsp
             return forge_parameter(ref, FPT_RGBA_COLOR, &x, sizeof(x));
         }
 
-        status_t forge_midi(forge_frame_t *ref, const midi_event_t *event)
+        status_t forge_midi(forge_frame_t *ref, const midi::event_t *event)
         {
             uint8_t x[4];
-            size_t n        = encode_midi_message(event, x);
-            if (n <= 0)
-                return STATUS_BAD_ARGUMENTS;
+            size_t n        = midi::encode(x, event);
+            if (n < 0)
+                return -n;
             return forge_parameter(ref, FPT_MIDI_MESSAGE, &x, n);
         }
 

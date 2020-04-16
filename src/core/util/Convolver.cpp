@@ -186,6 +186,7 @@ namespace lsp
         nBlocks             = 0;
         nFrameMax           = frame_size;
         nDirectSize         = (count > frame_size) ? frame_size : count;
+        nConvSize           = count;
 
 //        dump(data, count, "DATA");
 

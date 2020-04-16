@@ -33,7 +33,7 @@ namespace lsp
             cstorage<node_t>    vNodes;
 
         protected:
-            status_t            parse_dictionary(const resource_t *res);
+            status_t            parse_dictionary(const resource::resource_t *res);
             node_t             *find_node(const char *key);
             status_t            add_node(const node_t *node);
 #ifdef LSP_TRACE
