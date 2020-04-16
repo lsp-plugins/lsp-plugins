@@ -104,6 +104,7 @@ namespace lsp
                     return;
 
                 nPostTrigger = nSamples;
+                nPostTriggerCounter = 0;
             }
 
             /** Set the trigger type.

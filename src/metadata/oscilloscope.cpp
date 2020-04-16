@@ -37,7 +37,7 @@ namespace lsp
 
     #define HOR_CONTROLS(id, label) \
         CONTROL("hzdv" id, "Horizontal Division" label, U_SEC, oscilloscope_base_metadata::TIME_DIVISION), \
-        CONTROL("hzps" id, "Horizontal Position" label, U_SEC, oscilloscope_base_metadata::TIME_POSITION)
+        CONTROL("hzps" id, "Horizontal Position" label, U_PERCENT, oscilloscope_base_metadata::TIME_POSITION)
 
     #define VER_CONTROLS(id, label) \
         CONTROL("vedv" id, "Vertical Division" label, U_NONE, oscilloscope_base_metadata::VERTICAL_DIVISION), \

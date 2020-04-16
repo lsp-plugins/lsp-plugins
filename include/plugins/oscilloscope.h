@@ -56,6 +56,8 @@ namespace lsp
 
                 float          *vSweep;
 
+                float          *vOutput;
+
                 channel_state_t enState;
 
                 float          *vIn;

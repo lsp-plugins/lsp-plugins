@@ -1,5 +1,6 @@
 <plugin resizable="false">
-    <vbox spacing="4">
+    <hbox spacing="4">
+    
         <group text="Screen" expand="true" fill="true">
             <graph width="512" height="320" expand="true" fill="true">
                 <center hpos="-1.0" vpos="0.0" visible="false" />
@@ -38,5 +39,38 @@
                 <text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
             </graph>
         </group>
-    </vbox>
+        
+        <vbox spacing="4">
+            
+            <group text="Horizontal" expand="true" fill="true">
+            
+                <grid rows="4" cols="1">
+                
+                    <label text="Division" />
+                
+                    <vbox>
+                        <knob id="hzdv_1" size="18" />
+                        <value id="hzdv_1" />
+                    </vbox>
+                    
+                    <label text="Position" />
+                
+                    <vbox>
+                        <knob id="hzps_1" size="18" />
+                        <value id="hzps_1" />
+                    </vbox>
+                    
+                </grid>
+                
+	        </group>
+	        
+	        <group text="Vertical" expand="true" fill="true">
+            </group>
+	        
+        </vbox>
+        
+        <group text="Trigger" expand="true" fill="true">
+        </group>
+        
+    </hbox>
 </plugin>

@@ -14,9 +14,9 @@ namespace lsp
     {
         static const plugin_metadata_t metadata;
 
-        static const float TIME_DIVISION_MAX = 60.0f;
+        static const float TIME_DIVISION_MAX = 0.02f;
         static const float TIME_DIVISION_MIN = 1.0f / 192000.0f;
-        static const float TIME_DIVISION_DFL = 1.0f / 1000.0f;
+        static const float TIME_DIVISION_DFL = 1e-3f;
         static const float TIME_DIVISION_STEP = 1e-3f;
 
         static const float TIME_POSITION_MAX = 100.0f;
