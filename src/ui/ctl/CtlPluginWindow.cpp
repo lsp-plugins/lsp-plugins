@@ -80,10 +80,8 @@ namespace lsp
         {
             switch (att)
             {
-            #ifndef LSP_NO_EXPERIMENTAL
                 case A_RESIZABLE:
                     PARSE_BOOL(value, bResizable = __);
-            #endif
                     break;
                 default:
                     CtlWidget::set(att, value);

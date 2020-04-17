@@ -376,6 +376,18 @@ namespace lsp
         lv2ui_idle
     };
 
+    int lv2ui_resize(LV2UI_Feature_Handle ui, int width, int height)
+    {
+        LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
+        return w->resize_ui(width, height);
+    }
+
+    static LV2UI_Resize resize_iface =
+    {
+        NULL,
+        lv2ui_resize
+    };
+
     const void* lv2ui_extension_data(const char* uri)
     {
         lsp_trace("requested extension data = %s", uri);
@@ -383,6 +395,11 @@ namespace lsp
         {
             lsp_trace("  idle_interface = %p", &idle_iface);
             return &idle_iface;
+        }
+        else if (!strcmp(uri, LV2_UI__resize))
+        {
+            lsp_trace("  resize_interface = %p", &resize_iface);
+            return &resize_iface;
         }
         return NULL;
     }

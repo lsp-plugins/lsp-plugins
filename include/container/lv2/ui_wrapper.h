@@ -133,6 +133,33 @@ namespace lsp
                 pUI->show();
             }
 
+            int resize_ui(ssize_t width, ssize_t height)
+            {
+                LSPWindow *root = (pUI != NULL) ? pUI->root_window() : NULL;
+                if (root == NULL)
+                    return 0;
+
+                // Resize UI and show
+                lsp_trace("width=%d, height=%d", int(width), int(height));
+                size_request_t sr;
+                root->size_request(&sr);
+
+                // Apply size constraints
+                if ((sr.nMaxWidth >= 0) && (width > sr.nMaxWidth))
+                    width = sr.nMaxWidth;
+                if ((sr.nMaxHeight >= 0) && (height > sr.nMaxHeight))
+                    height = sr.nMaxHeight;
+
+                if ((sr.nMinWidth >= 0) && (width < sr.nMinWidth))
+                    width = sr.nMinWidth;
+                if ((sr.nMinHeight >= 0) && (height < sr.nMinHeight))
+                    height = sr.nMinHeight;
+
+                // Perform resize
+                root->resize(width, height);
+                return 0;
+            }
+
             void ui_activated()
             {
                 if (bConnected)
