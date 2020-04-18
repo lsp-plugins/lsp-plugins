@@ -22,18 +22,8 @@
 - Implemented equal loudness compensation plugin according to ISO 226:2003
   details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
+- Review internal convolver module.
 
-=== 1.1.19 ===
-* Updated XDG desktop application integration.
-* Refactoring of sse::fft functions for better portability.
-* Fixed bug in asimd::hdotp functions for AArch64.
-* LV2 UI and standalone JACK are now resizable.
-* Fixed plugin sizing issues on certain new Linux distributions.
-* Refactoring and several fixes in decoding and ecoding of MIDI protocol messages.
-* Fixed silent MIDI output for JACK plugins.
-! Review internal convolver module.
-
-  
 *******************************************************************************
 * Release steps
 *******************************************************************************
