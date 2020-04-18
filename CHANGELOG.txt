@@ -4,11 +4,11 @@
 
 === 1.1.19 ===
 * Updated XDG desktop application integration.
-* Refactoring of sse::fft functions for better portability.
-* Fixed bug in asimd::hdotp functions for AArch64.
+* Refactoring of sse::fft functions for better portability between different compilation options.
+* Fixed bug in asimd::hdotp functions for AArch64 that caused invalid result output.
 * LV2 UI and standalone JACK plugins are now resizable.
 * Fixed plugin sizing issues on certain new Linux distributions.
-* Refactoring and several fixes in decoding and ecoding of MIDI protocol messages.
+* Refactoring and several fixes of decoding and encoding of MIDI protocol messages.
 * Fixed silent MIDI output for JACK plugins.
 
 === 1.1.17 ===
