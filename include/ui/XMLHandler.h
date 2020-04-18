@@ -55,7 +55,7 @@ namespace lsp
              * @param root root node that will handle XML data
              * @return status of operation
              */
-            status_t parse_resource(const resource_t *rs, XMLNode *root);
+            status_t parse_resource(const resource::resource_t *rs, XMLNode *root);
 
             /**
              * Parse resource at specified URI. Depending on compilation flags,

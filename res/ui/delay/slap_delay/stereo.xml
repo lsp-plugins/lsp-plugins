@@ -1,14 +1,14 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
-		<group text="groups.chan.master" expand="true">
+		<group text="groups.chan.master">
 			<grid rows="3" cols="10">
 				<label text="labels.temperature" />
 				<label text="labels.predelay" />
 				<label text="labels.tempo" />
 				<label text="labels.stretch" />
 				<label text="labels.settings" />
-				<label text="labels.pan_l" />
-				<label text="labels.pan_r" />
+				<label text="labels.signal.pan_l" />
+				<label text="labels.signal.pan_r" />
 				<label text="labels.signal.dry" />
 				<label text="labels.signal.wet" />
 				<label text="labels.output" />

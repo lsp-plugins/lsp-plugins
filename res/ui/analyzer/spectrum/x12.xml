@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<align hpos="0" fill="true">
 			<hbox spacing="8" border="4" fill="false">
@@ -22,8 +22,8 @@
 			</hbox>
 		</align>
 		
-		<hbox>
-			<vbox spacing="4">
+		<hbox expand="true">
+			<vbox spacing="4" expand="true">
 				<!-- Analyzer, Mastering -->
 				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ilt 4">
 					<center hpos="-1" vpos="-1" visible="false" />
@@ -192,9 +192,9 @@
 					<marker center="1" value="24000" color="g_white" basis="2" parallel="1" />
 					
 					<!-- Axis -->
-					<axis center="0" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
+					<axis center="0" min="10" max="24000" length=":_a_width idiv 2" angle="0.0" color="g_white" logarithmic="true" />
 					<axis center="0" min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
-					<axis center="1" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
+					<axis center="1" min="10" max="24000" length=":_a_width idiv 2" angle="0.0" color="g_white" logarithmic="true" />
 					
 					<!-- Text -->
 					<ui:for id="c" first="0" last="1" >
@@ -227,7 +227,7 @@
 				<value id="zoom" />
 			</vbox>
 			
-			<group text="groups.metering" expand="true" visibility="(:mode ieq 0) or (:mode ieq 2)">
+			<group text="groups.metering" visibility="(:mode ieq 0) or (:mode ieq 2)">
 				<grid rows="15" cols="1" expand="true">
 					<label text="labels.metering.preamp" />
 					<knob id="pamp" />
@@ -252,7 +252,7 @@
 			</group>
 		</hbox>
 	
-		<group text="groups.channels" expand="true" visibility="(:mode ieq 0) or (:mode ieq 2)">
+		<group text="groups.channels" visibility="(:mode ieq 0) or (:mode ieq 2)">
 			<grid rows="7" cols="13" transpose="true">
 				<label text="labels.specials.num" />
 				<label text="labels.chan.on" />
@@ -282,7 +282,7 @@
 		</group>
 		
 		<hbox spacing="4" visibility="(:mode ine 0) and (:mode ine 2)">
-			<group text="groups.channels" fill="true">
+			<group text="groups.channels" expand="true" fill="true">
 				<grid rows="6" cols="23" transpose="true" fill="true">
 					<label text="labels.channel" />
 					<label text="labels.chan.hold" />

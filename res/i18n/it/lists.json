@@ -311,15 +311,15 @@
 		"flt_l_24:31": "Filtri Sinistra 24-31",
 		"flt_l_8:15": "Filtri Sinistra 8-15",
 		
-		"flt_m_0:7": "Filtri Destra 0-7",
-		"flt_m_16:23": "Filtri Destra 16-23",
-		"flt_m_24:31": "Filtri Destra 24-31",
-		"flt_m_8:15": "Filtri Destra 8-15",
+		"flt_m_0:7": "Filtri Centro 0-7",
+		"flt_m_16:23": "Filtri Centro 16-23",
+		"flt_m_24:31": "Filtri Centro 24-31",
+		"flt_m_8:15": "Filtri Centro 8-15",
 		
-		"flt_r_0:7": "Filtri Centro 0-7",
-		"flt_r_16:23": "Filtri Centro 16-23",
-		"flt_r_24:31": "Filtri Centro 24-31",
-		"flt_r_8:15": "Filtri Centro 8-15",
+		"flt_r_0:7": "Filtri Destra 0-7",
+		"flt_r_16:23": "Filtri Destra 16-23",
+		"flt_r_24:31": "Filtri Destra 24-31",
+		"flt_r_8:15": "Filtri Destra 8-15",
 		
 		"flt_s_0:7": "Filtri Leterale 0-7",
 		"flt_s_16:23": "Filtri Leterale 16-23",

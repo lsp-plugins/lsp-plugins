@@ -37,11 +37,16 @@ namespace lsp
 
                     public:
                         virtual status_t on_resolved(const LSPString *name, CtlPort *p);
+
+                        virtual status_t resolve(calc::value_t *value, const char *name, size_t num_indexes, const ssize_t *indexes);
+
+                        virtual status_t resolve(calc::value_t *value, const LSPString *name, size_t num_indexes, const ssize_t *indexes);
                 };
 
             protected:
                 calc::Expression    sExpr;
                 calc::Variables     sVars;
+                calc::Parameters    sParams;
                 CtlResolver         sResolver;
                 CtlRegistry        *pCtl;
                 CtlPortListener    *pListener;
@@ -65,6 +70,8 @@ namespace lsp
             public:
                 void            init(CtlRegistry *ctl, CtlPortListener *listener);
                 void            destroy();
+
+                inline calc::Parameters *params()   { return &sParams; };
 
                 float           evaluate();
                 float           evaluate(size_t idx);

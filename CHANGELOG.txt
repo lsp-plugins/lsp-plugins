@@ -2,6 +2,16 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.19 ===
+* Updated XDG desktop application integration.
+* Refactoring of sse::fft functions for better portability between different compilation options.
+* Fixed bug in asimd::hdotp functions for AArch64 that caused invalid result output.
+* LV2 UI and standalone JACK plugins are now resizable.
+* Fixed plugin sizing issues on certain new Linux distributions.
+* Refactoring and several fixes of decoding and encoding of MIDI protocol messages.
+* Fixed silent MIDI output for JACK plugins.
+* Profile binaries are now excluded from release build.
+
 === 1.1.17 ===
 * Desktop integration icons are now more properly following the XDG standard.
 * Fixed Lanczos resampling kernel formula for oversampling operations.

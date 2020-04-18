@@ -268,7 +268,7 @@ namespace lsp
                     return;
                 }
                 LV2UIFloatPort::notify(buffer, protocol, size);
-                lsp_trace("id=%s, value=%f", pMetadata->id, fValue);
+//                lsp_trace("id=%s, value=%f", pMetadata->id, fValue);
             }
     };
 

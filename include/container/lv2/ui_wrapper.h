@@ -43,7 +43,6 @@ namespace lsp
 
             static status_t slot_ui_hide(LSPWidget *sender, void *ptr, void *data);
             static status_t slot_ui_show(LSPWidget *sender, void *ptr, void *data);
-            static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
 
         public:
             inline explicit LV2UIWrapper(plugin_ui *ui, LV2Extensions *ext)
@@ -117,17 +116,48 @@ namespace lsp
 
                 root->slots()->bind(LSPSLOT_SHOW, slot_ui_show, this);
                 root->slots()->bind(LSPSLOT_HIDE, slot_ui_hide, this);
-                root->slots()->bind(LSPSLOT_RESIZE, slot_ui_resize, this);
 
-                pUI->show();
+                // Sync state of UI ports with the UI
+                for (size_t i=0, n=vUIPorts.size(); i<n; ++i)
+                {
+                    LV2UIPort *p = vUIPorts.at(i);
+                    if (p != NULL)
+                        p->notify_all();
+                }
+
+                // Resize UI and show
                 root->size_request(&sr);
                 root->resize(sr.nMinWidth, sr.nMinHeight);
-                realize_t r;
-                r.nLeft     = 0;
-                r.nTop      = 0;
-                r.nWidth    = sr.nMinWidth;
-                r.nHeight   = sr.nMinHeight;
-                ui_resize(&r);
+                pExt->resize_ui(sr.nMinWidth, sr.nMinHeight);
+
+                pUI->show();
+            }
+
+            int resize_ui(ssize_t width, ssize_t height)
+            {
+                LSPWindow *root = (pUI != NULL) ? pUI->root_window() : NULL;
+                if (root == NULL)
+                    return 0;
+
+                // Resize UI and show
+                lsp_trace("width=%d, height=%d", int(width), int(height));
+                size_request_t sr;
+                root->size_request(&sr);
+
+                // Apply size constraints
+                if ((sr.nMaxWidth >= 0) && (width > sr.nMaxWidth))
+                    width = sr.nMaxWidth;
+                if ((sr.nMaxHeight >= 0) && (height > sr.nMaxHeight))
+                    height = sr.nMaxHeight;
+
+                if ((sr.nMinWidth >= 0) && (width < sr.nMinWidth))
+                    width = sr.nMinWidth;
+                if ((sr.nMinHeight >= 0) && (height < sr.nMinHeight))
+                    height = sr.nMinHeight;
+
+                // Perform resize
+                root->resize(width, height);
+                return 0;
             }
 
             void ui_activated()
@@ -176,15 +206,6 @@ namespace lsp
                         pExt->ui_disconnect_from_plugin();
                     bConnected = false;
                 }
-            }
-
-            void ui_resize(const realize_t *r)
-            {
-                lsp_trace("UI has been resized");
-                if ((pUI == NULL) || (pExt == NULL))
-                    return;
-
-                pExt->resize_ui(r->nWidth, r->nHeight);
             }
 
             void destroy()
@@ -243,8 +264,8 @@ namespace lsp
     //                lsp_trace("id=%d, size=%d, format=%d, buf=%p, port_id=%s", int(id), int(size), int(format), buf, p->metadata()->id);
                     if (p != NULL)
                     {
-                        lsp_trace("notify id=%d, size=%d, format=%d, buf=%p value=%f",
-                            int(id), int(size), int(format), buf, *(reinterpret_cast<const float *>(buf)));
+//                        lsp_trace("notify id=%d, size=%d, format=%d, buf=%p value=%f",
+//                            int(id), int(size), int(format), buf, *(reinterpret_cast<const float *>(buf)));
 
                         p->notify(buf, format, size);
                         p->notify_all();
@@ -504,13 +525,6 @@ namespace lsp
     {
         LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
         _this->ui_deactivated();
-        return STATUS_OK;
-    }
-
-    status_t LV2UIWrapper::slot_ui_resize(LSPWidget *sender, void *ptr, void *data)
-    {
-        LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
-        _this->ui_resize(static_cast<realize_t *>(data));
         return STATUS_OK;
     }
 

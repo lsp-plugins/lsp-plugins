@@ -1,9 +1,10 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
-		<grid rows="2" cols="5" transpose="true" hspacing="2" vspacing="2">
+		<grid rows="2" cols="5" transpose="true" hspacing="2" vspacing="2" expand="true">
 			<!-- Time graph -->
-			<align expand="true" fill="true" pad_top="4" hscale="1">
-				<graph width="560" height="280">
+			<vbox expand="true">
+				<label />
+				<graph width="560" height="280" expand="true">
 					<!-- Gray grid -->
 					<marker value="0.25119" color="g_gray" basis="1" parallel="0" />  <!-- -12 dB -->
 					<marker value="0.01585" color="g_gray" basis="1" parallel="0" />  <!-- -36 dB -->
@@ -52,7 +53,8 @@
 						<text text="${t}.5" coord="${t}.5;0.00398" halign="-1" valign="1" color="white" />
 					</ui:for>
 				</graph>
-			</align>
+				<label />
+			</vbox>
 			
 			<!-- Graph buttons -->
 			<hbox spacing="4">
@@ -74,71 +76,67 @@
 			</hbox>
 			
 			<!-- Sidechain meters -->				
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<grid rows="2" cols="2">
-						<label text="labels.chan.L_eft" font_size="8" />
-						<label text="labels.chan.R_ight" font_size="8" />
-						<button id="scgv_l" size="10" color="bright_green" led="true" />
-						<button id="scgv_r" size="10" color="bright_green" led="true" />
-					</grid>
-					<meter id="sclm_l" id2="sclm_r" activity_id="scgv_l" activity2_id="scgv_r"
-						stereo="true" angle="1" type="peak"
-						min="0.00398" max="1.0" height="280"
-						color="bright_green" color2="bright_green" />
-				</vbox>
-			</align>
+			<vbox>
+				<grid rows="2" cols="2">
+					<label text="labels.chan.L_eft" font_size="8" />
+					<label text="labels.chan.R_ight" font_size="8" />
+					<button id="scgv_l" size="10" color="bright_green" led="true" />
+					<button id="scgv_r" size="10" color="bright_green" led="true" />
+				</grid>
+				<meter expand="true"
+					id="sclm_l" id2="sclm_r" activity_id="scgv_l" activity2_id="scgv_r"
+					stereo="true" angle="1" type="peak"
+					min="0.00398" max="1.0" height="280"
+					color="bright_green" color2="bright_green" />
+			</vbox>
 			<label text="labels.sc.SC" />
 			
 			<!-- Gain meters -->				
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<grid rows="2" cols="2">
-						<label text="labels.chan.L_eft" font_size="8" />
-						<label text="labels.chan.R_ight" font_size="8" />
-						<button id="grgv_l" size="10" color="bright_blue" led="true" />
-						<button id="grgv_r" size="10" color="bright_blue" led="true" />
-					</grid>
-					<meter id="grlm_l" id2="grlm_r" activity_id="grgv_l" activity2_id="grgv_r"
-						stereo="true" angle="1" type="peak"
-						min="0.00398" max="1.0" balance="1.0" height="280"
-						color="bright_blue" color2="bright_blue" />
-				</vbox>
-			</align>
+			<vbox>
+				<grid rows="2" cols="2">
+					<label text="labels.chan.L_eft" font_size="8" />
+					<label text="labels.chan.R_ight" font_size="8" />
+					<button id="grgv_l" size="10" color="bright_blue" led="true" />
+					<button id="grgv_r" size="10" color="bright_blue" led="true" />
+				</grid>
+				<meter expand="true"
+					id="grlm_l" id2="grlm_r" activity_id="grgv_l" activity2_id="grgv_r"
+					stereo="true" angle="1" type="peak"
+					min="0.00398" max="1.0" balance="1.0" height="280"
+					color="bright_blue" color2="bright_blue" />
+			</vbox>
 			<label text="labels.gain_" />
 			
 			<!-- Input signal meters -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<grid rows="2" cols="2">
-						<label text="labels.chan.L_eft" font_size="8" />
-						<label text="labels.chan.R_ight" font_size="8" />
-						<button id="igv_l" size="10" color="left_channel" led="true" />
-						<button id="igv_r" size="10" color="right_channel" led="true" />
-					</grid>
-					<meter id="ilm_l" id2="ilm_r" activity_id="igv_l" activity2_id="igv_r"
-						stereo="true" angle="1" type="rms_peak"
-						min="0.00398" max="1.0f" height="280"
-						color="left_channel" color2="right_channel" />
-				</vbox>
-			</align>
+			<vbox>
+				<grid rows="2" cols="2">
+					<label text="labels.chan.L_eft" font_size="8" />
+					<label text="labels.chan.R_ight" font_size="8" />
+					<button id="igv_l" size="10" color="left_channel" led="true" />
+					<button id="igv_r" size="10" color="right_channel" led="true" />
+				</grid>
+				<meter expand="true"
+					id="ilm_l" id2="ilm_r" activity_id="igv_l" activity2_id="igv_r"
+					stereo="true" angle="1" type="rms_peak"
+					min="0.00398" max="1.0f" height="280"
+					color="left_channel" color2="right_channel" />
+			</vbox>
 			<label text="labels.chan.in" />
 			
 			<!-- Output signal meters -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<grid rows="2" cols="2">
-						<label text="labels.chan.L_eft" font_size="8" />
-						<label text="labels.chan.R_ight" font_size="8" />
-						<button id="ogv_l" size="10" color="left_channel" led="true" />
-						<button id="ogv_r" size="10" color="right_channel" led="true" />
-					</grid>
-					<meter id="olm_l" id2="olm_r" activity_id="ogv_l" activity2_id="ogv_r"
-						stereo="true" angle="1" type="rms_peak"
-						min="0.00398" max="1.0" height="280"
-						color="left_channel" color2="right_channel" />
-				</vbox>
-			</align>
+			<vbox>
+				<grid rows="2" cols="2">
+					<label text="labels.chan.L_eft" font_size="8" />
+					<label text="labels.chan.R_ight" font_size="8" />
+					<button id="ogv_l" size="10" color="left_channel" led="true" />
+					<button id="ogv_r" size="10" color="right_channel" led="true" />
+				</grid>
+				<meter expand="true"
+					id="olm_l" id2="olm_r" activity_id="ogv_l" activity2_id="ogv_r"
+					stereo="true" angle="1" type="rms_peak"
+					min="0.00398" max="1.0" height="280"
+					color="left_channel" color2="right_channel" />
+			</vbox>
 			<label text="labels.chan.out" />
 		</grid>
 		<hbox spacing="4">

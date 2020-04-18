@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<!-- Area selector -->
 		<align hpos="0">
@@ -9,69 +9,67 @@
 		</align>
 		
 		<!-- Trigger -->
-		<grid visibility=":asel ieq 0" rows="2" cols="4" transpose="true">
-			<align expand="true" fill="true" pad_top="12" pad_bottom="4" hscale="1">
-				<graph width="640" height="256" >
-					<center hpos="1" vpos="-1" visible="false" />
-					
-					<!-- Gray grid -->
-					<ui:for id="t" first="0" last="4" step="1">
-						<marker value="${t}.25" color="g_dark_gray" basis="0" parallel="1" />
-						<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
-						<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
-					</ui:for>
+		<grid visibility=":asel ieq 0" rows="2" cols="4" transpose="true" expand="true">
+			<graph width="640" height="256" expand="true">
+				<center hpos="1" vpos="-1" visible="false" />
 				
-					<marker value="3.98107" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
-					<marker value="0.251189" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
-					<marker value="0.0158489" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
-					<marker value="0.001" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
-	
-					<!-- Yellow grid -->
-					<ui:for id="t" first="1" last="4" step="1">
-						<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
-					</ui:for>
-	
-					<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-					<marker value="0.0630957" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-					<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
-	
-					<!-- Meshes -->
-					<mesh id="isgl" width="2" color="left_channel" visibility_id="isvl" />
-					<mesh id="isgr" width="2" color="right_channel" visibility_id="isvr" />
-					<mesh id="tlg" width="2" color="medium_green" visibility_id="tlv" />
-					<mesh id="tfg" width="2" color="green" visibility_id="tfv" />
-					
-					<!-- Boundaries -->
-					<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
-					<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
-					
-					<!-- Axis -->
-					<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
-					<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
-					
-					<!-- Text -->
-					<text text="graph.units.s" coord="5;2.51e-4" halign="1" valign="1" />
-					<ui:for id="t" first="0" last="4" step="1">
-						<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
-						<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
-					</ui:for>
-					
-					<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
-					<text text="0" coord="5;1" halign="1" valign="1" />
-					<text text="-12" coord="5;0.251189" halign="1" valign="1" />
-					<text text="-24" coord="5;0.0630957" halign="1" valign="1" />
-					<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
-					<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
-					<text text="-60" coord="5;0.001" halign="1" valign="1" />
-					<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
-					
-					<!-- Markers -->
-					<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
-					<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
-					<marker id="dl" color="g_magenta" basis="1" parallel="0" />
-					<marker id="rl" color="g_magenta" basis="1" parallel="0" />
-				</graph>
-			</align>
+				<!-- Gray grid -->
+				<ui:for id="t" first="0" last="4" step="1">
+					<marker value="${t}.25" color="g_dark_gray" basis="0" parallel="1" />
+					<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
+					<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
+				</ui:for>
+			
+				<marker value="3.98107" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
+				<marker value="0.251189" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+				<marker value="0.0158489" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+				<marker value="0.001" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+
+				<!-- Yellow grid -->
+				<ui:for id="t" first="1" last="4" step="1">
+					<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
+				</ui:for>
+
+				<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+				<marker value="0.0630957" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+				<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+
+				<!-- Meshes -->
+				<mesh id="isgl" width="2" color="left_channel" visibility_id="isvl" />
+				<mesh id="isgr" width="2" color="right_channel" visibility_id="isvr" />
+				<mesh id="tlg" width="2" color="medium_green" visibility_id="tlv" />
+				<mesh id="tfg" width="2" color="green" visibility_id="tfv" />
+				
+				<!-- Boundaries -->
+				<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
+				<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
+				
+				<!-- Axis -->
+				<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
+				<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
+				
+				<!-- Text -->
+				<text text="graph.units.s" coord="5;2.51e-4" halign="1" valign="1" />
+				<ui:for id="t" first="0" last="4" step="1">
+					<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
+					<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
+				</ui:for>
+				
+				<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
+				<text text="0" coord="5;1" halign="1" valign="1" />
+				<text text="-12" coord="5;0.251189" halign="1" valign="1" />
+				<text text="-24" coord="5;0.0630957" halign="1" valign="1" />
+				<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
+				<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
+				<text text="-60" coord="5;0.001" halign="1" valign="1" />
+				<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
+				
+				<!-- Markers -->
+				<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
+				<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
+				<marker id="dl" color="g_magenta" basis="1" parallel="0" />
+				<marker id="rl" color="g_magenta" basis="1" parallel="0" />
+			</graph>
 			<hbox fill="true">
 				<button id="pause" size="16" color="green" led="true" />
 				<label text="labels.pause" />
@@ -97,47 +95,46 @@
 			</hbox>
 			
 			<!-- Input signal meters -->
-			<align fill="true" vpos="1">
-				<vbox>
-					<grid rows="2" cols="2" fill="false">
-						<label text="labels.chan.L_eft" font_size="8" />
-						<label text="labels.chan.R_ight" font_size="8" />
-						<button id="isvl" size="10" color="left_channel" led="true" />
-						<button id="isvr" size="10" color="right_channel" led="true" />
-					</grid>
-					<meter id="isml" id2="ismr" activity_id="isvl" activity2_id="isvr"
-						stereo="true" angle="1" type="rms_peak"
-						min="0.000251189" max="15.8489" height="256"
-						color="left_channel" color2="right_channel" />
-				</vbox>
-			</align>
+			<vbox>
+				<grid rows="2" cols="2" fill="false">
+					<label text="labels.chan.L_eft" font_size="8" />
+					<label text="labels.chan.R_ight" font_size="8" />
+					<button id="isvl" size="10" color="left_channel" led="true" />
+					<button id="isvr" size="10" color="right_channel" led="true" />
+				</grid>
+				<meter expand="true"
+					id="isml" id2="ismr" activity_id="isvl" activity2_id="isvr"
+					stereo="true" angle="1" type="rms_peak"
+					min="0.000251189" max="15.8489" height="256"
+					color="left_channel" color2="right_channel" />
+			</vbox>
 			<label text="labels.chan.in" />
 			
 			<!-- Sidechain signal meter -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="tfv" size="16" color="green" led="true" />
-					<meter id="tfm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="green" pad_left="4" pad_right="4" activity_id="tfv" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="tfv" size="16" color="green" led="true" />
+				<meter expand="true"
+					id="tfm" angle="1" logarithmic="true" min="0.000251189" max="15.8489"
+					height="256" color="green" pad_left="4" pad_right="4" activity_id="tfv" />
+			</vbox>
 			<label text="labels.sc.SC" />
 			
 			<!-- Trigger signal meter -->
-			<align fill="true" vpos="1" pad_bottom="8">
-				<vbox>
-					<button id="tlv" size="16" color="medium_green" led="true" />
-					<meter id="tlm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="medium_green" pad_left="4" pad_right="4" activity_id="tlv" />
-				</vbox>
-			</align>
+			<vbox>
+				<button id="tlv" size="16" color="medium_green" led="true" />
+				<meter expand="true"
+					id="tlm" angle="1" logarithmic="true" min="0.000251189" max="15.8489"
+					height="256" color="medium_green" pad_left="4" pad_right="4" activity_id="tlv" />
+			</vbox>
 			<label text="labels.Tri_gger" />
 		</grid>
 		
 		<!-- Instrument editor -->
-		<hbox visibility=":asel ieq 1" spacing="4">
-			<cgroup id="ssel" text="Sample # ">
+		<hbox visibility=":asel ieq 1" spacing="4" expand="true">
+			<cgroup id="ssel" expand="true">
 				<vbox>
 					<!-- File editor -->
-					<file
+					<file expand="true"
 						id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
 						fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
 						status_id="fs[ssel]" mesh_id="fd[ssel]"
@@ -146,7 +143,7 @@
 						bind="makeup=mk[ssel],predelay=pd[ssel]"
 					/>
 						
-					<grid rows="3" cols="7" vspacing="2" expand="true">
+					<grid rows="3" cols="7" vspacing="2">
 						<label text="labels.sedit.head_cut" />
 						<label text="labels.sedit.tail_cut" />
 						<label text="labels.sedit.fade_in" />
@@ -208,7 +205,7 @@
 		<!-- Common parameters -->
 		<hbox spacing="4">
 			<!-- Controls -->
-			<group text="groups.plug.trigger" expand="true">
+			<group text="groups.plug.trigger">
 				<hbox expand="true">
 					<grid rows="3" cols="3" expand="true">
 						<label text="labels.sc.preamp" />
@@ -276,7 +273,7 @@
 					</grid>
 				</hbox>
 			</group>
-			<group text="groups.audio_channel" expand="true">
+			<group text="groups.audio_channel">
 				<grid rows="3" cols="3">
 					<label text="labels.signal.dry" />
 					<label text="labels.signal.wet" />

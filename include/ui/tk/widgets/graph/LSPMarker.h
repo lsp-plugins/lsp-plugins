@@ -33,6 +33,8 @@ namespace lsp
                 float           fLast;
                 float           fOffset;
                 float           fAngle;
+                float           fDX;
+                float           fDY;
                 float           fMin;
                 float           fMax;
                 size_t          nWidth;
@@ -45,8 +47,8 @@ namespace lsp
                 size_t          nMouseBtn;
 
             protected:
-                void apply_motion(ssize_t x, ssize_t y);
-                float limit_value(float value);
+                void            apply_motion(ssize_t x, ssize_t y);
+                float           limit_value(float value);
 
             public:
                 explicit LSPMarker(LSPDisplay *dpy);
@@ -69,17 +71,20 @@ namespace lsp
                 inline float        maximum() const         { return fMax;          }
 
             public:
-                void set_basis_id(size_t value);
-                void set_parallel_id(size_t value);
-                void set_value(float value);
-                void set_offset(float value);
-                void set_angle(float value);
-                void set_width(size_t value);
-                void set_center(size_t value);
-                void set_border(ssize_t value);
-                void set_editable(bool value=true);
-                void set_minimum(float value);
-                void set_maximum(float value);
+                void                set_basis_id(size_t value);
+                void                set_parallel_id(size_t value);
+                void                set_value(float value);
+                void                set_offset(float value);
+                void                set_angle(float value);
+                void                set_direction(float dx, float dy);
+                inline void         set_dir_x(float dx)                 { set_direction(dx, fDY); }
+                inline void         set_dir_y(float dy)                 { set_direction(fDX, dy); }
+                void                set_width(size_t value);
+                void                set_center(size_t value);
+                void                set_border(ssize_t value);
+                void                set_editable(bool value=true);
+                void                set_minimum(float value);
+                void                set_maximum(float value);
 
             public:
                 virtual void render(ISurface *s, bool force);

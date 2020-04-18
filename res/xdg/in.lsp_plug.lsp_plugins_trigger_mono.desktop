@@ -10,5 +10,4 @@ Exec=lsp-plugins-trigger-mono
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
-Categories=Audio;X-lsp-plugins;
 Keywords=audio;sound;jackd;lsp-plugins;

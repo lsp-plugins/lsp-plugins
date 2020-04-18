@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<hbox spacing="4">
 		<group text="groups.controls">
 			<grid rows="3" cols="3" hspacing="4">
@@ -42,7 +42,7 @@
 				<indicator id="w_v" format="+-f4.3!" text_color="red" />
 			</grid>
 		</group>
-		<vbox size="2" border="2">
+		<vbox size="2" border="2" expand="true">
 			<graph width="192" expand="true" fill="true">
 				<center hpos="0" vpos="0" visible="false" />
 				<axis id="time" min="-1.0" max="1.0" color="g_white" angle="0.0" logarithmic="false" />

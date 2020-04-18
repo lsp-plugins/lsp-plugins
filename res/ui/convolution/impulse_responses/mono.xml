@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<!-- IR editor -->
 		<group text="groups.impulse_response">
@@ -13,8 +13,8 @@
 					</hbox>
 				</align>
 				
-				<hbox border="2">
-					<file
+				<hbox border="2" expand="true">
+					<file fill="true"
 						id="ifn" head_id="ihc" tail_id="itc"
 						fadein_id="ifi" fadeout_id="ifo" length_id="ifl"
 						status_id="ifs" mesh_id="ifd"

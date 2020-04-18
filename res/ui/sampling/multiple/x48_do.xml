@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<port id="ssel" value="ssel[inst]" />
 
 	<vbox spacing="4">
@@ -16,8 +16,8 @@
 		</align>>
 		
 		<!-- Instrument editor -->
-		<grid rows="2" cols="2" visibility=":msel ieq 0" spacing="4">
-			<cgroup id="inst" text="Instrument # ">
+		<grid rows="2" cols="2" visibility=":msel ieq 0" spacing="4" expand="true">
+			<cgroup id="inst">
 				<grid rows="4" cols="6" spacing="4">
 					<!-- Row 1 -->
 					<label text="labels.channel" />
@@ -88,10 +88,10 @@
 					<led id="mute" color="red" />
 				</grid>
 			</group>
-			<cgroup id="ssel[inst]" text="Sample # ">
+			<cgroup id="ssel[inst]" expand="true">
 				<vbox>
 					<!-- File editor -->
-					<file
+					<file expand="true"
 						id="sf[inst][ssel]" head_id="hc[inst][ssel]" tail_id="tc[inst][ssel]"
 						fadein_id="fi[inst][ssel]" fadeout_id="fo[inst][ssel]" length_id="fl[inst][ssel]"
 						status_id="fs[inst][ssel]" mesh_id="fd[inst][ssel]"
@@ -100,7 +100,7 @@
 						bind="makeup=mk[inst][ssel],predelay=pd[inst][ssel]"
 					/>
 						
-					<grid rows="3" cols="7" vspacing="2" expand="true">
+					<grid rows="3" cols="7" vspacing="2">
 						<label text="labels.sedit.head_cut" />
 						<label text="labels.sedit.tail_cut" />
 						<label text="labels.sedit.fade_in" />
@@ -161,7 +161,7 @@
 					
 		<!-- Mixer -->
 		<ui:for id="m" first="0" last="3">
-			<group text="groups.instrument_mixer" visibility=":msel ieq ${:m+1}">
+			<group text="groups.instrument_mixer" visibility=":msel ieq ${:m+1}" expand="true">
 				<grid rows="14" cols="13" transpose="true" hspacing="2" vspacing="2">
 					<label text="labels.instrument_num" fill="true" halign="0" />
 					<label text="labels.sedit.enabled" fill="true" halign="0" />

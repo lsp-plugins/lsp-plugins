@@ -316,42 +316,66 @@ namespace lsp
             // SECOND PASS: Split unused space between widgets
             if (n_left > 0)
             {
+                ssize_t total = 0;
+
                 if (expand > 0)
                 {
                     // Update expand value
                     if (n_expand == 0)
-                        n_expand = 1;
-
-                    // Split unused space between all expanded widgets
-                    ssize_t total = 0;
-                    for (size_t i=0; i<n_items; ++i)
                     {
-                        // Get widget
-                        cell_t *w = vItems.at(i);
-                        if (hidden_widget(w))
-                            continue;
-                        else if (!w->pWidget->expand())
-                            continue;
+                        // Split unused space between all expanded widgets
+                        ssize_t delta   = n_left / expand;
+                        for (size_t i=0; i<n_items; ++i)
+                        {
+                            // Get widget
+                            cell_t *w = vItems.at(i);
+                            if (hidden_widget(w))
+                                continue;
+                            else if (!w->pWidget->expand())
+                                continue;
 
-                        if (enOrientation == O_HORIZONTAL)
-                        {
-                            ssize_t delta   = (w->a.nWidth * n_left) / n_expand;
-                            w->a.nWidth    += delta;
-                            total          += delta;
-                        }
-                        else // VBOX
-                        {
-                            ssize_t delta   = (w->a.nHeight * n_left) / n_expand;
-                            w->a.nHeight   += delta;
-                            total          += delta;
+                            if (enOrientation == O_HORIZONTAL)
+                            {
+                                w->a.nWidth    += delta;
+                                total          += delta;
+                            }
+                            else // VBOX
+                            {
+                                w->a.nHeight   += delta;
+                                total          += delta;
+                            }
                         }
                     }
-                    n_left     -= total;
+                    else
+                    {
+                        // Split unused space between all expanded widgets
+                        for (size_t i=0; i<n_items; ++i)
+                        {
+                            // Get widget
+                            cell_t *w = vItems.at(i);
+                            if (hidden_widget(w))
+                                continue;
+                            else if (!w->pWidget->expand())
+                                continue;
+
+                            if (enOrientation == O_HORIZONTAL)
+                            {
+                                ssize_t delta   = (w->a.nWidth * n_left) / n_expand;
+                                w->a.nWidth    += delta;
+                                total          += delta;
+                            }
+                            else // VBOX
+                            {
+                                ssize_t delta   = (w->a.nHeight * n_left) / n_expand;
+                                w->a.nHeight   += delta;
+                                total          += delta;
+                            }
+                        }
+                    } // n_expand
                 }
                 else
                 {
                     // Split unused space between all visible widgets
-                    ssize_t total = 0;
                     for (size_t i=0; i<n_items; ++i)
                     {
                         // Get widget
@@ -372,8 +396,9 @@ namespace lsp
                             total          += delta;
                         }
                     }
-                    n_left     -= total;
                 }
+
+                n_left     -= total;
             }
 
             // FOURTH PASS: utilize unused pixels

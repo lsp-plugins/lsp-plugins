@@ -11,7 +11,6 @@ do_release() {
     echo "******************************************************"
 
     $MAKE clean && $MAKE -j$THREADS all && $MAKE release;
-    $MAKE clean && $MAKE -j$THREADS profile && $MAKE release_profile;
 }
 
 echo "******************************************************"

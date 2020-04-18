@@ -150,10 +150,12 @@ namespace lsp
         // If we are connected - do usual stuff
         if (jw->connected())
         {
-            wrapper->pWrapper->transfer_dsp_to_ui();
             if (!(wrapper->nSync++))
                 wrapper->pWindow->query_resize();
         }
+
+        // Transfer changes from DSP to UI
+        wrapper->pWrapper->transfer_dsp_to_ui();
 
         return STATUS_OK;
     }
@@ -203,6 +205,7 @@ namespace lsp
 
             // Do UI interaction
             lsp_trace("Calling main function");
+            w.show_ui();
             pui->main();
             tmr.cancel();
 

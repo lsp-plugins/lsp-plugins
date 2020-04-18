@@ -400,7 +400,7 @@ namespace lsp
         SUBMIT_SIMPLE_IMPL(address, forge_rgba, rgba);
     }
 
-    status_t osc_buffer_t::submit_midi(const char *address, const midi_event_t *event)
+    status_t osc_buffer_t::submit_midi(const char *address, const midi::event_t *event)
     {
         SUBMIT_SIMPLE_IMPL(address, forge_midi, event);
     }

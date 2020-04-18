@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<hbox spacing="4">
 		<group text="groups.signal">
 			<grid rows="4" cols="2">
@@ -22,7 +22,7 @@
 		</group>
 		<group text="groups.samples">
 			<vbox>
-				<label text="label.units.samples" />
+				<label text="labels.units.samples" />
 				<knob id="samp" />
 				<value id="samp" />
 				

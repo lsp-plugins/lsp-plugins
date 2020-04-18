@@ -52,7 +52,7 @@ namespace lsp
         return (vNodes.insert(first, src)) ?  STATUS_OK : STATUS_NO_MEM;
     }
 
-    status_t BuiltinDictionary::parse_dictionary(const resource_t *r)
+    status_t BuiltinDictionary::parse_dictionary(const resource::resource_t *r)
     {
         BuiltinDictionary *curr = NULL;
         cvector<BuiltinDictionary> stack;
@@ -64,7 +64,7 @@ namespace lsp
         for (const void *ptr = r->data; ; )
         {
             // Fetch the token
-            uint8_t v = resource_fetch_byte(&ptr);
+            uint8_t v = resource::fetch_byte(&ptr);
             if (v == 0)
                 break;
 
@@ -112,7 +112,7 @@ namespace lsp
                     if (curr == NULL)
                         return STATUS_BAD_STATE;
 
-                    node.sKey   = resource_fetch_dstring(&ptr);
+                    node.sKey   = resource::fetch_dstring(&ptr);
 //                    lsp_trace("  property key: %s", node.sKey);
                     if (!node.sKey)
                         return STATUS_CORRUPTED;
@@ -124,7 +124,7 @@ namespace lsp
                     if (curr == NULL)
                         return STATUS_BAD_STATE;
 
-                    node.sValue     = resource_fetch_dstring(&ptr);
+                    node.sValue     = resource::fetch_dstring(&ptr);
 //                    lsp_trace("  property value: %s", node.sValue);
                     if (!node.sValue)
                         return STATUS_CORRUPTED;
@@ -182,7 +182,7 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Try to load JSON resource
-        const resource_t *rs = resource_get(path->get_utf8(), RESOURCE_JSON);
+        const resource::resource_t *rs = resource::get(path->get_utf8(), resource::RESOURCE_JSON);
         if (rs == NULL)
             return STATUS_NOT_FOUND;
 
