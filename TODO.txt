@@ -24,6 +24,12 @@
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
 
+=== 1.1.21 ===
+
+* Fixed UI synchronization issue on plugin state restore for VST plugin format.
+- Merged french translation fixes (contributed by Olivier Humbert).
+
+
 *******************************************************************************
 * Release steps
 *******************************************************************************
