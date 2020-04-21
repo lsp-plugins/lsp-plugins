@@ -138,6 +138,7 @@ namespace lsp
             float                   nCurrRow;
             size_t                  nCols;
             size_t                  nRows;
+            volatile vst_serial_t   nSID; // Serial ID of the parameter
 
         public:
             explicit VSTPortGroup(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
@@ -167,6 +168,11 @@ namespace lsp
                 return nCurrRow;
             }
 
+            inline vst_serial_t getSID()
+            {
+                return nSID;
+            }
+
             virtual bool serializable() const { return true; }
 
             virtual void serialize(vst_chunk_t *chunk)
@@ -181,7 +187,10 @@ namespace lsp
                     return -1;
                 int32_t value   = BE_TO_CPU(*(reinterpret_cast<const int32_t *>(data)));
                 if ((value >= 0) && (value < ssize_t(nRows)))
+                {
                     nCurrRow        = value;
+                    ++nSID;
+                }
                 return sizeof(int32_t);
             }
 
@@ -192,7 +201,10 @@ namespace lsp
 
                 int32_t v       = BE_TO_CPU(*(reinterpret_cast<const int32_t *>(data)));
                 if ((v >= 0) && (v < ssize_t(nRows)))
+                {
                     nCurrRow        = v;
+                    ++nSID;
+                }
 
                 return true;
             }
@@ -364,6 +376,7 @@ namespace lsp
                     return -1;
                 float value     = BE_TO_CPU(*(reinterpret_cast<const float *>(data)));
                 writeValue(value);
+                ++nSID;
                 return sizeof(float);
             }
 
@@ -374,6 +387,7 @@ namespace lsp
 
                 float v         = BE_TO_CPU(*(reinterpret_cast<const float *>(data)));
                 writeValue(v);
+                ++nSID;
                 return true;
             }
     };

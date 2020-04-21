@@ -39,11 +39,13 @@ namespace lsp
     {
         private:
             VSTPortGroup           *pPG;
+            vst_serial_t            nSID;
 
         public:
             explicit VSTUIPortGroup(VSTPortGroup *port) : VSTUIPort(port->metadata(), port)
             {
                 pPG                 = port;
+                nSID                = port->getSID() - 1;
             }
 
             virtual ~VSTUIPortGroup()
@@ -59,6 +61,23 @@ namespace lsp
             virtual void set_value(float value)
             {
                 pPort->setValue(value);
+            }
+
+            virtual bool sync()
+            {
+                vst_serial_t sid = pPG->getSID();
+                if (sid == nSID)
+                    return false;
+
+                nSID        = sid;
+                return true;
+            }
+
+            virtual void resync()
+            {
+                if (pPG == NULL)
+                    return;
+                nSID    = pPG->getSID() - 1;
             }
 
         public:
