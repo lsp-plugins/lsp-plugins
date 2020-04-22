@@ -27,6 +27,8 @@
 === 1.1.21 ===
 
 * Fixed UI synchronization issue on plugin state restore for VST plugin format.
+* Fixed improper work of default Attack and Release time parameters for
+  Dynamic Processor plugin series.
 - Merged french translation fixes (contributed by Olivier Humbert).
 
 
