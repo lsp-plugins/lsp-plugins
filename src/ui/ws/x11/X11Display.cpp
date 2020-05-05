@@ -368,6 +368,8 @@ namespace lsp
                         else if (delta <= wtime)
                             wtime               = delta;
                     }
+                    else if (::XPending(pDisplay) > 0)
+                        wtime               = 0;
 
                     // Try to poll input data for a 100 msec period
                     x11_poll.fd         = x11_fd;
