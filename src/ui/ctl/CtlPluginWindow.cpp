@@ -491,7 +491,7 @@ namespace lsp
             for (size_t id=0; ; ++id)
             {
                 // Enumerate next backend information
-                const R3DBackendInfo *info = dpy->enumBackend(id);
+                const R3DBackendInfo *info = dpy->enum_backend(id);
                 if (info == NULL)
                     break;
 
@@ -547,12 +547,12 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_STATE;
 
-            const R3DBackendInfo *info = dpy->enumBackend(sel->id);
+            const R3DBackendInfo *info = dpy->enum_backend(sel->id);
             if (info == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
             // Mark backend as selected
-            dpy->selectBackendId(sel->id);
+            dpy->select_backend_id(sel->id);
 
             // Need to commit backend identifier to config file?
             const char *value = info->uid.get_ascii();

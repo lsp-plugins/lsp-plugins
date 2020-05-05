@@ -105,9 +105,9 @@ namespace lsp
             sRedraw.set_handler(tmr_redraw_request, self());
 
             // Create and initialize window
-            pWindow     = (pNativeHandle != NULL) ? dpy->createWindow(pNativeHandle) :
-                          (nScreen >= 0) ? dpy->createWindow(nScreen) :
-                          dpy->createWindow();
+            pWindow     = (pNativeHandle != NULL) ? dpy->create_window(pNativeHandle) :
+                          (nScreen >= 0) ? dpy->create_window(nScreen) :
+                          dpy->create_window();
             if (pWindow == NULL)
                 return STATUS_UNKNOWN_ERR;
             pWindow->set_handler(this);

@@ -45,7 +45,7 @@ namespace lsp
             }
 
             // Submit task to display's queue
-            nTaskID     = pDisplay->submitTask(ctime + nRepeatInterval, execute, this);
+            nTaskID     = pDisplay->submit_task(ctime + nRepeatInterval, execute, this);
             if (nTaskID < 0)
                 return -nTaskID;
             return STATUS_OK;
@@ -133,7 +133,7 @@ namespace lsp
                 delay      += delta;
             }
 
-            nTaskID     = pDisplay->submitTask(delay, execute, this);
+            nTaskID     = pDisplay->submit_task(delay, execute, this);
             if (nTaskID < 0)
                 return -nTaskID;
 
@@ -165,7 +165,7 @@ namespace lsp
             // Cancel task if present
             if (nTaskID >= 0)
             {
-                pDisplay->cancelTask(nTaskID);
+                pDisplay->cancel_task(nTaskID);
                 nTaskID = -1;
             }
 

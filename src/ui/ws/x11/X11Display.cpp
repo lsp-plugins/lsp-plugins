@@ -227,28 +227,28 @@ namespace lsp
                 return 0;
             }
 
-            INativeWindow *X11Display::createWindow()
+            INativeWindow *X11Display::create_window()
             {
                 return new X11Window(this, DefaultScreen(pDisplay), 0, NULL, false);
             }
 
-            INativeWindow *X11Display::createWindow(size_t screen)
+            INativeWindow *X11Display::create_window(size_t screen)
             {
                 return new X11Window(this, screen, 0, NULL, false);
             }
 
-            INativeWindow *X11Display::createWindow(void *handle)
+            INativeWindow *X11Display::create_window(void *handle)
             {
                 lsp_trace("handle = %p", handle);
                 return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)), NULL, false);
             }
 
-            INativeWindow *X11Display::wrapWindow(void *handle)
+            INativeWindow *X11Display::wrap_window(void *handle)
             {
                 return new X11Window(this, DefaultScreen(pDisplay), Window(uintptr_t(handle)), NULL, true);
             }
 
-            ISurface *X11Display::createSurface(size_t width, size_t height)
+            ISurface *X11Display::create_surface(size_t width, size_t height)
             {
                 return new X11CairoSurface(width, height);
             }
@@ -3084,7 +3084,7 @@ namespace lsp
                 return None;
             }
 
-            status_t X11Display::setClipboard(size_t id, IDataSource *ds)
+            status_t X11Display::set_clipboard(size_t id, IDataSource *ds)
             {
                 // Acquire reference
                 if (ds != NULL)
@@ -3127,7 +3127,7 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            status_t X11Display::getClipboard(size_t id, IDataSink *dst)
+            status_t X11Display::get_clipboard(size_t id, IDataSink *dst)
             {
                 // Acquire data sink
                 if (dst == NULL)
@@ -3323,7 +3323,7 @@ namespace lsp
                 return NULL;
             }
 
-            const char * const *X11Display::getDragContentTypes()
+            const char * const *X11Display::get_drag_ctypes()
             {
                 dnd_recv_t *task = current_drag_task();
                 return (task != NULL) ? vDndMimeTypes.get_array() : NULL;
@@ -3387,7 +3387,7 @@ namespace lsp
                 ::XFlush(pDisplay);
             }
 
-            status_t X11Display::rejectDrag()
+            status_t X11Display::reject_drag()
             {
                 // Check task state
                 dnd_recv_t *task = current_drag_task();
