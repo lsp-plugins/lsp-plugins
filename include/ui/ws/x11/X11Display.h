@@ -162,7 +162,7 @@ namespace lsp
                     cvector<char>           vDndMimeTypes;
 
                 protected:
-                    void            handleEvent(XEvent *ev);
+                    void            handle_event(XEvent *ev);
                     bool            handle_clipboard_event(XEvent *ev);
                     bool            handle_drag_event(XEvent *ev);
 
@@ -247,7 +247,7 @@ namespace lsp
                     void                handle_error(XErrorEvent *ev);
 
                 public:
-                    bool                addWindow(X11Window *wnd);
+                    bool                add_window(X11Window *wnd);
                     bool                remove_window(X11Window *wnd);
 
                     inline Display             *x11display() const  { return pDisplay; }

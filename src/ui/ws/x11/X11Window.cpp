@@ -71,7 +71,7 @@ namespace lsp
 
                 if (bWrapper)
                 {
-                    if (!pX11Display->addWindow(this))
+                    if (!pX11Display->add_window(this))
                         return STATUS_NO_MEM;
 
                     // Now select input for the handle
@@ -182,7 +182,7 @@ namespace lsp
                     pX11Display->flush();
 
                     // Now create X11Window instance
-                    if (!pX11Display->addWindow(this))
+                    if (!pX11Display->add_window(this))
                     {
                         XDestroyWindow(dpy, wnd);
                         pX11Display->flush();

@@ -414,7 +414,7 @@ namespace lsp
                         return STATUS_UNKNOWN_ERR;
                     }
 
-                    handleEvent(&event);
+                    handle_event(&event);
                 }
 
                 // Generate list of tasks for processing
@@ -1445,7 +1445,7 @@ namespace lsp
                 return res;
             }
 
-            void X11Display::handleEvent(XEvent *ev)
+            void X11Display::handle_event(XEvent *ev)
             {
                 if (ev->type > LASTEvent)
                     return;
@@ -1929,7 +1929,7 @@ namespace lsp
                 else
                 {
                     lsp_trace("Handling xevent as for %lx", long(wnd));
-                    handleEvent(event);
+                    handle_event(event);
                 }
             }
 
@@ -2782,7 +2782,7 @@ namespace lsp
                 bExit = true;
             }
 
-            bool X11Display::addWindow(X11Window *wnd)
+            bool X11Display::add_window(X11Window *wnd)
             {
                 return vWindows.add(wnd);
             }
