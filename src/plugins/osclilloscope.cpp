@@ -11,6 +11,8 @@
 #define TRACE_PORT(p)       lsp_trace("  port id=%s", (p)->metadata()->id);
 #define BUF_LIM_SIZE        196608
 #define N_HOR_DIVISIONS     4
+#define N_VER_DIVISIONS     2
+#define VER_FULL_SCALE_AMP  1.0f
 
 namespace lsp
 {
@@ -151,16 +153,6 @@ namespace lsp
             c->nBufferCopyHead = 0;
             c->nBufferCopyCount = 0;
 
-            // Test settings for trigger before proper implementation.
-            c->nPreTrigger = 256;
-            c->nPostTrigger = 255;
-            c->nSweepSize = c->nPreTrigger + c->nPostTrigger + 1;
-            c->nSweepHead = 0;
-            c->sTrigger.set_post_trigger_samples(c->nPostTrigger);
-            c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
-            c->sTrigger.set_trigger_threshold(0.5f);
-            c->sTrigger.update_settings();
-
             c->vAbscissa = ptr;
             ptr += nMeshSize;
 
@@ -274,6 +266,12 @@ namespace lsp
 
             c->sBypass.set_bypass(bPassValue);
 
+            float verDiv = c->pVerDiv->getValue();
+            float verPos = c->pVerPos->getValue();
+
+            c->fScale = VER_FULL_SCALE_AMP / (verDiv * N_VER_DIVISIONS);
+            c->fOffset = 0.01f * verPos * N_VER_DIVISIONS * verDiv;
+
             float horDiv = c->pHorDiv->getValue();
             float horPos = c->pHorPos->getValue();
 
@@ -281,21 +279,12 @@ namespace lsp
             c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
             c->nPostTrigger = c->nSweepSize - c->nPreTrigger - 1;
 
-//            size_t inertia = (horPos > 0) ? c->nPreTrigger : c->nPostTrigger;
+            float trgLevel = c->pTrgLev->getValue();
+
             c->sTrigger.set_post_trigger_samples(c->nPostTrigger);
             c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
-            c->sTrigger.set_trigger_threshold(0.5f);
+            c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
             c->sTrigger.update_settings();
-
-//            size_t to_shift = c->nBufferScanningHead - c->nSweepSize + 1;
-//
-//            c->sShiftBuffer.shift(to_shift);
-//            c->nBufferScanningHead -= to_shift;
-//            c->nBufferCopyHead = 0;
-//            c->nBufferCopyCount = 0;
-//            c->nSweepHead = 0;
-//            c->bDoPlot = false;
-//            dsp::fill_zero(c->vSweep, c->nSweepSize);
         }
     }
 
@@ -402,15 +391,17 @@ namespace lsp
                             {
                                 get_plottable_data(c->vAbscissa, c->vSweep, nMeshSize, c->nSweepSize);
                                 get_plottable_data(c->vOrdinate, c->vSweep, nMeshSize, c->nSweepSize);
+                                for (size_t idx = 0; idx < nMeshSize; ++idx)
+                                {
+                                    c->vOrdinate[idx] *= c->fScale;
+                                    c->vOrdinate[idx] += c->fOffset;
+                                }
 
                                 dsp::copy(mesh->pvData[0], vDflAbscissa, nMeshSize);
                                 dsp::copy(mesh->pvData[1], c->vOrdinate, nMeshSize);
                                 mesh->data(2, nMeshSize);
                             }
                         }
-
-//                        c->sShiftBuffer.shift(c->nBufferScanningHead + 1);
-//                        c->nBufferScanningHead = 0;
 
                         size_t to_shift = c->nBufferScanningHead - c->nSweepSize + 1;
 

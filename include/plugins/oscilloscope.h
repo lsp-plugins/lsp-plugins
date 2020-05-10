@@ -49,6 +49,9 @@ namespace lsp
                 size_t          nSweepSize;
                 size_t          nSweepHead;
 
+                float           fScale;
+                float           fOffset;
+
                 bool            bDoPlot;
 
                 float          *vAbscissa;

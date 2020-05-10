@@ -65,11 +65,42 @@
 	        </group>
 	        
 	        <group text="Vertical" expand="true" fill="true">
+	        
+                <grid rows="4" cols="1">
+                
+                    <label text="Division" />
+                
+                    <vbox>
+                        <knob id="vedv_1" size="18" />
+                        <value id="vedv_1" />
+                    </vbox>
+                    
+                    <label text="Position" />
+                
+                    <vbox>
+                        <knob id="veps_1" size="18" />
+                        <value id="veps_1" />
+                    </vbox>
+                    
+                </grid>
+	        
             </group>
 	        
         </vbox>
         
         <group text="Trigger" expand="true" fill="true">
+        
+                <grid rows="2" cols="1">
+                
+                    <label text="Level" />
+                
+                    <vbox>
+                        <knob id="trlv_1" size="18" />
+                        <value id="trlv_1" />
+                    </vbox>
+                    
+                </grid>
+        
         </group>
         
     </hbox>

@@ -41,11 +41,11 @@ namespace lsp
 
     #define VER_CONTROLS(id, label) \
         CONTROL("vedv" id, "Vertical Division" label, U_NONE, oscilloscope_base_metadata::VERTICAL_DIVISION), \
-        CONTROL("veps" id, "Vertical Position" label, U_NONE, oscilloscope_base_metadata::VERTICAL_POSITION)
+        CONTROL("veps" id, "Vertical Position" label, U_PERCENT, oscilloscope_base_metadata::VERTICAL_POSITION)
 
     #define TRG_CONTROLS(id, label) \
         CONTROL("trhy" id, "Hysteresis" label, U_NONE, oscilloscope_base_metadata::TRIGGER_HYSTERESIS), \
-        CONTROL("trlv" id, "Level" label, U_NONE, oscilloscope_base_metadata::TRIGGER_LEVEL), \
+        CONTROL("trlv" id, "Level" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_LEVEL), \
         COMBO("trmo" id, "Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
         COMBO("trtp" id, "Type" label, oscilloscope_base_metadata::TRIGGER_TYPE_DFL, osc_trg_type)
 

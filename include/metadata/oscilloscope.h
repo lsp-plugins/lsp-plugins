@@ -24,10 +24,10 @@ namespace lsp
         static const float TIME_POSITION_DFL = 0.0f;
         static const float TIME_POSITION_STEP = 1.0f;
 
-        static const float VERTICAL_DIVISION_MAX = 1.0e-3f;
-        static const float VERTICAL_DIVISION_MIN = 10.0f;
-        static const float VERTICAL_DIVISION_DFL = 1.0;
-        static const float VERTICAL_DIVISION_STEP = 1e-3;
+        static const float VERTICAL_DIVISION_MAX = 10.0f;
+        static const float VERTICAL_DIVISION_MIN = 1.0e-3f;
+        static const float VERTICAL_DIVISION_DFL = 0.5;
+        static const float VERTICAL_DIVISION_STEP = 1e-3f;
 
         static const float VERTICAL_POSITION_MAX = 100.0f;
         static const float VERTICAL_POSITION_MIN = -100.0f;
@@ -56,8 +56,8 @@ namespace lsp
         static const float TRIGGER_HYSTERESIS_DFL = 1.0f;
         static const float TRIGGER_HYSTERESIS_STEP = 1.0f;
 
-        static const float TRIGGER_LEVEL_MAX = 10.0f;
-        static const float TRIGGER_LEVEL_MIN = -10.0f;
+        static const float TRIGGER_LEVEL_MAX = 100.0f;
+        static const float TRIGGER_LEVEL_MIN = -100.0f;
         static const float TRIGGER_LEVEL_DFL = 0.0f;
         static const float TRIGGER_LEVEL_STEP = 1.0f;
 
