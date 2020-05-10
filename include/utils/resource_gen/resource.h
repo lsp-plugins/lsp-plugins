@@ -40,7 +40,7 @@ namespace lsp
             if (resource->hex != NULL)
                 free(const_cast<char *>(resource->hex));
 
-            if (resource->type == RESOURCE_3D_SCENE)
+            if (resource->type == resource::RESOURCE_3D_SCENE)
             {
                 resource->scene->destroy();
                 delete resource->scene;
@@ -125,20 +125,20 @@ namespace lsp
         {
             const char *dot = strrchr(fname, '.');
             if (dot == NULL)
-                return RESOURCE_UNKNOWN;
+                return resource::RESOURCE_UNKNOWN;
 
             if (strcasecmp(dot, ".xml") == 0)
-                return RESOURCE_XML;
+                return resource::RESOURCE_XML;
             if (strcasecmp(dot, ".obj") == 0)
-                return RESOURCE_3D_SCENE;
+                return resource::RESOURCE_3D_SCENE;
             if (strcasecmp(dot, ".preset") == 0)
-                return RESOURCE_PRESET;
+                return resource::RESOURCE_PRESET;
             if (strcasecmp(dot, ".json") == 0)
-                return RESOURCE_JSON;
+                return resource::RESOURCE_JSON;
             if (strcasecmp(dot, ".json5") == 0)
-                return RESOURCE_JSON;
+                return resource::RESOURCE_JSON;
 
-            return RESOURCE_UNKNOWN;
+            return resource::RESOURCE_UNKNOWN;
         }
     }
 }

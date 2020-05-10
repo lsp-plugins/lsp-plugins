@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<group text="groups.results" expand="true" fill="true">
 			<grid rows="3" cols="2" hspacing="8" vspacing="4">

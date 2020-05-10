@@ -1,6 +1,6 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
-		<group text="groups.chan.master" expand="true">
+		<group text="groups.chan.master">
 			<grid rows="3" cols="9">
 				<label text="labels.temperature" />
 				<label text="labels.predelay" />

@@ -71,6 +71,7 @@ namespace lsp
                 static status_t slot_show(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_destroy(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_resize(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_resize_parent(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_focus_in(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_focus_out(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_drag_request(LSPWidget *sender, void *ptr, void *data);
@@ -628,6 +629,13 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t on_resize(const realize_t *r);
+
+                /** Geometry of parent widget has changed: size or position
+                 *
+                 * @param e event
+                 * @return status of operation
+                 */
+                virtual status_t on_resize_parent(const realize_t *r);
 
                 /** The widget becomes hidden
                  *

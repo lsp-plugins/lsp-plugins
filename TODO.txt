@@ -8,10 +8,7 @@
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
-=== 1.1.18 ===
-* Updated XDG desktop application integration.
-* Refactoring of sse::fft functions for better portability.
-* Fixed bug in asimd::hdotp functions for AArch64.
+=== 1.2.0 ===
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
@@ -19,13 +16,22 @@
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files.
 - Implemented Multiband gate plugin series.
-- Implemented equal loudness compensation plugin according to ISO 226:2003
-  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
-  topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
-  
+- Implemented equal loudness compensation plugin according to ISO 226:2003
+  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
+  topic: https://linuxmusicians.com/viewtopic.php?p=113835
+- Review internal convolver module.
+
+=== 1.1.21 ===
+
+* Fixed UI synchronization issue on plugin state restore for VST plugin format.
+* Fixed improper work of default Attack and Release time parameters for
+  Dynamic Processor plugin series.
+- Merged french translation fixes (contributed by Olivier Humbert).
+
+
 *******************************************************************************
 * Release steps
 *******************************************************************************

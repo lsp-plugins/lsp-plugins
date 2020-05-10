@@ -16,15 +16,19 @@ namespace lsp
     void init_debug(const char *subsystem)
     {
         if (log_fd != stderr)
+        {
+            fclose(log_fd);
+            log_fd = stderr;
             return;
+        }
 
         char path[PATH_MAX];
         snprintf(path, PATH_MAX, "/tmp/lsp-plugins-%s.log", subsystem);
         fprintf(stderr, "Log data will be written to file: %s\n", path);
 
         log_fd      = fopen(path, "a");
-        if (log_fd != NULL)
-            setvbuf(log_fd, NULL, _IONBF, BUFSIZ);
+//        if (log_fd != NULL)
+//            setvbuf(log_fd, NULL, _IONBF, BUFSIZ);
     }
 #endif /* LSP_TRACEFILE */
 

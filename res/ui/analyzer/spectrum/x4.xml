@@ -1,4 +1,4 @@
-<plugin resizable="false">
+<plugin resizable="true">
 	<vbox spacing="4">
 		<align hpos="0" fill="true">
 			<hbox spacing="8" border="4" fill="false">
@@ -22,8 +22,8 @@
 			</hbox>
 		</align>
 		
-		<hbox>
-			<vbox fill="true" spacing="4">
+		<hbox expand="true">
+			<vbox fill="true" expand="true" spacing="4">
 				<!-- Analyzer, Mastering -->
 				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ilt 4">
 					<center hpos="-1" vpos="-1" visible="false" />
@@ -192,9 +192,9 @@
 					<marker center="1" value="24000" color="g_white" basis="2" parallel="1" />
 					
 					<!-- Axis -->
-					<axis center="0" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
+					<axis center="0" min="10" max="24000" length=":_a_width idiv 2" angle="0.0" color="g_white" logarithmic="true" />
 					<axis center="0" min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
-					<axis center="1" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
+					<axis center="1" min="10" max="24000" length=":_a_width idiv 2" angle="0.0" color="g_white" logarithmic="true" />
 					
 					<!-- Text -->
 					<ui:for id="c" first="0" last="1" >
@@ -283,7 +283,7 @@
 			</group>
 		</hbox>
 		
-		<group text="groups.channels" expand="true" visibility="(:mode ine 0) and (:mode ine 2)">
+		<group text="groups.channels" visibility="(:mode ine 0) and (:mode ine 2)">
 			<grid rows="4" cols="20" transpose="true" fill="true">
 				<ui:for id="i" first="0" last="3">
 					<cell cols="3">

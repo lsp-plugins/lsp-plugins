@@ -212,7 +212,7 @@ namespace lsp
 
         ISurface *LSPDisplay::create_surface(size_t width, size_t height)
         {
-            return (pDisplay != NULL) ? pDisplay->createSurface(width, height) : NULL;
+            return (pDisplay != NULL) ? pDisplay->create_surface(width, height) : NULL;
         }
 
         void LSPDisplay::sync()
@@ -375,27 +375,27 @@ namespace lsp
 
         status_t LSPDisplay::get_clipboard(size_t id, IDataSink *sink)
         {
-            return pDisplay->getClipboard(id, sink);
+            return pDisplay->get_clipboard(id, sink);
         }
 
         status_t LSPDisplay::set_clipboard(size_t id, IDataSource *src)
         {
-            return pDisplay->setClipboard(id, src);
+            return pDisplay->set_clipboard(id, src);
         }
 
         status_t LSPDisplay::reject_drag()
         {
-            return pDisplay->rejectDrag();
+            return pDisplay->reject_drag();
         }
 
         status_t LSPDisplay::accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
         {
-            return pDisplay->acceptDrag(sink, action, internal, r);
+            return pDisplay->accept_drag(sink, action, internal, r);
         }
 
         const char * const *LSPDisplay::get_drag_mime_types()
         {
-            return pDisplay->getDragContentTypes();
+            return pDisplay->get_drag_ctypes();
         }
 
         status_t LSPDisplay::queue_destroy(LSPWidget *widget)

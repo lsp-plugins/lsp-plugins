@@ -17,6 +17,22 @@ namespace lsp
             return pExpr->on_resolved(name, p);
         }
 
+        status_t CtlExpression::CtlResolver::resolve(calc::value_t *value, const char *name, size_t num_indexes, const ssize_t *indexes)
+        {
+            status_t res = pExpr->sParams.resolve(value, name, num_indexes, indexes);
+            if (res != STATUS_OK)
+                res     = CtlPortResolver::resolve(value, name, num_indexes, indexes);
+            return res;
+        }
+
+        status_t CtlExpression::CtlResolver::resolve(calc::value_t *value, const LSPString *name, size_t num_indexes, const ssize_t *indexes)
+        {
+            status_t res = pExpr->sParams.resolve(value, name, num_indexes, indexes);
+            if (res != STATUS_OK)
+                res     = CtlPortResolver::resolve(value, name, num_indexes, indexes);
+            return res;
+        }
+
         CtlExpression::CtlExpression(): CtlPortListener(),
             sResolver(this)
         {

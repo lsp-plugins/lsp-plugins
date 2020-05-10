@@ -32,7 +32,7 @@ namespace lsp
                 }
                 else
                 {
-                    hWindow                 = 0;
+                    hWindow                 = None;
                     hParent                 = wnd;
                 }
                 nScreen                 = screen;
@@ -71,7 +71,7 @@ namespace lsp
 
                 if (bWrapper)
                 {
-                    if (!pX11Display->addWindow(this))
+                    if (!pX11Display->add_window(this))
                         return STATUS_NO_MEM;
 
                     // Now select input for the handle
@@ -182,7 +182,7 @@ namespace lsp
                     pX11Display->flush();
 
                     // Now create X11Window instance
-                    if (!pX11Display->addWindow(this))
+                    if (!pX11Display->add_window(this))
                     {
                         XDestroyWindow(dpy, wnd);
                         pX11Display->flush();
@@ -220,7 +220,10 @@ namespace lsp
                     );
                     if (hParent > 0)
                     {
-                        ::XSelectInput(dpy, hParent, PropertyChangeMask);
+                        ::XSelectInput(dpy, hParent,
+                            PropertyChangeMask |
+                            StructureNotifyMask
+                        );
                     }
 
                     pX11Display->flush();
@@ -327,6 +330,10 @@ namespace lsp
                     sz.max_width    = sSize.nWidth;
                     sz.max_height   = sSize.nHeight;
                 }
+
+                lsp_trace("Window constraints: min_width=%d, min_height=%d, max_width=%d, max_height=%d",
+                        int(sz.min_width), int(sz.min_height), int(sz.max_width), int(sz.max_height)
+                    );
 
                 XSetWMNormalHints(pX11Display->x11display(), hWindow, &sz);
 //                pX11Display->sync();

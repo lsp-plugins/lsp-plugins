@@ -61,6 +61,13 @@ static const int *glx_pb_config[] =
 
 namespace lsp
 {
+#ifdef LSP_TRACEFILE
+    FILE *log_fd = stderr;
+#endif /* LSP_TRACEFILE */
+}
+
+namespace lsp
+{
     void glx_backend_t::destroy(glx_backend_t *_this)
     {
         // Destroy pBuffer

@@ -83,7 +83,7 @@ namespace lsp
         status_t parse_symbol(parse_frame_t *ref, const char **s);
         status_t parse_ascii(parse_frame_t *ref, char *c);
         status_t parse_rgba(parse_frame_t *ref, uint32_t *rgba);
-        status_t parse_midi(parse_frame_t *ref, midi_event_t *event);
+        status_t parse_midi(parse_frame_t *ref, midi::event_t *event);
         status_t parse_midi_raw(parse_frame_t *ref, const uint8_t **event, size_t *len);
         status_t parse_bool(parse_frame_t *ref, bool *value);
         status_t parse_null(parse_frame_t *ref);
