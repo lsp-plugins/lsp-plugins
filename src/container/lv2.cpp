@@ -70,7 +70,7 @@ namespace lsp
     }
 
     LV2_Handle lv2_instantiate(
-        const struct _LV2_Descriptor * descriptor,
+        const struct LV2_Descriptor   *descriptor,
         double                         sample_rate,
         const char *                   bundle_path,
         const LV2_Feature *const *     features)
