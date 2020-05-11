@@ -296,7 +296,7 @@ namespace lsp
     // LV2UI routines
 #ifndef LSP_NO_LV2_UI
     LV2UI_Handle lv2ui_instantiate(
-        const struct _LV2UI_Descriptor* descriptor,
+        const struct LV2UI_Descriptor*  descriptor,
         const char*                     plugin_uri,
         const char*                     bundle_path,
         LV2UI_Write_Function            write_function,
