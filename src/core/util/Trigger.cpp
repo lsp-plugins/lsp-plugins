@@ -21,48 +21,12 @@ namespace lsp
         nPostTrigger            = 0;
         nPostTriggerCounter     = 0;
 
-        fThreshold              = 0.0f;
+        sSimpleTrg.fThreshold   = 0.0f;
+        sSimpleTrg.fPrevious    = 0.0f;
 
         nExternalTriggerCounter = 0;
 
-        nMemoryHead             = 0;
-
-        fPrevious               = 0.0f;
-
-        vMemory                 = NULL;
-        pData                   = NULL;
-
         bSync                   = true;
-    }
-
-    Trigger::~Trigger()
-    {
-    }
-
-    bool Trigger::init()
-    {
-        // 1X memory buffer
-        size_t samples = MEM_LIM_SIZE;
-
-        float *ptr = alloc_aligned<float>(pData, samples);
-        if (ptr == NULL)
-            return false;
-
-        lsp_guard_assert(float *save = ptr);
-
-        vMemory = ptr;
-        ptr += MEM_LIM_SIZE;
-
-        lsp_assert(ptr <= &save[samples]);
-
-        return true;
-    }
-
-    void Trigger::destroy()
-    {
-        free_aligned(pData);
-        pData   = NULL;
-        vMemory = NULL;
     }
 
     void Trigger::update_settings()
@@ -70,37 +34,17 @@ namespace lsp
         if (!bSync)
             return;
 
-        prepare_memory();
         nPostTriggerCounter = 0;
-        nMemoryHead = 0;
-
         bSync = false;
-    }
-
-    void Trigger::prepare_memory()
-    {
-        dsp::fill_zero(vMemory, MEM_LIM_SIZE);
-        fPrevious = 0.0f;
     }
 
     void Trigger::single_sample_processor(float value)
     {
-        vMemory[nMemoryHead] = value;
-
         switch (enTriggerType)
         {
             case TRG_TYPE_SIMPLE_RISING_EDGE:
             {
-//                size_t previous_sample_idx = 0;
-//
-//                if (nMemoryHead == 0)
-//                    previous_sample_idx = MEM_LIM_SIZE;
-//                else
-//                    previous_sample_idx = nMemoryHead - 1;
-//
-//                float diff = vMemory[nMemoryHead] - vMemory[previous_sample_idx];
-
-                float diff = value - fPrevious;
+                float diff = value - sSimpleTrg.fPrevious;
 
                 if (diff > 0.0f)
                     enTriggerState = TRG_STATE_ARMED;
@@ -109,8 +53,8 @@ namespace lsp
                     enTriggerState = TRG_STATE_WAITING;
                 }
 
-                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (fPrevious <= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
-//                if ((enTriggerState == TRG_STATE_ARMED) && (value >= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
+                // Imposing a condition on the previous sample too might be too strict! Test and evaluate.
+                if ((enTriggerState == TRG_STATE_ARMED) && (value >= sSimpleTrg.fThreshold) && (sSimpleTrg.fPrevious <= sSimpleTrg.fThreshold) && (nPostTriggerCounter >= nPostTrigger))
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nPostTriggerCounter = 0;
@@ -118,20 +62,13 @@ namespace lsp
                 else
                     enTriggerState = TRG_STATE_WAITING;
 
-                fPrevious = value;
+                sSimpleTrg.fPrevious = value;
             }
             break;
 
             case TRG_TYPE_SIMPLE_FALLING_EDGE:
             {
-                size_t previous_sample_idx = 0;
-
-                if (nMemoryHead == 0)
-                    previous_sample_idx = MEM_LIM_SIZE;
-                else
-                    previous_sample_idx = nMemoryHead - 1;
-
-                float diff = vMemory[nMemoryHead] - vMemory[previous_sample_idx];
+                float diff = value - sSimpleTrg.fPrevious;
 
                 if (diff < 0.0f)
                     enTriggerState = TRG_STATE_ARMED;
@@ -140,7 +77,8 @@ namespace lsp
                     enTriggerState = TRG_STATE_WAITING;
                 }
 
-                if ((enTriggerState == TRG_STATE_ARMED) && (value <= fThreshold) && (nPostTriggerCounter >= nPostTrigger))
+                // Imposing a condition on the previous sample too might be too strict! Test and evaluate.
+                if ((enTriggerState == TRG_STATE_ARMED) && (value <= sSimpleTrg.fThreshold) && (sSimpleTrg.fPrevious >= sSimpleTrg.fThreshold) && (nPostTriggerCounter >= nPostTrigger))
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nPostTriggerCounter = 0;
@@ -174,6 +112,5 @@ namespace lsp
         }
 
         ++nPostTriggerCounter;
-        nMemoryHead = (nMemoryHead + 1) % MEM_LIM_SIZE;
     }
 }

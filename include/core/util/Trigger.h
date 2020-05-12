@@ -32,6 +32,14 @@ namespace lsp
 
     class Trigger
     {
+        protected:
+
+            typedef struct simple_trg_t
+            {
+                float fThreshold;
+                float fPrevious;
+            } simple_trg_t;
+
         private:
             Trigger & operator = (const Trigger &);
 
@@ -43,16 +51,9 @@ namespace lsp
             size_t          nPostTrigger;
             size_t          nPostTriggerCounter;
 
-            float           fThreshold;
+            simple_trg_t    sSimpleTrg;
 
             size_t          nExternalTriggerCounter;
-
-            size_t          nMemoryHead;
-
-            float           fPrevious;
-
-            float          *vMemory;
-            uint8_t        *pData;
 
             bool            bSync;
 
@@ -62,22 +63,7 @@ namespace lsp
 
         protected:
 
-            /** Prepare the internal data buffer.
-             *
-             */
-            void prepare_memory();
-
         public:
-
-            /** Initialise trigger.
-             *
-             */
-            bool init();
-
-            /** Destroy trigger.
-             *
-             */
-            void destroy();
 
             /** Check that trigger needs settings update.
              *
@@ -126,7 +112,7 @@ namespace lsp
              */
             inline void set_trigger_threshold(float threshold)
             {
-                fThreshold = threshold;
+                sSimpleTrg.fThreshold = threshold;
             }
 
             /** Return he trigger state.
