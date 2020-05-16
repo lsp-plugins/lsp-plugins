@@ -9,6 +9,7 @@
 - Migrated to CMake build system.
 
 === 1.2.0 ===
+* Fixed VST2 identifiers for Multiband Expander plugin series.
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
@@ -27,6 +28,7 @@
 *******************************************************************************
 * Release steps
 *******************************************************************************
+* Register VST2 plugin IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
 * Ensure that there are menu items present for all new plugins in res/xdg
