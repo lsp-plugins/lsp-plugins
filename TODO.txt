@@ -30,7 +30,7 @@
 * Fixed improper work of default Attack and Release time parameters for
   Dynamic Processor plugin series.
 * Fixed build broken by recent LV2 header updates. 
-- Merged french translation fixes (contributed by Olivier Humbert).
+* Some french translation fixes (contributed by Olivier Humbert).
 
 
 *******************************************************************************
