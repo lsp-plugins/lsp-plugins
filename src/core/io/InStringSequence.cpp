@@ -115,10 +115,10 @@ namespace lsp
                 return set_error(STATUS_CLOSED);
 
             size_t avail = pString->length() - nOffset;
+            if (avail <= 0)
+                return -set_error(STATUS_EOF);
             if (count > avail)
                 count = avail;
-            if (count <= 0)
-                return 0;
 
             // Perform a copy
             const lsp_wchar_t *v = pString->characters();
@@ -176,7 +176,7 @@ namespace lsp
         ssize_t InStringSequence::skip(size_t count)
         {
             if (pString == NULL)
-                return set_error(STATUS_CLOSED);
+                return -set_error(STATUS_CLOSED);
 
             size_t avail = pString->length() - nOffset;
             if (count > avail)

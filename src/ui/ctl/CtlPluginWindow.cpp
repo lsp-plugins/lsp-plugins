@@ -491,7 +491,7 @@ namespace lsp
             for (size_t id=0; ; ++id)
             {
                 // Enumerate next backend information
-                const R3DBackendInfo *info = dpy->enumBackend(id);
+                const R3DBackendInfo *info = dpy->enum_backend(id);
                 if (info == NULL)
                     break;
 
@@ -547,12 +547,12 @@ namespace lsp
             if (dpy == NULL)
                 return STATUS_BAD_STATE;
 
-            const R3DBackendInfo *info = dpy->enumBackend(sel->id);
+            const R3DBackendInfo *info = dpy->enum_backend(sel->id);
             if (info == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
             // Mark backend as selected
-            dpy->selectBackendId(sel->id);
+            dpy->select_backend_id(sel->id);
 
             // Need to commit backend identifier to config file?
             const char *value = info->uid.get_ascii();
@@ -626,7 +626,7 @@ namespace lsp
                 // Update window geometry
                 LSPWindow *wnd  = widget_cast<LSPWindow>(pWidget);
 //                wnd->set_min_size(nMinWidth, nMinHeight);
-                wnd->set_border_style((bResizable) ? BS_SIZABLE : BS_SINGLE);
+                wnd->set_border_style((bResizable) ? BS_SIZEABLE : BS_SINGLE);
                 wnd->actions()->set_resizable(bResizable);
                 wnd->actions()->set_maximizable(bResizable);
             }

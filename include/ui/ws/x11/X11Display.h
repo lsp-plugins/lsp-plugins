@@ -162,7 +162,7 @@ namespace lsp
                     cvector<char>           vDndMimeTypes;
 
                 protected:
-                    void            handleEvent(XEvent *ev);
+                    void            handle_event(XEvent *ev);
                     bool            handle_clipboard_event(XEvent *ev);
                     bool            handle_drag_event(XEvent *ev);
 
@@ -223,11 +223,11 @@ namespace lsp
                     virtual int init(int argc, const char **argv);
                     virtual void destroy();
 
-                    virtual INativeWindow *createWindow();
-                    virtual INativeWindow *createWindow(size_t screen);
-                    virtual INativeWindow *createWindow(void *handle);
-                    virtual INativeWindow *wrapWindow(void *handle);
-                    virtual ISurface *createSurface(size_t width, size_t height);
+                    virtual INativeWindow *create_window();
+                    virtual INativeWindow *create_window(size_t screen);
+                    virtual INativeWindow *create_window(void *handle);
+                    virtual INativeWindow *wrap_window(void *handle);
+                    virtual ISurface *create_surface(size_t width, size_t height);
 
                     virtual int main();
                     virtual status_t main_iteration();
@@ -237,17 +237,17 @@ namespace lsp
                     virtual size_t default_screen();
                     virtual status_t screen_size(size_t screen, ssize_t *w, ssize_t *h);
 
-                    virtual status_t setClipboard(size_t id, IDataSource *ds);
-                    virtual status_t getClipboard(size_t id, IDataSink *dst);
-                    virtual const char * const *getDragContentTypes();
+                    virtual status_t set_clipboard(size_t id, IDataSource *ds);
+                    virtual status_t get_clipboard(size_t id, IDataSink *dst);
+                    virtual const char * const *get_drag_ctypes();
 
-                    virtual status_t    rejectDrag();
+                    virtual status_t    reject_drag();
                     virtual status_t    acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
 
                     void                handle_error(XErrorEvent *ev);
 
                 public:
-                    bool                addWindow(X11Window *wnd);
+                    bool                add_window(X11Window *wnd);
                     bool                remove_window(X11Window *wnd);
 
                     inline Display             *x11display() const  { return pDisplay; }

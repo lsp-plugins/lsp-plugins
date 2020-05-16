@@ -111,7 +111,7 @@ namespace lsp
                 return NULL;
 
             // Try to create backend
-            IR3DBackend *r3d    = dpy->create3DBackend(native);
+            IR3DBackend *r3d    = dpy->create_r3D_backend(native);
             if (r3d == NULL)
                 return NULL;
 

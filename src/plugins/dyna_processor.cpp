@@ -468,10 +468,10 @@ namespace lsp
             for (size_t j=0; j<dyna_processor_base_metadata::DOTS; ++j)
             {
                 c->sProc.set_attack_level(j, (c->pAttackOn[j]->getValue() >= 0.5f) ? c->pAttackLvl[j]->getValue() : -1.0f);
-                c->sProc.set_attack_time(j, c->pAttackTime[j+1]->getValue());
+                c->sProc.set_attack_time(j+1, c->pAttackTime[j+1]->getValue());
 
                 c->sProc.set_release_level(j, (c->pReleaseOn[j]->getValue() >= 0.5f) ? c->pReleaseLvl[j]->getValue() : -1.0f);
-                c->sProc.set_release_time(j, c->pReleaseTime[j+1]->getValue());
+                c->sProc.set_release_time(j+1, c->pReleaseTime[j+1]->getValue());
 
                 if ((c->pDotOn[j] != NULL) && (c->pDotOn[j]->getValue() >= 0.5f))
                     c->sProc.set_dot(j, c->pThreshold[j]->getValue(), c->pGain[j]->getValue(), c->pKnee[j]->getValue());
