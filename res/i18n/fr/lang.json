@@ -2,9 +2,10 @@
 	"language": "Langage",
 
 	"local": {
+		"es": "Espagnol",
 		"fr": "Français",
+		"it": "Italien",
 		"ru": "Russe",
-		"us": "Anglais (US)",
-        "it": "Italien"
+		"us": "Anglais (US)"
 	}
 }

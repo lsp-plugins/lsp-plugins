@@ -4,9 +4,10 @@
 	"local": {
 		"de": "German",
 		"en": "English (British)",
+		"es": "Spanish",
+		"it": "Italian",
 		"ja": "Japanese",
 		"ru": "Russian",
-		"us": "English (US)",
-		"it": "Italian"
+		"us": "English (US)"
 	}
 }
