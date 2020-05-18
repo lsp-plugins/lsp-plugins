@@ -1,0 +1,20 @@
+{
+	"file": {
+		"confirm_load": "¿Realmente quieres cargar el archivo seleccionado?",
+		"confirm_overwrite": "El archivo ya existe. ¿Sobreescribir?",
+		
+		"invalid_name": "El nombre de archivo no es válido",
+		
+		"not_exists": "El archivo seleccionado no existe",
+		"not_specified": "No se ha especificado el nombre de archivo"
+	},
+	
+	"greetings": {
+		"0": "¡Has actualizado los plugins a la versión {@version}!",
+		"1": "El '{@project}' es un proyecto no-comercial y necesita apoyo económico para su desarrollo futuro.",
+		"2": "Puedes ayudar a esta colección de plugins de código abierto visitando el siguiente enlace y enviando donativos al proyecto:",
+		"3": "Recuerda que las suscripciones y los donativos pequeños pero regulares son más beneficiosos para el proyecto que un único donativo.",
+		"4": "Para no ser demasiado insistente, este diálogo solo se mostrará tras cada actualización de versión de los plugins.",
+		"5": "Gracias por adelantado."
+	}
+}
