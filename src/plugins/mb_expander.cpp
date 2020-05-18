@@ -266,14 +266,18 @@ namespace lsp
                 b->pSolo        = NULL;
                 b->pMute        = NULL;
                 b->pAttLevel    = NULL;
+                b->pAttTime     = NULL;
                 b->pRelLevel    = NULL;
                 b->pRelTime     = NULL;
                 b->pRatio       = NULL;
                 b->pKnee        = NULL;
                 b->pMakeup      = NULL;
                 b->pFreqEnd     = NULL;
+                b->pCurveGraph  = NULL;
+                b->pRelLevelOut = NULL;
                 b->pEnvLvl      = NULL;
                 b->pCurveLvl    = NULL;
+                b->pMeterGain   = NULL;
             }
 
             // Initialize split

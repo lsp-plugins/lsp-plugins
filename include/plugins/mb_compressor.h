@@ -15,7 +15,6 @@
 #include <core/util/Sidechain.h>
 #include <core/util/Delay.h>
 #include <core/util/MeterGraph.h>
-#include <core/util/MeterGraph.h>
 #include <core/util/Analyzer.h>
 #include <core/filters/DynamicFilters.h>
 #include <core/filters/Equalizer.h>
