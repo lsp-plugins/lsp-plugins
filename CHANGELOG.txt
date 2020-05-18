@@ -11,6 +11,7 @@
 * Some french translation fixes (contributed by Olivier Humbert).
 
 === 1.1.19 ===
+
 * Updated XDG desktop application integration.
 * Refactoring of sse::fft functions for better portability between different compilation options.
 * Fixed bug in asimd::hdotp functions for AArch64 that caused invalid result output.
@@ -21,6 +22,7 @@
 * Profile binaries are now excluded from release build.
 
 === 1.1.17 ===
+
 * Desktop integration icons are now more properly following the XDG standard.
 * Fixed Lanczos resampling kernel formula for oversampling operations.
 * Fixed improper display of units in the UI.
@@ -31,6 +33,7 @@
 * Added WM_NAME, WM_CLASS and WM_WINDOW_NAME support for the X11 protocol.
 
 === 1.1.15 ===
+
 * Fixed improper TTL file generation for several plugins. 
 * Restored missing SVG files, implemented proper icon installation.
 * Added better desktop entry categorization (contributed by Dennis Braun).
