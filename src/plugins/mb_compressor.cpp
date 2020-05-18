@@ -240,7 +240,6 @@ namespace lsp
                 b->fFreqHCF     = 0.0f;
                 b->fFreqLCF     = 0.0f;
                 b->fMakeup      = GAIN_AMP_0_DB;
-                b->fEnvLevel    = GAIN_AMP_0_DB;
                 b->fGainLevel   = GAIN_AMP_0_DB;
                 b->bEnabled     = j < mb_compressor_base_metadata::BANDS_DFL;
                 b->bCustHCF     = false;
@@ -1207,7 +1206,6 @@ namespace lsp
                         b->pCurveLvl->setValue(lvl);
 
                         // Remember last envelope level and buffer level
-                        b->fEnvLevel    = vEnv[to_process-1];
                         b->fGainLevel   = b->vVCA[to_process-1];
 
                         // Check muting option
@@ -1217,7 +1215,6 @@ namespace lsp
                     else
                     {
                         dsp::fill(b->vVCA, (b->bMute) ? GAIN_AMP_M_36_DB : GAIN_AMP_0_DB, to_process);
-                        b->fEnvLevel    = GAIN_AMP_0_DB;
                         b->fGainLevel   = GAIN_AMP_0_DB;
                     }
                 }
