@@ -74,6 +74,7 @@ namespace lsp
                 Sidechain           sSC;                // Sidechain module
                 DynamicProcessor    sProc;              // Processor module
                 Delay               sDelay;             // Lookahead delay
+                Delay               sCompDelay;         // Compensation delay
                 MeterGraph          sGraph[G_TOTAL];    // Meter graph
 
                 float              *vIn;                // Input data

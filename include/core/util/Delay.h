@@ -55,6 +55,15 @@ namespace lsp
              */
             void process(float *dst, const float *src, float gain, size_t count);
 
+            /** Process data and apply gain
+             *
+             * @param dst destination buffer
+             * @param src source buffer
+             * @param gain gain buffer to apply at output
+             * @param count number of samples to process
+             */
+            void process(float *dst, const float *src, const float *gain, size_t count);
+
             /** Process data
              *
              * @param dst destination buffer
