@@ -139,7 +139,7 @@ namespace lsp
         LOG_CONTROL_DFL("schf" id, "Sidechain hi-cut frequency" label, U_HZ, mb_gate_base_metadata::FREQ, fs), \
         MESH("bfc" id, "Side-chain band frequency chart" label, 2, mb_gate_base_metadata::FILTER_MESH_POINTS), \
         \
-        SWITCH("ee" id, "gate enable" label, 1.0f), \
+        SWITCH("ge" id, "Gate enable" label, 1.0f), \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
         \
@@ -148,8 +148,8 @@ namespace lsp
         LOG_CONTROL("gz" id, "Zone size" label, U_GAIN_AMP, mb_gate_base_metadata::ZONE), \
         LOG_CONTROL("ht" id, "Hysteresis threshold" label, U_GAIN_AMP, mb_gate_base_metadata::H_THRESHOLD), \
         LOG_CONTROL("hz" id, "Hysteresis zone size" label, U_GAIN_AMP, mb_gate_base_metadata::ZONE), \
-        LOG_CONTROL("at" id, "Attack" label, U_MSEC, mb_gate_base_metadata::ATTACK_TIME), \
-        LOG_CONTROL("rt" id, "Release" label, U_MSEC, mb_gate_base_metadata::RELEASE_TIME), \
+        LOG_CONTROL("at" id, "Attack time" label, U_MSEC, mb_gate_base_metadata::ATTACK_TIME), \
+        LOG_CONTROL("rt" id, "Release time" label, U_MSEC, mb_gate_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("gr" id, "Reduction" label, U_GAIN_AMP, mb_gate_base_metadata::REDUCTION), \
         LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_gate_base_metadata::MAKEUP), \
         HUE_CTL("hue" id, "Hue " label, (float(x) / float(total))), \
@@ -487,12 +487,12 @@ namespace lsp
     // Multiband gate
     const plugin_metadata_t  mb_gate_mono_metadata::metadata =
     {
-        "Multi-band gate Mono x8",
-        "Multiband gate Mono x8",
-        "MBE8M",
+        "Multi-band Gate Mono x8",
+        "Multiband Gate Mono x8",
+        "MBG8M",
         &developers::v_sadovnikov,
         "mb_gate_mono",
-        "mygo",
+        "----",
         LSP_MB_GATE_BASE + 0,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -505,12 +505,12 @@ namespace lsp
 
     const plugin_metadata_t  mb_gate_stereo_metadata::metadata =
     {
-        "Multi-band gate Stereo x8",
-        "Multiband gate Stereo x8",
-        "MBE8S",
+        "Multi-band Gate Stereo x8",
+        "Multiband Gate Stereo x8",
+        "MBG8S",
         &developers::v_sadovnikov,
         "mb_gate_stereo",
-        "hobt",
+        "----",
         LSP_MB_GATE_BASE + 1,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -523,12 +523,12 @@ namespace lsp
 
     const plugin_metadata_t  mb_gate_lr_metadata::metadata =
     {
-        "Multi-band gate LeftRight x8",
-        "Multiband gate LeftRight x8",
-        "MBE8LR",
+        "Multi-band Gate LeftRight x8",
+        "Multiband Gate LeftRight x8",
+        "MBG8LR",
         &developers::v_sadovnikov,
         "mb_gate_lr",
-        "bfmk",
+        "----",
         LSP_MB_GATE_BASE + 2,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -541,12 +541,12 @@ namespace lsp
 
     const plugin_metadata_t  mb_gate_ms_metadata::metadata =
     {
-        "Multi-band gate MidSide x8",
-        "Multiband gate MidSide x8",
-        "MBE8MS",
+        "Multi-band Gate MidSide x8",
+        "Multiband Gate MidSide x8",
+        "MBG8MS",
         &developers::v_sadovnikov,
         "mb_gate_ms",
-        "ulte",
+        "----",
         LSP_MB_GATE_BASE + 3,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -560,12 +560,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_mb_gate_mono_metadata::metadata =
     {
-        "Sidechain Multi-band gate Mono x8",
-        "Sidechain Multiband gate Mono x8",
-        "SCMBE8M",
+        "Sidechain Multi-band Gate Mono x8",
+        "Sidechain Multiband Gate Mono x8",
+        "SCMBG8M",
         &developers::v_sadovnikov,
         "sc_mb_gate_mono",
-        "szkf",
+        "----",
         LSP_MB_GATE_BASE + 4,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -578,12 +578,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_mb_gate_stereo_metadata::metadata =
     {
-        "Sidechain Multi-band gate Stereo x8",
-        "Sidechain Multiband gate Stereo x8",
-        "SCMBE8S",
+        "Sidechain Multi-band Gate Stereo x8",
+        "Sidechain Multiband Gate Stereo x8",
+        "SCMBG8S",
         &developers::v_sadovnikov,
         "sc_mb_gate_stereo",
-        "f0qr",
+        "----",
         LSP_MB_GATE_BASE + 5,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -596,12 +596,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_mb_gate_lr_metadata::metadata =
     {
-        "Sidechain Multi-band gate LeftRight x8",
-        "Sidechain Multiband gate LeftRight x8",
-        "SCMBE8LR",
+        "Sidechain Multi-band Gate LeftRight x8",
+        "Sidechain Multiband Gate LeftRight x8",
+        "SCMBG8LR",
         &developers::v_sadovnikov,
         "sc_mb_gate_lr",
-        "kxdv",
+        "----",
         LSP_MB_GATE_BASE + 6,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,
@@ -614,12 +614,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_mb_gate_ms_metadata::metadata =
     {
-        "Sidechain Multi-band gate MidSide x8",
-        "Sidechain Multiband gate MidSide x8",
-        "SCMBE8MS",
+        "Sidechain Multi-band Gate MidSide x8",
+        "Sidechain Multiband Gate MidSide x8",
+        "SCMBG8MS",
         &developers::v_sadovnikov,
         "sc_mb_gate_ms",
-        "wkge",
+        "----",
         LSP_MB_GATE_BASE + 7,
         LSP_VERSION(1, 0, 0),
         mb_gate_classes,

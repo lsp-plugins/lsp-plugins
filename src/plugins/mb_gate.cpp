@@ -495,7 +495,6 @@ namespace lsp
                     b->pSolo            = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pMute            = vPorts[port_id++];
-                    TRACE_PORT(vPorts[port_id]);
 
                     TRACE_PORT(vPorts[port_id]);
                     b->pHyst            = vPorts[port_id++];
