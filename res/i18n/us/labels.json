@@ -27,14 +27,14 @@
 		"yaw": "Yaw",
 		"z_axis": "Z Axis"
 	},
-	
+
 	"Env_elope": "Env",
 	"Over_Sampling": "O/S",
 	"Over_Sampling:": "O/S:",
 	"Tri_gger": "Trg",
 	
 	"absolute_threshold": "Absolute",
-	
+
 	"active": "Active",
 	"actual_duration": "Actual\nDuration (s)",
 	
@@ -43,6 +43,7 @@
 	"att_ack": "Att",
 	"attack": "Attack",
 	"attack:db_ms": "Attack\n(dB, ms)",
+	"attack_release:ms_ms": "Attack,\nRelease\n(ms, ms)",
 	
 	"automatic_extension": "Automatic extension",
 	
@@ -171,7 +172,7 @@
 		"tolerance": "Tolerance",
 		"window": "Window"
 	},
-	
+
 	"file": "File",
 	"file_list": "File list",
 	"file_name": "File name",
@@ -187,7 +188,7 @@
 		"H_ighC_ut": "HC",
 		"HCF": "HCF",
 		"HPF": "HPF",
-		"L_owC_ut": "LC", 
+		"L_owC_ut": "LC",
 		"LCF": "LCF",
 		"LPF": "LPF",
 		"bass": "Bass",
@@ -232,12 +233,12 @@
 	"input_level:db": "Input Level (dB)",
 	"input:db": "Input (dB)",
 	"instrument_num": "Instrument #",
-	
+
 	"ir_equalizer": "IR equalizer",
 	
 	"knee": "Knee",
 	"knee_:db": "Knee\n(dB)",
-	
+
 	"latency:ms": "Latency (ms)",
 	"launch": "Launch",
 	"left": "Left",
@@ -413,7 +414,7 @@
 	"sc_boost:": "SC boost:",
 	
 	"sc_preamp_makeup:db_db": "SC Preamp,\nMakeup\n(dB, dB)",
-	
+
 	"sel_time": "Sel time",
 	"setup": "Setup",
 	"search": "Search",
@@ -455,6 +456,7 @@
 		"pan_l": "Pan L",
 		"pan_left": "Pan Left",
 		"pan_r": "Pan R",
+		"pan_right": "Pan Right",
 		"peak": "Peak",
 		"phase": "Phase",
 		"positive_width": "Positive Width",
@@ -474,7 +476,7 @@
 		"idx": "{@id}",
 		"idx:": "{@id}:",
 		"num": "#"	
-	},	
+	},
 	"spectrogram": "Spectrogram",
 	"spread": "Spread",
 	
@@ -500,6 +502,7 @@
 	"thresh_gain:db_db": "Thresh, Gain\n(dB, dB)",
 	"thresh_old": "Thresh",
 	"thresh_old:db": "Thresh\n(dB)",
+	"thresh_zone:db_db": "Thresh,\nZone\n(dB, dB)",
 	
 	"time": "Time",
 	"time_:ms": "Time (ms)",

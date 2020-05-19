@@ -43,6 +43,7 @@
 	"att_ack": "Атак",
 	"attack": "Атака",
 	"attack:db_ms": "Атака\n(дБ, мс)",
+	"attack_release:ms_ms": "Атака,\nВыключение\n(мс, мс)",
 	
 	"automatic_extension": "Автоматическое расширение",
 	
@@ -501,6 +502,7 @@
 	"thresh_gain:db_db": "Порог, Усил\n(дБ, дБ)",
 	"thresh_old": "Порог",
 	"thresh_old:db": "Порог\n(дБ)",
+	"thresh_zone:db_db": "Порог,\nЗона\n(дБ, дБ)",
 	
 	"time": "Время",
 	"time_:ms": "Время (мс)",
