@@ -38,8 +38,8 @@
 				<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 				
 				<!-- Band markers -->
-				<marker value="10" basis="0" parallel="1" color="g_red" hue_id="hue_0" width="2" border="-16" />
-				<marker id="fre_0" basis="0" parallel="1" color="g_red" hue_id="hue_0" width="2" border="16" />
+				<marker value="10" basis="0" parallel="1" color="g_red" hue_id="hue_0" width="2" border="-16" fill="0.5" />
+				<marker id="fre_0" basis="0" parallel="1" color="g_red" hue_id="hue_0" width="2" border="16" fill="0.5" />
 				<ui:for id="i" first="1" last="7">
 					<marker id="sf_${i}" editable="true" basis="0" parallel="1" color="g_red" hue_id="hue_${i}" visibility=":cbe_${i}" width="2" border="-16" />
 					<marker id="fre_${i}" basis="0" parallel="1" color="g_red" hue_id="hue_${i}" visibility=":cbe_${i}" width="2" border="16" />
@@ -50,8 +50,10 @@
 				<ui:for id="i" first="1" last="7">
 					<mesh id="bfc_${i}" color="eq_base" width="2" hue_id="hue_${i}" visibility=":flt and :cbe_${i}" fill="0.8" smooth="true" />
 				</ui:for>
-				<mesh id="ifg" width="3" color="middle_channel_in" />
-				<mesh id="ofg" width="3" color="middle_channel" />
+				<mesh id="ifg_l" width="3" color="left_channel_in" />
+				<mesh id="ifg_r" width="3" color="right_channel_in" />
+				<mesh id="ofg_l" width="3" color="left_channel" />
+				<mesh id="ofg_r" width="3" color="right_channel" />
 				
 				<mesh id="ag" width="3" color="middle_channel" smooth="true" />
 				
@@ -113,14 +115,18 @@
 							<label text="labels.chan.out" color="middle_channel" />
 
 							<cell rows="6">
-								<meter id="ilm" color="middle_channel"  
+								<meter stereo="true"
+									id="ilm_l" id2="ilm_r"
+									color="left_channel" color2="right_channel"
 									angle="1" logarithmic="true" type="rms_peak"
 									min="-72 db" max="12 db" height="160" />
 							</cell>
 							<knob id="g_in" size="20" />
 							<knob id="g_out" size="20" />
 							<cell rows="5">
-								<meter id="olm" color="middle_channel"  
+								<meter stereo="true"
+									id="olm_l" id2="olm_r"
+									color="left_channel" color2="right_channel"
 									angle="1" logarithmic="true" type="rms_peak"
 									min="-72 db" max="12 db" height="160" />
 							</cell>
@@ -155,9 +161,19 @@
 				<label text="labels.sc_boost:" />
 				<combo id="envb" />
 				<label text="labels.fft.fft:" />
-				<button id="ife" size="16" color="middle_channel" led="true" />
+				<grid rows="2" cols="2" hspacing="2" vspacing="2">
+					<button id="ife_l" size="10" color="left_channel" led="true" />
+					<button id="ife_r" size="10" color="right_channel" led="true" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
+				</grid>
 				<label text="labels.chan.in" />
-				<button id="ofe" size="16" color="middle_channel" led="true" />
+				<grid rows="2" cols="2" hspacing="2" vspacing="2">
+					<button id="ofe_l" size="10" color="left_channel" led="true" />
+					<button id="ofe_r" size="10" color="right_channel" led="true" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
+				</grid>
 				<label text="labels.chan.out" />
 				<vsep />
 				<button id="flt" size="16" color="green" led="true" />
@@ -288,7 +304,10 @@
 									<label text="labels.flt.HCF" />
 								</hbox>
 								
-								<combo id="scm_${i}" fill="true" />
+								<vbox vfill="false" spacing="2">
+									<combo id="scm_${i}" fill="true" />
+									<combo id="scs_${i}" fill="true" />
+								</vbox>
 								<knob id="sla_${i}" scale_hue_id="hue_${i}" />
 								<knob id="scp_${i}" scale_hue_id="hue_${i}" />
 								<knob id="scr_${i}" scale_hue_id="hue_${i}" />
