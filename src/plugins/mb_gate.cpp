@@ -1157,8 +1157,8 @@ namespace lsp
                         // Output curve level
                         size_t imax     = dsp::abs_max_index(vEnv, to_process);
                         b->pEnvLvl->setValue(vEnv[imax]);
-                        b->pMeterGain->setValue(b->vVCA[imax]);
-                        b->pCurveLvl->setValue(b->vVCA[imax] * b->fMakeup);
+                        b->pMeterGain->setValue(b->vVCA[imax] * b->fMakeup);
+                        b->pCurveLvl->setValue(b->vVCA[imax] * vEnv[imax] * b->fMakeup);
 
                         dsp::mul_k2(b->vVCA, b->fMakeup, to_process); // Apply makeup gain
 
