@@ -182,7 +182,7 @@
 					<label text="labels.chan.L_eft" font_size="9" color="left_channel" />
 					<label text="labels.chan.R_ight" font_size="9" color="right_channel" />
 				</grid>
-				<label text="Out" />
+				<label text="labels.chan.out" />
 				<vsep />
 				<grid rows="2" cols="2" hspacing="2" vspacing="2">
 					<button id="flt_l" size="10" color="green" led="true" />
@@ -201,7 +201,7 @@
 			<cgroup id="bsel" embed=":bsel ilt 2">
 				<grid rows="11" cols="24">
 					<label text="labels.band_hue" bg_color="bg2" />
-					<hbox fill="false" bg_color="bg2" >
+					<hbox fill="false" bg_color="bg2">
 						<button value="1" editable="false" size="16" color="red" hue_id="hue_0l" led="true" />
 						<label text="labels.chan.num_id_L_eft" text:id="0" />
 					</hbox>
@@ -211,7 +211,7 @@
 						<cell rows="11">
 							<vsep />
 						</cell>
-						<hbox fill="false" bg_color="bg2" >
+						<hbox fill="false" bg_color="bg2">
 							<button id="cbe_${i}l" size="16" color="red" hue_id="hue_${i}l" led="true" />
 							<label text="labels.chan.num_id_L_eft" text:id="${i}" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
 						</hbox>

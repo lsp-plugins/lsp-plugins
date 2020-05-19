@@ -186,6 +186,7 @@
 		
 		<vbox spacing="4">
 			<cgroup id="bsel" embed=":bsel ieq 0">
+				<!-- Split -->
 				<grid rows="11" cols="24">
 					<label text="labels.band_hue" bg_color="bg2" />
 					<hbox fill="false" bg_color="bg2">
@@ -294,6 +295,7 @@
 					</ui:for>
 				</grid>
 				
+				<!-- Bands -->
 				<ui:for id="i" first="0" last="7">
 					<hbox spacing="4">
 						<vbox expand="true">
