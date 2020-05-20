@@ -30,6 +30,7 @@
 * Fixed VST2 identifiers for Multiband Expander plugin series.
 * Added spanish translation of the UI (contributed by Ignotus - ignotus666 at github.com).
 * Compressor, Expander, Gate and Dynamic Processor plugins now report latency for the lookahead knob.
+* Fixed mapping of some numpad keys that could cause problems when entering manual value in the UI.
 
 *******************************************************************************
 * Release steps
