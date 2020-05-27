@@ -1,5 +1,5 @@
 <p><img src="<?= $DOCROOT ?>img/logo.png" style="width:20%; height:20%"></p>
-<p><b>LSP (Linux Studio Plugins)</b> is a collection of open-source plugins currently compatible with follwing formats:</p>
+<p><b>LSP (Linux Studio Plugins)</b> is a collection of open-source plugins compatible with following formats:</p>
 <ul>
 	<li><b>LADSPA</b> - set of plugins for <a href="https://en.wikipedia.org/wiki/LADSPA">Linux Audio Developer's Simple Plugin API</a></li>
 	<li><b>LV2</b> - set of plugins and UIs for <a href="http://lv2plug.in/">Linux Audio Developer's Simple Plugin API (LADSPA) version 2</a></li>
