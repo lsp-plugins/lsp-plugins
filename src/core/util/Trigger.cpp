@@ -29,6 +29,10 @@ namespace lsp
         bSync                   = true;
     }
 
+    Trigger::~Trigger()
+    {
+    }
+
     void Trigger::update_settings()
     {
         if (!bSync)

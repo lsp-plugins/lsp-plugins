@@ -45,11 +45,6 @@ namespace lsp
     {
     }
 
-    inline void SweepGenerator::reset()
-    {
-        sPhaseAcc.nAccumulator = 0;
-    }
-
     void SweepGenerator::update_settings()
     {
         if (!bSync)

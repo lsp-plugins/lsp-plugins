@@ -511,7 +511,7 @@ namespace lsp
                                 {
                                     if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
                                     {
-                                        c->sSweepGenerator.reset();
+                                        c->sSweepGenerator.reset_sweep();
                                         c->sSweepGenerator.sweep(c->vData_x, c->nSweepSize);
                                         c->enState = CH_STATE_SWEEPING;
                                     }

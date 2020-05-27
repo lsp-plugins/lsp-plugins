@@ -59,7 +59,10 @@ namespace lsp
             /** Reset the SweepGenerator
              *
              */
-            inline void reset();
+            inline void reset_sweep()
+            {
+                sPhaseAcc.nAccumulator = 0;
+            }
 
             /** Check that SweepGenerator needs settings update
              *
