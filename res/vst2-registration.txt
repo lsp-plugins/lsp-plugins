@@ -1,0 +1,2550 @@
+http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Phasendetektor
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect phase between two sources. For example
+for two or more microphones set at the different positions and distances from the sound source.
+		
+	Registration:	
+		
+	*Plugin ID:	jffz
+
+-----------------------------------------------------	
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Verzögerungsausgleicher
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
+		
+	Registration:	
+		
+	*Plugin ID:	jav8
+	
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Verzögerungsausgleicher
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
+		
+	Registration:	
+		
+	*Plugin ID:	qpwr
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Verzögerungsausgleicher
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
+		
+	Registration:	
+		
+	*Plugin ID:	fwd3
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x1
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of the single audio channel on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	qtez
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x2
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of two single audio channels or one stereo channel on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	aw7r
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x4
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of four audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	xzgo
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of eight audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	e5hb
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x12
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of twelve audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	tj3l
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x16
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of sixteen audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	nuzi
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Klangerzeuger Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to play different samples for one MIDI note depending on the note's velocity.
+		
+	Registration:	
+		
+	*Plugin ID:	ca4r
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Klangerzeuger Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to play different samples for one MIDI note depending on the note's velocity.
+		
+	Registration:	
+		
+	*Plugin ID:	kjw3
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x12
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 12 instruments.
+		
+	Registration:	
+		
+	*Plugin ID:	clrs
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x12 Direktausgabe
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 12 instruments and additional individual instrument outputs.
+		
+	Registration:	
+		
+	*Plugin ID:	7zkj
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x24
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 24 instruments.
+		
+	Registration:	
+		
+	*Plugin ID:	visl
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x48
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 48 instruments.
+		
+	Registration:
+		
+	*Plugin ID:	hnj4
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x24 Direktausgabe
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 12 instruments and additional individual instrument outputs.
+		
+	Registration:	
+		
+	*Plugin ID:	vimj
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x48 Direktausgabe
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 48 instruments and additional individual instrument outputs.
+		
+	Registration:	
+		
+	*Plugin ID:	blyi
+
+VST Plugin ID registration:
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound.
+		
+	Registration:	
+		
+	*Plugin ID:	zghv
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound.
+		
+	Registration:	
+		
+	*Plugin ID:	zika
+
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor MIDI Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound. Additional MIDI output channel is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	t4yz
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor MIDI Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound. Additional MIDI output channel is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	9cqf
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters.
+		
+	Registration:	
+		
+	*Plugin ID:	dh3y
+	
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters. Stereo mode.
+		
+	Registration:	
+		
+	*Plugin ID:	a5er
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters. Stereo mode, 
+each stereo channel adjusted individually.
+		
+	Registration:	
+		
+	*Plugin ID:	4kef
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters. Mid-Side mode.
+		
+	Registration:	
+		
+	*Plugin ID:	opjs
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters.
+		
+	Registration:	
+		
+	*Plugin ID:	i0px
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters. Stereo mode.
+		
+	Registration:	
+		
+	*Plugin ID:	s2nz
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters. Stereo mode, 
+each stereo channel adjusted individually.
+		
+	Registration:	
+		
+	*Plugin ID:	ilqj
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters. Mid-Side mode.
+		
+	Registration:	
+		
+	*Plugin ID:	lgz9
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer
+mono version
+		
+	Registration:	
+		
+	*Plugin ID:	rvwk
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer stereo version
+		
+	Registration:	
+		
+	*Plugin ID:	argl
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer with individual control of left and right channels
+		
+	Registration:	
+		
+	*Plugin ID:	zefi
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer with individual control of middle and side channels
+		
+	Registration:	
+		
+	*Plugin ID:	woys
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer mono version
+		
+	Registration:	
+		
+	*Plugin ID:	vnca
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer stereo version
+		
+	Registration:	
+		
+	*Plugin ID:	nvsd
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer with individual control of left and right channels
+		
+	Registration:	
+		
+	*Plugin ID:	0heu
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer with individual control of middle and side channels
+		
+	Registration:	
+		
+	*Plugin ID:	ku8j
+	
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mono compressor with flexible sidechain configuration and different working modes.
+		
+	Registration:	
+		
+	*Plugin ID:	bgsy
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes.
+		
+	Registration:	
+		
+	*Plugin ID:	unsc
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes. Each channel is processed independently.
+		
+	Registration:	
+		
+	*Plugin ID:	3nam
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mid/Side compressor with flexible sidechain configuration and different working modes.
+		
+	Registration:	
+		
+	*Plugin ID:	jjef
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Kompressor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mono compressor with flexible sidechain configuration and different working modes. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	lyjq
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Sidechain-Kompressor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	5xzi
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Kompressor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes. Each channel is processed independently. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	fowg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Sidechain-Kompressor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mid/Side compressor with flexible sidechain configuration and different working modes. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	ioqg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Prozessor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	lqpm
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Prozessor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	aat9
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Prozessor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	hl9g
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Dynamischer Prozessor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	uvrg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	apkx
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	fqne
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	sxmi
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	fcj9
+
+-----------------------------------------------------
+	
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor
+		
+	Registration:	
+		
+	*Plugin ID:	ur0e
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	
+		
+	Registration:	
+		
+	*Plugin ID:	wg4o
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor
+		
+	Registration:	
+		
+	*Plugin ID:	icmw
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor
+		
+	Registration:	
+		
+	*Plugin ID:	zci1
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	nnz2
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	fosg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	fmxo
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	l6lc
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	tddq
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	au0f
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	zvsf
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	ebhk
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	utul
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	lwqv
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	pnvw
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	zc0d
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Begrenzer Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Mono version.
+		
+	Registration:	
+		
+	*Plugin ID:	jz5z
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Begrenzer Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Stereo version.
+		
+	Registration:	
+		
+	*Plugin ID:	rfuc
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Begrenzer Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Mono version with additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	kyzu
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Begrenzer Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Stereo version with additional external sidechain inputs.
+		
+	Registration:	
+		
+	*Plugin ID:	zwf7
+
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Impulsantworten Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Realtime highly optimized zero-latency convolover. Mono version.
+		
+	Registration:	
+		
+	*Plugin ID:	wvwt
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Impulsantworten Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Realtime highly optimized zero-latency convolover. Stereo version.
+		
+	Registration:	
+		
+	*Plugin ID:	1khz
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Spacializer ( e.g. panners )
+	*PlugIn Name:	Slapback-Delay Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to add set of short delays of the original signal to the output mix. Each delay can be used to simulate the early reflections of the signal from walls.
+		
+	Registration:	
+		
+	*Plugin ID:	gt0d
+	
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Spacializer ( e.g. panners )
+	*PlugIn Name:	Slapback-Delay Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to add set of short delays of the original signal to the output mix. Each delay can be used to simulate the early reflections of the signal from walls.
+		
+	Registration:	
+		
+	*Plugin ID:	0xxj
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Impulsnachhall Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs highly optimized real time zero-latency convolution to the input signal. It can be used as a cabinet emulator
+some sort of equalizer or as a reverb simulation plugin. All what is needed is audio file(s) with impulse response taken from the linear system (cabinet
+equalizer or hall/room).
+		
+	Registration:	
+		
+	*Plugin ID:	fggq
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Impulsnachhall Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs highly optimized real time zero-latency convolution to the input signal. It can be used as a cabinet emulator
+some sort of equalizer or as a reverb simulation plugin. All what is needed is audio file(s) with impulse response taken from the linear system (cabinet
+equalizer or hall/room).
+		
+	Registration:	
+		
+	*Plugin ID:	o9zj
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Stefano
+	*Last Name:	Tronci
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Other
+	*PlugIn Name:	Oszillator Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin implements a simple yet flexible utility signal generator. It can be used to provide reference waves in replacement
+additive and multiplicative (modulation).
+		
+	Registration:	
+		
+	*Plugin ID:	sntq
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Stefano
+	*Last Name:	Tronci
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Latenzmessgerät
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	A simple plugin that allows to measure the latency of a transmission line by using chirp - inverse filter convolution. Latency is determined as the lag of the convolution peak.
+		
+	Registration:	
+		
+	*Plugin ID:	abee
+	
+-----------------------------------------------------	
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	fdiu
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	gjsn
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	0egf
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	vhci
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	vv0m
+
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	zqrn
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	kvxe
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	hjdp
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Stefano
+	*Last Name:	Tronci
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Profiler Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	A simple plugin for audio systems profiling.
+		
+	Registration:	
+		
+	*Plugin ID:	hwrc
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+    Developer Info: 
+        
+    *Company Name:  LSP Project
+    *First Name:    Stefano
+    *Last Name: Tronci
+    *eMail Address: lsp.plugin@gmail.com
+        
+    PlugIn Info:    
+        
+    Category:   Analysis ( e.g. phasescope )
+    *PlugIn Name:   Profiler Stereo
+    Supported OS :  
+        Other
+        
+    Short PlugIn
+Description:    A simple plugin for audio systems profiling
+with stereo capability.
+        
+    Registration:   
+        
+    *Plugin ID: hubw
+
+    
+    VST Plugin ID registration:
+
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Room Builder Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Plugin for simulation of reverberation for different kinds of rooms.
+		
+	Registration:	
+		
+	*Plugin ID:	cqbr
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Room Builder Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Plugin for simulation of reverberation for different kinds of rooms.
+		
+	Registration:	
+		
+	*Plugin ID:	mprh
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Expander Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Expander Mono x8
+		
+	Registration:	
+		
+	*Plugin ID:	mygo
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Expander Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Expander Stereo x8
+		
+	Registration:	
+		
+	*Plugin ID:	hobt
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Expander LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Expander LeftRight x8
+		
+	Registration:	
+		
+	*Plugin ID:	bfmk
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Expander MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Expander MidSide x8
+		
+	Registration:	
+		
+	*Plugin ID:	ulte
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Expander Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Expander Mono x8
+		
+	Registration:	
+		
+	*Plugin ID:	szkf
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Expander Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Expander Stereo x8
+		
+	Registration:	
+		
+	*Plugin ID:	f0qr
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Expander LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Expander LeftRight x8
+		
+	Registration:	
+		
+	*Plugin ID:	kxdv
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Expander MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Expander MidSide x8
+		
+	Registration:	
+		
+	*Plugin ID:	wkge
+
+-----------------------------------------------------
+
+
+

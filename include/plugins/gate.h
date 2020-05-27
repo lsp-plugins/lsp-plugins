@@ -73,6 +73,7 @@ namespace lsp
                 Sidechain       sSC;                // Sidechain module
                 Gate            sGate;              // Gate module
                 Delay           sDelay;             // Lookahead delay
+                Delay           sCompDelay;         // Lookahead delay
                 MeterGraph      sGraph[G_TOTAL];    // Input meter graph
 
                 float          *vIn;                // Input data

@@ -151,7 +151,7 @@ namespace lsp
             MP_NO_DROP,     // Diagonal slash through a white circle
             MP_DANGER,      // Danger cursor
             MP_HSPLIT,      // Black double-vertical bar with arrows pointing right and left
-            MP_VPSLIT,      // Black double-horizontal bar with arrows pointing up and down
+            MP_VSPLIT,      // Black double-horizontal bar with arrows pointing up and down
             MP_MULTIDRAG,   // Arrow with three blank pages in the lower-right corner
             MP_APP_START,   // Arrow combined with an hourglass
             MP_HELP,        // Arrow next to a black question mark
@@ -213,7 +213,7 @@ namespace lsp
             BS_NONE,                // Not sizable; no visible border line
             BS_POPUP,               // Popup window
             BS_COMBO,               // Combo box window
-            BS_SIZABLE
+            BS_SIZEABLE
         };
 
         enum window_action_t

@@ -72,6 +72,7 @@ namespace lsp
                 Sidechain       sSC;                // Sidechain module
                 Expander        sExp;               // Expansion module
                 Delay           sDelay;             // Lookahead delay
+                Delay           sCompDelay;         // Compensation delay
                 MeterGraph      sGraph[G_TOTAL];    // Input meter graph
 
                 float          *vIn;                // Input data

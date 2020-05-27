@@ -42,7 +42,7 @@ namespace lsp
             MP(MP_NO_DROP);
             MP(MP_DANGER);
             MP(MP_HSPLIT);
-            MP(MP_VPSLIT);
+            MP(MP_VSPLIT);
             MP(MP_MULTIDRAG);
             MP(MP_APP_START);
             MP(MP_HELP);

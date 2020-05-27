@@ -358,6 +358,7 @@ namespace lsp
             {
                 vChannels[i].sSC.destroy();
                 vChannels[i].sDelay.destroy();
+                vChannels[i].sCompDelay.destroy();
             }
 
             delete [] vChannels;
@@ -381,6 +382,7 @@ namespace lsp
     {
         size_t samples_per_dot  = seconds_to_samples(sr, gate_base_metadata::TIME_HISTORY_MAX / gate_base_metadata::TIME_MESH_SIZE);
         size_t channels = (nMode == GM_MONO) ? 1 : 2;
+        size_t max_delay    = millis_to_samples(fSampleRate, compressor_base_metadata::LOOKAHEAD_MAX);
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -388,7 +390,8 @@ namespace lsp
             c->sBypass.init(sr);
             c->sGate.set_sample_rate(sr);
             c->sSC.set_sample_rate(sr);
-            c->sDelay.init(millis_to_samples(fSampleRate, compressor_base_metadata::LOOKAHEAD_MAX));
+            c->sDelay.init(max_delay);
+            c->sCompDelay.init(max_delay);
 
             for (size_t j=0; j<G_TOTAL; ++j)
                 c->sGraph[j].init(gate_base_metadata::TIME_MESH_SIZE, samples_per_dot);
@@ -409,6 +412,7 @@ namespace lsp
         bMSListen       = (pMSListen != NULL) ? pMSListen->getValue() >= 0.5f : false;
         fInGain         = pInGain->getValue();
         float out_gain  = pOutGain->getValue();
+        size_t latency  = 0;
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -428,7 +432,10 @@ namespace lsp
             c->sSC.set_stereo_mode(((nMode == GM_MS) && (c->nScType != SCT_EXTERNAL)) ? SCSM_MIDSIDE : SCSM_STEREO);
 
             // Update delay
-            c->sDelay.set_delay(millis_to_samples(fSampleRate, (c->pScLookahead != NULL) ? c->pScLookahead->getValue() : 0));
+            size_t delay    = millis_to_samples(fSampleRate, (c->pScLookahead != NULL) ? c->pScLookahead->getValue() : 0);
+            c->sDelay.set_delay(delay);
+            if (delay > latency)
+                latency         = delay;
 
             // Update Gate settings
             bool hyst       = (c->pHyst != NULL) ? (c->pHyst->getValue() >= 0.5f) : false;
@@ -466,6 +473,16 @@ namespace lsp
                 c->nSync           |= S_ALL;
             }
         }
+
+        // Tune compensation delays
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            c->sCompDelay.set_delay(latency - c->sDelay.get_delay());
+        }
+
+        // Report latency
+        set_latency(latency);
     }
 
     void gate_base::ui_activated()
@@ -550,8 +567,11 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
 
-                c->sDelay.process(c->vIn, c->vIn, to_process); // Add delay to original signal
-                dsp::mul3(c->vOut, c->vGain, c->vIn, to_process);
+                // Add delay to original signal and apply gain
+                c->sDelay.process(c->vOut, c->vIn, c->vGain, to_process);
+
+                // Apply latency compensation delay
+                c->sCompDelay.process(c->vOut, c->vOut, to_process);
 
                 // Process graph outputs
                 if ((i == 0) || (nMode != GM_STEREO))

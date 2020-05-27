@@ -45,7 +45,7 @@ namespace lsp
             pWindow         = NULL;
             pChild          = NULL;
             pNativeHandle   = handle;
-            enStyle         = BS_SIZABLE;
+            enStyle         = BS_SIZEABLE;
             nScreen         = screen;
             pFocus          = NULL;
             pPointed        = NULL;

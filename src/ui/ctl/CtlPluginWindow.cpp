@@ -626,7 +626,7 @@ namespace lsp
                 // Update window geometry
                 LSPWindow *wnd  = widget_cast<LSPWindow>(pWidget);
 //                wnd->set_min_size(nMinWidth, nMinHeight);
-                wnd->set_border_style((bResizable) ? BS_SIZABLE : BS_SINGLE);
+                wnd->set_border_style((bResizable) ? BS_SIZEABLE : BS_SINGLE);
                 wnd->actions()->set_resizable(bResizable);
                 wnd->actions()->set_maximizable(bResizable);
             }

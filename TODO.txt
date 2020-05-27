@@ -9,6 +9,7 @@
 - Migrated to CMake build system.
 
 === 1.2.0 ===
+
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
@@ -24,17 +25,17 @@
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
 
-=== 1.1.21 ===
+=== 1.1.22 ===
 
-* Fixed UI synchronization issue on plugin state restore for VST plugin format.
-* Fixed improper work of default Attack and Release time parameters for
-  Dynamic Processor plugin series.
-- Merged french translation fixes (contributed by Olivier Humbert).
-
+* Fixed VST2 identifiers for Multiband Expander plugin series.
+* Added spanish translation of the UI (contributed by Ignotus - ignotus666 at github.com).
+* Compressor, Expander, Gate and Dynamic Processor plugins now report latency for the lookahead knob.
+* Fixed mapping of some numpad keys that could cause problems when entering manual value in the UI.
 
 *******************************************************************************
 * Release steps
 *******************************************************************************
+* Register VST2 plugin IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
 * Ensure that there are menu items present for all new plugins in res/xdg
