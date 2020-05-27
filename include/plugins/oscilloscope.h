@@ -11,63 +11,123 @@
 #include <core/plugin.h>
 #include <metadata/plugins.h>
 #include <core/util/Bypass.h>
-#include <core/util/ShiftBuffer.h>
+//#include <core/util/ShiftBuffer.h>
+#include <core/util/Delay.h>
 #include <core/util/Oversampler.h>
 #include <core/util/Trigger.h>
+#include <core/util/SweepGenerator.h>
 
 namespace lsp
 {
     class oscilloscope_base: public plugin_t
     {
         protected:
-            enum channel_state_t
+
+            enum ch_mode_t
             {
-                LISTENING,
-                SWEEPING
+                CH_MODE_XY,
+                CH_MODE_TRIGGERED,
+                CH_MODE_DFL = CH_MODE_TRIGGERED
+            };
+
+            enum ch_output_mode_t
+            {
+                CH_OUTPUT_MODE_MUTE,
+                CH_OUTPUT_MODE_COPY,
+                CH_OUTPUT_MODE_DFL = CH_OUTPUT_MODE_COPY
+            };
+
+            enum ch_trg_input_t
+            {
+                CH_TRG_INPUT_EXT,
+                CH_TRG_INPUT_Y,
+                CH_TRG_INPUT_DFL = CH_TRG_INPUT_Y
+            };
+
+            enum ch_state_t
+            {
+                CH_STATE_LISTENING,
+                CH_STATE_SWEEPING
             };
 
             typedef struct channel_t
             {
-                Bypass          sBypass;
-                Oversampler     sOversampler;
-                ShiftBuffer     sShiftBuffer;
-                Trigger         sTrigger;
+                ch_mode_t           enMode;
+                ch_output_mode_t    enOutputMode;
+                ch_trg_input_t      enTrgInput;
 
-                over_mode_t     enOverMode;
-                size_t          nOversampling;
-                size_t          nOverSampleRate;
+                Bypass              sBypass;
+//                ShiftBuffer     sShiftBuffer;
 
-                size_t          nSamplesCounter;
-                size_t          nBufferScanningHead;
-                size_t          nBufferCopyHead;
-                size_t          nBufferCopyCount;
+                over_mode_t         enOverMode;
+                size_t              nOversampling;
+                size_t              nOverSampleRate;
 
-                bool            bProcessComplete;
+                Oversampler         sOversampler_x;
+                Oversampler         sOversampler_y;
+                Oversampler         sOversampler_ext;
 
-                size_t          nPreTrigger;
-                size_t          nPostTrigger;
-                size_t          nSweepSize;
-                size_t          nSweepHead;
+                Delay               sPreTrgDelay;
 
-                float           fScale;
-                float           fOffset;
+                Trigger             sTrigger;
 
-                bool            bDoPlot;
+                SweepGenerator      sSweepGenerator;
 
-                float          *vAbscissa;
-                float          *vOrdinate;
+                float              *vData_x;
+                float              *vData_y;
+                float              *vData_ext;
+                float              *vData_y_delay;
+                float              *vDisplay_x;
+                float              *vDisplay_y;
 
-                float          *vSweep;
+                size_t              nDisplayHead;
+                size_t              nSamplesCounter;
 
-                float          *vOutput;
+                size_t              nPreTrigger;
+                size_t              nSweepSize;
 
-                channel_state_t enState;
+                float               fScale;
+                float               fOffset;
 
-                float          *vIn;
-                float          *vOut;
+//                size_t          nSamplesCounter;
+//                size_t          nBufferScanningHead;
+//                size_t          nBufferCopyHead;
+//                size_t          nBufferCopyCount;
+//
+//                bool            bProcessComplete;
+//
+//                size_t          nPreTrigger;
+//                size_t          nPostTrigger;
+//                size_t          nSweepSize;
+//                size_t          nSweepHead;
+//
+//                float           fScale;
+//                float           fOffset;
+//
+//                bool            bDoPlot;
+//
+//                float          *vAbscissa;
+//                float          *vOrdinate;
+//
+//                float          *vSweep;
+//
+//                float          *vOutput;
 
-                IPort          *pIn;
-                IPort          *pOut;
+                ch_state_t      enState;
+
+                float          *vIn_x;
+                float          *vIn_y;
+                float          *vIn_ext;
+
+                float          *vOut_x;
+                float          *vOut_y;
+
+                IPort          *pIn_x;
+                IPort          *pIn_y;
+                IPort          *pIn_ext;
+
+                IPort          *pOut_x;
+                IPort          *pOut_y;
 
                 IPort          *pHorDiv;
                 IPort          *pHorPos;
@@ -91,20 +151,26 @@ namespace lsp
 
             size_t      nSampleRate;
 
-            size_t      nCaptureSize;
-
-            size_t      nMeshSize;
-
-            float      *vTemp;
-
-            float      *vDflAbscissa;
+//            size_t      nCaptureSize;
+//
+//            size_t      nMeshSize;
+//
+//            float      *vTemp;
+//
+//            float      *vDflAbscissa;
 
             IPort      *pBypass;
 
             uint8_t    *pData;
 
         protected:
-            void get_plottable_data(float *dst, float *src, size_t dstCount, size_t srcCount);
+            void calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode);
+            bool fill_display_buffers(channel_t *c, float *xBuf, float *yBuf, size_t bufSize);
+            void reset_display_buffers(channel_t *c);
+            float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
+//            void route_display_data(float *raw_data, float *proc_data, float *display, size_t count, ch_mode_t mode);
+            inline void set_oversampler(Oversampler &over, over_mode_t mode);
+//            void get_plottable_data(float *dst, float *src, size_t dstCount, size_t srcCount);
 
         public:
             oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);

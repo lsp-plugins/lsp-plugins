@@ -10,55 +10,112 @@
 
 #define TRACE_PORT(p)       lsp_trace("  port id=%s", (p)->metadata()->id);
 #define BUF_LIM_SIZE        196608
+#define PRE_TRG_MAX_SIZE    196608
 #define N_HOR_DIVISIONS     4
 #define N_VER_DIVISIONS     2
 #define VER_FULL_SCALE_AMP  1.0f
 
 namespace lsp
 {
-    void oscilloscope_base::get_plottable_data(float *dst, float *src, size_t dstCount, size_t srcCount)
+    void oscilloscope_base::calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode)
     {
-        dsp::fill_zero(dst, dstCount);
-
-        float decimationStep = float(srcCount) / float(dstCount);
-
-        if (decimationStep == 1.0f) // Nothing to do
+        switch (mode)
         {
-            dsp::copy(dst, src, srcCount);
-        }
-        else if (decimationStep < 1.0f) // Zero filling upsampling.
-        {
-            size_t plotDataHead = 0;
-
-            for (size_t n = 0; n < srcCount; ++n)
-            {
-                dst[plotDataHead] = src[n];
-                plotDataHead  += (1.0f / decimationStep);
-
-                if (plotDataHead >= dstCount)
-                    break;
-            }
-        }
-        else // Decimation downsampling
-        {
-            size_t plotDataHead         = 0;
-            size_t plotDataDownLimit    = 0;
-            size_t plotDataRange        = decimationStep - 1.0f;
-
-            for (size_t n = 0; n < dstCount; ++n)
-            {
-                plotDataHead       = dsp::abs_max_index(&src[plotDataDownLimit], plotDataRange) + plotDataDownLimit;
-                dst[n]             = src[plotDataHead];
-                plotDataDownLimit += decimationStep;
-
-                if (plotDataDownLimit >= srcCount)
-                    break;
-
-                size_t samplesAhead = srcCount - plotDataDownLimit;
-                plotDataRange       = (plotDataRange > samplesAhead) ? samplesAhead : plotDataRange;
-            }
+            case CH_OUTPUT_MODE_MUTE: dsp::fill_zero(dst, count); break;
+            default:
+            case CH_OUTPUT_MODE_COPY: dsp::copy(dst, src, count); break;
         }
     }
+
+    bool oscilloscope_base::fill_display_buffers(channel_t *c, float *xBuf, float *yBuf, size_t bufSize)
+    {
+        size_t remaining = c->nSweepSize - c->nDisplayHead;
+        size_t to_copy = (bufSize < remaining) ? bufSize : remaining;
+
+        dsp::copy(&c->vDisplay_x[c->nDisplayHead], c->vData_x, to_copy);
+        dsp::copy(&c->vDisplay_y[c->nDisplayHead], c->vData_y, to_copy);
+
+        c->nDisplayHead += to_copy;
+
+        return c->nDisplayHead >= c->nSweepSize;
+    }
+
+    void oscilloscope_base::reset_display_buffers(channel_t *c)
+    {
+        c->nDisplayHead = 0;
+    }
+
+    float *oscilloscope_base::select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input)
+    {
+        switch (input)
+        {
+            case CH_TRG_INPUT_EXT: return extPtr;
+            default:
+            case CH_TRG_INPUT_Y: return yPtr;
+        }
+    }
+
+//    void oscilloscope_base::route_display_data(float *raw_data, float *proc_data, float *display, size_t count, ch_mode_t mode)
+//    {
+//        switch (mode)
+//        {
+//            case CH_MODE_XY: dsp::copy(display, raw_data, count); break;
+//            default:
+//            case CH_MODE_DFL:
+//            case CH_MODE_TRIGGERED: dsp::copy(display, proc_data, count); break;
+//        }
+//    }
+
+    void oscilloscope_base::set_oversampler(Oversampler &over, over_mode_t mode)
+    {
+        over.set_mode(mode);
+        if (over.modified())
+            over.update_settings();
+    }
+
+//    void oscilloscope_base::get_plottable_data(float *dst, float *src, size_t dstCount, size_t srcCount)
+//    {
+//        dsp::fill_zero(dst, dstCount);
+//
+//        float decimationStep = float(srcCount) / float(dstCount);
+//
+//        if (decimationStep == 1.0f) // Nothing to do
+//        {
+//            dsp::copy(dst, src, srcCount);
+//        }
+//        else if (decimationStep < 1.0f) // Zero filling upsampling.
+//        {
+//            size_t plotDataHead = 0;
+//
+//            for (size_t n = 0; n < srcCount; ++n)
+//            {
+//                dst[plotDataHead] = src[n];
+//                plotDataHead  += (1.0f / decimationStep);
+//
+//                if (plotDataHead >= dstCount)
+//                    break;
+//            }
+//        }
+//        else // Decimation downsampling
+//        {
+//            size_t plotDataHead         = 0;
+//            size_t plotDataDownLimit    = 0;
+//            size_t plotDataRange        = decimationStep - 1.0f;
+//
+//            for (size_t n = 0; n < dstCount; ++n)
+//            {
+//                plotDataHead       = dsp::abs_max_index(&src[plotDataDownLimit], plotDataRange) + plotDataDownLimit;
+//                dst[n]             = src[plotDataHead];
+//                plotDataDownLimit += decimationStep;
+//
+//                if (plotDataDownLimit >= srcCount)
+//                    break;
+//
+//                size_t samplesAhead = srcCount - plotDataDownLimit;
+//                plotDataRange       = (plotDataRange > samplesAhead) ? samplesAhead : plotDataRange;
+//            }
+//        }
+//    }
 
     oscilloscope_base::oscilloscope_base(const plugin_metadata_t &metadata, size_t channels): plugin_t(metadata)
     {
@@ -67,13 +124,13 @@ namespace lsp
 
         nSampleRate         = 0;
 
-        nCaptureSize        = 0;
-
-        nMeshSize           = 0;
-
-        vTemp               = NULL;
-
-        vDflAbscissa        = NULL;
+//        nCaptureSize        = 0;
+//
+//        nMeshSize           = 0;
+//
+//        vTemp               = NULL;
+//
+//        vDflAbscissa        = NULL;
 
         pBypass             = NULL;
 
@@ -88,19 +145,29 @@ namespace lsp
     {
         free_aligned(pData);
         pData = NULL;
-        vTemp = NULL;
-        vDflAbscissa = NULL;
+//        vTemp = NULL;
+//        vDflAbscissa = NULL;
 
         if (vChannels != NULL)
         {
             for (size_t ch = 0; ch < nChannels; ++ch)
             {
-                vChannels[ch].sOversampler.destroy();
-                vChannels[ch].sShiftBuffer.destroy();
-                vChannels[ch].sTrigger.destroy();
-                vChannels[ch].vAbscissa = NULL;
-                vChannels[ch].vOrdinate = NULL;
-                vChannels[ch].vSweep    = NULL;
+                channel_t *c = &vChannels[ch];
+
+                c->sOversampler_x.destroy();
+                c->sOversampler_y.destroy();
+                c->sOversampler_ext.destroy();
+
+                c->sPreTrgDelay.destroy();
+
+                c->sSweepGenerator.destroy();
+
+                c->vData_x = NULL;
+                c->vData_y = NULL;
+                c->vData_ext = NULL;
+                c->vData_y_delay = NULL;
+                c->vDisplay_x = NULL;
+                c->vDisplay_y = NULL;
             }
 
             delete [] vChannels;
@@ -116,10 +183,11 @@ namespace lsp
         if (vChannels == NULL)
             return;
 
-        // 2x nChannels X Mesh Buffers (x, y for each channel) + nChannels X output buffers + nChannels X sweep buffers +  1X temporary buffer + 1X Default Abscissa Buffer.
-        nCaptureSize = BUF_LIM_SIZE;
-        nMeshSize = oscilloscope_base_metadata::SCOPE_MESH_SIZE;
-        size_t samples = (2 * nChannels * nMeshSize) + (nChannels * nCaptureSize) + (nChannels * nCaptureSize) + nCaptureSize + nMeshSize;
+        // For each channel: 1X external data buffer + 1X x data buffer + 1X y data buffer + 1X delayed y data buffer + 1X x display buffer + 1X y display buffer
+//        nCaptureSize = BUF_LIM_SIZE;
+//        nMeshSize = oscilloscope_base_metadata::SCOPE_MESH_SIZE;
+//        size_t samples = (2 * nChannels * nMeshSize) + (nChannels * nCaptureSize) + (nChannels * nCaptureSize) + nCaptureSize + nMeshSize;
+        size_t samples = nChannels * BUF_LIM_SIZE * 6;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -131,47 +199,82 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-            if (!c->sOversampler.init())
+            if (!c->sOversampler_x.init())
+                return;
+
+            if (!c->sOversampler_y.init())
+                return;
+
+            if (!c->sOversampler_ext.init())
+                return;
+
+            if (!c->sPreTrgDelay.init(PRE_TRG_MAX_SIZE))
                 return;
 
             // Test settings for oversampler before proper implementation
             c->enOverMode = OM_LANCZOS_8X3;
-            c->sOversampler.set_mode(c->enOverMode);
-            if (c->sOversampler.modified())
-                c->sOversampler.update_settings();
-            c->nOversampling = c->sOversampler.get_oversampling();
+
+            set_oversampler(c->sOversampler_x, c->enOverMode);
+            set_oversampler(c->sOversampler_y, c->enOverMode);
+            set_oversampler(c->sOversampler_ext, c->enOverMode);
+
+            // All are set the same way, use any to get these variables
+            c->nOversampling = c->sOversampler_x.get_oversampling();
             c->nOverSampleRate = c->nOversampling * nSampleRate;
 
-            if (!c->sShiftBuffer.init(nCaptureSize))
-                return;
+//            if (!c->sShiftBuffer.init(nCaptureSize))
+//                return;
 
-            if (!c->sTrigger.init())
-                return;
+//            c->nSamplesCounter = 0;
+//            c->nBufferScanningHead = 0;
+//            c->nBufferCopyHead = 0;
+//            c->nBufferCopyCount = 0;
+//
+//            c->vAbscissa = ptr;
+//            ptr += nMeshSize;
+//
+//            c->vOrdinate = ptr;
+//            ptr += nMeshSize;
+//
+//            c->vOutput = ptr;
+//            ptr += nCaptureSize;
+//
+//            c->vSweep = ptr;
+//            ptr += nCaptureSize;
 
-            c->nSamplesCounter = 0;
-            c->nBufferScanningHead = 0;
-            c->nBufferCopyHead = 0;
-            c->nBufferCopyCount = 0;
+            c->vData_x = ptr;
+            ptr += BUF_LIM_SIZE;
 
-            c->vAbscissa = ptr;
-            ptr += nMeshSize;
+            c->vData_y = ptr;
+            ptr += BUF_LIM_SIZE;
 
-            c->vOrdinate = ptr;
-            ptr += nMeshSize;
+            c->vData_ext = ptr;
+            ptr += BUF_LIM_SIZE;
 
-            c->vOutput = ptr;
-            ptr += nCaptureSize;
+            c->vData_y_delay = ptr;
+            ptr += BUF_LIM_SIZE;
 
-            c->vSweep = ptr;
-            ptr += nCaptureSize;
+            c->vDisplay_x = ptr;
+            ptr += BUF_LIM_SIZE;
 
-            c->enState = LISTENING;
+            c->vDisplay_y = ptr;
+            ptr += BUF_LIM_SIZE;
 
-            c->vIn          = NULL;
-            c->vOut         = NULL;
+            c->enState      = CH_STATE_LISTENING;
 
-            c->pIn          = NULL;
-            c->pOut         = NULL;
+            c->vIn_x        = NULL;
+            c->vIn_y        = NULL;
+            c->vIn_ext      = NULL;
+
+            c->vOut_x       = NULL;
+            c->vOut_y       = NULL;
+
+            c->pIn_x        = NULL;
+            c->pIn_y        = NULL;
+            c->pIn_ext      = NULL;
+
+            c->pOut_x       = NULL;
+            c->pOut_y       = NULL;
 
             c->pHorDiv      = NULL;
             c->pHorPos      = NULL;
@@ -189,32 +292,54 @@ namespace lsp
             c->pMesh        = NULL;
         }
 
-        vTemp = ptr;
-        ptr += nCaptureSize;
-
-        vDflAbscissa = ptr;
-        ptr += nMeshSize;
-
         lsp_assert(ptr <= &save[samples]);
 
-        // Fill default abscissa
-        for (size_t n = 0; n < nMeshSize; ++n)
-            vDflAbscissa[n] = float(2 * n) / nMeshSize;
+//        vTemp = ptr;
+//        ptr += nCaptureSize;
+//
+//        vDflAbscissa = ptr;
+//        ptr += nMeshSize;
+//
+//        lsp_assert(ptr <= &save[samples]);
+//
+//        // Fill default abscissa
+//        for (size_t n = 0; n < nMeshSize; ++n)
+//            vDflAbscissa[n] = float(2 * n) / nMeshSize;
 
         // Bind ports
         size_t port_id = 0;
 
         // Audio
         lsp_trace("Binding audio ports");
+
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn = vPorts[port_id++];
+            vChannels[ch].pIn_x = vPorts[port_id++];
         }
+
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pOut = vPorts[port_id++];
+            vChannels[ch].pIn_y = vPorts[port_id++];
+        }
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pIn_ext = vPorts[port_id++];
+        }
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pOut_x = vPorts[port_id++];
+        }
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pOut_y = vPorts[port_id++];
         }
 
         // Common
@@ -277,11 +402,13 @@ namespace lsp
 
             c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, horDiv);
             c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
-            c->nPostTrigger = c->nSweepSize - c->nPreTrigger - 1;
+
+            c->sPreTrgDelay.set_delay(c->nPreTrigger);
+//            c->nPostTrigger = c->nSweepSize - c->nPreTrigger - 1;
 
             float trgLevel = c->pTrgLev->getValue();
 
-            c->sTrigger.set_post_trigger_samples(c->nPostTrigger);
+//            c->sTrigger.set_post_trigger_samples(c->nPostTrigger);
             c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
             c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
             c->sTrigger.update_settings();
@@ -294,9 +421,15 @@ namespace lsp
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
-            vChannels[ch].sBypass.init(sr);
-            vChannels[ch].sOversampler.set_sample_rate(sr);
-            vChannels[ch].nOverSampleRate = vChannels[ch].nOversampling * nSampleRate;
+            channel_t *c = &vChannels[ch];
+
+            c->sBypass.init(sr);
+
+            c->sOversampler_x.set_sample_rate(sr);
+            c->sOversampler_y.set_sample_rate(sr);
+            c->sOversampler_ext.set_sample_rate(sr);
+
+            c->nOverSampleRate = c->nOversampling * nSampleRate;
         }
     }
 
@@ -304,14 +437,33 @@ namespace lsp
     {
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
-            vChannels[ch].vIn   = vChannels[ch].pIn->getBuffer<float>();
-            vChannels[ch].vOut  = vChannels[ch].pOut->getBuffer<float>();
+            channel_t *c = &vChannels[ch];
 
-            if ((vChannels[ch].vIn == NULL) || (vChannels[ch].vOut == NULL))
+            c->vIn_x = c->pIn_x->getBuffer<float>();
+            c->vIn_y = c->pIn_y->getBuffer<float>();
+            c->vIn_ext = c->pIn_ext->getBuffer<float>();
+
+            c->vOut_x = c->pOut_x->getBuffer<float>();
+            c->vOut_y = c->pOut_y->getBuffer<float>();
+
+            if ((c->vIn_x == NULL) || (c->vOut_x == NULL))
                 return;
 
-            vChannels[ch].nSamplesCounter   = samples;
-            vChannels[ch].bProcessComplete  = false;
+            if ((c->vIn_y == NULL) || (c->vOut_y == NULL))
+                return;
+
+            if ((c->vIn_ext == NULL))
+                return;
+
+            c->nSamplesCounter = samples;
+        }
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            channel_t *c = &vChannels[ch];
+
+            calculate_output(c->vOut_x, c->vIn_x, samples, c->enOutputMode);
+            calculate_output(c->vOut_y, c->vIn_y, samples, c->enOutputMode);
         }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
@@ -321,104 +473,72 @@ namespace lsp
             while (c->nSamplesCounter > 0)
             {
                 size_t requested        = c->nOversampling * c->nSamplesCounter;
-                size_t availble         = c->sShiftBuffer.capacity() - c->sShiftBuffer.size();
+                size_t availble         = BUF_LIM_SIZE;
                 size_t to_do_upsample   = (requested < availble) ? requested : availble;
                 size_t to_do            = to_do_upsample / c->nOversampling;
 
-                c->sOversampler.upsample(vTemp, c->vIn, to_do);
-                c->sShiftBuffer.append(vTemp, to_do_upsample);
-
-                // In the future, switch with different output modes.
-                dsp::fill_zero(c->vOutput, to_do);
-
-                while (c->nBufferScanningHead < c->sShiftBuffer.size())
+                switch (c->enMode)
                 {
-                    c->sTrigger.single_sample_processor(*c->sShiftBuffer.head(c->nBufferScanningHead));
-
-                    switch (c->enState)
+                    case CH_MODE_XY:
                     {
-                        case LISTENING:
-                        {
-                            if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
-                            {
-                                if (c->nBufferScanningHead > c->nPreTrigger)
-                                {
-                                    c->nBufferCopyHead  = c->nBufferScanningHead - c->nPreTrigger;
-                                    c->nBufferCopyCount = c->nSweepSize;
-                                    c->nSweepHead       = 0;
-                                }
-                                else
-                                {
-                                    c->nBufferCopyHead  = 0;
-                                    c->nBufferCopyCount = c->nSweepSize - c->nBufferScanningHead;
-                                    c->nSweepHead       = c->nPreTrigger - c->nBufferScanningHead;
-                                }
+                        c->sOversampler_x.upsample(c->vData_x, c->vIn_x, to_do);
+                        c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
 
-                                c->enState = SWEEPING;
-                            }
-                            else if (c->nBufferScanningHead >= 2 * c->nSweepSize - 1)
-                            {
-                                c->nBufferCopyHead  = 0;
-                                c->nBufferCopyCount = c->nSweepSize;
-                                c->nSweepHead       = 0;
-                                c->bDoPlot          = true;
-                            }
-                        }
-                        break;
-
-                        case SWEEPING:
+                        if (fill_display_buffers(c, c->vData_x, c->vData_y, to_do_upsample))
                         {
-                            if (c->sShiftBuffer.size() - c->nBufferCopyHead >= c->nBufferCopyCount)
-                            {
-                                c->bDoPlot = true;
-                                c->enState = LISTENING;
-                            }
+                            // Plot stuff happens here
+
+                            reset_display_buffers(c);
                         }
-                        break;
                     }
+                    break;
 
-                    ++c->nBufferScanningHead;
-
-                    if (c->bDoPlot)
+                    case CH_MODE_TRIGGERED:
                     {
-                        dsp::copy(&c->vSweep[c->nSweepHead], c->sShiftBuffer.head(c->nBufferCopyHead), c->nBufferCopyCount);
+                        c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
+                        c->sPreTrgDelay.process(c->vData_y_delay, c->vData_y, to_do_upsample);
+                        c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
 
-                        mesh_t *mesh = c->pMesh->getBuffer<mesh_t>();
+                        float *trg_input = select_trigger_input(c->vData_ext, c->vData_y, c->enTrgInput);
 
-                        if (mesh != NULL)
+                        for (size_t n = 0; n < to_do_upsample; ++n)
                         {
-                            if (mesh->isEmpty())
-                            {
-                                get_plottable_data(c->vAbscissa, c->vSweep, nMeshSize, c->nSweepSize);
-                                get_plottable_data(c->vOrdinate, c->vSweep, nMeshSize, c->nSweepSize);
-                                for (size_t idx = 0; idx < nMeshSize; ++idx)
-                                {
-                                    c->vOrdinate[idx] *= c->fScale;
-                                    c->vOrdinate[idx] += c->fOffset;
-                                }
+                            c->sTrigger.single_sample_processor(trg_input[n]);
 
-                                dsp::copy(mesh->pvData[0], vDflAbscissa, nMeshSize);
-                                dsp::copy(mesh->pvData[1], c->vOrdinate, nMeshSize);
-                                mesh->data(2, nMeshSize);
+                            switch (c->enState)
+                            {
+                                case CH_STATE_LISTENING:
+                                {
+                                    if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
+                                    {
+                                        c->sSweepGenerator.reset();
+                                        c->sSweepGenerator.sweep(c->vData_x, c->nSweepSize);
+                                        c->enState = CH_STATE_SWEEPING;
+                                    }
+                                }
+                                break;
+
+                                case CH_STATE_SWEEPING:
+                                {
+                                    if (fill_display_buffers(c, c->vData_x, c->vData_y_delay, to_do_upsample))
+                                    {
+                                        // Plot stuff happens here
+
+                                        reset_display_buffers(c);
+                                    }
+                                }
+                                break;
                             }
                         }
-
-                        size_t to_shift = c->nBufferScanningHead - c->nSweepSize + 1;
-
-                        c->sShiftBuffer.shift(to_shift);
-                        c->nBufferScanningHead -= to_shift;
-                        c->nBufferCopyHead = 0;
-                        c->nBufferCopyCount = 0;
-                        c->nSweepHead = 0;
-                        c->bDoPlot = false;
-                        dsp::fill_zero(c->vSweep, c->nSweepSize);
                     }
+                    break;
                 }
 
-                c->sBypass.process(vChannels[ch].vOut, vChannels[ch].vIn, c->vOutput, to_do);
-
-                c->vIn              += to_do;
-                c->vOut             += to_do;
+                c->vIn_x            += to_do;
+                c->vIn_y            += to_do;
+                c->vIn_ext          += to_do;
+                c->vOut_x           += to_do;
+                c->vOut_y           += to_do;
                 c->nSamplesCounter  -= to_do;
             }
         }

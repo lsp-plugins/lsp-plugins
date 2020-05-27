@@ -35,6 +35,13 @@ namespace lsp
         NULL
     };
 
+    #define CHANNEL_AUDIO_PORTS(id, label) \
+        AUDIO_INPUT("in_x" id, "Input x" label), \
+        AUDIO_INPUT("in_y" id, "Input y" label), \
+        AUDIO_INPUT("in_ext" id, "Input external" label), \
+        AUDIO_OUTPUT("out_x" id, "Output x" label), \
+        AUDIO_OUTPUT("out_y" id, "Output y" label)
+
     #define HOR_CONTROLS(id, label) \
         CONTROL("hzdv" id, "Horizontal Division" label, U_SEC, oscilloscope_base_metadata::TIME_DIVISION), \
         CONTROL("hzps" id, "Horizontal Position" label, U_PERCENT, oscilloscope_base_metadata::TIME_POSITION)
@@ -64,9 +71,11 @@ namespace lsp
     #define OSC_VISUALOUTS(id, label) \
         MESH("oscv" id, "Oscilloscope" label, 2, oscilloscope_base_metadata::SCOPE_MESH_SIZE)
 
+    #define AUDIO_PORTS_X1 CHANNEL_AUDIO_PORTS("_1", " 1")
     #define CHANNEL_CONTROLS_X1 CHANNEL_CONTROLS("_1", " 1")
     #define OSC_VISUALOUTS_X1 OSC_VISUALOUTS("_1", " 1")
 
+    #define AUDIO_PORTS_X2 CHANNEL_AUDIO_PORTS("_1", " 1"), CHANNEL_AUDIO_PORTS("_2", " 2")
     #define CHANNEL_CONTROLS_X2 CHANNEL_CONTROLS("_1", " 1"), CHANNEL_CONTROLS("_2", " 2")
     #define OSC_VISUALOUTS_X2 OSC_VISUALOUTS("_1", " 1"), OSC_VISUALOUTS("_2", " 2")
 
@@ -74,7 +83,7 @@ namespace lsp
 
     static const port_t oscilloscope_x1_ports[] =
     {
-        PORTS_MONO_PLUGIN,
+        AUDIO_PORTS_X1,
         OSC_COMMON,
         CHANNEL_CONTROLS_X1,
         OSC_VISUALOUTS_X1,
@@ -83,7 +92,7 @@ namespace lsp
 
     static const port_t oscilloscope_x2_ports[] =
     {
-        PORTS_MONO_PLUGIN,
+        AUDIO_PORTS_X2,
         OSC_COMMON,
         CHANNEL_CONTROLS_X2,
         OSC_VISUALOUTS_X2,

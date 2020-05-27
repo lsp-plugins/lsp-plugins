@@ -45,7 +45,7 @@ namespace lsp
     {
     }
 
-    void SweepGenerator::reset()
+    inline void SweepGenerator::reset()
     {
         sPhaseAcc.nAccumulator = 0;
     }
