@@ -43,16 +43,17 @@ namespace lsp
             lsp_trace("native_handle = %p", handle);
 
             pWindow         = NULL;
-            pChild          = NULL;
             pNativeHandle   = handle;
+            pChild          = NULL;
             enStyle         = BS_SIZEABLE;
             nScreen         = screen;
+
             pFocus          = NULL;
             pPointed        = NULL;
             bHasFocus       = false;
             bOverridePointer= false;
-            bMapFlag        = false;
             bSizeRequest    = true;
+            bMapFlag        = false;
             nVertPos        = 0.5f;
             nHorPos         = 0.5f;
             nVertScale      = 0.0f;
