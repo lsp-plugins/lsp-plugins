@@ -172,15 +172,15 @@
 				<grid rows="2" cols="2" hspacing="2" vspacing="2">
 					<button id="ife_l" size="10" color="left_channel" led="true" />
 					<button id="ife_r" size="10" color="right_channel" led="true" />
-					<label text="labels.chan.L_eft" font_size="9" color="left_channel" />
-					<label text="labels.chan.R_ight" font_size="9" color="right_channel" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
 				</grid>
-				<label text="In" />
+				<label text="labels.chan.in" />
 				<grid rows="2" cols="2" hspacing="2" vspacing="2">
 					<button id="ofe_l" size="10" color="left_channel" led="true" />
 					<button id="ofe_r" size="10" color="right_channel" led="true" />
-					<label text="labels.chan.L_eft" font_size="9" color="left_channel" />
-					<label text="labels.chan.R_ight" font_size="9" color="right_channel" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
 				</grid>
 				<label text="labels.chan.out" />
 				<vsep />
@@ -199,9 +199,10 @@
 		
 		<vbox spacing="4">
 			<cgroup id="bsel" embed=":bsel ilt 2">
-				<grid rows="11" cols="24">
+				<!-- Split Left -->
+				<grid rows="9" cols="24">
 					<label text="labels.band_hue" bg_color="bg2" />
-					<hbox fill="false" bg_color="bg2">
+					<hbox fill="false" bg_color="bg2" >
 						<button value="1" editable="false" size="16" color="red" hue_id="hue_0l" led="true" />
 						<label text="labels.chan.num_id_L_eft" text:id="0" />
 					</hbox>
@@ -211,7 +212,7 @@
 						<cell rows="11">
 							<vsep />
 						</cell>
-						<hbox fill="false" bg_color="bg2">
+						<hbox fill="false" bg_color="bg2" >
 							<button id="cbe_${i}l" size="16" color="red" hue_id="hue_${i}l" led="true" />
 							<label text="labels.chan.num_id_L_eft" text:id="${i}" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
 						</hbox>
@@ -241,7 +242,7 @@
 					<ui:for id="i" first="0" last="7">
 						<cell cols="2" fill="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" >
 							<grid rows="2" cols="4" fill="false" hspacing="2" >
-								<button id="ee_${i}l" size="12" color="red" hue_id="hue_${i}l" led="true" />
+								<button id="ge_${i}l" size="12" color="red" hue_id="hue_${i}l" led="true" />
 								<button id="bs_${i}l" size="12" color="green" led="true" />
 								<button id="bm_${i}l" size="12" color="red" led="true" />
 								<button id="sce_${i}l" size="12" color="yellow" led="true" visibility="ex :sce_${i}l" />
@@ -267,47 +268,32 @@
 					</ui:for>
 					
 					<cell rows="2">
-						<label text="labels.ratio_knee:db" bg_color="bg2" />
+						<label text="labels.attack_release:ms_ms" bg_color="bg2" />
 					</cell>
 					<ui:for id="i" first="0" last="7">
-						<knob id="er_${i}l" size="16" scale_hue_id="hue_${i}l" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-						<knob id="kn_${i}l" size="16" scale_hue_id="hue_${i}l" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-					</ui:for>
-					<ui:for id="i" first="0" last="7">
-						<hbox fill="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" >
-							<value id="er_${i}l" size="16" detailed="false" />
-							<label text=":" />
-							<label text="1" />
-						</hbox>
-						<value id="kn_${i}l" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-					</ui:for>
-					
-					<cell rows="2">
-						<label text="labels.attack:db_ms" />
-					</cell>
-					<ui:for id="i" first="0" last="7">
-						<knob id="al_${i}l" size="16" scale_color="magenta" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-						<knob id="at_${i}l" size="16" scale_hue_id="hue_${i}l" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-					</ui:for>
-					<ui:for id="i" first="0" last="7">
-						<value id="al_${i}l" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-						<value id="at_${i}l" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
-					</ui:for>
-					
-					<cell rows="2">
-						<label text="labels.release:db_ms" bg_color="bg2" />
-					</cell>
-					<ui:for id="i" first="0" last="7">
-						<knob id="rrl_${i}l" size="16" scale_color="magenta" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
+						<knob id="at_${i}l" size="16" scale_hue_id="hue_${i}l" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
 						<knob id="rt_${i}l" size="16" scale_hue_id="hue_${i}l" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
 					</ui:for>
 					<ui:for id="i" first="0" last="7">
-						<value id="rrl_${i}l" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
+						<value id="at_${i}l" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
 						<value id="rt_${i}l" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
+					</ui:for>
+					
+					<cell rows="2">
+						<label text="labels.thresh_zone:db_db" />
+					</cell>
+					<ui:for id="i" first="0" last="7">
+						<knob id="gt_${i}l" size="16" scale_color="magenta" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
+						<knob id="gz_${i}l" size="16" scale_color="blue" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
+					</ui:for>
+					<ui:for id="i" first="0" last="7">
+						<value id="gt_${i}l" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
+						<value id="gz_${i}l" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}l) ? 1 : 0.5" />
 					</ui:for>
 				</grid>
 				
-				<grid rows="11" cols="24">
+				<!-- Split Right -->
+				<grid rows="9" cols="24">
 					<label text="labels.band_hue" bg_color="bg2" />
 					<hbox fill="false" bg_color="bg2" >
 						<button value="1" editable="false" size="16" color="red" hue_id="hue_0r" led="true" />
@@ -349,7 +335,7 @@
 					<ui:for id="i" first="0" last="7">
 						<cell cols="2" fill="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" >
 							<grid rows="2" cols="4" fill="false" hspacing="2" >
-								<button id="ee_${i}r" size="12" color="red" hue_id="hue_${i}r" led="true" />
+								<button id="ge_${i}r" size="12" color="red" hue_id="hue_${i}r" led="true" />
 								<button id="bs_${i}r" size="12" color="green" led="true" />
 								<button id="bm_${i}r" size="12" color="red" led="true" />
 								<button id="sce_${i}r" size="12" color="yellow" led="true" visibility="ex :sce_${i}r" />
@@ -375,46 +361,31 @@
 					</ui:for>
 					
 					<cell rows="2">
-						<label text="labels.ratio_knee:db" bg_color="bg2" />
+						<label text="labels.attack_release:ms_ms" bg_color="bg2" />
 					</cell>
 					<ui:for id="i" first="0" last="7">
-						<knob id="er_${i}r" size="16" scale_hue_id="hue_${i}r" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-						<knob id="kn_${i}r" size="16" scale_hue_id="hue_${i}r" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-					</ui:for>
-					<ui:for id="i" first="0" last="7">
-						<hbox fill="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" >
-							<value id="er_${i}r" size="16" detailed="false" />
-							<label text=":" />
-							<label text="1" />
-						</hbox>
-						<value id="kn_${i}r" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-					</ui:for>
-					
-					<cell rows="2">
-						<label text="labels.attack:db_ms" />
-					</cell>
-					<ui:for id="i" first="0" last="7">
-						<knob id="al_${i}r" size="16" scale_color="magenta" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-						<knob id="at_${i}r" size="16" scale_hue_id="hue_${i}r" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-					</ui:for>
-					<ui:for id="i" first="0" last="7">
-						<value id="al_${i}r" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-						<value id="at_${i}r" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
-					</ui:for>
-					
-					<cell rows="2">
-						<label text="labels.release:db_ms" bg_color="bg2" />
-					</cell>
-					<ui:for id="i" first="0" last="7" >
-						<knob id="rrl_${i}r" size="16" scale_color="magenta" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
+						<knob id="at_${i}r" size="16" scale_hue_id="hue_${i}r" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
 						<knob id="rt_${i}r" size="16" scale_hue_id="hue_${i}r" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
 					</ui:for>
 					<ui:for id="i" first="0" last="7">
-						<value id="rrl_${i}r" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
+						<value id="at_${i}r" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
 						<value id="rt_${i}r" size="16" detailed="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
+					</ui:for>
+					
+					<cell rows="2">
+						<label text="labels.thresh_zone:db_db" />
+					</cell>
+					<ui:for id="i" first="0" last="7">
+						<knob id="gt_${i}r" size="16" scale_color="magenta" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
+						<knob id="gz_${i}r" size="16" scale_color="blue" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
+					</ui:for>
+					<ui:for id="i" first="0" last="7">
+						<value id="gt_${i}r" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
+						<value id="gz_${i}r" size="16" detailed="false" bright="((${i} ieq 0) or :cbe_${i}r) ? 1 : 0.5" />
 					</ui:for>
 				</grid>
 				
+				<!-- Bands -->
 				<ui:for id="i" first="0" last="7">
 					<hbox spacing="4">
 						<vbox expand="true">
@@ -488,7 +459,7 @@
 							
 							<align hpos="0">
 								<hbox spacing="4">
-									<label text="labels.plug.expander" />
+									<label text="labels.plug.gate" />
 									
 									<button id="bs_${i}l" size="16" color="left_channel" led="true" />
 									<label text="labels.chan.solo" />
@@ -499,85 +470,66 @@
 									<button id="bm_${i}r" size="16" color="right_channel" led="true" />
 								</hbox>
 							</align>
-							<grid rows="7" cols="8" hspacing="4">
-								<cell rows="2"><label text="labels.mode" /></cell>
-								<cell rows="2"><label text="labels.ratio" /></cell>
-								<cell rows="2"><label text="labels.knee" /></cell>
+							<grid rows="6" cols="10" hspacing="4">
+								<cell rows="2"><label text="labels.channel" /></cell>
+								<cell rows="2"><label text="labels.reduction" /></cell>
 								<cell rows="2"><label text="labels.makeup" /></cell>
-								<cell cols="2"><label text="labels.attack" /></cell>
-								<cell cols="2"><label text="labels.release" /></cell>
-								
-								<cell><label text="labels.thresh_old" /></cell>
-								<cell><label text="labels.time" /></cell>
-								<cell><label text="labels.thresh_old" /></cell>
-								<cell><label text="labels.time" /></cell>
-								
-								<cell rows="2">
-									<vbox>
-										<combo id="em_${i}l" fill="true" />
-										<align hpos="0" pad_left="4">
-											<hbox fill="false" spacing="4">
-												<button id="ee_${i}l" color="left_channel" led="true" size="12" />
-												<label text="labels.chan.left_on" />
-											</hbox>
-										</align>
-									</vbox>
+								<cell rows="2"><label text="labels.attack" /></cell>
+								<cell rows="2"><label text="labels.release" /></cell>
+								<cell rows="6"><vsep /></cell>
+								<cell cols="2"><label text="labels.curve" /></cell>
+								<cell cols="2">
+									<hbox fill="false">
+										<button id="gh_${i}l" size="16" color="left_channel" led="true" />
+										<label text="labels.hysteresis" />
+										<button id="gh_${i}r" size="16" color="right_channel" led="true" />
+									</hbox>
 								</cell>
-								<knob id="er_${i}l" size="16" scale_hue_id="hue_${i}l" />
-								<knob id="kn_${i}l" size="16" scale_hue_id="hue_${i}l" />
-								<knob id="mk_${i}l" size="16" scale_hue_id="hue_${i}l" />
-								<knob id="al_${i}l" size="16" scale_color="magenta" />
-								<knob id="at_${i}l" size="16" scale_hue_id="hue_${i}l" />
-								<knob id="rrl_${i}l" size="16" scale_color="magenta" />
-								<knob id="rt_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								
-								<hbox fill="false">
-									<value id="er_${i}l" size="16" detailed="false" />
-									<label text=":"/>
-									<label text="1"/>
-								</hbox>
-								<value id="kn_${i}l" same_line="true" />
+								<label text="labels.thresh_old" />
+								<label text="labels.zone" />
+								<label text="labels.thresh_old" />
+								<label text="labels.zone" />
+								
+								<button id="ge_${i}l" color="left_channel" led="true" size="20" />
+								<knob id="gr_${i}l" scale_color="left_channel" size="16" />
+								<knob id="mk_${i}l" scale_color="left_channel" size="16" />
+								<knob id="at_${i}l" scale_color="left_channel" size="16" />
+								<knob id="rt_${i}l" scale_color="left_channel" size="16" />
+								<knob id="gt_${i}l" scale_color="magenta" size="16" />
+								<knob id="gz_${i}l" scale_color="left_channel" size="16" />
+								<knob id="ht_${i}l" scale_color="magenta" size="16" />
+								<knob id="hz_${i}l" scale_color="left_channel" size="16" />
+
+								<label text="labels.chan.left_on" />
+								<value id="gr_${i}l" same_line="true" />
 								<value id="mk_${i}l" same_line="true" />
-								<value id="al_${i}l" same_line="true" />
 								<value id="at_${i}l" same_line="true" />
-								<value id="rrl_${i}l" same_line="true" />
 								<value id="rt_${i}l" same_line="true" />
+								<value id="gt_${i}l" same_line="true" />
+								<value id="gz_${i}l" same_line="true" />
+								<value id="ht_${i}l" same_line="true" />
+								<value id="hz_${i}l" same_line="true" />
 								
-								<label />
-								<cell cols="7" fill="true">
-									<hsep />
-								</cell>
+								<button id="ge_${i}r" color="right_channel" led="true" size="20" />
+								<knob id="gr_${i}r" scale_color="right_channel" size="16" />
+								<knob id="mk_${i}r" scale_color="right_channel" size="16" />
+								<knob id="at_${i}r" scale_color="right_channel" size="16" />
+								<knob id="rt_${i}r" scale_color="right_channel" size="16" />
+								<knob id="gt_${i}r" scale_color="magenta" size="16" />
+								<knob id="gz_${i}r" scale_color="right_channel" size="16" />
+								<knob id="ht_${i}r" scale_color="magenta" size="16" />
+								<knob id="hz_${i}r" scale_color="right_channel" size="16" />
 								
-								<cell rows="2">
-									<vbox>
-										<combo id="em_${i}r" fill="true" />
-										<align hpos="0" pad_left="4">
-											<hbox fill="false" spacing="4">
-												<button id="ee_${i}r" color="right_channel" led="true" size="12" />
-												<label text="labels.chan.right_on" />
-											</hbox>
-										</align>
-									</vbox>
-								</cell>
-								<knob id="er_${i}r" size="16" scale_hue_id="hue_${i}r" />
-								<knob id="kn_${i}r" size="16" scale_hue_id="hue_${i}r" />
-								<knob id="mk_${i}r" size="16" scale_hue_id="hue_${i}r" />
-								<knob id="al_${i}r" size="16" scale_color="magenta" />
-								<knob id="at_${i}r" size="16" scale_hue_id="hue_${i}r" />
-								<knob id="rrl_${i}r" size="16" scale_color="magenta" />
-								<knob id="rt_${i}r" size="16" scale_hue_id="hue_${i}r" />
-								
-								<hbox fill="false">
-									<value id="er_${i}r" size="16" detailed="false" />
-									<label text=":"/>
-									<label text="1"/>
-								</hbox>
-								<value id="kn_${i}r" same_line="true" />
+								<label text="labels.chan.right_on" />
+								<value id="gr_${i}r" same_line="true" />
 								<value id="mk_${i}r" same_line="true" />
-								<value id="al_${i}r" same_line="true" />
 								<value id="at_${i}r" same_line="true" />
-								<value id="rrl_${i}r" same_line="true" />
 								<value id="rt_${i}r" same_line="true" />
+								<value id="gt_${i}r" same_line="true" />
+								<value id="gz_${i}r" same_line="true" />
+								<value id="ht_${i}r" same_line="true" />
+								<value id="hz_${i}r" same_line="true" />
 							</grid>
 						</vbox>
 						<vsep />
@@ -600,8 +552,8 @@
 						
 							<!-- Axises and boundaries -->
 							<center hpos="-1" vpos="-1" visible="false" />
-							<axis min="-72 db" max="24 db" color="g_gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
-							<axis min="-72 db" max="24 db" color="g_gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
+							<axis min="-72 db" max="24 db" color="gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
+							<axis min="-72 db" max="24 db" color="gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
 							<marker value="1" offset="1" color="g_gray" basis="1" parallel="0" dx=":_a_width" dy=":_a_height" width="2" smooth="true" /> <!-- 1:1 -->
 							<marker value="24 db" color="g_gray" basis="1" parallel="0" /> <!-- +24 dB -->
 							<marker value="24 db" color="g_gray" basis="0" parallel="1" /> <!-- +24 dB -->
@@ -611,18 +563,24 @@
 							<marker value="1.0" color="g_white" basis="0" parallel="1" width="2" /> <!-- 0 dB -->
 							
 							<!-- Meshes -->
-							<mesh id="ccg_${i}l" width="3" color="left_channel" smooth="true" />
-							<mesh id="ccg_${i}r" width="3" color="right_channel" smooth="true" />
+							<mesh id="hg_${i}l" width="3" color="left_channel" smooth="true" visibility=":gh_${i}l" />
+							<mesh id="hg_${i}r" width="3" color="right_channel" smooth="true" visibility=":gh_${i}r" />
+							<mesh id="cg_${i}l" width="3" color="left_channel" smooth="true" />
+							<mesh id="cg_${i}r" width="3" color="right_channel" smooth="true" />
 							<dot hpos_id="elm_${i}l" vpos_id="clm_${i}l" color="left_channel" led="true" />
 							<dot hpos_id="elm_${i}r" vpos_id="clm_${i}r" color="right_channel" led="true" />
 							
 							<!-- Markers -->
-							<marker id="al_${i}l" color="g_magenta" basis="0" parallel="1" />
-							<marker id="al_${i}r" color="g_magenta" basis="0" parallel="1" />
+							<marker value=":gz_${i}l * :gt_${i}l" color="g_blue" basis="0" parallel="1" />
+							<marker value=":gz_${i}r * :gt_${i}r" color="g_blue" basis="0" parallel="1" />
+							<marker value=":hz_${i}l * :ht_${i}l * :gt_${i}l" color="g_blue" basis="0" parallel="1" visibility=":gh_${i}l" />
+							<marker value=":hz_${i}r * :ht_${i}r * :gt_${i}r" color="g_blue" basis="0" parallel="1" visibility=":gh_${i}r" />
 							
-							<marker id="rl_${i}l" color="g_magenta" basis="0" parallel="1" />
-							<marker id="rl_${i}r" color="g_magenta" basis="0" parallel="1" />
-						
+							<marker value=":gt_${i}l" color="g_magenta" basis="0" parallel="1" />
+							<marker value=":gt_${i}r" color="g_magenta" basis="0" parallel="1" />
+							<marker value=":ht_${i}l * :gt_${i}l" color="g_magenta" basis="0" parallel="1" visibility=":gh_${i}l" />
+							<marker value=":ht_${i}r * :gt_${i}r" color="g_magenta" basis="0" parallel="1" visibility=":gh_${i}r" />
+
 							<!-- Text -->
 							<text text="0" coord="1;1" halign="1" valign="1" />
 							

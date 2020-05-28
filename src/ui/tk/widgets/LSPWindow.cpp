@@ -179,7 +179,9 @@ namespace lsp
 
             // Set window's size constraints and update geometry
             pWindow->set_size_constraints(&sr);
-            realize_t r = sSize;
+            realize_t r     = sSize;
+            lsp_trace("size = {%d %d %d %d}", int(sSize.nLeft), int(sSize.nTop), int(sSize.nWidth), int(sSize.nHeight));
+
             if (enPolicy == WP_GREEDY)
             {
                 if (sr.nMinWidth > 0)
@@ -203,6 +205,12 @@ namespace lsp
 
             if ((sSize.nWidth != r.nWidth) && (sSize.nHeight != r.nHeight))
                 pWindow->resize(r.nWidth, r.nHeight);
+
+            lsp_trace("r = {%d %d %d %d}", int(r.nLeft), int(r.nTop), int(r.nWidth), int(r.nHeight));
+
+            bSizeRequest    = false;
+            query_draw(REDRAW_CHILD | REDRAW_SURFACE);
+            realize(&r);
 
             return STATUS_OK;
         }
@@ -260,9 +268,6 @@ namespace lsp
             {
                 lsp_trace("Synchronizing size");
                 sync_size();
-                bSizeRequest    = false;
-                query_draw(REDRAW_CHILD | REDRAW_SURFACE);
-                realize(&sSize);
             }
 
             if (!redraw_pending())

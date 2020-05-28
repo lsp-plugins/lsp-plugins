@@ -678,21 +678,21 @@ namespace lsp
             // Output gate curves
             for (size_t j=0; j<2; ++j)
             {
-                if (c->pCurve[j] != NULL)
-                {
-                    mesh_t *mesh            = c->pCurve[j]->getBuffer<mesh_t>();
-                    if ((c->nSync & (S_CURVE << j)) && (mesh != NULL) && (mesh->isEmpty()))
-                    {
-                        // Copy frequency points
-                        dsp::copy(mesh->pvData[0], vCurve, gate_base_metadata::CURVE_MESH_SIZE);
-                        c->sGate.curve(mesh->pvData[1], vCurve, gate_base_metadata::CURVE_MESH_SIZE, j > 0);
-                        if (c->fMakeup != 1.0f)
-                            dsp::mul_k2(mesh->pvData[1], c->fMakeup, gate_base_metadata::CURVE_MESH_SIZE);
+                if (c->pCurve[j] == NULL)
+                    continue;
 
-                        // Mark mesh containing data
-                        mesh->data(2, gate_base_metadata::CURVE_MESH_SIZE);
-                        c->nSync &= ~(S_CURVE << j);
-                    }
+                mesh_t *mesh            = c->pCurve[j]->getBuffer<mesh_t>();
+                if ((c->nSync & (S_CURVE << j)) && (mesh != NULL) && (mesh->isEmpty()))
+                {
+                    // Copy frequency points
+                    dsp::copy(mesh->pvData[0], vCurve, gate_base_metadata::CURVE_MESH_SIZE);
+                    c->sGate.curve(mesh->pvData[1], vCurve, gate_base_metadata::CURVE_MESH_SIZE, j > 0);
+                    if (c->fMakeup != 1.0f)
+                        dsp::mul_k2(mesh->pvData[1], c->fMakeup, gate_base_metadata::CURVE_MESH_SIZE);
+
+                    // Mark mesh containing data
+                    mesh->data(2, gate_base_metadata::CURVE_MESH_SIZE);
+                    c->nSync &= ~(S_CURVE << j);
                 }
             }
 

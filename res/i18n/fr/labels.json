@@ -43,6 +43,7 @@
 	"att_ack": "Att",
 	"attack": "Attaque",
 	"attack:db_ms": "Attaque\n(dB, ms)",
+	"attack_release:ms_ms": "Attaque,\nRelâche\n(ms, ms)",
 	
 	"automatic_extension": "Extension automatique",
 	
@@ -497,6 +498,7 @@
 	"thresh_gain:db_db": "Seuil, Gain\n(dB, dB)",
 	"thresh_old": "Seuil",
 	"thresh_old:db": "Seuil\n(dB)",
+	"thresh_zone:db_db": "Seuil,\nZone\n(dB, dB)",
 	
 	"time": "Temps",
 	"time_:ms": "Temps (ms)",

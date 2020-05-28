@@ -79,6 +79,7 @@ namespace lsp
             sAngle.init(pRegistry, this);
             sDX.init(pRegistry, this);
             sDY.init(pRegistry, this);
+            sValue.init(pRegistry, this);
         }
 
         void CtlMarker::set(widget_attribute_t att, const char *value)
@@ -92,8 +93,7 @@ namespace lsp
                         BIND_PORT(pRegistry, pPort, value);
                     break;
                 case A_VALUE:
-                    if (mark != NULL)
-                        PARSE_FLOAT(value, mark->set_value(__));
+                    BIND_EXPR(sValue, value);
                     break;
                 case A_OFFSET:
                     if (mark != NULL)
@@ -210,6 +210,12 @@ namespace lsp
             {
                 float angle = eval_expr(&sAngle);
                 mark->set_angle(angle * M_PI);
+            }
+
+            if (sValue.valid())
+            {
+                float value = eval_expr(&sValue);
+                mark->set_value(value);
             }
 
             if (sDX.valid())

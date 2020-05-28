@@ -15,7 +15,6 @@
 #include <core/util/Sidechain.h>
 #include <core/util/Delay.h>
 #include <core/util/MeterGraph.h>
-#include <core/util/MeterGraph.h>
 #include <core/util/Analyzer.h>
 #include <core/filters/DynamicFilters.h>
 #include <core/filters/Equalizer.h>
@@ -62,7 +61,6 @@ namespace lsp
                 float           fFreqHCF;           // Cutoff frequency for low-pass filter
                 float           fFreqLCF;           // Cutoff frequency for high-pass filter
                 float           fMakeup;            // Makeup gain
-                float           fEnvLevel;          // Envelope level
                 float           fGainLevel;         // Gain adjustment level
                 size_t          nLookahead;         // Lookahead amount
 

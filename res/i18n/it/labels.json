@@ -43,6 +43,7 @@
 	"att_ack": "Att",
 	"attack": "Attacco",
 	"attack:db_ms": "Attacco\n(dB, ms)",
+	"attack_release:ms_ms": "Attacco,\nRilascio\n(ms, ms)",
 	
 	"automatic_extension": "Estensione automatica",
 	
@@ -500,6 +501,7 @@
 	"thresh_gain:db_db": "Soglia, Guadagno\n(dB, dB)",
 	"thresh_old": "Soglia",
 	"thresh_old:db": "Soglia\n(dB)",
+	"thresh_zone:db_db": "Soglia,\nZona\n(dB, dB)",
 	
 	"time": "Tempo",
 	"time_:ms": "Tempo (ms)",

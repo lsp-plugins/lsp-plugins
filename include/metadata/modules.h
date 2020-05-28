@@ -156,6 +156,16 @@ MOD_PLUGIN(sc_mb_expander_stereo, plugin_ui)
 MOD_PLUGIN(sc_mb_expander_lr, plugin_ui)
 MOD_PLUGIN(sc_mb_expander_ms, plugin_ui)
 
+// Multiband expanders
+MOD_PLUGIN(mb_gate_mono, plugin_ui)
+MOD_PLUGIN(mb_gate_stereo, plugin_ui)
+MOD_PLUGIN(mb_gate_lr, plugin_ui)
+MOD_PLUGIN(mb_gate_ms, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_mono, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_stereo, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_lr, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_ms, plugin_ui)
+
 #ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver
     // MOD_PLUGIN(nonlinear_convolver_mono, plugin_ui)

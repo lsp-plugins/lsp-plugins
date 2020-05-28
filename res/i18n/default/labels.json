@@ -43,6 +43,7 @@
 	"att_ack": "Att",
 	"attack": "Attack",
 	"attack:db_ms": "Attack\n(dB, ms)",
+	"attack_release:ms_ms": "Attack,\nRelease\n(ms, ms)",
 	
 	"automatic_extension": "Automatic extension",
 	
@@ -179,6 +180,10 @@
 	"filters": "Filters",
 	
 	"flt": {
+		"10k": "10k",
+		"1k": "1k",
+		"2_2k": "2.2k",
+		"4_7k": "4.7k",
 		"EQ_ualizer": "EQ",
 		"H_ighC_ut": "HC",
 		"HCF": "HCF",
@@ -352,8 +357,8 @@
 		"postprocessing": "POSTPROCESSING",
 		"preprocessing": "PREPROCESSING",
 		"profiler_state": "PROFILER STATE:",
-		"rt_algorithm": "RT Algorithm",
 		"recording": "RECORDING",
+		"rt_algorithm": "RT Algorithm",
 		"saving": "SAVING",
 		"waiting": "WAITING"
 	},
@@ -429,7 +434,7 @@
 	},
 	"settings": "Settings",
 	
-	"side_direction": "Side direction", 
+	"side_direction": "Side direction",
 	"sidechain": "Sidechain",
 	
 	"signal": {
@@ -463,7 +468,7 @@
 	},
 	
 	"slope": "Slope",
-	
+
 	"source": "Source",
 	"source:": "Source:",
 	
@@ -497,6 +502,7 @@
 	"thresh_gain:db_db": "Thresh, Gain\n(dB, dB)",
 	"thresh_old": "Thresh",
 	"thresh_old:db": "Thresh\n(dB)",
+	"thresh_zone:db_db": "Thresh,\nZone\n(dB, dB)",
 	
 	"time": "Time",
 	"time_:ms": "Time (ms)",

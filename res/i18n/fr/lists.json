@@ -230,6 +230,22 @@
 		"split_side": "Séparé côté"
 	},
 	
+	"mb_gate": {
+		"band0": "Bande 0",
+		"band1": "Bande 1",
+		"band2": "Bande 2",
+		"band3": "Bande 3",
+		"band4": "Bande 4",
+		"band5": "Bande 5",
+		"band6": "Bande 6",
+		"band7": "Bande 7",
+		"split": "Séparé",
+		"split_left": "Séparé gauche",
+		"split_middle": "Séparé milieu",
+		"split_right": "Séparé droite",
+		"split_side": "Séparé côté"
+	},
+	
 	"metering": {
 		"fft": {
 			"off": "Off",

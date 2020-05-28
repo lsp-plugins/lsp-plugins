@@ -27,6 +27,7 @@
 
 === 1.1.22 ===
 
+* Implemented Multiband Gate plugin series.
 * Fixed VST2 identifiers for Multiband Expander plugin series.
 * Fixed graph issues related to dot editing.
 * Added spanish translation of the UI (contributed by Ignotus - ignotus666 at github.com).
@@ -34,9 +35,16 @@
 * Fixed mapping of some numpad keys that could cause problems when entering manual value in the UI.
 
 *******************************************************************************
+* New plugin check list before release
+*******************************************************************************
+* Plugin has documentation
+* Plugin has attached screenshots
+* Plugin translations are valid
+* Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
+
+*******************************************************************************
 * Release steps
 *******************************************************************************
-* Register VST2 plugin IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
 * Ensure that there are menu items present for all new plugins in res/xdg
@@ -73,7 +81,8 @@
 * Linear Audio Profiler
 * Multi-Sampler
 * Multiband Compressor
-* Multiband expander
+* Multiband Expander
+* Multiband Gate
 * Parametric Equalizer
 * Phase Compensator
 * Phase Detector
@@ -84,7 +93,6 @@
 
 - Dynamic equalizer
 - One-band compressor
-- Multiband gate
 - Multiband limiter
 - Nonlinear audio profiler
 - Hysteresis-based saturator

@@ -43,6 +43,7 @@
 	"att_ack": "At.",
 	"attack": "Ataque",
 	"attack:db_ms": "Ataque\n(dB, ms)",
+	"attack_release:ms_ms": "Ataque,\nDecaimiento\n(ms, ms)",
 	
 	"automatic_extension": "Extensión automática",
 	
@@ -497,6 +498,7 @@
 	"thresh_gain:db_db": "Umbral, Ganancia\n(dB, dB)",
 	"thresh_old": "Umbral",
 	"thresh_old:db": "Umbral\n(dB)",
+	"thresh_zone:db_db": "Umbral,\nZona\n(dB, dB)",
 	
 	"time": "Tiempo",
 	"time_:ms": "Tiempo (ms)",
