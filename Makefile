@@ -75,13 +75,13 @@ export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)
-LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)
-VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)
-JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)
-PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
-SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
-DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
+LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(LSP_VERSION)
+LV2_ID                 := $(ARTIFACT_ID)-lv2-$(LSP_VERSION)
+VST_ID                 := $(ARTIFACT_ID)-lxvst-$(LSP_VERSION)
+JACK_ID                := $(ARTIFACT_ID)-jack-$(LSP_VERSION)
+PROFILE_ID             := $(ARTIFACT_ID)-profile-$(LSP_VERSION)
+SRC_ID                 := $(ARTIFACT_ID)-src-$(LSP_VERSION)
+DOC_ID                 := $(ARTIFACT_ID)-doc-$(LSP_VERSION)
 
 .DEFAULT_GOAL          := all
 .PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
