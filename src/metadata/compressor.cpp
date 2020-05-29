@@ -63,6 +63,15 @@ namespace lsp
         { NULL, NULL }
     };
 
+    static const port_item_t comp_filter_slope[] =
+    {
+        { "off",        "eq.slope.off"      },
+        { "12 dB/oct",  "eq.slope.12dbo"    },
+        { "24 dB/oct",  "eq.slope.24dbo"    },
+        { "36 dB/oct",  "eq.slope.36dbo"    },
+        { NULL, NULL }
+    };
+
     #define COMP_COMMON     \
         BYPASS,             \
         IN_GAIN,            \
@@ -80,7 +89,11 @@ namespace lsp
         CONTROL("sla", "Sidechain lookahead", U_MSEC, compressor_base_metadata::LOOKAHEAD), \
         SWITCH("scl", "Sidechain listen", 0.0f), \
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, compressor_base_metadata::REACTIVITY), \
-        AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB)
+        AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB), \
+        COMBO("shpm", "High-pass filter mode", 0, comp_filter_slope),      \
+        LOG_CONTROL("shpf", "High-pass filter frequency", U_HZ, compressor_base_metadata::HPF),   \
+        COMBO("slpm", "Low-pass filter mode", 0, comp_filter_slope),      \
+        LOG_CONTROL("slpf", "Low-pass filter frequency", U_HZ, compressor_base_metadata::LPF)
 
     #define COMP_SC_STEREO_CHANNEL(id, label, sct) \
         COMBO("sct" id, "Sidechain type" label, compressor_base_metadata::SC_TYPE_DFL, sct), \
@@ -89,7 +102,11 @@ namespace lsp
         SWITCH("scl" id, "Sidechain listen" label, 0.0f), \
         COMBO("scs" id, "Sidechain source" label, compressor_base_metadata::SC_SOURCE_DFL, comp_sc_sources), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, compressor_base_metadata::REACTIVITY), \
-        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB)
+        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
+        COMBO("shpm" id, "High-pass filter mode" label, 0, comp_filter_slope),      \
+        LOG_CONTROL("shpf" id, "High-pass filter frequency" label, U_HZ, compressor_base_metadata::HPF),   \
+        COMBO("slpm" id, "Low-pass filter mode" label, 0, comp_filter_slope),      \
+        LOG_CONTROL("slpf" id, "Low-pass filter frequency" label, U_HZ, compressor_base_metadata::LPF)
 
     #define COMP_CHANNEL(id, label, modes) \
         COMBO("cm" id, "Compression mode" label, compressor_base_metadata::CM_DEFAULT, modes), \
@@ -240,7 +257,7 @@ namespace lsp
         "compressor_mono",
         "bgsy",
         LSP_COMPRESSOR_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         compressor_mono_ports,
@@ -258,7 +275,7 @@ namespace lsp
         "compressor_stereo",
         "unsc",
         LSP_COMPRESSOR_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         compressor_stereo_ports,
@@ -276,7 +293,7 @@ namespace lsp
         "compressor_lr",
         "3nam",
         LSP_COMPRESSOR_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         compressor_lr_ports,
@@ -294,7 +311,7 @@ namespace lsp
         "compressor_ms",
         "jjef",
         LSP_COMPRESSOR_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         compressor_ms_ports,
@@ -313,7 +330,7 @@ namespace lsp
         "sc_compressor_mono",
         "lyjq",
         LSP_COMPRESSOR_BASE + 4,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         sc_compressor_mono_ports,
@@ -331,7 +348,7 @@ namespace lsp
         "sc_compressor_stereo",
         "5xzi",
         LSP_COMPRESSOR_BASE + 5,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         sc_compressor_stereo_ports,
@@ -349,7 +366,7 @@ namespace lsp
         "sc_compressor_lr",
         "fowg",
         LSP_COMPRESSOR_BASE + 6,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         sc_compressor_lr_ports,
@@ -367,7 +384,7 @@ namespace lsp
         "sc_compressor_ms",
         "ioqg",
         LSP_COMPRESSOR_BASE + 7,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         compressor_classes,
         E_INLINE_DISPLAY,
         sc_compressor_ms_ports,

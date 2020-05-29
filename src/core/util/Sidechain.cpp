@@ -28,6 +28,7 @@ namespace lsp
         fGain               = 1.0f;
         bUpdate             = true;
         bMidSide            = false;
+        pPreEq              = NULL;
     }
 
     Sidechain::~Sidechain()
@@ -98,16 +99,8 @@ namespace lsp
         }
     }
 
-    void Sidechain::process(float *out, const float **in, size_t samples)
+    bool Sidechain::preprocess(float *out, const float **in, size_t samples)
     {
-        // Check if need update settings
-        if (bUpdate)
-        {
-            update_settings();
-            bUpdate     = false;
-        }
-
-        // Determine what source to use
         if (nChannels == 2)
         {
             if (bMidSide)
@@ -116,17 +109,33 @@ namespace lsp
                 {
                     case SCS_LEFT:
                         dsp::ms_to_left(out, in[0], in[1], samples);
+                        if (pPreEq != NULL)
+                            pPreEq->process(out, out, samples);
                         dsp::abs1(out, samples);
                         break;
                     case SCS_RIGHT:
                         dsp::ms_to_right(out, in[0], in[1], samples);
+                        if (pPreEq != NULL)
+                            pPreEq->process(out, out, samples);
                         dsp::abs1(out, samples);
                         break;
                     case SCS_MIDDLE:
-                        dsp::abs2(out, in[0], samples);
+                        if (pPreEq != NULL)
+                        {
+                            pPreEq->process(out, in[0], samples);
+                            dsp::abs1(out, samples);
+                        }
+                        else
+                            dsp::abs2(out, in[0], samples);
                         break;
                     case SCS_SIDE:
-                        dsp::abs2(out, in[1], samples);
+                        if (pPreEq != NULL)
+                        {
+                            pPreEq->process(out, in[1], samples);
+                            dsp::abs1(out, samples);
+                        }
+                        else
+                            dsp::abs2(out, in[1], samples);
                         break;
                     default:
                         break;
@@ -137,17 +146,33 @@ namespace lsp
                 switch (nSource)
                 {
                     case SCS_LEFT:
-                        dsp::abs2(out, in[0], samples);
+                        if (pPreEq != NULL)
+                        {
+                            pPreEq->process(out, in[0], samples);
+                            dsp::abs1(out, samples);
+                        }
+                        else
+                            dsp::abs2(out, in[0], samples);
                         break;
                     case SCS_RIGHT:
-                        dsp::abs2(out, in[1], samples);
+                        if (pPreEq != NULL)
+                        {
+                            pPreEq->process(out, in[1], samples);
+                            dsp::abs1(out, samples);
+                        }
+                        else
+                            dsp::abs2(out, in[1], samples);
                         break;
                     case SCS_MIDDLE:
                         dsp::lr_to_mid(out, in[0], in[1], samples);
+                        if (pPreEq != NULL)
+                            pPreEq->process(out, out, samples);
                         dsp::abs1(out, samples);
                         break;
                     case SCS_SIDE:
                         dsp::lr_to_side(out, in[0], in[1], samples);
+                        if (pPreEq != NULL)
+                            pPreEq->process(out, out, samples);
                         dsp::abs1(out, samples);
                         break;
                     default:
@@ -156,12 +181,119 @@ namespace lsp
             }
         }
         else if (nChannels == 1)
-            dsp::abs2(out, in[0], samples);
+        {
+            if (pPreEq != NULL)
+            {
+                pPreEq->process(out, in[0], samples);
+                dsp::abs1(out, samples);
+            }
+            else
+                dsp::abs2(out, in[0], samples);
+        }
         else
         {
             dsp::fill_zero(out, samples);
-            return;
+            if (pPreEq != NULL)
+            {
+                pPreEq->process(out, out, samples);
+                dsp::abs1(out, samples);
+            }
+            return false;
         }
+
+        return true;
+    }
+
+    bool Sidechain::preprocess(float *out, const float *in)
+    {
+        float s;
+
+        if (nChannels == 2)
+        {
+            if (bMidSide)
+            {
+                switch (nSource)
+                {
+                    case SCS_LEFT:
+                        s = in[0] + in[1];
+                        if (pPreEq != NULL)
+                            pPreEq->process(&s, &s, 1);
+                        break;
+                    case SCS_RIGHT:
+                        s = in[0] - in[1];
+                        if (pPreEq != NULL)
+                            pPreEq->process(&s, &s, 1);
+                        break;
+                    case SCS_MIDDLE:
+                        s = in[0];
+                        if (pPreEq != NULL)
+                            pPreEq->process(&s, &s, 1);
+                        break;
+                    case SCS_SIDE:
+                        s = in[1];
+                        if (pPreEq != NULL)
+                            pPreEq->process(&s, &s, 1);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                switch (nSource)
+                {
+                    case SCS_LEFT:
+                        s = in[0];
+                        break;
+                    case SCS_RIGHT:
+                        s = in[1];
+                        break;
+                    case SCS_MIDDLE:
+                        s = (in[0] + in[1])*0.5f;
+                        if (pPreEq != NULL)
+                            pPreEq->process(&s, &s, 1);
+                        break;
+                    case SCS_SIDE:
+                        s = (in[0] - in[1])*0.5f;
+                        if (pPreEq != NULL)
+                            pPreEq->process(&s, &s, 1);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        else if (nChannels == 1)
+        {
+            s       = in[0];
+            if (pPreEq != NULL)
+                pPreEq->process(&s, &s, 1);
+        }
+        else
+        {
+            s       = 0.0f;
+            if (pPreEq != NULL)
+                pPreEq->process(&s, &s, 1);
+            *out    = s;
+            return false;
+        }
+
+        *out    = (s < 0.0f) ? -s : s;
+        return true;
+    }
+
+    void Sidechain::process(float *out, const float **in, size_t samples)
+    {
+        // Check if need update settings
+        if (bUpdate)
+        {
+            update_settings();
+            bUpdate     = false;
+        }
+
+        // Determine what source to use
+        if (!preprocess(out, in, samples))
+            return;
 
         // Adjust pre-amplification
         if (fGain != 1.0f)
@@ -274,61 +406,7 @@ namespace lsp
         }
 
         float out   = 0.0f;
-
-        if (nChannels == 2)
-        {
-            if (bMidSide)
-            {
-                switch (nSource)
-                {
-                    case SCS_LEFT:
-                        out = in[0] + in[1];
-                        if (out < 0.0f)
-                            out = -out;
-                        break;
-                    case SCS_RIGHT:
-                        out = in[0] - in[1];
-                        if (out < 0.0f)
-                            out = -out;
-                        break;
-                    case SCS_MIDDLE:
-                        out = (in[0] < 0.0f) ? -in[0] : in[0];
-                        break;
-                    case SCS_SIDE:
-                        out = (in[1] < 0.0f) ? -in[1] : in[1];
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                switch (nSource)
-                {
-                    case SCS_LEFT:
-                        out = (in[0] < 0.0f) ? -in[0] : in[0];
-                        break;
-                    case SCS_RIGHT:
-                        out = (in[1] < 0.0f) ? -in[1] : in[1];
-                        break;
-                    case SCS_MIDDLE:
-                        out = (in[0] + in[1])*0.5f;
-                        if (out < 0.0f)
-                            out = -out;
-                        break;
-                    case SCS_SIDE:
-                        out = (in[0] - in[1])*0.5f;
-                        if (out < 0.0f)
-                            out = -out;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-        else if (nChannels == 1)
-            out = (in[0] < 0.0f) ? -in[0] : in[0];
-        else
+        if (!preprocess(&out, in))
             return out;
 
         // Adjust pre-amplification

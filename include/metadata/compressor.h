@@ -49,6 +49,16 @@ namespace lsp
         static const float  MAKEUP_DFL              = GAIN_AMP_0_DB;
         static const float  MAKEUP_STEP             = 0.05f;
 
+        static const float  HPF_MIN                  = 10.0f;
+        static const float  HPF_MAX                  = 20000.0f;
+        static const float  HPF_DFL                  = 10.0f;
+        static const float  HPF_STEP                 = 0.0025f;
+
+        static const float  LPF_MIN                  = 10.0f;
+        static const float  LPF_MAX                  = 20000.0f;
+        static const float  LPF_DFL                  = 20000.0f;
+        static const float  LPF_STEP                 = 0.0025f;
+
         static const float  RATIO_MIN               = 1.0f;
         static const float  RATIO_MAX               = 100.0f;
         static const float  RATIO_DFL               = 4.0f;

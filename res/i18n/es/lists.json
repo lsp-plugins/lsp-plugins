@@ -71,10 +71,17 @@
 			"lrx_mt": "LRX (MT)",
 			"apo_dr": "APO (DR)"
 		},
+		"pos": {
+		    "post_eq": "Post-eq",
+			"pre_eq": "Pre-eq"
+		},
 		"slope": {
-			"6dbo": "6 dB\/oct",
-			"12dbo": "12 dB\/oct",
-			"18dbo": "18 dB\/oct",
+			"6dbo": "6 dB/oct",
+			"12dbo": "12 dB/oct",
+			"18dbo": "18 dB/oct",
+			"24dbo": "24 dB/oct",
+			"30dbo": "30 dB/oct",
+			"36dbo": "36 dB/oct",
 			"off": "Off",
 			"x1": "x1",
 			"x2": "x2",
