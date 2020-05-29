@@ -232,17 +232,27 @@
 		</grid>
 		<hbox spacing="4">
 			<group text="groups.sidechain">
-				<grid rows="5" cols="5" expand="true">
-					<label text="labels.sc.listen" />
+				<grid rows="6" cols="6" expand="true" spacing="2">
+					<cell cols="6">
+						<align hpos="-1" fill="true">
+							<hbox spacing="4">
+								<button id="scl_m" size="16" color="middle_channel" led="true" />
+								<label text="labels.sc.listen" />
+								<button id="scl_s" size="16" color="side_channel" led="true" />
+							</hbox>
+						</align>
+					</cell>
+					
 					<label text="labels.sc.preamp" />
 					<label text="labels.sc.reactivity" />
 					<label text="labels.sc.lookahead" />
 					<label text="labels.setup" />
+					<label text="labels.flt.HPF" />
+					<label text="labels.flt.LPF" />
 					
-					<button id="scl_m" size="16" color="middle_channel" led="true" />
-					<knob id="scp_m" />
-					<knob id="scr_m" />
-					<knob id="sla_m" />
+					<knob id="scp_m" scale_color="middle_channel" />
+					<knob id="scr_m" scale_color="middle_channel" />
+					<knob id="sla_m" scale_color="middle_channel" />
 					<cell rows="2" fill="false">
 						<vbox fill="false" spacing="1">
 							<combo id="sci_m" visibility="ex :sci_m" fill="true" />
@@ -250,16 +260,24 @@
 							<combo id="scs_m" fill="true" />
 						</vbox>
 					</cell>
+					<vbox fill="false" spacing="1">
+						<combo id="shpm_m" />
+						<knob id="shpf_m" size="20" scale_color="middle_channel" bright="(:shpm_m igt 0) ? 1 : 0.5" />
+					</vbox>
+					<vbox fill="false" spacing="1">
+						<combo id="slpm_m" />
+						<knob id="slpf_m" size="20" scale_color="middle_channel" bright="(:slpm_m igt 0) ? 1 : 0.5" />
+					</vbox>
 					
-					<label text="labels.chan.middle" />
 					<value id="scp_m" same_line="true" />
 					<value id="scr_m" same_line="true" />
 					<value id="sla_m" same_line="true" />
+					<value id="shpf_m" same_line="true" bright="(:shpm_m igt 0) ? 1 : 0.5" />
+					<value id="slpf_m" same_line="true" bright="(:shpm_m igt 0) ? 1 : 0.5" />
 					
-					<button id="scl_s" size="16" color="side_channel" led="true" />
-					<knob id="scp_s" />
-					<knob id="scr_s" />
-					<knob id="sla_s" />
+					<knob id="scp_s" scale_color="side_channel" />
+					<knob id="scr_s" scale_color="side_channel" />
+					<knob id="sla_s" scale_color="side_channel" />
 					<cell rows="2" fill="false">
 						<vbox fill="false" spacing="1">
 							<combo id="sci_s" visibility="ex :sci_s" fill="true" />
@@ -267,11 +285,20 @@
 							<combo id="scs_s" fill="true" />
 						</vbox>
 					</cell>
+					<vbox fill="false" spacing="1">
+						<combo id="shpm_s" />
+						<knob id="shpf_s" size="20" scale_color="side_channel" bright="(:shpm_s igt 0) ? 1 : 0.5" />
+					</vbox>
+					<vbox fill="false" spacing="1">
+						<combo id="slpm_s" />
+						<knob id="slpf_s" size="20" scale_color="side_channel" bright="(:slpm_s igt 0) ? 1 : 0.5" />
+					</vbox>
 					
-					<label text="labels.chan.side" />
 					<value id="scp_s" same_line="true" />
 					<value id="scr_s" same_line="true" />
 					<value id="sla_s" same_line="true" />
+					<value id="shpf_s" same_line="true" bright="(:slpm_s igt 0) ? 1 : 0.5" />
+					<value id="slpf_s" same_line="true" bright="(:slpm_s igt 0) ? 1 : 0.5" />
 				</grid>
 			</group>
 		

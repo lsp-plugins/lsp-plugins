@@ -359,6 +359,7 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 vChannels[i].sSC.destroy();
+                vChannels[i].sSCEq.destroy();
                 vChannels[i].sDelay.destroy();
                 vChannels[i].sCompDelay.destroy();
             }
