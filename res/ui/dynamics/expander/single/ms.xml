@@ -4,7 +4,7 @@
 			<!-- Time graph -->
 			<vbox expand="true">
 				<label />
-				<graph width="400" height="256" expand="true">
+				<graph width="480" height="256" expand="true">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
 					<marker value="0.25119" color="g_gray" basis="1" parallel="0" />  <!-- -12 dB -->
