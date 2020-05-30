@@ -4,7 +4,7 @@
 			<!-- Time graph -->
 			<vbox expand="true">
 				<label />
-				<graph width="400" height="256" expand="true">
+				<graph width="480" height="256" expand="true">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
 					<marker value="0.25119" color="g_gray" basis="1" parallel="0" />  <!-- -12 dB -->
@@ -224,19 +224,23 @@
 			<!-- Stereo processing -->
 			<group text="groups.plug.processor">
 				<hbox>
-					<grid rows="8" cols="3" expand="true" fill="true">
+					<!-- Sidechain -->
+					<grid rows="5" cols="5" expand="true" fill="true" spacing="2">
+						<cell cols="5">
+							<align hpos="-1">
+								<hbox fill="false" spacing="4">
+									<button id="scl" size="16" color="yellow" led="true" />
+									<label text="labels.sc.listen" />
+								</hbox>
+							</align>
+						</cell>
+						
 						<label text="labels.type" fill="true" halign="0" />
-						<label />
-						<hbox>
-							<button id="scl" size="16" color="yellow" led="true" />
-							<label text="labels.sc.listen" />
-						</hbox>
-						<cell cols="3" fill="true">
-							<align vpos="-1" hscale="1">
+						<cell cols="4" fill="true">
+							<align vpos="1" hscale="1">
 								<vbox spacing="1" fill="true">
-									<combo id="sct" fill="true" />
-									<combo id="scm" fill="true" />
-									<combo id="scs" fill="true" />
+									<combo id="sct" fill="true"/>
+									<combo id="scm" fill="true"/>
 								</vbox>
 							</align>
 						</cell>
@@ -244,15 +248,28 @@
 						<label text="labels.sc.preamp" />
 						<label text="labels.sc.reactivity" />
 						<label text="labels.sc.lookahead" />
+						<label text="labels.flt.HPF" />
+						<label text="labels.flt.LPF" />
 						
 						<knob id="scp" />
 						<knob id="scr" />
 						<knob id="sla" />
+						<vbox>
+							<combo id="shpm" />
+							<knob id="shpf" size="20" bright="(:shpm igt 0) ? 1 : 0.5" />
+						</vbox>
+						<vbox>
+							<combo id="slpm" />
+							<knob id="slpf" size="20" bright="(:slpm igt 0) ? 1 : 0.5" />
+						</vbox>
 						
 						<value id="scp" />
 						<value id="scr" />
 						<value id="sla" />
+						<value id="shpf" bright="(:shpm igt 0) ? 1 : 0.5" />
+						<value id="slpf" bright="(:slpm igt 0) ? 1 : 0.5" />
 					</grid>
+					
 					<vsep />
 					<grid rows="9" cols="1" expand="true" fill="true">
 						<label text="labels.ratio_low" />
