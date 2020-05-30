@@ -68,6 +68,16 @@ namespace lsp
         static const size_t SC_SOURCE_DFL           = 0;
         static const size_t SC_TYPE_DFL             = 0;
 
+        static const float  HPF_MIN                 = 10.0f;
+        static const float  HPF_MAX                 = 20000.0f;
+        static const float  HPF_DFL                 = 10.0f;
+        static const float  HPF_STEP                = 0.0025f;
+
+        static const float  LPF_MIN                 = 10.0f;
+        static const float  LPF_MAX                 = 20000.0f;
+        static const float  LPF_DFL                 = 20000.0f;
+        static const float  LPF_STEP                = 0.0025f;
+
         static const size_t CURVE_MESH_SIZE         = 256;
         static const float  CURVE_DB_MIN            = -72;
         static const float  CURVE_DB_MAX            = +24;

@@ -11,64 +11,64 @@
 		<!-- Trigger -->
 		<grid visibility=":asel ieq 0" rows="2" cols="4" transpose="true" expand="true">
 			<graph width="640" height="256" expand="true">
-					<center hpos="1" vpos="-1" visible="false" />
-					
-					<!-- Gray grid -->
-					<ui:for id="t" first="0" last="4" step="1">
-						<marker value="${t}.25" color="g_dark_gray" basis="0" parallel="1" />
-						<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
-						<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
-					</ui:for>
+				<center hpos="1" vpos="-1" visible="false" />
 				
-					<marker value="3.98107" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
-					<marker value="0.251189" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
-					<marker value="0.0158489" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
-					<marker value="0.001" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
-	
-					<!-- Yellow grid -->
-					<ui:for id="t" first="1" last="4" step="1">
-						<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
-					</ui:for>
-	
-					<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-					<marker value="0.0630957" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-					<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
-	
-					<!-- Meshes -->
-					<mesh id="isg" width="2" color="middle_channel" visibility_id="isv" />
-					<mesh id="tlg" width="2" color="medium_green" visibility_id="tlv" />
-					<mesh id="tfg" width="2" color="green" visibility_id="tfv" />
-					
-					<!-- Boundaries -->
-					<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
-					<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
-					
-					<!-- Axis -->
-					<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
-					<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
-					
-					<!-- Text -->
-					<text text="graph.units.s" coord="5;2.51e-4" halign="1" valign="1" />
-					<ui:for id="t" first="0" last="4" step="1">
-						<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
-						<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
-					</ui:for>
-					
-					<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
-					<text text="0" coord="5;1" halign="1" valign="1" />
-					<text text="-12" coord="5;0.251189" halign="1" valign="1" />
-					<text text="-24" coord="5;0.0630957" halign="1" valign="1" />
-					<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
-					<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
-					<text text="-60" coord="5;0.001" halign="1" valign="1" />
-					<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
-					
-					<!-- Markers -->
-					<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
-					<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
-					<marker id="dl" color="g_magenta" basis="1" parallel="0" />
-					<marker id="rl" color="g_magenta" basis="1" parallel="0" />
-				</graph>
+				<!-- Gray grid -->
+				<ui:for id="t" first="0" last="4" step="1">
+					<marker value="${t}.25" color="g_dark_gray" basis="0" parallel="1" />
+					<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
+					<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
+				</ui:for>
+			
+				<marker value="3.98107" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
+				<marker value="0.251189" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+				<marker value="0.0158489" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+				<marker value="0.001" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+
+				<!-- Yellow grid -->
+				<ui:for id="t" first="1" last="4" step="1">
+					<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
+				</ui:for>
+
+				<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+				<marker value="0.0630957" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+				<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+
+				<!-- Meshes -->
+				<mesh id="isg" width="2" color="middle_channel" visibility_id="isv" />
+				<mesh id="tlg" width="2" color="medium_green" visibility_id="tlv" />
+				<mesh id="tfg" width="2" color="green" visibility_id="tfv" />
+				
+				<!-- Boundaries -->
+				<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
+				<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
+				
+				<!-- Axis -->
+				<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
+				<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
+				
+				<!-- Text -->
+				<text text="graph.units.s" coord="5;2.51e-4" halign="1" valign="1" />
+				<ui:for id="t" first="0" last="4" step="1">
+					<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
+					<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
+				</ui:for>
+				
+				<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
+				<text text="0" coord="5;1" halign="1" valign="1" />
+				<text text="-12" coord="5;0.251189" halign="1" valign="1" />
+				<text text="-24" coord="5;0.0630957" halign="1" valign="1" />
+				<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
+				<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
+				<text text="-60" coord="5;0.001" halign="1" valign="1" />
+				<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
+				
+				<!-- Markers -->
+				<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
+				<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
+				<marker id="dl" color="g_magenta" basis="1" parallel="0" />
+				<marker id="rl" color="g_magenta" basis="1" parallel="0" />
+			</graph>
 			<hbox fill="true">
 				<button id="pause" size="16" color="green" led="true" />
 				<label text="labels.pause" />
@@ -198,14 +198,25 @@
 			<!-- Controls -->
 			<group text="groups.plug.trigger">
 				<hbox expand="true">
-					<grid rows="3" cols="3" expand="true">
+					<!-- Sidechain -->
+					<grid rows="3" cols="5" expand="true" spacing="2">
 						<label text="labels.sc.preamp" />
 						<label text="labels.mode" />
 						<label text="labels.sc.reactivity" />
+						<label text="labels.flt.HPF" />
+						<label text="labels.flt.LPF" />
 						
 						<knob id="preamp" />
 						<combo id="mode" fill="true" />
 						<knob id="react" />
+						<vbox>
+							<combo id="shpm" />
+							<knob id="shpf" size="20" bright="(:shpm igt 0) ? 1 : 0.5" />
+						</vbox>
+						<vbox>
+							<combo id="slpm" />
+							<knob id="slpf" size="20" bright="(:slpm igt 0) ? 1 : 0.5" />
+						</vbox>
 						
 						<value id="preamp" />
 						<hbox fill="false">
@@ -213,11 +224,13 @@
 							<label text="labels.active" />
 						</hbox>
 						<value id="react" />
+						<value id="shpf" bright="(:shpm igt 0) ? 1 : 0.5" />
+						<value id="slpf" bright="(:slpm igt 0) ? 1 : 0.5" />
 					</grid>
 					
 					<vsep />
 					
-					<grid rows="4" cols="2" expand="true">
+					<grid rows="4" cols="2" expand="true" spacing="2">
 						<cell cols="2"><label text="labels.attack" /></cell>
 						<label text="labels.thresh_old" />
 						<label text="labels.time" />
@@ -231,7 +244,7 @@
 					
 					<vsep />
 					
-					<grid rows="4" cols="2" expand="true">
+					<grid rows="4" cols="2" expand="true" spacing="2">
 						<cell cols="2"><label text="labels.release" /></cell>
 						<label text="labels.thresh_old" />
 						<label text="labels.time" />
@@ -244,7 +257,8 @@
 					</grid>
 					
 					<vsep />
-					<grid rows="4" cols="3" expand="true">
+					
+					<grid rows="4" cols="3" expand="true" spacing="2">
 						<cell cols="3"><label text="labels.dynamics" /></cell>
 						<label text="labels.spread" />
 						<label text="labels.range_id" text:id="1" />

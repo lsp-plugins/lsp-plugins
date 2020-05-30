@@ -48,6 +48,15 @@ namespace lsp
         { NULL, NULL }
     };
 
+    static const port_item_t exp_filter_slope[] =
+    {
+        { "off",        "eq.slope.off"      },
+        { "12 dB/oct",  "eq.slope.12dbo"    },
+        { "24 dB/oct",  "eq.slope.24dbo"    },
+        { "36 dB/oct",  "eq.slope.36dbo"    },
+        { NULL, NULL }
+    };
+
     #define EXP_COMMON     \
         BYPASS,             \
         IN_GAIN,            \
@@ -64,7 +73,11 @@ namespace lsp
         CONTROL("sla", "Sidechain lookahead", U_MSEC, expander_base_metadata::LOOKAHEAD), \
         SWITCH("scl", "Sidechain listen", 0.0f), \
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, expander_base_metadata::REACTIVITY), \
-        AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB)
+        AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB), \
+        COMBO("shpm", "High-pass filter mode", 0, exp_filter_slope),      \
+        LOG_CONTROL("shpf", "High-pass filter frequency", U_HZ, expander_base_metadata::HPF),   \
+        COMBO("slpm", "Low-pass filter mode", 0, exp_filter_slope),      \
+        LOG_CONTROL("slpf", "Low-pass filter frequency", U_HZ, expander_base_metadata::LPF)
 
     #define EXP_SC_MONO_CHANNEL \
         COMBO("sci", "Sidechain input", expander_base_metadata::SC_TYPE_DFL, exp_sc_type), \
@@ -76,7 +89,11 @@ namespace lsp
         SWITCH("scl" id, "Sidechain listen" label, 0.0f), \
         COMBO("scs" id, "Sidechain source" label, expander_base_metadata::SC_SOURCE_DFL, exp_sc_sources), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, expander_base_metadata::REACTIVITY), \
-        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB)
+        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
+        COMBO("shpm" id, "High-pass filter mode" label, 0, exp_filter_slope),      \
+        LOG_CONTROL("shpf" id, "High-pass filter frequency" label, U_HZ, expander_base_metadata::HPF),   \
+        COMBO("slpm" id, "Low-pass filter mode" label, 0, exp_filter_slope),      \
+        LOG_CONTROL("slpf" id, "Low-pass filter frequency" label, U_HZ, expander_base_metadata::LPF)
 
     #define EXP_SC_STEREO_CHANNEL(id, label) \
         COMBO("sci" id, "Sidechain input" label, expander_base_metadata::SC_TYPE_DFL, exp_sc_type), \
@@ -230,7 +247,7 @@ namespace lsp
         "expander_mono",
         "tddq",
         LSP_EXPANDER_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         expander_mono_ports,
@@ -248,7 +265,7 @@ namespace lsp
         "expander_stereo",
         "au0f",
         LSP_EXPANDER_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         expander_stereo_ports,
@@ -266,7 +283,7 @@ namespace lsp
         "expander_lr",
         "zvsf",
         LSP_EXPANDER_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         expander_lr_ports,
@@ -284,7 +301,7 @@ namespace lsp
         "expander_ms",
         "ebhk",
         LSP_EXPANDER_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         expander_ms_ports,
@@ -303,7 +320,7 @@ namespace lsp
         "sc_expander_mono",
         "utul",
         LSP_EXPANDER_BASE + 4,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         sc_expander_mono_ports,
@@ -321,7 +338,7 @@ namespace lsp
         "sc_expander_stereo",
         "lwqv",
         LSP_EXPANDER_BASE + 5,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         sc_expander_stereo_ports,
@@ -339,7 +356,7 @@ namespace lsp
         "sc_expander_lr",
         "pnvw",
         LSP_EXPANDER_BASE + 6,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         sc_expander_lr_ports,
@@ -357,7 +374,7 @@ namespace lsp
         "sc_expander_ms",
         "zc0d",
         LSP_EXPANDER_BASE + 7,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         expander_classes,
         E_INLINE_DISPLAY,
         sc_expander_ms_ports,

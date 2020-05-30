@@ -173,6 +173,10 @@ namespace lsp
         pWet                = NULL;
         pGain               = NULL;
         pPreamp             = NULL;
+        pScHpfMode          = NULL;
+        pScHpfFreq          = NULL;
+        pScLpfMode          = NULL;
+        pScLpfFreq          = NULL;
 
         pSource             = NULL;
         pMode               = NULL;
@@ -198,6 +202,8 @@ namespace lsp
     void trigger_base::destroy()
     {
         // Destroy objects
+        sSidechain.destroy();
+        sScEq.destroy();
         sKernel.destroy();
 
         // Remove time points buffer
@@ -231,6 +237,10 @@ namespace lsp
 
         if (!sSidechain.init(nChannels, REACTIVITY_MAX))
             return;
+        if (!sScEq.init(2, 12))
+            return;
+        sScEq.set_mode(EQM_IIR);
+        sSidechain.set_pre_equalizer(&sScEq);
 
         // Get executor
         ipc::IExecutor *executor = wrapper->get_executor();
@@ -357,6 +367,15 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pPreamp             = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
+        pScHpfMode          =   vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pScHpfFreq          =   vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pScLpfMode          =   vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pScLpfFreq          =   vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
         pDetectLevel        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pDetectTime         = vPorts[port_id++];
@@ -394,10 +413,6 @@ namespace lsp
         // Bind kernel
         lsp_trace("Binding kernel ports...");
         port_id     = sKernel.bind(vPorts, port_id, false);
-
-        // Call for initial settings update
-        lsp_trace("Calling settings update");
-        update_settings();
     }
 
     size_t trigger_base::decode_mode()
@@ -446,6 +461,8 @@ namespace lsp
 
     void trigger_base::update_settings()
     {
+        filter_params_t fp;
+
         // Update settings for notes
         if (bMidiPorts)
         {
@@ -453,12 +470,33 @@ namespace lsp
             lsp_trace("trigger note=%d", int(nNote));
         }
 
-        // Update settings
+        // Update sidechain settings
         sSidechain.set_source(decode_source());
         sSidechain.set_mode(decode_mode());
         sSidechain.set_reactivity(pReactivity->getValue());
         sSidechain.set_gain(pPreamp->getValue());
 
+        // Setup hi-pass filter for sidechain
+        size_t hp_slope = pScHpfMode->getValue() * 2;
+        fp.nType        = (hp_slope > 0) ? FLT_BT_BWC_HIPASS : FLT_NONE;
+        fp.fFreq        = pScHpfFreq->getValue();
+        fp.fFreq2       = fp.fFreq;
+        fp.fGain        = 1.0f;
+        fp.nSlope       = hp_slope;
+        fp.fQuality     = 0.0f;
+        sScEq.set_params(0, &fp);
+
+        // Setup low-pass filter for sidechain
+        size_t lp_slope = pScLpfMode->getValue() * 2;
+        fp.nType        = (lp_slope > 0) ? FLT_BT_BWC_LOPASS : FLT_NONE;
+        fp.fFreq        = pScLpfFreq->getValue();
+        fp.fFreq2       = fp.fFreq;
+        fp.fGain        = 1.0f;
+        fp.nSlope       = lp_slope;
+        fp.fQuality     = 0.0f;
+        sScEq.set_params(1, &fp);
+
+        // Update trigger settings
         fDetectLevel    = pDetectLevel->getValue();
         fDetectTime     = pDetectTime->getValue();
         fReleaseLevel   = fDetectLevel * pReleaseLevel->getValue();
@@ -529,6 +567,7 @@ namespace lsp
 
         // Update trigger buffer
         sSidechain.set_sample_rate(sr);
+        sScEq.set_sample_rate(sr);
 
         // Update activity blink
         sActive.init(sr);

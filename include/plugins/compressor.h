@@ -15,6 +15,7 @@
 #include <core/util/Sidechain.h>
 #include <core/util/Delay.h>
 #include <core/util/MeterGraph.h>
+#include <core/filters/Equalizer.h>
 #include <core/dynamics/Compressor.h>
 
 namespace lsp
@@ -71,6 +72,7 @@ namespace lsp
             {
                 Bypass          sBypass;            // Bypass
                 Sidechain       sSC;                // Sidechain module
+                Equalizer       sSCEq;              // Sidechain equalizer
                 Compressor      sComp;              // Compression module
                 Delay           sDelay;             // Lookahead delay
                 Delay           sCompDelay;         // Compensation delay
@@ -105,6 +107,10 @@ namespace lsp
                 IPort          *pScSource;          // Sidechain source
                 IPort          *pScReactivity;      // Sidechain reactivity
                 IPort          *pScPreamp;          // Sidechain pre-amplification
+                IPort          *pScHpfMode;         // Sidechain high-pass filter mode
+                IPort          *pScHpfFreq;         // Sidechain high-pass filter frequency
+                IPort          *pScLpfMode;         // Sidechain low-pass filter mode
+                IPort          *pScLpfFreq;         // Sidechain low-pass filter frequency
 
                 IPort          *pMode;              // Mode
                 IPort          *pAttackLvl;         // Attack level

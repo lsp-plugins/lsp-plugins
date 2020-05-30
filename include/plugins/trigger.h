@@ -64,6 +64,7 @@ namespace lsp
         protected:
             // Sidechain
             Sidechain               sSidechain;             // Sidechain
+            Equalizer               sScEq;                  // Sidechain equalizer
             float                  *vTmp;                   // Temporary buffer
 
             // Instantiation parameters
@@ -129,6 +130,10 @@ namespace lsp
             IPort                  *pPause;                 // Pause analysis
             IPort                  *pClear;                 // Clear analysis
             IPort                  *pPreamp;                // Pre-amplification
+            IPort                  *pScHpfMode;             // Sidechain high-pass filter mode
+            IPort                  *pScHpfFreq;             // Sidechain high-pass filter frequency
+            IPort                  *pScLpfMode;             // Sidechain low-pass filter mode
+            IPort                  *pScLpfFreq;             // Sidechain low-pass filter frequency
 
             IPort                  *pSource;                // Source port
             IPort                  *pMode;                  // Mode port

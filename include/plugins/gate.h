@@ -71,6 +71,7 @@ namespace lsp
             {
                 Bypass          sBypass;            // Bypass
                 Sidechain       sSC;                // Sidechain module
+                Equalizer       sSCEq;              // Sidechain equalizer
                 Gate            sGate;              // Gate module
                 Delay           sDelay;             // Lookahead delay
                 Delay           sCompDelay;         // Lookahead delay
@@ -104,6 +105,10 @@ namespace lsp
                 IPort          *pScSource;          // Sidechain source
                 IPort          *pScReactivity;      // Sidechain reactivity
                 IPort          *pScPreamp;          // Sidechain pre-amplification
+                IPort          *pScHpfMode;         // Sidechain high-pass filter mode
+                IPort          *pScHpfFreq;         // Sidechain high-pass filter frequency
+                IPort          *pScLpfMode;         // Sidechain low-pass filter mode
+                IPort          *pScLpfFreq;         // Sidechain low-pass filter frequency
 
                 IPort          *pHyst;              // Hysteresis flag
                 IPort          *pThresh[2];         // Threshold

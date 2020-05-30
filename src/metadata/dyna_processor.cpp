@@ -66,6 +66,15 @@ namespace lsp
         { NULL, NULL }
     };
 
+    static const port_item_t dyna_proc_filter_slope[] =
+    {
+        { "off",        "eq.slope.off"      },
+        { "12 dB/oct",  "eq.slope.12dbo"    },
+        { "24 dB/oct",  "eq.slope.24dbo"    },
+        { "36 dB/oct",  "eq.slope.36dbo"    },
+        { NULL, NULL }
+    };
+
     #define DYNA_PROC_COMMON     \
         BYPASS,             \
         IN_GAIN,            \
@@ -88,7 +97,11 @@ namespace lsp
         CONTROL("sla", "Sidechain lookahead", U_MSEC, dyna_processor_base_metadata::LOOKAHEAD), \
         SWITCH("scl", "Sidechain listen", 0.0f), \
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, dyna_processor_base_metadata::REACTIVITY), \
-        AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB)
+        AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB), \
+        COMBO("shpm", "High-pass filter mode", 0, dyna_proc_filter_slope),      \
+        LOG_CONTROL("shpf", "High-pass filter frequency", U_HZ, dyna_processor_base_metadata::HPF),   \
+        COMBO("slpm", "Low-pass filter mode", 0, dyna_proc_filter_slope),      \
+        LOG_CONTROL("slpf", "Low-pass filter frequency", U_HZ, dyna_processor_base_metadata::LPF)
 
     #define DYNA_PROC_SC_STEREO_CHANNEL(id, label, sct) \
         COMBO("sct" id, "Sidechain type" label, dyna_processor_base_metadata::SC_TYPE_DFL, sct), \
@@ -97,7 +110,11 @@ namespace lsp
         SWITCH("scl" id, "Sidechain listen" label, 0.0f), \
         COMBO("scs" id, "Sidechain source" label, dyna_processor_base_metadata::SC_SOURCE_DFL, dyna_proc_sc_sources), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, dyna_processor_base_metadata::REACTIVITY), \
-        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB)
+        AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
+        COMBO("shpm" id, "High-pass filter mode" label, 0, dyna_proc_filter_slope),      \
+        LOG_CONTROL("shpf" id, "High-pass filter frequency" label, U_HZ, dyna_processor_base_metadata::HPF),   \
+        COMBO("slpm" id, "Low-pass filter mode" label, 0, dyna_proc_filter_slope),      \
+        LOG_CONTROL("slpf" id, "Low-pass filter frequency" label, U_HZ, dyna_processor_base_metadata::LPF)
 
     #define DYNA_POINT(idx, on, id, label, level) \
         SWITCH("pe" #idx id, "Point enable " #idx label, on), \
@@ -261,7 +278,7 @@ namespace lsp
         "dyna_processor_mono",
         "lqpm",
         LSP_DYNAMIC_PROCESSOR_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         dyna_processor_mono_ports,
@@ -279,7 +296,7 @@ namespace lsp
         "dyna_processor_stereo",
         "aat9",
         LSP_DYNAMIC_PROCESSOR_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         dyna_processor_stereo_ports,
@@ -297,7 +314,7 @@ namespace lsp
         "dyna_processor_lr",
         "hl9g",
         LSP_DYNAMIC_PROCESSOR_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         dyna_processor_lr_ports,
@@ -315,7 +332,7 @@ namespace lsp
         "dyna_processor_ms",
         "uvrg",
         LSP_DYNAMIC_PROCESSOR_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         dyna_processor_ms_ports,
@@ -334,7 +351,7 @@ namespace lsp
         "sc_dyna_processor_mono",
         "apkx",
         LSP_DYNAMIC_PROCESSOR_BASE + 4,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         sc_dyna_processor_mono_ports,
@@ -352,7 +369,7 @@ namespace lsp
         "sc_dyna_processor_stereo",
         "fqne",
         LSP_DYNAMIC_PROCESSOR_BASE + 5,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         sc_dyna_processor_stereo_ports,
@@ -370,7 +387,7 @@ namespace lsp
         "sc_dyna_processor_lr",
         "sxmi",
         LSP_DYNAMIC_PROCESSOR_BASE + 6,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         sc_dyna_processor_lr_ports,
@@ -388,7 +405,7 @@ namespace lsp
         "sc_dyna_processor_ms",
         "fcj9",
         LSP_DYNAMIC_PROCESSOR_BASE + 7,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         dyna_processor_classes,
         E_INLINE_DISPLAY,
         sc_dyna_processor_ms_ports,

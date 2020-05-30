@@ -78,6 +78,10 @@ namespace lsp
 
             if (!c->sSC.init(channels, compressor_base_metadata::REACTIVITY_MAX))
                 return;
+            if (!c->sSCEq.init(2, 12))
+                return;
+            c->sSCEq.set_mode(EQM_IIR);
+            c->sSC.set_pre_equalizer(&c->sSCEq);
 
             c->vIn              = reinterpret_cast<float *>(ptr);
             ptr                += buf_size;
@@ -116,6 +120,10 @@ namespace lsp
             c->pScSource        = NULL;
             c->pScReactivity    = NULL;
             c->pScPreamp        = NULL;
+            c->pScHpfMode       = NULL;
+            c->pScHpfFreq       = NULL;
+            c->pScLpfMode       = NULL;
+            c->pScLpfFreq       = NULL;
 
             c->pMode            = NULL;
             c->pAttackLvl       = NULL;
@@ -198,6 +206,10 @@ namespace lsp
                 c->pScListen        = sc->pScListen;
                 c->pScReactivity    = sc->pScReactivity;
                 c->pScPreamp        = sc->pScPreamp;
+                c->pScHpfMode       = sc->pScHpfMode;
+                c->pScHpfFreq       = sc->pScHpfFreq;
+                c->pScLpfMode       = sc->pScLpfMode;
+                c->pScLpfFreq       = sc->pScLpfFreq;
             }
             else
             {
@@ -218,6 +230,14 @@ namespace lsp
                 c->pScReactivity    =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pScPreamp        =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pScHpfMode       =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pScHpfFreq       =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pScLpfMode       =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pScLpfFreq       =   vPorts[port_id++];
             }
         }
 
@@ -339,6 +359,7 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 vChannels[i].sSC.destroy();
+                vChannels[i].sSCEq.destroy();
                 vChannels[i].sDelay.destroy();
                 vChannels[i].sCompDelay.destroy();
             }
@@ -372,6 +393,7 @@ namespace lsp
             c->sBypass.init(sr);
             c->sComp.set_sample_rate(sr);
             c->sSC.set_sample_rate(sr);
+            c->sSCEq.set_sample_rate(sr);
             c->sDelay.init(max_delay);
             c->sCompDelay.init(max_delay);
 
@@ -383,6 +405,7 @@ namespace lsp
 
     void compressor_base::update_settings()
     {
+        filter_params_t fp;
         size_t channels = (nMode == CM_MONO) ? 1 : 2;
         bool bypass     = pBypass->getValue() >= 0.5f;
 
@@ -410,6 +433,26 @@ namespace lsp
             c->sSC.set_source((c->pScSource != NULL) ? c->pScSource->getValue() : SCS_MIDDLE);
             c->sSC.set_reactivity(c->pScReactivity->getValue());
             c->sSC.set_stereo_mode(((nMode == CM_MS) && (c->nScType != SCT_EXTERNAL)) ? SCSM_MIDSIDE : SCSM_STEREO);
+
+            // Setup hi-pass filter for sidechain
+            size_t hp_slope = c->pScHpfMode->getValue() * 2;
+            fp.nType        = (hp_slope > 0) ? FLT_BT_BWC_HIPASS : FLT_NONE;
+            fp.fFreq        = c->pScHpfFreq->getValue();
+            fp.fFreq2       = fp.fFreq;
+            fp.fGain        = 1.0f;
+            fp.nSlope       = hp_slope;
+            fp.fQuality     = 0.0f;
+            c->sSCEq.set_params(0, &fp);
+
+            // Setup low-pass filter for sidechain
+            size_t lp_slope = c->pScLpfMode->getValue() * 2;
+            fp.nType        = (lp_slope > 0) ? FLT_BT_BWC_LOPASS : FLT_NONE;
+            fp.fFreq        = c->pScLpfFreq->getValue();
+            fp.fFreq2       = fp.fFreq;
+            fp.fGain        = 1.0f;
+            fp.nSlope       = lp_slope;
+            fp.fQuality     = 0.0f;
+            c->sSCEq.set_params(1, &fp);
 
             // Update delay and estimate overall delay
             size_t delay    = millis_to_samples(fSampleRate, (c->pScLookahead != NULL) ? c->pScLookahead->getValue() : 0);

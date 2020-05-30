@@ -207,10 +207,13 @@
 			<!-- Controls -->
 			<group text="groups.plug.trigger">
 				<hbox expand="true">
-					<grid rows="3" cols="3" expand="true">
+					<!-- Sidechain -->
+					<grid rows="3" cols="5" expand="true" spacing="2">
 						<label text="labels.sc.preamp" />
 						<label text="labels.mode" />
 						<label text="labels.sc.reactivity" />
+						<label text="labels.flt.HPF" />
+						<label text="labels.flt.LPF" />
 						
 						<knob id="preamp" />
 						<vbox fill="false">
@@ -219,6 +222,14 @@
 							<combo id="ssrc" fill="true" />
 						</vbox>
 						<knob id="react" />
+						<vbox>
+							<combo id="shpm" />
+							<knob id="shpf" size="20" bright="(:shpm igt 0) ? 1 : 0.5" />
+						</vbox>
+						<vbox>
+							<combo id="slpm" />
+							<knob id="slpf" size="20" bright="(:slpm igt 0) ? 1 : 0.5" />
+						</vbox>
 						
 						<value id="preamp" />
 						<hbox fill="false">
@@ -226,11 +237,13 @@
 							<label text="labels.active" />
 						</hbox>
 						<value id="react" />
+						<value id="shpf" bright="(:shpm igt 0) ? 1 : 0.5" />
+						<value id="slpf" bright="(:slpm igt 0) ? 1 : 0.5" />
 					</grid>
 					
 					<vsep />
 					
-					<grid rows="4" cols="2" expand="true">
+					<grid rows="4" cols="2" expand="true" spacing="2">
 						<cell cols="2"><label text="labels.attack" /></cell>
 						<label text="labels.thresh_old" />
 						<label text="labels.time" />
@@ -244,7 +257,7 @@
 					
 					<vsep />
 					
-					<grid rows="4" cols="2" expand="true">
+					<grid rows="4" cols="2" expand="true" spacing="2">
 						<cell cols="2"><label text="labels.release" /></cell>
 						<label text="labels.thresh_old" />
 						<label text="labels.time" />
@@ -257,7 +270,7 @@
 					</grid>
 					
 					<vsep />
-					<grid rows="4" cols="3" expand="true">
+					<grid rows="4" cols="3" expand="true" spacing="2">
 						<cell cols="3"><label text="labels.dynamics" /></cell>
 						<label text="labels.spread" />
 						<label text="labels.range_id" text:id="1" />
