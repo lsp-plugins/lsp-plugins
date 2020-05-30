@@ -130,7 +130,7 @@
 			<!-- Curve graph -->
 			<vbox expand="true">
 				<label />
-				<graph width="256" height="256" expand="true" fill="true">
+				<graph width="256" height="256" expand="true">
 					<!-- Gray grid -->
 					<marker value="3.98107" color="g_gray" basis="1" parallel="0" />  <!-- +12 dB -->
 					<marker value="3.98107" color="g_gray" basis="0" parallel="1" />  <!-- +12 dB -->
@@ -192,7 +192,7 @@
 					<text text="-60" coord="0.001;1" halign="-1" valign="1" />
 					<text text="graph.axis.in" coord="0.00025;1" halign="1" valign="1" />
 				</graph>
-				<lablel />
+				<label />
 			</vbox>
 			<align pad_right="4" fill="true" hpos="0">
 				<label text="labels.graphs.expansion" />
