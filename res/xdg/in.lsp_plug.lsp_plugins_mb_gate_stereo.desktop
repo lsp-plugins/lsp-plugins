@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Stereo Multiband Gate
+GenericName=Multiband Gate
+GenericName[ru]=Многополосный гейт
+Comment=Performs multiband gating of stereo input signal.
+Comment[ru]=Осуществляет многополосное гейтирование стереосигнала.
+Exec=lsp-plugins-mb-gate-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;
