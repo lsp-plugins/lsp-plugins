@@ -32,6 +32,7 @@
 * Added sidechain low-pass and high-pass filters for Expander plugin series.
 * Added sidechain low-pass and high-pass filters for Gate plugin series.
 * Added sidechain low-pass and high-pass filters for Dynamic Processor plugin series.
+* Added sidechain low-pass and high-pass filters for Trigger plugin series.
 * Fixed VST2 identifiers for Multiband Expander plugin series.
 * Fixed graph issues related to dot editing.
 * Added spanish translation of the UI (contributed by Ignotus - ignotus666 at github.com).

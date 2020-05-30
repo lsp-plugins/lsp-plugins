@@ -49,6 +49,15 @@ namespace lsp
         { NULL, NULL }
     };
 
+    static const port_item_t trigger_filter_slope[] =
+    {
+        { "off",        "eq.slope.off"      },
+        { "12 dB/oct",  "eq.slope.12dbo"    },
+        { "24 dB/oct",  "eq.slope.24dbo"    },
+        { "36 dB/oct",  "eq.slope.36dbo"    },
+        { NULL, NULL }
+    };
+
     //-------------------------------------------------------------------------
     // Trigger
     #define T_FILE_GAIN_MONO \
@@ -100,6 +109,10 @@ namespace lsp
         SWITCH("pause", "Pause graph analysis", 0.0f), \
         TRIGGER("clear", "Clear graph analysis"), \
         AMP_GAIN100("preamp", "Signal pre-amplification", 1.0f), \
+        COMBO("shpm", "High-pass filter mode", 0, trigger_filter_slope),      \
+        LOG_CONTROL("shpf", "High-pass filter frequency", U_HZ, compressor_base_metadata::HPF),   \
+        COMBO("slpm", "Low-pass filter mode", 0, trigger_filter_slope),      \
+        LOG_CONTROL("slpf", "Low-pass filter frequency", U_HZ, compressor_base_metadata::LPF), \
         AMP_GAIN10("dl", "Detect level", trigger_base_metadata::DETECT_LEVEL_DFL), \
         CONTROL("dt", "Detect time", U_MSEC, trigger_base_metadata::DETECT_TIME), \
         AMP_GAIN1("rrl", "Relative release level", trigger_base_metadata::RELEASE_LEVEL_DFL), \
@@ -190,7 +203,7 @@ namespace lsp
         "trigger_mono",
         "zghv",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         trigger_classes,
         E_INLINE_DISPLAY,
         trigger_mono_ports,
@@ -208,7 +221,7 @@ namespace lsp
         "trigger_stereo",
         "zika",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         trigger_classes,
         E_INLINE_DISPLAY,
         trigger_stereo_ports,
@@ -226,7 +239,7 @@ namespace lsp
         "trigger_midi_mono",
         "t4yz",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         trigger_classes,
         E_INLINE_DISPLAY,
         trigger_mono_midi_ports,
@@ -244,7 +257,7 @@ namespace lsp
         "trigger_midi_stereo",
         "9cqf",
         0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         trigger_classes,
         E_INLINE_DISPLAY,
         trigger_stereo_midi_ports,

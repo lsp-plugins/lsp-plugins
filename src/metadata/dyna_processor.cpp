@@ -99,9 +99,9 @@ namespace lsp
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, dyna_processor_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB), \
         COMBO("shpm", "High-pass filter mode", 0, dyna_proc_filter_slope),      \
-        LOG_CONTROL("shpf", "High-pass filter frequency", U_HZ, gate_base_metadata::HPF),   \
+        LOG_CONTROL("shpf", "High-pass filter frequency", U_HZ, dyna_processor_base_metadata::HPF),   \
         COMBO("slpm", "Low-pass filter mode", 0, dyna_proc_filter_slope),      \
-        LOG_CONTROL("slpf", "Low-pass filter frequency", U_HZ, gate_base_metadata::LPF)
+        LOG_CONTROL("slpf", "Low-pass filter frequency", U_HZ, dyna_processor_base_metadata::LPF)
 
     #define DYNA_PROC_SC_STEREO_CHANNEL(id, label, sct) \
         COMBO("sct" id, "Sidechain type" label, dyna_processor_base_metadata::SC_TYPE_DFL, sct), \
@@ -112,9 +112,9 @@ namespace lsp
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, dyna_processor_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB), \
         COMBO("shpm" id, "High-pass filter mode" label, 0, dyna_proc_filter_slope),      \
-        LOG_CONTROL("shpf" id, "High-pass filter frequency" label, U_HZ, gate_base_metadata::HPF),   \
+        LOG_CONTROL("shpf" id, "High-pass filter frequency" label, U_HZ, dyna_processor_base_metadata::HPF),   \
         COMBO("slpm" id, "Low-pass filter mode" label, 0, dyna_proc_filter_slope),      \
-        LOG_CONTROL("slpf" id, "Low-pass filter frequency" label, U_HZ, gate_base_metadata::LPF)
+        LOG_CONTROL("slpf" id, "Low-pass filter frequency" label, U_HZ, dyna_processor_base_metadata::LPF)
 
     #define DYNA_POINT(idx, on, id, label, level) \
         SWITCH("pe" #idx id, "Point enable " #idx label, on), \
