@@ -45,6 +45,7 @@
 * Run make clean && make uninstall && make install && make clean to
   build and install binaries
 * Make video
+* Ensure that video is of enough quality (at least of 4k bitrate)
 * Add video cover to res/video-covers
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php
