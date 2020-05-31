@@ -62,9 +62,12 @@ namespace lsp
 
         float CtlMeter::calc_value(const port_t *p, float value)
         {
+            if (p == NULL)
+                return 0.0f;
+
             bool xlog = (nFlags & MF_LOG_SET) && (nFlags & MF_LOG);
 
-            if ((!xlog) && (p != NULL))
+            if (!xlog)
                 xlog = is_decibel_unit(p->unit) || (p->flags & F_LOG);
 
             if ((xlog) && (value < GAIN_AMP_M_120_DB))

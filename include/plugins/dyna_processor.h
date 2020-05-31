@@ -72,8 +72,10 @@ namespace lsp
             {
                 Bypass              sBypass;            // Bypass
                 Sidechain           sSC;                // Sidechain module
+                Equalizer           sSCEq;              // Sidechain equalizer
                 DynamicProcessor    sProc;              // Processor module
                 Delay               sDelay;             // Lookahead delay
+                Delay               sCompDelay;         // Compensation delay
                 MeterGraph          sGraph[G_TOTAL];    // Meter graph
 
                 float              *vIn;                // Input data
@@ -105,6 +107,10 @@ namespace lsp
                 IPort              *pScSource;          // Sidechain source
                 IPort              *pScReactivity;      // Sidechain reactivity
                 IPort              *pScPreamp;          // Sidechain pre-amplification
+                IPort              *pScHpfMode;         // Sidechain high-pass filter mode
+                IPort              *pScHpfFreq;         // Sidechain high-pass filter frequency
+                IPort              *pScLpfMode;         // Sidechain low-pass filter mode
+                IPort              *pScLpfFreq;         // Sidechain low-pass filter frequency
 
                 IPort              *pDotOn[dyna_processor_base_metadata::DOTS];         // Dot enable
                 IPort              *pThreshold[dyna_processor_base_metadata::DOTS];     // Threshold levels

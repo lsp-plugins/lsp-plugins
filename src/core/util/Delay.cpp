@@ -134,6 +134,46 @@ namespace lsp
         }
     }
 
+    void Delay::process(float *dst, const float *src, const float *gain, size_t count)
+    {
+//        lsp_trace("dsp = %p, dst = %p, src = %p, count = %d", dsp, dst, src, int(count));
+        size_t free_gap = nSize - nDelay;
+
+        while (count > 0)
+        {
+            // Determine how many samples to process
+            size_t to_do    = (count > free_gap) ? free_gap : count;
+
+            // Push data to buffer
+            for (size_t in=to_do; in > 0;)
+            {
+                size_t to_copy  = nSize - nHead;
+                if (to_copy > in)
+                    to_copy         = in;
+                dsp::copy(&pBuffer[nHead], src, to_copy);
+                nHead           = (nHead + to_copy) % nSize;
+                src            += to_copy;
+                in             -= to_copy;
+            }
+
+            // Shift data from buffer
+            for (size_t out=to_do; out > 0;)
+            {
+                size_t to_copy  = nSize - nTail;
+                if (to_copy > out)
+                    to_copy         = out;
+                dsp::mul3(dst, &pBuffer[nTail], gain, to_copy);
+                nTail           = (nTail + to_copy) % nSize;
+                gain           += to_copy;
+                dst            += to_copy;
+                out            -= to_copy;
+            }
+
+            // Update number of samples
+            count          -= to_do;
+        }
+    }
+
     void Delay::process_ramping(float *dst, const float *src, size_t delay, size_t count)
     {
         // If delay does not change - use faster algorithm

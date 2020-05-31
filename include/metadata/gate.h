@@ -39,11 +39,6 @@ namespace lsp
         static const float  RELEASE_TIME_DFL        = 100.0f;
         static const float  RELEASE_TIME_STEP       = 0.0025f;
 
-        static const float  KNEE_MIN                = GAIN_AMP_M_24_DB;
-        static const float  KNEE_MAX                = GAIN_AMP_0_DB;
-        static const float  KNEE_DFL                = GAIN_AMP_M_6_DB;
-        static const float  KNEE_STEP               = 0.01f;
-
         static const float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;
         static const float  MAKEUP_MAX              = GAIN_AMP_P_60_DB;
         static const float  MAKEUP_DFL              = GAIN_AMP_0_DB;
@@ -67,6 +62,16 @@ namespace lsp
         static const size_t SC_MODE_DFL             = 1;
         static const size_t SC_SOURCE_DFL           = 0;
         static const size_t SC_TYPE_DFL             = 0;
+
+        static const float  HPF_MIN                 = 10.0f;
+        static const float  HPF_MAX                 = 20000.0f;
+        static const float  HPF_DFL                 = 10.0f;
+        static const float  HPF_STEP                = 0.0025f;
+
+        static const float  LPF_MIN                 = 10.0f;
+        static const float  LPF_MAX                 = 20000.0f;
+        static const float  LPF_DFL                 = 20000.0f;
+        static const float  LPF_STEP                = 0.0025f;
 
         static const size_t CURVE_MESH_SIZE         = 256;
         static const float  CURVE_DB_MIN            = -72;

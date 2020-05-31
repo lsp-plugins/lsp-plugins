@@ -315,8 +315,8 @@ namespace lsp
             ssize_t gw      = r->nWidth  - (bs << 1);
             ssize_t gh      = r->nHeight - (bs << 1);
 
-            fCanvasLeft     = sSize.nLeft + bs;
-            fCanvasTop      = sSize.nTop + bs;
+            fCanvasLeft     = r->nLeft + bs;
+            fCanvasTop      = r->nTop  + bs;
             fCanvasWidth    = gw;
             fCanvasHeight   = gh;
 

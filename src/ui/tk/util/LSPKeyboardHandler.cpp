@@ -61,7 +61,7 @@ namespace lsp
                 // Keypad characters
                 case WSK_KEYPAD_SPACE:      code = ' '; break;
                 case WSK_KEYPAD_TAB:        code = WSK_TAB; break;
-                case WSK_KEYPAD_ENTER:      code = WSK_LINEFEED; break;
+                case WSK_KEYPAD_ENTER:      code = WSK_RETURN; break;
                 case WSK_KEYPAD_F1:         code = WSK_F1; break;
                 case WSK_KEYPAD_F2:         code = WSK_F2; break;
                 case WSK_KEYPAD_F3:         code = WSK_F3; break;
@@ -82,7 +82,7 @@ namespace lsp
                 case WSK_KEYPAD_ADD:        code = '+'; break;
                 case WSK_KEYPAD_SEPARATOR:  code = ','; break;
                 case WSK_KEYPAD_SUBTRACT:   code = '-'; break;
-                case WSK_KEYPAD_DECIMAL:    break; // ???
+                case WSK_KEYPAD_DECIMAL:    code = '.'; break;
                 case WSK_KEYPAD_DIVIDE:     code = '/'; break;
 
                 case WSK_KEYPAD_0:          code = '0'; break;

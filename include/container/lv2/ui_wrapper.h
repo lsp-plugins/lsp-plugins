@@ -43,6 +43,7 @@ namespace lsp
 
             static status_t slot_ui_hide(LSPWidget *sender, void *ptr, void *data);
             static status_t slot_ui_show(LSPWidget *sender, void *ptr, void *data);
+            static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
 
         public:
             inline explicit LV2UIWrapper(plugin_ui *ui, LV2Extensions *ext)
@@ -116,6 +117,7 @@ namespace lsp
 
                 root->slots()->bind(LSPSLOT_SHOW, slot_ui_show, this);
                 root->slots()->bind(LSPSLOT_HIDE, slot_ui_hide, this);
+                root->slots()->bind(LSPSLOT_RESIZE, slot_ui_resize, this);
 
                 // Sync state of UI ports with the UI
                 for (size_t i=0, n=vUIPorts.size(); i<n; ++i)
@@ -518,6 +520,55 @@ namespace lsp
     {
         LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
         _this->ui_activated();
+        return STATUS_OK;
+    }
+
+    status_t LV2UIWrapper::slot_ui_resize(LSPWidget *sender, void *ptr, void *data)
+    {
+        LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
+
+        LSPWindow *wnd = _this->pUI->root_window();
+        if (wnd == NULL)
+            return STATUS_OK;
+
+        realize_t r;
+        size_request_t sr;
+        bool resize = false;
+
+        // Get actual geometry and size constraints
+        wnd->get_dimensions(&r);
+        wnd->size_request(&sr);
+        lsp_trace("r  = {%d %d %d %d}", int(r.nLeft), int(r.nTop), int(r.nWidth), int(r.nHeight));
+        lsp_trace("sr = {%d %d %d %d}", int(sr.nMinWidth), int(sr.nMinHeight), int(sr.nMaxWidth), int(sr.nMaxHeight));
+
+        if ((sr.nMaxWidth > 0) && (r.nWidth > sr.nMaxWidth))
+        {
+            r.nWidth        = sr.nMaxWidth;
+            resize          = true;
+        }
+        if ((sr.nMaxHeight > 0) && (r.nWidth > sr.nMaxHeight))
+        {
+            r.nHeight       = sr.nMaxHeight;
+            resize          = true;
+        }
+        if ((sr.nMinWidth > 0) && (r.nWidth < sr.nMinWidth))
+        {
+            r.nWidth        = sr.nMinWidth;
+            resize          = true;
+        }
+        if ((sr.nMinHeight > 0) && (r.nHeight < sr.nMinHeight))
+        {
+            r.nHeight       = sr.nMinHeight;
+            resize          = true;
+        }
+
+        lsp_trace("final r = {%d %d %d %d}, resize=%s",
+                int(r.nLeft), int(r.nTop), int(r.nWidth), int(r.nHeight),
+                (resize) ? "true" : "false"
+            );
+
+        if (resize)
+            _this->pExt->resize_ui(r.nWidth, r.nHeight);
         return STATUS_OK;
     }
 

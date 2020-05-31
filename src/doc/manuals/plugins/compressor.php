@@ -81,6 +81,8 @@
 			<li><b>Right</b> - only right channel is used for sidechain processing.</li>
 		<?php } ?>
 	</ul>
+	<li><b>LPF</b> - allows to set up slope and cut-off frequency for the low-pass filter applied to sidechain signal.</li>
+	<li><b>HPF</b> - allows to set up slope and cut-off frequency for the high-pass filter applied to sidechain signal.</li>
 </ul>
 <p><b>'Compressor' section:</b></p>
 <ul>

@@ -6,7 +6,7 @@ TOOL_PHP                = php
 
 # Setup preferred flags
 FLAG_RELRO              = -Wl,-z,relro,-z,now
-FLAG_VERSION            = -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
+FLAG_VERSION            = -DLSP_MAIN_VERSION=\"$(LSP_VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
 FLAG_CTUNE              = -std=c++98 \
                           -fno-exceptions -fno-rtti \
                           -fdata-sections -ffunction-sections -fno-asynchronous-unwind-tables \

@@ -36,14 +36,15 @@ namespace lsp
          */
         enum mcb_t
         {
-            MCB_NONE            = 0,
-            MCB_LEFT            = 1,
-            MCB_MIDDLE          = 2,
-            MCB_RIGHT           = 3,
-            MCB_BUTTON4         = 4,
-            MCB_BUTTON5         = 5,
-            MCB_BUTTON6         = 6,
-            MCB_BUTTON7         = 7
+            MCB_LEFT            = 0,
+            MCB_MIDDLE          = 1,
+            MCB_RIGHT           = 2,
+            MCB_BUTTON4         = 3,
+            MCB_BUTTON5         = 4,
+            MCB_BUTTON6         = 5,
+            MCB_BUTTON7         = 6,
+
+            MCB_NONE            = 0xffff,
         };
 
         /** Mouse controller flags
@@ -56,23 +57,25 @@ namespace lsp
             MCF_RIGHT           = 1 << 2,
             MCF_BUTTON4         = 1 << 3,
             MCF_BUTTON5         = 1 << 4,
+            MCF_BUTTON6         = 1 << 5,
+            MCF_BUTTON7         = 1 << 6,
 
-            MCF_SHIFT           = 1 << 5,
-            MCF_LOCK            = 1 << 6,
-            MCF_CONTROL         = 1 << 7,
+            MCF_SHIFT           = 1 << 7,
+            MCF_LOCK            = 1 << 8,
+            MCF_CONTROL         = 1 << 9,
 
-            MCF_ALT             = 1 << 8,
-            MCF_MOD2            = 1 << 9,
-            MCF_MOD3            = 1 << 10,
-            MCF_MOD4            = 1 << 11,
-            MCF_MOD5            = 1 << 12,
+            MCF_ALT             = 1 << 10,
+            MCF_MOD2            = 1 << 11,
+            MCF_MOD3            = 1 << 12,
+            MCF_MOD4            = 1 << 13,
+            MCF_MOD5            = 1 << 14,
 
-            MCF_SUPER           = 1 << 13,
-            MCF_HYPER           = 1 << 14,
-            MCF_META            = 1 << 15,
-            MCF_RELEASE         = 1 << 16,
+            MCF_SUPER           = 1 << 15,
+            MCF_HYPER           = 1 << 16,
+            MCF_META            = 1 << 17,
+            MCF_RELEASE         = 1 << 18,
 
-            MCF_BTN_MASK        = MCF_LEFT | MCF_MIDDLE | MCF_RIGHT | MCF_BUTTON4 | MCF_BUTTON5
+            MCF_BTN_MASK        = MCF_LEFT | MCF_MIDDLE | MCF_RIGHT | MCF_BUTTON4 | MCF_BUTTON5 | MCF_BUTTON6 | MCF_BUTTON7
         };
 
         /** Mouse scroll direction
@@ -80,11 +83,11 @@ namespace lsp
          */
         enum mcd_t
         {
-            MCD_NONE            = 0,
-            MCD_UP              = 1,
-            MCD_DOWN            = 2,
-            MCD_LEFT            = 3,
-            MCD_RIGHT           = 4
+            MCD_UP              = 0,
+            MCD_DOWN            = 1,
+            MCD_LEFT            = 2,
+            MCD_RIGHT           = 3,
+            MCD_NONE            = 0xffff
         };
 
         /**
@@ -151,7 +154,7 @@ namespace lsp
             MP_NO_DROP,     // Diagonal slash through a white circle
             MP_DANGER,      // Danger cursor
             MP_HSPLIT,      // Black double-vertical bar with arrows pointing right and left
-            MP_VPSLIT,      // Black double-horizontal bar with arrows pointing up and down
+            MP_VSPLIT,      // Black double-horizontal bar with arrows pointing up and down
             MP_MULTIDRAG,   // Arrow with three blank pages in the lower-right corner
             MP_APP_START,   // Arrow combined with an hourglass
             MP_HELP,        // Arrow next to a black question mark

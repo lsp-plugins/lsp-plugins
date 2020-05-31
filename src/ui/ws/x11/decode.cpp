@@ -13,13 +13,13 @@ namespace lsp
     {
         namespace x11
         {
-#pragma pack(push, 1)
-typedef struct keymapping_t
-{
-    uint16_t    keysym;
-    uint16_t    unicode;
-} keymappint_t;
-#pragma pack(pop)
+            #pragma pack(push, 1)
+            typedef struct keymapping_t
+            {
+                uint16_t    keysym;
+                uint16_t    unicode;
+            } keymappint_t;
+            #pragma pack(pop)
 
             keymapping_t keytable[] =
             {
@@ -937,14 +937,14 @@ typedef struct keymapping_t
             mcb_t decode_mcb(size_t code)
             {
                 if ((code >= 1) && (code <= 3))
-                    return mcb_t(code);
+                    return mcb_t(MCB_LEFT + code - 1);
                 return MCB_NONE;
             }
 
             mcd_t decode_mcd(size_t code)
             {
                 if ((code >= 4) && (code <= 7))
-                    return mcd_t(code - 3);
+                    return mcd_t(MCD_UP + code - 4);
                 return MCD_NONE;
             }
 

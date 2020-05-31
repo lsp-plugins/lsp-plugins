@@ -55,9 +55,9 @@ namespace lsp
     static const port_item_t filter_slope[] =
     {
         { "off",        "eq.slope.off" },
-        { "6 dB/oct",   "eq.slope.6dbo" },
         { "12 dB/oct",  "eq.slope.12dbo" },
-        { "18 dB/oct",  "eq.slope.18dbo" },
+        { "24 dB/oct",  "eq.slope.24dbo" },
+        { "36 dB/oct",  "eq.slope.36dbo" },
         { NULL, NULL }
     };
 

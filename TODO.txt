@@ -9,6 +9,7 @@
 - Migrated to CMake build system.
 
 === 1.2.0 ===
+
 - Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
@@ -25,11 +26,19 @@
 - Review internal convolver module.
 
 *******************************************************************************
+* New plugin check list before release
+*******************************************************************************
+* Plugin has documentation
+* Plugin has attached screenshots
+* Plugin translations are valid
+* Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
+* Ensure that there are menu items present for all new plugins in res/xdg
+
+*******************************************************************************
 * Release steps
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
-* Ensure that there are menu items present for all new plugins in res/xdg
 * Run make clean && make test to build testing system
 * Run .test/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
@@ -55,6 +64,7 @@
 
 * Compressor
 * Convolver
+* Dynamic Processor
 * Expander
 * Gate
 * Graphic Equalizer
@@ -63,7 +73,8 @@
 * Linear Audio Profiler
 * Multi-Sampler
 * Multiband Compressor
-* Multiband expander
+* Multiband Expander
+* Multiband Gate
 * Parametric Equalizer
 * Phase Compensator
 * Phase Detector
@@ -72,9 +83,9 @@
 * Spectrum Analyzer
 * Trigger
 
+- Multiband Dynamic Processor
 - Dynamic equalizer
 - One-band compressor
-- Multiband gate
 - Multiband limiter
 - Nonlinear audio profiler
 - Hysteresis-based saturator

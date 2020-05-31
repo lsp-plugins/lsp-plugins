@@ -71,10 +71,17 @@
 			"lrx_mt": "LRX (MT)",
 			"apo_dr": "APO (DR)"
 		},
+		"pos": {
+		    "post_eq": "Post-eq",
+			"pre_eq": "Pre-eq"
+		},
 		"slope": {
 			"6dbo": "6 dB/oct",
 			"12dbo": "12 dB/oct",
 			"18dbo": "18 dB/oct",
+			"24dbo": "24 dB/oct",
+			"30dbo": "30 dB/oct",
+			"36dbo": "36 dB/oct",
 			"off": "Off",
 			"x1": "x1",
 			"x2": "x2",
@@ -215,6 +222,22 @@
 	},
 	
 	"mb_expand": {
+		"band0": "Banda 0",
+		"band1": "Banda 1",
+		"band2": "Banda 2",
+		"band3": "Banda 3",
+		"band4": "Banda 4",
+		"band5": "Banda 5",
+		"band6": "Banda 6",
+		"band7": "Banda 7",
+		"split": "Split",
+		"split_left": "Split Sinistro",
+		"split_middle": "Split Centrale",
+		"split_right": "Split Destro",
+		"split_side": "Split Laterale"
+	},
+	
+	"mb_gate": {
 		"band0": "Banda 0",
 		"band1": "Banda 1",
 		"band2": "Banda 2",
