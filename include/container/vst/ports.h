@@ -324,12 +324,10 @@ namespace lsp
 
             virtual bool pre_process(size_t samples)
             {
-                return fVstValue != fVstPrev;
-            }
-
-            virtual void post_process(size_t samples)
-            {
-                fVstPrev        = fVstValue;
+                if (fVstValue == fVstPrev)
+                    return false;
+                fVstPrev = fVstValue;
+                return true;
             }
 
             virtual void writeValue(float value)
