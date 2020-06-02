@@ -25,6 +25,10 @@
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
 
+=== 1.1.24 ===
+
+* Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
+
 *******************************************************************************
 * New plugin check list before release
 *******************************************************************************
