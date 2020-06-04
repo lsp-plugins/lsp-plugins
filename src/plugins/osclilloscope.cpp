@@ -17,6 +17,45 @@
 
 namespace lsp
 {
+    oscilloscope_base::ch_mode_t oscilloscope_base::get_scope_mode(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::MODE_XY:
+                return CH_MODE_XY;
+            case oscilloscope_base_metadata::MODE_TRIGGERED:
+                return CH_MODE_TRIGGERED;
+            default:
+                return CH_MODE_DFL;
+        }
+    }
+
+    oscilloscope_base::ch_output_mode_t oscilloscope_base::get_output_mode(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::OUTPUT_MODE_MUTE:
+                return CH_OUTPUT_MODE_MUTE;
+            case oscilloscope_base_metadata::OUTPUT_MODE_COPY:
+                return CH_OUTPUT_MODE_COPY;
+            default:
+                return CH_OUTPUT_MODE_DFL;
+        }
+    }
+
+    oscilloscope_base::ch_trg_input_t oscilloscope_base::get_trigger_input(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::TRIGGER_INPUT_Y:
+                return CH_TRG_INPUT_Y;
+            case oscilloscope_base_metadata::TRIGGER_INPUT_EXT:
+                return CH_TRG_INPUT_EXT;
+            default:
+                return CH_TRG_INPUT_DFL;
+        }
+    }
+
     void oscilloscope_base::calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode)
     {
         switch (mode)
@@ -55,17 +94,6 @@ namespace lsp
         }
     }
 
-//    void oscilloscope_base::route_display_data(float *raw_data, float *proc_data, float *display, size_t count, ch_mode_t mode)
-//    {
-//        switch (mode)
-//        {
-//            case CH_MODE_XY: dsp::copy(display, raw_data, count); break;
-//            default:
-//            case CH_MODE_DFL:
-//            case CH_MODE_TRIGGERED: dsp::copy(display, proc_data, count); break;
-//        }
-//    }
-
     void oscilloscope_base::set_oversampler(Oversampler &over, over_mode_t mode)
     {
         over.set_mode(mode);
@@ -73,64 +101,12 @@ namespace lsp
             over.update_settings();
     }
 
-//    void oscilloscope_base::get_plottable_data(float *dst, float *src, size_t dstCount, size_t srcCount)
-//    {
-//        dsp::fill_zero(dst, dstCount);
-//
-//        float decimationStep = float(srcCount) / float(dstCount);
-//
-//        if (decimationStep == 1.0f) // Nothing to do
-//        {
-//            dsp::copy(dst, src, srcCount);
-//        }
-//        else if (decimationStep < 1.0f) // Zero filling upsampling.
-//        {
-//            size_t plotDataHead = 0;
-//
-//            for (size_t n = 0; n < srcCount; ++n)
-//            {
-//                dst[plotDataHead] = src[n];
-//                plotDataHead  += (1.0f / decimationStep);
-//
-//                if (plotDataHead >= dstCount)
-//                    break;
-//            }
-//        }
-//        else // Decimation downsampling
-//        {
-//            size_t plotDataHead         = 0;
-//            size_t plotDataDownLimit    = 0;
-//            size_t plotDataRange        = decimationStep - 1.0f;
-//
-//            for (size_t n = 0; n < dstCount; ++n)
-//            {
-//                plotDataHead       = dsp::abs_max_index(&src[plotDataDownLimit], plotDataRange) + plotDataDownLimit;
-//                dst[n]             = src[plotDataHead];
-//                plotDataDownLimit += decimationStep;
-//
-//                if (plotDataDownLimit >= srcCount)
-//                    break;
-//
-//                size_t samplesAhead = srcCount - plotDataDownLimit;
-//                plotDataRange       = (plotDataRange > samplesAhead) ? samplesAhead : plotDataRange;
-//            }
-//        }
-//    }
-
     oscilloscope_base::oscilloscope_base(const plugin_metadata_t &metadata, size_t channels): plugin_t(metadata)
     {
         nChannels           = channels;
         vChannels           = NULL;
 
         nSampleRate         = 0;
-
-//        nCaptureSize        = 0;
-//
-//        nMeshSize           = 0;
-//
-//        vTemp               = NULL;
-//
-//        vDflAbscissa        = NULL;
 
         pBypass             = NULL;
 
@@ -145,8 +121,6 @@ namespace lsp
     {
         free_aligned(pData);
         pData = NULL;
-//        vTemp = NULL;
-//        vDflAbscissa = NULL;
 
         if (vChannels != NULL)
         {
@@ -184,9 +158,6 @@ namespace lsp
             return;
 
         // For each channel: 1X external data buffer + 1X x data buffer + 1X y data buffer + 1X delayed y data buffer + 1X x display buffer + 1X y display buffer
-//        nCaptureSize = BUF_LIM_SIZE;
-//        nMeshSize = oscilloscope_base_metadata::SCOPE_MESH_SIZE;
-//        size_t samples = (2 * nChannels * nMeshSize) + (nChannels * nCaptureSize) + (nChannels * nCaptureSize) + nCaptureSize + nMeshSize;
         size_t samples = nChannels * BUF_LIM_SIZE * 6;
 
         float *ptr = alloc_aligned<float>(pData, samples);
@@ -221,26 +192,6 @@ namespace lsp
             // All are set the same way, use any to get these variables
             c->nOversampling = c->sOversampler_x.get_oversampling();
             c->nOverSampleRate = c->nOversampling * nSampleRate;
-
-//            if (!c->sShiftBuffer.init(nCaptureSize))
-//                return;
-
-//            c->nSamplesCounter = 0;
-//            c->nBufferScanningHead = 0;
-//            c->nBufferCopyHead = 0;
-//            c->nBufferCopyCount = 0;
-//
-//            c->vAbscissa = ptr;
-//            ptr += nMeshSize;
-//
-//            c->vOrdinate = ptr;
-//            ptr += nMeshSize;
-//
-//            c->vOutput = ptr;
-//            ptr += nCaptureSize;
-//
-//            c->vSweep = ptr;
-//            ptr += nCaptureSize;
 
             c->vData_x = ptr;
             ptr += BUF_LIM_SIZE;
@@ -294,18 +245,6 @@ namespace lsp
 
         lsp_assert(ptr <= &save[samples]);
 
-//        vTemp = ptr;
-//        ptr += nCaptureSize;
-//
-//        vDflAbscissa = ptr;
-//        ptr += nMeshSize;
-//
-//        lsp_assert(ptr <= &save[samples]);
-//
-//        // Fill default abscissa
-//        for (size_t n = 0; n < nMeshSize; ++n)
-//            vDflAbscissa[n] = float(2 * n) / nMeshSize;
-
         // Bind ports
         size_t port_id = 0;
 
@@ -350,6 +289,15 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pScpMode = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pOutMode = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pCoupling = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pHorDiv = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
@@ -374,7 +322,7 @@ namespace lsp
             vChannels[ch].pTrgType = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pCoupling = vPorts[port_id++];
+            vChannels[ch].pTrgInput = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pMesh = vPorts[port_id++];
@@ -391,6 +339,12 @@ namespace lsp
 
             c->sBypass.set_bypass(bPassValue);
 
+            c->enMode = get_scope_mode(c->pScpMode->getValue());
+
+            c->enOutputMode = get_output_mode(c->pOutMode->getValue());
+
+            c->enTrgInput = get_trigger_input(c->pTrgInput->getValue());
+
             float verDiv = c->pVerDiv->getValue();
             float verPos = c->pVerPos->getValue();
 
@@ -401,14 +355,13 @@ namespace lsp
             float horPos = c->pHorPos->getValue();
 
             c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, horDiv);
-            c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
+            c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
 
+            c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
             c->sPreTrgDelay.set_delay(c->nPreTrigger);
-//            c->nPostTrigger = c->nSweepSize - c->nPreTrigger - 1;
 
             float trgLevel = c->pTrgLev->getValue();
 
-//            c->sTrigger.set_post_trigger_samples(c->nPostTrigger);
             c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
             c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
             c->sTrigger.update_settings();

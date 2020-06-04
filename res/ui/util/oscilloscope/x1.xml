@@ -1,44 +1,66 @@
 <plugin resizable="false">
     <hbox spacing="4">
     
-        <group text="Screen" expand="true" fill="true">
-            <graph width="512" height="320" expand="true" fill="true">
-                <center hpos="-1.0" vpos="0.0" visible="false" />
-                <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
-                <axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
-
-                <mesh id="oscv_1" width="3" />
-
-                <marker value="-1" color="g_white" basis="1" parallel="0" />
-                <marker value="-0.75" color="g_gray" basis="1" parallel="0" />
-                <marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
-                <marker value="-0.25" color="g_gray" basis="1" parallel="0" />
-                <marker value="0.25" color="g_gray" basis="1" parallel="0" />
-                <marker value="0.5" color="g_yellow" basis="1" parallel="0" />
-                <marker value="0.75" color="g_gray" basis="1" parallel="0" />
-                <marker value="1" color="g_white" basis="1" parallel="0" />
-
-                <marker value="0.25" color="g_gray" basis="0" parallel="1" />
-                <marker value="0.5" color="g_yellow" basis="0" parallel="1" />
-                <marker value="0.75" color="g_gray" basis="0" parallel="1" />
-                <marker value="1" color="g_white" basis="0" parallel="1" />
-                <marker value="1.25" color="g_gray" basis="0" parallel="1" />
-                <marker value="1.5" color="g_yellow" basis="0" parallel="1" />
-                <marker value="1.75" color="g_gray" basis="0" parallel="1" />
-                <marker value="2" color="g_white" basis="0" parallel="1" />
-
-                <text text="X" coord="0;-1" halign="1" valign="1" />
-                <text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
-                <text text="0.5" coord="1;-1" halign="-1" valign="1" />
-                <text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
-                <text text="1.0" coord="2;-1" halign="-1" valign="1" />
-
-                <text text="Y" coord="0;1" halign="1" valign="-1" />
-                <text text="0.5" coord="0;0.5" halign="1" valign="-1" />
-                <text text="0" coord="0;0" halign="1" valign="-1" />
-                <text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
-            </graph>
-        </group>
+        <vbox>
+            <group text="Screen" expand="true" fill="true">
+        
+	            <graph width="512" height="320" expand="true" fill="true">
+	                <center hpos="-1.0" vpos="0.0" visible="false" />
+	                <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
+	                <axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
+	
+	                <mesh id="oscv_1" width="3" />
+	
+	                <marker value="-1" color="g_white" basis="1" parallel="0" />
+	                <marker value="-0.75" color="g_gray" basis="1" parallel="0" />
+	                <marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
+	                <marker value="-0.25" color="g_gray" basis="1" parallel="0" />
+	                <marker value="0.25" color="g_gray" basis="1" parallel="0" />
+	                <marker value="0.5" color="g_yellow" basis="1" parallel="0" />
+	                <marker value="0.75" color="g_gray" basis="1" parallel="0" />
+	                <marker value="1" color="g_white" basis="1" parallel="0" />
+	
+	                <marker value="0.25" color="g_gray" basis="0" parallel="1" />
+	                <marker value="0.5" color="g_yellow" basis="0" parallel="1" />
+	                <marker value="0.75" color="g_gray" basis="0" parallel="1" />
+	                <marker value="1" color="g_white" basis="0" parallel="1" />
+	                <marker value="1.25" color="g_gray" basis="0" parallel="1" />
+	                <marker value="1.5" color="g_yellow" basis="0" parallel="1" />
+	                <marker value="1.75" color="g_gray" basis="0" parallel="1" />
+	                <marker value="2" color="g_white" basis="0" parallel="1" />
+	
+	                <text text="X" coord="0;-1" halign="1" valign="1" />
+	                <text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
+	                <text text="0.5" coord="1;-1" halign="-1" valign="1" />
+	                <text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
+	                <text text="1.0" coord="2;-1" halign="-1" valign="1" />
+	
+	                <text text="Y" coord="0;1" halign="1" valign="-1" />
+	                <text text="0.5" coord="0;0.5" halign="1" valign="-1" />
+	                <text text="0" coord="0;0" halign="1" valign="-1" />
+	                <text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
+	            </graph>
+	            
+	        </group>
+	            
+            <group text="Operation" expand="true" fill="true">
+            
+                <grid rows="2" cols="4">
+                
+                    <label text="Mode" />
+                    <combo id="scmo_1" same_line="true" />
+                    
+                    <label text="Output Mode" />
+                    <combo id="opmo_1" same_line="true" />
+                    
+                    <label text="Coupling" />
+                    <combo id="sccp_1" same_line="true" />
+                    
+                </grid>
+           
+            </group>
+	            
+        </vbox>
         
         <vbox spacing="4">
             
@@ -90,14 +112,28 @@
         
         <group text="Trigger" expand="true" fill="true">
         
-                <grid rows="2" cols="1">
+                <grid rows="10" cols="1">
+                
+                    <label text="Histeresys" />
+                    <vbox>
+                        <knob id="trhy_1" size="18" />
+                        <value id="trhy_1" />
+                    </vbox>
                 
                     <label text="Level" />
-                
                     <vbox>
                         <knob id="trlv_1" size="18" />
                         <value id="trlv_1" />
                     </vbox>
+                    
+                    <label text="Mode" />
+                    <combo id="trmo_1" same_line="true" />
+                    
+                    <label text="Type" />
+                    <combo id="trtp_1" same_line="true" />
+                    
+                    <label text="Input" />
+                    <combo id="trin_1" same_line="true" />
                     
                 </grid>
         

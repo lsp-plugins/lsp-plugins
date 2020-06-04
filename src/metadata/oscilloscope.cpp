@@ -13,26 +13,47 @@ namespace lsp
 {
     static const int osclilloscope_classes[] = { C_UTILITY, -1};
 
+    static const port_item_t osc_mode[] =
+    {
+        {"XY",          "oscilloscope.mode_xy"},
+        {"Triggered",   "oscilloscope.mode_triggered"},
+        {NULL,          NULL}
+    };
+
+    static const port_item_t osc_output_mode[] =
+    {
+        {"Mute",    "oscilloscope.output_mode_mute"},
+        {"Copy",    "oscilloscope.output_mode_copy"},
+        {NULL,      NULL}
+    };
+
+    static const port_item_t osc_trg_input[] =
+    {
+        {"Y",    "oscilloscope.trigger_input_y"},
+        {"EXT",  "oscilloscope.trigger_input_ext"},
+        {NULL,      NULL}
+    };
+
     static const port_item_t osc_trg_mode[] =
     {
-        {"None", ""},
-        {"Single", ""},
-        {"Repeat", ""},
-        NULL
+        {"None",    "oscilloscope.trigger_none"},
+        {"Single",  "oscilloscope.trigger_single"},
+        {"Repeat",  "oscilloscope.trigger_repeat"},
+        {NULL,      NULL}
     };
 
     static const port_item_t osc_trg_type[] =
     {
-        {"Rising Edge", ""},
-        {"Falling Edge", ""},
-        NULL
+        {"Rising Edge",     "oscilloscope.trigger_rising_edge"},
+        {"Falling Edge",    "oscilloscope.trigger_falling_edge"},
+        {NULL,              NULL}
     };
 
     static const port_item_t osc_coupling[] =
     {
-        {"AC", ""},
-        {"DC", ""},
-        NULL
+        {"AC",  "oscilloscope.coupling_ac"},
+        {"DC",  "oscilloscope.coupling_dc"},
+        {NULL,  NULL}
     };
 
     #define CHANNEL_AUDIO_PORTS(id, label) \
@@ -41,6 +62,11 @@ namespace lsp
         AUDIO_INPUT("in_ext" id, "Input external" label), \
         AUDIO_OUTPUT("out_x" id, "Output x" label), \
         AUDIO_OUTPUT("out_y" id, "Output y" label)
+
+    #define OP_CONTROLS(id, label) \
+        COMBO("scmo" id, "Mode" label, oscilloscope_base_metadata::MODE_DFL, osc_mode), \
+        COMBO("opmo" id, "Output Mode" label, oscilloscope_base_metadata::OUTPUT_MODE_DFL, osc_output_mode), \
+        COMBO("sccp" id, "Coupling" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling)
 
     #define HOR_CONTROLS(id, label) \
         CONTROL("hzdv" id, "Horizontal Division" label, U_SEC, oscilloscope_base_metadata::TIME_DIVISION), \
@@ -51,22 +77,20 @@ namespace lsp
         CONTROL("veps" id, "Vertical Position" label, U_PERCENT, oscilloscope_base_metadata::VERTICAL_POSITION)
 
     #define TRG_CONTROLS(id, label) \
-        CONTROL("trhy" id, "Hysteresis" label, U_NONE, oscilloscope_base_metadata::TRIGGER_HYSTERESIS), \
-        CONTROL("trlv" id, "Level" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_LEVEL), \
-        COMBO("trmo" id, "Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
-        COMBO("trtp" id, "Type" label, oscilloscope_base_metadata::TRIGGER_TYPE_DFL, osc_trg_type)
-
-    #define CPL_CONTROLS(id, label) \
-        COMBO("trcp" id, "Coupling" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling)
+        CONTROL("trhy" id, "Trigger Hysteresis" label, U_NONE, oscilloscope_base_metadata::TRIGGER_HYSTERESIS), \
+        CONTROL("trlv" id, "Trigger Level" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_LEVEL), \
+        COMBO("trmo" id, "Trigger Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
+        COMBO("trtp" id, "Trigger Type" label, oscilloscope_base_metadata::TRIGGER_TYPE_DFL, osc_trg_type), \
+        COMBO("trin" id, "Trigger Input" label, oscilloscope_base_metadata::TRIGGER_INPUT_DFL, osc_trg_input)
 
     #define OSC_COMMON \
         BYPASS
 
     #define CHANNEL_CONTROLS(id, label) \
+        OP_CONTROLS(id, label), \
         HOR_CONTROLS(id, label), \
         VER_CONTROLS(id, label), \
-        TRG_CONTROLS(id, label), \
-        CPL_CONTROLS(id, label)
+        TRG_CONTROLS(id, label)
 
     #define OSC_VISUALOUTS(id, label) \
         MESH("oscv" id, "Oscilloscope" label, 2, oscilloscope_base_metadata::SCOPE_MESH_SIZE)

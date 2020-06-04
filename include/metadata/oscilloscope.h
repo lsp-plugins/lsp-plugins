@@ -34,6 +34,30 @@ namespace lsp
         static const float VERTICAL_POSITION_DFL = 0.0f;
         static const float VERTICAL_POSITION_STEP = 1.0f;
 
+        enum mode_selector_t
+        {
+            MODE_XY,
+            MODE_TRIGGERED,
+
+            MODE_DFL = MODE_TRIGGERED
+        };
+
+        enum output_mode_t
+        {
+            OUTPUT_MODE_MUTE,
+            OUTPUT_MODE_COPY,
+
+            OUTPUT_MODE_DFL = OUTPUT_MODE_COPY
+        };
+
+        enum trigger_input_selector_t
+        {
+            TRIGGER_INPUT_Y,
+            TRIGGER_INPUT_EXT,
+
+            TRIGGER_INPUT_DFL = TRIGGER_INPUT_Y
+        };
+
         enum trigger_mode_selector_t
         {
             TRIGGER_MODE_NONE,
