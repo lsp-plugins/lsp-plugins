@@ -30,7 +30,6 @@ namespace lsp
                 float           fMin;
                 float           fMax;
                 float           fValue;
-                float           fDefault;
                 float           fStep;
                 float           fTinyStep;
                 ssize_t         nMinSize;
@@ -64,7 +63,6 @@ namespace lsp
 
             public:
                 inline float            value() const { return fValue; }
-                inline float            default_value() const { return fDefault; }
                 inline float            step() const { return fStep; }
                 inline float            tiny_step() const { return fTinyStep; }
                 inline float            min_value() const { return fMin; }
@@ -95,8 +93,6 @@ namespace lsp
                 virtual status_t on_mouse_down(const ws_event_t *e);
 
                 virtual status_t on_mouse_up(const ws_event_t *e);
-
-                virtual status_t on_mouse_dbl_click(const ws_event_t *e);
 
                 virtual status_t on_mouse_move(const ws_event_t *e);
 

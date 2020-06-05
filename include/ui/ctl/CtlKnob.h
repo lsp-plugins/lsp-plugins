@@ -29,8 +29,8 @@ namespace lsp
                 CtlPort            *pPort;
 
             protected:
-                static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);
-                static status_t    slot_dbl_click(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_dbl_click(LSPWidget *sender, void *ptr, void *data);
 
             protected:
                 void                submit_value();
