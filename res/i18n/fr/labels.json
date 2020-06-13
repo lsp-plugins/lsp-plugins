@@ -232,8 +232,8 @@
 
 	"ir_equalizer": "IR égaliseur",
 	
-	"knee": "Genoux",
-	"knee_:db": "Genoux\n(dB)",
+	"knee": "Genou",
+	"knee_:db": "Genou\n(dB)",
 
 	"latency:ms": "Latence (ms)",
 	"launch": "Lancer",
@@ -371,7 +371,7 @@
 	"ratio": "Ratio",
 	"ratio_high": "Ratio haut",
 	"ratio_low": "Ratio bas",
-	"ratio_knee:db": "Ratio,\genoux (dB)",
+	"ratio_knee:db": "Ratio,\genou (dB)",
 	
 	"reduction": "Réduction",
 	
