@@ -14,6 +14,8 @@
 #define N_HOR_DIVISIONS     4
 #define N_VER_DIVISIONS     2
 #define VER_FULL_SCALE_AMP  1.0f
+#define SWEEP_GEN_N_BITS    64
+#define SWEEP_GEN_PEAK      1.0f
 
 namespace lsp
 {
@@ -56,6 +58,19 @@ namespace lsp
         }
     }
 
+    trg_type_t oscilloscope_base::get_trigger_type(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::TRIGGER_TYPE_RISING_EDGE:
+                return TRG_TYPE_SIMPLE_RISING_EDGE;
+            case oscilloscope_base_metadata::TRIGGER_TYPE_FALLING_EDGE:
+                return TRG_TYPE_SIMPLE_FALLING_EDGE;
+            default:
+                return TRG_TYPE_NONE;
+        }
+    }
+
     void oscilloscope_base::calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode)
     {
         switch (mode)
@@ -71,8 +86,8 @@ namespace lsp
         size_t remaining = c->nSweepSize - c->nDisplayHead;
         size_t to_copy = (bufSize < remaining) ? bufSize : remaining;
 
-        dsp::copy(&c->vDisplay_x[c->nDisplayHead], c->vData_x, to_copy);
-        dsp::copy(&c->vDisplay_y[c->nDisplayHead], c->vData_y, to_copy);
+        dsp::copy(&c->vDisplay_x[c->nDisplayHead], xBuf, to_copy);
+        dsp::copy(&c->vDisplay_y[c->nDisplayHead], yBuf, to_copy);
 
         c->nDisplayHead += to_copy;
 
@@ -81,6 +96,8 @@ namespace lsp
 
     void oscilloscope_base::reset_display_buffers(channel_t *c)
     {
+        dsp::fill_zero(c->vDisplay_x, BUF_LIM_SIZE);
+        dsp::fill_zero(c->vDisplay_y, BUF_LIM_SIZE);
         c->nDisplayHead = 0;
     }
 
@@ -183,7 +200,7 @@ namespace lsp
                 return;
 
             // Test settings for oversampler before proper implementation
-            c->enOverMode = OM_LANCZOS_8X3;
+            c->enOverMode = OM_NONE;
 
             set_oversampler(c->sOversampler_x, c->enOverMode);
             set_oversampler(c->sOversampler_y, c->enOverMode);
@@ -192,6 +209,11 @@ namespace lsp
             // All are set the same way, use any to get these variables
             c->nOversampling = c->sOversampler_x.get_oversampling();
             c->nOverSampleRate = c->nOversampling * nSampleRate;
+
+            c->sSweepGenerator.init();
+            c->sSweepGenerator.set_bits(SWEEP_GEN_N_BITS);
+            c->sSweepGenerator.set_sweep_peak(SWEEP_GEN_PEAK);
+            c->sSweepGenerator.update_settings();
 
             c->vData_x = ptr;
             ptr += BUF_LIM_SIZE;
@@ -356,14 +378,17 @@ namespace lsp
 
             c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, horDiv);
             c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
+            c->sSweepGenerator.set_sweep_length(c->nSweepSize);
+            c->sSweepGenerator.update_settings();
 
             c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
             c->sPreTrgDelay.set_delay(c->nPreTrigger);
 
             float trgLevel = c->pTrgLev->getValue();
 
-            c->sTrigger.set_trigger_type(TRG_TYPE_SIMPLE_RISING_EDGE);
+            c->sTrigger.set_trigger_type(get_trigger_type(c->pTrgType->getValue()));
             c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
+            c->sTrigger.set_post_trigger_samples(c->nSweepSize);
             c->sTrigger.update_settings();
         }
     }
@@ -383,6 +408,8 @@ namespace lsp
             c->sOversampler_ext.set_sample_rate(sr);
 
             c->nOverSampleRate = c->nOversampling * nSampleRate;
+
+            c->sSweepGenerator.set_sample_rate(sr);
         }
     }
 
@@ -465,7 +492,6 @@ namespace lsp
                                     if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
                                     {
                                         c->sSweepGenerator.reset_sweep();
-                                        c->sSweepGenerator.sweep(c->vData_x, c->nSweepSize);
                                         c->enState = CH_STATE_SWEEPING;
                                     }
                                 }
@@ -473,11 +499,16 @@ namespace lsp
 
                                 case CH_STATE_SWEEPING:
                                 {
-                                    if (fill_display_buffers(c, c->vData_x, c->vData_y_delay, to_do_upsample))
+                                    c->sSweepGenerator.sweep(&c->vDisplay_x[c->nDisplayHead], 1);
+                                    c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[n];
+                                    ++c->nDisplayHead;
+
+                                    if (c->nDisplayHead >= c->nSweepSize)
                                     {
                                         // Plot stuff happens here
 
                                         reset_display_buffers(c);
+                                        c->enState = CH_STATE_LISTENING;
                                     }
                                 }
                                 break;

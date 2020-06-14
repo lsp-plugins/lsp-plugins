@@ -139,6 +139,7 @@ namespace lsp
             ch_mode_t get_scope_mode(size_t portValue);
             ch_output_mode_t get_output_mode(size_t portValue);
             ch_trg_input_t get_trigger_input(size_t portValue);
+            trg_type_t get_trigger_type(size_t portValue);
             void calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode);
             bool fill_display_buffers(channel_t *c, float *xBuf, float *yBuf, size_t bufSize);
             void reset_display_buffers(channel_t *c);

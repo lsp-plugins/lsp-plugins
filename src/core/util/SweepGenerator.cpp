@@ -23,8 +23,8 @@ namespace lsp
         sPhaseAcc.nCtrl         = 0;
         sPhaseAcc.fMultiplier   = 1.0f;
 
-        fSweepDuration          = 0;
-        fSweepPeak              = 0;
+        nSweepLength            = 0;
+        fSweepPeak              = 0.0f;
     }
 
     SweepGenerator::~SweepGenerator()
@@ -52,9 +52,12 @@ namespace lsp
 
         sPhaseAcc.nAccumulator = 0;
 
-        sPhaseAcc.nMask = (1 << sPhaseAcc.nBits) - 1;
+        if (sPhaseAcc.nBits >= sPhaseAcc.nMaxBits)
+            sPhaseAcc.nMask = -1;
+        else
+            sPhaseAcc.nMask = (1 << sPhaseAcc.nBits) - 1;
 
-        float ctrlFactor = 1.0f / (fSweepDuration * nSampleRate);
+        float ctrlFactor = 1.0f / nSweepLength;
         sPhaseAcc.nCtrl = sPhaseAcc.nMask * ctrlFactor + ctrlFactor;
 
         sPhaseAcc.fMultiplier = fSweepPeak / sPhaseAcc.nMask;

@@ -31,14 +31,14 @@ namespace lsp
         SweepGenerator & operator = (const SweepGenerator &);
 
         private:
-            bool bSync;
+            bool            bSync;
 
-            size_t nSampleRate;
+            size_t          nSampleRate;
 
-            phase_acc_t sPhaseAcc;
+            phase_acc_t     sPhaseAcc;
 
-            float fSweepDuration;
-            float fSweepPeak;
+            size_t          nSweepLength;
+            float           fSweepPeak;
 
         public:
             explicit SweepGenerator();
@@ -104,17 +104,26 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Set the SweepGenerator sweep length
+             *
+             * @param length sweep length in samples
+             */
+            inline void set_sweep_length(size_t length)
+            {
+                if (length == nSweepLength)
+                    return;
+
+                nSweepLength = length;
+                bSync = true;
+            }
+
             /** Set the SweepGenerator sweep duration
              *
              * @param duration sweep duration in seconds
              */
             inline void set_sweep_duration(float duration)
             {
-                if (duration == fSweepDuration)
-                    return;
-
-                fSweepDuration = duration;
-                bSync = true;
+                set_sweep_length(seconds_to_samples(duration, nSampleRate));
             }
 
             /** Get the SweepGenerator sweep duration
@@ -122,7 +131,7 @@ namespace lsp
              */
             inline float get_sweep_duration() const
             {
-                return fSweepDuration;
+                return samples_to_seconds(nSweepLength, nSampleRate);
             }
 
             /** Get the SweepGenerator sweep length
@@ -130,7 +139,7 @@ namespace lsp
              */
             inline size_t get_sweep_length() const
             {
-                return seconds_to_samples(nSampleRate, fSweepDuration);
+                return nSweepLength;
             }
 
             /** Set the SweepGenerator peak
