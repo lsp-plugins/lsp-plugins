@@ -75,9 +75,13 @@ namespace lsp
     {
         switch (mode)
         {
-            case CH_OUTPUT_MODE_MUTE: dsp::fill_zero(dst, count); break;
+            case CH_OUTPUT_MODE_MUTE:
+                dsp::fill_zero(dst, count);
+                break;
+            case CH_OUTPUT_MODE_COPY:
             default:
-            case CH_OUTPUT_MODE_COPY: dsp::copy(dst, src, count); break;
+                dsp::copy(dst, src, count);
+                break;
         }
     }
 
@@ -105,9 +109,12 @@ namespace lsp
     {
         switch (input)
         {
-            case CH_TRG_INPUT_EXT: return extPtr;
+            case CH_TRG_INPUT_EXT:
+                return extPtr;
+
+            case CH_TRG_INPUT_Y:
             default:
-            case CH_TRG_INPUT_Y: return yPtr;
+                return yPtr;
         }
     }
 
@@ -200,69 +207,69 @@ namespace lsp
                 return;
 
             // Test settings for oversampler before proper implementation
-            c->enOverMode = OM_NONE;
+            c->enOverMode       = OM_NONE;
 
             set_oversampler(c->sOversampler_x, c->enOverMode);
             set_oversampler(c->sOversampler_y, c->enOverMode);
             set_oversampler(c->sOversampler_ext, c->enOverMode);
 
             // All are set the same way, use any to get these variables
-            c->nOversampling = c->sOversampler_x.get_oversampling();
-            c->nOverSampleRate = c->nOversampling * nSampleRate;
+            c->nOversampling    = c->sOversampler_x.get_oversampling();
+            c->nOverSampleRate  = c->nOversampling * nSampleRate;
 
             c->sSweepGenerator.init();
             c->sSweepGenerator.set_bits(SWEEP_GEN_N_BITS);
             c->sSweepGenerator.set_sweep_peak(SWEEP_GEN_PEAK);
             c->sSweepGenerator.update_settings();
 
-            c->vData_x = ptr;
-            ptr += BUF_LIM_SIZE;
+            c->vData_x          = ptr;
+            ptr                += BUF_LIM_SIZE;
 
-            c->vData_y = ptr;
-            ptr += BUF_LIM_SIZE;
+            c->vData_y          = ptr;
+            ptr                += BUF_LIM_SIZE;
 
-            c->vData_ext = ptr;
-            ptr += BUF_LIM_SIZE;
+            c->vData_ext        = ptr;
+            ptr                += BUF_LIM_SIZE;
 
-            c->vData_y_delay = ptr;
-            ptr += BUF_LIM_SIZE;
+            c->vData_y_delay    = ptr;
+            ptr                += BUF_LIM_SIZE;
 
-            c->vDisplay_x = ptr;
-            ptr += BUF_LIM_SIZE;
+            c->vDisplay_x       = ptr;
+            ptr                += BUF_LIM_SIZE;
 
-            c->vDisplay_y = ptr;
-            ptr += BUF_LIM_SIZE;
+            c->vDisplay_y       = ptr;
+            ptr                += BUF_LIM_SIZE;
 
-            c->enState      = CH_STATE_LISTENING;
+            c->enState          = CH_STATE_LISTENING;
 
-            c->vIn_x        = NULL;
-            c->vIn_y        = NULL;
-            c->vIn_ext      = NULL;
+            c->vIn_x            = NULL;
+            c->vIn_y            = NULL;
+            c->vIn_ext          = NULL;
 
-            c->vOut_x       = NULL;
-            c->vOut_y       = NULL;
+            c->vOut_x           = NULL;
+            c->vOut_y           = NULL;
 
-            c->pIn_x        = NULL;
-            c->pIn_y        = NULL;
-            c->pIn_ext      = NULL;
+            c->pIn_x            = NULL;
+            c->pIn_y            = NULL;
+            c->pIn_ext          = NULL;
 
-            c->pOut_x       = NULL;
-            c->pOut_y       = NULL;
+            c->pOut_x           = NULL;
+            c->pOut_y           = NULL;
 
-            c->pHorDiv      = NULL;
-            c->pHorPos      = NULL;
+            c->pHorDiv          = NULL;
+            c->pHorPos          = NULL;
 
-            c->pVerDiv      = NULL;
-            c->pVerPos      = NULL;
+            c->pVerDiv          = NULL;
+            c->pVerPos          = NULL;
 
-            c->pTrgHys      = NULL;
-            c->pTrgLev      = NULL;
-            c->pTrgMode     = NULL;
-            c->pTrgType     = NULL;
+            c->pTrgHys          = NULL;
+            c->pTrgLev          = NULL;
+            c->pTrgMode         = NULL;
+            c->pTrgType         = NULL;
 
-            c->pCoupling    = NULL;
+            c->pCoupling        = NULL;
 
-            c->pMesh        = NULL;
+            c->pMesh            = NULL;
         }
 
         lsp_assert(ptr <= &save[samples]);
@@ -276,31 +283,31 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn_x = vPorts[port_id++];
+            vChannels[ch].pIn_x     = vPorts[port_id++];
         }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn_y = vPorts[port_id++];
+            vChannels[ch].pIn_y     = vPorts[port_id++];
         }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn_ext = vPorts[port_id++];
+            vChannels[ch].pIn_ext   = vPorts[port_id++];
         }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pOut_x = vPorts[port_id++];
+            vChannels[ch].pOut_x    = vPorts[port_id++];
         }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pOut_y = vPorts[port_id++];
+            vChannels[ch].pOut_y    = vPorts[port_id++];
         }
 
         // Common
