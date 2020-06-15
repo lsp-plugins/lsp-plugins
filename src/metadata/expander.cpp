@@ -101,9 +101,9 @@ namespace lsp
 
     #define EXP_CHANNEL(id, label) \
         COMBO("em" id, "Expander mode" label, expander_base_metadata::EM_DEFAULT, exp_modes), \
-        LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, expander_base_metadata::ATTACK_LVL), \
+        LOG_CONTROL("al" id, "Attack threshold" label, U_GAIN_AMP, expander_base_metadata::ATTACK_LVL), \
         LOG_CONTROL("at" id, "Attack time" label, U_MSEC, expander_base_metadata::ATTACK_TIME), \
-        LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, expander_base_metadata::RELEASE_LVL), \
+        LOG_CONTROL("rrl" id, "Release threshold" label, U_GAIN_AMP, expander_base_metadata::RELEASE_LVL), \
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, expander_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("er" id, "Ratio" label, U_NONE, expander_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, expander_base_metadata::KNEE), \
