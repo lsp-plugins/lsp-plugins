@@ -2545,6 +2545,198 @@ Description:	Sidechain Multiband Expander MidSide x8
 	*Plugin ID:	wkge
 
 -----------------------------------------------------
+Your Registration form was successfully submitted.
 
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Gate Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Gate Mono x8
+		
+	Registration:	
+		
+	*Plugin ID:	bmhh
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Multiband Gate Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Gate Stereo x8
+		
+	Registration:	
+		
+	*Plugin ID:	ysu1
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Gate LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Gate LeftRight x8
+		
+	Registration:	
+		
+	*Plugin ID:	etaj
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multiband Gate MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband Gate MidSide x8
+		
+	Registration:	
+		
+	*Plugin ID:	x9nr
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Gate Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Gate Mono x8
+		
+	Registration:	
+		
+	*Plugin ID:	mhz8
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Gate Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Gate Stereo x8
+		
+	Registration:	
+		
+	*Plugin ID:	rvja
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Gate LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Gate LeftRight x8
+		
+	Registration:	
+		
+	*Plugin ID:	fhfk
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multiband Gate MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Sidechain Multiband Gate MidSide x8
+		
+	Registration:	
+		
+	*Plugin ID:	ukzs
+	
+-----------------------------------------------------
 
 

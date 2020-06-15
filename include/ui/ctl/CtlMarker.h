@@ -23,6 +23,7 @@ namespace lsp
                 CtlExpression   sAngle;
                 CtlExpression   sDX;
                 CtlExpression   sDY;
+                CtlExpression   sValue;
                 float           fTransparency;
 
             protected:

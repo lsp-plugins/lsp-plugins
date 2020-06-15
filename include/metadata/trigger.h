@@ -48,6 +48,16 @@ namespace lsp
         static const float  HISTORY_TIME            = 5.0f;     // Amount of time to display history [s]
         static const size_t HISTORY_MESH_SIZE       = 640;      // 640 dots for history
 
+        static const float  HPF_MIN                 = 10.0f;
+        static const float  HPF_MAX                 = 20000.0f;
+        static const float  HPF_DFL                 = 10.0f;
+        static const float  HPF_STEP                = 0.0025f;
+
+        static const float  LPF_MIN                 = 10.0f;
+        static const float  LPF_MAX                 = 20000.0f;
+        static const float  LPF_DFL                 = 20000.0f;
+        static const float  LPF_STEP                = 0.0025f;
+
         static const size_t MODE_DFL                = 1;        // RMS
     };
 

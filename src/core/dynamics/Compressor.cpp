@@ -103,10 +103,6 @@ namespace lsp
                 fEnvelope       += fTauAttack * (s - fEnvelope);
 
             out[i]          = fEnvelope;
-            if (isinf(out[i]))
-            {
-                lsp_trace("debug");
-            }
         }
 
         // Copy envelope to array if specified

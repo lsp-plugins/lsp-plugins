@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Mid-Side Split Multiband Sidechain Gate
+GenericName=Sidechain Multiband Gate
+GenericName[ru]=Многополосный гейт с боковой цепью
+Comment=Performs multiband gating of stereo input signal in Mid-Side mode.
+Comment[ru]=Осуществляет многополосное гейтирование стереосигнала, центр и сторона обрабатываются индивидуально. Имеет дополнительный вход для гибко конфигурируемой боковой цепи управления.
+Exec=lsp-plugins-sc-mb-gate-ms
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;

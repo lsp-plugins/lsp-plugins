@@ -347,17 +347,18 @@ namespace lsp
             if (cv == NULL)
                 return false;
 
-    //        lsp_trace("x=%d, y=%d, cv_left=%d, cv_top=%d, real_x=%d, real_y=%d",
-    //                int(x), int(y), int(cv->canvasLeft()), int(cv->canvasTop()), int(nRealX), int(nRealY)
-    //               );
+//            lsp_trace("x=%d, y=%d, cv_left=%d, cv_top=%d, real_x=%d, real_y=%d",
+//                    int(x), int(y), int(cv->canvas_left()), int(cv->canvas_top()), int(nRealX), int(nRealY)
+//                   );
 
             float dx    = x - cv->canvas_left() - nRealX;
             float dy    = y - cv->canvas_top() - nRealY;
             float R     = nSize;
+            bool match  = (dx*dx + dy*dy) <= R*R;
 
-    //        lsp_trace("dx=%f, dy=%f", dx, dy);
+//            lsp_trace("dx=%f, dy=%f, r=%f, match=%s", dx, dy, R, (match) ? "true" : "false");
 
-            return (dx*dx + dy*dy) <= R*R;
+            return match;
         }
 
         status_t LSPDot::on_mouse_down(const ws_event_t *e)

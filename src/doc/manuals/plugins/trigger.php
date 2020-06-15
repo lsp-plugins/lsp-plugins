@@ -46,6 +46,8 @@ There are up to eight samples available to play for different note velocities.</
 		<li><b>Right</b> - only right channel is used for sidechain processing</li>
 	</ul>
 	<?php } ?>
+	<li><b>LPF</b> - allows to set up slope and cut-off frequency for the low-pass filter applied to input signal.</li>
+	<li><b>HPF</b> - allows to set up slope and cut-off frequency for the high-pass filter applied to input signal.</li>
 	<li><b>Active</b> - trigger activity indicator.</li>
 	<li><b>Reactivity</b> - the reactivity of the sidechain.</li>
 	<li><b>Attack level</b> - the minimum level of the sidechain signal that forces trigger to trigger.</li>

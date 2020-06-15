@@ -25,26 +25,31 @@
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
 
-=== 1.1.22 ===
+=== 1.1.24 ===
 
-* Fixed VST2 identifiers for Multiband Expander plugin series.
-* Added spanish translation of the UI (contributed by Ignotus - ignotus666 at github.com).
-* Compressor, Expander, Gate and Dynamic Processor plugins now report latency for the lookahead knob.
-* Fixed mapping of some numpad keys that could cause problems when entering manual value in the UI.
+* Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
+
+*******************************************************************************
+* New plugin check list before release
+*******************************************************************************
+* Plugin has documentation
+* Plugin has attached screenshots
+* Plugin translations are valid
+* Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
+* Ensure that there are menu items present for all new plugins in res/xdg
 
 *******************************************************************************
 * Release steps
 *******************************************************************************
-* Register VST2 plugin IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
-* Ensure that there are menu items present for all new plugins in res/xdg
 * Run make clean && make test to build testing system
 * Run .test/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
 * Run make clean && make uninstall && make install && make clean to
   build and install binaries
 * Make video
+* Ensure that video is of enough quality (at least of 4k bitrate)
 * Add video cover to res/video-covers
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php
@@ -64,6 +69,7 @@
 
 * Compressor
 * Convolver
+* Dynamic Processor
 * Expander
 * Gate
 * Graphic Equalizer
@@ -72,7 +78,8 @@
 * Linear Audio Profiler
 * Multi-Sampler
 * Multiband Compressor
-* Multiband expander
+* Multiband Expander
+* Multiband Gate
 * Parametric Equalizer
 * Phase Compensator
 * Phase Detector
@@ -81,9 +88,9 @@
 * Spectrum Analyzer
 * Trigger
 
+- Multiband Dynamic Processor
 - Dynamic equalizer
 - One-band compressor
-- Multiband gate
 - Multiband limiter
 - Nonlinear audio profiler
 - Hysteresis-based saturator

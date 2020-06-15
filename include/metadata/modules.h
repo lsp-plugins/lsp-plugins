@@ -156,6 +156,16 @@ MOD_PLUGIN(sc_mb_expander_stereo, plugin_ui)
 MOD_PLUGIN(sc_mb_expander_lr, plugin_ui)
 MOD_PLUGIN(sc_mb_expander_ms, plugin_ui)
 
+// Multiband expanders
+MOD_PLUGIN(mb_gate_mono, plugin_ui)
+MOD_PLUGIN(mb_gate_stereo, plugin_ui)
+MOD_PLUGIN(mb_gate_lr, plugin_ui)
+MOD_PLUGIN(mb_gate_ms, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_mono, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_stereo, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_lr, plugin_ui)
+MOD_PLUGIN(sc_mb_gate_ms, plugin_ui)
+
 // Oscilloscope
 MOD_PLUGIN(oscilloscope_x1, plugin_ui)
 MOD_PLUGIN(oscilloscope_x2, plugin_ui)

@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <core/util/ShiftBuffer.h>
+#include <core/filters/Equalizer.h>
 
 namespace lsp
 {
@@ -53,10 +54,13 @@ namespace lsp
             float           fGain;                  // Sidechain gain
             bool            bUpdate;                // Update sidechain parameters flag
             bool            bMidSide;               // Mid-side mode
+            Equalizer      *pPreEq;                 // Pre-equalizer
 
         protected:
             void            update_settings();
             void            refresh_processing();
+            bool            preprocess(float *out, const float **in, size_t samples);
+            bool            preprocess(float *out, const float *in);
 
         public:
             Sidechain();
@@ -74,6 +78,12 @@ namespace lsp
              *
              */
             void destroy();
+
+            /** Set pre-processing equalizer
+             *
+             * @param eq equalizer
+             */
+            inline void set_pre_equalizer(Equalizer *eq)            { pPreEq = eq; }
 
             /** Set sample rate
              *

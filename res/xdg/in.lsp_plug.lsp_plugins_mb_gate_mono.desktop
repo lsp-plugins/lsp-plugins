@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Mono Multiband Gate
+GenericName=Multiband Gate
+GenericName[ru]=Многополосный гейт
+Comment=Performs multiband gating of mono input signal.
+Comment[ru]=Осуществляет многополосное гейтирование моносигнала.
+Exec=lsp-plugins-mb-gate-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;

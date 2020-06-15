@@ -598,9 +598,10 @@ namespace lsp
                 (sSize.nHeight == r->nHeight))
                 return;
 
-            // Update size and execute slot
+            // Execute slot and update size
+            realize_t xr = *r;
+            sSlots.execute(LSPSLOT_RESIZE, this, &xr);
             sSize       = *r;
-            sSlots.execute(LSPSLOT_RESIZE, this, &sSize);
         }
 
         void LSPWidget::size_request(size_request_t *r)

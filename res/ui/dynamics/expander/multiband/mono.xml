@@ -47,10 +47,8 @@
 	
 				<!-- Meshes -->
 				<mesh id="bfc_0" color="eq_base" width="2" hue_id="hue_0" fill="0.8" smooth="true" visibility=":flt" />
-				<!-- mesh id="bfg_0" width="3" color="eq_base" hue_id="hue_0" /-->
 				<ui:for id="i" first="1" last="7">
 					<mesh id="bfc_${i}" color="eq_base" width="2" hue_id="hue_${i}" visibility=":flt and :cbe_${i}" fill="0.8" smooth="true" />
-					<!-- mesh id="bfg_${i}" width="3" color="eq_base" hue_id="hue_${i}" /-->
 				</ui:for>
 				<mesh id="ifg" width="3" color="middle_channel_in" />
 				<mesh id="ofg" width="3" color="middle_channel" />
@@ -175,7 +173,7 @@
 				<!-- Split -->
 				<grid rows="11" cols="24">
 					<label text="labels.band_hue" bg_color="bg2" />
-					<hbox fill="false" bg_color="bg2" >
+					<hbox fill="false" bg_color="bg2">
 						<button value="1" editable="false" size="16" color="red" hue_id="hue_0" led="true" />
 						<label text="labels.chan.num_id" text:id="0" />
 					</hbox>
@@ -185,7 +183,7 @@
 						<cell rows="11">
 							<vsep />
 						</cell>
-						<hbox fill="false" bg_color="bg2" >
+						<hbox fill="false" bg_color="bg2">
 							<button id="cbe_${i}" size="16" color="red" hue_id="hue_${i}" led="true" />
 							<label text="labels.chan.num_id" text:id="${i}" bright="((${i} ieq 0) or :cbe_${i}) ? 1 : 0.5" />
 						</hbox>
@@ -214,7 +212,7 @@
 					<label text="labels.controls" bg_color="bg2" />
 					<ui:for id="i" first="0" last="7">
 						<cell cols="2" fill="false" bg_color="bg2" bright="((${i} ieq 0) or :cbe_${i}) ? 1 : 0.5" >
-							<grid rows="2" cols="4" fill="false" hspacing="2" >
+							<grid rows="2" cols="4" fill="false" hspacing="2">
 								<button id="ee_${i}" size="12" color="red" hue_id="hue_${i}" led="true" />
 								<button id="bs_${i}" size="12" color="green" led="true" />
 								<button id="bm_${i}" size="12" color="red" led="true" />
@@ -396,8 +394,8 @@
 						
 							<!-- Axises and boundaries -->
 							<center hpos="-1" vpos="-1" visible="false" />
-							<axis min="-72 db" max="24 db" color="gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
-							<axis min="-72 db" max="24 db" color="gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
+							<axis min="-72 db" max="24 db" color="g_gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
+							<axis min="-72 db" max="24 db" color="g_gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
 							<marker value="1" offset="1" color="g_gray" basis="1" parallel="0" dx=":_a_width" dy=":_a_height" width="2" smooth="true" /> <!-- 1:1 -->
 							<marker value="24 db" color="g_gray" basis="1" parallel="0" /> <!-- +24 dB -->
 							<marker value="24 db" color="g_gray" basis="0" parallel="1" /> <!-- +24 dB -->

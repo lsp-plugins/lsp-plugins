@@ -2,6 +2,21 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.22 ===
+
+* Implemented Multiband Gate plugin series.
+* Added sidechain low-pass and high-pass filters for Compressor plugin series.
+* Added sidechain low-pass and high-pass filters for Expander plugin series.
+* Added sidechain low-pass and high-pass filters for Gate plugin series.
+* Added sidechain low-pass and high-pass filters for Dynamic Processor plugin series.
+* Added sidechain low-pass and high-pass filters for Trigger plugin series.
+* Fixed VST2 identifiers for Multiband Expander plugin series.
+* Fixed graph issues related to dot editing.
+* Added spanish translation of the UI (contributed by Ignotus - ignotus666 at github.com).
+* Compressor, Expander, Gate and Dynamic Processor plugins now report latency for the lookahead knob.
+* Fixed mapping of some numpad keys that could cause problems when entering manual value in the UI.
+* VERSION build variable replaced with LSP_VERSION build variable (contributed by Bruno Vernay).
+
 === 1.1.21 ===
 
 * Fixed UI synchronization issue on plugin state restore for VST plugin format.

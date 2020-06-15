@@ -201,7 +201,7 @@
 			<cgroup id="bsel" embed=":bsel ilt 2">
 				<grid rows="11" cols="24">
 					<label text="labels.band_hue" bg_color="bg2" />
-					<hbox fill="false" bg_color="bg2" >
+					<hbox fill="false" bg_color="bg2">
 						<button value="1" editable="false" size="16" color="red" hue_id="hue_0m" led="true" />
 						<label text="labels.chan.num_id_M_id" text:id="0" />
 					</hbox>
