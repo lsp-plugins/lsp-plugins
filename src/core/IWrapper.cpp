@@ -52,4 +52,8 @@ namespace lsp
         return false;
     }
 
+    void IWrapper::state_changed()
+    {
+    }
+
 } /* namespace lsp */

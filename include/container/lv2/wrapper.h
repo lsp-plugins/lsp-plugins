@@ -29,6 +29,14 @@ namespace lsp
     class LV2Wrapper: public IWrapper
     {
         private:
+            enum state_mode_t
+            {
+                SM_SYNC,        // State is in sync with host
+                SM_CHANGED,     // State has been changed
+                SM_REPORTED     // State change has been reported to the host
+            };
+
+        private:
             cvector<LV2Port>        vExtPorts;
             cvector<LV2Port>        vAllPorts;      // List of all created ports, for garbage collection
             cvector<LV2Port>        vPluginPorts;   // All plugin ports sorted in urid order
@@ -57,6 +65,7 @@ namespace lsp
             bool                    bUpdateSettings;// Settings update
             float                   fSampleRate;
             uint8_t                *pOscPacket;     // OSC packet data
+            state_mode_t            nStateMode;     // State change flag
 
             position_t              sPosition;
             KVTStorage              sKVT;
@@ -112,6 +121,7 @@ namespace lsp
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
                 pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
+                nStateMode      = SM_SYNC;
                 pKVTDispatcher  = NULL;
 
                 position_t::init(&sPosition);
@@ -225,6 +235,12 @@ namespace lsp
             virtual KVTStorage *kvt_trylock();
 
             virtual bool kvt_release();
+
+            virtual void state_changed()
+            {
+                if (nStateMode == SM_SYNC)
+                    nStateMode  = SM_CHANGED;
+            }
 
             inline KVTDispatcher *kvt_dispatcher() { return pKVTDispatcher; }
     };
@@ -1065,6 +1081,16 @@ namespace lsp
         LV2_Atom_Forge_Frame    frame;
         pExt->forge_sequence_head(&seq, 0);
 
+        // Transmit state change atom
+        if (nStateMode == SM_CHANGED)
+        {
+            lsp_trace("STATE MODE = %d", nStateMode);
+            pExt->forge_object(&frame, pExt->uridBlank, pExt->uridStateChanged);
+            pExt->forge_pop(&frame);
+            nStateMode      = SM_REPORTED;
+            lsp_trace("STATE MODE = %d", nStateMode);
+        }
+
         // For each MIDI port, serialize it's data
         for (size_t i=0, n_midi=vMidiOutPorts.size(); i<n_midi; ++i)
         {
@@ -1703,6 +1729,8 @@ namespace lsp
             sKVTMutex.unlock();
         }
 
+        nStateMode = SM_SYNC;
+        lsp_trace("STATE MODE = %d", nStateMode);
         pExt->reset_state_context();
         pPlugin->state_saved();
     }
@@ -1903,6 +1931,8 @@ namespace lsp
             sKVTMutex.unlock();
         }
 
+        nStateMode = SM_SYNC;
+        lsp_trace("STATE MODE = %d", nStateMode);
         pExt->reset_state_context();
         pPlugin->state_loaded();
     }

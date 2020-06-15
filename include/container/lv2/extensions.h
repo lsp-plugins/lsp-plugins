@@ -112,6 +112,7 @@ namespace lsp
             LV2_URID                uridObject;
             LV2_URID                uridBlank;
             LV2_URID                uridState;
+            LV2_URID                uridStateChanged;
             LV2_URID                uridStateChange;
             LV2_URID                uridStateFlags;
             LV2_URID                uridStateRequest;
@@ -261,6 +262,7 @@ namespace lsp
                 uridObject                  = forge.Object;
                 uridBlank                   = map_uri(LV2_ATOM__Blank);
                 uridState                   = map_primitive("state");
+                uridStateChanged            = map_primitive(LV2_STATE__StateChanged);
                 uridConnectUI               = map_primitive("ui_connect");
                 uridUINotification          = map_type("UINotification");
                 uridDisconnectUI            = map_primitive("ui_disconnect");
