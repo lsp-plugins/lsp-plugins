@@ -28,6 +28,7 @@
 === 1.1.24 ===
 
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
+- Added support of lv2:StateChanged extension.
 
 *******************************************************************************
 * New plugin check list before release

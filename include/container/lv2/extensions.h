@@ -231,8 +231,10 @@ namespace lsp
                             ui_resize = reinterpret_cast<LV2UI_Resize *>(f->data);
                         else if (!strcmp(f->URI, LV2_INLINEDISPLAY__queue_draw))
                             iDisplay = reinterpret_cast<LV2_Inline_Display *>(f->data);
-                        else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
-                            pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
+                        #if LSP_LV2_INSTANCE_ACCESS != 1
+                            else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
+                                pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
+                        #endif
                         else if (!strcmp(f->URI, LV2_OPTIONS__options))
                         {
                             lsp_trace("Received options from host");

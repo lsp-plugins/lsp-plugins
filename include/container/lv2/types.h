@@ -78,7 +78,7 @@ namespace lsp
                 return false;
 
             // Move pending request to path if present,
-            // do it in synchronized mode
+            // do it in spin-lock synchronized mode
             if (atomic_trylock(nRequest))
             {
                 // Copy the data

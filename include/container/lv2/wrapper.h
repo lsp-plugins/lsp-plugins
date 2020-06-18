@@ -33,7 +33,8 @@ namespace lsp
             {
                 SM_SYNC,        // State is in sync with host
                 SM_CHANGED,     // State has been changed
-                SM_REPORTED     // State change has been reported to the host
+                SM_REPORTED,    // State change has been reported to the host
+                SM_LOADING      // State has been loaded but still not committed
             };
 
         private:
@@ -65,7 +66,7 @@ namespace lsp
             bool                    bUpdateSettings;// Settings update
             float                   fSampleRate;
             uint8_t                *pOscPacket;     // OSC packet data
-            state_mode_t            nStateMode;     // State change flag
+            volatile atomic_t       nStateMode;     // State change flag
 
             position_t              sPosition;
             KVTStorage              sKVT;
@@ -78,7 +79,7 @@ namespace lsp
 #endif
 
         protected:
-            LV2Port *create_port(const port_t *meta, const char *postfix);
+            LV2Port *create_port(const port_t *meta, const char *postfix, bool virt);
             void create_ports(const port_t *meta);
 
             void receive_atoms(size_t samples);
@@ -121,7 +122,7 @@ namespace lsp
                 bUpdateSettings = true;
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
                 pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
-                nStateMode      = SM_SYNC;
+                nStateMode      = SM_LOADING;
                 pKVTDispatcher  = NULL;
 
                 position_t::init(&sPosition);
@@ -160,6 +161,7 @@ namespace lsp
 
             inline void connect(size_t id, void *data);
             inline void run(size_t samples);
+            bool change_state_atomic(state_mode_t from, state_mode_t to);
 
             // State part
             inline void save_state(
@@ -238,14 +240,13 @@ namespace lsp
 
             virtual void state_changed()
             {
-                if (nStateMode == SM_SYNC)
-                    nStateMode  = SM_CHANGED;
+                change_state_atomic(SM_SYNC, SM_CHANGED);
             }
 
             inline KVTDispatcher *kvt_dispatcher() { return pKVTDispatcher; }
     };
 
-    LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix)
+    LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix, bool virt)
     {
         LV2Port *result = NULL;
 
@@ -258,7 +259,7 @@ namespace lsp
                     vMeshPorts.add(result);
                 }
                 else
-                    result = new LV2Port(p, pExt);
+                    result = new LV2Port(p, pExt, false);
                 break;
             case R_FBUFFER:
                 if (pExt->atom_supported())
@@ -267,25 +268,25 @@ namespace lsp
                     vFrameBufferPorts.add(result);
                 }
                 else
-                    result = new LV2Port(p, pExt);
+                    result = new LV2Port(p, pExt, false);
                 break;
             case R_MIDI:
                 if (pExt->atom_supported())
                     result = new LV2MidiPort(p, pExt);
                 else
-                    result = new LV2Port(p, pExt);
+                    result = new LV2Port(p, pExt, false);
                 break;
             case R_OSC:
                 if (pExt->atom_supported())
                     result = new LV2OscPort(p, pExt);
                 else
-                    result = new LV2Port(p, pExt);
+                    result = new LV2Port(p, pExt, false);
                 break;
             case R_PATH:
                 if (pExt->atom_supported())
                     result      = new LV2PathPort(p, pExt);
                 else
-                    result      = new LV2Port(p, pExt);
+                    result      = new LV2Port(p, pExt, false);
                 break;
 
             case R_AUDIO:
@@ -299,7 +300,7 @@ namespace lsp
             case R_PORT_SET:
             {
                 char postfix_buf[LSP_MAX_PARAM_ID_BYTES];
-                LV2PortGroup   *pg      = new LV2PortGroup(p, pExt);
+                LV2PortGroup   *pg      = new LV2PortGroup(p, pExt, virt);
                 pPlugin->add_port(pg);
                 vPluginPorts.add(pg);
 
@@ -323,7 +324,7 @@ namespace lsp
                         else if (IS_LOWERING_PORT(cm))
                             cm->start    = cm->max - ((cm->max - cm->min) * row) / float(pg->rows());
 
-                        LV2Port *p          = create_port(cm, postfix_buf);
+                        LV2Port *p          = create_port(cm, postfix_buf, true);
                         if ((p != NULL) && (p->metadata()->role != R_PORT_SET))
                         {
                             vPluginPorts.add(p);
@@ -341,12 +342,12 @@ namespace lsp
                 if (IS_OUT_PORT(p))
                     result      = new LV2OutputPort(p, pExt);
                 else
-                    result      = new LV2InputPort(p, pExt);
+                    result      = new LV2InputPort(p, pExt, virt);
                 break;
 
             case R_BYPASS:
                 if (IS_OUT_PORT(p))
-                    result      = new LV2Port(p, pExt);
+                    result      = new LV2Port(p, pExt, false);
                 else
                     result      = new LV2BypassPort(p, pExt);
                 break;
@@ -367,7 +368,7 @@ namespace lsp
         for (const port_t *port = meta; port->id != NULL; ++port)
         {
             // Create port
-            LV2Port *p = create_port(port, NULL);
+            LV2Port *p = create_port(port, NULL, false);
             if (p == NULL)
                 continue;
 
@@ -418,6 +419,21 @@ namespace lsp
 
                 default:
                     break;
+            }
+        }
+    }
+
+    bool LV2Wrapper::change_state_atomic(state_mode_t from, state_mode_t to)
+    {
+        // Perform atomic state change
+        while (true)
+        {
+            if (nStateMode != from)
+                return false;
+            if (atomic_cas(&nStateMode, from, to))
+            {
+                lsp_trace("#STATE state changed from %d to %d", int(from), int(to));
+                return true;
             }
         }
     }
@@ -758,9 +774,12 @@ namespace lsp
 
                 if ((key != NULL) && (value != NULL))
                 {
-                    LV2Port *p = find_by_urid(vPluginPorts, body->value.type);
+                    LV2Port *p = find_by_urid(vPluginPorts, key->body);
                     if ((p != NULL) && (p->get_type_urid() == value->type))
+                    {
+                        lsp_trace("forwarding patch message to port %s", p->metadata()->id);
                         p->deserialize(value, 0); // No flags for simple PATCH message
+                    }
 
                     key     = NULL;
                     value   = NULL;
@@ -1081,14 +1100,13 @@ namespace lsp
         LV2_Atom_Forge_Frame    frame;
         pExt->forge_sequence_head(&seq, 0);
 
-        // Transmit state change atom
-        if (nStateMode == SM_CHANGED)
+        // Transmit state change atom if state has been changed
+        if (change_state_atomic(SM_CHANGED, SM_REPORTED))
         {
-            lsp_trace("STATE MODE = %d", nStateMode);
+            pExt->forge_frame_time(0); // Event header
             pExt->forge_object(&frame, pExt->uridBlank, pExt->uridStateChanged);
             pExt->forge_pop(&frame);
-            nStateMode      = SM_REPORTED;
-            lsp_trace("STATE MODE = %d", nStateMode);
+            lsp_trace("#STATE MODE = %d", nStateMode);
         }
 
         // For each MIDI port, serialize it's data
@@ -1407,6 +1425,7 @@ namespace lsp
         // Pre-rocess regular ports
         size_t n_all_ports      = vAllPorts.size();
         LV2Port **v_all_ports   = vAllPorts.get_array();
+        size_t smode            = nStateMode;
         for (size_t i=0; i<n_all_ports; ++i)
         {
             // Get port
@@ -1419,8 +1438,14 @@ namespace lsp
             {
                 lsp_trace("port changed: %s, value=%f", port->metadata()->id, port->getValue());
                 bUpdateSettings = true;
+                if ((smode != SM_LOADING) && (port->is_virtual()))
+                    change_state_atomic(SM_SYNC, SM_CHANGED);
             }
         }
+
+        // Commit state
+        if (smode == SM_LOADING)
+            change_state_atomic(SM_LOADING, SM_SYNC);
 
         // Check that input parameters have changed
         if (bUpdateSettings)
@@ -1505,6 +1530,10 @@ namespace lsp
         const LV2_Feature *const * features)
     {
         pExt->init_state_context(store, NULL, handle, flags, features);
+
+        // Mark state as synchronized
+        nStateMode      = SM_SYNC;
+        lsp_trace("#STATE MODE = %d", nStateMode);
 
         // Save state of all ports
         size_t ports_count = vAllPorts.size();
@@ -1729,8 +1758,6 @@ namespace lsp
             sKVTMutex.unlock();
         }
 
-        nStateMode = SM_SYNC;
-        lsp_trace("STATE MODE = %d", nStateMode);
         pExt->reset_state_context();
         pPlugin->state_saved();
     }
@@ -1931,10 +1958,11 @@ namespace lsp
             sKVTMutex.unlock();
         }
 
-        nStateMode = SM_SYNC;
-        lsp_trace("STATE MODE = %d", nStateMode);
         pExt->reset_state_context();
         pPlugin->state_loaded();
+
+        nStateMode = SM_LOADING;
+        lsp_trace("#STATE MODE = %d", nStateMode);
     }
 
     inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)

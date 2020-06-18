@@ -658,20 +658,10 @@ namespace lsp
                 set_string(reinterpret_cast<const char *>(buffer), size);
 
                 // Try to perform direct access to the port using LV2:Instance interface
-                lv2_path_t *path    = (pPort != NULL) ? static_cast<lv2_path_t *>(pPort->getBuffer()) : NULL;
-                if (path != NULL)
-                {
-                    lsp_trace("Directly writing path port id=%s, path=%s (%d)",
-                            pPort->metadata()->id, static_cast<const char *>(buffer), int(size));
-                    path->submit(static_cast<const char *>(buffer), size, flags);
-                    return;
-                }
-
-                // Write data using atom port
-                if ((nID >= 0) && (flags == 0))
-                    pExt->ui_write_patch(this);
-                else
-                    pExt->ui_write_state(this, flags);
+                lsp_trace("writing patch event id=%s, path=%s (%d)",
+                        pMetadata->id, static_cast<const char *>(buffer), int(size)
+                );
+                pExt->ui_write_patch(this);
             }
 
             virtual void write(const void* buffer, size_t size)
