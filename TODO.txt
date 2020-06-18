@@ -28,6 +28,7 @@
 === 1.1.24 ===
 
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
+* VST plugins now provide possibility to save and load presets and do not crash Ardour.
 - Added support of lv2:StateChanged extension.
 
 *******************************************************************************

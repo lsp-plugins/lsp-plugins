@@ -403,7 +403,7 @@ enum AEffectOpcodes
     effIdentify,
 
     /** Get program chunk
-     *  If your plug-in is configured to use chunks (see AudioEffect::programsAreChunks),
+     *  If your plug-in is configured to use chunks (see effFlagsProgramChunks),
      *  the Host will ask for a block of memory describing the current plug-in state for saving.
      *  To restore the state at a later stage, the same data is passed back by effSetChunk.
      *  Alternatively, when not using chunk, the Host will simply save all parameter values.
