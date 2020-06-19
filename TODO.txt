@@ -28,6 +28,7 @@
 === 1.1.24 ===
 
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
+* Updated metadata for dynamic processors to better match the UI.
 
 *******************************************************************************
 * New plugin check list before release

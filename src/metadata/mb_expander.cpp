@@ -150,9 +150,9 @@ namespace lsp
         SWITCH("ee" id, "Expander enable" label, 1.0f), \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
-        LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, mb_expander_base_metadata::ATTACK_LVL), \
+        LOG_CONTROL("al" id, "Attack threshold" label, U_GAIN_AMP, mb_expander_base_metadata::ATTACK_LVL), \
         LOG_CONTROL("at" id, "Attack time" label, U_MSEC, mb_expander_base_metadata::ATTACK_TIME), \
-        LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, mb_expander_base_metadata::RELEASE_LVL), \
+        LOG_CONTROL("rrl" id, "Release threshold" label, U_GAIN_AMP, mb_expander_base_metadata::RELEASE_LVL), \
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, mb_expander_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("er" id, "Ratio" label, U_NONE, mb_expander_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_expander_base_metadata::KNEE), \

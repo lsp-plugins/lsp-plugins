@@ -110,9 +110,9 @@ namespace lsp
 
     #define COMP_CHANNEL(id, label, modes) \
         COMBO("cm" id, "Compression mode" label, compressor_base_metadata::CM_DEFAULT, modes), \
-        LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, compressor_base_metadata::ATTACK_LVL), \
+        LOG_CONTROL("al" id, "Attack threshold" label, U_GAIN_AMP, compressor_base_metadata::ATTACK_LVL), \
         LOG_CONTROL("at" id, "Attack time" label, U_MSEC, compressor_base_metadata::ATTACK_TIME), \
-        LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, compressor_base_metadata::RELEASE_LVL), \
+        LOG_CONTROL("rrl" id, "Release threshold" label, U_GAIN_AMP, compressor_base_metadata::RELEASE_LVL), \
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, compressor_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("cr" id, "Ratio" label, U_NONE, compressor_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, compressor_base_metadata::KNEE), \
