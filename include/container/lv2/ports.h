@@ -58,8 +58,9 @@ namespace lsp
 
             /** Deserialize state of the port from LV2 Atom
              * @param flags additional flags
+             * @return true if internal state of the port has changed
              */
-            virtual void deserialize(const void *data, size_t flags)  { };
+            virtual bool deserialize(const void *data, size_t flags)  { return false; };
 
             /** Get type of the LV2 port in terms of Atom
              *
@@ -148,11 +149,16 @@ namespace lsp
                 pExt->forge_int(nCurrRow);
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Int *atom = reinterpret_cast<const LV2_Atom_Int *>(data);
-                if ((atom->body >= 0) && (atom->body < int32_t(nRows)))
+                if ((atom->body >= 0) && (atom->body < int32_t(nRows)) && (nCurrRow != atom->body))
+                {
                     nCurrRow        = atom->body;
+                    return true;
+                }
+
+                return false;
             }
 
             virtual void save()
@@ -327,10 +333,14 @@ namespace lsp
                     fValue      = limit_value(pMetadata, *(reinterpret_cast<const float *>(data)));
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
+                if (fValue == atom->body)
+                    return false;
+
                 fValue      = atom->body;
+                return true;
             }
 
             virtual void serialize()
@@ -384,10 +394,15 @@ namespace lsp
                     fValue      = limit_value(pMetadata, pMetadata->max - *(reinterpret_cast<const float *>(data)));
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
-                fValue      = pMetadata->max - atom->body;
+                float v = pMetadata->max - atom->body;
+                if (fValue == v)
+                    return false;
+
+                fValue      = v;
+                return true;
             }
     };
 
@@ -738,12 +753,14 @@ namespace lsp
                 reset_tx_pending();
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom *atom = static_cast<const LV2_Atom *>(data);
                 if (atom->type != pExt->uridPathType)
-                    return;
+                    return false;
+
                 set_string(reinterpret_cast<const char *>(atom + 1), atom->size, flags);
+                return true;
             }
 
             virtual LV2_URID get_type_urid()    { return pExt->uridPathType; }

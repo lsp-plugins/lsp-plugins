@@ -80,14 +80,8 @@ namespace lsp
                 if ((new_value >= 0) && (new_value < nRows) && (new_value != nCurrRow))
                 {
                     nCurrRow        = new_value;
-                    if (pPort != NULL)
-                    {
-                        lsp_trace("Directly writing group port id=%s, value=%d",
-                            pPort->metadata()->id, int(nCurrRow));
-                        pPort->setValue(nCurrRow);
-                    }
-                    else if (urid > 0)
-                        pExt->ui_write_state(this);
+                    lsp_trace("writing patch event id=%s, value=%d", pMetadata->id, int(new_value));
+                    pExt->ui_write_patch(this);
                 }
             }
 
@@ -150,14 +144,8 @@ namespace lsp
                 }
                 else
                 {
-                    if (pPort != NULL)
-                    {
-                        lsp_trace("Directly writing float port id=%s, value=%f",
-                            pPort->metadata()->id, fValue);
-                        pPort->setValue(fValue);
-                    }
-                    else if (urid > 0)
-                        pExt->ui_write_state(this);
+                    lsp_trace("writing patch event id=%s, value=%f", pMetadata->id, fValue);
+                    pExt->ui_write_patch(this);
                 }
             }
 
@@ -222,14 +210,8 @@ namespace lsp
                 }
                 else
                 {
-                    if (pPort != NULL)
-                    {
-                        lsp_trace("Directly writing float port id=%s, value=%f",
-                            pPort->metadata()->id, fValue);
-                        pPort->setValue(fValue);
-                    }
-                    else if (urid > 0)
-                        pExt->ui_write_state(this);
+                    lsp_trace("writing patch event id=%s, value=%f", pMetadata->id, fValue);
+                    pExt->ui_write_patch(this);
                 }
             }
 

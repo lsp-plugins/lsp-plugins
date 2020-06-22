@@ -264,7 +264,7 @@ namespace lsp
                 uridObject                  = forge.Object;
                 uridBlank                   = map_uri(LV2_ATOM__Blank);
                 uridState                   = map_primitive("state");
-                uridStateChanged            = map_primitive(LV2_STATE__StateChanged);
+                uridStateChanged            = map_uri(LV2_STATE__StateChanged);
                 uridConnectUI               = map_primitive("ui_connect");
                 uridUINotification          = map_type("UINotification");
                 uridDisconnectUI            = map_primitive("ui_disconnect");
@@ -718,7 +718,7 @@ namespace lsp
                 write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
             }
 
-            inline bool ui_write_patch(LV2Serializable *p)
+            bool ui_write_patch(LV2Serializable *p)
             {
                 if ((map == NULL) || (p->get_urid() <= 0))
                     return false;
@@ -732,30 +732,6 @@ namespace lsp
                 forge_key(uridPatchProperty);
                 forge_urid(p->get_urid());
                 forge_key(uridPatchValue);
-                p->serialize();
-                forge_pop(&frame);
-
-                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
-                return true;
-            }
-
-            inline bool ui_write_state(LV2Serializable *p, size_t flags = 0)
-            {
-                if ((map == NULL) || (p->get_urid() <= 0))
-                    return false;
-
-                // Forge PATCH SET message
-                LV2_Atom_Forge_Frame    frame;
-                forge_set_buffer(pBuffer, nBufSize);
-
-                forge_frame_time(0);
-                LV2_Atom *msg = forge_object(&frame, uridState, uridStateChange);
-                if (flags != 0)
-                {
-                    forge_key(uridStateFlags);
-                    forge_int(int(flags));
-                }
-                forge_key(p->get_urid());
                 p->serialize();
                 forge_pop(&frame);
 

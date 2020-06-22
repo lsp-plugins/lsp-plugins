@@ -778,7 +778,12 @@ namespace lsp
                     if ((p != NULL) && (p->get_type_urid() == value->type))
                     {
                         lsp_trace("forwarding patch message to port %s", p->metadata()->id);
-                        p->deserialize(value, 0); // No flags for simple PATCH message
+                        if (p->deserialize(value, 0)) // No flags for simple PATCH message
+                        {
+                            // Change state if it is a virtual port
+                            if (p->is_virtual())
+                                state_changed();
+                        }
                     }
 
                     key     = NULL;
