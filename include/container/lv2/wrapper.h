@@ -702,31 +702,32 @@ namespace lsp
 //        lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
 //        lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
 
-        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
-        {
-            lsp_trace("triggered state change");
-            size_t flags = 0;
-
-            for (
-                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-                body = lv2_atom_object_next(body)
-            )
-            {
-                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-                if ((body->key == pExt->uridStateFlags) && (body->value.type == pExt->forge.Int))
-                    flags = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
-                else
-                {
-                    // Try to find the corresponding port
-                    LV2Port *p = find_by_urid(vPluginPorts, body->key);
-                    if ((p != NULL) && (p->get_type_urid() == body->value.type))
-                        p->deserialize(&body->value, flags);
-                }
-            }
-        }
-        else if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
+//        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
+//        {
+//            lsp_trace("triggered state change");
+//            size_t flags = 0;
+//
+//            for (
+//                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+//                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+//                body = lv2_atom_object_next(body)
+//            )
+//            {
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+//                if ((body->key == pExt->uridStateFlags) && (body->value.type == pExt->forge.Int))
+//                    flags = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
+//                else
+//                {
+//                    // Try to find the corresponding port
+//                    LV2Port *p = find_by_urid(vPluginPorts, body->key);
+//                    if ((p != NULL) && (p->get_type_urid() == body->value.type))
+//                        p->deserialize(&body->value, flags);
+//                }
+//            }
+//        }
+//        else
+        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
         {
             lsp_trace("triggered state request");
             nStateReqs  ++;
@@ -1135,32 +1136,32 @@ namespace lsp
         // Transmit KVT state
         transmit_kvt_events();
 
-        // Serialize paths that are visible in global space
-        size_t n_ports      = vExtPorts.size();
-        for (size_t i=0; i<n_ports; ++i)
-        {
-            // Get port
-            LV2Port *p = vExtPorts.at(i);
-            if ((p == NULL) || (p->metadata()->role != R_PATH))
-                continue;
-            else if (p->get_id() < 0) // Non-global paths are serialized via STATE CHANGE primitive
-                continue;
-
-            // Check that we need to transmit the value
-            if ((!patch_req) && (!p->tx_pending()))
-                continue;
-
-            // Serialize path as patch
-            lsp_trace("Serialize path id=%s, bytes_out=%d", p->metadata()->id, int(bytes_out));
-            pExt->forge_frame_time(0); // Event header
-            LV2_Atom *msg = pExt->forge_object(&frame, pExt->uridPatchMessage, pExt->uridPatchSet);
-            pExt->forge_key(pExt->uridPatchProperty);
-            pExt->forge_urid(p->get_urid());
-            pExt->forge_key(pExt->uridPatchValue);
-            p->serialize();
-            pExt->forge_pop(&frame);
-            bytes_out   += lv2_atom_total_size(msg);
-        }
+//        // Serialize paths that are visible in global space
+//        size_t n_ports      = vExtPorts.size();
+//        for (size_t i=0; i<n_ports; ++i)
+//        {
+//            // Get port
+//            LV2Port *p = vExtPorts.at(i);
+//            if ((p == NULL) || (p->metadata()->role != R_PATH))
+//                continue;
+//            else if (p->get_id() < 0) // Non-global paths are serialized via STATE CHANGE primitive
+//                continue;
+//
+//            // Check that we need to transmit the value
+//            if ((!patch_req) && (!p->tx_pending()))
+//                continue;
+//
+//            // Serialize path as patch
+//            lsp_trace("Serialize path id=%s, bytes_out=%d", p->metadata()->id, int(bytes_out));
+//            pExt->forge_frame_time(0); // Event header
+//            LV2_Atom *msg = pExt->forge_object(&frame, pExt->uridPatchMessage, pExt->uridPatchSet);
+//            pExt->forge_key(pExt->uridPatchProperty);
+//            pExt->forge_urid(p->get_urid());
+//            pExt->forge_key(pExt->uridPatchValue);
+//            p->serialize();
+//            pExt->forge_pop(&frame);
+//            bytes_out   += lv2_atom_total_size(msg);
+//        }
 
         // Allow transport only when there is at least one UI connected
         if (nClients > 0)
@@ -1196,12 +1197,11 @@ namespace lsp
             pExt->forge_pop(&frame);
 
             // Initialize byte counter
-            n_ports             = vPluginPorts.size();
             bytes_out           = 0;
             msg                 = NULL;
 
             // Serialize pending for transmission ports
-            for (size_t i=0; i<n_ports; ++i)
+            for (size_t i=0, n = vPluginPorts.size(); i<n; ++i)
             {
                 // Get port
                 LV2Port *p = vPluginPorts[i];
@@ -1213,43 +1213,66 @@ namespace lsp
                 {
                     case R_AUDIO:
                     case R_MIDI:
+                    case R_OSC:
                     case R_UI_SYNC:
                     case R_MESH:
                     case R_FBUFFER:
                         continue;
                     case R_PATH:
-                        if (p->get_id() >= 0) // Skip global PATH ports
-                            continue;
-                        break;
+                        if (p->tx_pending()) // Tranmission request pending?
+                            break;
+                        if (state_req) // State request pending?
+                            break;
+                        if ((p->get_id() >= 0) && (patch_req)) // Global port and patch request pending?
+                            break;
+                        continue;
                     default:
-                        break;
+                        if (p->tx_pending()) // Transmission request pending?
+                            break;
+                        if (state_req) // State request pending?
+                            break;
+                        continue;
                 }
 
                 // Check that we need to transmit the value
                 if ((!state_req) && (!p->tx_pending()))
                     continue;
 
-                // Serialize value of the port
-                lsp_trace("Serialize port id=%s, bytes_out=%d", p->metadata()->id, int(bytes_out));
+                // Create patch message containing valule of the port
+                lsp_trace("Serialize port id=%s, value=%f, bytes_out=%d", p->metadata()->id, p->getValue(), int(bytes_out));
 
-                // Emit object header (if needed)
-                if (msg == NULL)
-                {
-                    pExt->forge_frame_time(0);
-                    msg         = pExt->forge_object(&frame, pExt->uridState, pExt->uridStateChange);
-                }
-
-                pExt->forge_key(p->get_urid());
+                pExt->forge_frame_time(0);
+                LV2_Atom *msg = pExt->forge_object(&frame, pExt->uridPatchMessage, pExt->uridPatchSet);
+                pExt->forge_key(pExt->uridPatchProperty);
+                pExt->forge_urid(p->get_urid());
+                pExt->forge_key(pExt->uridPatchValue);
                 p->serialize();
-                bytes_out       = lv2_atom_total_size(msg);
+                pExt->forge_pop(&frame);
 
-                // Emit object tail (if needed)
-                if (bytes_out >= 0x1000)
-                {
-                    pExt->forge_pop(&frame);
-                    msg         = NULL;
-                    bytes_out   = 0;
-                }
+                // Increment number of bytes transferred
+                bytes_out      += lv2_atom_total_size(msg);
+
+//                pExt->forge_frame_time(0);
+//                pExt->forge_
+//
+//                // Emit object header (if needed)
+//                if (msg == NULL)
+//                {
+//                    pExt->forge_frame_time(0);
+//                    msg         = pExt->forge_object(&frame, pExt->uridState, pExt->uridStateChange);
+//                }
+//
+//                pExt->forge_key(p->get_urid());
+//                p->serialize();
+//                bytes_out       = lv2_atom_total_size(msg);
+//
+//                // Emit object tail (if needed)
+//                if (bytes_out >= 0x1000)
+//                {
+//                    pExt->forge_pop(&frame);
+//                    msg         = NULL;
+//                    bytes_out   = 0;
+//                }
             }
 
             // Emit object tail (if needed)
@@ -1257,8 +1280,7 @@ namespace lsp
                 pExt->forge_pop(&frame);
 
             // Serialize meshes (it's own primitive MESH)
-            n_ports         = vMeshPorts.size();
-            for (size_t i=0; i<n_ports; ++i)
+            for (size_t i=0, n=vMeshPorts.size(); i<n; ++i)
             {
                 LV2Port *p = vMeshPorts[i];
                 if (p == NULL)
@@ -1281,8 +1303,7 @@ namespace lsp
             }
 
             // Serialize frame buffers (it's own primitive FRAMEBUFFER)
-            n_ports         = vFrameBufferPorts.size();
-            for (size_t i=0; i<n_ports; ++i)
+            for (size_t i=0, n=vFrameBufferPorts.size(); i<n; ++i)
             {
                 LV2Port *p = vFrameBufferPorts[i];
                 if ((p == NULL) || (!p->tx_pending()))

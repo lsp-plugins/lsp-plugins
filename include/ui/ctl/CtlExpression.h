@@ -71,17 +71,17 @@ namespace lsp
                 void            init(CtlRegistry *ctl, CtlPortListener *listener);
                 void            destroy();
 
-                inline calc::Parameters *params()   { return &sParams; };
+                inline calc::Parameters *params()               { return &sParams; };
 
                 float           evaluate();
                 float           evaluate(size_t idx);
-                inline size_t   results()               { return sExpr.results(); }
+                inline size_t   results()                       { return sExpr.results(); }
                 float           result(size_t idx);
                 bool            parse(const char *expr, size_t flags = calc::Expression::FLAG_NONE);
                 bool            parse(const LSPString *expr, size_t flags = calc::Expression::FLAG_NONE);
                 bool            parse(io::IInSequence *expr, size_t flags = calc::Expression::FLAG_NONE);
-                inline bool     valid() const               { return sExpr.valid(); };
-                inline bool     depends(CtlPort *port) const { return vDependencies.index_of(port) >= 0; }
+                inline bool     valid() const                   { return sExpr.valid(); };
+                inline bool     depends(CtlPort *port) const    { return vDependencies.index_of(port) >= 0; }
 
                 #ifdef LSP_TRACE
                 inline const char *text() const         { return sText.get_utf8(); }
