@@ -1136,33 +1136,6 @@ namespace lsp
         // Transmit KVT state
         transmit_kvt_events();
 
-//        // Serialize paths that are visible in global space
-//        size_t n_ports      = vExtPorts.size();
-//        for (size_t i=0; i<n_ports; ++i)
-//        {
-//            // Get port
-//            LV2Port *p = vExtPorts.at(i);
-//            if ((p == NULL) || (p->metadata()->role != R_PATH))
-//                continue;
-//            else if (p->get_id() < 0) // Non-global paths are serialized via STATE CHANGE primitive
-//                continue;
-//
-//            // Check that we need to transmit the value
-//            if ((!patch_req) && (!p->tx_pending()))
-//                continue;
-//
-//            // Serialize path as patch
-//            lsp_trace("Serialize path id=%s, bytes_out=%d", p->metadata()->id, int(bytes_out));
-//            pExt->forge_frame_time(0); // Event header
-//            LV2_Atom *msg = pExt->forge_object(&frame, pExt->uridPatchMessage, pExt->uridPatchSet);
-//            pExt->forge_key(pExt->uridPatchProperty);
-//            pExt->forge_urid(p->get_urid());
-//            pExt->forge_key(pExt->uridPatchValue);
-//            p->serialize();
-//            pExt->forge_pop(&frame);
-//            bytes_out   += lv2_atom_total_size(msg);
-//        }
-
         // Allow transport only when there is at least one UI connected
         if (nClients > 0)
         {
@@ -1251,28 +1224,6 @@ namespace lsp
 
                 // Increment number of bytes transferred
                 bytes_out      += lv2_atom_total_size(msg);
-
-//                pExt->forge_frame_time(0);
-//                pExt->forge_
-//
-//                // Emit object header (if needed)
-//                if (msg == NULL)
-//                {
-//                    pExt->forge_frame_time(0);
-//                    msg         = pExt->forge_object(&frame, pExt->uridState, pExt->uridStateChange);
-//                }
-//
-//                pExt->forge_key(p->get_urid());
-//                p->serialize();
-//                bytes_out       = lv2_atom_total_size(msg);
-//
-//                // Emit object tail (if needed)
-//                if (bytes_out >= 0x1000)
-//                {
-//                    pExt->forge_pop(&frame);
-//                    msg         = NULL;
-//                    bytes_out   = 0;
-//                }
             }
 
             // Emit object tail (if needed)

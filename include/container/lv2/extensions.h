@@ -113,8 +113,6 @@ namespace lsp
             LV2_URID                uridBlank;
             LV2_URID                uridState;
             LV2_URID                uridStateChanged;
-            LV2_URID                uridStateChange;
-            LV2_URID                uridStateFlags;
             LV2_URID                uridStateRequest;
             LV2_URID                uridConnectUI;
             LV2_URID                uridUINotification;
@@ -269,8 +267,6 @@ namespace lsp
                 uridUINotification          = map_type("UINotification");
                 uridDisconnectUI            = map_primitive("ui_disconnect");
                 uridStateRequest            = map_type("StateRequest");
-                uridStateChange             = map_type("StateChange");
-                uridStateFlags              = map_type("StateFlags");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
                 uridKvtObject               = map_primitive("KVT");
