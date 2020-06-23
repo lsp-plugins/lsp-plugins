@@ -111,12 +111,10 @@ namespace lsp
             LV2_URID                uridEventTransfer;
             LV2_URID                uridObject;
             LV2_URID                uridBlank;
-            LV2_URID                uridState;
-            LV2_URID                uridStateChange;
-            LV2_URID                uridStateFlags;
+            LV2_URID                uridStateChanged;
             LV2_URID                uridStateRequest;
-            LV2_URID                uridConnectUI;
             LV2_URID                uridUINotification;
+            LV2_URID                uridConnectUI;
             LV2_URID                uridDisconnectUI;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
@@ -135,7 +133,6 @@ namespace lsp
             LV2_URID                uridPatchGet;
             LV2_URID                uridPatchSet;
             LV2_URID                uridPatchMessage;
-            LV2_URID                uridPatchResponse;
             LV2_URID                uridPatchProperty;
             LV2_URID                uridPatchValue;
 
@@ -230,8 +227,10 @@ namespace lsp
                             ui_resize = reinterpret_cast<LV2UI_Resize *>(f->data);
                         else if (!strcmp(f->URI, LV2_INLINEDISPLAY__queue_draw))
                             iDisplay = reinterpret_cast<LV2_Inline_Display *>(f->data);
+                    #if LSP_LV2_NO_INSTANCE_ACCESS != 1
                         else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
                             pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
+                    #endif
                         else if (!strcmp(f->URI, LV2_OPTIONS__options))
                         {
                             lsp_trace("Received options from host");
@@ -260,13 +259,10 @@ namespace lsp
                 uridEventTransfer           = map_uri(LV2_ATOM__eventTransfer);
                 uridObject                  = forge.Object;
                 uridBlank                   = map_uri(LV2_ATOM__Blank);
-                uridState                   = map_primitive("state");
-                uridConnectUI               = map_primitive("ui_connect");
+                uridStateChanged            = map_uri(LV2_STATE__StateChanged);
                 uridUINotification          = map_type("UINotification");
+                uridConnectUI               = map_primitive("ui_connect");
                 uridDisconnectUI            = map_primitive("ui_disconnect");
-                uridStateRequest            = map_type("StateRequest");
-                uridStateChange             = map_type("StateChange");
-                uridStateFlags              = map_type("StateFlags");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
                 uridKvtObject               = map_primitive("KVT");
@@ -284,7 +280,6 @@ namespace lsp
                 uridPatchGet                = map_uri(LV2_PATCH__Get);
                 uridPatchSet                = map_uri(LV2_PATCH__Set);
                 uridPatchMessage            = map_uri(LV2_PATCH__Message);
-                uridPatchResponse           = map_uri(LV2_PATCH__Response);
                 uridPatchProperty           = map_uri(LV2_PATCH__property);
                 uridPatchValue              = map_uri(LV2_PATCH__value);
                 uridAtomUrid                = forge.URID;
@@ -680,19 +675,6 @@ namespace lsp
                 forge_pop(&frame);
                 write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
 
-                // Send PATCH GET message
-                lsp_trace("Sending PATCH GET message");
-                msg = forge_object(&frame, uridChunk, uridPatchGet);
-                forge_pop(&frame);
-                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
-
-                // Sent STATE REQUEST message
-                lsp_trace("Sending STATE REQUEST message");
-                msg = forge_object(&frame, uridState, uridStateRequest);
-                forge_pop(&frame);
-                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
-
-                lsp_trace("patch request has been written");
                 return true;
             }
 
@@ -714,7 +696,7 @@ namespace lsp
                 write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
             }
 
-            inline bool ui_write_patch(LV2Serializable *p)
+            bool ui_write_patch(LV2Serializable *p)
             {
                 if ((map == NULL) || (p->get_urid() <= 0))
                     return false;
@@ -728,30 +710,6 @@ namespace lsp
                 forge_key(uridPatchProperty);
                 forge_urid(p->get_urid());
                 forge_key(uridPatchValue);
-                p->serialize();
-                forge_pop(&frame);
-
-                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
-                return true;
-            }
-
-            inline bool ui_write_state(LV2Serializable *p, size_t flags = 0)
-            {
-                if ((map == NULL) || (p->get_urid() <= 0))
-                    return false;
-
-                // Forge PATCH SET message
-                LV2_Atom_Forge_Frame    frame;
-                forge_set_buffer(pBuffer, nBufSize);
-
-                forge_frame_time(0);
-                LV2_Atom *msg = forge_object(&frame, uridState, uridStateChange);
-                if (flags != 0)
-                {
-                    forge_key(uridStateFlags);
-                    forge_int(int(flags));
-                }
-                forge_key(p->get_urid());
                 p->serialize();
                 forge_pop(&frame);
 
@@ -835,7 +793,6 @@ namespace lsp
     } LV2Mesh;
 
     #define PATCH_OVERHEAD  (sizeof(LV2_Atom_Property) + sizeof(LV2_Atom_URID) + sizeof(LV2_Atom) + 0x20)
-    #define STATE_OVERHEAD  (sizeof(LV2_Atom_Object) + sizeof(LV2_Atom_Property) + sizeof(LV2_Atom_Float) + 0x20)
 
     inline long lv2_all_port_sizes(const port_t *ports, bool in, bool out)
     {
@@ -855,7 +812,7 @@ namespace lsp
             {
                 case R_CONTROL:
                 case R_METER:
-                    size            += STATE_OVERHEAD + sizeof(LV2_Atom_Float);
+                    size            += PATCH_OVERHEAD + sizeof(LV2_Atom_Float);
                     break;
                 case R_MESH:
                     if (IS_OUT_PORT(p) && (!out))

@@ -17,13 +17,15 @@ namespace lsp
             LV2Extensions          *pExt;
             LV2_URID                urid;
             ssize_t                 nID;
+            bool                    bVirtual;
 
         public:
-            explicit LV2Port(const port_t *meta, LV2Extensions *ext): IPort(meta)
+            explicit LV2Port(const port_t *meta, LV2Extensions *ext, bool virt): IPort(meta)
             {
                 pExt            =   ext;
                 urid            =   (meta != NULL) ? pExt->map_port(meta->id) : -1;
                 nID             =   -1;
+                bVirtual        =   virt;
             }
             virtual ~LV2Port()
             {
@@ -56,8 +58,9 @@ namespace lsp
 
             /** Deserialize state of the port from LV2 Atom
              * @param flags additional flags
+             * @return true if internal state of the port has changed
              */
-            virtual void deserialize(const void *data, size_t flags)  { };
+            virtual bool deserialize(const void *data, size_t flags)  { return false; };
 
             /** Get type of the LV2 port in terms of Atom
              *
@@ -99,6 +102,12 @@ namespace lsp
              * @param id port ID
              */
             inline void             set_id(size_t id)   { nID = id;     }
+
+            /**
+             * Check that port is virtual
+             * @return true if port is virtual (non controlled by DAW and stored in PLUGIN STATE)
+             */
+            inline bool            is_virtual() const  { return bVirtual; }
     };
 
     class LV2PortGroup: public LV2Port
@@ -109,7 +118,7 @@ namespace lsp
             size_t                  nRows;
 
         public:
-            explicit LV2PortGroup(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2PortGroup(const port_t *meta, LV2Extensions *ext, bool virt) : LV2Port(meta, ext, virt)
             {
                 nCurrRow            = meta->start;
                 nCols               = port_list_size(meta->members);
@@ -140,11 +149,16 @@ namespace lsp
                 pExt->forge_int(nCurrRow);
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Int *atom = reinterpret_cast<const LV2_Atom_Int *>(data);
-                if ((atom->body >= 0) && (atom->body < int32_t(nRows)))
+                if ((atom->body >= 0) && (atom->body < int32_t(nRows)) && (nCurrRow != atom->body))
+                {
                     nCurrRow        = atom->body;
+                    return true;
+                }
+
+                return false;
             }
 
             virtual void save()
@@ -186,7 +200,7 @@ namespace lsp
             void       *pBuffer;
 
         public:
-            explicit LV2RawPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext), pBuffer(NULL) { }
+            explicit LV2RawPort(const port_t *meta, LV2Extensions *ext, bool virt) : LV2Port(meta, ext, virt), pBuffer(NULL) { }
             virtual ~LV2RawPort() { pBuffer = NULL; };
 
         public:
@@ -205,7 +219,7 @@ namespace lsp
             float      *pFrame;
 
         public:
-            explicit LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext)
+            explicit LV2AudioPort(const port_t *meta, LV2Extensions *ext) : LV2RawPort(meta, ext, false)
             {
                 pSanitized  = NULL;
                 pFrame      = NULL;
@@ -252,7 +266,7 @@ namespace lsp
             float           fPrev;
 
         public:
-            explicit LV2InputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2InputPort(const port_t *meta, LV2Extensions *ext, bool virt) : LV2Port(meta, ext, virt)
             {
                 pData       = NULL;
                 fValue      = meta->start;
@@ -319,10 +333,14 @@ namespace lsp
                     fValue      = limit_value(pMetadata, *(reinterpret_cast<const float *>(data)));
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
+                if (fValue == atom->body)
+                    return false;
+
                 fValue      = atom->body;
+                return true;
             }
 
             virtual void serialize()
@@ -341,7 +359,7 @@ namespace lsp
     class LV2BypassPort: public LV2InputPort
     {
         public:
-            explicit LV2BypassPort(const port_t *meta, LV2Extensions *ext) : LV2InputPort(meta, ext) { }
+            explicit LV2BypassPort(const port_t *meta, LV2Extensions *ext) : LV2InputPort(meta, ext, false) { }
 
             virtual ~LV2BypassPort() {}
 
@@ -376,10 +394,15 @@ namespace lsp
                     fValue      = limit_value(pMetadata, pMetadata->max - *(reinterpret_cast<const float *>(data)));
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
                 const LV2_Atom_Float *atom = reinterpret_cast<const LV2_Atom_Float *>(data);
-                fValue      = pMetadata->max - atom->body;
+                float v = pMetadata->max - atom->body;
+                if (fValue == v)
+                    return false;
+
+                fValue      = v;
+                return true;
             }
     };
 
@@ -391,7 +414,7 @@ namespace lsp
             float   fValue;
 
         public:
-            explicit LV2OutputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2OutputPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext, false)
             {
                 pData       = NULL;
                 fPrev       = meta->start;
@@ -476,7 +499,7 @@ namespace lsp
             LV2Mesh                 sMesh;
 
         public:
-            explicit LV2MeshPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2MeshPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext, false)
             {
                 sMesh.init(meta, ext);
             }
@@ -534,7 +557,7 @@ namespace lsp
             size_t              nRowID;
 
         public:
-            explicit LV2FrameBufferPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2FrameBufferPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext, false)
             {
                 sFB.init(meta->start, meta->step);
                 nRowID = 0;
@@ -610,7 +633,7 @@ namespace lsp
             }
 
         public:
-            explicit LV2PathPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2PathPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext, true)
             {
                 sPath.init();
                 nLastChange = sPath.nChanges;
@@ -730,12 +753,14 @@ namespace lsp
                 reset_tx_pending();
             }
 
-            virtual void deserialize(const void *data, size_t flags)
+            virtual bool deserialize(const void *data, size_t flags)
             {
-                const LV2_Atom *atom = reinterpret_cast<const LV2_Atom *>(data);
+                const LV2_Atom *atom = static_cast<const LV2_Atom *>(data);
                 if (atom->type != pExt->uridPathType)
-                    return;
+                    return false;
+
                 set_string(reinterpret_cast<const char *>(atom + 1), atom->size, flags);
+                return true;
             }
 
             virtual LV2_URID get_type_urid()    { return pExt->uridPathType; }
@@ -752,7 +777,7 @@ namespace lsp
             midi_t      sQueue;
 
         public:
-            explicit LV2MidiPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            explicit LV2MidiPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext, false)
             {
                 sQueue.clear();
             }
@@ -770,7 +795,7 @@ namespace lsp
             osc_buffer_t     *pFB;
 
         public:
-            explicit LV2OscPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext)
+            explicit LV2OscPort(const port_t *meta, LV2Extensions *ext) : LV2Port(meta, ext, false)
             {
                 pFB     = NULL;
             }

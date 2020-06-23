@@ -86,17 +86,23 @@ namespace lsp
                 return;
 
             bool on = false;
-            if (sActivity.valid())
+            if ((bActivitySet) && (sActivity.valid()))
             {
                 float value = sActivity.evaluate();
+                on = value >= 0.5f;
+            }
+            else if (pPort != NULL)
+            {
+                float value = pPort->get_value();
                 on = value >= 0.5f;
             }
             else
                 on = abs(fValue - fKey) <= CMP_TOLERANCE;
 
             // Update lighting
-            LSPLed *led = static_cast<LSPLed *>(pWidget);
-            led->set_on(on ^ bInvert);
+            LSPLed *led     = widget_cast<LSPLed>(pWidget);
+            if (led != NULL)
+                led->set_on(on ^ bInvert);
         }
 
         void CtlLed::notify(CtlPort *port)
@@ -112,18 +118,6 @@ namespace lsp
         void CtlLed::end()
         {
             CtlWidget::end();
-
-            if ((!bActivitySet) && (pPort != NULL))
-            {
-                char *str = NULL;
-                int n = asprintf(&str, ":%s ieq %d", pPort->id(), int(fKey));
-                if ((n >= 0) && (str != NULL))
-                {
-                    sActivity.parse(str);
-                    free(str);
-                }
-            }
-
             update_value();
         }
 
