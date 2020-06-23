@@ -37,6 +37,22 @@ namespace lsp
                 SM_LOADING      // State has been loaded but still not committed
             };
 
+            class LV2KVTListener: public KVTListener
+            {
+                private:
+                    LV2Wrapper *pWrapper;
+
+                public:
+                    explicit LV2KVTListener(LV2Wrapper *wrapper) { pWrapper = wrapper; }
+
+                public:
+                    virtual void created(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending);
+
+                    virtual void changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t pending);
+
+                    virtual void removed(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending);
+            };
+
         private:
             cvector<LV2Port>        vExtPorts;
             cvector<LV2Port>        vAllPorts;      // List of all created ports, for garbage collection
@@ -70,6 +86,7 @@ namespace lsp
 
             position_t              sPosition;
             KVTStorage              sKVT;
+            LV2KVTListener          sKVTListener;
             ipc::Mutex              sKVTMutex;
             KVTDispatcher          *pKVTDispatcher;
 
@@ -97,7 +114,8 @@ namespace lsp
             void clear_midi_ports();
 
         public:
-            inline explicit LV2Wrapper(plugin_t *plugin, LV2Extensions *ext)
+            inline explicit LV2Wrapper(plugin_t *plugin, LV2Extensions *ext):
+                sKVTListener(this)
             {
                 pPlugin         = plugin;
                 pExt            = ext;
@@ -423,6 +441,21 @@ namespace lsp
         }
     }
 
+    void LV2Wrapper::LV2KVTListener::created(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
+    {
+        pWrapper->state_changed();
+    }
+
+    void LV2Wrapper::LV2KVTListener::changed(KVTStorage *storage, const char *id, const kvt_param_t *oval, const kvt_param_t *nval, size_t pending)
+    {
+        pWrapper->state_changed();
+    }
+
+    void LV2Wrapper::LV2KVTListener::removed(KVTStorage *storage, const char *id, const kvt_param_t *param, size_t pending)
+    {
+        pWrapper->state_changed();
+    }
+
     bool LV2Wrapper::change_state_atomic(state_mode_t from, state_mode_t to)
     {
         // Perform atomic state change
@@ -471,6 +504,8 @@ namespace lsp
         lsp_trace("Plugin extensions=0x%x", int(m->extensions));
         if (m->extensions & E_KVT_SYNC)
         {
+            lsp_trace("Binding KVT listener");
+            sKVT.bind(&sKVTListener);
             lsp_trace("Creating KVT dispatcher thread...");
             pKVTDispatcher         = new KVTDispatcher(&sKVT, &sKVTMutex);
             lsp_trace("Starting KVT dispatcher thread...");
@@ -702,37 +737,7 @@ namespace lsp
 //        lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
 //        lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
 
-//        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
-//        {
-//            lsp_trace("triggered state change");
-//            size_t flags = 0;
-//
-//            for (
-//                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-//                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-//                body = lv2_atom_object_next(body)
-//            )
-//            {
-//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-//                if ((body->key == pExt->uridStateFlags) && (body->value.type == pExt->forge.Int))
-//                    flags = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
-//                else
-//                {
-//                    // Try to find the corresponding port
-//                    LV2Port *p = find_by_urid(vPluginPorts, body->key);
-//                    if ((p != NULL) && (p->get_type_urid() == body->value.type))
-//                        p->deserialize(&body->value, flags);
-//                }
-//            }
-//        }
-//        else
-        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
-        {
-            lsp_trace("triggered state request");
-            nStateReqs  ++;
-        }
-        else if (obj->body.otype == pExt->uridPatchGet) // PatchGet request
+        if (obj->body.otype == pExt->uridPatchGet) // PatchGet request
         {
             lsp_trace("triggered patch request");
             #ifdef LSP_TRACE
@@ -838,6 +843,7 @@ namespace lsp
         else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridConnectUI))
         {
             nClients    ++;
+            nStateReqs  ++;
             lsp_trace("UI has connected, current number of clients=%d", int(nClients));
             if (pKVTDispatcher != NULL)
                 pKVTDispatcher->connect_client();
@@ -1284,6 +1290,8 @@ namespace lsp
             pKVTDispatcher->cancel();
             pKVTDispatcher->join();
             delete pKVTDispatcher;
+
+            sKVT.unbind(&sKVTListener);
         }
 
 #ifndef LSP_NO_LV2_UI
