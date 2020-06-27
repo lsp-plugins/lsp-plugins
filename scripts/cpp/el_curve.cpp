@@ -160,16 +160,19 @@ void write_png(const char* file_name, png_data_t *data)
     png_write_end(pfd, NULL);
 }
 
-static const float HMARK[] = { 16.0f, 31.5f, 63.0f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f };
-static const float VMARK[] = { 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10 };
+static const float HMARK[]      = { 16.0f, 31.5f, 63.0f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f };
+static const float VMARK[]      = { 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10 };
+static const float PHONS[]      = { 100, 80, 60, 40, 20, 0 };
+static const uint32_t COLORS[]  = { 0xffa0a0, 0xff8080, 0xff6060, 0xff4040, 0xff2020, 0xff0000 };
 
 #define NHMARK      (sizeof(HMARK)/sizeof(float))
 #define NVMARK      (sizeof(VMARK)/sizeof(float))
+#define NPHONS      (sizeof(PHONS)/sizeof(float))
 
 void interpolate(float *v, size_t a, size_t b, float va, float vb)
 {
     float delta = (vb - va) / (b - a);
-    for (size_t i=a+1; i<b; ++i)
+    for (size_t i=a; i<=b; ++i)
         v[i] = va + (i-a) * delta;
 }
 
@@ -246,14 +249,85 @@ float *read_y_axis(png_data_t *data, size_t *ymin, size_t *ymax)
 
     printf("scan parameters: ymin=%d, ymax=%d\n", int(*ymin), int(*ymax));
 
+//    for (size_t y=0; y<data->height; ++y)
+//        printf("y[%d] = %f\n", int(y), y_axis[y]);
+
     return y_axis;
 }
+
+float read_value(const png_data_t *data, const float *y_axis, uint32_t color, ssize_t x, ssize_t y)
+{
+    uint32_t c;
+    float v = 0;
+    float w = 0;
+    float s = 0;
+    ssize_t xv = 0;
+    float k = 1.0f / (0xff - (color & 0xff));
+
+    for (ssize_t yy=y; yy >= 0; --yy)
+    {
+        c = get_pixel(data, x, yy);
+        if ((c == 0x000000) || (c == 0xffffff))
+            break;
+
+        xv = ((c & 0xff) - (color & 0xff));
+        s  = (1.0f - xv*k);
+        v += s * y_axis[yy];
+        w += s;
+    }
+
+    for (ssize_t yy=y+1; yy < ssize_t(data->height); ++yy)
+    {
+        c = get_pixel(data, x, yy);
+        if ((c == 0x000000) || (c == 0xffffff))
+            break;
+
+        xv = ((c & 0xff) - (color & 0xff));
+        s  = (1.0f - xv*k);
+        v += s * y_axis[yy];
+        w += s;
+    }
+
+    return v / w;
+}
+
+void read_phons(png_data_t *data, const float *y_axis, uint32_t color, float *out)
+{
+    for (size_t x=0; x<data->width; ++x)
+    {
+        for (size_t y=0; y<data->height; ++y)
+        {
+            uint32_t v = get_pixel(data, x, y);
+            if (v == color)
+            {
+                out[x] = read_value(data, y_axis, color, x, y);
+                printf("x = %d, v = %f\n", int(x), out[x]);
+                y = data->height; // Terminate the cycle
+            }
+        }
+    }
+};
 
 void process_image(png_data_t *data)
 {
     size_t xmin, xmax, ymin, ymax;
     float *x_axis = read_x_axis(data, &xmin, &xmax);
     float *y_axis = read_y_axis(data, &ymin, &ymax);
+
+    // Allocate phon tables
+    float *phons[NPHONS];
+    for (size_t i=0; i<NPHONS; ++i)
+    {
+        phons[i]        = static_cast<float *>(malloc(sizeof(float) * data->width));
+        for (size_t j=0; j<data->width; ++j)
+            phons[i][j]     = -1e+10f;
+
+        read_phons(data, y_axis, COLORS[i], phons[i]);
+    }
+
+    // Free phon tables
+    for (size_t i=0; i<NPHONS; ++i)
+        free(phons[i]);
 
     ::free(x_axis);
     ::free(y_axis);
