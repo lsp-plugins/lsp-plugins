@@ -48,6 +48,26 @@ void free_png(png_data_t *data)
     data->data  = NULL;
 }
 
+void alloc_png(png_data_t *data, size_t width, size_t height)
+{
+    // Initialize data
+    data->width         = width;
+    data->height        = height;
+    data->stride        = ((width + 1) * 3) & (~0x03);
+    data->color         = PNG_COLOR_TYPE_RGB;
+    data->depth         = 8;
+    data->passes        = 0;
+
+    // Allocate data and initialize
+    data->data          = static_cast<png_byte *>(malloc(data->stride * data->height));
+    data->rows          = static_cast<png_byte **>(malloc(sizeof(png_byte *) * data->height));
+    for (size_t i=0; i<data->height; ++i)
+        data->rows[i]       = &data->data[i * data->stride];
+
+//    ::bzero(data->data, data->stride * data->height);
+    ::memset(data->data, 0xff, data->stride * data->height);
+}
+
 uint32_t get_pixel(const png_data_t *data, ssize_t x, ssize_t y)
 {
     uint32_t c = 0;
@@ -69,6 +89,30 @@ uint32_t get_pixel(const png_data_t *data, ssize_t x, ssize_t y)
     }
 
     return c;
+}
+
+void put_pixel(png_data_t *data, ssize_t x, ssize_t y, uint32_t c)
+{
+    if ((x < 0) || (y < 0))
+        return;
+    if ((size_t(x) >= data->width) || (size_t(y) >= data->height))
+        return;
+
+    png_byte *row = data->rows[y];
+    if (data->color == PNG_COLOR_TYPE_RGB)
+    {
+        row    += x*3;
+        row[0]  = uint8_t(c >> 16);
+        row[1]  = uint8_t(c >> 8);
+        row[2]  = uint8_t(c);
+    }
+    else if (data->color == PNG_COLOR_TYPE_RGBA)
+    {
+        row    += x*4;
+        row[0]  = uint8_t(c >> 16);
+        row[1]  = uint8_t(c >> 8);
+        row[2]  = uint8_t(c);
+    }
 }
 
 void read_png(const char *file_name, png_data_t *data)
@@ -160,13 +204,18 @@ void write_png(const char* file_name, png_data_t *data)
     png_write_end(pfd, NULL);
 }
 
-static const float HMARK[]      = { 16.0f, 31.5f, 63.0f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f };
-static const float VMARK[]      = { 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10 };
+#define HMIN        16.0f
+#define HMAX        16000.0f
+#define VMIN        130.0f
+#define VMAX        -10.0f
+
+//static const float HMARK[]      = { 16.0f, 31.5f, 63.0f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f };
+//static const float VMARK[]      = { 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10 };
 static const float PHONS[]      = { 100, 80, 60, 40, 20, 0 };
 static const uint32_t COLORS[]  = { 0xffa0a0, 0xff8080, 0xff6060, 0xff4040, 0xff2020, 0xff0000 };
 
-#define NHMARK      (sizeof(HMARK)/sizeof(float))
-#define NVMARK      (sizeof(VMARK)/sizeof(float))
+//#define NHMARK      (sizeof(HMARK)/sizeof(float))
+//#define NVMARK      (sizeof(VMARK)/sizeof(float))
 #define NPHONS      (sizeof(PHONS)/sizeof(float))
 
 void interpolate(float *v, size_t a, size_t b, float va, float vb)
@@ -176,86 +225,54 @@ void interpolate(float *v, size_t a, size_t b, float va, float vb)
         v[i] = va + (i-a) * delta;
 }
 
-float *read_x_axis(const png_data_t *data, size_t *xmin, size_t *xmax)
+void read_x_axis(const png_data_t *data, size_t *xmin, size_t *xmax)
 {
-    ssize_t hmarks[NHMARK];
-
-    float *x_axis = static_cast<float *>(malloc(sizeof(float) * data->width));
-    for (size_t i=0; i<data->width; ++i)
-        x_axis[i]   = -1e+10f;
+    ssize_t x_min = -1;
+    ssize_t x_max = -1;
 
     ssize_t y  = data->height - 1;
-    size_t idx = 0;
     for (size_t x=0; x<data->width; ++x)
     {
         uint32_t rgb    = get_pixel(data, x, y);
 
         if (rgb == 0x00ff00)
         {
-            if (idx >= NHMARK)
-                die("Too many markers, must be %d");
-
-            printf("horizontal marker: x=%d, value=%f\n", int(x), HMARK[idx]);
-            hmarks[idx++]   = x;
+            if (x_min < 0)
+                x_min   = x;
+            x_max   = x;
         }
     }
+    *xmin   = x_min;
+    *xmax   = x_max;
 
-    if (idx != NHMARK)
-        die("Too few markers, must be %d", int(NHMARK));
-
-    // Perform interpolation
-    for (size_t i=1; i<NHMARK; ++i)
-        interpolate(x_axis, hmarks[i-1], hmarks[i], HMARK[i-1], HMARK[i]);
-    *xmin   = hmarks[0];
-    *xmax   = hmarks[NHMARK-1];
-
-    printf("scan parameters: xmin=%d, xmax=%d\n", int(*xmin), int(*xmax));
-
-    return x_axis;
+    printf("scan parameters: xmin=%d, xmax=%d\n", int(x_min), int(x_max));
 }
 
-float *read_y_axis(png_data_t *data, size_t *ymin, size_t *ymax)
+void read_y_axis(const png_data_t *data, size_t *ymin, size_t *ymax)
 {
-    ssize_t vmarks[NVMARK];
+    ssize_t y_min = -1;
+    ssize_t y_max = -1;
 
-    float *y_axis = static_cast<float *>(malloc(sizeof(float) * data->height));
-    for (size_t i=0; i<data->width; ++i)
-        y_axis[i]   = -1e+10f;
-
-    ssize_t x  = data->width - 1;
-    size_t idx = 0;
+    ssize_t x   = data->width - 1;
     for (size_t y=0; y<data->height; ++y)
     {
         uint32_t rgb    = get_pixel(data, x, y);
-
         if (rgb == 0x0000ff)
         {
-            if (idx >= NVMARK)
-                die("Too many markers, must be %d");
-
-            printf("vertical marker: y=%d, value=%f\n", int(y), VMARK[idx]);
-            vmarks[idx++]   = y;
+            if (y_min < 0)
+                y_min   = y;
+            y_max   = y;
         }
     }
 
-    if (idx != NVMARK)
-        die("Too few markers, must be %d", int(NVMARK));
-
     // Perform interpolation
-    for (size_t i=1; i<NVMARK; ++i)
-        interpolate(y_axis, vmarks[i-1], vmarks[i], VMARK[i-1], VMARK[i]);
-    *ymin   = vmarks[0];
-    *ymax   = vmarks[NVMARK-1];
+    *ymin   = y_min;
+    *ymax   = y_max;
 
-    printf("scan parameters: ymin=%d, ymax=%d\n", int(*ymin), int(*ymax));
-
-//    for (size_t y=0; y<data->height; ++y)
-//        printf("y[%d] = %f\n", int(y), y_axis[y]);
-
-    return y_axis;
+    printf("scan parameters: ymin=%d, ymax=%d\n", int(y_min), int(y_max));
 }
 
-float read_value(const png_data_t *data, const float *y_axis, uint32_t color, ssize_t x, ssize_t y)
+float read_value(const png_data_t *data, uint32_t color, ssize_t x, ssize_t y)
 {
     uint32_t c;
     float v = 0;
@@ -272,7 +289,7 @@ float read_value(const png_data_t *data, const float *y_axis, uint32_t color, ss
 
         xv = ((c & 0xff) - (color & 0xff));
         s  = (1.0f - xv*k);
-        v += s * y_axis[yy];
+        v += s * yy;
         w += s;
     }
 
@@ -284,23 +301,38 @@ float read_value(const png_data_t *data, const float *y_axis, uint32_t color, ss
 
         xv = ((c & 0xff) - (color & 0xff));
         s  = (1.0f - xv*k);
-        v += s * y_axis[yy];
+        v += s * yy;
         w += s;
     }
 
     return v / w;
 }
 
-void read_phons(png_data_t *data, const float *y_axis, uint32_t color, float *out)
+void draw_values(png_data_t *data, const float *values, uint32_t color, ssize_t ymin, ssize_t ymax)
 {
     for (size_t x=0; x<data->width; ++x)
     {
+        float y = values[x];
+        if (y < 0.0f)
+            continue;
+
+        put_pixel(data, x, y, color);
+        printf("x = %d, y = %d\n", int(x), int(y));
+    }
+}
+
+void read_values(png_data_t *data, uint32_t color, float *out)
+{
+    for (size_t x=0; x<data->width; ++x)
+    {
+        out[x] = -1.0f;
+
         for (size_t y=0; y<data->height; ++y)
         {
             uint32_t v = get_pixel(data, x, y);
             if (v == color)
             {
-                out[x] = read_value(data, y_axis, color, x, y);
+                out[x] = read_value(data, color, x, y);
                 printf("x = %d, v = %f\n", int(x), out[x]);
                 y = data->height; // Terminate the cycle
             }
@@ -308,42 +340,89 @@ void read_phons(png_data_t *data, const float *y_axis, uint32_t color, float *ou
     }
 };
 
-void process_image(png_data_t *data)
+void generate_relative_curves(png_data_t *data, const float * const *curves, size_t ncurves)
+{
+    size_t xmin = 0, xmax = data->width - 1;
+
+    for (size_t i=0; i<ncurves; ++i)
+    {
+        const float *c = curves[i];
+
+        // Find leftmost X
+        for (size_t x=0; x < data->width; ++x)
+        {
+            if (c[x] >= 0.0f)
+            {
+                xmin = (xmin < x) ? x : xmin;
+                break;
+            }
+        }
+
+        // Find rightmost X
+        for (size_t x=data->width - 1; x > 0; --x)
+        {
+            if (c[x] >= 0.0f)
+            {
+                xmax = (xmax > x) ? x : xmax;
+                break;
+            }
+        }
+    }
+
+    printf("xmin = %d, xmax = %d\n", int(xmin), int(xmax));
+
+    const float *flat = curves[1]; // We assume 80 phon curve to be flat
+    for (size_t i=0; i<ncurves; ++i)
+    {
+        const float *c = curves[i];
+
+        for (size_t x=xmin; x<=xmax; ++x)
+        {
+            float y = c[x] - flat[x] + 400.0f;
+            put_pixel(data, x, y, COLORS[i]);
+        }
+    }
+}
+
+void process_image(png_data_t *data, png_data_t *relative)
 {
     size_t xmin, xmax, ymin, ymax;
-    float *x_axis = read_x_axis(data, &xmin, &xmax);
-    float *y_axis = read_y_axis(data, &ymin, &ymax);
+    read_x_axis(data, &xmin, &xmax);
+    read_y_axis(data, &ymin, &ymax);
 
     // Allocate phon tables
     float *phons[NPHONS];
     for (size_t i=0; i<NPHONS; ++i)
     {
         phons[i]        = static_cast<float *>(malloc(sizeof(float) * data->width));
-        for (size_t j=0; j<data->width; ++j)
-            phons[i][j]     = -1e+10f;
-
-        read_phons(data, y_axis, COLORS[i], phons[i]);
+        read_values(data, COLORS[i], phons[i]);
+        draw_values(data, phons[i], 0x000000, ymin, ymax);
     }
+
+    generate_relative_curves(relative, phons, NPHONS);
 
     // Free phon tables
     for (size_t i=0; i<NPHONS; ++i)
         free(phons[i]);
-
-    ::free(x_axis);
-    ::free(y_axis);
 }
 
 int main(int argc, char **argv)
 {
-    if (argc != 4)
-        die("Arguments: <file_in.png> <table-out.cpp> <file_out.png>");
+    if (argc < 5)
+        die("Arguments: <file_in.png> <table-out.cpp> <check.png> <relative.png>");
 
-    png_data_t image;
+    png_data_t image, rel;
 
     read_png(argv[1], &image);
-    process_image(&image);
+    alloc_png(&rel, image.width, image.height);
+
+    process_image(&image, &rel);
+
     write_png(argv[3], &image);
+    write_png(argv[4], &rel);
+
     free_png(&image);
+    free_png(&rel);
 
     return 0;
 }
