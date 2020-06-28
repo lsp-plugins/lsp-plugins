@@ -14,11 +14,31 @@
 #define N_HOR_DIVISIONS     4
 #define N_VER_DIVISIONS     2
 #define VER_FULL_SCALE_AMP  1.0f
-#define SWEEP_GEN_N_BITS    64
+#define SWEEP_GEN_N_BITS    32
 #define SWEEP_GEN_PEAK      1.0f
 
 namespace lsp
 {
+    over_mode_t oscilloscope_base::get_oversampler_mode(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::OSC_OVS_NONE:
+                return OM_NONE;
+            case oscilloscope_base_metadata::OSC_OVS_2X:
+                return OM_LANCZOS_2X2;
+            case oscilloscope_base_metadata::OSC_OVS_3X:
+                return OM_LANCZOS_3X2;
+            case oscilloscope_base_metadata::OSC_OVS_4X:
+                return OM_LANCZOS_4X2;
+            case oscilloscope_base_metadata::OSC_OVS_6X:
+                return OM_LANCZOS_6X2;
+            case oscilloscope_base_metadata::OSC_OVS_8X:
+            default:
+                return OM_LANCZOS_8X2;
+        }
+    }
+
     oscilloscope_base::ch_mode_t oscilloscope_base::get_scope_mode(size_t portValue)
     {
         switch (portValue)
@@ -32,16 +52,18 @@ namespace lsp
         }
     }
 
-    oscilloscope_base::ch_output_mode_t oscilloscope_base::get_output_mode(size_t portValue)
+    oscilloscope_base::ch_sweep_type_t oscilloscope_base::get_sweep_type(size_t portValue)
     {
         switch (portValue)
         {
-            case oscilloscope_base_metadata::OUTPUT_MODE_MUTE:
-                return CH_OUTPUT_MODE_MUTE;
-            case oscilloscope_base_metadata::OUTPUT_MODE_COPY:
-                return CH_OUTPUT_MODE_COPY;
+            case oscilloscope_base_metadata::SWEEP_TYPE_SAWTOOTH:
+                return CH_SWEEP_TYPE_SAWTOOTH;
+            case oscilloscope_base_metadata::SWEEP_TYPE_TRIANGULAR:
+                return CH_SWEEP_TYPE_TRIANGULAR;
+            case oscilloscope_base_metadata::SWEEP_TYPE_SINE:
+                return CH_SWEEP_TYPE_SINE;
             default:
-                return CH_OUTPUT_MODE_DFL;
+                return CH_SWEEP_TYPE_DFL;
         }
     }
 
@@ -68,20 +90,6 @@ namespace lsp
                 return TRG_TYPE_SIMPLE_FALLING_EDGE;
             default:
                 return TRG_TYPE_NONE;
-        }
-    }
-
-    void oscilloscope_base::calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode)
-    {
-        switch (mode)
-        {
-            case CH_OUTPUT_MODE_MUTE:
-                dsp::fill_zero(dst, count);
-                break;
-            case CH_OUTPUT_MODE_COPY:
-            default:
-                dsp::copy(dst, src, count);
-                break;
         }
     }
 
@@ -125,14 +133,64 @@ namespace lsp
             over.update_settings();
     }
 
+    void oscilloscope_base::set_sweep_generator(channel_t *c)
+    {
+        c->sSweepGenerator.set_sample_rate(c->nOverSampleRate);
+        c->sSweepGenerator.set_frequency(c->nOverSampleRate / c->nSweepSize);
+
+        switch (c->enSweepType)
+        {
+            case CH_SWEEP_TYPE_TRIANGULAR:
+            {
+                c->sSweepGenerator.set_function(FG_SAWTOOTH);
+                c->sSweepGenerator.set_dc_reference(DC_WAVEDC);
+                c->sSweepGenerator.set_amplitude(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_dc_offset(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_width(0.5f);
+            }
+            break;
+
+            case CH_SWEEP_TYPE_SINE:
+            {
+                c->sSweepGenerator.set_function(FG_SINE);
+                c->sSweepGenerator.set_dc_reference(DC_WAVEDC);
+                c->sSweepGenerator.set_amplitude(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_dc_offset(0.5f * SWEEP_GEN_PEAK);
+            }
+            break;
+
+            case CH_SWEEP_TYPE_SAWTOOTH:
+            default:
+            {
+                c->sSweepGenerator.set_function(FG_SAWTOOTH);
+                c->sSweepGenerator.set_dc_reference(DC_WAVEDC);
+                c->sSweepGenerator.set_amplitude(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_dc_offset(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_width(1.0f);
+            }
+            break;
+        }
+
+        c->sSweepGenerator.update_settings();
+    }
+
+    void oscilloscope_base::configure_oversamplers(channel_t *c)
+    {
+        set_oversampler(c->sOversampler_x, c->enOverMode);
+        set_oversampler(c->sOversampler_y, c->enOverMode);
+        set_oversampler(c->sOversampler_ext, c->enOverMode);
+
+        // All are set the same way, use any to get these variables
+        c->nOversampling    = c->sOversampler_x.get_oversampling();
+        c->nOverSampleRate  = c->nOversampling * nSampleRate;
+    }
+
     oscilloscope_base::oscilloscope_base(const plugin_metadata_t &metadata, size_t channels): plugin_t(metadata)
     {
         nChannels           = channels;
         vChannels           = NULL;
 
         nSampleRate         = 0;
-
-        pBypass             = NULL;
 
         pData               = NULL;
     }
@@ -194,6 +252,10 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
+            c->enMode           = CH_MODE_DFL;
+            c->enSweepType      = CH_SWEEP_TYPE_DFL;
+            c->enTrgInput       = CH_TRG_INPUT_DFL;
+
             if (!c->sOversampler_x.init())
                 return;
 
@@ -207,19 +269,13 @@ namespace lsp
                 return;
 
             // Test settings for oversampler before proper implementation
-            c->enOverMode       = OM_NONE;
+            c->enOverMode = OM_LANCZOS_8X3;
+            configure_oversamplers(c);
 
-            set_oversampler(c->sOversampler_x, c->enOverMode);
-            set_oversampler(c->sOversampler_y, c->enOverMode);
-            set_oversampler(c->sOversampler_ext, c->enOverMode);
-
-            // All are set the same way, use any to get these variables
-            c->nOversampling    = c->sOversampler_x.get_oversampling();
-            c->nOverSampleRate  = c->nOversampling * nSampleRate;
-
+            // Settings for the Sweep Generator
             c->sSweepGenerator.init();
-            c->sSweepGenerator.set_bits(SWEEP_GEN_N_BITS);
-            c->sSweepGenerator.set_sweep_peak(SWEEP_GEN_PEAK);
+            c->sSweepGenerator.set_phase_accumulator_bits(SWEEP_GEN_N_BITS);
+            c->sSweepGenerator.set_phase(0.0f);
             c->sSweepGenerator.update_settings();
 
             c->vData_x          = ptr;
@@ -312,19 +368,21 @@ namespace lsp
 
         // Common
         lsp_trace("Binding common ports");
-        pBypass = vPorts[port_id++];
 
         // Channels
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pOvsMode = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pScpMode = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pOutMode = vPorts[port_id++];
+            vChannels[ch].pCoupling = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pCoupling = vPorts[port_id++];
+            vChannels[ch].pSweepType = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pHorDiv = vPorts[port_id++];
@@ -360,17 +418,14 @@ namespace lsp
 
     void oscilloscope_base::update_settings()
     {
-        bool bPassValue = pBypass->getValue() >= 0.5f;
-
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
 
-            c->sBypass.set_bypass(bPassValue);
+            c->enOverMode = get_oversampler_mode(c->pOvsMode->getValue());
+            configure_oversamplers(c);
 
             c->enMode = get_scope_mode(c->pScpMode->getValue());
-
-            c->enOutputMode = get_output_mode(c->pOutMode->getValue());
 
             c->enTrgInput = get_trigger_input(c->pTrgInput->getValue());
 
@@ -385,8 +440,8 @@ namespace lsp
 
             c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, horDiv);
             c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
-            c->sSweepGenerator.set_sweep_length(c->nSweepSize);
-            c->sSweepGenerator.update_settings();
+            c->enSweepType = get_sweep_type(c->pSweepType->getValue());
+            set_sweep_generator(c);
 
             c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
             c->sPreTrgDelay.set_delay(c->nPreTrigger);
@@ -408,15 +463,19 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-            c->sBypass.init(sr);
-
             c->sOversampler_x.set_sample_rate(sr);
+            c->sOversampler_x.update_settings();
+
             c->sOversampler_y.set_sample_rate(sr);
+            c->sOversampler_y.update_settings();
+
             c->sOversampler_ext.set_sample_rate(sr);
+            c->sOversampler_ext.update_settings();
 
             c->nOverSampleRate = c->nOversampling * nSampleRate;
 
             c->sSweepGenerator.set_sample_rate(sr);
+            c->sSweepGenerator.update_settings();
         }
     }
 
@@ -449,8 +508,8 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-            calculate_output(c->vOut_x, c->vIn_x, samples, c->enOutputMode);
-            calculate_output(c->vOut_y, c->vIn_y, samples, c->enOutputMode);
+            dsp::copy(c->vOut_x, c->vIn_x, samples);
+            dsp::copy(c->vOut_y, c->vIn_y, samples);
         }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
@@ -498,7 +557,8 @@ namespace lsp
                                 {
                                     if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
                                     {
-                                        c->sSweepGenerator.reset_sweep();
+                                        c->sSweepGenerator.reset_phase_accumulator();
+                                        c->nDataHead = n;
                                         c->enState = CH_STATE_SWEEPING;
                                     }
                                 }
@@ -506,8 +566,9 @@ namespace lsp
 
                                 case CH_STATE_SWEEPING:
                                 {
-                                    c->sSweepGenerator.sweep(&c->vDisplay_x[c->nDisplayHead], 1);
-                                    c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[n];
+                                    c->sSweepGenerator.process_overwrite(&c->vDisplay_x[c->nDisplayHead], 1);
+                                    c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[c->nDataHead]; // Problem Here: must copy the right samples in each call
+                                    ++c->nDataHead;
                                     ++c->nDisplayHead;
 
                                     if (c->nDisplayHead >= c->nSweepSize)
@@ -525,6 +586,7 @@ namespace lsp
                     break;
                 }
 
+                c->nDataHead         = 0;
                 c->vIn_x            += to_do;
                 c->vIn_y            += to_do;
                 c->vIn_ext          += to_do;

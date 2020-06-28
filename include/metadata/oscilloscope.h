@@ -34,6 +34,18 @@ namespace lsp
         static const float VERTICAL_POSITION_DFL = 0.0f;
         static const float VERTICAL_POSITION_STEP = 1.0f;
 
+        enum oversampler_mode_selector_t
+        {
+            OSC_OVS_NONE,
+            OSC_OVS_2X,
+            OSC_OVS_3X,
+            OSC_OVS_4X,
+            OSC_OVS_6X,
+            OSC_OVS_8X,
+
+            OSC_OVS_DFL = OSC_OVS_8X
+        };
+
         enum mode_selector_t
         {
             MODE_XY,
@@ -42,12 +54,13 @@ namespace lsp
             MODE_DFL = MODE_TRIGGERED
         };
 
-        enum output_mode_t
+        enum sweep_type_selector_t
         {
-            OUTPUT_MODE_MUTE,
-            OUTPUT_MODE_COPY,
+            SWEEP_TYPE_SAWTOOTH,
+            SWEEP_TYPE_TRIANGULAR,
+            SWEEP_TYPE_SINE,
 
-            OUTPUT_MODE_DFL = OUTPUT_MODE_COPY
+            SWEEP_TYPE_DFL = SWEEP_TYPE_SAWTOOTH
         };
 
         enum trigger_input_selector_t

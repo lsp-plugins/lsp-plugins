@@ -14,7 +14,7 @@
 #include <core/util/Delay.h>
 #include <core/util/Oversampler.h>
 #include <core/util/Trigger.h>
-#include <core/util/SweepGenerator.h>
+#include <core/util/Oscillator.h>
 
 namespace lsp
 {
@@ -30,12 +30,13 @@ namespace lsp
                 CH_MODE_DFL = CH_MODE_TRIGGERED
             };
 
-            enum ch_output_mode_t
+            enum ch_sweep_type_t
             {
-                CH_OUTPUT_MODE_MUTE,
-                CH_OUTPUT_MODE_COPY,
+                CH_SWEEP_TYPE_SAWTOOTH,
+                CH_SWEEP_TYPE_TRIANGULAR,
+                CH_SWEEP_TYPE_SINE,
 
-                CH_OUTPUT_MODE_DFL = CH_OUTPUT_MODE_COPY
+                CH_SWEEP_TYPE_DFL = CH_SWEEP_TYPE_SAWTOOTH
             };
 
             enum ch_trg_input_t
@@ -55,10 +56,8 @@ namespace lsp
             typedef struct channel_t
             {
                 ch_mode_t           enMode;
-                ch_output_mode_t    enOutputMode;
+                ch_sweep_type_t     enSweepType;
                 ch_trg_input_t      enTrgInput;
-
-                Bypass              sBypass;
 
                 over_mode_t         enOverMode;
                 size_t              nOversampling;
@@ -72,7 +71,7 @@ namespace lsp
 
                 Trigger             sTrigger;
 
-                SweepGenerator      sSweepGenerator;
+                Oscillator          sSweepGenerator;
 
                 float              *vData_x;
                 float              *vData_y;
@@ -81,6 +80,7 @@ namespace lsp
                 float              *vDisplay_x;
                 float              *vDisplay_y;
 
+                size_t              nDataHead;
                 size_t              nDisplayHead;
                 size_t              nSamplesCounter;
 
@@ -106,10 +106,11 @@ namespace lsp
                 IPort              *pOut_x;
                 IPort              *pOut_y;
 
+                IPort              *pOvsMode;
                 IPort              *pScpMode;
-                IPort              *pOutMode;
                 IPort              *pCoupling;
 
+                IPort              *pSweepType;
                 IPort              *pHorDiv;
                 IPort              *pHorPos;
 
@@ -131,20 +132,22 @@ namespace lsp
 
             size_t      nSampleRate;
 
-            IPort      *pBypass;
-
             uint8_t    *pData;
 
         protected:
+            over_mode_t get_oversampler_mode(size_t portValue);
             ch_mode_t get_scope_mode(size_t portValue);
-            ch_output_mode_t get_output_mode(size_t portValue);
+            ch_sweep_type_t get_sweep_type(size_t portValue);
             ch_trg_input_t get_trigger_input(size_t portValue);
             trg_type_t get_trigger_type(size_t portValue);
-            void calculate_output(float *dst, float *src, size_t count, ch_output_mode_t mode);
+
+        protected:
             bool fill_display_buffers(channel_t *c, float *xBuf, float *yBuf, size_t bufSize);
             void reset_display_buffers(channel_t *c);
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);
+            inline void set_sweep_generator(channel_t *c);
+            inline void configure_oversamplers(channel_t *c);
 
         public:
             oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);

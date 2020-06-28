@@ -13,6 +13,17 @@ namespace lsp
 {
     static const int osclilloscope_classes[] = { C_UTILITY, -1};
 
+    static const port_item_t ovs_mode[] =
+    {
+        {"None",    "oscilloscope.ovs_none"},
+        {"2X",      "oscilloscope.ovs_2x"},
+        {"3X",      "oscilloscope.ovs_3x"},
+        {"4X",      "oscilloscope.ovs_4x"},
+        {"6X",      "oscilloscope.ovs_6x"},
+        {"8X",      "oscilloscope.ovs_8x"},
+        {NULL,          NULL}
+    };
+
     static const port_item_t osc_mode[] =
     {
         {"XY",          "oscilloscope.mode_xy"},
@@ -20,11 +31,12 @@ namespace lsp
         {NULL,          NULL}
     };
 
-    static const port_item_t osc_output_mode[] =
+    static const port_item_t sweep_type[] =
     {
-        {"Mute",    "oscilloscope.output_mode_mute"},
-        {"Copy",    "oscilloscope.output_mode_copy"},
-        {NULL,      NULL}
+        {"Sawtooth",    "oscilloscope.sweeptype_sawtooth"},
+        {"Triangular",   "oscilloscope.sweeptype_triangular"},
+        {"Triangular",   "oscilloscope.sweeptype_sine"},
+        {NULL,          NULL}
     };
 
     static const port_item_t osc_trg_input[] =
@@ -64,11 +76,12 @@ namespace lsp
         AUDIO_OUTPUT("out_y" id, "Output y" label)
 
     #define OP_CONTROLS(id, label) \
+        COMBO("ovmo" id, "Oversampler Mode" label, oscilloscope_base_metadata::OSC_OVS_DFL, ovs_mode), \
         COMBO("scmo" id, "Mode" label, oscilloscope_base_metadata::MODE_DFL, osc_mode), \
-        COMBO("opmo" id, "Output Mode" label, oscilloscope_base_metadata::OUTPUT_MODE_DFL, osc_output_mode), \
         COMBO("sccp" id, "Coupling" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling)
 
     #define HOR_CONTROLS(id, label) \
+        COMBO("swtp" id, "Sweep Type" label, oscilloscope_base_metadata::SWEEP_TYPE_DFL, sweep_type), \
         CONTROL("hzdv" id, "Horizontal Division" label, U_SEC, oscilloscope_base_metadata::TIME_DIVISION), \
         CONTROL("hzps" id, "Horizontal Position" label, U_PERCENT, oscilloscope_base_metadata::TIME_POSITION)
 
@@ -82,9 +95,6 @@ namespace lsp
         COMBO("trmo" id, "Trigger Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
         COMBO("trtp" id, "Trigger Type" label, oscilloscope_base_metadata::TRIGGER_TYPE_DFL, osc_trg_type), \
         COMBO("trin" id, "Trigger Input" label, oscilloscope_base_metadata::TRIGGER_INPUT_DFL, osc_trg_input)
-
-    #define OSC_COMMON \
-        BYPASS
 
     #define CHANNEL_CONTROLS(id, label) \
         OP_CONTROLS(id, label), \
@@ -108,7 +118,6 @@ namespace lsp
     static const port_t oscilloscope_x1_ports[] =
     {
         AUDIO_PORTS_X1,
-        OSC_COMMON,
         CHANNEL_CONTROLS_X1,
         OSC_VISUALOUTS_X1,
         PORTS_END
@@ -117,7 +126,6 @@ namespace lsp
     static const port_t oscilloscope_x2_ports[] =
     {
         AUDIO_PORTS_X2,
-        OSC_COMMON,
         CHANNEL_CONTROLS_X2,
         OSC_VISUALOUTS_X2,
         PORTS_END
