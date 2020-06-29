@@ -14,6 +14,34 @@
 #include <stdint.h>
 #include <png.h>
 
+#define FMIN        16.0f
+#define FMAX        16000.0f
+#define SPL_MIN     -10.0f
+#define SPL_MAX     130.0f
+
+//static const float HMARK[]      = { 16.0f, 31.5f, 63.0f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f };
+//static const float VMARK[]      = { 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10 };
+static const float PHONS[]      = { 100, 80, 60, 40, 20, 0 };
+static const uint32_t COLORS[]  = { 0xffa0a0, 0xff8080, 0xff6060, 0xff4040, 0xff2020, 0xff0000 };
+static const uint32_t INT_COLORS[] =
+{
+    0xff9090,
+    0xff8888, 0xff8080,
+    0xff7878, 0xff7070,
+    0xff6868, 0xff6060,
+    0xff5858, 0xff5050,
+    0xff4848, 0xff4040,
+    0xff3838, 0xff3030,
+    0xff2828, 0xff2020,
+    0xff1818, 0xff1010,
+    0xff0808, 0xff0000,
+    0x000000
+};
+
+//#define NHMARK      (sizeof(HMARK)/sizeof(float))
+//#define NVMARK      (sizeof(VMARK)/sizeof(float))
+#define NPHONS      (sizeof(PHONS)/sizeof(float))
+
 #define die(fmt, ...) do_die("%s:%d " fmt, __FUNCTION__, __LINE__, ## __VA_ARGS__)
 
 void do_die(const char * s, ...)
@@ -37,6 +65,24 @@ typedef struct png_data_t
     png_byte      **rows;       // PNG image rows
     png_byte       *data;       // Overall data
 } png_data_t;
+
+typedef struct el_curves_t
+{
+    size_t          rx_min;     // Minimum range X value
+    size_t          rx_max;     // Maximum range X value
+    size_t          ry_min;     // Minimum range Y value
+    size_t          ry_max;     // Maximum range Y value
+    float           fmin;       // Minimum frequency
+    float           fmax;       // Maximum frequency
+    float           spl_min;    // Minimum SPL
+    float           spl_max;    // Maximum SPL
+
+    ssize_t         xmin;       // Minimum X value
+    ssize_t         xmax;       // Maximum X value
+    size_t          ncurves;    // Number of curves
+    size_t          width;      // Number of dots per curve
+    float         **curves;     // SPL curves for the same phon value
+} el_curves_t;
 
 void free_png(png_data_t *data)
 {
@@ -66,6 +112,34 @@ void alloc_png(png_data_t *data, size_t width, size_t height)
 
 //    ::bzero(data->data, data->stride * data->height);
     ::memset(data->data, 0xff, data->stride * data->height);
+}
+
+void alloc_curves(el_curves_t *c, size_t width, size_t count)
+{
+    c->rx_min       = 0;
+    c->rx_max       = 0;
+    c->ry_min       = 0;
+    c->ry_max       = 0;
+    c->fmin         = FMIN;
+    c->fmax         = FMAX;
+    c->spl_min      = SPL_MIN;
+    c->spl_max      = SPL_MAX;
+    c->ncurves      = count;
+    c->width        = width;
+    c->xmin         = -1;
+    c->xmax         = -1;
+
+    c->curves       = static_cast<float **>(malloc(sizeof(float *) * count));
+    for (size_t i=0; i<count; ++i)
+        c->curves[i]    = static_cast<float *>(malloc(sizeof(float) * c->width));
+}
+
+void free_curves(el_curves_t *c)
+{
+    for (size_t i=0; i<c->ncurves; ++i)
+        free(c->curves[i]);
+    free(c->curves);
+    c->curves       = NULL;
 }
 
 uint32_t get_pixel(const png_data_t *data, ssize_t x, ssize_t y)
@@ -204,20 +278,6 @@ void write_png(const char* file_name, png_data_t *data)
     png_write_end(pfd, NULL);
 }
 
-#define HMIN        16.0f
-#define HMAX        16000.0f
-#define VMIN        130.0f
-#define VMAX        -10.0f
-
-//static const float HMARK[]      = { 16.0f, 31.5f, 63.0f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f };
-//static const float VMARK[]      = { 130, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10 };
-static const float PHONS[]      = { 100, 80, 60, 40, 20, 0 };
-static const uint32_t COLORS[]  = { 0xffa0a0, 0xff8080, 0xff6060, 0xff4040, 0xff2020, 0xff0000 };
-
-//#define NHMARK      (sizeof(HMARK)/sizeof(float))
-//#define NVMARK      (sizeof(VMARK)/sizeof(float))
-#define NPHONS      (sizeof(PHONS)/sizeof(float))
-
 void interpolate(float *v, size_t a, size_t b, float va, float vb)
 {
     float delta = (vb - va) / (b - a);
@@ -308,9 +368,9 @@ float read_value(const png_data_t *data, uint32_t color, ssize_t x, ssize_t y)
     return v / w;
 }
 
-void draw_values(png_data_t *data, const float *values, uint32_t color, ssize_t ymin, ssize_t ymax)
+void draw_values(png_data_t *data, const float *values, uint32_t color, size_t xmin, size_t xmax)
 {
-    for (size_t x=0; x<data->width; ++x)
+    for (size_t x=xmin; x<=xmax; ++x)
     {
         float y = values[x];
         if (y < 0.0f)
@@ -321,8 +381,11 @@ void draw_values(png_data_t *data, const float *values, uint32_t color, ssize_t 
     }
 }
 
-void read_values(png_data_t *data, uint32_t color, float *out)
+void read_values(png_data_t *data, uint32_t color, float *out, ssize_t *xmin, ssize_t *xmax)
 {
+    *xmin = -1;
+    *xmax = -1;
+
     for (size_t x=0; x<data->width; ++x)
     {
         out[x] = -1.0f;
@@ -334,76 +397,175 @@ void read_values(png_data_t *data, uint32_t color, float *out)
             {
                 out[x] = read_value(data, color, x, y);
                 printf("x = %d, v = %f\n", int(x), out[x]);
+
+                if (*xmin < 0)
+                    *xmin = x;
+                *xmax = x;
+
                 y = data->height; // Terminate the cycle
             }
         }
     }
 };
 
-void generate_relative_curves(png_data_t *data, const float * const *curves, size_t ncurves)
+void draw_relative_curves(png_data_t *data, el_curves_t *c, size_t iflat, const uint32_t *colors)
 {
-    size_t xmin = 0, xmax = data->width - 1;
+    printf("xmin = %d, xmax = %d\n", int(c->xmin), int(c->xmax));
 
-    for (size_t i=0; i<ncurves; ++i)
+    const float *flat = c->curves[iflat]; // We assume 80 phon curve to be flat
+    for (size_t i=0; i<c->ncurves; ++i)
     {
-        const float *c = curves[i];
+        const float *xc = c->curves[i];
+        uint32_t cc = (colors != NULL) ? colors[i] : 0;
 
-        // Find leftmost X
-        for (size_t x=0; x < data->width; ++x)
+        for (ssize_t x=c->xmin; x<=c->xmax; ++x)
         {
-            if (c[x] >= 0.0f)
-            {
-                xmin = (xmin < x) ? x : xmin;
-                break;
-            }
-        }
-
-        // Find rightmost X
-        for (size_t x=data->width - 1; x > 0; --x)
-        {
-            if (c[x] >= 0.0f)
-            {
-                xmax = (xmax > x) ? x : xmax;
-                break;
-            }
-        }
-    }
-
-    printf("xmin = %d, xmax = %d\n", int(xmin), int(xmax));
-
-    const float *flat = curves[1]; // We assume 80 phon curve to be flat
-    for (size_t i=0; i<ncurves; ++i)
-    {
-        const float *c = curves[i];
-
-        for (size_t x=xmin; x<=xmax; ++x)
-        {
-            float y = c[x] - flat[x] + 400.0f;
-            put_pixel(data, x, y, COLORS[i]);
+            float y = xc[x] - flat[x] + 400.0f;
+            put_pixel(data, x, y, cc);
         }
     }
 }
 
-void process_image(png_data_t *data, png_data_t *relative)
+void parse_image(png_data_t *data, el_curves_t *curves)
 {
-    size_t xmin, xmax, ymin, ymax;
-    read_x_axis(data, &xmin, &xmax);
-    read_y_axis(data, &ymin, &ymax);
+    alloc_curves(curves, data->width, NPHONS);
+
+    read_x_axis(data, &curves->rx_min, &curves->rx_max);
+    read_y_axis(data, &curves->ry_min, &curves->ry_max);
 
     // Allocate phon tables
-    float *phons[NPHONS];
-    for (size_t i=0; i<NPHONS; ++i)
+    for (size_t i=0; i<curves->ncurves; ++i)
     {
-        phons[i]        = static_cast<float *>(malloc(sizeof(float) * data->width));
-        read_values(data, COLORS[i], phons[i]);
-        draw_values(data, phons[i], 0x000000, ymin, ymax);
+        ssize_t x_min, x_max;
+        float *curve    = curves->curves[i];
+
+        // Read curve values
+        read_values(data, COLORS[i], curve, &x_min, &x_max);
+
+        // Find common boundaries for all curves
+        if ((curves->xmin < 0) || (curves->xmin < x_min))
+            curves->xmin = x_min;
+        if ((curves->xmax < 0) || (curves->xmax > x_max))
+            curves->xmax = x_max;
+
+        // Put parsed dots to the drawing
+        draw_values(data, curve, 0x000000, curves->rx_min, curves->rx_max);
+    }
+}
+
+void cubic_interpolate(float *y, const float *ya, const float *yb, float x, float xa, float xb, size_t count)
+{
+    float t;
+//    float xmin, xmax;
+
+    // Swap A and B if ax > bx
+    if (xa > xb)
+    {
+        const float *tmp = ya;
+        ya          = yb;
+        yb          = tmp;
+
+        t           = xa;
+        xa          = xb;
+        xb          = t;
     }
 
-    generate_relative_curves(relative, phons, NPHONS);
+//    // Compute dy
+//    float eq[4];
+//
+//    if (x < xa)
+//    {
+//        xmin        = x;
+//        xmax        = xb;
+//
+//        double ka   = (xa - x) / (xb - x);
+//        double v    = ka*ka*(3.0 - 2.0*ka) - 1.0;
+//
+//        eq[0]       = 2.0 / v;
+//        eq[1]       = -1.5 * eq[0];
+//        eq[2]       = 0.0f;
+//        eq[3]       = 1.0 - (eq[0] + eq[1]);
+//    }
+//    else if (x > xb)
+//    {
+//        xmin        = xa;
+//        xmax        = x;
+//
+//        double kb   = (xb - xa) / (x - xa);
+//        double v    = kb*kb*(2.0*kb - 3.0);
+//
+//        eq[0]       = 2.0 / v;
+//        eq[1]       = -1.5 * eq[0];
+//        eq[2]       = 0.0f;
+//        eq[3]       = 0.0f;
+//    }
+//    else
+//    {
+//        xmin        = xa;
+//        xmax        = xb;
+//
+//        eq[0]       = -2.0f;
+//        eq[1]       = 3.0f;
+//        eq[2]       = 0.0f;
+//        eq[3]       = 0.0f;
+//    }
+//
+//    float xn    = (x - xmin) / (xmax - xmin);   // Normalized value
+//    float k2    = eq[3] + xn*(eq[2] + xn*(eq[1] + xn*eq[0]));
+//    float k1    = 1.0f - k2;
 
-    // Free phon tables
-    for (size_t i=0; i<NPHONS; ++i)
-        free(phons[i]);
+    float k2 = (x - xa) / (xb - xa);
+    float k1 = 1 - k2;
+
+//    printf("y(x) = %f + x*(%f + x*(%f + %f*x))\n", eq[3], eq[2], eq[1], eq[0]);
+    printf("k1 = %f, k2 = %f\n", k1, k2);
+
+    // Perform cubic interpolation
+    for (size_t i=0; i<count; ++i)
+    {
+        y[i] = ya[i] * k1 + yb[i] * k2;
+    }
+}
+
+void build_interpolated_curves(el_curves_t *d, const el_curves_t *s)
+{
+    // We have 100 (invalid), 80, 60, 40, 20 and 0 phons curves
+    // We need: 83, 90, 80, 70, 60, 50, 40, 30, 20, 10 and 0 phons curves
+    alloc_curves(d, s->width, 20);
+    d->rx_min       = s->rx_min;
+    d->rx_max       = s->rx_max;
+    d->ry_min       = s->ry_min;
+    d->ry_max       = s->ry_max;
+    d->fmin         = s->fmin;
+    d->fmax         = s->fmax;
+    d->spl_min      = 0.0f;
+    d->spl_max      = 90.0f;
+    d->xmin         = s->xmin;
+    d->xmax         = s->xmax;
+
+    // Generate 90 to 0 phon curves
+    size_t i=0;
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 90, 80, 60, s->width); // 90
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 85, 80, 60, s->width); // 85
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 80, 80, 60, s->width); // 80
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 75, 80, 60, s->width); // 75
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 70, 80, 60, s->width); // 70
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 65, 80, 60, s->width); // 65
+    cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 60, 60, 40, s->width); // 60
+    cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 55, 60, 40, s->width); // 55
+    cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 50, 60, 40, s->width); // 50
+    cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 45, 60, 40, s->width); // 45
+    cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 40, 40, 20, s->width); // 40
+    cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 35, 40, 20, s->width); // 35
+    cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 30, 40, 20, s->width); // 30
+    cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 25, 40, 20, s->width); // 25
+    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5], 20, 20,  0, s->width); // 20
+    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5], 15, 20,  0, s->width); // 15
+    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5], 10, 20,  0, s->width); // 10
+    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5],  5, 20,  0, s->width); // 5
+    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5],  0, 20,  0, s->width); // 0
+
+    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 83, 80, 60, s->width); // 83
 }
 
 int main(int argc, char **argv)
@@ -412,15 +574,30 @@ int main(int argc, char **argv)
         die("Arguments: <file_in.png> <table-out.cpp> <check.png> <relative.png>");
 
     png_data_t image, rel;
+    el_curves_t curves;
+    el_curves_t table;
 
+    // Read PNG image and preprocess curve data
     read_png(argv[1], &image);
-    alloc_png(&rel, image.width, image.height);
-
-    process_image(&image, &rel);
-
+    parse_image(&image, &curves);
     write_png(argv[3], &image);
-    write_png(argv[4], &rel);
 
+    // Allocate PNG image and emit processed data to it
+    alloc_png(&rel, image.width, image.height);
+//    draw_relative_curves(&rel, &curves, 1, COLORS);
+
+    build_interpolated_curves(&table, &curves);
+    draw_relative_curves(&rel, &table, 19, INT_COLORS);
+
+    write_png(argv[4], &rel);
+//
+//    bicubic_interpolate(NULL, NULL, NULL, 60.0f, 40.0f, 80.0f);
+//    bicubic_interpolate(NULL, NULL, NULL, 40.0f, 50.0f, 80.0f);
+//    bicubic_interpolate(NULL, NULL, NULL, 80.0f, 40.0f, 70.0f);
+
+    // Free data
+    free_curves(&curves);
+    free_curves(&table);
     free_png(&image);
     free_png(&rel);
 
