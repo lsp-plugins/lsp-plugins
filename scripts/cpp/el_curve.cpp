@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <math.h>
 #include <png.h>
 
 #define FMIN        16.0f
@@ -26,15 +27,15 @@ static const uint32_t COLORS[]  = { 0xffa0a0, 0xff8080, 0xff6060, 0xff4040, 0xff
 static const uint32_t INT_COLORS[] =
 {
     0xff9090,
-    0xff8888, 0xff8080,
-    0xff7878, 0xff7070,
-    0xff6868, 0xff6060,
-    0xff5858, 0xff5050,
-    0xff4848, 0xff4040,
-    0xff3838, 0xff3030,
-    0xff2828, 0xff2020,
-    0xff1818, 0xff1010,
-    0xff0808, 0xff0000,
+    0xff8080,
+    0xff7070,
+    0xff6060,
+    0xff5050,
+    0xff4040,
+    0xff3030,
+    0xff2020,
+    0xff1010,
+    0xff0000,
     0x000000
 };
 
@@ -530,7 +531,7 @@ void cubic_interpolate(float *y, const float *ya, const float *yb, float x, floa
 void build_interpolated_curves(el_curves_t *d, const el_curves_t *s)
 {
     // We have 100 (invalid), 80, 60, 40, 20 and 0 phons curves
-    // We need: 83, 90, 80, 70, 60, 50, 40, 30, 20, 10 and 0 phons curves
+    // We need: 90, 80, 70, 60, 50, 40, 30, 20, 10, 0 and 83 phons curves
     alloc_curves(d, s->width, 20);
     d->rx_min       = s->rx_min;
     d->rx_max       = s->rx_max;
@@ -538,40 +539,105 @@ void build_interpolated_curves(el_curves_t *d, const el_curves_t *s)
     d->ry_max       = s->ry_max;
     d->fmin         = s->fmin;
     d->fmax         = s->fmax;
-    d->spl_min      = 0.0f;
-    d->spl_max      = 90.0f;
+    d->spl_min      = s->spl_min;
+    d->spl_max      = s->spl_max;
     d->xmin         = s->xmin;
     d->xmax         = s->xmax;
 
     // Generate 90 to 0 phon curves
     size_t i=0;
     cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 90, 80, 60, s->width); // 90
-    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 85, 80, 60, s->width); // 85
     cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 80, 80, 60, s->width); // 80
-    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 75, 80, 60, s->width); // 75
     cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 70, 80, 60, s->width); // 70
-    cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 65, 80, 60, s->width); // 65
     cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 60, 60, 40, s->width); // 60
-    cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 55, 60, 40, s->width); // 55
     cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 50, 60, 40, s->width); // 50
-    cubic_interpolate(d->curves[i++], s->curves[2], s->curves[3], 45, 60, 40, s->width); // 45
     cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 40, 40, 20, s->width); // 40
-    cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 35, 40, 20, s->width); // 35
     cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 30, 40, 20, s->width); // 30
-    cubic_interpolate(d->curves[i++], s->curves[3], s->curves[4], 25, 40, 20, s->width); // 25
     cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5], 20, 20,  0, s->width); // 20
-    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5], 15, 20,  0, s->width); // 15
     cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5], 10, 20,  0, s->width); // 10
-    cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5],  5, 20,  0, s->width); // 5
     cubic_interpolate(d->curves[i++], s->curves[4], s->curves[5],  0, 20,  0, s->width); // 0
 
     cubic_interpolate(d->curves[i++], s->curves[1], s->curves[2], 83, 80, 60, s->width); // 83
 }
 
+double logfx(float x, const el_curves_t *s)
+{
+    float step = (x - s->rx_min) / (s->rx_max - s->rx_min);
+
+    return s->fmin * exp(log(s->fmax/s->fmin) * step);
+}
+
+double linfx(float y, const el_curves_t *s)
+{
+    float step = (y - s->ry_min) / (s->ry_max - s->ry_min);
+    return s->spl_max + (s->spl_min - s->spl_max) * step;
+}
+
+void write_curves(const char *out, const char *prefix, const el_curves_t *s, size_t count)
+{
+    FILE *fd = fopen(out, "w");
+
+    double fmin  = logfx(s->xmin, s);
+    double fmax  = logfx(s->xmax, s);
+
+    const float *flat = s->curves[count];
+
+    // Output curves
+    for (size_t i=0; i<count; ++i)
+    {
+        size_t phons = i*10;
+
+        fprintf(fd, "static const float %s_curve_%d_phons[%d] =\n", prefix, int(phons), int(s->xmax - s->xmin));
+        fprintf(fd, "{\n    ");
+
+        const float *curve = s->curves[count - i -1];
+
+        for (ssize_t x=s->xmin; x<=s->xmax; ++x)
+        {
+            float fy = linfx(flat[x], s);
+            float y  = linfx(curve[x], s);
+
+            fprintf(fd, "%.2f", y - fy);
+            if (x < s->xmax)
+                fprintf(fd, ",");
+
+            if ((x % 10) == 9)
+                fprintf(fd, "\n    ");
+            else
+                fprintf(fd, " ");
+        }
+
+        fprintf(fd, "\n};\n\n");
+    }
+
+    fprintf(fd, "static const freq_curve_t %s_curve =\n", prefix);
+    fprintf(fd, "{\n");
+    fprintf(fd, "    %.2f, // fmin\n", fmin);
+    fprintf(fd, "    %.2f, // fmax\n", fmax);
+    fprintf(fd, "    %.2f, // amin\n", 0.0f);
+    fprintf(fd, "    %.2f, // amax\n", 90.0f);
+    fprintf(fd, "    %d, // hdots\n",  int(s->xmax - s->xmin));
+    fprintf(fd, "    %d, // curves\n", int(count));
+    fprintf(fd, "    { // curve data\n");
+    for (size_t i=0; i<count; ++i)
+    {
+        size_t phons = i*10;
+        fprintf(fd, "        %s_curve_%d_phons", prefix, int(phons));
+        if ((i+1) < count)
+            fprintf(fd, ",\n");
+        else
+            fprintf(fd, "\n");
+    }
+    fprintf(fd, "    }\n");
+    fprintf(fd, "};\n");
+
+    fclose(fd);
+}
+
 int main(int argc, char **argv)
 {
-    if (argc < 5)
-        die("Arguments: <file_in.png> <table-out.cpp> <check.png> <relative.png>");
+    if (argc < 6)
+        die("Arguments: <file_in.png> <prefix> <table-out.h> <check.png> <relative.png>");
 
     png_data_t image, rel;
     el_curves_t curves;
@@ -580,16 +646,18 @@ int main(int argc, char **argv)
     // Read PNG image and preprocess curve data
     read_png(argv[1], &image);
     parse_image(&image, &curves);
-    write_png(argv[3], &image);
+    write_png(argv[4], &image);
 
     // Allocate PNG image and emit processed data to it
     alloc_png(&rel, image.width, image.height);
 //    draw_relative_curves(&rel, &curves, 1, COLORS);
 
     build_interpolated_curves(&table, &curves);
-    draw_relative_curves(&rel, &table, 19, INT_COLORS);
+    draw_relative_curves(&rel, &table, 11, INT_COLORS);
 
-    write_png(argv[4], &rel);
+    write_curves(argv[3], argv[2], &table, 10);
+
+    write_png(argv[5], &rel);
 //
 //    bicubic_interpolate(NULL, NULL, NULL, 60.0f, 40.0f, 80.0f);
 //    bicubic_interpolate(NULL, NULL, NULL, 40.0f, 50.0f, 80.0f);
