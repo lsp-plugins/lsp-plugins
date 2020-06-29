@@ -532,7 +532,7 @@ void build_interpolated_curves(el_curves_t *d, const el_curves_t *s)
 {
     // We have 100 (invalid), 80, 60, 40, 20 and 0 phons curves
     // We need: 90, 80, 70, 60, 50, 40, 30, 20, 10, 0 and 83 phons curves
-    alloc_curves(d, s->width, 20);
+    alloc_curves(d, s->width, 11);
     d->rx_min       = s->rx_min;
     d->rx_max       = s->rx_max;
     d->ry_min       = s->ry_min;
@@ -587,7 +587,7 @@ void write_curves(const char *out, const char *prefix, const el_curves_t *s, siz
     {
         size_t phons = i*10;
 
-        fprintf(fd, "static const float %s_curve_%d_phons[%d] =\n", prefix, int(phons), int(s->xmax - s->xmin));
+        fprintf(fd, "static const float %s_curve_%d_phons[%d] =\n", prefix, int(phons), int(s->xmax - s->xmin + 1));
         fprintf(fd, "{\n    ");
 
         const float *curve = s->curves[count - i -1];
@@ -616,7 +616,7 @@ void write_curves(const char *out, const char *prefix, const el_curves_t *s, siz
     fprintf(fd, "    %.2f, // fmax\n", fmax);
     fprintf(fd, "    %.2f, // amin\n", 0.0f);
     fprintf(fd, "    %.2f, // amax\n", 90.0f);
-    fprintf(fd, "    %d, // hdots\n",  int(s->xmax - s->xmin));
+    fprintf(fd, "    %d, // hdots\n",  int(s->xmax - s->xmin + 1));
     fprintf(fd, "    %d, // curves\n", int(count));
     fprintf(fd, "    { // curve data\n");
     for (size_t i=0; i<count; ++i)
@@ -653,7 +653,7 @@ int main(int argc, char **argv)
 //    draw_relative_curves(&rel, &curves, 1, COLORS);
 
     build_interpolated_curves(&table, &curves);
-    draw_relative_curves(&rel, &table, 11, INT_COLORS);
+    draw_relative_curves(&rel, &table, 10, INT_COLORS);
 
     write_curves(argv[3], argv[2], &table, 10);
 
