@@ -26,12 +26,12 @@ namespace lsp
         static const size_t CURVE_MESH_SIZE     = 256;
     };
 
-    struct loud_comp_mono_metadata: public loud_comp_base_metadata
+    struct loud_comp_mono_metadata
     {
         static const plugin_metadata_t metadata;
     };
 
-    struct loud_comp_stereo_metadata: public loud_comp_base_metadata
+    struct loud_comp_stereo_metadata
     {
         static const plugin_metadata_t metadata;
     };

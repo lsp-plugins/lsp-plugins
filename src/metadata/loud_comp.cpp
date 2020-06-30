@@ -46,6 +46,7 @@ namespace lsp
     static const port_t loud_comp_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
+        BYPASS,
         LOUD_COMP_COMMON,
         METER_GAIN("ilm", "Input level meter", GAIN_AMP_P_24_DB),
         METER_GAIN("olm", "Output level meter", GAIN_AMP_P_24_DB),
@@ -55,6 +56,7 @@ namespace lsp
     static const port_t loud_comp_stereo_ports[] =
     {
         PORTS_STEREO_PLUGIN,
+        BYPASS,
         LOUD_COMP_COMMON,
         METER_GAIN("ilm_l", "Input level meter Left", GAIN_AMP_P_24_DB),
         METER_GAIN("ilm_r", "Input level meter Right", GAIN_AMP_P_24_DB),
@@ -68,7 +70,7 @@ namespace lsp
     {
         "Loudness Compensator Mono",
         "Lautstärke Kompensator Mono",
-        "LC1M",
+        "LK1M",
         &developers::v_sadovnikov,
         "loud_comp",
         "----",
@@ -86,7 +88,7 @@ namespace lsp
     {
         "Loudness Compensator Stereo",
         "Lautstärke Kompensator Stereo",
-        "LC1S",
+        "LK1S",
         &developers::v_sadovnikov,
         "loud_comp",
         "----",
