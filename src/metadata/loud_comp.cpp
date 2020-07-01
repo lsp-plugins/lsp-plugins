@@ -37,11 +37,11 @@ namespace lsp
     };
 
     #define LOUD_COMP_COMMON \
-        AMP_GAIN("gain", "Input gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
+        AMP_GAIN("input", "Input gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
         COMBO("std", "Loudness contour standard", loud_comp_base_metadata::STD_DFL, loud_comp_std), \
         COMBO("fft", "FFT size", loud_comp_base_metadata::FFT_RANK_IDX_DFL, loud_comp_fft_rank), \
         CONTROL("volume", "Output volume", U_DB, loud_comp_base_metadata::PHONS), \
-        MESH("graph", "Volume compensation graph", 2, loud_comp_base_metadata::CURVE_MESH_SIZE) \
+        MESH("spec", "Volume compensation frequency graph", 2, loud_comp_base_metadata::CURVE_MESH_SIZE) \
 
     static const port_t loud_comp_mono_ports[] =
     {
@@ -72,7 +72,7 @@ namespace lsp
         "Lautstärke Kompensator Mono",
         "LK1M",
         &developers::v_sadovnikov,
-        "loud_comp",
+        "loud_comp_mono",
         "----",
         LSP_LOUD_COMP_BASE + 0,
         LSP_VERSION(1, 0, 0),
@@ -90,7 +90,7 @@ namespace lsp
         "Lautstärke Kompensator Stereo",
         "LK1S",
         &developers::v_sadovnikov,
-        "loud_comp",
+        "loud_comp_stereo",
         "----",
         LSP_LOUD_COMP_BASE + 1,
         LSP_VERSION(1, 0, 0),

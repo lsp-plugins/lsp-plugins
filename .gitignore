@@ -20,6 +20,7 @@
 /design/
 /Debug AVX/
 /Release AVX/
+/INSTALL/*
 *.log
 /gmon.out
 **/*.gmon

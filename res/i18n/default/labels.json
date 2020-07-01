@@ -119,13 +119,15 @@
 		"side": "Side",
 		"side_on": "Side on",
 		"solo": "Solo",
-		"solo_hold": "Solo/Hold"
+		"solo_hold": "Solo/Hold",
+		"volume": "Volume"
 	},
 	"channel": "Channel",
 	"channels": "Channels",
 	
 	"clear": "Clear",
 	
+	"contour:": "Contour:",
 	"controls": "Controls",
 	"ctl": "Ctl",
 	

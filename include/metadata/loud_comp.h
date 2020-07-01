@@ -12,9 +12,9 @@ namespace lsp
 {
     struct loud_comp_base_metadata
     {
-        static const float PHONS_MIN            = 0;
-        static const float PHONS_MAX            = 90;
-        static const float PHONS_DFL            = 83;
+        static const float PHONS_MIN            = -83;
+        static const float PHONS_MAX            = 7;
+        static const float PHONS_DFL            = 0;
         static const float PHONS_STEP           = 0.1f;
 
         static const size_t FFT_RANK_MIN        = 8;

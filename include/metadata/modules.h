@@ -166,6 +166,10 @@ MOD_PLUGIN(sc_mb_gate_stereo, plugin_ui)
 MOD_PLUGIN(sc_mb_gate_lr, plugin_ui)
 MOD_PLUGIN(sc_mb_gate_ms, plugin_ui)
 
+// Loudness compensator
+MOD_PLUGIN(loud_comp_mono, plugin_ui)
+MOD_PLUGIN(loud_comp_stereo, plugin_ui)
+
 #ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver
     // MOD_PLUGIN(nonlinear_convolver_mono, plugin_ui)

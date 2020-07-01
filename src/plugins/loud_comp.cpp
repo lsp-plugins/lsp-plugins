@@ -170,18 +170,17 @@ namespace lsp
             pIDisplay   = NULL;
         }
 
-        if (vChannels != NULL)
+        for (size_t i=0; i<nChannels; ++i)
         {
-            for (size_t i=0; i<nChannels; ++i)
-            {
-                channel_t *c    = vChannels[i];
-                c->sDelay.destroy();
+            channel_t *c    = vChannels[i];
+            if (c == NULL)
+                continue;
 
-                vChannels[i]    = NULL;
-            }
+            c->sDelay.destroy();
+            vChannels[i]    = NULL;
         }
 
-        vFreqApply          = NULL;
+        vFreqApply      = NULL;
         vFreqMesh       = NULL;
 
         if (pData != NULL)
@@ -242,21 +241,23 @@ namespace lsp
 
     void loud_comp_base::update_response_curve()
     {
-        const freq_curve_t *c   = ((nMode > 0) && (nMode <= (sizeof(freq_curves)/sizeof(freq_curve_t *)))) ? freq_curves[nMode-1] : NULL;
+//        const freq_curve_t *c   = ((nMode > 0) && (nMode <= (sizeof(freq_curves)/sizeof(freq_curve_t *)))) ? freq_curves[nMode-1] : NULL;
         size_t freqs            = 1 << nRank;
-
+/*
         if (c != NULL)
         {
             // TODO: compute curve characteristics
         }
         else
-        {
-            float delta = fVolume - PHONS_DFL;
-            float gain  = db_to_gain(delta);
+        {*/
+            float vol   = db_to_gain(fVolume);
 
-            dsp::fill(vFreqApply, gain, freqs * 4);
-            dsp::fill(vFreqMesh, gain, CURVE_MESH_SIZE);
-        }
+            dsp::fill(vFreqApply, vol, freqs * 4);
+//            dsp::fill(vAmpMesh, , CURVE_MESH_SIZE);
+            for (size_t i=0; i<CURVE_MESH_SIZE; ++i)
+                vFreqMesh[i] = i;
+            dsp::fill(vAmpMesh, vol, CURVE_MESH_SIZE);
+//        }
     }
 
     void loud_comp_base::process(size_t samples)
@@ -267,7 +268,8 @@ namespace lsp
             channel_t *c    = vChannels[i];
             c->vIn          = c->pIn->getBuffer<float>();
             c->vOut         = c->pOut->getBuffer<float>();
-            c->pMeterIn->setValue(dsp::abs_max(c->vIn, samples));
+            float v         = dsp::abs_max(c->vIn, samples);
+            c->pMeterIn->setValue(v);
         }
 
         while (samples > 0)
@@ -288,8 +290,8 @@ namespace lsp
                 c->sBypass.process(c->vOut, c->vDry, c->vBuffer, to_process);
 
                 // Update pointers
-                c->pIn         += to_process;
-                c->pOut        += to_process;
+                c->vIn         += to_process;
+                c->vOut        += to_process;
             }
 
             samples        -= to_process;
@@ -306,6 +308,7 @@ namespace lsp
             dsp::copy(mesh->pvData[0], vFreqMesh, CURVE_MESH_SIZE);
             dsp::copy(mesh->pvData[1], vAmpMesh, CURVE_MESH_SIZE);
             mesh->data(2, CURVE_MESH_SIZE);
+            bSyncMesh   = NULL;
         }
     }
 
