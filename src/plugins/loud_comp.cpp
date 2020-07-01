@@ -14,6 +14,7 @@
 #include <generated/iso226/iso226-2003.h>
 
 #define BUF_SIZE            0x1000
+#define NUM_CURVES          (sizeof(freq_curves)/sizeof(freq_curve_t *))
 
 #define TRACE_PORT(p) lsp_trace("  port id=%s", (p)->metadata()->id);
 
@@ -37,6 +38,7 @@ namespace lsp
         fVolume         = -1.0f;
         vChannels[0]    = NULL;
         vChannels[1]    = NULL;
+        vTmpBuf         = NULL;
         vFreqApply      = NULL;
         vFreqMesh       = NULL;
         vAmpMesh        = NULL;
@@ -62,6 +64,16 @@ namespace lsp
         // Pass wrapper
         plugin_t::init(wrapper);
 
+        // Estimate temporary buffer size
+        size_t sz_tmpbuf    = 0;
+        for (size_t i=0; i<NUM_CURVES; ++i)
+        {
+            const freq_curve_t *c = freq_curves[i];
+            if (sz_tmpbuf < c->hdots)
+                sz_tmpbuf       = c->hdots;
+        }
+        sz_tmpbuf           = ALIGN_SIZE(sz_tmpbuf*sizeof(float), 0x100);
+
         // Compute size of data to allocate
         size_t sz_channel   = ALIGN_SIZE(sizeof(channel_t), DEFAULT_ALIGN);
         size_t sz_fft       = (2 << FFT_RANK_MAX) * sizeof(float);
@@ -69,7 +81,7 @@ namespace lsp
         size_t sz_buf       = BUF_SIZE * sizeof(float);
 
         // Total amount of data to allocate
-        size_t sz_alloc     = (sz_channel + sz_buf*2) * nChannels + sz_fft + sz_sync*2;
+        size_t sz_alloc     = (sz_channel + sz_buf*2) * nChannels + sz_fft + sz_sync*2 + sz_tmpbuf;
         uint8_t *ptr        = alloc_aligned<uint8_t>(pData, sz_alloc);
         if (ptr == NULL)
             return;
@@ -117,6 +129,8 @@ namespace lsp
         ptr                += sz_sync;
         vAmpMesh            = reinterpret_cast<float *>(ptr);
         ptr                += sz_sync;
+        vTmpBuf             = reinterpret_cast<float *>(ptr);
+        ptr                += sz_tmpbuf;
 
         lsp_trace("Binding ports...");
         size_t port_id      = 0;
@@ -183,6 +197,7 @@ namespace lsp
             vChannels[i]    = NULL;
         }
 
+        vTmpBuf         = NULL;
         vFreqApply      = NULL;
         vFreqMesh       = NULL;
 
@@ -243,20 +258,64 @@ namespace lsp
 
     void loud_comp_base::update_response_curve()
     {
-//        const freq_curve_t *c   = ((nMode > 0) && (nMode <= (sizeof(freq_curves)/sizeof(freq_curve_t *)))) ? freq_curves[nMode-1] : NULL;
-        size_t freqs            = 1 << nRank;
-/*
+        const freq_curve_t *c   = ((nMode > 0) && (nMode <= NUM_CURVES)) ? freq_curves[nMode-1] : NULL;
+        size_t fft_size         = 1 << nRank;
+        size_t fft_csize        = (fft_size >> 1) + 1;
+
         if (c != NULL)
         {
-            // TODO: compute curve characteristics
+            // Get the volume
+            float vol   = fVolume - PHONS_MIN;
+            if (vol > c->amax)
+                vol = c->amax;
+            else if (vol < c->amin)
+                vol = c->amin;
+            vol        -= c->amin;
+
+            // Compute interpolatoin coefficients
+            float range = c->amax - c->amin;
+            float step  = range / (c->curves-1);
+            ssize_t nc  = vol / step;
+            if (nc >= ssize_t(c->curves-1))
+                --nc;
+            float k2    = 0.05f * M_LN10 * (vol/step - nc);
+            float k1    = 0.05f * M_LN10 - k2;
+
+            // Interpolate curves to the temporary buffer, translate decibels to gain
+            dsp::mix_copy2(vTmpBuf, c->data[nc], c->data[nc+1], k1, k2, c->hdots);
+            dsp::exp1(vTmpBuf, c->hdots);
+
+            // Compute frequency response
+            ssize_t idx;
+            float *v    = vFreqApply;
+            range       = 1.0f / logf(c->fmax / c->fmin);
+            float kf    = float(fSampleRate) / float(fft_size);
+            for (size_t i=0; i < fft_csize; ++i, v += 2)
+            {
+                float f     = kf * i; // Target frequency
+                if (f <= c->fmin)
+                    idx         = 0;
+                else if (f >= c->fmax)
+                    idx         = c->hdots - 1;
+                else
+                {
+                    f               = logf(f / c->fmin);
+                    idx             = (f * c->hdots) * range;
+                }
+
+                f           = vTmpBuf[idx];
+                v[0]        = f;
+                v[1]        = f;
+            }
+
+            // Create reverse copy to complete the FFT response
+            dsp::reverse2(&vFreqApply[fft_size+2], &vFreqApply[2], fft_size-2);
         }
         else
-        {*/
+        {
             float vol   = db_to_gain(fVolume);
-
-            dsp::fill(vFreqApply, vol, freqs * 2);
-            dsp::fill(vAmpMesh, vol, CURVE_MESH_SIZE);
-//        }
+            dsp::fill(vFreqApply, vol, fft_size * 2);
+        }
 
         // Initialize list of frequencies
         float norm          = logf(FREQ_MAX/FREQ_MIN) / (CURVE_MESH_SIZE - 1);
@@ -264,6 +323,16 @@ namespace lsp
             vFreqMesh[i]    = i * norm;
         dsp::exp1(vFreqMesh, CURVE_MESH_SIZE);
         dsp::mul_k2(vFreqMesh, FREQ_MIN, CURVE_MESH_SIZE);
+
+        // Build amp mesh
+        float xf                = float(fft_size) / float(fSampleRate);
+        for (size_t i=0; i<CURVE_MESH_SIZE; ++i)
+        {
+            size_t ix       = xf * vFreqMesh[i];
+            if (ix > fft_csize)
+                ix                  = fft_csize;
+            vAmpMesh[i]     = vFreqApply[ix << 1];
+        }
     }
 
     void loud_comp_base::process_callback(void *object, void *subject, float *buf, size_t rank)

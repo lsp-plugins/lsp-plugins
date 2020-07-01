@@ -43,6 +43,7 @@ namespace lsp
             size_t              nRank;          // Current FFT rank
             float               fVolume;        // Volume
             channel_t          *vChannels[2];   // Audio channels
+            float              *vTmpBuf;        // Temporary buffer for interpolating curve characteristics
             float              *vFreqApply;     // Frequency response applied to the output signal
             float              *vFreqMesh;      // List of frequencies for the mesh
             float              *vAmpMesh;       // List of amplitudes for the mesh

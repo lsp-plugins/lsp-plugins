@@ -26,7 +26,7 @@ namespace lsp
 
         static const size_t STD_DFL             = 1;
 
-        static const size_t CURVE_MESH_SIZE     = 256;
+        static const size_t CURVE_MESH_SIZE     = 512;
     };
 
     struct loud_comp_mono_metadata
