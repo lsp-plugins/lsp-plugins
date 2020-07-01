@@ -32,7 +32,6 @@ namespace lsp
     loud_comp_base::loud_comp_base(const plugin_metadata_t &mdata, size_t channels): plugin_t(mdata)
     {
         nChannels       = channels;
-        fGain           = 0.0f;
         nMode           = 0;
         nRank           = FFT_RANK_MIN;
         fVolume         = -1.0f;
@@ -65,7 +64,7 @@ namespace lsp
 
         // Compute size of data to allocate
         size_t sz_channel   = ALIGN_SIZE(sizeof(channel_t), DEFAULT_ALIGN);
-        size_t sz_fft       = (4 << FFT_RANK_MAX) * sizeof(float);
+        size_t sz_fft       = (2 << FFT_RANK_MAX) * sizeof(float);
         size_t sz_sync      = ALIGN_SIZE(sizeof(float) * CURVE_MESH_SIZE, DEFAULT_ALIGN);
         size_t sz_buf       = BUF_SIZE * sizeof(float);
 
@@ -82,6 +81,9 @@ namespace lsp
             ptr                += sz_channel;
 
             c->sDelay.init(1 << (FFT_RANK_MAX - 1));
+            c->sProc.init(FFT_RANK_MAX);
+            c->sProc.bind(process_callback, this, c);
+            c->sProc.set_phase(0.5f * i);
 
             c->vIn              = NULL;
             c->vOut             = NULL;
@@ -177,6 +179,7 @@ namespace lsp
                 continue;
 
             c->sDelay.destroy();
+            c->sProc.destroy();
             vChannels[i]    = NULL;
         }
 
@@ -227,15 +230,14 @@ namespace lsp
             update_response_curve();
         }
 
-        fGain               = pGain->getValue();
         bool bypass         = pBypass->getValue() >= 0.5f;
 
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c        = vChannels[i];
             c->sBypass.set_bypass(bypass);
-
-            // TODO: update settings of the spectral processor
+            c->sProc.set_pre_gain(pGain->getValue());
+            c->sProc.set_rank(rank);
         }
     }
 
@@ -252,12 +254,30 @@ namespace lsp
         {*/
             float vol   = db_to_gain(fVolume);
 
-            dsp::fill(vFreqApply, vol, freqs * 4);
-//            dsp::fill(vAmpMesh, , CURVE_MESH_SIZE);
-            for (size_t i=0; i<CURVE_MESH_SIZE; ++i)
-                vFreqMesh[i] = i;
+            dsp::fill(vFreqApply, vol, freqs * 2);
             dsp::fill(vAmpMesh, vol, CURVE_MESH_SIZE);
 //        }
+
+        // Initialize list of frequencies
+        float norm          = logf(FREQ_MAX/FREQ_MIN) / (CURVE_MESH_SIZE - 1);
+        for (size_t i=0; i<CURVE_MESH_SIZE; ++i)
+            vFreqMesh[i]    = i * norm;
+        dsp::exp1(vFreqMesh, CURVE_MESH_SIZE);
+        dsp::mul_k2(vFreqMesh, FREQ_MIN, CURVE_MESH_SIZE);
+    }
+
+    void loud_comp_base::process_callback(void *object, void *subject, float *buf, size_t rank)
+    {
+        loud_comp_base *_this   = static_cast<loud_comp_base *>(object);
+        channel_t *c            = static_cast<channel_t *>(subject);
+        _this->process_spectrum(c, buf);
+    }
+
+    void loud_comp_base::process_spectrum(channel_t *c, float *buf)
+    {
+        // Apply spectrum changes to the FFT image
+        size_t count = 2 << nRank;
+        dsp::mul2(buf, vFreqApply, count);
     }
 
     void loud_comp_base::process(size_t samples)
@@ -279,11 +299,10 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = vChannels[i];
-                dsp::mul_k3(c->vBuffer, c->vIn, fGain, to_process);
 
                 // Process the signal
                 c->sDelay.process(c->vDry, c->vIn, to_process);
-                // TODO: add spectral processor call here
+                c->sProc.process(c->vBuffer, c->vIn, to_process);
                 c->pMeterOut->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Apply bypass

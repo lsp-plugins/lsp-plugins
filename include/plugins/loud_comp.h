@@ -11,6 +11,7 @@
 #include <core/plugin.h>
 #include <core/util/Bypass.h>
 #include <core/util/Delay.h>
+#include <core/util/SpectralProcessor.h>
 
 #include <metadata/plugins.h>
 
@@ -21,23 +22,23 @@ namespace lsp
         protected:
             typedef struct channel_t
             {
-                float          *vIn;        // Input buffer
-                float          *vOut;       // Output buffer
-                float          *vDry;       // Dry signal
-                float          *vBuffer;    // Temporary buffer
+                float              *vIn;        // Input buffer
+                float              *vOut;       // Output buffer
+                float              *vDry;       // Dry signal
+                float              *vBuffer;    // Temporary buffer
 
-                Bypass          sBypass;    // Bypass
-                Delay           sDelay;     // Delay (for bypass)
+                Bypass              sBypass;    // Bypass
+                Delay               sDelay;     // Delay (for bypass)
+                SpectralProcessor   sProc;      // Spectral processor
 
-                IPort          *pIn;        // Input port
-                IPort          *pOut;       // Output port
-                IPort          *pMeterIn;   // Input meter
-                IPort          *pMeterOut;  // Output meter
+                IPort              *pIn;        // Input port
+                IPort              *pOut;       // Output port
+                IPort              *pMeterIn;   // Input meter
+                IPort              *pMeterOut;  // Output meter
             } channel_t;
 
         protected:
             size_t              nChannels;      // Number of channels
-            float               fGain;          // Input gain
             size_t              nMode;          // Current curve mode
             size_t              nRank;          // Current FFT rank
             float               fVolume;        // Volume
@@ -59,6 +60,9 @@ namespace lsp
 
         protected:
             void                update_response_curve();
+            void                process_spectrum(channel_t *c, float *buf);
+
+            static void         process_callback(void *object, void *subject, float *buf, size_t rank);
 
         public:
             explicit loud_comp_base(const plugin_metadata_t &mdata, size_t channels);

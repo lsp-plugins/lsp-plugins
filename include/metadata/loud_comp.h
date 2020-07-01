@@ -17,8 +17,11 @@ namespace lsp
         static const float PHONS_DFL            = 0;
         static const float PHONS_STEP           = 0.1f;
 
+        static const float FREQ_MIN             = SPEC_FREQ_MIN;
+        static const float FREQ_MAX             = SPEC_FREQ_MAX;
+
         static const size_t FFT_RANK_MIN        = 8;
-        static const size_t FFT_RANK_MAX        = 13;
+        static const size_t FFT_RANK_MAX        = 14;
         static const size_t FFT_RANK_IDX_DFL    = 4;
 
         static const size_t STD_DFL             = 1;
