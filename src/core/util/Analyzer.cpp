@@ -138,7 +138,7 @@ namespace lsp
         }
         // Update window
         if (nReconfigure & R_WINDOW)
-            windows::window(vWindow, fft_size, windows::window_t(nEnvelope));
+            windows::window(vWindow, fft_size, windows::window_t(nWindow));
         // Update reactivity
         if (nReconfigure & R_TAU)
             fTau    = 1.0f - expf(logf(1.0f - M_SQRT1_2) / seconds_to_samples(float(nSampleRate) / float(nFftPeriod), fReactivity));
