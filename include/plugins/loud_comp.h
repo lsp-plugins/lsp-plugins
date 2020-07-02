@@ -43,6 +43,8 @@ namespace lsp
             size_t              nRank;          // Current FFT rank
             float               fGain;          // Input gain
             float               fVolume;        // Volume
+            bool                bBypass;        // Bypass
+            bool                bRelative;      // Display relative curve instead of absolute
             channel_t          *vChannels[2];   // Audio channels
             float              *vTmpBuf;        // Temporary buffer for interpolating curve characteristics
             float              *vFreqApply;     // Frequency response applied to the output signal
@@ -59,6 +61,7 @@ namespace lsp
             IPort              *pRank;          // FFT rank selector
             IPort              *pVolume;        // Output volume
             IPort              *pMesh;          // Output mesh response
+            IPort              *pRelative;      // Relative mesh display
 
         protected:
             void                update_response_curve();

@@ -8,6 +8,8 @@
 #include <core/types.h>
 #include <core/debug.h>
 #include <plugins/loud_comp.h>
+#include <core/colors.h>
+#include <core/util/Color.h>
 
 #include <generated/iso226/fletcher_munson.h>
 #include <generated/iso226/robinson_dadson.h>
@@ -37,6 +39,8 @@ namespace lsp
         nRank           = FFT_RANK_MIN;
         fGain           = 0.0f;
         fVolume         = -1.0f;
+        bRelative       = false;
+        bBypass         = false;
         vChannels[0]    = NULL;
         vChannels[1]    = NULL;
         vTmpBuf         = NULL;
@@ -53,6 +57,7 @@ namespace lsp
         pRank           = NULL;
         pVolume         = NULL;
         pMesh           = NULL;
+        pRelative       = NULL;
     }
 
     loud_comp_base::~loud_comp_base()
@@ -163,6 +168,8 @@ namespace lsp
         pVolume             = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMesh               = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRelative           = vPorts[port_id++];
 
         // Bind input level meters
         for (size_t i=0; i<nChannels; ++i)
@@ -234,6 +241,7 @@ namespace lsp
         else if (rank > FFT_RANK_MAX)
             rank                = FFT_RANK_MAX;
         float volume        = pVolume->getValue();
+        bool relative       = pRelative->getValue() >= 0.5f;
 
         // Need to update curve?
         if ((mode != nMode) || (rank != nRank) || (volume != fVolume))
@@ -246,14 +254,24 @@ namespace lsp
             update_response_curve();
         }
 
-        bool bypass         = pBypass->getValue() >= 0.5f;
+        if (bRelative != relative)
+        {
+            bRelative           = relative;
+            bSyncMesh           = true;
+        }
+
+        if (bSyncMesh)
+            pWrapper->query_display_draw();
+
+        bBypass             = pBypass->getValue() >= 0.5f;
         fGain               = pGain->getValue();
 
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c        = vChannels[i];
-            c->sBypass.set_bypass(bypass);
+            c->sBypass.set_bypass(bBypass);
             c->sProc.set_rank(rank);
+            c->sDelay.set_delay(c->sProc.latency());
         }
     }
 
@@ -402,7 +420,14 @@ namespace lsp
         {
             // Output mesh data
             dsp::copy(mesh->pvData[0], vFreqMesh, CURVE_MESH_SIZE);
-            dsp::copy(mesh->pvData[1], vAmpMesh, CURVE_MESH_SIZE);
+
+            if (bRelative)
+            {
+                float kf        = expf(-0.05f * M_LN10 * fVolume);
+                dsp::mul_k3(mesh->pvData[1], vAmpMesh, kf, CURVE_MESH_SIZE);
+            }
+            else
+                dsp::copy(mesh->pvData[1], vAmpMesh, CURVE_MESH_SIZE);
             mesh->data(2, CURVE_MESH_SIZE);
             bSyncMesh   = NULL;
         }
@@ -410,8 +435,141 @@ namespace lsp
 
     bool loud_comp_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
-        // TODO
-        return false;
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+
+        // Clear background
+        bool bypass     = bBypass;
+        bool relative   = bRelative;
+        float volume    = fVolume;
+        cv->set_color_rgb((bypass) ? CV_DISABLED : CV_BACKGROUND);
+        cv->paint();
+
+        // Draw axis
+        if (relative)
+        {
+            // Draw axis
+            cv->set_line_width(1.0);
+
+            float zx    = 1.0f/SPEC_FREQ_MIN;
+            float zy    = 1.0f/GAIN_AMP_M_12_DB;
+            float dx    = width/(logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN));
+            float dy    = height/(logf(GAIN_AMP_M_12_DB/GAIN_AMP_P_72_DB));
+
+            // Draw vertical lines
+            cv->set_color_rgb(CV_YELLOW, 0.5f);
+            for (float i=100.0f; i<SPEC_FREQ_MAX; i *= 10.0f)
+            {
+                float ax = dx*(logf(i*zx));
+                cv->line(ax, 0, ax, height);
+            }
+
+            // Draw horizontal lines
+            for (float i=GAIN_AMP_M_12_DB; i<GAIN_AMP_P_72_DB; i *= GAIN_AMP_P_12_DB)
+            {
+                float ay = height + dy*(logf(i*zy));
+                if ((i >= (GAIN_AMP_0_DB - 1e-4)) && ((i <= (GAIN_AMP_0_DB + 1e-4))))
+                    cv->set_color_rgb(CV_WHITE, 0.5f);
+                else
+                    cv->set_color_rgb(CV_YELLOW, 0.5f);
+                cv->line(0, ay, width, ay);
+            }
+
+            // Allocate buffer: f, a(f), x, y
+            pIDisplay           = float_buffer_t::reuse(pIDisplay, 4, width);
+            float_buffer_t *b   = pIDisplay;
+            if (b == NULL)
+                return false;
+
+            float ni        = float(CURVE_MESH_SIZE) / width; // Normalizing index
+            volume          = expf(-0.05f * M_LN10 * volume);
+
+            for (size_t j=0; j<width; ++j)
+            {
+                size_t k        = j*ni;
+                b->v[0][j]      = vFreqMesh[k];
+                b->v[1][j]      = vAmpMesh[k];
+            }
+
+            dsp::mul_k2(b->v[1], volume, width);
+            dsp::fill(b->v[2], 0.0f, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::axis_apply_log1(b->v[2], b->v[0], zx, dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
+
+            // Draw the mesh
+            cv->set_color_rgb(CV_MESH);
+            cv->set_line_width(2);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+        else
+        {
+            // Draw axis
+            cv->set_line_width(1.0);
+
+            float zx    = 1.0f/SPEC_FREQ_MIN;
+            float zy    = 1.0f/GAIN_AMP_M_96_DB;
+            float dx    = width/(logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN));
+            float dy    = height/(logf(GAIN_AMP_M_96_DB/GAIN_AMP_P_12_DB));
+
+            // Draw vertical lines
+            cv->set_color_rgb(CV_YELLOW, 0.5f);
+            for (float i=100.0f; i<SPEC_FREQ_MAX; i *= 10.0f)
+            {
+                float ax = dx*(logf(i*zx));
+                cv->line(ax, 0, ax, height);
+            }
+
+            // Draw horizontal lines
+            for (float i=GAIN_AMP_M_96_DB; i<GAIN_AMP_P_12_DB; i *= GAIN_AMP_P_12_DB)
+            {
+                float ay = height + dy*(logf(i*zy));
+                if ((i >= (GAIN_AMP_0_DB - 1e-4)) && ((i <= (GAIN_AMP_0_DB + 1e-4))))
+                    cv->set_color_rgb(CV_WHITE, 0.5f);
+                else
+                    cv->set_color_rgb(CV_YELLOW, 0.5f);
+                cv->line(0, ay, width, ay);
+            }
+
+            // Allocate buffer: f, a(f), x, y
+            pIDisplay           = float_buffer_t::reuse(pIDisplay, 4, width);
+            float_buffer_t *b   = pIDisplay;
+            if (b == NULL)
+                return false;
+
+            float ni        = float(CURVE_MESH_SIZE) / width; // Normalizing index
+            for (size_t j=0; j<width; ++j)
+            {
+                size_t k        = j*ni;
+                b->v[0][j]      = vFreqMesh[k];
+                b->v[1][j]      = vAmpMesh[k];
+            }
+
+            dsp::fill(b->v[2], 0.0f, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::axis_apply_log1(b->v[2], b->v[0], zx, dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
+
+            // Draw the volume line
+            volume      = expf(0.05f * M_LN10 * fVolume);
+            float vy    = height + dy * logf(volume * zy);
+            cv->set_color_rgb(CV_GREEN, 0.5f);
+            cv->line(0, vy, width, vy);
+
+            // Draw the mesh
+            cv->set_color_rgb(CV_MESH);
+            cv->set_line_width(2);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        return true;
     }
 
     //-------------------------------------------------------------------------
