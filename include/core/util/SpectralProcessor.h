@@ -26,8 +26,13 @@ namespace lsp
         protected:
             size_t                      nRank;      // Current FFT rank
             size_t                      nMaxRank;   // Maximum FFT rank
-            float                       fPreGain;   // Preamplifier gain
             float                       fPhase;     // Phase
+            float                      *pWnd;       // Window function
+            float                      *pOutBuf;    // Output buffer
+            float                      *pInBuf;     // Input buffer
+            float                      *pFftBuf;    // FFT buffer
+            size_t                      nOffset;    // Read/Write offset
+            uint8_t                    *pData;      // Data buffer
             bool                        bUpdate;    // Update flag
 
             // Bindings
@@ -100,22 +105,10 @@ namespace lsp
             void            set_rank(size_t rank);
 
             /**
-             * Set preamplification gain
-             * @return preamplification gain
-             */
-            inline float    pre_gain() const            { return fPreGain;          }
-
-            /**
-             * Set preamplification gain
-             * @param v preamplification gain
-             */
-            inline void     set_pre_gain(float v)       { fPreGain = v;             }
-
-            /**
              * Get latency of the spectral processor
              * @return latency of the spectral processor
              */
-            inline size_t   latency() const             { return 1 << (nRank - 1);  }
+            inline size_t   latency() const             { return 1 << nRank;        }
 
             /**
              * Perform audio processing

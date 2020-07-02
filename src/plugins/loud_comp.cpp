@@ -35,6 +35,7 @@ namespace lsp
         nChannels       = channels;
         nMode           = 0;
         nRank           = FFT_RANK_MIN;
+        fGain           = 0.0f;
         fVolume         = -1.0f;
         vChannels[0]    = NULL;
         vChannels[1]    = NULL;
@@ -246,12 +247,12 @@ namespace lsp
         }
 
         bool bypass         = pBypass->getValue() >= 0.5f;
+        fGain               = pGain->getValue();
 
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c        = vChannels[i];
             c->sBypass.set_bypass(bypass);
-            c->sProc.set_pre_gain(pGain->getValue());
             c->sProc.set_rank(rank);
         }
     }
@@ -310,6 +311,12 @@ namespace lsp
 
             // Create reverse copy to complete the FFT response
             dsp::reverse2(&vFreqApply[fft_size+2], &vFreqApply[2], fft_size-2);
+
+            if (fft_size == 256)
+            {
+                for (size_t i=0; i<fft_size; ++i)
+                    lsp_trace("i=%d; vfa={%.2f, %.2f}", int(i), vFreqApply[i*2], vFreqApply[i*2+1]);
+            }
         }
         else
         {
@@ -371,7 +378,8 @@ namespace lsp
 
                 // Process the signal
                 c->sDelay.process(c->vDry, c->vIn, to_process);
-                c->sProc.process(c->vBuffer, c->vIn, to_process);
+                dsp::mul_k3(c->vBuffer, c->vIn, fGain, to_process);
+                c->sProc.process(c->vBuffer, c->vBuffer, to_process);
                 c->pMeterOut->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Apply bypass

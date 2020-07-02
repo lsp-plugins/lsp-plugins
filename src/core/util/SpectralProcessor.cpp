@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/windows.h>
 #include <core/util/SpectralProcessor.h>
 #include <dsp/dsp.h>
 
@@ -15,8 +16,13 @@ namespace lsp
     {
         nRank           = 0;
         nMaxRank        = 0;
-        fPreGain        = 0.0f;
         fPhase          = 0.0f;
+        pWnd            = NULL;
+        pOutBuf         = NULL;
+        pInBuf          = NULL;
+        pFftBuf         = NULL;
+        pData           = NULL;
+        nOffset         = 0;
         bUpdate         = true;
 
         pFunc           = NULL;
@@ -33,7 +39,6 @@ namespace lsp
     {
         nRank           = max_rank;
         nMaxRank        = max_rank;
-        fPreGain        = 1.0f;
         fPhase          = 0.0f;
         bUpdate         = true;
 
@@ -41,19 +46,29 @@ namespace lsp
         pObject         = NULL;
         pSubject        = NULL;
 
-        // TODO: allocate buffers
+        // Allocate buffer
+        size_t buf_sz   = sizeof(float) << max_rank;
+        pWnd            = alloc_aligned<float>(pData, buf_sz * 5, DEFAULT_ALIGN);
 
         return true;
     }
 
     void SpectralProcessor::destroy()
     {
-        // TODO: free buffers
+        if (pData != NULL)
+        {
+            free_aligned(pData);
+            pData           = NULL;
+        }
 
         nRank           = 0;
         nMaxRank        = 0;
-        fPreGain        = 0.0f;
         fPhase          = 0.0f;
+        pWnd            = NULL;
+        pOutBuf         = NULL;
+        pInBuf          = NULL;
+        pFftBuf         = NULL;
+        pData           = NULL;
         bUpdate         = false;
 
         pFunc           = NULL;
@@ -77,7 +92,17 @@ namespace lsp
 
     void SpectralProcessor::update_settings()
     {
-        // TODO
+        // Distribute buffers
+        size_t buf_size = 1 << nRank;
+
+        pOutBuf         = &pWnd[buf_size];
+        pInBuf          = &pOutBuf[buf_size];
+        pFftBuf         = &pInBuf[buf_size];
+
+        // Clear buffers and reset pointers
+        windows::sqr_cosine(pWnd, buf_size);
+        dsp::fill_zero(pOutBuf, buf_size*4);     // OutBuf + InBuf + Fft(x2)
+        nOffset         = buf_size * fPhase;
 
         // Mark settings applied
         bUpdate         = false;
@@ -104,8 +129,52 @@ namespace lsp
         if (bUpdate)
             update_settings();
 
-        // TODO implement this
-        dsp::mul_k3(dst, src, fPreGain, count);
+        size_t buf_size     = 1 << nRank;
+        size_t frame_size   = 1 << (nRank - 1);
+
+        while (count > 0)
+        {
+            // Need to perform transformations?
+            if (nOffset >= frame_size)
+            {
+                if (pFunc != NULL)
+                {
+                    // Perform FFT and processing
+                    dsp::pcomplex_r2c(pFftBuf, pInBuf, buf_size);       // Convert from real to packed complex
+                    dsp::packed_direct_fft(pFftBuf, pFftBuf, nRank);    // Perform direct FFT
+                    pFunc(pObject, pSubject, pFftBuf, nRank);           // Call the function
+                    dsp::packed_reverse_fft(pFftBuf, pFftBuf, nRank);   // Perform reverse FFT
+                    dsp::pcomplex_c2r(pFftBuf, pFftBuf, buf_size);      // Unpack complex numbers
+                }
+                else
+                    dsp::move(pFftBuf, pInBuf, buf_size);               // Copy data to FFT buffer
+
+                // Shift input and output buffers
+                dsp::move(pOutBuf, &pOutBuf[frame_size], buf_size + frame_size);  // Shift buffers
+                dsp::fill_zero(&pOutBuf[frame_size], frame_size);       // Fill tail of input buffer with zeros
+
+                // Apply window and add to the output buffer
+                dsp::fmadd3(pOutBuf, pFftBuf, pWnd, buf_size);          // Apply window and
+
+                // Reset read/write offset
+                nOffset     = 0;
+            }
+
+            // Estimate number of samples to process
+            size_t to_process   = frame_size - nOffset;
+            if (to_process > count)
+                to_process          = count;
+
+            // Copy data
+            dsp::copy(&pInBuf[frame_size + nOffset], src, to_process);
+            dsp::copy(dst, &pOutBuf[nOffset], to_process);
+
+            // Update pointers
+            nOffset    += to_process;
+            count      -= to_process;
+            dst        += to_process;
+            src        += to_process;
+        }
     }
 
 } /* namespace lsp */

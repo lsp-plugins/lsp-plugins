@@ -29,12 +29,12 @@
 			/>
 		</ui:if>
 		<ui:if test="${ex :ilm_r}">
-			<meter fill="true"
+			<meter fill="true" stereo="true" 
 				type="rms_peak" logarithmic="true"
 				id="ilm_l" id2="ilm_r"
 				color="left_channel" color2="right_channel"
 				min="-72 db" max="+25 db"
-				angle="1" height="256"
+				angle="1" height="64"
 			/>
 		</ui:if>
 		
@@ -100,12 +100,12 @@
 			/>
 		</ui:if>
 		<ui:if test="${ex :olm_r}">
-			<meter fill="true"
+			<meter fill="true" stereo="true" 
 				type="rms_peak" logarithmic="true"
 				id="olm_l" id2="olm_r"
 				color="left_channel" color2="right_channel"
 				min="-72 db" max="+25 db"
-				angle="1" height="256"
+				angle="1" height="64"
 			/>
 		</ui:if>
 		<vbox fill="false">

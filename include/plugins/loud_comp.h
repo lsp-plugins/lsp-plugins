@@ -41,6 +41,7 @@ namespace lsp
             size_t              nChannels;      // Number of channels
             size_t              nMode;          // Current curve mode
             size_t              nRank;          // Current FFT rank
+            float               fGain;          // Input gain
             float               fVolume;        // Volume
             channel_t          *vChannels[2];   // Audio channels
             float              *vTmpBuf;        // Temporary buffer for interpolating curve characteristics
