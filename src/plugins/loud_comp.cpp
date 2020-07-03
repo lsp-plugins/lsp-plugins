@@ -290,7 +290,14 @@ namespace lsp
         bBypass             = pBypass->getValue() >= 0.5f;
         fGain               = pGain->getValue();
         bHClipOn            = pHClipOn->getValue() >= 0.5f;
-        fHClipLvl           = (bHClipOn) ? db_to_gain(fVolume + pHClipRange->getValue()) : 1.0f;
+        if (bHClipOn)
+        {
+            float min, max;
+            dsp::abs_minmax(vFreqApply, 2 << nRank, &min, &max);
+            fHClipLvl           = db_to_gain(pHClipRange->getValue()) * sqrtf(min * max);
+        }
+        else
+            fHClipLvl           = 1.0f;
 
         for (size_t i=0; i<nChannels; ++i)
         {
