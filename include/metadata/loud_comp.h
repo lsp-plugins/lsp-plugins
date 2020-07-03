@@ -17,6 +17,11 @@ namespace lsp
         static const float PHONS_DFL            = 0;
         static const float PHONS_STEP           = 0.1f;
 
+        static const float HCRANGE_MIN          = 0;
+        static const float HCRANGE_MAX          = 24;
+        static const float HCRANGE_DFL          = 6;
+        static const float HCRANGE_STEP         = 0.05f;
+
         static const float FREQ_MIN             = SPEC_FREQ_MIN;
         static const float FREQ_MAX             = SPEC_FREQ_MAX;
 

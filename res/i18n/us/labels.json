@@ -444,6 +444,8 @@
 		"P_hase": "P",
 		"S_ide": "S",
 		"amplitude": "Amplitude",
+		"clip": "Clip",
+		"clipping": "Clipping",
 		"dry": "Dry",
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Dry pan",

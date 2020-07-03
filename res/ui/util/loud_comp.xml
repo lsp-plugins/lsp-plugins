@@ -1,5 +1,5 @@
 <plugin resizable="true">
-	<grid rows="3" cols="5" spacing="4">
+	<grid rows="4" cols="5" spacing="4">
 		<!-- Row 1 -->
 		<void />
 		<label text="labels.chan.in" />
@@ -38,8 +38,8 @@
 			/>
 		</ui:if>
 		
-		<vbox>
-			<graph width="256" height="96" expand="true" fill="true" visibility=":relspec ieq 0">
+		<vbox expand="true">
+			<graph width="256" height="96" fill="true" visibility=":relspec ieq 0">
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
@@ -93,7 +93,7 @@
 				<text text="-72" coord="10;-72 db" halign="1" valign="1" />
 			</graph>
 			
-			<graph width="256" height="96" expand="true" fill="true" visibility=":relspec ieq 1">
+			<graph width="256" height="96" fill="true" visibility=":relspec ieq 1">
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
@@ -164,11 +164,37 @@
 				angle="1" height="64"
 			/>
 		</ui:if>
-		<vbox fill="false">
+		<grid fill="false" rows="5" cols="2" hspacing="2">
 			<label text="labels.chan.volume" />
+			<hbox spacing="2">
+				<button id="hclip" size="12" color="green" led="true" />
+				<label text="labels.signal.clipping" />
+			</hbox>
+			
 			<knob id="volume" />
+			<knob id="hcrange" />
+			
 			<value id="volume" />
-		</vbox>
+			<value id="hcrange" />
+			
+			<cell cols="2">
+				<hsep />
+			</cell>
+			
+			<button id="hcclean" text="actions.reset" led="true" color="yellow" />
+			<hbox fill="false">
+				<ui:if test="${ex :olc}">
+					<led id="olc" color="middle_channel" size="12" />
+				</ui:if>
+				<ui:if test="${ex :olc_l}">
+					<led id="olc_l" color="left_channel" size="12" />
+				</ui:if>
+				<label text="labels.signal.clip" />
+				<ui:if test="${ex :olc_r}">
+					<led id="olc_r" color="right_channel" size="12"  />
+				</ui:if>
+			</hbox>
+		</grid>
 		
 		<!-- Row 3 -->
 		<void />
@@ -186,5 +212,6 @@
 		</hbox>
 		<void />
 		<void />
+
 	</grid>
 </plugin>

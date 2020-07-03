@@ -41,6 +41,9 @@ namespace lsp
         COMBO("std", "Loudness contour standard", loud_comp_base_metadata::STD_DFL, loud_comp_std), \
         COMBO("fft", "FFT size", loud_comp_base_metadata::FFT_RANK_IDX_DFL, loud_comp_fft_rank), \
         CONTROL("volume", "Output volume", U_DB, loud_comp_base_metadata::PHONS), \
+        SWITCH("hclip", "Hard-clipping enable", 0.0f), \
+        CONTROL("hcrange", "Hard-clipping range", U_DB, loud_comp_base_metadata::HCRANGE), \
+        TRIGGER("hcclean", "Clean hard-clipping indicators"), \
         MESH("spec", "Level compensation frequency graph", 2, loud_comp_base_metadata::CURVE_MESH_SIZE), \
         SWITCH("relspec", "Equalization curve is shown relative to the volume", 0.0f)
 
@@ -50,6 +53,7 @@ namespace lsp
         BYPASS,
         LOUD_COMP_COMMON,
         METER_GAIN("ilm", "Input level meter", GAIN_AMP_P_24_DB),
+        BLINK("olc", "Output level clip"),
         METER_GAIN("olm", "Output level meter", GAIN_AMP_P_24_DB),
         PORTS_END
     };
@@ -61,6 +65,8 @@ namespace lsp
         LOUD_COMP_COMMON,
         METER_GAIN("ilm_l", "Input level meter Left", GAIN_AMP_P_24_DB),
         METER_GAIN("ilm_r", "Input level meter Right", GAIN_AMP_P_24_DB),
+        BLINK("olc_l", "Output level clip Left"),
+        BLINK("olc_r", "Output level clip Right"),
         METER_GAIN("olm_l", "Output level meter Left", GAIN_AMP_P_24_DB),
         METER_GAIN("olm_r", "Output level meter Right", GAIN_AMP_P_24_DB),
         PORTS_END
