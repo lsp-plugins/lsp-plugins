@@ -278,8 +278,11 @@ namespace lsp
             if (s == NULL)
                 return STATUS_OK;
 
+            ws::ISurface *bs = get_surface(s);
+
             s->begin();
-                render(s, nFlags & REDRAW_SURFACE);
+                render(bs, nFlags & REDRAW_SURFACE);
+                s->draw(bs, 0, 0);
                 commit_redraw();
             s->end();
 
@@ -575,6 +578,12 @@ namespace lsp
                         lsp_trace("HIDE ptr=%p", this);
                         result      = sSlots.execute(LSPSLOT_HIDE, this, &ev);
                         bMapFlag    = nFlags & F_VISIBLE;
+                    }
+                    if ((!bMapFlag) && (pSurface != NULL))
+                    {
+                        pSurface->destroy();
+                        delete pSurface;
+                        pSurface = NULL;
                     }
                     break;
 
