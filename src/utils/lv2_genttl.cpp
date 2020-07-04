@@ -830,6 +830,8 @@ namespace lsp
             if (m.extensions & E_KVT_SYNC)
                 bufsize        += OSC_BUFFER_MAX;
 
+            if (!(requirements & REQ_MIDI))
+                fprintf(out, "\t\tlv2:portProperty lv2:connectionOptional ;\n");
             fprintf(out, "\t\tlv2:designation lv2:control ;\n");
             fprintf(out, "\t\tlv2:index %d ;\n", int(port_id));
             fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p_id);
@@ -841,7 +843,7 @@ namespace lsp
             port_id++;
         }
 
-        // Add sample rate reporting port
+        // Add latency reporting port
         {
             const port_t *p = &lv2_latency_port;
             if ((p->id != NULL) && (p->name != NULL))
