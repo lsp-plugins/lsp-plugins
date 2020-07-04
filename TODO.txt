@@ -32,6 +32,7 @@
 * VST plugins now provide possibility to save and load presets and do not crash Host.
 * Added support of lv2:StateChanged extension which properly works with Ardour 6.0.145 and higher.
 * Refactored and simplified LV2 parameter transport between UI and plugin code.
+* Now all lv2:Atom ports that do not provide MIDI message transfer are marked as lv2:connectionOptional.
 
 *******************************************************************************
 * New plugin check list before release
