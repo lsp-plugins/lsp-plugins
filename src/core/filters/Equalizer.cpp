@@ -95,6 +95,8 @@ namespace lsp
 
         // Mark equalizer for rebuild
         nFlags              = EF_REBUILD | EF_CLEAR;
+        nLatency            = 0;
+        nBufSize            = 0;
 
         return true;
     }

@@ -67,6 +67,11 @@ namespace lsp
              * @return true on success
              */
             virtual bool kvt_release();
+
+            /**
+             * Notify the host about internal state change
+             */
+            virtual void state_changed();
     };
 
 } /* namespace lsp */
