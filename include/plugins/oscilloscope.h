@@ -142,7 +142,6 @@ namespace lsp
             trg_type_t get_trigger_type(size_t portValue);
 
         protected:
-            bool fill_display_buffers(channel_t *c, float *xBuf, float *yBuf, size_t bufSize);
             void reset_display_buffers(channel_t *c);
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);

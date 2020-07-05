@@ -93,23 +93,12 @@ namespace lsp
         }
     }
 
-    bool oscilloscope_base::fill_display_buffers(channel_t *c, float *xBuf, float *yBuf, size_t bufSize)
-    {
-        size_t remaining = c->nSweepSize - c->nDisplayHead;
-        size_t to_copy = (bufSize < remaining) ? bufSize : remaining;
-
-        dsp::copy(&c->vDisplay_x[c->nDisplayHead], xBuf, to_copy);
-        dsp::copy(&c->vDisplay_y[c->nDisplayHead], yBuf, to_copy);
-
-        c->nDisplayHead += to_copy;
-
-        return c->nDisplayHead >= c->nSweepSize;
-    }
-
     void oscilloscope_base::reset_display_buffers(channel_t *c)
     {
+        // fill_zero is for DEBUG
         dsp::fill_zero(c->vDisplay_x, BUF_LIM_SIZE);
         dsp::fill_zero(c->vDisplay_y, BUF_LIM_SIZE);
+
         c->nDisplayHead = 0;
     }
 
@@ -445,6 +434,7 @@ namespace lsp
 
             c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
             c->sPreTrgDelay.set_delay(c->nPreTrigger);
+            c->sPreTrgDelay.clear();
 
             float trgLevel = c->pTrgLev->getValue();
 
@@ -530,7 +520,15 @@ namespace lsp
                         c->sOversampler_x.upsample(c->vData_x, c->vIn_x, to_do);
                         c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
 
-                        if (fill_display_buffers(c, c->vData_x, c->vData_y, to_do_upsample))
+                        size_t remaining = c->nSweepSize - c->nDisplayHead;
+                        size_t to_copy = (to_do_upsample < remaining) ? to_do_upsample : remaining;
+
+                        dsp::copy(&c->vDisplay_x[c->nDisplayHead], c->vData_x, to_copy);
+                        dsp::copy(&c->vDisplay_y[c->nDisplayHead], c->vData_y, to_copy);
+
+                        c->nDisplayHead += to_copy;
+
+                        if (c->nDisplayHead >= c->nSweepSize)
                         {
                             // Plot stuff happens here
 
@@ -544,6 +542,7 @@ namespace lsp
                         c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
                         c->sPreTrgDelay.process(c->vData_y_delay, c->vData_y, to_do_upsample);
                         c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
+                        c->nDataHead = 0;
 
                         float *trg_input = select_trigger_input(c->vData_ext, c->vData_y, c->enTrgInput);
 
@@ -567,7 +566,7 @@ namespace lsp
                                 case CH_STATE_SWEEPING:
                                 {
                                     c->sSweepGenerator.process_overwrite(&c->vDisplay_x[c->nDisplayHead], 1);
-                                    c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[c->nDataHead]; // Problem Here: must copy the right samples in each call
+                                    c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[c->nDataHead];
                                     ++c->nDataHead;
                                     ++c->nDisplayHead;
 
@@ -586,7 +585,6 @@ namespace lsp
                     break;
                 }
 
-                c->nDataHead         = 0;
                 c->vIn_x            += to_do;
                 c->vIn_y            += to_do;
                 c->vIn_ext          += to_do;
