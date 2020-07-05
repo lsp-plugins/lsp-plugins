@@ -27,7 +27,6 @@ namespace lsp
                 float              *vOut;           // Output buffer
                 float              *vBuffer;        // Buffer for processing
                 Bypass              sBypass;        // Bypass
-                Depopper            sDepopper;      // Depopper module
                 MeterGraph          sIn;            // Input metering graph
                 MeterGraph          sOut;           // Output metering graph
                 bool                bInVisible;     // Input signal visibility flag
@@ -40,7 +39,7 @@ namespace lsp
                 IPort              *pOutVisible;    // Output visibility
                 IPort              *pMeterIn;       // Input Meter
                 IPort              *pMeterOut;      // Output Meter
-            };
+            } channel_t;
 
             enum sync_t
             {
@@ -52,14 +51,18 @@ namespace lsp
         protected:
             size_t              nChannels;          // Number of channels
             channel_t          *vChannels;          // Array of channels
+            float               fGainIn;            // Input gain
+            float               fGainOut;           // Output gain
+            bool                bGainVisible;       // Gain visible
             size_t              nSync;              // Sync flags
             uint8_t            *pData;              // Allocated data
 
             MeterGraph          sGain;              // Gain metering graph
             Blink               sActive;            // Activity indicator
+            Depopper            sDepopper;          // Depopper module
 
-            IPort              *pInGain;            // Input gain
-            IPort              *pOutGain;           // Output gain
+            IPort              *pGainIn;            // Input gain
+            IPort              *pGainOut;           // Output gain
             IPort              *pThresh;            // Threshold
             IPort              *pAttack;            // Attack time
             IPort              *pRelease;           // Release time

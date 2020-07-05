@@ -21,11 +21,14 @@ namespace lsp
     {
         nChannels       = 0;
         vChannels       = NULL;
+        fGainIn         = 1.0f;
+        fGainOut        = 1.0f;
+        bGainVisible    = false;
         nSync           = 0;
         pData           = NULL;
 
-        pInGain         = NULL;
-        pOutGain        = NULL;
+        pGainIn         = NULL;
+        pGainOut        = NULL;
         pThresh         = NULL;
         pAttack         = NULL;
         pRelease        = NULL;
@@ -59,18 +62,20 @@ namespace lsp
 
         for (size_t i=0; i<nChannels; ++i)
         {
-            channel_t *c    = vChannels[i];
+            channel_t *c    = &vChannels[i];
 
             c->vIn          = NULL;
             c->vOut         = NULL;
             c->vBuffer      = bufs;
             bufs           += BUFFER_SIZE;
 
-            c->sDepopper.init();
             c->bInVisible   = true;
             c->bOutVisible  = true;
             c->nSync        = S_IN | S_OUT;
         }
+
+        // Initialize de-popper
+        sDepopper.init();
 
         // Bind ports
         lsp_trace("Binding ports");
@@ -92,7 +97,7 @@ namespace lsp
 
         // Bind control ports
         TRACE_PORT(vPorts[port_id]);
-        pOutGain        = vPorts[port_id++];
+        pGainOut        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pThresh         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -104,7 +109,7 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pActive         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pInGain         = vPorts[port_id++];
+        pGainIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMeshIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -117,7 +122,7 @@ namespace lsp
         // Bind custom channel ports
         for (size_t i=0; i<nChannels; ++i)
         {
-            channel_t *c    = vChannels[i];
+            channel_t *c    = &vChannels[i];
 
             TRACE_PORT(vPorts[port_id]);
             c->pInVisible       = vPorts[port_id++];
@@ -137,7 +142,7 @@ namespace lsp
         {
             for (size_t i=0; i<nChannels; ++i)
             {
-                channel_t *c    = vChannels[i];
+                channel_t *c    = &vChannels[i];
                 c->sIn.destroy();
                 c->sOut.destroy();
             }
@@ -158,7 +163,7 @@ namespace lsp
         nSync      |= S_GAIN;
         for (size_t i=0; i<nChannels; ++i)
         {
-            channel_t *c    = vChannels[i];
+            channel_t *c    = &vChannels[i];
             if (c->bInVisible)
                 c->nSync       |= S_IN;
             if (c->bOutVisible)
@@ -170,15 +175,15 @@ namespace lsp
     {
         size_t samples_per_dot  = seconds_to_samples(sr, MESH_TIME / MESH_POINTS);
 
+        sDepopper.set_sample_rate(sr);
         sGain.init(MESH_POINTS, samples_per_dot);
         sActive.init(sr);
 
         for (size_t i=0; i<nChannels; ++i)
         {
-            channel_t *c    = vChannels[i];
+            channel_t *c    = &vChannels[i];
 
             c->sBypass.init(sr);
-            c->sDepopper.set_sample_rate(sr);
             c->sIn.init(MESH_POINTS, samples_per_dot);
             c->sOut.init(MESH_POINTS, samples_per_dot);
         }
@@ -186,6 +191,24 @@ namespace lsp
 
     void pop_destroyer_base::update_settings()
     {
+        bool bypass     = pBypass->getValue() >= 0.5f;
+        fGainIn         = pGainIn->getValue();
+        fGainOut        = pGainOut->getValue();
+        bGainVisible    = pGainVisible->getValue() >= 0.5f;
+
+        sDepopper.set_threshold(pThresh->getValue());
+        sDepopper.set_attack(pAttack->getValue());
+        sDepopper.set_release(pRelease->getValue());
+        sDepopper.set_fade_time(pFade->getValue());
+
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+
+            c->sBypass.set_bypass(bypass);
+            c->bInVisible   = c->pInVisible->getValue();
+            c->bOutVisible  = c->pOutVisible->getValue();
+        }
     }
 
     void pop_destroyer_base::process(size_t samples)
@@ -193,15 +216,29 @@ namespace lsp
         // Bind ports
         for (size_t i=0; i<nChannels; ++i)
         {
-            channel_t *c    = vChannels[i];
+            channel_t *c    = &vChannels[i];
             c->vIn          = c->pIn->getBuffer<float>();
             c->vOut         = c->pOut->getBuffer<float>();
+        }
+
+        for (size_t nleft=0; nleft < samples; ++nleft)
+        {
+            size_t to_process = (nleft > BUFFER_SIZE) ? BUFFER_SIZE : nleft;
+
+            // Prepare control signal
+            dsp::abs2(vChannels[0].vBuffer, vChannels[0].vIn, to_process);
+            if (nChannels > 1)
+            {
+                dsp::abs2(vChannels[1].vBuffer, vChannels[1].vIn, to_process);
+//                dsp::max
+            }
+
         }
 
         // TODO: replace this stuff
         for (size_t i=0; i<nChannels; ++i)
         {
-            channel_t *c    = vChannels[i];
+            channel_t *c    = &vChannels[i];
             dsp::copy(c->vOut, c->vIn, samples);
         }
     }

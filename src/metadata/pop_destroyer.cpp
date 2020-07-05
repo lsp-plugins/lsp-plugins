@@ -74,7 +74,7 @@ namespace lsp
         mono_plugin_port_groups
     };
 
-    const plugin_metadata_t pop_destroyer_mono_metadata::metadata =
+    const plugin_metadata_t pop_destroyer_stereo_metadata::metadata =
     {
         "Pop Zerstörer Stereo",
         "Pop Destroyer Stereo",

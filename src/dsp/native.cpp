@@ -32,6 +32,7 @@
 #include <dsp/arch/native/pmath/abs_vv.h>
 #include <dsp/arch/native/pmath/exp.h>
 #include <dsp/arch/native/pmath/log.h>
+#include <dsp/arch/native/pmath/minmax.h>
 #include <dsp/arch/native/pmath/pow.h>
 
 #include <dsp/arch/native/hmath/hsum.h>
@@ -168,6 +169,19 @@ namespace native
         EXPORT1(mul3);
         EXPORT1(div3);
         EXPORT1(mod3);
+
+        EXPORT1(pmin2);
+        EXPORT1(pmax2);
+        EXPORT1(psmin2);
+        EXPORT1(psmax2);
+        EXPORT1(pamin2);
+        EXPORT1(pamax2);
+        EXPORT1(pmin3);
+        EXPORT1(pmax3);
+        EXPORT1(psmin3);
+        EXPORT1(psmax3);
+        EXPORT1(pamin3);
+        EXPORT1(pamax3);
 
         EXPORT1(h_sum);
         EXPORT1(h_sqr_sum);
