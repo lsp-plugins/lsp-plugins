@@ -440,7 +440,7 @@ namespace lsp
 
             c->sTrigger.set_trigger_type(get_trigger_type(c->pTrgType->getValue()));
             c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
-            c->sTrigger.set_post_trigger_samples(c->nSweepSize);
+            c->sTrigger.set_trigger_hold_samples(c->nSweepSize);
             c->sTrigger.update_settings();
         }
     }

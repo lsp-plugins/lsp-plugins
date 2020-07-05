@@ -18,8 +18,8 @@ namespace lsp
         enTriggerType           = TRG_TYPE_NONE;
         enTriggerState          = TRG_STATE_WAITING;
 
-        nPostTrigger            = 0;
-        nPostTriggerCounter     = 0;
+        nTriggerHold            = 0;
+        nTriggerHoldCounter     = 0;
 
         sSimpleTrg.fThreshold   = 0.0f;
         sSimpleTrg.fPrevious    = 0.0f;
@@ -38,7 +38,7 @@ namespace lsp
         if (!bSync)
             return;
 
-        nPostTriggerCounter = 0;
+        nTriggerHoldCounter = 0;
         bSync = false;
     }
 
@@ -57,11 +57,10 @@ namespace lsp
                     enTriggerState = TRG_STATE_WAITING;
                 }
 
-                // Imposing a condition on the previous sample too might be too strict! Test and evaluate.
-                if ((enTriggerState == TRG_STATE_ARMED) && (value >= sSimpleTrg.fThreshold) && (sSimpleTrg.fPrevious <= sSimpleTrg.fThreshold) && (nPostTriggerCounter >= nPostTrigger))
+                if ((enTriggerState == TRG_STATE_ARMED) && (value >= sSimpleTrg.fThreshold) && (nTriggerHoldCounter >= nTriggerHold))
                 {
                     enTriggerState = TRG_STATE_FIRED;
-                    nPostTriggerCounter = 0;
+                    nTriggerHoldCounter = 0;
                 }
                 else
                     enTriggerState = TRG_STATE_WAITING;
@@ -81,11 +80,10 @@ namespace lsp
                     enTriggerState = TRG_STATE_WAITING;
                 }
 
-                // Imposing a condition on the previous sample too might be too strict! Test and evaluate.
-                if ((enTriggerState == TRG_STATE_ARMED) && (value <= sSimpleTrg.fThreshold) && (sSimpleTrg.fPrevious >= sSimpleTrg.fThreshold) && (nPostTriggerCounter >= nPostTrigger))
+                if ((enTriggerState == TRG_STATE_ARMED) && (value <= sSimpleTrg.fThreshold) && (nTriggerHoldCounter >= nTriggerHold))
                 {
                     enTriggerState = TRG_STATE_FIRED;
-                    nPostTriggerCounter = 0;
+                    nTriggerHoldCounter = 0;
                 }
                 else
                     enTriggerState = TRG_STATE_WAITING;
@@ -97,7 +95,7 @@ namespace lsp
                 if ((enTriggerState == TRG_STATE_ARMED) && (nExternalTriggerCounter == 0))
                 {
                     enTriggerState = TRG_STATE_FIRED;
-                    nPostTriggerCounter = 0;
+                    nTriggerHoldCounter = 0;
                 }
                 else if (enTriggerState == TRG_STATE_FIRED)
                 {
@@ -115,6 +113,6 @@ namespace lsp
                 return;
         }
 
-        ++nPostTriggerCounter;
+        ++nTriggerHoldCounter;
     }
 }

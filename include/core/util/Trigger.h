@@ -48,8 +48,8 @@ namespace lsp
             trg_type_t      enTriggerType;
             trg_state_t     enTriggerState;
 
-            size_t          nPostTrigger;
-            size_t          nPostTriggerCounter;
+            size_t          nTriggerHold;
+            size_t          nTriggerHoldCounter;
 
             simple_trg_t    sSimpleTrg;
 
@@ -84,13 +84,13 @@ namespace lsp
              *
              * @param nSamples number of post-trigger samples.
              */
-            inline void set_post_trigger_samples(size_t nSamples)
+            inline void set_trigger_hold_samples(size_t nSamples)
             {
-                if (nSamples == nPostTrigger)
+                if (nSamples == nTriggerHold)
                     return;
 
-                nPostTrigger = nSamples;
-                nPostTriggerCounter = 0;
+                nTriggerHold = nSamples;
+                nTriggerHoldCounter = 0;
             }
 
             /** Set the trigger type.
