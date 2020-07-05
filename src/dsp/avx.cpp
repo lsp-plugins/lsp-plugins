@@ -29,6 +29,7 @@
 #include <dsp/arch/x86/avx/pmath/fmop_kx.h>
 #include <dsp/arch/x86/avx/pmath/fmop_vv.h>
 #include <dsp/arch/x86/avx/pmath/abs_vv.h>
+#include <dsp/arch/x86/avx/pmath/minmax.h>
 
 #include <dsp/arch/x86/avx/hmath/hsum.h>
 #include <dsp/arch/x86/avx/hmath/hdotp.h>
@@ -144,6 +145,19 @@ namespace avx
         CEXPORT1(favx, mul3);
         CEXPORT1(favx, div3);
         CEXPORT1(favx, mod3);
+
+        CEXPORT1(favx, pmin2);
+        CEXPORT1(favx, pmax2);
+        CEXPORT1(favx, psmin2);
+        CEXPORT1(favx, psmax2);
+        CEXPORT1(favx, pamin2);
+        CEXPORT1(favx, pamax2);
+        CEXPORT1(favx, pmin3);
+        CEXPORT1(favx, pmax3);
+        CEXPORT1(favx, psmin3);
+        CEXPORT1(favx, psmax3);
+        CEXPORT1(favx, pamin3);
+        CEXPORT1(favx, pamax3);
 
         CEXPORT1(favx, fmadd_k3);
         CEXPORT1(favx, fmsub_k3);

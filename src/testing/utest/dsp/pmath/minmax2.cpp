@@ -29,6 +29,16 @@ IF_ARCH_X86(
         void pamin2(float *dst, const float *src, size_t count);
         void pamax2(float *dst, const float *src, size_t count);
     }
+
+    namespace avx
+    {
+        void pmin2(float *dst, const float *src, size_t count);
+        void pmax2(float *dst, const float *src, size_t count);
+        void psmin2(float *dst, const float *src, size_t count);
+        void psmax2(float *dst, const float *src, size_t count);
+        void pamin2(float *dst, const float *src, size_t count);
+        void pamax2(float *dst, const float *src, size_t count);
+    }
 )
 
 typedef void (* min2_t)(float *dst, const float *src, size_t count);
@@ -54,9 +64,10 @@ UTEST_BEGIN("dsp.pmath", minmax2)
                 FloatBuffer src(count, align, mask & 0x01);
                 src.randomize_sign();
 
-                FloatBuffer dst1(count, align, mask & 0x02);
-                dst1.randomize_sign();
-                FloatBuffer dst2(dst1);
+                FloatBuffer dst(count, align, mask & 0x02);
+                dst.randomize_sign();
+                FloatBuffer dst1(dst);
+                FloatBuffer dst2(dst);
 
                 // Call functions
                 func1(dst1, src, count);
@@ -69,6 +80,7 @@ UTEST_BEGIN("dsp.pmath", minmax2)
                 if (!dst1.equals_adaptive(dst2, 1e-4))
                 {
                     src.dump("src ");
+                    dst.dump("dst ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
@@ -88,6 +100,13 @@ UTEST_BEGIN("dsp.pmath", minmax2)
         IF_ARCH_X86(CALL(native::psmax2, sse::psmax2, 16));
         IF_ARCH_X86(CALL(native::pamin2, sse::pamin2, 16));
         IF_ARCH_X86(CALL(native::pamax2, sse::pamax2, 16));
+
+        IF_ARCH_X86(CALL(native::pmin2, avx::pmin2, 32));
+        IF_ARCH_X86(CALL(native::pmax2, avx::pmax2, 32));
+        IF_ARCH_X86(CALL(native::psmin2, avx::psmin2, 32));
+        IF_ARCH_X86(CALL(native::psmax2, avx::psmax2, 32));
+        IF_ARCH_X86(CALL(native::pamin2, avx::pamin2, 32));
+        IF_ARCH_X86(CALL(native::pamax2, avx::pamax2, 32));
 
     }
 UTEST_END
