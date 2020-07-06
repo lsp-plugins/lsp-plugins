@@ -24,7 +24,8 @@ namespace lsp
         MESH("ing", "Input signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
         MESH("outg", "Output signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
         MESH("gaing", "Gain graph", channels, pop_destroyer_base_metadata::MESH_POINTS), \
-        SWITCH("gains", "Gain graph show", 1.0f)
+        SWITCH("gains", "Gain graph show", 1.0f), \
+        METER_GAIN("grm", "Gain reduction meter", GAIN_AMP_P_24_DB)
 
     static const port_t pop_destroyer_mono_ports[] =
     {

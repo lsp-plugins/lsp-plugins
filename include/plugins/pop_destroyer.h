@@ -51,6 +51,8 @@ namespace lsp
         protected:
             size_t              nChannels;          // Number of channels
             channel_t          *vChannels;          // Array of channels
+            float              *vBuffer;            // Buffer for processing
+            float              *vTimePoints;        // Time points
             float               fGainIn;            // Input gain
             float               fGainOut;           // Output gain
             bool                bGainVisible;       // Gain visible
@@ -73,6 +75,7 @@ namespace lsp
             IPort              *pMeshOut;           // Output mesh
             IPort              *pMeshGain;          // Gain mesh
             IPort              *pGainVisible;       // Gain mesh visibility
+            IPort              *pGainMeter;         // Gain reduction meter
 
         public:
             explicit            pop_destroyer_base(size_t channels, const plugin_metadata_t &meta);
