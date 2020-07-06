@@ -56,6 +56,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void pmin2(float *dst, const float *src, size_t count);
+        void pmax2(float *dst, const float *src, size_t count);
+        void psmin2(float *dst, const float *src, size_t count);
+        void psmax2(float *dst, const float *src, size_t count);
+        void pamin2(float *dst, const float *src, size_t count);
+        void pamax2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* min2_t)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -98,36 +110,42 @@ PTEST_BEGIN("dsp.pmath", minmax2, 5, 10000)
             IF_ARCH_X86(CALL(sse::pmin2));
             IF_ARCH_X86(CALL(avx::pmin2));
             IF_ARCH_ARM(CALL(neon_d32::pmin2));
+            IF_ARCH_AARCH64(CALL(asimd::pmin2));
             PTEST_SEPARATOR;
 
             CALL(native::pmax2);
             IF_ARCH_X86(CALL(sse::pmax2));
             IF_ARCH_X86(CALL(avx::pmax2));
             IF_ARCH_ARM(CALL(neon_d32::pmax2));
+            IF_ARCH_AARCH64(CALL(asimd::pmax2));
             PTEST_SEPARATOR;
 
             CALL(native::psmin2);
             IF_ARCH_X86(CALL(sse::psmin2));
             IF_ARCH_X86(CALL(avx::psmin2));
             IF_ARCH_ARM(CALL(neon_d32::psmin2));
+            IF_ARCH_AARCH64(CALL(asimd::psmin2));
             PTEST_SEPARATOR;
 
             CALL(native::psmax2);
             IF_ARCH_X86(CALL(sse::psmax2));
             IF_ARCH_X86(CALL(avx::psmax2));
             IF_ARCH_ARM(CALL(neon_d32::psmax2));
+            IF_ARCH_AARCH64(CALL(asimd::psmax2));
             PTEST_SEPARATOR;
 
             CALL(native::pamin2);
             IF_ARCH_X86(CALL(sse::pamin2));
             IF_ARCH_X86(CALL(avx::pamin2));
             IF_ARCH_ARM(CALL(neon_d32::pamin2));
+            IF_ARCH_AARCH64(CALL(asimd::pamin2));
             PTEST_SEPARATOR;
 
             CALL(native::pamax2);
             IF_ARCH_X86(CALL(sse::pamax2));
             IF_ARCH_X86(CALL(avx::pamax2));
             IF_ARCH_ARM(CALL(neon_d32::pamax2));
+            IF_ARCH_AARCH64(CALL(asimd::pamax2));
             PTEST_SEPARATOR2;
         }
 
