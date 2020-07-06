@@ -108,7 +108,7 @@ namespace lsp
                 // Issue wait
                 res = syscall(SYS_futex, &nLock, FUTEX_WAIT, 0, NULL, 0, 0);
                 if ((res == ENOSYS) || (res == EAGAIN))
-                    pthread_yield();
+                    sched_yield();
             }
         }
 

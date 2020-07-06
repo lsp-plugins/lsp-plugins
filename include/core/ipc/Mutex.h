@@ -18,6 +18,7 @@
     #include <sys/syscall.h>
     #include <unistd.h>
     #include <pthread.h>
+    #include <sched.h>
     #include <errno.h>
 #else
     #include <pthread.h>
