@@ -41,6 +41,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void pmin2(float *dst, const float *src, size_t count);
+        void pmax2(float *dst, const float *src, size_t count);
+        void psmin2(float *dst, const float *src, size_t count);
+        void psmax2(float *dst, const float *src, size_t count);
+        void pamin2(float *dst, const float *src, size_t count);
+        void pamax2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* min2_t)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -108,6 +120,12 @@ UTEST_BEGIN("dsp.pmath", minmax2)
         IF_ARCH_X86(CALL(native::pamin2, avx::pamin2, 32));
         IF_ARCH_X86(CALL(native::pamax2, avx::pamax2, 32));
 
+        IF_ARCH_ARM(CALL(native::pmin2, neon_d32::pmin2, 16));
+        IF_ARCH_ARM(CALL(native::pmax2, neon_d32::pmax2, 16));
+        IF_ARCH_ARM(CALL(native::psmin2, neon_d32::psmin2, 16));
+        IF_ARCH_ARM(CALL(native::psmax2, neon_d32::psmax2, 16));
+        IF_ARCH_ARM(CALL(native::pamin2, neon_d32::pamin2, 16));
+        IF_ARCH_ARM(CALL(native::pamax2, neon_d32::pamax2, 16));
     }
 UTEST_END
 

@@ -35,9 +35,14 @@
 // Include common definitions
 #include <container/const.h>
 
+// Some definitions that may be lacking in LV2
 #ifndef LV2_ATOM__Object
-    #define LV2_ATOM__Object        LV2_ATOM_PREFIX "Object"
+    #define LV2_ATOM__Object            LV2_ATOM_PREFIX "Object"
 #endif /* LV2_ATOM__Object */
+
+#ifndef LV2_STATE__StateChanged
+    #define LV2_STATE__StateChanged     LV2_STATE_PREFIX "StateChanged"
+#endif /* LV2_STATE__StateChanged */
 
 #pragma pack(push, 1)
 typedef struct LV2_Atom_Midi

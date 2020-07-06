@@ -62,6 +62,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/pmath/abs_vv.h>
 #include <dsp/arch/arm/neon-d32/pmath/exp.h>
 #include <dsp/arch/arm/neon-d32/pmath/log.h>
+#include <dsp/arch/arm/neon-d32/pmath/minmax.h>
 #include <dsp/arch/arm/neon-d32/pmath/pow.h>
 
 #include <dsp/arch/arm/neon-d32/hmath/hsum.h>
@@ -184,6 +185,19 @@ namespace neon_d32
         EXPORT1(mul3);
         EXPORT1(div3);
         EXPORT1(mod3);
+
+        EXPORT1(pmin2);
+        EXPORT1(pmax2);
+        EXPORT1(psmin2);
+        EXPORT1(psmax2);
+        EXPORT1(pamin2);
+        EXPORT1(pamax2);
+        EXPORT1(pmin3);
+        EXPORT1(pmax3);
+        EXPORT1(psmin3);
+        EXPORT1(psmax3);
+        EXPORT1(pamin3);
+        EXPORT1(pamax3);
 
         EXPORT1(fmadd_k3);
         EXPORT1(fmsub_k3);

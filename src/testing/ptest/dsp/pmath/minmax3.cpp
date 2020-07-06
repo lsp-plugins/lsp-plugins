@@ -44,6 +44,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void pmin3(float *dst, const float *a, const float *b, size_t count);
+        void pmax3(float *dst, const float *a, const float *b, size_t count);
+        void psmin3(float *dst, const float *a, const float *b, size_t count);
+        void psmax3(float *dst, const float *a, const float *b, size_t count);
+        void pamin3(float *dst, const float *a, const float *b, size_t count);
+        void pamax3(float *dst, const float *a, const float *b, size_t count);
+    }
+)
+
 typedef void (* min3_t)(float *dst, const float *a, const float *b, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -86,31 +98,37 @@ PTEST_BEGIN("dsp.pmath", minmax3, 5, 10000)
             CALL(native::pmin3);
             IF_ARCH_X86(CALL(sse::pmin3));
             IF_ARCH_X86(CALL(avx::pmin3));
+            IF_ARCH_ARM(CALL(neon_d32::pmin3));
             PTEST_SEPARATOR;
 
             CALL(native::pmax3);
             IF_ARCH_X86(CALL(sse::pmax3));
             IF_ARCH_X86(CALL(avx::pmax3));
+            IF_ARCH_ARM(CALL(neon_d32::pmax3));
             PTEST_SEPARATOR;
 
             CALL(native::psmin3);
             IF_ARCH_X86(CALL(sse::psmin3));
             IF_ARCH_X86(CALL(avx::psmin3));
+            IF_ARCH_ARM(CALL(neon_d32::psmin3));
             PTEST_SEPARATOR;
 
             CALL(native::psmax3);
             IF_ARCH_X86(CALL(sse::psmax3));
             IF_ARCH_X86(CALL(avx::psmax3));
+            IF_ARCH_ARM(CALL(neon_d32::psmax3));
             PTEST_SEPARATOR;
 
             CALL(native::pamin3);
             IF_ARCH_X86(CALL(sse::pamin3));
             IF_ARCH_X86(CALL(avx::pamin3));
+            IF_ARCH_ARM(CALL(neon_d32::pamin3));
             PTEST_SEPARATOR;
 
             CALL(native::pamax3);
             IF_ARCH_X86(CALL(sse::pamax3));
             IF_ARCH_X86(CALL(avx::pamax3));
+            IF_ARCH_ARM(CALL(neon_d32::pamax3));
             PTEST_SEPARATOR2;
         }
 
