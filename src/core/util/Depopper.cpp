@@ -12,24 +12,26 @@ namespace lsp
     
     Depopper::Depopper()
     {
-        init();
+        construct();
     }
     
     Depopper::~Depopper()
     {
     }
 
-    void Depopper::init()
+    void Depopper::construct()
     {
         nSampleRate     = DEFAULT_SAMPLE_RATE;
         fFadeTime       = 50.0f;
         fThreshold      = GAIN_AMP_M_80_DB;
         fAttack         = 10.0f;
-        fRelease        = 10.0f;
+        fRelease        = 200.0f;
+        fQRelease       = 10.0f;
         fEnvelope       = 0.0f;
+        fQEnvelope      = 0.0f;
         fClip           = 1.0f;
-        fClipStart      = 0.0f;
         fClipInc        = 0.0f;
+        nClipCounter    = 0;
         nState          = ST_CLOSED;
         bReconfigure    = true;
 
@@ -45,21 +47,18 @@ namespace lsp
 
         float att           = millis_to_samples(nSampleRate, fAttack);
         float rel           = millis_to_samples(nSampleRate, fRelease);
-        float fade          = millis_to_samples(nSampleRate, fRelease);
+        float qrel          = millis_to_samples(nSampleRate, fQRelease);
+        float fade          = millis_to_samples(nSampleRate, fFadeTime);
         float thresh        = fabs(fThreshold);
 
         if (thresh > 1.0f)
             thresh              = 1.0f;
-        if (att < 1.0f)
-            att                 = 1.0f;
-        if (rel < 1.0f)
-            rel                 = 1.0f;
 
-        fAttack             = 1.0f - expf(logf(1.0f - M_SQRT1_2) / att);
-        fRelease            = 1.0f - expf(logf(1.0f - M_SQRT1_2) / rel);
         nFadeSamples        = fade;
-        fClipStart          = thresh;
-        fClipInc            = (1.0f - fClipStart) / fade;
+        fTauAttack          = (att < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / att);
+        fTauRelease         = (rel < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / rel);
+        fTauQRelease        = (qrel < 1.0f) ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / qrel);
+        fClipInc            = (1.0f - thresh) / fade;
 
         bReconfigure        = false;
     }
@@ -123,6 +122,18 @@ namespace lsp
         return old;
     }
 
+    float Depopper::set_tracking_release(float release)
+    {
+        float old       = fQRelease;
+        if (old == release)
+            return old;
+
+        fQRelease       = release;
+        bReconfigure    = true;
+
+        return old;
+    }
+
     void Depopper::process(float *dst, const float *src, size_t count)
     {
         // Reconfigure if needed
@@ -132,17 +143,19 @@ namespace lsp
         for (size_t i=0; i<count; ++i)
         {
             float x         = fabs(src[i]) - fEnvelope;
-            fEnvelope      += (x > 0) ? fTauAttack * x : fTauRelease * x;
+            float y         = fabs(src[i]) - fQEnvelope;
+            fEnvelope      += (x > 0) ? fTauAttack * x : fTauRelease  * x;
+            fQEnvelope     += (y > 0) ? fTauAttack * y : fTauQRelease * y;
 
             // Produce output gain
             switch (nState)
             {
                 case ST_CLOSED:
                     dst[i]      = 1.0f; // Normal gain
-                    if (fEnvelope < fThreshold)
+                    if (fQEnvelope < fThreshold)
                         break;
 
-                    fClip       = fabs(fThreshold);
+                    nClipCounter= 0;
                     nState      = ST_FADING;
                     break;
 
@@ -151,23 +164,25 @@ namespace lsp
                     dst[i]      = (fEnvelope <= fClip) ? 1.0f : fClip / fEnvelope;
 
                     // Fall-off below threshold ?
-                    if (fEnvelope < fThreshold)
+                    if (fQEnvelope < fThreshold)
                     {
                         nState      = ST_CLOSED;
                         break;
                     }
 
                     // Fade-in the output gain
-                    fClip      += fClipInc;
+                    fClip       = fThreshold + nClipCounter * fClipInc;
                     if (fClip >= 1.0f)
                         nState      = ST_OPENED;
+                    else
+                        ++nClipCounter;
                     break;
 
                 case ST_OPENED:
                     dst[i]      = 1.0f; // Normal gain
 
                     // Fall-off before threshold ?
-                    if (fEnvelope < fThreshold)
+                    if (fQEnvelope < fThreshold)
                         nState      = ST_CLOSED;
 
                     break;

@@ -36,10 +36,12 @@ namespace lsp
             float           fThreshold;
             float           fAttack;
             float           fRelease;
+            float           fQRelease;
             float           fEnvelope;
+            float           fQEnvelope;
             float           fClip;
-            float           fClipStart;
             float           fClipInc;
+            size_t          nClipCounter;
             state_t         nState;
             bool            bReconfigure;
 
@@ -47,6 +49,7 @@ namespace lsp
             size_t          nFadeSamples;
             float           fTauAttack;
             float           fTauRelease;
+            float           fTauQRelease;
 
         public:
             explicit        Depopper();
@@ -56,7 +59,7 @@ namespace lsp
             /**
              * Initialize depopper
              */
-            void            init();
+            void            construct();
 
             /**
              * Check whether the module needs reconfiguration
@@ -132,6 +135,19 @@ namespace lsp
              * @return previous release time
              */
             float           set_release(float release);
+
+            /**
+             * Set tracking release time in milliseconds
+             * @return release time in milliseconds
+             */
+            inline float    tracking_release() const        { return fQRelease;          }
+
+            /**
+             * Set tracking release time in milliseconds
+             * @param release release time in milliseconds
+             * @return previous release time
+             */
+            float           set_tracking_release(float release);
 
             /**
              * Check that depopper is currently closed

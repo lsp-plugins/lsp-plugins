@@ -31,7 +31,6 @@ namespace lsp
                 MeterGraph          sOut;           // Output metering graph
                 bool                bInVisible;     // Input signal visibility flag
                 bool                bOutVisible;    // Output signal visibility flag
-                size_t              nSync;          // Sync flags
 
                 IPort              *pIn;            // Input port
                 IPort              *pOut;           // Output port
@@ -41,13 +40,6 @@ namespace lsp
                 IPort              *pMeterOut;      // Output Meter
             } channel_t;
 
-            enum sync_t
-            {
-                S_IN        = 1 << 0,
-                S_OUT       = 1 << 1,
-                S_GAIN      = 1 << 2
-            };
-
         protected:
             size_t              nChannels;          // Number of channels
             channel_t          *vChannels;          // Array of channels
@@ -56,7 +48,6 @@ namespace lsp
             float               fGainIn;            // Input gain
             float               fGainOut;           // Output gain
             bool                bGainVisible;       // Gain visible
-            size_t              nSync;              // Sync flags
             uint8_t            *pData;              // Allocated data
 
             MeterGraph          sGain;              // Gain metering graph
@@ -85,7 +76,6 @@ namespace lsp
             virtual void        destroy();
 
         public:
-            virtual void        ui_activated();
             virtual void        update_sample_rate(long sr);
             virtual void        update_settings();
             virtual void        process(size_t samples);

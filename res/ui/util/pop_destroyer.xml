@@ -67,7 +67,18 @@
 			<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 
 			<!-- Meshes -->
-
+			<mesh id="ig" width="2" color="middle_channel_in" x_index="0" y_index="1" />
+			<mesh id="og" width="2" color="middle_channel" x_index="0" y_index="1" />
+			<mesh id="grg" width="2" color="bright_blue" />
+			
+			<ui:if test="${ex :ilm_r}">
+				<mesh id="ig" width="2" color="left_channel_in" x_index="0" y_index="1" visibility=":igv_l" />
+				<mesh id="ig" width="2" color="right_channel_in" x_index="0" y_index="2" visibility=":igv_r" />
+				<mesh id="og" width="2" color="left_channel" x_index="0" y_index="1" visibility=":ogv_l" />
+				<mesh id="og" width="2" color="right_channel" x_index="0" y_index="2" visibility=":ogv_r" />
+				<mesh id="grg" width="2" color="bright_blue" visibility=":grv" />
+			</ui:if>
+			
 			<!-- Boundaries -->
 			<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
 			<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->

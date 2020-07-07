@@ -21,10 +21,10 @@ namespace lsp
         CONTROL("fade", "Fade time", U_MSEC, pop_destroyer_base_metadata::FADE), \
         BLINK("active", "Activity indicator"), \
         AMP_GAIN("output", "Output gain", 1.0f, GAIN_AMP_P_24_DB), \
-        MESH("ing", "Input signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
-        MESH("outg", "Output signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
-        MESH("grg", "Gain reduction graph", channels, pop_destroyer_base_metadata::MESH_POINTS), \
-        SWITCH("grv", "Gain reduction graph visibility", 1.0f), \
+        MESH("ig", "Input signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
+        MESH("og", "Output signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
+        MESH("grg", "Gain reduction graph", 2, pop_destroyer_base_metadata::MESH_POINTS), \
+        SWITCH("grv", "Gain reduction visibility", 1.0f), \
         METER_GAIN("grm", "Gain reduction meter", GAIN_AMP_P_24_DB)
 
     static const port_t pop_destroyer_mono_ports[] =
@@ -32,8 +32,8 @@ namespace lsp
         PORTS_MONO_PLUGIN,
         BYPASS,
         POP_DESTROYER_COMMON(1),
-        SWITCH("ins", "Input graph show", 1.0f),
-        SWITCH("outs", "Output graph show", 1.0f),
+        SWITCH("igv", "Input graph visibility", 1.0f),
+        SWITCH("ogv", "Output graph visibility", 1.0f),
         METER_GAIN("ilm", "Input level meter", GAIN_AMP_P_24_DB),
         METER_GAIN("olm", "Output level meter", GAIN_AMP_P_24_DB),
 
@@ -45,12 +45,12 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         BYPASS,
         POP_DESTROYER_COMMON(2),
-        SWITCH("ins_l", "Input graph show left", 1.0f),
-        SWITCH("outs_l", "Output graph show left", 1.0f),
+        SWITCH("igv_l", "Input graph visibility left", 1.0f),
+        SWITCH("ogv_l", "Output graph visibility left", 1.0f),
         METER_GAIN("ilm_l", "Input level meter left", GAIN_AMP_P_24_DB),
         METER_GAIN("olm_l", "Output level meter left", GAIN_AMP_P_24_DB),
-        SWITCH("ins_r", "Input graph show right", 1.0f),
-        SWITCH("outs_r", "Output graph show right", 1.0f),
+        SWITCH("igv_r", "Input graph visibility right", 1.0f),
+        SWITCH("ogv_r", "Output graph visibility right", 1.0f),
         METER_GAIN("ilm_r", "Input level meter right", GAIN_AMP_P_24_DB),
         METER_GAIN("olm_r", "Output level meter right", GAIN_AMP_P_24_DB),
 

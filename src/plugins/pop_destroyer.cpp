@@ -26,7 +26,6 @@ namespace lsp
         fGainIn         = 1.0f;
         fGainOut        = 1.0f;
         bGainVisible    = false;
-        nSync           = 0;
         pData           = NULL;
 
         pGainIn         = NULL;
@@ -72,6 +71,8 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
+            c->sBypass.construct();
+
             c->vIn          = NULL;
             c->vOut         = NULL;
             c->vBuffer      = bufs;
@@ -79,11 +80,10 @@ namespace lsp
 
             c->bInVisible   = true;
             c->bOutVisible  = true;
-            c->nSync        = S_IN | S_OUT;
         }
 
         // Initialize de-popper
-        sDepopper.init();
+        sDepopper.construct();
         sGain.set_method(MM_MINIMUM);
 
         // Bind ports
@@ -108,7 +108,7 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pBypass         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pGainOut        = vPorts[port_id++];
+        pGainIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pThresh         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -120,7 +120,7 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pActive         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pGainIn         = vPorts[port_id++];
+        pGainOut        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMeshIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -150,7 +150,7 @@ namespace lsp
         // Initialize time points
         float delta     = MESH_TIME / (MESH_POINTS - 1);
         for (size_t i=0; i<MESH_POINTS; ++i)
-            vTimePoints[i]  = MESH_POINTS - i*delta;
+            vTimePoints[i]  = MESH_TIME - i*delta;
     }
 
     void pop_destroyer_base::destroy()
@@ -174,19 +174,6 @@ namespace lsp
         {
             free_aligned(pData);
             pData   = NULL;
-        }
-    }
-
-    void pop_destroyer_base::ui_activated()
-    {
-        nSync      |= S_GAIN;
-        for (size_t i=0; i<nChannels; ++i)
-        {
-            channel_t *c    = &vChannels[i];
-            if (c->bInVisible)
-                c->nSync       |= S_IN;
-            if (c->bOutVisible)
-                c->nSync       |= S_OUT;
         }
     }
 
@@ -248,33 +235,31 @@ namespace lsp
             if (nChannels > 1)
             {
                 // Apply input gain
-                dsp::mul_k3(vChannels[0].vOut, vChannels[0].vIn, fGainIn, to_process);
-                dsp::mul_k3(vChannels[1].vOut, vChannels[1].vIn, fGainIn, to_process);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fGainIn, to_process);
+                dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fGainIn, to_process);
 
                 // Process input graph
-                vChannels[0].sIn.process(vChannels[0].vOut, to_process);
-                vChannels[1].sIn.process(vChannels[1].vOut, to_process);
+                vChannels[0].sIn.process(vChannels[0].vBuffer, to_process);
+                vChannels[1].sIn.process(vChannels[1].vBuffer, to_process);
 
                 // Apply meter values
-                vChannels[0].pMeterIn->setValue(dsp::abs_max(vChannels[0].vOut, to_process));
-                vChannels[1].pMeterIn->setValue(dsp::abs_max(vChannels[1].vOut, to_process));
+                vChannels[0].pMeterIn->setValue(dsp::abs_max(vChannels[0].vBuffer, to_process));
+                vChannels[1].pMeterIn->setValue(dsp::abs_max(vChannels[1].vBuffer, to_process));
 
                 // Compute control signal
-                dsp::pamax3(vBuffer, vChannels[0].vOut, vChannels[1].vOut, to_process);
+                dsp::pamax3(vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, to_process);
             }
             else
             {
                 // Apply input gain
-                dsp::mul_k3(vChannels[0].vOut, vChannels[0].vIn, fGainIn, to_process);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fGainIn, to_process);
 
-                // Process input graph
-                vChannels[0].sIn.process(vChannels[0].vOut, to_process);
-
-                // Apply meter values
-                vChannels[0].pMeterIn->setValue(dsp::abs_max(vChannels[0].vOut, to_process));
+                // Process input graph and meter
+                vChannels[0].sIn.process(vChannels[0].vBuffer, to_process);
+                vChannels[0].pMeterIn->setValue(dsp::abs_max(vChannels[0].vBuffer, to_process));
 
                 // Compute control signal
-                dsp::abs2(vBuffer, vChannels[0].vOut, to_process);
+                dsp::abs2(vBuffer, vChannels[0].vBuffer, to_process);
             }
 
             // Process the gain reduction control
@@ -288,13 +273,12 @@ namespace lsp
                 channel_t *c    = &vChannels[i];
 
                 // Apply output gain
-                dsp::fmmul_k3(c->vOut, c->vBuffer, fGainOut, to_process);
+                dsp::fmmul_k3(c->vBuffer, vBuffer, fGainOut, to_process);
+                c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
 
-                // Process output graph
-                c->sOut.process(c->vOut, to_process);
-
-                // Process output meter
-                c->pOut->setValue(dsp::abs_max(c->vOut, to_process));
+                // Process output graph and meter
+                c->sOut.process(c->vBuffer, to_process);
+                c->pMeterOut->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Update pointers
                 c->vIn         += to_process;
@@ -306,23 +290,17 @@ namespace lsp
         }
 
         // Sync gain mesh
-        mesh_t *mesh    = pGainOut->getBuffer<mesh_t>();
-        bool sync       = ((bGainVisible) && (nSync & S_GAIN));
-        if ((mesh != NULL) && (mesh->isEmpty()) && (sync))
+        mesh_t *mesh    = pMeshGain->getBuffer<mesh_t>();
+        if ((mesh != NULL) && (mesh->isEmpty()) && (bGainVisible))
         {
             dsp::copy(mesh->pvData[0], vTimePoints, MESH_POINTS);
             dsp::copy(mesh->pvData[1], sGain.data(), MESH_POINTS);
             mesh->data(2, MESH_POINTS);
-
-            nSync          &= ~S_GAIN;
         }
 
         // Sync input mesh
         mesh            = pMeshIn->getBuffer<mesh_t>();
-        sync            = (vChannels[0].bInVisible) && (vChannels[0].nSync & S_IN);
-        if ((!sync) && (nChannels > 0))
-            sync            = (vChannels[1].bInVisible) && (vChannels[1].nSync & S_IN);
-        if ((mesh != NULL) && (mesh->isEmpty()) && (sync))
+        if ((mesh != NULL) && (mesh->isEmpty()))
         {
             dsp::copy(mesh->pvData[0], vTimePoints, MESH_POINTS);
 
@@ -330,10 +308,9 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
                 if (c->bInVisible)
-                    dsp::copy(mesh->pvData[1], c->sIn.data(), MESH_POINTS);
+                    dsp::copy(mesh->pvData[i+1], c->sIn.data(), MESH_POINTS);
                 else
-                    dsp::fill_zero(mesh->pvData[1], MESH_POINTS);
-                c->nSync       &= ~S_IN;
+                    dsp::fill_zero(mesh->pvData[i+1], MESH_POINTS);
             }
 
             mesh->data(nChannels + 1, MESH_POINTS);
@@ -341,10 +318,7 @@ namespace lsp
 
         // Sync output mesh
         mesh            = pMeshOut->getBuffer<mesh_t>();
-        sync            = (vChannels[0].bOutVisible) && (vChannels[0].nSync & S_OUT);
-        if ((!sync) && (nChannels > 0))
-            sync            = (vChannels[1].bOutVisible) && (vChannels[1].nSync & S_OUT);
-        if ((mesh != NULL) && (mesh->isEmpty()) && (sync))
+        if ((mesh != NULL) && (mesh->isEmpty()))
         {
             dsp::copy(mesh->pvData[0], vTimePoints, MESH_POINTS);
 
@@ -352,10 +326,9 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
                 if (c->bOutVisible)
-                    dsp::copy(mesh->pvData[1], c->sOut.data(), MESH_POINTS);
+                    dsp::copy(mesh->pvData[i+1], c->sOut.data(), MESH_POINTS);
                 else
-                    dsp::fill_zero(mesh->pvData[1], MESH_POINTS);
-                c->nSync       &= ~S_OUT;
+                    dsp::fill_zero(mesh->pvData[i+1], MESH_POINTS);
             }
 
             mesh->data(nChannels + 1, MESH_POINTS);
