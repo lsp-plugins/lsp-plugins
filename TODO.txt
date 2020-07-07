@@ -38,6 +38,7 @@
 * Exported plugin configuration now contains information about original package version.
 * Fixed bug that caused Spectrum Analyzer to ignore window selection.
 * Added 'Squared Cosine' and 'Cubic Hermite Spline' windows to Spectrum Analyzer.
+- Add support of loading Hydrogen drumkits by the sampler.
 
 *******************************************************************************
 * New plugin check list before release
