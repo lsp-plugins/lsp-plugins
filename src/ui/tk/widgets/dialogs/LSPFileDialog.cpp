@@ -205,7 +205,7 @@ namespace lsp
             sAppendExt.set_hpos(0.0f);
 
             if (result == STATUS_OK)
-                result = lbl->text()->set_raw(text);
+                result = lbl->text()->set(text);
             if (result == STATUS_OK)
                 result = sAppendExt.add(box);
             if (result == STATUS_OK)
