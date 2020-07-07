@@ -33,6 +33,8 @@
 * Added support of lv2:StateChanged extension which properly works with Ardour 6.0.145 and higher.
 * Refactored and simplified LV2 parameter transport between UI and plugin code.
 * Now all lv2:Atom ports that do not provide MIDI message transfer are marked as lv2:connectionOptional.
+* Implemented back-buffering of the window surface, all UI controls now don't glitch on edit.
+* Exported plugin configuration now contains information about original package version.
 
 *******************************************************************************
 * New plugin check list before release

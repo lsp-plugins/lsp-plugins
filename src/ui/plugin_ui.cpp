@@ -1278,6 +1278,7 @@ namespace lsp
     {
         c.append_utf8       ("This file contains configuration of the audio plugin.\n");
         c.fmt_append_utf8   ("  Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
+        c.fmt_append_utf8   ("  Package version:     %s\n", LSP_MAIN_VERSION);
         c.fmt_append_utf8   ("  Plugin version:      %d.%d.%d\n",
                 int(LSP_VERSION_MAJOR(pMetadata->version)),
                 int(LSP_VERSION_MINOR(pMetadata->version)),
