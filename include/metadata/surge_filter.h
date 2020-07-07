@@ -28,7 +28,7 @@ namespace lsp
         static const float RELEASE_STEP     = 0.01f;
 
         static const float FADE_MIN         = 1.0f;
-        static const float FADE_MAX         = 2000.0f;
+        static const float FADE_MAX         = 5000.0f;
         static const float FADE_DFL         = 100.0f;
         static const float FADE_STEP        = 0.1f;
 

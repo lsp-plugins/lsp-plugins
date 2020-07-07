@@ -49,6 +49,7 @@ namespace lsp
             float               fGainOut;           // Output gain
             bool                bGainVisible;       // Gain visible
             uint8_t            *pData;              // Allocated data
+            float_buffer_t     *pIDisplay;              // Inline display buffer
 
             MeterGraph          sGain;              // Gain metering graph
             Blink               sActive;            // Activity indicator

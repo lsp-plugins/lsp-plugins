@@ -27,6 +27,7 @@ namespace lsp
         fGainOut        = 1.0f;
         bGainVisible    = false;
         pData           = NULL;
+        pIDisplay       = NULL;
 
         pGainIn         = NULL;
         pGainOut        = NULL;
@@ -175,6 +176,13 @@ namespace lsp
             free_aligned(pData);
             pData   = NULL;
         }
+
+        // Drop inline display buffer
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
+        }
     }
 
     void surge_filter_base::update_sample_rate(long sr)
@@ -308,7 +316,9 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
                 if (c->bInVisible)
+                {
                     dsp::copy(mesh->pvData[i+1], c->sIn.data(), MESH_POINTS);
+                }
                 else
                     dsp::fill_zero(mesh->pvData[i+1], MESH_POINTS);
             }
@@ -333,11 +343,156 @@ namespace lsp
 
             mesh->data(nChannels + 1, MESH_POINTS);
         }
+
+        // Query inline display for draw
+        bool query_draw = bGainVisible;
+        if (!query_draw)
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c    = &vChannels[i];
+                query_draw      = (c->bInVisible) || (c->bOutVisible);
+                if (query_draw)
+                    break;
+            }
+        }
+
+        if (query_draw)
+            pWrapper->query_display_draw();
     }
 
     bool surge_filter_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
-        return false;
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+
+        // Clear background
+        bool bypassing = vChannels[0].sBypass.bypassing();
+        cv->set_color_rgb((bypassing) ? CV_DISABLED : CV_BACKGROUND);
+        cv->paint();
+
+        // Calc axis params
+        float zy    = 1.0f/GAIN_AMP_M_72_DB;
+        float dx    = -float(width/MESH_TIME);
+        float dy    = height/logf(GAIN_AMP_M_72_DB/GAIN_AMP_P_24_DB);
+
+        // Draw axis
+        cv->set_line_width(1.0);
+
+        // Draw vertical lines
+        cv->set_color_rgb(CV_YELLOW, 0.5f);
+        for (float i=1.0; i < (MESH_TIME-0.1); i += 1.0f)
+        {
+            float ax = width + dx*i;
+            cv->line(ax, 0, ax, height);
+        }
+
+        // Draw horizontal lines
+        cv->set_color_rgb(CV_WHITE, 0.5f);
+        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_24_DB)
+        {
+            float ay = height + dy*(logf(i*zy));
+            cv->line(0, ay, width, ay);
+        }
+
+        // Allocate buffer: t, f1(t), x, y
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 4, width);
+        float_buffer_t *b   = pIDisplay;
+        if (b == NULL)
+            return false;
+
+        // Draw input signal
+        static uint32_t cin_colors[] = {
+                CV_MIDDLE_CHANNEL_IN, CV_MIDDLE_CHANNEL_IN,
+                CV_LEFT_CHANNEL_IN, CV_RIGHT_CHANNEL_IN
+               };
+        static uint32_t c_colors[] = {
+                CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
+                CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL
+               };
+        bool bypass         = vChannels[0].sBypass.bypassing();
+        float r             = MESH_POINTS/float(width);
+
+        for (size_t j=0; j<width; ++j)
+        {
+            size_t k        = r*j;
+            b->v[0][j]      = vTimePoints[k];
+        }
+
+        // Draw input channels
+        cv->set_line_width(2.0f);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            if (!c->bInVisible)
+                continue;
+
+            // Initialize values
+            float *ft       = c->sIn.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[2], width, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : cin_colors[(nChannels-1)*2 + i]);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        // Draw output channels
+        cv->set_line_width(2.0f);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            if (!c->bOutVisible)
+                continue;
+
+            // Initialize values
+            float *ft       = c->sOut.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[2], width, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : c_colors[(nChannels-1)*2 + i]);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        // Draw function (if present)
+        if (bGainVisible)
+        {
+            float *ft       = sGain.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[2], width, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : CV_BRIGHT_BLUE);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        return true;
     }
 
     //-------------------------------------------------------------------------

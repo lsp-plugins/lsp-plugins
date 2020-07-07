@@ -151,12 +151,16 @@ namespace lsp
             switch (nState)
             {
                 case ST_CLOSED:
-                    dst[i]      = 1.0f; // Normal gain
                     if (fQEnvelope < fThreshold)
+                    {
+                        dst[i]      = 1.0f; // Normal gain
                         break;
+                    }
 
                     nClipCounter= 0;
+                    fClip       = fThreshold;
                     nState      = ST_FADING;
+                    dst[i]      = (fEnvelope <= fClip) ? 1.0f : fClip / fEnvelope;
                     break;
 
                 case ST_FADING:

@@ -22,20 +22,20 @@
 		</ui:if>
 		<ui:if test="${ex :ilm_r}">
 			<hbox spacing="4">
-				<meter expand="true"
-					id="ilm" angle="0"
-				    type="rms_peak"
+				<meter expand="true" 
+					stereo="true" type="rms_peak" angle="0"
+					id="ilm_l" id2="ilm_r" 
 					min="-72 db" max="+6 db" 
-					color="middle_channel"
+					color="left_channel" color2="right_channel"
 				/>
 				<label text="labels.input:db" />
 				<void min_width="64" />
 				<label text="labels.output:db" />
 				<meter expand="true"
-					id="olm" angle="0"
-				    type="rms_peak"
+					stereo="true" type="rms_peak" angle="0"
+					id="olm_l" id2="olm_r"
 					min="-72 db" max="+6 db" 
-					color="middle_channel"
+					color="left_channel" color2="right_channel"
 				/>
 			</hbox>
 		</ui:if>
@@ -82,18 +82,18 @@
 			<mesh id="grg" width="2" color="bright_blue" visibility=":grv" />
 			
 			<!-- Boundaries -->
-			<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
+			<marker value="24 db" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
 			<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
 			
 			<!-- Axis -->
 			<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
-			<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
+			<axis min="-72 db" max="24 db" color="g_white" angle="0.5" logarithmic="true" />
 			
 			<!-- Text -->
-			<text text="graph.units.s" coord="5;2.51e-4" halign="1" valign="1" />
+			<text text="graph.units.s" coord="5;-72 db" halign="1" valign="1" />
 			<ui:for id="t" first="0" last="4" step="1">
-				<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
-				<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
+				<text text="${t}" coord="${t};-72 db" halign="-1" valign="1" color="white" />
+				<text text="${t}.5" coord="${t}.5;-72 db" halign="-1" valign="1" color="white" />
 			</ui:for>
 			
 			<text text="+12" coord="5;12 db" halign="1" valign="-1" />
@@ -106,10 +106,7 @@
 			<text text="graph.units.db" coord="5;24 db" halign="1" valign="-1" />
 			
 			<!-- Markers -->
-			<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
-			<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
-			<marker id="dl" color="g_magenta" basis="1" parallel="0" />
-			<marker id="rl" color="g_magenta" basis="1" parallel="0" />
+			<marker id="thresh" color="g_magenta" basis="1" parallel="0" />
 		</graph>
 		<vbox>
 			<meter 
@@ -129,8 +126,8 @@
 				<grid rows="2" cols="2">
 					<button id="igv_l" color="left_channel" led="true" size="8" />
 					<button id="igv_r" color="right_channel" led="true" size="8" />
-					<label test="labels.chan.L_eft" color="left_channel" font_size="9" />
-					<label test="labels.chan.R_ight" color="right_channel" font_size="9" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
 				</grid>
 			</ui:if>
 			<label text="labels.input" />
@@ -141,8 +138,8 @@
 				<grid rows="2" cols="2">
 					<button id="ogv_l" color="left_channel" led="true" size="8" />
 					<button id="ogv_r" color="right_channel" led="true" size="8" />
-					<label test="labels.chan.L_eft" color="left_channel" font_size="9" />
-					<label test="labels.chan.R_ight" color="right_channel" font_size="9" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
 				</grid>
 			</ui:if>
 			<label text="labels.output" />
