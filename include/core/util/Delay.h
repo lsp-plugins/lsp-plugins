@@ -13,9 +13,15 @@
 
 namespace lsp
 {
+    /**
+     * Delay processor
+     */
     class Delay
     {
         private:
+            Delay & operator = (const Delay &);
+
+        protected:
             float      *pBuffer;
             size_t      nHead;
             size_t      nTail;
@@ -23,8 +29,15 @@ namespace lsp
             size_t      nSize;
 
         public:
-            Delay();
+            explicit Delay();
             ~Delay();
+
+            /** Construct the processor, can be called
+             * when there is no possibility to explicitly call
+             * the constructor
+             *
+             */
+            void construct();
 
             /** Initialize delay
              *

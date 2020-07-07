@@ -13,13 +13,18 @@ namespace lsp
     
     Bypass::Bypass()
     {
-        nState      = S_OFF;
-        fDelta      = 0;
-        fGain       = 0;
+        construct();
     }
     
     Bypass::~Bypass()
     {
+    }
+
+    void Bypass::construct()
+    {
+        nState      = S_OFF;
+        fDelta      = 0;
+        fGain       = 0;
     }
 
     bool Bypass::set_bypass(bool bypass)

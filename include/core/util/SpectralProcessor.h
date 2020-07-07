@@ -44,6 +44,8 @@ namespace lsp
             explicit SpectralProcessor();
             virtual ~SpectralProcessor();
 
+            void            construct();
+
             /**
              * Initialize spectral processor
              * @param max_rank maximum FFT rank

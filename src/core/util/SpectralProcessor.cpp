@@ -14,6 +14,16 @@ namespace lsp
     
     SpectralProcessor::SpectralProcessor()
     {
+        construct();
+    }
+
+    SpectralProcessor::~SpectralProcessor()
+    {
+        destroy();
+    }
+
+    void SpectralProcessor::construct()
+    {
         nRank           = 0;
         nMaxRank        = 0;
         fPhase          = 0.0f;
@@ -28,11 +38,6 @@ namespace lsp
         pFunc           = NULL;
         pObject         = NULL;
         pSubject        = NULL;
-    }
-    
-    SpectralProcessor::~SpectralProcessor()
-    {
-        destroy();
     }
 
     bool SpectralProcessor::init(size_t max_rank)

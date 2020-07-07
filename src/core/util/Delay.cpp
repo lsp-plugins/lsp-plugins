@@ -15,16 +15,21 @@ namespace lsp
     
     Delay::Delay()
     {
-        pBuffer     = NULL;
-        nHead       = 0;
-        nTail       = 0;
-        nDelay      = 0;
-        nSize       = 0;
+        construct();
     }
     
     Delay::~Delay()
     {
         destroy();
+    }
+
+    void Delay::construct()
+    {
+        pBuffer     = NULL;
+        nHead       = 0;
+        nTail       = 0;
+        nDelay      = 0;
+        nSize       = 0;
     }
 
     bool Delay::init(size_t max_size)

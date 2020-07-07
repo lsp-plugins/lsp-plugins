@@ -36,6 +36,8 @@ namespace lsp
             explicit Bypass();
             ~Bypass();
 
+            void construct();
+
         public:
             /**
              * Initialize bypass

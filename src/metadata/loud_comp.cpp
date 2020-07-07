@@ -76,8 +76,8 @@ namespace lsp
     // Multiband gate
     const plugin_metadata_t  loud_comp_mono_metadata::metadata =
     {
-        "Loudness Compensator Mono",
         "Lautstärke Kompensator Mono",
+        "Loudness Compensator Mono",
         "LK1M",
         &developers::v_sadovnikov,
         "loud_comp_mono",
@@ -94,8 +94,8 @@ namespace lsp
 
     const plugin_metadata_t  loud_comp_stereo_metadata::metadata =
     {
-        "Loudness Compensator Stereo",
         "Lautstärke Kompensator Stereo",
+        "Loudness Compensator Stereo",
         "LK1S",
         &developers::v_sadovnikov,
         "loud_comp_stereo",

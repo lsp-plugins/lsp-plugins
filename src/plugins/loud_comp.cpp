@@ -117,11 +117,15 @@ namespace lsp
             channel_t *c        = reinterpret_cast<channel_t *>(ptr);
             ptr                += sz_channel;
 
+            c->sDelay.construct();
+            c->sBypass.construct();
+            c->sProc.construct();
+            c->sClipInd.construct();
+
             c->sDelay.init(1 << (FFT_RANK_MAX - 1));
             c->sProc.init(FFT_RANK_MAX);
             c->sProc.bind(process_callback, this, c);
             c->sProc.set_phase(0.5f * i);
-            c->sClipInd.init();
 
             c->vIn              = NULL;
             c->vOut             = NULL;
@@ -278,6 +282,8 @@ namespace lsp
 
     void loud_comp_base::update_settings()
     {
+        bool rst_clip       = pHClipReset->getValue() >= 0.5f;
+        bool bypass         = pBypass->getValue() >= 0.5f;
         size_t mode         = pMode->getValue();
         size_t rank         = FFT_RANK_MIN + ssize_t(pRank->getValue());
         if (rank < FFT_RANK_MIN)
@@ -300,24 +306,18 @@ namespace lsp
         }
 
         if (osc != bReference)
-        {
             sOsc.reset_phase_accumulator();
-            bReference          = osc;
-        }
-
         if (bRelative != relative)
-        {
-            bRelative           = relative;
             bSyncMesh           = true;
-        }
-
-        if (bSyncMesh)
+        if ((bypass != bBypass) || (bSyncMesh))
             pWrapper->query_display_draw();
 
-        bool rst_clip       = pHClipReset->getValue() >= 0.5f;
-        bBypass             = pBypass->getValue() >= 0.5f;
         fGain               = pGain->getValue();
         bHClipOn            = pHClipOn->getValue() >= 0.5f;
+        bBypass             = bypass;
+        bRelative           = relative;
+        bReference          = osc;
+
         if (bHClipOn)
         {
             float min, max;
@@ -330,7 +330,7 @@ namespace lsp
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c        = vChannels[i];
-            c->sBypass.set_bypass(bBypass);
+            c->sBypass.set_bypass(bypass);
             c->sProc.set_rank(rank);
             c->sDelay.set_delay(c->sProc.latency());
             if (rst_clip)
@@ -637,7 +637,7 @@ namespace lsp
             dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw the mesh
-            cv->set_color_rgb(CV_MESH);
+            cv->set_color_rgb((bypass) ? CV_SILVER : CV_MESH);
             cv->set_line_width(2);
             cv->draw_lines(b->v[2], b->v[3], width);
         }
@@ -692,11 +692,11 @@ namespace lsp
             // Draw the volume line
             volume      = expf(0.05f * M_LN10 * fVolume);
             float vy    = height + dy * logf(volume * zy);
-            cv->set_color_rgb(CV_GREEN, 0.5f);
+            cv->set_color_rgb((bypass) ? CV_GRAY : CV_GREEN, 0.5f);
             cv->line(0, vy, width, vy);
 
             // Draw the mesh
-            cv->set_color_rgb(CV_MESH);
+            cv->set_color_rgb((bypass) ? CV_SILVER : CV_MESH);
             cv->set_line_width(2);
             cv->draw_lines(b->v[2], b->v[3], width);
         }

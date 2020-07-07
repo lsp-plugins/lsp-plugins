@@ -41,7 +41,7 @@ namespace lsp
             }
 
         public:
-            inline void init()
+            inline void construct()
             {
                 nCounter        = 0.0f;
                 nTime           = 0.0f;
