@@ -41,6 +41,8 @@
         <Filename>in.lsp_plug.lsp_plugins_latency_meter.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_limiter_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_limiter_stereo.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_loud_comp_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_loud_comp_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_mb_compressor_lr.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_mb_compressor_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_mb_compressor_ms.desktop</Filename>
@@ -49,6 +51,10 @@
         <Filename>in.lsp_plug.lsp_plugins_mb_expander_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_mb_expander_ms.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_mb_expander_stereo.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_mb_gate_lr.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_mb_gate_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_mb_gate_ms.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_mb_gate_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_multisampler_x12.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_multisampler_x12_do.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_multisampler_x24.desktop</Filename>
@@ -97,6 +103,10 @@
         <Filename>in.lsp_plug.lsp_plugins_sc_mb_expander_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_sc_mb_expander_ms.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_sc_mb_expander_stereo.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_sc_mb_gate_lr.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_sc_mb_gate_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_sc_mb_gate_ms.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_sc_mb_gate_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_slap_delay_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_slap_delay_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_spectrum_analyzer_x12.desktop</Filename>
