@@ -235,6 +235,7 @@ namespace lsp
                             pPreEq->process(&s, &s, 1);
                         break;
                     default:
+                        s = in[0];
                         break;
                 }
             }
@@ -259,6 +260,7 @@ namespace lsp
                             pPreEq->process(&s, &s, 1);
                         break;
                     default:
+                        s = (in[0] + in[1])*0.5f;
                         break;
                 }
             }
