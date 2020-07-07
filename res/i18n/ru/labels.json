@@ -465,6 +465,7 @@
 		"phase": "Фаза",
 		"positive_width": "Полож ширина",
 		"raise": "Подъём",
+		"reference": "Калибровка",
 		"relative": "Относительный",
 		"stereo": "Стерео",
 		"width": "Ширина",
@@ -543,7 +544,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Выбранное",
 		"worst": "Худшее",
-		"x_k": "{@value}к"
+		"x_k": "{@value}к",
+		"x_khz": "{@value} кГц"
 	},
 	
 	"working_area": "Рабочая область",

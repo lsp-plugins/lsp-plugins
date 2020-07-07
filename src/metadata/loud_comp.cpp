@@ -41,6 +41,7 @@ namespace lsp
         COMBO("std", "Loudness contour standard", loud_comp_base_metadata::STD_DFL, loud_comp_std), \
         COMBO("fft", "FFT size", loud_comp_base_metadata::FFT_RANK_IDX_DFL, loud_comp_fft_rank), \
         CONTROL("volume", "Output volume", U_DB, loud_comp_base_metadata::PHONS), \
+        SWITCH("refer", "Enable reference sine generator", 0.0f), \
         SWITCH("hclip", "Hard-clipping enable", 0.0f), \
         CONTROL("hcrange", "Hard-clipping range", U_DB, loud_comp_base_metadata::HCRANGE), \
         TRIGGER("hcclean", "Clean hard-clipping indicators"), \

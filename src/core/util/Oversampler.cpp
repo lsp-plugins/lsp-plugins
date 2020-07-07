@@ -78,6 +78,7 @@ namespace lsp
             delete [] bData;
             fUpBuffer   = NULL;
             fDownBuffer = NULL;
+            bData       = NULL;
         }
         pCallback = NULL;
     }

@@ -15,11 +15,14 @@
 		<void />
 		
 		<!-- Row 2 -->
-		<vbox fill="false">
+		<grid rows="5" cols="1" fill="false">
 			<label text="labels.chan.input" />
 			<knob id="input" />
 			<value id="input" />
-		</vbox>
+			
+			<hsep />
+			<button id="refer" text="labels.signal.reference" led="true" color="yellow" size="16" />
+		</grid>
 		<ui:if test="${ex :ilm}">
 			<meter fill="true"
 				type="rms_peak" logarithmic="true"

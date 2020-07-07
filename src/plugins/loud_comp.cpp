@@ -41,6 +41,7 @@ namespace lsp
         fVolume         = -1.0f;
         bBypass         = false;
         bRelative       = false;
+        bReference      = false;
         bHClipOn        = false;
         fHClipLvl       = 1.0f;
         vChannels[0]    = NULL;
@@ -60,6 +61,7 @@ namespace lsp
         pVolume         = NULL;
         pMesh           = NULL;
         pRelative       = NULL;
+        pReference      = NULL;
         pHClipOn        = NULL;
         pHClipRange     = NULL;
         pHClipReset     = NULL;
@@ -74,6 +76,18 @@ namespace lsp
     {
         // Pass wrapper
         plugin_t::init(wrapper);
+
+        // Initialize oscillator
+        if (!sOsc.init())
+            return;
+        sOsc.set_amplitude(1.0f);
+        sOsc.set_dc_offset(0.0f);
+        sOsc.set_dc_reference(DC_ZERO);
+        sOsc.set_duty_ratio(0.5f);
+        sOsc.set_frequency(1000.0f);
+        sOsc.set_oversampler_mode(OM_NONE);
+        sOsc.set_phase(0.0f);
+        sOsc.set_function(FG_SINE);
 
         // Estimate temporary buffer size
         size_t sz_tmpbuf    = 0;
@@ -107,12 +121,13 @@ namespace lsp
             c->sProc.init(FFT_RANK_MAX);
             c->sProc.bind(process_callback, this, c);
             c->sProc.set_phase(0.5f * i);
-            c->sClip.init();
+            c->sClipInd.init();
 
             c->vIn              = NULL;
             c->vOut             = NULL;
             c->vDry             = NULL;
             c->vBuffer          = NULL;
+            c->fInLevel         = 0.0f;
             c->fOutLevel        = 0.0f;
             c->bHClip           = false;
 
@@ -176,6 +191,8 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pVolume             = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
+        pReference          = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
         pHClipOn            = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pHClipRange         = vPorts[port_id++];
@@ -210,6 +227,8 @@ namespace lsp
 
     void loud_comp_base::destroy()
     {
+        sOsc.destroy();
+
         if (pIDisplay != NULL)
         {
             pIDisplay->detroy();
@@ -245,13 +264,15 @@ namespace lsp
 
     void loud_comp_base::update_sample_rate(long sr)
     {
+        sOsc.set_sample_rate(sr);
+
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c        = vChannels[i];
 
             // Update processor settings
             c->sBypass.init(sr);
-            c->sClip.init(sr, 0.2f);
+            c->sClipInd.init(sr, 0.2f);
         }
     }
 
@@ -265,6 +286,7 @@ namespace lsp
             rank                = FFT_RANK_MAX;
         float volume        = pVolume->getValue();
         bool relative       = pRelative->getValue() >= 0.5f;
+        bool osc            = pReference->getValue() >= 0.5f;
 
         // Need to update curve?
         if ((mode != nMode) || (rank != nRank) || (volume != fVolume))
@@ -275,6 +297,12 @@ namespace lsp
             bSyncMesh           = true;
 
             update_response_curve();
+        }
+
+        if (osc != bReference)
+        {
+            sOsc.reset_phase_accumulator();
+            bReference          = osc;
         }
 
         if (bRelative != relative)
@@ -411,63 +439,108 @@ namespace lsp
 
     void loud_comp_base::process(size_t samples)
     {
+        //---------------------------------------------------------------------
         // Bind ports
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c    = vChannels[i];
             c->vIn          = c->pIn->getBuffer<float>();
             c->vOut         = c->pOut->getBuffer<float>();
+            c->fInLevel     = 0.0f;
             c->fOutLevel    = 0.0f;
-            float v         = dsp::abs_max(c->vIn, samples);
-            c->pMeterIn->setValue(v);
         }
 
-        for (size_t nleft=samples; nleft > 0; )
+        //---------------------------------------------------------------------
+        // Perform main processing
+        if (bReference) // Reference signal generation
         {
-            size_t to_process   = (nleft > BUF_SIZE) ? BUF_SIZE : nleft;
+            sOsc.process_overwrite(vChannels[0]->vOut, samples);
+            vChannels[0]->fInLevel  = dsp::abs_max(vChannels[0]->vIn, samples) * fGain;
+            vChannels[0]->fOutLevel = dsp::abs_max(vChannels[0]->vOut, samples);
 
+            for (size_t i=1; i<nChannels; ++i)
+            {
+                dsp::copy(vChannels[i]->vOut, vChannels[0]->vOut, samples);
+                vChannels[i]->fInLevel  = dsp::abs_max(vChannels[i]->vIn, samples) * fGain;
+                vChannels[i]->fOutLevel = vChannels[0]->fOutLevel;
+            }
+
+            // Perform clipping
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = vChannels[i];
-
-                // Process the signal
-                c->sClip.process(to_process);
-                c->sDelay.process(c->vDry, c->vIn, to_process);
-                dsp::mul_k3(c->vBuffer, c->vIn, fGain, to_process);
-                c->sProc.process(c->vBuffer, c->vBuffer, to_process);
-
-                // Process signal level
-                float lvl       = dsp::abs_max(c->vBuffer, to_process);
-                if (c->fOutLevel < lvl)
-                    c->fOutLevel    = lvl;
-                bool clip       = lvl > fHClipLvl;
+                c->sClipInd.process(samples);
                 if (bHClipOn)
-                {
-                    if (clip)
-                    {
-                        lvl             = fHClipLvl;
-                        c->bHClip       = true;
-                    }
-                    dsp::limit1(c->vBuffer, -fHClipLvl, +fHClipLvl, to_process);
                     c->pHClipInd->setValue((c->bHClip) ? 1.0f : 0.0f);
-                }
                 else
-                {
-                    if (clip)
-                        c->sClip.blink();
-                    c->pHClipInd->setValue((c->sClip.value()) ? 1.0f : 0.0f);
-                }
-                c->pMeterOut->setValue(lvl);
-
-                // Apply bypass
-                c->sBypass.process(c->vOut, c->vDry, c->vBuffer, to_process);
-
-                // Update pointers
-                c->vIn         += to_process;
-                c->vOut        += to_process;
+                    c->pHClipInd->setValue((c->sClipInd.value()) ? 1.0f : 0.0f);
             }
+        }
+        else // Audio processing
+        {
+            float lvl;
 
-            nleft          -= to_process;
+            for (size_t nleft=samples; nleft > 0; )
+            {
+                size_t to_process   = (nleft > BUF_SIZE) ? BUF_SIZE : nleft;
+
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    channel_t *c    = vChannels[i];
+
+                    // Process the signal
+                    c->sDelay.process(c->vDry, c->vIn, to_process);
+
+                    // Apply input gain
+                    dsp::mul_k3(c->vBuffer, c->vIn, fGain, to_process);
+                    lvl             = dsp::abs_max(c->vBuffer, samples);
+                    c->fInLevel     = (c->fInLevel < lvl) ? lvl : c->fInLevel;
+
+                    // Apply volume attenuation
+                    c->sProc.process(c->vBuffer, c->vBuffer, to_process);
+
+                    // Perform clipping
+                    lvl             = dsp::abs_max(c->vBuffer, to_process);
+                    c->sClipInd.process(to_process);
+                    bool clip       = lvl > fHClipLvl;
+                    if (bHClipOn)
+                    {
+                        if (clip)
+                        {
+                            lvl             = fHClipLvl;
+                            c->bHClip       = true;
+                        }
+
+                        dsp::limit1(c->vBuffer, -fHClipLvl, +fHClipLvl, to_process);
+                        c->pHClipInd->setValue((c->bHClip) ? 1.0f : 0.0f);
+                    }
+                    else
+                    {
+                        if (clip)
+                            c->sClipInd.blink();
+                        c->pHClipInd->setValue((c->sClipInd.value()) ? 1.0f : 0.0f);
+                    }
+                    c->fOutLevel    = (c->fOutLevel < lvl) ? lvl : c->fOutLevel;
+
+                    // Apply bypass
+                    c->sBypass.process(c->vOut, c->vDry, c->vBuffer, to_process);
+
+                    // Update pointers
+                    c->vIn         += to_process;
+                    c->vOut        += to_process;
+                }
+
+                nleft          -= to_process;
+            }
+        }
+
+        //---------------------------------------------------------------------
+        // Update meters
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = vChannels[i];
+            c->pMeterIn->setValue(c->fInLevel);
+            c->pMeterOut->setValue(c->fOutLevel);
         }
 
         // Report latency

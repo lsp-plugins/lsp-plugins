@@ -465,6 +465,7 @@
 		"phase": "Phase",
 		"positive_width": "Positive Width",
 		"raise": "Raise",
+		"reference": "Reference",
 		"relative": "Relative",
 		"stereo": "Stereo",
 		"width": "Width",
@@ -543,7 +544,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Selected",
 		"worst": "Worst",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Working area",

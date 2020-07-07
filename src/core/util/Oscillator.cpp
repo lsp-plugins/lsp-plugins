@@ -694,6 +694,8 @@ namespace lsp
 
     void Oscillator::process_add(float *dst, const float *src, size_t count)
     {
+        update_settings();
+
         if (src != NULL)
             dsp::copy(dst, src, count);
         else
@@ -713,6 +715,8 @@ namespace lsp
 
     void Oscillator::process_mul(float *dst, const float *src, size_t count)
     {
+        update_settings();
+
         if (src != NULL)
             dsp::copy(dst, src, count);
         else
@@ -732,6 +736,8 @@ namespace lsp
 
     void Oscillator::process_overwrite(float *dst, size_t count)
     {
+        update_settings();
+
         while (count > 0)
         {
             size_t to_do = (count > PROCESS_BUF_LIMIT_SIZE) ? PROCESS_BUF_LIMIT_SIZE : count;

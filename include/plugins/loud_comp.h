@@ -12,6 +12,7 @@
 #include <core/util/Bypass.h>
 #include <core/util/Delay.h>
 #include <core/util/Blink.h>
+#include <core/util/Oscillator.h>
 #include <core/util/SpectralProcessor.h>
 
 #include <metadata/plugins.h>
@@ -27,13 +28,14 @@ namespace lsp
                 float              *vOut;       // Output buffer
                 float              *vDry;       // Dry signal
                 float              *vBuffer;    // Temporary buffer
+                float               fInLevel;   // Input level
                 float               fOutLevel;  // Output level
                 bool                bHClip;     // Hard-clip
 
                 Bypass              sBypass;    // Bypass
                 Delay               sDelay;     // Delay (for bypass)
                 SpectralProcessor   sProc;      // Spectral processor
-                Blink               sClip;      // Clip blink
+                Blink               sClipInd;   // Clip blink
 
                 IPort              *pIn;        // Input port
                 IPort              *pOut;       // Output port
@@ -50,6 +52,7 @@ namespace lsp
             float               fVolume;        // Volume
             bool                bBypass;        // Bypass
             bool                bRelative;      // Display relative curve instead of absolute
+            bool                bReference;     // Reference generator
             bool                bHClipOn;       // Enable hard-clipping
             float               fHClipLvl;      // Hard-clip threshold
             channel_t          *vChannels[2];   // Audio channels
@@ -60,6 +63,8 @@ namespace lsp
             bool                bSyncMesh;      // Synchronize mesh response with UI
             float_buffer_t     *pIDisplay;      // Inline display buffer
 
+            Oscillator          sOsc;           // Oscillator for reference sound
+
             uint8_t            *pData;          // Allocation data
 
             IPort              *pBypass;        // Bypass
@@ -69,6 +74,7 @@ namespace lsp
             IPort              *pVolume;        // Output volume
             IPort              *pMesh;          // Output mesh response
             IPort              *pRelative;      // Relative mesh display
+            IPort              *pReference;     // Enable reference sine generator
             IPort              *pHClipOn;       // Enable Hard clip
             IPort              *pHClipRange;    // Hard clipping range
             IPort              *pHClipReset;    // Hard clipping reset
