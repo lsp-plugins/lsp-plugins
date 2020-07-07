@@ -12,20 +12,20 @@ namespace lsp
 {
     struct pop_destroyer_base_metadata
     {
-        static const float THRESH_MIN       = 0.0f;
+        static const float THRESH_MIN       = GAIN_AMP_M_80_DB;
         static const float THRESH_MAX       = GAIN_AMP_M_24_DB;
         static const float THRESH_DFL       = GAIN_AMP_M_72_DB;
-        static const float THRESH_STEP      = 1e-04f;
+        static const float THRESH_STEP      = 0.01f;
 
         static const float ATTACK_MIN       = 0.0f;
         static const float ATTACK_MAX       = 5.0f;
         static const float ATTACK_DFL       = 10.0f;
-        static const float ATTACK_STEP      = 1e-6f;
+        static const float ATTACK_STEP      = 0.01f;
 
         static const float RELEASE_MIN      = 0.0f;
         static const float RELEASE_MAX      = 200.0f;
         static const float RELEASE_DFL      = 10.0f;
-        static const float RELEASE_STEP     = 1e-4f;
+        static const float RELEASE_STEP     = 0.01f;
 
         static const float FADE_MIN         = 1.0f;
         static const float FADE_MAX         = 200.0f;

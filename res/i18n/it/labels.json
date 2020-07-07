@@ -446,6 +446,8 @@
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Dry pan",
 		"duty_ratio": "Ciclo di lavoro",
+		"fade_in": "Dissolvenza ad aprire",
+		"fade_out": "Dissolvenza",
 		"fall": "Caduta",
 		"in_lr": "In L/R",
 		"invert": "Inverti",

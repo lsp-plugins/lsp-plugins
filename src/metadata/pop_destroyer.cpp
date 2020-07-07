@@ -14,17 +14,17 @@ namespace lsp
     static const int pop_destroyer_classes[] = { C_DYNAMICS, -1 };
 
     #define POP_DESTROYER_COMMON(channels)    \
-        AMP_GAIN("input", "Input gain", 0.0f, GAIN_AMP_P_24_DB), \
+        AMP_GAIN("input", "Input gain", 1.0f, GAIN_AMP_P_24_DB), \
         EXT_LOG_CONTROL("thresh", "Threshold", U_GAIN_AMP, pop_destroyer_base_metadata::THRESH), \
         LOG_CONTROL("attack", "Attack time", U_MSEC, pop_destroyer_base_metadata::ATTACK), \
         LOG_CONTROL("release", "Release time", U_MSEC, pop_destroyer_base_metadata::RELEASE), \
         CONTROL("fade", "Fade time", U_MSEC, pop_destroyer_base_metadata::FADE), \
         BLINK("active", "Activity indicator"), \
-        AMP_GAIN("output", "Output gain", 0.0f, GAIN_AMP_P_24_DB), \
+        AMP_GAIN("output", "Output gain", 1.0f, GAIN_AMP_P_24_DB), \
         MESH("ing", "Input signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
         MESH("outg", "Output signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
-        MESH("gaing", "Gain graph", channels, pop_destroyer_base_metadata::MESH_POINTS), \
-        SWITCH("gains", "Gain graph show", 1.0f), \
+        MESH("grg", "Gain reduction graph", channels, pop_destroyer_base_metadata::MESH_POINTS), \
+        SWITCH("grv", "Gain reduction graph visibility", 1.0f), \
         METER_GAIN("grm", "Gain reduction meter", GAIN_AMP_P_24_DB)
 
     static const port_t pop_destroyer_mono_ports[] =

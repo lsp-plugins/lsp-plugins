@@ -19,7 +19,7 @@ namespace lsp
 {
     pop_destroyer_base::pop_destroyer_base(size_t channels, const plugin_metadata_t &meta): plugin_t(meta)
     {
-        nChannels       = 0;
+        nChannels       = channels;
         vChannels       = NULL;
         vBuffer         = NULL;
         vTimePoints     = 0;
@@ -106,6 +106,8 @@ namespace lsp
 
         // Bind control ports
         TRACE_PORT(vPorts[port_id]);
+        pBypass         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
         pGainOut        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pThresh         = vPorts[port_id++];
@@ -164,6 +166,7 @@ namespace lsp
             }
 
             delete [] vChannels;
+            vChannels = NULL;
         }
 
         // Drop buffers
@@ -237,7 +240,7 @@ namespace lsp
             c->vOut         = c->pOut->getBuffer<float>();
         }
 
-        for (size_t nleft=0; nleft < samples; ++nleft)
+        for (size_t nleft=samples; nleft > 0; )
         {
             size_t to_process = (nleft > BUFFER_SIZE) ? BUFFER_SIZE : nleft;
 
