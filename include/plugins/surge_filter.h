@@ -1,12 +1,12 @@
 /*
- * pop_destroyer.h
+ * surge_filter.h
  *
  *  Created on: 4 июл. 2020 г.
  *      Author: sadko
  */
 
-#ifndef PLUGINS_POP_DESTROYER_H_
-#define PLUGINS_POP_DESTROYER_H_
+#ifndef PLUGINS_SURGE_FILTER_H_
+#define PLUGINS_SURGE_FILTER_H_
 
 #include <core/plugin.h>
 #include <core/util/Blink.h>
@@ -18,7 +18,7 @@
 
 namespace lsp
 {
-    class pop_destroyer_base: public plugin_t, public pop_destroyer_base_metadata
+    class surge_filter_base: public plugin_t, public surge_filter_base_metadata
     {
         protected:
             typedef struct channel_t
@@ -69,8 +69,8 @@ namespace lsp
             IPort              *pGainMeter;         // Gain reduction meter
 
         public:
-            explicit            pop_destroyer_base(size_t channels, const plugin_metadata_t &meta);
-            virtual            ~pop_destroyer_base();
+            explicit            surge_filter_base(size_t channels, const plugin_metadata_t &meta);
+            virtual            ~surge_filter_base();
 
             virtual void        init(IWrapper *wrapper);
             virtual void        destroy();
@@ -82,17 +82,17 @@ namespace lsp
             virtual bool        inline_display(ICanvas *cv, size_t width, size_t height);
     };
 
-    class pop_destroyer_mono: public pop_destroyer_base, public pop_destroyer_mono_metadata
+    class surge_filter_mono: public surge_filter_base, public surge_filter_mono_metadata
     {
         public:
-            explicit pop_destroyer_mono();
+            explicit surge_filter_mono();
     };
 
-    class pop_destroyer_stereo: public pop_destroyer_base, public pop_destroyer_stereo_metadata
+    class surge_filter_stereo: public surge_filter_base, public surge_filter_stereo_metadata
     {
         public:
-            explicit pop_destroyer_stereo();
+            explicit surge_filter_stereo();
     };
 }
 
-#endif /* PLUGINS_POP_DESTROYER_H_ */
+#endif /* PLUGINS_SURGE_FILTER_H_ */

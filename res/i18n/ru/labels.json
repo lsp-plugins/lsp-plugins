@@ -345,6 +345,7 @@
 		"gate": "Гейт",
 		"latency_detector": "Детектор задержки",
 		"limiter": "Лимитер",
+		"surge_filter": "Фильтр всплесков",
 		"trigger": "Триггер"
 	},
 	

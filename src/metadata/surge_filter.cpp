@@ -1,5 +1,5 @@
 /*
- * pop_destroyer.cpp
+ * surge_filter.cpp
  *
  *  Created on: 4 июл. 2020 г.
  *      Author: sadko
@@ -11,27 +11,27 @@
 
 namespace lsp
 {
-    static const int pop_destroyer_classes[] = { C_DYNAMICS, -1 };
+    static const int surge_filter_classes[] = { C_DYNAMICS, -1 };
 
-    #define POP_DESTROYER_COMMON(channels)    \
+    #define SURGE_FILTER_COMMON(channels)    \
         AMP_GAIN("input", "Input gain", 1.0f, GAIN_AMP_P_24_DB), \
-        EXT_LOG_CONTROL("thresh", "Threshold", U_GAIN_AMP, pop_destroyer_base_metadata::THRESH), \
-        LOG_CONTROL("attack", "Attack time", U_MSEC, pop_destroyer_base_metadata::ATTACK), \
-        LOG_CONTROL("release", "Release time", U_MSEC, pop_destroyer_base_metadata::RELEASE), \
-        CONTROL("fade", "Fade time", U_MSEC, pop_destroyer_base_metadata::FADE), \
+        EXT_LOG_CONTROL("thresh", "Threshold", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
+        LOG_CONTROL("attack", "Attack time", U_MSEC, surge_filter_base_metadata::ATTACK), \
+        LOG_CONTROL("release", "Release time", U_MSEC, surge_filter_base_metadata::RELEASE), \
+        CONTROL("fade", "Fade time", U_MSEC, surge_filter_base_metadata::FADE), \
         BLINK("active", "Activity indicator"), \
         AMP_GAIN("output", "Output gain", 1.0f, GAIN_AMP_P_24_DB), \
-        MESH("ig", "Input signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
-        MESH("og", "Output signal graph", channels+1, pop_destroyer_base_metadata::MESH_POINTS), \
-        MESH("grg", "Gain reduction graph", 2, pop_destroyer_base_metadata::MESH_POINTS), \
+        MESH("ig", "Input signal graph", channels+1, surge_filter_base_metadata::MESH_POINTS), \
+        MESH("og", "Output signal graph", channels+1, surge_filter_base_metadata::MESH_POINTS), \
+        MESH("grg", "Gain reduction graph", 2, surge_filter_base_metadata::MESH_POINTS), \
         SWITCH("grv", "Gain reduction visibility", 1.0f), \
         METER_GAIN("grm", "Gain reduction meter", GAIN_AMP_P_24_DB)
 
-    static const port_t pop_destroyer_mono_ports[] =
+    static const port_t surge_filter_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
         BYPASS,
-        POP_DESTROYER_COMMON(1),
+        SURGE_FILTER_COMMON(1),
         SWITCH("igv", "Input graph visibility", 1.0f),
         SWITCH("ogv", "Output graph visibility", 1.0f),
         METER_GAIN("ilm", "Input level meter", GAIN_AMP_P_24_DB),
@@ -40,11 +40,11 @@ namespace lsp
         PORTS_END
     };
 
-    static const port_t pop_destroyer_stereo_ports[] =
+    static const port_t surge_filter_stereo_ports[] =
     {
         PORTS_STEREO_PLUGIN,
         BYPASS,
-        POP_DESTROYER_COMMON(2),
+        SURGE_FILTER_COMMON(2),
         SWITCH("igv_l", "Input graph visibility left", 1.0f),
         SWITCH("ogv_l", "Output graph visibility left", 1.0f),
         METER_GAIN("ilm_l", "Input level meter left", GAIN_AMP_P_24_DB),
@@ -57,38 +57,38 @@ namespace lsp
         PORTS_END
     };
 
-    const plugin_metadata_t pop_destroyer_mono_metadata::metadata =
+    const plugin_metadata_t surge_filter_mono_metadata::metadata =
     {
-        "Pop Zerstörer Mono",
-        "Pop Destroyer Mono",
-        "PZ1M",
+        "Sprungfilter Mono",
+        "Surge Filter Mono",
+        "SF1M",
         &developers::v_sadovnikov,
-        "pop_destroyer_mono",
+        "surge_filter_mono",
         "----",
-        LSP_POP_DESTROYER_BASE + 0,
+        LSP_SURGE_FILTER_BASE + 0,
         LSP_VERSION(1, 0, 0),
-        pop_destroyer_classes,
+        surge_filter_classes,
         E_INLINE_DISPLAY,
-        pop_destroyer_mono_ports,
-        "util/pop_destroyer.xml",
+        surge_filter_mono_ports,
+        "util/surge_filter.xml",
         NULL,
         mono_plugin_port_groups
     };
 
-    const plugin_metadata_t pop_destroyer_stereo_metadata::metadata =
+    const plugin_metadata_t surge_filter_stereo_metadata::metadata =
     {
-        "Pop Zerstörer Stereo",
-        "Pop Destroyer Stereo",
-        "PZ1S",
+        "Sprungfilter Stereo",
+        "Surge Filter Stereo",
+        "SF1S",
         &developers::v_sadovnikov,
-        "pop_destroyer_stereo",
+        "surge_filter_stereo",
         "----",
-        LSP_POP_DESTROYER_BASE + 1,
+        LSP_SURGE_FILTER_BASE + 1,
         LSP_VERSION(1, 0, 0),
-        pop_destroyer_classes,
+        surge_filter_classes,
         E_INLINE_DISPLAY,
-        pop_destroyer_stereo_ports,
-        "util/pop_destroyer.xml",
+        surge_filter_stereo_ports,
+        "util/surge_filter.xml",
         NULL,
         stereo_plugin_port_groups
     };

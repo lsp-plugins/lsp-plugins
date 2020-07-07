@@ -345,6 +345,7 @@
 		"gate": "Gate",
 		"latency_detector": "Latency Detector",
 		"limiter": "Limiter",
+		"surge_filter": "Surge Filter",
 		"trigger": "Trigger"
 	},
 	

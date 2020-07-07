@@ -1,16 +1,16 @@
 /*
- * pop_destroyer.h
+ * surge_filter.h
  *
  *  Created on: 4 июл. 2020 г.
  *      Author: sadko
  */
 
-#ifndef METADATA_POP_DESTROYER_H_
-#define METADATA_POP_DESTROYER_H_
+#ifndef METADATA_SURGE_FILTER_H_
+#define METADATA_SURGE_FILTER_H_
 
 namespace lsp
 {
-    struct pop_destroyer_base_metadata
+    struct surge_filter_base_metadata
     {
         static const float THRESH_MIN       = GAIN_AMP_M_80_DB;
         static const float THRESH_MAX       = GAIN_AMP_M_24_DB;
@@ -36,16 +36,16 @@ namespace lsp
         static const float MESH_TIME        = 5.0f;
     };
 
-    struct pop_destroyer_mono_metadata
+    struct surge_filter_mono_metadata
     {
         static const plugin_metadata_t metadata;
     };
 
-    struct pop_destroyer_stereo_metadata
+    struct surge_filter_stereo_metadata
     {
         static const plugin_metadata_t metadata;
     };
 }
 
 
-#endif /* METADATA_POP_DESTROYER_H_ */
+#endif /* METADATA_SURGE_FILTER_H_ */

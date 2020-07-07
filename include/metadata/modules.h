@@ -171,8 +171,8 @@ MOD_PLUGIN(loud_comp_mono, plugin_ui)
 MOD_PLUGIN(loud_comp_stereo, plugin_ui)
 
 // Pop destroyer
-MOD_PLUGIN(pop_destroyer_mono, plugin_ui)
-MOD_PLUGIN(pop_destroyer_stereo, plugin_ui)
+MOD_PLUGIN(surge_filter_mono, plugin_ui)
+MOD_PLUGIN(surge_filter_stereo, plugin_ui)
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver

@@ -52,10 +52,10 @@
 				<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
 			</ui:for>
 		
-			<marker value="3.98107" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
-			<marker value="0.251189" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
-			<marker value="0.0158489" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
-			<marker value="0.001" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+			<marker value="12 db" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
+			<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+			<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+			<marker value="-60 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
 
 			<!-- Yellow grid -->
 			<ui:for id="t" first="1" last="4" step="1">
@@ -63,21 +63,23 @@
 			</ui:for>
 
 			<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-			<marker value="0.0630957" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-			<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+			<marker value="-24 db" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+			<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 
 			<!-- Meshes -->
-			<mesh id="ig" width="2" color="middle_channel_in" x_index="0" y_index="1" />
-			<mesh id="og" width="2" color="middle_channel" x_index="0" y_index="1" />
-			<mesh id="grg" width="2" color="bright_blue" />
+			<ui:if test="${ex :ilm}">
+				<mesh id="ig" width="2" color="middle_channel_in" x_index="0" y_index="1" visibility=":igv" />
+				<mesh id="og" width="2" color="middle_channel" x_index="0" y_index="1" visibility=":ogv" />
+			</ui:if>
 			
 			<ui:if test="${ex :ilm_r}">
 				<mesh id="ig" width="2" color="left_channel_in" x_index="0" y_index="1" visibility=":igv_l" />
 				<mesh id="ig" width="2" color="right_channel_in" x_index="0" y_index="2" visibility=":igv_r" />
 				<mesh id="og" width="2" color="left_channel" x_index="0" y_index="1" visibility=":ogv_l" />
 				<mesh id="og" width="2" color="right_channel" x_index="0" y_index="2" visibility=":ogv_r" />
-				<mesh id="grg" width="2" color="bright_blue" visibility=":grv" />
 			</ui:if>
+			
+			<mesh id="grg" width="2" color="bright_blue" visibility=":grv" />
 			
 			<!-- Boundaries -->
 			<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
@@ -94,14 +96,14 @@
 				<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
 			</ui:for>
 			
-			<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
+			<text text="+12" coord="5;12 db" halign="1" valign="-1" />
 			<text text="0" coord="5;1" halign="1" valign="1" />
-			<text text="-12" coord="5;0.251189" halign="1" valign="1" />
-			<text text="-24" coord="5;0.0630957" halign="1" valign="1" />
-			<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
-			<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
-			<text text="-60" coord="5;0.001" halign="1" valign="1" />
-			<text text="graph.units.db" coord="5;15.8489" halign="1" valign="-1" />
+			<text text="-12" coord="5;-12 db" halign="1" valign="1" />
+			<text text="-24" coord="5;-24 db" halign="1" valign="1" />
+			<text text="-36" coord="5;-36 db" halign="1" valign="1" />
+			<text text="-48" coord="5;-48 db" halign="1" valign="1" />
+			<text text="-60" coord="5;-60 db" halign="1" valign="1" />
+			<text text="graph.units.db" coord="5;24 db" halign="1" valign="-1" />
 			
 			<!-- Markers -->
 			<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
@@ -111,43 +113,74 @@
 		</graph>
 		<vbox>
 			<meter 
-				id="grm" activity_id="grv"  
+				id="grm"  
 				angle="1" logarithmic="true" type="peak"
 				min="-72 db" max="24 db" balance="0 db" 
 				height="256" color="bright_blue"
 			/>
 		</vbox>
 		
-		<!--  Misc controls -->
+		<!-- Misc controls -->
 		<hbox spacing="4">
-			<label text="labels.graphs.time" />
+			<ui:if test="${ex :igv}">
+				<button id="igv" color="middle_channel" led="true" size="16" />
+			</ui:if>
+			<ui:if test="${ex :igv_r}">
+				<grid rows="2" cols="2">
+					<button id="igv_l" color="left_channel" led="true" size="8" />
+					<button id="igv_r" color="right_channel" led="true" size="8" />
+					<label test="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label test="labels.chan.R_ight" color="right_channel" font_size="9" />
+				</grid>
+			</ui:if>
+			<label text="labels.input" />
+			<ui:if test="${ex :ogv}">
+				<button id="ogv" color="middle_channel" led="true" size="16" />
+			</ui:if>
+			<ui:if test="${ex :ogv_r}">
+				<grid rows="2" cols="2">
+					<button id="ogv_l" color="left_channel" led="true" size="8" />
+					<button id="ogv_r" color="right_channel" led="true" size="8" />
+					<label test="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label test="labels.chan.R_ight" color="right_channel" font_size="9" />
+				</grid>
+			</ui:if>
+			<label text="labels.output" />
+			<button id="grv" color="bright_blue" led="true" size="16" />
+			<label text="labels.gain" />
+
+			<align hpos="1" expand="true">
+				<label text="labels.graphs.time" />
+			</align>
 		</hbox>
 		<void />
 		
 		<!-- Main controls -->
 		<cell cols="2">
-			<grid rows="3" cols="6">
-				<label text="labels.input" />
-				<label text="labels.thresh_old" />
-				<label text="labels.attack" />
-				<label text="labels.release" />
-				<label text="labels.signal.fade_in" />
-				<label text="labels.output" />
-				
-				<knob id="input" />
-				<knob id="thresh" />
-				<knob id="attack" />
-				<knob id="release" />
-				<knob id="fade" />
-				<knob id="output" />
-				
-				<value id="input" />
-				<value id="thresh" />
-				<value id="attack" />
-				<value id="release" />
-				<value id="fade" />
-				<value id="output" />
-			</grid>
+			<group text="labels.plug.surge_filter">
+				<grid rows="3" cols="6">
+					<label text="labels.input" />
+					<label text="labels.thresh_old" />
+					<label text="labels.attack" />
+					<label text="labels.release" />
+					<label text="labels.signal.fade_in" />
+					<label text="labels.output" />
+					
+					<knob id="input" />
+					<knob id="thresh" />
+					<knob id="attack" />
+					<knob id="release" />
+					<knob id="fade" />
+					<knob id="output" />
+					
+					<value id="input" />
+					<value id="thresh" />
+					<value id="attack" />
+					<value id="release" />
+					<value id="fade" />
+					<value id="output" />
+				</grid>
+			</group>
 		</cell>
 	</grid>
 </plugin>

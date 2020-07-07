@@ -1,5 +1,5 @@
 /*
- * pop_destroyer.cpp
+ * surge_filter.cpp
  *
  *  Created on: 4 июл. 2020 г.
  *      Author: sadko
@@ -7,9 +7,9 @@
 
 #include <core/types.h>
 #include <core/debug.h>
-#include <plugins/pop_destroyer.h>
 #include <core/colors.h>
 #include <core/util/Color.h>
+#include <plugins/surge_filter.h>
 
 #define BUFFER_SIZE     0x1000
 
@@ -17,7 +17,7 @@
 
 namespace lsp
 {
-    pop_destroyer_base::pop_destroyer_base(size_t channels, const plugin_metadata_t &meta): plugin_t(meta)
+    surge_filter_base::surge_filter_base(size_t channels, const plugin_metadata_t &meta): plugin_t(meta)
     {
         nChannels       = channels;
         vChannels       = NULL;
@@ -43,12 +43,12 @@ namespace lsp
         pGainMeter      = NULL;
     }
 
-    pop_destroyer_base::~pop_destroyer_base()
+    surge_filter_base::~surge_filter_base()
     {
         destroy();
     }
 
-    void pop_destroyer_base::init(IWrapper *wrapper)
+    void surge_filter_base::init(IWrapper *wrapper)
     {
         plugin_t::init(wrapper);
 
@@ -153,7 +153,7 @@ namespace lsp
             vTimePoints[i]  = MESH_TIME - i*delta;
     }
 
-    void pop_destroyer_base::destroy()
+    void surge_filter_base::destroy()
     {
         // Drop all channels
         if (vChannels != NULL)
@@ -177,7 +177,7 @@ namespace lsp
         }
     }
 
-    void pop_destroyer_base::update_sample_rate(long sr)
+    void surge_filter_base::update_sample_rate(long sr)
     {
         size_t samples_per_dot  = seconds_to_samples(sr, MESH_TIME / MESH_POINTS);
 
@@ -195,7 +195,7 @@ namespace lsp
         }
     }
 
-    void pop_destroyer_base::update_settings()
+    void surge_filter_base::update_settings()
     {
         bool bypass     = pBypass->getValue() >= 0.5f;
         fGainIn         = pGainIn->getValue();
@@ -217,7 +217,7 @@ namespace lsp
         }
     }
 
-    void pop_destroyer_base::process(size_t samples)
+    void surge_filter_base::process(size_t samples)
     {
         // Bind ports
         for (size_t i=0; i<nChannels; ++i)
@@ -335,17 +335,17 @@ namespace lsp
         }
     }
 
-    bool pop_destroyer_base::inline_display(ICanvas *cv, size_t width, size_t height)
+    bool surge_filter_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
         return false;
     }
 
     //-------------------------------------------------------------------------
-    pop_destroyer_mono::pop_destroyer_mono(): pop_destroyer_base(1, metadata)
+    surge_filter_mono::surge_filter_mono(): surge_filter_base(1, metadata)
     {
     }
 
-    pop_destroyer_stereo::pop_destroyer_stereo(): pop_destroyer_base(2, metadata)
+    surge_filter_stereo::surge_filter_stereo(): surge_filter_base(2, metadata)
     {
     }
 }
