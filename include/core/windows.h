@@ -37,6 +37,8 @@ namespace lsp
             RECTANGULAR,
             FLAT_TOP,
             COSINE,
+            SQR_COSINE,
+            CUBIC,
 
             // Special variables
             TOTAL,
@@ -81,6 +83,10 @@ namespace lsp
         void flat_top(float *dst, size_t n);
 
         void cosine(float *dst, size_t n);
+
+        void sqr_cosine(float *dst, size_t n);
+
+        void cubic(float *dst, size_t n);
 
         void gaussian_general(float *dst, size_t n, float s);
 

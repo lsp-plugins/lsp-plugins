@@ -27,6 +27,7 @@
 
 === 1.1.24 ===
 
+* Implemented Loudness Compensator plugin series (Mono and Stereo).
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
 * Updated metadata for dynamic processors to better match the UI.
 * VST plugins now provide possibility to save and load presets and do not crash Host.
@@ -35,6 +36,8 @@
 * Now all lv2:Atom ports that do not provide MIDI message transfer are marked as lv2:connectionOptional.
 * Implemented back-buffering of the window surface, all UI controls now don't glitch on edit.
 * Exported plugin configuration now contains information about original package version.
+* Fixed bug that caused Spectrum Analyzer to ignore window selection.
+* Added 'Squared Cosine' and 'Cubic Hermite Spline' windows to Spectrum Analyzer.
 
 *******************************************************************************
 * New plugin check list before release
@@ -44,6 +47,7 @@
 * Plugin translations are valid
 * Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Ensure that there are menu items present for all new plugins in res/xdg
+* Ensure that lsp-plugins.menu contains reference to the new plugin
 
 *******************************************************************************
 * Release steps

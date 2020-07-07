@@ -119,13 +119,15 @@
 		"side": "Side",
 		"side_on": "Side on",
 		"solo": "Solo",
-		"solo_hold": "Solo/Hold"
+		"solo_hold": "Solo/Hold",
+		"volume": "Volume"
 	},
 	"channel": "Channel",
 	"channels": "Channels",
 	
 	"clear": "Clear",
 	
+	"contour:": "Contour:",
 	"controls": "Controls",
 	"ctl": "Ctl",
 	
@@ -442,6 +444,8 @@
 		"P_hase": "P",
 		"S_ide": "S",
 		"amplitude": "Amplitude",
+		"clip": "Clip",
+		"clipping": "Clipping",
 		"dry": "Dry",
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Dry pan",
@@ -461,6 +465,8 @@
 		"phase": "Phase",
 		"positive_width": "Positive Width",
 		"raise": "Raise",
+		"reference": "Reference",
+		"relative": "Relative",
 		"stereo": "Stereo",
 		"width": "Width",
 		"wet": "Wet",
@@ -538,7 +544,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Selected",
 		"worst": "Worst",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Working area",

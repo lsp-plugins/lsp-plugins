@@ -645,7 +645,12 @@ namespace lsp
     // UI Builder implementation
     ui_builder::ui_builder(plugin_ui *ui)
     {
+        CtlPortResolver *r = new CtlPortResolver();
+        r->init(ui);
+
         pUI         = ui;
+        pPlugin     = r;
+        vRoot.set_resolver(r);
     }
 
     ui_builder::~ui_builder()
@@ -656,7 +661,11 @@ namespace lsp
             if (r != NULL)
                 delete r;
         }
+
+        vRoot.set_resolver(NULL);
         vStack.flush();
+        if (pPlugin != NULL)
+            delete pPlugin;
     }
 
     // Evaluate

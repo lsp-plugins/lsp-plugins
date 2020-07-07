@@ -41,6 +41,15 @@ namespace lsp
             }
 
         public:
+            inline void construct()
+            {
+                nCounter        = 0.0f;
+                nTime           = 0.0f;
+                fOnValue        = 1.0f;
+                fOffValue       = 0.0f;
+                fTime           = 0.1f;
+            }
+
             /** Initialize blink
              *
              * @param sample_rate sample rate

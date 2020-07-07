@@ -52,7 +52,7 @@ namespace lsp
                 return;
             }
 
-            if (is_decibel_unit(p->unit)) // Decibels
+            if (is_gain_unit(p->unit)) // Gain
             {
                 double base     = (p->unit == U_GAIN_AMP) ? M_LN10 * 0.05 : M_LN10 * 0.1;
                 value           = exp(value * base);
@@ -89,7 +89,7 @@ namespace lsp
             if (p == NULL)
                 return;
 
-            if (is_decibel_unit(p->unit)) // Decibels
+            if (is_gain_unit(p->unit)) // Decibels
             {
                 double base = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
 
@@ -222,7 +222,7 @@ namespace lsp
             if (!bLogSet)
                 bLog        = (p->flags & F_LOG);
 
-            if (is_decibel_unit(p->unit)) // Decibels
+            if (is_gain_unit(p->unit)) // Gain
             {
                 double base     = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
 

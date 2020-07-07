@@ -537,7 +537,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Selezionato",
 		"worst": "Peggiore",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Area lavoro",

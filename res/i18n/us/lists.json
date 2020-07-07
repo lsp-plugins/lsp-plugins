@@ -112,6 +112,7 @@
 			"blackman_harris": "Blackman-Harris",
 			"blackman_nuttall": "Blackman-Nuttall",
 			"cosine": "Cosine",
+			"cubic": "Cubic Hermite Spline",
 			"flat_top": "Flat top",
 			"gauss": "Gaussian",
 			"hamming": "Hamming",
@@ -122,6 +123,7 @@
 			"parzen": "Parzen",
 			"poisson": "Poisson",
 			"rectangular": "Rectangular",
+			"sqr_cosine": "Squared cosine",
 			"triangular": "Triangular",
 			"tukey": "Tukey",
 			"welch": "Welch"
@@ -179,6 +181,15 @@
 			"mt48": "MT48",
 			"mt72": "MT72",
 			"mt96": "MT96"
+		}
+	},
+	
+	"lcomp": {
+		"curve": {
+			"flat": "Flat",
+			"fm": "Fletcher-Munson",
+			"iso226": "ISO 226:2003",
+			"rd": "Robinson-Dadson"
 		}
 	},
 	
