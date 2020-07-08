@@ -45,7 +45,6 @@ namespace lsp
             };
 
         private:
-            plugin_t               *pPlugin;
             plugin_ui              *pUI;
             ipc::IExecutor         *pExecutor;
             jack_client_t          *pClient;
@@ -56,6 +55,8 @@ namespace lsp
             state_t                 nState;
             size_t                  nCounter;
             ssize_t                 nLatency;
+            volatile atomic_t       nDumpReq;
+            atomic_t                nDumpResp;
 
             position_t              sPosition;
 
@@ -69,7 +70,8 @@ namespace lsp
             ipc::Mutex              sKVTMutex;
 
         public:
-            JACKWrapper(plugin_t *plugin, plugin_ui *ui)
+            JACKWrapper(plugin_t *plugin, plugin_ui *ui):
+                IWrapper(plugin)
             {
                 pPlugin         = plugin;
                 pUI             = ui;
@@ -82,6 +84,8 @@ namespace lsp
                 nState          = S_CREATED;
                 nCounter        = 0;
                 nLatency        = 0;
+                nDumpReq        = 0;
+                nDumpResp       = 0;
 
                 position_t::init(&sPosition);
             }
@@ -303,6 +307,14 @@ namespace lsp
             lsp_trace("updating settings");
             pPlugin->update_settings();
             bUpdateSettings = false;
+        }
+
+        // Need to dump state?
+        atomic_t dump_req   = nDumpReq;
+        if (dump_req != nDumpResp)
+        {
+            dump_plugin_state();
+            nDumpResp           = dump_req;
         }
 
         // Call the main processing unit

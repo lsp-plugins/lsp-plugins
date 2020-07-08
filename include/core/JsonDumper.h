@@ -9,6 +9,7 @@
 #define CORE_JSONDUMPER_H_
 
 #include <core/IStateDumper.h>
+#include <core/io/Path.h>
 #include <core/files/json/Serializer.h>
 
 namespace lsp
@@ -21,16 +22,25 @@ namespace lsp
         protected:
             json::Serializer sOut;
 
+        protected:
+            static void init_params(json::serial_flags_t *flags);
+
         public:
             explicit JsonDumper();
             virtual ~JsonDumper();
 
         public:
             status_t    open(const char *path);
+            status_t    open(const io::Path *path);
             status_t    open(const LSPString *path);
             status_t    close();
 
         public:
+            void start_raw_object(const char *name);
+            void start_raw_object();
+            void end_raw_object();
+
+
             virtual void start_object(const char *name, const void *ptr, size_t szof);
             virtual void start_object(const void *ptr, size_t szof);
             virtual void end_object();
@@ -40,6 +50,7 @@ namespace lsp
             virtual void end_array();
 
             virtual void write(const void *value);
+            virtual void write(const char *value);
             virtual void write(bool value);
             virtual void write(uint8_t value);
             virtual void write(int8_t value);
@@ -53,6 +64,7 @@ namespace lsp
             virtual void write(double value);
 
             virtual void write(const char *name, const void *value);
+            virtual void write(const char *name, const char *value);
             virtual void write(const char *name, bool value);
             virtual void write(const char *name, uint8_t value);
             virtual void write(const char *name, int8_t value);

@@ -116,6 +116,7 @@ namespace lsp
             LV2_URID                uridUINotification;
             LV2_URID                uridConnectUI;
             LV2_URID                uridDisconnectUI;
+            LV2_URID                uridDumpState;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
             LV2_URID                uridKvtKeys;
@@ -263,6 +264,7 @@ namespace lsp
                 uridUINotification          = map_type("UINotification");
                 uridConnectUI               = map_primitive("ui_connect");
                 uridDisconnectUI            = map_primitive("ui_disconnect");
+                uridDumpState               = map_primitive("dumpState");
                 uridPathType                = forge.Path;
                 uridMidiEventType           = map_uri(LV2_MIDI__MidiEvent);
                 uridKvtObject               = map_primitive("KVT");
@@ -672,6 +674,24 @@ namespace lsp
                 // Send CONNECT UI message
                 lsp_trace("Sending CONNECT UI message");
                 LV2_Atom *msg = forge_object(&frame, uridConnectUI, uridUINotification);
+                forge_pop(&frame);
+                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
+
+                return true;
+            }
+
+            inline bool request_state_dump()
+            {
+                if (map == NULL)
+                    return false;
+
+                // Prepare forge for transfer
+                LV2_Atom_Forge_Frame    frame;
+                forge_set_buffer(pBuffer, nBufSize);
+
+                // Send DUMP STATE message
+                lsp_trace("Sending DUMP STATE message");
+                LV2_Atom *msg = forge_object(&frame, uridDumpState, uridUINotification);
                 forge_pop(&frame);
                 write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
 

@@ -20,15 +20,20 @@ namespace lsp
         close();
     }
 
+    void JsonDumper::init_params(json::serial_flags_t *flags)
+    {
+        flags->version      = json::JSON_LEGACY;
+        flags->identifiers  = false;
+        flags->ident        = ' ';
+        flags->padding      = 4;
+        flags->separator    = true;
+        flags->multiline    = true;
+    }
+
     status_t JsonDumper::open(const char *path)
     {
         json::serial_flags_t flags;
-        flags.version       = json::JSON_LEGACY;
-        flags.identifiers   = false;
-        flags.ident         = ' ';
-        flags.padding       = 4;
-        flags.separator     = true;
-        flags.multiline     = true;
+        init_params(&flags);
 
         return sOut.open(path, &flags);
     }
@@ -36,12 +41,15 @@ namespace lsp
     status_t JsonDumper::open(const LSPString *path)
     {
         json::serial_flags_t flags;
-        flags.version       = json::JSON_LEGACY;
-        flags.identifiers   = false;
-        flags.ident         = ' ';
-        flags.padding       = 4;
-        flags.separator     = true;
-        flags.multiline     = true;
+        init_params(&flags);
+
+        return sOut.open(path, &flags);
+    }
+
+    status_t JsonDumper::open(const io::Path *path)
+    {
+        json::serial_flags_t flags;
+        init_params(&flags);
 
         return sOut.open(path, &flags);
     }
@@ -49,6 +57,22 @@ namespace lsp
     status_t JsonDumper::close()
     {
         return sOut.close();
+    }
+
+    void JsonDumper::start_raw_object(const char *name)
+    {
+        sOut.write_property(name);
+        sOut.start_object();
+    }
+
+    void JsonDumper::start_raw_object()
+    {
+        sOut.start_object();
+    }
+
+    void JsonDumper::end_raw_object()
+    {
+        sOut.end_object();
     }
 
     void JsonDumper::start_object(const char *name, const void *ptr, size_t szof)
@@ -113,6 +137,14 @@ namespace lsp
         sOut.write_string(buf);
     }
 
+    void JsonDumper::write(const char *value)
+    {
+        if (value == NULL)
+            sOut.write_null();
+        else
+            sOut.write_string(value);
+    }
+
     void JsonDumper::write(bool value)
     {
         sOut.write_bool(value);
@@ -169,6 +201,12 @@ namespace lsp
     }
 
     void JsonDumper::write(const char *name, const void *value)
+    {
+        sOut.write_property(name);
+        write(value);
+    }
+
+    void JsonDumper::write(const char *name, const char *value)
     {
         sOut.write_property(name);
         write(value);

@@ -34,6 +34,7 @@ namespace lsp
             virtual void end_array();
 
             virtual void write(const void *value);
+            virtual void write(const char *value);
             virtual void write(bool value);
             virtual void write(uint8_t value);
             virtual void write(int8_t value);
@@ -47,6 +48,7 @@ namespace lsp
             virtual void write(double value);
 
             virtual void write(const char *name, const void *value);
+            virtual void write(const char *name, const char *value);
             virtual void write(const char *name, bool value);
             virtual void write(const char *name, uint8_t value);
             virtual void write(const char *name, int8_t value);

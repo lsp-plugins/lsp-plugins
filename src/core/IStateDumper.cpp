@@ -46,6 +46,10 @@ namespace lsp
     {
     }
 
+    void IStateDumper::write(const char *value)
+    {
+    }
+
     void IStateDumper::write(bool value)
     {
     }
@@ -91,6 +95,10 @@ namespace lsp
     }
 
     void IStateDumper::write(const char *name, const void *value)
+    {
+    }
+
+    void IStateDumper::write(const char *name, const char *value)
     {
     }
 
