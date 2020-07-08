@@ -136,7 +136,8 @@ namespace lsp
                 bool        equals(const LSPString *path) const;
                 bool        equals(const char *path) const;
 
-                inline const LSPString *as_string() const { return &sPath; }
+                inline const LSPString *as_string() const           { return &sPath; }
+                inline const char *as_utf8() const                  { return sPath.get_utf8(); }
                 inline const char *as_native(const char *charset = NULL) const { return sPath.get_native(charset); }
                 inline void take(Path *src) { sPath.take(&src->sPath); }
                 void take(LSPString *src);

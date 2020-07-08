@@ -70,11 +70,20 @@ namespace lsp
         io::Path path;
         status_t res;
         if ((res = system::get_temporary_dir(&path)) != STATUS_OK)
+        {
+            lsp_warn("Could not obtain temporary directory: %d", int(res));
             return;
+        }
         if ((res = path.append_child(LSP_ARTIFACT_ID "-dumps")) != STATUS_OK)
+        {
+            lsp_warn("Could not form path to directory: %d", int(res));
             return;
+        }
         if ((res = path.mkdir(true)) != STATUS_OK)
+        {
+            lsp_warn("Could not create directory %s: %d", path.as_utf8(), int(res));
             return;
+        }
 
         // Get current time
         struct timespec stime;
@@ -97,14 +106,25 @@ namespace lsp
                 t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, int(stime.tv_nsec / 1000000),
                 meta->lv2_uid
             ))
+        {
+            lsp_warn("Could not format the file name");
             return;
+        }
 
         if ((res = path.append_child(&fname)) != STATUS_OK)
+        {
+            lsp_warn("Could not form the file name: %d", int(res));
             return;
+        }
+
+        lsp_info("Dumping plugin state to %s...", path.as_utf8());
 
         JsonDumper v;
         if ((res = v.open(&path)) != STATUS_OK)
+        {
+            lsp_warn("Could not create file %s: %d", path.as_utf8(), int(res));
             return;
+        }
 
         v.start_raw_object();
         {
@@ -130,8 +150,11 @@ namespace lsp
             }
             v.end_raw_object();
         }
+
         v.end_raw_object();
         v.close();
+
+        lsp_info("State has been dumped to %s", path.as_utf8());
     }
 
 } /* namespace lsp */

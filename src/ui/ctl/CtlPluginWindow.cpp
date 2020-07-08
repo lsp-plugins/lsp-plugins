@@ -197,6 +197,14 @@ namespace lsp
                     itm->slots()->bind(LSPSLOT_SUBMIT, slot_toggle_rack_mount, this);
                     pMenu->add(itm);
 
+                    // Create 'Dump state' menu item
+                    itm     = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->text()->set("actions.debug_dump");
+                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_debug_dump, this);
+                    pMenu->add(itm);
+
                     // Create language selection menu
                     init_i18n_support(pMenu);
 
@@ -783,6 +791,15 @@ namespace lsp
                 mstud->set_value((x) ? 0.0f : 1.0f);
                 mstud->notify_all();
             }
+
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_debug_dump(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
+            if (__this->pUI != NULL)
+                __this->pUI->request_state_dump();
 
             return STATUS_OK;
         }

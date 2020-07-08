@@ -63,11 +63,13 @@ namespace lsp
     {
         sOut.write_property(name);
         sOut.start_object();
+        sOut.writeln();
     }
 
     void JsonDumper::start_raw_object()
     {
         sOut.start_object();
+        sOut.writeln();
     }
 
     void JsonDumper::end_raw_object()
@@ -96,6 +98,7 @@ namespace lsp
 
     void JsonDumper::end_object()
     {
+        sOut.end_object();
         sOut.end_object();
     }
 

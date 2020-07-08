@@ -1053,8 +1053,10 @@ namespace lsp
             }
             v->end_object();
         }
-        v->writev("vCurve", vCurve, compressor_base_metadata::CURVE_MESH_SIZE);
-        v->writev("vTime", vCurve, compressor_base_metadata::TIME_MESH_SIZE);
+        v->end_array();
+
+        v->write("vCurve", vCurve);
+        v->write("vTime", vTime);
         v->write("bPause", bPause);
         v->write("bClear", bClear);
         v->write("bMSListen", bMSListen);

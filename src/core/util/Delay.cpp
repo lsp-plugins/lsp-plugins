@@ -276,7 +276,7 @@ namespace lsp
 
     void Delay::dump(IStateDumper *v) const
     {
-        v->writev("pBuffer", pBuffer, nSize);
+        v->write("pBuffer", pBuffer);
         v->write("nHead", nHead);
         v->write("nTail", nTail);
         v->write("nDelay", nDelay);

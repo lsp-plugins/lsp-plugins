@@ -172,6 +172,11 @@ namespace lsp
              * @return true on success
              */
             virtual bool kvt_release();
+
+            /**
+             * Request for state dump
+             */
+            virtual void dump_state_request();
     };
 }
 
@@ -968,6 +973,11 @@ namespace lsp
             wnd->resize(r.nMinWidth, r.nMinHeight);
 
         pUI->show();
+    }
+
+    void JACKWrapper::dump_state_request()
+    {
+        atomic_add(&nDumpReq, 1);
     }
 }
 

@@ -325,7 +325,7 @@ namespace lsp
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (path->set("/tmp")) ? STATUS_OK : STATUS_NO_MEM;
+            return path->set("/tmp");
         }
 #endif /* PLATFORM_WINDOWS */
     }

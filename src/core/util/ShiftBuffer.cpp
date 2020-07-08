@@ -248,7 +248,7 @@ namespace lsp
 
     void ShiftBuffer::dump(IStateDumper *v) const
     {
-        v->writev("pData", pData, nCapacity);
+        v->write("pData", pData);
         v->write("nCapacity", nCapacity);
         v->write("nHead", nHead);
         v->write("nTail", nTail);
