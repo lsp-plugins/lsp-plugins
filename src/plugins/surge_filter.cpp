@@ -29,6 +29,7 @@ namespace lsp
         pData           = NULL;
         pIDisplay       = NULL;
 
+        pMode           = NULL;
         pGainIn         = NULL;
         pGainOut        = NULL;
         pThresh         = NULL;
@@ -108,6 +109,8 @@ namespace lsp
         // Bind control ports
         TRACE_PORT(vPorts[port_id]);
         pBypass         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pMode           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pGainIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -206,10 +209,12 @@ namespace lsp
     void surge_filter_base::update_settings()
     {
         bool bypass     = pBypass->getValue() >= 0.5f;
+        size_t mode     = pMode->getValue();
         fGainIn         = pGainIn->getValue();
         fGainOut        = pGainOut->getValue();
         bGainVisible    = pGainVisible->getValue() >= 0.5f;
 
+        sDepopper.set_mode(depopper_mode_t(mode));
         sDepopper.set_threshold(pThresh->getValue());
         sDepopper.set_attack(pAttack->getValue());
         sDepopper.set_release(pRelease->getValue());

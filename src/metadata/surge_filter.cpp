@@ -13,7 +13,16 @@ namespace lsp
 {
     static const int surge_filter_classes[] = { C_DYNAMICS, -1 };
 
+    static const port_item_t surge_modes[] =
+    {
+        { "Linear",         "surge.linear"          },
+        { "Cubic",          "surge.cubic"           },
+        { "RMS",            "surge.rms"             },
+        { NULL, NULL }
+    };
+
     #define SURGE_FILTER_COMMON(channels)    \
+        COMBO("mode", "Volume control mode", 0, surge_modes),      \
         AMP_GAIN("input", "Input gain", 1.0f, GAIN_AMP_P_24_DB), \
         EXT_LOG_CONTROL("thresh", "Threshold", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
         LOG_CONTROL("attack", "Attack time", U_MSEC, surge_filter_base_metadata::ATTACK), \

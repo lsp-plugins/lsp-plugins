@@ -145,6 +145,8 @@
 			<label text="labels.output" />
 			<button id="grv" color="bright_blue" led="true" size="16" />
 			<label text="labels.gain" />
+			
+			<combo id="mode" />
 
 			<align hpos="1" expand="true">
 				<label text="labels.graphs.time" />

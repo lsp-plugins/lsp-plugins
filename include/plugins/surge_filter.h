@@ -55,6 +55,7 @@ namespace lsp
             Blink               sActive;            // Activity indicator
             Depopper            sDepopper;          // Depopper module
 
+            IPort              *pMode;              // Mode
             IPort              *pGainIn;            // Input gain
             IPort              *pGainOut;           // Output gain
             IPort              *pThresh;            // Threshold

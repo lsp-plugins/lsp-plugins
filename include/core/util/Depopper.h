@@ -12,6 +12,12 @@
 
 namespace lsp
 {
+    enum depopper_mode_t
+    {
+        DPM_LINEAR,
+        DPM_CUBIC,
+        DPM_RMS
+    };
     
     /**
      * This module is designed to prevent loud popping sounds
@@ -36,20 +42,20 @@ namespace lsp
             float           fThreshold;
             float           fAttack;
             float           fRelease;
-            float           fQRelease;
             float           fEnvelope;
-            float           fQEnvelope;
-            float           fClip;
-            float           fClipInc;
             size_t          nClipCounter;
             state_t         nState;
             bool            bReconfigure;
+            depopper_mode_t enMode;
 
             // Computed parameters
-            size_t          nFadeSamples;
             float           fTauAttack;
             float           fTauRelease;
-            float           fTauQRelease;
+            size_t          nFade;
+            float           fPoly[4];
+
+        protected:
+            float           crossfade();
 
         public:
             explicit        Depopper();
@@ -124,6 +130,19 @@ namespace lsp
             float           set_attack(float attack);
 
             /**
+             * Get depopper mode
+             * @return depopper mode
+             */
+            depopper_mode_t get_mode() const                { return enMode;            }
+
+            /**
+             * Set depopper mode
+             * @param mode depopper mode
+             * @return previous mode
+             */
+            depopper_mode_t set_mode(depopper_mode_t mode);
+
+            /**
              * Set release time in milliseconds
              * @return release time in milliseconds
              */
@@ -135,19 +154,6 @@ namespace lsp
              * @return previous release time
              */
             float           set_release(float release);
-
-            /**
-             * Set tracking release time in milliseconds
-             * @return release time in milliseconds
-             */
-            inline float    tracking_release() const        { return fQRelease;          }
-
-            /**
-             * Set tracking release time in milliseconds
-             * @param release release time in milliseconds
-             * @return previous release time
-             */
-            float           set_tracking_release(float release);
 
             /**
              * Check that depopper is currently closed
