@@ -290,4 +290,31 @@ namespace lsp
 
         return 1.0f;
     }
+
+    void Compressor::dump(IStateDumper *v) const
+    {
+        v->write("fAttackThresh", fAttackThresh);
+        v->write("fReleaseThresh", fReleaseThresh);
+        v->write("fBoostThresh", fBoostThresh);
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fKnee", fKnee);
+        v->write("fRatio", fRatio);
+        v->write("fEnvelope", fEnvelope);
+        v->write("fTauAttack", fTauAttack);
+        v->write("fXRatio", fXRatio);
+        v->write("fLogTH", fLogTH);
+        v->write("fKS", fKS);
+        v->write("fKE", fKE);
+        v->writev("vHermite", vHermite, 3);
+        v->write("fBLogTH", fBLogTH);
+        v->write("fBKS", fBKS);
+        v->write("fBKE", fBKE);
+        v->writev("vBHermite", vBHermite, 3);
+        v->write("fBoost", fBoost);
+        v->write("nSampleRate", nSampleRate);
+        v->write("bUpward", bUpward);
+        v->write("bUpdate", bUpdate);
+    }
+
 } /* namespace lsp */

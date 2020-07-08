@@ -474,4 +474,24 @@ namespace lsp
 
         return out;
     }
+
+    void Sidechain::dump(IStateDumper *v) const
+    {
+        v->write_object("sBuffer", &sBuffer);
+        v->write("nReactivity", nReactivity);
+        v->write("fReactivity", fReactivity);
+        v->write("fTau", fTau);
+        v->write("fRmsValue", fRmsValue);
+        v->write("nSource", nSource);
+        v->write("nMode", nMode);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nRefresh", nRefresh);
+        v->write("nChannels", nChannels);
+        v->write("fMaxReactivity", fMaxReactivity);
+        v->write("fGain", fGain);
+        v->write("bUpdate", bUpdate);
+        v->write("bMidSide", bMidSide);
+        v->write("pPreEq", pPreEq);
+    }
+
 } /* namespace lsp */

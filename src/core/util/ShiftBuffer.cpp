@@ -246,4 +246,12 @@ namespace lsp
             amount = can;
     }
 
+    void ShiftBuffer::dump(IStateDumper *v) const
+    {
+        v->writev("pData", pData, nCapacity);
+        v->write("nCapacity", nCapacity);
+        v->write("nHead", nHead);
+        v->write("nTail", nTail);
+    }
+
 } /* namespace lsp */

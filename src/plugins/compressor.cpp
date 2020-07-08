@@ -970,6 +970,106 @@ namespace lsp
         return true;
     }
 
+    void compressor_base::dump(IStateDumper *v) const
+    {
+        size_t channels = (nMode == CM_MONO) ? 1 : 2;
+
+        v->write("nMode", nMode);
+        v->write("nChannels", channels);
+        v->write("bSidechain", bSidechain);
+
+        v->start_array("vChannels", vChannels, channels);
+        for (size_t i=0; i<channels; ++i)
+        {
+            const channel_t *c = &vChannels[i];
+
+            v->start_object(c, sizeof(channel_t));
+            {
+                v->write_object("sBypass", &c->sBypass);
+                v->write_object("sSC", &c->sSC);
+                v->write_object("sSCEq", &c->sSCEq);
+                v->write_object("sComp", &c->sComp);
+                v->write_object("sDelay", &c->sDelay);
+                v->write_object("sCompDelay", &c->sCompDelay);
+
+                v->start_array("sGraph", c->sGraph, G_TOTAL);
+                for (size_t j=0; j<G_TOTAL; ++j)
+                    v->write_object(&c->sGraph[j]);
+                v->end_array();
+
+                v->write("vIn", c->vIn);
+                v->write("vOut", c->vOut);
+                v->write("vSc", c->vSc);
+                v->write("vEnv", c->vEnv);
+                v->write("vGain", c->vGain);
+                v->write("bScListen", c->bScListen);
+                v->write("nSync", c->nSync);
+                v->write("nScType", c->nScType);
+                v->write("fMakeup", c->fMakeup);
+                v->write("fFeedback", c->fFeedback);
+                v->write("fDryGain", c->fDryGain);
+                v->write("fWetGain", c->fWetGain);
+                v->write("fDotIn", c->fDotIn);
+                v->write("fDotOut", c->fDotOut);
+
+                v->write("pIn", c->pIn);
+                v->write("pOut", c->pOut);
+                v->write("pSC", c->pSC);
+                v->start_array("pGraph", c->pGraph, G_TOTAL);
+                for (size_t j=0; j<G_TOTAL; ++j)
+                    v->write(c->pGraph[j]);
+                v->end_array();
+                v->start_array("pMeter", c->pGraph, M_TOTAL);
+                for (size_t j=0; j<M_TOTAL; ++j)
+                    v->write(c->pMeter[j]);
+                v->end_array();
+
+                v->write("pScType", c->pScType);
+                v->write("pScMode", c->pScMode);
+                v->write("pScLookahead", c->pScLookahead);
+                v->write("pScListen", c->pScListen);
+                v->write("pScSource", c->pScSource);
+                v->write("pScReactivity", c->pScReactivity);
+                v->write("pScPreamp", c->pScPreamp);
+                v->write("pScHpfMode", c->pScHpfMode);
+                v->write("pScHpfFreq", c->pScHpfFreq);
+                v->write("pScLpfMode", c->pScLpfMode);
+                v->write("pScLpfFreq", c->pScLpfFreq);
+
+                v->write("pMode", c->pMode);
+                v->write("pAttackLvl", c->pAttackLvl);
+                v->write("pReleaseLvl", c->pReleaseLvl);
+                v->write("pAttackTime", c->pAttackTime);
+                v->write("pReleaseTime", c->pReleaseTime);
+                v->write("pRatio", c->pRatio);
+                v->write("pKnee", c->pKnee);
+                v->write("pBThresh", c->pBThresh);
+                v->write("pMakeup", c->pMakeup);
+
+                v->write("pDryGain", c->pDryGain);
+                v->write("pWetGain", c->pWetGain);
+                v->write("pCurve", c->pCurve);
+                v->write("pReleaseOut", c->pReleaseOut);
+            }
+            v->end_object();
+        }
+        v->writev("vCurve", vCurve, compressor_base_metadata::CURVE_MESH_SIZE);
+        v->writev("vTime", vCurve, compressor_base_metadata::TIME_MESH_SIZE);
+        v->write("bPause", bPause);
+        v->write("bClear", bClear);
+        v->write("bMSListen", bMSListen);
+        v->write("fInGain", fInGain);
+        v->write("bUISync", bUISync);
+        v->write("pIDisplay", pIDisplay);
+        v->write("pBypass", pBypass);
+        v->write("pInGain", pInGain);
+        v->write("pOutGain", pOutGain);
+        v->write("pPause", pPause);
+        v->write("pClear", pClear);
+        v->write("pMSListen", pMSListen);
+        v->write("pData", pData);
+    }
+
     //-------------------------------------------------------------------------
     // Compressor derivatives
     compressor_mono::compressor_mono() : compressor_base(metadata, false, CM_MONO)

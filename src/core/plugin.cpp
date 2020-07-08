@@ -98,5 +98,9 @@ namespace lsp
     void plugin_t::state_loaded()
     {
     }
+
+    void plugin_t::dump(IStateDumper *v) const
+    {
+    }
 }
 

@@ -182,4 +182,11 @@ namespace lsp
         }
     }
 
+    void Bypass::dump(IStateDumper *v) const
+    {
+        v->write("nState", nState);
+        v->write("fDelta", fDelta);
+        v->write("fGain", fGain);
+    }
+
 } /* namespace lsp */

@@ -9,6 +9,7 @@
 #define CORE_UTIL_BYPASS_H_
 
 #include <dsp/dsp.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -96,6 +97,12 @@ namespace lsp
              * @return true if bypass is on or is currently going to become on
              */
             bool bypassing() const;
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

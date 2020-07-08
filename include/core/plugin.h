@@ -6,6 +6,7 @@
 #include <core/IPort.h>
 #include <core/IWrapper.h>
 #include <core/ICanvas.h>
+#include <core/IStateDumper.h>
 #include <core/debug.h>
 
 #include <metadata/metadata.h>
@@ -16,6 +17,9 @@ namespace lsp
 {
     class plugin_t
     {
+        private:
+            plugin_t &operator = (const plugin_t &);
+
         protected:
             cvector<IPort>              vPorts;
             const plugin_metadata_t    *pMetadata;
@@ -27,7 +31,7 @@ namespace lsp
             bool                        bUIActive;
 
         public:
-            plugin_t(const plugin_metadata_t &mdata);
+            explicit plugin_t(const plugin_metadata_t &mdata);
             virtual ~plugin_t();
 
         public:
@@ -180,6 +184,12 @@ namespace lsp
              *
              */
             virtual void state_loaded();
+
+            /**
+             * Dump plugin state
+             * @param v state dumper
+             */
+            virtual void dump(IStateDumper *v) const;
     };
 
 }

@@ -354,4 +354,26 @@ namespace lsp
         }
     }
 
+    void Equalizer::dump(IStateDumper *v) const
+    {
+        // TODO
+//        FilterBank          sBank;              // Filter bank
+//        Filter             *vFilters;           // List of filters
+//        size_t              nFilters;           // Number of filters
+//        size_t              nSampleRate;        // Sample rate
+//        size_t              nConvSize;          // Convolution size
+//        size_t              nFftRank;           // FFT rank
+//        size_t              nLatency;           // Equalizer latency
+//        size_t              nBufSize;           // Buffer size
+//        equalizer_mode_t    nMode;              // Equalizer mode
+//        float              *vFftRe;             // FFT buffer (real part)
+//        float              *vFftIm;             // FFT buffer (imaginary part)
+//        float              *vConvRe;            // Convolution (real part)
+//        float              *vConvIm;            // Convolution (imaginary part)
+//        float              *vBuffer;            // Processing buffer
+//        float              *vTmp;               // Temporary buffer for various calculations
+//        float              *pData;              // Allocation data
+//        size_t              nFlags;             // Flag that identifies that equalizer has to be rebuilt
+    }
+
 } /* namespace lsp */
