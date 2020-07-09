@@ -73,9 +73,14 @@ namespace lsp
 
     void Sidechain::update_settings()
     {
-        nReactivity         = millis_to_samples(nSampleRate, fReactivity);
+        if (!bUpdate)
+            return;
+
+        ssize_t react       = millis_to_samples(nSampleRate, fReactivity);
+        nReactivity         = (react > 1) ? react : 1;
         fTau                = 1.0f - expf(logf(1.0f - M_SQRT1_2) / (nReactivity)); // Tau is based on seconds
         nRefresh            = REFRESH_RATE; // Force the function to be refreshed
+        bUpdate             = false;
     }
 
     void Sidechain::refresh_processing()
@@ -287,11 +292,7 @@ namespace lsp
     void Sidechain::process(float *out, const float **in, size_t samples)
     {
         // Check if need update settings
-        if (bUpdate)
-        {
-            update_settings();
-            bUpdate     = false;
-        }
+        update_settings();
 
         // Determine what source to use
         if (!preprocess(out, in, samples))
@@ -401,11 +402,7 @@ namespace lsp
     float Sidechain::process(const float *in)
     {
         // Check if need update settings
-        if (bUpdate)
-        {
-            update_settings();
-            bUpdate     = false;
-        }
+        update_settings();
 
         float out   = 0.0f;
         if (!preprocess(&out, in))
@@ -474,4 +471,24 @@ namespace lsp
 
         return out;
     }
+
+    void Sidechain::dump(IStateDumper *v) const
+    {
+        v->write_object("sBuffer", &sBuffer);
+        v->write("nReactivity", nReactivity);
+        v->write("fReactivity", fReactivity);
+        v->write("fTau", fTau);
+        v->write("fRmsValue", fRmsValue);
+        v->write("nSource", nSource);
+        v->write("nMode", nMode);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nRefresh", nRefresh);
+        v->write("nChannels", nChannels);
+        v->write("fMaxReactivity", fMaxReactivity);
+        v->write("fGain", fGain);
+        v->write("bUpdate", bUpdate);
+        v->write("bMidSide", bMidSide);
+        v->write("pPreEq", pPreEq);
+    }
+
 } /* namespace lsp */

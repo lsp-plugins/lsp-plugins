@@ -9,6 +9,7 @@
 #define CORE_FILTERS_FILTER_H_
 
 #include <dsp/dsp.h>
+#include <core/IStateDumper.h>
 #include <core/filters/common.h>
 #include <core/filters/FilterBank.h>
 
@@ -155,6 +156,12 @@ namespace lsp
              * @return true if the filter is active
              */
             inline bool active() const      { return nMode != FM_BYPASS; }
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 }
 

@@ -251,4 +251,24 @@ namespace lsp
         return 1.0f;
     }
 
+    void Expander::dump(IStateDumper *v) const
+    {
+        v->write("fAttackThresh", fAttackThresh);
+        v->write("fReleaseThresh", fReleaseThresh);
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fKnee", fKnee);
+        v->write("fRatio", fRatio);
+        v->write("fEnvelope", fEnvelope);
+        v->write("fTauAttack", fTauAttack);
+        v->write("fTauRelease", fTauRelease);
+        v->writev("vHermite", vHermite, 3);
+        v->write("fLogKS", fLogKS);
+        v->write("fLogKE", fLogKE);
+        v->write("fLogTH", fLogTH);
+        v->write("nSampleRate", nSampleRate);
+        v->write("bUpdate", bUpdate);
+        v->write("bUpward", bUpward);
+    }
+
 } /* namespace lsp */

@@ -16,10 +16,18 @@
 
 namespace lsp
 {
+    class plugin_t;
+
     class IWrapper
     {
+        private:
+            IWrapper & operator = (const IWrapper &);
+
+        protected:
+            plugin_t       *pPlugin;
+
         public:
-            explicit IWrapper();
+            explicit IWrapper(plugin_t *plugin);
             virtual ~IWrapper();
 
         public:
@@ -72,6 +80,11 @@ namespace lsp
              * Notify the host about internal state change
              */
             virtual void state_changed();
+
+            /**
+             * Dump the state of plugin
+             */
+            virtual void dump_plugin_state();
     };
 
 } /* namespace lsp */

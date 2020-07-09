@@ -27,6 +27,16 @@ namespace lsp
 
     Oversampler::Oversampler()
     {
+        construct();
+    }
+
+    Oversampler::~Oversampler()
+    {
+        destroy();
+    }
+
+    void Oversampler::construct()
+    {
         pCallback   = NULL;
         fUpBuffer   = NULL;
         fDownBuffer = NULL;
@@ -36,10 +46,6 @@ namespace lsp
         nUpdate     = UP_ALL;
         bData       = NULL;
         bFilter     = true;
-    }
-    
-    Oversampler::~Oversampler()
-    {
     }
 
     bool Oversampler::init()
@@ -709,6 +715,20 @@ namespace lsp
         }
 
         return 0;
+    }
+
+    void Oversampler::dump(IStateDumper *v) const
+    {
+        v->write("pCallback", pCallback);
+        v->write("fUpBuffer", fUpBuffer);
+        v->write("fDownBuffer", fDownBuffer);
+        v->write("nUpHead", nUpHead);
+        v->write("nMode", nMode);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nUpdate", nUpdate);
+        v->write_object("sFilter", &sFilter);
+        v->write("bData", bData);
+        v->write("bFilter", bFilter);
     }
 
 } /* namespace lsp */

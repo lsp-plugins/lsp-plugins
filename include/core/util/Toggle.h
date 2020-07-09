@@ -8,6 +8,8 @@
 #ifndef CORE_UTIL_TOGGLE_H_
 #define CORE_UTIL_TOGGLE_H_
 
+#include <core/IStateDumper.h>
+
 namespace lsp
 {
     /** Simple toggle class
@@ -15,6 +17,9 @@ namespace lsp
      */
     class Toggle
     {
+        private:
+            Toggle &operator = (const Toggle &);
+
         private:
             enum state_t
             {
@@ -27,17 +32,10 @@ namespace lsp
             state_t         nState;
 
         public:
-            inline Toggle()
-            {
-                fValue          = 0.0f;
-                nState          = TRG_OFF;
-            }
+            explicit Toggle();
+            ~Toggle();
 
-            inline ~Toggle()
-            {
-                fValue          = 0.0f;
-                nState          = TRG_OFF;
-            }
+            void construct();
 
         public:
             /** Initialize toggle
@@ -92,6 +90,12 @@ namespace lsp
                 else
                     nState      = (fValue >= 0.5f) ? TRG_ON : TRG_OFF;
             }
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

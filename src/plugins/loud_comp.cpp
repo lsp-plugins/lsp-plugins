@@ -704,6 +704,68 @@ namespace lsp
         return true;
     }
 
+    void loud_comp_base::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+        v->write("nMode", nMode);
+        v->write("nRank", nRank);
+        v->write("fGain", fGain);
+        v->write("fVolume", fVolume);
+        v->write("bBypass", bBypass);
+        v->write("bRelative", bRelative);
+        v->write("bReference", bReference);
+        v->write("bHClipOn", bHClipOn);
+        v->write("fHClipLvl", fHClipLvl);
+        v->start_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c = vChannels[i];
+            v->start_object(c, sizeof(channel_t));
+            {
+                v->write("vIn", c->vIn);
+                v->write("vOut", c->vOut);
+                v->write("vDry", c->vDry);
+                v->write("vBuffer", c->vBuffer);
+                v->write("fInLevel", c->fInLevel);
+                v->write("fOutLevel", c->fOutLevel);
+                v->write("bHClip", c->bHClip);
+
+                v->write_object("sBypass", &c->sBypass);
+                v->write_object("sDelay", &c->sDelay);
+                v->write_object("sProc", &c->sProc);
+                v->write_object("sClipInd", &c->sClipInd);
+
+                v->write("pIn", c->pIn);
+                v->write("pOut", c->pOut);
+                v->write("pMeterIn", c->pMeterIn);
+                v->write("pMeterOut", c->pMeterOut);
+                v->write("pHClipInd", c->pHClipInd);
+            }
+            v->end_object();
+        }
+        v->end_array();
+        v->write("vTmpBuf", vTmpBuf);
+        v->write("vFreqApply", vFreqApply);
+        v->write("vFreqMesh", vFreqMesh);
+        v->write("vAmpMesh", vAmpMesh);
+        v->write("bSyncMesh", bSyncMesh);
+        v->write("pIDisplay", pIDisplay);
+        v->write_object("sOsc", &sOsc);
+        v->write("pData", pData);
+
+        v->write("pBypass", pBypass);
+        v->write("pGain", pGain);
+        v->write("pMode", pMode);
+        v->write("pRank", pRank);
+        v->write("pVolume", pVolume);
+        v->write("pMesh", pMesh);
+        v->write("pRelative", pRelative);
+        v->write("pReference", pReference);
+        v->write("pHClipOn", pHClipOn);
+        v->write("pHClipRange", pHClipRange);
+        v->write("pHClipReset", pHClipReset);
+    }
+
     //-------------------------------------------------------------------------
     // Different instances
     loud_comp_mono::loud_comp_mono(): loud_comp_base(metadata, 1)

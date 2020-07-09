@@ -5,10 +5,11 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_UTIL_COUNTER_H_
-#define INCLUDE_CORE_UTIL_COUNTER_H_
+#ifndef CORE_UTIL_COUNTER_H_
+#define CORE_UTIL_COUNTER_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -30,7 +31,9 @@ namespace lsp
 
         public:
             explicit Counter();
-            virtual ~Counter();
+            ~Counter();
+
+            void        construct();
 
         public:
             /**
@@ -119,7 +122,13 @@ namespace lsp
             inline void preserve_initial_value() {
                 nFlags |= F_INITIAL;
             }
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 } /* namespace lsp */
 
-#endif /* INCLUDE_CORE_UTIL_COUNTER_H_ */
+#endif /* CORE_UTIL_COUNTER_H_ */

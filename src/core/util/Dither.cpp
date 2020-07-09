@@ -52,4 +52,12 @@ namespace lsp
             *(out++) = *(in++) * fGain + (sRandom.random(RND_TRIANGLE) - 0.5f) * fDelta;
     }
 
+    void Dither::dump(IStateDumper *v) const
+    {
+        v->write("nBits", nBits);
+        v->write("fGain", fGain);
+        v->write("fDelta", fDelta);
+        v->write_object("sRandom", &sRandom);
+    }
+
 } /* namespace lsp */

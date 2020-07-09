@@ -9,6 +9,7 @@
 #define CORE_UTIL_CROSSFADE_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -26,7 +27,9 @@ namespace lsp
 
         public:
             explicit Crossfade();
-            virtual ~Crossfade();
+            ~Crossfade();
+
+            void        construct();
 
         public:
             /**
@@ -68,6 +71,12 @@ namespace lsp
              * if crossfade is currently active
              */
             bool toggle();
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

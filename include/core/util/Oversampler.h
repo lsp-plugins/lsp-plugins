@@ -8,6 +8,7 @@
 #ifndef CORE_UTIL_OVERSAMPLER_H_
 #define CORE_UTIL_OVERSAMPLER_H_
 
+#include <core/IStateDumper.h>
 #include <core/filters/Filter.h>
 
 namespace lsp
@@ -52,6 +53,9 @@ namespace lsp
      */
     class Oversampler
     {
+        private:
+            Oversampler & operator = (const Oversampler &);
+
         protected:
             enum update_t
             {
@@ -74,12 +78,11 @@ namespace lsp
             uint8_t                *bData;
             bool                    bFilter;
 
-//        protected:
-//            static void do_filter(float *out, const float *in, size_t count);
-
         public:
-            Oversampler();
+            explicit Oversampler();
             virtual ~Oversampler();
+
+            void construct();
 
         public:
             /** Initialize oversampler
@@ -196,6 +199,12 @@ namespace lsp
              * @return oversampler latency in normal (non-oversampled) samples
              */
             size_t latency() const;
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

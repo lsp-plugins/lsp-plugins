@@ -66,7 +66,6 @@ namespace lsp
             cvector<LV2AudioPort>   vAudioPorts;
             cvector<port_t>         vGenMetadata;   // Generated metadata
 
-            plugin_t               *pPlugin;
             LV2Extensions          *pExt;
             ipc::IExecutor         *pExecutor;      // Executor service
             void                   *pAtomIn;        // Atom input port
@@ -83,6 +82,8 @@ namespace lsp
             float                   fSampleRate;
             uint8_t                *pOscPacket;     // OSC packet data
             volatile atomic_t       nStateMode;     // State change flag
+            volatile atomic_t       nDumpReq;
+            atomic_t                nDumpResp;
 
             position_t              sPosition;
             KVTStorage              sKVT;
@@ -115,6 +116,7 @@ namespace lsp
 
         public:
             inline explicit LV2Wrapper(plugin_t *plugin, LV2Extensions *ext):
+                IWrapper(plugin),
                 sKVTListener(this)
             {
                 pPlugin         = plugin;
@@ -141,6 +143,8 @@ namespace lsp
                 fSampleRate     = DEFAULT_SAMPLE_RATE;
                 pOscPacket      = reinterpret_cast<uint8_t *>(::malloc(OSC_PACKET_MAX));
                 nStateMode      = SM_LOADING;
+                nDumpReq        = 0;
+                nDumpResp       = 0;
                 pKVTDispatcher  = NULL;
 
                 position_t::init(&sPosition);
@@ -840,28 +844,36 @@ namespace lsp
             bUpdateSettings = pPlugin->set_position(&pos);
             sPosition = pos;
         }
-        else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridConnectUI))
+        else if (obj->body.otype == pExt->uridUINotification)
         {
-            nClients    ++;
-            nStateReqs  ++;
-            lsp_trace("UI has connected, current number of clients=%d", int(nClients));
-            if (pKVTDispatcher != NULL)
-                pKVTDispatcher->connect_client();
-
-            // Notify all ports that UI has connected to backend
-            for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
+            if (obj->body.id == pExt->uridConnectUI)
             {
-                LV2Port *p = vAllPorts.get(i);
-                if (p != NULL)
-                    p->ui_connected();
+                nClients    ++;
+                nStateReqs  ++;
+                lsp_trace("UI has connected, current number of clients=%d", int(nClients));
+                if (pKVTDispatcher != NULL)
+                    pKVTDispatcher->connect_client();
+
+                // Notify all ports that UI has connected to backend
+                for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
+                {
+                    LV2Port *p = vAllPorts.get(i);
+                    if (p != NULL)
+                        p->ui_connected();
+                }
             }
-        }
-        else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridDisconnectUI))
-        {
-            nClients    --;
-            if (pKVTDispatcher != NULL)
-                pKVTDispatcher->disconnect_client();
-            lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
+            else if (obj->body.id == pExt->uridDisconnectUI)
+            {
+                nClients    --;
+                if (pKVTDispatcher != NULL)
+                    pKVTDispatcher->disconnect_client();
+                lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
+            }
+            else if (obj->body.id == pExt->uridDumpState)
+            {
+                lsp_trace("Received DUMP_STATE event");
+                atomic_add(&nDumpReq, 1);
+            }
         }
         else
         {
@@ -1438,6 +1450,14 @@ namespace lsp
             lsp_trace("updating settings");
             pPlugin->update_settings();
             bUpdateSettings     = false;
+        }
+
+        // Need to dump state?
+        atomic_t dump_req   = nDumpReq;
+        if (dump_req != nDumpResp)
+        {
+            dump_plugin_state();
+            nDumpResp           = dump_req;
         }
 
         // Call the main processing unit (split data buffers into chunks not greater than MaxBlockLength)

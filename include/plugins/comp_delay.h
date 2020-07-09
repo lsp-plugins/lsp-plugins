@@ -39,7 +39,7 @@ namespace lsp
             IPort      *pOut;
 
         public:
-            comp_delay_base();
+            explicit comp_delay_base();
             virtual ~comp_delay_base();
 
         public:

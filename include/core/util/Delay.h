@@ -9,7 +9,7 @@
 #define CORE_UTIL_DELAY_HPP_
 
 #include <core/types.h>
-#include <dsp/dsp.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -127,6 +127,12 @@ namespace lsp
              * @return delay in samples
              */
             inline size_t get_delay() const { return nDelay; };
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

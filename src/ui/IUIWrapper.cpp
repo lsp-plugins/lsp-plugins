@@ -41,4 +41,8 @@ namespace lsp
         return false;
     }
 
+    void IUIWrapper::dump_state_request()
+    {
+    }
+
 } /* namespace lsp */

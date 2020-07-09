@@ -28,13 +28,14 @@ namespace lsp
     class VSTWrapper: public IWrapper IF_VST_UI_ON(, public IUIWrapper)
     {
         private:
-            plugin_t                   *pPlugin;
             AEffect                    *pEffect;
             audioMasterCallback         pMaster;
             ipc::IExecutor             *pExecutor;
             vst_chunk_t                 sChunk;
             bool                        bUpdateSettings;
             float                       fLatency;
+            volatile atomic_t           nDumpReq;
+            atomic_t                    nDumpResp;
             VSTPort                    *pBypass;
 
             cvector<VSTAudioPort>       vInputs;        // List of input audio ports
@@ -83,7 +84,7 @@ namespace lsp
                     plugin_t *plugin,
                     const char *name,
                     audioMasterCallback callback
-            )
+            ): IWrapper(plugin)
             {
                 pPlugin         = plugin;
                 pEffect         = effect;
@@ -92,6 +93,8 @@ namespace lsp
                 pExecutor       = NULL;
 
                 fLatency        = 0.0f;
+                nDumpReq        = 0;
+                nDumpResp       = 0;
                 pBypass         = NULL;
                 bUpdateSettings = true;
 
@@ -210,6 +213,11 @@ namespace lsp
              * @return true on success
              */
             virtual bool kvt_release();
+
+            /**
+             * Request for state dump
+             */
+            virtual void dump_state_request();
     };
 }
 
@@ -596,6 +604,14 @@ namespace lsp
             lsp_trace("updating settings");
             pPlugin->update_settings();
             bUpdateSettings     = false;
+        }
+
+        // Need to dump state?
+        atomic_t dump_req   = nDumpReq;
+        if (dump_req != nDumpResp)
+        {
+            dump_plugin_state();
+            nDumpResp           = dump_req;
         }
 
         // Call the main processing unit
@@ -1647,6 +1663,11 @@ namespace lsp
     bool VSTWrapper::kvt_release()
     {
         return sKVTMutex.unlock();
+    }
+
+    void VSTWrapper::dump_state_request()
+    {
+        atomic_add(&nDumpReq, 1);
     }
 }
 

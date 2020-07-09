@@ -182,4 +182,22 @@ namespace lsp
         }
     }
 
+    void SpectralProcessor::dump(IStateDumper *v) const
+    {
+        v->write("nRank", nRank);
+        v->write("nMaxRank", nMaxRank);
+        v->write("fPhase", fPhase);
+        v->write("pWnd", pWnd);
+        v->write("pOutBuf", pOutBuf);
+        v->write("pInBuf", pInBuf);
+        v->write("pFftBuf", pFftBuf);
+        v->write("nOffset", nOffset);
+        v->write("pData", pData);
+        v->write("bUpdate", bUpdate);
+
+        v->write("pFunc", pFunc);
+        v->write("pObject", pObject);
+        v->write("pSubject", pSubject);
+    }
+
 } /* namespace lsp */

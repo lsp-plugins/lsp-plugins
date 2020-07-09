@@ -9,6 +9,7 @@
 #define CORE_DYNAMICS_LIMITER_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 #include <core/util/Delay.h>
 
 #define LIMITER_PATCHES_MAX         256
@@ -175,12 +176,13 @@ namespace lsp
             void            init_comp(comp_t *comp);
 
             void            process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-//            void            process_hermite(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-//            void            process_exp(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-//            void            process_line(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-
             void            process_patch(float *dst, float *gain, const float *src, const float *sc, size_t samples);
             void            process_mixed(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+
+            static void     dump(IStateDumper *v, const char *name, const comp_t *comp);
+            static void     dump(IStateDumper *v, const char *name, const sat_t *sat);
+            static void     dump(IStateDumper *v, const char *name, const exp_t *exp);
+            static void     dump(IStateDumper *v, const char *name, const line_t *line);
 
         public:
             explicit Limiter();
@@ -333,6 +335,11 @@ namespace lsp
              */
             void process(float *dst, float *gain, const float *src, const float *sc, size_t samples);
 
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

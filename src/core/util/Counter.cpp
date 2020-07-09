@@ -11,15 +11,20 @@ namespace lsp
 {
     Counter::Counter()
     {
+        construct();
+    }
+
+    Counter::~Counter()
+    {
+    }
+
+    void Counter::construct()
+    {
         nCurrent        = DEFAULT_SAMPLE_RATE;
         nInitial        = DEFAULT_SAMPLE_RATE;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
         fFrequency      = 1.0f;
         nFlags          = 0;
-    }
-    
-    Counter::~Counter()
-    {
     }
 
     void Counter::set_sample_rate(size_t sr, bool reset)
@@ -82,4 +87,14 @@ namespace lsp
 
         return nFlags & F_FIRED;
     }
+
+    void Counter::dump(IStateDumper *v) const
+    {
+        v->write("nCurrent", nCurrent);
+        v->write("nInitial", nInitial);
+        v->write("nSampleRate", nSampleRate);
+        v->write("fFrequency", fFrequency);
+        v->write("nFlags", nFlags);
+    }
+
 } /* namespace lsp */

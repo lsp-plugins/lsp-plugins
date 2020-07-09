@@ -154,6 +154,15 @@ namespace lsp
             }
         }
     }
+
+    void MeterGraph::dump(IStateDumper *v) const
+    {
+        v->write_object("sBuffer", &sBuffer);
+        v->write("fCurrent", fCurrent);
+        v->write("nCount", nCount);
+        v->write("nPeriod", nPeriod);
+        v->write("bMinimize", bMinimize);
+    }
 }
 
 

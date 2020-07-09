@@ -1611,5 +1611,11 @@ namespace lsp
         return NULL;
     }
 
+    void plugin_ui::request_state_dump()
+    {
+        if (pWrapper != NULL)
+            pWrapper->dump_state_request();
+    }
+
 
 } /* namespace lsp */

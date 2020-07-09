@@ -98,6 +98,7 @@ namespace lsp
             virtual void        update_settings();
             virtual void        process(size_t samples);
             virtual bool        inline_display(ICanvas *cv, size_t width, size_t height);
+            virtual void        dump(IStateDumper *v) const;
     };
 
     class loud_comp_mono: public loud_comp_base, public loud_comp_mono_metadata

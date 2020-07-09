@@ -11,6 +11,8 @@
 		"yes": "Yes"
 	},
 	
+	"debug_dump": "Dump for debug",
+	
 	"edit": {
 		"clear": "Clear",
 		"copy": "Copy",
