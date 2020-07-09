@@ -302,6 +302,7 @@ namespace lsp
         v->write("fRatio", fRatio);
         v->write("fEnvelope", fEnvelope);
         v->write("fTauAttack", fTauAttack);
+        v->write("fTauRelease", fTauRelease);
         v->write("fXRatio", fXRatio);
         v->write("fLogTH", fLogTH);
         v->write("fKS", fKS);

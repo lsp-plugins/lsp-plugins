@@ -20,11 +20,11 @@ namespace avx
         ARCH_X86_ASM(
             __ASM_EMIT("xor             %[off], %[off]")
             __ASM_EMIT("vmovaps         %[X_HALF], %%ymm7")
-            // 16x blocks
             __ASM_EMIT32("subl          $16, %[count]")
             __ASM_EMIT64("sub           $16, %[count]")
             __ASM_EMIT("vmovaps         %%ymm7, %%ymm6")
             __ASM_EMIT("jb              2f")
+            // 16x blocks
             __ASM_EMIT("1:")
             __ASM_EMIT("vmulps          0x00(%[left], %[off]), %%ymm6, %%ymm0")     // ymm0 = l*0.5
             __ASM_EMIT("vmulps          0x20(%[left], %[off]), %%ymm7, %%ymm1")
@@ -101,10 +101,10 @@ namespace avx
     #define LR_TO_PART(P, L, R, OP) \
             __ASM_EMIT("xor             %[off], %[off]") \
             __ASM_EMIT("vmovaps         %[X_HALF], %%ymm7") \
-            /*  32x blocks */ \
             __ASM_EMIT("sub             $32, %[count]") \
-            __ASM_EMIT("jb              2f") \
             __ASM_EMIT("vmovaps         %%ymm7, %%ymm6") \
+            __ASM_EMIT("jb              2f") \
+            /*  32x blocks */ \
             __ASM_EMIT("1:") \
             __ASM_EMIT("vmovups         0x00(%[" L "], %[off]), %%ymm0")                /*  ymm0 = l */ \
             __ASM_EMIT("vmovups         0x20(%[" L "], %[off]), %%ymm1") \

@@ -568,7 +568,7 @@ namespace lsp
             if (c->nScType == SCT_FEED_BACK)
                 feedback |= (1 << i);
 
-//            dump_buffer("in_buf", in_buf[i], samples);
+//            lsp_dumpf("in_buf", "%g", in_buf[i], samples);
         }
 
         // Perform compression
