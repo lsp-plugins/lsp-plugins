@@ -1745,6 +1745,39 @@ namespace lsp
         return true;
     }
 
+    void Filter::dump(IStateDumper *v) const
+    {
+        v->start_object("sParams", &sParams, sizeof(filter_params_t));
+        {
+            v->write("nType", sParams.nType);
+            v->write("fFreq", sParams.fFreq);
+            v->write("fFreq2", sParams.fFreq2);
+            v->write("fGain", sParams.fGain);
+            v->write("nSlope", sParams.nSlope);
+            v->write("fQuality", sParams.fQuality);
+        }
+        v->end_object();
+
+        v->write("nSampleRate", nSampleRate);
+        v->write("nMode", nMode);
+        v->write("nItems", nItems);
+        v->start_array("vItems", vItems, nItems);
+        for (size_t i=0; i<nItems; ++i)
+        {
+            f_cascade_t *c = &vItems[i];
+            v->start_object(c, sizeof(f_cascade_t));
+            {
+                v->writev("t", c->t, 4);
+                v->writev("b", c->b, 4);
+            }
+            v->end_object();
+        }
+        v->end_array();
+        v->write("vData", vData);
+        v->write("nFlags", nFlags);
+        v->write("nLatency", nLatency);
+    }
+
 }
 
 

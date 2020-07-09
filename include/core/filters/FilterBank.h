@@ -8,7 +8,7 @@
 #ifndef CORE_FILTERS_FILTERBANK_H_
 #define CORE_FILTERS_FILTERBANK_H_
 
-#include <dsp/dsp.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -91,6 +91,12 @@ namespace lsp
              *
              */
             void                reset();
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void                dump(IStateDumper *v) const;
     };
 } /* namespace lsp */
 
