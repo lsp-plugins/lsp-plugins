@@ -9,6 +9,7 @@
 #define CORE_UTIL_SPECTRALPROCESSOR_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -46,6 +47,7 @@ namespace lsp
 
             void            construct();
 
+        public:
             /**
              * Initialize spectral processor
              * @param max_rank maximum FFT rank
@@ -119,6 +121,12 @@ namespace lsp
              * @param count number of samples to process
              */
             void            process(float *dst, const float *src, size_t count);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void            dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

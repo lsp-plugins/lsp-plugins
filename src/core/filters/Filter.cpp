@@ -1747,6 +1747,11 @@ namespace lsp
 
     void Filter::dump(IStateDumper *v) const
     {
+        if (nFlags & FF_OWN_BANK)
+            v->write_object("pBank", pBank);
+        else
+            v->write("pBank", pBank);
+
         v->start_object("sParams", &sParams, sizeof(filter_params_t));
         {
             v->write("nType", sParams.nType);
