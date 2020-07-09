@@ -12,7 +12,7 @@ namespace lsp
 {
     struct surge_filter_base_metadata
     {
-        static const float THRESH_MIN       = GAIN_AMP_M_80_DB;
+        static const float THRESH_MIN       = GAIN_AMP_M_120_DB;
         static const float THRESH_MAX       = GAIN_AMP_M_24_DB;
         static const float THRESH_DFL       = GAIN_AMP_M_72_DB;
         static const float THRESH_STEP      = 0.01f;

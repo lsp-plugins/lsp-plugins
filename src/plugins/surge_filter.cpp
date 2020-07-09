@@ -500,6 +500,63 @@ namespace lsp
         return true;
     }
 
+    void surge_filter_base::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+        v->start_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            const channel_t *c = &vChannels[i];
+            v->start_object(c, sizeof(channel_t));
+            {
+                v->write("vIn", c->vIn);
+                v->write("vOut", c->vOut);
+                v->write("vBuffer", c->vBuffer);
+                v->write_object("sBypass", &c->sBypass);
+                v->write_object("sIn", &c->sIn);
+                v->write_object("sOut", &c->sOut);
+                v->write("bInVisible", c->bInVisible);
+                v->write("bOutVisible", c->bOutVisible);
+
+                v->write("pIn", c->pIn);
+                v->write("pOut", c->pOut);
+                v->write("pInVisible", c->pInVisible);
+                v->write("pOutVisible", c->pOutVisible);
+                v->write("pMeterIn", c->pMeterIn);
+                v->write("pMeterOut", c->pMeterOut);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("vBuffer", vBuffer);
+        v->write("vTimePoints", vTimePoints);
+        v->write("fGainIn", fGainIn);
+        v->write("fGainOut", fGainOut);
+        v->write("bGainVisible", bGainVisible);
+        v->write("pData", pData);
+        v->write("pIDisplay", pIDisplay);
+
+        v->write_object("sGain", &sGain);
+        v->write_object("sActive", &sActive);
+        v->write_object("sDepopper", &sDepopper);
+
+        v->write("pMode", pMode);
+        v->write("pGainIn", pGainIn);
+        v->write("pGainOut", pGainOut);
+        v->write("pThresh", pThresh);
+        v->write("pAttack", pAttack);
+        v->write("pRelease", pRelease);
+        v->write("pFade", pFade);
+        v->write("pActive", pActive);
+        v->write("pBypass", pBypass);
+        v->write("pMeshIn", pMeshIn);
+        v->write("pMeshOut", pMeshOut);
+        v->write("pMeshGain", pMeshGain);
+        v->write("pGainVisible", pGainVisible);
+        v->write("pGainMeter", pGainMeter);
+    }
+
     //-------------------------------------------------------------------------
     surge_filter_mono::surge_filter_mono(): surge_filter_base(1, metadata)
     {

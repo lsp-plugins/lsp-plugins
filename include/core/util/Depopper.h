@@ -9,6 +9,7 @@
 #define CORE_UTIL_DEPOPPER_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -16,7 +17,9 @@ namespace lsp
     {
         DPM_LINEAR,
         DPM_CUBIC,
-        DPM_RMS
+        DPM_SINE,
+        DPM_GAUSSIAN,
+        DPM_PARABOLIC
     };
     
     /**
@@ -38,6 +41,8 @@ namespace lsp
 
         protected:
             size_t          nSampleRate;
+            float           fClosedGain;
+            float           fOpenedGain;
             float           fFadeTime;
             float           fThreshold;
             float           fAttack;
@@ -79,6 +84,12 @@ namespace lsp
             void            reconfigure();
 
             /**
+             * Get sample rate
+             * @return sample rate
+             */
+            inline size_t   get_sample_rate() const         { return nSampleRate;       }
+
+            /**
              * Set sample rate
              * @param sr sample rate
              * @return previous sample rate
@@ -86,10 +97,30 @@ namespace lsp
             size_t          set_sample_rate(size_t sr);
 
             /**
-             * Get sample rate
-             * @return sample rate
+             * Get output gain when the depopper is closed
+             * @return output gain when the depopper is closed
              */
-            inline size_t   get_sample_rate() const         { return nSampleRate;       }
+            inline float    get_closed_gain() const         { return fClosedGain;       }
+
+            /**
+             * Set output gain when the depopper is closed
+             * @param gain gain
+             * @return previous value
+             */
+            float           set_closed_gain(float gain);
+
+            /**
+             * Get output gain when the depopper is closed
+             * @return output gain when the depopper is closed
+             */
+            inline float    get_opened_gain() const         { return fOpenedGain;       }
+
+            /**
+             * Set output gain when the depopper is closed
+             * @param gain gain
+             * @return previous value
+             */
+            float           set_opened_gain(float gain);
 
             /**
              * Get fade time (in milliseconds)
@@ -181,6 +212,11 @@ namespace lsp
              */
             void            process(float *gain, const float *src, size_t count);
 
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void            dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

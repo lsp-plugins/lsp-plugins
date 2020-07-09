@@ -17,12 +17,14 @@ namespace lsp
     {
         { "Linear",         "surge.linear"          },
         { "Cubic",          "surge.cubic"           },
-        { "RMS",            "surge.rms"             },
+        { "Sine",           "surge.sine"            },
+        { "Gaussian",       "surge.gaussian"        },
+        { "Parabolic",      "surge.parabolic"       },
         { NULL, NULL }
     };
 
     #define SURGE_FILTER_COMMON(channels)    \
-        COMBO("mode", "Volume control mode", 0, surge_modes),      \
+        COMBO("mode", "Volume control mode", 3, surge_modes),      \
         AMP_GAIN("input", "Input gain", 1.0f, GAIN_AMP_P_24_DB), \
         EXT_LOG_CONTROL("thresh", "Threshold", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
         LOG_CONTROL("attack", "Attack time", U_MSEC, surge_filter_base_metadata::ATTACK), \
@@ -77,7 +79,7 @@ namespace lsp
         LSP_SURGE_FILTER_BASE + 0,
         LSP_VERSION(1, 0, 0),
         surge_filter_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         surge_filter_mono_ports,
         "util/surge_filter.xml",
         NULL,
@@ -95,7 +97,7 @@ namespace lsp
         LSP_SURGE_FILTER_BASE + 1,
         LSP_VERSION(1, 0, 0),
         surge_filter_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         surge_filter_stereo_ports,
         "util/surge_filter.xml",
         NULL,

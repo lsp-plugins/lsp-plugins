@@ -145,6 +145,8 @@
 			<label text="labels.output" />
 			<button id="grv" color="bright_blue" led="true" size="16" />
 			<label text="labels.gain" />
+			<vsep/>
+			<label text="labels.mode:" />
 			
 			<combo id="mode" />
 

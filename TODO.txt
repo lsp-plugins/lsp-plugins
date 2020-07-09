@@ -28,6 +28,7 @@
 === 1.1.24 ===
 
 * Implemented Loudness Compensator plugin series (Mono and Stereo).
+- Implemented Surge Filter plugin series (Mono and Stereo).
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
 * Significant changes the Limiter Plugin series, may be partially incompatible with hosts/wrappers:
   * Removed 'Classic' and 'Mixed' modes since these modes do not give effective results.
@@ -55,6 +56,7 @@
 * Plugin translations are valid
 * Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Ensure that there are menu items present for all new plugins in res/xdg
+* Ensure that plugin provides internal state dump.
 * Ensure that lsp-plugins.menu contains reference to the new plugin
 
 *******************************************************************************

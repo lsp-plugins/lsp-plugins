@@ -82,6 +82,7 @@ namespace lsp
             virtual void        update_settings();
             virtual void        process(size_t samples);
             virtual bool        inline_display(ICanvas *cv, size_t width, size_t height);
+            virtual void        dump(IStateDumper *v) const;
     };
 
     class surge_filter_mono: public surge_filter_base, public surge_filter_mono_metadata

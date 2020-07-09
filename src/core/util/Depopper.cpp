@@ -22,6 +22,8 @@ namespace lsp
     void Depopper::construct()
     {
         nSampleRate     = DEFAULT_SAMPLE_RATE;
+        fClosedGain     = 0.0f;
+        fOpenedGain     = 1.0f;
         fFadeTime       = 50.0f;
         fThreshold      = GAIN_AMP_M_80_DB;
         fAttack         = 10.0f;
@@ -76,10 +78,34 @@ namespace lsp
                 fPoly[3]    = -2.0f * k*k*k;
                 break;
 
-            case DPM_RMS:
-                fPoly[0]    = 0.0f;
-                fPoly[1]    = (fade < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / fade);
+            case DPM_SINE:
+                fPoly[0]    = M_PI * 0.5f * k;
+                fPoly[1]    = 0.0f;
+                fPoly[2]    = 0.0f;
+                fPoly[3]    = 0.0f;
                 break;
+
+            case DPM_PARABOLIC:
+                fPoly[0]    = 0.0f;
+                fPoly[1]    = 0.0f;
+                fPoly[2]    = k*k;
+                fPoly[3]    = 0.0f;
+                break;
+
+            case DPM_GAUSSIAN:
+            {
+                // mu       = 1
+                // sigma    = sqrt(2)/2;
+                // g(x)     = 1/sqrtf(PI) * exp( -(x-4)^2 )
+                float f0    = expf(-16.0f); // g(0)
+                float f4    = 1.0f; // g(4)
+
+                fPoly[0]    = 4.0f * k;
+                fPoly[1]    = 1.0f / (f4 - f0); // Norming: 1 / (g(4) - g(0))
+                fPoly[2]    = -f0;
+                fPoly[3]    = 0.0f;
+                break;
+            }
 
             default:
                 fPoly[0]    = 0.0f;
@@ -100,6 +126,20 @@ namespace lsp
 
         nSampleRate     = sr;
         bReconfigure    = true;
+        return old;
+    }
+
+    float Depopper::set_closed_gain(float gain)
+    {
+        float old       = fClosedGain;
+        fClosedGain     = gain;
+        return old;
+    }
+
+    float Depopper::set_opened_gain(float gain)
+    {
+        float old       = fOpenedGain;
+        fOpenedGain     = gain;
         return old;
     }
 
@@ -165,41 +205,40 @@ namespace lsp
 
     float Depopper::crossfade()
     {
-        float gain;
+        float x, gain = fOpenedGain;
+
+        if ((nClipCounter++) >= nFade)
+        {
+            nState      = ST_OPENED;
+            return gain;
+        }
 
         switch (enMode)
         {
             case DPM_LINEAR:
             case DPM_CUBIC:
+            case DPM_PARABOLIC:
             {
-                if ((nClipCounter++) >= nFade)
-                {
-                    nState      = ST_OPENED;
-                    gain        = 1.0f;
-                    break;
-                }
-
-                float x     = nClipCounter;
-                gain        = fPoly[0] + x*(fPoly[1] + x*(fPoly[2] + x*fPoly[3]));
+                x           = nClipCounter;
+                gain       *= fPoly[0] + x*(fPoly[1] + x*(fPoly[2] + x*fPoly[3]));
                 break;
             }
 
-            case DPM_RMS:
+            case DPM_SINE:
             {
-                gain        = fPoly[0];
-                if (gain >= 0.99999f)
-                    nState      = ST_OPENED;
-                else if (nClipCounter++ <= 0)
-                    fPoly[0]    = 0.0f;
+                x           = sinf(fPoly[0] * nClipCounter);
+                gain       *= x*x;
+                break;
+            }
 
-                float dx    = 1.0 - fPoly[0];
-                fPoly[0]   += dx * fPoly[1];
-
+            case DPM_GAUSSIAN:
+            {
+                x           = (fPoly[0] * nClipCounter - 4.0f);
+                gain       *= fPoly[1] * expf(-x*x) + fPoly[2];
                 break;
             }
 
             default:
-                gain        = 1.0f;
                 break;
         }
 
@@ -224,7 +263,7 @@ namespace lsp
                 case ST_CLOSED:
                     if (fEnvelope < fThreshold)
                     {
-                        dst[i]      = 1.0f; // Normal gain
+                        dst[i]      = fClosedGain; // Closed
                         break;
                     }
 
@@ -251,10 +290,31 @@ namespace lsp
 
                     break;
                 default:
-                    dst[i]      = 1.0f;
+                    dst[i]      = fOpenedGain;
                     break;
             }
         }
+    }
+
+    void Depopper::dump(IStateDumper *v) const
+    {
+        v->write("nSampleRate", nSampleRate);
+        v->write("fClosedGain", fClosedGain);
+        v->write("fOpenedGain", fOpenedGain);
+        v->write("fFadeTime", fFadeTime);
+        v->write("fThreshold", fThreshold);
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fEnvelope", fEnvelope);
+        v->write("nClipCounter", nClipCounter);
+        v->write("nState", nState);
+        v->write("bReconfigure", bReconfigure);
+        v->write("enMode", enMode);
+
+        v->write("fTauAttack", fTauAttack);
+        v->write("fTauRelease", fTauRelease);
+        v->write("nFade", nFade);
+        v->writev("fPoly", fPoly, 4);
     }
 
 } /* namespace lsp */
