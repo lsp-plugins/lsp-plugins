@@ -444,4 +444,77 @@ namespace lsp
         return expf(gain);
     }
 
+    void DynamicProcessor::dump(IStateDumper *v) const
+    {
+        v->start_array("vDots", vDots, DYNAMIC_PROCESSOR_DOTS);
+        for (size_t i=0; i<DYNAMIC_PROCESSOR_DOTS; ++i)
+        {
+            const dyndot_t *dot = &vDots[i];
+            v->start_object(dot, sizeof(dyndot_t));
+            {
+                v->write("fInput", dot->fInput);
+                v->write("fOutput", dot->fOutput);
+                v->write("fKnee", dot->fKnee);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->writev("vAttackLvl", vAttackLvl, DYNAMIC_PROCESSOR_DOTS);
+        v->writev("vReleaseLvl", vReleaseLvl, DYNAMIC_PROCESSOR_DOTS);
+        v->writev("vAttackTime", vAttackTime, DYNAMIC_PROCESSOR_RANGES);
+        v->writev("vReleaseTime", vReleaseTime, DYNAMIC_PROCESSOR_RANGES);
+
+        v->write("fInRatio", fInRatio);
+        v->write("fOutRatio", fOutRatio);
+
+        v->start_array("vSplines", vSplines, DYNAMIC_PROCESSOR_DOTS);
+        for (size_t i=0; i<DYNAMIC_PROCESSOR_DOTS; ++i)
+        {
+            const spline_t *s = &vSplines[i];
+            v->start_object(s, sizeof(spline_t));
+            {
+                v->write("fPreRatio", s->fPreRatio);
+                v->write("fPostRatio", s->fPostRatio);
+                v->write("fKneeStart", s->fKneeStart);
+                v->write("fKneeStop", s->fKneeStop);
+                v->write("fThresh", s->fThresh);
+                v->write("fMakeup", s->fMakeup);
+                v->writev("vHermite", s->vHermite, 4);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->start_array("vAttack", vAttack, DYNAMIC_PROCESSOR_RANGES);
+        for (size_t i=0; i<DYNAMIC_PROCESSOR_RANGES; ++i)
+        {
+            const reaction_t *r = &vAttack[i];
+            v->start_object(r, sizeof(reaction_t));
+            {
+                v->write("fLevel", r->fLevel);
+                v->write("fTau", r->fTau);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->start_array("vRelease", vRelease, DYNAMIC_PROCESSOR_RANGES);
+        for (size_t i=0; i<DYNAMIC_PROCESSOR_RANGES; ++i)
+        {
+            const reaction_t *r = &vRelease[i];
+            v->start_object(r, sizeof(reaction_t));
+            {
+                v->write("fLevel", r->fLevel);
+                v->write("fTau", r->fTau);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("fEnvelope", fEnvelope);
+        v->write("nSampleRate", nSampleRate);
+        v->write("bUpdate", bUpdate);
+    }
+
 } /* namespace lsp */

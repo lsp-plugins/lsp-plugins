@@ -915,4 +915,141 @@ namespace lsp
         }
     }
 
+    void Limiter::dump(IStateDumper *v, const char *name, const comp_t *comp)
+    {
+        v->start_object(name, comp, sizeof(comp_t));
+        {
+            v->write("fKS", comp->fKS);
+            v->write("fKE", comp->fKE);
+            v->write("fTauAttack", comp->fTauAttack);
+            v->write("fTauRelease", comp->fTauRelease);
+            v->write("fEnvelope", comp->fEnvelope);
+            v->write("fAmp", comp->fAmp);
+            v->write("nCountdown", comp->nCountdown);
+            v->write("fSample", comp->fSample);
+            v->writev("vHermite", comp->vHermite, 3);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v, const char *name, const sat_t *sat)
+    {
+        v->start_object(name, sat, sizeof(sat_t));
+        {
+            v->write("nAttack", sat->nAttack);
+            v->write("nPlane", sat->nPlane);
+            v->write("nRelease", sat->nRelease);
+            v->write("nMiddle", sat->nMiddle);
+            v->writev("vAttack", sat->vAttack, 4);
+            v->writev("vRelease", sat->vRelease, 4);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v, const char *name, const exp_t *exp)
+    {
+        v->start_object(name, exp, sizeof(exp_t));
+        {
+            v->write("nAttack", exp->nAttack);
+            v->write("nPlane", exp->nPlane);
+            v->write("nRelease", exp->nRelease);
+            v->write("nMiddle", exp->nMiddle);
+            v->writev("vAttack", exp->vAttack, 4);
+            v->writev("vRelease", exp->vRelease, 4);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v, const char *name, const line_t *line)
+    {
+        v->start_object(name, line, sizeof(line_t));
+        {
+            v->write("nAttack", line->nAttack);
+            v->write("nPlane", line->nPlane);
+            v->write("nRelease", line->nRelease);
+            v->write("nMiddle", line->nMiddle);
+            v->writev("vAttack", line->vAttack, 2);
+            v->writev("vRelease", line->vRelease, 2);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v) const
+    {
+        v->write("fThreshold", fThreshold);
+        v->write("fLookahead", fLookahead);
+        v->write("fMaxLookahead", fMaxLookahead);
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fKnee", fKnee);
+        v->write("nMaxLookahead", nMaxLookahead);
+        v->write("nLookahead", nLookahead);
+        v->write("nMaxSampleRate", nMaxSampleRate);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nUpdate", nUpdate);
+        v->write("nMode", nMode);
+        v->write("nThresh", nThresh);
+
+        v->write("vGainBuf", vGainBuf);
+        v->write("vTmpBuf", vTmpBuf);
+        v->write("vData", vData);
+
+        v->write_object("sDelay", &sDelay);
+
+        switch (nMode)
+        {
+            case LM_COMPRESSOR:
+                dump(v, "sComp", &sComp);
+                break;
+
+            case LM_HERM_THIN:
+            case LM_HERM_WIDE:
+            case LM_HERM_TAIL:
+            case LM_HERM_DUCK:
+                dump(v, "sSat", &sSat);
+                break;
+
+            case LM_EXP_THIN:
+            case LM_EXP_WIDE:
+            case LM_EXP_TAIL:
+            case LM_EXP_DUCK:
+                dump(v, "sExp", &sExp);
+                break;
+
+            case LM_LINE_THIN:
+            case LM_LINE_WIDE:
+            case LM_LINE_TAIL:
+            case LM_LINE_DUCK:
+                dump(v, "sLine", &sLine);
+                break;
+
+            case LM_MIXED_HERM:
+            case LM_MIXED_EXP:
+            case LM_MIXED_LINE:
+                v->start_object("sMixed", &sMixed, sizeof(mixed_t));
+                {
+                    if (nMode == LM_MIXED_HERM)
+                    {
+                        dump(v, "sComp", &sMixed.sComp);
+                        dump(v, "sSat", &sMixed.sSat);
+                    }
+                    else if (nMode == LM_MIXED_EXP)
+                    {
+                        dump(v, "sComp", &sMixed.sComp);
+                        dump(v, "sExp", &sMixed.sExp);
+                    }
+                    else // LM_MIXED_LINE
+                    {
+                        dump(v, "sComp", &sMixed.sComp);
+                        dump(v, "sLine", &sMixed.sLine);
+                    }
+                }
+                v->end_object();
+                break;
+
+            default:
+                break;
+        }
+    }
+
 } /* namespace lsp */
