@@ -380,4 +380,41 @@ namespace lsp
         return true;
 
     }
+
+    void oscillator_mono::dump(IStateDumper *v) const
+    {
+        v->write_object("sOsc", &sOsc);
+        v->write_object("sBypass", &sBypass);
+
+        v->write("nMode", nMode);
+        v->write("bMeshSync", bMeshSync);
+        v->write("bBypass", bBypass);
+        v->write("vBuffer", vBuffer);
+        v->write("vTime", vTime);
+        v->write("vDisplaySamples", vDisplaySamples);
+        v->write("pData", pData);
+        v->write("pIDisplay", pIDisplay);
+
+        v->write("pIn", pIn);
+        v->write("pOut", pOut);
+        v->write("pBypass", pBypass);
+        v->write("pFrequency", pFrequency);
+        v->write("pGain", pGain);
+        v->write("pDCOffset", pDCOffset);
+        v->write("pDCRefSc", pDCRefSc);
+        v->write("pInitPhase", pInitPhase);
+        v->write("pModeSc", pModeSc);
+        v->write("pOversamplerModeSc", pOversamplerModeSc);
+        v->write("pFuncSc", pFuncSc);
+        v->write("pSquaredSinusoidInv", pSquaredSinusoidInv);
+        v->write("pParabolicInv", pParabolicInv);
+        v->write("pRectangularDutyRatio", pRectangularDutyRatio);
+        v->write("pSawtoothWidth", pSawtoothWidth);
+        v->write("pTrapezoidRaiseRatio", pTrapezoidRaiseRatio);
+        v->write("pTrapezoidFallRatio", pTrapezoidFallRatio);
+        v->write("pPulsePosWidthRatio", pPulsePosWidthRatio);
+        v->write("pPulseNegWidthRatio", pPulseNegWidthRatio);
+        v->write("pParabolicWidth", pParabolicWidth);
+        v->write("pOutputMesh", pOutputMesh);
+    }
 }

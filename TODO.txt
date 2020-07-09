@@ -40,7 +40,8 @@
 * Added 'Squared Cosine' and 'Cubic Hermite Spline' windows to Spectrum Analyzer.
 * Fixed bug in AVX-optimized sidechaining funcion that could cause invalid behaviour of plugins that 
   use external/internal sidechain for processing.
-- Added possibility to dump internal state of plugin to file.
+* Added possibility to dump internal state of plugin to file.
+* Several plugins now support dumping of internal state.
 - Add support of loading Hydrogen drumkits by the sampler.
 
 *******************************************************************************

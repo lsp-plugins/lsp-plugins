@@ -197,13 +197,16 @@ namespace lsp
                     itm->slots()->bind(LSPSLOT_SUBMIT, slot_toggle_rack_mount, this);
                     pMenu->add(itm);
 
-                    // Create 'Dump state' menu item
-                    itm     = new LSPMenuItem(dpy);
-                    vWidgets.add(itm);
-                    itm->init();
-                    itm->text()->set("actions.debug_dump");
-                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_debug_dump, this);
-                    pMenu->add(itm);
+                    // Create 'Dump state' menu item if supported
+                    if (meta->extensions & E_DUMP_STATE)
+                    {
+                        itm     = new LSPMenuItem(dpy);
+                        vWidgets.add(itm);
+                        itm->init();
+                        itm->text()->set("actions.debug_dump");
+                        itm->slots()->bind(LSPSLOT_SUBMIT, slot_debug_dump, this);
+                        pMenu->add(itm);
+                    }
 
                     // Create language selection menu
                     init_i18n_support(pMenu);
