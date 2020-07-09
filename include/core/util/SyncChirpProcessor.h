@@ -187,7 +187,7 @@ namespace lsp
 
         public:
 
-            SyncChirpProcessor();
+            explicit SyncChirpProcessor();
             ~SyncChirpProcessor();
 
         protected:

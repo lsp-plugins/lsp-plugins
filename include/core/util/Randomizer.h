@@ -9,6 +9,7 @@
 #define CORE_UTIL_RANDOMIZER_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -21,6 +22,9 @@ namespace lsp
 
     class Randomizer
     {
+        private:
+            Randomizer &operator = (const Randomizer &);
+
         private:
             static const uint32_t vMul1[];
             static const uint32_t vMul2[];
@@ -38,7 +42,9 @@ namespace lsp
             size_t      nBufID;
 
         public:
-            inline Randomizer() { nBufID = -1; }
+            explicit Randomizer();
+
+            void construct();
 
         public:
             /** Initialize random generator
@@ -58,6 +64,12 @@ namespace lsp
              * @return random number
              */
             float random(random_function_t func = RND_LINEAR);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */
