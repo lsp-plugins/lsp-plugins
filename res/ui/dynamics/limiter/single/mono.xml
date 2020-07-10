@@ -54,6 +54,8 @@
 			
 			<!-- Graph buttons -->
 			<hbox spacing="4">
+				<button id="alr" size="16" color="yellow" led="true" />
+				<label text="labels.alr" />
 				<button id="pause" size="16" color="green" led="true" />
 				<label text="labels.pause" />
 				<button id="clear" size="16" color="red" led="true" />
@@ -109,6 +111,20 @@
 			<label text="labels.chan.out" />
 		</grid>
 		<hbox spacing="4">
+			<!-- ALR -->
+			<group text="groups.alr">
+				<grid rows="3" cols="2">
+					<label text="labels.attack" />
+					<label text="labels.release" />
+					
+					<knob id="alr_at" />
+					<knob id="alr_rt" />
+					
+					<value id="alr_at" />
+					<value id="alr_rt" />
+				</grid>
+			</group>
+			
 			<!-- Limiter setup -->
 			<group text="groups.plug.limiter">
 				<grid rows="3" cols="6">
