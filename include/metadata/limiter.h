@@ -33,6 +33,16 @@ namespace lsp
         static const float  RELEASE_TIME_DFL        = 5.0f;
         static const float  RELEASE_TIME_STEP       = 0.0025f;
 
+        static const float  ALR_ATTACK_TIME_MIN     = 0.1f;
+        static const float  ALR_ATTACK_TIME_MAX     = 50.0f;
+        static const float  ALR_ATTACK_TIME_DFL     = 10.0f;
+        static const float  ALR_ATTACK_TIME_STEP    = 0.0025f;
+
+        static const float  ALR_RELEASE_TIME_MIN    = 1.0f;
+        static const float  ALR_RELEASE_TIME_MAX    = 250.0f;
+        static const float  ALR_RELEASE_TIME_DFL    = 50.0f;
+        static const float  ALR_RELEASE_TIME_STEP   = 0.0025f;
+
         static const float  THRESHOLD_MIN           = GAIN_AMP_M_48_DB;
         static const float  THRESHOLD_MAX           = GAIN_AMP_0_DB;
         static const float  THRESHOLD_DFL           = GAIN_AMP_0_DB;

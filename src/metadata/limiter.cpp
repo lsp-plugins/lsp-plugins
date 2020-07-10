@@ -90,6 +90,9 @@ namespace lsp
         IN_GAIN,            \
         OUT_GAIN,           \
         AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB), \
+        SWITCH("alr", "Automatic level regulation", 0.0f), \
+        LOG_CONTROL("alr_at", "Automatic level regulation attack time", U_MSEC, limiter_base_metadata::ALR_ATTACK_TIME), \
+        LOG_CONTROL("alr_rt", "Automatic level regulation release time", U_MSEC, limiter_base_metadata::ALR_RELEASE_TIME), \
         COMBO("mode", "Operating mode", limiter_base_metadata::LOM_DEFAULT, limiter_oper_modes), \
         LOG_CONTROL("th", "Threshold", U_GAIN_AMP, limiter_base_metadata::THRESHOLD), \
         LOG_CONTROL("knee", "Knee", U_GAIN_AMP, limiter_base_metadata::KNEE), \
@@ -184,7 +187,7 @@ namespace lsp
         "limiter_mono",
         "jz5z",
         LSP_LIMITER_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
         E_INLINE_DISPLAY,
         limiter_mono_ports,
@@ -202,7 +205,7 @@ namespace lsp
         "limiter_stereo",
         "rfuc",
         LSP_LIMITER_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
         E_INLINE_DISPLAY,
         limiter_stereo_ports,
@@ -220,7 +223,7 @@ namespace lsp
         "sc_limiter_mono",
         "kyzu",
         LSP_LIMITER_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
         E_INLINE_DISPLAY,
         sc_limiter_mono_ports,
@@ -238,7 +241,7 @@ namespace lsp
         "sc_limiter_stereo",
         "zwf7",
         LSP_LIMITER_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
         E_INLINE_DISPLAY,
         sc_limiter_stereo_ports,

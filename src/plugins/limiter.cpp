@@ -42,6 +42,10 @@ namespace lsp
         pInGain         = NULL;
         pOutGain        = NULL;
         pPreamp         = NULL;
+
+        pAlrOn          = NULL;
+        pAlrAttack      = NULL;
+        pAlrRelease     = NULL;
         pMode           = NULL;
         pThresh         = NULL;
         pLookahead      = NULL;
@@ -167,6 +171,12 @@ namespace lsp
         pOutGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pPreamp         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pAlrOn          = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pAlrAttack      = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pAlrRelease     = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMode           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -428,6 +438,9 @@ namespace lsp
         float attack                = pAttack->getValue();
         float release               = pRelease->getValue();
         float knee                  = pKnee->getValue();
+        bool alr_on                 = pAlrOn->getValue() >= 0.5f;
+        float alr_attack            = pAlrAttack->getValue();
+        float alr_release           = pAlrRelease->getValue();
         fStereoLink                 = (pStereoLink != NULL) ? pStereoLink->getValue()*0.01f : 1.0f;
         bExtSc                      = (pExtSc != NULL) ? pExtSc->getValue() >= 0.5f : false;
 
@@ -470,8 +483,9 @@ namespace lsp
             c->sLimit.set_attack(attack);
             c->sLimit.set_release(release);
             c->sLimit.set_knee(knee);
-            if (c->sLimit.modified())
-                c->sLimit.update_settings();
+            c->sLimit.set_alr(alr_on);
+            c->sLimit.set_alr_attack(alr_attack);
+            c->sLimit.set_alr_release(alr_release);
 
             // Update meters
             for (size_t j=0; j<G_TOTAL; ++j)

@@ -91,6 +91,9 @@ namespace lsp
             IPort          *pInGain;        // Input gain
             IPort          *pOutGain;       // Output gain
             IPort          *pPreamp;        // Sidechain pre-amplification
+            IPort          *pAlrOn;         // Automatic level regulation
+            IPort          *pAlrAttack;     // Automatic level regulation attack
+            IPort          *pAlrRelease;    // Automatic level regulation release
             IPort          *pMode;          // Operating mode
             IPort          *pThresh;        // Limiter threshold
             IPort          *pLookahead;     // Lookahead time

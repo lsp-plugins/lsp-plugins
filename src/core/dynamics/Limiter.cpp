@@ -18,6 +18,16 @@ namespace lsp
 {
     Limiter::Limiter()
     {
+        construct();
+    }
+
+    Limiter::~Limiter()
+    {
+        destroy();
+    }
+
+    void Limiter::construct()
+    {
         fThreshold      = 1.0f;
         fLookahead      = 0.0f;
         fMaxLookahead   = 0.0f;
@@ -31,13 +41,15 @@ namespace lsp
         nUpdate         = UP_ALL;
         nMode           = LM_COMPRESSOR;
         nThresh         = 0;
+
+        sALR.fAttack    = 10.0f;
+        sALR.fRelease   = 50.0f;
+        sALR.fEnvelope  = 0.0f;
+        sALR.bEnable    = false;
+
         vGainBuf        = NULL;
         vTmpBuf         = NULL;
         vData           = NULL;
-    }
-
-    Limiter::~Limiter()
-    {
     }
 
     bool Limiter::init(size_t max_sr, float max_lookahead)
@@ -78,6 +90,95 @@ namespace lsp
 
         vGainBuf    = NULL;
         vTmpBuf     = NULL;
+    }
+
+    float Limiter::set_attack(float attack)
+    {
+        float old = fAttack;
+        if (attack == old)
+            return old;
+
+        fAttack         = attack;
+        nUpdate        |= UP_OTHER;
+        return old;
+    }
+
+    float Limiter::set_release(float release)
+    {
+        float old = fRelease;
+        if (release == old)
+            return old;
+
+        fRelease        = release;
+        nUpdate        |= UP_OTHER;
+        return old;
+    }
+
+    float Limiter::set_threshold(float thresh)
+    {
+        float old = fThreshold;
+        if (old == thresh)
+            return old;
+
+        fThreshold      = thresh;
+        nUpdate        |= UP_THRESH | UP_ALR;
+        return old;
+    }
+
+    float Limiter::set_lookahead(float lk_ahead)
+    {
+        float old = fLookahead;
+        if (lk_ahead > fMaxLookahead)
+            lk_ahead = fMaxLookahead;
+        if (old == lk_ahead)
+            return old;
+
+        fLookahead      = lk_ahead;
+        nUpdate        |= UP_LK;
+
+        return old;
+    }
+
+    float Limiter::set_knee(float knee)
+    {
+        float old = fKnee;
+        if (knee > 1.0f)
+            knee = 1.0f;
+        if (old == knee)
+            return old;
+
+        fKnee           = knee;
+        nUpdate        |= UP_OTHER;
+        return old;
+    }
+
+    float Limiter::set_alr_attack(float attack)
+    {
+        float old = sALR.fAttack;
+        if (attack == old)
+            return old;
+
+        sALR.fAttack    = attack;
+        nUpdate        |= UP_ALR;
+        return old;
+    }
+
+    float Limiter::set_alr_release(float release)
+    {
+        float old = sALR.fRelease;
+        if (release == old)
+            return old;
+
+        sALR.fRelease   = release;
+        nUpdate        |= UP_ALR;
+        return old;
+    }
+
+    bool Limiter::set_alr(bool enable)
+    {
+        bool old        = sALR.bEnable;
+        sALR.bEnable    = enable;
+        return old;
     }
 
     void Limiter::reset_sat(sat_t *sat)
@@ -181,12 +282,6 @@ namespace lsp
 
         interpolation::hermite_cubic(sat->vAttack, -1.0f, 0.0f, 0.0f, sat->nAttack, 1.0f, 0.0f);
         interpolation::hermite_cubic(sat->vRelease, sat->nPlane, 1.0f, 0.0f, sat->nRelease, 0.0f, 0.0f);
-
-//        #ifdef LSP_DEBUG
-//        printf("sat:\n");
-//        for (ssize_t i=0; i<sat->nRelease; ++i)
-//            printf("%.6f\n", sat(i));
-//        #endif /* LSP_DEBUG */
     }
 
     void Limiter::init_exp(exp_t *exp)
@@ -228,12 +323,6 @@ namespace lsp
 
         interpolation::exponent(exp->vAttack, -1.0f, 0.0f, exp->nAttack, 1.0f, 2.0f / attack);
         interpolation::exponent(exp->vRelease, exp->nPlane, 1.0f, exp->nRelease, 0.0f, 2.0f / release);
-
-//        #ifdef LSP_DEBUG
-//        printf("exp:\n");
-//        for (ssize_t i=0; i<exp->nRelease; ++i)
-//            printf("%.6f\n", exp(i));
-//        #endif /* LSP_DEBUG */
     }
 
     void Limiter::init_line(line_t *line)
@@ -275,12 +364,6 @@ namespace lsp
 
         interpolation::linear(line->vAttack, -1.0f, 0.0f, line->nAttack, 1.0f);
         interpolation::linear(line->vRelease, line->nPlane, 1.0f, line->nRelease, 0.0f);
-
-//        #ifdef LSP_DEBUG
-//        printf("line:\n");
-//        for (ssize_t i=0; i<line->nRelease; ++i)
-//            printf("%.6f\n", line(i));
-//        #endif /* LSP_DEBUG */
     }
 
     void Limiter::init_comp(comp_t *comp)
@@ -304,6 +387,9 @@ namespace lsp
 
     void Limiter::update_settings()
     {
+        if (nUpdate == 0)
+            return;
+
         // Update delay settings
         if (nUpdate & UP_SR)
             sDelay.clear();
@@ -315,6 +401,35 @@ namespace lsp
 
         if (nUpdate & (UP_SR | UP_MODE | UP_THRESH))
             nThresh             = nLookahead;
+
+        // Update automatic level regulation
+        if (nUpdate & UP_ALR)
+        {
+            float thresh        = fThreshold * GAIN_AMP_M_6_DB;
+            sALR.fKS            = thresh * (M_SQRT2 - 1.0f);
+            sALR.fKE            = thresh;
+            sALR.fGain          = thresh * M_SQRT1_2;
+            interpolation::hermite_quadratic(sALR.vHermite, sALR.fKS, sALR.fKS, 1.0f, thresh, 0.0f);
+            lsp_trace("y(x)=(%g*x + %g)*x + %g", sALR.vHermite[0], sALR.vHermite[1], sALR.vHermite[2]);
+
+            printf("x;y;\n");
+            for (float x=-72.0f; x <= 0.0f; x += 0.1f)
+            {
+                float gx = db_to_gain(x);
+                float gy = (gx <= sALR.fKS) ? gx :
+                           (gx >= sALR.fKE) ? sALR.fGain :
+                           (sALR.vHermite[0]*gx + sALR.vHermite[1])*gx + sALR.vHermite[2];
+                float y  = gain_to_db(gy);
+
+                printf("%g;%g;\n", x, y);
+            }
+
+            float att           = millis_to_samples(nSampleRate, sALR.fAttack);
+            float rel           = millis_to_samples(nSampleRate, sALR.fRelease);
+
+            sALR.fTauAttack     = (att < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / att);
+            sALR.fTauRelease    = (rel < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / rel);
+        }
 
         // Check that mode change has triggered
         if (nUpdate & UP_MODE)
@@ -554,6 +669,26 @@ namespace lsp
             *(dst++)   *= 1.0f - amp * (line->vRelease[0] * (t++) + line->vRelease[1]);
     }
 
+    void Limiter::process_alr(float *gbuf, const float *sc, size_t samples)
+    {
+        for (size_t i=0; i<samples; ++i)
+        {
+            float d     = sc[i] - sALR.fEnvelope;
+            float k     = (d > 0.0f) ? sALR.fTauAttack : sALR.fTauRelease;
+            float e     = (sALR.fEnvelope += k * d);
+
+            if (e <= sALR.fKS)
+                gbuf[i]     = 1.0f;
+            else
+            {
+                float dg    = (e >= sALR.fKE) ? sALR.fGain :
+                              (sALR.vHermite[0]*e + sALR.vHermite[1])*e + sALR.vHermite[2];
+
+                gbuf[i]  = dg / e;
+            }
+        }
+    }
+
     void Limiter::process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples)
     {
         // Do some stuff
@@ -608,8 +743,11 @@ namespace lsp
             size_t to_do    = (samples > BUF_GRANULARITY) ? BUF_GRANULARITY : samples;
 
             // Fill gain buffer
-            dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
             dsp::abs2(vTmpBuf, sc, to_do);
+            if (sALR.bEnable)
+                process_alr(gbuf, vTmpBuf, to_do);
+            else
+                dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
 
             float thresh    = 1.0f;
 
@@ -698,7 +836,7 @@ namespace lsp
             dsp::copy(gain, &vGainBuf[nMaxLookahead - nLookahead], to_do);
             dsp::move(vGainBuf, &vGainBuf[to_do], nMaxLookahead*4);
 
-            // Apply gain to delayed signal
+            // Gain will be applied to the delayed signal
             sDelay.process(dst, src, to_do);
 
             // Decrement number of samples and update pointers
@@ -720,8 +858,11 @@ namespace lsp
             size_t to_do    = (samples > BUF_GRANULARITY) ? BUF_GRANULARITY : samples;
 
             // Fill gain buffer
-            dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
             dsp::abs2(vTmpBuf, sc, to_do);
+            if (sALR.bEnable)
+                process_alr(gbuf, vTmpBuf, to_do);
+            else
+                dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
 
             // Issue compressor reaction
             for (size_t i=0; i<to_do; ++i)
@@ -832,7 +973,7 @@ namespace lsp
             dsp::copy(gain, &vGainBuf[nMaxLookahead - nLookahead], to_do);
             dsp::move(vGainBuf, &vGainBuf[to_do], nMaxLookahead*4);
 
-            // Apply gain to delayed signal
+            // Gain will be applied to delayed signal
             sDelay.process(dst, src, to_do);
 
             // Decrement number of samples and update pointers
@@ -848,8 +989,7 @@ namespace lsp
     void Limiter::process(float *dst, float *gain, const float *src, const float *sc, size_t samples)
     {
         // Force settings update if there are any
-        if (nUpdate)
-            update_settings();
+        update_settings();
 
         // Perform processing
         switch (nMode)
@@ -989,6 +1129,20 @@ namespace lsp
         v->write("nUpdate", nUpdate);
         v->write("nMode", nMode);
         v->write("nThresh", nThresh);
+        v->start_object("sALR", &sALR, sizeof(alr_t));
+        {
+            v->write("fKS", sALR.fKS);
+            v->write("fKE", sALR.fKE);
+            v->write("fGain", sALR.fGain);
+            v->write("fTauAttack", sALR.fTauAttack);
+            v->write("fTauRelease", sALR.fTauRelease);
+            v->write("fEnvelope", sALR.fEnvelope);
+            v->writev("vHermite", sALR.vHermite, 3);
+            v->write("fAttack", sALR.fAttack);
+            v->write("fRelease", sALR.fRelease);
+            v->write("bEnabled", sALR.bEnable);
+        }
+        v->end_object();
 
         v->write("vGainBuf", vGainBuf);
         v->write("vTmpBuf", vTmpBuf);
