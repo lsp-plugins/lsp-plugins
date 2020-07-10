@@ -20,6 +20,7 @@ namespace lsp
             bLog            = false;
             bLogSet         = false;
             bCyclingSet     = false;
+            fDefaultValue   = 0.0f;
         }
 
         CtlKnob::~CtlKnob()
@@ -34,6 +35,14 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t CtlKnob::slot_dbl_click(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlKnob *_this      = static_cast<CtlKnob *>(ptr);
+            if (_this != NULL)
+                _this->set_default_value();
+            return STATUS_OK;
+        }
+
         void CtlKnob::submit_value()
         {
             if (pPort == NULL)
@@ -41,7 +50,7 @@ namespace lsp
             if (pWidget == NULL)
                 return;
 
-            LSPKnob *knob   = static_cast<LSPKnob *>(pWidget);
+            LSPKnob *knob   = widget_cast<LSPKnob>(pWidget);
             float value     = knob->value();
 
             const port_t *p = pPort->metadata();
@@ -76,6 +85,40 @@ namespace lsp
             pPort->notify_all();
         }
 
+        void CtlKnob::set_default_value()
+        {
+            LSPKnob *knob = widget_cast<LSPKnob>(pWidget);
+            if (knob == NULL)
+                return;
+
+            const port_t *p = pPort->metadata();
+            float dfl   = (p != NULL) ? pPort->get_default_value() : fDefaultValue;
+            float value = dfl;
+
+            if (p != NULL)
+            {
+                if (is_gain_unit(p->unit)) // Decibels
+                {
+                    double base = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
+
+                    if (value < GAIN_AMP_M_120_DB)
+                        value           = GAIN_AMP_M_120_DB;
+
+                    value = base * log(value);
+                }
+                else if (bLog)
+                {
+                    if (value < GAIN_AMP_M_120_DB)
+                        value           = GAIN_AMP_M_120_DB;
+                    value = log(value);
+                }
+            }
+
+            knob->set_value(value);
+            pPort->set_value(dfl);
+            pPort->notify_all();
+        }
+
         void CtlKnob::commit_value(float value)
         {
             if (pWidget == NULL)
@@ -97,25 +140,17 @@ namespace lsp
                     value           = GAIN_AMP_M_120_DB;
 
                 knob->set_value(base * log(value));
-                knob->set_default_value(base * log(pPort->get_default_value()));
             }
             else if (is_discrete_unit(p->unit)) // Integer type
-            {
                 knob->set_value(truncf(value));
-                knob->set_default_value(pPort->get_default_value());
-            }
             else if (bLog)
             {
                 if (value < GAIN_AMP_M_120_DB)
                     value           = GAIN_AMP_M_120_DB;
                 knob->set_value(log(value));
-                knob->set_default_value(log(pPort->get_default_value()));
             }
             else
-            {
                 knob->set_value(value);
-                knob->set_default_value(pPort->get_default_value());
-            }
         }
 
         void CtlKnob::init()
@@ -133,6 +168,7 @@ namespace lsp
 
             // Bind slots
             knob->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+            knob->slots()->bind(LSPSLOT_MOUSE_DBL_CLICK, slot_dbl_click, this);
         }
 
         void CtlKnob::set(widget_attribute_t att, const char *value)
@@ -154,7 +190,7 @@ namespace lsp
                     break;
                 case A_DEFAULT:
                     if (knob != NULL)
-                        PARSE_FLOAT(value, knob->set_default_value(__));
+                        PARSE_FLOAT(value, fDefaultValue = __);
                     break;
                 case A_MIN:
                     if (knob != NULL)
@@ -222,6 +258,8 @@ namespace lsp
             if (!bLogSet)
                 bLog        = (p->flags & F_LOG);
 
+            fDefaultValue = p->start;
+
             if (is_gain_unit(p->unit)) // Gain
             {
                 double base     = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
@@ -240,7 +278,6 @@ namespace lsp
                 knob->set_step(step * 10.0f);
                 knob->set_tiny_step(step);
                 knob->set_value(base * log(p->start));
-                knob->set_default_value(knob->value());
             }
             else if (is_discrete_unit(p->unit)) // Integer type
             {
@@ -257,7 +294,6 @@ namespace lsp
                 knob->set_step(step);
                 knob->set_tiny_step(step);
                 knob->set_value(p->start);
-                knob->set_default_value(p->start);
                 if (!bCyclingSet)
                     knob->set_cycling(p->flags & F_CYCLIC);
             }
@@ -275,7 +311,6 @@ namespace lsp
                 knob->set_step(step * 10.0f);
                 knob->set_tiny_step(step);
                 knob->set_value(log(p->start));
-                knob->set_default_value(knob->value());
             }
             else // Float and other values, non-logarithmic
             {
@@ -284,7 +319,7 @@ namespace lsp
                 knob->set_tiny_step((p->flags & F_STEP) ? p->step : (knob->max_value() - knob->min_value()) * 0.01f);
                 knob->set_step(knob->tiny_step() * 10.0f);
                 knob->set_value(p->start);
-                knob->set_default_value(p->start);
+                fDefaultValue = p->start;
                 if (!bCyclingSet)
                     knob->set_cycling(p->flags & F_CYCLIC);
             }

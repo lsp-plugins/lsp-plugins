@@ -20,7 +20,6 @@ namespace lsp
             fMin            = 0.0f;
             fMax            = 1.0f;
             fValue          = 0.5f;
-            fDefault        = 0.5f;
             fStep           = 0.01f;
             fTinyStep       = 0.001f;
             nMinSize        = 32;
@@ -79,11 +78,6 @@ namespace lsp
 
             fValue      = value;
             query_draw();
-        }
-
-        void LSPFader::set_default_value(float value)
-        {
-            fDefault    = value;
         }
 
         float LSPFader::limit_value(float value)
@@ -368,19 +362,6 @@ namespace lsp
             }
 
             return STATUS_OK;
-        }
-
-        status_t LSPFader::on_mouse_dbl_click(const ws_event_t *e)
-        {
-            if (e->nCode != MCB_LEFT)
-                return STATUS_OK;
-            float value     = limit_value(fDefault);
-            if (value == fValue)
-                return STATUS_OK;
-
-            fValue          = value;
-            query_draw();
-            return sSlots.execute(LSPSLOT_CHANGE, this);
         }
 
         void LSPFader::draw(ISurface *s)
